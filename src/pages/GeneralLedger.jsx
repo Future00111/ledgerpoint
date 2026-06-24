@@ -54,11 +54,13 @@ export default function GeneralLedger() {
 
   const handleTestJournal = async () => {
     try {
-      const bankAccount = journals.find(j => j.account_code === '1000');
-      const salesAccount = journals.find(j => j.account_code === '4000');
+      // Fetch accounts by code
+      const accounts = await base44.entities.ChartOfAccount.filter({ company_id: activeCompany.id });
+      const bankAccount = accounts.find(a => a.code === '1000');
+      const salesAccount = accounts.find(a => a.code === '4000');
       
-      if (!bankAccount?.account_id || !salesAccount?.account_id) {
-        toast({ title: 'Error', description: 'Bank and Sales accounts not found in ledger', variant: 'destructive' });
+      if (!bankAccount || !salesAccount) {
+        toast({ title: 'Error', description: 'Required accounts not found. Please ensure default accounts are created.', variant: 'destructive' });
         return;
       }
 
@@ -68,7 +70,7 @@ export default function GeneralLedger() {
           date: new Date().toISOString().split('T')[0],
           reference: 'TEST-001',
           description: 'Test Journal Entry',
-          account_id: bankAccount.account_id,
+          account_id: bankAccount.id,
           account_code: '1000',
           account_name: 'Bank Account',
           debit: 100,
@@ -82,7 +84,7 @@ export default function GeneralLedger() {
           date: new Date().toISOString().split('T')[0],
           reference: 'TEST-001',
           description: 'Test Journal Entry',
-          account_id: salesAccount.account_id,
+          account_id: salesAccount.id,
           account_code: '4000',
           account_name: 'Sales',
           debit: 0,
@@ -93,7 +95,7 @@ export default function GeneralLedger() {
         },
       ]);
       
-      toast({ title: 'Test journal created', description: 'Debit Bank £100, Credit Sales £100' });
+      toast({ title: 'Success', description: 'Test journal created: Debit 1000 Bank Account £100, Credit 4000 Sales £100' });
       loadJournals();
     } catch (e) {
       toast({ title: 'Error creating test journal', description: e.message, variant: 'destructive' });
