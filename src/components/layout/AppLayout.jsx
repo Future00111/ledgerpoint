@@ -43,6 +43,7 @@ const navItems = [
   { label: 'Purchase Bills', path: '/bills', icon: Receipt },
   { label: 'Sales Credit Notes', path: '/sales-credit-notes', icon: Undo2 },
   { label: 'Supplier Credit Notes', path: '/supplier-credit-notes', icon: RotateCcw },
+  { label: 'Bank Accounts', path: '/bank-accounts', icon: Landmark },
   { label: 'Bank Transactions', path: '/transactions', icon: Landmark },
   { label: 'VAT Returns', path: '/vat', icon: Calculator },
   { label: 'Documents', path: '/documents', icon: FolderOpen },

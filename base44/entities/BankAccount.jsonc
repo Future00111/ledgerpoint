@@ -1,0 +1,60 @@
+{
+  "name": "BankAccount",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "account_name": {
+      "type": "string",
+      "description": "Name of the bank account (e.g., Business Account)"
+    },
+    "bank_name": {
+      "type": "string",
+      "description": "Name of the bank"
+    },
+    "sort_code": {
+      "type": "string",
+      "description": "Bank sort code (UK format: XX-XX-XX)"
+    },
+    "account_number": {
+      "type": "string",
+      "description": "Bank account number"
+    },
+    "currency": {
+      "type": "string",
+      "default": "GBP",
+      "description": "Currency code (e.g., GBP, EUR, USD)"
+    },
+    "opening_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Opening balance when account was created"
+    },
+    "current_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Current balance calculated from transactions"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or reference information"
+    }
+  },
+  "required": [
+    "company_id",
+    "account_name",
+    "bank_name",
+    "sort_code",
+    "account_number"
+  ]
+}

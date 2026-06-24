@@ -5,6 +5,10 @@
     "company_id": {
       "type": "string"
     },
+    "bank_account_id": {
+      "type": "string",
+      "description": "Reference to BankAccount"
+    },
     "bank_account_name": {
       "type": "string"
     },
@@ -109,6 +113,7 @@
   },
   "required": [
     "company_id",
+    "bank_account_id",
     "date",
     "description"
   ]
