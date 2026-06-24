@@ -19,7 +19,8 @@ import {
   LogOut,
   Settings,
   FolderOpen,
-  Briefcase
+  Briefcase,
+  Mail
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -41,6 +42,7 @@ const navItems = [
   { label: 'Bank Transactions', path: '/transactions', icon: Landmark },
   { label: 'VAT Returns', path: '/vat', icon: Calculator },
   { label: 'Documents', path: '/documents', icon: FolderOpen },
+  { label: 'Email Capture', path: '/email-capture', icon: Mail },
   { label: 'Accountant Portal', path: '/accountant', icon: Briefcase },
   { label: 'Settings', path: '/settings', icon: Settings },
 ];
