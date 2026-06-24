@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Landmark, Plus, Search, ArrowUpRight, ArrowDownRight, Pencil, Trash2, Link2, CheckCircle2, Upload } from 'lucide-react';
+import { Landmark, Plus, Search, ArrowUpRight, ArrowDownRight, Pencil, Trash2, Link2, CheckCircle2, Upload, Undo2 } from 'lucide-react';
 import moment from 'moment';
 import BankTransactionForm from '@/components/bank_transactions/BankTransactionForm';
 import MatchTransactionDialog from '@/components/bank_transactions/MatchTransactionDialog';
@@ -34,8 +34,7 @@ export default function BankTransactions() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [moneyFilter, setMoneyFilter] = useState('all');
+  const [filter, setFilter] = useState('needs_review');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -88,17 +87,84 @@ export default function BankTransactions() {
     catch (e) { toast({ title: 'Error', variant: 'destructive' }); }
   };
 
-  const filtered = transactions.filter(t => {
+  const moveBackToReview = async (t) => {
+    const status = (t.matched_type && t.matched_type !== 'manual') ? 'matched' : 'unmatched';
+    try { await base44.entities.BankTransaction.update(t.id, { status }); toast({ title: 'Moved back to Needs Review' }); await loadTransactions(); }
+    catch (e) { toast({ title: 'Error', variant: 'destructive' }); }
+  };
+
+  const applyFilter = (list) => list.filter(t => {
     const matchSearch = t.description?.toLowerCase().includes(search.toLowerCase()) || t.reference?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === 'all' || t.status === statusFilter;
-    const matchMoney = moneyFilter === 'all' || (moneyFilter === 'money_in' && (t.money_in || 0) > 0) || (moneyFilter === 'money_out' && (t.money_out || 0) > 0);
-    return matchSearch && matchStatus && matchMoney;
+    if (!matchSearch) return false;
+    if (filter === 'money_in') return (t.money_in || 0) > 0;
+    if (filter === 'money_out') return (t.money_out || 0) > 0;
+    if (filter === 'unmatched') return t.status === 'unmatched';
+    if (filter === 'matched') return t.status === 'matched';
+    return true;
   });
 
-  const totalIn = filtered.reduce((s, t) => s + (t.money_in || 0), 0);
-  const totalOut = filtered.reduce((s, t) => s + (t.money_out || 0), 0);
+  const needsReviewAll = transactions.filter(t => t.status !== 'reviewed');
+  const reviewedAll = transactions.filter(t => t.status === 'reviewed');
+  const needsReview = applyFilter(needsReviewAll);
+  const reviewed = applyFilter(reviewedAll);
+
+  const showNeedsReview = filter !== 'reviewed';
+  const showReviewed = ['all', 'reviewed', 'money_in', 'money_out'].includes(filter);
+
+  const totalIn = [...needsReview, ...reviewed].reduce((s, t) => s + (t.money_in || 0), 0);
+  const totalOut = [...needsReview, ...reviewed].reduce((s, t) => s + (t.money_out || 0), 0);
 
   if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
+
+  const renderCard = (t, isReviewed) => (
+    <Card key={t.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${(t.money_in || 0) > 0 ? 'bg-emerald-50' : 'bg-rose-50'}`}>
+              {(t.money_in || 0) > 0 ? <ArrowDownRight className="w-4 h-4 text-emerald-600" /> : <ArrowUpRight className="w-4 h-4 text-rose-600" />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-medium text-sm truncate">{t.description}</p>
+                <Badge variant="secondary" className={`text-xs ${STATUS_STYLES[t.status] || ''}`}>{t.status}</Badge>
+                {t.matched_type && t.matched_type !== 'manual' && t.matched_record_number && (
+                  <Badge variant="outline" className="text-xs">{MATCHED_LABELS[t.matched_type]}: {t.matched_record_number}</Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {moment(t.date).format('DD MMM YYYY')}
+                {t.bank_account_name ? ` · ${t.bank_account_name}` : ''}
+                {t.reference ? ` · ${t.reference}` : ''}
+                {t.category ? ` · ${t.category.replace(/_/g, ' ')}` : ''}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="text-right">
+              {(t.money_in || 0) > 0 && <p className="text-sm font-semibold text-emerald-600">+{formatCurrency(t.money_in)}</p>}
+              {(t.money_out || 0) > 0 && <p className="text-sm font-semibold text-rose-600">-{formatCurrency(t.money_out)}</p>}
+              {t.balance != null && <p className="text-xs text-muted-foreground">Bal: {formatCurrency(t.balance)}</p>}
+            </div>
+            <div className="flex flex-col gap-1">
+              {!isReviewed ? (
+                <>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openMatch(t)} title="Match"><Link2 className="w-3.5 h-3.5" /></Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => markReviewed(t)} title="Mark as Reviewed"><CheckCircle2 className="w-3.5 h-3.5" /></Button>
+                </>
+              ) : (
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => moveBackToReview(t)} title="Move Back to Needs Review"><Undo2 className="w-3.5 h-3.5" /></Button>
+              )}
+            </div>
+            <div className="flex flex-col gap-1">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(t)}><Pencil className="w-3.5 h-3.5" /></Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(t)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -121,20 +187,14 @@ export default function BankTransactions() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Search transactions..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-40"><SelectValue /></SelectTrigger>
+        <Select value={filter} onValueChange={setFilter}>
+          <SelectTrigger className="w-full sm:w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="unmatched">Unmatched</SelectItem>
-            <SelectItem value="suggested">Suggested</SelectItem>
-            <SelectItem value="matched">Matched</SelectItem>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="needs_review">Needs Review</SelectItem>
             <SelectItem value="reviewed">Reviewed</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={moneyFilter} onValueChange={setMoneyFilter}>
-          <SelectTrigger className="w-full sm:w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All money</SelectItem>
+            <SelectItem value="unmatched">Unmatched</SelectItem>
+            <SelectItem value="matched">Matched</SelectItem>
             <SelectItem value="money_in">Money In</SelectItem>
             <SelectItem value="money_out">Money Out</SelectItem>
           </SelectContent>
@@ -143,58 +203,49 @@ export default function BankTransactions() {
 
       {loading ? (
         <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
-      ) : filtered.length === 0 ? (
-        <Card className="border-0 shadow-sm">
-          <CardContent className="flex flex-col items-center py-16">
-            <Landmark className="w-12 h-12 text-muted-foreground/30 mb-4" />
-            <p className="text-muted-foreground">{search || statusFilter !== 'all' || moneyFilter !== 'all' ? 'No transactions match' : 'No transactions yet'}</p>
-          </CardContent>
-        </Card>
       ) : (
-        <div className="grid gap-2">
-          {filtered.map(t => (
-            <Card key={t.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${(t.money_in || 0) > 0 ? 'bg-emerald-50' : 'bg-rose-50'}`}>
-                      {(t.money_in || 0) > 0 ? <ArrowDownRight className="w-4 h-4 text-emerald-600" /> : <ArrowUpRight className="w-4 h-4 text-rose-600" />}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium text-sm truncate">{t.description}</p>
-                        <Badge variant="secondary" className={`text-xs ${STATUS_STYLES[t.status] || ''}`}>{t.status}</Badge>
-                        {t.matched_type && t.matched_type !== 'manual' && t.matched_record_number && (
-                          <Badge variant="outline" className="text-xs">{MATCHED_LABELS[t.matched_type]}: {t.matched_record_number}</Badge>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {moment(t.date).format('DD MMM YYYY')}
-                        {t.bank_account_name ? ` · ${t.bank_account_name}` : ''}
-                        {t.reference ? ` · ${t.reference}` : ''}
-                        {t.category ? ` · ${t.category.replace(/_/g, ' ')}` : ''}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <div className="text-right">
-                      {(t.money_in || 0) > 0 && <p className="text-sm font-semibold text-emerald-600">+{formatCurrency(t.money_in)}</p>}
-                      {(t.money_out || 0) > 0 && <p className="text-sm font-semibold text-rose-600">-{formatCurrency(t.money_out)}</p>}
-                      {t.balance != null && <p className="text-xs text-muted-foreground">Bal: {formatCurrency(t.balance)}</p>}
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openMatch(t)} title="Match"><Link2 className="w-3.5 h-3.5" /></Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => markReviewed(t)} title="Mark as Reviewed" disabled={t.status === 'reviewed'}><CheckCircle2 className={`w-3.5 h-3.5 ${t.status === 'reviewed' ? 'text-emerald-500' : ''}`} /></Button>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(t)}><Pencil className="w-3.5 h-3.5" /></Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(t)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
-                    </div>
-                  </div>
+        <div className="space-y-8">
+          {showNeedsReview && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold">Needs Review</h2>
+                <Badge variant="secondary" className="bg-primary/10 text-primary">{needsReview.length}</Badge>
+              </div>
+              {needsReview.length === 0 ? (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="flex flex-col items-center py-12">
+                    <Landmark className="w-10 h-10 text-muted-foreground/30 mb-3" />
+                    <p className="text-muted-foreground text-sm">No transactions need review</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-2">
+                  {needsReview.map(t => renderCard(t, false))}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              )}
+            </div>
+          )}
+
+          {showReviewed && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold">Reviewed Transactions</h2>
+                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">{reviewed.length}</Badge>
+              </div>
+              {reviewed.length === 0 ? (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="flex flex-col items-center py-12">
+                    <CheckCircle2 className="w-10 h-10 text-muted-foreground/30 mb-3" />
+                    <p className="text-muted-foreground text-sm">No reviewed transactions</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-2">
+                  {reviewed.map(t => renderCard(t, true))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
