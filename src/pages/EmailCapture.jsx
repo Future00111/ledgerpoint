@@ -1,28 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mail, Scan, FileText, Receipt, Undo2, CheckCircle, AlertCircle, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Scan, Loader2, FileText, Receipt, Undo2, FolderOpen, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
+import EmailAccountManager from '@/components/email_capture/EmailAccountManager';
+import EmailRuleManager from '@/components/email_capture/EmailRuleManager';
+import CaptureLog from '@/components/email_capture/CaptureLog';
+import moment from 'moment';
 
-const PROVIDERS = [
-  {
-    id: 'gmail',
-    name: 'Gmail',
-    description: 'Scan your Gmail inbox for invoice, receipt, and credit note attachments.',
-    color: 'text-red-600',
-    bg: 'bg-red-50',
-  },
-  {
-    id: 'outlook',
-    name: 'Outlook',
-    description: 'Scan your Outlook inbox for invoice, receipt, and credit note attachments.',
-    color: 'text-blue-600',
-    bg: 'bg-blue-50',
-  },
-];
+function formatCurrency(a) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(a || 0); }
 
 const TYPE_ICONS = {
   purchase_invoice: Receipt,
@@ -38,173 +28,153 @@ const TYPE_LABELS = {
   credit_note: 'Credit Note',
 };
 
+const STATUS_STYLES = {
+  pending_extraction: 'bg-muted text-muted-foreground',
+  pending_review: 'bg-amber-100 text-amber-700',
+  approved: 'bg-emerald-100 text-emerald-700',
+  rejected: 'bg-red-100 text-red-700',
+};
+
+const STATUS_LABELS = {
+  pending_extraction: 'Pending Extraction',
+  pending_review: 'Pending Review',
+  approved: 'Approved',
+  rejected: 'Rejected',
+};
+
 export default function EmailCapture() {
   const { activeCompany } = useCompany();
-  const [scanning, setScanning] = useState(null);
-  const [results, setResults] = useState({});
+  const [tab, setTab] = useState('accounts');
+  const [scanning, setScanning] = useState(false);
+  const [scanResult, setScanResult] = useState(null);
+  const [capturedDocs, setCapturedDocs] = useState([]);
+  const [docsLoading, setDocsLoading] = useState(false);
+  const [logRefresh, setLogRefresh] = useState(0);
   const { toast } = useToast();
 
-  const handleScan = async (provider) => {
-    if (!activeCompany) {
-      toast({ title: 'Please select a company first', variant: 'destructive' });
-      return;
-    }
-    setScanning(provider);
+  const loadCapturedDocs = async () => {
+    if (!activeCompany) return;
+    setDocsLoading(true);
     try {
-      const res = await base44.functions.invoke('scanEmailsForInvoices', {
-        provider,
-        company_id: activeCompany.id,
-      });
-      setResults(prev => ({ ...prev, [provider]: res.data }));
-      if (res.data.found > 0) {
-        toast({ title: `Found ${res.data.found} document(s) from ${provider === 'gmail' ? 'Gmail' : 'Outlook'}` });
-      } else {
-        toast({ title: `No invoices or receipts found in ${provider === 'gmail' ? 'Gmail' : 'Outlook'}` });
-      }
+      const docs = await base44.entities.Document.filter({ company_id: activeCompany.id }, '-upload_date', 200);
+      setCapturedDocs(docs.filter(d => d.notes && d.notes.toLowerCase().includes('capture')));
+    } catch (e) { console.error(e); }
+    finally { setDocsLoading(false); }
+  };
+
+  useEffect(() => { if (activeCompany) loadCapturedDocs(); }, [activeCompany]);
+
+  const handleScan = async () => {
+    if (!activeCompany) return;
+    setScanning(true);
+    try {
+      const res = await base44.functions.invoke('mockScanEmails', { company_id: activeCompany.id });
+      setScanResult(res.data);
+      toast({ title: `Scan complete: ${res.data.documents_found} document(s) found` });
+      setLogRefresh(k => k + 1);
+      loadCapturedDocs();
     } catch (e) {
       const msg = e?.response?.data?.error || e.message;
       toast({ title: 'Scan failed', description: msg, variant: 'destructive' });
-      setResults(prev => ({ ...prev, [provider]: { error: msg } }));
     } finally {
-      setScanning(null);
+      setScanning(false);
     }
   };
 
   if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
 
+  const tabs = [
+    { value: 'accounts', label: 'Email Accounts' },
+    { value: 'rules', label: 'Rules' },
+    { value: 'log', label: 'Capture Log' },
+    { value: 'captured', label: 'Captured Documents' },
+  ];
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Email Invoice Capture</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Connect your email account and automatically find invoices, receipts, and credit notes.
-          Documents are created as pending extraction and appear in the Documents page for your review.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Email Invoice Capture</h1>
+          <p className="text-muted-foreground text-sm mt-1">Add email accounts, create rules, and scan for invoices and receipts.</p>
+        </div>
+        <Button onClick={handleScan} disabled={scanning} className="gap-2">
+          {scanning ? <><Loader2 className="w-4 h-4 animate-spin" />Scanning...</> : <><Scan className="w-4 h-4" />Scan All</>}
+        </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {PROVIDERS.map(provider => {
-          const isScanning = scanning === provider.id;
-          const result = results[provider.id];
-          return (
-            <Card key={provider.id} className="border-0 shadow-sm">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 ${provider.bg} rounded-lg flex items-center justify-center`}>
-                    <Mail className={`w-5 h-5 ${provider.color}`} />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">{provider.name}</CardTitle>
-                    <CardDescription className="text-xs">{provider.description}</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button
-                  onClick={() => handleScan(provider.id)}
-                  disabled={isScanning}
-                  className="w-full gap-2"
-                >
-                  {isScanning ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Scanning...
-                    </>
-                  ) : (
-                    <>
-                      <Scan className="w-4 h-4" />
-                      Scan Emails
-                    </>
-                  )}
-                </Button>
+      {scanResult && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Card className="border-0 shadow-sm"><CardContent className="p-3 text-center"><p className="text-2xl font-semibold">{scanResult.accounts_scanned}</p><p className="text-xs text-muted-foreground">Accounts Scanned</p></CardContent></Card>
+          <Card className="border-0 shadow-sm"><CardContent className="p-3 text-center"><p className="text-2xl font-semibold">{scanResult.emails_scanned}</p><p className="text-xs text-muted-foreground">Emails Scanned</p></CardContent></Card>
+          <Card className="border-0 shadow-sm"><CardContent className="p-3 text-center"><p className="text-2xl font-semibold text-emerald-600">{scanResult.documents_found}</p><p className="text-xs text-muted-foreground">Documents Found</p></CardContent></Card>
+          <Card className="border-0 shadow-sm"><CardContent className="p-3 text-center"><p className="text-2xl font-semibold">{scanResult.emails_ignored}</p><p className="text-xs text-muted-foreground">Emails Ignored</p></CardContent></Card>
+        </div>
+      )}
 
-                {result && !result.error && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="bg-muted rounded-lg p-2">
-                        <p className="text-lg font-semibold">{result.scanned}</p>
-                        <p className="text-xs text-muted-foreground">Scanned</p>
-                      </div>
-                      <div className="bg-emerald-50 rounded-lg p-2">
-                        <p className="text-lg font-semibold text-emerald-700">{result.found}</p>
-                        <p className="text-xs text-muted-foreground">Found</p>
-                      </div>
-                      <div className="bg-muted rounded-lg p-2">
-                        <p className="text-lg font-semibold">{result.ignored}</p>
-                        <p className="text-xs text-muted-foreground">Ignored</p>
-                      </div>
-                    </div>
+      <div className="flex gap-1 border-b overflow-x-auto">
+        {tabs.map(t => (
+          <button key={t.value} onClick={() => setTab(t.value)} className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${tab === t.value ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-                    {result.documents?.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium">Captured Documents:</p>
-                        {result.documents.map((doc, i) => {
-                          const DocIcon = TYPE_ICONS[doc.type] || FileText;
-                          return (
-                            <div key={i} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-                              <DocIcon className="w-4 h-4 text-primary flex-shrink-0" />
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium truncate">{doc.name}</p>
-                                <p className="text-xs text-muted-foreground">{TYPE_LABELS[doc.type]} · {doc.sender}</p>
-                              </div>
-                              <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                            </div>
-                          );
-                        })}
-                        <Link to="/documents" className="flex items-center gap-1 text-sm text-primary hover:underline">
-                          View in Documents <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
-                      </div>
-                    )}
-
-                    {result.errors?.length > 0 && (
-                      <div className="space-y-1">
-                        {result.errors.slice(0, 3).map((err, i) => (
-                          <div key={i} className="flex items-start gap-2 text-xs text-amber-600">
-                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                            <p>{err}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {result?.error && (
-                  <div className="flex items-start gap-2 p-3 bg-red-50 rounded-lg">
-                    <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-red-700">Scan failed</p>
-                      <p className="text-xs text-red-600">{result.error}</p>
-                    </div>
-                  </div>
-                )}
+      {tab === 'accounts' && <EmailAccountManager companyId={activeCompany.id} />}
+      {tab === 'rules' && <EmailRuleManager companyId={activeCompany.id} />}
+      {tab === 'log' && <CaptureLog companyId={activeCompany.id} refreshKey={logRefresh} />}
+      {tab === 'captured' && (
+        <div className="space-y-3">
+          {docsLoading ? (
+            <div className="flex justify-center py-8"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
+          ) : capturedDocs.length === 0 ? (
+            <Card className="border-0 shadow-sm">
+              <CardContent className="flex flex-col items-center py-12">
+                <FolderOpen className="w-10 h-10 text-muted-foreground/30 mb-3" />
+                <p className="text-muted-foreground text-sm">No documents captured yet</p>
+                <p className="text-xs text-muted-foreground mt-1">Run a scan to capture documents from your email accounts</p>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
-
-      <Card className="border-0 shadow-sm bg-muted/30">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-              <ShieldCheck className="w-4 h-4 text-primary" />
+          ) : (
+            <div className="grid gap-2">
+              {capturedDocs.map(doc => {
+                const Icon = TYPE_ICONS[doc.document_type] || FileText;
+                return (
+                  <Card key={doc.id} className="border-0 shadow-sm">
+                    <CardContent className="p-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Icon className="w-5 h-5 text-primary" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium text-sm truncate">{doc.name}</p>
+                            <Badge variant="secondary" className={`text-xs ${STATUS_STYLES[doc.status]}`}>{STATUS_LABELS[doc.status]}</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {TYPE_LABELS[doc.document_type] || 'Other'}
+                            {doc.supplier_or_customer ? ` · ${doc.supplier_or_customer}` : ''}
+                            {doc.reference_number ? ` · ${doc.reference_number}` : ''}
+                            {doc.document_date ? ` · ${moment(doc.document_date).format('DD MMM YYYY')}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <p className="text-sm font-semibold">{formatCurrency(doc.gross_amount)}</p>
+                        <Link to="/documents"><ArrowRight className="w-4 h-4 text-muted-foreground" /></Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
-            <div>
-              <p className="text-sm font-medium">How it works</p>
-              <ul className="text-xs text-muted-foreground mt-1 space-y-1">
-                <li>• Scans your email inbox for messages with attachments from the last 30 days</li>
-                <li>• AI identifies invoices, receipts, and credit notes — newsletters and personal emails are ignored</li>
-                <li>• PDF and image attachments are saved as documents with "Pending Extraction" status</li>
-                <li>• AI extraction runs automatically — review extracted data in the Documents page</li>
-                <li>• Your emails are never deleted or modified</li>
-                <li>• User approval is required before creating bills, invoices, or credit notes</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          )}
+          {capturedDocs.length > 0 && (
+            <Link to="/documents" className="flex items-center gap-1 text-sm text-primary hover:underline justify-center">
+              View all in Documents <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          )}
+        </div>
+      )}
     </div>
   );
 }

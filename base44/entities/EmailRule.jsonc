@@ -1,0 +1,49 @@
+{
+  "name": "EmailRule",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "name": {
+      "type": "string"
+    },
+    "sender_contains": {
+      "type": "string",
+      "description": "Filter emails by sender containing this text"
+    },
+    "subject_contains": {
+      "type": "string",
+      "description": "Filter emails by subject containing this text"
+    },
+    "attachment_type": {
+      "type": "string",
+      "enum": [
+        "any",
+        "pdf",
+        "image"
+      ],
+      "default": "any"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "purchase_invoice",
+        "sales_invoice",
+        "receipt",
+        "credit_note",
+        "auto"
+      ],
+      "default": "auto"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "company_id",
+    "name"
+  ]
+}

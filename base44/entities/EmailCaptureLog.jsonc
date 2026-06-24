@@ -1,0 +1,47 @@
+{
+  "name": "EmailCaptureLog",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "email_account_id": {
+      "type": "string",
+      "description": "Reference to EmailAccount"
+    },
+    "email_address": {
+      "type": "string"
+    },
+    "scan_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "emails_scanned": {
+      "type": "number",
+      "default": 0
+    },
+    "documents_found": {
+      "type": "number",
+      "default": 0
+    },
+    "emails_ignored": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "failed"
+      ],
+      "default": "completed"
+    },
+    "details": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id"
+  ]
+}
