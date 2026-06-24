@@ -23,41 +23,24 @@ Deno.serve(async (req) => {
     console.log(`[POST_INVOICE] Processing invoice ${invoice.invoice_number} (ID: ${invoice_id})`);
     console.log(`[POST_INVOICE] Customer: ${invoice.customer_name}, Subtotal: ${invoice.subtotal}, VAT: ${invoice.vat_total}, Total: ${invoice.total}`);
 
-    // Find trade debtors account
-    console.log(`[POST_INVOICE] Looking for Trade Debtors account (asset type)`);
-    const assetAccounts = await base44.entities.ChartOfAccount.filter({ company_id, type: 'asset' });
-    console.log(`[POST_INVOICE] Found ${assetAccounts.length} asset accounts: ${assetAccounts.map(a => `${a.code}-${a.name}`).join(', ')}`);
-    
-    let debtorsAccount = assetAccounts.find(a => a.name?.toLowerCase().includes('trade debtor') || a.name?.toLowerCase().includes('receivable'));
-    if (!debtorsAccount) {
-      console.log(`[POST_INVOICE] Warning: No 'Trade Debtor' or 'Receivable' account found. Available asset accounts: ${assetAccounts.map(a => a.name).join(', ')}`);
-      return Response.json({ error: `Trade Debtors account not found. Available asset accounts: ${assetAccounts.map(a => a.name).join(', ')}` }, { status: 400 });
-    }
-    console.log(`[POST_INVOICE] Selected debtors account: ${debtorsAccount.code} - ${debtorsAccount.name}`);
+    // Fetch all accounts for company
+    const allAccounts = await base44.entities.ChartOfAccount.filter({ company_id });
+    const accountMap = {};
+    allAccounts.forEach(a => { accountMap[a.code] = a; });
 
-    // Find sales income account
-    console.log(`[POST_INVOICE] Looking for Sales account (income type)`);
-    const incomeAccounts = await base44.entities.ChartOfAccount.filter({ company_id, type: 'income' });
-    console.log(`[POST_INVOICE] Found ${incomeAccounts.length} income accounts: ${incomeAccounts.map(a => `${a.code}-${a.name}`).join(', ')}`);
+    // Verify required accounts
+    const requiredCodes = ['1100', '4000', '2200'];
+    const missingCodes = requiredCodes.filter(code => !accountMap[code]);
     
-    let salesAccount = incomeAccounts.find(a => a.name?.toLowerCase().includes('sales') || a.name?.toLowerCase().includes('income'));
-    if (!salesAccount) {
-      console.log(`[POST_INVOICE] Warning: No 'Sales' or 'Income' account found. Available income accounts: ${incomeAccounts.map(a => a.name).join(', ')}`);
-      return Response.json({ error: `Sales Income account not found. Available income accounts: ${incomeAccounts.map(a => a.name).join(', ')}` }, { status: 400 });
+    if (missingCodes.length > 0) {
+      return Response.json({ error: `Missing required account codes: ${missingCodes.join(', ')}. Please ensure default accounts are created.` }, { status: 400 });
     }
-    console.log(`[POST_INVOICE] Selected sales account: ${salesAccount.code} - ${salesAccount.name}`);
 
-    // Find VAT control account
-    console.log(`[POST_INVOICE] Looking for VAT Control account (vat type)`);
-    const vatAccounts = await base44.entities.ChartOfAccount.filter({ company_id, type: 'vat' });
-    console.log(`[POST_INVOICE] Found ${vatAccounts.length} VAT accounts: ${vatAccounts.map(a => `${a.code}-${a.name}`).join(', ')}`);
-    
-    let vatAccount = vatAccounts.find(a => a.name?.toLowerCase().includes('control') || a.name?.toLowerCase().includes('vat'));
-    if (!vatAccount) {
-      console.log(`[POST_INVOICE] Warning: No 'Control' or 'VAT' account found. Available VAT accounts: ${vatAccounts.map(a => a.name).join(', ')}`);
-      return Response.json({ error: `VAT Control account not found. Available VAT accounts: ${vatAccounts.map(a => a.name).join(', ')}` }, { status: 400 });
-    }
-    console.log(`[POST_INVOICE] Selected VAT account: ${vatAccount.code} - ${vatAccount.name}`);
+    const debtorsAccount = accountMap['1100'];
+    const salesAccount = accountMap['4000'];
+    const vatAccount = accountMap['2200'];
+
+    console.log(`[POST_INVOICE] Found accounts: 1100=${debtorsAccount.name}, 4000=${salesAccount.name}, 2200=${vatAccount.name}`);
 
     // Create journal entries
     const now = new Date().toISOString();

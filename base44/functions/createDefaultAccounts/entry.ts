@@ -11,17 +11,20 @@ const DEFAULT_ACCOUNTS = [
   
   // Income
   { code: '4000', name: 'Sales', type: 'income', tax_rate: 20 },
+  { code: '4100', name: 'Parts Sales', type: 'income', tax_rate: 20 },
+  { code: '4200', name: 'Labour Sales', type: 'income', tax_rate: 20 },
+  { code: '4300', name: 'MOT Income', type: 'income', tax_rate: 20 },
   
   // Cost of Sales / Purchases
   { code: '5000', name: 'Purchases', type: 'cost_of_sales', tax_rate: 20 },
+  { code: '5100', name: 'Parts Purchases', type: 'cost_of_sales', tax_rate: 20 },
   
   // Expenses
-  { code: '6100', name: 'Motor Expenses', type: 'expense', tax_rate: 20 },
+  { code: '6100', name: 'Fuel', type: 'expense', tax_rate: 20 },
   { code: '6200', name: 'Rent', type: 'expense', tax_rate: 0 },
   { code: '6300', name: 'Utilities', type: 'expense', tax_rate: 20 },
   { code: '6400', name: 'Insurance', type: 'expense', tax_rate: 20 },
   { code: '6500', name: 'Wages', type: 'expense', tax_rate: 0 },
-  { code: '6600', name: 'Fuel', type: 'expense', tax_rate: 20 },
 ];
 
 Deno.serve(async (req) => {

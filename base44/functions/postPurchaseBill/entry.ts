@@ -23,41 +23,24 @@ Deno.serve(async (req) => {
     console.log(`[POST_BILL] Processing bill ${bill.bill_number} (ID: ${bill_id})`);
     console.log(`[POST_BILL] Category: ${bill.category}, Subtotal: ${bill.subtotal}, VAT: ${bill.vat_total}, Total: ${bill.total}`);
 
-    // Find purchases account (5000 - Cost of Sales)
-    console.log(`[POST_BILL] Looking for Purchases account (cost_of_sales type)`);
-    const cosAccounts = await base44.entities.ChartOfAccount.filter({ company_id, type: 'cost_of_sales' });
-    console.log(`[POST_BILL] Found ${cosAccounts.length} cost of sales accounts: ${cosAccounts.map(a => `${a.code}-${a.name}`).join(', ')}`);
-    
-    let purchasesAccount = cosAccounts.find(a => a.code === '5000' || a.name?.toLowerCase().includes('purchase'));
-    if (!purchasesAccount) {
-      console.log(`[POST_BILL] Warning: No 'Purchases' account found. Available accounts: ${cosAccounts.map(a => a.name).join(', ')}`);
-      return Response.json({ error: `Purchases account not found. Available accounts: ${cosAccounts.map(a => a.name).join(', ')}` }, { status: 400 });
-    }
-    console.log(`[POST_BILL] Selected purchases account: ${purchasesAccount.code} - ${purchasesAccount.name}`);
+    // Fetch all accounts for company
+    const allAccounts = await base44.entities.ChartOfAccount.filter({ company_id });
+    const accountMap = {};
+    allAccounts.forEach(a => { accountMap[a.code] = a; });
 
-    // Find trade creditors account
-    console.log(`[POST_BILL] Looking for Trade Creditors account (liability type)`);
-    const liabilityAccounts = await base44.entities.ChartOfAccount.filter({ company_id, type: 'liability' });
-    console.log(`[POST_BILL] Found ${liabilityAccounts.length} liability accounts: ${liabilityAccounts.map(a => `${a.code}-${a.name}`).join(', ')}`);
+    // Verify required accounts
+    const requiredCodes = ['5000', '2100', '2200'];
+    const missingCodes = requiredCodes.filter(code => !accountMap[code]);
     
-    let creditorsAccount = liabilityAccounts.find(a => a.name?.toLowerCase().includes('trade creditor') || a.name?.toLowerCase().includes('payable'));
-    if (!creditorsAccount) {
-      console.log(`[POST_BILL] Warning: No 'Trade Creditor' or 'Payable' account found. Available liability accounts: ${liabilityAccounts.map(a => a.name).join(', ')}`);
-      return Response.json({ error: `Trade Creditors account not found. Available liability accounts: ${liabilityAccounts.map(a => a.name).join(', ')}` }, { status: 400 });
+    if (missingCodes.length > 0) {
+      return Response.json({ error: `Missing required account codes: ${missingCodes.join(', ')}. Please ensure default accounts are created.` }, { status: 400 });
     }
-    console.log(`[POST_BILL] Selected creditors account: ${creditorsAccount.code} - ${creditorsAccount.name}`);
 
-    // Find VAT control account
-    console.log(`[POST_BILL] Looking for VAT Control account (vat type)`);
-    const vatAccounts = await base44.entities.ChartOfAccount.filter({ company_id, type: 'vat' });
-    console.log(`[POST_BILL] Found ${vatAccounts.length} VAT accounts: ${vatAccounts.map(a => `${a.code}-${a.name}`).join(', ')}`);
-    
-    let vatAccount = vatAccounts.find(a => a.name?.toLowerCase().includes('control') || a.name?.toLowerCase().includes('vat'));
-    if (!vatAccount) {
-      console.log(`[POST_BILL] Warning: No 'Control' or 'VAT' account found. Available VAT accounts: ${vatAccounts.map(a => a.name).join(', ')}`);
-      return Response.json({ error: `VAT Control account not found. Available VAT accounts: ${vatAccounts.map(a => a.name).join(', ')}` }, { status: 400 });
-    }
-    console.log(`[POST_BILL] Selected VAT account: ${vatAccount.code} - ${vatAccount.name}`);
+    const purchasesAccount = accountMap['5000'];
+    const creditorsAccount = accountMap['2100'];
+    const vatAccount = accountMap['2200'];
+
+    console.log(`[POST_BILL] Found accounts: 5000=${purchasesAccount.name}, 2100=${creditorsAccount.name}, 2200=${vatAccount.name}`);
 
     // Create journal entries
     const now = new Date().toISOString();
