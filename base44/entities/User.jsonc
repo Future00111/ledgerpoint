@@ -1,0 +1,19 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "business_owner",
+        "accountant"
+      ],
+      "default": "business_owner"
+    },
+    "company_id": {
+      "type": "string",
+      "description": "Active company for this user"
+    }
+  }
+}

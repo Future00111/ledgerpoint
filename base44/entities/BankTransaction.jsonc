@@ -1,0 +1,73 @@
+{
+  "name": "BankTransaction",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "description": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "income",
+        "expense",
+        "transfer"
+      ],
+      "default": "income"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "sales",
+        "parts",
+        "tools",
+        "utilities",
+        "rent",
+        "insurance",
+        "wages",
+        "fuel",
+        "office",
+        "professional_fees",
+        "bank_charges",
+        "other"
+      ],
+      "default": "other"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "reconciled": {
+      "type": "boolean",
+      "default": false
+    },
+    "linked_invoice_id": {
+      "type": "string"
+    },
+    "linked_bill_id": {
+      "type": "string"
+    },
+    "vat_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "date",
+    "description",
+    "type",
+    "amount"
+  ]
+}

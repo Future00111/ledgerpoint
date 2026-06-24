@@ -1,0 +1,49 @@
+{
+  "name": "Supplier",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "name": {
+      "type": "string"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "address_line_1": {
+      "type": "string"
+    },
+    "address_line_2": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "postcode": {
+      "type": "string"
+    },
+    "vat_number": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "outstanding_balance": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "company_id"
+  ]
+}

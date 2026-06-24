@@ -1,0 +1,56 @@
+{
+  "name": "Company",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "registration_number": {
+      "type": "string",
+      "description": "Companies House registration number"
+    },
+    "vat_number": {
+      "type": "string",
+      "description": "VAT registration number"
+    },
+    "address_line_1": {
+      "type": "string"
+    },
+    "address_line_2": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "postcode": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "financial_year_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "vat_scheme": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "flat_rate",
+        "cash_accounting"
+      ],
+      "default": "standard"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

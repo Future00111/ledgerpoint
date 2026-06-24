@@ -1,0 +1,104 @@
+{
+  "name": "PurchaseBill",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string"
+    },
+    "supplier_id": {
+      "type": "string"
+    },
+    "supplier_name": {
+      "type": "string"
+    },
+    "bill_number": {
+      "type": "string"
+    },
+    "bill_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "awaiting_review",
+        "approved",
+        "paid",
+        "overdue",
+        "cancelled"
+      ],
+      "default": "awaiting_review"
+    },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "vat_rate": {
+            "type": "number"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "vat_amount": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number",
+      "default": 0
+    },
+    "vat_total": {
+      "type": "number",
+      "default": 0
+    },
+    "total": {
+      "type": "number",
+      "default": 0
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "parts",
+        "tools",
+        "utilities",
+        "rent",
+        "insurance",
+        "wages",
+        "fuel",
+        "office",
+        "professional_fees",
+        "other"
+      ],
+      "default": "other"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "supplier_id",
+    "bill_number",
+    "bill_date",
+    "due_date"
+  ]
+}
