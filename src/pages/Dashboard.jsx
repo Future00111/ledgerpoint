@@ -17,6 +17,7 @@ import {
   Building2
 } from 'lucide-react';
 import moment from 'moment';
+import VATDashboardCard from '@/components/dashboard/VATDashboardCard';
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(amount || 0);
@@ -146,6 +147,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* VAT Dashboard */}
+      <VATDashboardCard />
 
       {/* Lists */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
