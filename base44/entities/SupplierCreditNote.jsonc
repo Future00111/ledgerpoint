@@ -39,6 +39,11 @@
       ],
       "default": "draft"
     },
+    "is_applied": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the credit note has been applied to the original bill"
+    },
     "line_items": {
       "type": "array",
       "items": {

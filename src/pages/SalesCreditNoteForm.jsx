@@ -29,7 +29,7 @@ export default function SalesCreditNoteForm() {
   const [form, setForm] = useState({
     customer_id: '', original_invoice_id: '', credit_note_number: '',
     credit_note_date: new Date().toISOString().split('T')[0],
-    reason: '', status: 'draft', notes: '',
+    reason: '', status: 'draft', notes: '', is_applied: false,
     line_items: [{ description: '', quantity: 1, unit_price: 0, vat_rate: '20', amount: 0, vat_amount: 0, line_total: 0 }]
   });
 
@@ -75,7 +75,7 @@ export default function SalesCreditNoteForm() {
       setForm({
         customer_id: cn.customer_id || '', original_invoice_id: cn.original_invoice_id || '',
         credit_note_number: cn.credit_note_number || '', credit_note_date: cn.credit_note_date || '',
-        reason: cn.reason || '', status: cn.status || 'draft', notes: cn.notes || '',
+        reason: cn.reason || '', status: cn.status || 'draft', notes: cn.notes || '', is_applied: cn.is_applied || false,
         line_items: cn.line_items?.length ? cn.line_items : [{ description: '', quantity: 1, unit_price: 0, vat_rate: '20', amount: 0, vat_amount: 0, line_total: 0 }]
       });
       if (cn.customer_id) {
@@ -103,15 +103,30 @@ export default function SalesCreditNoteForm() {
     setSaving(true);
     const customer = customers.find(c => c.id === form.customer_id);
     const invoice = invoices.find(i => i.id === form.original_invoice_id);
+    const shouldApply = form.status === 'applied' && form.original_invoice_id;
+    const wasApplied = form.is_applied || false;
     const data = {
       ...form, company_id: activeCompany.id,
       customer_name: customer?.name || '',
       original_invoice_number: invoice?.invoice_number || '',
-      subtotal, vat_total: vatTotal, total
+      subtotal, vat_total: vatTotal, total,
+      is_applied: shouldApply
     };
     try {
-      if (isEdit) { await base44.entities.SalesCreditNote.update(id, data); toast({ title: 'Credit note updated' }); }
-      else { await base44.entities.SalesCreditNote.create(data); toast({ title: 'Credit note created' }); }
+      let savedId;
+      if (isEdit) { await base44.entities.SalesCreditNote.update(id, data); savedId = id; }
+      else { const created = await base44.entities.SalesCreditNote.create(data); savedId = created.id; }
+      // Apply or reverse credit note on original invoice
+      if (shouldApply && !wasApplied && form.original_invoice_id) {
+        await base44.functions.invoke('updatePaymentStatus', {
+          entity_type: 'sales_invoice', record_id: form.original_invoice_id, amount_paid_delta: total
+        });
+      } else if (!shouldApply && wasApplied && form.original_invoice_id) {
+        await base44.functions.invoke('updatePaymentStatus', {
+          entity_type: 'sales_invoice', record_id: form.original_invoice_id, amount_paid_delta: -total
+        });
+      }
+      toast({ title: isEdit ? 'Credit note updated' : 'Credit note created' });
       navigate('/sales-credit-notes');
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
     finally { setSaving(false); }

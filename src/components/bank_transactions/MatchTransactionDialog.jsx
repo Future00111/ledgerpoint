@@ -57,6 +57,22 @@ export default function MatchTransactionDialog({ open, onOpenChange, transaction
         updateData = { matched_type: 'ledger_account', matched_record_id: selected.id, matched_record_number: `${selected.code} ${selected.name}`, linked_invoice_id: '', linked_bill_id: '', status: 'matched' };
       }
       await base44.entities.BankTransaction.update(transaction.id, updateData);
+      // Update amount paid on matched invoice/bill
+      if (tab === 'sales_invoice') {
+        const paymentAmount = transaction.money_in || transaction.amount || 0;
+        if (paymentAmount > 0) {
+          await base44.functions.invoke('updatePaymentStatus', {
+            entity_type: 'sales_invoice', record_id: selected.id, amount_paid_delta: paymentAmount
+          });
+        }
+      } else if (tab === 'purchase_bill') {
+        const paymentAmount = transaction.money_out || transaction.amount || 0;
+        if (paymentAmount > 0) {
+          await base44.functions.invoke('updatePaymentStatus', {
+            entity_type: 'purchase_bill', record_id: selected.id, amount_paid_delta: paymentAmount
+          });
+        }
+      }
       toast({ title: 'Transaction matched' });
       onMatched();
       onOpenChange(false);

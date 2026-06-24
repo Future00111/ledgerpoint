@@ -45,13 +45,18 @@ export default function SupplierCreditNotes() {
 
   const updateStatus = async (cn, status) => {
     try {
-      if (status === 'applied' && cn.original_bill_id) {
-        const bill = await base44.entities.PurchaseBill.get(cn.original_bill_id);
-        const newAmountPaid = (bill.amount_paid || 0) + (cn.total || 0);
-        const newBalance = Math.max(0, (bill.balance_due || 0) - (cn.total || 0));
-        await base44.entities.PurchaseBill.update(bill.id, { amount_paid: newAmountPaid, balance_due: newBalance });
+      const shouldApply = status === 'applied' && cn.original_bill_id;
+      const wasApplied = cn.is_applied || false;
+      await base44.entities.SupplierCreditNote.update(cn.id, { status, is_applied: shouldApply });
+      if (shouldApply && !wasApplied && cn.original_bill_id) {
+        await base44.functions.invoke('updatePaymentStatus', {
+          entity_type: 'purchase_bill', record_id: cn.original_bill_id, amount_paid_delta: cn.total || 0
+        });
+      } else if (!shouldApply && wasApplied && cn.original_bill_id) {
+        await base44.functions.invoke('updatePaymentStatus', {
+          entity_type: 'purchase_bill', record_id: cn.original_bill_id, amount_paid_delta: -(cn.total || 0)
+        });
       }
-      await base44.entities.SupplierCreditNote.update(cn.id, { status });
       toast({ title: `Credit note marked as ${status.replace(/_/g, ' ')}` });
       await loadCreditNotes();
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }

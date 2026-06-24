@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import InvoiceLineItems from '@/components/invoices/InvoiceLineItems';
 import { ArrowLeft } from 'lucide-react';
+import { calculatePaymentStatus } from '@/lib/paymentStatus';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
@@ -103,10 +104,13 @@ export default function InvoiceForm() {
     }
     setSaving(true);
     const customer = customers.find(c => c.id === form.customer_id);
+    const amountPaid = parseFloat(form.amount_paid) || 0;
+    const calculatedStatus = calculatePaymentStatus(form.status, amountPaid, total, form.due_date);
     const data = {
       ...form, company_id: activeCompany.id,
       customer_name: customer?.name || '',
-      amount_paid: parseFloat(form.amount_paid) || 0,
+      amount_paid: amountPaid,
+      status: calculatedStatus,
       subtotal, vat_total: vatTotal, total, balance_due: balanceDue
     };
     try {
@@ -174,6 +178,7 @@ export default function InvoiceForm() {
                 <SelectContent>
                   <SelectItem value="draft">Draft</SelectItem>
                   <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="part_paid">Part Paid</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="overdue">Overdue</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>

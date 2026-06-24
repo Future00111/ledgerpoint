@@ -18,6 +18,7 @@ const statusColors = {
   draft: 'bg-slate-100 text-slate-700',
   awaiting_review: 'bg-amber-50 text-amber-700',
   approved: 'bg-blue-50 text-blue-700',
+  part_paid: 'bg-purple-50 text-purple-700',
   paid: 'bg-emerald-50 text-emerald-700',
   overdue: 'bg-red-50 text-red-700',
   cancelled: 'bg-gray-100 text-gray-500',
@@ -47,11 +48,16 @@ export default function Bills() {
   };
 
   const today = moment().format('YYYY-MM-DD');
-  const isOverdue = (bill) => ['awaiting_review', 'approved'].includes(bill.status) && bill.due_date < today;
+  const isOverdue = (bill) => ['awaiting_review', 'approved', 'part_paid'].includes(bill.status) && bill.due_date < today;
 
   const updateStatus = async (bill, status) => {
     try {
-      await base44.entities.PurchaseBill.update(bill.id, { status });
+      const updateData = { status };
+      if (status === 'paid') {
+        updateData.amount_paid = bill.total;
+        updateData.balance_due = 0;
+      }
+      await base44.entities.PurchaseBill.update(bill.id, updateData);
       toast({ title: `Bill marked as ${status.replace(/_/g, ' ')}` });
       await loadBills();
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
@@ -97,6 +103,7 @@ export default function Bills() {
             <SelectItem value="draft">Draft</SelectItem>
             <SelectItem value="awaiting_review">Awaiting Review</SelectItem>
             <SelectItem value="approved">Approved</SelectItem>
+            <SelectItem value="part_paid">Part Paid</SelectItem>
             <SelectItem value="paid">Paid</SelectItem>
             <SelectItem value="overdue">Overdue</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -137,7 +144,7 @@ export default function Bills() {
                     {bill.status === 'awaiting_review' && (
                       <Button variant="ghost" size="icon" onClick={() => updateStatus(bill, 'approved')} title="Approve Bill"><BadgeCheck className="w-4 h-4 text-blue-600" /></Button>
                     )}
-                    {(bill.status === 'approved' || bill.status === 'awaiting_review') && (
+                    {(bill.status === 'approved' || bill.status === 'awaiting_review' || bill.status === 'part_paid') && (
                       <Button variant="ghost" size="icon" onClick={() => updateStatus(bill, 'paid')} title="Mark as Paid"><CheckCircle2 className="w-4 h-4 text-emerald-600" /></Button>
                     )}
                     <Button variant="ghost" size="icon" onClick={() => openView(bill)} title="View"><Eye className="w-4 h-4" /></Button>

@@ -44,13 +44,18 @@ export default function SalesCreditNotes() {
 
   const updateStatus = async (cn, status) => {
     try {
-      if (status === 'applied' && cn.original_invoice_id) {
-        const inv = await base44.entities.SalesInvoice.get(cn.original_invoice_id);
-        const newAmountPaid = (inv.amount_paid || 0) + (cn.total || 0);
-        const newBalance = Math.max(0, (inv.balance_due || 0) - (cn.total || 0));
-        await base44.entities.SalesInvoice.update(inv.id, { amount_paid: newAmountPaid, balance_due: newBalance });
+      const shouldApply = status === 'applied' && cn.original_invoice_id;
+      const wasApplied = cn.is_applied || false;
+      await base44.entities.SalesCreditNote.update(cn.id, { status, is_applied: shouldApply });
+      if (shouldApply && !wasApplied && cn.original_invoice_id) {
+        await base44.functions.invoke('updatePaymentStatus', {
+          entity_type: 'sales_invoice', record_id: cn.original_invoice_id, amount_paid_delta: cn.total || 0
+        });
+      } else if (!shouldApply && wasApplied && cn.original_invoice_id) {
+        await base44.functions.invoke('updatePaymentStatus', {
+          entity_type: 'sales_invoice', record_id: cn.original_invoice_id, amount_paid_delta: -(cn.total || 0)
+        });
       }
-      await base44.entities.SalesCreditNote.update(cn.id, { status });
       toast({ title: `Credit note marked as ${status}` });
       await loadCreditNotes();
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }

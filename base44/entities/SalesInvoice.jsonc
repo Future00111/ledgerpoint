@@ -37,6 +37,7 @@
       "enum": [
         "draft",
         "sent",
+        "part_paid",
         "paid",
         "overdue",
         "cancelled"

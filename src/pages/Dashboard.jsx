@@ -66,7 +66,7 @@ export default function Dashboard() {
     );
   }
 
-  const unpaidInvoices = invoices.filter(i => i.status === 'sent' || i.status === 'overdue');
+  const unpaidInvoices = invoices.filter(i => ['sent', 'part_paid', 'overdue'].includes(i.status));
   const unpaidTotal = unpaidInvoices.reduce((s, i) => s + (i.total || 0), 0);
   const awaitingBills = bills.filter(b => b.status === 'awaiting_review');
   const awaitingTotal = awaitingBills.reduce((s, b) => s + (b.total || 0), 0);

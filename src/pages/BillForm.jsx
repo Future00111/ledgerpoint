@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import BillLineItems from '@/components/bills/BillLineItems';
 import { ArrowLeft } from 'lucide-react';
+import { calculatePaymentStatus } from '@/lib/paymentStatus';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
@@ -92,10 +93,13 @@ export default function BillForm() {
     }
     setSaving(true);
     const supplier = suppliers.find(s => s.id === form.supplier_id);
+    const amountPaid = parseFloat(form.amount_paid) || 0;
+    const calculatedStatus = calculatePaymentStatus(form.status, amountPaid, total, form.due_date);
     const data = {
       ...form, company_id: activeCompany.id,
       supplier_name: supplier?.name || '',
-      amount_paid: parseFloat(form.amount_paid) || 0,
+      amount_paid: amountPaid,
+      status: calculatedStatus,
       subtotal, vat_total: vatTotal, total, balance_due: balanceDue
     };
     try {
@@ -152,6 +156,7 @@ export default function BillForm() {
                   <SelectItem value="draft">Draft</SelectItem>
                   <SelectItem value="awaiting_review">Awaiting Review</SelectItem>
                   <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="part_paid">Part Paid</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="overdue">Overdue</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>

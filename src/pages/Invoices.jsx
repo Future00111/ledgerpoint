@@ -17,6 +17,7 @@ const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' 
 const statusColors = {
   draft: 'bg-slate-100 text-slate-700',
   sent: 'bg-blue-50 text-blue-700',
+  part_paid: 'bg-purple-50 text-purple-700',
   paid: 'bg-emerald-50 text-emerald-700',
   overdue: 'bg-red-50 text-red-700',
   cancelled: 'bg-gray-100 text-gray-500',
@@ -47,12 +48,17 @@ export default function Invoices() {
 
   const today = moment().format('YYYY-MM-DD');
 
-  const isOverdue = (inv) => inv.status === 'sent' && inv.due_date < today;
+  const isOverdue = (inv) => ['sent', 'part_paid'].includes(inv.status) && inv.due_date < today;
 
   const updateStatus = async (inv, status) => {
     try {
-      await base44.entities.SalesInvoice.update(inv.id, { status });
-      toast({ title: `Invoice marked as ${status}` });
+      const updateData = { status };
+      if (status === 'paid') {
+        updateData.amount_paid = inv.total;
+        updateData.balance_due = 0;
+      }
+      await base44.entities.SalesInvoice.update(inv.id, updateData);
+      toast({ title: `Invoice marked as ${status.replace(/_/g, ' ')}` });
       await loadInvoices();
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
   };
@@ -96,6 +102,7 @@ export default function Invoices() {
             <SelectItem value="all">All statuses</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
             <SelectItem value="sent">Sent</SelectItem>
+            <SelectItem value="part_paid">Part Paid</SelectItem>
             <SelectItem value="paid">Paid</SelectItem>
             <SelectItem value="overdue">Overdue</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -134,7 +141,7 @@ export default function Invoices() {
                     {inv.status === 'draft' && (
                       <Button variant="ghost" size="icon" onClick={() => updateStatus(inv, 'sent')} title="Mark as Sent"><Send className="w-4 h-4" /></Button>
                     )}
-                    {(inv.status === 'sent' || inv.status === 'overdue') && (
+                    {(inv.status === 'sent' || inv.status === 'part_paid' || inv.status === 'overdue') && (
                       <Button variant="ghost" size="icon" onClick={() => updateStatus(inv, 'paid')} title="Mark as Paid"><CheckCircle2 className="w-4 h-4 text-emerald-600" /></Button>
                     )}
                     <Button variant="ghost" size="icon" onClick={() => openView(inv)} title="View"><Eye className="w-4 h-4" /></Button>
