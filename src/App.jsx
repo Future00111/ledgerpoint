@@ -36,6 +36,7 @@ import EmailRules from '@/pages/EmailRules';
 import Reports from '@/pages/Reports';
 import AccountantPortal from '@/pages/AccountantPortal';
 import Settings from '@/pages/Settings';
+import ChartOfAccounts from '@/pages/ChartOfAccounts';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -90,6 +91,7 @@ const AuthenticatedApp = () => {
           <Route path="/email-rules" element={<EmailRules />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/accountant" element={<AccountantPortal />} />
+          <Route path="/chart-of-accounts" element={<ChartOfAccounts />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>

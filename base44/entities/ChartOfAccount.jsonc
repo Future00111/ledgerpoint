@@ -7,27 +7,30 @@
       "description": "Reference to Company"
     },
     "code": {
-      "type": "string"
+      "type": "string",
+      "description": "Account code (e.g. 4000)"
     },
     "name": {
-      "type": "string"
+      "type": "string",
+      "description": "Account name"
     },
     "type": {
       "type": "string",
       "enum": [
+        "income",
+        "cost_of_sales",
+        "expense",
         "asset",
         "liability",
         "equity",
-        "income",
-        "expense"
-      ]
+        "vat"
+      ],
+      "description": "Account category"
     },
-    "sub_type": {
-      "type": "string"
-    },
-    "vat_rate": {
+    "tax_rate": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "VAT rate percentage for this account"
     },
     "description": {
       "type": "string"

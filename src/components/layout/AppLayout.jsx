@@ -22,7 +22,8 @@ import {
   Briefcase,
   Mail,
   Filter,
-  BarChart3
+  BarChart3,
+  BookOpen
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -44,6 +45,7 @@ const navItems = [
   { label: 'Bank Transactions', path: '/transactions', icon: Landmark },
   { label: 'VAT Returns', path: '/vat', icon: Calculator },
   { label: 'Documents', path: '/documents', icon: FolderOpen },
+  { label: 'Chart of Accounts', path: '/chart-of-accounts', icon: BookOpen },
   { label: 'Email Capture', path: '/email-capture', icon: Mail },
   { label: 'Email Rules', path: '/email-rules', icon: Filter },
   { label: 'Reports', path: '/reports', icon: BarChart3 },
