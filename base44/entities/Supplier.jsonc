@@ -28,18 +28,62 @@
     "city": {
       "type": "string"
     },
+    "county": {
+      "type": "string"
+    },
     "postcode": {
       "type": "string"
+    },
+    "country": {
+      "type": "string",
+      "default": "United Kingdom"
     },
     "vat_number": {
       "type": "string"
     },
-    "notes": {
+    "supplier_reference": {
       "type": "string"
+    },
+    "default_expense_category": {
+      "type": "string",
+      "enum": [
+        "parts",
+        "tools",
+        "utilities",
+        "rent",
+        "insurance",
+        "wages",
+        "fuel",
+        "office",
+        "professional_fees",
+        "other"
+      ],
+      "default": "other"
+    },
+    "payment_terms": {
+      "type": "number",
+      "enum": [
+        7,
+        14,
+        30,
+        60
+      ],
+      "default": 30
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
     },
     "outstanding_balance": {
       "type": "number",
       "default": 0
+    },
+    "notes": {
+      "type": "string"
     }
   },
   "required": [
