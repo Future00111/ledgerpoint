@@ -36,8 +36,25 @@ export default function InvoiceForm() {
     if (activeCompany) {
       loadCustomers();
       if (isEdit) loadInvoice();
+      else suggestInvoiceNumber();
     }
   }, [activeCompany, id]);
+
+  const suggestInvoiceNumber = async () => {
+    try {
+      const list = await base44.entities.SalesInvoice.filter({ company_id: activeCompany.id });
+      let maxNum = 0;
+      list.forEach(inv => {
+        const match = inv.invoice_number?.match(/INV-(\d+)/i);
+        if (match) {
+          const n = parseInt(match[1], 10);
+          if (n > maxNum) maxNum = n;
+        }
+      });
+      const next = `INV-${String(maxNum + 1).padStart(4, '0')}`;
+      setForm(prev => ({ ...prev, invoice_number: next }));
+    } catch (e) { console.error(e); }
+  };
 
   const loadCustomers = async () => {
     try {
@@ -75,6 +92,13 @@ export default function InvoiceForm() {
   const handleSave = async () => {
     if (!form.customer_id || !form.invoice_number) {
       toast({ title: 'Please fill in customer and invoice number', variant: 'destructive' });
+      return;
+    }
+    // Validate unique invoice number within company
+    const existing = await base44.entities.SalesInvoice.filter({ company_id: activeCompany.id, invoice_number: form.invoice_number });
+    const duplicate = existing.find(inv => inv.id !== id);
+    if (duplicate) {
+      toast({ title: 'This invoice number already exists for this company.', variant: 'destructive' });
       return;
     }
     setSaving(true);
