@@ -10,6 +10,7 @@ import moment from 'moment';
 import BankTransactionForm from '@/components/bank_transactions/BankTransactionForm';
 import MatchTransactionDialog from '@/components/bank_transactions/MatchTransactionDialog';
 import ImportCSVDialog from '@/components/bank_transactions/ImportCSVDialog';
+import SuggestedMatches from '@/components/bank_transactions/SuggestedMatches';
 import { useToast } from '@/components/ui/use-toast';
 
 function formatCurrency(a) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(a || 0); }
@@ -34,9 +35,18 @@ export default function BankTransactions() {
   const [matchOpen, setMatchOpen] = useState(false);
   const [matchTarget, setMatchTarget] = useState(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState({});
+  const [approvingId, setApprovingId] = useState(null);
   const { toast } = useToast();
 
-  useEffect(() => { if (activeCompany) loadTransactions(); }, [activeCompany]);
+  useEffect(() => { if (activeCompany) { loadTransactions(); loadSuggestions(); } }, [activeCompany]);
+
+  const loadSuggestions = async () => {
+    try {
+      const result = await base44.functions.invoke('suggestTransactionMatches', { company_id: activeCompany.id });
+      setSuggestions(result.data.suggestions || {});
+    } catch (e) { console.error(e); }
+  };
 
   const loadTransactions = async () => {
     setLoading(true);
@@ -74,6 +84,27 @@ export default function BankTransactions() {
   };
 
   const openMatch = (t) => { setMatchTarget(t); setMatchOpen(true); };
+
+  const approveSuggestion = async (transaction, suggestion) => {
+    setApprovingId(transaction.id);
+    try {
+      let updateData = { status: 'matched', linked_invoice_id: '', linked_bill_id: '' };
+      if (suggestion.record_type === 'sales_invoice') {
+        updateData = { ...updateData, matched_type: 'sales_invoice', matched_record_id: suggestion.record_id, matched_record_number: suggestion.record_number, linked_invoice_id: suggestion.record_id };
+      } else if (suggestion.record_type === 'purchase_bill') {
+        updateData = { ...updateData, matched_type: 'purchase_bill', matched_record_id: suggestion.record_id, matched_record_number: suggestion.record_number, linked_bill_id: suggestion.record_id };
+      } else if (suggestion.record_type === 'sales_credit_note') {
+        updateData = { ...updateData, matched_type: 'sales_credit_note', matched_record_id: suggestion.record_id, matched_record_number: suggestion.record_number };
+      } else if (suggestion.record_type === 'supplier_credit_note') {
+        updateData = { ...updateData, matched_type: 'supplier_credit_note', matched_record_id: suggestion.record_id, matched_record_number: suggestion.record_number };
+      }
+      await base44.entities.BankTransaction.update(transaction.id, updateData);
+      toast({ title: 'Transaction matched' });
+      await loadTransactions();
+      await loadSuggestions();
+    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
+    finally { setApprovingId(null); }
+  };
 
   const reviewCount = transactions.filter(t => t.status === 'review').length;
   const matchedCount = transactions.filter(t => t.status === 'matched').length;
@@ -172,6 +203,9 @@ export default function BankTransactions() {
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(t)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
                   </div>
                 </div>
+                {t.status === 'review' && suggestions[t.id] && (
+                  <SuggestedMatches suggestions={suggestions[t.id]} onApprove={(s) => approveSuggestion(t, s)} approving={approvingId === t.id} />
+                )}
               </CardContent>
             </Card>
           ))}
