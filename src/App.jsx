@@ -33,6 +33,7 @@ import VATReturnDetail from '@/pages/VATReturnDetail';
 import Documents from '@/pages/Documents';
 import EmailCapture from '@/pages/EmailCapture';
 import EmailRules from '@/pages/EmailRules';
+import Reports from '@/pages/Reports';
 import AccountantPortal from '@/pages/AccountantPortal';
 import Settings from '@/pages/Settings';
 
@@ -87,6 +88,7 @@ const AuthenticatedApp = () => {
           <Route path="/documents" element={<Documents />} />
           <Route path="/email-capture" element={<EmailCapture />} />
           <Route path="/email-rules" element={<EmailRules />} />
+          <Route path="/reports" element={<Reports />} />
           <Route path="/accountant" element={<AccountantPortal />} />
           <Route path="/settings" element={<Settings />} />
         </Route>

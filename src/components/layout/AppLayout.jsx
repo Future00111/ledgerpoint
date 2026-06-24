@@ -21,7 +21,8 @@ import {
   FolderOpen,
   Briefcase,
   Mail,
-  Filter
+  Filter,
+  BarChart3
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -45,6 +46,7 @@ const navItems = [
   { label: 'Documents', path: '/documents', icon: FolderOpen },
   { label: 'Email Capture', path: '/email-capture', icon: Mail },
   { label: 'Email Rules', path: '/email-rules', icon: Filter },
+  { label: 'Reports', path: '/reports', icon: BarChart3 },
   { label: 'Accountant Portal', path: '/accountant', icon: Briefcase },
   { label: 'Settings', path: '/settings', icon: Settings },
 ];
