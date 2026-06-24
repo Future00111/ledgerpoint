@@ -1,0 +1,92 @@
+{
+  "name": "SalesCreditNote",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string"
+    },
+    "customer_id": {
+      "type": "string"
+    },
+    "customer_name": {
+      "type": "string"
+    },
+    "original_invoice_id": {
+      "type": "string",
+      "description": "Reference to SalesInvoice"
+    },
+    "original_invoice_number": {
+      "type": "string"
+    },
+    "credit_note_number": {
+      "type": "string"
+    },
+    "credit_note_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "issued",
+        "applied",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "vat_rate": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "vat_amount": {
+            "type": "number"
+          },
+          "line_total": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number",
+      "default": 0
+    },
+    "vat_total": {
+      "type": "number",
+      "default": 0
+    },
+    "total": {
+      "type": "number",
+      "default": 0
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "customer_id",
+    "credit_note_number",
+    "credit_note_date"
+  ]
+}

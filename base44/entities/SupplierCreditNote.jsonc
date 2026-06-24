@@ -1,0 +1,96 @@
+{
+  "name": "SupplierCreditNote",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string"
+    },
+    "supplier_id": {
+      "type": "string"
+    },
+    "supplier_name": {
+      "type": "string"
+    },
+    "original_bill_id": {
+      "type": "string",
+      "description": "Reference to PurchaseBill"
+    },
+    "original_bill_number": {
+      "type": "string"
+    },
+    "credit_note_number": {
+      "type": "string"
+    },
+    "credit_note_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "awaiting_review",
+        "approved",
+        "applied",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "vat_rate": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "vat_amount": {
+            "type": "number"
+          },
+          "line_total": {
+            "type": "number"
+          },
+          "category": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number",
+      "default": 0
+    },
+    "vat_total": {
+      "type": "number",
+      "default": 0
+    },
+    "total": {
+      "type": "number",
+      "default": 0
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "supplier_id",
+    "credit_note_number",
+    "credit_note_date"
+  ]
+}

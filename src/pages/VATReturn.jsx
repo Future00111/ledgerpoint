@@ -16,6 +16,8 @@ export default function VATReturn() {
   const [dateTo, setDateTo] = useState(moment().endOf('quarter').format('YYYY-MM-DD'));
   const [invoices, setInvoices] = useState([]);
   const [bills, setBills] = useState([]);
+  const [salesCreditNotes, setSalesCreditNotes] = useState([]);
+  const [supplierCreditNotes, setSupplierCreditNotes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [calculated, setCalculated] = useState(false);
 
@@ -23,9 +25,11 @@ export default function VATReturn() {
     if (!activeCompany) return;
     setLoading(true);
     try {
-      const [allInvoices, allBills] = await Promise.all([
+      const [allInvoices, allBills, allSalesCNs, allSupplierCNs] = await Promise.all([
         base44.entities.SalesInvoice.filter({ company_id: activeCompany.id }),
         base44.entities.PurchaseBill.filter({ company_id: activeCompany.id }),
+        base44.entities.SalesCreditNote.filter({ company_id: activeCompany.id }),
+        base44.entities.SupplierCreditNote.filter({ company_id: activeCompany.id }),
       ]);
 
       const filteredInvoices = allInvoices.filter(i => 
@@ -34,22 +38,35 @@ export default function VATReturn() {
       const filteredBills = allBills.filter(b => 
         b.status !== 'cancelled' && b.bill_date >= dateFrom && b.bill_date <= dateTo
       );
+      const filteredSalesCNs = allSalesCNs.filter(c => 
+        c.status !== 'cancelled' && c.status !== 'draft' && c.credit_note_date >= dateFrom && c.credit_note_date <= dateTo
+      );
+      const filteredSupplierCNs = allSupplierCNs.filter(c => 
+        c.status !== 'cancelled' && c.status !== 'draft' && c.credit_note_date >= dateFrom && c.credit_note_date <= dateTo
+      );
 
       setInvoices(filteredInvoices);
       setBills(filteredBills);
+      setSalesCreditNotes(filteredSalesCNs);
+      setSupplierCreditNotes(filteredSupplierCNs);
       setCalculated(true);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
 
   // VAT Calculations (UK VAT Return boxes)
-  const box1 = invoices.reduce((s, i) => s + (i.vat_total || 0), 0); // VAT due on sales
+  const salesCNVat = salesCreditNotes.reduce((s, c) => s + (c.vat_total || 0), 0);
+  const salesCNSubtotal = salesCreditNotes.reduce((s, c) => s + (c.subtotal || 0), 0);
+  const supplierCNVat = supplierCreditNotes.reduce((s, c) => s + (c.vat_total || 0), 0);
+  const supplierCNSubtotal = supplierCreditNotes.reduce((s, c) => s + (c.subtotal || 0), 0);
+
+  const box1 = invoices.reduce((s, i) => s + (i.vat_total || 0), 0) - salesCNVat; // VAT due on sales (less credit notes)
   const box2 = 0; // VAT due on EU acquisitions (simplified)
   const box3 = box1 + box2; // Total VAT due
-  const box4 = bills.reduce((s, b) => s + (b.vat_total || 0), 0); // VAT reclaimed on purchases
+  const box4 = bills.reduce((s, b) => s + (b.vat_total || 0), 0) - supplierCNVat; // VAT reclaimed on purchases (less credit notes)
   const box5 = box3 - box4; // Net VAT (pay/reclaim)
-  const box6 = invoices.reduce((s, i) => s + (i.subtotal || 0), 0); // Total sales ex VAT
-  const box7 = bills.reduce((s, b) => s + (b.subtotal || 0), 0); // Total purchases ex VAT
+  const box6 = invoices.reduce((s, i) => s + (i.subtotal || 0), 0) - salesCNSubtotal; // Total sales ex VAT (less credit notes)
+  const box7 = bills.reduce((s, b) => s + (b.subtotal || 0), 0) - supplierCNSubtotal; // Total purchases ex VAT (less credit notes)
   const box8 = 0; // Supplies to EU
   const box9 = 0; // Acquisitions from EU
 

@@ -23,6 +23,10 @@ import Invoices from '@/pages/Invoices';
 import InvoiceForm from '@/pages/InvoiceForm';
 import Bills from '@/pages/Bills';
 import BillForm from '@/pages/BillForm';
+import SalesCreditNotes from '@/pages/SalesCreditNotes';
+import SalesCreditNoteForm from '@/pages/SalesCreditNoteForm';
+import SupplierCreditNotes from '@/pages/SupplierCreditNotes';
+import SupplierCreditNoteForm from '@/pages/SupplierCreditNoteForm';
 import BankTransactions from '@/pages/BankTransactions';
 import VATReturn from '@/pages/VATReturn';
 import Documents from '@/pages/Documents';
@@ -68,6 +72,12 @@ const AuthenticatedApp = () => {
           <Route path="/bills" element={<Bills />} />
           <Route path="/bills/new" element={<BillForm />} />
           <Route path="/bills/:id" element={<BillForm />} />
+          <Route path="/sales-credit-notes" element={<SalesCreditNotes />} />
+          <Route path="/sales-credit-notes/new" element={<SalesCreditNoteForm />} />
+          <Route path="/sales-credit-notes/:id" element={<SalesCreditNoteForm />} />
+          <Route path="/supplier-credit-notes" element={<SupplierCreditNotes />} />
+          <Route path="/supplier-credit-notes/new" element={<SupplierCreditNoteForm />} />
+          <Route path="/supplier-credit-notes/:id" element={<SupplierCreditNoteForm />} />
           <Route path="/transactions" element={<BankTransactions />} />
           <Route path="/vat" element={<VATReturn />} />
           <Route path="/documents" element={<Documents />} />
