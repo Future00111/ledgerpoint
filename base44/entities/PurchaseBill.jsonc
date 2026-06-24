@@ -25,13 +25,14 @@
     "status": {
       "type": "string",
       "enum": [
+        "draft",
         "awaiting_review",
         "approved",
         "paid",
         "overdue",
         "cancelled"
       ],
-      "default": "awaiting_review"
+      "default": "draft"
     },
     "line_items": {
       "type": "array",
@@ -48,13 +49,34 @@
             "type": "number"
           },
           "vat_rate": {
-            "type": "number"
+            "type": "string"
           },
           "amount": {
-            "type": "number"
+            "type": "number",
+            "description": "Net amount (quantity * unit_price)"
           },
           "vat_amount": {
             "type": "number"
+          },
+          "line_total": {
+            "type": "number",
+            "description": "Gross amount (amount + vat_amount)"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "parts",
+              "tools",
+              "utilities",
+              "rent",
+              "insurance",
+              "wages",
+              "fuel",
+              "office",
+              "professional_fees",
+              "other"
+            ],
+            "default": "other"
           }
         }
       }
@@ -68,6 +90,14 @@
       "default": 0
     },
     "total": {
+      "type": "number",
+      "default": 0
+    },
+    "amount_paid": {
+      "type": "number",
+      "default": 0
+    },
+    "balance_due": {
       "type": "number",
       "default": 0
     },

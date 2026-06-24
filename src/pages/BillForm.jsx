@@ -9,10 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import InvoiceLineItems from '@/components/invoices/InvoiceLineItems';
+import BillLineItems from '@/components/bills/BillLineItems';
 import { ArrowLeft } from 'lucide-react';
 
-function formatCurrency(a) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(a || 0); }
+const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
 const CATEGORIES = [
   { value: 'parts', label: 'Parts & Materials' },
@@ -41,8 +41,8 @@ export default function BillForm() {
   const [form, setForm] = useState({
     supplier_id: '', bill_number: '', bill_date: new Date().toISOString().split('T')[0],
     due_date: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
-    status: 'awaiting_review', category: 'other', notes: '', reference: '',
-    line_items: [{ description: '', quantity: 1, unit_price: 0, vat_rate: 20, amount: 0, vat_amount: 0 }]
+    status: 'draft', category: 'other', notes: '', reference: '', amount_paid: 0,
+    line_items: [{ description: '', quantity: 1, unit_price: 0, vat_rate: '20', amount: 0, vat_amount: 0, line_total: 0, category: 'other' }]
   });
 
   useEffect(() => {
@@ -65,9 +65,9 @@ export default function BillForm() {
       setForm({
         supplier_id: bill.supplier_id || '', bill_number: bill.bill_number || '',
         bill_date: bill.bill_date || '', due_date: bill.due_date || '',
-        status: bill.status || 'awaiting_review', category: bill.category || 'other',
-        notes: bill.notes || '', reference: bill.reference || '',
-        line_items: bill.line_items?.length ? bill.line_items : [{ description: '', quantity: 1, unit_price: 0, vat_rate: 20, amount: 0, vat_amount: 0 }]
+        status: bill.status || 'draft', category: bill.category || 'other',
+        notes: bill.notes || '', reference: bill.reference || '', amount_paid: bill.amount_paid || 0,
+        line_items: bill.line_items?.length ? bill.line_items : [{ description: '', quantity: 1, unit_price: 0, vat_rate: '20', amount: 0, vat_amount: 0, line_total: 0, category: 'other' }]
       });
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -76,6 +76,7 @@ export default function BillForm() {
   const subtotal = form.line_items.reduce((s, l) => s + (l.amount || 0), 0);
   const vatTotal = form.line_items.reduce((s, l) => s + (l.vat_amount || 0), 0);
   const total = subtotal + vatTotal;
+  const balanceDue = total - (parseFloat(form.amount_paid) || 0);
 
   const handleSave = async () => {
     if (!form.supplier_id || !form.bill_number) {
@@ -87,7 +88,8 @@ export default function BillForm() {
     const data = {
       ...form, company_id: activeCompany.id,
       supplier_name: supplier?.name || '',
-      subtotal, vat_total: vatTotal, total
+      amount_paid: parseFloat(form.amount_paid) || 0,
+      subtotal, vat_total: vatTotal, total, balance_due: balanceDue
     };
     try {
       if (isEdit) {
@@ -140,6 +142,7 @@ export default function BillForm() {
               <Select value={form.status} onValueChange={v => setForm({...form, status: v})}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
                   <SelectItem value="awaiting_review">Awaiting Review</SelectItem>
                   <SelectItem value="approved">Approved</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
@@ -157,18 +160,28 @@ export default function BillForm() {
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label>Reference</Label>
+              <Input value={form.reference} onChange={e => setForm({...form, reference: e.target.value})} placeholder="PO number, etc." />
+            </div>
+            <div>
+              <Label>Amount Paid (£)</Label>
+              <Input type="number" min="0" step="0.01" value={form.amount_paid} onChange={e => setForm({...form, amount_paid: e.target.value})} />
+            </div>
           </div>
 
           <div>
             <Label className="mb-3 block">Line Items</Label>
-            <InvoiceLineItems lineItems={form.line_items} onChange={items => setForm({...form, line_items: items})} />
+            <BillLineItems lineItems={form.line_items} onChange={items => setForm({...form, line_items: items})} />
           </div>
 
           <div className="flex justify-end">
             <div className="w-64 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">VAT</span><span>{formatCurrency(vatTotal)}</span></div>
-              <div className="flex justify-between font-semibold text-base border-t pt-2"><span>Total</span><span>{formatCurrency(total)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{gbp.format(subtotal)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">VAT Total</span><span>{gbp.format(vatTotal)}</span></div>
+              <div className="flex justify-between font-semibold text-base border-t pt-2"><span>Total</span><span>{gbp.format(total)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Amount Paid</span><span>{gbp.format(parseFloat(form.amount_paid) || 0)}</span></div>
+              <div className="flex justify-between font-semibold text-primary border-t pt-2"><span>Balance Due</span><span>{gbp.format(balanceDue)}</span></div>
             </div>
           </div>
 
