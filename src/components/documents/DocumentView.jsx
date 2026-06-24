@@ -36,8 +36,7 @@ export default function DocumentView({ open, onOpenChange, document, onApprove, 
   const isPdf = document.mime_type === 'application/pdf' || document.file_url?.toLowerCase().endsWith('.pdf');
   const isImage = document.mime_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(document.file_url || '');
   const canAct = document.status === 'pending_extraction' || document.status === 'pending_review';
-  const RECORD_LABELS = { purchase_invoice: 'Create Purchase Bill', sales_invoice: 'Create Sales Invoice', credit_note: 'Create Credit Note' };
-  const canCreateRecord = document.status === 'approved' && RECORD_LABELS[document.document_type];
+  const canCreateRecord = document.status === 'approved' && !document.linked_record_id;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -126,8 +125,8 @@ export default function DocumentView({ open, onOpenChange, document, onApprove, 
             )}
             {canCreateRecord && (
               <div className="pt-2 border-t">
-                <p className="text-xs text-muted-foreground mb-2">No accounting record exists yet. Create one with your approval:</p>
-                <Button onClick={onCreateRecord} className="gap-2 w-full"><FilePlus className="w-4 h-4" />{RECORD_LABELS[document.document_type]}</Button>
+                <p className="text-xs text-muted-foreground mb-2">No accounting record linked yet. Create one:</p>
+                <Button onClick={onCreateRecord} className="gap-2 w-full"><FilePlus className="w-4 h-4" />Create Record</Button>
               </div>
             )}
           </div>
