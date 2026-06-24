@@ -69,6 +69,10 @@
     "mime_type": {
       "type": "string"
     },
+    "extraction_data": {
+      "type": "object",
+      "description": "AI-extracted fields with confidence scores"
+    },
     "notes": {
       "type": "string"
     }

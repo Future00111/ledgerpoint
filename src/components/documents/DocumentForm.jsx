@@ -26,11 +26,12 @@ function formatBytes(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
-export default function DocumentForm({ open, onOpenChange, companyId, onSaved }) {
+export default function DocumentForm({ open, onOpenChange, companyId, onSaved, onExtracted }) {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [form, setForm] = useState({
     name: '',
     document_type: 'purchase_invoice',
@@ -105,9 +106,20 @@ export default function DocumentForm({ open, onOpenChange, companyId, onSaved })
         mime_type: selectedFile.type,
         notes: form.notes,
       };
-      await base44.entities.Document.create(data);
+      const doc = await base44.entities.Document.create(data);
       onSaved();
-      onOpenChange(false);
+      setUploading(false);
+      setExtracting(true);
+      try {
+        const extractResult = await base44.functions.invoke('extractDocumentData', { document_id: doc.id });
+        onOpenChange(false);
+        if (onExtracted) onExtracted(extractResult.data.document);
+      } catch (e) {
+        console.error('Extraction failed:', e);
+        onOpenChange(false);
+      } finally {
+        setExtracting(false);
+      }
     } catch (e) {
       console.error(e);
       alert('Failed to upload document: ' + e.message);
@@ -195,8 +207,8 @@ export default function DocumentForm({ open, onOpenChange, companyId, onSaved })
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={uploading || !selectedFile || !form.name}>
-            {uploading ? 'Uploading...' : 'Upload Document'}
+          <Button onClick={handleSubmit} disabled={uploading || extracting || !selectedFile || !form.name}>
+            {uploading ? 'Uploading...' : extracting ? 'Extracting data...' : 'Upload Document'}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -5,10 +5,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { FolderOpen, Plus, Search, FileText, Receipt, Undo2, Landmark, Trash2, Eye } from 'lucide-react';
+import { FolderOpen, Plus, Search, FileText, Receipt, Undo2, Landmark, Trash2, Eye, Sparkles } from 'lucide-react';
 import moment from 'moment';
 import DocumentForm from '@/components/documents/DocumentForm';
 import DocumentView from '@/components/documents/DocumentView';
+import ExtractionReview from '@/components/documents/ExtractionReview';
 import { useToast } from '@/components/ui/use-toast';
 
 function formatCurrency(a) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(a || 0); }
@@ -54,6 +55,8 @@ export default function Documents() {
   const [formOpen, setFormOpen] = useState(false);
   const [viewDoc, setViewDoc] = useState(null);
   const [viewOpen, setViewOpen] = useState(false);
+  const [reviewDoc, setReviewDoc] = useState(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
 
@@ -191,6 +194,9 @@ export default function Documents() {
                         <p className="text-sm font-semibold">{formatCurrency(doc.gross_amount)}</p>
                         {doc.net_amount > 0 && <p className="text-xs text-muted-foreground">Net: {formatCurrency(doc.net_amount)}</p>}
                       </div>
+                      {doc.status === 'pending_review' && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReviewDoc(doc); setReviewOpen(true); }} title="Review extraction"><Sparkles className="w-3.5 h-3.5 text-amber-600" /></Button>
+                      )}
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openView(doc)}><Eye className="w-3.5 h-3.5" /></Button>
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(doc)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
                     </div>
@@ -202,8 +208,9 @@ export default function Documents() {
         </div>
       )}
 
-      <DocumentForm open={formOpen} onOpenChange={setFormOpen} companyId={activeCompany?.id} onSaved={loadDocuments} />
+      <DocumentForm open={formOpen} onOpenChange={setFormOpen} companyId={activeCompany?.id} onSaved={loadDocuments} onExtracted={(doc) => { setReviewDoc(doc); setReviewOpen(true); }} />
       <DocumentView open={viewOpen} onOpenChange={setViewOpen} document={viewDoc} onApprove={handleApprove} onReject={handleReject} actionLoading={actionLoading} />
+      <ExtractionReview open={reviewOpen} onOpenChange={setReviewOpen} document={reviewDoc} onConfirmed={loadDocuments} onRejected={loadDocuments} />
     </div>
   );
 }
