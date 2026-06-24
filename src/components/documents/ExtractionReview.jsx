@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, FileText, Sparkles } from 'lucide-react';
+import { Check, X, FileText, Sparkles, FilePlus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 function ConfidenceBadge({ score }) {
@@ -17,7 +17,7 @@ function ConfidenceBadge({ score }) {
   return <Badge variant="secondary" className={`text-xs ${style}`}>{pct}%</Badge>;
 }
 
-export default function ExtractionReview({ open, onOpenChange, document: doc, onConfirmed, onRejected }) {
+export default function ExtractionReview({ open, onOpenChange, document: doc, onConfirmed, onRejected, onCreatePurchaseBill }) {
   const [form, setForm] = useState({
     supplier_name: '', invoice_number: '', invoice_date: '',
     net_amount: '', vat_amount: '', gross_amount: '',
@@ -76,6 +76,28 @@ export default function ExtractionReview({ open, onOpenChange, document: doc, on
       onOpenChange(false);
     } catch (e) {
       toast({ title: 'Error', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const canCreateBill = doc.document_type === 'purchase_invoice' || doc.document_type === 'receipt';
+
+  const handleApproveAndCreateBill = async () => {
+    setSaving(true);
+    try {
+      const saved = await base44.entities.Document.update(doc.id, {
+        supplier_or_customer: form.supplier_name,
+        reference_number: form.invoice_number,
+        document_date: form.invoice_date,
+        net_amount: parseFloat(form.net_amount) || 0,
+        vat_amount: parseFloat(form.vat_amount) || 0,
+        gross_amount: parseFloat(form.gross_amount) || 0,
+      });
+      onOpenChange(false);
+      onCreatePurchaseBill?.(saved);
+    } catch (e) {
+      toast({ title: 'Error saving document', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -159,6 +181,7 @@ export default function ExtractionReview({ open, onOpenChange, document: doc, on
 
             <div className="flex gap-2 pt-3 border-t">
               <Button onClick={handleConfirm} disabled={saving} className="gap-2 flex-1 bg-emerald-600 hover:bg-emerald-700"><Check className="w-4 h-4" />Confirm &amp; Approve</Button>
+              {canCreateBill && <Button onClick={handleApproveAndCreateBill} disabled={saving} className="gap-2 flex-1"><FilePlus className="w-4 h-4" />Approve &amp; Create Purchase Bill</Button>}
               <Button onClick={handleReject} disabled={saving} variant="destructive" className="gap-2 flex-1"><X className="w-4 h-4" />Reject</Button>
             </div>
           </div>
