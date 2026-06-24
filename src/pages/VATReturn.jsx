@@ -18,6 +18,7 @@ export default function VATReturn() {
   const [bills, setBills] = useState([]);
   const [salesCreditNotes, setSalesCreditNotes] = useState([]);
   const [supplierCreditNotes, setSupplierCreditNotes] = useState([]);
+  const [bankTxns, setBankTxns] = useState([]);
   const [loading, setLoading] = useState(false);
   const [calculated, setCalculated] = useState(false);
 
@@ -25,11 +26,12 @@ export default function VATReturn() {
     if (!activeCompany) return;
     setLoading(true);
     try {
-      const [allInvoices, allBills, allSalesCNs, allSupplierCNs] = await Promise.all([
+      const [allInvoices, allBills, allSalesCNs, allSupplierCNs, allBankTxns] = await Promise.all([
         base44.entities.SalesInvoice.filter({ company_id: activeCompany.id }),
         base44.entities.PurchaseBill.filter({ company_id: activeCompany.id }),
         base44.entities.SalesCreditNote.filter({ company_id: activeCompany.id }),
         base44.entities.SupplierCreditNote.filter({ company_id: activeCompany.id }),
+        base44.entities.BankTransaction.filter({ company_id: activeCompany.id }),
       ]);
 
       const filteredInvoices = allInvoices.filter(i => 
@@ -45,10 +47,18 @@ export default function VATReturn() {
         c.status !== 'cancelled' && c.status !== 'draft' && c.credit_note_date >= dateFrom && c.credit_note_date <= dateTo
       );
 
+      // Only bank transactions with manual VAT that are NOT linked to an invoice/bill
+      // (linked transactions are already counted via their invoice/bill)
+      const filteredBankTxns = allBankTxns.filter(t =>
+        (t.vat_amount || 0) > 0 && !t.linked_invoice_id && !t.linked_bill_id &&
+        t.date >= dateFrom && t.date <= dateTo
+      );
+
       setInvoices(filteredInvoices);
       setBills(filteredBills);
       setSalesCreditNotes(filteredSalesCNs);
       setSupplierCreditNotes(filteredSupplierCNs);
+      setBankTxns(filteredBankTxns);
       setCalculated(true);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -60,13 +70,19 @@ export default function VATReturn() {
   const supplierCNVat = supplierCreditNotes.reduce((s, c) => s + (c.vat_total || 0), 0);
   const supplierCNSubtotal = supplierCreditNotes.reduce((s, c) => s + (c.subtotal || 0), 0);
 
-  const box1 = invoices.reduce((s, i) => s + (i.vat_total || 0), 0) - salesCNVat; // VAT due on sales (less credit notes)
-  const box2 = 0; // VAT due on EU acquisitions (simplified)
-  const box3 = box1 + box2; // Total VAT due
-  const box4 = bills.reduce((s, b) => s + (b.vat_total || 0), 0) - supplierCNVat; // VAT reclaimed on purchases (less credit notes)
-  const box5 = box3 - box4; // Net VAT (pay/reclaim)
-  const box6 = invoices.reduce((s, i) => s + (i.subtotal || 0), 0) - salesCNSubtotal; // Total sales ex VAT (less credit notes)
-  const box7 = bills.reduce((s, b) => s + (b.subtotal || 0), 0) - supplierCNSubtotal; // Total purchases ex VAT (less credit notes)
+  // Bank transactions with manual VAT (not linked to invoice/bill — those are already counted)
+  const bankIncomeVat = bankTxns.filter(t => t.type === 'income').reduce((s, t) => s + (t.vat_amount || 0), 0);
+  const bankExpenseVat = bankTxns.filter(t => t.type === 'expense').reduce((s, t) => s + (t.vat_amount || 0), 0);
+  const bankIncomeNet = bankTxns.filter(t => t.type === 'income').reduce((s, t) => s + ((t.amount || 0) - (t.vat_amount || 0)), 0);
+  const bankExpenseNet = bankTxns.filter(t => t.type === 'expense').reduce((s, t) => s + ((t.amount || 0) - (t.vat_amount || 0)), 0);
+
+  const box1 = invoices.reduce((s, i) => s + (i.vat_total || 0), 0) - salesCNVat + bankIncomeVat;
+  const box2 = 0;
+  const box3 = box1 + box2;
+  const box4 = bills.reduce((s, b) => s + (b.vat_total || 0), 0) - supplierCNVat + bankExpenseVat;
+  const box5 = box3 - box4;
+  const box6 = invoices.reduce((s, i) => s + (i.subtotal || 0), 0) - salesCNSubtotal + bankIncomeNet;
+  const box7 = bills.reduce((s, b) => s + (b.subtotal || 0), 0) - supplierCNSubtotal + bankExpenseNet;
   const box8 = 0; // Supplies to EU
   const box9 = 0; // Acquisitions from EU
 
@@ -77,6 +93,7 @@ export default function VATReturn() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">VAT Return Calculator</h1>
         <p className="text-muted-foreground text-sm mt-1">Calculate your VAT return for any period</p>
+        <p className="text-xs text-muted-foreground mt-2">Bank transactions only affect the VAT return when matched to an invoice, bill, or credit note, or when manually posted with a VAT rate.</p>
       </div>
 
       {/* Period selector */}
@@ -209,6 +226,28 @@ export default function VATReturn() {
                       <div className="text-right flex-shrink-0 ml-3">
                         <p className="text-sm font-medium">{formatCurrency(bill.subtotal)}</p>
                         <p className="text-xs text-muted-foreground">VAT: {formatCurrency(bill.vat_total)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {bankTxns.length > 0 && (
+            <Card className="border-0 shadow-sm">
+              <CardHeader><CardTitle className="text-base">Bank Transactions with Manual VAT</CardTitle></CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y">
+                  {bankTxns.map(t => (
+                    <div key={t.id} className="flex items-center justify-between px-6 py-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{t.description}</p>
+                        <p className="text-xs text-muted-foreground">{moment(t.date).format('DD MMM YYYY')} · {t.type} · {t.category?.replace(/_/g, ' ')}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-3">
+                        <p className="text-sm font-medium">{formatCurrency((t.amount || 0) - (t.vat_amount || 0))}</p>
+                        <p className="text-xs text-muted-foreground">VAT: {formatCurrency(t.vat_amount)}</p>
                       </div>
                     </div>
                   ))}
