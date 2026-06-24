@@ -83,6 +83,13 @@ export default function BillForm() {
       toast({ title: 'Please fill in supplier and bill number', variant: 'destructive' });
       return;
     }
+    // Validate unique bill number within supplier and company
+    const existing = await base44.entities.PurchaseBill.filter({ company_id: activeCompany.id, supplier_id: form.supplier_id, bill_number: form.bill_number });
+    const duplicate = existing.find(b => b.id !== id);
+    if (duplicate) {
+      toast({ title: 'This supplier bill number already exists for this supplier.', variant: 'destructive' });
+      return;
+    }
     setSaving(true);
     const supplier = suppliers.find(s => s.id === form.supplier_id);
     const data = {
