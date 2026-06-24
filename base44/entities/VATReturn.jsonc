@@ -1,0 +1,88 @@
+{
+  "name": "VATReturn",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "box1_output_vat": {
+      "type": "number",
+      "description": "VAT due on sales and other outputs",
+      "default": 0
+    },
+    "box2_acquisitions": {
+      "type": "number",
+      "description": "VAT due on intra-EU acquisitions",
+      "default": 0
+    },
+    "box3_total_vat_due": {
+      "type": "number",
+      "description": "Box 1 + Box 2",
+      "default": 0
+    },
+    "box4_vat_reclaimed": {
+      "type": "number",
+      "description": "VAT reclaimed on purchases and other inputs",
+      "default": 0
+    },
+    "box5_net_vat": {
+      "type": "number",
+      "description": "Net VAT to pay or reclaim (Box 3 - Box 4)",
+      "default": 0
+    },
+    "box6_total_sales": {
+      "type": "number",
+      "description": "Total value of sales and other outputs (excl VAT)",
+      "default": 0
+    },
+    "box7_total_purchases": {
+      "type": "number",
+      "description": "Total value of purchases and other inputs (excl VAT)",
+      "default": 0
+    },
+    "box8_total_acquisitions": {
+      "type": "number",
+      "description": "Total value of intra-EU acquisitions",
+      "default": 0
+    },
+    "box9_total_supplies": {
+      "type": "number",
+      "description": "Total value of intra-EU supplies",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "filed",
+        "paid",
+        "amended"
+      ],
+      "default": "draft"
+    },
+    "submission_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "period_start",
+    "period_end"
+  ]
+}

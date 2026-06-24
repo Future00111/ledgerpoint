@@ -1,0 +1,46 @@
+{
+  "name": "ChartOfAccount",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "code": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "asset",
+        "liability",
+        "equity",
+        "income",
+        "expense"
+      ]
+    },
+    "sub_type": {
+      "type": "string"
+    },
+    "vat_rate": {
+      "type": "number",
+      "default": 0
+    },
+    "description": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "company_id",
+    "code",
+    "name",
+    "type"
+  ]
+}

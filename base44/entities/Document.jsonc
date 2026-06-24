@@ -1,0 +1,56 @@
+{
+  "name": "Document",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "invoice",
+        "receipt",
+        "statement",
+        "contract",
+        "vat_return",
+        "other"
+      ],
+      "default": "other"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "file_size": {
+      "type": "number"
+    },
+    "mime_type": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "related_invoice_id": {
+      "type": "string",
+      "description": "Reference to SalesInvoice"
+    },
+    "related_bill_id": {
+      "type": "string",
+      "description": "Reference to PurchaseBill"
+    },
+    "uploaded_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "name"
+  ]
+}

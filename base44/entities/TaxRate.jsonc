@@ -1,0 +1,37 @@
+{
+  "name": "TaxRate",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "name": {
+      "type": "string"
+    },
+    "rate": {
+      "type": "number",
+      "description": "Percentage rate (e.g. 20 for 20%)",
+      "default": 0
+    },
+    "code": {
+      "type": "string"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false
+    },
+    "description": {
+      "type": "string"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "company_id",
+    "name",
+    "rate"
+  ]
+}
