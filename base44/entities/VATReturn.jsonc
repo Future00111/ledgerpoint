@@ -14,6 +14,29 @@
       "type": "string",
       "format": "date"
     },
+    "vat_scheme": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "cash_accounting",
+        "flat_rate"
+      ],
+      "default": "standard"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready_for_review",
+        "approved",
+        "submitted"
+      ],
+      "default": "draft"
+    },
+    "locked": {
+      "type": "boolean",
+      "default": false
+    },
     "box1_output_vat": {
       "type": "number",
       "description": "VAT due on sales and other outputs",
@@ -59,15 +82,9 @@
       "description": "Total value of intra-EU supplies",
       "default": 0
     },
-    "status": {
-      "type": "string",
-      "enum": [
-        "draft",
-        "filed",
-        "paid",
-        "amended"
-      ],
-      "default": "draft"
+    "breakdown": {
+      "type": "object",
+      "description": "Snapshot of documents used to calculate the VAT return"
     },
     "submission_date": {
       "type": "string",

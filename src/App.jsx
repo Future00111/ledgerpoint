@@ -28,7 +28,8 @@ import SalesCreditNoteForm from '@/pages/SalesCreditNoteForm';
 import SupplierCreditNotes from '@/pages/SupplierCreditNotes';
 import SupplierCreditNoteForm from '@/pages/SupplierCreditNoteForm';
 import BankTransactions from '@/pages/BankTransactions';
-import VATReturn from '@/pages/VATReturn';
+import VATReturns from '@/pages/VATReturns';
+import VATReturnDetail from '@/pages/VATReturnDetail';
 import Documents from '@/pages/Documents';
 import AccountantPortal from '@/pages/AccountantPortal';
 import Settings from '@/pages/Settings';
@@ -79,7 +80,8 @@ const AuthenticatedApp = () => {
           <Route path="/supplier-credit-notes/new" element={<SupplierCreditNoteForm />} />
           <Route path="/supplier-credit-notes/:id" element={<SupplierCreditNoteForm />} />
           <Route path="/transactions" element={<BankTransactions />} />
-          <Route path="/vat" element={<VATReturn />} />
+          <Route path="/vat" element={<VATReturns />} />
+          <Route path="/vat/:id" element={<VATReturnDetail />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/accountant" element={<AccountantPortal />} />
           <Route path="/settings" element={<Settings />} />
