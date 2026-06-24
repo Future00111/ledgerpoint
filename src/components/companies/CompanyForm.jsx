@@ -71,7 +71,15 @@ export default function CompanyForm({ open, onOpenChange, editing, onSaved }) {
         await base44.entities.Company.update(editing.id, form);
         toast({ title: 'Company updated' });
       } else {
-        await base44.entities.Company.create(form);
+        const company = await base44.entities.Company.create(form);
+        const user = await base44.auth.me();
+        await base44.entities.CompanyUser.create({
+          company_id: company.id,
+          user_id: user.id,
+          user_email: (user.email || '').toLowerCase(),
+          role: 'owner',
+          status: 'active',
+        });
         toast({ title: 'Company created' });
       }
       onSaved();

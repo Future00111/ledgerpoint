@@ -5,6 +5,7 @@ const CompanyContext = createContext(null);
 
 export function CompanyProvider({ children }) {
   const [companies, setCompanies] = useState([]);
+  const [roles, setRoles] = useState({});
   const [activeCompany, setActiveCompany] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -14,10 +15,12 @@ export function CompanyProvider({ children }) {
 
   const loadCompanies = async () => {
     try {
-      const list = await base44.entities.Company.list();
-      setCompanies(list);
-      if (list.length > 0 && !activeCompany) {
-        setActiveCompany(list[0]);
+      const res = await base44.functions.invoke('getUserCompanies', {});
+      const data = res.data || {};
+      setCompanies(data.companies || []);
+      setRoles(data.roles || {});
+      if ((data.companies || []).length > 0) {
+        setActiveCompany(prev => prev || data.companies[0]);
       }
     } catch (e) {
       console.error(e);
@@ -31,7 +34,7 @@ export function CompanyProvider({ children }) {
   };
 
   return (
-    <CompanyContext.Provider value={{ companies, activeCompany, switchCompany, loadCompanies, loading }}>
+    <CompanyContext.Provider value={{ companies, activeCompany, switchCompany, loadCompanies, loading, roles }}>
       {children}
     </CompanyContext.Provider>
   );
