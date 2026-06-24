@@ -114,13 +114,17 @@ export default function InvoiceForm() {
       subtotal, vat_total: vatTotal, total, balance_due: balanceDue
     };
     try {
+      let savedId;
       if (isEdit) {
         await base44.entities.SalesInvoice.update(id, data);
+        savedId = id;
         toast({ title: 'Invoice updated' });
       } else {
-        await base44.entities.SalesInvoice.create(data);
+        const created = await base44.entities.SalesInvoice.create(data);
+        savedId = created.id;
         toast({ title: 'Invoice created' });
       }
+      try { await base44.functions.invoke('generateSalesInvoiceJournals', { invoice_id: savedId }); } catch (je) { console.warn('Journal generation failed:', je); }
       navigate('/invoices');
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
     finally { setSaving(false); }

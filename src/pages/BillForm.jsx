@@ -103,13 +103,17 @@ export default function BillForm() {
       subtotal, vat_total: vatTotal, total, balance_due: balanceDue
     };
     try {
+      let savedId;
       if (isEdit) {
         await base44.entities.PurchaseBill.update(id, data);
+        savedId = id;
         toast({ title: 'Bill updated' });
       } else {
-        await base44.entities.PurchaseBill.create(data);
+        const created = await base44.entities.PurchaseBill.create(data);
+        savedId = created.id;
         toast({ title: 'Bill created' });
       }
+      try { await base44.functions.invoke('generatePurchaseBillJournals', { bill_id: savedId }); } catch (je) { console.warn('Journal generation failed:', je); }
       navigate('/bills');
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
     finally { setSaving(false); }
