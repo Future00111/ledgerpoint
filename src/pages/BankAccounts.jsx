@@ -5,7 +5,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, AlertCircle, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertCircle, Eye, Link2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import BankAccountForm from '@/components/bank_accounts/BankAccountForm';
 
 export default function BankAccounts() {
@@ -14,6 +15,8 @@ export default function BankAccounts() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [bankingOpen, setBankingOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -94,7 +97,7 @@ export default function BankAccounts() {
                       {account.status === 'active' ? 'Active' : 'Inactive'}
                     </Badge>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-muted-foreground">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-muted-foreground mb-3">
                     <div>
                       <p className="text-xs text-muted-foreground/70">Bank</p>
                       <p className="font-medium text-foreground">{account.bank_name}</p>
@@ -110,6 +113,30 @@ export default function BankAccounts() {
                     <div>
                       <p className="text-xs text-muted-foreground/70">Balance</p>
                       <p className="font-medium text-foreground">{account.currency} {(account.current_balance || 0).toFixed(2)}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground/70">Connection</p>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {account.connection_type === 'csv_import' ? 'CSV Import' : account.connection_type === 'open_banking' ? 'Open Banking' : 'Manual'}
+                      </Badge>
+                      {account.connection_type === 'open_banking' && (
+                        <Badge variant="secondary" className="text-xs">
+                          {account.open_banking_status === 'connected' ? '✓ Connected' : account.open_banking_status}
+                        </Badge>
+                      )}
+                      {account.connection_type !== 'open_banking' && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => { setSelectedAccount(account); setBankingOpen(true); }} 
+                          className="h-6 text-xs gap-1"
+                        >
+                          <Link2 className="w-3 h-3" />
+                          Connect Feed
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -146,6 +173,28 @@ export default function BankAccounts() {
       )}
 
       <BankAccountForm account={editing} open={formOpen} onOpenChange={setFormOpen} onSave={loadAccounts} companyId={activeCompany.id} />
+
+      <Dialog open={bankingOpen} onOpenChange={setBankingOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Open Banking Integration</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Open Banking integration coming soon. You'll be able to automatically sync transactions from {selectedAccount?.bank_name} using secure APIs.
+            </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <p className="text-xs text-amber-900 font-medium mb-2">Planned features:</p>
+              <ul className="text-xs text-amber-800 space-y-1 ml-4 list-disc">
+                <li>Automatic daily transaction sync</li>
+                <li>Real-time balance updates</li>
+                <li>Support for Plaid, TrueLayer, Yapily & Tink</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBankingOpen(false)}>Got it</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

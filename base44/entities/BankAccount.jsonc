@@ -45,6 +45,53 @@
       ],
       "default": "active"
     },
+    "connection_type": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "csv_import",
+        "open_banking"
+      ],
+      "default": "manual",
+      "description": "How transactions are imported"
+    },
+    "open_banking_status": {
+      "type": "string",
+      "enum": [
+        "not_connected",
+        "connected",
+        "expired",
+        "error"
+      ],
+      "default": "not_connected",
+      "description": "Open Banking connection status"
+    },
+    "open_banking_provider": {
+      "type": "string",
+      "enum": [
+        "plaid",
+        "truelayer",
+        "yapily",
+        "tink",
+        "other"
+      ],
+      "description": "Open Banking provider"
+    },
+    "last_sync_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time transactions were synced from Open Banking"
+    },
+    "next_sync_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled next sync date"
+    },
+    "consent_expiry_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When Open Banking consent expires"
+    },
     "notes": {
       "type": "string",
       "description": "Additional notes or reference information"
