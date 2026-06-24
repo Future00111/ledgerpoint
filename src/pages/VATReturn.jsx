@@ -47,10 +47,11 @@ export default function VATReturn() {
         c.status !== 'cancelled' && c.status !== 'draft' && c.credit_note_date >= dateFrom && c.credit_note_date <= dateTo
       );
 
-      // Only bank transactions with manual VAT that are NOT linked to an invoice/bill
-      // (linked transactions are already counted via their invoice/bill)
+      // Only bank transactions with manual VAT that are NOT matched to an invoice/bill/credit note
+      // (matched transactions are already counted via their linked document)
       const filteredBankTxns = allBankTxns.filter(t =>
-        (t.vat_amount || 0) > 0 && !t.linked_invoice_id && !t.linked_bill_id &&
+        (t.vat_amount || 0) > 0 &&
+        (!t.matched_type || t.matched_type === 'manual') &&
         t.date >= dateFrom && t.date <= dateTo
       );
 

@@ -5,6 +5,9 @@
     "company_id": {
       "type": "string"
     },
+    "bank_account_name": {
+      "type": "string"
+    },
     "date": {
       "type": "string",
       "format": "date"
@@ -12,17 +15,20 @@
     "description": {
       "type": "string"
     },
-    "type": {
-      "type": "string",
-      "enum": [
-        "income",
-        "expense",
-        "transfer"
-      ],
-      "default": "income"
+    "reference": {
+      "type": "string"
     },
-    "amount": {
-      "type": "number"
+    "money_in": {
+      "type": "number",
+      "default": 0
+    },
+    "money_out": {
+      "type": "number",
+      "default": 0
+    },
+    "balance": {
+      "type": "number",
+      "default": 0
     },
     "category": {
       "type": "string",
@@ -42,12 +48,52 @@
       ],
       "default": "other"
     },
-    "reference": {
+    "vat_rate": {
+      "type": "string",
+      "default": "0"
+    },
+    "vat_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "matched_type": {
+      "type": "string",
+      "enum": [
+        "sales_invoice",
+        "purchase_bill",
+        "credit_note",
+        "manual"
+      ],
+      "default": "manual"
+    },
+    "matched_record_id": {
       "type": "string"
     },
-    "reconciled": {
-      "type": "boolean",
-      "default": false
+    "matched_record_number": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "unmatched",
+        "suggested",
+        "matched",
+        "reviewed"
+      ],
+      "default": "unmatched"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "income",
+        "expense",
+        "transfer"
+      ],
+      "default": "income"
+    },
+    "amount": {
+      "type": "number",
+      "default": 0
     },
     "linked_invoice_id": {
       "type": "string"
@@ -55,9 +101,9 @@
     "linked_bill_id": {
       "type": "string"
     },
-    "vat_amount": {
-      "type": "number",
-      "default": 0
+    "reconciled": {
+      "type": "boolean",
+      "default": false
     },
     "notes": {
       "type": "string"
@@ -66,8 +112,6 @@
   "required": [
     "company_id",
     "date",
-    "description",
-    "type",
-    "amount"
+    "description"
   ]
 }

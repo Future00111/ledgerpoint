@@ -4,52 +4,47 @@ import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
-import { Landmark, Plus, Search, ArrowUpRight, ArrowDownRight, Pencil, Trash2, CheckCircle2 } from 'lucide-react';
+import { Landmark, Plus, Search, ArrowUpRight, ArrowDownRight, Pencil, Trash2, Link2, CheckCircle2, Upload } from 'lucide-react';
 import moment from 'moment';
+import BankTransactionForm from '@/components/bank_transactions/BankTransactionForm';
+import MatchTransactionDialog from '@/components/bank_transactions/MatchTransactionDialog';
+import ImportCSVDialog from '@/components/bank_transactions/ImportCSVDialog';
+import { useToast } from '@/components/ui/use-toast';
 
 function formatCurrency(a) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(a || 0); }
 
-const CATEGORIES = [
-  { value: 'sales', label: 'Sales' },
-  { value: 'parts', label: 'Parts & Materials' },
-  { value: 'tools', label: 'Tools & Equipment' },
-  { value: 'utilities', label: 'Utilities' },
-  { value: 'rent', label: 'Rent' },
-  { value: 'insurance', label: 'Insurance' },
-  { value: 'wages', label: 'Wages' },
-  { value: 'fuel', label: 'Fuel' },
-  { value: 'office', label: 'Office Supplies' },
-  { value: 'professional_fees', label: 'Professional Fees' },
-  { value: 'bank_charges', label: 'Bank Charges' },
-  { value: 'other', label: 'Other' },
-];
+const STATUS_STYLES = {
+  unmatched: 'bg-muted text-muted-foreground',
+  suggested: 'bg-amber-100 text-amber-700',
+  matched: 'bg-blue-100 text-blue-700',
+  reviewed: 'bg-emerald-100 text-emerald-700',
+};
+
+const MATCHED_LABELS = {
+  sales_invoice: 'Sales Invoice',
+  purchase_bill: 'Purchase Bill',
+  credit_note: 'Credit Note',
+  manual: 'Manual',
+};
 
 export default function BankTransactions() {
   const { activeCompany } = useCompany();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [moneyFilter, setMoneyFilter] = useState('all');
+  const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const [matchOpen, setMatchOpen] = useState(false);
+  const [matchTarget, setMatchTarget] = useState(null);
+  const [importOpen, setImportOpen] = useState(false);
   const { toast } = useToast();
 
-  const emptyForm = {
-    date: new Date().toISOString().split('T')[0], description: '', type: 'income',
-    amount: '', category: 'other', reference: '', vat_amount: '', notes: ''
-  };
-  const [form, setForm] = useState(emptyForm);
-
-  useEffect(() => {
-    if (activeCompany) loadTransactions();
-  }, [activeCompany]);
+  useEffect(() => { if (activeCompany) loadTransactions(); }, [activeCompany]);
 
   const loadTransactions = async () => {
     setLoading(true);
@@ -60,40 +55,24 @@ export default function BankTransactions() {
     finally { setLoading(false); }
   };
 
-  const openCreate = () => { setEditing(null); setForm(emptyForm); setDialogOpen(true); };
-  const openEdit = (t) => {
-    setEditing(t);
-    setForm({
-      date: t.date || '', description: t.description || '', type: t.type || 'income',
-      amount: t.amount || '', category: t.category || 'other', reference: t.reference || '',
-      vat_amount: t.vat_amount || '', notes: t.notes || ''
-    });
-    setDialogOpen(true);
-  };
+  const openCreate = () => { setEditing(null); setFormOpen(true); };
+  const openEdit = (t) => { setEditing(t); setFormOpen(true); };
 
-  const handleSave = async () => {
-    if (!form.description.trim() || !form.amount) return;
+  const handleSave = async (data) => {
     setSaving(true);
-    const data = { ...form, amount: parseFloat(form.amount) || 0, vat_amount: parseFloat(form.vat_amount) || 0, company_id: activeCompany.id };
     try {
+      const payload = { ...data, company_id: activeCompany.id };
       if (editing) {
-        await base44.entities.BankTransaction.update(editing.id, data);
+        await base44.entities.BankTransaction.update(editing.id, payload);
         toast({ title: 'Transaction updated' });
       } else {
-        await base44.entities.BankTransaction.create(data);
+        await base44.entities.BankTransaction.create(payload);
         toast({ title: 'Transaction recorded' });
       }
       await loadTransactions();
-      setDialogOpen(false);
+      setFormOpen(false);
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
     finally { setSaving(false); }
-  };
-
-  const toggleReconciled = async (t) => {
-    try {
-      await base44.entities.BankTransaction.update(t.id, { reconciled: !t.reconciled });
-      await loadTransactions();
-    } catch (e) { toast({ title: 'Error', variant: 'destructive' }); }
   };
 
   const handleDelete = async (t) => {
@@ -102,15 +81,22 @@ export default function BankTransactions() {
     catch (e) { toast({ title: 'Error', variant: 'destructive' }); }
   };
 
+  const openMatch = (t) => { setMatchTarget(t); setMatchOpen(true); };
+
+  const markReviewed = async (t) => {
+    try { await base44.entities.BankTransaction.update(t.id, { status: 'reviewed' }); toast({ title: 'Marked as reviewed' }); await loadTransactions(); }
+    catch (e) { toast({ title: 'Error', variant: 'destructive' }); }
+  };
+
   const filtered = transactions.filter(t => {
-    const matchSearch = t.description?.toLowerCase().includes(search.toLowerCase()) ||
-      t.reference?.toLowerCase().includes(search.toLowerCase());
-    const matchType = typeFilter === 'all' || t.type === typeFilter;
-    return matchSearch && matchType;
+    const matchSearch = t.description?.toLowerCase().includes(search.toLowerCase()) || t.reference?.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = statusFilter === 'all' || t.status === statusFilter;
+    const matchMoney = moneyFilter === 'all' || (moneyFilter === 'money_in' && (t.money_in || 0) > 0) || (moneyFilter === 'money_out' && (t.money_out || 0) > 0);
+    return matchSearch && matchStatus && matchMoney;
   });
 
-  const totalIncome = filtered.filter(t => t.type === 'income').reduce((s, t) => s + (t.amount || 0), 0);
-  const totalExpenses = filtered.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0);
+  const totalIn = filtered.reduce((s, t) => s + (t.money_in || 0), 0);
+  const totalOut = filtered.reduce((s, t) => s + (t.money_out || 0), 0);
 
   if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
 
@@ -120,11 +106,14 @@ export default function BankTransactions() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Bank Transactions</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Income: <span className="text-emerald-600 font-medium">{formatCurrency(totalIncome)}</span> · 
-            Expenses: <span className="text-red-600 font-medium">{formatCurrency(totalExpenses)}</span>
+            Money In: <span className="text-emerald-600 font-medium">{formatCurrency(totalIn)}</span> ·
+            Money Out: <span className="text-red-600 font-medium">{formatCurrency(totalOut)}</span>
           </p>
         </div>
-        <Button onClick={openCreate} className="gap-2"><Plus className="w-4 h-4" />Add Transaction</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2"><Upload className="w-4 h-4" />Import CSV</Button>
+          <Button onClick={openCreate} className="gap-2"><Plus className="w-4 h-4" />Add Transaction</Button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -132,13 +121,22 @@ export default function BankTransactions() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Search transactions..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
-            <SelectItem value="income">Income</SelectItem>
-            <SelectItem value="expense">Expense</SelectItem>
-            <SelectItem value="transfer">Transfer</SelectItem>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="unmatched">Unmatched</SelectItem>
+            <SelectItem value="suggested">Suggested</SelectItem>
+            <SelectItem value="matched">Matched</SelectItem>
+            <SelectItem value="reviewed">Reviewed</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={moneyFilter} onValueChange={setMoneyFilter}>
+          <SelectTrigger className="w-full sm:w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All money</SelectItem>
+            <SelectItem value="money_in">Money In</SelectItem>
+            <SelectItem value="money_out">Money Out</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -149,35 +147,50 @@ export default function BankTransactions() {
         <Card className="border-0 shadow-sm">
           <CardContent className="flex flex-col items-center py-16">
             <Landmark className="w-12 h-12 text-muted-foreground/30 mb-4" />
-            <p className="text-muted-foreground">{search || typeFilter !== 'all' ? 'No transactions match' : 'No transactions yet'}</p>
+            <p className="text-muted-foreground">{search || statusFilter !== 'all' || moneyFilter !== 'all' ? 'No transactions match' : 'No transactions yet'}</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-2">
           {filtered.map(t => (
             <Card key={t.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${t.type === 'income' ? 'bg-emerald-50' : t.type === 'expense' ? 'bg-rose-50' : 'bg-blue-50'}`}>
-                    {t.type === 'income' ? <ArrowDownRight className="w-4 h-4 text-emerald-600" /> : <ArrowUpRight className="w-4 h-4 text-rose-600" />}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm truncate">{t.description}</p>
-                      {t.reconciled && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />}
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${(t.money_in || 0) > 0 ? 'bg-emerald-50' : 'bg-rose-50'}`}>
+                      {(t.money_in || 0) > 0 ? <ArrowDownRight className="w-4 h-4 text-emerald-600" /> : <ArrowUpRight className="w-4 h-4 text-rose-600" />}
                     </div>
-                    <p className="text-xs text-muted-foreground">{moment(t.date).format('DD MMM YYYY')} · {t.category?.replace(/_/g, ' ')}{t.reference ? ` · ${t.reference}` : ''}</p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium text-sm truncate">{t.description}</p>
+                        <Badge variant="secondary" className={`text-xs ${STATUS_STYLES[t.status] || ''}`}>{t.status}</Badge>
+                        {t.matched_type && t.matched_type !== 'manual' && t.matched_record_number && (
+                          <Badge variant="outline" className="text-xs">{MATCHED_LABELS[t.matched_type]}: {t.matched_record_number}</Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {moment(t.date).format('DD MMM YYYY')}
+                        {t.bank_account_name ? ` · ${t.bank_account_name}` : ''}
+                        {t.reference ? ` · ${t.reference}` : ''}
+                        {t.category ? ` · ${t.category.replace(/_/g, ' ')}` : ''}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                  <span className={`text-sm font-semibold ${t.type === 'income' ? 'text-emerald-600' : ''}`}>
-                    {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
-                  </span>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleReconciled(t)} title={t.reconciled ? 'Unreconcile' : 'Reconcile'}>
-                    <CheckCircle2 className={`w-4 h-4 ${t.reconciled ? 'text-emerald-500' : 'text-muted-foreground/40'}`} />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(t)}><Pencil className="w-3.5 h-3.5" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDelete(t)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="text-right">
+                      {(t.money_in || 0) > 0 && <p className="text-sm font-semibold text-emerald-600">+{formatCurrency(t.money_in)}</p>}
+                      {(t.money_out || 0) > 0 && <p className="text-sm font-semibold text-rose-600">-{formatCurrency(t.money_out)}</p>}
+                      {t.balance != null && <p className="text-xs text-muted-foreground">Bal: {formatCurrency(t.balance)}</p>}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openMatch(t)} title="Match"><Link2 className="w-3.5 h-3.5" /></Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => markReviewed(t)} title="Mark as Reviewed" disabled={t.status === 'reviewed'}><CheckCircle2 className={`w-3.5 h-3.5 ${t.status === 'reviewed' ? 'text-emerald-500' : ''}`} /></Button>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(t)}><Pencil className="w-3.5 h-3.5" /></Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(t)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -185,50 +198,9 @@ export default function BankTransactions() {
         </div>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing ? 'Edit Transaction' : 'New Transaction'}</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Date</Label>
-                <Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
-              </div>
-              <div>
-                <Label>Type</Label>
-                <Select value={form.type} onValueChange={v => setForm({...form, type: v})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="income">Income</SelectItem>
-                    <SelectItem value="expense">Expense</SelectItem>
-                    <SelectItem value="transfer">Transfer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div><Label>Description *</Label><Input value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="What was this payment for?" /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>Amount (£) *</Label><Input type="number" min="0" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} /></div>
-              <div><Label>VAT Amount (£)</Label><Input type="number" min="0" step="0.01" value={form.vat_amount} onChange={e => setForm({...form, vat_amount: e.target.value})} /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Category</Label>
-                <Select value={form.category} onValueChange={v => setForm({...form, category: v})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div><Label>Reference</Label><Input value={form.reference} onChange={e => setForm({...form, reference: e.target.value})} /></div>
-            </div>
-            <div><Label>Notes</Label><Textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} rows={2} /></div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving || !form.description.trim() || !form.amount}>{saving ? 'Saving...' : editing ? 'Save' : 'Record'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <BankTransactionForm open={formOpen} onOpenChange={setFormOpen} editing={editing} onSave={handleSave} saving={saving} />
+      <MatchTransactionDialog open={matchOpen} onOpenChange={setMatchOpen} transaction={matchTarget} companyId={activeCompany?.id} onMatched={loadTransactions} />
+      <ImportCSVDialog open={importOpen} onOpenChange={setImportOpen} companyId={activeCompany?.id} onImported={loadTransactions} />
     </div>
   );
 }
