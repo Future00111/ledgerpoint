@@ -229,11 +229,12 @@ export default function InvoiceForm() {
            <Button onClick={async () => {
              setPosting(true);
              try {
-               await base44.functions.invoke('postSalesInvoice', { invoice_id: id, company_id: activeCompany.id });
+               const response = await base44.functions.invoke('postSalesInvoice', { invoice_id: id, company_id: activeCompany.id });
                toast({ title: 'Invoice posted successfully' });
                loadInvoice();
              } catch (e) {
-               toast({ title: 'Error posting invoice', description: e.message, variant: 'destructive' });
+               const errorMsg = e.response?.data?.error || e.message || 'Failed to post invoice';
+               toast({ title: 'Error posting invoice', description: errorMsg, variant: 'destructive' });
              } finally {
                setPosting(false);
              }

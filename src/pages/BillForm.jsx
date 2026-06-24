@@ -215,11 +215,12 @@ export default function BillForm() {
            <Button onClick={async () => {
              setPosting(true);
              try {
-               await base44.functions.invoke('postPurchaseBill', { bill_id: id, company_id: activeCompany.id });
+               const response = await base44.functions.invoke('postPurchaseBill', { bill_id: id, company_id: activeCompany.id });
                toast({ title: 'Bill posted successfully' });
                loadBill();
              } catch (e) {
-               toast({ title: 'Error posting bill', description: e.message, variant: 'destructive' });
+               const errorMsg = e.response?.data?.error || e.message || 'Failed to post bill';
+               toast({ title: 'Error posting bill', description: errorMsg, variant: 'destructive' });
              } finally {
                setPosting(false);
              }
