@@ -39,6 +39,7 @@ import AccountantPortal from '@/pages/AccountantPortal';
 import Settings from '@/pages/Settings';
 import ChartOfAccounts from '@/pages/ChartOfAccounts';
 import GeneralLedger from '@/pages/GeneralLedger';
+import SetupWizard from '@/pages/SetupWizard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -66,6 +67,7 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/setup" element={<SetupWizard />} />
 
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<CompanyProvider><AppLayout /></CompanyProvider>}>
