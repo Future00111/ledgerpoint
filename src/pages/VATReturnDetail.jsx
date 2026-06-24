@@ -5,9 +5,10 @@ import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Calculator, Lock, CheckCircle2, Send, RefreshCw, Eye } from 'lucide-react';
+import { ArrowLeft, Calculator, Lock, CheckCircle2, Send, RefreshCw, Eye, ChevronRight } from 'lucide-react';
 import moment from 'moment';
 import VATReturnBreakdown from '@/components/vat_returns/VATReturnBreakdown';
+import VATBoxDrillDown from '@/components/vat_returns/VATBoxDrillDown';
 import { calculateVATReturn } from '@/lib/vatCalculation';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -33,6 +34,7 @@ export default function VATReturnDetail() {
   const [vatReturn, setVatReturn] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [drillDownBox, setDrillDownBox] = useState(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -177,23 +179,32 @@ export default function VATReturnDetail() {
 
       {/* VAT Boxes */}
       <Card className="border-0 shadow-sm">
-        <CardHeader><CardTitle className="text-base">VAT Return Summary</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base">VAT Return Summary</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">Click any box to see the underlying documents</p>
+        </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y">
             {boxes.map(row => (
-              <div key={row.box} className={`flex items-center justify-between px-6 py-3.5 ${row.highlight ? 'bg-primary/5' : ''}`}>
+              <button key={row.box} onClick={() => setDrillDownBox(row.box)} className={`w-full flex items-center justify-between px-6 py-3.5 text-left hover:bg-muted/50 transition-colors group ${row.highlight ? 'bg-primary/5' : ''}`}>
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="w-7 h-7 bg-muted rounded flex items-center justify-center text-xs font-semibold flex-shrink-0">{row.box}</span>
                   <span className={`text-sm ${row.bold ? 'font-semibold' : 'text-muted-foreground'}`}>{row.label}</span>
                 </div>
-                <span className={`text-sm flex-shrink-0 ml-3 ${row.bold ? 'font-bold text-base' : 'font-medium'} ${row.highlight && row.value > 0 ? 'text-blue-600' : ''} ${row.highlight && row.value < 0 ? 'text-emerald-600' : ''}`}>
-                  {formatCurrency(Math.abs(row.value))}
-                </span>
-              </div>
+                <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                  <span className={`text-sm ${row.bold ? 'font-bold text-base' : 'font-medium'} ${row.highlight && row.value > 0 ? 'text-blue-600' : ''} ${row.highlight && row.value < 0 ? 'text-emerald-600' : ''}`}>
+                    {formatCurrency(Math.abs(row.value))}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </button>
             ))}
           </div>
         </CardContent>
       </Card>
+
+      {/* Box Drill-down */}
+      <VATBoxDrillDown boxNumber={drillDownBox} boxValue={boxes.find(b => b.box === drillDownBox)?.value} breakdown={vatReturn.breakdown} open={!!drillDownBox} onOpenChange={(v) => !v && setDrillDownBox(null)} />
 
       {/* Breakdown */}
       <VATReturnBreakdown breakdown={vatReturn.breakdown} />
