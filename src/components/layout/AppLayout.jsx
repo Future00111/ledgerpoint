@@ -15,7 +15,9 @@ import {
   X,
   ChevronDown,
   LogOut,
-  Settings
+  Settings,
+  FolderOpen,
+  Briefcase
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -34,6 +36,9 @@ const navItems = [
   { label: 'Purchase Bills', path: '/bills', icon: Receipt },
   { label: 'Bank Transactions', path: '/transactions', icon: Landmark },
   { label: 'VAT Returns', path: '/vat', icon: Calculator },
+  { label: 'Documents', path: '/documents', icon: FolderOpen },
+  { label: 'Accountant Portal', path: '/accountant', icon: Briefcase },
+  { label: 'Settings', path: '/settings', icon: Settings },
 ];
 
 export default function AppLayout() {

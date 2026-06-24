@@ -25,6 +25,9 @@ import Bills from '@/pages/Bills';
 import BillForm from '@/pages/BillForm';
 import BankTransactions from '@/pages/BankTransactions';
 import VATReturn from '@/pages/VATReturn';
+import Documents from '@/pages/Documents';
+import AccountantPortal from '@/pages/AccountantPortal';
+import Settings from '@/pages/Settings';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -67,6 +70,9 @@ const AuthenticatedApp = () => {
           <Route path="/bills/:id" element={<BillForm />} />
           <Route path="/transactions" element={<BankTransactions />} />
           <Route path="/vat" element={<VATReturn />} />
+          <Route path="/documents" element={<Documents />} />
+          <Route path="/accountant" element={<AccountantPortal />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
 
