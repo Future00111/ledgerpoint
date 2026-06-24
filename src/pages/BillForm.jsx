@@ -37,6 +37,7 @@ export default function BillForm() {
 
   const [suppliers, setSuppliers] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [posting, setPosting] = useState(false);
   const [loading, setLoading] = useState(!!isEdit);
 
   const [form, setForm] = useState({
@@ -209,9 +210,25 @@ export default function BillForm() {
       </Card>
 
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={() => navigate('/bills')}>Cancel</Button>
-        <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Bill'}</Button>
-      </div>
+         <Button variant="outline" onClick={() => navigate('/bills')}>Cancel</Button>
+         {isEdit && (form.status === 'draft' || form.status === 'awaiting_review') && (
+           <Button onClick={async () => {
+             setPosting(true);
+             try {
+               await base44.functions.invoke('postPurchaseBill', { bill_id: id, company_id: activeCompany.id });
+               toast({ title: 'Bill posted successfully' });
+               loadBill();
+             } catch (e) {
+               toast({ title: 'Error posting bill', description: e.message, variant: 'destructive' });
+             } finally {
+               setPosting(false);
+             }
+           }} disabled={posting} variant="outline" className="gap-2">
+             {posting ? 'Posting...' : 'Approve & Post'}
+           </Button>
+         )}
+         <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Bill'}</Button>
+       </div>
     </div>
   );
 }

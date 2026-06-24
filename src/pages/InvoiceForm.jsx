@@ -24,6 +24,7 @@ export default function InvoiceForm() {
 
   const [customers, setCustomers] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [posting, setPosting] = useState(false);
   const [loading, setLoading] = useState(!!isEdit);
 
   const [form, setForm] = useState({
@@ -181,6 +182,7 @@ export default function InvoiceForm() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
                   <SelectItem value="sent">Sent</SelectItem>
                   <SelectItem value="part_paid">Part Paid</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
@@ -222,9 +224,25 @@ export default function InvoiceForm() {
       </Card>
 
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={() => navigate('/invoices')}>Cancel</Button>
-        <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Invoice'}</Button>
-      </div>
+         <Button variant="outline" onClick={() => navigate('/invoices')}>Cancel</Button>
+         {isEdit && form.status === 'draft' && (
+           <Button onClick={async () => {
+             setPosting(true);
+             try {
+               await base44.functions.invoke('postSalesInvoice', { invoice_id: id, company_id: activeCompany.id });
+               toast({ title: 'Invoice posted successfully' });
+               loadInvoice();
+             } catch (e) {
+               toast({ title: 'Error posting invoice', description: e.message, variant: 'destructive' });
+             } finally {
+               setPosting(false);
+             }
+           }} disabled={posting} variant="outline" className="gap-2">
+             {posting ? 'Posting...' : 'Approve & Post'}
+           </Button>
+         )}
+         <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Invoice'}</Button>
+       </div>
     </div>
   );
 }

@@ -36,6 +36,7 @@
       "type": "string",
       "enum": [
         "draft",
+        "approved",
         "sent",
         "part_paid",
         "paid",
@@ -43,6 +44,11 @@
         "cancelled"
       ],
       "default": "draft"
+    },
+    "posted_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the invoice was approved and posted"
     },
     "line_items": {
       "type": "array",
