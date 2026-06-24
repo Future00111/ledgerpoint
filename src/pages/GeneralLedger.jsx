@@ -52,6 +52,54 @@ export default function GeneralLedger() {
     }
   };
 
+  const handleTestJournal = async () => {
+    try {
+      const bankAccount = journals.find(j => j.account_code === '1000');
+      const salesAccount = journals.find(j => j.account_code === '4000');
+      
+      if (!bankAccount?.account_id || !salesAccount?.account_id) {
+        toast({ title: 'Error', description: 'Bank and Sales accounts not found in ledger', variant: 'destructive' });
+        return;
+      }
+
+      await base44.entities.JournalEntry.bulkCreate([
+        {
+          company_id: activeCompany.id,
+          date: new Date().toISOString().split('T')[0],
+          reference: 'TEST-001',
+          description: 'Test Journal Entry',
+          account_id: bankAccount.account_id,
+          account_code: '1000',
+          account_name: 'Bank Account',
+          debit: 100,
+          credit: 0,
+          source_type: 'manual_journal',
+          source_record_id: null,
+          is_system_generated: false,
+        },
+        {
+          company_id: activeCompany.id,
+          date: new Date().toISOString().split('T')[0],
+          reference: 'TEST-001',
+          description: 'Test Journal Entry',
+          account_id: salesAccount.account_id,
+          account_code: '4000',
+          account_name: 'Sales',
+          debit: 0,
+          credit: 100,
+          source_type: 'manual_journal',
+          source_record_id: null,
+          is_system_generated: false,
+        },
+      ]);
+      
+      toast({ title: 'Test journal created', description: 'Debit Bank £100, Credit Sales £100' });
+      loadJournals();
+    } catch (e) {
+      toast({ title: 'Error creating test journal', description: e.message, variant: 'destructive' });
+    }
+  };
+
   const filtered = journals.filter(j => {
     const matchSearch = j.reference?.includes(search) || j.description?.toLowerCase().includes(search.toLowerCase()) || j.account_name?.toLowerCase().includes(search.toLowerCase());
     const matchType = typeFilter === 'all' || j.source_type === typeFilter;
@@ -75,10 +123,15 @@ export default function GeneralLedger() {
           <h1 className="text-2xl font-semibold tracking-tight">General Ledger</h1>
           <p className="text-muted-foreground text-sm mt-1">{journals.length} journal entry{journals.length !== 1 ? 'ies' : ''}</p>
         </div>
-        <Button onClick={() => setFormOpen(true)} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Manual Journal
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setFormOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Manual Journal
+          </Button>
+          <Button onClick={handleTestJournal} variant="outline" className="gap-2">
+            Test Journal
+          </Button>
+        </div>
       </div>
 
       {/* Balance Check */}

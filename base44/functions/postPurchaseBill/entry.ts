@@ -23,21 +23,17 @@ Deno.serve(async (req) => {
     console.log(`[POST_BILL] Processing bill ${bill.bill_number} (ID: ${bill_id})`);
     console.log(`[POST_BILL] Category: ${bill.category}, Subtotal: ${bill.subtotal}, VAT: ${bill.vat_total}, Total: ${bill.total}`);
 
-    // Find expense/purchase account based on category
-    console.log(`[POST_BILL] Looking for expense account for category: ${bill.category}`);
-    const expenseAccounts = await base44.entities.ChartOfAccount.filter({ company_id, type: 'expense' });
-    console.log(`[POST_BILL] Found ${expenseAccounts.length} expense accounts total`);
+    // Find purchases account (5000 - Cost of Sales)
+    console.log(`[POST_BILL] Looking for Purchases account (cost_of_sales type)`);
+    const cosAccounts = await base44.entities.ChartOfAccount.filter({ company_id, type: 'cost_of_sales' });
+    console.log(`[POST_BILL] Found ${cosAccounts.length} cost of sales accounts: ${cosAccounts.map(a => `${a.code}-${a.name}`).join(', ')}`);
     
-    if (expenseAccounts.length === 0) {
-      return Response.json({ error: 'No expense accounts found in Chart of Accounts. Please create expense accounts first.' }, { status: 400 });
+    let purchasesAccount = cosAccounts.find(a => a.code === '5000' || a.name?.toLowerCase().includes('purchase'));
+    if (!purchasesAccount) {
+      console.log(`[POST_BILL] Warning: No 'Purchases' account found. Available accounts: ${cosAccounts.map(a => a.name).join(', ')}`);
+      return Response.json({ error: `Purchases account not found. Available accounts: ${cosAccounts.map(a => a.name).join(', ')}` }, { status: 400 });
     }
-
-    let expenseAccount = expenseAccounts.find(a => a.code === bill.category) || expenseAccounts[0];
-    console.log(`[POST_BILL] Selected expense account: ${expenseAccount.code} - ${expenseAccount.name}`);
-    
-    if (!expenseAccount) {
-      return Response.json({ error: 'Expense account not found in Chart of Accounts' }, { status: 400 });
-    }
+    console.log(`[POST_BILL] Selected purchases account: ${purchasesAccount.code} - ${purchasesAccount.name}`);
 
     // Find trade creditors account
     console.log(`[POST_BILL] Looking for Trade Creditors account (liability type)`);
@@ -70,10 +66,10 @@ Deno.serve(async (req) => {
         company_id,
         date: bill.bill_date,
         reference: bill.bill_number,
-        description: `Purchase Bill - ${bill.supplier_name}`,
-        account_id: expenseAccount.id,
-        account_code: expenseAccount.code,
-        account_name: expenseAccount.name,
+        description: `Purchases - ${bill.supplier_name}`,
+        account_id: purchasesAccount.id,
+        account_code: purchasesAccount.code,
+        account_name: purchasesAccount.name,
         debit: bill.subtotal || 0,
         credit: 0,
         source_type: 'purchase_bill',
