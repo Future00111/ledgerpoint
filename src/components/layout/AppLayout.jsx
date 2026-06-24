@@ -20,7 +20,8 @@ import {
   Settings,
   FolderOpen,
   Briefcase,
-  Mail
+  Mail,
+  Filter
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -43,6 +44,7 @@ const navItems = [
   { label: 'VAT Returns', path: '/vat', icon: Calculator },
   { label: 'Documents', path: '/documents', icon: FolderOpen },
   { label: 'Email Capture', path: '/email-capture', icon: Mail },
+  { label: 'Email Rules', path: '/email-rules', icon: Filter },
   { label: 'Accountant Portal', path: '/accountant', icon: Briefcase },
   { label: 'Settings', path: '/settings', icon: Settings },
 ];

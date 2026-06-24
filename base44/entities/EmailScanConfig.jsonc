@@ -1,0 +1,38 @@
+{
+  "name": "EmailScanConfig",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "scan_mode": {
+      "type": "string",
+      "enum": [
+        "all",
+        "selected_senders"
+      ],
+      "default": "all"
+    },
+    "selected_senders": {
+      "type": "string",
+      "description": "Comma-separated list of sender emails to scan (used when scan_mode is selected_senders)"
+    },
+    "ignored_senders": {
+      "type": "string",
+      "description": "Comma-separated list of sender emails to ignore"
+    },
+    "only_with_attachments": {
+      "type": "boolean",
+      "default": true
+    },
+    "ignore_older_than": {
+      "type": "string",
+      "format": "date",
+      "description": "Ignore emails older than this date"
+    }
+  },
+  "required": [
+    "company_id"
+  ]
+}

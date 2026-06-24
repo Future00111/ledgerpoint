@@ -6,39 +6,34 @@
       "type": "string",
       "description": "Reference to Company"
     },
-    "email_account_id": {
-      "type": "string",
-      "description": "Reference to EmailAccount"
-    },
-    "email_address": {
+    "email_sender": {
       "type": "string"
     },
-    "scan_date": {
+    "email_subject": {
+      "type": "string"
+    },
+    "attachment_name": {
+      "type": "string"
+    },
+    "date_found": {
       "type": "string",
       "format": "date-time"
-    },
-    "emails_scanned": {
-      "type": "number",
-      "default": 0
-    },
-    "documents_found": {
-      "type": "number",
-      "default": 0
-    },
-    "emails_ignored": {
-      "type": "number",
-      "default": 0
     },
     "status": {
       "type": "string",
       "enum": [
-        "completed",
-        "failed"
+        "captured",
+        "ignored"
       ],
-      "default": "completed"
+      "default": "captured"
     },
-    "details": {
-      "type": "string"
+    "email_account_id": {
+      "type": "string",
+      "description": "Reference to EmailAccount"
+    },
+    "document_id": {
+      "type": "string",
+      "description": "Reference to Document if captured"
     }
   },
   "required": [
