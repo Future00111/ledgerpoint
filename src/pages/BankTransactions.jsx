@@ -10,6 +10,7 @@ import moment from 'moment';
 import BankTransactionForm from '@/components/bank_transactions/BankTransactionForm';
 import MatchTransactionDialog from '@/components/bank_transactions/MatchTransactionDialog';
 import ImportCSVDialog from '@/components/bank_transactions/ImportCSVDialog';
+import ReconciliationWorkflow from '@/components/bank_transactions/ReconciliationWorkflow';
 import SuggestedMatches from '@/components/bank_transactions/SuggestedMatches';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -34,6 +35,8 @@ export default function BankTransactions() {
   const [saving, setSaving] = useState(false);
   const [matchOpen, setMatchOpen] = useState(false);
   const [matchTarget, setMatchTarget] = useState(null);
+  const [reconcileOpen, setReconcileOpen] = useState(false);
+  const [reconcileTarget, setReconcileTarget] = useState(null);
   const [importOpen, setImportOpen] = useState(false);
   const [suggestions, setSuggestions] = useState({});
   const [approvingId, setApprovingId] = useState(null);
@@ -84,6 +87,7 @@ export default function BankTransactions() {
   };
 
   const openMatch = (t) => { setMatchTarget(t); setMatchOpen(true); };
+  const openReconcile = (t) => { setReconcileTarget(t); setReconcileOpen(true); };
 
   const approveSuggestion = async (transaction, suggestion) => {
     setApprovingId(transaction.id);
@@ -214,6 +218,7 @@ export default function BankTransactions() {
                       {(t.money_out || 0) > 0 && <p className="text-sm font-semibold text-rose-600">-{formatCurrency(t.money_out)}</p>}
                       {t.balance != null && <p className="text-xs text-muted-foreground">Bal: {formatCurrency(t.balance)}</p>}
                     </div>
+                    {t.status === 'review' && <Button variant="outline" size="sm" onClick={() => openReconcile(t)} className="h-7 text-xs">Reconcile</Button>}
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openMatch(t)} title={t.status === 'matched' ? 'Re-match' : 'Match'}><Link2 className="w-3.5 h-3.5" /></Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(t)}><Pencil className="w-3.5 h-3.5" /></Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(t)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
@@ -230,6 +235,7 @@ export default function BankTransactions() {
 
       <BankTransactionForm open={formOpen} onOpenChange={setFormOpen} editing={editing} onSave={handleSave} saving={saving} />
       <MatchTransactionDialog open={matchOpen} onOpenChange={setMatchOpen} transaction={matchTarget} companyId={activeCompany?.id} onMatched={loadTransactions} />
+      <ReconciliationWorkflow open={reconcileOpen} onOpenChange={setReconcileOpen} transaction={reconcileTarget} companyId={activeCompany?.id} onReconciled={loadTransactions} />
       <ImportCSVDialog open={importOpen} onOpenChange={setImportOpen} companyId={activeCompany?.id} onImported={loadTransactions} />
     </div>
   );
