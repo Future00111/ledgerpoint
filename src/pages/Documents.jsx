@@ -10,6 +10,7 @@ import moment from 'moment';
 import DocumentForm from '@/components/documents/DocumentForm';
 import DocumentView from '@/components/documents/DocumentView';
 import ExtractionReview from '@/components/documents/ExtractionReview';
+import CreateRecordDialog from '@/components/documents/CreateRecordDialog';
 import { useToast } from '@/components/ui/use-toast';
 
 function formatCurrency(a) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(a || 0); }
@@ -57,6 +58,8 @@ export default function Documents() {
   const [viewOpen, setViewOpen] = useState(false);
   const [reviewDoc, setReviewDoc] = useState(null);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [createDoc, setCreateDoc] = useState(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
 
@@ -209,7 +212,8 @@ export default function Documents() {
       )}
 
       <DocumentForm open={formOpen} onOpenChange={setFormOpen} companyId={activeCompany?.id} onSaved={loadDocuments} onExtracted={(doc) => { setReviewDoc(doc); setReviewOpen(true); }} />
-      <DocumentView open={viewOpen} onOpenChange={setViewOpen} document={viewDoc} onApprove={handleApprove} onReject={handleReject} actionLoading={actionLoading} />
+      <DocumentView open={viewOpen} onOpenChange={setViewOpen} document={viewDoc} onApprove={handleApprove} onReject={handleReject} actionLoading={actionLoading} onCreateRecord={() => { setViewOpen(false); setCreateDoc(viewDoc); setCreateOpen(true); }} />
+      <CreateRecordDialog open={createOpen} onOpenChange={setCreateOpen} document={createDoc} onCreated={loadDocuments} />
       <ExtractionReview open={reviewOpen} onOpenChange={setReviewOpen} document={reviewDoc} onConfirmed={loadDocuments} onRejected={loadDocuments} />
     </div>
   );

@@ -2,7 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Download, FileText } from 'lucide-react';
+import { Check, X, Download, FileText, FilePlus } from 'lucide-react';
 import moment from 'moment';
 
 function formatCurrency(a) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(a || 0); }
@@ -30,12 +30,14 @@ const TYPE_LABELS = {
   other: 'Other',
 };
 
-export default function DocumentView({ open, onOpenChange, document, onApprove, onReject, actionLoading }) {
+export default function DocumentView({ open, onOpenChange, document, onApprove, onReject, actionLoading, onCreateRecord }) {
   if (!document) return null;
 
   const isPdf = document.mime_type === 'application/pdf' || document.file_url?.toLowerCase().endsWith('.pdf');
   const isImage = document.mime_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(document.file_url || '');
   const canAct = document.status === 'pending_extraction' || document.status === 'pending_review';
+  const RECORD_LABELS = { purchase_invoice: 'Create Purchase Bill', sales_invoice: 'Create Sales Invoice', credit_note: 'Create Credit Note' };
+  const canCreateRecord = document.status === 'approved' && RECORD_LABELS[document.document_type];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -120,6 +122,12 @@ export default function DocumentView({ open, onOpenChange, document, onApprove, 
               <div className="flex gap-2 pt-2 border-t">
                 <Button onClick={onApprove} disabled={actionLoading} className="gap-2 flex-1 bg-emerald-600 hover:bg-emerald-700"><Check className="w-4 h-4" />Approve</Button>
                 <Button onClick={onReject} disabled={actionLoading} variant="destructive" className="gap-2 flex-1"><X className="w-4 h-4" />Reject</Button>
+              </div>
+            )}
+            {canCreateRecord && (
+              <div className="pt-2 border-t">
+                <p className="text-xs text-muted-foreground mb-2">No accounting record exists yet. Create one with your approval:</p>
+                <Button onClick={onCreateRecord} className="gap-2 w-full"><FilePlus className="w-4 h-4" />{RECORD_LABELS[document.document_type]}</Button>
               </div>
             )}
           </div>
