@@ -22,6 +22,16 @@
       "type": "string",
       "format": "date"
     },
+    "payment_terms": {
+      "type": "number",
+      "enum": [
+        7,
+        14,
+        30,
+        60
+      ],
+      "default": 30
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -48,13 +58,18 @@
             "type": "number"
           },
           "vat_rate": {
-            "type": "number"
+            "type": "string"
           },
           "amount": {
-            "type": "number"
+            "type": "number",
+            "description": "Net amount (quantity * unit_price)"
           },
           "vat_amount": {
             "type": "number"
+          },
+          "line_total": {
+            "type": "number",
+            "description": "Gross amount (amount + vat_amount)"
           }
         }
       }
@@ -68,6 +83,14 @@
       "default": 0
     },
     "total": {
+      "type": "number",
+      "default": 0
+    },
+    "amount_paid": {
+      "type": "number",
+      "default": 0
+    },
+    "balance_due": {
       "type": "number",
       "default": 0
     },

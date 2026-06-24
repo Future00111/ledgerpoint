@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Plus, Search } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { FileText, Plus, Search, Eye, Pencil, Trash2, Send, CheckCircle2 } from 'lucide-react';
 import moment from 'moment';
+import InvoiceView from '@/components/invoices/InvoiceView';
 
-function formatCurrency(a) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(a || 0); }
+const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
 const statusColors = {
   draft: 'bg-slate-100 text-slate-700',
@@ -26,6 +28,9 @@ export default function Invoices() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [viewing, setViewing] = useState(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (activeCompany) loadInvoices();
@@ -40,10 +45,31 @@ export default function Invoices() {
     finally { setLoading(false); }
   };
 
+  const today = moment().format('YYYY-MM-DD');
+
+  const isOverdue = (inv) => inv.status === 'sent' && inv.due_date < today;
+
+  const updateStatus = async (inv, status) => {
+    try {
+      await base44.entities.SalesInvoice.update(inv.id, { status });
+      toast({ title: `Invoice marked as ${status}` });
+      await loadInvoices();
+    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
+  };
+
+  const handleDelete = async (inv) => {
+    if (!confirm(`Delete invoice ${inv.invoice_number}?`)) return;
+    try { await base44.entities.SalesInvoice.delete(inv.id); toast({ title: 'Invoice deleted' }); await loadInvoices(); }
+    catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
+  };
+
+  const openView = (inv) => { setViewing(inv); setDetailsOpen(true); };
+
   const filtered = invoices.filter(i => {
     const matchSearch = i.invoice_number?.toLowerCase().includes(search.toLowerCase()) ||
       i.customer_name?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === 'all' || i.status === statusFilter;
+    let matchStatus = statusFilter === 'all' || i.status === statusFilter;
+    if (statusFilter === 'overdue') matchStatus = isOverdue(i);
     return matchSearch && matchStatus;
   });
 
@@ -72,6 +98,7 @@ export default function Invoices() {
             <SelectItem value="sent">Sent</SelectItem>
             <SelectItem value="paid">Paid</SelectItem>
             <SelectItem value="overdue">Overdue</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -87,24 +114,43 @@ export default function Invoices() {
         </Card>
       ) : (
         <div className="grid gap-3">
-          {filtered.map(inv => (
-            <Link key={inv.id} to={`/invoices/${inv.id}`}>
-              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+          {filtered.map(inv => {
+            const overdue = isOverdue(inv);
+            return (
+              <Card key={inv.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow ${overdue ? 'ring-1 ring-red-200' : ''}`}>
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <p className="font-medium text-sm">{inv.invoice_number}</p>
-                      <Badge variant="secondary" className={`text-xs ${statusColors[inv.status] || ''}`}>{inv.status?.replace(/_/g, ' ')}</Badge>
+                      <Badge variant="secondary" className={`text-xs ${statusColors[inv.status] || ''}`}>{inv.status}</Badge>
+                      {overdue && <Badge variant="secondary" className="text-xs bg-red-50 text-red-700">Overdue</Badge>}
                     </div>
                     <p className="text-xs text-muted-foreground">{inv.customer_name} · {moment(inv.issue_date).format('DD MMM YYYY')} · Due {moment(inv.due_date).format('DD MMM')}</p>
+                    {(inv.balance_due > 0 && inv.amount_paid > 0) && (
+                      <p className="text-xs text-muted-foreground mt-0.5">Balance: {gbp.format(inv.balance_due)}</p>
+                    )}
                   </div>
-                  <span className="text-sm font-semibold flex-shrink-0 ml-3">{formatCurrency(inv.total)}</span>
+                  <div className="flex items-center gap-1 flex-shrink-0 ml-3">
+                    {inv.status === 'draft' && (
+                      <Button variant="ghost" size="icon" onClick={() => updateStatus(inv, 'sent')} title="Mark as Sent"><Send className="w-4 h-4" /></Button>
+                    )}
+                    {(inv.status === 'sent' || inv.status === 'overdue') && (
+                      <Button variant="ghost" size="icon" onClick={() => updateStatus(inv, 'paid')} title="Mark as Paid"><CheckCircle2 className="w-4 h-4 text-emerald-600" /></Button>
+                    )}
+                    <Button variant="ghost" size="icon" onClick={() => openView(inv)} title="View"><Eye className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" asChild title="Edit">
+                      <Link to={`/invoices/${inv.id}`}><Pencil className="w-4 h-4" /></Link>
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(inv)} title="Delete"><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                  </div>
                 </CardContent>
               </Card>
-            </Link>
-          ))}
+            );
+          })}
         </div>
       )}
+
+      <InvoiceView invoice={viewing} open={detailsOpen} onOpenChange={setDetailsOpen} />
     </div>
   );
 }
