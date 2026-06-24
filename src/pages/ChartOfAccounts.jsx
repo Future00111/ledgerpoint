@@ -60,8 +60,9 @@ export default function ChartOfAccounts() {
   const handleCreateDefaults = async () => {
     if (!confirm('Create default chart of accounts?')) return;
     try {
-      await base44.functions.invoke('createDefaultAccounts', { company_id: activeCompany.id });
-      toast({ title: 'Default accounts created' });
+      const result = await base44.functions.invoke('createDefaultAccounts', { company_id: activeCompany.id });
+      const count = result.data?.count || 6;
+      toast({ title: `Success`, description: `${count} default accounts created` });
       await loadAccounts();
     } catch (e) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
