@@ -32,14 +32,14 @@ export default function Reports() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [invoices, bills, bankTxns, salesCreditNotes, supplierCreditNotes] = await Promise.all([
+      const [journals, accounts, invoices, bills, bankTxns] = await Promise.all([
+        base44.entities.JournalEntry.filter({ company_id: activeCompany.id }),
+        base44.entities.ChartOfAccount.filter({ company_id: activeCompany.id }),
         base44.entities.SalesInvoice.filter({ company_id: activeCompany.id }),
         base44.entities.PurchaseBill.filter({ company_id: activeCompany.id }),
         base44.entities.BankTransaction.filter({ company_id: activeCompany.id }),
-        base44.entities.SalesCreditNote.filter({ company_id: activeCompany.id }),
-        base44.entities.SupplierCreditNote.filter({ company_id: activeCompany.id }),
       ]);
-      setData({ invoices, bills, bankTxns, salesCreditNotes, supplierCreditNotes });
+      setData({ journals, accounts, invoices, bills, bankTxns });
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };

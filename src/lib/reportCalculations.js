@@ -16,25 +16,26 @@ function upToDate(date, to) {
 }
 
 export function calculateReport(reportType, data, dateFrom, dateTo) {
-  const { invoices, bills, bankTxns, salesCreditNotes, supplierCreditNotes } = data;
+  const { journals, accounts, invoices, bills, bankTxns } = data;
 
+  const fJournals = journals.filter(j => inDateRange(j.date, dateFrom, dateTo));
   const fInvoices = invoices.filter(i => inDateRange(i.issue_date, dateFrom, dateTo));
   const fBills = bills.filter(b => inDateRange(b.bill_date, dateFrom, dateTo));
   const fBankTxns = bankTxns.filter(t => inDateRange(t.date, dateFrom, dateTo));
-  const fSalesCN = salesCreditNotes.filter(c => inDateRange(c.credit_note_date, dateFrom, dateTo));
-  const fSupplierCN = supplierCreditNotes.filter(c => inDateRange(c.credit_note_date, dateFrom, dateTo));
 
   switch (reportType) {
     case 'profit_loss':
-      return calcProfitLoss(fInvoices, fBills, fSalesCN, fSupplierCN);
+      return calcProfitLoss(fJournals, accounts, dateFrom, dateTo);
     case 'balance_sheet':
-      return calcBalanceSheet(invoices, bills, bankTxns, dateTo);
+      return calcBalanceSheet(journals, accounts, dateTo);
     case 'vat_summary':
-      return calcVATSummary(fInvoices, fBills);
+      return calcVATSummary(fJournals, accounts);
+    case 'trial_balance':
+      return calcTrialBalance(fJournals, accounts);
     case 'sales_by_customer':
-      return calcSalesByCustomer(fInvoices, fSalesCN);
+      return calcSalesByCustomer(fInvoices);
     case 'purchases_by_supplier':
-      return calcPurchasesBySupplier(fBills, fSupplierCN);
+      return calcPurchasesBySupplier(fBills);
     case 'aged_debtors':
       return calcAgedDebtors(invoices, dateTo);
     case 'aged_creditors':
@@ -46,14 +47,27 @@ export function calculateReport(reportType, data, dateFrom, dateTo) {
   }
 }
 
-function calcProfitLoss(invoices, bills, salesCN, supplierCN) {
-  const salesTotal = invoices.reduce((s, i) => s + (i.subtotal || 0), 0);
-  const salesCNTotal = salesCN.reduce((s, c) => s + (c.subtotal || 0), 0);
-  const purchasesTotal = bills.reduce((s, b) => s + (b.subtotal || 0), 0);
-  const supplierCNTotal = supplierCN.reduce((s, c) => s + (c.subtotal || 0), 0);
+function calcProfitLoss(journals, accounts, dateFrom, dateTo) {
+  const incomeAccounts = accounts.filter(a => a.type === 'income');
+  const expenseAccounts = accounts.filter(a => a.type === 'expense');
 
-  const totalIncome = salesTotal - salesCNTotal;
-  const totalExpenses = purchasesTotal - supplierCNTotal;
+  let totalIncome = 0, totalExpenses = 0;
+  const incomeRows = incomeAccounts.map(acc => {
+    const debit = journals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.debit || 0), 0);
+    const credit = journals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.credit || 0), 0);
+    const balance = credit - debit; // income is typically credits
+    totalIncome += balance;
+    return { cells: [acc.name, formatCurrency(balance)], drillDown: null };
+  });
+
+  const expenseRows = expenseAccounts.map(acc => {
+    const debit = journals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.debit || 0), 0);
+    const credit = journals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.credit || 0), 0);
+    const balance = debit - credit; // expenses are typically debits
+    totalExpenses += balance;
+    return { cells: [acc.name, formatCurrency(balance)], drillDown: null };
+  });
+
   const netProfit = totalIncome - totalExpenses;
 
   return {
@@ -64,88 +78,73 @@ function calcProfitLoss(invoices, bills, salesCN, supplierCN) {
       { label: 'Net Profit', value: netProfit },
     ],
     sections: [
-      {
-        name: 'Income',
-        columns: ['Description', 'Amount'],
-        rows: [
-          { cells: ['Sales Invoices', formatCurrency(salesTotal)], drillDown: { title: 'Sales Invoices', items: invoices } },
-          { cells: ['Less: Sales Credit Notes', formatCurrency(-salesCNTotal)], drillDown: { title: 'Sales Credit Notes', items: salesCN } },
-        ],
-        totalLabel: 'Total Income',
-        totalValue: totalIncome,
-      },
-      {
-        name: 'Expenses',
-        columns: ['Description', 'Amount'],
-        rows: [
-          { cells: ['Purchase Bills', formatCurrency(purchasesTotal)], drillDown: { title: 'Purchase Bills', items: bills } },
-          { cells: ['Less: Supplier Credit Notes', formatCurrency(-supplierCNTotal)], drillDown: { title: 'Supplier Credit Notes', items: supplierCN } },
-        ],
-        totalLabel: 'Total Expenses',
-        totalValue: totalExpenses,
-      },
+      { name: 'Income', columns: ['Account', 'Amount'], rows: incomeRows, totalLabel: 'Total Income', totalValue: totalIncome },
+      { name: 'Expenses', columns: ['Account', 'Amount'], rows: expenseRows, totalLabel: 'Total Expenses', totalValue: totalExpenses },
     ],
   };
 }
 
-function calcBalanceSheet(invoices, bills, bankTxns, dateTo) {
-  const fInvoices = invoices.filter(i => upToDate(i.issue_date, dateTo));
-  const fBills = bills.filter(b => upToDate(b.bill_date, dateTo));
-  const fBankTxns = bankTxns.filter(t => upToDate(t.date, dateTo));
+function calcBalanceSheet(journals, accounts, dateTo) {
+  const assetAccounts = accounts.filter(a => a.type === 'asset');
+  const liabilityAccounts = accounts.filter(a => a.type === 'liability');
+  const equityAccounts = accounts.filter(a => a.type === 'equity');
 
-  const bankBalance = fBankTxns.reduce((s, t) => s + ((t.money_in || 0) - (t.money_out || 0)), 0);
-  const outstandingInvoices = fInvoices.filter(i => i.status !== 'paid' && i.status !== 'cancelled');
-  const outstandingBills = fBills.filter(b => b.status !== 'paid' && b.status !== 'cancelled');
-  const receivables = outstandingInvoices.reduce((s, i) => s + (i.balance_due || 0), 0);
-  const payables = outstandingBills.reduce((s, b) => s + (b.balance_due || 0), 0);
+  const fJournals = journals.filter(j => upToDate(j.date, dateTo));
 
-  const totalAssets = bankBalance + receivables;
-  const totalLiabilities = payables;
-  const equity = totalAssets - totalLiabilities;
+  let totalAssets = 0, totalLiabilities = 0, totalEquity = 0;
+
+  const assetRows = assetAccounts.map(acc => {
+    const debit = fJournals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.debit || 0), 0);
+    const credit = fJournals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.credit || 0), 0);
+    const balance = debit - credit; // assets are debits
+    totalAssets += balance;
+    return { cells: [acc.name, formatCurrency(balance)], drillDown: null };
+  });
+
+  const liabilityRows = liabilityAccounts.map(acc => {
+    const debit = fJournals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.debit || 0), 0);
+    const credit = fJournals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.credit || 0), 0);
+    const balance = credit - debit; // liabilities are credits
+    totalLiabilities += balance;
+    return { cells: [acc.name, formatCurrency(balance)], drillDown: null };
+  });
+
+  const equityRows = equityAccounts.map(acc => {
+    const debit = fJournals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.debit || 0), 0);
+    const credit = fJournals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.credit || 0), 0);
+    const balance = credit - debit; // equity is credits
+    totalEquity += balance;
+    return { cells: [acc.name, formatCurrency(balance)], drillDown: null };
+  });
 
   return {
     title: 'Balance Sheet',
     summaryCards: [
       { label: 'Total Assets', value: totalAssets },
       { label: 'Total Liabilities', value: totalLiabilities },
-      { label: 'Net Assets', value: equity },
+      { label: 'Total Equity', value: totalEquity },
     ],
     sections: [
-      {
-        name: 'Assets',
-        columns: ['Description', 'Amount'],
-        rows: [
-          { cells: ['Bank Balance', formatCurrency(bankBalance)], drillDown: { title: 'Bank Transactions', items: fBankTxns } },
-          { cells: ['Accounts Receivable', formatCurrency(receivables)], drillDown: { title: 'Outstanding Invoices', items: outstandingInvoices } },
-        ],
-        totalLabel: 'Total Assets',
-        totalValue: totalAssets,
-      },
-      {
-        name: 'Liabilities',
-        columns: ['Description', 'Amount'],
-        rows: [
-          { cells: ['Accounts Payable', formatCurrency(payables)], drillDown: { title: 'Outstanding Bills', items: outstandingBills } },
-        ],
-        totalLabel: 'Total Liabilities',
-        totalValue: totalLiabilities,
-      },
-      {
-        name: 'Equity',
-        columns: ['Description', 'Amount'],
-        rows: [
-          { cells: ['Net Assets', formatCurrency(equity)], drillDown: null },
-        ],
-        totalLabel: 'Total Equity',
-        totalValue: equity,
-      },
+      { name: 'Assets', columns: ['Account', 'Amount'], rows: assetRows, totalLabel: 'Total Assets', totalValue: totalAssets },
+      { name: 'Liabilities', columns: ['Account', 'Amount'], rows: liabilityRows, totalLabel: 'Total Liabilities', totalValue: totalLiabilities },
+      { name: 'Equity', columns: ['Account', 'Amount'], rows: equityRows, totalLabel: 'Total Equity', totalValue: totalEquity },
     ],
   };
 }
 
-function calcVATSummary(invoices, bills) {
-  const outputVAT = invoices.reduce((s, i) => s + (i.vat_total || 0), 0);
-  const inputVAT = bills.reduce((s, b) => s + (b.vat_total || 0), 0);
+function calcVATSummary(journals, accounts) {
+  const vatAccounts = accounts.filter(a => a.type === 'vat');
+
+  let outputVAT = 0, inputVAT = 0;
+  const rows = vatAccounts.map(acc => {
+    const debit = journals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.debit || 0), 0);
+    const credit = journals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.credit || 0), 0);
+    const balance = credit - debit; // VAT is typically credit
+    if (balance > 0) outputVAT += balance;
+    else inputVAT += Math.abs(balance);
+    return { cells: [acc.name, formatCurrency(balance)], drillDown: null };
+  });
+
   const netVAT = outputVAT - inputVAT;
 
   return {
@@ -156,22 +155,45 @@ function calcVATSummary(invoices, bills) {
       { label: 'Net VAT Payable', value: netVAT },
     ],
     sections: [
+      { name: 'VAT Breakdown', columns: ['Account', 'Amount'], rows, totalLabel: 'Net VAT', totalValue: netVAT },
+    ],
+  };
+}
+
+function calcTrialBalance(journals, accounts) {
+  let totalDebits = 0, totalCredits = 0;
+  const rows = accounts.map(acc => {
+    const debit = journals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.debit || 0), 0);
+    const credit = journals.filter(j => j.account_id === acc.id).reduce((s, j) => s + (j.credit || 0), 0);
+    totalDebits += debit;
+    totalCredits += credit;
+    return {
+      cells: [acc.code, acc.name, formatCurrency(debit), formatCurrency(credit)],
+      drillDown: null,
+    };
+  }).filter(r => r.cells[2] !== '$0.00' || r.cells[3] !== '$0.00');
+
+  const isBalanced = Math.abs(totalDebits - totalCredits) < 0.01;
+
+  return {
+    title: 'Trial Balance',
+    summaryCards: [
+      { label: 'Total Debits', value: totalDebits },
+      { label: 'Total Credits', value: totalCredits },
+      { label: 'Balanced', value: isBalanced ? 1 : 0 },
+    ],
+    sections: [
       {
-        name: 'VAT Breakdown',
-        columns: ['Description', 'Amount'],
-        rows: [
-          { cells: ['Output VAT (Sales)', formatCurrency(outputVAT)], drillDown: { title: 'Sales Invoices', items: invoices } },
-          { cells: ['Input VAT (Purchases)', formatCurrency(inputVAT)], drillDown: { title: 'Purchase Bills', items: bills } },
-          { cells: ['Net VAT Payable', formatCurrency(netVAT)], drillDown: null },
-        ],
-        totalLabel: 'Net VAT',
-        totalValue: netVAT,
+        name: 'Trial Balance',
+        columns: ['Code', 'Account', 'Debit', 'Credit'],
+        rows,
+        totalCells: ['', 'Total', formatCurrency(totalDebits), formatCurrency(totalCredits)],
       },
     ],
   };
 }
 
-function calcSalesByCustomer(invoices, salesCN) {
+function calcSalesByCustomer(invoices) {
   const byCustomer = {};
   for (const inv of invoices) {
     const id = inv.customer_id || inv.customer_name || 'unknown';
@@ -181,15 +203,6 @@ function calcSalesByCustomer(invoices, salesCN) {
     byCustomer[id].total += inv.total || 0;
     byCustomer[id].count++;
     byCustomer[id].items.push(inv);
-  }
-  for (const cn of salesCN) {
-    const id = cn.customer_id || cn.customer_name || 'unknown';
-    if (byCustomer[id]) {
-      byCustomer[id].net -= cn.subtotal || 0;
-      byCustomer[id].vat -= cn.vat_total || 0;
-      byCustomer[id].total -= cn.total || 0;
-      byCustomer[id].items.push(cn);
-    }
   }
   const rows = Object.values(byCustomer).sort((a, b) => b.total - a.total);
   const grandTotal = rows.reduce((s, r) => s + r.total, 0);
@@ -215,7 +228,7 @@ function calcSalesByCustomer(invoices, salesCN) {
   };
 }
 
-function calcPurchasesBySupplier(bills, supplierCN) {
+function calcPurchasesBySupplier(bills) {
   const bySupplier = {};
   for (const bill of bills) {
     const id = bill.supplier_id || bill.supplier_name || 'unknown';
@@ -225,15 +238,6 @@ function calcPurchasesBySupplier(bills, supplierCN) {
     bySupplier[id].total += bill.total || 0;
     bySupplier[id].count++;
     bySupplier[id].items.push(bill);
-  }
-  for (const cn of supplierCN) {
-    const id = cn.supplier_id || cn.supplier_name || 'unknown';
-    if (bySupplier[id]) {
-      bySupplier[id].net -= cn.subtotal || 0;
-      bySupplier[id].vat -= cn.vat_total || 0;
-      bySupplier[id].total -= cn.total || 0;
-      bySupplier[id].items.push(cn);
-    }
   }
   const rows = Object.values(bySupplier).sort((a, b) => b.total - a.total);
   const grandTotal = rows.reduce((s, r) => s + r.total, 0);
