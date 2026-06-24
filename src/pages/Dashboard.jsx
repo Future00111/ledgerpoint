@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import moment from 'moment';
 import VATDashboardCard from '@/components/dashboard/VATDashboardCard';
+import HealthScore from '@/components/dashboard/HealthScore';
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(amount || 0);
@@ -148,8 +149,13 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* VAT Dashboard */}
-      <VATDashboardCard />
+      {/* Health Score & VAT */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <VATDashboardCard />
+        </div>
+        <HealthScore companyId={activeCompany.id} />
+      </div>
 
       {/* Lists */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
