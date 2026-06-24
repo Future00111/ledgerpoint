@@ -14,6 +14,50 @@
       "type": "string",
       "description": "VAT registration number"
     },
+    "business_type": {
+      "type": "string",
+      "enum": [
+        "garage",
+        "retail",
+        "wholesale",
+        "manufacturing",
+        "construction",
+        "professional_services",
+        "hospitality",
+        "transport",
+        "it_services",
+        "consultancy",
+        "other"
+      ],
+      "default": "other"
+    },
+    "vat_registered": {
+      "type": "boolean",
+      "default": false
+    },
+    "vat_scheme": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "cash_accounting",
+        "flat_rate"
+      ],
+      "default": "standard"
+    },
+    "vat_frequency": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "quarterly",
+        "yearly"
+      ],
+      "default": "quarterly"
+    },
+    "financial_year_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Financial year end date"
+    },
     "address_line_1": {
       "type": "string"
     },
@@ -35,19 +79,6 @@
     "email": {
       "type": "string",
       "format": "email"
-    },
-    "financial_year_start": {
-      "type": "string",
-      "format": "date"
-    },
-    "vat_scheme": {
-      "type": "string",
-      "enum": [
-        "standard",
-        "flat_rate",
-        "cash_accounting"
-      ],
-      "default": "standard"
     }
   },
   "required": [
