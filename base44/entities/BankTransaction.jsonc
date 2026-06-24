@@ -61,10 +61,10 @@
       "enum": [
         "sales_invoice",
         "purchase_bill",
-        "credit_note",
-        "manual"
-      ],
-      "default": "manual"
+        "sales_credit_note",
+        "supplier_credit_note",
+        "ledger_account"
+      ]
     },
     "matched_record_id": {
       "type": "string"
@@ -75,12 +75,10 @@
     "status": {
       "type": "string",
       "enum": [
-        "unmatched",
-        "suggested",
-        "matched",
-        "reviewed"
+        "review",
+        "matched"
       ],
-      "default": "unmatched"
+      "default": "review"
     },
     "type": {
       "type": "string",

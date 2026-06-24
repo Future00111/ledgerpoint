@@ -74,8 +74,7 @@ export default function ImportCSVDialog({ open, onOpenChange, companyId, onImpor
       if (gross && rate && !isNaN(rate)) obj.vat_amount = Math.round((gross - gross / (1 + rate / 100)) * 100) / 100;
       obj.type = obj.money_in > 0 ? 'income' : 'expense';
       obj.amount = obj.money_in || obj.money_out;
-      obj.status = 'unmatched';
-      obj.matched_type = 'manual';
+      obj.status = 'review';
       obj.company_id = companyId;
       return obj;
     });
