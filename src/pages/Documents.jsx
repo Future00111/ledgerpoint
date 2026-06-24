@@ -5,8 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { FolderOpen, Plus, Search, FileText, Receipt, Undo2, Landmark, Trash2, Eye, Sparkles } from 'lucide-react';
+import { FolderOpen, Plus, Search, FileText, Receipt, Undo2, Landmark, Trash2, Eye, Sparkles, Link2 } from 'lucide-react';
 import moment from 'moment';
+import { Link } from 'react-router-dom';
 import DocumentForm from '@/components/documents/DocumentForm';
 import DocumentView from '@/components/documents/DocumentView';
 import ExtractionReview from '@/components/documents/ExtractionReview';
@@ -46,6 +47,13 @@ const STATUS_LABELS = {
   pending_review: 'Pending Review',
   approved: 'Approved',
   rejected: 'Rejected',
+};
+
+const LINKED_RECORD_MAP = {
+  PurchaseBill: { label: 'Linked Bill', path: '/bills' },
+  SalesInvoice: { label: 'Linked Invoice', path: '/invoices' },
+  SalesCreditNote: { label: 'Linked Credit Note', path: '/sales-credit-notes' },
+  SupplierCreditNote: { label: 'Linked Credit Note', path: '/supplier-credit-notes' },
 };
 
 export default function Documents() {
@@ -193,6 +201,12 @@ export default function Documents() {
                           {doc.reference_number ? ` · Ref: ${doc.reference_number}` : ''}
                           {doc.document_date ? ` · ${moment(doc.document_date).format('DD MMM YYYY')}` : ''}
                         </p>
+                        {doc.linked_record_type && doc.linked_record_id && LINKED_RECORD_MAP[doc.linked_record_type] && (
+                          <Link to={`${LINKED_RECORD_MAP[doc.linked_record_type].path}/${doc.linked_record_id}`} className="text-xs text-primary hover:underline flex items-center gap-1 mt-1 w-fit">
+                            <Link2 className="w-3 h-3" />
+                            {LINKED_RECORD_MAP[doc.linked_record_type].label}
+                          </Link>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">

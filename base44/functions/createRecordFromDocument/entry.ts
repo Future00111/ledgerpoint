@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
     due.setDate(due.getDate() + 30);
     const dueDateStr = due.toISOString().split('T')[0];
 
-    let record, record_type, record_path;
+    let record, record_type, record_path, linked_type;
 
     if (doc.document_type === 'purchase_invoice' || doc.document_type === 'receipt') {
       let final_supplier_id;
@@ -66,6 +66,7 @@ Deno.serve(async (req) => {
       });
       record_type = 'Purchase Bill';
       record_path = '/bills/' + record.id;
+      linked_type = 'PurchaseBill';
 
     } else if (doc.document_type === 'sales_invoice') {
       let customers = await base44.entities.Customer.filter({ company_id: doc.company_id, name: doc.supplier_or_customer });
@@ -88,6 +89,7 @@ Deno.serve(async (req) => {
       });
       record_type = 'Sales Invoice';
       record_path = '/invoices/' + record.id;
+      linked_type = 'SalesInvoice';
 
     } else if (doc.document_type === 'credit_note') {
       if (!credit_note_type) return Response.json({ error: 'Credit note type (sales or supplier) is required' }, { status: 400 });
@@ -112,6 +114,7 @@ Deno.serve(async (req) => {
         });
         record_type = 'Sales Credit Note';
         record_path = '/sales-credit-notes/' + record.id;
+        linked_type = 'SalesCreditNote';
 
       } else if (credit_note_type === 'supplier') {
         let suppliers = await base44.entities.Supplier.filter({ company_id: doc.company_id, name: doc.supplier_or_customer });
@@ -133,6 +136,7 @@ Deno.serve(async (req) => {
         });
         record_type = 'Supplier Credit Note';
         record_path = '/supplier-credit-notes/' + record.id;
+        linked_type = 'SupplierCreditNote';
       } else {
         return Response.json({ error: 'Invalid credit note type' }, { status: 400 });
       }
@@ -140,8 +144,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'This document type does not support accounting record creation' }, { status: 400 });
     }
 
-    // Change document status to Approved
-    await base44.entities.Document.update(document_id, { status: 'approved' });
+    // Change document status to Approved and link the created record
+    await base44.entities.Document.update(document_id, {
+      status: 'approved',
+      linked_record_type: linked_type,
+      linked_record_id: record.id,
+    });
 
     return Response.json({ record, record_type, record_path });
   } catch (error) {

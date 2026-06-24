@@ -73,6 +73,14 @@
       "type": "object",
       "description": "AI-extracted fields with confidence scores"
     },
+    "linked_record_type": {
+      "type": "string",
+      "description": "Type of linked accounting record (PurchaseBill, SalesInvoice, SalesCreditNote, SupplierCreditNote)"
+    },
+    "linked_record_id": {
+      "type": "string",
+      "description": "ID of the linked accounting record"
+    },
     "notes": {
       "type": "string"
     }
