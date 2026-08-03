@@ -17,19 +17,18 @@
     "business_type": {
       "type": "string",
       "enum": [
+        "general_business",
         "garage",
-        "retail",
-        "wholesale",
-        "manufacturing",
         "construction",
-        "professional_services",
-        "hospitality",
-        "transport",
-        "it_services",
-        "consultancy",
+        "restaurant",
+        "retail",
+        "ecommerce",
+        "property",
+        "consultant",
+        "tradesperson",
         "other"
       ],
-      "default": "other"
+      "default": "general_business"
     },
     "vat_registered": {
       "type": "boolean",

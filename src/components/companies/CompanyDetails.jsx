@@ -4,10 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Building2, Mail, Phone, MapPin, FileText, Calendar, PoundSterling } from 'lucide-react';
 
 const BUSINESS_LABELS = {
-  garage: 'Garage / Motor Trade', retail: 'Retail', wholesale: 'Wholesale',
-  manufacturing: 'Manufacturing', construction: 'Construction',
-  professional_services: 'Professional Services', hospitality: 'Hospitality',
-  transport: 'Transport', it_services: 'IT Services', consultancy: 'Consultancy', other: 'Other',
+  general_business: 'General Business', garage: 'Garage', construction: 'Construction',
+  restaurant: 'Restaurant', retail: 'Retail', ecommerce: 'E-commerce',
+  property: 'Property', consultant: 'Consultant', tradesperson: 'Tradesperson', other: 'Other',
 };
 
 const SCHEME_LABELS = { standard: 'Standard', cash_accounting: 'Cash Accounting', flat_rate: 'Flat Rate' };

@@ -9,16 +9,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useToast } from '@/components/ui/use-toast';
 
 const BUSINESS_TYPES = [
-  { value: 'garage', label: 'Garage / Motor Trade' },
-  { value: 'retail', label: 'Retail' },
-  { value: 'wholesale', label: 'Wholesale' },
-  { value: 'manufacturing', label: 'Manufacturing' },
+  { value: 'general_business', label: 'General Business' },
+  { value: 'garage', label: 'Garage' },
   { value: 'construction', label: 'Construction' },
-  { value: 'professional_services', label: 'Professional Services' },
-  { value: 'hospitality', label: 'Hospitality' },
-  { value: 'transport', label: 'Transport' },
-  { value: 'it_services', label: 'IT Services' },
-  { value: 'consultancy', label: 'Consultancy' },
+  { value: 'restaurant', label: 'Restaurant' },
+  { value: 'retail', label: 'Retail' },
+  { value: 'ecommerce', label: 'E-commerce' },
+  { value: 'property', label: 'Property' },
+  { value: 'consultant', label: 'Consultant' },
+  { value: 'tradesperson', label: 'Tradesperson' },
   { value: 'other', label: 'Other' },
 ];
 
