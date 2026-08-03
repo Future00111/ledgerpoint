@@ -27,6 +27,7 @@ import {
   Grid3x3
 } from 'lucide-react';
 import AICopilot from '@/components/copilot/AICopilot';
+import { Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +54,7 @@ const navItems = [
   { label: 'Email Capture', path: '/email-capture', icon: Mail },
   { label: 'Email Rules', path: '/email-rules', icon: Filter },
   { label: 'Reports', path: '/reports', icon: BarChart3 },
+  { label: 'AI Insights', path: '/insights', icon: Sparkles },
   { label: 'Accountant Portal', path: '/accountant', icon: Briefcase },
   { label: 'Settings', path: '/settings', icon: Settings },
 ];

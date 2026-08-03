@@ -1,0 +1,94 @@
+{
+  "name": "Insight",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "generated_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the insight was generated"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "revenue",
+        "overdue",
+        "bills_due",
+        "costs",
+        "vat",
+        "duplicate",
+        "reconciliation",
+        "cashflow",
+        "general"
+      ],
+      "description": "Insight category"
+    },
+    "title": {
+      "type": "string",
+      "description": "Short headline, e.g. 'You have 8 invoices overdue worth \u00a35,420'"
+    },
+    "description": {
+      "type": "string",
+      "description": "Longer explanation with the figures behind the insight"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "positive",
+        "info",
+        "warning",
+        "critical"
+      ],
+      "default": "info"
+    },
+    "metric_value": {
+      "type": "number",
+      "default": 0
+    },
+    "metric_label": {
+      "type": "string"
+    },
+    "comparison_value": {
+      "type": "number",
+      "default": 0
+    },
+    "comparison_label": {
+      "type": "string"
+    },
+    "change_percent": {
+      "type": "number",
+      "default": 0
+    },
+    "source_type": {
+      "type": "string",
+      "description": "What underlying records this insight refers to (drives the drill-down)"
+    },
+    "source_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs or parameters needed to reconstruct the underlying records"
+    },
+    "link_route": {
+      "type": "string",
+      "description": "Internal route to the related page"
+    },
+    "link_label": {
+      "type": "string"
+    },
+    "is_dismissed": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "company_id",
+    "generated_date",
+    "category",
+    "title"
+  ]
+}

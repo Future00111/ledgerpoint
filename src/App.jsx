@@ -40,6 +40,7 @@ import Settings from '@/pages/Settings';
 import ChartOfAccounts from '@/pages/ChartOfAccounts';
 import GeneralLedger from '@/pages/GeneralLedger';
 import SetupWizard from '@/pages/SetupWizard';
+import Insights from '@/pages/Insights';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -98,6 +99,7 @@ const AuthenticatedApp = () => {
           <Route path="/accountant" element={<AccountantPortal />} />
           <Route path="/chart-of-accounts" element={<ChartOfAccounts />} />
           <Route path="/general-ledger" element={<GeneralLedger />} />
+          <Route path="/insights" element={<Insights />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>

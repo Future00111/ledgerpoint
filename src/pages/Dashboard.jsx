@@ -19,6 +19,7 @@ import {
 import moment from 'moment';
 import VATDashboardCard from '@/components/dashboard/VATDashboardCard';
 import HealthScore from '@/components/dashboard/HealthScore';
+import InsightsSummary from '@/components/dashboard/InsightsSummary';
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(amount || 0);
@@ -148,6 +149,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* AI Insights summary */}
+      <InsightsSummary companyId={activeCompany.id} />
 
       {/* Health Score & VAT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
