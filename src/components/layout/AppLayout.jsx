@@ -26,6 +26,7 @@ import {
   BookOpen,
   Grid3x3
 } from 'lucide-react';
+import AICopilot from '@/components/copilot/AICopilot';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -172,6 +173,8 @@ export default function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      <AICopilot />
     </div>
   );
 }
