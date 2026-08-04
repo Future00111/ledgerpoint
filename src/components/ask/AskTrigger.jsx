@@ -47,7 +47,7 @@ export default function AskTrigger() {
           ⌘K
         </kbd>
       </button>
-      <div className="mt-2 flex flex-wrap gap-1.5 max-w-2xl">
+      <div className="mt-2 hidden sm:flex flex-wrap gap-1.5 max-w-2xl">
         {EXAMPLES.map((e) => (
           <button
             key={e}

@@ -23,6 +23,15 @@ const EXAMPLES = [
   'Prepare my VAT return',
 ];
 
+// Suggestion chips shown inside the full-screen Ask interface.
+const EXAMPLE_CHIPS = [
+  'Create an invoice',
+  'Find British Gas',
+  'Show unpaid customers',
+  'Why has profit changed?',
+  'Prepare my VAT return',
+];
+
 const KIND_TITLES = {
   suggestion: 'Suggested',
   navigate: 'Navigate',
@@ -425,6 +434,20 @@ export default function AskModal({ open, onClose, initialQuery }) {
             <div className="p-4">
               <p className="text-lg font-semibold">{greeting()}, {userName || 'there'}.</p>
               <p className="text-sm text-muted-foreground mb-4">What would you like to do today?</p>
+              <div className="mb-4">
+                <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Try asking</p>
+                <div className="flex flex-wrap gap-2">
+                  {EXAMPLE_CHIPS.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setQuery(c)}
+                      className="text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-muted/70 text-muted-foreground transition-colors"
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
               {recentSearches.length > 0 && (
                 <div className="mb-3">
                   <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Recent searches</p>
