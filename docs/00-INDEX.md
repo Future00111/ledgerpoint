@@ -23,6 +23,7 @@ Project Atlas is the single source of truth for Ledgerly. Every page, feature, w
 | 12 | [Design Inspiration](./12-design-inspiration.md) | Permanent Product Principle: take design language from Stripe, Linear, Notion, Apple, Raycast, ChatGPT, Figma, GitHub — not legacy accounting software. |
 | 13 | [Ledgerly Vision](./13-ledgerly-vision.md) | The mission: build accounting software business owners enjoy using — simple, intelligent, effortless. Success is measured by how easy running a business becomes. |
 | 14 | [Core Maxims](./14-core-maxims.md) | Short governing rules for every decision: simple beats clever, explain everything, rules before AI, build once, performance is a feature, never stop polishing. |
+| 15 | [Definition of Done](./15-definition-of-done.md) | The mandatory completion checklist a feature must satisfy before it can be marked as done — manifesto alignment, standards, responsiveness, Ask, permissions, audit, UX states and testing. |
 
 ## How to use Project Atlas
 
