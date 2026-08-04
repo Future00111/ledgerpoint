@@ -1,39 +1,45 @@
 # 00 — The Ledgerly Manifesto
 
-> This document is not technical.
-> It exists to explain why Ledgerly is being built and how every decision should be made.
-> Every future feature, workflow and design decision should align with this manifesto.
+## Purpose
 
-This is the highest document in Project Atlas. It sits above the [Ledgerly Vision](./13-ledgerly-vision.md), the [Product Principles](./01-product-principles.md), and the [Core Maxims](./14-core-maxims.md). When anything below this conflicts with it, this wins.
+The Ledgerly Manifesto defines why Ledgerly exists and how every design, development and product decision should be made.
+
+This document is not technical documentation.
+
+It is the guiding philosophy of the entire product.
+
+Every future feature, screen, workflow and enhancement must align with the principles contained within this manifesto.
+
+The manifesto should be permanently available within Project Atlas and treated as the highest-level product document.
 
 ---
 
-## The Ledgerly Manifesto
+## THE LEDGERLY MANIFESTO
 
-Accounting software has become complicated.
+Accounting software has become too complicated.
 
 Business owners spend too much time learning software instead of running their businesses.
 
 We believe accounting software should feel calm, intelligent and approachable.
 
 Technology should work for people.
-People should not work for technology.
+People should never have to work around technology.
 
 Ledgerly exists to remove friction from running a business.
 
 Every screen should save time.
 Every click should have a purpose.
-Every feature should increase confidence.
+Every interaction should increase confidence.
 
 If something can be explained more simply, explain it more simply.
 If something can be automated safely, automate it.
-If AI can genuinely help, use AI.
-If AI creates confusion, don't use AI.
+If AI genuinely improves the experience, use AI.
+If AI creates uncertainty, do not use AI.
 
-We believe good software should teach.
-It should explain.
-It should guide.
-It should never make users feel stupid.
+Ledgerly should teach.
+Ledgerly should explain.
+Ledgerly should guide.
+Ledgerly should never make users feel stupid.
 
 Ledgerly is accounting software first.
 AI is an enhancement.
@@ -42,37 +48,34 @@ The accounting engine always comes first.
 
 Trust is more important than cleverness.
 
-Business owners deserve software they actually enjoy using.
-
 We design for business owners first.
 Accountants should have powerful tools.
 Business owners should never feel overwhelmed by those tools.
 
-We do not chase features.
-We solve problems.
+We do not build features simply because competitors have them.
+We build features because they solve real business problems.
 
-We believe software should reduce stress rather than create it.
+Ledgerly should feel modern.
+Ledgerly should feel calm.
+Ledgerly should feel fast.
+Ledgerly should feel intelligent.
+Ledgerly should feel trustworthy.
+
 We believe speed is a feature.
-We believe polish matters.
-We believe consistency matters.
-We believe details matter.
+We believe polish is a feature.
+We believe quality is a feature.
+We believe consistency builds confidence.
 We believe clarity wins.
 We believe simplicity wins.
 We believe transparency builds trust.
 
 We never expose technical information to customers.
-We explain what happened.
-Why it happened.
-What the user should do next.
 
-We never build something simply because another accounting package has it.
-We build features because they genuinely improve the lives of business owners.
+We explain:
 
-Ledgerly should feel modern.
-Calm.
-Fast.
-Confident.
-Professional.
+- What happened.
+- Why it happened.
+- What the user should do next.
 
 Every feature should answer one question:
 
@@ -82,38 +85,54 @@ If the answer is no, redesign it.
 
 ---
 
-## The Promise
+## OUR PROMISE
 
 When someone logs into Ledgerly they should feel:
 
 - Confident.
 - In control.
-- Informed.
 - Supported.
-- Never confused.
+- Informed.
 - Never overwhelmed.
+- Never confused.
 
 ---
 
-## The Mission
+## OUR MISSION
 
 > Build the accounting software that business owners actually enjoy using.
 
 ---
 
-## The Standard
+## OUR STANDARD
 
-Every feature should be something we would proudly use to run our own business.
+Every feature should be something we would proudly use to run our own businesses.
 
 - Good enough is not good enough.
-- Polish is a feature.
-- Quality is a feature.
 - Performance is a feature.
 - Trust is a feature.
+- Quality is a feature.
 - Simplicity is a feature.
+- Attention to detail is a feature.
 
 ---
 
-## The Final Rule
+## OUR CULTURE
+
+> Build software people smile when they use.
+
+---
+
+## FINAL PRINCIPLE
 
 > Every line of code should move Ledgerly closer to becoming the easiest, most trusted and most enjoyable accounting software available.
+
+---
+
+## Development Requirement
+
+Before implementing, modifying or approving any feature, compare the feature against this manifesto.
+
+If the feature conflicts with the manifesto, redesign it before implementation.
+
+The Ledgerly Manifesto should become the highest-level product guideline within Project Atlas and should be considered before the Product Principles, PRD or Technical Architecture when making design and development decisions.
