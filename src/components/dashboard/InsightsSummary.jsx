@@ -63,7 +63,7 @@ export default function InsightsSummary({ companyId }) {
             </div>
           </Link>
         ) : (
-          <p className="text-sm text-muted-foreground">No insights yet. <Link to="/insights" className="text-primary hover:underline">Generate your daily summary →</Link></p>
+          <p className="text-sm text-muted-foreground">Ledgerly is analysing your business — insights will appear automatically as more transactions are processed. <Link to="/insights" className="text-primary hover:underline">View insights →</Link></p>
         )}
       </CardContent>
     </Card>

@@ -28,9 +28,9 @@ export default function InsightsWidget({ company }) {
     return (
       <EmptyState
         icon={Sparkles}
-        title="No insights right now"
-        description="Ledgerly analyses your books daily and surfaces trends, risks and opportunities here."
-        askLabel="Ask about your business"
+        title="Ledgerly is analysing your business"
+        description="Insights will appear automatically as more transactions are processed. The more you use Ledgerly, the smarter it gets."
+        askLabel="Ask why…"
         onAsk={() => openAsk('How is my business performing?')}
       />
     );

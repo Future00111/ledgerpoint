@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useCompany } from '@/lib/useCompany';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Progress } from '@/components/ui/progress';
+import { useCompany } from '@/lib/useCompany';
+import { useBusinessHealth, healthOneLiner, OPEN_HEALTH_EVENT } from './useBusinessHealth';
+import BusinessHealthDialog from './BusinessHealthDialog';
+import { ChevronRight, ListChecks } from 'lucide-react';
 
+// Compact command bar: greeting + natural-language health line + today's
+// priority pill + clickable Business Health score (opens details).
 function greeting() {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning';
@@ -13,8 +18,8 @@ function greeting() {
 export default function DashboardHeader() {
   const { activeCompany } = useCompany();
   const [userName, setUserName] = useState('');
-  const [score, setScore] = useState(null);
-  const [notes, setNotes] = useState([]);
+  const [open, setOpen] = useState(false);
+  const health = useBusinessHealth(activeCompany?.id);
 
   useEffect(() => {
     base44
@@ -25,86 +30,68 @@ export default function DashboardHeader() {
   }, []);
 
   useEffect(() => {
-    if (!activeCompany?.id) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const [accts, txns, docs, vat, inv] = await Promise.all([
-          base44.entities.BankAccount.filter({ company_id: activeCompany.id }),
-          base44.entities.BankTransaction.filter({ company_id: activeCompany.id }, '-date', 500),
-          base44.entities.Document.filter({ company_id: activeCompany.id }),
-          base44.entities.VATReturn.filter({ company_id: activeCompany.id }),
-          base44.entities.SalesInvoice.filter({ company_id: activeCompany.id }, '-due_date', 300),
-        ]);
-        if (cancelled) return;
-        const review = (txns || []).filter((t) => t.status === 'review').length;
-        const pendingDocs = (docs || []).filter((d) => d.status === 'pending_review' || d.status === 'pending_extraction').length;
-        const draftVat = (vat || []).filter((v) => v.status === 'draft' || v.status === 'ready_for_review').length;
-        const today = new Date().toISOString().slice(0, 10);
-        const overdue = (inv || []).filter(
-          (i) => ['approved', 'sent', 'part_paid'].includes(i.status) && (Number(i.balance_due) || 0) > 0 && i.due_date < today
-        ).length;
-        let s = 0;
-        s += (accts || []).length > 0 ? 20 : 0;
-        s += review === 0 ? 20 : Math.max(0, 20 - Math.min(10, review));
-        s += pendingDocs === 0 ? 20 : Math.max(0, 20 - Math.min(10, pendingDocs));
-        s += review === 0 ? 20 : Math.max(0, 20 - Math.min(10, review));
-        s += draftVat === 0 ? 20 : 10;
-        setScore(s);
-        const n = [];
-        n.push(review === 0 ? 'Bank reconciled' : `${review} transactions to review`);
-        n.push(draftVat === 0 ? 'VAT ready' : 'VAT return pending');
-        n.push(overdue === 0 ? 'No overdue invoices' : `${overdue} invoices overdue`);
-        setNotes(n.slice(0, 3));
-      } catch {
-        if (!cancelled) setScore(0);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [activeCompany?.id]);
+    const h = () => setOpen(true);
+    window.addEventListener(OPEN_HEALTH_EVENT, h);
+    return () => window.removeEventListener(OPEN_HEALTH_EVENT, h);
+  }, []);
 
-  const color = score == null ? '' : score >= 90 ? 'text-emerald-600' : score >= 70 ? 'text-amber-600' : 'text-rose-600';
   const firstName = userName || 'there';
-  const shapeMsg =
+  const score = health.score;
+  const color =
     score == null
-      ? '…'
+      ? 'text-muted-foreground'
       : score >= 90
-      ? 'your business is in great shape today.'
+      ? 'text-emerald-600'
       : score >= 70
-      ? 'your business is in good shape.'
-      : score >= 50
-      ? 'your business needs a little attention.'
-      : 'your business needs attention.';
+      ? 'text-amber-600'
+      : 'text-rose-600';
+  const dot =
+    score == null
+      ? 'bg-muted-foreground'
+      : score >= 90
+      ? 'bg-emerald-500'
+      : score >= 70
+      ? 'bg-amber-500'
+      : 'bg-rose-500';
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-xl font-semibold tracking-tight">
           {greeting()}, {firstName} 👋
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Ledgerly thinks {shapeMsg}</p>
-        {notes.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 mt-2">
-            {notes.map((n, i) => (
-              <span key={i} className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                {n}
-              </span>
-            ))}
-          </div>
-        )}
+        <p className="text-sm text-muted-foreground mt-0.5">{healthOneLiner(score)}</p>
       </div>
-      {score != null && (
-        <div className="rounded-xl border border-border bg-card p-4 min-w-[200px] flex-shrink-0">
-          <p className="text-[11px] font-medium text-muted-foreground">Business Health</p>
-          <p className={`text-2xl font-bold ${color}`}>
-            {score}
-            <span className="text-sm font-normal text-muted-foreground">/100</span>
-          </p>
-          <Progress value={score} className="h-1.5 mt-2" />
-        </div>
-      )}
+
+      <div className="flex items-center gap-2 flex-wrap">
+        {health.priority && !health.loading && (
+          <Link
+            to={health.priority.route}
+            className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 text-sm hover:shadow-sm transition-shadow"
+          >
+            <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+              <ListChecks className="w-4 h-4" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[11px] text-muted-foreground leading-tight">Today’s priority</span>
+              <span className="block font-medium text-foreground leading-tight truncate max-w-[200px]">
+                {health.priority.label}
+              </span>
+            </span>
+          </Link>
+        )}
+        <button
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 text-sm hover:shadow-sm transition-shadow"
+        >
+          <span className={`w-2.5 h-2.5 rounded-full ${dot}`} />
+          <span className="text-[11px] text-muted-foreground">Business Health</span>
+          <span className={`font-semibold ${color}`}>{health.loading ? '…' : `${score}/100`}</span>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </button>
+      </div>
+
+      <BusinessHealthDialog open={open} onClose={() => setOpen(false)} health={health} userName={firstName} />
     </div>
   );
 }

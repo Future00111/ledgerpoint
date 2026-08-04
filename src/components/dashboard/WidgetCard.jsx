@@ -27,7 +27,7 @@ export default function WidgetCard({
   return (
     <div
       className={cn(
-        'min-w-0 transition-opacity',
+        'min-w-0 transition-opacity animate-in fade-in-0 duration-300',
         dragging && 'opacity-40',
         dragOver && 'z-10'
       )}
@@ -35,7 +35,7 @@ export default function WidgetCard({
       onDragOver={editMode ? onDragOver : undefined}
       onDrop={editMode ? onDrop : undefined}
     >
-      <Card className={cn('h-full flex flex-col overflow-hidden', editMode && 'ring-1 ring-dashed ring-border', dragOver && 'ring-2 ring-primary')}>
+      <Card className={cn('h-full flex flex-col overflow-hidden transition-shadow hover:shadow-md', editMode && 'ring-1 ring-dashed ring-border', dragOver && 'ring-2 ring-primary')}>
         <CardHeader className="flex-row items-center justify-between py-3 px-4 space-y-0 border-b border-border/60 flex-shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             {editMode && (

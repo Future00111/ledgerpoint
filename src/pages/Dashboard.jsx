@@ -3,13 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { useCompany } from '@/lib/useCompany';
 import AskTrigger from '@/components/ask/AskTrigger';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
+import MorningBriefing from '@/components/dashboard/MorningBriefing';
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger,
+  DropdownMenuSubContent, DropdownMenuRadioGroup, DropdownMenuRadioItem,
+} from '@/components/ui/dropdown-menu';
 import WidgetCard from '@/components/dashboard/WidgetCard';
 import WidgetErrorBoundary from '@/components/dashboard/WidgetErrorBoundary';
 import {
   WIDGETS, MODES, buildModeLayout, normalizeLayout,
 } from '@/components/dashboard/widgetRegistry';
 import { Button } from '@/components/ui/button';
-import { Settings2, Check, RotateCcw, Save, Building2 } from 'lucide-react';
+import { Settings2, Check, RotateCcw, Save, Building2, Plus, LayoutGrid, LayoutTemplate } from 'lucide-react';
 
 const KEY = 'lp.dashboard.layouts.v3';
 
@@ -179,77 +185,80 @@ export default function Dashboard() {
         <AskTrigger />
       </div>
 
-      {/* Mode switcher + toolbar */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/60 overflow-x-auto">
-          {Object.entries(MODES).map(([key, m]) => (
-            <button
-              key={key}
-              onClick={() => switchMode(key)}
-              title={m.label}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-                state.mode === key ? 'bg-white shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <m.icon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{m.label}</span>
-            </button>
-          ))}
-        </div>
+      <MorningBriefing company={activeCompany} />
 
-        <div className="flex flex-wrap items-center gap-2">
+      {/* Dashboard settings */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <Button variant={editMode ? 'default' : 'outline'} size="sm" onClick={() => setEditMode((v) => !v)}>
             {editMode ? <Check className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
             {editMode ? 'Done' : 'Customise'}
           </Button>
-          {editMode && (
-            <>
-              <Button variant="outline" size="sm" onClick={reset}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Settings2 className="w-3.5 h-3.5" />
+                Dashboard settings
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuLabel>Dashboard mode</DropdownMenuLabel>
+              <DropdownMenuRadioGroup value={state.mode} onValueChange={switchMode}>
+                {Object.entries(MODES).map(([key, m]) => (
+                  <DropdownMenuRadioItem key={key} value={key}>
+                    <m.icon className="w-3.5 h-3.5 mr-1" />
+                    {m.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => setEditMode((v) => !v)}>
+                <LayoutGrid className="w-3.5 h-3.5" />
+                Widget layout
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={reset}>
                 <RotateCcw className="w-3.5 h-3.5" />
-                Reset
-              </Button>
-              <Button variant="outline" size="sm" onClick={saveAs}>
+                Reset layout
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={saveAs}>
                 <Save className="w-3.5 h-3.5" />
-                Save as
-              </Button>
+                Save layout as
+              </DropdownMenuItem>
               {hiddenWidgets.length > 0 && (
-                <select
-                  onChange={(e) => {
-                    if (e.target.value) show(e.target.value);
-                    e.target.value = '';
-                  }}
-                  defaultValue=""
-                  className="h-8 text-xs rounded-md border border-input bg-transparent pl-3 pr-7 cursor-pointer"
-                >
-                  <option value="" disabled>
-                    + Add widget
-                  </option>
-                  {hiddenWidgets.map((w) => (
-                    <option key={w.id} value={w.id}>
-                      {w.title}
-                    </option>
-                  ))}
-                </select>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Plus className="w-3.5 h-3.5" />
+                    Manage widgets
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-52">
+                    {hiddenWidgets.map((w) => (
+                      <DropdownMenuItem key={w.id} onSelect={() => show(w.id)}>
+                        <w.icon className="w-3.5 h-3.5" />
+                        {w.title}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
               )}
-            </>
-          )}
-          {customLayouts.length > 0 && (
-            <select
-              value={MODES[state.active] ? '' : state.active}
-              onChange={(e) => e.target.value && switchLayout(e.target.value)}
-              className="h-8 text-xs rounded-md border border-input bg-transparent pl-2 pr-7 cursor-pointer"
-            >
-              <option value="" disabled>
-                My layouts
-              </option>
-              {customLayouts.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          )}
+              {customLayouts.length > 0 && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <LayoutTemplate className="w-3.5 h-3.5" />
+                    My layouts
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-52">
+                    {customLayouts.map((name) => (
+                      <DropdownMenuItem key={name} onSelect={() => switchLayout(name)}>
+                        {name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
+        <span className="text-xs text-muted-foreground">Mode: {MODES[state.mode]?.label}</span>
       </div>
 
       {editMode && isDesktop && (

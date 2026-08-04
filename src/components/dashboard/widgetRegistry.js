@@ -1,4 +1,5 @@
 import KpiCardsWidget from './widgets/KpiCardsWidget';
+import BusinessSnapshotWidget from './widgets/BusinessSnapshotWidget';
 import PrioritiesWidget from './widgets/PrioritiesWidget';
 import InsightsWidget from './widgets/InsightsWidget';
 import CashflowWidget from './widgets/CashflowWidget';
@@ -37,17 +38,18 @@ import {
 // To add a new widget, register it here + give it a default size/priority.
 // New widgets automatically become available to every Dashboard Mode.
 export const WIDGETS = {
-  kpis: { id: 'kpis', title: 'Key Metrics', icon: LayoutDashboard, component: KpiCardsWidget, default: { w: 3, h: 1 }, priority: 2 },
+  snapshot: { id: 'snapshot', title: 'Business Snapshot', icon: LayoutDashboard, component: BusinessSnapshotWidget, default: { w: 3, h: 1 }, priority: 0 },
   priorities: { id: 'priorities', title: "Today's Priorities", icon: ListChecks, component: PrioritiesWidget, default: { w: 1, h: 2 }, priority: 1 },
+  cashflow: { id: 'cashflow', title: 'Cash', icon: TrendingUp, component: CashflowWidget, default: { w: 2, h: 2 }, priority: 2 },
+  profit: { id: 'profit', title: 'Profit', icon: BarChart3, component: ProfitWidget, default: { w: 2, h: 2 }, priority: 3 },
   insights: { id: 'insights', title: 'Business Insights', icon: Sparkles, component: InsightsWidget, default: { w: 1, h: 2 }, priority: 4 },
-  cashflow: { id: 'cashflow', title: 'Cashflow', icon: TrendingUp, component: CashflowWidget, default: { w: 2, h: 2 }, priority: 5 },
-  profit: { id: 'profit', title: 'Profit', icon: BarChart3, component: ProfitWidget, default: { w: 2, h: 2 }, priority: 6 },
-  invoices: { id: 'invoices', title: 'Outstanding Invoices', icon: FileText, component: OutstandingInvoicesWidget, default: { w: 2, h: 2 }, priority: 7 },
-  bills: { id: 'bills', title: 'Outstanding Bills', icon: Receipt, component: OutstandingBillsWidget, default: { w: 2, h: 2 }, priority: 8 },
-  banking: { id: 'banking', title: 'Banking', icon: Landmark, component: BankingWidget, default: { w: 1, h: 1 }, priority: 9 },
-  vat: { id: 'vat', title: 'VAT', icon: Percent, component: VATWidget, default: { w: 1, h: 1 }, priority: 10 },
-  notifications: { id: 'notifications', title: 'Notifications', icon: Bell, component: NotificationsWidget, default: { w: 1, h: 2 }, priority: 3 },
-  recent: { id: 'recent', title: 'Recent Activity', icon: History, component: RecentActivityWidget, default: { w: 2, h: 1 }, priority: 11 },
+  invoices: { id: 'invoices', title: 'Outstanding Invoices', icon: FileText, component: OutstandingInvoicesWidget, default: { w: 2, h: 2 }, priority: 5 },
+  bills: { id: 'bills', title: 'Outstanding Bills', icon: Receipt, component: OutstandingBillsWidget, default: { w: 2, h: 2 }, priority: 6 },
+  notifications: { id: 'notifications', title: 'Notifications', icon: Bell, component: NotificationsWidget, default: { w: 1, h: 2 }, priority: 7 },
+  recent: { id: 'recent', title: 'Recent Activity', icon: History, component: RecentActivityWidget, default: { w: 2, h: 1 }, priority: 8 },
+  kpis: { id: 'kpis', title: 'Key Metrics', icon: LayoutDashboard, component: KpiCardsWidget, default: { w: 3, h: 1 }, priority: 9 },
+  banking: { id: 'banking', title: 'Banking', icon: Landmark, component: BankingWidget, default: { w: 1, h: 1 }, priority: 10 },
+  vat: { id: 'vat', title: 'VAT', icon: Percent, component: VATWidget, default: { w: 1, h: 1 }, priority: 11 },
   watchlist: { id: 'watchlist', title: 'Watchlist', icon: Star, component: WatchlistWidget, default: { w: 1, h: 1 }, priority: 12 },
   quickActions: { id: 'quickActions', title: 'Quick Actions', icon: Zap, component: QuickActionsWidget, default: { w: 1, h: 1 }, priority: 13 },
 
@@ -74,7 +76,7 @@ export const MODES = {
   owner: {
     label: 'Business Owner',
     icon: User,
-    widgets: ['priorities', 'kpis', 'invoices', 'bills', 'vat', 'insights', 'notifications'],
+    widgets: ['snapshot', 'priorities', 'cashflow', 'profit', 'insights', 'invoices', 'bills', 'notifications', 'recent', 'vat'],
   },
   bookkeeper: {
     label: 'Bookkeeper',

@@ -6,27 +6,30 @@ import { Skeleton } from '../WidgetPrimitives';
 import { gbp, deltaPct, monthKey, thisMonthKey, prevMonthKey } from '@/lib/format';
 import {
   ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, TrendingDown,
-  PiggyBank, FileText, Receipt, Percent, Banknote,
+  PiggyBank, FileText, Receipt, Percent, Banknote, Activity,
 } from 'lucide-react';
+import { computeHealth, openHealthDetails } from '../useBusinessHealth';
 
 const ACTIVE = ['approved', 'sent', 'part_paid', 'paid', 'overdue'];
 
 export default function KpiCardsWidget({ company }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, async (cid) => {
-    const [inv, bills, accts, txns, vat] = await Promise.all([
+    const [inv, bills, accts, txns, docs, vat] = await Promise.all([
       base44.entities.SalesInvoice.filter({ company_id: cid }, '-issue_date', 500),
       base44.entities.PurchaseBill.filter({ company_id: cid }, '-bill_date', 500),
       base44.entities.BankAccount.filter({ company_id: cid }),
       base44.entities.BankTransaction.filter({ company_id: cid }, '-date', 500),
+      base44.entities.Document.filter({ company_id: cid }),
       base44.entities.VATReturn.filter({ company_id: cid }, '-created_date', 5),
     ]);
-    return { inv, bills, accts, txns, vat };
+    return { inv, bills, accts, txns, docs, vat };
   });
 
   if (loading) return <GridSkeleton />;
 
-  const { inv, bills, accts, txns, vat } = data || {};
+  const { inv, bills, accts, txns, docs, vat } = data || {};
+  const health = computeHealth({ accts, txns, docs, vat, inv, bills });
   const tm = thisMonthKey();
   const pm = prevMonthKey();
   const cash = (accts || []).reduce((s, a) => s + (Number(a.current_balance) || 0), 0);
@@ -56,6 +59,7 @@ export default function KpiCardsWidget({ company }) {
     { label: 'Outstanding Bills', value: gbp(outBills), delta: null, icon: Receipt, route: '/bills' },
     { label: 'VAT Estimate', value: gbp(vatEst), delta: null, icon: Percent, route: '/vat' },
     { label: 'Bank Reconciled', value: reconPct + '%', delta: null, icon: Banknote, route: '/transactions' },
+    { label: 'Business Health', value: health.score + '/100', delta: null, icon: Activity, onClick: openHealthDetails },
   ];
 
   return (
@@ -63,7 +67,7 @@ export default function KpiCardsWidget({ company }) {
       {cards.map((c, i) => (
         <button
           key={i}
-          onClick={() => nav(c.route)}
+          onClick={() => (c.onClick ? c.onClick() : nav(c.route))}
           className="text-left rounded-xl border border-border bg-card hover:shadow-sm hover:border-primary/30 transition-all p-3.5 flex flex-col gap-1.5"
         >
           <div className="flex items-center justify-between">
