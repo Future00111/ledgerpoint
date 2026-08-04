@@ -4,6 +4,7 @@ import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, CheckCircle2, XCi
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { useNotifications } from './useNotifications';
 import { relativeTime } from '@/lib/format';
+import { useDevMode, sanitizeNotification } from '@/lib/safeMessages';
 
 const ICONS = { success: CheckCircle2, warning: AlertTriangle, info: Info, error: XCircle };
 const ICON_COLOR = {
@@ -15,6 +16,7 @@ const ICON_COLOR = {
 
 export default function NotificationCentre() {
   const { history, unread, markRead, markAllRead, removeNotif, clearAll } = useNotifications();
+  const dev = useDevMode();
   const nav = useNavigate();
 
   const openItem = (n) => {
@@ -77,7 +79,8 @@ export default function NotificationCentre() {
               No notifications yet
             </div>
           ) : (
-            history.map((n) => {
+            history.map((raw) => {
+              const n = sanitizeNotification(raw, dev);
               const Icon = ICONS[n.type] || Info;
               return (
                 <div

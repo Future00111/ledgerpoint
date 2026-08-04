@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, AlertTriangle, Info, XCircle, X } from 'lucide-react';
 import { useNotifications } from './useNotifications';
+import { useDevMode, sanitizeNotification } from '@/lib/safeMessages';
 
 const ICONS = {
   success: CheckCircle2,
@@ -20,6 +21,7 @@ const STYLES = {
 
 export default function NotificationStack() {
   const { active, dismiss, pause, resume, markRead } = useNotifications();
+  const dev = useDevMode();
   const nav = useNavigate();
 
   const handleClick = (n) => {
@@ -31,7 +33,8 @@ export default function NotificationStack() {
   return (
     <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 w-[360px] max-w-[calc(100vw-2rem)] pointer-events-none">
       <AnimatePresence initial={false}>
-        {active.map((n) => {
+        {active.map((raw) => {
+          const n = sanitizeNotification(raw, dev);
           const Icon = ICONS[n.type] || Info;
           const style = STYLES[n.type] || STYLES.info;
           return (
