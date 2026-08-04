@@ -55,7 +55,8 @@ export default async function (req) {
       `VAT returns on file: ${vatReturns.length}.`,
     ].join('\n');
 
-    const prompt = `You are Ledgerly's assistant. A UK small-business owner is asking a question about their accounts. Use the data provided to answer concisely (3-6 sentences) with GBP figures and practical insight. If the data is insufficient to answer confidently, say so briefly and suggest what to check. Do not invent figures beyond the data given.\n\nData:\n${ctx}\n\nQuestion: ${question}`;
+    const contextLine = body.context ? `\nContext: ${body.context}\n` : '';
+    const prompt = `You are Ledgerly's assistant. A UK small-business owner is asking a question about their accounts. Use the data provided to answer concisely (3-6 sentences) with GBP figures and practical insight. If the question refers to something the user is currently viewing (see Context), relate your answer to that record. If the data is insufficient to answer confidently, say so briefly and suggest what to check. Do not invent figures beyond the data given.\n\nData:\n${ctx}${contextLine}\n\nQuestion: ${question}`;
 
     const llm = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt });
     const answer = typeof llm === 'string' ? llm : llm?.answer || llm?.text || llm?.response || String(llm || '');
