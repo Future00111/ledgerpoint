@@ -41,6 +41,7 @@ import ChartOfAccounts from '@/pages/ChartOfAccounts';
 import GeneralLedger from '@/pages/GeneralLedger';
 import SetupWizard from '@/pages/SetupWizard';
 import Insights from '@/pages/Insights';
+import SmartSuggestions from '@/pages/SmartSuggestions';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -100,6 +101,7 @@ const AuthenticatedApp = () => {
           <Route path="/chart-of-accounts" element={<ChartOfAccounts />} />
           <Route path="/general-ledger" element={<GeneralLedger />} />
           <Route path="/insights" element={<Insights />} />
+          <Route path="/smart-suggestions" element={<SmartSuggestions />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>

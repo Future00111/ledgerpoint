@@ -1,0 +1,58 @@
+{
+  "name": "SuggestionRule",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "name": {
+      "type": "string",
+      "description": "Rule name, e.g. 'British Gas to Utilities'"
+    },
+    "match_type": {
+      "type": "string",
+      "enum": [
+        "supplier_name_contains",
+        "description_contains",
+        "category",
+        "line_description_contains"
+      ],
+      "description": "How this rule matches a transaction"
+    },
+    "match_value": {
+      "type": "string",
+      "description": "Value tested against the match_type"
+    },
+    "target_account_id": {
+      "type": "string",
+      "description": "Reference to the suggested ChartOfAccount"
+    },
+    "target_account_code": {
+      "type": "string"
+    },
+    "target_account_name": {
+      "type": "string"
+    },
+    "target_vat_rate": {
+      "type": "number",
+      "description": "Optional VAT rate to suggest alongside the account"
+    },
+    "priority": {
+      "type": "number",
+      "default": 0,
+      "description": "Lower numbers run first"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "company_id",
+    "name",
+    "match_type",
+    "match_value",
+    "target_account_code"
+  ]
+}

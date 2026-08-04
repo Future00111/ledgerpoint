@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertCircle } from 'lucide-react';
+import AccountSuggestionField from '@/components/suggestions/AccountSuggestionField';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
@@ -39,6 +40,17 @@ export default function ManualJournalForm({ open, onOpenChange, onSave }) {
   const totalCredits = lines.reduce((sum, l) => sum + (parseFloat(l.credit) || 0), 0);
   const isBalanced = Math.abs(totalDebits - totalCredits) < 0.01;
   const isValid = isBalanced && reference.trim() && description.trim() && lines.length > 0 && lines.every(l => l.account_id && (l.debit || l.credit));
+
+  const applySuggestedAccount = (acc) => {
+    if (!acc || !acc.id) return;
+    setLines(prev => {
+      const idx = prev.findIndex(l => !l.account_id);
+      const target = idx === -1 ? 0 : idx;
+      const updated = [...prev];
+      updated[target] = { ...updated[target], account_id: acc.id };
+      return updated;
+    });
+  };
 
   const handleSave = async () => {
     if (!isValid) {
@@ -106,6 +118,12 @@ export default function ManualJournalForm({ open, onOpenChange, onSave }) {
             <Label>Description</Label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Purpose of this journal entry" rows={2} />
           </div>
+
+          <AccountSuggestionField
+            companyId={activeCompany.id}
+            context={{ source_type: 'manual_journal', description, business_type: activeCompany?.business_type }}
+            onAccountSelected={applySuggestedAccount}
+          />
 
           {/* Lines */}
           <div className="space-y-3">

@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 
-export default function AccountForm({ account, open, onOpenChange, onSave }) {
+export default function AccountForm({ account, open, onOpenChange, onSave, onCreated }) {
   const { activeCompany } = useCompany();
   const [form, setForm] = useState({ code: '', name: '', type: 'expense', tax_rate: 0, description: '', is_active: true });
   const [saving, setSaving] = useState(false);
@@ -54,9 +54,11 @@ export default function AccountForm({ account, open, onOpenChange, onSave }) {
       if (account) {
         await base44.entities.ChartOfAccount.update(account.id, data);
         toast({ title: 'Account updated' });
+        if (onCreated) onCreated({ id: account.id, ...data });
       } else {
-        await base44.entities.ChartOfAccount.create(data);
+        const created = await base44.entities.ChartOfAccount.create(data);
         toast({ title: 'Account created' });
+        if (onCreated) onCreated(created);
       }
 
       onOpenChange(false);

@@ -24,7 +24,8 @@ import {
   Filter,
   BarChart3,
   BookOpen,
-  Grid3x3
+  Grid3x3,
+  Lightbulb
 } from 'lucide-react';
 import AICopilot from '@/components/copilot/AICopilot';
 import { Sparkles } from 'lucide-react';
@@ -55,6 +56,7 @@ const navItems = [
   { label: 'Email Rules', path: '/email-rules', icon: Filter },
   { label: 'Reports', path: '/reports', icon: BarChart3 },
   { label: 'AI Insights', path: '/insights', icon: Sparkles },
+  { label: 'Smart Suggestions', path: '/smart-suggestions', icon: Lightbulb },
   { label: 'Accountant Portal', path: '/accountant', icon: Briefcase },
   { label: 'Settings', path: '/settings', icon: Settings },
 ];
