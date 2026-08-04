@@ -15,13 +15,12 @@ import {
 import { cn } from '@/lib/utils';
 
 const EXAMPLES = [
-  "Who owes me money?",
+  'Ask anything...',
   'Create an invoice',
-  "Show this month's profit",
   'Find British Gas',
-  'Connect my bank',
+  'Show unpaid customers',
+  'Why has profit dropped?',
   'Prepare my VAT return',
-  'Why has profit reduced?',
 ];
 
 const KIND_TITLES = {

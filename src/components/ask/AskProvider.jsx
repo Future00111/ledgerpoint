@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import AskButton from './AskButton';
 import AskModal from './AskModal';
 import AskTooltip from './AskTooltip';
 
 const TOOLTIP_KEY = 'lp.ask.tooltipDismissed';
+
+const AskCtx = createContext(null);
+export const useAsk = () => useContext(AskCtx);
 
 function isTypingTarget(el) {
   if (!el) return false;
@@ -13,26 +16,31 @@ function isTypingTarget(el) {
   return false;
 }
 
-export default function Ask() {
+// Single source of truth for the Ask experience. Every entry point
+// (top bar, floating button, Ctrl/Cmd+K, Space) opens the same modal.
+export function AskProvider({ children }) {
   const [open, setOpen] = useState(false);
   const [tooltipSeen, setTooltipSeen] = useState(
     () => localStorage.getItem(TOOLTIP_KEY) === '1'
   );
 
-  const dismissTooltip = () => {
+  const dismissTooltip = useCallback(() => {
     localStorage.setItem(TOOLTIP_KEY, '1');
     setTooltipSeen(true);
-  };
+  }, []);
+
+  const openAsk = useCallback(() => {
+    if (!tooltipSeen) dismissTooltip();
+    setOpen(true);
+  }, [tooltipSeen, dismissTooltip]);
 
   useEffect(() => {
     const onKey = (e) => {
-      // Ctrl/Cmd + K toggles Ask
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setOpen((o) => !o);
         return;
       }
-      // Space opens Ask when not typing in a text field
       if (e.code === 'Space') {
         if (open) return;
         if (isTypingTarget(document.activeElement)) return;
@@ -44,18 +52,12 @@ export default function Ask() {
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
-  const openAsk = () => {
-    if (!tooltipSeen) dismissTooltip();
-    setOpen(true);
-  };
-
   return (
-    <>
-      {!tooltipSeen && !open && (
-        <AskTooltip onTry={openAsk} onDismiss={dismissTooltip} />
-      )}
+    <AskCtx.Provider value={{ openAsk }}>
+      {children}
+      {!tooltipSeen && !open && <AskTooltip onTry={openAsk} onDismiss={dismissTooltip} />}
       <AskButton onClick={openAsk} hidden={open} />
       <AskModal open={open} onClose={() => setOpen(false)} />
-    </>
+    </AskCtx.Provider>
   );
 }

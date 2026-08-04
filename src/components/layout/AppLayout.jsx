@@ -3,8 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopHeader from './TopHeader';
 import Breadcrumbs from './Breadcrumbs';
-import AICopilot from '@/components/copilot/AICopilot';
-import Ask from '@/components/ask/Ask';
+import { AskProvider } from '@/components/ask/AskProvider';
 import { findActiveItem } from './navConfig';
 import { pushRecent } from './recentItems';
 
@@ -37,7 +36,8 @@ export default function AppLayout() {
   }, [location.pathname]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-muted/30">
+    <AskProvider>
+      <div className="flex h-screen overflow-hidden bg-muted/30">
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/30 z-40 lg:hidden"
@@ -63,8 +63,7 @@ export default function AppLayout() {
         </main>
       </div>
 
-      <AICopilot />
-      <Ask />
-    </div>
+      </div>
+    </AskProvider>
   );
 }

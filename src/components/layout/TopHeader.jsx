@@ -1,5 +1,5 @@
 import React from 'react';
-import GlobalSearch from './GlobalSearch';
+import AskTrigger from '@/components/ask/AskTrigger';
 import QuickCreate from './QuickCreate';
 import { Menu } from 'lucide-react';
 
@@ -13,8 +13,8 @@ export default function TopHeader({ onToggleMobile }) {
       >
         <Menu className="w-5 h-5" />
       </button>
-      <div className="flex-1 max-w-xl min-w-0">
-        <GlobalSearch />
+      <div className="flex-1 min-w-0">
+        <AskTrigger />
       </div>
       <div className="ml-auto flex-shrink-0">
         <QuickCreate />
