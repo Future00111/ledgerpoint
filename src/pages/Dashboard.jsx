@@ -13,9 +13,10 @@ import WidgetCard from '@/components/dashboard/WidgetCard';
 import WidgetErrorBoundary from '@/components/dashboard/WidgetErrorBoundary';
 import {
   WIDGETS, MODES, buildModeLayout, normalizeLayout,
+  SECTION_ORDER, SECTION_TITLES, sectionOf,
 } from '@/components/dashboard/widgetRegistry';
 import { Button } from '@/components/ui/button';
-import { Settings2, Check, RotateCcw, Save, Building2, Plus, LayoutGrid, LayoutTemplate } from 'lucide-react';
+import { Settings2, Check, RotateCcw, Save, Building2, Plus, LayoutGrid, LayoutTemplate, Focus } from 'lucide-react';
 
 const KEY = 'lp.dashboard.layouts.v3';
 
@@ -51,6 +52,10 @@ export default function Dashboard() {
   const nav = useNavigate();
   const [state, setState] = useState(loadState);
   const [editMode, setEditMode] = useState(false);
+  const [focusMode, setFocusMode] = useState(() => localStorage.getItem('lp.dashboard.focus') === '1');
+  useEffect(() => {
+    localStorage.setItem('lp.dashboard.focus', focusMode ? '1' : '0');
+  }, [focusMode]);
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width:1024px)').matches
   );
@@ -145,11 +150,44 @@ export default function Dashboard() {
     });
 
   const hiddenWidgets = Object.values(WIDGETS).filter((w) => layout.find((x) => x.id === w.id)?.hidden);
-  const edit = editMode && isDesktop;
+  const edit = editMode && isDesktop && !focusMode;
   const customLayouts = Object.keys(state.saved).filter((n) => !MODES[n]);
 
   const order = isDesktop ? layout : [...layout].sort((a, b) => WIDGETS[a.id].priority - WIDGETS[b.id].priority);
-  const visible = order.filter((x) => !x.hidden);
+  const allVisible = order.filter((x) => !x.hidden);
+  const FOCUS_SET = new Set(['snapshot', 'priorities']);
+  const visible = focusMode ? allVisible.filter((x) => FOCUS_SET.has(x.id)) : allVisible;
+  const groups = SECTION_ORDER.map((sec) => ({
+    section: sec,
+    items: visible.filter((x) => sectionOf(x.id) === sec),
+  })).filter((g) => g.items.length);
+
+  const renderCard = (item) => {
+    const meta = WIDGETS[item.id];
+    if (!meta) return null;
+    const Comp = meta.component;
+    return (
+      <WidgetCard
+        key={item.id}
+        meta={meta}
+        size={item}
+        editMode={edit}
+        dragging={draggingId === item.id}
+        dragOver={!!overId && overId !== item.id && !!draggingId}
+        onDragStart={() => onDragStart(item.id)}
+        onDragOver={(e) => onDragOver(e, item.id)}
+        onDrop={() => onDrop(item.id)}
+        onDragEnd={clearDrag}
+        onCycleW={() => cycleW(item.id)}
+        onCycleH={() => cycleH(item.id)}
+        onHide={() => hide(item.id)}
+      >
+        <WidgetErrorBoundary>
+          <Comp company={activeCompany} h={item.h} />
+        </WidgetErrorBoundary>
+      </WidgetCard>
+    );
+  };
 
   if (loading) {
     return (
@@ -185,7 +223,7 @@ export default function Dashboard() {
         <AskTrigger />
       </div>
 
-      <MorningBriefing company={activeCompany} />
+      {!focusMode && <MorningBriefing company={activeCompany} />}
 
       {/* Dashboard settings */}
       <div className="flex items-center justify-between gap-2">
@@ -212,6 +250,10 @@ export default function Dashboard() {
                 ))}
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => setFocusMode((v) => !v)}>
+                <Focus className="w-3.5 h-3.5" />
+                {focusMode ? 'Exit focus mode' : 'Focus mode'}
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setEditMode((v) => !v)}>
                 <LayoutGrid className="w-3.5 h-3.5" />
                 Widget layout
@@ -258,44 +300,32 @@ export default function Dashboard() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <span className="text-xs text-muted-foreground">Mode: {MODES[state.mode]?.label}</span>
+        <span className="text-xs text-muted-foreground">{focusMode ? 'Focus mode' : `Mode: ${MODES[state.mode]?.label}`}</span>
       </div>
 
-      {editMode && isDesktop && (
+      {edit && (
         <div className="text-xs text-muted-foreground rounded-lg bg-muted/60 px-3 py-2">
           Drag the grip handle to move widgets · use Narrow/Wide/Full and Short/Tall to resize · hide widgets you don't need. Switching mode changes only the layout — never your data or permissions.
         </div>
       )}
 
-      {/* Widget grid */}
-      <div className={isDesktop ? 'grid grid-cols-12 gap-4' : 'flex flex-col gap-4'}>
-        {visible.map((item) => {
-          const meta = WIDGETS[item.id];
-          if (!meta) return null;
-          const Comp = meta.component;
-          return (
-            <WidgetCard
-              key={item.id}
-              meta={meta}
-              size={item}
-              editMode={edit}
-              dragging={draggingId === item.id}
-              dragOver={!!overId && overId !== item.id && !!draggingId}
-              onDragStart={() => onDragStart(item.id)}
-              onDragOver={(e) => onDragOver(e, item.id)}
-              onDrop={() => onDrop(item.id)}
-              onDragEnd={clearDrag}
-              onCycleW={() => cycleW(item.id)}
-              onCycleH={() => cycleH(item.id)}
-              onHide={() => hide(item.id)}
-            >
-              <WidgetErrorBoundary>
-                <Comp company={activeCompany} h={item.h} />
-              </WidgetErrorBoundary>
-            </WidgetCard>
-          );
-        })}
-      </div>
+      {/* Widget sections */}
+      {focusMode ? (
+        <div className={isDesktop ? 'grid grid-cols-12 gap-4' : 'flex flex-col gap-4'}>
+          {visible.map((item) => renderCard(item))}
+        </div>
+      ) : (
+        groups.map((g) => (
+          <div key={g.section} className="space-y-2.5">
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1">
+              {SECTION_TITLES[g.section]}
+            </h2>
+            <div className={isDesktop ? 'grid grid-cols-12 gap-4' : 'flex flex-col gap-4'}>
+              {g.items.map((item) => renderCard(item))}
+            </div>
+          </div>
+        ))
+      )}
 
       {visible.length === 0 && (
         <div className="text-center py-10 text-sm text-muted-foreground">

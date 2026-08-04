@@ -123,3 +123,26 @@ export function normalizeLayout(arr) {
   });
   return out;
 }
+
+// Sectioned flow — widgets render under logical headings in a calm, scannable
+// order. New widgets just declare a section here and drop into the right place
+// automatically, keeping the dashboard future-ready.
+export const SECTION_ORDER = ['overview', 'performance', 'todo', 'owed', 'intelligence', 'more'];
+export const SECTION_TITLES = {
+  overview: 'Business Snapshot',
+  performance: 'Business Performance',
+  todo: 'Things To Do',
+  owed: 'Money Owed',
+  intelligence: 'Business Intelligence',
+  more: 'More',
+};
+export const WIDGET_SECTIONS = {
+  snapshot: 'overview',
+  cashflow: 'performance', profit: 'performance', revenue: 'performance', topExpenses: 'performance', kpis: 'performance',
+  priorities: 'todo', notifications: 'todo', docsReview: 'todo', billsApproval: 'todo', transactionsReview: 'todo', reconciliation: 'todo', quickActions: 'todo', vat: 'todo',
+  invoices: 'owed', bills: 'owed', agedDebtors: 'owed', agedCreditors: 'owed', banking: 'owed',
+  insights: 'intelligence', forecast: 'intelligence', aiForecasts: 'intelligence', recent: 'intelligence', watchlist: 'intelligence', trialBalance: 'intelligence', profitLoss: 'intelligence', balanceSheet: 'intelligence', generalLedger: 'intelligence', topCustomers: 'intelligence',
+};
+export function sectionOf(id) {
+  return WIDGET_SECTIONS[id] || 'more';
+}

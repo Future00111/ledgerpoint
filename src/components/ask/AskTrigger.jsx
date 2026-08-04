@@ -3,15 +3,17 @@ import { MessageCircle } from 'lucide-react';
 import { useAsk } from './AskProvider';
 
 const EXAMPLES = [
+  'Create an invoice',
+  'Show unpaid customers',
   'Why has profit changed?',
-  'Create an invoice.',
-  'Show unpaid customers.',
-  'Prepare my VAT return.',
-  'Find British Gas.',
-  'Compare this month with last month.',
+  'Prepare my VAT return',
+  'Find British Gas',
+  'Compare this month with last month',
 ];
 
-// The dashboard Ask bar. Rotating placeholder + example suggestion chips below.
+// The dashboard Ask bar — the centrepiece interaction point. A prominent
+// trigger with a gently crossfading rotating placeholder, plus example
+// suggestion chips below.
 export default function AskTrigger() {
   const { openAsk } = useAsk();
   const [ph, setPh] = useState(EXAMPLES[0]);
@@ -29,19 +31,24 @@ export default function AskTrigger() {
     <div className="w-full">
       <button
         onClick={() => openAsk()}
-        className="w-full max-w-xl min-w-0 flex items-center gap-2.5 h-10 px-3.5 rounded-lg bg-muted/70 hover:bg-muted border border-transparent hover:border-border transition-colors text-sm text-left"
+        className="w-full max-w-2xl min-w-0 flex items-center gap-3 h-11 px-4 rounded-xl bg-card border border-border hover:border-primary/40 hover:shadow-sm transition-all text-sm text-left"
         aria-label="Ask Ledgerly"
       >
-        <MessageCircle className="w-4 h-4 text-primary flex-shrink-0" />
-        <span className="flex-1 truncate text-muted-foreground">
-          <span className="text-foreground/80">💬 Ask Ledgerly…</span> <span className="text-muted-foreground/70">{ph}</span>
+        <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+          <MessageCircle className="w-4 h-4" />
+        </span>
+        <span className="flex-1 min-w-0 truncate text-muted-foreground">
+          <span className="text-foreground/80 font-medium">💬 Ask Ledgerly…</span>{' '}
+          <span key={ph} className="animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+            {ph}
+          </span>
         </span>
         <kbd className="text-[11px] text-muted-foreground border border-border rounded px-1.5 py-0.5 hidden sm:inline-flex">
           ⌘K
         </kbd>
       </button>
-      <div className="mt-2 flex flex-wrap gap-1.5 max-w-xl">
-        {EXAMPLES.slice(0, 3).map((e) => (
+      <div className="mt-2 flex flex-wrap gap-1.5 max-w-2xl">
+        {EXAMPLES.map((e) => (
           <button
             key={e}
             onClick={() => openAsk(e)}

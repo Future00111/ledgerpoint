@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   CheckCircle2, AlertCircle, ArrowRight, TrendingUp, TrendingDown, Minus,
 } from 'lucide-react';
+import { healthStatus } from './useBusinessHealth';
 
 // Friendly, customer-safe Business Health explanation. Opens from the header
 // pill, the KPI Health card and the Business Snapshot hero.
@@ -57,6 +58,14 @@ export default function BusinessHealthDialog({ open, onClose, health }) {
                 <TrendIcon className="w-4 h-4" />
                 {trendText}
               </div>
+            </div>
+
+            <div className="rounded-lg bg-muted/60 px-3 py-2">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
+                <span className={`text-sm font-semibold ${color}`}>{healthStatus(score)}</span>
+              </div>
+              <p className="text-sm text-foreground leading-snug">{health.summary || 'Your business is performing well.'}</p>
             </div>
 
             <div>

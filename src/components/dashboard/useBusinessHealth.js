@@ -57,7 +57,31 @@ export function computeHealth({ accts, txns, docs, vat, inv, bills }) {
   else if (draftVat > 0) priority = { label: 'Prepare your VAT return', route: '/vat' };
   else priority = { label: "You're all caught up today", route: '/' };
 
-  return { score, positives, attention, suggestions, priority };
+  let summary;
+  if (overdueInv > 0) summary = `Reviewing ${overdueInv} overdue invoice${overdueInv > 1 ? 's' : ''} could increase your score.`;
+  else if (review > 0) summary = `Reviewing ${review} bank transaction${review > 1 ? 's' : ''} will improve your score.`;
+  else if (approveBills > 0) summary = `Approving ${approveBills} bill${approveBills > 1 ? 's' : ''} will lift your score.`;
+  else if (pendingDocs > 0) summary = `Reviewing ${pendingDocs} document${pendingDocs > 1 ? 's' : ''} will tidy your books.`;
+  else if ((accts || []).length === 0) summary = 'Connect a bank account to start tracking your health.';
+  else summary = 'Your business is performing well — keep it up.';
+
+  return { score, summary, positives, attention, suggestions, priority };
+}
+
+export function healthStatus(score) {
+  if (score == null) return '—';
+  if (score >= 90) return 'Excellent';
+  if (score >= 70) return 'Good';
+  if (score >= 50) return 'Needs Attention';
+  return 'Critical';
+}
+
+export function healthStatusTone(score) {
+  if (score == null) return 'text-muted-foreground';
+  if (score >= 90) return 'text-emerald-600';
+  if (score >= 70) return 'text-amber-600';
+  if (score >= 50) return 'text-orange-600';
+  return 'text-rose-600';
 }
 
 export function useBusinessHealth(companyId) {
