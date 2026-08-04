@@ -8,6 +8,7 @@ Project Atlas is the single source of truth for Ledgerly. Every page, feature, w
 
 | # | Document | Purpose |
 |---|----------|---------|
+| 00 | [The Ledgerly Manifesto](./00-ledgerly-manifesto.md) | The non-technical founding document: why Ledgerly exists and how every decision should be made. The highest authority in Project Atlas. |
 | 01 | [Product Principles](./01-product-principles.md) | The principles every feature must follow. Mandatory reading before any new feature. |
 | 02 | [Product Requirements Document (PRD)](./02-prd.md) | Every feature, with purpose, business value, user stories, acceptance criteria, future enhancements and dependencies. |
 | 03 | [Technical Architecture](./03-technical-architecture.md) | Overall system architecture: frontend, backend, database, auth, permissions, AI, open banking, HMRC, email, notifications, dashboard, Ask. |
