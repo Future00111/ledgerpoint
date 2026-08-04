@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import TopHeader from './TopHeader';
 import Breadcrumbs from './Breadcrumbs';
 import AICopilot from '@/components/copilot/AICopilot';
+import Ask from '@/components/ask/Ask';
 import { findActiveItem } from './navConfig';
 import { pushRecent } from './recentItems';
 
@@ -63,6 +64,7 @@ export default function AppLayout() {
       </div>
 
       <AICopilot />
+      <Ask />
     </div>
   );
 }

@@ -19,11 +19,6 @@ export default function GlobalSearch() {
   // ⌘K / Ctrl+K to focus search
   useEffect(() => {
     const onKey = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        inputRef.current?.focus();
-        setOpen(true);
-      }
       if (e.key === 'Escape') setOpen(false);
     };
     window.addEventListener('keydown', onKey);

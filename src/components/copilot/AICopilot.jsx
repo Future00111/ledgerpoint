@@ -103,7 +103,7 @@ export default function AICopilot() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-50 flex items-center gap-2 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all px-4 py-3 group"
+          className="fixed bottom-20 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all px-4 py-3 group"
           aria-label="Open AI Copilot"
         >
           <Sparkles className="w-5 h-5" />
