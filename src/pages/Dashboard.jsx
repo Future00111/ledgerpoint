@@ -1,265 +1,264 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCompany } from '@/lib/useCompany';
-import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import AskTrigger from '@/components/ask/AskTrigger';
+import DashboardHeader from '@/components/dashboard/DashboardHeader';
+import WidgetCard from '@/components/dashboard/WidgetCard';
+import WidgetErrorBoundary from '@/components/dashboard/WidgetErrorBoundary';
+import { WIDGETS, DEFAULT_LAYOUT, normalizeLayout } from '@/components/dashboard/widgetRegistry';
+import { Button } from '@/components/ui/button';
 import {
-  PoundSterling,
-  FileText,
-  Receipt,
-  Landmark,
-  ArrowUpRight,
-  ArrowDownRight,
-  Clock,
-  AlertCircle,
-  TrendingUp,
-  Building2
+  Settings2, Check, RotateCcw, Save, Plus, Building2,
 } from 'lucide-react';
-import moment from 'moment';
-import VATDashboardCard from '@/components/dashboard/VATDashboardCard';
-import HealthScore from '@/components/dashboard/HealthScore';
-import InsightsSummary from '@/components/dashboard/InsightsSummary';
 
-function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(amount || 0);
+const KEY = 'lp.dashboard.layouts.v2';
+
+function loadState() {
+  try {
+    const r = JSON.parse(localStorage.getItem(KEY));
+    if (r && r.saved && r.saved.Default) {
+      const saved = {};
+      Object.keys(r.saved).forEach((k) => (saved[k] = normalizeLayout(r.saved[k])));
+      return { active: r.active || 'Default', saved };
+    }
+  } catch {
+    /* ignore */
+  }
+  return { active: 'Default', saved: { Default: normalizeLayout(DEFAULT_LAYOUT) } };
+}
+
+function persist(s) {
+  localStorage.setItem(KEY, JSON.stringify(s));
 }
 
 export default function Dashboard() {
-  const { activeCompany } = useCompany();
-  const [invoices, setInvoices] = useState([]);
-  const [bills, setBills] = useState([]);
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { activeCompany, loading } = useCompany();
+  const nav = useNavigate();
+  const [state, setState] = useState(loadState);
+  const [editMode, setEditMode] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width:1024px)').matches
+  );
+  const dragId = useRef(null);
+  const [draggingId, setDraggingId] = useState(null);
+  const [overId, setOverId] = useState(null);
 
   useEffect(() => {
-    if (activeCompany) loadData();
-  }, [activeCompany]);
+    const m = window.matchMedia('(min-width:1024px)');
+    const h = (e) => setIsDesktop(e.matches);
+    m.addEventListener('change', h);
+    return () => m.removeEventListener('change', h);
+  }, []);
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [inv, bil, txn] = await Promise.all([
-        base44.entities.SalesInvoice.filter({ company_id: activeCompany.id }),
-        base44.entities.PurchaseBill.filter({ company_id: activeCompany.id }),
-        base44.entities.BankTransaction.filter({ company_id: activeCompany.id }, '-date', 10),
-      ]);
-      setInvoices(inv);
-      setBills(bil);
-      setTransactions(txn);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+  const layout = state.saved[state.active] || normalizeLayout(DEFAULT_LAYOUT);
+
+  const updateArr = (fn) => {
+    setState((s) => {
+      const arr = fn(s.saved[s.active] || normalizeLayout(DEFAULT_LAYOUT));
+      const saved = { ...s.saved, [s.active]: arr };
+      const next = { ...s, saved };
+      persist(next);
+      return next;
+    });
   };
 
-  if (!activeCompany) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-        <Building2 className="w-16 h-16 text-muted-foreground/40 mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Welcome to LedgerUK</h2>
-        <p className="text-muted-foreground mb-6">Create your first company to get started</p>
-        <Link to="/companies" className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
-          <Building2 className="w-4 h-4" />
-          Add Company
-        </Link>
-      </div>
-    );
-  }
+  const onDragStart = (id) => {
+    dragId.current = id;
+    setDraggingId(id);
+  };
+  const onDragOver = (e, id) => {
+    e.preventDefault();
+    if (overId !== id) setOverId(id);
+  };
+  const onDrop = (id) => {
+    const from = dragId.current;
+    clearDrag();
+    if (!from || from === id) return;
+    updateArr((arr) => {
+      const i = arr.findIndex((x) => x.id === from);
+      const j = arr.findIndex((x) => x.id === id);
+      if (i < 0 || j < 0) return arr;
+      const cp = arr.slice();
+      const [m] = cp.splice(i, 1);
+      cp.splice(j, 0, m);
+      return cp;
+    });
+  };
+  const clearDrag = () => {
+    dragId.current = null;
+    setDraggingId(null);
+    setOverId(null);
+  };
 
-  const unpaidInvoices = invoices.filter(i => ['sent', 'part_paid', 'overdue'].includes(i.status));
-  const unpaidTotal = unpaidInvoices.reduce((s, i) => s + (i.total || 0), 0);
-  const awaitingBills = bills.filter(b => b.status === 'awaiting_review');
-  const awaitingTotal = awaitingBills.reduce((s, b) => s + (b.total || 0), 0);
-  const outputVat = invoices.filter(i => i.status !== 'cancelled').reduce((s, i) => s + (i.vat_total || 0), 0);
-  const inputVat = bills.filter(b => b.status !== 'cancelled').reduce((s, b) => s + (b.vat_total || 0), 0);
-  const vatDue = outputVat - inputVat;
+  const cycleW = (id) => updateArr((arr) => arr.map((x) => (x.id === id ? { ...x, w: x.w >= 3 ? 1 : x.w + 1 } : x)));
+  const cycleH = (id) => updateArr((arr) => arr.map((x) => (x.id === id ? { ...x, h: x.h >= 2 ? 1 : x.h + 1 } : x)));
+  const hide = (id) => updateArr((arr) => arr.map((x) => (x.id === id ? { ...x, hidden: true } : x)));
+  const show = (id) => updateArr((arr) => arr.map((x) => (x.id === id ? { ...x, hidden: false } : x)));
 
-  const incomeThisMonth = transactions
-    .filter(t => t.type === 'income' && moment(t.date).isSame(moment(), 'month'))
-    .reduce((s, t) => s + (t.amount || 0), 0);
+  const reset = () =>
+    setState((s) => {
+      const next = { ...s, saved: { ...s.saved, [s.active]: normalizeLayout(DEFAULT_LAYOUT) } };
+      persist(next);
+      return next;
+    });
+
+  const saveAs = () => {
+    const name = window.prompt('Save current layout as:', 'My Layout');
+    if (!name) return;
+    setState((s) => {
+      const next = { active: name, saved: { ...s.saved, [name]: JSON.parse(JSON.stringify(s.saved[s.active] || normalizeLayout(DEFAULT_LAYOUT))) } };
+      persist(next);
+      return next;
+    });
+  };
+
+  const switchLayout = (name) => {
+    setState((s) => {
+      const next = { ...s, active: name };
+      persist(next);
+      return next;
+    });
+  };
+
+  const hiddenWidgets = Object.values(WIDGETS).filter((w) => layout.find((x) => x.id === w.id)?.hidden);
+  const edit = editMode && isDesktop;
+
+  const order = isDesktop ? layout : [...layout].sort((a, b) => WIDGETS[a.id].priority - WIDGETS[b.id].priority);
+  const visible = order.filter((x) => !x.hidden);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
+      <div className="flex items-center justify-center py-20">
         <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
-  return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">Overview for {activeCompany.name}</p>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-muted-foreground">VAT Due</span>
-              <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
-                <PoundSterling className="w-4 h-4 text-blue-600" />
-              </div>
-            </div>
-            <p className={`text-2xl font-bold ${vatDue > 0 ? 'text-foreground' : 'text-emerald-600'}`}>{formatCurrency(vatDue)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Output: {formatCurrency(outputVat)} · Input: {formatCurrency(inputVat)}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-muted-foreground">Unpaid Invoices</span>
-              <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center">
-                <FileText className="w-4 h-4 text-amber-600" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold">{formatCurrency(unpaidTotal)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{unpaidInvoices.length} invoice{unpaidInvoices.length !== 1 ? 's' : ''} outstanding</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-muted-foreground">Bills to Review</span>
-              <div className="w-9 h-9 bg-rose-50 rounded-lg flex items-center justify-center">
-                <Receipt className="w-4 h-4 text-rose-600" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold">{formatCurrency(awaitingTotal)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{awaitingBills.length} bill{awaitingBills.length !== 1 ? 's' : ''} awaiting review</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-muted-foreground">Income This Month</span>
-              <div className="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-emerald-600" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-emerald-600">{formatCurrency(incomeThisMonth)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{moment().format('MMMM YYYY')}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* AI Insights summary */}
-      <InsightsSummary companyId={activeCompany.id} />
-
-      {/* Health Score & VAT */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <VATDashboardCard />
+  if (!activeCompany) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center py-20 px-4">
+        <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+          <Building2 className="w-7 h-7 text-muted-foreground" />
         </div>
-        <HealthScore companyId={activeCompany.id} />
+        <h2 className="text-lg font-semibold">Welcome to Ledgerly</h2>
+        <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+          Set up your first business to unlock your Business Command Centre — KPIs, priorities, cashflow and insights.
+        </p>
+        <Button className="mt-4" onClick={() => nav('/setup')}>
+          Start setup
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <DashboardHeader />
+
+      {/* Ask bar */}
+      <div className="max-w-2xl">
+        <AskTrigger />
       </div>
 
-      {/* Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Unpaid Invoices */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">Unpaid Invoices</CardTitle>
-              <Link to="/invoices" className="text-xs text-primary hover:underline font-medium">View all</Link>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {unpaidInvoices.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">No unpaid invoices — you're all caught up!</p>
-            ) : (
-              <div className="space-y-2">
-                {unpaidInvoices.slice(0, 5).map(inv => (
-                  <Link to={`/invoices/${inv.id}`} key={inv.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/60 transition-colors group">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{inv.customer_name || inv.invoice_number}</p>
-                      <p className="text-xs text-muted-foreground">{inv.invoice_number} · Due {moment(inv.due_date).format('DD MMM')}</p>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                      <span className="text-sm font-semibold">{formatCurrency(inv.total)}</span>
-                      {inv.status === 'overdue' && <Badge variant="destructive" className="text-xs">Overdue</Badge>}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          variant={editMode ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setEditMode((v) => !v)}
+        >
+          {editMode ? <Check className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
+          {editMode ? 'Done' : 'Customise'}
+        </Button>
 
-        {/* Bills Awaiting Review */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">Bills Awaiting Review</CardTitle>
-              <Link to="/bills" className="text-xs text-primary hover:underline font-medium">View all</Link>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {awaitingBills.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">No bills to review</p>
-            ) : (
-              <div className="space-y-2">
-                {awaitingBills.slice(0, 5).map(bill => (
-                  <Link to={`/bills/${bill.id}`} key={bill.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/60 transition-colors group">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{bill.supplier_name || bill.bill_number}</p>
-                      <p className="text-xs text-muted-foreground">{bill.bill_number} · Due {moment(bill.due_date).format('DD MMM')}</p>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                      <span className="text-sm font-semibold">{formatCurrency(bill.total)}</span>
-                      <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">Review</Badge>
-                    </div>
-                  </Link>
-                ))}
+        {editMode && (
+          <>
+            <Button variant="outline" size="sm" onClick={reset}>
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset
+            </Button>
+            <Button variant="outline" size="sm" onClick={saveAs}>
+              <Save className="w-3.5 h-3.5" />
+              Save as
+            </Button>
+            {hiddenWidgets.length > 0 && (
+              <div className="relative">
+                <select
+                  onChange={(e) => e.target.value && show(e.target.value)}
+                  value=""
+                  className="h-8 text-xs rounded-md border border-input bg-transparent pl-3 pr-7 appearance-none cursor-pointer"
+                >
+                  <option value="" disabled>
+                    + Add widget
+                  </option>
+                  {hiddenWidgets.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.title}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </>
+        )}
 
-        {/* Recent Transactions */}
-        <Card className="border-0 shadow-sm lg:col-span-2">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">Recent Transactions</CardTitle>
-              <Link to="/transactions" className="text-xs text-primary hover:underline font-medium">View all</Link>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {transactions.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">No transactions recorded yet</p>
-            ) : (
-              <div className="space-y-1">
-                {transactions.slice(0, 8).map(txn => (
-                  <div key={txn.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/60 transition-colors">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${txn.type === 'income' ? 'bg-emerald-50' : 'bg-rose-50'}`}>
-                        {txn.type === 'income' 
-                          ? <ArrowDownRight className="w-4 h-4 text-emerald-600" />
-                          : <ArrowUpRight className="w-4 h-4 text-rose-600" />
-                        }
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{txn.description}</p>
-                        <p className="text-xs text-muted-foreground">{moment(txn.date).format('DD MMM YYYY')} · {txn.category?.replace(/_/g, ' ')}</p>
-                      </div>
-                    </div>
-                    <span className={`text-sm font-semibold flex-shrink-0 ml-3 ${txn.type === 'income' ? 'text-emerald-600' : 'text-foreground'}`}>
-                      {txn.type === 'income' ? '+' : '-'}{formatCurrency(txn.amount)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="ml-auto flex items-center gap-2">
+          <label className="text-[11px] text-muted-foreground hidden sm:inline">Layout</label>
+          <select
+            value={state.active}
+            onChange={(e) => switchLayout(e.target.value)}
+            className="h-8 text-xs rounded-md border border-input bg-transparent pl-2 pr-7 appearance-none cursor-pointer"
+          >
+            {Object.keys(state.saved).map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
+
+      {editMode && isDesktop && (
+        <div className="text-xs text-muted-foreground rounded-lg bg-muted/60 px-3 py-2">
+          Drag the <span className="font-medium">⠿</span> handle to move widgets · use Narrow/Wide/Full and Short/Tall to resize · hide widgets you don't need.
+        </div>
+      )}
+
+      {/* Widget grid */}
+      <div className={isDesktop ? 'grid grid-cols-12 gap-4' : 'flex flex-col gap-4'}>
+        {visible.map((item) => {
+          const meta = WIDGETS[item.id];
+          if (!meta) return null;
+          const Comp = meta.component;
+          return (
+            <WidgetCard
+              key={item.id}
+              meta={meta}
+              size={item}
+              editMode={edit}
+              dragging={draggingId === item.id}
+              dragOver={!!overId && overId !== item.id && !!draggingId}
+              onDragStart={() => onDragStart(item.id)}
+              onDragOver={(e) => onDragOver(e, item.id)}
+              onDrop={() => onDrop(item.id)}
+              onDragEnd={clearDrag}
+              onCycleW={() => cycleW(item.id)}
+              onCycleH={() => cycleH(item.id)}
+              onHide={() => hide(item.id)}
+            >
+              <WidgetErrorBoundary>
+                <Comp company={activeCompany} h={item.h} />
+              </WidgetErrorBoundary>
+            </WidgetCard>
+          );
+        })}
+      </div>
+
+      {editMode && hiddenWidgets.length === Object.keys(WIDGETS).length - visible.length && visible.length === 0 && (
+        <div className="text-center py-10 text-sm text-muted-foreground">
+          All widgets are hidden. <button onClick={reset} className="text-primary underline">Reset dashboard</button>
+        </div>
+      )}
     </div>
   );
 }

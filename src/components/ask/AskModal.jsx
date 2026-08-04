@@ -79,7 +79,7 @@ const CONTEXT_ENTITIES = {
   '/vat': { entity: 'VATReturn', label: 'VAT return' },
 };
 
-export default function AskModal({ open, onClose }) {
+export default function AskModal({ open, onClose, initialQuery }) {
   const { activeCompany, roles } = useCompany();
   const navigate = useNavigate();
   const location = useLocation();
@@ -104,7 +104,7 @@ export default function AskModal({ open, onClose }) {
   // Reset + focus + load welcome data on open.
   useEffect(() => {
     if (!open) return;
-    setQuery('');
+    setQuery(initialQuery || '');
     setRecords([]);
     setAiAnswer(null);
     setSelected(0);

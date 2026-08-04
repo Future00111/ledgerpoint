@@ -17,9 +17,11 @@ function isTypingTarget(el) {
 }
 
 // Single source of truth for the Ask experience. Every entry point
-// (top bar, floating button, Ctrl/Cmd+K, Space) opens the same modal.
+// (top bar, floating button, Ctrl/Cmd+K, Space, widgets) opens the same modal.
+// openAsk(query?) optionally prefills the input (used by "Ask Why" on insights).
 export function AskProvider({ children }) {
   const [open, setOpen] = useState(false);
+  const [pendingQuery, setPendingQuery] = useState('');
   const [tooltipSeen, setTooltipSeen] = useState(
     () => localStorage.getItem(TOOLTIP_KEY) === '1'
   );
@@ -29,15 +31,20 @@ export function AskProvider({ children }) {
     setTooltipSeen(true);
   }, []);
 
-  const openAsk = useCallback(() => {
-    if (!tooltipSeen) dismissTooltip();
-    setOpen(true);
-  }, [tooltipSeen, dismissTooltip]);
+  const openAsk = useCallback(
+    (q) => {
+      if (!tooltipSeen) dismissTooltip();
+      setPendingQuery(typeof q === 'string' ? q : '');
+      setOpen(true);
+    },
+    [tooltipSeen, dismissTooltip]
+  );
 
   useEffect(() => {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
+        setPendingQuery('');
         setOpen((o) => !o);
         return;
       }
@@ -45,6 +52,7 @@ export function AskProvider({ children }) {
         if (open) return;
         if (isTypingTarget(document.activeElement)) return;
         e.preventDefault();
+        setPendingQuery('');
         setOpen(true);
       }
     };
@@ -57,7 +65,7 @@ export function AskProvider({ children }) {
       {children}
       {!tooltipSeen && !open && <AskTooltip onTry={openAsk} onDismiss={dismissTooltip} />}
       <AskButton onClick={openAsk} hidden={open} />
-      <AskModal open={open} onClose={() => setOpen(false)} />
+      <AskModal open={open} onClose={() => setOpen(false)} initialQuery={pendingQuery} />
     </AskCtx.Provider>
   );
 }
