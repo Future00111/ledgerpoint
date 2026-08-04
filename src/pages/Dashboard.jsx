@@ -5,26 +5,35 @@ import AskTrigger from '@/components/ask/AskTrigger';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import WidgetCard from '@/components/dashboard/WidgetCard';
 import WidgetErrorBoundary from '@/components/dashboard/WidgetErrorBoundary';
-import { WIDGETS, DEFAULT_LAYOUT, normalizeLayout } from '@/components/dashboard/widgetRegistry';
-import { Button } from '@/components/ui/button';
 import {
-  Settings2, Check, RotateCcw, Save, Plus, Building2,
-} from 'lucide-react';
+  WIDGETS, MODES, buildModeLayout, normalizeLayout,
+} from '@/components/dashboard/widgetRegistry';
+import { Button } from '@/components/ui/button';
+import { Settings2, Check, RotateCcw, Save, Building2 } from 'lucide-react';
 
-const KEY = 'lp.dashboard.layouts.v2';
+const KEY = 'lp.dashboard.layouts.v3';
+
+function defaultState() {
+  const saved = {};
+  Object.keys(MODES).forEach((k) => (saved[k] = buildModeLayout(k)));
+  return { mode: 'owner', active: 'owner', saved };
+}
 
 function loadState() {
   try {
     const r = JSON.parse(localStorage.getItem(KEY));
-    if (r && r.saved && r.saved.Default) {
+    if (r && r.saved && r.mode && MODES[r.mode]) {
       const saved = {};
       Object.keys(r.saved).forEach((k) => (saved[k] = normalizeLayout(r.saved[k])));
-      return { active: r.active || 'Default', saved };
+      Object.keys(MODES).forEach((k) => {
+        if (!saved[k]) saved[k] = buildModeLayout(k);
+      });
+      return { mode: r.mode, active: r.active || r.mode, saved };
     }
   } catch {
     /* ignore */
   }
-  return { active: 'Default', saved: { Default: normalizeLayout(DEFAULT_LAYOUT) } };
+  return defaultState();
 }
 
 function persist(s) {
@@ -50,11 +59,11 @@ export default function Dashboard() {
     return () => m.removeEventListener('change', h);
   }, []);
 
-  const layout = state.saved[state.active] || normalizeLayout(DEFAULT_LAYOUT);
+  const layout = state.saved[state.active] || buildModeLayout(state.mode);
 
   const updateArr = (fn) => {
     setState((s) => {
-      const arr = fn(s.saved[s.active] || normalizeLayout(DEFAULT_LAYOUT));
+      const arr = fn(s.saved[s.active] || buildModeLayout(s.mode));
       const saved = { ...s.saved, [s.active]: arr };
       const next = { ...s, saved };
       persist(next);
@@ -70,6 +79,11 @@ export default function Dashboard() {
     e.preventDefault();
     if (overId !== id) setOverId(id);
   };
+  const clearDrag = () => {
+    dragId.current = null;
+    setDraggingId(null);
+    setOverId(null);
+  };
   const onDrop = (id) => {
     const from = dragId.current;
     clearDrag();
@@ -84,20 +98,24 @@ export default function Dashboard() {
       return cp;
     });
   };
-  const clearDrag = () => {
-    dragId.current = null;
-    setDraggingId(null);
-    setOverId(null);
-  };
 
   const cycleW = (id) => updateArr((arr) => arr.map((x) => (x.id === id ? { ...x, w: x.w >= 3 ? 1 : x.w + 1 } : x)));
   const cycleH = (id) => updateArr((arr) => arr.map((x) => (x.id === id ? { ...x, h: x.h >= 2 ? 1 : x.h + 1 } : x)));
   const hide = (id) => updateArr((arr) => arr.map((x) => (x.id === id ? { ...x, hidden: true } : x)));
   const show = (id) => updateArr((arr) => arr.map((x) => (x.id === id ? { ...x, hidden: false } : x)));
 
+  const switchMode = (modeKey) =>
+    setState((s) => {
+      const saved = { ...s.saved, [modeKey]: s.saved[modeKey] || buildModeLayout(modeKey) };
+      const next = { ...s, mode: modeKey, active: modeKey, saved };
+      persist(next);
+      return next;
+    });
+
   const reset = () =>
     setState((s) => {
-      const next = { ...s, saved: { ...s.saved, [s.active]: normalizeLayout(DEFAULT_LAYOUT) } };
+      const saved = { ...s.saved, [s.mode]: buildModeLayout(s.mode) };
+      const next = { ...s, active: s.mode, saved };
       persist(next);
       return next;
     });
@@ -106,22 +124,23 @@ export default function Dashboard() {
     const name = window.prompt('Save current layout as:', 'My Layout');
     if (!name) return;
     setState((s) => {
-      const next = { active: name, saved: { ...s.saved, [name]: JSON.parse(JSON.stringify(s.saved[s.active] || normalizeLayout(DEFAULT_LAYOUT))) } };
+      const saved = { ...s.saved, [name]: JSON.parse(JSON.stringify(s.saved[s.active] || buildModeLayout(s.mode))) };
+      const next = { ...s, active: name, saved };
       persist(next);
       return next;
     });
   };
 
-  const switchLayout = (name) => {
+  const switchLayout = (name) =>
     setState((s) => {
-      const next = { ...s, active: name };
+      const next = { ...s, active: name, mode: MODES[name] ? name : s.mode };
       persist(next);
       return next;
     });
-  };
 
   const hiddenWidgets = Object.values(WIDGETS).filter((w) => layout.find((x) => x.id === w.id)?.hidden);
   const edit = editMode && isDesktop;
+  const customLayouts = Object.keys(state.saved).filter((n) => !MODES[n]);
 
   const order = isDesktop ? layout : [...layout].sort((a, b) => WIDGETS[a.id].priority - WIDGETS[b.id].priority);
   const visible = order.filter((x) => !x.hidden);
@@ -160,33 +179,47 @@ export default function Dashboard() {
         <AskTrigger />
       </div>
 
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          variant={editMode ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setEditMode((v) => !v)}
-        >
-          {editMode ? <Check className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
-          {editMode ? 'Done' : 'Customise'}
-        </Button>
+      {/* Mode switcher + toolbar */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/60 overflow-x-auto">
+          {Object.entries(MODES).map(([key, m]) => (
+            <button
+              key={key}
+              onClick={() => switchMode(key)}
+              title={m.label}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                state.mode === key ? 'bg-white shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <m.icon className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{m.label}</span>
+            </button>
+          ))}
+        </div>
 
-        {editMode && (
-          <>
-            <Button variant="outline" size="sm" onClick={reset}>
-              <RotateCcw className="w-3.5 h-3.5" />
-              Reset
-            </Button>
-            <Button variant="outline" size="sm" onClick={saveAs}>
-              <Save className="w-3.5 h-3.5" />
-              Save as
-            </Button>
-            {hiddenWidgets.length > 0 && (
-              <div className="relative">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant={editMode ? 'default' : 'outline'} size="sm" onClick={() => setEditMode((v) => !v)}>
+            {editMode ? <Check className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
+            {editMode ? 'Done' : 'Customise'}
+          </Button>
+          {editMode && (
+            <>
+              <Button variant="outline" size="sm" onClick={reset}>
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset
+              </Button>
+              <Button variant="outline" size="sm" onClick={saveAs}>
+                <Save className="w-3.5 h-3.5" />
+                Save as
+              </Button>
+              {hiddenWidgets.length > 0 && (
                 <select
-                  onChange={(e) => e.target.value && show(e.target.value)}
-                  value=""
-                  className="h-8 text-xs rounded-md border border-input bg-transparent pl-3 pr-7 appearance-none cursor-pointer"
+                  onChange={(e) => {
+                    if (e.target.value) show(e.target.value);
+                    e.target.value = '';
+                  }}
+                  defaultValue=""
+                  className="h-8 text-xs rounded-md border border-input bg-transparent pl-3 pr-7 cursor-pointer"
                 >
                   <option value="" disabled>
                     + Add widget
@@ -197,30 +230,31 @@ export default function Dashboard() {
                     </option>
                   ))}
                 </select>
-              </div>
-            )}
-          </>
-        )}
-
-        <div className="ml-auto flex items-center gap-2">
-          <label className="text-[11px] text-muted-foreground hidden sm:inline">Layout</label>
-          <select
-            value={state.active}
-            onChange={(e) => switchLayout(e.target.value)}
-            className="h-8 text-xs rounded-md border border-input bg-transparent pl-2 pr-7 appearance-none cursor-pointer"
-          >
-            {Object.keys(state.saved).map((name) => (
-              <option key={name} value={name}>
-                {name}
+              )}
+            </>
+          )}
+          {customLayouts.length > 0 && (
+            <select
+              value={MODES[state.active] ? '' : state.active}
+              onChange={(e) => e.target.value && switchLayout(e.target.value)}
+              className="h-8 text-xs rounded-md border border-input bg-transparent pl-2 pr-7 cursor-pointer"
+            >
+              <option value="" disabled>
+                My layouts
               </option>
-            ))}
-          </select>
+              {customLayouts.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 
       {editMode && isDesktop && (
         <div className="text-xs text-muted-foreground rounded-lg bg-muted/60 px-3 py-2">
-          Drag the <span className="font-medium">⠿</span> handle to move widgets · use Narrow/Wide/Full and Short/Tall to resize · hide widgets you don't need.
+          Drag the grip handle to move widgets · use Narrow/Wide/Full and Short/Tall to resize · hide widgets you don't need. Switching mode changes only the layout — never your data or permissions.
         </div>
       )}
 
@@ -254,9 +288,12 @@ export default function Dashboard() {
         })}
       </div>
 
-      {editMode && hiddenWidgets.length === Object.keys(WIDGETS).length - visible.length && visible.length === 0 && (
+      {visible.length === 0 && (
         <div className="text-center py-10 text-sm text-muted-foreground">
-          All widgets are hidden. <button onClick={reset} className="text-primary underline">Reset dashboard</button>
+          All widgets are hidden.{' '}
+          <button onClick={reset} className="text-primary underline">
+            Reset dashboard
+          </button>
         </div>
       )}
     </div>
