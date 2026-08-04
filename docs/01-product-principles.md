@@ -118,6 +118,19 @@ Every screen should be understandable by someone with little or no accounting kn
 
 When implementing features, avoid short-term solutions. Database design, APIs, permissions, AI integrations, and workflows should all be extensible. Do not hardcode behaviour that limits future growth.
 
+## 21. Calm Computing
+
+Ledgerly should reduce stress, not create it. The product should feel calm, confident and trustworthy on every screen.
+
+- Never overwhelm users — surface only the information that matters.
+- Prioritise clarity over density.
+- Avoid flashing indicators and unnecessary red warnings; use colour carefully.
+- Always explain why something matters.
+- Help the user feel in control; suggest rather than demand.
+- Keep animations subtle and notifications helpful rather than demanding.
+
+See [11 — Calm Computing](./11-calm-computing.md) for the full design rules and a build-time checklist.
+
 ---
 
 ## Final Principle
