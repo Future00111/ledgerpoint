@@ -8,9 +8,12 @@ import {
 } from './askIntents';
 import { getRecent, pushRecent } from '@/components/layout/recentItems';
 import { getRecentSearches, pushRecentSearch } from './askRecent';
+import AskInput from './AskInput';
+import AskWelcome from './AskWelcome';
+import AskAnswer from './AskAnswer';
 import {
-  Search, X, CornerDownLeft, Sparkles, Clock, Loader2, ArrowUp, ArrowDown, RotateCcw,
-  FileText, Receipt, Users, Truck, FolderOpen, ArrowLeftRight, Percent, BarChart3,
+  Search, X, CornerDownLeft, Sparkles, Clock, Loader2, FileText, Receipt, Users,
+  Truck, FolderOpen, ArrowLeftRight, Percent, BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,15 +23,6 @@ const EXAMPLES = [
   'Find British Gas',
   'Show unpaid customers',
   'Why has profit dropped?',
-  'Prepare my VAT return',
-];
-
-// Suggestion chips shown inside the full-screen Ask interface.
-const EXAMPLE_CHIPS = [
-  'Create an invoice',
-  'Find British Gas',
-  'Show unpaid customers',
-  'Why has profit changed?',
   'Prepare my VAT return',
 ];
 
@@ -53,13 +47,6 @@ const QUICK_ACTIONS = [
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
-}
-
 function nextVatDeadlineDays(freq) {
   const now = new Date();
   const y = now.getFullYear();
@@ -68,13 +55,12 @@ function nextVatDeadlineDays(freq) {
     if (d < now) d.setFullYear(y + 1);
     return Math.ceil((d - now) / 86400000);
   }
-  // quarterly: 1 month + 7 days after quarter end (Mar/Jun/Sep/Dec)
   const candidates = [
-    new Date(y, 1, 7), // 31 Dec period → 7 Feb
-    new Date(y, 4, 7), // 31 Mar → 7 May
-    new Date(y, 7, 7), // 30 Jun → 7 Aug
-    new Date(y, 10, 7), // 30 Sep → 7 Nov
-    new Date(y + 1, 1, 7), // 31 Dec → 7 Feb next year
+    new Date(y, 1, 7),
+    new Date(y, 4, 7),
+    new Date(y, 7, 7),
+    new Date(y, 10, 7),
+    new Date(y + 1, 1, 7),
   ].filter((d) => d >= now);
   if (!candidates.length) return null;
   return Math.ceil((candidates[0] - now) / 86400000);
@@ -110,7 +96,6 @@ export default function AskModal({ open, onClose, initialQuery }) {
   const role = activeCompany ? roles?.[activeCompany.id] : null;
   const isOwner = role === 'owner' || role === 'admin';
 
-  // Reset + focus + load welcome data on open.
   useEffect(() => {
     if (!open) return;
     setQuery(initialQuery || '');
@@ -161,7 +146,6 @@ export default function AskModal({ open, onClose, initialQuery }) {
         }
       })();
 
-      // Remember context: derive what the user is viewing.
       (async () => {
         const item = findActiveItem(location.pathname);
         if (!item) return;
@@ -186,7 +170,6 @@ export default function AskModal({ open, onClose, initialQuery }) {
     }
   }, [open, activeCompany, location.pathname]);
 
-  // Rotating example prompts (only while input empty).
   useEffect(() => {
     if (!open) return;
     let i = 0;
@@ -197,7 +180,6 @@ export default function AskModal({ open, onClose, initialQuery }) {
     return () => clearInterval(t);
   }, [open, query]);
 
-  // Debounced record search.
   useEffect(() => {
     const q = query.trim();
     if (!open || !activeCompany || q.length < 2) {
@@ -290,16 +272,16 @@ export default function AskModal({ open, onClose, initialQuery }) {
     if (!aiEnabled || !activeCompany) return;
     pushRecentSearch(q);
     setRecentSearches(getRecentSearches());
-    setAiAnswer({ loading: true });
+    setAiAnswer({ loading: true, question: q });
     try {
       const res = await base44.functions.invoke('askAI', {
         company_id: activeCompany.id,
         question: q,
         context: pageContext,
       });
-      setAiAnswer({ text: res?.data?.answer || res?.answer || 'No answer returned.' });
+      setAiAnswer({ question: q, text: res?.data?.answer || res?.answer || 'No answer returned.' });
     } catch (e) {
-      setAiAnswer({ error: e.message || 'Something went wrong.' });
+      setAiAnswer({ question: q, error: e.message || 'Something went wrong.' });
     }
   };
 
@@ -321,6 +303,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
   };
 
   const onKeyDown = (e) => {
+    if (e.key === 'Enter' && e.shiftKey) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setSelected((s) => Math.min(s + 1, Math.max(flatItems.length - 1, 0)));
@@ -348,7 +331,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
   flatItems.forEach((item, idx) => {
     if (item.kind !== lastKind) {
       rendered.push(
-        <div key={`h-${item.kind}-${idx}`} className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <div key={`h-${item.kind}-${idx}`} className="px-4 sm:px-6 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
           {KIND_TITLES[item.kind]}
         </div>
       );
@@ -361,7 +344,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
         onClick={() => activate(item)}
         onMouseEnter={() => setSelected(idx)}
         className={cn(
-          'w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors outline-none',
+          'w-full flex items-center gap-3 px-4 sm:px-6 py-2.5 text-left text-sm transition-colors outline-none',
           idx === selected ? 'bg-primary/10' : 'hover:bg-muted',
           item.disabled && 'opacity-60'
         )}
@@ -378,128 +361,75 @@ export default function AskModal({ open, onClose, initialQuery }) {
     );
   });
 
-  const showWelcome = emptyQuery;
+  const showWelcome = emptyQuery && !aiAnswer;
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-start justify-center p-0 sm:p-[8vh] sm:px-6 bg-black/40 backdrop-blur-sm animate-in fade-in-0 duration-150"
+      className="fixed inset-0 z-[60] flex items-start justify-center p-0 sm:p-[6vh] sm:px-6 bg-black/40 backdrop-blur-sm animate-in fade-in-0 duration-150"
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
       role="dialog"
       aria-modal="true"
-      aria-label="Ask"
+      aria-label="Ask Ledgerly"
     >
-      <div className="w-full h-full sm:h-auto sm:max-h-[80vh] sm:max-w-2xl bg-white sm:rounded-2xl rounded-none shadow-2xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150">
-        {/* Input row */}
-        <div className="flex items-center gap-3 px-4 h-16 border-b border-border flex-shrink-0">
-          <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); setAiAnswer(null); }}
-            onKeyDown={onKeyDown}
-            placeholder={placeholder}
-            className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
-            aria-label="Ask anything"
-          />
-          <kbd className="hidden sm:inline-flex items-center text-[11px] text-muted-foreground border border-border rounded px-1.5 py-0.5">Esc</kbd>
-          <button onClick={onClose} className="sm:hidden p-1.5 hover:bg-muted rounded-md" aria-label="Close">
+      <div className="w-full h-full sm:h-auto sm:max-h-[88vh] sm:max-w-3xl bg-card sm:rounded-2xl rounded-none shadow-2xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150">
+        {/* Top bar */}
+        <header className="flex items-center justify-between px-4 sm:px-6 h-14 border-b border-border flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <Sparkles className="w-4 h-4" />
+            </span>
+            <span className="font-semibold tracking-tight">Ask Ledgerly</span>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors" aria-label="Close">
             <X className="w-5 h-5" />
           </button>
-        </div>
+        </header>
 
         {/* Body */}
-        <div ref={listRef} className="flex-1 overflow-y-auto pb-2">
+        <div ref={listRef} className="flex-1 overflow-y-auto">
           {aiAnswer ? (
-            <div className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-8 h-8 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
-                  <Sparkles className="w-4 h-4" />
-                </span>
-                <p className="text-sm font-medium">{aiAnswer.loading ? 'Thinking…' : 'Answer'}</p>
-                <button onClick={() => setAiAnswer(null)} className="ml-auto text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-                  <RotateCcw className="w-3.5 h-3.5" /> Back
-                </button>
-              </div>
-              {aiAnswer.loading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground py-6 justify-center">
-                  <Loader2 className="w-4 h-4 animate-spin" /> Reading your books…
-                </div>
-              ) : aiAnswer.error ? (
-                <p className="text-sm text-destructive">{aiAnswer.error}</p>
-              ) : (
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{aiAnswer.text}</p>
-              )}
-            </div>
+            <AskAnswer aiAnswer={aiAnswer} onBack={() => setAiAnswer(null)} />
           ) : showWelcome ? (
-            <div className="p-4">
-              <p className="text-lg font-semibold">{greeting()}, {userName || 'there'}.</p>
-              <p className="text-sm text-muted-foreground mb-4">What would you like to do today?</p>
-              <div className="mb-4">
-                <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Try asking</p>
-                <div className="flex flex-wrap gap-2">
-                  {EXAMPLE_CHIPS.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setQuery(c)}
-                      className="text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-muted/70 text-muted-foreground transition-colors"
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {recentSearches.length > 0 && (
-                <div className="mb-3">
-                  <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Recent searches</p>
-                  <div className="flex flex-wrap gap-2">
-                    {recentSearches.map((s, i) => (
-                      <button key={i} onClick={() => setQuery(s)} className="text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-muted/70 text-muted-foreground transition-colors">
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {rendered}
-            </div>
+            <AskWelcome
+              userName={userName}
+              smartSuggestions={smartSuggestions}
+              recentSearches={recentSearches}
+              quickActions={QUICK_ACTIONS}
+              onPickExample={(c) => setQuery(c)}
+              onSuggestion={goQuick}
+              onPickRecent={(s) => setQuery(s)}
+              onQuickAction={goQuick}
+            />
           ) : flatItems.length === 0 && !recordsLoading ? (
-            <div className="px-3 py-10 text-center">
-              <p className="text-sm text-muted-foreground">No matches yet.</p>
-              <p className="text-xs text-muted-foreground/70 mt-1">Press Enter to ask AI about “{query.trim()}”.</p>
+            <div className="px-4 sm:px-6 py-12 text-center">
+              <div className="mx-auto w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-3">
+                <Search className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium">No matches yet.</p>
+              <p className="text-xs text-muted-foreground mt-1">Press Enter to ask AI about “{query.trim()}”.</p>
             </div>
           ) : (
-            <>
+            <div className="pb-4">
               {rendered}
               {recordsLoading && (
                 <div className="flex items-center justify-center gap-2 py-4 text-xs text-muted-foreground">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" /> Searching records…
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
 
-        {/* Quick actions footer */}
-        <div className="flex items-center gap-2 px-3 py-2.5 border-t border-border overflow-x-auto flex-shrink-0">
-          {QUICK_ACTIONS.map((a) => (
-            <button
-              key={a.label}
-              onClick={() => goQuick(a.path)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/70 text-xs font-medium whitespace-nowrap transition-colors"
-            >
-              <a.icon className="w-3.5 h-3.5 text-muted-foreground" />
-              {a.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Footer hint */}
-        <div className="hidden sm:flex items-center gap-4 px-4 py-2 border-t border-border text-[11px] text-muted-foreground flex-shrink-0">
-          <span className="flex items-center gap-1"><ArrowUp className="w-3 h-3" /><ArrowDown className="w-3 h-3" /> Navigate</span>
-          <span className="flex items-center gap-1"><CornerDownLeft className="w-3 h-3" /> Select</span>
-          <span className="flex items-center gap-1"><kbd className="border border-border rounded px-1">Esc</kbd> Close</span>
-          <span className="ml-auto">Ask</span>
-        </div>
+        {/* Bottom message input */}
+        <AskInput
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setAiAnswer(null); }}
+          onKeyDown={onKeyDown}
+          onSubmit={() => activate(flatItems[selected])}
+          placeholder={placeholder}
+          disabled={!!aiAnswer?.loading}
+          inputRef={inputRef}
+        />
       </div>
     </div>
   );
