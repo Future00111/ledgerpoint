@@ -2,6 +2,7 @@ import React from 'react';
 import AskTrigger from '@/components/ask/AskTrigger';
 import QuickCreate from './QuickCreate';
 import { Menu } from 'lucide-react';
+import NotificationCentre from '@/components/notifications/NotificationCentre';
 
 export default function TopHeader({ onToggleMobile }) {
   return (
@@ -16,7 +17,8 @@ export default function TopHeader({ onToggleMobile }) {
       <div className="flex-1 min-w-0">
         <AskTrigger />
       </div>
-      <div className="ml-auto flex-shrink-0">
+      <div className="ml-auto flex items-center gap-1 flex-shrink-0">
+        <NotificationCentre />
         <QuickCreate />
       </div>
     </header>

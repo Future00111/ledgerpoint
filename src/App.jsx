@@ -1,4 +1,4 @@
-import { Toaster } from "@/components/ui/toaster"
+import NotificationStack from "@/components/notifications/NotificationStack"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
@@ -119,9 +119,9 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
+          <NotificationStack />
           <AuthenticatedApp />
         </Router>
-        <Toaster />
       </QueryClientProvider>
     </AuthProvider>
   )
