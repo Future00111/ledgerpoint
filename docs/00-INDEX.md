@@ -19,6 +19,7 @@ Project Atlas is the single source of truth for Ledgerly. Every page, feature, w
 | 09 | [Testing Standards](./09-testing-standards.md) | How every feature is tested. |
 | 10 | [Release Roadmap](./10-release-roadmap.md) | Future releases and feature assignments. |
 | 11 | [Calm Computing](./11-calm-computing.md) | Permanent UX principle: reduce stress, surface only what matters, use colour and motion carefully, keep the user calm and in control. |
+| 12 | [Design Inspiration](./12-design-inspiration.md) | Permanent Product Principle: take design language from Stripe, Linear, Notion, Apple, Raycast, ChatGPT, Figma, GitHub — not legacy accounting software. |
 
 ## How to use Project Atlas
 

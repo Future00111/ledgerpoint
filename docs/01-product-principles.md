@@ -131,6 +131,20 @@ Ledgerly should reduce stress, not create it. The product should feel calm, conf
 
 See [11 — Calm Computing](./11-calm-computing.md) for the full design rules and a build-time checklist.
 
+## 22. Design Inspiration
+
+Ledgerly should not use traditional accounting software as its primary design inspiration. Use modern software products as references instead.
+
+- Primary inspiration: **Stripe, Linear, Notion, Apple, Raycast, ChatGPT, Figma, GitHub**.
+- Reference traditional accounting software only for accounting functionality and compliance.
+- Never copy outdated interface patterns simply because competitors use them.
+- Every Ledgerly screen should feel modern, calm and approachable.
+- The objective is software business owners enjoy using.
+
+When implementing any new screen, ask: **Would this feel at home inside Stripe or Linear?** If not, redesign it before implementation.
+
+See [12 — Design Inspiration](./12-design-inspiration.md) for the full reference list and screen test.
+
 ---
 
 ## Final Principle
