@@ -1,11 +1,12 @@
 import {
-  LayoutDashboard, TrendingUp, ShoppingCart, Landmark, Calculator,
-  FolderOpen, BarChart3, Settings,
-  Users, FileText, Undo2, Truck, Receipt, RotateCcw,
+  LayoutDashboard, ListChecks, Sparkles, TrendingUp, BarChart3,
+  FileText, Receipt, ShoppingCart, Landmark, Calculator,
+  FolderOpen, Settings,
+  Users, Undo2, Truck, RotateCcw,
   ArrowLeftRight, BookOpen, Grid3x3, Percent,
   Mail, Filter, FilePlus, ScanText,
-  Sparkles, FileBarChart,
-  Building2, Lightbulb, Briefcase, Plug, Bell, History, UserCircle, CreditCard,
+  FileBarChart, Building2, Lightbulb, Briefcase, Plug, Bell, History, UserCircle, CreditCard,
+  Wrench,
 } from 'lucide-react';
 
 // Single source of truth for navigation. New modules are added here and
@@ -79,6 +80,11 @@ export const SECTIONS = [
       { label: 'User Profile', icon: UserCircle, soon: true },
       { label: 'Subscription', icon: CreditCard, soon: true },
     ],
+  },
+  {
+    key: 'dev', label: 'Development', icon: Wrench,
+    devOnly: true,
+    items: [{ label: 'Development Tools', path: '/dev-tools', icon: Wrench }],
   },
 ];
 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { SECTIONS, findActiveItem } from './navConfig';
+import { useAuth } from '@/lib/AuthContext';
+import { canAccessDevTools } from '@/lib/devAccess';
 import CompanySwitcher from './CompanySwitcher';
 import { base44 } from '@/api/base44Client';
 import { ChevronDown, ChevronsLeft, X, Landmark, LogOut } from 'lucide-react';
@@ -15,6 +17,12 @@ function isItemActive(pathname, path) {
 
 export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) {
   const location = useLocation();
+  const { user } = useAuth();
+  const canDev = canAccessDevTools(user);
+  const sections = SECTIONS
+    .filter((s) => !s.devOnly || canDev)
+    .map((s) => ({ ...s, items: s.items.filter((i) => !i.devOnly || canDev) }))
+    .filter((s) => s.items.length);
   const [openSections, setOpenSections] = useState(() => {
     try {
       return new Set(JSON.parse(localStorage.getItem(OPEN_KEY) || '[]'));
@@ -100,7 +108,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3" aria-label="Main navigation">
         <div className="space-y-0.5 px-2">
-          {SECTIONS.map((section) => {
+          {sections.map((section) => {
             const realItems = section.items.filter((i) => !i.soon);
             const hasChildren = realItems.length > 1;
             const activeItem = findActiveItem(location.pathname);
