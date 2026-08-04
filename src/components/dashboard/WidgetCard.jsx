@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { GripVertical, X } from 'lucide-react';
+import { GripVertical, X, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import WidgetInsightDialog from './WidgetInsightDialog';
 
 const W_LABEL = { 1: 'Narrow', 2: 'Wide', 3: 'Full' };
 
@@ -18,8 +19,10 @@ export default function WidgetCard({
   onCycleW,
   onCycleH,
   onHide,
+  company,
   children,
 }) {
+  const [insightOpen, setInsightOpen] = useState(false);
   const Icon = meta.icon;
   const colSpan = size.w === 1 ? 4 : size.w === 2 ? 6 : 12;
   const minHeight = size.h === 2 ? 460 : 240;
@@ -53,35 +56,52 @@ export default function WidgetCard({
             {Icon && <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
             <CardTitle className="text-sm font-medium truncate">{meta.title}</CardTitle>
           </div>
-          {editMode && (
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <button
-                onClick={onCycleW}
-                className="px-1.5 py-1 rounded-md hover:bg-muted text-[10px] font-medium text-muted-foreground border border-border"
-                title="Resize width"
-              >
-                {W_LABEL[size.w]}
-              </button>
-              <button
-                onClick={onCycleH}
-                className="px-1.5 py-1 rounded-md hover:bg-muted text-[10px] font-medium text-muted-foreground border border-border"
-                title="Resize height"
-              >
-                {size.h === 1 ? 'Short' : 'Tall'}
-              </button>
-              <button
-                onClick={onHide}
-                className="p-1 rounded-md hover:bg-muted text-muted-foreground"
-                title="Hide widget"
-                aria-label="Hide widget"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button
+              onClick={() => setInsightOpen(true)}
+              className="p-1 rounded-md hover:bg-amber-50 text-amber-500 transition-colors"
+              title="What does this mean?"
+              aria-label="Explain this widget"
+            >
+              <Lightbulb className="w-3.5 h-3.5" />
+            </button>
+            {editMode && (
+              <>
+                <button
+                  onClick={onCycleW}
+                  className="px-1.5 py-1 rounded-md hover:bg-muted text-[10px] font-medium text-muted-foreground border border-border"
+                  title="Resize width"
+                >
+                  {W_LABEL[size.w]}
+                </button>
+                <button
+                  onClick={onCycleH}
+                  className="px-1.5 py-1 rounded-md hover:bg-muted text-[10px] font-medium text-muted-foreground border border-border"
+                  title="Resize height"
+                >
+                  {size.h === 1 ? 'Short' : 'Tall'}
+                </button>
+                <button
+                  onClick={onHide}
+                  className="p-1 rounded-md hover:bg-muted text-muted-foreground"
+                  title="Hide widget"
+                  aria-label="Hide widget"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="flex-1 p-4 pt-3 overflow-auto min-h-0">{children}</CardContent>
       </Card>
+      <WidgetInsightDialog
+        open={insightOpen}
+        onClose={() => setInsightOpen(false)}
+        widgetId={meta.id}
+        title={meta.title}
+        company={company}
+      />
     </div>
   );
 }

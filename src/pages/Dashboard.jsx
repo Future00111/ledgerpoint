@@ -171,6 +171,7 @@ export default function Dashboard() {
         key={item.id}
         meta={meta}
         size={item}
+        company={activeCompany}
         editMode={edit}
         dragging={draggingId === item.id}
         dragOver={!!overId && overId !== item.id && !!draggingId}
