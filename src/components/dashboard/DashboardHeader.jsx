@@ -4,15 +4,26 @@ import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
 import { useBusinessHealth, healthStatus, healthStatusTone, OPEN_HEALTH_EVENT } from './useBusinessHealth';
 import BusinessHealthDialog from './BusinessHealthDialog';
-import { ChevronRight, ListChecks } from 'lucide-react';
+import StatusCard from './StatusCard';
+import { ListChecks, Activity } from 'lucide-react';
 
-// Compact single-row header: greeting + today's priority + Business Health
-// (status label + score). Clicking health opens the detailed breakdown.
+// Compact single-row header: greeting + standardised status cards (Today's
+// Priority and Business Health). Both cards use the shared StatusCard
+// component so they are visually identical. Clicking Business Health opens
+// the detailed breakdown.
 function greeting() {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning';
   if (h < 18) return 'Good afternoon';
   return 'Good evening';
+}
+
+function healthTone(score) {
+  if (score == null) return 'muted';
+  if (score >= 90) return 'emerald';
+  if (score >= 70) return 'amber';
+  if (score >= 50) return 'orange';
+  return 'rose';
 }
 
 export default function DashboardHeader() {
@@ -36,21 +47,10 @@ export default function DashboardHeader() {
 
   const firstName = userName || 'there';
   const score = health.score;
-  const status = healthStatus(score);
-  const tone = healthStatusTone(score);
-  const dot =
-    score == null
-      ? 'bg-muted-foreground'
-      : score >= 90
-      ? 'bg-emerald-500'
-      : score >= 70
-      ? 'bg-amber-500'
-      : score >= 50
-      ? 'bg-orange-500'
-      : 'bg-rose-500';
+  const status = health.loading ? '…' : healthStatus(score);
 
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex items-center justify-between gap-3 flex-wrap">
       <div className="min-w-0">
         <h1 className="text-lg font-semibold tracking-tight">
           {greeting()}, {firstName} 👋
@@ -59,32 +59,22 @@ export default function DashboardHeader() {
 
       <div className="flex items-center gap-2 flex-wrap">
         {health.priority && !health.loading && (
-          <Link
+          <StatusCard
+            as={Link}
             to={health.priority.route}
-            className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1.5 text-sm hover:shadow-sm transition-shadow"
-          >
-            <span className="w-6 h-6 rounded-md bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-              <ListChecks className="w-3.5 h-3.5" />
-            </span>
-            <span className="min-w-0 hidden sm:block">
-              <span className="block text-[10px] text-muted-foreground leading-tight">Today’s priority</span>
-              <span className="block text-xs font-medium text-foreground leading-tight truncate max-w-[180px]">
-                {health.priority.label}
-              </span>
-            </span>
-            <span className="sm:hidden text-xs font-medium truncate max-w-[140px]">{health.priority.label}</span>
-          </Link>
+            icon={ListChecks}
+            kicker="Today's priority"
+            title={health.priority.label}
+          />
         )}
-        <button
+        <StatusCard
+          icon={Activity}
+          kicker="Business health"
+          title={status}
+          meta={health.loading ? '' : `${score}/100`}
+          tone={healthTone(score)}
           onClick={() => setOpen(true)}
-          className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1.5 text-sm hover:shadow-sm transition-shadow"
-        >
-          <span className={`w-2 h-2 rounded-full ${dot}`} />
-          <span className="text-[11px] text-muted-foreground">Business Health</span>
-          <span className={`text-xs font-semibold ${tone}`}>{health.loading ? '…' : status}</span>
-          <span className="text-[11px] text-muted-foreground">{health.loading ? '' : `${score}/100`}</span>
-          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-        </button>
+        />
       </div>
 
       <BusinessHealthDialog open={open} onClose={() => setOpen(false)} health={health} userName={firstName} />
