@@ -1,29 +1,34 @@
 import React from 'react';
-import { Pin, PinOff, Eye, ExternalLink, CreditCard, Sparkles } from 'lucide-react';
+import { Pin, PinOff, CreditCard, Sparkles } from 'lucide-react';
 
-// Decides which quick actions a record card offers, based on its group.
+// Contextual secondary actions shown on a record card. The entire card is the
+// primary click target (opens the record), so "View"/"Open" are intentionally
+// omitted — only task-oriented actions remain.
 function quickActions(group) {
   switch (group) {
-    case 'Customers':
-    case 'Suppliers':
-    case 'Companies':
-      return ['view', 'open', 'ask'];
     case 'Invoices':
-      return ['open', 'pay', 'ask'];
+      return ['pay', 'ask'];
     default:
-      return ['open', 'ask'];
+      return ['ask'];
   }
 }
 
-// A grouped result row: icon + title + secondary info + quick actions + pin.
+// A grouped result row: the whole surface opens the record (primary action).
+// Secondary actions (Record Payment, Ask, Pin) sit on top and stop propagation.
 export default function AskResultCard({
   group, item, icon: Icon, isPinned,
-  onOpen, onView, onAsk, onRecordPayment, onTogglePin,
+  onOpen, onAsk, onRecordPayment, onTogglePin,
 }) {
   const actions = quickActions(group);
   const btn = 'inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md hover:bg-accent transition-colors';
   return (
-    <div className="group flex items-center gap-3 px-4 sm:px-6 py-2.5 hover:bg-muted transition-colors">
+    <div
+      role="button"
+      tabIndex={-1}
+      onClick={onOpen}
+      aria-label={`Open ${item.label}`}
+      className="group flex items-center gap-3 px-4 sm:px-6 py-2.5 cursor-pointer hover:bg-muted transition-colors"
+    >
       <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-muted text-muted-foreground flex items-center justify-center">
         <Icon className="w-4 h-4" />
       </span>
@@ -39,31 +44,22 @@ export default function AskResultCard({
           <span className="block text-xs text-muted-foreground truncate">{item.sublabel}</span>
         )}
       </div>
-      <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-        {actions.includes('view') && (
-          <button onClick={onView} className={btn} title="View list">
-            <Eye className="w-3 h-3" /> <span className="hidden sm:inline">View</span>
-          </button>
-        )}
-        {actions.includes('open') && (
-          <button onClick={onOpen} className={btn} title="Open">
-            <ExternalLink className="w-3 h-3" /> <span className="hidden sm:inline">Open</span>
-          </button>
-        )}
+      <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
         {actions.includes('pay') && (
-          <button onClick={onRecordPayment} className={btn} title="Record payment">
+          <button onClick={(e) => { e.stopPropagation(); onRecordPayment(); }} className={btn} title="Record payment">
             <CreditCard className="w-3 h-3" /> <span className="hidden md:inline">Record Payment</span>
           </button>
         )}
         {actions.includes('ask') && (
-          <button onClick={onAsk} className={`${btn} text-primary`} title="Ask about this record">
+          <button onClick={(e) => { e.stopPropagation(); onAsk(); }} className={`${btn} text-primary`} title="Ask about this record">
             <Sparkles className="w-3 h-3" /> <span className="hidden sm:inline">Ask</span>
           </button>
         )}
         <button
-          onClick={onTogglePin}
+          onClick={(e) => { e.stopPropagation(); onTogglePin(); }}
           className="p-1 rounded-md hover:bg-accent text-muted-foreground"
           title={isPinned ? 'Unpin' : 'Pin to top'}
+          aria-label={isPinned ? 'Unpin' : 'Pin to top'}
         >
           {isPinned ? <PinOff className="w-3 h-3" /> : <Pin className="w-3 h-3" />}
         </button>
