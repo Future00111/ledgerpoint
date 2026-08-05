@@ -311,6 +311,21 @@ export default function AskModal({ open, onClose, initialQuery }) {
     return [...navMatches, ...createMatches, ...actionMatches, ...aiItem];
   }, [emptyQuery, suggestionItems, recentItems, navMatches, createMatches, actionMatches, recordItems, aiItem]);
 
+  // Unified, keyboard-navigable list: commands first, then record results from
+  // the Search Engine. Enter / the Ask button / arrow keys operate on this list
+  // so the submission pipeline is connected to every result returned.
+  const selectableItems = useMemo(() => [...flatItems, ...recordItems], [flatItems, recordItems]);
+
+  // Precompute absolute selection index for each record row (continues after the
+  // command items) so keyboard highlight + scroll-into-view work for records too.
+  const recordRows = useMemo(() => {
+    let idx = flatItems.length;
+    return rankedGroups.map((g) => ({
+      label: g.label,
+      items: g.items.map((it) => ({ it, idx: idx++ })),
+    }));
+  }, [rankedGroups, flatItems.length]);
+
   useEffect(() => {
     setSelected(0);
   }, [query]);
@@ -343,6 +358,10 @@ export default function AskModal({ open, onClose, initialQuery }) {
       runAI(item.query);
       return;
     }
+    if (item.kind === 'record') {
+      openRecord(item.group, item.raw);
+      return;
+    }
     if (query.trim()) pushRecentSearch(query.trim());
     pushRecent({ label: item.label, path: item.path });
     onClose();
@@ -372,22 +391,23 @@ export default function AskModal({ open, onClose, initialQuery }) {
 
   const onKeyDown = (e) => {
     if (e.key === 'Enter' && e.shiftKey) return;
+    const max = Math.max(selectableItems.length - 1, 0);
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelected((s) => Math.min(s + 1, Math.max(flatItems.length - 1, 0)));
+      setSelected((s) => Math.min(s + 1, max));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setSelected((s) => Math.max(s - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      activate(flatItems[selected]);
+      activate(selectableItems[selected]);
     } else if (e.key === 'Escape') {
       e.preventDefault();
       if (aiAnswer) setAiAnswer(null);
       else onClose();
     } else if (e.key === 'Tab') {
       e.preventDefault();
-      setSelected((s) => Math.min(s + 1, Math.max(flatItems.length - 1, 0)));
+      setSelected((s) => Math.min(s + 1, max));
     }
   };
 
@@ -471,24 +491,30 @@ export default function AskModal({ open, onClose, initialQuery }) {
           ) : (
             <div className="pb-4">
               {rendered}
-              {rankedGroups.map((g) => (
+              {recordRows.map((g) => (
                 <div key={g.label}>
                   <div className="px-4 sm:px-6 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     {g.label}
                   </div>
-                  {g.items.map((it, i) => (
-                    <AskResultCard
+                  {g.items.map(({ it, idx }, i) => (
+                    <div
                       key={`${g.label}-${it.id || i}`}
-                      group={g.label}
-                      item={it}
-                      icon={recordIcon(g.label)}
-                      isPinned={isPinned(g.label, it)}
-                      onOpen={() => openRecord(g.label, it)}
-                      onView={() => viewGroup(g.label)}
-                      onAsk={() => askRecord(it)}
-                      onRecordPayment={() => recordPayment(it)}
-                      onTogglePin={() => togglePinRecord(g.label, it)}
-                    />
+                      data-idx={idx}
+                      onMouseEnter={() => setSelected(idx)}
+                      className={cn('rounded-lg transition-colors', idx === selected && 'bg-primary/10')}
+                    >
+                      <AskResultCard
+                        group={g.label}
+                        item={it}
+                        icon={recordIcon(g.label)}
+                        isPinned={isPinned(g.label, it)}
+                        onOpen={() => openRecord(g.label, it)}
+                        onView={() => viewGroup(g.label)}
+                        onAsk={() => askRecord(it)}
+                        onRecordPayment={() => recordPayment(it)}
+                        onTogglePin={() => togglePinRecord(g.label, it)}
+                      />
+                    </div>
                   ))}
                 </div>
               ))}
@@ -501,7 +527,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
                 <AskRecordsEmpty
                   query={q}
                   similar={similar}
-                  onPickSimilar={(it) => activate({ kind: 'record', label: it.label, path: it.route, icon: Search })}
+                  onPickSimilar={(it) => { if (q) pushRecentSearch(q); pushRecent({ label: it.label, path: it.route }); onClose(); navigate(it.route); }}
                   onCreateCustomer={() => goQuick('/customers')}
                   onCreateSupplier={() => goQuick('/suppliers')}
                   onSearchReports={() => goQuick('/reports')}
@@ -517,7 +543,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
           value={query}
           onChange={(e) => { setQuery(e.target.value); setAiAnswer(null); }}
           onKeyDown={onKeyDown}
-          onSubmit={() => activate(flatItems[selected])}
+          onSubmit={() => activate(selectableItems[selected])}
           placeholder={placeholder}
           disabled={!!aiAnswer?.loading}
           inputRef={inputRef}
