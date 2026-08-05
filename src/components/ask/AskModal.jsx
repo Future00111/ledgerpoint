@@ -11,6 +11,7 @@ import { getRecentSearches, pushRecentSearch } from './askRecent';
 import AskInput from './AskInput';
 import AskWelcome from './AskWelcome';
 import AskAnswer from './AskAnswer';
+import AskRecordsEmpty from './AskRecordsEmpty';
 import {
   Search, X, CornerDownLeft, Sparkles, Clock, Loader2, FileText, Receipt, Users,
   Truck, FolderOpen, ArrowLeftRight, Percent, BarChart3,
@@ -81,6 +82,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
   const [query, setQuery] = useState('');
   const [placeholder, setPlaceholder] = useState(EXAMPLES[0]);
   const [records, setRecords] = useState([]);
+  const [similar, setSimilar] = useState([]);
   const [recordsLoading, setRecordsLoading] = useState(false);
   const [selected, setSelected] = useState(0);
   const [aiAnswer, setAiAnswer] = useState(null);
@@ -100,6 +102,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
     if (!open) return;
     setQuery(initialQuery || '');
     setRecords([]);
+    setSimilar([]);
     setAiAnswer(null);
     setSelected(0);
     setRecentSearches(getRecentSearches());
@@ -191,10 +194,19 @@ export default function AskModal({ open, onClose, initialQuery }) {
     setRecordsLoading(true);
     const t = setTimeout(async () => {
       try {
-        const res = await base44.functions.invoke('globalSearch', { company_id: activeCompany.id, query: q });
-        if (!cancelled) setRecords(res?.data?.groups || res?.groups || []);
+        const res = await Promise.race([
+          base44.functions.invoke('globalSearch', { company_id: activeCompany.id, query: q }),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 7000)),
+        ]);
+        if (!cancelled) {
+          setRecords(res?.data?.groups || res?.groups || []);
+          setSimilar(res?.data?.similar || res?.similar || []);
+        }
       } catch {
-        if (!cancelled) setRecords([]);
+        if (!cancelled) {
+          setRecords([]);
+          setSimilar([]);
+        }
       } finally {
         if (!cancelled) setRecordsLoading(false);
       }
@@ -224,7 +236,8 @@ export default function AskModal({ open, onClose, initialQuery }) {
     [records]
   );
 
-  const emptyQuery = query.trim() === '';
+  const q = query.trim();
+  const emptyQuery = q === '';
   const showAI =
     !emptyQuery &&
     (isQuestion(query) ||
@@ -400,14 +413,6 @@ export default function AskModal({ open, onClose, initialQuery }) {
               onPickRecent={(s) => setQuery(s)}
               onQuickAction={goQuick}
             />
-          ) : flatItems.length === 0 && !recordsLoading ? (
-            <div className="px-4 sm:px-6 py-12 text-center">
-              <div className="mx-auto w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-3">
-                <Search className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <p className="text-sm font-medium">No matches yet.</p>
-              <p className="text-xs text-muted-foreground mt-1">Press Enter to ask AI about “{query.trim()}”.</p>
-            </div>
           ) : (
             <div className="pb-4">
               {rendered}
@@ -415,6 +420,15 @@ export default function AskModal({ open, onClose, initialQuery }) {
                 <div className="flex items-center justify-center gap-2 py-4 text-xs text-muted-foreground">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" /> Searching records…
                 </div>
+              )}
+              {!recordsLoading && recordItems.length === 0 && q.length >= 2 && !isQuestion && (
+                <AskRecordsEmpty
+                  query={q}
+                  similar={similar}
+                  onPickSimilar={(it) => activate({ kind: 'record', label: it.label, path: it.route, icon: Search })}
+                  onCreateCustomer={() => goQuick('/customers')}
+                  onCreateSupplier={() => goQuick('/suppliers')}
+                />
               )}
             </div>
           )}
