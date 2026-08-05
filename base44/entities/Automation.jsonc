@@ -1,0 +1,112 @@
+{
+  "name": "Automation",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "sales",
+        "purchases",
+        "banking",
+        "vat",
+        "documents",
+        "reports",
+        "ai",
+        "notifications"
+      ],
+      "default": "sales"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "paused",
+        "error"
+      ],
+      "default": "draft"
+    },
+    "workflow": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "when",
+              "if",
+              "then",
+              "wait",
+              "else",
+              "end"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "config": {
+            "type": "object"
+          }
+        }
+      },
+      "description": "Ordered workflow blocks (WHEN / IF / THEN / WAIT / ELSE / END)"
+    },
+    "last_run_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_count": {
+      "type": "number",
+      "default": 0
+    },
+    "success_count": {
+      "type": "number",
+      "default": 0
+    },
+    "failure_count": {
+      "type": "number",
+      "default": 0
+    },
+    "requires_approval": {
+      "type": "boolean",
+      "default": true,
+      "description": "No accounting data modified without user approval unless explicitly configured"
+    },
+    "test_mode": {
+      "type": "boolean",
+      "default": false,
+      "description": "Log actions without executing them"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "created_by_ai": {
+      "type": "boolean",
+      "default": false
+    },
+    "ai_prompt": {
+      "type": "string",
+      "description": "Original natural language prompt if AI-created"
+    }
+  },
+  "required": [
+    "company_id",
+    "name",
+    "category"
+  ]
+}

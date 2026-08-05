@@ -8,6 +8,7 @@ import {
   FileBarChart, Building2, Lightbulb, Briefcase, Plug, Bell, History, UserCircle, CreditCard,
   Wrench,
   FileCheck, Inbox, Scale, Wand2, ClipboardList,
+  Zap,
 } from 'lucide-react';
 
 // Single source of truth for navigation. New modules are added here and
@@ -70,6 +71,10 @@ export const SECTIONS = [
       { label: 'AI Insights', path: '/insights', icon: Sparkles },
       { label: 'Custom Reports', icon: FileBarChart, soon: true },
     ],
+  },
+  {
+    key: 'automation', label: 'Automation', icon: Zap,
+    items: [{ label: 'Automation', path: '/automation' }],
   },
   {
     key: 'settings', label: 'Settings', icon: Settings,

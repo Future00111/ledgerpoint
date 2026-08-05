@@ -2,7 +2,7 @@
 // Dashboard Widgets, Settings, Help Articles, Future Modules. Matched locally
 // so results appear in milliseconds with no network round-trip.
 
-import { LayoutDashboard, Settings as SettingsIcon, LifeBuoy, Rocket } from 'lucide-react';
+import { LayoutDashboard, Settings as SettingsIcon, LifeBuoy, Rocket, Zap } from 'lucide-react';
 
 function normalize(s) {
   return String(s ?? '')
@@ -86,6 +86,16 @@ export const CATALOG_GROUPS = [
       { label: 'How to import a bank statement', route: '/transactions' },
       { label: 'Understanding the Chart of Accounts', route: '/chart-of-accounts' },
       { label: 'How to match a bank transaction', route: '/transactions' },
+    ],
+  },
+  {
+    label: 'Automation',
+    icon: Zap,
+    items: [
+      { label: 'Create Automation', route: '/automation' },
+      { label: 'Automation Templates', route: '/automation' },
+      { label: 'Create Automation with AI', route: '/automation' },
+      { label: 'Automation Activity Log', route: '/automation' },
     ],
   },
   {

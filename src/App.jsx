@@ -44,6 +44,7 @@ import SetupWizard from '@/pages/SetupWizard';
 import Insights from '@/pages/Insights';
 import SmartSuggestions from '@/pages/SmartSuggestions';
 import DevelopmentTools from '@/pages/DevelopmentTools';
+import Automation from '@/pages/Automation';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -106,6 +107,7 @@ const AuthenticatedApp = () => {
           <Route path="/insights" element={<Insights />} />
           <Route path="/smart-suggestions" element={<SmartSuggestions />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/automation" element={<Automation />} />
           <Route path="/dev-tools" element={<DevelopmentTools />} />
         </Route>
       </Route>
