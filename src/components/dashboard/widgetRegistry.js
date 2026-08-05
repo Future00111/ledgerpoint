@@ -97,9 +97,9 @@ export const MODES = {
 
 export function buildModeLayout(modeKey) {
   const visible = MODES[modeKey].widgets;
-  const arr = visible.map((id) => ({ id, w: WIDGETS[id].default.w, h: WIDGETS[id].default.h, hidden: false }));
+  const arr = visible.map((id) => ({ id, w: WIDGETS[id].default.w, h: WIDGETS[id].default.h, hidden: false, collapsed: false }));
   Object.keys(WIDGETS).forEach((id) => {
-    if (!visible.includes(id)) arr.push({ id, ...WIDGETS[id].default, hidden: true });
+    if (!visible.includes(id)) arr.push({ id, ...WIDGETS[id].default, hidden: true, collapsed: false });
   });
   return arr;
 }
@@ -108,18 +108,24 @@ export const DEFAULT_LAYOUT = buildModeLayout('owner');
 
 // Ensure a saved layout stays in sync with the registry (new widgets appended,
 // removed widgets dropped) — keeps the dashboard future-ready.
+// Core widgets (core: true) are always present and can never be hidden —
+// users may reposition/resize/collapse them but not remove them.
 export function normalizeLayout(arr) {
   const have = new Set(arr.map((x) => x.id));
   const out = arr
     .filter((x) => WIDGETS[x.id])
-    .map((x) => ({
-      id: x.id,
-      w: x.w ?? WIDGETS[x.id].default.w,
-      h: x.h ?? WIDGETS[x.id].default.h,
-      hidden: !!x.hidden,
-    }));
+    .map((x) => {
+      const meta = WIDGETS[x.id];
+      return {
+        id: x.id,
+        w: x.w ?? meta.default.w,
+        h: x.h ?? meta.default.h,
+        collapsed: !!x.collapsed,
+        hidden: meta.core ? false : !!x.hidden,
+      };
+    });
   Object.keys(WIDGETS).forEach((id) => {
-    if (!have.has(id)) out.push({ id, ...WIDGETS[id].default, hidden: false });
+    if (!have.has(id)) out.push({ id, ...WIDGETS[id].default, hidden: WIDGETS[id].core ? false : false, collapsed: false });
   });
   return out;
 }

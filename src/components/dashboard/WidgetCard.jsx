@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { GripVertical, X, Lightbulb } from 'lucide-react';
+import { GripVertical, X, Lightbulb, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import WidgetInsightDialog from './WidgetInsightDialog';
 
@@ -19,13 +19,17 @@ export default function WidgetCard({
   onCycleW,
   onCycleH,
   onHide,
+  onToggleCollapse,
+  collapsed,
+  attention,
+  isCore,
   company,
   children,
 }) {
   const [insightOpen, setInsightOpen] = useState(false);
   const Icon = meta.icon;
   const colSpan = size.w === 1 ? 4 : size.w === 2 ? 6 : 12;
-  const minHeight = size.h === 2 ? 460 : 240;
+  const minHeight = collapsed ? 'auto' : size.h === 2 ? 460 : 240;
 
   return (
     <div
@@ -38,7 +42,14 @@ export default function WidgetCard({
       onDragOver={editMode ? onDragOver : undefined}
       onDrop={editMode ? onDrop : undefined}
     >
-      <Card className={cn('h-full flex flex-col overflow-hidden transition-shadow hover:shadow-md', editMode && 'ring-1 ring-dashed ring-border', dragOver && 'ring-2 ring-primary')}>
+      <Card
+        className={cn(
+          'h-full flex flex-col overflow-hidden transition-shadow hover:shadow-md',
+          editMode && 'ring-1 ring-dashed ring-border',
+          dragOver && 'ring-2 ring-primary',
+          attention && 'ring-1 ring-amber-400/70'
+        )}
+      >
         <CardHeader className="flex-row items-center justify-between py-3 px-4 space-y-0 border-b border-border/60 flex-shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             {editMode && (
@@ -55,6 +66,16 @@ export default function WidgetCard({
             )}
             {Icon && <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
             <CardTitle className="text-sm font-medium truncate">{meta.title}</CardTitle>
+            {attention && (
+              <span className="ml-1 inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 flex-shrink-0">
+                Needs attention
+              </span>
+            )}
+            {isCore && editMode && (
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary flex-shrink-0">
+                Pinned
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             <button
@@ -64,6 +85,14 @@ export default function WidgetCard({
               aria-label="Explain this widget"
             >
               <Lightbulb className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={onToggleCollapse}
+              className="p-1 rounded-md hover:bg-muted text-muted-foreground"
+              title={collapsed ? 'Expand' : 'Collapse'}
+              aria-label={collapsed ? 'Expand widget' : 'Collapse widget'}
+            >
+              <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', collapsed && 'rotate-[-90deg]')} />
             </button>
             {editMode && (
               <>
@@ -81,19 +110,21 @@ export default function WidgetCard({
                 >
                   {size.h === 1 ? 'Short' : 'Tall'}
                 </button>
-                <button
-                  onClick={onHide}
-                  className="p-1 rounded-md hover:bg-muted text-muted-foreground"
-                  title="Hide widget"
-                  aria-label="Hide widget"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+                {!isCore && (
+                  <button
+                    onClick={onHide}
+                    className="p-1 rounded-md hover:bg-muted text-muted-foreground"
+                    title="Hide widget"
+                    aria-label="Hide widget"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </>
             )}
           </div>
         </CardHeader>
-        <CardContent className="flex-1 p-4 pt-3 overflow-auto min-h-0">{children}</CardContent>
+        {!collapsed && <CardContent className="flex-1 p-4 pt-3 overflow-auto min-h-0">{children}</CardContent>}
       </Card>
       <WidgetInsightDialog
         open={insightOpen}
