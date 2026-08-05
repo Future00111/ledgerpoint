@@ -49,5 +49,7 @@ export function rankGroups(...groupSets) {
 
 // Stage 5: AI escalation. Navigation and search never require AI.
 export function shouldEscalateToAI({ hasResults, isQuestion }) {
-  return !hasResults || isQuestion;
+  // Simple searches are never sent to AI — they are handled entirely by the
+  // Ask Search Engine. AI is only used when the user explicitly asks a question.
+  return isQuestion;
 }

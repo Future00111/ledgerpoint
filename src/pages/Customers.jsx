@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,6 +16,8 @@ const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' 
 
 export default function Customers() {
   const { activeCompany } = useCompany();
+  const nav = useNavigate();
+  const { id: focusId } = useParams();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -28,6 +31,14 @@ export default function Customers() {
   useEffect(() => {
     if (activeCompany) loadCustomers();
   }, [activeCompany]);
+
+  // Open the Customer Workspace directly when navigated via /customers/:id
+  // (e.g. from an Ask search result).
+  useEffect(() => {
+    if (!focusId) return;
+    const c = customers.find((c) => c.id === focusId);
+    if (c) { setViewing(c); setDetailsOpen(true); }
+  }, [focusId, customers]);
 
   const loadCustomers = async () => {
     setLoading(true);
@@ -130,7 +141,12 @@ export default function Customers() {
       )}
 
       <CustomerForm open={formOpen} onOpenChange={setFormOpen} editing={editing} companyId={activeCompany.id} onSaved={loadCustomers} />
-      <CustomerWorkspace customer={viewing} open={detailsOpen} onOpenChange={setDetailsOpen} onEdit={openEdit} />
+      <CustomerWorkspace
+        customer={viewing}
+        open={detailsOpen}
+        onOpenChange={(o) => { setDetailsOpen(o); if (!o && focusId) nav('/customers', { replace: true }); }}
+        onEdit={openEdit}
+      />
       <CustomerMergeDialog customer={viewing} customers={customers} open={mergeOpen} onOpenChange={setMergeOpen} onMerged={loadCustomers} />
     </div>
   );

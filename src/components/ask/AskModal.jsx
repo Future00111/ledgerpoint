@@ -223,13 +223,20 @@ export default function AskModal({ open, onClose, initialQuery }) {
           new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 7000)),
         ]);
         if (!cancelled) {
-          setRecords(res?.data?.groups || res?.groups || []);
+          const groups = res?.data?.groups || res?.groups || [];
+          setRecords(groups);
           setSimilar(res?.data?.similar || res?.similar || []);
+          if (import.meta.env?.DEV) {
+            const total = groups.reduce((n, g) => n + (g.items?.length || 0), 0);
+            console.debug('[Ask] globalSearch "%s" -> %d group(s), %d result(s)', q, groups.length, total);
+            groups.forEach((g) => console.debug('[Ask]   %s: %d', g.label, g.items?.length || 0));
+          }
         }
-      } catch {
+      } catch (e) {
         if (!cancelled) {
           setRecords([]);
           setSimilar([]);
+          if (import.meta.env?.DEV) console.debug('[Ask] globalSearch failed: %s', e?.message || e);
         }
       } finally {
         if (!cancelled) setRecordsLoading(false);
@@ -270,6 +277,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
   const q = query.trim();
   const emptyQuery = q === '';
   const hasResults = !!(navMatches.length || createMatches.length || actionMatches.length || recordItems.length);
+  const noResults = !hasResults && catalogGroups.length === 0;
 
   // Ask Engine stage 5: AI only when there are no results or the user asks a question.
   const showAI = !emptyQuery && shouldEscalateToAI({ hasResults, isQuestion: isQuestion(query) });
@@ -489,7 +497,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
                   <Loader2 className="w-3.5 h-3.5 animate-spin" /> Searching records…
                 </div>
               )}
-              {!recordsLoading && recordItems.length === 0 && q.length >= 2 && !isQuestion && (
+              {!recordsLoading && noResults && q.length >= 2 && !isQuestion(query) && (
                 <AskRecordsEmpty
                   query={q}
                   similar={similar}

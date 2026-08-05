@@ -89,7 +89,7 @@ export default async function (req) {
     // Search order: Customers, Suppliers, Companies, Invoices, Bills,
     // Credit Notes, Bank Transactions, Documents, Reports (then extras).
     const sources = [
-      { label: 'Customers', type: 'Customer', fields: ['name', 'email', 'customer_reference'], labelFn: (r) => r.name, subFn: (r) => r.email, route: () => '/customers', nameFields: ['name'] },
+      { label: 'Customers', type: 'Customer', fields: ['name', 'contact_name', 'email', 'customer_reference'], labelFn: (r) => r.name, subFn: (r) => r.email, route: (r) => '/customers/' + r.id, nameFields: ['name', 'contact_name'], max: 50 },
       { label: 'Suppliers', type: 'Supplier', fields: ['name', 'email', 'supplier_reference'], labelFn: (r) => r.name, subFn: (r) => r.email, route: () => '/suppliers', nameFields: ['name'] },
       { label: 'Invoices', type: 'SalesInvoice', fields: ['invoice_number', 'customer_name', 'reference'], labelFn: (r) => r.invoice_number, subFn: (r) => r.customer_name, route: (r) => `/invoices/${r.id}`, nameFields: ['invoice_number', 'customer_name'] },
       { label: 'Bills', type: 'PurchaseBill', fields: ['bill_number', 'supplier_name', 'reference'], labelFn: (r) => r.bill_number, subFn: (r) => r.supplier_name, route: (r) => `/bills/${r.id}`, nameFields: ['bill_number', 'supplier_name'] },
@@ -118,7 +118,7 @@ export default async function (req) {
     for (const { s, list } of fetched) {
       const matched = list
         .filter((r) => matchOne(normQuery, queryTokens, s.fields.map((f) => r[f])))
-        .slice(0, 6)
+        .slice(0, s.max || 6)
         .map((r) => ({
           id: r.id,
           label: s.labelFn(r) || 'Untitled',
@@ -126,6 +126,7 @@ export default async function (req) {
           route: s.route(r),
         }));
       if (matched.length) groups.push({ label: s.label, items: matched });
+      if (typeof console !== 'undefined') console.log('[globalSearch] %s: fetched=%d matched=%d', s.label, list.length, matched.length);
     }
 
     // Companies — search across the user's accessible companies (for switching).
@@ -173,6 +174,10 @@ export default async function (req) {
         .slice(0, 5);
     }
 
+    if (typeof console !== 'undefined') {
+      console.log('[globalSearch] query="%s" companyId="%s" groups=%d', query, companyId, groups.length);
+      groups.forEach((g) => console.log('[globalSearch]   %s: %d result(s)', g.label, g.items.length));
+    }
     return Response.json({ groups, similar });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
