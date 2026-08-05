@@ -7,6 +7,7 @@ import {
   Mail, Filter, FilePlus, ScanText,
   FileBarChart, Building2, Lightbulb, Briefcase, Plug, Bell, History, UserCircle, CreditCard,
   Wrench,
+  FileCheck, Inbox, Scale, Wand2, ClipboardList,
 } from 'lucide-react';
 
 // Single source of truth for navigation. New modules are added here and
@@ -19,6 +20,7 @@ export const SECTIONS = [
   {
     key: 'sales', label: 'Sales', icon: TrendingUp,
     items: [
+      { label: 'Quotes', icon: FileCheck, soon: true },
       { label: 'Customers', path: '/customers', icon: Users },
       { label: 'Invoices', path: '/invoices', icon: FileText },
       { label: 'Credit Notes', path: '/sales-credit-notes', icon: Undo2 },
@@ -37,19 +39,23 @@ export const SECTIONS = [
     items: [
       { label: 'Accounts', path: '/bank-accounts', icon: Landmark },
       { label: 'Transactions', path: '/transactions', icon: ArrowLeftRight },
+      { label: 'Reconciliation', icon: Scale, soon: true },
+      { label: 'Rules', icon: Wand2, soon: true },
     ],
   },
   {
     key: 'accounting', label: 'Accounting', icon: Calculator,
     items: [
-      { label: 'Accounts', path: '/chart-of-accounts', icon: BookOpen },
-      { label: 'General Ledger', path: '/general-ledger', icon: Grid3x3 },
+      { label: 'Chart of Accounts', path: '/chart-of-accounts', icon: BookOpen },
+      { label: 'Journal Entries', icon: ClipboardList, soon: true },
       { label: 'VAT Returns', path: '/vat', icon: Percent },
+      { label: 'General Ledger', path: '/general-ledger', icon: Grid3x3 },
     ],
   },
   {
     key: 'documents', label: 'Documents', icon: FolderOpen,
     items: [
+      { label: 'Inbox', icon: Inbox, soon: true },
       { label: 'Documents', path: '/documents', icon: FolderOpen },
       { label: 'Email Capture', path: '/email-capture', icon: Mail },
       { label: 'Email Rules', path: '/email-rules', icon: Filter },
