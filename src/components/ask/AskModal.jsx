@@ -346,7 +346,12 @@ export default function AskModal({ open, onClose, initialQuery }) {
         question: q,
         context: pageContext,
       });
-      setAiAnswer({ question: q, text: res?.data?.answer || res?.answer || 'No answer returned.' });
+      const data = res?.data || res || {};
+      setAiAnswer({
+        question: q,
+        text: data.explanation || data.answer || 'No answer returned.',
+        records: data.records || [],
+      });
     } catch (e) {
       setAiAnswer({ question: q, error: e.message || 'Something went wrong.' });
     }
