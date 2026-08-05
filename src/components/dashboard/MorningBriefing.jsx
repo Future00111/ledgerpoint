@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useBusinessHealth } from './useBusinessHealth';
-import { useAsk } from '@/components/ask/AskProvider';
 import { gbp, monthKey, thisMonthKey, prevMonthKey } from '@/lib/format';
 import { X, Sparkles, ArrowRight } from 'lucide-react';
 
@@ -10,25 +8,14 @@ const ACTIVE = ['approved', 'sent', 'part_paid', 'paid', 'overdue'];
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const keyFor = (cid, date) => `lp.briefing.${cid}.${date}`;
 
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
-}
-
-// Once-per-day summary shown at the top of the dashboard. Dismissed for the
-// day after reading; reappears the next day.
+// Once-per-day change summary shown at the top of the dashboard. It does NOT
+// repeat the greeting, today's priority, business health, or the Ask entry
+// point — those all have their own single home on the dashboard. Its sole job
+// is to summarise what changed since the user's last visit.
 export default function MorningBriefing({ company }) {
-  const { openAsk } = useAsk();
+  const nav = useNavigate();
   const [data, setData] = useState(null);
   const [dismissed, setDismissed] = useState(false);
-  const [userName, setUserName] = useState('');
-  const health = useBusinessHealth(company?.id);
-
-  useEffect(() => {
-    base44.auth.me().then((u) => setUserName((u?.full_name || '').split(' ')[0])).catch(() => setUserName(''));
-  }, []);
 
   useEffect(() => {
     if (!company?.id) return;
@@ -78,8 +65,19 @@ export default function MorningBriefing({ company }) {
     setDismissed(true);
   };
 
-  const profitLabel = `${data.profitMove >= 0 ? '+' : '−'}${gbp(Math.abs(data.profitMove))}`;
-  const profitTone = data.profitMove >= 0 ? 'text-emerald-600' : 'text-rose-600';
+  const viewDetails = () => {
+    dismiss();
+    nav('/reports');
+  };
+
+  const profitUp = data.profitMove >= 0;
+  const bullets = [];
+  if (data.received > 0) bullets.push(`${gbp(data.received)} received`);
+  if (data.billsUploaded > 0) bullets.push(`${data.billsUploaded} supplier bill${data.billsUploaded > 1 ? 's' : ''} uploaded`);
+  bullets.push(`VAT estimate ${gbp(data.vatEst)}`);
+  bullets.push(
+    `Profit ${profitUp ? 'increased' : 'decreased'} ${gbp(Math.abs(data.profitMove))}`
+  );
 
   return (
     <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-card p-4 relative">
@@ -90,31 +88,24 @@ export default function MorningBriefing({ company }) {
       >
         <X className="w-4 h-4" />
       </button>
-      <div className="flex items-center gap-1.5 mb-1">
+      <div className="flex items-center gap-1.5 mb-2">
         <Sparkles className="w-4 h-4 text-primary" />
-        <span className="text-sm font-semibold">
-          {greeting()}, {userName || 'there'}.
-        </span>
+        <span className="text-sm font-semibold">Since your last visit</span>
       </div>
-      <p className="text-sm text-muted-foreground pr-6">
-        Since your last visit: {gbp(data.received)} payments received · {data.billsUploaded} bills uploaded · VAT estimate {gbp(data.vatEst)} · profit movement{' '}
-        <span className={`font-medium ${profitTone}`}>{profitLabel}</span>.
-      </p>
-      {health.priority && !health.loading && (
-        <div className="mt-2 flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-muted-foreground">Today’s biggest priority:</span>
-          <Link to={health.priority.route} className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-            {health.priority.label}
-            <ArrowRight className="w-3 h-3" />
-          </Link>
-        </div>
-      )}
+      <ul className="space-y-1 text-sm text-muted-foreground pr-6">
+        {bullets.map((b) => (
+          <li key={b} className="flex items-start gap-2">
+            <span className="text-primary/60 mt-0.5">•</span>
+            <span>{b}</span>
+          </li>
+        ))}
+      </ul>
       <button
-        onClick={() => openAsk('Give me a summary of my business today')}
+        onClick={viewDetails}
         className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted transition-colors"
       >
-        <Sparkles className="w-3.5 h-3.5 text-primary" />
-        Ask Ledgerly
+        View Details
+        <ArrowRight className="w-3.5 h-3.5" />
       </button>
     </div>
   );
