@@ -3,12 +3,13 @@ import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { Users, Plus, Pencil, Trash2, Eye, Search, Mail, Phone } from 'lucide-react';
+import { Users, Plus, Search } from 'lucide-react';
 import CustomerForm from '@/components/customers/CustomerForm';
-import CustomerDetails from '@/components/customers/CustomerDetails';
+import CustomerCard from '@/components/customers/CustomerCard';
+import CustomerWorkspace from '@/components/customers/CustomerWorkspace';
+import CustomerMergeDialog from '@/components/customers/CustomerMergeDialog';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
@@ -20,6 +21,7 @@ export default function Customers() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
+  const [mergeOpen, setMergeOpen] = useState(false);
   const [search, setSearch] = useState('');
   const { toast } = useToast();
 
@@ -41,10 +43,41 @@ export default function Customers() {
   const openView = (c) => { setViewing(c); setDetailsOpen(true); };
 
   const handleDelete = async (c) => {
-    if (!confirm(`Delete ${c.name}?`)) return;
+    if (!confirm(`Delete ${c.name}? This cannot be undone.`)) return;
     try { await base44.entities.Customer.delete(c.id); toast({ title: 'Customer deleted' }); await loadCustomers(); }
     catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
   };
+
+  const handleArchive = async (c) => {
+    try { await base44.entities.Customer.update(c.id, { status: 'inactive' }); toast({ title: 'Customer archived' }); await loadCustomers(); }
+    catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
+  };
+
+  const handleDuplicate = async (c) => {
+    try {
+      const { id, created_date, updated_date, created_by_id, ...rest } = c;
+      await base44.entities.Customer.create({ ...rest, name: `${c.name} (Copy)`, customer_reference: '', outstanding_balance: 0 });
+      toast({ title: 'Customer duplicated' }); await loadCustomers();
+    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
+  };
+
+  const handleExport = (c) => {
+    const lines = ['BEGIN:VCARD', 'VERSION:3.0', `FN:${c.contact_name || c.name}`, `ORG:${c.name}`];
+    if (c.email) lines.push(`EMAIL:${c.email}`);
+    if (c.phone) lines.push(`TEL:${c.phone}`);
+    const adr = [c.address_line_1, c.address_line_2, c.city, c.county, c.postcode, c.country].filter(Boolean).join(';');
+    if (adr) lines.push(`ADR:;;${adr}`);
+    lines.push('END:VCARD');
+    const blob = new Blob([lines.join('\n')], { type: 'text/vcard' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${c.name.replace(/\s+/g, '_')}.vcf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const openMerge = (c) => { setViewing(c); setMergeOpen(true); };
 
   const filtered = customers.filter(c =>
     c.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -81,33 +114,24 @@ export default function Customers() {
       ) : (
         <div className="grid gap-3">
           {filtered.map(c => (
-            <Card key={c.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm">{c.name}</p>
-                    <Badge variant={c.status === 'active' ? 'default' : 'secondary'} className="text-xs">{c.status === 'active' ? 'Active' : 'Inactive'}</Badge>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
-                    {c.contact_name && <span>{c.contact_name}</span>}
-                    {c.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{c.email}</span>}
-                    {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{c.phone}</span>}
-                    {c.outstanding_balance > 0 && <span className="font-medium text-foreground">Owed: {gbp.format(c.outstanding_balance)}</span>}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0 ml-3">
-                  <Button variant="ghost" size="icon" onClick={() => openView(c)} title="View"><Eye className="w-4 h-4" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(c)} title="Edit"><Pencil className="w-4 h-4" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(c)} title="Delete"><Trash2 className="w-4 h-4 text-destructive" /></Button>
-                </div>
-              </CardContent>
-            </Card>
+            <CustomerCard
+              key={c.id}
+              customer={c}
+              onOpen={openView}
+              onEdit={openEdit}
+              onArchive={handleArchive}
+              onDelete={handleDelete}
+              onDuplicate={handleDuplicate}
+              onExport={handleExport}
+              onMerge={openMerge}
+            />
           ))}
         </div>
       )}
 
       <CustomerForm open={formOpen} onOpenChange={setFormOpen} editing={editing} companyId={activeCompany.id} onSaved={loadCustomers} />
-      <CustomerDetails customer={viewing} open={detailsOpen} onOpenChange={setDetailsOpen} />
+      <CustomerWorkspace customer={viewing} open={detailsOpen} onOpenChange={setDetailsOpen} onEdit={openEdit} />
+      <CustomerMergeDialog customer={viewing} customers={customers} open={mergeOpen} onOpenChange={setMergeOpen} onMerged={loadCustomers} />
     </div>
   );
 }
