@@ -368,6 +368,18 @@ export default function AskModal({ open, onClose, initialQuery }) {
     navigate(item.path);
   };
 
+  // The send button / Enter must always act. Open the selected (or first)
+  // result when one exists; otherwise escalate the query to Ask (AI) so the
+  // button is never a dead control.
+  const submit = () => {
+    const item = selectableItems[selected] || selectableItems[0];
+    if (item && !item.disabled) {
+      activate(item);
+      return;
+    }
+    if (q) runAI(q);
+  };
+
   const goQuick = (path) => {
     onClose();
     navigate(path);
@@ -400,7 +412,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
       setSelected((s) => Math.max(s - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      activate(selectableItems[selected]);
+      submit();
     } else if (e.key === 'Escape') {
       e.preventDefault();
       if (aiAnswer) setAiAnswer(null);
@@ -543,7 +555,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
           value={query}
           onChange={(e) => { setQuery(e.target.value); setAiAnswer(null); }}
           onKeyDown={onKeyDown}
-          onSubmit={() => activate(selectableItems[selected])}
+          onSubmit={submit}
           placeholder={placeholder}
           disabled={!!aiAnswer?.loading}
           inputRef={inputRef}
