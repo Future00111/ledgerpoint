@@ -200,7 +200,15 @@ export default function GeneralLedger() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.map(journal => (
-                  <tr key={journal.id} className="hover:bg-muted/30 transition-colors">
+                  <tr
+                    key={journal.id}
+                    role={journal.source_record_id ? 'button' : undefined}
+                    tabIndex={journal.source_record_id ? 0 : undefined}
+                    aria-label={journal.source_record_id ? `Open journal ${journal.reference}` : undefined}
+                    onClick={journal.source_record_id ? () => { setViewing(journal); setDetailOpen(true); } : undefined}
+                    onKeyDown={journal.source_record_id ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setViewing(journal); setDetailOpen(true); } } : undefined}
+                    className={`hover:bg-muted/30 transition-colors ${journal.source_record_id ? 'cursor-pointer' : ''}`}
+                  >
                     <td className="px-4 py-3">{moment(journal.date).format('DD MMM YYYY')}</td>
                     <td className="px-4 py-3 font-mono text-xs">{journal.reference}</td>
                     <td className="px-4 py-3 text-sm truncate max-w-xs">{journal.description}</td>
@@ -219,7 +227,7 @@ export default function GeneralLedger() {
                         {typeLabels[journal.source_type] || journal.source_type}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                       {journal.source_record_id && (
                         <Button variant="ghost" size="icon" onClick={() => { setViewing(journal); setDetailOpen(true); }} title="View source">
                           <Eye className="w-4 h-4" />

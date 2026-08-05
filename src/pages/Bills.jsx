@@ -125,7 +125,15 @@ export default function Bills() {
           {filtered.map(bill => {
             const overdue = isOverdue(bill);
             return (
-              <Card key={bill.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow ${overdue ? 'ring-1 ring-red-200' : ''}`}>
+              <Card
+                key={bill.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`Open bill ${bill.bill_number}`}
+                onClick={() => openView(bill)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openView(bill); } }}
+                className={`border-0 shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${overdue ? 'ring-1 ring-red-200' : ''}`}
+              >
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -140,7 +148,7 @@ export default function Bills() {
                       <p className="text-xs text-muted-foreground mt-0.5">Balance: {gbp.format(bill.balance_due)}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0 ml-3">
+                  <div className="flex items-center gap-1 flex-shrink-0 ml-3" onClick={(e) => e.stopPropagation()}>
                     {bill.status === 'awaiting_review' && (
                       <Button variant="ghost" size="icon" onClick={() => updateStatus(bill, 'approved')} title="Approve Bill"><BadgeCheck className="w-4 h-4 text-blue-600" /></Button>
                     )}

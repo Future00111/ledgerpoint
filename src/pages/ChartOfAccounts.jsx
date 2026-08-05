@@ -153,7 +153,15 @@ export default function ChartOfAccounts() {
       ) : (
         <div className="grid gap-3">
           {filtered.map(account => (
-            <Card key={account.id} className="border-0 shadow-sm">
+            <Card
+              key={account.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open account ${account.code} ${account.name}`}
+              onClick={() => { setEditing(account); setFormOpen(true); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditing(account); setFormOpen(true); } }}
+              className="border-0 shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="min-w-0">
                   <div className="flex items-center gap-3 mb-1">
@@ -169,7 +177,7 @@ export default function ChartOfAccounts() {
                     <p className="text-xs text-muted-foreground mt-1">Tax Rate: {account.tax_rate}%</p>
                   )}
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0 ml-3">
+                <div className="flex items-center gap-1 flex-shrink-0 ml-3" onClick={(e) => e.stopPropagation()}>
                   <Button
                     variant="ghost"
                     size="icon"

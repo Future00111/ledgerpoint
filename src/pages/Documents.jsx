@@ -175,7 +175,15 @@ export default function Documents() {
           {filtered.map(doc => {
             const Icon = TYPE_ICONS[doc.document_type] || FileText;
             return (
-              <Card key={doc.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+              <Card
+                key={doc.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`Open document ${doc.name}`}
+                onClick={() => openView(doc)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openView(doc); } }}
+                className="border-0 shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -194,14 +202,14 @@ export default function Documents() {
                           {doc.document_date ? ` · ${moment(doc.document_date).format('DD MMM YYYY')}` : ''}
                         </p>
                         {doc.linked_record_type && doc.linked_record_id && LINKED_RECORD_MAP[doc.linked_record_type] && (
-                          <Link to={`${LINKED_RECORD_MAP[doc.linked_record_type].path}/${doc.linked_record_id}`} className="text-xs text-primary hover:underline flex items-center gap-1 mt-1 w-fit">
+                          <Link to={`${LINKED_RECORD_MAP[doc.linked_record_type].path}/${doc.linked_record_id}`} onClick={(e) => e.stopPropagation()} className="text-xs text-primary hover:underline flex items-center gap-1 mt-1 w-fit">
                             <Link2 className="w-3 h-3" />
                             {LINKED_RECORD_MAP[doc.linked_record_type].label}
                           </Link>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                       <div className="text-right">
                         <p className="text-sm font-semibold">{formatCurrency(doc.gross_amount)}</p>
                         {doc.net_amount > 0 && <p className="text-xs text-muted-foreground">Net: {formatCurrency(doc.net_amount)}</p>}

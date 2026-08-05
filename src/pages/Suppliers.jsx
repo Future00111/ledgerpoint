@@ -81,7 +81,15 @@ export default function Suppliers() {
       ) : (
         <div className="grid gap-3">
           {filtered.map(s => (
-            <Card key={s.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+            <Card
+              key={s.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${s.name} supplier`}
+              onClick={() => openView(s)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openView(s); } }}
+              className="border-0 shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -95,7 +103,7 @@ export default function Suppliers() {
                     {s.outstanding_balance > 0 && <span className="font-medium text-foreground">Owed: {gbp.format(s.outstanding_balance)}</span>}
                   </div>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0 ml-3">
+                <div className="flex items-center gap-1 flex-shrink-0 ml-3" onClick={(e) => e.stopPropagation()}>
                   <Button variant="ghost" size="icon" onClick={() => openView(s)} title="View"><Eye className="w-4 h-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => openEdit(s)} title="Edit"><Pencil className="w-4 h-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => handleDelete(s)} title="Delete"><Trash2 className="w-4 h-4 text-destructive" /></Button>

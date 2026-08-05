@@ -88,7 +88,15 @@ export default function BankAccounts() {
       ) : (
         <div className="grid gap-3">
           {accounts.map(account => (
-            <Card key={account.id} className="border-0 shadow-sm">
+            <Card
+              key={account.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${account.account_name} account`}
+              onClick={() => { setEditing(account); setFormOpen(true); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditing(account); setFormOpen(true); } }}
+              className="border-0 shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-3 mb-2">
@@ -127,10 +135,10 @@ export default function BankAccounts() {
                         </Badge>
                       )}
                       {account.connection_type !== 'open_banking' && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => { setSelectedAccount(account); setBankingOpen(true); }} 
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); setSelectedAccount(account); setBankingOpen(true); }}
                           className="h-6 text-xs gap-1"
                         >
                           <Link2 className="w-3 h-3" />
@@ -140,7 +148,7 @@ export default function BankAccounts() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0 ml-4">
+                <div className="flex items-center gap-1 flex-shrink-0 ml-4" onClick={(e) => e.stopPropagation()}>
                   <Button
                     variant="ghost"
                     size="icon"

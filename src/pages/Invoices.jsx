@@ -124,7 +124,15 @@ export default function Invoices() {
           {filtered.map(inv => {
             const overdue = isOverdue(inv);
             return (
-              <Card key={inv.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow ${overdue ? 'ring-1 ring-red-200' : ''}`}>
+              <Card
+                key={inv.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`Open invoice ${inv.invoice_number}`}
+                onClick={() => openView(inv)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openView(inv); } }}
+                className={`border-0 shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${overdue ? 'ring-1 ring-red-200' : ''}`}
+              >
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -137,7 +145,7 @@ export default function Invoices() {
                       <p className="text-xs text-muted-foreground mt-0.5">Balance: {gbp.format(inv.balance_due)}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0 ml-3">
+                  <div className="flex items-center gap-1 flex-shrink-0 ml-3" onClick={(e) => e.stopPropagation()}>
                     {inv.status === 'draft' && (
                       <Button variant="ghost" size="icon" onClick={() => updateStatus(inv, 'sent')} title="Mark as Sent"><Send className="w-4 h-4" /></Button>
                     )}

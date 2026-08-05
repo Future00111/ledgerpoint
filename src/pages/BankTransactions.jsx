@@ -190,7 +190,15 @@ export default function BankTransactions() {
       ) : (
         <div className="grid gap-2">
           {filtered.map(t => (
-            <Card key={t.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+            <Card
+              key={t.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open transaction ${t.description}`}
+              onClick={() => openEdit(t)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEdit(t); } }}
+              className="border-0 shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -212,7 +220,7 @@ export default function BankTransactions() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                     <div className="text-right">
                       {(t.money_in || 0) > 0 && <p className="text-sm font-semibold text-emerald-600">+{formatCurrency(t.money_in)}</p>}
                       {(t.money_out || 0) > 0 && <p className="text-sm font-semibold text-rose-600">-{formatCurrency(t.money_out)}</p>}
@@ -225,7 +233,9 @@ export default function BankTransactions() {
                   </div>
                 </div>
                 {t.status === 'review' && suggestions[t.id] && (
-                  <SuggestedMatches suggestions={suggestions[t.id]} onApprove={(s) => approveSuggestion(t, s)} approving={approvingId === t.id} />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <SuggestedMatches suggestions={suggestions[t.id]} onApprove={(s) => approveSuggestion(t, s)} approving={approvingId === t.id} />
+                  </div>
                 )}
               </CardContent>
             </Card>

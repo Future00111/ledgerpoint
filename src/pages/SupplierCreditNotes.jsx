@@ -119,7 +119,15 @@ export default function SupplierCreditNotes() {
       ) : (
         <div className="grid gap-3">
           {filtered.map(cn => (
-            <Card key={cn.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+            <Card
+              key={cn.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open supplier credit note ${cn.credit_note_number}`}
+              onClick={() => openView(cn)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openView(cn); } }}
+              className="border-0 shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -131,7 +139,7 @@ export default function SupplierCreditNotes() {
                     {cn.original_bill_number && ` · Ref: ${cn.original_bill_number}`}
                   </p>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0 ml-3">
+                <div className="flex items-center gap-1 flex-shrink-0 ml-3" onClick={(e) => e.stopPropagation()}>
                   {cn.status === 'awaiting_review' && (
                     <Button variant="ghost" size="icon" onClick={() => updateStatus(cn, 'approved')} title="Approve"><BadgeCheck className="w-4 h-4 text-blue-600" /></Button>
                   )}

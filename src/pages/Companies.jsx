@@ -63,7 +63,15 @@ export default function Companies() {
       ) : (
         <div className="grid gap-4">
           {companies.map(c => (
-            <Card key={c.id} className={`border-0 shadow-sm ${activeCompany?.id === c.id ? 'ring-2 ring-primary/20' : ''}`}>
+            <Card
+              key={c.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${c.name} company`}
+              onClick={() => openView(c)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openView(c); } }}
+              className={`border-0 shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${activeCompany?.id === c.id ? 'ring-2 ring-primary/20' : ''}`}
+            >
               <CardContent className="p-5">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1.5 min-w-0">
@@ -87,7 +95,7 @@ export default function Companies() {
                       {c.city && <p>{[c.address_line_1, c.city, c.postcode].filter(Boolean).join(', ')}</p>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0 ml-3">
+                  <div className="flex items-center gap-1 flex-shrink-0 ml-3" onClick={(e) => e.stopPropagation()}>
                     {activeCompany?.id !== c.id && (
                       <Button variant="outline" size="sm" onClick={() => switchCompany(c)}>Switch to</Button>
                     )}
