@@ -12,6 +12,9 @@ import AskInput from './AskInput';
 import AskWelcome from './AskWelcome';
 import AskAnswer from './AskAnswer';
 import AskRecordsEmpty from './AskRecordsEmpty';
+import AskResultCard from './AskResultCard';
+import { searchCatalog, rankGroups, shouldEscalateToAI } from './askEngine';
+import { trackSelection, togglePin, isPinned } from './askLearning';
 import {
   Search, X, CornerDownLeft, Sparkles, Clock, Loader2, FileText, Receipt, Users,
   Truck, FolderOpen, ArrowLeftRight, Percent, BarChart3,
@@ -45,6 +48,26 @@ const QUICK_ACTIONS = [
   { label: 'Upload Document', path: '/documents', icon: FolderOpen },
   { label: 'Import Bank CSV', path: '/transactions', icon: ArrowLeftRight },
 ];
+
+const GROUP_LIST_ROUTES = {
+  Customers: '/customers',
+  Suppliers: '/suppliers',
+  Companies: '/companies',
+  Invoices: '/invoices',
+  Bills: '/bills',
+  'Credit Notes': '/sales-credit-notes',
+  'Supplier Credit Notes': '/supplier-credit-notes',
+  'Bank Transactions': '/transactions',
+  Documents: '/documents',
+  Reports: '/reports',
+  'Ledger Accounts': '/chart-of-accounts',
+  'VAT Returns': '/vat',
+  'Journal Entries': '/general-ledger',
+  'Dashboard Widgets': '/',
+  Settings: '/settings',
+  'Help Articles': '/settings',
+  'Future Modules': '/settings',
+};
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
@@ -83,6 +106,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
   const [placeholder, setPlaceholder] = useState(EXAMPLES[0]);
   const [records, setRecords] = useState([]);
   const [similar, setSimilar] = useState([]);
+  const [pinTick, setPinTick] = useState(0);
   const [recordsLoading, setRecordsLoading] = useState(false);
   const [selected, setSelected] = useState(0);
   const [aiAnswer, setAiAnswer] = useState(null);
@@ -221,9 +245,14 @@ export default function AskModal({ open, onClose, initialQuery }) {
   const createMatches = useMemo(() => getCreateMatches(query, isOwner), [query, isOwner]);
   const actionMatches = useMemo(() => getActionMatches(query), [query]);
 
+  const catalogGroups = useMemo(() => searchCatalog(query), [query]);
+  const rankedGroups = useMemo(
+    () => rankGroups(records, catalogGroups),
+    [records, catalogGroups, pinTick]
+  );
   const recordItems = useMemo(
     () =>
-      records.flatMap((g) =>
+      rankedGroups.flatMap((g) =>
         g.items.map((it) => ({
           type: 'record',
           kind: 'record',
@@ -231,17 +260,19 @@ export default function AskModal({ open, onClose, initialQuery }) {
           sublabel: g.label + (it.sublabel ? ' · ' + it.sublabel : ''),
           path: it.route,
           icon: recordIcon(g.label),
+          group: g.label,
+          raw: it,
         }))
       ),
-    [records]
+    [rankedGroups]
   );
 
   const q = query.trim();
   const emptyQuery = q === '';
-  const showAI =
-    !emptyQuery &&
-    (isQuestion(query) ||
-      (navMatches.length === 0 && createMatches.length === 0 && actionMatches.length === 0 && recordItems.length === 0));
+  const hasResults = !!(navMatches.length || createMatches.length || actionMatches.length || recordItems.length);
+
+  // Ask Engine stage 5: AI only when there are no results or the user asks a question.
+  const showAI = !emptyQuery && shouldEscalateToAI({ hasResults, isQuestion: isQuestion(query) });
 
   const aiItem = useMemo(() => {
     if (!showAI) return [];
@@ -269,7 +300,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
 
   const flatItems = useMemo(() => {
     if (emptyQuery) return [...suggestionItems, ...recentItems];
-    return [...navMatches, ...createMatches, ...actionMatches, ...recordItems, ...aiItem];
+    return [...navMatches, ...createMatches, ...actionMatches, ...aiItem];
   }, [emptyQuery, suggestionItems, recentItems, navMatches, createMatches, actionMatches, recordItems, aiItem]);
 
   useEffect(() => {
@@ -313,6 +344,22 @@ export default function AskModal({ open, onClose, initialQuery }) {
   const goQuick = (path) => {
     onClose();
     navigate(path);
+  };
+
+  // Ask Engine result handlers — each records a selection so learning can rank.
+  const openRecord = (group, it) => {
+    trackSelection(group, it);
+    if (q) pushRecentSearch(q);
+    pushRecent({ label: it.label, path: it.route });
+    onClose();
+    navigate(it.route);
+  };
+  const viewGroup = (group) => goQuick(GROUP_LIST_ROUTES[group] || '/');
+  const askRecord = (it) => runAI(`Tell me about ${it.label}`);
+  const recordPayment = (it) => { onClose(); navigate(it.route); };
+  const togglePinRecord = (group, it) => {
+    togglePin(group, it);
+    setPinTick((t) => t + 1);
   };
 
   const onKeyDown = (e) => {
@@ -416,6 +463,27 @@ export default function AskModal({ open, onClose, initialQuery }) {
           ) : (
             <div className="pb-4">
               {rendered}
+              {rankedGroups.map((g) => (
+                <div key={g.label}>
+                  <div className="px-4 sm:px-6 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {g.label}
+                  </div>
+                  {g.items.map((it, i) => (
+                    <AskResultCard
+                      key={`${g.label}-${it.id || i}`}
+                      group={g.label}
+                      item={it}
+                      icon={recordIcon(g.label)}
+                      isPinned={isPinned(g.label, it)}
+                      onOpen={() => openRecord(g.label, it)}
+                      onView={() => viewGroup(g.label)}
+                      onAsk={() => askRecord(it)}
+                      onRecordPayment={() => recordPayment(it)}
+                      onTogglePin={() => togglePinRecord(g.label, it)}
+                    />
+                  ))}
+                </div>
+              ))}
               {recordsLoading && (
                 <div className="flex items-center justify-center gap-2 py-4 text-xs text-muted-foreground">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" /> Searching records…
@@ -428,6 +496,8 @@ export default function AskModal({ open, onClose, initialQuery }) {
                   onPickSimilar={(it) => activate({ kind: 'record', label: it.label, path: it.route, icon: Search })}
                   onCreateCustomer={() => goQuick('/customers')}
                   onCreateSupplier={() => goQuick('/suppliers')}
+                  onSearchReports={() => goQuick('/reports')}
+                  onAskAI={() => askRecord({ label: q })}
                 />
               )}
             </div>

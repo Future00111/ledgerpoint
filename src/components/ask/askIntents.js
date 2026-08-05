@@ -3,6 +3,7 @@ import {
   LayoutDashboard, Users, FileText, Undo2, Truck, Receipt, RotateCcw,
   Landmark, ArrowLeftRight, BookOpen, Grid3x3, Percent, FolderOpen, Mail,
   Filter, BarChart3, Sparkles, Lightbulb, Briefcase, Building2, FileBarChart,
+  Settings2, LifeBuoy, Rocket,
 } from 'lucide-react';
 
 const NAV_KEYWORDS = {
@@ -129,6 +130,13 @@ export const RECORD_ICONS = {
   Documents: FolderOpen,
   'Ledger Accounts': BookOpen,
   'VAT Returns': Percent,
+  Companies: Building2,
+  'Journal Entries': Grid3x3,
+  Reports: BarChart3,
+  'Dashboard Widgets': LayoutDashboard,
+  Settings: Settings2,
+  'Help Articles': LifeBuoy,
+  'Future Modules': Rocket,
 };
 
 export function recordIcon(label) {

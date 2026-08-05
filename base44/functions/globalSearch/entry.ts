@@ -99,6 +99,7 @@ export default async function (req) {
       { label: 'Documents', type: 'Document', fields: ['name', 'supplier_or_customer', 'reference_number'], labelFn: (r) => r.name, subFn: (r) => r.supplier_or_customer, route: () => '/documents', nameFields: ['name', 'supplier_or_customer'] },
       { label: 'Ledger Accounts', type: 'ChartOfAccount', fields: ['code', 'name'], labelFn: (r) => r.name, subFn: (r) => r.code, route: () => '/chart-of-accounts', nameFields: ['name'] },
       { label: 'VAT Returns', type: 'VATReturn', fields: ['reference', 'period_start'], labelFn: (r) => r.reference || 'VAT Return', subFn: (r) => r.period_start, route: (r) => `/vat/${r.id}`, nameFields: ['reference'] },
+      { label: 'Journal Entries', type: 'JournalEntry', fields: ['description', 'reference', 'account_name', 'account_code'], labelFn: (r) => r.reference || r.description, subFn: (r) => (r.account_name ? `${r.account_code || ''} ${r.account_name}`.trim() : r.description), route: () => '/general-ledger', nameFields: ['description', 'reference'] },
     ];
 
     const fetched = await Promise.all(
