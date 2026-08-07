@@ -18,6 +18,7 @@ export default function WorkspaceHeader({
   title,
   statusLabel,
   statusTone,
+  metrics = [],
   info = [],
   quickActions = [],
   moreActions = [],
@@ -81,6 +82,27 @@ export default function WorkspaceHeader({
           )}
         </div>
       </div>
+
+      {metrics?.length > 0 && (
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
+          {metrics.map((m, i) => (
+            <div key={i} className="flex items-baseline gap-1.5">
+              <span className="text-xs text-muted-foreground">{m.label}</span>
+              <span
+                className={cn(
+                  'text-sm font-semibold tabular-nums',
+                  m.tone === 'rose' ? 'text-rose-600'
+                  : m.tone === 'amber' ? 'text-amber-600'
+                  : m.tone === 'emerald' ? 'text-emerald-600'
+                  : 'text-foreground'
+                )}
+              >
+                {m.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {quickActions.length > 0 && (
         <div className="flex flex-wrap gap-2">

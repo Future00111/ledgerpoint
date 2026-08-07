@@ -84,6 +84,7 @@ export default function WorkspaceShell({ open, onOpenChange, header, summaryStat
             )}
             <div className="flex items-center gap-2">
               <Input
+                id="workspace-ask-input"
                 ref={askRef}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}

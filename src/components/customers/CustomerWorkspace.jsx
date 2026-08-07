@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import {
   Mail, Phone, MapPin, FileText, CreditCard, PoundSterling,
   Plus, Wallet, Send, Pencil, Archive, Copy, Download, GitMerge, Trash2,
+  Bell, Sparkles,
 } from 'lucide-react';
 
 import WorkspaceEngine from '@/components/workspace/WorkspaceEngine';
@@ -88,6 +89,15 @@ export default function CustomerWorkspace({
   const revenue12m = invoices
     .filter((i) => i.issue_date && new Date(i.issue_date) >= twelveAgo)
     .reduce((s, i) => s + Number(i.total || 0), 0);
+  const ytd = new Date(now.getFullYear(), 0, 1);
+  const revenueYtd = invoices
+    .filter((i) => i.issue_date && new Date(i.issue_date) >= ytd)
+    .reduce((s, i) => s + Number(i.total || 0), 0);
+  const lastYearStart = new Date(now.getFullYear() - 1, 0, 1);
+  const lastYearEnd = new Date(now.getFullYear() - 1, 11, 31);
+  const revenueLastYear = invoices
+    .filter((i) => i.issue_date && new Date(i.issue_date) >= lastYearStart && new Date(i.issue_date) <= lastYearEnd)
+    .reduce((s, i) => s + Number(i.total || 0), 0);
   const outstandingInvoices = invoices.filter((i) => Number(i.balance_due) > 0);
   const overdueInvoices = outstandingInvoices.filter((i) => i.due_date && new Date(i.due_date) < now);
   const lastPayment = payments[0] || null;
@@ -135,36 +145,37 @@ export default function CustomerWorkspace({
   // ---- Timeline (complete history) ----------------------------------------
   const timeline = [
     ...(customer.created_date
-      ? [{ date: customer.created_date.slice(0, 10), text: 'Customer created', kind: 'created', amount: null }]
+      ? [{ date: customer.created_date.slice(0, 10), text: 'Customer created', kind: 'created', amount: null, onClick: null }]
       : []),
-    ...invoices.map((i) => ({ date: i.issue_date, text: `Invoice ${i.invoice_number} issued`, amount: i.total, kind: 'invoice' })),
+    ...invoices.map((i) => ({ date: i.issue_date, text: `Invoice ${i.invoice_number} issued`, amount: i.total, kind: 'invoice', onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } })),
     ...payments.map((p) => ({
       date: p.date,
       text: `Payment received${p.matched_record_number ? ` for ${p.matched_record_number}` : ''}`,
       amount: p.money_in,
       kind: 'payment',
+      onClick: () => { onOpenChange(false); nav('/transactions'); },
     })),
-    ...creditNotes.map((c) => ({ date: c.credit_note_date, text: `Credit note ${c.credit_note_number} issued`, amount: c.total, kind: 'credit_note' })),
-    ...documents.map((d) => ({ date: d.upload_date, text: `Document uploaded: ${d.name}`, amount: null, kind: 'document' })),
+    ...creditNotes.map((c) => ({ date: c.credit_note_date, text: `Credit note ${c.credit_note_number} issued`, amount: c.total, kind: 'credit_note', onClick: () => { onOpenChange(false); nav('/sales-credit-notes'); } })),
+    ...documents.map((d) => ({ date: d.upload_date, text: `Document uploaded: ${d.name}`, amount: null, kind: 'document', onClick: () => { onOpenChange(false); nav('/documents'); } })),
   ].filter((e) => e.date).sort((a, b) => (a.date < b.date ? 1 : -1));
 
   const recentActivity = timeline.slice(0, 8).map((e) => ({ text: e.text, time: e.date }));
   const address = [customer.address_line_1, customer.address_line_2, customer.city, customer.county, customer.postcode, customer.country].filter(Boolean).join(', ');
 
   // ---- Ask context (inherited automatically) -------------------------------
-  const customerContext = `Customer workspace for "${customer.name}". Contact: ${customer.contact_name || '—'}. Email: ${customer.email || '—'}. Phone: ${customer.phone || '—'}. Outstanding balance: ${gbp.format(outstanding)}. Credit limit: ${customer.credit_limit ? gbp.format(customer.credit_limit) : 'none'}. Payment terms: ${customer.payment_terms || 30} days. Total invoices: ${invoices.length} (${outstandingInvoices.length} outstanding, ${overdueInvoices.length} overdue). Revenue last 12 months: ${gbp.format(revenue12m)}. Avg payment time: ${avgPaymentDays != null ? avgPaymentDays + ' days' : 'n/a'}. Credit notes: ${creditNotes.length}. Documents: ${documents.length}. Health score: ${health}/100 (${healthLabel}).`;
+  const customerContext = `Customer workspace for "${customer.name}". Contact: ${customer.contact_name || '—'}. Email: ${customer.email || '—'}. Phone: ${customer.phone || '—'}. Outstanding balance: ${gbp.format(outstanding)}. Credit limit: ${customer.credit_limit ? gbp.format(customer.credit_limit) : 'none'}. Payment terms: ${customer.payment_terms || 30} days. Total invoices: ${invoices.length} (${outstandingInvoices.length} outstanding, ${overdueInvoices.length} overdue). Revenue last 12 months: ${gbp.format(revenue12m)}. Revenue this year: ${gbp.format(revenueYtd)}. Revenue last year: ${gbp.format(revenueLastYear)}. Avg payment time: ${avgPaymentDays != null ? avgPaymentDays + ' days' : 'n/a'}. Credit notes: ${creditNotes.length}. Documents: ${documents.length}. Health score: ${health}/100 (${healthLabel}).`;
 
   // ---- Quick actions --------------------------------------------------------
   const statementBody = `Account Statement — ${customer.name}\n\nOutstanding invoices:\n${outstandingInvoices.map((i) => `${i.invoice_number} — due ${i.due_date} — ${gbp.format(Number(i.balance_due) || 0)}`).join('\n') || 'None'}\n\nTotal outstanding: ${gbp.format(outstanding)}`;
   const quickActions = [
     { label: 'Create Invoice', icon: Plus, onClick: () => { onOpenChange(false); nav('/invoices/new'); } },
     { label: 'Record Payment', icon: Wallet, onClick: () => { onOpenChange(false); nav('/transactions'); } },
+    { label: 'Send Statement', icon: Send, onClick: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Account Statement — ' + customer.name)}&body=${encodeURIComponent(statementBody)}`; } },
     { label: 'Email Customer', icon: Mail, onClick: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Regarding your account')}`; } },
   ];
 
   const moreActions = [
     { label: 'Edit', icon: Pencil, onSelect: () => { onOpenChange(false); onEdit?.(customer); } },
-    { label: 'Send Statement', icon: Send, onSelect: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Account Statement — ' + customer.name)}&body=${encodeURIComponent(statementBody)}`; } },
     { label: 'Archive', icon: Archive, onSelect: () => onArchive?.(customer) },
     { label: 'Duplicate', icon: Copy, onSelect: () => onDuplicate?.(customer) },
     { label: 'Export', icon: Download, onSelect: () => onExport?.(customer) },
@@ -173,10 +184,28 @@ export default function CustomerWorkspace({
     { label: 'Delete', icon: Trash2, danger: true, onSelect: () => onDelete?.(customer) },
   ];
 
+  // ---- Recommended next actions (What Next) ---------------------------------
+  const nextActions = [];
+  if (overdueInvoices.length > 0) {
+    nextActions.push({ label: 'Send Reminder', icon: Bell, onClick: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Reminder — outstanding invoice')}`; } });
+  }
+  if (outstanding > 0) {
+    nextActions.push({ label: 'Record Payment', icon: Wallet, onClick: () => { onOpenChange(false); nav('/transactions'); } });
+  }
+  nextActions.push({ label: 'Create Invoice', icon: Plus, onClick: () => { onOpenChange(false); nav('/invoices/new'); } });
+  nextActions.push({ label: 'Upload Document', icon: FileText, onClick: () => { onOpenChange(false); nav('/documents'); } });
+  nextActions.push({ label: 'Ask Ledgerly', icon: Sparkles, onClick: () => document.getElementById('workspace-ask-input')?.focus() });
+
   const header = {
     title: customer.name,
     statusLabel: customer.status === 'active' ? 'Active' : 'Inactive',
     statusTone: customer.status === 'active' ? 'green' : 'amber',
+    metrics: [
+      { label: 'Outstanding', value: gbp.format(outstanding), tone: outstanding > 0 ? 'rose' : 'emerald' },
+      { label: 'Credit Limit', value: customer.credit_limit ? gbp.format(customer.credit_limit) : 'None' },
+      { label: 'Payment Terms', value: `${customer.payment_terms || 30} days` },
+      { label: 'Health', value: `${health}/100`, tone: health >= 75 ? 'emerald' : health >= 50 ? 'amber' : 'rose' },
+    ],
     info: [
       ...(customer.contact_name ? [{ icon: Mail, text: customer.contact_name }] : []),
       ...(customer.email ? [{ icon: Mail, text: customer.email }] : []),
@@ -196,6 +225,9 @@ export default function CustomerWorkspace({
     { label: 'Last Payment', value: lastPayment ? gbp.format(Number(lastPayment.money_in) || 0) : '—' },
     { label: 'Health', value: `${health}/100`, tone: health >= 75 ? 'emerald' : health >= 50 ? 'amber' : 'rose' },
   ];
+
+  // ---- AI Insights prompt (data-grounded, concise) -------------------------
+  const aiInsightsPrompt = `Using the Ledgerly customer data in the context, write 3-5 concise business insights as short bullet points. Every insight must reference the customer's actual figures (average payment days, revenue this year vs last year, overdue invoice count, credit-limit usage). Example style: "This customer usually pays within 18 days." / "Revenue has increased by 14% this year." / "There is one overdue invoice." / "Consider sending a payment reminder." Do not give generic advice. End with one recommended next action.`;
 
   // ---- Declarative tab + panel configuration (rendered by the engine) -------
   const tabs = [
@@ -222,7 +254,8 @@ export default function CustomerWorkspace({
         ] },
         { kind: 'documents', span: 2, documents: documents.slice(0, 4).map((d) => ({ id: d.id, name: d.name, date: d.upload_date, type: d.document_type })), onOpen: () => { onOpenChange(false); nav('/documents'); } },
         { kind: 'tasks', span: 1, tasks: [] },
-        { kind: 'ai-insights', span: 'full', companyId: activeCompany?.id, context: customerContext },
+        { kind: 'ai-insights', span: 'full', companyId: activeCompany?.id, context: customerContext, prompt: aiInsightsPrompt },
+        { kind: 'next-actions', span: 'full', actions: nextActions },
       ],
     },
     {
@@ -288,7 +321,7 @@ export default function CustomerWorkspace({
     },
     {
       label: 'AI Insights', columns: 3,
-      cards: [{ kind: 'ai-insights', span: 'full', companyId: activeCompany?.id, context: customerContext }],
+      cards: [{ kind: 'ai-insights', span: 'full', companyId: activeCompany?.id, context: customerContext, prompt: aiInsightsPrompt }],
     },
     {
       label: 'Activity', columns: 2,
