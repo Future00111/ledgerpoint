@@ -3,10 +3,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { useWorkspaceAsk } from '../useWorkspaceAsk';
 
-// Reusable Executive Summary widget — auto-generates an AI executive briefing
-// on mount using the workspace's context. The most important Workspace widget:
-// tells the story of the record in a few sentences so the user understands it
-// within seconds, without interpreting the numbers themselves.
+// Reusable Executive Summary widget — auto-generates a concise AI briefing on
+// mount using the workspace context. Kept compact on purpose: it explains the
+// financial position in a few sentences; it never replaces the financial info.
 export default function ExecutiveSummaryCard({ companyId, context, prompt }) {
   const { answer, loading, run } = useWorkspaceAsk();
 
@@ -18,18 +17,18 @@ export default function ExecutiveSummaryCard({ companyId, context, prompt }) {
   }, [companyId, context, prompt]);
 
   return (
-    <Card className="border border-primary/30 bg-gradient-to-br from-primary/[0.07] to-transparent shadow-sm">
-      <CardContent className="p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="w-4 h-4 text-primary" />
-          <span className="text-sm font-semibold">Executive Summary</span>
+    <Card className="border border-border border-l-2 border-l-primary bg-muted/30">
+      <CardContent className="p-3.5">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-primary" />
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Executive Summary</span>
         </div>
         {loading ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="w-4 h-4 animate-spin" /> Preparing your briefing…
+            <Loader2 className="w-3.5 h-3.5 animate-spin" /> Preparing your briefing…
           </div>
         ) : (
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">{answer}</p>
+          <p className="text-sm leading-relaxed">{answer}</p>
         )}
       </CardContent>
     </Card>
