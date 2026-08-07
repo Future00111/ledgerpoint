@@ -1,52 +1,53 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/use-toast';
 import {
-  Mail, Phone, MapPin, FileText, CreditCard, PoundSterling, Receipt, Pencil,
-  Send, Sparkles, Loader2, CalendarClock, Download, Inbox,
+  Mail, Phone, MapPin, FileText, CreditCard, PoundSterling,
+  Plus, Wallet, Send, Pencil, Archive, Copy, Download, GitMerge, Trash2,
 } from 'lucide-react';
+
+import WorkspaceShell from '@/components/workspace/WorkspaceShell';
+import WorkspaceSkeleton from '@/components/workspace/WorkspaceSkeleton';
+import { useFavourite } from '@/components/workspace/useFavourite';
+import OverviewCard from '@/components/workspace/cards/OverviewCard';
+import BusinessHealthCard from '@/components/workspace/cards/BusinessHealthCard';
+import TimelineCard from '@/components/workspace/cards/TimelineCard';
+import RecentActivityCard from '@/components/workspace/cards/RecentActivityCard';
+import DocumentsCard from '@/components/workspace/cards/DocumentsCard';
+import RelatedRecordsCard from '@/components/workspace/cards/RelatedRecordsCard';
+import AIInsightsCard from '@/components/workspace/cards/AIInsightsCard';
+import AutomationCard from '@/components/workspace/cards/AutomationCard';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
-function Field({ icon: Icon, label, value }) {
-  return (
-    <div className="flex items-start gap-3 py-2">
-      <Icon className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium break-words">{value || '—'}</p>
-      </div>
-    </div>
-  );
-}
-
-function Stat({ label, value, tone }) {
-  const toneCls = tone === 'rose' ? 'text-rose-600' : tone === 'emerald' ? 'text-emerald-600' : 'text-foreground';
-  return (
-    <div className="rounded-lg border border-border p-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={`text-lg font-semibold ${toneCls}`}>{value}</p>
-    </div>
-  );
-}
-
-export default function CustomerWorkspace({ customer, open, onOpenChange, onEdit }) {
+// =============================================================================
+// Customer Workspace — the reference implementation of the Ledgerly Workspace
+// Framework. Every future Workspace (Supplier, Invoice, Bill, Bank Account…)
+// should be assembled from the same shell + reusable cards, swapping only the
+// business-specific data. See src/docs/19-workspace-framework.md.
+// =============================================================================
+export default function CustomerWorkspace({
+  customer, open, onOpenChange,
+  onEdit, onArchive, onDuplicate, onExport, onMerge, onDelete,
+}) {
   const { activeCompany } = useCompany();
+  const nav = useNavigate();
+  const { toast } = useToast();
+
   const [invoices, setInvoices] = useState([]);
+  const [creditNotes, setCreditNotes] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [askQ, setAskQ] = useState('');
-  const [askAnswer, setAskAnswer] = useState(null);
-  const [askLoading, setAskLoading] = useState(false);
-  const [insight, setInsight] = useState(null);
-  const [insightLoading, setInsightLoading] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [favourite, toggleFavourite] = useFavourite(customer?.id);
+
+  useEffect(() => {
+    setNotes(customer?.notes || '');
+  }, [customer?.id, customer?.notes]);
 
   useEffect(() => {
     if (!open || !customer) return;
@@ -57,9 +58,19 @@ export default function CustomerWorkspace({ customer, open, onOpenChange, onEdit
         const invs = await base44.entities.SalesInvoice.filter({ customer_id: customer.id }, '-issue_date', 200);
         if (cancelled) return;
         setInvoices(invs || []);
+
+        const cns = await base44.entities.SalesCreditNote.filter({ customer_id: customer.id }, '-credit_note_date', 200);
+        if (cancelled) return;
+        setCreditNotes(cns || []);
+
         const docs = await base44.entities.Document.filter({ company_id: customer.company_id });
         if (cancelled) return;
-        setDocuments((docs || []).filter((d) => (d.supplier_or_customer || '').toLowerCase() === (customer.name || '').toLowerCase()));
+        setDocuments(
+          (docs || []).filter(
+            (d) => (d.supplier_or_customer || '').toLowerCase() === (customer.name || '').toLowerCase()
+          )
+        );
+
         const txns = await base44.entities.BankTransaction.filter({ company_id: customer.company_id }, '-date', 200);
         if (cancelled) return;
         const invIds = new Set((invs || []).map((i) => i.id));
@@ -76,218 +87,259 @@ export default function CustomerWorkspace({ customer, open, onOpenChange, onEdit
 
   if (!customer) return null;
 
-  const address = [customer.address_line_1, customer.address_line_2, customer.city, customer.county, customer.postcode, customer.country].filter(Boolean).join(', ');
-  const outstandingInvoices = invoices.filter((i) => Number(i.balance_due) > 0);
-  const revenue = invoices.reduce((s, i) => s + Number(i.total || 0), 0);
+  // ---- Derived metrics ------------------------------------------------------
   const outstanding = Number(customer.outstanding_balance || 0);
-  const lastInvoice = invoices[0]?.issue_date || null;
+  const now = new Date();
+  const twelveAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+  const revenue12m = invoices
+    .filter((i) => i.issue_date && new Date(i.issue_date) >= twelveAgo)
+    .reduce((s, i) => s + Number(i.total || 0), 0);
+  const outstandingInvoices = invoices.filter((i) => Number(i.balance_due) > 0);
+  const overdueInvoices = outstandingInvoices.filter((i) => i.due_date && new Date(i.due_date) < now);
+  const lastPayment = payments[0] || null;
 
-  // Synthesised timeline from invoices, payments and document uploads.
+  const payDays = [];
+  payments.forEach((p) => {
+    const inv = invoices.find((i) => i.id === p.linked_invoice_id);
+    if (inv && inv.issue_date && p.date) {
+      payDays.push(Math.max(0, (new Date(p.date) - new Date(inv.issue_date)) / 86400000));
+    }
+  });
+  const avgPaymentDays = payDays.length
+    ? Math.round(payDays.reduce((a, b) => a + b, 0) / payDays.length)
+    : null;
+
+  // ---- Health score ---------------------------------------------------------
+  let health = 100;
+  const factors = [];
+  if (invoices.length === 0) {
+    health = 50;
+    factors.push({ label: 'New customer', value: 'No history yet', positive: false });
+  } else {
+    if (customer.credit_limit > 0 && outstanding > customer.credit_limit) {
+      health -= 30;
+      factors.push({ label: 'Over credit limit', value: gbp.format(outstanding - customer.credit_limit), positive: false });
+    } else {
+      factors.push({ label: 'Within credit limit', value: 'Good', positive: true });
+    }
+    if (overdueInvoices.length > 0) {
+      health -= 20;
+      factors.push({ label: 'Overdue invoices', value: String(overdueInvoices.length), positive: false });
+    } else {
+      factors.push({ label: 'No overdue invoices', value: 'Good', positive: true });
+    }
+    if (avgPaymentDays != null && avgPaymentDays > (customer.payment_terms || 30)) {
+      health -= 15;
+      factors.push({ label: 'Avg payment time', value: `${avgPaymentDays} days`, positive: false });
+    } else if (avgPaymentDays != null) {
+      factors.push({ label: 'Avg payment time', value: `${avgPaymentDays} days`, positive: true });
+    }
+  }
+  health = Math.max(0, Math.min(100, health));
+  const healthLabel = health >= 75 ? 'Healthy relationship' : health >= 50 ? 'Needs attention' : 'At risk';
+
+  // ---- Timeline (complete history) ----------------------------------------
   const timeline = [
+    ...(customer.created_date
+      ? [{ date: customer.created_date.slice(0, 10), text: 'Customer created', kind: 'created', amount: null }]
+      : []),
     ...invoices.map((i) => ({ date: i.issue_date, text: `Invoice ${i.invoice_number} issued`, amount: i.total, kind: 'invoice' })),
-    ...payments.map((p) => ({ date: p.date, text: `Payment received${p.matched_record_number ? ` for ${p.matched_record_number}` : ''}`, amount: p.money_in, kind: 'payment' })),
+    ...payments.map((p) => ({
+      date: p.date,
+      text: `Payment received${p.matched_record_number ? ` for ${p.matched_record_number}` : ''}`,
+      amount: p.money_in,
+      kind: 'payment',
+    })),
+    ...creditNotes.map((c) => ({ date: c.credit_note_date, text: `Credit note ${c.credit_note_number} issued`, amount: c.total, kind: 'credit_note' })),
     ...documents.map((d) => ({ date: d.upload_date, text: `Document uploaded: ${d.name}`, amount: null, kind: 'document' })),
   ].filter((e) => e.date).sort((a, b) => (a.date < b.date ? 1 : -1));
 
-  const customerContext = `Customer: ${customer.name}. Contact: ${customer.contact_name || '—'}. Email: ${customer.email || '—'}. Outstanding balance: ${gbp.format(outstanding)}. Total revenue: ${gbp.format(revenue)}. Invoices: ${invoices.length} (${outstandingInvoices.length} outstanding). Last invoice: ${lastInvoice || '—'}. Payment terms: ${customer.payment_terms || 30} days.`;
+  const recentActivity = timeline.slice(0, 8).map((e) => ({ text: e.text, time: e.date }));
+  const address = [customer.address_line_1, customer.address_line_2, customer.city, customer.county, customer.postcode, customer.country].filter(Boolean).join(', ');
 
-  const runAsk = async (question) => {
-    if (!activeCompany) return;
-    setAskLoading(true);
-    setAskAnswer(null);
-    try {
-      const res = await base44.functions.invoke('askAI', { company_id: activeCompany.id, question, context: customerContext });
-      setAskAnswer(res?.data?.answer || res?.answer || 'No answer returned.');
-    } catch (e) {
-      setAskAnswer('Error: ' + (e.message || 'Something went wrong.'));
-    } finally {
-      setAskLoading(false);
-    }
+  // ---- Ask context (inherited automatically) -------------------------------
+  const customerContext = `Customer workspace for "${customer.name}". Contact: ${customer.contact_name || '—'}. Email: ${customer.email || '—'}. Phone: ${customer.phone || '—'}. Outstanding balance: ${gbp.format(outstanding)}. Credit limit: ${customer.credit_limit ? gbp.format(customer.credit_limit) : 'none'}. Payment terms: ${customer.payment_terms || 30} days. Total invoices: ${invoices.length} (${outstandingInvoices.length} outstanding, ${overdueInvoices.length} overdue). Revenue last 12 months: ${gbp.format(revenue12m)}. Avg payment time: ${avgPaymentDays != null ? avgPaymentDays + ' days' : 'n/a'}. Credit notes: ${creditNotes.length}. Documents: ${documents.length}. Health score: ${health}/100 (${healthLabel}).`;
+
+  // ---- Quick actions --------------------------------------------------------
+  const statementBody = `Account Statement — ${customer.name}\n\nOutstanding invoices:\n${outstandingInvoices.map((i) => `${i.invoice_number} — due ${i.due_date} — ${gbp.format(Number(i.balance_due) || 0)}`).join('\n') || 'None'}\n\nTotal outstanding: ${gbp.format(outstanding)}`;
+  const quickActions = [
+    { label: 'Create Invoice', icon: Plus, onClick: () => { onOpenChange(false); nav('/invoices/new'); } },
+    { label: 'Record Payment', icon: Wallet, onClick: () => { onOpenChange(false); nav('/transactions'); } },
+    { label: 'Send Statement', icon: Send, onClick: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Account Statement — ' + customer.name)}&body=${encodeURIComponent(statementBody)}`; } },
+    { label: 'Email Customer', icon: Mail, onClick: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Regarding your account')}`; } },
+    { label: 'Edit', icon: Pencil, onClick: () => { onOpenChange(false); onEdit?.(customer); } },
+  ];
+
+  const moreActions = [
+    { label: 'Archive', icon: Archive, onSelect: () => onArchive?.(customer) },
+    { label: 'Duplicate', icon: Copy, onSelect: () => onDuplicate?.(customer) },
+    { label: 'Export', icon: Download, onSelect: () => onExport?.(customer) },
+    { label: 'Merge', icon: GitMerge, onSelect: () => onMerge?.(customer) },
+    { separator: true },
+    { label: 'Delete', icon: Trash2, danger: true, onSelect: () => onDelete?.(customer) },
+  ];
+
+  const header = {
+    title: customer.name,
+    statusLabel: customer.status === 'active' ? 'Active' : 'Inactive',
+    statusTone: customer.status === 'active' ? 'green' : 'amber',
+    info: [
+      ...(customer.contact_name ? [{ icon: Mail, text: customer.contact_name }] : []),
+      ...(customer.email ? [{ icon: Mail, text: customer.email }] : []),
+      ...(customer.phone ? [{ icon: Phone, text: customer.phone }] : []),
+    ],
+    quickActions,
+    moreActions,
+    favourite,
+    onToggleFavourite: toggleFavourite,
   };
 
-  const generateInsights = async () => {
-    setInsightLoading(true);
-    setInsight(null);
-    try {
-      const res = await base44.functions.invoke('askAI', {
-        company_id: activeCompany.id,
-        question: 'Summarise this customer relationship: payment behaviour, revenue trend, outstanding risk and recommended next actions. Be concise.',
-        context: customerContext,
-      });
-      setInsight(res?.data?.answer || res?.answer || 'No insights returned.');
-    } catch (e) {
-      setInsight('Error: ' + (e.message || 'Something went wrong.'));
-    } finally {
-      setInsightLoading(false);
-    }
-  };
+  const summaryStats = [
+    { label: 'Outstanding', value: gbp.format(outstanding), tone: outstanding > 0 ? 'rose' : 'emerald' },
+    { label: 'Revenue (12 mo)', value: gbp.format(revenue12m) },
+    { label: 'Outstanding Inv.', value: String(outstandingInvoices.length) },
+    { label: 'Avg Payment', value: avgPaymentDays != null ? `${avgPaymentDays} days` : '—' },
+    { label: 'Last Payment', value: lastPayment ? gbp.format(Number(lastPayment.money_in) || 0) : '—' },
+    { label: 'Health', value: `${health}/100`, tone: health >= 75 ? 'emerald' : health >= 50 ? 'amber' : 'rose' },
+  ];
+
+  const maybeLoading = (node) => (loading ? <WorkspaceSkeleton lines={6} /> : node);
+
+  // ---- Tabs (assemble from reusable cards) ----------------------------------
+  const tabs = [
+    {
+      value: 'overview',
+      label: 'Overview',
+      content: maybeLoading(
+        <div className="grid lg:grid-cols-3 gap-4">
+          <OverviewCard fields={[
+            { icon: FileText, label: 'Customer Reference', value: customer.customer_reference },
+            { icon: CreditCard, label: 'Payment Terms', value: customer.payment_terms ? `${customer.payment_terms} days` : '' },
+            { icon: PoundSterling, label: 'Credit Limit', value: customer.credit_limit ? gbp.format(customer.credit_limit) : '' },
+            { icon: PoundSterling, label: 'VAT Number', value: customer.vat_number },
+            { icon: Mail, label: 'Contact Name', value: customer.contact_name },
+            { icon: Mail, label: 'Email', value: customer.email },
+            { icon: Phone, label: 'Phone', value: customer.phone },
+            { icon: MapPin, label: 'Address', value: address },
+          ]} />
+          <BusinessHealthCard score={health} label={healthLabel} factors={factors} />
+          <RelatedRecordsCard sections={[
+            { title: 'Outstanding Invoices', records: outstandingInvoices.slice(0, 5).map((i) => ({ primary: i.invoice_number, secondary: `Due ${i.due_date}`, amount: Number(i.balance_due) || 0, onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } })) },
+            { title: 'Recent Payments', records: payments.slice(0, 5).map((p) => ({ primary: p.description, secondary: p.date, amount: Number(p.money_in) || 0, onClick: () => {} })) },
+          ]} />
+        </div>
+      ),
+    },
+    {
+      value: 'invoices',
+      label: 'Invoices',
+      content: maybeLoading(
+        <RelatedRecordsCard sections={[{
+          title: 'All Invoices',
+          records: invoices.map((i) => ({
+            primary: i.invoice_number,
+            secondary: `Issued ${i.issue_date} · Due ${i.due_date} · ${i.status}`,
+            amount: Number(i.total) || 0,
+            onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); },
+          })),
+        }]} />
+      ),
+    },
+    {
+      value: 'payments',
+      label: 'Payments',
+      content: maybeLoading(
+        <RelatedRecordsCard sections={[{
+          title: 'Payment History',
+          records: payments.map((p) => ({
+            primary: p.description,
+            secondary: `${p.date}${p.matched_record_number ? ' · ' + p.matched_record_number : ''}`,
+            amount: Number(p.money_in) || 0,
+            onClick: () => {},
+          })),
+        }]} />
+      ),
+    },
+    {
+      value: 'credit-notes',
+      label: 'Credit Notes',
+      content: maybeLoading(
+        <RelatedRecordsCard sections={[{
+          title: 'Sales Credit Notes',
+          records: creditNotes.map((c) => ({
+            primary: c.credit_note_number,
+            secondary: `${c.credit_note_date} · ${c.reason || c.status}`,
+            amount: -Math.abs(Number(c.total) || 0),
+            onClick: () => { onOpenChange(false); nav('/sales-credit-notes'); },
+          })),
+        }]} />
+      ),
+    },
+    {
+      value: 'documents',
+      label: 'Documents',
+      content: maybeLoading(
+        <DocumentsCard
+          documents={documents.map((d) => ({ id: d.id, name: d.name, date: d.upload_date, type: d.document_type }))}
+          onOpen={() => { onOpenChange(false); nav('/documents'); }}
+        />
+      ),
+    },
+    {
+      value: 'timeline',
+      label: 'Timeline',
+      content: <TimelineCard events={timeline} />,
+    },
+    {
+      value: 'notes',
+      label: 'Notes',
+      content: (
+        <OverviewCard>
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={async () => {
+              if (notes !== (customer.notes || '')) {
+                try {
+                  await base44.entities.Customer.update(customer.id, { notes });
+                  toast({ title: 'Notes saved' });
+                } catch (e) {
+                  toast({ title: 'Could not save notes', variant: 'destructive' });
+                }
+              }
+            }}
+            placeholder="Add notes about this customer…"
+            className="min-h-[160px]"
+          />
+        </OverviewCard>
+      ),
+    },
+    {
+      value: 'ai-insights',
+      label: 'AI Insights',
+      content: <AIInsightsCard companyId={activeCompany?.id} context={customerContext} />,
+    },
+    {
+      value: 'activity',
+      label: 'Activity',
+      content: (
+        <div className="grid lg:grid-cols-2 gap-4">
+          <RecentActivityCard activities={recentActivity} />
+          <AutomationCard automations={[]} />
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-start justify-between gap-3 pr-8">
-            <div className="min-w-0">
-              <DialogTitle className="text-xl">{customer.name}</DialogTitle>
-              <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
-                <Badge className={customer.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}>
-                  {customer.status === 'active' ? 'Active' : 'Inactive'}
-                </Badge>
-                {customer.contact_name && <span>{customer.contact_name}</span>}
-                {customer.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{customer.email}</span>}
-                {customer.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{customer.phone}</span>}
-              </div>
-            </div>
-            {onEdit && (
-              <Button variant="outline" size="sm" onClick={() => { onOpenChange(false); onEdit(customer); }}>
-                <Pencil className="w-3.5 h-3.5" /> Edit
-              </Button>
-            )}
-          </div>
-        </DialogHeader>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Stat label="Outstanding Balance" value={gbp.format(outstanding)} tone={outstanding > 0 ? 'rose' : 'emerald'} />
-          <Stat label="Revenue" value={loading ? '…' : gbp.format(revenue)} />
-          <Stat label="Outstanding Invoices" value={loading ? '…' : outstandingInvoices.length} />
-          <Stat label="Last Invoice" value={loading ? '…' : (lastInvoice || '—')} />
-        </div>
-
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full justify-start overflow-x-auto">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="invoices">Invoices & Payments</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="insights">AI Insights</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-1">
-            <Field icon={FileText} label="Customer Reference" value={customer.customer_reference} />
-            <Field icon={CreditCard} label="Payment Terms" value={customer.payment_terms ? `${customer.payment_terms} days` : ''} />
-            <Field icon={PoundSterling} label="Credit Limit" value={customer.credit_limit ? gbp.format(customer.credit_limit) : ''} />
-            <Field icon={PoundSterling} label="VAT Number" value={customer.vat_number} />
-            <Field icon={Mail} label="Contact Name" value={customer.contact_name} />
-            <Field icon={Mail} label="Email" value={customer.email} />
-            <Field icon={Phone} label="Phone" value={customer.phone} />
-            <Field icon={MapPin} label="Address" value={address} />
-            {customer.notes && <Field icon={Receipt} label="Notes" value={customer.notes} />}
-          </TabsContent>
-
-          <TabsContent value="invoices" className="space-y-4">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">Outstanding Invoices</p>
-              {outstandingInvoices.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No outstanding invoices.</p>
-              ) : (
-                <div className="space-y-1.5">
-                  {outstandingInvoices.map((i) => (
-                    <div key={i.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">{i.invoice_number}</p>
-                        <p className="text-xs text-muted-foreground">Due {i.due_date || '—'}</p>
-                      </div>
-                      <span className="font-medium text-rose-600">{gbp.format(Number(i.balance_due) || 0)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">Payment History</p>
-              {payments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No payments recorded yet.</p>
-              ) : (
-                <div className="space-y-1.5">
-                  {payments.map((p) => (
-                    <div key={p.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">{p.description}</p>
-                        <p className="text-xs text-muted-foreground">{p.date}</p>
-                      </div>
-                      <span className="font-medium text-emerald-600">{gbp.format(Number(p.money_in) || 0)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="documents">
-            {documents.length === 0 ? (
-              <div className="flex flex-col items-center py-10 text-center">
-                <Inbox className="w-8 h-8 text-muted-foreground/30 mb-2" />
-                <p className="text-sm text-muted-foreground">No documents linked to this customer.</p>
-              </div>
-            ) : (
-              <div className="space-y-1.5">
-                {documents.map((d) => (
-                  <div key={d.id} className="flex items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm">
-                    <FileText className="w-4 h-4 text-muted-foreground" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{d.name}</p>
-                      <p className="text-xs text-muted-foreground">{d.upload_date} · {d.document_type}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="activity">
-            {timeline.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">No activity yet.</p>
-            ) : (
-              <ol className="relative border-l border-border ml-2 space-y-3 pl-4">
-                {timeline.map((e, i) => (
-                  <li key={i}>
-                    <span className="absolute -left-1.5 w-3 h-3 rounded-full bg-primary/40 border-2 border-background" style={{ marginTop: 4 }} />
-                    <p className="text-sm font-medium">{e.text}{e.amount != null ? ` · ${gbp.format(Number(e.amount) || 0)}` : ''}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1"><CalendarClock className="w-3 h-3" />{e.date}</p>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </TabsContent>
-
-          <TabsContent value="insights" className="space-y-3">
-            {!insight && !insightLoading && (
-              <Button onClick={generateInsights} variant="outline" size="sm">
-                <Sparkles className="w-3.5 h-3.5" /> Generate AI Insights
-              </Button>
-            )}
-            {insightLoading && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> Analysing customer relationship…</div>
-            )}
-            {insight && (
-              <Card className="border border-primary/20 bg-primary/5"><CardContent className="p-4 text-sm whitespace-pre-wrap">{insight}</CardContent></Card>
-            )}
-          </TabsContent>
-        </Tabs>
-
-        {/* Contextual Ask — ask anything about this customer */}
-        <div className="mt-2 rounded-xl border border-border p-3 bg-muted/30">
-          {askAnswer && (
-            <div className="mb-2 text-sm whitespace-pre-wrap">
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary mb-1"><Sparkles className="w-3 h-3" /> Ask</span>
-              <p>{askAnswer}</p>
-            </div>
-          )}
-          {askLoading && <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Thinking…</div>}
-          <div className="flex items-center gap-2">
-            <Input
-              value={askQ}
-              onChange={(e) => setAskQ(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && askQ.trim()) runAsk(askQ.trim()); }}
-              placeholder={`Ask about ${customer.name}…`}
-              className="bg-card"
-            />
-            <Button size="icon" disabled={!askQ.trim() || askLoading} onClick={() => runAsk(askQ.trim())}>
-              <Send className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <WorkspaceShell
+      open={open}
+      onOpenChange={onOpenChange}
+      header={header}
+      summaryStats={summaryStats}
+      tabs={tabs}
+      loading={loading}
+      ask={{ placeholder: `Ask about ${customer.name}…`, context: customerContext, companyId: activeCompany?.id }}
+    />
   );
 }

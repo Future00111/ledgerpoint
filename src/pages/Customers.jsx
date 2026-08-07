@@ -146,6 +146,11 @@ export default function Customers() {
         open={detailsOpen}
         onOpenChange={(o) => { setDetailsOpen(o); if (!o && focusId) nav('/customers', { replace: true }); }}
         onEdit={openEdit}
+        onArchive={handleArchive}
+        onDuplicate={handleDuplicate}
+        onExport={handleExport}
+        onMerge={openMerge}
+        onDelete={handleDelete}
       />
       <CustomerMergeDialog customer={viewing} customers={customers} open={mergeOpen} onOpenChange={setMergeOpen} onMerged={loadCustomers} />
     </div>
