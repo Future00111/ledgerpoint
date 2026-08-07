@@ -21,7 +21,7 @@ import { useWorkspaceAsk } from './useWorkspaceAsk';
 //   tabs[]                    – { value, label, content }
 //   loading                   – drives stat skeleton values
 //   ask                       – { placeholder, context, companyId }
-export default function WorkspaceShell({ open, onOpenChange, header, summaryStats = [], tabs = [], ask, loading }) {
+export default function WorkspaceShell({ open, onOpenChange, header, summaryStats = [], tabs = [], ask, loading, contextPanel }) {
   const askRef = useRef(null);
   const { answer, loading: askLoading, run } = useWorkspaceAsk();
   const [q, setQ] = useState('');
@@ -45,18 +45,27 @@ export default function WorkspaceShell({ open, onOpenChange, header, summaryStat
           </div>
         )}
 
-        {tabs.length > 0 && (
-          <Tabs defaultValue={tabs[0].value} className="w-full">
-            <TabsList className="w-full justify-start overflow-x-auto">
-              {tabs.map((t) => (
-                <TabsTrigger key={t.value} value={t.value}>{t.label}</TabsTrigger>
-              ))}
-            </TabsList>
-            {tabs.map((t) => (
-              <TabsContent key={t.value} value={t.value} className="mt-4">{t.content}</TabsContent>
-            ))}
-          </Tabs>
-        )}
+        <div className="grid lg:grid-cols-[1fr_300px] gap-4 items-start">
+          <div className="min-w-0">
+            {tabs.length > 0 && (
+              <Tabs defaultValue={tabs[0].value} className="w-full">
+                <TabsList className="w-full justify-start overflow-x-auto">
+                  {tabs.map((t) => (
+                    <TabsTrigger key={t.value} value={t.value}>{t.label}</TabsTrigger>
+                  ))}
+                </TabsList>
+                {tabs.map((t) => (
+                  <TabsContent key={t.value} value={t.value} className="mt-4">{t.content}</TabsContent>
+                ))}
+              </Tabs>
+            )}
+          </div>
+          {contextPanel && (
+            <aside className="space-y-4 lg:sticky lg:top-0 self-start min-w-0">
+              {contextPanel}
+            </aside>
+          )}
+        </div>
 
         {ask && (
           <div className="mt-2 rounded-xl border border-border p-3 bg-muted/30">

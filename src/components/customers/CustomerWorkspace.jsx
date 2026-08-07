@@ -20,6 +20,9 @@ import DocumentsCard from '@/components/workspace/cards/DocumentsCard';
 import RelatedRecordsCard from '@/components/workspace/cards/RelatedRecordsCard';
 import AIInsightsCard from '@/components/workspace/cards/AIInsightsCard';
 import AutomationCard from '@/components/workspace/cards/AutomationCard';
+import TasksCard from '@/components/workspace/cards/TasksCard';
+import RemindersCard from '@/components/workspace/cards/RemindersCard';
+import AISuggestionsCard from '@/components/workspace/cards/AISuggestionsCard';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
@@ -165,12 +168,12 @@ export default function CustomerWorkspace({
   const quickActions = [
     { label: 'Create Invoice', icon: Plus, onClick: () => { onOpenChange(false); nav('/invoices/new'); } },
     { label: 'Record Payment', icon: Wallet, onClick: () => { onOpenChange(false); nav('/transactions'); } },
-    { label: 'Send Statement', icon: Send, onClick: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Account Statement — ' + customer.name)}&body=${encodeURIComponent(statementBody)}`; } },
     { label: 'Email Customer', icon: Mail, onClick: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Regarding your account')}`; } },
-    { label: 'Edit', icon: Pencil, onClick: () => { onOpenChange(false); onEdit?.(customer); } },
   ];
 
   const moreActions = [
+    { label: 'Edit', icon: Pencil, onSelect: () => { onOpenChange(false); onEdit?.(customer); } },
+    { label: 'Send Statement', icon: Send, onSelect: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Account Statement — ' + customer.name)}&body=${encodeURIComponent(statementBody)}`; } },
     { label: 'Archive', icon: Archive, onSelect: () => onArchive?.(customer) },
     { label: 'Duplicate', icon: Copy, onSelect: () => onDuplicate?.(customer) },
     { label: 'Export', icon: Download, onSelect: () => onExport?.(customer) },
@@ -211,22 +214,32 @@ export default function CustomerWorkspace({
       value: 'overview',
       label: 'Overview',
       content: maybeLoading(
-        <div className="grid lg:grid-cols-3 gap-4">
-          <OverviewCard fields={[
-            { icon: FileText, label: 'Customer Reference', value: customer.customer_reference },
-            { icon: CreditCard, label: 'Payment Terms', value: customer.payment_terms ? `${customer.payment_terms} days` : '' },
-            { icon: PoundSterling, label: 'Credit Limit', value: customer.credit_limit ? gbp.format(customer.credit_limit) : '' },
-            { icon: PoundSterling, label: 'VAT Number', value: customer.vat_number },
-            { icon: Mail, label: 'Contact Name', value: customer.contact_name },
-            { icon: Mail, label: 'Email', value: customer.email },
-            { icon: Phone, label: 'Phone', value: customer.phone },
-            { icon: MapPin, label: 'Address', value: address },
-          ]} />
-          <BusinessHealthCard score={health} label={healthLabel} factors={factors} />
-          <RelatedRecordsCard sections={[
-            { title: 'Outstanding Invoices', records: outstandingInvoices.slice(0, 5).map((i) => ({ primary: i.invoice_number, secondary: `Due ${i.due_date}`, amount: Number(i.balance_due) || 0, onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } })) },
-            { title: 'Recent Payments', records: payments.slice(0, 5).map((p) => ({ primary: p.description, secondary: p.date, amount: Number(p.money_in) || 0, onClick: () => {} })) },
-          ]} />
+        <div className="space-y-4">
+          <div className="grid lg:grid-cols-3 gap-4">
+            <OverviewCard fields={[
+              { icon: FileText, label: 'Customer Reference', value: customer.customer_reference },
+              { icon: CreditCard, label: 'Payment Terms', value: customer.payment_terms ? `${customer.payment_terms} days` : '' },
+              { icon: PoundSterling, label: 'Credit Limit', value: customer.credit_limit ? gbp.format(customer.credit_limit) : '' },
+              { icon: PoundSterling, label: 'VAT Number', value: customer.vat_number },
+              { icon: FileText, label: 'Last Invoice', value: invoices[0]?.issue_date || '—' },
+              { icon: FileText, label: 'Customer Since', value: customer.created_date?.slice(0, 10) || '—' },
+            ]} />
+            <OverviewCard fields={[
+              { icon: Mail, label: 'Contact Name', value: customer.contact_name },
+              { icon: Mail, label: 'Email', value: customer.email },
+              { icon: Phone, label: 'Phone', value: customer.phone },
+              { icon: MapPin, label: 'Address', value: address },
+            ]} />
+            <RelatedRecordsCard sections={[
+              { title: 'Outstanding Invoices', records: outstandingInvoices.slice(0, 5).map((i) => ({ primary: i.invoice_number, secondary: `Due ${i.due_date}`, amount: Number(i.balance_due) || 0, onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } })) },
+              { title: 'Recent Payments', records: payments.slice(0, 5).map((p) => ({ primary: p.description, secondary: p.date, amount: Number(p.money_in) || 0, onClick: () => {} })) },
+            ]} />
+          </div>
+          <div className="grid lg:grid-cols-2 gap-4">
+            <DocumentsCard documents={documents.slice(0, 4).map((d) => ({ id: d.id, name: d.name, date: d.upload_date, type: d.document_type }))} onOpen={() => { onOpenChange(false); nav('/documents'); }} />
+            <TasksCard tasks={[]} />
+          </div>
+          <AIInsightsCard companyId={activeCompany?.id} context={customerContext} />
         </div>
       ),
     },
@@ -331,6 +344,17 @@ export default function CustomerWorkspace({
     },
   ];
 
+  const contextPanel = (
+    <>
+      <BusinessHealthCard score={health} label={healthLabel} factors={factors} />
+      <RecentActivityCard activities={recentActivity} />
+      <TasksCard tasks={[]} />
+      <RemindersCard reminders={[]} />
+      <AutomationCard automations={[]} />
+      <AISuggestionsCard suggestions={[]} />
+    </>
+  );
+
   return (
     <WorkspaceShell
       open={open}
@@ -340,6 +364,7 @@ export default function CustomerWorkspace({
       tabs={tabs}
       loading={loading}
       ask={{ placeholder: `Ask about ${customer.name}…`, context: customerContext, companyId: activeCompany?.id }}
+      contextPanel={contextPanel}
     />
   );
 }
