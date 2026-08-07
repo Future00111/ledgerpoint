@@ -12,6 +12,9 @@ import RemindersCard from './cards/RemindersCard';
 import AutomationCard from './cards/AutomationCard';
 import AISuggestionsCard from './cards/AISuggestionsCard';
 import NextActionsCard from './cards/NextActionsCard';
+import ExecutiveSummaryCard from './cards/ExecutiveSummaryCard';
+import NeedsAttentionCard from './cards/NeedsAttentionCard';
+import ProfileCard from './cards/ProfileCard';
 
 // The Workspace Card Registry.
 // Maps a stable `kind` string to a reusable card component, so a Workspace is
@@ -31,6 +34,9 @@ export const CARD_REGISTRY = {
   automation: AutomationCard,
   'ai-suggestions': AISuggestionsCard,
   'next-actions': NextActionsCard,
+  'executive-summary': ExecutiveSummaryCard,
+  'needs-attention': NeedsAttentionCard,
+  'profile': ProfileCard,
 };
 
 // Renders a single card from a config object: { kind, span, ...cardProps }.

@@ -1,9 +1,11 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   FileText, CreditCard, FileMinus, Paperclip, UserPlus, Bot, CalendarClock,
-  Mail, StickyNote, Sparkles,
+  Mail, StickyNote, Sparkles, ArrowRight,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import WorkspaceEmptyState from '../WorkspaceEmptyState';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
@@ -20,8 +22,8 @@ const ICONS = {
   ai: Sparkles,
 };
 
-// Reusable Timeline card — the complete chronological history of a business
-// object. Each event has a date, text, optional amount and a kind (drives icon).
+// Reusable Timeline widget — rich chronological activity cards. Each item can
+// carry a status badge, an amount and an onClick that opens the related record.
 export default function TimelineCard({ events = [] }) {
   if (!events.length) {
     return (
@@ -36,7 +38,7 @@ export default function TimelineCard({ events = [] }) {
   return (
     <Card className="border shadow-sm">
       <CardContent className="p-4">
-        <ol className="relative border-l border-border ml-3 space-y-4 pl-6">
+        <ol className="relative border-l border-border ml-3 space-y-3 pl-6">
           {events.map((e, i) => {
             const Icon = ICONS[e.kind] || CalendarClock;
             return (
@@ -51,18 +53,29 @@ export default function TimelineCard({ events = [] }) {
                     e.onClick();
                   }
                 }}
-                className={e.onClick ? 'relative cursor-pointer hover:bg-muted/30 rounded-lg -mx-2 px-2 py-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring' : 'relative'}
+                className={cn(
+                  'relative flex items-start gap-3 -mx-2 px-2 py-2 rounded-lg',
+                  e.onClick && 'cursor-pointer hover:bg-muted/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                )}
               >
                 <span className="absolute -left-[1.65rem] flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary ring-4 ring-background">
                   <Icon className="w-3 h-3" />
                 </span>
-                <p className="text-sm font-medium">
-                  {e.text}
-                  {e.amount != null ? ` · ${gbp.format(Number(e.amount) || 0)}` : ''}
-                </p>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <CalendarClock className="w-3 h-3" /> {e.date}
-                </p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{e.text}</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                    {e.status && <Badge variant="secondary" className="text-[10px] px-1.5 py-0 leading-none">{e.status}</Badge>}
+                    <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                      <CalendarClock className="w-3 h-3" /> {e.date}
+                    </span>
+                  </div>
+                </div>
+                {e.amount != null && (
+                  <p className="text-sm font-semibold tabular-nums whitespace-nowrap">
+                    {e.amount < 0 ? '-' : ''}{gbp.format(Math.abs(Number(e.amount) || 0))}
+                  </p>
+                )}
+                {e.onClick && <ArrowRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />}
               </li>
             );
           })}

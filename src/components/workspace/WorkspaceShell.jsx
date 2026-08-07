@@ -8,28 +8,22 @@ import WorkspaceHeader from './WorkspaceHeader';
 import SummaryStat from './SummaryStat';
 import { useWorkspaceAsk } from './useWorkspaceAsk';
 
-// The reusable Workspace container. Every Workspace is assembled from:
-//   1. A header (name · status · key info · quick actions · Ask · favourite · more)
-//   2. A row of summary stat tiles
-//   3. Tabbed content (each tab composes reusable Workspace cards)
-//   4. A persistent contextual Ask bar that inherits the record's context
-//
-// Props:
-//   open, onOpenChange        – dialog visibility
-//   header                    – object passed straight to <WorkspaceHeader/>
-//   summaryStats[]            – { label, value, tone, hint }
-//   tabs[]                    – { value, label, content }
-//   loading                   – drives stat skeleton values
-//   ask                       – { placeholder, context, companyId }
-export default function WorkspaceShell({ open, onOpenChange, header, summaryStats = [], tabs = [], ask, loading, contextPanel }) {
+// The shared Workspace shell. Renders: header → executive summary (optional) →
+// key metric cards → two-column body (tabs + right context panel) → Ask bar.
+// Summary cards that carry a `tab` value switch the active tab when clicked.
+// Ask accepts suggested questions that run immediately when tapped.
+export default function WorkspaceShell({ open, onOpenChange, header, summaryStats = [], tabs = [], ask, loading, contextPanel, executiveSummary }) {
   const askRef = useRef(null);
   const { answer, loading: askLoading, run } = useWorkspaceAsk();
   const [q, setQ] = useState('');
+  const [activeTab, setActiveTab] = useState(tabs[0]?.value);
 
   const focusAsk = () => askRef.current?.focus();
-  const submitAsk = () => {
-    if (!q.trim() || askLoading) return;
-    run({ companyId: ask?.companyId, question: q.trim(), context: ask?.context });
+  const submitAsk = (question) => {
+    const query = (question ?? q).trim();
+    if (!query || askLoading) return;
+    if (question) setQ(question);
+    run({ companyId: ask?.companyId, question: query, context: ask?.context });
   };
 
   return (
@@ -37,18 +31,28 @@ export default function WorkspaceShell({ open, onOpenChange, header, summaryStat
       <DialogContent className="sm:max-w-6xl max-h-[92vh] overflow-y-auto">
         <WorkspaceHeader {...(header || {})} onAskClick={focusAsk} />
 
+        {executiveSummary && <div className="mt-3">{executiveSummary}</div>}
+
         {summaryStats.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-3">
             {summaryStats.map((s, i) => (
-              <SummaryStat key={i} {...s} loading={loading} />
+              <SummaryStat
+                key={i}
+                label={s.label}
+                value={s.value}
+                tone={s.tone}
+                hint={s.hint}
+                loading={loading}
+                onClick={s.tab ? () => setActiveTab(s.tab) : s.onClick}
+              />
             ))}
           </div>
         )}
 
-        <div className="grid lg:grid-cols-[1fr_300px] gap-4 items-start">
+        <div className="grid lg:grid-cols-[1fr_300px] gap-4 items-start mt-4">
           <div className="min-w-0">
             {tabs.length > 0 && (
-              <Tabs defaultValue={tabs[0].value} className="w-full">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="w-full justify-start overflow-x-auto">
                   {tabs.map((t) => (
                     <TabsTrigger key={t.value} value={t.value}>{t.label}</TabsTrigger>
@@ -82,6 +86,20 @@ export default function WorkspaceShell({ open, onOpenChange, header, summaryStat
                 <Loader2 className="w-3.5 h-3.5 animate-spin" /> Thinking…
               </div>
             )}
+            {ask.suggestions?.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {ask.suggestions.map((sug, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => submitAsk(sug)}
+                    className="text-xs rounded-full border border-border bg-card px-2.5 py-1 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                  >
+                    {sug}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Input
                 id="workspace-ask-input"
@@ -92,7 +110,7 @@ export default function WorkspaceShell({ open, onOpenChange, header, summaryStat
                 placeholder={ask.placeholder}
                 className="bg-card"
               />
-              <Button size="icon" disabled={!q.trim() || askLoading} onClick={submitAsk} aria-label="Ask">
+              <Button size="icon" disabled={!q.trim() || askLoading} onClick={() => submitAsk()} aria-label="Ask">
                 <Send className="w-4 h-4" />
               </Button>
             </div>

@@ -30,6 +30,7 @@ export default function WorkspaceEngine({
   onOpenChange,
   loading = false,
   header,
+  executiveSummary,
   summaryStats = [],
   tabs = [],
   contextPanel = [],
@@ -65,11 +66,14 @@ export default function WorkspaceEngine({
     </>
   ) : null;
 
+  const executiveSummaryNode = executiveSummary ? renderCard(executiveSummary) : null;
+
   return (
     <WorkspaceShell
       open={open}
       onOpenChange={onOpenChange}
       header={header}
+      executiveSummary={executiveSummaryNode}
       summaryStats={summaryStats}
       tabs={tabsConfig}
       loading={loading}
