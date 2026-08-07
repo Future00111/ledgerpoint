@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Star, MoreHorizontal, Sparkles } from 'lucide-react';
+import { Star, MoreHorizontal } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -53,9 +53,6 @@ export default function WorkspaceHeader({
               <Star className={cn('w-4 h-4', favourite ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground')} />
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={onAskClick} className="gap-2">
-            <Sparkles className="w-3.5 h-3.5" /> Ask
-          </Button>
           {moreActions.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

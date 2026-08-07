@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Send, Sparkles, Loader2 } from 'lucide-react';
 import WorkspaceHeader from './WorkspaceHeader';
 import SummaryStat from './SummaryStat';
+import WorkspaceSkeleton from './WorkspaceSkeleton';
 import { useWorkspaceAsk } from './useWorkspaceAsk';
 
 // The shared Workspace shell.
-// Sticky header (stays visible while scrolling) → scrollable body containing:
+// Sticky header (stays visible while scrolling) → scrollable body. While data
+// loads, a skeleton matching the final layout is shown (never blank). Body:
 // executive summary → key metric cards → tabbed content (full-width, or with a
 // right context panel when provided) → Ask bar. Summary cards that carry a
 // `tab` value switch the active tab when clicked. Ask accepts suggested
@@ -58,25 +60,39 @@ export default function WorkspaceShell({ open, onOpenChange, header, summaryStat
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-          {executiveSummary && <div>{executiveSummary}</div>}
-
-          {summaryStats.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {summaryStats.map((s, i) => (
-                <SummaryStat
-                  key={i}
-                  label={s.label}
-                  value={s.value}
-                  tone={s.tone}
-                  hint={s.hint}
-                  loading={loading}
-                  onClick={s.tab ? () => setActiveTab(s.tab) : s.onClick}
-                />
-              ))}
+          {loading ? (
+            <div className="space-y-4">
+              <div className="h-24 rounded-xl border border-border bg-muted/30 animate-pulse" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-20 rounded-xl border border-border bg-muted animate-pulse" />
+                ))}
+              </div>
+              <WorkspaceSkeleton lines={6} />
             </div>
-          )}
+          ) : (
+            <>
+              {executiveSummary && <div>{executiveSummary}</div>}
 
-          {bodyEl}
+              {summaryStats.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {summaryStats.map((s, i) => (
+                    <SummaryStat
+                      key={i}
+                      label={s.label}
+                      value={s.value}
+                      tone={s.tone}
+                      helper={s.helper}
+                      loading={loading}
+                      onClick={s.tab ? () => setActiveTab(s.tab) : s.onClick}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {bodyEl}
+            </>
+          )}
 
           {ask && (
             <div className="rounded-xl border border-border p-3 bg-muted/30">

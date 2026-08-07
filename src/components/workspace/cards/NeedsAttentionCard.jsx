@@ -8,10 +8,13 @@ const SEVERITY = {
   warning: 'text-amber-600 bg-amber-50 border-amber-200',
   info: 'text-blue-600 bg-blue-50 border-blue-200',
 };
+const ORDER = { critical: 0, warning: 1, info: 2 };
 
 // Reusable "What Needs Attention" widget — shows only important, actionable
-// items computed from the record's data. If nothing requires action, shows a
-// positive "in good standing" state. Each item opens the related record.
+// items computed from the record's data, ordered Critical → Warnings → Info
+// so the most urgent issues surface first. Colour is used carefully: only
+// critical items are red. If nothing requires action, shows a positive state.
+// Each item opens the related record.
 export default function NeedsAttentionCard({ items = [] }) {
   if (!items.length) {
     return (
@@ -19,20 +22,22 @@ export default function NeedsAttentionCard({ items = [] }) {
         <CardContent className="p-4 flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-emerald-700">Nothing needs your attention</p>
-            <p className="text-xs text-emerald-600/80">This customer is in good standing.</p>
+            <p className="text-sm font-medium text-emerald-700">Everything else is healthy</p>
+            <p className="text-xs text-emerald-600/80">Nothing needs your attention right now.</p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
+  const sorted = [...items].sort((a, b) => (ORDER[a.severity] ?? 2) - (ORDER[b.severity] ?? 2));
+
   return (
     <Card className="border shadow-sm">
       <CardContent className="p-4">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">What needs attention</p>
         <ul className="space-y-2">
-          {items.map((it, i) => (
+          {sorted.map((it, i) => (
             <li
               key={i}
               role={it.onClick ? 'button' : undefined}
@@ -45,9 +50,9 @@ export default function NeedsAttentionCard({ items = [] }) {
                 }
               }}
               className={cn(
-                'flex items-center gap-3 rounded-lg border px-3 py-2.5',
+                'flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-shadow',
                 SEVERITY[it.severity] || SEVERITY.info,
-                it.onClick && 'cursor-pointer hover:shadow-sm transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                it.onClick && 'cursor-pointer hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring'
               )}
             >
               <AlertTriangle className="w-4 h-4 flex-shrink-0" />

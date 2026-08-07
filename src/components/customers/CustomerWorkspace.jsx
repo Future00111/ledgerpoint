@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import {
   Mail, Phone, MapPin, FileText, CreditCard, PoundSterling,
   Plus, Wallet, Send, Pencil, Archive, Copy, Download, GitMerge, Trash2,
-  Bell, Sparkles,
+  Bell, Sparkles, UserCheck, TrendingUp, TrendingDown, ArrowRight,
 } from 'lucide-react';
 
 import WorkspaceEngine from '@/components/workspace/WorkspaceEngine';
@@ -16,10 +16,8 @@ import { useFavourite } from '@/components/workspace/useFavourite';
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
 // =============================================================================
-// Customer Workspace — familiar accounting layout, intelligent by default.
-// 70% familiar (Xero-style header, financial summary, tabs), 30% innovation
-// (executive summary, AI insights, contextual Ask, recommended actions).
-// Declared as config for the Workspace Engine. See 19-workspace-framework.md.
+// Customer Workspace — premium, familiar accounting layout, intelligent by
+// default. Declared as config for the Workspace Engine. See 19-workspace.md.
 // =============================================================================
 export default function CustomerWorkspace({
   customer, open, onOpenChange,
@@ -119,6 +117,30 @@ export default function CustomerWorkspace({
     : creditRemaining < customer.credit_limit * 0.2 ? 'amber'
     : 'emerald';
 
+  const terms = customer.payment_terms || 30;
+
+  // ---- Customer health ------------------------------------------------------
+  let health = 100;
+  if (invoices.length === 0) {
+    health = 50;
+  } else {
+    if (creditExceeded) health -= 30;
+    if (overdueInvoices.length > 0) health -= 20;
+    if (avgPaymentDays != null && avgPaymentDays > terms) health -= 15;
+  }
+  health = Math.max(0, Math.min(100, health));
+  let healthLabel, healthTone;
+  if (health >= 85) { healthLabel = 'Excellent'; healthTone = 'emerald'; }
+  else if (health >= 70) { healthLabel = 'Good'; healthTone = 'emerald'; }
+  else if (health >= 50) { healthLabel = 'Monitor'; healthTone = 'amber'; }
+  else if (health >= 35) { healthLabel = 'Needs Attention'; healthTone = 'amber'; }
+  else { healthLabel = 'At Risk'; healthTone = 'rose'; }
+  const payerDesc = avgPaymentDays == null ? 'New customer' : avgPaymentDays <= terms ? 'Reliable payer' : 'Slower payer';
+  const revenueDesc = revenueLastYear > 0
+    ? (revenueYtd > revenueLastYear ? 'increasing revenue' : revenueYtd < revenueLastYear ? 'declining revenue' : 'steady revenue')
+    : 'building revenue';
+  const healthExplanation = `${payerDesc} with ${revenueDesc}${overdueInvoices.length > 0 ? ', with overdue invoices' : ''}.`;
+
   // ---- Timeline (rich, clickable) ----------------------------------------
   const timeline = [
     ...(customer.created_date
@@ -140,11 +162,60 @@ export default function CustomerWorkspace({
   const recentActivity = timeline.slice(0, 8).map((e) => ({ text: e.text, time: e.date }));
   const address = [customer.address_line_1, customer.address_line_2, customer.city, customer.county, customer.postcode, customer.country].filter(Boolean).join(', ');
 
-  // ---- Ask context (inherited automatically) -------------------------------
-  const customerContext = `Customer workspace for "${customer.name}". Contact: ${customer.contact_name || '—'}. Email: ${customer.email || '—'}. Phone: ${customer.phone || '—'}. Outstanding balance: ${gbp.format(outstanding)}. Credit limit: ${customer.credit_limit ? gbp.format(customer.credit_limit) : 'none'}. Credit remaining: ${creditRemaining != null ? gbp.format(creditRemaining) : 'no limit'}. Payment terms: ${customer.payment_terms || 30} days. Total invoices: ${invoices.length} (${outstandingInvoices.length} outstanding, ${overdueInvoices.length} overdue worth ${gbp.format(overdueTotal)}). Revenue last 12 months: ${gbp.format(revenue12m)}. Revenue this year: ${gbp.format(revenueYtd)}. Revenue last year: ${gbp.format(revenueLastYear)}. Avg payment time: ${avgPaymentDays != null ? avgPaymentDays + ' days' : 'n/a'}. Credit notes: ${creditNotes.length}. Documents: ${documents.length}.`;
+  // ---- Executive summary (structured insight cards) ----------------------
+  const revPct = revenueLastYear > 0 ? Math.round((revenueYtd - revenueLastYear) / revenueLastYear * 100) : null;
+  const insights = [
+    {
+      icon: UserCheck,
+      tone: 'positive',
+      title: 'Customer Status',
+      detail: revenue12m > 50000 ? 'One of your highest-value customers.'
+        : revenue12m > 0 ? 'A valued customer with ongoing activity.'
+        : outstanding > 0 ? 'A customer with an outstanding balance.'
+        : 'A new or quiet customer relationship.',
+    },
+    {
+      icon: revPct != null && revPct < 0 ? TrendingDown : TrendingUp,
+      tone: revPct == null ? 'info' : revPct > 0 ? 'positive' : revPct < 0 ? 'warning' : 'info',
+      title: 'Revenue',
+      detail: revPct != null
+        ? (revPct > 0 ? `Revenue has increased ${revPct}% compared with last year.`
+          : revPct < 0 ? `Revenue has decreased ${Math.abs(revPct)}% compared with last year.`
+          : 'Revenue is in line with last year.')
+        : `Revenue of ${gbp.format(revenueYtd)} this year.`,
+    },
+    {
+      icon: FileText,
+      tone: overdueInvoices.length > 0 ? 'critical' : outstandingInvoices.length > 0 ? 'info' : 'positive',
+      title: 'Outstanding Invoices',
+      detail: overdueInvoices.length > 0
+        ? `${overdueInvoices.length} invoice${overdueInvoices.length > 1 ? 's' : ''} overdue (${gbp.format(overdueTotal)}).`
+        : outstandingInvoices.length > 0
+          ? `${outstandingInvoices.length} outstanding (${gbp.format(outstanding)}), none overdue.`
+          : 'No outstanding invoices.',
+    },
+    {
+      icon: CreditCard,
+      tone: avgPaymentDays == null ? 'info' : avgPaymentDays <= terms ? 'positive' : 'warning',
+      title: 'Payment Behaviour',
+      detail: avgPaymentDays != null
+        ? `Average payment time is ${avgPaymentDays} day${avgPaymentDays === 1 ? '' : 's'}.`
+        : 'No payment history yet.',
+    },
+    {
+      icon: ArrowRight,
+      tone: (overdueInvoices.length > 0 || outstanding > 0) ? 'info' : 'positive',
+      title: 'Recommended Action',
+      detail: overdueInvoices.length > 0
+        ? 'Send a payment reminder for overdue invoices.'
+        : outstanding > 0
+          ? 'Record payment for outstanding invoices.'
+          : 'No immediate action is required.',
+    },
+  ];
 
-  // ---- AI prompts -----------------------------------------------------------
-  const execPrompt = `Write a 4-6 sentence executive briefing about this customer for a business owner, using only the Ledgerly data in context. Sentence 1: how valuable they are (reference revenue this year). Sentence 2: how revenue has changed this year vs last year (state the direction and approximate percentage). Sentence 3: whether there are any overdue invoices (state the count and amount if any, else say there are none). Sentence 4: average payment time in days. Final sentence: a clear action statement — either "No immediate action is required." or a specific action the owner should take. Write as one short paragraph. No bullet points, no headings, no generic advice.`;
+  // ---- Ask context (inherited automatically) -------------------------------
+  const customerContext = `Customer workspace for "${customer.name}". Contact: ${customer.contact_name || '—'}. Email: ${customer.email || '—'}. Phone: ${customer.phone || '—'}. Outstanding balance: ${gbp.format(outstanding)}. Credit limit: ${customer.credit_limit ? gbp.format(customer.credit_limit) : 'none'}. Credit remaining: ${creditRemaining != null ? gbp.format(creditRemaining) : 'no limit'}. Payment terms: ${terms} days. Total invoices: ${invoices.length} (${outstandingInvoices.length} outstanding, ${overdueInvoices.length} overdue worth ${gbp.format(overdueTotal)}). Revenue last 12 months: ${gbp.format(revenue12m)}. Revenue this year: ${gbp.format(revenueYtd)}. Revenue last year: ${gbp.format(revenueLastYear)}. Avg payment time: ${avgPaymentDays != null ? avgPaymentDays + ' days' : 'n/a'}. Credit notes: ${creditNotes.length}. Documents: ${documents.length}. Health: ${health}/100 (${healthLabel}).`;
 
   const aiInsightsPrompt = `You are an accounting analyst. Using only the Ledgerly customer data in context, write an executive analysis covering: revenue trends, payment behaviour, customer profitability, late payment trends, suggested actions, potential risks, and potential opportunities. For EACH point explain WHY using the actual figures from the data. Avoid generic advice. Use short bullet points, each with a one-line takeaway. End with "Recommended next action: …".`;
 
@@ -163,13 +234,44 @@ export default function CustomerWorkspace({
     attentionItems.push({ label: 'No documents on file', detail: 'Upload invoices or statements to keep records complete', severity: 'info', onClick: () => { onOpenChange(false); nav('/documents'); } });
   }
 
+  // ---- What should I do next (dynamic) -------------------------------------
+  const focusAsk = () => document.getElementById('workspace-ask-input')?.focus();
+  const mailtoReminder = () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Reminder — outstanding invoice')}`; };
+  const mailtoStatement = () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Account Statement — ' + customer.name)}&body=${encodeURIComponent(statementBody)}`; };
+  const mailtoEmail = () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Regarding your account')}`; };
+
+  const primary = overdueInvoices.length > 0
+    ? { label: 'Send Reminder', icon: Bell, onClick: mailtoReminder }
+    : outstanding > 0
+      ? { label: 'Record Payment', icon: Wallet, onClick: () => { onOpenChange(false); nav('/transactions'); } }
+      : null;
+
+  const secondary = [];
+  if (overdueInvoices.length > 0) {
+    if (outstanding > 0) secondary.push({ label: 'Record Payment', icon: Wallet, onClick: () => { onOpenChange(false); nav('/transactions'); } });
+    secondary.push({ label: 'Email Customer', icon: Mail, onClick: mailtoEmail });
+    secondary.push({ label: 'Ask Ledgerly', icon: Sparkles, onClick: focusAsk });
+  } else if (outstanding > 0) {
+    secondary.push({ label: 'Send Statement', icon: Send, onClick: mailtoStatement });
+    secondary.push({ label: 'Email Customer', icon: Mail, onClick: mailtoEmail });
+    secondary.push({ label: 'Ask Ledgerly', icon: Sparkles, onClick: focusAsk });
+  } else {
+    secondary.push({ label: 'Create Invoice', icon: Plus, onClick: () => { onOpenChange(false); nav('/invoices/new'); } });
+    secondary.push({ label: 'Send Statement', icon: Send, onClick: mailtoStatement });
+    secondary.push({ label: 'Email Customer', icon: Mail, onClick: mailtoEmail });
+    secondary.push({ label: 'Upload Document', icon: FileText, onClick: () => { onOpenChange(false); nav('/documents'); } });
+    secondary.push({ label: 'Ask Ledgerly', icon: Sparkles, onClick: focusAsk });
+  }
+  if (creditExceeded) secondary.push({ label: 'Review Credit Limit', icon: PoundSterling, onClick: () => { onOpenChange(false); onEdit?.(customer); } });
+
   // ---- Quick actions + more ------------------------------------------------
   const statementBody = `Account Statement — ${customer.name}\n\nOutstanding invoices:\n${outstandingInvoices.map((i) => `${i.invoice_number} — due ${i.due_date} — ${gbp.format(Number(i.balance_due) || 0)}`).join('\n') || 'None'}\n\nTotal outstanding: ${gbp.format(outstanding)}`;
   const quickActions = [
     { label: 'Create Invoice', icon: Plus, onClick: () => { onOpenChange(false); nav('/invoices/new'); } },
     { label: 'Record Payment', icon: Wallet, onClick: () => { onOpenChange(false); nav('/transactions'); } },
-    { label: 'Send Statement', icon: Send, onClick: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Account Statement — ' + customer.name)}&body=${encodeURIComponent(statementBody)}`; } },
-    { label: 'Email', icon: Mail, onClick: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Regarding your account')}`; } },
+    { label: 'Send Statement', icon: Send, onClick: mailtoStatement },
+    { label: 'Email', icon: Mail, onClick: mailtoEmail },
+    { label: 'Ask', icon: Sparkles, onClick: focusAsk },
     { label: 'Edit Customer', icon: Pencil, onClick: () => { onOpenChange(false); onEdit?.(customer); } },
   ];
 
@@ -182,24 +284,7 @@ export default function CustomerWorkspace({
     { label: 'Delete', icon: Trash2, danger: true, onSelect: () => onDelete?.(customer) },
   ];
 
-  // ---- Suggested actions (What should I do next) --------------------------
-  const nextActions = [];
-  if (overdueInvoices.length > 0) {
-    nextActions.push({ label: 'Send Reminder', icon: Bell, onClick: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Reminder — outstanding invoice')}`; } });
-  }
-  if (outstanding > 0) {
-    nextActions.push({ label: 'Record Payment', icon: Wallet, onClick: () => { onOpenChange(false); nav('/transactions'); } });
-  }
-  nextActions.push({ label: 'Create Invoice', icon: Plus, onClick: () => { onOpenChange(false); nav('/invoices/new'); } });
-  nextActions.push({ label: 'Send Statement', icon: Send, onClick: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Account Statement — ' + customer.name)}&body=${encodeURIComponent(statementBody)}`; } });
-  nextActions.push({ label: 'Email Customer', icon: Mail, onClick: () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Regarding your account')}`; } });
-  nextActions.push({ label: 'Upload Document', icon: FileText, onClick: () => { onOpenChange(false); nav('/documents'); } });
-  if (creditExceeded) {
-    nextActions.push({ label: 'Review Credit Limit', icon: PoundSterling, onClick: () => { onOpenChange(false); onEdit?.(customer); } });
-  }
-  nextActions.push({ label: 'Ask Ledgerly', icon: Sparkles, onClick: () => document.getElementById('workspace-ask-input')?.focus() });
-
-  // ---- Header (familiar: name · status · outstanding · credit limit · terms) ----
+  // ---- Header -------------------------------------------------------------
   const header = {
     title: customer.name,
     statusLabel: customer.status === 'active' ? 'Active' : 'Inactive',
@@ -207,7 +292,7 @@ export default function CustomerWorkspace({
     metrics: [
       { label: 'Outstanding', value: gbp.format(outstanding), tone: outstanding > 0 ? 'rose' : 'emerald' },
       { label: 'Credit Limit', value: customer.credit_limit ? gbp.format(customer.credit_limit) : 'None' },
-      { label: 'Payment Terms', value: `${customer.payment_terms || 30} days` },
+      { label: 'Payment Terms', value: `${terms} days` },
     ],
     info: [],
     quickActions,
@@ -216,14 +301,14 @@ export default function CustomerWorkspace({
     onToggleFavourite: toggleFavourite,
   };
 
-  // ---- Financial summary (clickable → related section) -------------------
+  // ---- Financial summary (clickable → related section, hover helper) --------
   const summaryStats = [
-    { label: 'Outstanding Balance', value: gbp.format(outstanding), tone: outstanding > 0 ? 'rose' : 'emerald', tab: 'invoices' },
-    { label: 'Revenue (12 Months)', value: gbp.format(revenue12m), tab: 'ai-insights' },
-    { label: 'Outstanding Invoices', value: String(outstandingInvoices.length), tab: 'invoices' },
-    { label: 'Average Payment Days', value: avgPaymentDays != null ? `${avgPaymentDays} days` : '—', tab: 'payments' },
-    { label: 'Last Payment', value: lastPayment ? gbp.format(Number(lastPayment.money_in) || 0) : '—', tab: 'payments' },
-    { label: 'Credit Remaining', value: creditRemaining != null ? gbp.format(creditRemaining) : 'No limit', tone: creditRemainingTone, tab: 'invoices' },
+    { label: 'Outstanding Balance', value: gbp.format(outstanding), tone: outstanding > 0 ? 'rose' : 'emerald', tab: 'invoices', helper: 'Click to view outstanding invoices' },
+    { label: 'Revenue (12 Months)', value: gbp.format(revenue12m), tab: 'ai-insights', helper: 'Click to view revenue analysis' },
+    { label: 'Outstanding Invoices', value: String(outstandingInvoices.length), tab: 'invoices', helper: 'Click to view outstanding invoices' },
+    { label: 'Average Payment Days', value: avgPaymentDays != null ? `${avgPaymentDays} days` : '—', tab: 'payments', helper: 'Click to view payment history' },
+    { label: 'Last Payment', value: lastPayment ? gbp.format(Number(lastPayment.money_in) || 0) : '—', tab: 'payments', helper: 'Click to view payment details' },
+    { label: 'Credit Remaining', value: creditRemaining != null ? gbp.format(creditRemaining) : 'No limit', tone: creditRemainingTone, tab: 'overview', helper: 'Click to view credit information' },
   ];
 
   // ---- Customer profile (supporting information) -------------------------
@@ -245,8 +330,9 @@ export default function CustomerWorkspace({
     {
       label: 'Overview', columns: 2,
       cards: [
-        { kind: 'needs-attention', span: 'full', items: attentionItems },
-        { kind: 'next-actions', span: 'full', actions: nextActions },
+        { kind: 'customer-health', span: 1, score: health, label: healthLabel, tone: healthTone, explanation: healthExplanation },
+        { kind: 'needs-attention', span: 1, items: attentionItems },
+        { kind: 'next-actions', span: 'full', primary, secondary, noActionLabel: 'No immediate action is required.' },
         { kind: 'related-records', span: 1, sections: [
           { title: 'Outstanding Invoices', records: outstandingInvoices.slice(0, 5).map((i) => ({ primary: i.invoice_number, secondary: `Due ${i.due_date}`, amount: Number(i.balance_due) || 0, onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } })) },
           { title: 'Recent Payments', records: payments.slice(0, 5).map((p) => ({ primary: p.description, secondary: p.date, amount: Number(p.money_in) || 0, onClick: () => {} })) },
@@ -331,7 +417,7 @@ export default function CustomerWorkspace({
       onOpenChange={onOpenChange}
       loading={loading}
       header={header}
-      executiveSummary={{ kind: 'executive-summary', companyId: activeCompany?.id, context: customerContext, prompt: execPrompt }}
+      executiveSummary={{ kind: 'executive-summary', insights }}
       summaryStats={summaryStats}
       tabs={tabs}
       ask={{

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText } from 'lucide-react';
+import { FileText, Upload } from 'lucide-react';
 import WorkspaceEmptyState from '../WorkspaceEmptyState';
 
 // Reusable Documents card — clickable document rows. The whole row opens the
@@ -10,8 +10,11 @@ export default function DocumentsCard({ documents = [], onOpen }) {
     return (
       <WorkspaceEmptyState
         icon={FileText}
-        title="No documents"
-        description="Documents linked to this record will appear here. Upload one from the Documents module."
+        title="No documents uploaded yet"
+        description="Upload invoices, statements or contracts to keep customer records complete."
+        actionLabel="Upload document"
+        actionIcon={Upload}
+        onAction={() => onOpen?.()}
       />
     );
   }
