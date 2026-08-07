@@ -13,6 +13,28 @@ The **Customer Workspace** is the reference implementation. Every future Workspa
 
 ---
 
+## The Workspace Engine
+
+A Workspace is **declared, not built**. `WorkspaceEngine` (`src/components/workspace/WorkspaceEngine.jsx`) takes a config object and renders the shared shell with the correct cards pulled from the `CARD_REGISTRY` (`workspaceCardRegistry.jsx`).
+
+```jsx
+<WorkspaceEngine
+  type="customer"          // analytics + theming hook
+  header={headerConfig}    // { title, statusLabel, statusTone, info, quickActions, moreActions, favourite, onToggleFavourite }
+  summaryStats={stats}     // [ { label, value, tone?, hint? } ]
+  tabs={tabsConfig}         // [ { label, value?, columns?, cards: [ { kind, span?, ...cardProps } ] } ]
+  contextPanel={panel}     // [ { kind, ...cardProps } ]  → right-hand panel (stacked)
+  ask={{ placeholder, context, companyId }}  // inherits record context automatically
+  loading={loading}        // skeleton loading across all tabs
+/>
+```
+
+A new Workspace = load its data + build these config arrays. No new layout code. The card registry maps a `kind` string to a reusable component, so adding a card once makes it available to every Workspace.
+
+Supported card kinds: `overview`, `financial-summary`, `business-health`, `timeline`, `recent-activity`, `documents`, `related-records`, `ai-insights`, `tasks`, `reminders`, `automation`, `ai-suggestions`.
+
+---
+
 ## Architecture
 
 ```

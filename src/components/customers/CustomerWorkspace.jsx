@@ -9,28 +9,19 @@ import {
   Plus, Wallet, Send, Pencil, Archive, Copy, Download, GitMerge, Trash2,
 } from 'lucide-react';
 
-import WorkspaceShell from '@/components/workspace/WorkspaceShell';
-import WorkspaceSkeleton from '@/components/workspace/WorkspaceSkeleton';
+import WorkspaceEngine from '@/components/workspace/WorkspaceEngine';
 import { useFavourite } from '@/components/workspace/useFavourite';
-import OverviewCard from '@/components/workspace/cards/OverviewCard';
-import BusinessHealthCard from '@/components/workspace/cards/BusinessHealthCard';
-import TimelineCard from '@/components/workspace/cards/TimelineCard';
-import RecentActivityCard from '@/components/workspace/cards/RecentActivityCard';
-import DocumentsCard from '@/components/workspace/cards/DocumentsCard';
-import RelatedRecordsCard from '@/components/workspace/cards/RelatedRecordsCard';
-import AIInsightsCard from '@/components/workspace/cards/AIInsightsCard';
-import AutomationCard from '@/components/workspace/cards/AutomationCard';
-import TasksCard from '@/components/workspace/cards/TasksCard';
-import RemindersCard from '@/components/workspace/cards/RemindersCard';
-import AISuggestionsCard from '@/components/workspace/cards/AISuggestionsCard';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
 // =============================================================================
-// Customer Workspace — the reference implementation of the Ledgerly Workspace
-// Framework. Every future Workspace (Supplier, Invoice, Bill, Bank Account…)
-// should be assembled from the same shell + reusable cards, swapping only the
-// business-specific data. See src/docs/19-workspace-framework.md.
+// Customer Workspace
+// =============================================================================
+// Reference implementation of the Ledgerly Workspace Engine. The layout,
+// cards, tabs and interaction model come from the engine; this file only
+// supplies the customer-specific data and actions. Future Workspaces
+// (Supplier, Invoice, Bill, Bank, VAT, Document…) follow the same pattern.
+// See src/docs/19-workspace-framework.md.
 // =============================================================================
 export default function CustomerWorkspace({
   customer, open, onOpenChange,
@@ -206,108 +197,76 @@ export default function CustomerWorkspace({
     { label: 'Health', value: `${health}/100`, tone: health >= 75 ? 'emerald' : health >= 50 ? 'amber' : 'rose' },
   ];
 
-  const maybeLoading = (node) => (loading ? <WorkspaceSkeleton lines={6} /> : node);
-
-  // ---- Tabs (assemble from reusable cards) ----------------------------------
+  // ---- Declarative tab + panel configuration (rendered by the engine) -------
   const tabs = [
     {
-      value: 'overview',
-      label: 'Overview',
-      content: maybeLoading(
-        <div className="space-y-4">
-          <div className="grid lg:grid-cols-3 gap-4">
-            <OverviewCard fields={[
-              { icon: FileText, label: 'Customer Reference', value: customer.customer_reference },
-              { icon: CreditCard, label: 'Payment Terms', value: customer.payment_terms ? `${customer.payment_terms} days` : '' },
-              { icon: PoundSterling, label: 'Credit Limit', value: customer.credit_limit ? gbp.format(customer.credit_limit) : '' },
-              { icon: PoundSterling, label: 'VAT Number', value: customer.vat_number },
-              { icon: FileText, label: 'Last Invoice', value: invoices[0]?.issue_date || '—' },
-              { icon: FileText, label: 'Customer Since', value: customer.created_date?.slice(0, 10) || '—' },
-            ]} />
-            <OverviewCard fields={[
-              { icon: Mail, label: 'Contact Name', value: customer.contact_name },
-              { icon: Mail, label: 'Email', value: customer.email },
-              { icon: Phone, label: 'Phone', value: customer.phone },
-              { icon: MapPin, label: 'Address', value: address },
-            ]} />
-            <RelatedRecordsCard sections={[
-              { title: 'Outstanding Invoices', records: outstandingInvoices.slice(0, 5).map((i) => ({ primary: i.invoice_number, secondary: `Due ${i.due_date}`, amount: Number(i.balance_due) || 0, onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } })) },
-              { title: 'Recent Payments', records: payments.slice(0, 5).map((p) => ({ primary: p.description, secondary: p.date, amount: Number(p.money_in) || 0, onClick: () => {} })) },
-            ]} />
-          </div>
-          <div className="grid lg:grid-cols-2 gap-4">
-            <DocumentsCard documents={documents.slice(0, 4).map((d) => ({ id: d.id, name: d.name, date: d.upload_date, type: d.document_type }))} onOpen={() => { onOpenChange(false); nav('/documents'); }} />
-            <TasksCard tasks={[]} />
-          </div>
-          <AIInsightsCard companyId={activeCompany?.id} context={customerContext} />
-        </div>
-      ),
+      label: 'Overview', columns: 3,
+      cards: [
+        { kind: 'overview', span: 1, fields: [
+          { icon: FileText, label: 'Customer Reference', value: customer.customer_reference },
+          { icon: CreditCard, label: 'Payment Terms', value: customer.payment_terms ? `${customer.payment_terms} days` : '' },
+          { icon: PoundSterling, label: 'Credit Limit', value: customer.credit_limit ? gbp.format(customer.credit_limit) : '' },
+          { icon: PoundSterling, label: 'VAT Number', value: customer.vat_number },
+          { icon: FileText, label: 'Last Invoice', value: invoices[0]?.issue_date || '—' },
+          { icon: FileText, label: 'Customer Since', value: customer.created_date?.slice(0, 10) || '—' },
+        ] },
+        { kind: 'overview', span: 1, fields: [
+          { icon: Mail, label: 'Contact Name', value: customer.contact_name },
+          { icon: Mail, label: 'Email', value: customer.email },
+          { icon: Phone, label: 'Phone', value: customer.phone },
+          { icon: MapPin, label: 'Address', value: address },
+        ] },
+        { kind: 'related-records', span: 1, sections: [
+          { title: 'Outstanding Invoices', records: outstandingInvoices.slice(0, 5).map((i) => ({ primary: i.invoice_number, secondary: `Due ${i.due_date}`, amount: Number(i.balance_due) || 0, onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } })) },
+          { title: 'Recent Payments', records: payments.slice(0, 5).map((p) => ({ primary: p.description, secondary: p.date, amount: Number(p.money_in) || 0, onClick: () => {} })) },
+        ] },
+        { kind: 'documents', span: 2, documents: documents.slice(0, 4).map((d) => ({ id: d.id, name: d.name, date: d.upload_date, type: d.document_type })), onOpen: () => { onOpenChange(false); nav('/documents'); } },
+        { kind: 'tasks', span: 1, tasks: [] },
+        { kind: 'ai-insights', span: 'full', companyId: activeCompany?.id, context: customerContext },
+      ],
     },
     {
-      value: 'invoices',
-      label: 'Invoices',
-      content: maybeLoading(
-        <RelatedRecordsCard sections={[{
+      label: 'Invoices', columns: 3,
+      cards: [
+        { kind: 'related-records', span: 'full', sections: [{
           title: 'All Invoices',
-          records: invoices.map((i) => ({
-            primary: i.invoice_number,
-            secondary: `Issued ${i.issue_date} · Due ${i.due_date} · ${i.status}`,
-            amount: Number(i.total) || 0,
-            onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); },
-          })),
-        }]} />
-      ),
+          records: invoices.map((i) => ({ primary: i.invoice_number, secondary: `Issued ${i.issue_date} · Due ${i.due_date} · ${i.status}`, amount: Number(i.total) || 0, onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } })),
+        }] },
+      ],
     },
     {
-      value: 'payments',
-      label: 'Payments',
-      content: maybeLoading(
-        <RelatedRecordsCard sections={[{
+      label: 'Payments', columns: 3,
+      cards: [
+        { kind: 'related-records', span: 'full', sections: [{
           title: 'Payment History',
-          records: payments.map((p) => ({
-            primary: p.description,
-            secondary: `${p.date}${p.matched_record_number ? ' · ' + p.matched_record_number : ''}`,
-            amount: Number(p.money_in) || 0,
-            onClick: () => {},
-          })),
-        }]} />
-      ),
+          records: payments.map((p) => ({ primary: p.description, secondary: `${p.date}${p.matched_record_number ? ' · ' + p.matched_record_number : ''}`, amount: Number(p.money_in) || 0, onClick: () => {} })),
+        }] },
+      ],
     },
     {
-      value: 'credit-notes',
-      label: 'Credit Notes',
-      content: maybeLoading(
-        <RelatedRecordsCard sections={[{
+      label: 'Credit Notes', columns: 3,
+      cards: [
+        { kind: 'related-records', span: 'full', sections: [{
           title: 'Sales Credit Notes',
-          records: creditNotes.map((c) => ({
-            primary: c.credit_note_number,
-            secondary: `${c.credit_note_date} · ${c.reason || c.status}`,
-            amount: -Math.abs(Number(c.total) || 0),
-            onClick: () => { onOpenChange(false); nav('/sales-credit-notes'); },
-          })),
-        }]} />
-      ),
+          records: creditNotes.map((c) => ({ primary: c.credit_note_number, secondary: `${c.credit_note_date} · ${c.reason || c.status}`, amount: -Math.abs(Number(c.total) || 0), onClick: () => { onOpenChange(false); nav('/sales-credit-notes'); } })),
+        }] },
+      ],
     },
     {
-      value: 'documents',
-      label: 'Documents',
-      content: maybeLoading(
-        <DocumentsCard
-          documents={documents.map((d) => ({ id: d.id, name: d.name, date: d.upload_date, type: d.document_type }))}
-          onOpen={() => { onOpenChange(false); nav('/documents'); }}
-        />
-      ),
+      label: 'Documents', columns: 3,
+      cards: [
+        { kind: 'documents', span: 'full', documents: documents.map((d) => ({ id: d.id, name: d.name, date: d.upload_date, type: d.document_type })), onOpen: () => { onOpenChange(false); nav('/documents'); } },
+      ],
     },
     {
-      value: 'timeline',
-      label: 'Timeline',
-      content: <TimelineCard events={timeline} />,
+      label: 'Timeline', columns: 3,
+      cards: [{ kind: 'timeline', span: 'full', events: timeline }],
     },
     {
-      value: 'notes',
-      label: 'Notes',
-      content: (
-        <OverviewCard>
+      label: 'Notes', columns: 3,
+      cards: [{
+        kind: 'overview', span: 'full',
+        children: (
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -324,47 +283,42 @@ export default function CustomerWorkspace({
             placeholder="Add notes about this customer…"
             className="min-h-[160px]"
           />
-        </OverviewCard>
-      ),
+        ),
+      }],
     },
     {
-      value: 'ai-insights',
-      label: 'AI Insights',
-      content: <AIInsightsCard companyId={activeCompany?.id} context={customerContext} />,
+      label: 'AI Insights', columns: 3,
+      cards: [{ kind: 'ai-insights', span: 'full', companyId: activeCompany?.id, context: customerContext }],
     },
     {
-      value: 'activity',
-      label: 'Activity',
-      content: (
-        <div className="grid lg:grid-cols-2 gap-4">
-          <RecentActivityCard activities={recentActivity} />
-          <AutomationCard automations={[]} />
-        </div>
-      ),
+      label: 'Activity', columns: 2,
+      cards: [
+        { kind: 'recent-activity', span: 1, activities: recentActivity },
+        { kind: 'automation', span: 1, automations: [] },
+      ],
     },
   ];
 
-  const contextPanel = (
-    <>
-      <BusinessHealthCard score={health} label={healthLabel} factors={factors} />
-      <RecentActivityCard activities={recentActivity} />
-      <TasksCard tasks={[]} />
-      <RemindersCard reminders={[]} />
-      <AutomationCard automations={[]} />
-      <AISuggestionsCard suggestions={[]} />
-    </>
-  );
+  const contextPanel = [
+    { kind: 'business-health', score: health, label: healthLabel, factors },
+    { kind: 'recent-activity', activities: recentActivity },
+    { kind: 'tasks', tasks: [] },
+    { kind: 'reminders', reminders: [] },
+    { kind: 'automation', automations: [] },
+    { kind: 'ai-suggestions', suggestions: [] },
+  ];
 
   return (
-    <WorkspaceShell
+    <WorkspaceEngine
+      type="customer"
       open={open}
       onOpenChange={onOpenChange}
+      loading={loading}
       header={header}
       summaryStats={summaryStats}
       tabs={tabs}
-      loading={loading}
-      ask={{ placeholder: `Ask about ${customer.name}…`, context: customerContext, companyId: activeCompany?.id }}
       contextPanel={contextPanel}
+      ask={{ placeholder: `Ask about ${customer.name}…`, context: customerContext, companyId: activeCompany?.id }}
     />
   );
 }
