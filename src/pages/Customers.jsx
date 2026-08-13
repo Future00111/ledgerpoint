@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,6 +18,10 @@ export default function Customers() {
   const { activeCompany } = useCompany();
   const nav = useNavigate();
   const { id: focusId } = useParams();
+  const [searchParams] = useSearchParams();
+  const arrival = (searchParams.get('from') || searchParams.get('highlight'))
+    ? { source: searchParams.get('from') || 'search', highlight: searchParams.get('highlight') || undefined, query: searchParams.get('q') || undefined }
+    : null;
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -144,7 +148,8 @@ export default function Customers() {
       <CustomerWorkspace
         customer={viewing}
         open={detailsOpen}
-        onOpenChange={(o) => { setDetailsOpen(o); if (!o && focusId) nav('/customers', { replace: true }); }}
+        onOpenChange={(o) => { setDetailsOpen(o); if (!o && searchParams.toString()) nav('/customers', { replace: true }); }}
+        arrival={arrival}
         onEdit={openEdit}
         onArchive={handleArchive}
         onDuplicate={handleDuplicate}

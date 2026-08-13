@@ -15,6 +15,7 @@ export default function SummaryStat({ label, value, tone, hint, helper, loading,
     <div
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `${label} — click to view details` : undefined}
       onClick={onClick}
       onKeyDown={(e) => { if (onClick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onClick(); } }}
       className={cn('group rounded-xl border border-border bg-card p-4 transition-all', onClick && 'cursor-pointer hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring')}

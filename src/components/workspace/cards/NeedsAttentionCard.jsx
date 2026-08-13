@@ -22,8 +22,8 @@ export default function NeedsAttentionCard({ items = [] }) {
         <CardContent className="p-4 flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-emerald-700">Everything else is healthy</p>
-            <p className="text-xs text-emerald-600/80">Nothing needs your attention right now.</p>
+            <p className="text-sm font-medium text-emerald-700">Nothing currently requires attention</p>
+            <p className="text-xs text-emerald-600/80">All clear.</p>
           </div>
         </CardContent>
       </Card>

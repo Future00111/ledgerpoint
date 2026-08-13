@@ -35,6 +35,7 @@ export default function WorkspaceEngine({
   tabs = [],
   contextPanel = [],
   ask,
+  arrival,
 }) {
   useEffect(() => {
     if (open && type) {
@@ -78,6 +79,7 @@ export default function WorkspaceEngine({
       tabs={tabsConfig}
       loading={loading}
       ask={ask}
+      arrival={arrival}
       contextPanel={panel}
     />
   );

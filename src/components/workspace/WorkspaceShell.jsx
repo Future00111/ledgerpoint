@@ -1,9 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Sparkles, Loader2 } from 'lucide-react';
+import { Send, Sparkles, Loader2, Search, X } from 'lucide-react';
 import WorkspaceHeader from './WorkspaceHeader';
 import SummaryStat from './SummaryStat';
 import WorkspaceSkeleton from './WorkspaceSkeleton';
@@ -16,11 +16,16 @@ import { useWorkspaceAsk } from './useWorkspaceAsk';
 // right context panel when provided) → Ask bar. Summary cards that carry a
 // `tab` value switch the active tab when clicked. Ask accepts suggested
 // questions that run immediately when tapped.
-export default function WorkspaceShell({ open, onOpenChange, header, summaryStats = [], tabs = [], ask, loading, contextPanel, executiveSummary }) {
+const HIGHLIGHT_TAB = { overdue: 'invoices', invoices: 'invoices', payments: 'payments', credit: 'overview', revenue: 'ai-insights', documents: 'documents', activity: 'activity', notes: 'notes' };
+const HIGHLIGHT_LABEL = { overdue: 'showing overdue invoices', invoices: 'showing invoices', payments: 'showing payments', credit: 'showing credit information', revenue: 'showing revenue analysis', documents: 'showing documents', activity: 'showing activity' };
+
+export default function WorkspaceShell({ open, onOpenChange, header, summaryStats = [], tabs = [], ask, loading, contextPanel, executiveSummary, arrival }) {
   const askRef = useRef(null);
   const { answer, loading: askLoading, run } = useWorkspaceAsk();
   const [q, setQ] = useState('');
-  const [activeTab, setActiveTab] = useState(tabs[0]?.value);
+  const [activeTab, setActiveTab] = useState(arrival?.highlight ? (HIGHLIGHT_TAB[arrival.highlight] || tabs[0]?.value) : tabs[0]?.value);
+  const [arrivalDismissed, setArrivalDismissed] = useState(false);
+  useEffect(() => { setArrivalDismissed(false); }, [arrival]);
 
   const focusAsk = () => askRef.current?.focus();
   const submitAsk = (question) => {
@@ -60,11 +65,24 @@ export default function WorkspaceShell({ open, onOpenChange, header, summaryStat
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          {arrival && !arrivalDismissed && (
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+              <span className="text-xs text-primary inline-flex items-center gap-1.5 min-w-0">
+                <Search className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">
+                  {arrival.source === 'ask' ? 'Arrived via Ask' : 'Search result'}{arrival.query ? ` — “${arrival.query}”` : ''}{arrival.highlight ? ` · ${HIGHLIGHT_LABEL[arrival.highlight] || arrival.highlight}` : ''}
+                </span>
+              </span>
+              <button onClick={() => setArrivalDismissed(true)} className="text-muted-foreground hover:text-foreground flex-shrink-0" aria-label="Dismiss highlight">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
           {loading ? (
             <div className="space-y-4">
               <div className="h-24 rounded-xl border border-border bg-muted/30 animate-pulse" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                {Array.from({ length: 6 }).map((_, i) => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="h-20 rounded-xl border border-border bg-muted animate-pulse" />
                 ))}
               </div>
@@ -75,7 +93,7 @@ export default function WorkspaceShell({ open, onOpenChange, header, summaryStat
               {executiveSummary && <div>{executiveSummary}</div>}
 
               {summaryStats.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {summaryStats.map((s, i) => (
                     <SummaryStat
                       key={i}

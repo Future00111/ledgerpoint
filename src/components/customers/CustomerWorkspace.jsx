@@ -22,6 +22,7 @@ const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' 
 export default function CustomerWorkspace({
   customer, open, onOpenChange,
   onEdit, onArchive, onDuplicate, onExport, onMerge, onDelete,
+  arrival,
 }) {
   const { activeCompany } = useCompany();
   const nav = useNavigate();
@@ -96,8 +97,6 @@ export default function CustomerWorkspace({
   const outstandingInvoices = invoices.filter((i) => Number(i.balance_due) > 0);
   const overdueInvoices = outstandingInvoices.filter((i) => i.due_date && new Date(i.due_date) < now);
   const overdueTotal = overdueInvoices.reduce((s, i) => s + Number(i.balance_due || 0), 0);
-  const lastPayment = payments[0] || null;
-
   const payDays = [];
   payments.forEach((p) => {
     const inv = invoices.find((i) => i.id === p.linked_invoice_id);
@@ -170,28 +169,28 @@ export default function CustomerWorkspace({
       tone: 'positive',
       title: 'Customer Status',
       detail: revenue12m > 50000 ? 'One of your highest-value customers.'
-        : revenue12m > 0 ? 'A valued customer with ongoing activity.'
-        : outstanding > 0 ? 'A customer with an outstanding balance.'
-        : 'A new or quiet customer relationship.',
+        : revenue12m > 0 ? 'A valued, active customer.'
+        : outstanding > 0 ? 'Carries an outstanding balance.'
+        : 'A new customer relationship.',
     },
     {
       icon: revPct != null && revPct < 0 ? TrendingDown : TrendingUp,
       tone: revPct == null ? 'info' : revPct > 0 ? 'positive' : revPct < 0 ? 'warning' : 'info',
       title: 'Revenue',
       detail: revPct != null
-        ? (revPct > 0 ? `Revenue has increased ${revPct}% compared with last year.`
-          : revPct < 0 ? `Revenue has decreased ${Math.abs(revPct)}% compared with last year.`
-          : 'Revenue is in line with last year.')
-        : `Revenue of ${gbp.format(revenueYtd)} this year.`,
+        ? (revPct > 0 ? `${revPct}% higher than last year.`
+          : revPct < 0 ? `${Math.abs(revPct)}% lower than last year.`
+          : 'In line with last year.')
+        : `${gbp.format(revenueYtd)} this year.`,
     },
     {
       icon: FileText,
       tone: overdueInvoices.length > 0 ? 'critical' : outstandingInvoices.length > 0 ? 'info' : 'positive',
-      title: 'Outstanding Invoices',
+      title: 'Outstanding',
       detail: overdueInvoices.length > 0
-        ? `${overdueInvoices.length} invoice${overdueInvoices.length > 1 ? 's' : ''} overdue (${gbp.format(overdueTotal)}).`
+        ? `${overdueInvoices.length} overdue (${gbp.format(overdueTotal)}).`
         : outstandingInvoices.length > 0
-          ? `${outstandingInvoices.length} outstanding (${gbp.format(outstanding)}), none overdue.`
+          ? `${outstandingInvoices.length} outstanding (${gbp.format(outstanding)}).`
           : 'No outstanding invoices.',
     },
     {
@@ -199,18 +198,18 @@ export default function CustomerWorkspace({
       tone: avgPaymentDays == null ? 'info' : avgPaymentDays <= terms ? 'positive' : 'warning',
       title: 'Payment Behaviour',
       detail: avgPaymentDays != null
-        ? `Average payment time is ${avgPaymentDays} day${avgPaymentDays === 1 ? '' : 's'}.`
+        ? `Average payment ${avgPaymentDays} days.`
         : 'No payment history yet.',
     },
     {
       icon: ArrowRight,
       tone: (overdueInvoices.length > 0 || outstanding > 0) ? 'info' : 'positive',
-      title: 'Recommended Action',
+      title: 'Recommendation',
       detail: overdueInvoices.length > 0
-        ? 'Send a payment reminder for overdue invoices.'
+        ? 'Send a payment reminder.'
         : outstanding > 0
-          ? 'Record payment for outstanding invoices.'
-          : 'No immediate action is required.',
+          ? 'Record a payment.'
+          : 'No action needed.',
     },
   ];
 
@@ -270,12 +269,12 @@ export default function CustomerWorkspace({
     { label: 'Create Invoice', icon: Plus, onClick: () => { onOpenChange(false); nav('/invoices/new'); } },
     { label: 'Record Payment', icon: Wallet, onClick: () => { onOpenChange(false); nav('/transactions'); } },
     { label: 'Send Statement', icon: Send, onClick: mailtoStatement },
-    { label: 'Email', icon: Mail, onClick: mailtoEmail },
+    { label: 'Email Customer', icon: Mail, onClick: mailtoEmail },
     { label: 'Ask', icon: Sparkles, onClick: focusAsk },
-    { label: 'Edit Customer', icon: Pencil, onClick: () => { onOpenChange(false); onEdit?.(customer); } },
   ];
 
   const moreActions = [
+    { label: 'Edit Customer', icon: Pencil, onSelect: () => { onOpenChange(false); onEdit?.(customer); } },
     { label: 'Archive', icon: Archive, onSelect: () => onArchive?.(customer) },
     { label: 'Duplicate', icon: Copy, onSelect: () => onDuplicate?.(customer) },
     { label: 'Export', icon: Download, onSelect: () => onExport?.(customer) },
@@ -305,9 +304,7 @@ export default function CustomerWorkspace({
   const summaryStats = [
     { label: 'Outstanding Balance', value: gbp.format(outstanding), tone: outstanding > 0 ? 'rose' : 'emerald', tab: 'invoices', helper: 'Click to view outstanding invoices' },
     { label: 'Revenue (12 Months)', value: gbp.format(revenue12m), tab: 'ai-insights', helper: 'Click to view revenue analysis' },
-    { label: 'Outstanding Invoices', value: String(outstandingInvoices.length), tab: 'invoices', helper: 'Click to view outstanding invoices' },
     { label: 'Average Payment Days', value: avgPaymentDays != null ? `${avgPaymentDays} days` : '—', tab: 'payments', helper: 'Click to view payment history' },
-    { label: 'Last Payment', value: lastPayment ? gbp.format(Number(lastPayment.money_in) || 0) : '—', tab: 'payments', helper: 'Click to view payment details' },
     { label: 'Credit Remaining', value: creditRemaining != null ? gbp.format(creditRemaining) : 'No limit', tone: creditRemainingTone, tab: 'overview', helper: 'Click to view credit information' },
   ];
 
@@ -420,11 +417,12 @@ export default function CustomerWorkspace({
       executiveSummary={{ kind: 'executive-summary', insights }}
       summaryStats={summaryStats}
       tabs={tabs}
+      arrival={arrival}
       ask={{
         placeholder: `Ask about ${customer.name}…`,
         context: customerContext,
         companyId: activeCompany?.id,
-        suggestions: ['Summarise this customer', 'Create invoice', 'Show overdue invoices', 'Email statement', 'Explain payment history', 'Why has revenue changed?'],
+        suggestions: ['Summarise this customer', 'Show overdue invoices', 'Create invoice', 'Email statement', 'Explain revenue trend'],
       }}
     />
   );
