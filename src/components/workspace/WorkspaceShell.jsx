@@ -19,7 +19,7 @@ import { useWorkspaceAsk } from './useWorkspaceAsk';
 const HIGHLIGHT_TAB = { overdue: 'invoices', invoices: 'invoices', payments: 'payments', credit: 'overview', revenue: 'ai-insights', documents: 'documents', activity: 'activity', notes: 'notes' };
 const HIGHLIGHT_LABEL = { overdue: 'showing overdue invoices', invoices: 'showing invoices', payments: 'showing payments', credit: 'showing credit information', revenue: 'showing revenue analysis', documents: 'showing documents', activity: 'showing activity' };
 
-export default function WorkspaceShell({ open, onOpenChange, header, summaryStats = [], tabs = [], ask, loading, contextPanel, executiveSummary, primaryActions, arrival }) {
+export default function WorkspaceShell({ open, onOpenChange, header, summaryStats = [], tabs = [], ask, loading, contextPanel, executiveSummary, primaryActions, arrival, layout = 'tabs', leftCards, rightCards }) {
   const askRef = useRef(null);
   const { answer, loading: askLoading, run } = useWorkspaceAsk();
   const [q, setQ] = useState('');
@@ -98,7 +98,17 @@ export default function WorkspaceShell({ open, onOpenChange, header, summaryStat
     </>
   );
 
-  const bodyEl = contextPanel ? (
+  const columnsBody = (
+    <div className="grid md:grid-cols-[3fr_2fr] lg:grid-cols-[7fr_3fr] gap-4 items-start">
+      <div className="min-w-0 space-y-4">{leftCards}</div>
+      <aside className="space-y-4 lg:sticky lg:top-1 self-start min-w-0 lg:max-h-[calc(92vh-4rem)] lg:overflow-y-auto pr-0.5">
+        {rightCards}
+        {askEl}
+      </aside>
+    </div>
+  );
+
+  const bodyEl = layout === 'columns' ? columnsBody : contextPanel ? (
     <div className="grid md:grid-cols-[3fr_2fr] lg:grid-cols-[7fr_3fr] gap-3 items-start">
       <div className="min-w-0 space-y-3">{leftCol}</div>
       <aside className="space-y-3 lg:sticky lg:top-1 self-start min-w-0 lg:max-h-[calc(92vh-4rem)] lg:overflow-y-auto pr-0.5">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Link2 } from 'lucide-react';
+import { Link2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import WorkspaceEmptyState from '../WorkspaceEmptyState';
 
@@ -63,6 +63,15 @@ export default function RelatedRecordsCard({ sections = [] }) {
                   </div>
                 ))}
               </div>
+              {s.footer && (
+                <button
+                  type="button"
+                  onClick={s.footer.onClick}
+                  className="mt-3 w-full text-xs text-primary inline-flex items-center justify-end gap-1 hover:underline"
+                >
+                  {s.footer.label} <ArrowRight className="w-3 h-3" />
+                </button>
+              )}
             </CardContent>
           </Card>
         ) : null

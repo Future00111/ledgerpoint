@@ -46,12 +46,39 @@ export default function WorkspaceEngine({
   ask,
   primaryActions,
   arrival,
+  layout = 'tabs',
+  leftCards = [],
+  rightCards = [],
 }) {
   useEffect(() => {
     if (open && type) {
       base44.analytics?.track?.({ eventName: 'workspace_opened', properties: { workspace_type: type } });
     }
   }, [open, type]);
+
+  // Single-scroll two-column layout (no tabs): ordered left working column and
+  // a sticky right context column. Used by the redesigned customer profile.
+  if (layout === 'columns') {
+    const leftNodes = (leftCards || []).map((c, i) => (
+      <div key={i}><SafeCard card={c} /></div>
+    ));
+    const rightNodes = (rightCards || []).map((c, i) => (
+      <div key={i}><SafeCard card={c} /></div>
+    ));
+    return (
+      <WorkspaceShell
+        open={open}
+        onOpenChange={onOpenChange}
+        header={header}
+        loading={loading}
+        ask={ask}
+        arrival={arrival}
+        layout="columns"
+        leftCards={leftNodes}
+        rightCards={rightNodes}
+      />
+    );
+  }
 
   const tabsConfig = tabs.map((t) => {
     const value = t.value || t.label.toLowerCase().replace(/\s+/g, '-');
