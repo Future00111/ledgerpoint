@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/components/ui/use-toast';
 import { FileText, Plus, Search, Eye, Pencil, Trash2, Send, CheckCircle2 } from 'lucide-react';
 import moment from 'moment';
-import InvoiceView from '@/components/invoices/InvoiceView';
-
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
 const statusColors = {
@@ -29,8 +27,7 @@ export default function Invoices() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [viewing, setViewing] = useState(null);
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -69,7 +66,7 @@ export default function Invoices() {
     catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
   };
 
-  const openView = (inv) => { setViewing(inv); setDetailsOpen(true); };
+  const openView = (inv) => { navigate(`/invoices/${inv.id}/view`); };
 
   const filtered = invoices.filter(i => {
     const matchSearch = i.invoice_number?.toLowerCase().includes(search.toLowerCase()) ||
@@ -165,7 +162,6 @@ export default function Invoices() {
         </div>
       )}
 
-      <InvoiceView invoice={viewing} open={detailsOpen} onOpenChange={setDetailsOpen} />
     </div>
   );
 }
