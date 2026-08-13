@@ -15,6 +15,8 @@ import { useFavourite } from '@/components/workspace/useFavourite';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
+const PREDEFINED_TAGS = ['VIP', 'Fleet', 'Trade', 'Cash Account', 'High Risk', 'Credit Hold', 'Monthly Account', 'Key Account', 'Warranty Customer', 'Repeat Customer'];
+
 // =============================================================================
 // Customer Workspace — 70/30 command centre (Sprint 39).
 // Left (70%, working area): Recommended Actions · Executive Summary · KPIs ·
@@ -38,11 +40,16 @@ export default function CustomerWorkspace({
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState('');
+  const [tagsState, setTagsState] = useState([]);
   const [favourite, toggleFavourite] = useFavourite(customer?.id);
 
   useEffect(() => {
     setNotes(customer?.notes || '');
   }, [customer?.id, customer?.notes]);
+
+  useEffect(() => {
+    setTagsState(Array.isArray(customer?.tags) ? customer.tags : []);
+  }, [customer?.id, customer?.tags]);
 
   useEffect(() => {
     if (!open || !customer) return;
@@ -102,6 +109,9 @@ export default function CustomerWorkspace({
   const outstanding = outstandingInvoices.reduce((s, i) => s + Number(i.balance_due || 0), 0);
   const overdueInvoices = outstandingInvoices.filter((i) => i.due_date && new Date(i.due_date) < now);
   const overdueTotal = overdueInvoices.reduce((s, i) => s + Number(i.balance_due || 0), 0);
+  const oldestOverdueDays = overdueInvoices.length > 0
+    ? Math.max(...overdueInvoices.map((i) => Math.floor((now - new Date(i.due_date)) / 86400000)))
+    : 0;
   const payDays = [];
   payments.forEach((p) => {
     const inv = invoices.find((i) => i.id === p.linked_invoice_id);
@@ -246,22 +256,7 @@ export default function CustomerWorkspace({
 
   const aiInsightsPrompt = `You are an accounting analyst. Using only the Ledgerly customer data in context, write an executive analysis covering: revenue trends, payment behaviour, customer profitability, late payment trends, suggested actions, potential risks, and potential opportunities. For EACH point explain WHY using the actual figures from the data. Avoid generic advice. Use short bullet points, each with a one-line takeaway. End with "Recommended next action: …".`;
 
-  // ---- What needs attention ------------------------------------------------
-  const attentionItems = [];
-  if (overdueInvoices.length > 0) {
-    attentionItems.push({ label: `${overdueInvoices.length} overdue invoice${overdueInvoices.length > 1 ? 's' : ''}`, detail: `${gbp.format(overdueTotal)} overdue`, severity: 'critical', onClick: () => { onOpenChange(false); nav('/invoices'); } });
-  }
-  if (creditExceeded) {
-    attentionItems.push({ label: 'Credit limit exceeded', detail: `${gbp.format(outstanding)} owed vs ${gbp.format(customer.credit_limit)} limit`, severity: 'critical', onClick: () => { onOpenChange(false); onEdit?.(customer); } });
-  }
-  if (overdueInvoices.length === 0 && outstandingInvoices.length > 0) {
-    attentionItems.push({ label: `${outstandingInvoices.length} outstanding invoice${outstandingInvoices.length > 1 ? 's' : ''}`, detail: `${gbp.format(outstanding)} outstanding`, severity: 'warning', onClick: () => { onOpenChange(false); nav('/invoices'); } });
-  }
-  if (documents.length === 0) {
-    attentionItems.push({ label: 'No documents on file', detail: 'Upload invoices or statements to keep records complete', severity: 'info', onClick: () => { onOpenChange(false); nav('/documents'); } });
-  }
-
-  // ---- Handlers ------------------------------------------------------------
+  // ---- Handlers (email / call / notes / tags) -----------------------------
   const focusAsk = () => document.getElementById('workspace-ask-input')?.focus();
   const mailtoReminder = () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Reminder — outstanding invoice')}`; };
   const mailtoStatement = () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Account Statement — ' + customer.name)}&body=${encodeURIComponent(statementBody)}`; };
@@ -277,6 +272,58 @@ export default function CustomerWorkspace({
       toast({ title: 'Could not save notes', variant: 'destructive' });
     }
   };
+
+  const saveTags = async (next) => {
+    try {
+      await base44.entities.Customer.update(customer.id, { tags: next });
+      setTagsState(next);
+    } catch (e) {
+      toast({ title: 'Could not update tags', variant: 'destructive' });
+    }
+  };
+  const toggleTag = (t) => {
+    const set = new Set(tagsState);
+    if (set.has(t)) set.delete(t); else set.add(t);
+    saveTags(Array.from(set));
+  };
+  const addTag = (t) => { if (t && !tagsState.includes(t)) saveTags([...tagsState, t]); };
+  const removeTag = (t) => saveTags(tagsState.filter((x) => x !== t));
+  const applyCreditHold = async () => {
+    if (!tagsState.includes('Credit Hold')) await saveTags([...tagsState, 'Credit Hold']);
+    onOpenChange(false);
+    onEdit?.(customer);
+  };
+
+  // ---- Smart Collections engine (staged, proactive) -----------------------
+  const collectionsItems = [];
+  if (overdueInvoices.length > 0) {
+    let stage, stageLabel, onClick, severity;
+    if (oldestOverdueDays > 60) { stage = 4; stageLabel = 'Place account on hold'; onClick = applyCreditHold; severity = 'critical'; }
+    else if (oldestOverdueDays > 30) { stage = 3; stageLabel = 'Schedule phone call'; onClick = callCustomer; severity = 'critical'; }
+    else if (oldestOverdueDays > 14) { stage = 2; stageLabel = 'Send statement'; onClick = mailtoStatement; severity = 'warning'; }
+    else { stage = 1; stageLabel = 'Send reminder'; onClick = mailtoReminder; severity = 'warning'; }
+    collectionsItems.push({
+      label: `Collections · Stage ${stage}: ${stageLabel}`,
+      detail: `${gbp.format(overdueTotal)} overdue · oldest ${oldestOverdueDays} days`,
+      severity,
+      onClick,
+    });
+  }
+
+  // ---- What needs attention ------------------------------------------------
+  const attentionItems = [...collectionsItems];
+  if (overdueInvoices.length > 0) {
+    attentionItems.push({ label: `${overdueInvoices.length} overdue invoice${overdueInvoices.length > 1 ? 's' : ''}`, detail: `${gbp.format(overdueTotal)} overdue`, severity: 'critical', onClick: () => { onOpenChange(false); nav('/invoices'); } });
+  }
+  if (creditExceeded) {
+    attentionItems.push({ label: 'Credit limit exceeded', detail: `${gbp.format(outstanding)} owed vs ${gbp.format(customer.credit_limit)} limit`, severity: 'critical', onClick: () => { onOpenChange(false); onEdit?.(customer); } });
+  }
+  if (overdueInvoices.length === 0 && outstandingInvoices.length > 0) {
+    attentionItems.push({ label: `${outstandingInvoices.length} outstanding invoice${outstandingInvoices.length > 1 ? 's' : ''}`, detail: `${gbp.format(outstanding)} outstanding`, severity: 'warning', onClick: () => { onOpenChange(false); nav('/invoices'); } });
+  }
+  if (documents.length === 0) {
+    attentionItems.push({ label: 'No documents on file', detail: 'Upload invoices or statements to keep records complete', severity: 'info', onClick: () => { onOpenChange(false); nav('/documents'); } });
+  }
 
   // ---- What should I do next (dynamic, directly below header) --------------
   const primary = overdueInvoices.length > 0
@@ -431,9 +478,56 @@ export default function CustomerWorkspace({
     },
   ];
 
+  // ---- Relationship intelligence (data-driven CRM signals) ---------------
+  const created = customer.created_date ? new Date(customer.created_date) : null;
+  let relationshipAge = '—';
+  if (created) {
+    const months = (now.getFullYear() - created.getFullYear()) * 12 + (now.getMonth() - created.getMonth());
+    const yrs = Math.floor(months / 12);
+    const mos = months % 12;
+    relationshipAge = yrs > 0 ? `${yrs} yr${yrs > 1 ? 's' : ''}${mos > 0 ? ' ' + mos + ' mo' : ''}` : `${mos} mo`;
+  }
+
+  let customerValue, customerValueTone;
+  if (revenue12m >= 50000) { customerValue = 'Strategic'; customerValueTone = 'primary'; }
+  else if (revenue12m >= 20000) { customerValue = 'High Value'; customerValueTone = 'emerald'; }
+  else if (revenue12m > 0) { customerValue = 'Standard'; customerValueTone = 'muted'; }
+  else { customerValue = 'Low Activity'; customerValueTone = 'amber'; }
+
+  let paymentRisk, paymentRiskTone;
+  if (overdueInvoices.length === 0) { paymentRisk = 'Low Risk'; paymentRiskTone = 'emerald'; }
+  else if (oldestOverdueDays > 60 || creditExceeded || (outstanding > 0 && overdueTotal / outstanding > 0.5)) { paymentRisk = 'High Risk'; paymentRiskTone = 'rose'; }
+  else { paymentRisk = 'Medium Risk'; paymentRiskTone = 'amber'; }
+
+  let buyingTrend, buyingTrendTone;
+  if (revenue12m === 0 && invoices.length === 0) { buyingTrend = 'Inactive'; buyingTrendTone = 'muted'; }
+  else if (revenueLastYear === 0 && revenueYtd > 0) { buyingTrend = 'New'; buyingTrendTone = 'primary'; }
+  else if (revPct == null) { buyingTrend = 'Steady'; buyingTrendTone = 'muted'; }
+  else if (revPct > 10) { buyingTrend = 'Increasing'; buyingTrendTone = 'emerald'; }
+  else if (revPct < -10) { buyingTrend = 'Declining'; buyingTrendTone = 'rose'; }
+  else { buyingTrend = 'Steady'; buyingTrendTone = 'muted'; }
+
+  const lastInvoiceDate = invoices.length > 0
+    ? invoices.map((i) => i.issue_date).filter(Boolean).sort().pop()
+    : null;
+  const commsCount = (notes ? 1 : 0) + documents.length + payments.length;
+  const comms = commsCount > 0
+    ? `${commsCount} interaction${commsCount > 1 ? 's' : ''}${lastInvoiceDate ? ' · last ' + lastInvoiceDate : ''}`
+    : 'No communication recorded.';
+
+  const opportunities = [];
+  if (customerValue === 'Strategic') opportunities.push({ tone: 'primary', text: 'Strategic account — schedule a quarterly review.' });
+  if (buyingTrend === 'Increasing') opportunities.push({ tone: 'positive', text: 'Growing spend — propose an annual contract.' });
+  if (invoices.length >= 5 && paymentRisk === 'Low Risk') opportunities.push({ tone: 'positive', text: 'Loyal, reliable customer — upsell premium services.' });
+  if (overdueInvoices.length > 0) opportunities.push({ tone: 'critical', text: 'Overdue balance — prioritise collections.' });
+  if (revenue12m === 0 && invoices.length > 0) opportunities.push({ tone: 'warning', text: 'No recent sales — run a re-engagement campaign.' });
+  if (opportunities.length === 0) opportunities.push({ tone: 'info', text: 'Maintain regular contact to grow the relationship.' });
+
   // ---- Right context panel (sticky) --------------------------------------
   const contextPanel = [
     { kind: 'customer-health', score: health, label: healthLabel, tone: healthTone, historical, current: currentStatus, currentTone },
+    { kind: 'relationship-intelligence', value: customerValue, valueTone: customerValueTone, relationshipAge, risk: paymentRisk, riskTone: paymentRiskTone, trend: buyingTrend, trendTone: buyingTrendTone, comms, opportunities },
+    { kind: 'customer-tags', tags: tagsState, predefined: PREDEFINED_TAGS, onToggle: toggleTag, onAdd: addTag, onRemove: removeTag },
     { kind: 'timeline', events: timeline.slice(0, 8), maxHeight: '18rem' },
     { kind: 'profile', title: customer.name, subtitle: customer.status === 'active' ? 'Active customer' : 'Inactive customer', fields: profileFields, actions: contactActions },
   ];

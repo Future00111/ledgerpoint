@@ -70,6 +70,14 @@
       "type": "number",
       "default": 0
     },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Custom and predefined customer tags (VIP, Fleet, Credit Hold, etc.)"
+    },
     "notes": {
       "type": "string"
     }
