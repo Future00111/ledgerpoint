@@ -83,7 +83,6 @@ export default function CustomerWorkspace({
   if (!customer) return null;
 
   // ---- Derived metrics ------------------------------------------------------
-  const outstanding = Number(customer.outstanding_balance || 0);
   const now = new Date();
   const twelveAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
   const revenue12m = invoices
@@ -98,7 +97,9 @@ export default function CustomerWorkspace({
   const revenueLastYear = invoices
     .filter((i) => i.issue_date && new Date(i.issue_date) >= lastYearStart && new Date(i.issue_date) <= lastYearEnd)
     .reduce((s, i) => s + Number(i.total || 0), 0);
-  const outstandingInvoices = invoices.filter((i) => Number(i.balance_due) > 0);
+  const validInvoices = invoices.filter((i) => i.status !== 'cancelled');
+  const outstandingInvoices = validInvoices.filter((i) => Number(i.balance_due) > 0);
+  const outstanding = outstandingInvoices.reduce((s, i) => s + Number(i.balance_due || 0), 0);
   const overdueInvoices = outstandingInvoices.filter((i) => i.due_date && new Date(i.due_date) < now);
   const overdueTotal = overdueInvoices.reduce((s, i) => s + Number(i.balance_due || 0), 0);
   const payDays = [];
@@ -122,14 +123,14 @@ export default function CustomerWorkspace({
 
   const terms = customer.payment_terms || 30;
 
-  // ---- Customer health ------------------------------------------------------
+  // ---- Customer health (historical + current) ------------------------------
   let health = 100;
   if (invoices.length === 0) {
     health = 50;
   } else {
-    if (creditExceeded) health -= 30;
+    if (avgPaymentDays != null && avgPaymentDays > terms) health -= 10;
     if (overdueInvoices.length > 0) health -= 20;
-    if (avgPaymentDays != null && avgPaymentDays > terms) health -= 15;
+    if (creditExceeded) health -= 20;
   }
   health = Math.max(0, Math.min(100, health));
   let healthLabel, healthTone;
@@ -138,37 +139,52 @@ export default function CustomerWorkspace({
   else if (health >= 50) { healthLabel = 'Monitor'; healthTone = 'amber'; }
   else if (health >= 35) { healthLabel = 'Needs Attention'; healthTone = 'amber'; }
   else { healthLabel = 'At Risk'; healthTone = 'rose'; }
-  const payerDesc = avgPaymentDays == null ? 'New customer' : avgPaymentDays <= terms ? 'Reliable payer' : 'Slower payer';
-  const revenueDesc = revenueLastYear > 0
-    ? (revenueYtd > revenueLastYear ? 'increasing revenue' : revenueYtd < revenueLastYear ? 'declining revenue' : 'steady revenue')
-    : 'building revenue';
-  const healthExplanation = `${payerDesc} with ${revenueDesc}${overdueInvoices.length > 0 ? ', with overdue invoices' : ''}.`;
 
-  // ---- Timeline (rich, clickable, typed events) -----------------------------
+  const historical = invoices.length === 0
+    ? 'New customer — no payment history yet.'
+    : avgPaymentDays == null
+      ? 'No payments recorded yet.'
+      : `Reliable payer with average payment time of ${avgPaymentDays} day${avgPaymentDays === 1 ? '' : 's'}.`;
+
+  let currentStatus, currentTone;
+  if (overdueInvoices.length > 0) {
+    currentStatus = `Attention required — ${gbp.format(overdueTotal)} overdue across ${overdueInvoices.length} invoice${overdueInvoices.length > 1 ? 's' : ''}.`;
+    currentTone = 'rose';
+  } else if (outstanding > 0) {
+    currentStatus = `${gbp.format(outstanding)} outstanding across ${outstandingInvoices.length} invoice${outstandingInvoices.length > 1 ? 's' : ''}.`;
+    currentTone = 'amber';
+  } else {
+    currentStatus = 'No outstanding balance.';
+    currentTone = 'emerald';
+  }
+  const healthExplanation = `${historical} ${currentStatus}`;
+
+  // ---- Timeline (rich, clickable, typed events with reference) -------------
   const timeline = [
     ...(customer.created_date
-      ? [{ date: customer.created_date.slice(0, 10), text: 'Customer created', kind: 'created', amount: null, status: 'Created', onClick: null }]
+      ? [{ date: customer.created_date.slice(0, 10), type: 'Customer created', reference: null, kind: 'created', amount: null, status: 'Created', onClick: null }]
       : []),
     ...invoices.flatMap((i) => {
-      const evs = [{ date: i.issue_date, text: `Invoice ${i.invoice_number} created`, amount: i.total, kind: 'invoice', status: i.status || 'Issued', onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } }];
+      const evs = [{ date: i.issue_date, type: 'Invoice created', reference: i.invoice_number, amount: i.total, kind: 'invoice', status: i.status || 'Issued', onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } }];
       if (i.posted_date && ['approved', 'sent', 'part_paid', 'paid'].includes(i.status)) {
-        evs.push({ date: i.posted_date.slice(0, 10), text: `Invoice ${i.invoice_number} approved`, amount: null, kind: 'invoice_approved', status: 'Approved', onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } });
+        evs.push({ date: i.posted_date.slice(0, 10), type: 'Invoice approved', reference: i.invoice_number, amount: null, kind: 'invoice_approved', status: 'Approved', onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } });
       }
       if (['sent', 'part_paid', 'paid'].includes(i.status)) {
-        evs.push({ date: (i.posted_date || i.issue_date).slice(0, 10), text: `Invoice ${i.invoice_number} sent`, amount: null, kind: 'invoice_sent', status: 'Sent', onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } });
+        evs.push({ date: (i.posted_date || i.issue_date).slice(0, 10), type: 'Invoice sent', reference: i.invoice_number, amount: null, kind: 'invoice_sent', status: 'Sent', onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } });
       }
       return evs;
     }),
     ...payments.map((p) => ({
       date: p.date,
-      text: `Payment received${p.matched_record_number ? ` · ${p.matched_record_number}` : ''}`,
+      type: 'Payment received',
+      reference: p.matched_record_number || null,
       amount: p.money_in,
       kind: 'payment',
       status: 'Received',
       onClick: () => { onOpenChange(false); nav('/transactions'); },
     })),
-    ...creditNotes.map((c) => ({ date: c.credit_note_date, text: `Credit note ${c.credit_note_number}`, amount: c.total, kind: 'credit_note', status: c.status || 'Issued', onClick: () => { onOpenChange(false); nav('/sales-credit-notes'); } })),
-    ...documents.map((d) => ({ date: d.upload_date, text: `Document uploaded: ${d.name}`, amount: null, kind: 'document', status: d.status || 'Uploaded', onClick: () => { onOpenChange(false); nav('/documents'); } })),
+    ...creditNotes.map((c) => ({ date: c.credit_note_date, type: 'Credit note issued', reference: c.credit_note_number, amount: c.total, kind: 'credit_note', status: c.status || 'Issued', onClick: () => { onOpenChange(false); nav('/sales-credit-notes'); } })),
+    ...documents.map((d) => ({ date: d.upload_date, type: 'Document uploaded', reference: d.name, amount: null, kind: 'document', status: d.status || 'Uploaded', onClick: () => { onOpenChange(false); nav('/documents'); } })),
   ].filter((e) => e.date).sort((a, b) => (a.date < b.date ? 1 : -1));
 
   const address = [customer.address_line_1, customer.address_line_2, customer.city, customer.county, customer.postcode, customer.country].filter(Boolean).join(', ');
@@ -335,8 +351,8 @@ export default function CustomerWorkspace({
   // ---- Customer profile + contact quick actions --------------------------
   const profileFields = [
     { icon: FileText, label: 'Primary Contact', value: customer.contact_name },
-    { icon: Mail, label: 'Email', value: customer.email },
-    { icon: Phone, label: 'Telephone', value: customer.phone },
+    { icon: Mail, label: 'Email', value: customer.email, onClick: customer.email ? mailtoEmail : null },
+    { icon: Phone, label: 'Telephone', value: customer.phone, onClick: customer.phone ? callCustomer : null },
     { icon: MapPin, label: 'Address', value: address },
     { icon: PoundSterling, label: 'VAT Number', value: customer.vat_number },
     { icon: CreditCard, label: 'Payment Terms', value: customer.payment_terms ? `${customer.payment_terms} days` : '' },
@@ -417,8 +433,8 @@ export default function CustomerWorkspace({
 
   // ---- Right context panel (sticky) --------------------------------------
   const contextPanel = [
-    { kind: 'customer-health', score: health, label: healthLabel, tone: healthTone, explanation: healthExplanation },
-    { kind: 'timeline', events: timeline.slice(0, 8) },
+    { kind: 'customer-health', score: health, label: healthLabel, tone: healthTone, historical, current: currentStatus, currentTone },
+    { kind: 'timeline', events: timeline.slice(0, 8), maxHeight: '18rem' },
     { kind: 'profile', title: customer.name, subtitle: customer.status === 'active' ? 'Active customer' : 'Inactive customer', fields: profileFields, actions: contactActions },
   ];
 

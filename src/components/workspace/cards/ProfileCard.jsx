@@ -1,12 +1,15 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const initials = (name) =>
   (name || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
 // Reusable Profile widget — avatar, name, role, a two-column field grid, and
-// optional quick actions (e.g. Email / Call / Edit) rendered as a button row.
+// optional quick actions. Fields with an `onClick` (e.g. email / telephone)
+// become fully clickable, keyboard-accessible rows so the user never has to
+// hunt for a tiny link.
 export default function ProfileCard({ title, subtitle, fields = [], actions = [], children }) {
   return (
     <Card className="border shadow-sm">
@@ -21,15 +24,30 @@ export default function ProfileCard({ title, subtitle, fields = [], actions = []
           </div>
         </div>
         <div className="grid sm:grid-cols-2 gap-x-5 gap-y-2.5">
-          {fields.map((f, i) => (
-            <div key={i} className="flex items-start gap-2.5">
-              {f.icon && <f.icon className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />}
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">{f.label}</p>
-                <p className="text-sm font-medium break-words">{f.value || '—'}</p>
+          {fields.map((f, i) => {
+            const clickable = !!f.onClick && !!f.value;
+            return (
+              <div
+                key={i}
+                role={clickable ? 'button' : undefined}
+                tabIndex={clickable ? 0 : undefined}
+                onClick={clickable ? f.onClick : undefined}
+                onKeyDown={clickable ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); f.onClick(); }
+                } : undefined}
+                className={cn(
+                  'flex items-start gap-2.5 rounded-md -mx-1 px-1 py-1',
+                  clickable && 'cursor-pointer hover:bg-muted/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                )}
+              >
+                {f.icon && <f.icon className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />}
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">{f.label}</p>
+                  <p className="text-sm font-medium break-words">{f.value || '—'}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         {actions.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-border">

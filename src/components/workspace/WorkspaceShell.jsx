@@ -40,9 +40,9 @@ export default function WorkspaceShell({ open, onOpenChange, header, summaryStat
 
   const tabsEl = tabs.length > 0 ? (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="w-full justify-start overflow-x-auto h-auto flex-wrap gap-1 bg-transparent p-0">
+      <TabsList className="w-full justify-start overflow-x-auto h-auto gap-1 bg-transparent p-0 flex-nowrap">
         {tabs.map((t) => (
-          <TabsTrigger key={t.value} value={t.value} className="gap-1.5 rounded-md px-2.5 py-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm hover:bg-muted">
+          <TabsTrigger key={t.value} value={t.value} className="shrink-0 gap-1.5 rounded-md px-2.5 py-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm hover:bg-muted">
             {t.icon && <t.icon className="w-3.5 h-3.5" />}
             {t.label}
           </TabsTrigger>
@@ -101,7 +101,7 @@ export default function WorkspaceShell({ open, onOpenChange, header, summaryStat
   const bodyEl = contextPanel ? (
     <div className="grid md:grid-cols-[3fr_2fr] lg:grid-cols-[7fr_3fr] gap-3 items-start">
       <div className="min-w-0 space-y-3">{leftCol}</div>
-      <aside className="space-y-3 lg:sticky lg:top-1 self-start min-w-0 lg:max-h-[calc(92vh-5rem)] lg:overflow-y-auto pr-0.5">
+      <aside className="space-y-3 lg:sticky lg:top-1 self-start min-w-0">
         {contextPanel}
         {askEl}
       </aside>

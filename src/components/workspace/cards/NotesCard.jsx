@@ -60,7 +60,13 @@ export default function NotesCard({ value = '', onChange, onSave, updatedDate, e
             </Button>
           </div>
         ) : hasNotes ? (
-          <div>
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setEditing(true)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditing(true); } }}
+            className="cursor-pointer hover:bg-muted/30 rounded-md -mx-1 px-1 py-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
             <p className="text-sm whitespace-pre-wrap">{preview}</p>
             {updatedDate && <p className="text-xs text-muted-foreground mt-1.5">Last updated {String(updatedDate).slice(0, 10)}</p>}
           </div>
