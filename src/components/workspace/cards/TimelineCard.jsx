@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   FileText, CreditCard, FileMinus, Paperclip, UserPlus, Bot, CalendarClock,
-  Mail, StickyNote, Sparkles, ArrowRight,
+  Mail, StickyNote, Sparkles, ArrowRight, CheckCircle2, Send, Bell, MailOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import WorkspaceEmptyState from '../WorkspaceEmptyState';
@@ -12,18 +12,25 @@ const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' 
 
 const ICONS = {
   invoice: FileText,
+  invoice_approved: CheckCircle2,
+  invoice_sent: Send,
   payment: CreditCard,
   credit_note: FileMinus,
   document: Paperclip,
   created: UserPlus,
   automation: Bot,
   email: Mail,
+  email_opened: MailOpen,
   note: StickyNote,
+  note_added: StickyNote,
+  reminder_sent: Bell,
+  statement_sent: FileText,
   ai: Sparkles,
 };
 
-// Reusable Timeline widget — rich chronological activity cards. Each item can
-// carry a status badge, an amount and an onClick that opens the related record.
+// Reusable Timeline widget — rich chronological activity. Each item carries an
+// event-type icon, title, status badge, date and optional amount, and is
+// clickable to open the related record (One Click Rule).
 export default function TimelineCard({ events = [] }) {
   if (!events.length) {
     return (
@@ -37,8 +44,8 @@ export default function TimelineCard({ events = [] }) {
 
   return (
     <Card className="border shadow-sm">
-      <CardContent className="p-4">
-        <ol className="relative border-l border-border ml-3 space-y-3 pl-6">
+      <CardContent className="p-3.5">
+        <ol className="relative border-l border-border ml-3 space-y-2.5 pl-6">
           {events.map((e, i) => {
             const Icon = ICONS[e.kind] || CalendarClock;
             return (

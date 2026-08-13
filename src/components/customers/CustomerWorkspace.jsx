@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import {
   Mail, Phone, MapPin, FileText, CreditCard, PoundSterling,
   Plus, Wallet, Send, Pencil, Archive, Copy, Download, GitMerge, Trash2,
   Bell, Sparkles, UserCheck, TrendingUp, TrendingDown, ArrowRight,
+  LayoutDashboard, Receipt, ArrowLeftRight, FileMinus, Paperclip, StickyNote, Rss,
 } from 'lucide-react';
 
 import WorkspaceEngine from '@/components/workspace/WorkspaceEngine';
@@ -16,8 +16,12 @@ import { useFavourite } from '@/components/workspace/useFavourite';
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
 // =============================================================================
-// Customer Workspace — premium, familiar accounting layout, intelligent by
-// default. Declared as config for the Workspace Engine. See 19-workspace.md.
+// Customer Workspace — 70/30 command centre (Sprint 39).
+// Left (70%, working area): Recommended Actions · Executive Summary · KPIs ·
+//   tabbed detail (Overview / Invoices / Payments / Credit Notes / Documents /
+//   Notes / Activity / AI Insights).
+// Right (30%, sticky context): Customer Health · Timeline · Contact · Ask.
+// All existing functionality preserved — full lists remain on their tabs.
 // =============================================================================
 export default function CustomerWorkspace({
   customer, open, onOpenChange,
@@ -140,12 +144,21 @@ export default function CustomerWorkspace({
     : 'building revenue';
   const healthExplanation = `${payerDesc} with ${revenueDesc}${overdueInvoices.length > 0 ? ', with overdue invoices' : ''}.`;
 
-  // ---- Timeline (rich, clickable) ----------------------------------------
+  // ---- Timeline (rich, clickable, typed events) -----------------------------
   const timeline = [
     ...(customer.created_date
       ? [{ date: customer.created_date.slice(0, 10), text: 'Customer created', kind: 'created', amount: null, status: 'Created', onClick: null }]
       : []),
-    ...invoices.map((i) => ({ date: i.issue_date, text: `Invoice ${i.invoice_number}`, amount: i.total, kind: 'invoice', status: i.status || 'Issued', onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } })),
+    ...invoices.flatMap((i) => {
+      const evs = [{ date: i.issue_date, text: `Invoice ${i.invoice_number} created`, amount: i.total, kind: 'invoice', status: i.status || 'Issued', onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } }];
+      if (i.posted_date && ['approved', 'sent', 'part_paid', 'paid'].includes(i.status)) {
+        evs.push({ date: i.posted_date.slice(0, 10), text: `Invoice ${i.invoice_number} approved`, amount: null, kind: 'invoice_approved', status: 'Approved', onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } });
+      }
+      if (['sent', 'part_paid', 'paid'].includes(i.status)) {
+        evs.push({ date: (i.posted_date || i.issue_date).slice(0, 10), text: `Invoice ${i.invoice_number} sent`, amount: null, kind: 'invoice_sent', status: 'Sent', onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } });
+      }
+      return evs;
+    }),
     ...payments.map((p) => ({
       date: p.date,
       text: `Payment received${p.matched_record_number ? ` · ${p.matched_record_number}` : ''}`,
@@ -158,10 +171,9 @@ export default function CustomerWorkspace({
     ...documents.map((d) => ({ date: d.upload_date, text: `Document uploaded: ${d.name}`, amount: null, kind: 'document', status: d.status || 'Uploaded', onClick: () => { onOpenChange(false); nav('/documents'); } })),
   ].filter((e) => e.date).sort((a, b) => (a.date < b.date ? 1 : -1));
 
-  const recentActivity = timeline.slice(0, 8).map((e) => ({ text: e.text, time: e.date }));
   const address = [customer.address_line_1, customer.address_line_2, customer.city, customer.county, customer.postcode, customer.country].filter(Boolean).join(', ');
 
-  // ---- Executive summary (structured insight cards) ----------------------
+  // ---- Executive summary (structured insight cards) -------------------------
   const revPct = revenueLastYear > 0 ? Math.round((revenueYtd - revenueLastYear) / revenueLastYear * 100) : null;
   const insights = [
     {
@@ -233,12 +245,24 @@ export default function CustomerWorkspace({
     attentionItems.push({ label: 'No documents on file', detail: 'Upload invoices or statements to keep records complete', severity: 'info', onClick: () => { onOpenChange(false); nav('/documents'); } });
   }
 
-  // ---- What should I do next (dynamic) -------------------------------------
+  // ---- Handlers ------------------------------------------------------------
   const focusAsk = () => document.getElementById('workspace-ask-input')?.focus();
   const mailtoReminder = () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Reminder — outstanding invoice')}`; };
   const mailtoStatement = () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Account Statement — ' + customer.name)}&body=${encodeURIComponent(statementBody)}`; };
   const mailtoEmail = () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Regarding your account')}`; };
+  const callCustomer = () => { if (customer.phone) window.location.href = `tel:${customer.phone}`; };
 
+  const saveNotes = async (v) => {
+    if ((v || '') === (customer.notes || '')) return;
+    try {
+      await base44.entities.Customer.update(customer.id, { notes: v });
+      toast({ title: 'Notes saved' });
+    } catch (e) {
+      toast({ title: 'Could not save notes', variant: 'destructive' });
+    }
+  };
+
+  // ---- What should I do next (dynamic, directly below header) --------------
   const primary = overdueInvoices.length > 0
     ? { label: 'Send Reminder', icon: Bell, onClick: mailtoReminder }
     : outstanding > 0
@@ -263,7 +287,7 @@ export default function CustomerWorkspace({
   }
   if (creditExceeded) secondary.push({ label: 'Review Credit Limit', icon: PoundSterling, onClick: () => { onOpenChange(false); onEdit?.(customer); } });
 
-  // ---- Quick actions + more ------------------------------------------------
+  // ---- Quick actions + more (header) ---------------------------------------
   const statementBody = `Account Statement — ${customer.name}\n\nOutstanding invoices:\n${outstandingInvoices.map((i) => `${i.invoice_number} — due ${i.due_date} — ${gbp.format(Number(i.balance_due) || 0)}`).join('\n') || 'None'}\n\nTotal outstanding: ${gbp.format(outstanding)}`;
   const quickActions = [
     { label: 'Create Invoice', icon: Plus, onClick: () => { onOpenChange(false); nav('/invoices/new'); } },
@@ -300,7 +324,7 @@ export default function CustomerWorkspace({
     onToggleFavourite: toggleFavourite,
   };
 
-  // ---- Financial summary (clickable → related section, hover helper) --------
+  // ---- Financial summary (clickable → related tab) ------------------------
   const summaryStats = [
     { label: 'Outstanding Balance', value: gbp.format(outstanding), tone: outstanding > 0 ? 'rose' : 'emerald', tab: 'invoices', helper: 'Click to view outstanding invoices' },
     { label: 'Revenue (12 Months)', value: gbp.format(revenue12m), tab: 'ai-insights', helper: 'Click to view revenue analysis' },
@@ -308,7 +332,7 @@ export default function CustomerWorkspace({
     { label: 'Credit Remaining', value: creditRemaining != null ? gbp.format(creditRemaining) : 'No limit', tone: creditRemainingTone, tab: 'overview', helper: 'Click to view credit information' },
   ];
 
-  // ---- Customer profile (supporting information) -------------------------
+  // ---- Customer profile + contact quick actions --------------------------
   const profileFields = [
     { icon: FileText, label: 'Primary Contact', value: customer.contact_name },
     { icon: Mail, label: 'Email', value: customer.email },
@@ -320,28 +344,30 @@ export default function CustomerWorkspace({
     { icon: FileText, label: 'Account Number', value: customer.customer_reference },
   ];
 
-  const notesPreview = (notes || 'No notes yet. Add details about this customer in the Notes tab.').slice(0, 200) + (notes && notes.length > 200 ? '…' : '');
+  const contactActions = [
+    { icon: Mail, label: 'Email', onClick: mailtoEmail },
+    { icon: Phone, label: 'Call', onClick: callCustomer },
+    { icon: Pencil, label: 'Edit', onClick: () => { onOpenChange(false); onEdit?.(customer); } },
+  ];
 
-  // ---- Tabs (familiar accounting navigation) ------------------------------
+  // ---- Tabs (iconified, familiar accounting navigation) ------------------
   const tabs = [
     {
-      label: 'Overview', columns: 2,
+      label: 'Overview', icon: LayoutDashboard, columns: 2,
       cards: [
-        { kind: 'customer-health', span: 1, score: health, label: healthLabel, tone: healthTone, explanation: healthExplanation },
-        { kind: 'needs-attention', span: 1, items: attentionItems },
-        { kind: 'next-actions', span: 'full', primary, secondary, noActionLabel: 'No immediate action is required.' },
+        { kind: 'needs-attention', span: 'full', items: attentionItems },
         { kind: 'related-records', span: 1, sections: [
           { title: 'Outstanding Invoices', records: outstandingInvoices.slice(0, 5).map((i) => ({ primary: i.invoice_number, secondary: `Due ${i.due_date}`, amount: Number(i.balance_due) || 0, onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } })) },
+        ] },
+        { kind: 'related-records', span: 1, sections: [
           { title: 'Recent Payments', records: payments.slice(0, 5).map((p) => ({ primary: p.description, secondary: p.date, amount: Number(p.money_in) || 0, onClick: () => {} })) },
         ] },
-        { kind: 'documents', span: 1, documents: documents.slice(0, 5).map((d) => ({ id: d.id, name: d.name, date: d.upload_date, type: d.document_type })), onOpen: () => { onOpenChange(false); nav('/documents'); } },
-        { kind: 'timeline', span: 1, events: timeline.slice(0, 6) },
-        { kind: 'profile', span: 1, title: customer.name, subtitle: customer.status === 'active' ? 'Active customer' : 'Inactive customer', fields: profileFields },
-        { kind: 'overview', span: 'full', fields: [{ icon: FileText, label: 'Notes', value: notesPreview }] },
+        { kind: 'documents', span: 'full', compact: true, documents: documents.slice(0, 5).map((d) => ({ id: d.id, name: d.name, date: d.upload_date, type: d.document_type })), onOpen: () => { onOpenChange(false); nav('/documents'); } },
+        { kind: 'notes', span: 'full', value: notes, onChange: setNotes, onSave: saveNotes, updatedDate: customer.updated_date },
       ],
     },
     {
-      label: 'Invoices', columns: 3,
+      label: 'Invoices', icon: Receipt, columns: 3,
       cards: [
         { kind: 'related-records', span: 'full', sections: [{
           title: 'All Invoices',
@@ -350,7 +376,7 @@ export default function CustomerWorkspace({
       ],
     },
     {
-      label: 'Payments', columns: 3,
+      label: 'Payments', icon: ArrowLeftRight, columns: 3,
       cards: [
         { kind: 'related-records', span: 'full', sections: [{
           title: 'Payment History',
@@ -359,7 +385,7 @@ export default function CustomerWorkspace({
       ],
     },
     {
-      label: 'Credit Notes', columns: 3,
+      label: 'Credit Notes', icon: FileMinus, columns: 3,
       cards: [
         { kind: 'related-records', span: 'full', sections: [{
           title: 'Sales Credit Notes',
@@ -368,44 +394,35 @@ export default function CustomerWorkspace({
       ],
     },
     {
-      label: 'Documents', columns: 3,
+      label: 'Documents', icon: Paperclip, columns: 3,
       cards: [
         { kind: 'documents', span: 'full', documents: documents.map((d) => ({ id: d.id, name: d.name, date: d.upload_date, type: d.document_type })), onOpen: () => { onOpenChange(false); nav('/documents'); } },
       ],
     },
     {
-      label: 'Notes', columns: 3,
-      cards: [{
-        kind: 'overview', span: 'full',
-        children: (
-          <Textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            onBlur={async () => {
-              if (notes !== (customer.notes || '')) {
-                try {
-                  await base44.entities.Customer.update(customer.id, { notes });
-                  toast({ title: 'Notes saved' });
-                } catch (e) {
-                  toast({ title: 'Could not save notes', variant: 'destructive' });
-                }
-              }
-            }}
-            placeholder="Add notes about this customer…"
-            className="min-h-[200px]"
-          />
-        ),
-      }],
+      label: 'Notes', icon: StickyNote, columns: 3,
+      cards: [
+        { kind: 'notes', span: 'full', value: notes, onChange: setNotes, onSave: saveNotes, updatedDate: customer.updated_date, expanded: true },
+      ],
     },
     {
-      label: 'Activity', columns: 3,
+      label: 'Activity', icon: Rss, columns: 3,
       cards: [{ kind: 'timeline', span: 'full', events: timeline }],
     },
     {
-      label: 'AI Insights', columns: 3,
+      label: 'AI Insights', icon: Sparkles, columns: 3,
       cards: [{ kind: 'ai-insights', span: 'full', companyId: activeCompany?.id, context: customerContext, prompt: aiInsightsPrompt }],
     },
   ];
+
+  // ---- Right context panel (sticky) --------------------------------------
+  const contextPanel = [
+    { kind: 'customer-health', score: health, label: healthLabel, tone: healthTone, explanation: healthExplanation },
+    { kind: 'timeline', events: timeline.slice(0, 8) },
+    { kind: 'profile', title: customer.name, subtitle: customer.status === 'active' ? 'Active customer' : 'Inactive customer', fields: profileFields, actions: contactActions },
+  ];
+
+  const primaryActions = { kind: 'next-actions', primary, secondary, noActionLabel: 'No immediate action is required.' };
 
   return (
     <WorkspaceEngine
@@ -415,8 +432,10 @@ export default function CustomerWorkspace({
       loading={loading}
       header={header}
       executiveSummary={{ kind: 'executive-summary', insights }}
+      primaryActions={primaryActions}
       summaryStats={summaryStats}
       tabs={tabs}
+      contextPanel={contextPanel}
       arrival={arrival}
       ask={{
         placeholder: `Ask about ${customer.name}…`,

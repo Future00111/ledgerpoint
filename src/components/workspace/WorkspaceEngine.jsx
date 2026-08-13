@@ -35,6 +35,7 @@ export default function WorkspaceEngine({
   tabs = [],
   contextPanel = [],
   ask,
+  primaryActions,
   arrival,
 }) {
   useEffect(() => {
@@ -56,7 +57,7 @@ export default function WorkspaceEngine({
         ))}
       </div>
     );
-    return { value, label: t.label, content };
+    return { value, label: t.label, icon: t.icon, content };
   });
 
   const panel = contextPanel.length ? (
@@ -68,6 +69,7 @@ export default function WorkspaceEngine({
   ) : null;
 
   const executiveSummaryNode = executiveSummary ? renderCard(executiveSummary) : null;
+  const primaryActionsNode = primaryActions ? renderCard(primaryActions) : null;
 
   return (
     <WorkspaceShell
@@ -75,6 +77,7 @@ export default function WorkspaceEngine({
       onOpenChange={onOpenChange}
       header={header}
       executiveSummary={executiveSummaryNode}
+      primaryActions={primaryActionsNode}
       summaryStats={summaryStats}
       tabs={tabsConfig}
       loading={loading}
