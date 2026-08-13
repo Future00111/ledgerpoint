@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tag, Plus, X } from 'lucide-react';
+import { Tag, Plus, X, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Customer Tags — predefined toggleable tags plus free-text custom tags.
-// Persistence is handled by the parent via onToggle / onAdd / onRemove.
-export default function CustomerTagsCard({ tags = [], predefined = [], onToggle, onAdd, onRemove }) {
+// Customer Tags — smart (auto-assigned) tags shown read-only, plus predefined
+// and custom manual tags that the user can toggle/add/remove. Manual tags
+// persist on the customer record; smart tags are recomputed from behaviour.
+export default function CustomerTagsCard({ smartTags = [], tags = [], predefined = [], onToggle, onAdd, onRemove }) {
   const [draft, setDraft] = useState('');
   const tagSet = new Set(tags);
   const custom = tags.filter((t) => !predefined.includes(t));
@@ -26,6 +27,23 @@ export default function CustomerTagsCard({ tags = [], predefined = [], onToggle,
           </div>
           <p className="text-sm font-semibold">Customer Tags</p>
         </div>
+
+        {smartTags.length > 0 && (
+          <div className="mb-3">
+            <p className="text-[10px] uppercase font-semibold tracking-wide text-muted-foreground mb-1.5 inline-flex items-center gap-1">
+              <Sparkles className="w-3 h-3" /> Smart Tags
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {smartTags.map((t) => (
+                <span key={t} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 text-primary px-2.5 py-1 text-xs font-medium">
+                  <Sparkles className="w-2.5 h-2.5" /> {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className="text-[10px] uppercase font-semibold tracking-wide text-muted-foreground mb-1.5">Manual Tags</p>
         <div className="flex flex-wrap gap-1.5">
           {predefined.map((t) => {
             const active = tagSet.has(t);

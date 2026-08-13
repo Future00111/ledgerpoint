@@ -101,7 +101,7 @@ export default function WorkspaceShell({ open, onOpenChange, header, summaryStat
   const bodyEl = contextPanel ? (
     <div className="grid md:grid-cols-[3fr_2fr] lg:grid-cols-[7fr_3fr] gap-3 items-start">
       <div className="min-w-0 space-y-3">{leftCol}</div>
-      <aside className="space-y-3 lg:sticky lg:top-1 self-start min-w-0">
+      <aside className="space-y-3 lg:sticky lg:top-1 self-start min-w-0 lg:max-h-[calc(92vh-4rem)] lg:overflow-y-auto pr-0.5">
         {contextPanel}
         {askEl}
       </aside>

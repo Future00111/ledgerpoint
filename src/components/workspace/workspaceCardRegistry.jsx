@@ -19,6 +19,10 @@ import CustomerHealthCard from './cards/CustomerHealthCard';
 import NotesCard from './cards/NotesCard';
 import RelationshipIntelligenceCard from './cards/RelationshipIntelligenceCard';
 import CustomerTagsCard from './cards/CustomerTagsCard';
+import CollectionsCentreCard from './cards/CollectionsCentreCard';
+import RevenueAnalyticsCard from './cards/RevenueAnalyticsCard';
+import CustomerLifecycleCard from './cards/CustomerLifecycleCard';
+import CommunicationCentreCard from './cards/CommunicationCentreCard';
 
 // The Workspace Card Registry.
 // Maps a stable `kind` string to a reusable card component, so a Workspace is
@@ -44,6 +48,10 @@ export const CARD_REGISTRY = {
   'customer-health': CustomerHealthCard,
   'relationship-intelligence': RelationshipIntelligenceCard,
   'customer-tags': CustomerTagsCard,
+  'collections-centre': CollectionsCentreCard,
+  'revenue-analytics': RevenueAnalyticsCard,
+  'customer-lifecycle': CustomerLifecycleCard,
+  'communication-centre': CommunicationCentreCard,
   'notes': NotesCard,
 };
 

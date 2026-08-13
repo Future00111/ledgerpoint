@@ -27,8 +27,16 @@ export default function ExecutiveSummaryCard({ insights = [] }) {
           {insights.map((it, i) => {
             const Icon = it.icon;
             const tone = TONE[it.tone] || TONE.info;
+            const clickable = !!it.onClick;
             return (
-              <div key={i} className="flex items-start gap-2.5">
+              <div
+                key={i}
+                role={clickable ? 'button' : undefined}
+                tabIndex={clickable ? 0 : undefined}
+                onClick={clickable ? it.onClick : undefined}
+                onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); it.onClick(); } } : undefined}
+                className={cn('flex items-start gap-2.5 rounded-md -mx-1 px-1 py-1', clickable && 'cursor-pointer hover:bg-muted/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring')}
+              >
                 <span className={cn('flex items-center justify-center w-7 h-7 rounded-full flex-shrink-0', tone)}>
                   {Icon && <Icon className="w-3.5 h-3.5" />}
                 </span>

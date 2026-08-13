@@ -206,6 +206,7 @@ export default function CustomerWorkspace({
       icon: UserCheck,
       tone: 'positive',
       title: 'Customer Status',
+      onClick: () => { onOpenChange(false); nav('/invoices'); },
       detail: revenue12m > 50000 ? 'One of your highest-value customers.'
         : revenue12m > 0 ? 'A valued, active customer.'
         : outstanding > 0 ? 'Carries an outstanding balance.'
@@ -215,6 +216,7 @@ export default function CustomerWorkspace({
       icon: revPct != null && revPct < 0 ? TrendingDown : TrendingUp,
       tone: revPct == null ? 'info' : revPct > 0 ? 'positive' : revPct < 0 ? 'warning' : 'info',
       title: 'Revenue',
+      onClick: () => { onOpenChange(false); nav('/invoices'); },
       detail: revPct != null
         ? (revPct > 0 ? `${revPct}% higher than last year.`
           : revPct < 0 ? `${Math.abs(revPct)}% lower than last year.`
@@ -225,6 +227,7 @@ export default function CustomerWorkspace({
       icon: FileText,
       tone: overdueInvoices.length > 0 ? 'critical' : outstandingInvoices.length > 0 ? 'info' : 'positive',
       title: 'Outstanding',
+      onClick: () => { onOpenChange(false); nav('/invoices'); },
       detail: overdueInvoices.length > 0
         ? `${overdueInvoices.length} overdue (${gbp.format(overdueTotal)}).`
         : outstandingInvoices.length > 0
@@ -235,6 +238,7 @@ export default function CustomerWorkspace({
       icon: CreditCard,
       tone: avgPaymentDays == null ? 'info' : avgPaymentDays <= terms ? 'positive' : 'warning',
       title: 'Payment Behaviour',
+      onClick: () => { onOpenChange(false); nav('/transactions'); },
       detail: avgPaymentDays != null
         ? `Average payment ${avgPaymentDays} days.`
         : 'No payment history yet.',
@@ -243,6 +247,7 @@ export default function CustomerWorkspace({
       icon: ArrowRight,
       tone: (overdueInvoices.length > 0 || outstanding > 0) ? 'info' : 'positive',
       title: 'Recommendation',
+      onClick: () => focusAsk(),
       detail: overdueInvoices.length > 0
         ? 'Send a payment reminder.'
         : outstanding > 0
@@ -418,6 +423,8 @@ export default function CustomerWorkspace({
     {
       label: 'Overview', icon: LayoutDashboard, columns: 2,
       cards: [
+        { kind: 'collections-centre', span: 'full', stage: collectionsStageNum, stageLabel: collectionsStageLabel, nextAction: collectionsNextAction, onNextAction: collectionsNextOnClick, oldestInvoice: oldestInvoiceRec ? { number: oldestInvoiceRec.invoice_number, days: oldestInvoiceDays, amount: Number(oldestInvoiceRec.balance_due) || 0 } : null, onOpenOldest: oldestInvoiceRec ? () => { onOpenChange(false); nav(`/invoices/${oldestInvoiceRec.id}`); } : null, legalStatus, legalTone, history: collectionsHistory },
+        { kind: 'revenue-analytics', span: 'full', revenue12m, growthPct: revPct, avgInvoiceValue, largestInvoice: largestInvoiceRec ? { number: largestInvoiceRec.invoice_number, amount: Number(largestInvoiceRec.total) || 0 } : null, invoiceFrequency, onOpenLargest: largestInvoiceRec ? () => { onOpenChange(false); nav(`/invoices/${largestInvoiceRec.id}`); } : null, onOpenInvoices: () => { onOpenChange(false); nav('/invoices'); } },
         { kind: 'needs-attention', span: 'full', items: attentionItems },
         { kind: 'related-records', span: 1, sections: [
           { title: 'Outstanding Invoices', records: outstandingInvoices.slice(0, 5).map((i) => ({ primary: i.invoice_number, secondary: `Due ${i.due_date}`, amount: Number(i.balance_due) || 0, onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); } })) },
@@ -470,7 +477,7 @@ export default function CustomerWorkspace({
     },
     {
       label: 'Activity', icon: Rss, columns: 3,
-      cards: [{ kind: 'timeline', span: 'full', events: timeline }],
+      cards: [{ kind: 'timeline', span: 'full', events: timeline, filterable: true }],
     },
     {
       label: 'AI Insights', icon: Sparkles, columns: 3,
@@ -523,11 +530,62 @@ export default function CustomerWorkspace({
   if (revenue12m === 0 && invoices.length > 0) opportunities.push({ tone: 'warning', text: 'No recent sales — run a re-engagement campaign.' });
   if (opportunities.length === 0) opportunities.push({ tone: 'info', text: 'Maintain regular contact to grow the relationship.' });
 
+  // ---- Collections Centre --------------------------------------------------
+  const oldestInvoiceRec = overdueInvoices.length > 0
+    ? overdueInvoices.slice().sort((a, b) => (a.due_date < b.due_date ? -1 : 1))[0]
+    : null;
+  const oldestInvoiceDays = oldestInvoiceRec ? Math.floor((now - new Date(oldestInvoiceRec.due_date)) / 86400000) : 0;
+  let collectionsStageNum = 0, collectionsStageLabel = 'Clear', collectionsNextAction = null, collectionsNextOnClick = null, legalStatus = 'Clear', legalTone = 'emerald';
+  if (overdueInvoices.length > 0) {
+    if (oldestOverdueDays > 60) { collectionsStageNum = 4; collectionsStageLabel = 'Account on hold'; collectionsNextAction = 'Place account on hold'; collectionsNextOnClick = applyCreditHold; legalStatus = 'Pre-legal'; legalTone = 'rose'; }
+    else if (oldestOverdueDays > 30) { collectionsStageNum = 3; collectionsStageLabel = 'Schedule call'; collectionsNextAction = 'Schedule phone call'; collectionsNextOnClick = callCustomer; legalStatus = 'Escalating'; legalTone = 'rose'; }
+    else if (oldestOverdueDays > 14) { collectionsStageNum = 2; collectionsStageLabel = 'Send statement'; collectionsNextAction = 'Send statement'; collectionsNextOnClick = mailtoStatement; legalStatus = 'Pre-collection'; legalTone = 'amber'; }
+    else { collectionsStageNum = 1; collectionsStageLabel = 'Send reminder'; collectionsNextAction = 'Send reminder'; collectionsNextOnClick = mailtoReminder; legalStatus = 'Pre-collection'; legalTone = 'amber'; }
+  }
+  const collectionsHistory = overdueInvoices.slice().sort((a, b) => (a.due_date < b.due_date ? -1 : 1)).slice(0, 4).map((i) => ({
+    reference: i.invoice_number,
+    detail: `${Math.floor((now - new Date(i.due_date)) / 86400000)} days · ${gbp.format(Number(i.balance_due) || 0)}`,
+    onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); },
+  }));
+
+  // ---- Revenue Analytics ---------------------------------------------------
+  const invoiceTotals = invoices.map((i) => Number(i.total) || 0);
+  const avgInvoiceValue = invoiceTotals.length ? invoiceTotals.reduce((a, b) => a + b, 0) / invoiceTotals.length : 0;
+  const largestInvoiceRec = invoices.length ? invoices.slice().sort((a, b) => (Number(b.total) || 0) - (Number(a.total) || 0))[0] : null;
+  const invoiceCount12m = invoices.filter((i) => i.issue_date && new Date(i.issue_date) >= twelveAgo).length;
+  let invoiceFrequency = 'None';
+  if (invoiceCount12m >= 10) invoiceFrequency = 'Monthly';
+  else if (invoiceCount12m >= 4) invoiceFrequency = 'Quarterly';
+  else if (invoiceCount12m >= 1) invoiceFrequency = 'Occasional';
+
+  // ---- Customer Lifecycle --------------------------------------------------
+  let lifecycleStage = 'New', lifecycleTone = 'muted', lifecycleDetail = 'Early-stage relationship.';
+  if (revenue12m === 0 && invoices.length === 0) { lifecycleStage = 'Inactive'; lifecycleTone = 'muted'; lifecycleDetail = 'No sales activity recorded.'; }
+  else if (paymentRisk === 'High Risk' || creditExceeded) { lifecycleStage = 'At-risk'; lifecycleTone = 'rose'; lifecycleDetail = 'Financial concerns require attention.'; }
+  else if (buyingTrend === 'Declining') { lifecycleStage = 'Declining'; lifecycleTone = 'amber'; lifecycleDetail = 'Revenue trending down vs last year.'; }
+  else if (buyingTrend === 'Increasing') { lifecycleStage = 'Growing'; lifecycleTone = 'emerald'; lifecycleDetail = 'Revenue trending up vs last year.'; }
+  else if (invoices.length >= 5) { lifecycleStage = 'Established'; lifecycleTone = 'primary'; lifecycleDetail = 'Long-standing, steady customer.'; }
+
+  // ---- Communication Centre ------------------------------------------------
+  const preferredMethod = customer.email ? 'Email' : customer.phone ? 'Phone' : '—';
+
+  // ---- Smart tags (auto-assigned from behaviour) ---------------------------
+  const smartTagsSet = new Set();
+  if (customerValue === 'Strategic') { smartTagsSet.add('VIP'); smartTagsSet.add('Key Account'); }
+  if (invoices.length >= 5) smartTagsSet.add('Repeat Customer');
+  if (paymentRisk === 'High Risk') smartTagsSet.add('High Risk');
+  if (oldestOverdueDays > 60 || creditExceeded) smartTagsSet.add('Credit Hold');
+  if (invoiceCount12m >= 10) smartTagsSet.add('Monthly Account');
+  if (creditNotes.length > 0) smartTagsSet.add('Warranty Customer');
+  const smartTags = Array.from(smartTagsSet);
+
   // ---- Right context panel (sticky) --------------------------------------
   const contextPanel = [
     { kind: 'customer-health', score: health, label: healthLabel, tone: healthTone, historical, current: currentStatus, currentTone },
+    { kind: 'customer-lifecycle', stage: lifecycleStage, detail: lifecycleDetail, tone: lifecycleTone },
     { kind: 'relationship-intelligence', value: customerValue, valueTone: customerValueTone, relationshipAge, risk: paymentRisk, riskTone: paymentRiskTone, trend: buyingTrend, trendTone: buyingTrendTone, comms, opportunities },
-    { kind: 'customer-tags', tags: tagsState, predefined: PREDEFINED_TAGS, onToggle: toggleTag, onAdd: addTag, onRemove: removeTag },
+    { kind: 'communication-centre', preferredMethod, onEmail: mailtoEmail, onStatement: mailtoStatement, onReminder: mailtoReminder, onCall: callCustomer },
+    { kind: 'customer-tags', smartTags, tags: tagsState, predefined: PREDEFINED_TAGS, onToggle: toggleTag, onAdd: addTag, onRemove: removeTag },
     { kind: 'timeline', events: timeline.slice(0, 8), maxHeight: '18rem' },
     { kind: 'profile', title: customer.name, subtitle: customer.status === 'active' ? 'Active customer' : 'Inactive customer', fields: profileFields, actions: contactActions },
   ];

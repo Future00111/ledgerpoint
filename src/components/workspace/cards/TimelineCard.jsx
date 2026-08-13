@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   FileText, CreditCard, FileMinus, Paperclip, UserPlus, Bot, CalendarClock,
-  Mail, StickyNote, Sparkles, ArrowRight, CheckCircle2, Send, Bell, MailOpen,
+  Mail, StickyNote, Sparkles, ArrowRight, CheckCircle2, Send, Bell, MailOpen, Filter,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import WorkspaceEmptyState from '../WorkspaceEmptyState';
@@ -28,12 +28,25 @@ const ICONS = {
   ai: Sparkles,
 };
 
-// Reusable Timeline widget — rich chronological activity. Each event shows an
-// event-type icon, the event type, the record/reference, a status badge, a
-// date and an optional amount. Every event is clickable to open its record.
-// `maxHeight` wraps the list in a contained scroll area so a long timeline
-// cannot consume the whole context panel.
-export default function TimelineCard({ events = [], maxHeight }) {
+const FILTERS = [
+  { key: 'all', label: 'All activity', kinds: null },
+  { key: 'invoices', label: 'Invoices', kinds: ['invoice', 'invoice_approved', 'invoice_sent', 'credit_note'] },
+  { key: 'payments', label: 'Payments', kinds: ['payment'] },
+  { key: 'statements', label: 'Statements', kinds: ['statement_sent'] },
+  { key: 'emails', label: 'Emails', kinds: ['email', 'email_opened'] },
+  { key: 'calls', label: 'Calls', kinds: ['call'] },
+  { key: 'documents', label: 'Documents', kinds: ['document'] },
+  { key: 'notes', label: 'Notes', kinds: ['note', 'note_added'] },
+  { key: 'collections', label: 'Collections', kinds: ['reminder_sent', 'collections'] },
+  { key: 'ai', label: 'AI activity', kinds: ['ai'] },
+];
+
+// Reusable Timeline widget. Each event shows an icon, event type, reference,
+// status, date and amount; every event is clickable. `maxHeight` wraps the
+// list in a contained scroll area. `filterable` shows category chips that
+// filter the visible events.
+export default function TimelineCard({ events = [], maxHeight, filterable = false }) {
+  const [activeFilter, setActiveFilter] = useState('all');
   if (!events.length) {
     return (
       <WorkspaceEmptyState
@@ -44,9 +57,12 @@ export default function TimelineCard({ events = [], maxHeight }) {
     );
   }
 
+  const filter = FILTERS.find((f) => f.key === activeFilter);
+  const visible = filter && filter.kinds ? events.filter((e) => filter.kinds.includes(e.kind)) : events;
+
   const list = (
     <ol className="relative border-l border-border ml-3 space-y-2.5 pl-6">
-      {events.map((e, i) => {
+      {visible.map((e, i) => {
         const Icon = ICONS[e.kind] || CalendarClock;
         const type = e.type || e.text;
         return (
@@ -88,12 +104,35 @@ export default function TimelineCard({ events = [], maxHeight }) {
           </li>
         );
       })}
+      {visible.length === 0 && (
+        <li className="text-xs text-muted-foreground pl-1 py-2">No {filter?.label.toLowerCase()} recorded.</li>
+      )}
     </ol>
   );
 
   return (
     <Card className="border shadow-sm">
       <CardContent className="p-3.5">
+        {filterable && (
+          <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1">
+            <Filter className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+            {FILTERS.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setActiveFilter(f.key)}
+                className={cn(
+                  'shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors',
+                  activeFilter === f.key
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-transparent text-muted-foreground hover:bg-muted/50'
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        )}
         {maxHeight ? (
           <div className="overflow-y-auto pr-1 -mr-1" style={{ maxHeight }}>{list}</div>
         ) : list}
