@@ -3,7 +3,16 @@ import { base44 } from '@/api/base44Client';
 import WorkspaceShell from './WorkspaceShell';
 import WorkspaceSkeleton from './WorkspaceSkeleton';
 import { renderCard } from './workspaceCardRegistry';
+import WidgetErrorBoundary from './WidgetErrorBoundary';
 import { cn } from '@/lib/utils';
+
+// Wrap a single card in its own error boundary so one failing widget never
+// takes down the whole workspace. Falls back to "Unable to load this widget."
+const SafeCard = ({ card }) => (
+  <WidgetErrorBoundary name={card?.kind}>
+    {renderCard(card)}
+  </WidgetErrorBoundary>
+);
 
 // Static class maps so Tailwind keeps the literal strings (no dynamic names).
 const COLS = { 1: 'lg:grid-cols-1', 2: 'lg:grid-cols-2', 3: 'lg:grid-cols-3' };
@@ -52,7 +61,7 @@ export default function WorkspaceEngine({
       <div className={cn('grid gap-4 items-start', COLS[t.columns] || COLS[3])}>
         {(t.cards || []).map((c, i) => (
           <div key={i} className={cn('min-w-0', SPAN[c.span] || SPAN[1])}>
-            {renderCard(c)}
+            <SafeCard card={c} />
           </div>
         ))}
       </div>
@@ -63,13 +72,13 @@ export default function WorkspaceEngine({
   const panel = contextPanel.length ? (
     <>
       {contextPanel.map((c, i) => (
-        <React.Fragment key={i}>{renderCard(c)}</React.Fragment>
+        <React.Fragment key={i}><SafeCard card={c} /></React.Fragment>
       ))}
     </>
   ) : null;
 
-  const executiveSummaryNode = executiveSummary ? renderCard(executiveSummary) : null;
-  const primaryActionsNode = primaryActions ? renderCard(primaryActions) : null;
+  const executiveSummaryNode = executiveSummary ? <SafeCard card={executiveSummary} /> : null;
+  const primaryActionsNode = primaryActions ? <SafeCard card={primaryActions} /> : null;
 
   return (
     <WorkspaceShell

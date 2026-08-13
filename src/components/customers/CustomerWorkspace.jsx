@@ -418,6 +418,34 @@ export default function CustomerWorkspace({
     { icon: Pencil, label: 'Edit', onClick: () => { onOpenChange(false); onEdit?.(customer); } },
   ];
 
+  // ---- Collections Centre --------------------------------------------------
+  const oldestInvoiceRec = overdueInvoices.length > 0
+    ? overdueInvoices.slice().sort((a, b) => (a.due_date < b.due_date ? -1 : 1))[0]
+    : null;
+  const oldestInvoiceDays = oldestInvoiceRec ? Math.floor((now - new Date(oldestInvoiceRec.due_date)) / 86400000) : 0;
+  let collectionsStageNum = 0, collectionsStageLabel = 'Clear', collectionsNextAction = null, collectionsNextOnClick = null, legalStatus = 'Clear', legalTone = 'emerald';
+  if (overdueInvoices.length > 0) {
+    if (oldestOverdueDays > 60) { collectionsStageNum = 4; collectionsStageLabel = 'Account on hold'; collectionsNextAction = 'Place account on hold'; collectionsNextOnClick = applyCreditHold; legalStatus = 'Pre-legal'; legalTone = 'rose'; }
+    else if (oldestOverdueDays > 30) { collectionsStageNum = 3; collectionsStageLabel = 'Schedule call'; collectionsNextAction = 'Schedule phone call'; collectionsNextOnClick = callCustomer; legalStatus = 'Escalating'; legalTone = 'rose'; }
+    else if (oldestOverdueDays > 14) { collectionsStageNum = 2; collectionsStageLabel = 'Send statement'; collectionsNextAction = 'Send statement'; collectionsNextOnClick = mailtoStatement; legalStatus = 'Pre-collection'; legalTone = 'amber'; }
+    else { collectionsStageNum = 1; collectionsStageLabel = 'Send reminder'; collectionsNextAction = 'Send reminder'; collectionsNextOnClick = mailtoReminder; legalStatus = 'Pre-collection'; legalTone = 'amber'; }
+  }
+  const collectionsHistory = overdueInvoices.slice().sort((a, b) => (a.due_date < b.due_date ? -1 : 1)).slice(0, 4).map((i) => ({
+    reference: i.invoice_number,
+    detail: `${Math.floor((now - new Date(i.due_date)) / 86400000)} days · ${gbp.format(Number(i.balance_due) || 0)}`,
+    onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); },
+  }));
+
+  // ---- Revenue Analytics ---------------------------------------------------
+  const invoiceTotals = invoices.map((i) => Number(i.total) || 0);
+  const avgInvoiceValue = invoiceTotals.length ? invoiceTotals.reduce((a, b) => a + b, 0) / invoiceTotals.length : 0;
+  const largestInvoiceRec = invoices.length ? invoices.slice().sort((a, b) => (Number(b.total) || 0) - (Number(a.total) || 0))[0] : null;
+  const invoiceCount12m = invoices.filter((i) => i.issue_date && new Date(i.issue_date) >= twelveAgo).length;
+  let invoiceFrequency = 'None';
+  if (invoiceCount12m >= 10) invoiceFrequency = 'Monthly';
+  else if (invoiceCount12m >= 4) invoiceFrequency = 'Quarterly';
+  else if (invoiceCount12m >= 1) invoiceFrequency = 'Occasional';
+
   // ---- Tabs (iconified, familiar accounting navigation) ------------------
   const tabs = [
     {
@@ -529,34 +557,6 @@ export default function CustomerWorkspace({
   if (overdueInvoices.length > 0) opportunities.push({ tone: 'critical', text: 'Overdue balance — prioritise collections.' });
   if (revenue12m === 0 && invoices.length > 0) opportunities.push({ tone: 'warning', text: 'No recent sales — run a re-engagement campaign.' });
   if (opportunities.length === 0) opportunities.push({ tone: 'info', text: 'Maintain regular contact to grow the relationship.' });
-
-  // ---- Collections Centre --------------------------------------------------
-  const oldestInvoiceRec = overdueInvoices.length > 0
-    ? overdueInvoices.slice().sort((a, b) => (a.due_date < b.due_date ? -1 : 1))[0]
-    : null;
-  const oldestInvoiceDays = oldestInvoiceRec ? Math.floor((now - new Date(oldestInvoiceRec.due_date)) / 86400000) : 0;
-  let collectionsStageNum = 0, collectionsStageLabel = 'Clear', collectionsNextAction = null, collectionsNextOnClick = null, legalStatus = 'Clear', legalTone = 'emerald';
-  if (overdueInvoices.length > 0) {
-    if (oldestOverdueDays > 60) { collectionsStageNum = 4; collectionsStageLabel = 'Account on hold'; collectionsNextAction = 'Place account on hold'; collectionsNextOnClick = applyCreditHold; legalStatus = 'Pre-legal'; legalTone = 'rose'; }
-    else if (oldestOverdueDays > 30) { collectionsStageNum = 3; collectionsStageLabel = 'Schedule call'; collectionsNextAction = 'Schedule phone call'; collectionsNextOnClick = callCustomer; legalStatus = 'Escalating'; legalTone = 'rose'; }
-    else if (oldestOverdueDays > 14) { collectionsStageNum = 2; collectionsStageLabel = 'Send statement'; collectionsNextAction = 'Send statement'; collectionsNextOnClick = mailtoStatement; legalStatus = 'Pre-collection'; legalTone = 'amber'; }
-    else { collectionsStageNum = 1; collectionsStageLabel = 'Send reminder'; collectionsNextAction = 'Send reminder'; collectionsNextOnClick = mailtoReminder; legalStatus = 'Pre-collection'; legalTone = 'amber'; }
-  }
-  const collectionsHistory = overdueInvoices.slice().sort((a, b) => (a.due_date < b.due_date ? -1 : 1)).slice(0, 4).map((i) => ({
-    reference: i.invoice_number,
-    detail: `${Math.floor((now - new Date(i.due_date)) / 86400000)} days · ${gbp.format(Number(i.balance_due) || 0)}`,
-    onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); },
-  }));
-
-  // ---- Revenue Analytics ---------------------------------------------------
-  const invoiceTotals = invoices.map((i) => Number(i.total) || 0);
-  const avgInvoiceValue = invoiceTotals.length ? invoiceTotals.reduce((a, b) => a + b, 0) / invoiceTotals.length : 0;
-  const largestInvoiceRec = invoices.length ? invoices.slice().sort((a, b) => (Number(b.total) || 0) - (Number(a.total) || 0))[0] : null;
-  const invoiceCount12m = invoices.filter((i) => i.issue_date && new Date(i.issue_date) >= twelveAgo).length;
-  let invoiceFrequency = 'None';
-  if (invoiceCount12m >= 10) invoiceFrequency = 'Monthly';
-  else if (invoiceCount12m >= 4) invoiceFrequency = 'Quarterly';
-  else if (invoiceCount12m >= 1) invoiceFrequency = 'Occasional';
 
   // ---- Customer Lifecycle --------------------------------------------------
   let lifecycleStage = 'New', lifecycleTone = 'muted', lifecycleDetail = 'Early-stage relationship.';
