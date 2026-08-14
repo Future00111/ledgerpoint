@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
@@ -9,6 +9,7 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Search, Filter, ChevronDown, Upload, Plus, Landmark } from 'lucide-react';
+import CompactRow from '@/components/reconciliation/CompactRow';
 import ReconciliationRow from '@/components/reconciliation/ReconciliationRow';
 import BankTransactionForm from '@/components/bank_transactions/BankTransactionForm';
 import ReconciliationWorkflow from '@/components/bank_transactions/ReconciliationWorkflow';
@@ -23,7 +24,6 @@ const FILTERS = [
   { key: 'highvalue', label: 'High value' },
 ];
 
-// Prioritization: AI uncertain → no match → duplicates → large → standard.
 function priority(suggestion, isDup, t) {
   if (suggestion && suggestion.confidence < 50) return 1;
   if (!suggestion) return 2;
@@ -42,12 +42,14 @@ export default function Reconciliation() {
   const [accountFilter, setAccountFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
+  const [expandedId, setExpandedId] = useState(null);
   const [approvingId, setApprovingId] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [splitTarget, setSplitTarget] = useState(null);
   const [splitOpen, setSplitOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const didInit = useRef(false);
 
   const load = useCallback(async () => {
     if (!activeCompany) return;
@@ -119,6 +121,34 @@ export default function Reconciliation() {
       ? `${metrics.estimatedMinutes} min`
       : `${Math.floor(metrics.estimatedMinutes / 60)}h ${metrics.estimatedMinutes % 60}m`;
 
+  // Auto-expand the first transaction once on initial load.
+  useEffect(() => {
+    if (!didInit.current && !loading && reviewList.length) {
+      didInit.current = true;
+      setExpandedId(reviewList[0].t.id);
+    }
+  }, [loading, reviewList]);
+
+  // Keep expansion valid when the list changes.
+  useEffect(() => {
+    if (expandedId && !reviewList.some((x) => x.t.id === expandedId)) {
+      setExpandedId(reviewList[0]?.t.id || null);
+    }
+  }, [reviewList, expandedId]);
+
+  useEffect(() => {
+    if (expandedId) document.getElementById(`txn-${expandedId}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [expandedId]);
+
+  const advance = useCallback((id) => {
+    setExpandedId((curr) => {
+      if (curr !== id) return curr;
+      const idx = reviewList.findIndex((x) => x.t.id === id);
+      const next = reviewList[idx + 1] || reviewList[idx - 1];
+      return next?.t.id || null;
+    });
+  }, [reviewList]);
+
   const applyMatch = async (txn, rec) => {
     let updateData = { status: 'matched', linked_invoice_id: '', linked_bill_id: '' };
     const rt = rec.record_type;
@@ -142,6 +172,7 @@ export default function Reconciliation() {
       const updateData = await applyMatch(txn, rec);
       setTransactions((prev) => prev.map((t) => (t.id === txn.id ? { ...t, ...updateData } : t)));
       toast({ title: 'Reconciled', description: `Matched to ${rec.record_number}` });
+      advance(txn.id);
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
     finally { setApprovingId(null); }
   };
@@ -154,6 +185,7 @@ export default function Reconciliation() {
       await base44.entities.BankTransaction.update(txn.id, updateData);
       setTransactions((prev) => prev.map((t) => (t.id === txn.id ? { ...t, ...updateData } : t)));
       toast({ title: 'Reconciled', description: 'Transaction categorised' });
+      advance(txn.id);
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
     finally { setApprovingId(null); }
   };
@@ -184,6 +216,7 @@ export default function Reconciliation() {
       await base44.entities.BankTransaction.update(txn.id, updateData);
       setTransactions((prev) => [...prev.map((t) => (t.id === txn.id ? { ...t, ...updateData } : t)), created]);
       toast({ title: 'Reconciled', description: 'Transfer recorded' });
+      advance(txn.id);
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
     finally { setApprovingId(null); }
   };
@@ -255,31 +288,37 @@ export default function Reconciliation() {
         </div>
       </div>
 
-      {/* Vertical stack of self-contained reconciliation rows */}
+      {/* Compact rows; the selected one expands inline into a two-panel workspace */}
       {loading ? (
         <div className="flex justify-center py-20"><div className="w-7 h-7 border-[3px] border-muted-foreground/20 border-t-foreground rounded-full animate-spin" /></div>
       ) : reviewList.length === 0 ? (
-        <div className="flex flex-col items-center py-20 rounded-lg border border-dashed border-border/60">
+        <div className="flex flex-col items-center py-20 rounded-md border border-dashed border-border/60">
           <Landmark className="w-10 h-10 text-muted-foreground/25 mb-3" />
           <p className="text-sm text-muted-foreground">
             {search || filter !== 'all' || accountFilter !== 'all' ? 'No transactions match your filters' : 'Nothing requiring review — all reconciled.'}
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div id="recon-list" className="rounded-md border border-[#E5E7EB] bg-white overflow-hidden">
           {reviewList.map(({ t, suggestion }) => (
-            <ReconciliationRow
-              key={t.id}
-              transaction={t}
-              suggestions={suggestions[t.id] || (suggestion ? [suggestion] : [])}
-              bankAccounts={bankAccounts}
-              companyId={activeCompany.id}
-              approving={approvingId === t.id}
-              onMatch={(rec) => onMatch(t, rec)}
-              onCreate={(data) => onCreate(t, data)}
-              onTransfer={(data) => onTransfer(t, data)}
-              onSplit={() => openSplit(t)}
-            />
+            <div id={`txn-${t.id}`} key={t.id}>
+              {expandedId === t.id ? (
+                <ReconciliationRow
+                  transaction={t}
+                  suggestions={suggestions[t.id] || (suggestion ? [suggestion] : [])}
+                  bankAccounts={bankAccounts}
+                  companyId={activeCompany.id}
+                  approving={approvingId === t.id}
+                  onMatch={(rec) => onMatch(t, rec)}
+                  onCreate={(data) => onCreate(t, data)}
+                  onTransfer={(data) => onTransfer(t, data)}
+                  onSplit={() => openSplit(t)}
+                  onCollapse={() => setExpandedId(null)}
+                />
+              ) : (
+                <CompactRow transaction={t} onSelect={() => setExpandedId(t.id)} />
+              )}
+            </div>
           ))}
         </div>
       )}
