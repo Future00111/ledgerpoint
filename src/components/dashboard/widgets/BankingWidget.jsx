@@ -47,11 +47,11 @@ export default function BankingWidget({ company }) {
         <Stat label="Accounts" value={accts.length} />
       </div>
       <button
-        onClick={() => nav('/transactions')}
+        onClick={() => nav('/reconciliation')}
         className="w-full flex items-center justify-center gap-2 text-xs font-medium px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
       >
         <ArrowLeftRight className="w-3.5 h-3.5" />
-        Review Transactions
+        Reconcile Transactions
         <ArrowRight className="w-3.5 h-3.5" />
       </button>
     </div>

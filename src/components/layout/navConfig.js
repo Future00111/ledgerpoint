@@ -41,7 +41,7 @@ export const SECTIONS = [
     items: [
       { label: 'Accounts', path: '/bank-accounts', icon: Landmark },
       { label: 'Transactions', path: '/transactions', icon: ArrowLeftRight },
-      { label: 'Reconciliation', icon: Scale, soon: true },
+      { label: 'Reconciliation', path: '/reconciliation', icon: Scale },
       { label: 'Rules', icon: Wand2, soon: true },
     ],
   },
