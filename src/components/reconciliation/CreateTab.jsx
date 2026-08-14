@@ -33,33 +33,36 @@ export default function CreateTab({ transaction, onCreate }) {
   const [who, setWho] = useState('');
   const [category, setCategory] = useState('');
   const [why, setWhy] = useState('');
+  const [site, setSite] = useState('');
   const [taxRate, setTaxRate] = useState('20');
-  const [tracking, setTracking] = useState('');
   const [details, setDetails] = useState('');
 
   const submit = () => {
     if (!category) return;
-    const notes = [who && `Who: ${who}`, why, tracking && `Tracking: ${tracking}`, details].filter(Boolean).join('\n');
+    const notes = [who && `Who: ${who}`, why, site && `Site: ${site}`, details].filter(Boolean).join('\n');
     onCreate({ category, vat_rate: taxRate, notes });
   };
 
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-3">
       <Field label="Who">
         <Input value={who} onChange={(e) => setWho(e.target.value)} placeholder="Contact name (optional)" className="h-9 text-sm" />
       </Field>
       <Field label="What" required>
         <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select a category" /></SelectTrigger>
+          <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Nominal account" /></SelectTrigger>
           <SelectContent>
             {CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
           </SelectContent>
         </Select>
       </Field>
       <Field label="Why">
-        <Input value={why} onChange={(e) => setWhy(e.target.value)} placeholder="Description (optional)" className="h-9 text-sm" />
+        <Input value={why} onChange={(e) => setWhy(e.target.value)} placeholder="Description" className="h-9 text-sm" />
       </Field>
       <div className="grid grid-cols-2 gap-3">
+        <Field label="Site">
+          <Input value={site} onChange={(e) => setSite(e.target.value)} placeholder="Optional" className="h-9 text-sm" />
+        </Field>
         <Field label="Tax rate">
           <Select value={taxRate} onValueChange={setTaxRate}>
             <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
@@ -70,11 +73,8 @@ export default function CreateTab({ transaction, onCreate }) {
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Tracking">
-          <Input value={tracking} onChange={(e) => setTracking(e.target.value)} placeholder="Optional" className="h-9 text-sm" />
-        </Field>
       </div>
-      <Field label="Additional details">
+      <Field label="Add details">
         <Textarea value={details} onChange={(e) => setDetails(e.target.value)} rows={2} placeholder="Optional" className="text-sm" />
       </Field>
       <div className="pt-1">

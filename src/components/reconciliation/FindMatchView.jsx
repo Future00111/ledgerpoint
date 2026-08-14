@@ -40,9 +40,11 @@ export default function FindMatchView({ transaction, onSelect, onBack }) {
 
   return (
     <div className="space-y-3">
-      <button type="button" onClick={onBack} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="w-3.5 h-3.5" /> Back
-      </button>
+      {onBack && (
+        <button type="button" onClick={onBack} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="w-3.5 h-3.5" /> Back
+        </button>
+      )}
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by number or name…" className="pl-8 h-9 text-sm" autoFocus />
