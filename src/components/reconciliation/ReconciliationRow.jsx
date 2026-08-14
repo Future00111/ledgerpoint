@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { gbp, fmtDate } from '@/lib/format';
-import { ChevronUp } from 'lucide-react';
 import MatchTab from './MatchTab';
 import CreateTab from './CreateTab';
 import TransferTab from './TransferTab';
@@ -17,9 +16,9 @@ const TABS = [
   { key: 'find', label: 'Find & Match' },
 ];
 
-// Expanded two-panel workspace for the selected transaction. Light, dense, thin borders.
+// Expanded workspace shown below the selected row. 45% bank / 55% actions.
 export default function ReconciliationRow({
-  transaction, suggestions, bankAccounts, companyId, onMatch, onCreate, onTransfer, onSplit, onCollapse, approving,
+  transaction, suggestions, bankAccounts, companyId, onMatch, onCreate, onTransfer, onSplit, approving,
 }) {
   const [tab, setTab] = useState('match');
   const t = transaction;
@@ -27,25 +26,23 @@ export default function ReconciliationRow({
   const amount = txnAmount(t);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 border-b border-[#E5E7EB]">
-      {/* LEFT — bank transaction */}
-      <div className="p-3 border-r border-[#E5E7EB] flex items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-xs text-muted-foreground">{fmtDate(t.date)}</p>
-          <p className="text-sm font-medium truncate">{t.description || 'Untitled transaction'}</p>
-          <p className="text-xs text-muted-foreground truncate">{t.bank_account_name}{t.reference ? ` · Ref ${t.reference}` : ''}</p>
+    <div className="flex flex-col md:flex-row md:items-start border-b border-[#E5E7EB] bg-muted/20">
+      {/* LEFT — bank transaction (top-aligned, compact, no empty space) */}
+      <div className="w-full md:w-[45%] p-3 border-r border-[#E5E7EB] bg-white">
+        <p className="text-xs text-muted-foreground">{fmtDate(t.date)}</p>
+        <p className="text-sm font-medium truncate mt-0.5">{t.description || 'Untitled transaction'}</p>
+        <div className="flex items-baseline justify-between gap-2 mt-1">
+          <p className="text-xs text-muted-foreground truncate">{t.bank_account_name}</p>
+          <p className={`text-sm font-semibold tabular-nums flex-shrink-0 ${isIncome ? 'text-emerald-700' : 'text-rose-600'}`}>
+            {isIncome ? '+' : '−'}{gbp(amount)}
+          </p>
         </div>
-        <p className={`text-sm font-semibold tabular-nums flex-shrink-0 ${isIncome ? 'text-emerald-700' : 'text-rose-600'}`}>
-          {isIncome ? '+' : '−'}{gbp(amount)}
-        </p>
-        <button type="button" onClick={onCollapse} className="text-muted-foreground hover:text-foreground flex-shrink-0" title="Collapse">
-          <ChevronUp className="w-4 h-4" />
-        </button>
+        {t.reference && <p className="text-xs text-muted-foreground/70 mt-1">Ref {t.reference}</p>}
       </div>
 
-      {/* RIGHT — reconciliation actions */}
-      <div className="p-3">
-        <div className="flex gap-4 border-b border-[#E5E7EB]">
+      {/* RIGHT — reconciliation actions (55%, 220px) */}
+      <div className="w-full md:w-[55%] md:h-[220px] flex flex-col bg-white">
+        <div className="flex gap-4 border-b border-[#E5E7EB] px-3">
           {TABS.map((tb) => (
             <button
               key={tb.key}
@@ -57,7 +54,7 @@ export default function ReconciliationRow({
             </button>
           ))}
         </div>
-        <div className="pt-2.5">
+        <div className="flex-1 overflow-y-auto p-3">
           {tab === 'match' && (
             <MatchTab
               transaction={t}

@@ -302,7 +302,12 @@ export default function Reconciliation() {
         <div id="recon-list" className="rounded-md border border-[#E5E7EB] bg-white overflow-hidden">
           {reviewList.map(({ t, suggestion }) => (
             <div id={`txn-${t.id}`} key={t.id}>
-              {expandedId === t.id ? (
+              <CompactRow
+                transaction={t}
+                selected={expandedId === t.id}
+                onSelect={() => setExpandedId((curr) => (curr === t.id ? null : t.id))}
+              />
+              {expandedId === t.id && (
                 <ReconciliationRow
                   transaction={t}
                   suggestions={suggestions[t.id] || (suggestion ? [suggestion] : [])}
@@ -313,10 +318,7 @@ export default function Reconciliation() {
                   onCreate={(data) => onCreate(t, data)}
                   onTransfer={(data) => onTransfer(t, data)}
                   onSplit={() => openSplit(t)}
-                  onCollapse={() => setExpandedId(null)}
                 />
-              ) : (
-                <CompactRow transaction={t} onSelect={() => setExpandedId(t.id)} />
               )}
             </div>
           ))}
