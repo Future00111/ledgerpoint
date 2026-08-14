@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { gbp, fmtDate } from '@/lib/format';
-import { ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import MatchTab from './MatchTab';
 import CreateTab from './CreateTab';
 import TransferTab from './TransferTab';
 import DiscussTab from './DiscussTab';
 import FindMatchView from './FindMatchView';
-
-const txnAmount = (t) => Number(t.money_in || 0) + Number(t.money_out || 0);
 
 const TABS = [
   { key: 'match', label: 'Match' },
@@ -17,63 +16,78 @@ const TABS = [
   { key: 'find', label: 'Find & Match' },
 ];
 
-const TYPE_LABEL = { income: 'Money in', expense: 'Money out', transfer: 'Transfer' };
-
-// One selected row expands inline into TWO ADJACENT BOXES: bank (52%) · actions (48%).
+// One transaction = one block of two adjacent equal-width boxes (Xero reconcile).
 export default function ReconciliationRow({
-  transaction, suggestions, bankAccounts, companyId, onMatch, onCreate, onTransfer, onSplit, onCollapse, approving,
+  transaction, suggestions, bankAccounts, companyId, onMatch, onCreate, onTransfer, onSplit, approving,
 }) {
   const [tab, setTab] = useState('match');
   const [more, setMore] = useState(false);
   const t = transaction;
   const isIncome = Number(t.money_in || 0) > 0;
-  const amount = txnAmount(t);
+  const amount = Number(t.money_in || 0) || Number(t.money_out || 0);
 
   return (
-    <div className="flex border-b border-[#E5E7EB] border-l-2 border-l-foreground/30 min-h-[160px]">
-      {/* LEFT — bank transaction (52%) */}
-      <div className="w-full md:w-[52%] p-3 border-r border-[#E5E7EB] bg-white flex flex-col relative">
-        <button type="button" onClick={onCollapse} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground" title="Collapse">
-          <ChevronUp className="w-4 h-4" />
-        </button>
-        <p className="text-xs text-muted-foreground">{fmtDate(t.date)}</p>
-        <div className="flex items-center justify-between gap-3 mt-1 pr-6">
-          <p className="text-sm font-medium truncate flex-1">{t.description || 'Untitled transaction'}</p>
-          <p className={`text-sm font-semibold tabular-nums flex-shrink-0 ${isIncome ? 'text-emerald-700' : 'text-rose-600'}`}>
-            {isIncome ? '+' : '−'}{gbp(amount)}
-          </p>
-        </div>
-        <p className="text-xs text-muted-foreground/70 mt-1">{t.reference ? `Ref ${t.reference}` : '\u00A0'}</p>
-        <p className="text-xs text-muted-foreground truncate">{t.bank_account_name}</p>
-        <div className="mt-auto pt-1">
-          <button type="button" onClick={() => setMore((v) => !v)} className="text-xs text-foreground hover:underline">
-            {more ? 'Hide details' : 'More details'}
-          </button>
+    <div className="flex border border-[#cccccc] bg-white rounded-sm overflow-hidden">
+      {/* LEFT — bank transaction (50%) */}
+      <div className="w-1/2 border-r border-[#cccccc] p-4 flex gap-4">
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-[#666]">{fmtDate(t.date)}</p>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="text-xs text-[#007bff] hover:underline inline-flex items-center gap-0.5">
+                  Options <ChevronDown className="w-3 h-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setMore((v) => !v)}>{more ? 'Hide details' : 'More details'}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTab('discuss')}>Discuss</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTab('find')}>Find &amp; Match</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <p className="text-sm text-[#333] mt-2 break-words leading-snug">{t.description || 'Untitled transaction'}</p>
           {more && (
-            <div className="mt-1 space-y-0.5 text-xs text-muted-foreground">
-              <p>Type: {TYPE_LABEL[t.type] || '—'}</p>
+            <div className="mt-2 space-y-0.5 text-xs text-[#666]">
+              <p>Reference: {t.reference || '—'}</p>
+              <p>Account: {t.bank_account_name}</p>
+              <p>Type: {t.type || '—'}</p>
               <p>Category: {t.category || '—'}</p>
-              <p>Status: {t.status}</p>
             </div>
           )}
+          <button type="button" onClick={() => setMore((v) => !v)} className="text-xs text-[#007bff] hover:underline mt-auto self-start pt-3">
+            {more ? 'Hide details' : 'More details'}
+          </button>
+        </div>
+
+        {/* Spent / Received columns */}
+        <div className="w-[140px] flex-shrink-0">
+          <div className="grid grid-cols-2 text-xs text-[#666]">
+            <span className="text-right pr-2">Spent</span>
+            <span className="text-right">Received</span>
+          </div>
+          <div className="grid grid-cols-2 mt-1 text-sm text-[#333] tabular-nums">
+            <span className="text-right pr-2">{!isIncome ? gbp(amount) : ''}</span>
+            <span className="text-right">{isIncome ? gbp(amount) : ''}</span>
+          </div>
         </div>
       </div>
 
-      {/* RIGHT — reconciliation actions (48%) */}
-      <div className="w-full md:w-[48%] flex flex-col bg-white">
-        <div className="flex gap-4 border-b border-[#E5E7EB] px-3">
+      {/* RIGHT — reconciliation action (50%) */}
+      <div className="w-1/2 flex flex-col bg-[#fafbfc]">
+        <div className="flex border-b border-[#cccccc] bg-white">
           {TABS.map((tb) => (
             <button
               key={tb.key}
               type="button"
               onClick={() => setTab(tb.key)}
-              className={`py-1.5 text-sm transition-colors ${tab === tb.key ? 'text-foreground font-medium border-b-2 border-foreground -mb-px' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`px-3 py-2 text-sm transition-colors ${tab === tb.key ? 'text-[#333] font-medium border-b-2 border-[#007bff] -mb-px' : 'text-[#666] hover:text-[#333]'}`}
             >
               {tb.label}
             </button>
           ))}
         </div>
-        <div className="p-3 flex-1">
+        <div className="p-4 flex-1">
           {tab === 'match' && (
             <MatchTab
               transaction={t}

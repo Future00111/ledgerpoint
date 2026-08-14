@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { gbp } from '@/lib/format';
 
 const TYPE_LABELS = {
@@ -17,52 +16,64 @@ export default function MatchTab({ transaction, suggestions, onMatch, onSplit, o
 
   if (!top) {
     return (
-      <div className="space-y-1.5">
-        <p className="text-sm text-muted-foreground">No suggested match.</p>
-        <div className="flex items-center gap-3 pt-1.5 border-t border-[#E5E7EB]">
-          {onSplit && <button type="button" onClick={onSplit} className="text-sm text-muted-foreground hover:text-foreground">Split</button>}
-          {onFindMatch && <button type="button" onClick={onFindMatch} className="text-sm text-muted-foreground hover:text-foreground">Find another match</button>}
-          {onCategorise && <button type="button" onClick={onCategorise} className="text-sm text-muted-foreground hover:text-foreground">Categorise</button>}
+      <div className="space-y-2">
+        <p className="text-sm text-[#666]">No suggested match.</p>
+        <div className="flex items-center gap-4">
+          {onSplit && <button type="button" onClick={onSplit} className="text-sm text-[#007bff] hover:underline">Split</button>}
+          {onFindMatch && <button type="button" onClick={onFindMatch} className="text-sm text-[#007bff] hover:underline">Find another match</button>}
+          {onCategorise && <button type="button" onClick={onCategorise} className="text-sm text-[#007bff] hover:underline">Categorise</button>}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-1.5">
-      <p className="text-sm font-medium truncate">{TYPE_LABELS[top.record_type]} {top.record_number} · {gbp(top.record_amount || txnAmount(transaction))}</p>
-      <p className="text-sm text-muted-foreground truncate">{top.record_name}</p>
-      <div className="flex items-center gap-2 text-xs">
-        <span className="text-muted-foreground">Confidence: {Math.round(top.confidence)}%</span>
-        <button type="button" onClick={() => setWhyOpen((v) => !v)} className="text-foreground hover:underline">{whyOpen ? 'Hide' : 'Why?'}</button>
+    <div className="space-y-3">
+      <div className="border border-[#cccccc] rounded-sm p-3 bg-white">
+        <p className="text-sm text-[#333] font-medium">{TYPE_LABELS[top.record_type]} {top.record_number}</p>
+        <p className="text-sm text-[#666]">{top.record_name}</p>
+        <p className="text-sm text-[#333] tabular-nums">{gbp(top.record_amount || txnAmount(transaction))}</p>
+        <div className="flex items-center gap-2 text-xs text-[#666] mt-1.5">
+          <span>Confidence: {Math.round(top.confidence)}%</span>
+          <button type="button" onClick={() => setWhyOpen((v) => !v)} className="text-[#007bff] hover:underline">{whyOpen ? 'Hide' : 'Why?'}</button>
+        </div>
+        {whyOpen && (
+          <ul className="mt-1.5 space-y-0.5 text-xs text-[#666]">
+            {(top.reasons || []).map((r, i) => (
+              <li key={i} className="flex gap-1.5"><span className="text-[#007bff]">✓</span><span>{r}</span></li>
+            ))}
+            {amountDiff > 0.01 && (
+              <li className="flex gap-1.5"><span className="text-[#d97706]">⚠</span><span>Differs by {gbp(amountDiff)}</span></li>
+            )}
+          </ul>
+        )}
       </div>
-      {whyOpen && (
-        <ul className="space-y-0.5 text-xs text-muted-foreground">
-          {(top.reasons || []).map((r, i) => (
-            <li key={i} className="flex gap-1.5"><span className="text-emerald-600">✓</span><span>{r}</span></li>
-          ))}
-          {amountDiff > 0.01 && (
-            <li className="flex gap-1.5"><span className="text-amber-600">⚠</span><span>Differs by {gbp(amountDiff)}</span></li>
-          )}
-        </ul>
-      )}
-      <div className="flex items-center gap-3 pt-1.5 border-t border-[#E5E7EB]">
-        <Button size="sm" onClick={() => onMatch(top)} disabled={approving} className="h-8">{approving ? 'Matching…' : 'Match'}</Button>
-        {onSplit && <button type="button" onClick={onSplit} className="text-sm text-muted-foreground hover:text-foreground">Split</button>}
-        {onFindMatch && <button type="button" onClick={onFindMatch} className="text-sm text-muted-foreground hover:text-foreground">Find another match</button>}
-        {onCategorise && <button type="button" onClick={onCategorise} className="text-sm text-muted-foreground hover:text-foreground">Categorise</button>}
+
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          onClick={() => onMatch(top)}
+          disabled={approving}
+          className="px-3 py-1.5 text-sm bg-[#007bff] text-white rounded hover:bg-[#0062cc] disabled:opacity-50"
+        >
+          {approving ? 'Matching…' : 'Match'}
+        </button>
+        {onSplit && <button type="button" onClick={onSplit} className="text-sm text-[#007bff] hover:underline">Split</button>}
+        {onFindMatch && <button type="button" onClick={onFindMatch} className="text-sm text-[#007bff] hover:underline">Find another match</button>}
+        {onCategorise && <button type="button" onClick={onCategorise} className="text-sm text-[#007bff] hover:underline">Categorise</button>}
       </div>
+
       {alternatives.length > 0 && (
-        <div className="pt-1.5 border-t border-[#E5E7EB]">
-          <p className="text-xs text-muted-foreground/70">Alternative matches</p>
-          <div className="divide-y divide-[#E5E7EB]">
+        <div>
+          <p className="text-xs text-[#666] mb-1">Alternative matches</p>
+          <div className="divide-y divide-[#e5e7eb] border border-[#cccccc] rounded-sm bg-white">
             {alternatives.map((alt) => (
-              <div key={alt.record_id} className="flex items-center justify-between py-1 gap-3">
+              <div key={alt.record_id} className="flex items-center justify-between px-3 py-2 gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{TYPE_LABELS[alt.record_type]} {alt.record_number}</p>
-                  <p className="text-xs text-muted-foreground truncate">{alt.record_name}</p>
+                  <p className="text-sm text-[#333] truncate">{TYPE_LABELS[alt.record_type]} {alt.record_number}</p>
+                  <p className="text-xs text-[#666] truncate">{alt.record_name}</p>
                 </div>
-                <button type="button" onClick={() => onMatch(alt)} className="text-sm text-foreground hover:underline flex-shrink-0">Match</button>
+                <button type="button" onClick={() => onMatch(alt)} className="text-sm text-[#007bff] hover:underline flex-shrink-0">Match</button>
               </div>
             ))}
           </div>
