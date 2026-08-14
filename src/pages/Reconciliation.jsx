@@ -1,33 +1,39 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Landmark, Upload, Plus, Search, Sparkles, AlertTriangle, Loader2 } from 'lucide-react';
-import { gbp, fmtDate } from '@/lib/format';
 import {
-  computeReconMetrics, computeAttentionItems, RECON_THRESHOLDS,
-} from '@/lib/reconciliationEngine';
-import ReconSummary from '@/components/reconciliation/ReconSummary';
-import TransactionCard from '@/components/reconciliation/TransactionCard';
-import ReconSidebar from '@/components/reconciliation/ReconSidebar';
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import { Search, Filter, ChevronDown, Upload, Plus, Check, Landmark } from 'lucide-react';
+import ReconciliationInboxCard from '@/components/reconciliation/ReconciliationInboxCard';
 import BankTransactionForm from '@/components/bank_transactions/BankTransactionForm';
 import MatchTransactionDialog from '@/components/bank_transactions/MatchTransactionDialog';
 import ReconciliationWorkflow from '@/components/bank_transactions/ReconciliationWorkflow';
 import ImportCSVDialog from '@/components/bank_transactions/ImportCSVDialog';
 
-const { HIGH_CONFIDENCE } = RECON_THRESHOLDS;
+const txnAmount = (t) => Number(t.money_in || 0) + Number(t.money_out || 0);
 
 const FILTERS = [
   { key: 'all', label: 'All' },
+  { key: 'ready', label: 'Ready to approve' },
   { key: 'review', label: 'Needs review' },
-  { key: 'low', label: 'Low confidence' },
-  { key: 'high', label: 'High value' },
+  { key: 'uncertain', label: 'AI uncertain' },
+  { key: 'nomatch', label: 'No match found' },
+  { key: 'highvalue', label: 'High value' },
 ];
 
-const txnAmount = (t) => Number(t.money_in || 0) + Number(t.money_out || 0);
+// Prioritization: AI uncertain → no match → duplicates → large → standard.
+function priority(suggestion, isDup, t) {
+  if (suggestion && suggestion.confidence < 50) return 1;
+  if (!suggestion) return 2;
+  if (isDup) return 3;
+  if (txnAmount(t) > 1000) return 4;
+  return 5;
+}
 
 export default function Reconciliation() {
   const { activeCompany } = useCompany();
@@ -39,10 +45,10 @@ export default function Reconciliation() {
   const [accountFilter, setAccountFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
+  const [compact, setCompact] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+  const [showReconciled, setShowReconciled] = useState(false);
   const [approvingId, setApprovingId] = useState(null);
-  const [bulkApproving, setBulkApproving] = useState(false);
-  const [highlightId, setHighlightId] = useState(null);
-  const [askSeed, setAskSeed] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [matchTarget, setMatchTarget] = useState(null);
@@ -50,6 +56,8 @@ export default function Reconciliation() {
   const [splitTarget, setSplitTarget] = useState(null);
   const [splitOpen, setSplitOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+
+  const dialogsOpen = formOpen || matchOpen || splitOpen || importOpen;
 
   const load = useCallback(async () => {
     if (!activeCompany) return;
@@ -65,7 +73,7 @@ export default function Reconciliation() {
         const res = await base44.functions.invoke('suggestTransactionMatches', { company_id: activeCompany.id });
         const body = res?.data ?? res;
         setSuggestions(body?.suggestions || {});
-      } catch (e) { setSuggestions({}); }
+      } catch { setSuggestions({}); }
     } finally {
       setLoading(false);
     }
@@ -80,41 +88,44 @@ export default function Reconciliation() {
       const q = search.toLowerCase();
       list = list.filter((t) => (t.description || '').toLowerCase().includes(q) || (t.reference || '').toLowerCase().includes(q));
     }
-    if (filter === 'review') list = list.filter((t) => t.status === 'review');
-    if (filter === 'low') list = list.filter((t) => t.status === 'review' && suggestions[t.id]?.[0] && suggestions[t.id][0].confidence < 60);
-    if (filter === 'high') list = list.filter((t) => t.status === 'review' && txnAmount(t) > 1000);
     return list;
-  }, [transactions, accountFilter, search, filter, suggestions]);
+  }, [transactions, accountFilter, search]);
 
-  const metrics = useMemo(() => computeReconMetrics(filteredTxns, suggestions, bankAccounts), [filteredTxns, suggestions, bankAccounts]);
-  const attention = useMemo(() => computeAttentionItems(filteredTxns, suggestions, bankAccounts), [filteredTxns, suggestions, bankAccounts]);
-
-  const groups = useMemo(() => {
+  const { reviewList, reconciledList } = useMemo(() => {
     const review = filteredTxns.filter((t) => t.status === 'review');
-    const byDateDesc = (a, b) => new Date(b.date) - new Date(a.date);
-    const auto = review.filter((t) => suggestions[t.id]?.[0]?.confidence >= HIGH_CONFIDENCE)
-      .sort((a, b) => (suggestions[b.id][0].confidence - suggestions[a.id][0].confidence) || byDateDesc(a, b));
-    const manual = review.filter((t) => !(suggestions[t.id]?.[0]?.confidence >= HIGH_CONFIDENCE)).sort(byDateDesc);
-    const matched = filteredTxns.filter((t) => t.status === 'matched').sort(byDateDesc);
-    return { auto, manual, matched };
-  }, [filteredTxns, suggestions]);
+    const reconciled = filteredTxns.filter((t) => t.status === 'matched');
+    const map = {};
+    review.forEach((t) => {
+      const k = `${(t.description || '').toLowerCase().trim()}|${txnAmount(t)}|${t.date}`;
+      (map[k] = map[k] || []).push(t.id);
+    });
+    const dupIds = new Set(Object.values(map).filter((g) => g.length > 1).flat());
+    let list = review.map((t) => ({ t, suggestion: suggestions[t.id]?.[0], isDup: dupIds.has(t.id) }));
+    if (filter === 'ready') list = list.filter((x) => x.suggestion && x.suggestion.confidence >= 80);
+    else if (filter === 'review') list = list.filter((x) => x.suggestion && x.suggestion.confidence >= 50 && x.suggestion.confidence < 80);
+    else if (filter === 'uncertain') list = list.filter((x) => x.suggestion && x.suggestion.confidence < 50);
+    else if (filter === 'nomatch') list = list.filter((x) => !x.suggestion);
+    else if (filter === 'highvalue') list = list.filter((x) => txnAmount(x.t) > 1000);
+    list.sort((a, b) => {
+      const pa = priority(a.suggestion, a.isDup, a.t);
+      const pb = priority(b.suggestion, b.isDup, b.t);
+      if (pa !== pb) return pa - pb;
+      const ca = a.suggestion?.confidence ?? -1;
+      const cb = b.suggestion?.confidence ?? -1;
+      if (ca !== cb) return cb - ca;
+      return new Date(b.t.date) - new Date(a.t.date);
+    });
+    return { reviewList: list, reconciledList: reconciled };
+  }, [filteredTxns, suggestions, filter]);
 
-  // Compact recommendation
-  const recommendation = useMemo(() => {
-    const find = (type) => attention.find((a) => a.type === type);
-    const feed = find('feed');
-    if (feed) return { alert: true, body: `${feed.count} bank feed${feed.count > 1 ? 's' : ''} interrupted — reconnect to resume syncing.`, action: null };
-    const dup = find('duplicate');
-    if (dup) return { body: `verifying ${dup.count} possible duplicate${dup.count > 1 ? 's' : ''}`, actionLabel: 'Review now', actionId: dup.transactionIds?.[0] };
-    const large = find('large');
-    if (large) return { body: `reviewing ${large.count} high-value transaction${large.count > 1 ? 's' : ''} first`, actionLabel: 'Review now', actionId: large.transactionIds?.[0] };
-    const lowConf = find('error');
-    if (lowConf) return { body: `verifying ${lowConf.count} low-confidence match${lowConf.count > 1 ? 'es' : ''}`, actionLabel: 'Review now', actionId: lowConf.transactionIds?.[0] };
-    const unmatched = find('unmatched');
-    if (unmatched) return { body: `categorising ${unmatched.count} unmatched transaction${unmatched.count > 1 ? 's' : ''}`, actionLabel: 'Review now', actionId: unmatched.transactionIds?.[0] };
-    if (metrics.autoMatchableCount) return { body: `approving ${metrics.autoMatchableCount} ready-matched transaction${metrics.autoMatchableCount > 1 ? 's' : ''}`, actionLabel: 'Approve all', actionType: 'approveAll' };
-    return { body: 'Reconciliation complete — nothing left to do.', action: null };
-  }, [attention, metrics]);
+  useEffect(() => {
+    if (!reviewList.length) { setSelectedId(null); return; }
+    if (!reviewList.some((x) => x.t.id === selectedId)) setSelectedId(reviewList[0].t.id);
+  }, [reviewList]);
+
+  useEffect(() => {
+    if (selectedId) document.getElementById(`txn-${selectedId}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [selectedId]);
 
   const applyMatch = async (txn, suggestion) => {
     let updateData = { status: 'matched', linked_invoice_id: '', linked_bill_id: '' };
@@ -134,35 +145,48 @@ export default function Reconciliation() {
     setApprovingId(txn.id);
     try {
       await applyMatch(txn, suggestion);
-      toast({ title: 'Transaction reconciled', description: `Matched to ${suggestion.record_number}` });
+      toast({ title: 'Reconciled', description: `Matched to ${suggestion.record_number}` });
       await load();
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
     finally { setApprovingId(null); }
   };
 
-  const approveAllAuto = async () => {
-    const targets = groups.auto.map((t) => ({ t, s: suggestions[t.id][0] }));
-    if (!targets.length) return;
-    setBulkApproving(true);
-    let ok = 0;
-    for (const { t, s } of targets) { try { await applyMatch(t, s); ok++; } catch (e) { /* continue */ } }
-    setBulkApproving(false);
-    toast({ title: `${ok} transaction${ok === 1 ? '' : 's'} reconciled` });
-    await load();
-  };
-
-  const openCategorise = (t) => { setMatchTarget(t); setMatchOpen(true); };
+  const openMatch = (t) => { setMatchTarget(t); setMatchOpen(true); };
   const openSplit = (t) => { setSplitTarget(t); setSplitOpen(true); };
   const openEdit = (t) => { setEditing(t); setFormOpen(true); };
-  const askAbout = (t) => {
-    const amt = gbp(txnAmount(t));
-    setAskSeed(`Explain this transaction: "${t.description}" on ${fmtDate(t.date)} for ${amt}.`);
-  };
-  const pickAttention = (txnId) => {
-    setHighlightId(txnId);
-    setTimeout(() => document.getElementById(`txn-${txnId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
-    setTimeout(() => setHighlightId(null), 2500);
-  };
+
+  // Keyboard shortcuts — A/S/F/C and arrow navigation. Ref avoids stale closures.
+  const stateRef = useRef({});
+  stateRef.current = { reviewList, selectedId, approve, openSplit, openMatch, dialogsOpen };
+  useEffect(() => {
+    const handler = (e) => {
+      const s = stateRef.current;
+      if (s.dialogsOpen) return;
+      const tag = (e.target?.tagName || '').toLowerCase();
+      if (['input', 'textarea', 'select'].includes(tag) || e.target?.isContentEditable) return;
+      if (!s.reviewList.length) return;
+      const idx = s.reviewList.findIndex((x) => x.t.id === s.selectedId);
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const n = s.reviewList[Math.min(idx + 1, s.reviewList.length - 1)];
+        if (n) setSelectedId(n.t.id);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const n = s.reviewList[Math.max(idx - 1, 0)];
+        if (n) setSelectedId(n.t.id);
+      } else {
+        const x = s.reviewList[idx];
+        if (!x) return;
+        const k = e.key.toLowerCase();
+        if (k === 'a' && x.suggestion) { e.preventDefault(); s.approve(x.t, x.suggestion); }
+        else if (k === 's') { e.preventDefault(); s.openSplit(x.t); }
+        else if (k === 'f') { e.preventDefault(); s.openMatch(x.t); }
+        else if (k === 'c') { e.preventDefault(); s.openMatch(x.t); }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const handleSave = async (data) => {
     try {
@@ -177,147 +201,114 @@ export default function Reconciliation() {
 
   if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
 
-  const GroupLabel = ({ label, count, action }) => (
-    <div className="flex items-center justify-between pt-5 pb-1 first:pt-0">
-      <p className="text-xs font-medium text-muted-foreground">{label} <span className="text-muted-foreground/50">{count}</span></p>
-      {action}
-    </div>
-  );
+  const currentFilterLabel = FILTERS.find((f) => f.key === filter)?.label || 'All';
 
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pt-2">
-        <div>
-          <p className="text-xs text-muted-foreground">Banking <span className="mx-1 opacity-40">/</span> Reconciliation</p>
-          <h1 className="text-xl font-semibold tracking-tight mt-1">Banking &amp; Reconciliation</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={accountFilter} onValueChange={setAccountFilter}>
-            <SelectTrigger className="w-44 h-9 text-sm"><SelectValue placeholder="All accounts" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All accounts</SelectItem>
-              {bankAccounts.map((a) => (<SelectItem key={a.id} value={a.id}>{a.account_name}</SelectItem>))}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2"><Upload className="w-4 h-4" /> Import</Button>
-          <Button onClick={() => { setEditing(null); setFormOpen(true); }} className="gap-2"><Plus className="w-4 h-4" /> Add</Button>
-        </div>
-      </div>
-
-      {/* Summary */}
-      <div className="mt-6 pb-6 border-b border-border">
-        {loading ? (
-          <div className="flex gap-12">
-            {[1, 2, 3].map((i) => <div key={i} className="h-10 w-28 bg-muted/40 animate-pulse rounded" />)}
-          </div>
-        ) : <ReconSummary metrics={metrics} />}
-      </div>
-
-      {/* AI recommendation */}
-      <div className="mt-4">
-        <div className="flex items-center gap-2 rounded-lg bg-primary/5 px-4 py-2.5">
-          {recommendation.alert ? (
-            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-          ) : (
-            <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
-          )}
-          <p className="text-sm text-foreground/80 flex-1 min-w-0">
-            {recommendation.action === null ? recommendation.body : <>Ledgerly recommends {recommendation.body}.</>}
-          </p>
-          {recommendation.actionType === 'approveAll' && (
-            <button onClick={approveAllAuto} disabled={bulkApproving} className="text-sm font-medium text-primary hover:underline flex-shrink-0 flex items-center gap-1">
-              {bulkApproving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}{recommendation.actionLabel} →
-            </button>
-          )}
-          {recommendation.actionId && (
-            <button onClick={() => pickAttention(recommendation.actionId)} className="text-sm font-medium text-primary hover:underline flex-shrink-0">
-              {recommendation.actionLabel} →
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Main grid */}
-      <div className="mt-6 grid lg:grid-cols-[3fr_1fr] gap-8">
-        {/* Transaction list */}
-        <div className="min-w-0">
-          {/* Toolbar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
-            <div className="relative w-full sm:max-w-xs">
+    <div className="max-w-5xl mx-auto">
+      {/* Header — light, single row */}
+      <div className="pt-2 pb-4">
+        <p className="text-xs text-muted-foreground">Banking <span className="opacity-40 mx-0.5">/</span> Reconciliation</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-1">
+          <h1 className="text-lg font-semibold tracking-tight">
+            {loading ? 'Loading…' : <>{reviewList.length} transaction{reviewList.length === 1 ? '' : 's'} requiring review</>}
+          </h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative w-full md:w-56">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <Input placeholder="Search transactions…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-9 text-sm" />
             </div>
-            <div className="flex items-center gap-1">
-              {FILTERS.map((f) => (
-                <button
-                  key={f.key}
-                  type="button"
-                  onClick={() => setFilter(f.key)}
-                  className={`px-2.5 py-1 text-xs rounded-md transition-colors ${filter === f.key ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
+            <Select value={accountFilter} onValueChange={setAccountFilter}>
+              <SelectTrigger className="w-full md:w-40 h-9 text-sm"><SelectValue placeholder="All accounts" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All accounts</SelectItem>
+                {bankAccounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.account_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-9 gap-1.5 text-sm">
+                  <Filter className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{currentFilterLabel}</span>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {FILTERS.map((f) => (
+                  <DropdownMenuItem key={f.key} onClick={() => setFilter(f.key)} className={filter === f.key ? 'font-medium' : ''}>
+                    {f.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <button
+              type="button"
+              onClick={() => setCompact((c) => !c)}
+              className={`flex items-center gap-1.5 h-9 px-2.5 rounded-md border text-xs ${compact ? 'bg-primary/10 text-primary border-primary/30' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              <span className={`w-3 h-3 rounded-full border ${compact ? 'bg-primary border-primary' : 'border-border'}`} />
+              Compact
+            </button>
+            <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground" onClick={() => setImportOpen(true)} title="Import"><Upload className="w-4 h-4" /></Button>
+            <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground" onClick={() => { setEditing(null); setFormOpen(true); }} title="Add transaction"><Plus className="w-4 h-4" /></Button>
           </div>
+        </div>
+      </div>
 
-          {/* List */}
-          {loading ? (
-            <div className="flex justify-center py-16"><div className="w-7 h-7 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" /></div>
-          ) : filteredTxns.length === 0 ? (
-            <div className="flex flex-col items-center py-16">
-              <Landmark className="w-10 h-10 text-muted-foreground/25 mb-3" />
-              <p className="text-sm text-muted-foreground">{search || filter !== 'all' || accountFilter !== 'all' ? 'No transactions match your filters' : 'No bank transactions yet.'}</p>
-            </div>
-          ) : (
-            <div>
-              {groups.auto.length > 0 && (
-                <>
-                  <GroupLabel label="Ready to approve" count={groups.auto.length}
-                    action={<button onClick={approveAllAuto} disabled={bulkApproving} className="text-xs font-medium text-primary hover:underline">{bulkApproving ? 'Approving…' : 'Approve all'}</button>} />
-                  {groups.auto.map((t) => (
-                    <TransactionCard key={t.id} transaction={t} suggestion={suggestions[t.id]?.[0]} highlight={highlightId === t.id}
-                      onApprove={(s) => approve(t, s)} onSplit={() => openSplit(t)} onCategorise={() => openCategorise(t)}
-                      onFindMatch={() => openCategorise(t)} onAsk={() => askAbout(t)} onEdit={() => openEdit(t)} approving={approvingId === t.id} />
-                  ))}
-                </>
-              )}
-              {groups.manual.length > 0 && (
-                <>
-                  <GroupLabel label="Needs review" count={groups.manual.length} />
-                  {groups.manual.map((t) => (
-                    <TransactionCard key={t.id} transaction={t} suggestion={suggestions[t.id]?.[0]} highlight={highlightId === t.id}
-                      onApprove={(s) => approve(t, s)} onSplit={() => openSplit(t)} onCategorise={() => openCategorise(t)}
-                      onFindMatch={() => openCategorise(t)} onAsk={() => askAbout(t)} onEdit={() => openEdit(t)} approving={approvingId === t.id} />
-                  ))}
-                </>
-              )}
-              {groups.matched.length > 0 && (
-                <>
-                  <GroupLabel label="Reconciled" count={groups.matched.length} />
-                  {groups.matched.map((t) => (
-                    <TransactionCard key={t.id} transaction={t} suggestion={null} highlight={highlightId === t.id}
-                      onApprove={() => {}} onSplit={() => {}} onCategorise={() => {}} onFindMatch={() => openCategorise(t)}
-                      onAsk={() => askAbout(t)} onEdit={() => openEdit(t)} />
-                  ))}
-                </>
-              )}
+      {/* Inbox */}
+      {loading ? (
+        <div className="flex justify-center py-20"><div className="w-7 h-7 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" /></div>
+      ) : reviewList.length === 0 ? (
+        <div className="flex flex-col items-center py-20">
+          <Landmark className="w-10 h-10 text-muted-foreground/25 mb-3" />
+          <p className="text-sm text-muted-foreground">
+            {search || filter !== 'all' || accountFilter !== 'all' ? 'No transactions match your filters' : 'Nothing requiring review — all reconciled.'}
+          </p>
+        </div>
+      ) : (
+        <div className="border-t border-border/60">
+          {reviewList.map(({ t, suggestion }) => (
+            <ReconciliationInboxCard
+              key={t.id}
+              transaction={t}
+              suggestion={suggestion}
+              companyId={activeCompany.id}
+              approving={approvingId === t.id}
+              selected={selectedId === t.id}
+              compact={compact}
+              onApprove={(s) => approve(t, s)}
+              onSplit={() => openSplit(t)}
+              onFindMatch={() => openMatch(t)}
+              onCategorise={() => openMatch(t)}
+              onEdit={() => openEdit(t)}
+              onSelect={setSelectedId}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Reconciled — collapsed by default */}
+      {!loading && reconciledList.length > 0 && (
+        <div className="mt-8">
+          <button type="button" onClick={() => setShowReconciled((v) => !v)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <Check className="w-4 h-4 text-emerald-500" />
+            {reconciledList.length} transaction{reconciledList.length === 1 ? '' : 's'} automatically reconciled
+            <span className="text-xs text-primary ml-1">{showReconciled ? 'Hide' : 'View'}</span>
+          </button>
+          {showReconciled && (
+            <div className="mt-2 border-t border-border/60">
+              {reconciledList.map((t) => (
+                <ReconciliationInboxCard key={t.id} transaction={t} suggestion={null} compact={compact} onEdit={() => openEdit(t)} onSelect={setSelectedId} />
+              ))}
             </div>
           )}
         </div>
+      )}
 
-        {/* Sidebar */}
-        <aside className="lg:pt-5">
-          <ReconSidebar metrics={metrics} attentionItems={attention} onPickAttention={pickAttention} companyId={activeCompany?.id} askSeed={askSeed} />
-        </aside>
-      </div>
-
-      {/* Dialogs */}
+      {/* Dialogs — underlying workflows preserved */}
       <BankTransactionForm open={formOpen} onOpenChange={(o) => { setFormOpen(o); if (!o) setEditing(null); }} editing={editing} onSave={handleSave} saving={false} />
-      <MatchTransactionDialog open={matchOpen} onOpenChange={setMatchOpen} transaction={matchTarget} companyId={activeCompany?.id} onMatched={load} />
-      <ReconciliationWorkflow open={splitOpen} onOpenChange={setSplitOpen} transaction={splitTarget} companyId={activeCompany?.id} onReconciled={load} />
-      <ImportCSVDialog open={importOpen} onOpenChange={setImportOpen} companyId={activeCompany?.id} onImported={load} />
+      <MatchTransactionDialog open={matchOpen} onOpenChange={setMatchOpen} transaction={matchTarget} companyId={activeCompany.id} onMatched={load} />
+      <ReconciliationWorkflow open={splitOpen} onOpenChange={setSplitOpen} transaction={splitTarget} companyId={activeCompany.id} onReconciled={load} />
+      <ImportCSVDialog open={importOpen} onOpenChange={setImportOpen} companyId={activeCompany.id} onImported={load} />
     </div>
   );
 }
