@@ -9,7 +9,8 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Search, Filter, ChevronDown, Upload, Plus, Check, Landmark } from 'lucide-react';
-import ReconciliationInboxCard from '@/components/reconciliation/ReconciliationInboxCard';
+import BankStatementRow from '@/components/reconciliation/BankStatementRow';
+import ReconciliationActionPanel from '@/components/reconciliation/ReconciliationActionPanel';
 import BankTransactionForm from '@/components/bank_transactions/BankTransactionForm';
 import MatchTransactionDialog from '@/components/bank_transactions/MatchTransactionDialog';
 import ReconciliationWorkflow from '@/components/bank_transactions/ReconciliationWorkflow';
@@ -19,9 +20,9 @@ const txnAmount = (t) => Number(t.money_in || 0) + Number(t.money_out || 0);
 
 const FILTERS = [
   { key: 'all', label: 'All' },
-  { key: 'ready', label: 'Ready to approve' },
-  { key: 'review', label: 'Needs review' },
-  { key: 'uncertain', label: 'AI uncertain' },
+  { key: 'ready', label: 'Ready' },
+  { key: 'review', label: 'Review' },
+  { key: 'uncertain', label: 'Investigate' },
   { key: 'nomatch', label: 'No match found' },
   { key: 'highvalue', label: 'High value' },
 ];
@@ -132,6 +133,11 @@ export default function Reconciliation() {
       ? `${metrics.estimatedMinutes} min`
       : `${Math.floor(metrics.estimatedMinutes / 60)}h ${metrics.estimatedMinutes % 60}m`;
 
+  const selected = useMemo(
+    () => reviewList.find((x) => x.t.id === selectedId) || null,
+    [reviewList, selectedId],
+  );
+
   useEffect(() => {
     if (!reviewList.length) { setSelectedId(null); return; }
     if (!reviewList.some((x) => x.t.id === selectedId)) setSelectedId(reviewList[0].t.id);
@@ -218,8 +224,8 @@ export default function Reconciliation() {
   const currentFilterLabel = FILTERS.find((f) => f.key === filter)?.label || 'All';
 
   return (
-    <div className="max-w-5xl mx-auto">
-      {/* Header — light, single row */}
+    <div className="max-w-6xl mx-auto">
+      {/* Header */}
       <div className="pt-1.5 pb-3">
         <p className="text-xs text-muted-foreground">Banking <span className="opacity-40 mx-0.5">/</span> Reconciliation</p>
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mt-1">
@@ -274,55 +280,63 @@ export default function Reconciliation() {
         </div>
       </div>
 
-      {/* Inbox */}
-      {loading ? (
-        <div className="flex justify-center py-20"><div className="w-7 h-7 border-[3px] border-muted-foreground/20 border-t-foreground rounded-full animate-spin" /></div>
-      ) : reviewList.length === 0 ? (
-        <div className="flex flex-col items-center py-20">
-          <Landmark className="w-10 h-10 text-muted-foreground/25 mb-3" />
-          <p className="text-sm text-muted-foreground">
-            {search || filter !== 'all' || accountFilter !== 'all' ? 'No transactions match your filters' : 'Nothing requiring review — all reconciled.'}
-          </p>
-        </div>
-      ) : (
-        <div className="rounded-lg border border-border/50 overflow-hidden">
-          {reviewList.map(({ t, suggestion }) => (
-            <ReconciliationInboxCard
-              key={t.id}
-              transaction={t}
-              suggestion={suggestion}
-              companyId={activeCompany.id}
-              approving={approvingId === t.id}
-              selected={selectedId === t.id}
-              compact={compact}
-              onApprove={(s) => approve(t, s)}
-              onSplit={() => openSplit(t)}
-              onFindMatch={() => openMatch(t)}
-              onCategorise={() => openMatch(t)}
-              onEdit={() => openEdit(t)}
-              onSelect={setSelectedId}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Reconciled — collapsed by default */}
-      {!loading && reconciledList.length > 0 && (
-        <div className="mt-8">
-          <button type="button" onClick={() => setShowReconciled((v) => !v)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <Check className="w-4 h-4 text-emerald-500" />
-            {reconciledList.length} transaction{reconciledList.length === 1 ? '' : 's'} automatically reconciled
-            <span className="text-xs text-foreground ml-1">{showReconciled ? 'Hide' : 'View'}</span>
-          </button>
-          {showReconciled && (
-            <div className="mt-2 rounded-lg border border-border/50 overflow-hidden">
-              {reconciledList.map((t) => (
-                <ReconciliationInboxCard key={t.id} transaction={t} suggestion={null} compact={compact} onEdit={() => openEdit(t)} onSelect={setSelectedId} />
+      {/* Two-panel layout: bank statement (left) · reconciliation decision (right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4">
+        <div className="min-w-0">
+          {loading ? (
+            <div className="flex justify-center py-20"><div className="w-7 h-7 border-[3px] border-muted-foreground/20 border-t-foreground rounded-full animate-spin" /></div>
+          ) : reviewList.length === 0 ? (
+            <div className="flex flex-col items-center py-20 rounded-lg border border-dashed border-border/60">
+              <Landmark className="w-10 h-10 text-muted-foreground/25 mb-3" />
+              <p className="text-sm text-muted-foreground">
+                {search || filter !== 'all' || accountFilter !== 'all' ? 'No transactions match your filters' : 'Nothing requiring review — all reconciled.'}
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-border/50 overflow-hidden">
+              {reviewList.map(({ t }) => (
+                <BankStatementRow
+                  key={t.id}
+                  transaction={t}
+                  selected={selectedId === t.id}
+                  compact={compact}
+                  onSelect={() => setSelectedId(t.id)}
+                />
               ))}
             </div>
           )}
+
+          {/* Reconciled — collapsed by default */}
+          {!loading && reconciledList.length > 0 && (
+            <div className="mt-6">
+              <button type="button" onClick={() => setShowReconciled((v) => !v)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                <Check className="w-4 h-4 text-emerald-500" />
+                {reconciledList.length} transaction{reconciledList.length === 1 ? '' : 's'} automatically reconciled
+                <span className="text-xs text-foreground ml-1">{showReconciled ? 'Hide' : 'View'}</span>
+              </button>
+              {showReconciled && (
+                <div className="mt-2 rounded-lg border border-border/50 overflow-hidden">
+                  {reconciledList.map((t) => (
+                    <BankStatementRow key={t.id} transaction={t} compact={compact} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      )}
+
+        <div className="min-w-0">
+          <ReconciliationActionPanel
+            transaction={selected?.t || null}
+            suggestions={selected ? (suggestions[selected.t.id] || []) : []}
+            approving={selected && approvingId === selected.t.id}
+            onApprove={(s) => selected && approve(selected.t, s)}
+            onFindMatch={() => selected && openMatch(selected.t)}
+            onSplit={() => selected && openSplit(selected.t)}
+            onCategorise={() => selected && openMatch(selected.t)}
+          />
+        </div>
+      </div>
 
       {/* Dialogs — underlying workflows preserved */}
       <BankTransactionForm open={formOpen} onOpenChange={(o) => { setFormOpen(o); if (!o) setEditing(null); }} editing={editing} onSave={handleSave} saving={false} />
