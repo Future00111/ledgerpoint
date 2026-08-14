@@ -30,9 +30,8 @@ export default function MatchTab({ transaction, suggestions, onMatch, onSplit, o
 
   return (
     <div className="space-y-1.5">
-      <p className="text-[11px] uppercase tracking-wide text-muted-foreground/60">AI suggested match</p>
-      <p className="text-sm font-medium">{TYPE_LABELS[top.record_type]} {top.record_number}</p>
-      <p className="text-sm text-muted-foreground">{top.record_name}</p>
+      <p className="text-sm font-medium truncate">{TYPE_LABELS[top.record_type]} {top.record_number} · {gbp(top.record_amount || txnAmount(transaction))}</p>
+      <p className="text-sm text-muted-foreground truncate">{top.record_name}</p>
       <div className="flex items-center gap-2 text-xs">
         <span className="text-muted-foreground">Confidence: {Math.round(top.confidence)}%</span>
         <button type="button" onClick={() => setWhyOpen((v) => !v)} className="text-foreground hover:underline">{whyOpen ? 'Hide' : 'Why?'}</button>
