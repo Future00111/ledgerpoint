@@ -27,11 +27,12 @@ import ForecastWidget from './widgets/ForecastWidget';
 import TopCustomersWidget from './widgets/TopCustomersWidget';
 import TopExpensesWidget from './widgets/TopExpensesWidget';
 import AiForecastsWidget from './widgets/AiForecastsWidget';
+import WorkflowWidget from './widgets/WorkflowWidget';
 
 import {
   LayoutDashboard, ListChecks, Sparkles, TrendingUp, BarChart3,
   FileText, Receipt, Landmark, Percent, Bell, Star, History, Zap,
-  ArrowLeftRight, Scale, BookOpen, Users, User, ClipboardList, Calculator, Crown,
+  ArrowLeftRight, Scale, BookOpen, Users, User, ClipboardList, Calculator, Crown, Workflow,
 } from 'lucide-react';
 
 // Registry: single source of truth for dashboard widgets.
@@ -68,6 +69,7 @@ export const WIDGETS = {
   topCustomers: { id: 'topCustomers', title: 'Top Customers', icon: Users, component: TopCustomersWidget, default: { w: 1, h: 1 }, priority: 26 },
   topExpenses: { id: 'topExpenses', title: 'Top Expenses', icon: Receipt, component: TopExpensesWidget, default: { w: 1, h: 1 }, priority: 27 },
   aiForecasts: { id: 'aiForecasts', title: 'AI Forecasts', icon: Sparkles, component: AiForecastsWidget, default: { w: 2, h: 2 }, priority: 28 },
+  workflow: { id: 'workflow', title: 'Workflow', icon: Workflow, component: WorkflowWidget, default: { w: 2, h: 2 }, priority: 29 },
 };
 
 // Dashboard Modes — presets over the same engine. Each lists the widgets to
@@ -76,7 +78,7 @@ export const MODES = {
   owner: {
     label: 'Business Owner',
     icon: User,
-    widgets: ['snapshot', 'priorities', 'cashflow', 'profit', 'insights', 'invoices', 'bills', 'notifications', 'recent', 'vat'],
+    widgets: ['snapshot', 'priorities', 'workflow', 'cashflow', 'profit', 'insights', 'invoices', 'bills', 'notifications', 'recent', 'vat'],
   },
   bookkeeper: {
     label: 'Bookkeeper',
@@ -148,6 +150,7 @@ export const WIDGET_SECTIONS = {
   priorities: 'todo', notifications: 'todo', docsReview: 'todo', billsApproval: 'todo', transactionsReview: 'todo', reconciliation: 'todo', quickActions: 'todo', vat: 'todo',
   invoices: 'owed', bills: 'owed', agedDebtors: 'owed', agedCreditors: 'owed', banking: 'owed',
   insights: 'intelligence', forecast: 'intelligence', aiForecasts: 'intelligence', recent: 'intelligence', watchlist: 'intelligence', trialBalance: 'intelligence', profitLoss: 'intelligence', balanceSheet: 'intelligence', generalLedger: 'intelligence', topCustomers: 'intelligence',
+  workflow: 'todo',
 };
 export function sectionOf(id) {
   return WIDGET_SECTIONS[id] || 'more';

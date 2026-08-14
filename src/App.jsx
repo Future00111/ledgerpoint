@@ -23,6 +23,7 @@ import Suppliers from '@/pages/Suppliers';
 import Invoices from '@/pages/Invoices';
 import InvoiceForm from '@/pages/InvoiceForm';
 import InvoiceDetail from '@/pages/InvoiceDetail';
+import Collections from '@/pages/Collections';
 import Bills from '@/pages/Bills';
 import BillForm from '@/pages/BillForm';
 import SalesCreditNotes from '@/pages/SalesCreditNotes';
@@ -86,6 +87,7 @@ const AuthenticatedApp = () => {
           <Route path="/invoices/new" element={<InvoiceForm />} />
           <Route path="/invoices/:id" element={<InvoiceForm />} />
           <Route path="/invoices/:id/view" element={<InvoiceDetail />} />
+          <Route path="/collections" element={<Collections />} />
           <Route path="/bills" element={<Bills />} />
           <Route path="/bills/new" element={<BillForm />} />
           <Route path="/bills/:id" element={<BillForm />} />

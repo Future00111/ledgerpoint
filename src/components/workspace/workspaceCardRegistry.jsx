@@ -24,6 +24,7 @@ import RevenueAnalyticsCard from './cards/RevenueAnalyticsCard';
 import CustomerLifecycleCard from './cards/CustomerLifecycleCard';
 import CommunicationCentreCard from './cards/CommunicationCentreCard';
 import AICollectionsRecommendationCard from './cards/AICollectionsRecommendationCard';
+import InvoiceWorkflowCard from '@/components/workflow/InvoiceWorkflowCard';
 
 // The Workspace Card Registry.
 // Maps a stable `kind` string to a reusable card component, so a Workspace is
@@ -54,6 +55,7 @@ export const CARD_REGISTRY = {
   'customer-lifecycle': CustomerLifecycleCard,
   'communication-centre': CommunicationCentreCard,
   'ai-collections-recommendation': AICollectionsRecommendationCard,
+  'invoice-workflow': InvoiceWorkflowCard,
   'notes': NotesCard,
 };
 

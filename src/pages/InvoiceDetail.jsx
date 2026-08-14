@@ -16,15 +16,20 @@ import {
 } from 'lucide-react';
 
 import { computeInvoiceIntelligence } from '@/lib/invoiceIntelligence';
+import {
+  computeInvoiceStage, computeWorkflowRecommendation, buildWorkflowTimeline,
+  logWorkflowActivity,
+} from '@/lib/workflowEngine';
 import InvoiceDocument from '@/components/invoices/InvoiceDocument';
 import InvoiceExecutiveSummary from '@/components/invoices/InvoiceExecutiveSummary';
 import AIPaymentPrediction from '@/components/invoices/AIPaymentPrediction';
-import CollectionsWorkflow from '@/components/invoices/CollectionsWorkflow';
 import CustomerInsightPanel from '@/components/invoices/CustomerInsightPanel';
 import RelatedInvoices from '@/components/invoices/RelatedInvoices';
 import InvoiceAnalytics from '@/components/invoices/InvoiceAnalytics';
 import InvoiceAIAssistant from '@/components/invoices/InvoiceAIAssistant';
-import TimelineCard from '@/components/workspace/cards/TimelineCard';
+import WorkflowProgress from '@/components/workflow/WorkflowProgress';
+import WorkflowTimeline from '@/components/workflow/WorkflowTimeline';
+import WorkflowRecommendation from '@/components/workflow/WorkflowRecommendation';
 import NeedsAttentionCard from '@/components/workspace/cards/NeedsAttentionCard';
 import ProfileCard from '@/components/workspace/cards/ProfileCard';
 import { Mail as MailIcon, Phone, MapPin, FileText, PoundSterling, CreditCard } from 'lucide-react';
@@ -53,6 +58,8 @@ export default function InvoiceDetail() {
   const [customerInvoices, setCustomerInvoices] = useState([]);
   const [creditNotes, setCreditNotes] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -60,6 +67,8 @@ export default function InvoiceDetail() {
     try {
       const inv = await base44.entities.SalesInvoice.get(id);
       setInvoice(inv);
+      const me = await base44.auth.me().catch(() => null);
+      setCurrentUser(me);
       const cust = await base44.entities.Customer.get(inv.customer_id);
       setCustomer(cust);
       const custInv = await base44.entities.SalesInvoice.filter({ customer_id: inv.customer_id }, '-issue_date', 200);
@@ -69,6 +78,8 @@ export default function InvoiceDetail() {
       const txns = await base44.entities.BankTransaction.filter({ company_id: inv.company_id, matched_type: 'sales_invoice' }, '-date', 200);
       const invIds = new Set((custInv || []).map((i) => i.id));
       setPayments((txns || []).filter((t) => invIds.has(t.linked_invoice_id)));
+      const acts = await base44.entities.WorkflowActivity.filter({ entity_type: 'sales_invoice', entity_id: id }, '-event_date', 200);
+      setActivities(acts || []);
     } catch (e) {
       console.error(e);
       toast({ title: 'Could not load invoice', variant: 'destructive' });
@@ -84,15 +95,44 @@ export default function InvoiceDetail() {
 
   const intel = computeInvoiceIntelligence({ invoice, customer, customerInvoices, payments, creditNotes });
 
+  // ---- Workflow engine -----------------------------------------------------
+  const remindersSent = activities.filter((a) => a.action === 'reminder_sent').length;
+  const onHold = customer?.tags?.includes('Credit Hold');
+  const legalAction = customer?.tags?.includes('Legal Action');
+  const wfCtx = { daysOverdue: intel.daysOverdue, remindersSent, onHold, legalAction };
+  const stage = computeInvoiceStage(invoice, wfCtx);
+  const recommendation = computeWorkflowRecommendation(invoice, wfCtx);
+  const workflowEvents = buildWorkflowTimeline(invoice, { payments, creditNotes, activities });
+
+  const logActivity = (action, actionLabel, notes = '', stageKey = stage?.key, metadata = {}) =>
+    logWorkflowActivity({
+      company_id: invoice.company_id, workflow_type: 'invoice', entity_type: 'sales_invoice', entity_id: id,
+      entity_name: invoice.invoice_number, stage: stageKey, action, action_label: actionLabel,
+      user_id: currentUser?.id, user_name: currentUser?.full_name || currentUser?.email || 'User',
+      notes, metadata,
+    });
+
   // ---- Actions ----
   const reload = () => load();
-  const sendInvoice = async () => { await base44.entities.SalesInvoice.update(id, { status: 'sent' }); toast({ title: 'Invoice sent' }); reload(); };
+  const sendInvoice = async () => {
+    await base44.entities.SalesInvoice.update(id, { status: 'sent' });
+    await logActivity('invoice_emailed', 'Invoice emailed', 'Marked as sent');
+    toast({ title: 'Invoice sent' }); reload();
+  };
   const approve = async () => {
-    try { await base44.functions.invoke('postSalesInvoice', { invoice_id: id, company_id: invoice.company_id }); toast({ title: 'Invoice approved & posted' }); reload(); }
+    try {
+      await base44.functions.invoke('postSalesInvoice', { invoice_id: id, company_id: invoice.company_id });
+      await logActivity('invoice_approved', 'Invoice approved', 'Approved & posted');
+      toast({ title: 'Invoice approved & posted' }); reload();
+    }
     catch (e) { toast({ title: 'Error approving invoice', description: e.message, variant: 'destructive' }); }
   };
   const recordPayment = () => nav('/transactions');
-  const sendReminder = () => { window.location.href = `mailto:${customer?.email || ''}?subject=${encodeURIComponent('Reminder — invoice ' + invoice.invoice_number)}&body=${encodeURIComponent(`Reminder: invoice ${invoice.invoice_number} for ${gbp.format(intel.balanceDue)} is ${intel.isOverdue ? `${intel.daysOverdue} days overdue` : 'now due'}.`)}`; };
+  const sendReminder = async () => {
+    window.location.href = `mailto:${customer?.email || ''}?subject=${encodeURIComponent('Reminder — invoice ' + invoice.invoice_number)}&body=${encodeURIComponent(`Reminder: invoice ${invoice.invoice_number} for ${gbp.format(intel.balanceDue)} is ${intel.isOverdue ? `${intel.daysOverdue} days overdue` : 'now due'}.`)}`;
+    await logActivity('reminder_sent', 'Reminder sent', `Email reminder · ${intel.isOverdue ? `${intel.daysOverdue} days overdue` : 'due'}`, 'reminder_sent');
+    toast({ title: 'Reminder prepared' });
+  };
   const addCreditNote = () => nav('/sales-credit-notes/new');
   const edit = () => nav(`/invoices/${id}`);
   const viewCustomer = () => nav(`/customers/${customer?.id}`);
@@ -146,6 +186,7 @@ export default function InvoiceDetail() {
   const cancelInvoice = async () => {
     if (!confirm('Cancel this invoice?')) return;
     await base44.entities.SalesInvoice.update(id, { status: 'cancelled' });
+    await logActivity('invoice_cancelled', 'Invoice cancelled', 'Cancelled by user');
     toast({ title: 'Invoice cancelled' }); reload();
   };
   const deleteInvoice = async () => {
@@ -161,21 +202,6 @@ export default function InvoiceDetail() {
   else if (['sent', 'part_paid', 'overdue'].includes(invoice.status)) primary = [<Btn key="r" label="Send reminder" icon={Mail} onClick={sendReminder} />, <Btn key="p" label="Record payment" icon={Wallet} onClick={recordPayment} variant="outline" />, <Btn key="c" label="Add credit note" icon={FileMinus} onClick={addCreditNote} variant="outline" />];
   else if (invoice.status === 'paid') primary = [<Btn key="p" label="View payment" icon={Wallet} onClick={recordPayment} />, <Btn key="d" label="Duplicate" icon={Copy} onClick={duplicate} variant="outline" />];
   else if (invoice.status === 'cancelled') primary = [<Btn key="d" label="Duplicate" icon={Copy} onClick={duplicate} variant="outline" />];
-
-  // ---- Invoice timeline ----
-  const events = [];
-  if (invoice.issue_date) events.push({ date: fmt(invoice.issue_date), type: 'Invoice created', reference: invoice.invoice_number, kind: 'created', status: 'Created', onClick: null });
-  if (invoice.posted_date && ['approved', 'sent', 'part_paid', 'paid', 'overdue'].includes(invoice.status)) events.push({ date: fmt(invoice.posted_date), type: 'Invoice approved', reference: invoice.invoice_number, kind: 'invoice_approved', status: 'Approved', onClick: null });
-  if (['sent', 'part_paid', 'paid', 'overdue'].includes(invoice.status)) events.push({ date: fmt(invoice.posted_date || invoice.issue_date), type: 'Invoice emailed', reference: invoice.invoice_number, kind: 'invoice_sent', status: 'Sent', onClick: null });
-  if (intel.isOverdue) {
-    const dd = new Date(invoice.due_date);
-    if (intel.stageNum >= 2) events.push({ date: fmt(new Date(dd.getTime() + 14 * 86400000)), type: 'First reminder sent', kind: 'reminder_sent', status: 'Reminder', onClick: null });
-    if (intel.stageNum >= 3) events.push({ date: fmt(new Date(dd.getTime() + 30 * 86400000)), type: 'Second reminder sent', kind: 'reminder_sent', status: 'Reminder', onClick: null });
-    if (intel.stageNum >= 4) events.push({ date: fmt(new Date(dd.getTime() + 60 * 86400000)), type: 'Final demand sent', kind: 'reminder_sent', status: 'Final demand', onClick: null });
-  }
-  payments.filter((p) => p.linked_invoice_id === invoice.id).forEach((p) => events.push({ date: fmt(p.date), type: 'Payment received', reference: p.matched_record_number, amount: Number(p.money_in) || 0, kind: 'payment', status: 'Received', onClick: () => nav('/transactions') }));
-  creditNotes.filter((c) => c.original_invoice_id === invoice.id).forEach((c) => events.push({ date: fmt(c.credit_note_date), type: 'Credit note issued', reference: c.credit_note_number, amount: -(Number(c.total) || 0), kind: 'credit_note', status: c.status, onClick: () => nav('/sales-credit-notes') }));
-  events.sort((a, b) => (a.date < b.date ? 1 : -1));
 
   // ---- Customer details (right sidebar) ----
   const address = [customer?.address_line_1, customer?.address_line_2, customer?.city, customer?.county, customer?.postcode, customer?.country].filter(Boolean).join(', ');
@@ -240,15 +266,15 @@ export default function InvoiceDetail() {
         </div>
       </div>
 
+      {/* Workflow stage strip — where am I? */}
+      <WorkflowProgress stage={stage} />
+
       {/* Two-column body */}
       <div className="grid lg:grid-cols-[7fr_3fr] gap-5 items-start">
         {/* LEFT — the invoice + its history */}
         <div className="space-y-4 min-w-0">
           <InvoiceDocument invoice={invoice} customer={customer} company={activeCompany} />
-          <div>
-            <p className="text-sm font-semibold mb-2">Invoice Timeline</p>
-            <TimelineCard events={events} maxHeight="24rem" />
-          </div>
+          <WorkflowTimeline events={workflowEvents} maxHeight="26rem" />
           <RelatedInvoices invoices={intel.relatedInvoices} onOpen={(rid) => nav(`/invoices/${rid}/view`)} />
           <InvoiceAnalytics amountVsAvgPct={intel.amountVsAvgPct} largestPrevious={intel.largestPrevious} isLargestEver={intel.isLargestEver} trend={intel.trend} onTimeRate={intel.onTimeRate} />
         </div>
@@ -263,7 +289,7 @@ export default function InvoiceDetail() {
             likelihood={intel.likelihood} likelihoodTone={intel.likelihoodTone} riskScore={intel.riskScore} riskLabel={intel.riskLabel} riskTone={intel.riskTone}
             predictedDate={intel.predictedDate} confidence={intel.confidence} riskFactors={intel.riskFactors}
           />
-          <CollectionsWorkflow stages={intel.workflowStages} stageNum={intel.stageNum} />
+          <WorkflowRecommendation recommendation={recommendation} />
           <CustomerInsightPanel
             health={intel.health.label} healthTone={intel.health.tone} relationshipValue={intel.relationshipValue} relationshipValueTone={intel.relationshipValueTone}
             lifetimeRevenue={intel.lifetimeRevenue} avgPaymentDays={intel.avgPaymentDays} openInvoices={intel.openInvoices} customerOutstanding={intel.customerOutstanding} onOpenCustomer={viewCustomer}

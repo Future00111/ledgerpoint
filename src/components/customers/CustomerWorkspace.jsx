@@ -454,6 +454,7 @@ export default function CustomerWorkspace({
 
   // ---- RIGHT column (context) -------------------------------------------
   const rightCards = [
+    { kind: 'invoice-workflow', invoices, onOpenInvoice: (inv) => { onOpenChange(false); nav(`/invoices/${inv.id}/view`); }, onOpenCollections: () => { onOpenChange(false); nav('/collections'); } },
     { kind: 'customer-health', score: health.score, label: health.label, tone: health.tone, historical: health.historical, current: health.current, currentTone: health.currentTone },
     { kind: 'customer-lifecycle', stage: lifecycleStage, detail: lifecycleDetail, tone: lifecycleTone },
     { kind: 'relationship-intelligence', value: customerValue, valueTone: customerValueTone, relationshipAge, risk: paymentRisk, riskTone: paymentRiskTone, trend: buyingTrend, trendTone: buyingTrendTone, comms, opportunities },
