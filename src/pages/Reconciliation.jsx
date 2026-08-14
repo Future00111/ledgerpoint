@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Search, Filter, ChevronDown, Upload, Plus, Landmark } from 'lucide-react';
 import CompactRow from '@/components/reconciliation/CompactRow';
-import BankTransactionCard from '@/components/reconciliation/BankTransactionCard';
 import ReconciliationRow from '@/components/reconciliation/ReconciliationRow';
 import BankTransactionForm from '@/components/bank_transactions/BankTransactionForm';
 import ReconciliationWorkflow from '@/components/bank_transactions/ReconciliationWorkflow';
@@ -304,11 +303,6 @@ export default function Reconciliation() {
           {reviewList.map(({ t, suggestion }) => (
             <div id={`txn-${t.id}`} key={t.id}>
               {expandedId === t.id ? (
-                <BankTransactionCard transaction={t} onSelect={() => setExpandedId(null)} />
-              ) : (
-                <CompactRow transaction={t} onSelect={() => setExpandedId(t.id)} />
-              )}
-              {expandedId === t.id && (
                 <ReconciliationRow
                   transaction={t}
                   suggestions={suggestions[t.id] || (suggestion ? [suggestion] : [])}
@@ -319,7 +313,10 @@ export default function Reconciliation() {
                   onCreate={(data) => onCreate(t, data)}
                   onTransfer={(data) => onTransfer(t, data)}
                   onSplit={() => openSplit(t)}
+                  onCollapse={() => setExpandedId(null)}
                 />
+              ) : (
+                <CompactRow transaction={t} onSelect={() => setExpandedId(t.id)} />
               )}
             </div>
           ))}
