@@ -118,6 +118,20 @@ export default function Reconciliation() {
     return { reviewList: list, reconciledList: reconciled };
   }, [filteredTxns, suggestions, filter]);
 
+  const metrics = useMemo(() => {
+    const total = filteredTxns.length;
+    const reconciled = filteredTxns.filter((t) => t.status === 'matched').length;
+    const remaining = filteredTxns.filter((t) => t.status === 'review').length;
+    const completionPct = total > 0 ? Math.round((reconciled / total) * 100) : 100;
+    const estimatedMinutes = remaining > 0 ? Math.max(1, Math.round((remaining * 90) / 60)) : 0;
+    return { total, reconciled, remaining, completionPct, estimatedMinutes };
+  }, [filteredTxns]);
+  const estLabel = metrics.estimatedMinutes === 0
+    ? 'Done'
+    : metrics.estimatedMinutes < 60
+      ? `${metrics.estimatedMinutes} min`
+      : `${Math.floor(metrics.estimatedMinutes / 60)}h ${metrics.estimatedMinutes % 60}m`;
+
   useEffect(() => {
     if (!reviewList.length) { setSelectedId(null); return; }
     if (!reviewList.some((x) => x.t.id === selectedId)) setSelectedId(reviewList[0].t.id);
@@ -208,10 +222,16 @@ export default function Reconciliation() {
       {/* Header — light, single row */}
       <div className="pt-2 pb-4">
         <p className="text-xs text-muted-foreground">Banking <span className="opacity-40 mx-0.5">/</span> Reconciliation</p>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-1">
-          <h1 className="text-lg font-semibold tracking-tight">
-            {loading ? 'Loading…' : <>{reviewList.length} transaction{reviewList.length === 1 ? '' : 's'} requiring review</>}
-          </h1>
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mt-1">
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight">
+              {loading ? 'Loading…' : <>{metrics.remaining} transaction{metrics.remaining === 1 ? '' : 's'} requiring review</>}
+            </h1>
+            <div className="mt-2.5 h-1 rounded-full bg-muted overflow-hidden w-full md:w-64">
+              <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${metrics.completionPct}%` }} />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">{metrics.reconciled} completed · {metrics.remaining} remaining · Est. {estLabel}</p>
+          </div>
           <div className="flex items-center gap-2 flex-wrap">
             <div className="relative w-full md:w-56">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -246,7 +266,7 @@ export default function Reconciliation() {
               className={`flex items-center gap-1.5 h-9 px-2.5 rounded-md border text-xs ${compact ? 'bg-primary/10 text-primary border-primary/30' : 'text-muted-foreground hover:text-foreground'}`}
             >
               <span className={`w-3 h-3 rounded-full border ${compact ? 'bg-primary border-primary' : 'border-border'}`} />
-              Compact
+              Compact View
             </button>
             <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground" onClick={() => setImportOpen(true)} title="Import"><Upload className="w-4 h-4" /></Button>
             <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground" onClick={() => { setEditing(null); setFormOpen(true); }} title="Add transaction"><Plus className="w-4 h-4" /></Button>
