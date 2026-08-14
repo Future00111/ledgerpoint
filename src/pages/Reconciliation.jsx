@@ -3,30 +3,31 @@ import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Landmark, Upload, Plus, Search, Sparkles, ArrowRight, Loader2, Check } from 'lucide-react';
+import { Landmark, Upload, Plus, Search, Sparkles, AlertTriangle, Loader2 } from 'lucide-react';
 import { gbp, fmtDate } from '@/lib/format';
 import {
-  computeReconMetrics, computeAttentionItems, computeNextAction, RECON_THRESHOLDS,
+  computeReconMetrics, computeAttentionItems, RECON_THRESHOLDS,
 } from '@/lib/reconciliationEngine';
-import ReconKpiBar from '@/components/reconciliation/ReconKpiBar';
-import ReconProgress from '@/components/reconciliation/ReconProgress';
+import ReconSummary from '@/components/reconciliation/ReconSummary';
 import TransactionCard from '@/components/reconciliation/TransactionCard';
-import ReconAttentionCard from '@/components/reconciliation/ReconAttentionCard';
-import ReconAskPanel from '@/components/reconciliation/ReconAskPanel';
+import ReconSidebar from '@/components/reconciliation/ReconSidebar';
 import BankTransactionForm from '@/components/bank_transactions/BankTransactionForm';
 import MatchTransactionDialog from '@/components/bank_transactions/MatchTransactionDialog';
 import ReconciliationWorkflow from '@/components/bank_transactions/ReconciliationWorkflow';
 import ImportCSVDialog from '@/components/bank_transactions/ImportCSVDialog';
 
 const { HIGH_CONFIDENCE } = RECON_THRESHOLDS;
-const NEXT_TONE = {
-  positive: 'border-emerald-200 bg-emerald-50',
-  warning: 'border-amber-200 bg-amber-50',
-  info: 'border-blue-200 bg-blue-50',
-};
+
+const FILTERS = [
+  { key: 'all', label: 'All' },
+  { key: 'review', label: 'Needs review' },
+  { key: 'low', label: 'Low confidence' },
+  { key: 'high', label: 'High value' },
+];
+
+const txnAmount = (t) => Number(t.money_in || 0) + Number(t.money_out || 0);
 
 export default function Reconciliation() {
   const { activeCompany } = useCompany();
@@ -37,6 +38,7 @@ export default function Reconciliation() {
   const [loading, setLoading] = useState(true);
   const [accountFilter, setAccountFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
   const [approvingId, setApprovingId] = useState(null);
   const [bulkApproving, setBulkApproving] = useState(false);
   const [highlightId, setHighlightId] = useState(null);
@@ -63,9 +65,10 @@ export default function Reconciliation() {
         const res = await base44.functions.invoke('suggestTransactionMatches', { company_id: activeCompany.id });
         const body = res?.data ?? res;
         setSuggestions(body?.suggestions || {});
-      } catch (e) { console.error(e); setSuggestions({}); }
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+      } catch (e) { setSuggestions({}); }
+    } finally {
+      setLoading(false);
+    }
   }, [activeCompany]);
 
   useEffect(() => { load(); }, [load]);
@@ -77,22 +80,41 @@ export default function Reconciliation() {
       const q = search.toLowerCase();
       list = list.filter((t) => (t.description || '').toLowerCase().includes(q) || (t.reference || '').toLowerCase().includes(q));
     }
+    if (filter === 'review') list = list.filter((t) => t.status === 'review');
+    if (filter === 'low') list = list.filter((t) => t.status === 'review' && suggestions[t.id]?.[0] && suggestions[t.id][0].confidence < 60);
+    if (filter === 'high') list = list.filter((t) => t.status === 'review' && txnAmount(t) > 1000);
     return list;
-  }, [transactions, accountFilter, search]);
+  }, [transactions, accountFilter, search, filter, suggestions]);
 
   const metrics = useMemo(() => computeReconMetrics(filteredTxns, suggestions, bankAccounts), [filteredTxns, suggestions, bankAccounts]);
   const attention = useMemo(() => computeAttentionItems(filteredTxns, suggestions, bankAccounts), [filteredTxns, suggestions, bankAccounts]);
-  const nextAction = useMemo(() => computeNextAction(filteredTxns, suggestions, metrics), [filteredTxns, suggestions, metrics]);
 
   const groups = useMemo(() => {
     const review = filteredTxns.filter((t) => t.status === 'review');
-    const matched = filteredTxns.filter((t) => t.status === 'matched');
     const byDateDesc = (a, b) => new Date(b.date) - new Date(a.date);
     const auto = review.filter((t) => suggestions[t.id]?.[0]?.confidence >= HIGH_CONFIDENCE)
       .sort((a, b) => (suggestions[b.id][0].confidence - suggestions[a.id][0].confidence) || byDateDesc(a, b));
     const manual = review.filter((t) => !(suggestions[t.id]?.[0]?.confidence >= HIGH_CONFIDENCE)).sort(byDateDesc);
-    return { auto, manual, matched: matched.sort(byDateDesc) };
+    const matched = filteredTxns.filter((t) => t.status === 'matched').sort(byDateDesc);
+    return { auto, manual, matched };
   }, [filteredTxns, suggestions]);
+
+  // Compact recommendation
+  const recommendation = useMemo(() => {
+    const find = (type) => attention.find((a) => a.type === type);
+    const feed = find('feed');
+    if (feed) return { alert: true, body: `${feed.count} bank feed${feed.count > 1 ? 's' : ''} interrupted — reconnect to resume syncing.`, action: null };
+    const dup = find('duplicate');
+    if (dup) return { body: `verifying ${dup.count} possible duplicate${dup.count > 1 ? 's' : ''}`, actionLabel: 'Review now', actionId: dup.transactionIds?.[0] };
+    const large = find('large');
+    if (large) return { body: `reviewing ${large.count} high-value transaction${large.count > 1 ? 's' : ''} first`, actionLabel: 'Review now', actionId: large.transactionIds?.[0] };
+    const lowConf = find('error');
+    if (lowConf) return { body: `verifying ${lowConf.count} low-confidence match${lowConf.count > 1 ? 'es' : ''}`, actionLabel: 'Review now', actionId: lowConf.transactionIds?.[0] };
+    const unmatched = find('unmatched');
+    if (unmatched) return { body: `categorising ${unmatched.count} unmatched transaction${unmatched.count > 1 ? 's' : ''}`, actionLabel: 'Review now', actionId: unmatched.transactionIds?.[0] };
+    if (metrics.autoMatchableCount) return { body: `approving ${metrics.autoMatchableCount} ready-matched transaction${metrics.autoMatchableCount > 1 ? 's' : ''}`, actionLabel: 'Approve all', actionType: 'approveAll' };
+    return { body: 'Reconciliation complete — nothing left to do.', action: null };
+  }, [attention, metrics]);
 
   const applyMatch = async (txn, suggestion) => {
     let updateData = { status: 'matched', linked_invoice_id: '', linked_bill_id: '' };
@@ -123,30 +145,22 @@ export default function Reconciliation() {
     if (!targets.length) return;
     setBulkApproving(true);
     let ok = 0;
-    try {
-      for (const { t, s } of targets) {
-        try { await applyMatch(t, s); ok++; } catch (e) { /* continue */ }
-      }
-      toast({ title: `${ok} transaction${ok === 1 ? '' : 's'} reconciled`, description: 'Auto-matches approved.' });
-      await load();
-    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
-    finally { setBulkApproving(false); }
+    for (const { t, s } of targets) { try { await applyMatch(t, s); ok++; } catch (e) { /* continue */ } }
+    setBulkApproving(false);
+    toast({ title: `${ok} transaction${ok === 1 ? '' : 's'} reconciled` });
+    await load();
   };
 
   const openCategorise = (t) => { setMatchTarget(t); setMatchOpen(true); };
   const openSplit = (t) => { setSplitTarget(t); setSplitOpen(true); };
   const openEdit = (t) => { setEditing(t); setFormOpen(true); };
-
   const askAbout = (t) => {
-    const amt = gbp(Number(t.money_in || 0) + Number(t.money_out || 0));
+    const amt = gbp(txnAmount(t));
     setAskSeed(`Explain this transaction: "${t.description}" on ${fmtDate(t.date)} for ${amt}.`);
   };
-
   const pickAttention = (txnId) => {
     setHighlightId(txnId);
-    setTimeout(() => {
-      document.getElementById(`txn-${txnId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 60);
+    setTimeout(() => document.getElementById(`txn-${txnId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
     setTimeout(() => setHighlightId(null), 2500);
   };
 
@@ -156,45 +170,34 @@ export default function Reconciliation() {
       if (editing) await base44.entities.BankTransaction.update(editing.id, payload);
       else await base44.entities.BankTransaction.create(payload);
       toast({ title: editing ? 'Transaction updated' : 'Transaction recorded' });
-      setFormOpen(false);
+      setFormOpen(false); setEditing(null);
       await load();
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
   };
 
   if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
 
-  const GroupHeader = ({ label, count, action }) => (
-    <div className="flex items-center justify-between mt-5 mb-2 first:mt-0">
-      <div className="flex items-center gap-2">
-        <h3 className="text-sm font-semibold">{label}</h3>
-        <Badge variant="secondary" className="text-xs">{count}</Badge>
-      </div>
+  const GroupLabel = ({ label, count, action }) => (
+    <div className="flex items-center justify-between pt-5 pb-1 first:pt-0">
+      <p className="text-xs font-medium text-muted-foreground">{label} <span className="text-muted-foreground/50">{count}</span></p>
       {action}
     </div>
   );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5">
+    <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pt-2">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Banking &amp; Reconciliation</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {loading ? 'Loading your transactions…' : (
-              metrics.remaining === 0
-                ? 'All transactions reconciled — nothing left to do.'
-                : <>Next: <span className="font-medium text-foreground">{nextAction.label}</span> — {nextAction.reason}</>
-            )}
-          </p>
+          <p className="text-xs text-muted-foreground">Banking <span className="mx-1 opacity-40">/</span> Reconciliation</p>
+          <h1 className="text-xl font-semibold tracking-tight mt-1">Banking &amp; Reconciliation</h1>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           <Select value={accountFilter} onValueChange={setAccountFilter}>
             <SelectTrigger className="w-44 h-9 text-sm"><SelectValue placeholder="All accounts" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All accounts</SelectItem>
-              {bankAccounts.map((a) => (
-                <SelectItem key={a.id} value={a.id}>{a.account_name}</SelectItem>
-              ))}
+              {bankAccounts.map((a) => (<SelectItem key={a.id} value={a.id}>{a.account_name}</SelectItem>))}
             </SelectContent>
           </Select>
           <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2"><Upload className="w-4 h-4" /> Import</Button>
@@ -202,100 +205,116 @@ export default function Reconciliation() {
         </div>
       </div>
 
-      {/* Bank dashboard — six KPIs answering the first four questions */}
-      <ReconKpiBar metrics={metrics} loading={loading} />
+      {/* Summary */}
+      <div className="mt-6 pb-6 border-b border-border">
+        {loading ? (
+          <div className="flex gap-12">
+            {[1, 2, 3].map((i) => <div key={i} className="h-10 w-28 bg-muted/40 animate-pulse rounded" />)}
+          </div>
+        ) : <ReconSummary metrics={metrics} />}
+      </div>
 
-      {/* Two-column workspace */}
-      <div className="grid lg:grid-cols-[7fr_3fr] gap-5 items-start">
-        {/* LEFT — next action + transaction list */}
-        <div className="space-y-4 min-w-0">
-          {/* What should I do next */}
-          {!loading && (
-            <button
-              type="button"
-              onClick={() => nextAction.transactionId && pickAttention(nextAction.transactionId)}
-              className={`w-full text-left flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${nextAction.transactionId ? 'hover:shadow-sm cursor-pointer' : 'cursor-default'} ${NEXT_TONE[nextAction.tone] || NEXT_TONE.info}`}
-            >
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/70 flex-shrink-0">
-                <Sparkles className="w-4 h-4 text-primary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">What should I do next</p>
-                <p className="text-sm font-semibold leading-tight">{nextAction.label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{nextAction.reason}</p>
-              </div>
-              {nextAction.transactionId && <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
+      {/* AI recommendation */}
+      <div className="mt-4">
+        <div className="flex items-center gap-2 rounded-lg bg-primary/5 px-4 py-2.5">
+          {recommendation.alert ? (
+            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+          ) : (
+            <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
+          )}
+          <p className="text-sm text-foreground/80 flex-1 min-w-0">
+            {recommendation.action === null ? recommendation.body : <>Ledgerly recommends {recommendation.body}.</>}
+          </p>
+          {recommendation.actionType === 'approveAll' && (
+            <button onClick={approveAllAuto} disabled={bulkApproving} className="text-sm font-medium text-primary hover:underline flex-shrink-0 flex items-center gap-1">
+              {bulkApproving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}{recommendation.actionLabel} →
             </button>
           )}
+          {recommendation.actionId && (
+            <button onClick={() => pickAttention(recommendation.actionId)} className="text-sm font-medium text-primary hover:underline flex-shrink-0">
+              {recommendation.actionLabel} →
+            </button>
+          )}
+        </div>
+      </div>
 
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Search transactions…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+      {/* Main grid */}
+      <div className="mt-6 grid lg:grid-cols-[3fr_1fr] gap-8">
+        {/* Transaction list */}
+        <div className="min-w-0">
+          {/* Toolbar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input placeholder="Search transactions…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-9 text-sm" />
+            </div>
+            <div className="flex items-center gap-1">
+              {FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setFilter(f.key)}
+                  className={`px-2.5 py-1 text-xs rounded-md transition-colors ${filter === f.key ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
 
+          {/* List */}
           {loading ? (
-            <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
+            <div className="flex justify-center py-16"><div className="w-7 h-7 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" /></div>
           ) : filteredTxns.length === 0 ? (
-            <div className="rounded-xl border bg-card shadow-sm flex flex-col items-center py-16">
-              <Landmark className="w-12 h-12 text-muted-foreground/30 mb-4" />
-              <p className="text-muted-foreground text-sm">{search || accountFilter !== 'all' ? 'No transactions match your filters' : 'No bank transactions yet — import a CSV or add one.'}</p>
+            <div className="flex flex-col items-center py-16">
+              <Landmark className="w-10 h-10 text-muted-foreground/25 mb-3" />
+              <p className="text-sm text-muted-foreground">{search || filter !== 'all' || accountFilter !== 'all' ? 'No transactions match your filters' : 'No bank transactions yet.'}</p>
             </div>
           ) : (
             <div>
               {groups.auto.length > 0 && (
                 <>
-                  <GroupHeader label="Auto-matchable" count={groups.auto.length}
-                    action={<Button size="sm" onClick={approveAllAuto} disabled={bulkApproving} className="h-7 gap-1 text-xs">{bulkApproving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Approve all</Button>} />
-                  <div className="space-y-2">
-                    {groups.auto.map((t) => (
-                      <TransactionCard key={t.id} transaction={t} suggestion={suggestions[t.id]?.[0]} highlight={highlightId === t.id}
-                        onApprove={(s) => approve(t, s)} onSplit={() => openSplit(t)} onCategorise={() => openCategorise(t)}
-                        onFindMatch={() => openCategorise(t)} onAsk={() => askAbout(t)} onEdit={() => openEdit(t)} approving={approvingId === t.id} />
-                    ))}
-                  </div>
+                  <GroupLabel label="Ready to approve" count={groups.auto.length}
+                    action={<button onClick={approveAllAuto} disabled={bulkApproving} className="text-xs font-medium text-primary hover:underline">{bulkApproving ? 'Approving…' : 'Approve all'}</button>} />
+                  {groups.auto.map((t) => (
+                    <TransactionCard key={t.id} transaction={t} suggestion={suggestions[t.id]?.[0]} highlight={highlightId === t.id}
+                      onApprove={(s) => approve(t, s)} onSplit={() => openSplit(t)} onCategorise={() => openCategorise(t)}
+                      onFindMatch={() => openCategorise(t)} onAsk={() => askAbout(t)} onEdit={() => openEdit(t)} approving={approvingId === t.id} />
+                  ))}
                 </>
               )}
-
               {groups.manual.length > 0 && (
                 <>
-                  <GroupHeader label="Needs review" count={groups.manual.length} />
-                  <div className="space-y-2">
-                    {groups.manual.map((t) => (
-                      <TransactionCard key={t.id} transaction={t} suggestion={suggestions[t.id]?.[0]} highlight={highlightId === t.id}
-                        onApprove={(s) => approve(t, s)} onSplit={() => openSplit(t)} onCategorise={() => openCategorise(t)}
-                        onFindMatch={() => openCategorise(t)} onAsk={() => askAbout(t)} onEdit={() => openEdit(t)} approving={approvingId === t.id} />
-                    ))}
-                  </div>
+                  <GroupLabel label="Needs review" count={groups.manual.length} />
+                  {groups.manual.map((t) => (
+                    <TransactionCard key={t.id} transaction={t} suggestion={suggestions[t.id]?.[0]} highlight={highlightId === t.id}
+                      onApprove={(s) => approve(t, s)} onSplit={() => openSplit(t)} onCategorise={() => openCategorise(t)}
+                      onFindMatch={() => openCategorise(t)} onAsk={() => askAbout(t)} onEdit={() => openEdit(t)} approving={approvingId === t.id} />
+                  ))}
                 </>
               )}
-
               {groups.matched.length > 0 && (
                 <>
-                  <GroupHeader label="Reconciled" count={groups.matched.length} />
-                  <div className="space-y-2">
-                    {groups.matched.map((t) => (
-                      <TransactionCard key={t.id} transaction={t} suggestion={null} highlight={highlightId === t.id}
-                        onApprove={() => {}} onSplit={() => {}} onCategorise={() => {}} onFindMatch={() => openCategorise(t)}
-                        onAsk={() => askAbout(t)} onEdit={() => openEdit(t)} />
-                    ))}
-                  </div>
+                  <GroupLabel label="Reconciled" count={groups.matched.length} />
+                  {groups.matched.map((t) => (
+                    <TransactionCard key={t.id} transaction={t} suggestion={null} highlight={highlightId === t.id}
+                      onApprove={() => {}} onSplit={() => {}} onCategorise={() => {}} onFindMatch={() => openCategorise(t)}
+                      onAsk={() => askAbout(t)} onEdit={() => openEdit(t)} />
+                  ))}
                 </>
               )}
             </div>
           )}
         </div>
 
-        {/* RIGHT — progress, attention, ask */}
-        <aside className="space-y-4 min-w-0 lg:sticky lg:top-20 self-start">
-          <ReconProgress metrics={metrics} />
-          <ReconAttentionCard items={attention} onPick={pickAttention} />
-          <ReconAskPanel companyId={activeCompany?.id} seed={askSeed} />
+        {/* Sidebar */}
+        <aside className="lg:pt-5">
+          <ReconSidebar metrics={metrics} attentionItems={attention} onPickAttention={pickAttention} companyId={activeCompany?.id} askSeed={askSeed} />
         </aside>
       </div>
 
       {/* Dialogs */}
-      <BankTransactionForm open={formOpen} onOpenChange={setFormOpen} editing={editing} onSave={handleSave} saving={false} />
+      <BankTransactionForm open={formOpen} onOpenChange={(o) => { setFormOpen(o); if (!o) setEditing(null); }} editing={editing} onSave={handleSave} saving={false} />
       <MatchTransactionDialog open={matchOpen} onOpenChange={setMatchOpen} transaction={matchTarget} companyId={activeCompany?.id} onMatched={load} />
       <ReconciliationWorkflow open={splitOpen} onOpenChange={setSplitOpen} transaction={splitTarget} companyId={activeCompany?.id} onReconciled={load} />
       <ImportCSVDialog open={importOpen} onOpenChange={setImportOpen} companyId={activeCompany?.id} onImported={load} />
