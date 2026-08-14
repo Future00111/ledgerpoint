@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ChevronDown, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { gbp, fmtDate } from '@/lib/format';
 
 const TYPE_LABELS = {
@@ -10,28 +9,15 @@ const TYPE_LABELS = {
 
 const txnAmount = (t) => Number(t.money_in || 0) + Number(t.money_out || 0);
 
-function initials(name) {
-  if (!name) return '?';
-  const parts = name.trim().split(/\s+/);
-  return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
-}
-
 function statusInfo(t, suggestion) {
-  if (t.status === 'matched') return { label: 'Reconciled', dot: 'bg-emerald-500', text: 'text-emerald-600' };
-  if (!suggestion) return { label: 'No match found', dot: 'bg-rose-400', text: 'text-rose-500' };
-  if (suggestion.confidence < 50) return { label: 'AI uncertain', dot: 'bg-amber-500', text: 'text-amber-600' };
-  if (suggestion.confidence >= 80) return { label: 'Ready to approve', dot: 'bg-emerald-500', text: 'text-emerald-600' };
-  return { label: 'Needs review', dot: 'bg-amber-500', text: 'text-amber-600' };
+  if (t.status === 'matched') return { label: 'Reconciled', chip: 'bg-emerald-500/10 text-emerald-700' };
+  if (!suggestion) return { label: 'Investigate', chip: 'bg-rose-500/10 text-rose-600' };
+  if (suggestion.confidence < 50) return { label: 'Investigate', chip: 'bg-rose-500/10 text-rose-600' };
+  if (suggestion.confidence >= 80) return { label: 'Ready', chip: 'bg-emerald-500/10 text-emerald-700' };
+  return { label: 'Review', chip: 'bg-amber-500/10 text-amber-700' };
 }
 
-function confLabel(c) {
-  if (c >= 80) return `High confidence (${Math.round(c)}%)`;
-  if (c >= 50) return `Medium confidence (${Math.round(c)}%)`;
-  return `Low confidence (${Math.round(c)}%)`;
-}
-
-// Soft, spacious reconciliation card. Collapsed shows name, amount, reference,
-// date, bank account and status. Advanced match detail lives behind an expand.
+// Flat, light reconciliation row. Click expands a natural-language explanation.
 export default function ReconciliationInboxCard({
   transaction, suggestion, onApprove, onSplit, onFindMatch, onCategorise, onEdit, onSelect,
   approving, selected, compact,
@@ -44,105 +30,76 @@ export default function ReconciliationInboxCard({
   const hasSuggestion = !!suggestion;
   const status = statusInfo(t, suggestion);
 
-  // Customer / supplier name is the primary focus; fall back to the bank line.
   const displayName = hasSuggestion ? suggestion.record_name : (t.description || 'Untitled transaction');
   const refText = hasSuggestion
     ? `${TYPE_LABELS[suggestion.record_type]} ${suggestion.record_number}`
     : (t.reference || '');
   const meta = [refText, fmtDate(t.date), t.bank_account_name].filter(Boolean).join('  ·  ');
+  const amountDiff = hasSuggestion ? Math.abs(amount - (suggestion.record_amount || 0)) : 0;
 
-  const pad = compact ? 'px-4 py-3' : 'px-5 py-4';
-  const titleSize = compact ? 'text-sm' : 'text-base';
-  const amtSize = compact ? 'text-sm' : 'text-base';
+  const rowPad = compact ? 'py-1.5 px-3' : 'py-2.5 px-3.5';
 
   const handleClick = () => {
     onSelect?.(t.id);
     setExpanded((v) => !v);
   };
 
-  if (isMatched) {
-    return (
-      <div id={`txn-${t.id}`} className={`rounded-xl border bg-card shadow-sm transition-all ${selected ? 'border-border ring-1 ring-border' : 'border-border/50 hover:shadow-md'}`}>
-        <div className={`flex items-center gap-3 ${pad} cursor-pointer`} onClick={() => onSelect?.(t.id)} onDoubleClick={() => onEdit?.()}>
-          <div className={`flex-shrink-0 rounded-lg bg-muted text-muted-foreground flex items-center justify-center font-medium ${compact ? 'w-8 h-8 text-xs' : 'w-9 h-9 text-sm'}`}>
-            {initials(displayName)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className={`${titleSize} font-medium truncate`}>{displayName}</p>
-            <p className="text-xs text-muted-foreground/80 mt-0.5 truncate">{meta}</p>
-          </div>
-          <div className="text-right flex-shrink-0">
-            <p className={`${amtSize} font-semibold ${isIncome ? 'text-emerald-700' : 'text-foreground'}`}>{isIncome ? '+' : '−'}{gbp(amount)}</p>
-            <p className={`text-xs mt-0.5 flex items-center gap-1 justify-end ${status.text}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />{status.label}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const showActions = selected || expanded;
-
   return (
     <div
       id={`txn-${t.id}`}
-      className={`rounded-xl border bg-card shadow-sm transition-all ${selected ? 'border-border ring-1 ring-border' : 'border-border/50 hover:shadow-md'}`}
+      className={`border-b border-border/40 last:border-b-0 transition-colors ${selected ? 'bg-muted/40' : 'hover:bg-muted/30'}`}
     >
-      <div className={`flex items-center gap-3 ${pad} cursor-pointer`} onClick={handleClick} onDoubleClick={() => onEdit?.()}>
-        <div className={`flex-shrink-0 rounded-lg bg-muted text-muted-foreground flex items-center justify-center font-medium ${compact ? 'w-8 h-8 text-xs' : 'w-9 h-9 text-sm'}`}>
-          {initials(displayName)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className={`${titleSize} font-medium truncate`}>{displayName}</p>
-          <p className="text-xs text-muted-foreground/80 mt-0.5 truncate">{meta}</p>
-        </div>
-        <div className="text-right flex-shrink-0">
-          <p className={`${amtSize} font-semibold ${isIncome ? 'text-emerald-700' : 'text-foreground'}`}>{isIncome ? '+' : '−'}{gbp(amount)}</p>
-          <p className={`text-xs mt-0.5 flex items-center gap-1 justify-end ${status.text}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />{status.label}
-          </p>
-        </div>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground/50 flex-shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+      <div className={`flex items-center gap-3 ${rowPad} cursor-pointer`} onClick={handleClick} onDoubleClick={() => onEdit?.()}>
+        {isIncome
+          ? <ArrowDownRight className="w-3.5 h-3.5 text-muted-foreground/40 flex-shrink-0" />
+          : <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground/40 flex-shrink-0" />}
+        <p className="text-sm font-medium truncate flex-1 min-w-0">{displayName}</p>
+        <p className="text-xs text-muted-foreground/70 truncate hidden lg:block flex-shrink-0 max-w-[300px]">{meta}</p>
+        <p className={`text-sm font-semibold flex-shrink-0 ${isIncome ? 'text-emerald-700' : 'text-foreground'}`}>
+          {isIncome ? '+' : '−'}{gbp(amount)}
+        </p>
+        <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium flex-shrink-0 ${status.chip}`}>
+          {status.label}
+        </span>
+        {!isMatched && (
+          <ChevronDown className={`w-4 h-4 text-muted-foreground/40 flex-shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+        )}
       </div>
 
-      {expanded && (
-        <div className={`${pad} pt-0 pb-3.5`}>
-          <div className="rounded-lg bg-muted/40 px-3.5 py-3 text-xs text-muted-foreground space-y-2">
-            {hasSuggestion ? (
-              <>
-                <div className="flex justify-between gap-3">
-                  <span className="text-muted-foreground/70">Suggested match</span>
-                  <span className="text-foreground/80 text-right">{TYPE_LABELS[suggestion.record_type]} {suggestion.record_number} · {suggestion.record_name}</span>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <span className="text-muted-foreground/70">AI confidence</span>
-                  <span className="text-foreground/80">{confLabel(suggestion.confidence)}</span>
-                </div>
-                {suggestion.reasons?.length > 0 && (
-                  <div className="flex justify-between gap-3">
-                    <span className="text-muted-foreground/70 flex-shrink-0">Why</span>
-                    <span className="text-foreground/70 text-right italic">{suggestion.reasons.join(' · ')}</span>
-                  </div>
+      {!isMatched && expanded && (
+        <div className={`${compact ? 'px-3 pb-2' : 'px-3.5 pb-2.5'} pl-9 text-xs`}>
+          {hasSuggestion ? (
+            <div className="text-muted-foreground space-y-1">
+              <p>
+                Suggested match:{' '}
+                <span className="text-foreground/80 font-medium">{TYPE_LABELS[suggestion.record_type]} {suggestion.record_number}</span>
+                <span className="text-muted-foreground/60"> · {suggestion.record_name}</span>
+              </p>
+              <p className="text-muted-foreground/70">Why this transaction was matched:</p>
+              <ul className="space-y-0.5">
+                {(suggestion.reasons || []).map((r, i) => (
+                  <li key={i} className="flex gap-1.5"><span className="text-emerald-600">✓</span><span>{r}</span></li>
+                ))}
+                {amountDiff > 0.01 && (
+                  <li className="flex gap-1.5"><span className="text-amber-600">⚠</span><span>Payment amount differs by {gbp(amountDiff)}.</span></li>
                 )}
-              </>
-            ) : (
-              <p className="text-muted-foreground/70">No suggested match found. Use <span className="text-foreground/80">Find match</span> to locate a record, or categorise this transaction.</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {showActions && (
-        <div className={`${pad} pt-0 pb-3.5 flex items-center gap-1`} onClick={(e) => e.stopPropagation()}>
-          {hasSuggestion && (
-            <Button variant="secondary" size="sm" onClick={() => onApprove?.(suggestion)} disabled={approving} className="h-7 px-3 text-xs">
-              {approving ? 'Approving…' : 'Approve'}
-            </Button>
+              </ul>
+            </div>
+          ) : (
+            <p className="text-muted-foreground">
+              No suggested match found. Use <span className="text-foreground/80 font-medium">Find match</span> to locate a record, or categorise this transaction.
+            </p>
           )}
-          <Button variant="ghost" size="sm" onClick={() => onSplit?.()} className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground">Split</Button>
-          <Button variant="ghost" size="sm" onClick={() => onFindMatch?.()} className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground">Find match</Button>
-          <Button variant="ghost" size="sm" onClick={() => onCategorise?.()} className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground">Categorise</Button>
+          <div className="mt-2 flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+            {hasSuggestion && (
+              <button type="button" onClick={() => onApprove?.(suggestion)} disabled={approving} className="text-foreground font-medium hover:underline disabled:opacity-50">
+                {approving ? 'Approving…' : 'Approve'}
+              </button>
+            )}
+            <button type="button" onClick={() => onSplit?.()} className="text-muted-foreground hover:text-foreground hover:underline">Split</button>
+            <button type="button" onClick={() => onFindMatch?.()} className="text-muted-foreground hover:text-foreground hover:underline">Find match</button>
+            <button type="button" onClick={() => onCategorise?.()} className="text-muted-foreground hover:text-foreground hover:underline">Categorise</button>
+          </div>
         </div>
       )}
     </div>

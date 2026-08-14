@@ -220,7 +220,7 @@ export default function Reconciliation() {
   return (
     <div className="max-w-5xl mx-auto">
       {/* Header — light, single row */}
-      <div className="pt-2 pb-4">
+      <div className="pt-1.5 pb-3">
         <p className="text-xs text-muted-foreground">Banking <span className="opacity-40 mx-0.5">/</span> Reconciliation</p>
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mt-1">
           <div>
@@ -285,7 +285,7 @@ export default function Reconciliation() {
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="rounded-lg border border-border/50 overflow-hidden">
           {reviewList.map(({ t, suggestion }) => (
             <ReconciliationInboxCard
               key={t.id}
@@ -315,7 +315,7 @@ export default function Reconciliation() {
             <span className="text-xs text-foreground ml-1">{showReconciled ? 'Hide' : 'View'}</span>
           </button>
           {showReconciled && (
-            <div className="mt-2 space-y-2">
+            <div className="mt-2 rounded-lg border border-border/50 overflow-hidden">
               {reconciledList.map((t) => (
                 <ReconciliationInboxCard key={t.id} transaction={t} suggestion={null} compact={compact} onEdit={() => openEdit(t)} onSelect={setSelectedId} />
               ))}
