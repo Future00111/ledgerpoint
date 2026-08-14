@@ -228,7 +228,7 @@ export default function Reconciliation() {
               {loading ? 'Loading…' : <>{metrics.remaining} transaction{metrics.remaining === 1 ? '' : 's'} requiring review</>}
             </h1>
             <div className="mt-2.5 h-1 rounded-full bg-muted overflow-hidden w-full md:w-64">
-              <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${metrics.completionPct}%` }} />
+              <div className="h-full bg-emerald-600 rounded-full transition-all" style={{ width: `${metrics.completionPct}%` }} />
             </div>
             <p className="text-xs text-muted-foreground mt-2">{metrics.reconciled} completed · {metrics.remaining} remaining · Est. {estLabel}</p>
           </div>
@@ -263,9 +263,9 @@ export default function Reconciliation() {
             <button
               type="button"
               onClick={() => setCompact((c) => !c)}
-              className={`flex items-center gap-1.5 h-9 px-2.5 rounded-md border text-xs ${compact ? 'bg-primary/10 text-primary border-primary/30' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`flex items-center gap-1.5 h-9 px-2.5 rounded-md border text-xs ${compact ? 'bg-foreground/5 text-foreground border-border' : 'text-muted-foreground hover:text-foreground'}`}
             >
-              <span className={`w-3 h-3 rounded-full border ${compact ? 'bg-primary border-primary' : 'border-border'}`} />
+              <span className={`w-3 h-3 rounded-full border ${compact ? 'bg-foreground border-foreground' : 'border-border'}`} />
               Compact View
             </button>
             <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground" onClick={() => setImportOpen(true)} title="Import"><Upload className="w-4 h-4" /></Button>
@@ -276,7 +276,7 @@ export default function Reconciliation() {
 
       {/* Inbox */}
       {loading ? (
-        <div className="flex justify-center py-20"><div className="w-7 h-7 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-20"><div className="w-7 h-7 border-[3px] border-muted-foreground/20 border-t-foreground rounded-full animate-spin" /></div>
       ) : reviewList.length === 0 ? (
         <div className="flex flex-col items-center py-20">
           <Landmark className="w-10 h-10 text-muted-foreground/25 mb-3" />
@@ -285,7 +285,7 @@ export default function Reconciliation() {
           </p>
         </div>
       ) : (
-        <div className="border-t border-border/60">
+        <div className="space-y-2">
           {reviewList.map(({ t, suggestion }) => (
             <ReconciliationInboxCard
               key={t.id}
@@ -312,10 +312,10 @@ export default function Reconciliation() {
           <button type="button" onClick={() => setShowReconciled((v) => !v)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <Check className="w-4 h-4 text-emerald-500" />
             {reconciledList.length} transaction{reconciledList.length === 1 ? '' : 's'} automatically reconciled
-            <span className="text-xs text-primary ml-1">{showReconciled ? 'Hide' : 'View'}</span>
+            <span className="text-xs text-foreground ml-1">{showReconciled ? 'Hide' : 'View'}</span>
           </button>
           {showReconciled && (
-            <div className="mt-2 border-t border-border/60">
+            <div className="mt-2 space-y-2">
               {reconciledList.map((t) => (
                 <ReconciliationInboxCard key={t.id} transaction={t} suggestion={null} compact={compact} onEdit={() => openEdit(t)} onSelect={setSelectedId} />
               ))}
