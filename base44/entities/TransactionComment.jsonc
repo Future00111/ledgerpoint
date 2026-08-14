@@ -1,0 +1,26 @@
+{
+  "name": "TransactionComment",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "Reference to BankTransaction"
+    },
+    "author_name": {
+      "type": "string",
+      "default": "You"
+    },
+    "body": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "transaction_id",
+    "body"
+  ]
+}
