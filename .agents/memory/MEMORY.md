@@ -1,0 +1,2 @@
+- [Ledgerly migration architecture](ledgerly-migration.md) — Base44→Replit porting decisions: Clerk auth, generic CRUD API, Drizzle+Postgres, entity proxy shim.
+- [API server build quirks](api-server-build.md) — esbuild external list must include "pg" or pg fails at runtime; use @workspace/db for the drizzle instance, not a custom db.ts.

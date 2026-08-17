@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Ledgerly"
+description = "Ledgerly is an AI-powered accounting and bookkeeping web app for small businesses. It handles invoicing, bills, bank reconciliation, VAT returns, chart of accounts, document capture, and financial insights — all in one place."
+version = "1.0.0"
+id = "artifacts/ledgerly"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21074
+
+[services.development]
+run = "pnpm --filter @workspace/ledgerly run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ledgerly", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/ledgerly/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21074"
+BASE_PATH = "/"
