@@ -14,6 +14,7 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
+import { aiService, AIProviderError } from "../services/ai/index.js";
 import {
   companyUsersTable,
   companiesTable,
@@ -75,9 +76,8 @@ async function assertWriteAccess(
   return true;
 }
 
-// ─── AI functions (not yet available) ────────────────────────────────────────
-const AI_FUNCTIONS = new Set([
-  "askAI",
+// ─── AI functions not yet fully implemented (honest 503) ─────────────────────
+const UNIMPLEMENTED_AI_FUNCTIONS = new Set([
   "generateInsights",
   "createRecordFromDocument",
 ]);
@@ -88,9 +88,9 @@ router.post("/:name", async (req: Request, res: Response) => {
   const funcName = req.params["name"] as string;
   const args = req.body as Record<string, unknown>;
 
-  if (AI_FUNCTIONS.has(funcName)) {
+  if (UNIMPLEMENTED_AI_FUNCTIONS.has(funcName)) {
     res.status(503).json({
-      error: `${funcName} requires AI integration which is not yet available. This feature is coming soon.`,
+      error: `${funcName} requires additional implementation and is not yet available. This feature is coming soon.`,
       notYetAvailable: true,
     });
     return;
@@ -98,6 +98,91 @@ router.post("/:name", async (req: Request, res: Response) => {
 
   try {
     switch (funcName) {
+      // ── testAI ───────────────────────────────────────────────────────────
+      // Sends a minimal prompt through the central AI service and confirms
+      // the active provider is reachable.  Safe to call without company context.
+      case "testAI": {
+        const result = await aiService.complete({
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a helpful assistant for Ledgerly, a UK accounting application.",
+            },
+            {
+              role: "user",
+              content:
+                (args["prompt"] as string | undefined) ??
+                "Reply with a single sentence confirming the AI integration is working.",
+            },
+          ],
+          maxTokens: 128,
+          temperature: 0,
+        });
+        res.json({
+          ok: true,
+          provider: result.provider,
+          model: result.model,
+          reply: result.text,
+        });
+        return;
+      }
+
+      // ── askAI ────────────────────────────────────────────────────────────
+      // General-purpose AI chat for accounting questions within a company.
+      case "askAI": {
+        const { company_id, messages, prompt } = args as {
+          company_id?: string;
+          messages?: Array<{ role: string; content: string }>;
+          prompt?: string;
+        };
+
+        // Verify membership when a company is supplied.
+        if (company_id) {
+          const m = await getMembership(userId, company_id);
+          if (!m) {
+            res.status(403).json({ error: "Access denied" });
+            return;
+          }
+        }
+
+        // Accept either a pre-built messages array or a single prompt string.
+        const chatMessages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
+          {
+            role: "system",
+            content:
+              "You are Ledgerly AI, a helpful assistant specialising in UK accounting, VAT, payroll, and bookkeeping. " +
+              "Provide clear, accurate, and concise answers. Do not provide legal or regulated financial advice.",
+          },
+        ];
+
+        if (messages && messages.length > 0) {
+          for (const m of messages) {
+            if (m.role === "user" || m.role === "assistant" || m.role === "system") {
+              chatMessages.push({ role: m.role, content: m.content });
+            }
+          }
+        } else if (prompt) {
+          chatMessages.push({ role: "user", content: prompt });
+        } else {
+          res.status(400).json({ error: "Provide either a 'prompt' string or a 'messages' array." });
+          return;
+        }
+
+        const result = await aiService.complete({
+          messages: chatMessages,
+          maxTokens: 1024,
+          temperature: 0.7,
+        });
+
+        res.json({
+          reply: result.text,
+          provider: result.provider,
+          model: result.model,
+        });
+        return;
+      }
+
       // ── updatePaymentStatus ──────────────────────────────────────────────
       case "updatePaymentStatus": {
         const { entity_type, record_id, amount_paid_delta } = args as {
