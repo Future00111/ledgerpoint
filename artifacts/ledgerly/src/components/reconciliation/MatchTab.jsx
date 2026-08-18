@@ -51,10 +51,26 @@ export default function MatchTab({ transaction, suggestions, onMatch, onSplit, o
       {/* Inline AI suggested match */}
       <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 relative overflow-hidden transition-all hover:bg-blue-50/80">
         <div className="absolute top-0 right-0 p-4">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/60 text-blue-700 border border-blue-100 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
-            <span>AI Match</span>
-            <span className="opacity-60">{Math.round(top.confidence)}%</span>
-          </div>
+          {(() => {
+            const pct = Math.round(top.confidence);
+            const colorClass = pct >= 70
+              ? 'text-emerald-700 border-emerald-200 bg-emerald-50/80'
+              : pct >= 40
+              ? 'text-amber-700 border-amber-200 bg-amber-50/80'
+              : 'text-slate-500 border-slate-200 bg-white/60';
+            const dotClass = pct >= 70
+              ? 'bg-emerald-500'
+              : pct >= 40
+              ? 'bg-amber-400'
+              : 'bg-slate-400';
+            return (
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 border rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${colorClass}`}>
+                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotClass}`} />
+                <span>Smart Match</span>
+                <span className="opacity-75">{pct}%</span>
+              </div>
+            );
+          })()}
         </div>
 
         <div className="space-y-4 pr-24">
