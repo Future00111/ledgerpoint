@@ -37,6 +37,7 @@ export default function Reconciliation() {
   const [bankAccounts, setBankAccounts] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [suggestions, setSuggestions] = useState({});
+  const [aiRecon, setAiRecon] = useState({});
   const [loading, setLoading] = useState(true);
   const [accountFilter, setAccountFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -64,7 +65,8 @@ export default function Reconciliation() {
         const res = await base44.functions.invoke('suggestTransactionMatches', { company_id: activeCompany.id });
         const body = res?.data ?? res;
         setSuggestions(body?.suggestions || {});
-      } catch { setSuggestions({}); }
+        setAiRecon(body?.reconciliation || {});
+      } catch { setSuggestions({}); setAiRecon({}); }
     } finally { setLoading(false); }
   }, [activeCompany]);
 
@@ -176,6 +178,27 @@ export default function Reconciliation() {
       const updateData = await applyMatch(txn, rec);
       setTransactions((prev) => prev.map((t) => (t.id === txn.id ? { ...t, ...updateData } : t)));
       toast({ title: 'Reconciled', description: `Matched to ${rec.record_number}` });
+      advance(txn.id);
+    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
+    finally { setApprovingId(null); }
+  };
+
+  // One-to-many: approve several records against a single bank transaction.
+  const onMatchMany = async (txn, recs) => {
+    if (!txn || !recs?.length) return;
+    if (recs.length === 1) return onMatch(txn, recs[0]);
+    setApprovingId(txn.id);
+    try {
+      // Server applies everything atomically: re-checks status, caps payment
+      // amounts at each record's outstanding balance, and links the records.
+      const res = await base44.functions.invoke('approveReconciliationMatches', {
+        bank_transaction_id: txn.id,
+        records: recs.map((r) => ({ record_type: r.record_type, record_id: r.record_id })),
+      });
+      const body = res?.data ?? res;
+      const updateData = body?.updateData || { status: 'matched' };
+      setTransactions((prev) => prev.map((t) => (t.id === txn.id ? { ...t, ...updateData } : t)));
+      toast({ title: 'Reconciled', description: `Matched to ${recs.length} records (${body?.label || ''})` });
       advance(txn.id);
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
     finally { setApprovingId(null); }
@@ -358,6 +381,8 @@ export default function Reconciliation() {
                     <ReconciliationRow
                       transaction={t}
                       suggestions={suggestions[t.id] || (suggestion ? [suggestion] : [])}
+                      aiRecon={aiRecon[t.id]}
+                      onMatchMany={(recs) => onMatchMany(t, recs)}
                       bankAccounts={bankAccounts}
                       companyId={activeCompany.id}
                       approving={approvingId === t.id}

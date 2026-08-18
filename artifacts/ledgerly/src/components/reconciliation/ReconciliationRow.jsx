@@ -19,7 +19,7 @@ const TABS = [
 ];
 
 export default function ReconciliationRow({
-  transaction, suggestions, bankAccounts, companyId, onMatch, onCreate, onTransfer, onSplit, onCollapse, approving,
+  transaction, suggestions, aiRecon, bankAccounts, companyId, onMatch, onMatchMany, onCreate, onTransfer, onSplit, onCollapse, approving,
 }) {
   const [tab, setTab] = useState('match');
   const [more, setMore] = useState(false);
@@ -143,6 +143,8 @@ export default function ReconciliationRow({
                 <MatchTab
                   transaction={t}
                   suggestions={suggestions}
+                  aiRecon={aiRecon}
+                  onMatchMany={onMatchMany}
                   onMatch={(rec) => onMatch(rec)}
                   onSplit={onSplit}
                   onFindMatch={() => setTab('find')}

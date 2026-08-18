@@ -136,6 +136,107 @@ router.post("/:name", async (req: Request, res: Response) => {
         break;
       }
 
+      // ── approveReconciliationMatches ─────────────────────────────────────
+      // Atomically reconcile one bank transaction against one or more sales
+      // invoices / purchase bills. All validation and writes happen inside a
+      // single DB transaction: the bank transaction must still be in review,
+      // every record must belong to the same company, and each payment delta
+      // is capped at the record's current outstanding balance.
+      case "approveReconciliationMatches": {
+        const { bank_transaction_id, records } = args as {
+          bank_transaction_id?: string;
+          records?: { record_type: string; record_id: string }[];
+        };
+        if (!bank_transaction_id || !Array.isArray(records) || records.length === 0) {
+          res.status(400).json({ error: "bank_transaction_id and records are required" });
+          return;
+        }
+        if (records.some((r) => r.record_type !== "sales_invoice" && r.record_type !== "purchase_bill")) {
+          res.status(400).json({ error: "Only sales invoices and purchase bills can be bulk-reconciled" });
+          return;
+        }
+
+        const [txn] = await db
+          .select()
+          .from(bankTransactionsTable)
+          .where(eq(bankTransactionsTable.id, bank_transaction_id))
+          .limit(1);
+        if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
+        if (!(await assertWriteAccess(userId, txn.company_id, res))) return;
+
+        try {
+          const result = await db.transaction(async (tx) => {
+            // Re-check the transaction is still awaiting reconciliation.
+            const [fresh] = await tx
+              .select()
+              .from(bankTransactionsTable)
+              .where(eq(bankTransactionsTable.id, bank_transaction_id))
+              .for("update");
+            if (!fresh || fresh.status !== "review") {
+              throw new Error("This transaction has already been reconciled");
+            }
+
+            const numbers: string[] = [];
+            let appliedPence = 0;
+            const txnPence = Math.round((Number(fresh.money_in || 0) + Number(fresh.money_out || 0)) * 100);
+
+            for (const r of records) {
+              const table = r.record_type === "sales_invoice" ? salesInvoicesTable : purchaseBillsTable;
+              const [rec] = await tx.select().from(table).where(eq(table.id, r.record_id)).for("update");
+              if (!rec) throw new Error("A matched record no longer exists");
+              if (rec.company_id !== fresh.company_id) throw new Error("Record belongs to a different company");
+              if (rec.status === "cancelled" || rec.status === "paid") {
+                throw new Error(`${(rec as Record<string, unknown>)["invoice_number"] || (rec as Record<string, unknown>)["bill_number"]} is already settled`);
+              }
+
+              const balancePence = Math.round(Number(rec.balance_due ?? rec.total ?? 0) * 100);
+              const remainingTxn = txnPence - appliedPence;
+              const deltaPence = Math.min(balancePence, Math.max(0, remainingTxn));
+              if (deltaPence <= 0) throw new Error("Matched records exceed the bank transaction amount");
+
+              const paidPence = Math.round(Number(rec.amount_paid ?? 0) * 100) + deltaPence;
+              const newBalancePence = Math.max(0, Math.round(Number(rec.total ?? 0) * 100) - paidPence);
+              await tx
+                .update(table)
+                .set({
+                  amount_paid: (paidPence / 100).toFixed(2),
+                  balance_due: (newBalancePence / 100).toFixed(2),
+                  status: newBalancePence === 0 ? "paid" : rec.status,
+                  updated_at: new Date(),
+                })
+                .where(eq(table.id, r.record_id));
+
+              appliedPence += deltaPence;
+              const num = (rec as Record<string, unknown>)["invoice_number"] || (rec as Record<string, unknown>)["bill_number"];
+              if (num) numbers.push(String(num));
+            }
+
+            const first = records[0]!;
+            const label = numbers.length > 2 ? `${numbers.slice(0, 2).join(", ")} +${numbers.length - 2} more` : numbers.join(", ");
+            const updateData = {
+              status: "matched",
+              matched_type: first.record_type,
+              matched_record_id: first.record_id,
+              matched_record_number: label,
+              linked_invoice_id: first.record_type === "sales_invoice" ? first.record_id : null,
+              linked_bill_id: first.record_type === "purchase_bill" ? first.record_id : null,
+              updated_at: new Date(),
+            };
+            await tx
+              .update(bankTransactionsTable)
+              .set(updateData)
+              .where(eq(bankTransactionsTable.id, bank_transaction_id));
+
+            return { label, applied: appliedPence / 100, updateData };
+          });
+
+          res.json({ success: true, ...result });
+        } catch (e) {
+          res.status(409).json({ error: e instanceof Error ? e.message : "Reconciliation failed" });
+        }
+        break;
+      }
+
       // ── postSalesInvoice ─────────────────────────────────────────────────
       case "postSalesInvoice": {
         const { invoice_id } = args as { invoice_id: string };
@@ -240,6 +341,7 @@ router.post("/:name", async (req: Request, res: Response) => {
 
         const DAY_MS = 24 * 60 * 60 * 1000;
         const allSuggestions: Record<string, object[]> = {};
+        const allReconciliations: Record<string, object> = {};
 
         for (const txn of txnsToScore) {
           const txnAmount = Number(txn.money_in || 0) + Number(txn.money_out || 0);
@@ -364,9 +466,88 @@ router.post("/:name", async (req: Request, res: Response) => {
           if (strongSuggestions.length > 0) {
             allSuggestions[txn.id] = strongSuggestions;
           }
+
+          // ── AI reconciliation: one-to-many combination match ────────────────
+          // Money in → outstanding sales invoices only (revenue matching);
+          // money out → outstanding purchase bills only. All arithmetic in
+          // integer pence to avoid floating-point drift.
+          if (txnAmount > 0) {
+            const comboType = Number(txn.money_in || 0) > 0 ? "sales_invoice" : "purchase_bill";
+            const toPence = (n: number) => Math.round(n * 100);
+            const txnPence = toPence(txnAmount);
+
+            const candidates = suggestions
+              .filter((s) => s.record_type === comboType)
+              .sort((a, b) => b.confidence - a.confidence)
+              .slice(0, 20)
+              .map((s) => ({ ...s, pence: toPence(s.record_amount) }));
+
+            type Cand = (typeof candidates)[number];
+            const MAX_COMBO = 5;
+            const findCombo = (startIdx: number, remaining: number, picked: Cand[]): Cand[] | null => {
+              if (remaining === 0 && picked.length > 0) return picked;
+              if (remaining < 0 || picked.length >= MAX_COMBO) return null;
+              for (let i = startIdx; i < candidates.length; i++) {
+                const c = candidates[i];
+                if (c.pence > remaining) continue;
+                const found = findCombo(i + 1, remaining - c.pence, [...picked, c]);
+                if (found) return found;
+              }
+              return null;
+            };
+            const combo = findCombo(0, txnPence, []);
+
+            let matched: Cand[] = [];
+            let potential: Cand[] = [];
+            let status: "green" | "amber" | "red";
+            let overallConfidence = 0;
+
+            if (combo) {
+              matched = combo;
+              // Exact-total combination: high confidence, tempered slightly per
+              // extra document and lifted by per-record signals.
+              const avgSignal = combo.reduce((s, c) => s + c.confidence, 0) / combo.length;
+              overallConfidence = Math.min(100, Math.round(
+                70 + Math.min(avgSignal, 100) * 0.3 - (combo.length - 1) * 5,
+              ));
+              status = "green";
+              potential = candidates.filter(
+                (s) => s.confidence >= 50 && !combo.some((m) => m.record_id === s.record_id),
+              );
+            } else {
+              // Partial: greedily take high-confidence records that fit within
+              // the bank amount, then surface the rest as potential invoices.
+              let runningPence = 0;
+              for (const c of candidates) {
+                if (c.confidence >= 70 && c.pence <= txnPence - runningPence) {
+                  matched.push(c);
+                  runningPence += c.pence;
+                }
+              }
+              potential = candidates.filter(
+                (s) => s.confidence >= 50 && !matched.some((m) => m.record_id === s.record_id),
+              );
+              overallConfidence = matched.length
+                ? Math.round(matched.reduce((s, c) => s + c.confidence, 0) / matched.length)
+                : (potential[0] ? Math.round(potential[0].confidence) : 0);
+              status = matched.length > 0 || potential.length > 0 ? "amber" : "red";
+            }
+
+            const matchedPence = matched.reduce((s, c) => s + c.pence, 0);
+            const strip = (c: Cand) => { const { pence: _p, ...rest } = c; return rest; };
+            allReconciliations[txn.id] = {
+              transaction_amount: txnPence / 100,
+              matched_records: matched.map(strip),
+              matched_total: matchedPence / 100,
+              remaining: Math.max(0, txnPence - matchedPence) / 100,
+              potential_matches: potential.slice(0, 5).map(strip),
+              confidence: overallConfidence,
+              status,
+            };
+          }
         }
 
-        res.json({ suggestions: allSuggestions });
+        res.json({ suggestions: allSuggestions, reconciliation: allReconciliations });
         break;
       }
 
