@@ -65,26 +65,34 @@ export default function ReconciliationRow({
           </div>
         </div>
 
-        <div className="mb-8 flex-1">
+        <div className="mb-4">
           <h3 className="text-lg font-bold text-slate-900 leading-snug">{t.description || 'Untitled transaction'}</h3>
-          
+          <p className={`mt-1.5 text-2xl font-black tabular-nums tracking-tight ${isIncome ? 'text-emerald-600' : 'text-slate-900'}`}>
+            {isIncome ? '+' : '-'}{gbp(amount).replace('£', '£ ')}
+            <span className="ml-2 align-middle text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+              {isIncome ? 'Received' : 'Spent'}
+            </span>
+          </p>
+        </div>
+
+        <div className="pt-4 border-t border-slate-200/80 space-y-2.5 text-sm text-slate-600">
+          <div className="grid grid-cols-[80px_1fr] gap-2">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Reference</span>
+            <span className="break-all font-medium">{t.reference || '—'}</span>
+          </div>
+          <div className="grid grid-cols-[80px_1fr] gap-2">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Type</span>
+            <span className="font-medium">{t.type || '—'}</span>
+          </div>
           <AnimatePresence initial={false}>
             {more && (
-              <motion.div 
+              <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <div className="pt-4 mt-4 border-t border-slate-200/80 space-y-2.5 text-sm text-slate-600">
-                  <div className="grid grid-cols-[80px_1fr] gap-2">
-                    <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Reference</span>
-                    <span className="break-all font-medium">{t.reference || '—'}</span>
-                  </div>
-                  <div className="grid grid-cols-[80px_1fr] gap-2">
-                    <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Type</span>
-                    <span className="font-medium">{t.type || '—'}</span>
-                  </div>
+                <div className="space-y-2.5 pt-0.5">
                   <div className="grid grid-cols-[80px_1fr] gap-2">
                     <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Category</span>
                     <span className="font-medium">{t.category || '—'}</span>
@@ -93,22 +101,11 @@ export default function ReconciliationRow({
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-
-        <div className="mt-auto pt-4 border-t border-slate-200/80 flex items-center justify-between">
-          <div className="space-y-0.5">
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-              {isIncome ? 'Received' : 'Spent'}
-            </p>
-            <p className={`text-2xl font-black tabular-nums tracking-tight ${isIncome ? 'text-emerald-600' : 'text-slate-900'}`}>
-              {isIncome ? '+' : '-'}{gbp(amount).replace('£', '£ ')}
-            </p>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setMore(!more)} 
-            className="text-[#007bff] hover:bg-blue-50 h-8 font-semibold text-xs transition-colors"
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMore(!more)}
+            className="text-[#007bff] hover:bg-blue-50 h-7 -ml-2 font-semibold text-xs transition-colors"
           >
             {more ? 'Hide details' : 'More details'}
           </Button>
