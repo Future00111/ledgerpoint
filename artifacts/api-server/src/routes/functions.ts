@@ -360,8 +360,9 @@ router.post("/:name", async (req: Request, res: Response) => {
           }
 
           suggestions.sort((a, b) => b.confidence - a.confidence);
-          if (suggestions.length > 0) {
-            allSuggestions[txn.id] = suggestions;
+          const strongSuggestions = suggestions.filter((s) => s.confidence >= 50);
+          if (strongSuggestions.length > 0) {
+            allSuggestions[txn.id] = strongSuggestions;
           }
         }
 
