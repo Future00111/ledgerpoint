@@ -144,6 +144,25 @@ export default function MatchTab({ transaction, suggestions, onMatch, onSplit, o
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-bold text-slate-900 truncate">{alt.record_number}</p>
+                    {alt.confidence != null && (() => {
+                      const pct = Math.round(alt.confidence);
+                      const colorClass = pct >= 70
+                        ? 'text-emerald-700 border-emerald-200 bg-emerald-50'
+                        : pct >= 40
+                        ? 'text-amber-700 border-amber-200 bg-amber-50'
+                        : 'text-slate-500 border-slate-200 bg-slate-50';
+                      const dotClass = pct >= 70
+                        ? 'bg-emerald-500'
+                        : pct >= 40
+                        ? 'bg-amber-400'
+                        : 'bg-slate-400';
+                      return (
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 border rounded-full text-[9px] font-black uppercase tracking-widest flex-shrink-0 ${colorClass}`}>
+                          <span className={`w-1 h-1 rounded-full flex-shrink-0 ${dotClass}`} />
+                          {pct}%
+                        </span>
+                      );
+                    })()}
                   </div>
                   <p className="text-xs text-slate-500 font-medium truncate mt-0.5">{alt.record_name}</p>
                 </div>
