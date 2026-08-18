@@ -22,9 +22,9 @@ const CATEGORIES = [
 
 function Field({ label, required, children }) {
   return (
-    <div>
-      <Label className="text-xs text-muted-foreground">{label}{required && <span className="text-rose-500 ml-0.5">*</span>}</Label>
-      <div className="mt-1">{children}</div>
+    <div className="space-y-1.5">
+      <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{label}{required && <span className="text-rose-500 ml-1">*</span>}</Label>
+      {children}
     </div>
   );
 }
@@ -44,28 +44,32 @@ export default function CreateTab({ transaction, onCreate }) {
   };
 
   return (
-    <div className="space-y-3">
-      <Field label="Who">
-        <Input value={who} onChange={(e) => setWho(e.target.value)} placeholder="Contact name (optional)" className="h-9 text-sm" />
-      </Field>
-      <Field label="What" required>
-        <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Nominal account" /></SelectTrigger>
-          <SelectContent>
-            {CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </Field>
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <Field label="Who">
+          <Input value={who} onChange={(e) => setWho(e.target.value)} placeholder="Contact name (optional)" className="h-10 bg-white border-slate-200 shadow-sm focus-visible:ring-[#007bff]" />
+        </Field>
+        <Field label="What" required>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="h-10 bg-white border-slate-200 shadow-sm focus:ring-[#007bff] font-medium"><SelectValue placeholder="Select nominal account" /></SelectTrigger>
+            <SelectContent>
+              {CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+      </div>
+
       <Field label="Why">
-        <Input value={why} onChange={(e) => setWhy(e.target.value)} placeholder="Description" className="h-9 text-sm" />
+        <Input value={why} onChange={(e) => setWhy(e.target.value)} placeholder="Description or reference" className="h-10 bg-white border-slate-200 shadow-sm focus-visible:ring-[#007bff]" />
       </Field>
-      <div className="grid grid-cols-2 gap-3">
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Site">
-          <Input value={site} onChange={(e) => setSite(e.target.value)} placeholder="Optional" className="h-9 text-sm" />
+          <Input value={site} onChange={(e) => setSite(e.target.value)} placeholder="Location (optional)" className="h-10 bg-white border-slate-200 shadow-sm focus-visible:ring-[#007bff]" />
         </Field>
         <Field label="Tax rate">
           <Select value={taxRate} onValueChange={setTaxRate}>
-            <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-10 bg-white border-slate-200 shadow-sm focus:ring-[#007bff] font-medium"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="0">0%</SelectItem>
               <SelectItem value="5">5%</SelectItem>
@@ -74,11 +78,19 @@ export default function CreateTab({ transaction, onCreate }) {
           </Select>
         </Field>
       </div>
-      <Field label="Add details">
-        <Textarea value={details} onChange={(e) => setDetails(e.target.value)} rows={2} placeholder="Optional" className="text-sm" />
+      
+      <Field label="Additional details">
+        <Textarea value={details} onChange={(e) => setDetails(e.target.value)} rows={2} placeholder="Optional notes..." className="bg-white border-slate-200 shadow-sm focus-visible:ring-[#007bff] resize-none text-sm p-3" />
       </Field>
-      <div className="pt-1">
-        <Button size="sm" onClick={submit} disabled={!category} className="h-8 w-full">Add &amp; reconcile</Button>
+      
+      <div className="pt-2">
+        <Button 
+          onClick={submit} 
+          disabled={!category} 
+          className="w-full h-11 bg-[#007bff] hover:bg-[#0062cc] text-white font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:shadow-none disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all"
+        >
+          Add & reconcile
+        </Button>
       </div>
     </div>
   );

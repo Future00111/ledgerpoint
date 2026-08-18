@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Input } from '@/components/ui/input';
-import { Search, ArrowLeft } from 'lucide-react';
+import { Search, ArrowLeft, FileText, Loader2 } from 'lucide-react';
 import { gbp, fmtDate } from '@/lib/format';
 
-// Inline Find & Match search over invoices, bills and credit notes.
 export default function FindMatchView({ transaction, onSelect, onBack }) {
   const [q, setQ] = useState('');
   const [records, setRecords] = useState([]);
@@ -39,43 +38,66 @@ export default function FindMatchView({ transaction, onSelect, onBack }) {
     : records;
 
   return (
-    <div className="space-y-3">
-      {onBack && (
-        <button type="button" onClick={onBack} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="w-3.5 h-3.5" /> Back
-        </button>
-      )}
-      <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by number or name…" className="pl-8 h-9 text-sm" autoFocus />
-      </div>
-      {loading ? (
-        <p className="text-xs text-muted-foreground">Searching…</p>
-      ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No records found.</p>
-      ) : (
-        <div className="divide-y divide-border/40 -mx-1">
-          {filtered.slice(0, 50).map((r) => (
-            <button
-              key={r.record_type + r.record_id}
-              type="button"
-              onClick={() => onSelect(r)}
-              className="flex items-center justify-between w-full py-2.5 px-1 text-left hover:bg-muted/40 rounded-sm"
-            >
-              <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{r.record_number}</p>
-                <p className="text-xs text-muted-foreground truncate">{r.record_name} · {fmtDate(r.date)}</p>
-              </div>
-              <div className="text-right ml-3 flex-shrink-0">
-                <p className="text-sm font-medium tabular-nums">{gbp(r.record_amount)}</p>
-                {r.outstanding !== undefined && r.outstanding !== r.record_amount && (
-                  <p className="text-xs text-muted-foreground tabular-nums">{gbp(r.outstanding)} due</p>
-                )}
-              </div>
-            </button>
-          ))}
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        {onBack && (
+          <button type="button" onClick={onBack} className="p-1.5 -ml-1.5 text-slate-400 hover:text-slate-900 rounded-md hover:bg-slate-100 transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        )}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input 
+            value={q} 
+            onChange={(e) => setQ(e.target.value)} 
+            placeholder="Search by number, reference or name…" 
+            className="pl-9 h-11 text-sm bg-white border-slate-200 shadow-sm focus-visible:ring-[#007bff]" 
+            autoFocus 
+          />
         </div>
-      )}
+      </div>
+      
+      <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+            <Loader2 className="w-6 h-6 animate-spin mb-3 text-[#007bff]" />
+            <p className="text-sm font-medium">Searching potential matches…</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-slate-500 bg-slate-50/50">
+            <FileText className="w-8 h-8 text-slate-300 mb-3" />
+            <p className="text-sm font-bold text-slate-700">No records found</p>
+            <p className="text-xs font-medium mt-1">Try adjusting your search terms</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100 max-h-[320px] overflow-y-auto no-scrollbar">
+            {filtered.slice(0, 50).map((r) => (
+              <button
+                key={r.record_type + r.record_id}
+                type="button"
+                onClick={() => onSelect(r)}
+                className="flex items-center justify-between w-full p-4 text-left hover:bg-blue-50/60 group transition-colors"
+              >
+                <div className="min-w-0 pr-4">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-slate-100 text-slate-500 uppercase tracking-widest group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors">
+                      {r.record_type.split('_').pop()}
+                    </span>
+                    <p className="text-sm font-bold text-slate-900 truncate group-hover:text-[#007bff] transition-colors">{r.record_number}</p>
+                  </div>
+                  <p className="text-xs font-medium text-slate-500 truncate">{r.record_name} · {fmtDate(r.date)}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-sm font-black text-slate-900 tabular-nums">{gbp(r.record_amount)}</p>
+                  {r.outstanding !== undefined && r.outstanding !== r.record_amount && (
+                    <p className="text-[11px] font-bold text-orange-600 tabular-nums uppercase tracking-wider mt-0.5">{gbp(r.outstanding)} due</p>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

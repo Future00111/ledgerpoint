@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { Search, Filter, ChevronDown, Upload, Plus, Landmark } from 'lucide-react';
+import { Search, Filter, ChevronDown, Upload, Plus, Landmark, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ReconciliationRow from '@/components/reconciliation/ReconciliationRow';
 import CompactRow from '@/components/reconciliation/CompactRow';
 import BankTransactionForm from '@/components/bank_transactions/BankTransactionForm';
@@ -119,8 +120,11 @@ export default function Reconciliation() {
   // Scroll expanded row into view.
   useEffect(() => {
     if (expandedId) {
-      const el = document.getElementById(`txn-${expandedId}`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`txn-${expandedId}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 150);
+      return () => clearTimeout(timer);
     }
   }, [expandedId]);
 
@@ -138,6 +142,7 @@ export default function Reconciliation() {
     const estimatedMinutes = remaining > 0 ? Math.max(1, Math.round((remaining * 90) / 60)) : 0;
     return { total, reconciled, remaining, completionPct, estimatedMinutes };
   }, [filteredTxns]);
+  
   const estLabel = metrics.estimatedMinutes === 0
     ? 'Done'
     : metrics.estimatedMinutes < 60
@@ -228,73 +233,146 @@ export default function Reconciliation() {
   const currentFilterLabel = FILTERS.find((f) => f.key === filter)?.label || 'All';
 
   return (
-    <div className="bg-[#f4f7f9] min-h-full">
-      <div className="max-w-6xl mx-auto px-6 pt-6 pb-10">
-        {/* Toolbar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
-          <div>
-            <p className="text-xs text-[#666]">Banking <span className="opacity-40 mx-0.5">/</span> Reconciliation</p>
-            <h1 className="text-lg font-medium text-[#333] mt-0.5">Reconcile {headerAccount}</h1>
-            <div className="mt-2 h-1 rounded-full bg-[#e5e7eb] overflow-hidden w-full md:w-64">
-              <div className="h-full bg-[#007bff] rounded-full transition-all" style={{ width: `${metrics.completionPct}%` }} />
+    <div className="bg-slate-50 min-h-[100dvh]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-16">
+        
+        {/* Header & Metrics */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+              <Landmark className="w-4 h-4 text-[#007bff]" />
+              <span>Banking</span>
+              <span className="text-slate-300">/</span>
+              <span className="text-slate-700">Reconciliation</span>
             </div>
-            <p className="text-xs text-[#666] mt-1.5">{metrics.reconciled} completed · {metrics.remaining} remaining · Est. {estLabel}</p>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Reconcile {headerAccount}</h1>
+            
+            <div className="pt-3 flex flex-col gap-2 w-full md:w-80">
+              <div className="flex justify-between items-center text-xs font-semibold">
+                <span className="text-slate-700">{metrics.completionPct}% Complete</span>
+                <span className="text-slate-500">Est. {estLabel}</span>
+              </div>
+              <div className="h-2 rounded-full bg-slate-200 overflow-hidden w-full shadow-inner relative">
+                <motion.div 
+                  className="h-full bg-[#007bff] rounded-full relative" 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${metrics.completionPct}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                >
+                  <div className="absolute inset-0 bg-white/20 w-full animate-shimmer" />
+                </motion.div>
+              </div>
+              <p className="text-xs text-slate-500">{metrics.reconciled} done, {metrics.remaining} to review</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="relative w-full md:w-52">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#666]" />
-              <Input placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-9 text-sm bg-white border-[#cccccc]" />
+
+          {/* Toolbar */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input placeholder="Search amounts, refs..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-10 bg-white border-slate-200 shadow-sm focus-visible:ring-[#007bff]" />
             </div>
+            
             <Select value={accountFilter} onValueChange={setAccountFilter}>
-              <SelectTrigger className="w-full md:w-40 h-9 text-sm bg-white border-[#cccccc]"><SelectValue placeholder="All accounts" /></SelectTrigger>
+              <SelectTrigger className="w-full md:w-48 h-10 bg-white border-slate-200 shadow-sm font-medium"><SelectValue placeholder="All accounts" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All accounts</SelectItem>
                 {bankAccounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.account_name}</SelectItem>)}
               </SelectContent>
             </Select>
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="h-9 gap-1.5 text-sm bg-white border-[#cccccc]"><Filter className="w-3.5 h-3.5" /><span className="hidden sm:inline">{currentFilterLabel}</span><ChevronDown className="w-3.5 h-3.5" /></Button>
+                <Button variant="outline" className="h-10 gap-2 bg-white border-slate-200 shadow-sm font-medium text-slate-700 hover:text-slate-900">
+                  <Filter className="w-4 h-4 text-slate-400" />
+                  <span className="hidden sm:inline">{currentFilterLabel}</span>
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {FILTERS.map((f) => <DropdownMenuItem key={f.key} onClick={() => setFilter(f.key)} className={filter === f.key ? 'font-medium' : ''}>{f.label}</DropdownMenuItem>)}
+              <DropdownMenuContent align="end" className="w-48">
+                {FILTERS.map((f) => (
+                  <DropdownMenuItem key={f.key} onClick={() => setFilter(f.key)} className={filter === f.key ? 'font-bold bg-slate-50' : 'font-medium'}>
+                    {f.label}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline" size="icon" className="h-9 w-9 border-[#cccccc] bg-white" onClick={() => setImportOpen(true)} title="Import"><Upload className="w-4 h-4" /></Button>
-            <Button variant="outline" size="icon" className="h-9 w-9 border-[#cccccc] bg-white" onClick={() => { setEditing(null); setFormOpen(true); }} title="Add transaction"><Plus className="w-4 h-4" /></Button>
+            
+            <div className="flex gap-2 pl-2 border-l border-slate-200">
+              <Button variant="outline" size="icon" className="h-10 w-10 bg-white border-slate-200 text-slate-600 hover:text-[#007bff] hover:border-[#007bff]/30 hover:bg-blue-50 shadow-sm transition-colors" onClick={() => setImportOpen(true)} title="Import CSV">
+                <Upload className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="icon" className="h-10 w-10 bg-white border-slate-200 text-slate-600 hover:text-[#007bff] hover:border-[#007bff]/30 hover:bg-blue-50 shadow-sm transition-colors" onClick={() => { setEditing(null); setFormOpen(true); }} title="Add manual transaction">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Transaction rows */}
         {loading ? (
-          <div className="flex justify-center py-20"><div className="w-7 h-7 border-[3px] border-[#cccccc] border-t-[#007bff] rounded-full animate-spin" /></div>
-        ) : reviewList.length === 0 ? (
-          <div className="flex flex-col items-center py-20 border border-[#cccccc] bg-white rounded-sm">
-            <Landmark className="w-10 h-10 text-[#ccc] mb-3" />
-            <p className="text-sm text-[#666]">{search || filter !== 'all' || accountFilter !== 'all' ? 'No transactions match your filters' : 'Nothing requiring review — all reconciled.'}</p>
+          <div className="flex flex-col items-center justify-center py-32 text-slate-400">
+            <div className="w-8 h-8 border-4 border-slate-200 border-t-[#007bff] rounded-full animate-spin mb-4" />
+            <p className="text-sm font-medium">Loading transactions...</p>
           </div>
+        ) : reviewList.length === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center justify-center py-24 px-6 border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-2xl text-center"
+          >
+            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100 mb-6">
+              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">You're all caught up!</h3>
+            <p className="text-slate-500 max-w-sm mb-6">
+              {search || filter !== 'all' || accountFilter !== 'all' 
+                ? 'No transactions match your current filters. Try adjusting them.' 
+                : 'All transactions have been reviewed and reconciled.'}
+            </p>
+            {(search || filter !== 'all' || accountFilter !== 'all') && (
+              <Button variant="outline" onClick={() => { setSearch(''); setFilter('all'); setAccountFilter('all'); }}>
+                Clear filters
+              </Button>
+            )}
+          </motion.div>
         ) : (
-          <div className="space-y-3">
-            {reviewList.map(({ t, suggestion }) => (
-              <div id={`txn-${t.id}`} key={t.id}>
-                {expandedId === t.id ? (
-                  <ReconciliationRow
-                    transaction={t}
-                    suggestions={suggestions[t.id] || (suggestion ? [suggestion] : [])}
-                    bankAccounts={bankAccounts}
-                    companyId={activeCompany.id}
-                    approving={approvingId === t.id}
-                    onMatch={(rec) => onMatch(t, rec)}
-                    onCreate={(data) => onCreate(t, data)}
-                    onTransfer={(data) => onTransfer(t, data)}
-                    onSplit={() => openSplit(t)}
-                    onCollapse={() => setExpandedId(null)}
-                  />
-                ) : (
-                  <CompactRow transaction={t} onSelect={() => setExpandedId(t.id)} />
-                )}
-              </div>
-            ))}
+          <div className="space-y-4">
+            <AnimatePresence initial={false} mode="popLayout">
+              {reviewList.map(({ t, suggestion }) => (
+                <motion.div 
+                  layout="position"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, height: 0, marginTop: 0, overflow: 'hidden' }}
+                  transition={{ 
+                    opacity: { duration: 0.2 },
+                    layout: { type: "spring", bounce: 0, duration: 0.4 },
+                    exit: { duration: 0.2 }
+                  }}
+                  id={`txn-${t.id}`} 
+                  key={t.id}
+                  className="rounded-xl shadow-sm border border-slate-200 bg-white overflow-hidden hover:shadow-md transition-shadow duration-300 relative z-10"
+                >
+                  {expandedId === t.id ? (
+                    <ReconciliationRow
+                      transaction={t}
+                      suggestions={suggestions[t.id] || (suggestion ? [suggestion] : [])}
+                      bankAccounts={bankAccounts}
+                      companyId={activeCompany.id}
+                      approving={approvingId === t.id}
+                      onMatch={(rec) => onMatch(t, rec)}
+                      onCreate={(data) => onCreate(t, data)}
+                      onTransfer={(data) => onTransfer(t, data)}
+                      onSplit={() => openSplit(t)}
+                      onCollapse={() => setExpandedId(null)}
+                    />
+                  ) : (
+                    <CompactRow transaction={t} onSelect={() => setExpandedId(t.id)} />
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
 
