@@ -12,7 +12,7 @@ export default function CompactRow({ transaction, onSelect }) {
     <button
       type="button"
       onClick={onSelect}
-      className="w-full flex items-center gap-4 px-5 h-12 border border-[#cccccc] bg-white rounded-sm hover:border-[#007bff] hover:bg-[#fafbfc] transition-colors text-left"
+      className="w-full flex items-center gap-4 px-6 py-4 border border-[#cccccc] bg-white rounded-sm hover:border-[#007bff] hover:bg-[#fafbfc] transition-colors text-left"
     >
       <span className="text-sm text-[#666] w-[88px] flex-shrink-0 tabular-nums">{fmtDate(t.date)}</span>
       <p className="text-sm text-[#333] truncate flex-1 min-w-0 font-medium">{t.description || 'Untitled transaction'}</p>
