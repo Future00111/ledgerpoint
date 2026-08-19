@@ -25,6 +25,12 @@ import {
   bankTransactionsTable,
   bankAccountsTable,
   chartOfAccountsTable,
+  customersTable,
+  suppliersTable,
+  documentsTable,
+  vatReturnsTable,
+  journalEntriesTable,
+  emailCaptureLogsTable,
 } from "@workspace/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
 import {
@@ -719,6 +725,54 @@ router.post("/:name", async (req: Request, res: Response) => {
         break;
       }
 
+      // ── resetDemoData (development only) ─────────────────────────────────
+      // Deliberately separate from normal entity deletion: this is the
+      // development workspace's explicit "start fresh" control. Production
+      // never exposes it, and the active company is derived from a verified
+      // membership before any deletion can occur.
+      case "resetDemoData": {
+        const { company_id, target } = args as { company_id?: string; target?: string };
+        const allowedTargets = new Set(["transactions", "customers", "suppliers", "documents", "everything"]);
+        if (process.env.NODE_ENV === "production") {
+          res.status(403).json({ error: "Development data reset is unavailable in production" });
+          return;
+        }
+        if (!company_id || !target || !allowedTargets.has(target)) {
+          res.status(400).json({ error: "A company and valid reset target are required" });
+          return;
+        }
+        if (!(await assertWriteAccess(userId, company_id, res))) return;
+
+        const deleted = await db.transaction(async (tx) => {
+          const counts: Record<string, number> = {};
+          const remove = async (name: string, table: any) => {
+            const rows = await tx.delete(table).where(eq(table.company_id, company_id)).returning({ id: table.id });
+            counts[name] = rows.length;
+          };
+
+          if (target === "transactions" || target === "everything") await remove("transactions", bankTransactionsTable);
+          if (target === "documents" || target === "everything") {
+            await remove("documents", documentsTable);
+            await remove("email_capture_logs", emailCaptureLogsTable);
+          }
+          if (target === "everything") {
+            await remove("journal_entries", journalEntriesTable);
+            await remove("vat_returns", vatReturnsTable);
+            await remove("sales_credit_notes", salesCreditNotesTable);
+            await remove("supplier_credit_notes", supplierCreditNotesTable);
+            await remove("sales_invoices", salesInvoicesTable);
+            await remove("purchase_bills", purchaseBillsTable);
+            await remove("bank_accounts", bankAccountsTable);
+            await remove("chart_of_accounts", chartOfAccountsTable);
+          }
+          if (target === "customers" || target === "everything") await remove("customers", customersTable);
+          if (target === "suppliers" || target === "everything") await remove("suppliers", suppliersTable);
+          return counts;
+        });
+        res.json({ success: true, deleted });
+        break;
+      }
+
       // ── safe stubs ───────────────────────────────────────────────────────
       case "mockScanEmails":
         res.json({ success: true, message: "Email scanning is not yet configured for this environment." });
@@ -730,7 +784,6 @@ router.post("/:name", async (req: Request, res: Response) => {
 
       case "manageDemoCompany":
       case "generateDemoData":
-      case "resetDemoData":
         res.json({ success: true, message: `${funcName} is only available in the Base44 demo environment.` });
         break;
 

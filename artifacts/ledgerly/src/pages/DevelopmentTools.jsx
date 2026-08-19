@@ -135,7 +135,8 @@ export default function DevelopmentTools() {
     const res = await run(`rst-${target}`, () =>
       base44.functions.invoke('resetDemoData', { company_id: activeCompany.id, target })
     );
-    toast({ title: `Deleted ${target}`, description: JSON.stringify(res?.data?.deleted || {}) });
+    const body = res?.data ?? res;
+    toast({ title: `Deleted ${target}`, description: JSON.stringify(body?.deleted || {}) });
   };
 
   const handleExport = async (kind) => {
