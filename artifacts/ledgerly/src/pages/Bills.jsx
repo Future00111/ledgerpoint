@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Plus, Search, Eye, ChevronUp, ChevronDown, ChevronsUpDown, Receipt, X, Calendar } from 'lucide-react';
 import moment from 'moment';
 import BillView from '@/components/bills/BillView';
+import SupplierCreditNoteView from '@/components/supplier_credit_notes/SupplierCreditNoteView';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 const num = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -20,7 +21,7 @@ const TAB_STATUSES = {
   all: null,
   draft: ['draft'],
   awaiting_approval: ['awaiting_review'],
-  awaiting_payment: ['approved', 'part_paid'],
+  awaiting_payment: null,
   paid: ['paid'],
 };
 
@@ -37,6 +38,7 @@ const STATUS_BADGE = {
 export default function Bills() {
   const { activeCompany } = useCompany();
   const [bills, setBills] = useState([]);
+  const [supplierCreditNotes, setSupplierCreditNotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Filters
@@ -55,6 +57,8 @@ export default function Bills() {
   // Detail modal
   const [viewing, setViewing] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [creditViewing, setCreditViewing] = useState(null);
+  const [creditDetailsOpen, setCreditDetailsOpen] = useState(false);
 
   const { toast } = useToast();
   const today = moment().format('YYYY-MM-DD');
@@ -66,14 +70,25 @@ export default function Bills() {
   const loadBills = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.PurchaseBill.filter({ company_id: activeCompany.id }, '-bill_date');
-      setBills(list);
+      const [list, credits] = await Promise.all([
+        base44.entities.PurchaseBill.filter({ company_id: activeCompany.id }, '-bill_date'),
+        base44.entities.SupplierCreditNote.filter({ company_id: activeCompany.id }, '-credit_note_date'),
+      ]);
+      setBills(list || []);
+      setSupplierCreditNotes(credits || []);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
 
   const isOverdue = (bill) =>
     ['awaiting_review', 'approved', 'part_paid'].includes(bill.status) && bill.due_date < today;
+
+  const isOutstandingBill = (bill) =>
+    !['draft', 'awaiting_review', 'paid', 'cancelled'].includes(bill.status) &&
+    (Number(bill.balance_due) || 0) > 0;
+
+  const isUnallocatedCredit = (credit) =>
+    credit.status !== 'cancelled' && !credit.is_applied;
 
   const updateStatus = async (bill, status) => {
     try {
@@ -98,6 +113,10 @@ export default function Bills() {
   };
 
   const openView = (bill) => { setViewing(bill); setDetailsOpen(true); };
+  const openCreditView = (credit) => {
+    setCreditViewing(credit);
+    setCreditDetailsOpen(true);
+  };
 
   // ── Summary metrics ──────────────────────────────────────────────────
   const unpaidBills  = useMemo(() => bills.filter(b => b.status !== 'paid' && b.status !== 'cancelled'), [bills]);
@@ -116,14 +135,17 @@ export default function Bills() {
     all:               bills.length,
     draft:             bills.filter(b => b.status === 'draft').length,
     awaiting_approval: bills.filter(b => b.status === 'awaiting_review').length,
-    awaiting_payment:  bills.filter(b => ['approved', 'part_paid'].includes(b.status)).length,
+    awaiting_payment:  bills.filter(isOutstandingBill).length + supplierCreditNotes.filter(isUnallocatedCredit).length,
     paid:              paidBills.length,
-  }), [bills, paidBills]);
+  }), [bills, paidBills, supplierCreditNotes]);
 
   // ── Unique suppliers ─────────────────────────────────────────────────
   const suppliers = useMemo(() => {
-    return [...new Set(bills.map(b => b.supplier_name).filter(Boolean))].sort();
-  }, [bills]);
+    return [...new Set([
+      ...bills.map(b => b.supplier_name),
+      ...supplierCreditNotes.map(credit => credit.supplier_name),
+    ].filter(Boolean))].sort();
+  }, [bills, supplierCreditNotes]);
 
 
   // ── Sort + filter ────────────────────────────────────────────────────
@@ -140,22 +162,42 @@ export default function Bills() {
     return list;
   }, [bills, sortField, sortDir]);
 
-  const filtered = useMemo(() => sorted.filter(b => {
+  const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    const matchSearch = !q
-      || b.bill_number?.toLowerCase().includes(q)
-      || b.supplier_name?.toLowerCase().includes(q)
-      || b.reference?.toLowerCase().includes(q);
-
     const tabStatuses = TAB_STATUSES[activeTab];
-    const matchTab = !tabStatuses || tabStatuses.includes(b.status);
+    const billRows = sorted
+      .filter(b => {
+        const matchSearch = !q
+          || b.bill_number?.toLowerCase().includes(q)
+          || b.supplier_name?.toLowerCase().includes(q)
+          || b.reference?.toLowerCase().includes(q);
+        const matchTab = activeTab === 'awaiting_payment'
+          ? isOutstandingBill(b)
+          : !tabStatuses || tabStatuses.includes(b.status);
+        const matchSupplier = supplierFilter === 'all' || b.supplier_name === supplierFilter;
+        const matchFrom = !dateFrom || (b.bill_date && b.bill_date >= dateFrom);
+        const matchTo = !dateTo || (b.bill_date && b.bill_date <= dateTo);
+        return matchSearch && matchTab && matchSupplier && matchFrom && matchTo;
+      })
+      .map(bill => ({ ...bill, rowType: 'bill' }));
 
-    const matchSupplier = supplierFilter === 'all' || b.supplier_name === supplierFilter;
-    const matchFrom = !dateFrom || (b.bill_date && b.bill_date >= dateFrom);
-    const matchTo   = !dateTo   || (b.bill_date && b.bill_date <= dateTo);
+    if (activeTab !== 'awaiting_payment') return billRows;
 
-    return matchSearch && matchTab && matchSupplier && matchFrom && matchTo;
-  }), [sorted, search, activeTab, supplierFilter, dateFrom, dateTo]);
+    const creditRows = supplierCreditNotes
+      .filter(credit => {
+        const matchSearch = !q
+          || credit.credit_note_number?.toLowerCase().includes(q)
+          || credit.supplier_name?.toLowerCase().includes(q)
+          || credit.reason?.toLowerCase().includes(q);
+        const matchSupplier = supplierFilter === 'all' || credit.supplier_name === supplierFilter;
+        const matchFrom = !dateFrom || (credit.credit_note_date && credit.credit_note_date >= dateFrom);
+        const matchTo = !dateTo || (credit.credit_note_date && credit.credit_note_date <= dateTo);
+        return isUnallocatedCredit(credit) && matchSearch && matchSupplier && matchFrom && matchTo;
+      })
+      .map(credit => ({ ...credit, rowType: 'credit' }));
+
+    return [...billRows, ...creditRows];
+  }, [sorted, supplierCreditNotes, search, activeTab, supplierFilter, dateFrom, dateTo]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage  = Math.min(page, pageCount);
@@ -164,11 +206,12 @@ export default function Bills() {
   useEffect(() => { setPage(1); }, [search, activeTab, supplierFilter, dateFrom, dateTo]);
 
   // ── Selection + running total ────────────────────────────────────────
-  const allOnPageSelected = pageRows.length > 0 && pageRows.every(r => selected.has(r.id));
+  const selectableRows = pageRows.filter(row => row.rowType !== 'credit');
+  const allOnPageSelected = selectableRows.length > 0 && selectableRows.every(r => selected.has(r.id));
   const toggleAll = () => {
     const next = new Set(selected);
-    if (allOnPageSelected) pageRows.forEach(r => next.delete(r.id));
-    else pageRows.forEach(r => next.add(r.id));
+    if (allOnPageSelected) selectableRows.forEach(r => next.delete(r.id));
+    else selectableRows.forEach(r => next.add(r.id));
     setSelected(next);
   };
   const toggleOne = (id) => {
@@ -182,6 +225,8 @@ export default function Bills() {
   const selectionTotal      = selectedBills.reduce((s, b) => s + (Number(b.total) || 0), 0);
   const selectionOutstanding= selectedBills.reduce((s, b) => s + (Number(b.balance_due) || 0), 0);
   const selectionCount      = selected.size;
+  const filteredNetAmount    = filtered.reduce((sum, row) =>
+    sum + (row.rowType === 'credit' ? -(Number(row.total) || 0) : (Number(row.balance_due) || 0)), 0);
 
   // ── Sort header ──────────────────────────────────────────────────────
   const handleSort = (field) => {
@@ -336,7 +381,7 @@ export default function Bills() {
         )}
         <span className="ml-auto text-xs text-muted-foreground tabular-nums">
           {filtered.length} item{filtered.length !== 1 ? 's' : ''}
-          {filtered.length > 0 && ` · ${gbp.format(filtered.reduce((s, b) => s + (Number(b.balance_due) || 0), 0))}`}
+          {filtered.length > 0 && ` · ${gbp.format(filteredNetAmount)} net`}
         </span>
       </div>
 
@@ -372,9 +417,19 @@ export default function Bills() {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center py-20 text-center">
           <Receipt className="w-10 h-10 text-muted-foreground/30 mb-3" />
-          <p className="font-medium text-sm">{hasSecondaryFilters || activeTab !== 'all' ? 'No bills match your filters' : 'No bills yet'}</p>
+          <p className="font-medium text-sm">
+            {activeTab === 'awaiting_payment'
+              ? 'No outstanding bills or unallocated credits'
+              : hasSecondaryFilters || activeTab !== 'all'
+                ? 'No bills match your filters'
+                : 'No bills yet'}
+          </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {hasSecondaryFilters || activeTab !== 'all' ? 'Try adjusting your filters.' : 'Add your first bill to start tracking supplier invoices.'}
+            {activeTab === 'awaiting_payment'
+              ? 'Approved bills and supplier credits waiting to be allocated will appear here.'
+              : hasSecondaryFilters || activeTab !== 'all'
+                ? 'Try adjusting your filters.'
+                : 'Add your first bill to start tracking supplier invoices.'}
           </p>
           {!hasSecondaryFilters && activeTab === 'all' && (
             <Button asChild size="sm" className="mt-4 h-8 gap-1.5 bg-gray-900 text-white hover:bg-gray-800">
@@ -411,35 +466,47 @@ export default function Bills() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
-                {pageRows.map(bill => {
-                  const overdue     = isOverdue(bill);
-                  const displayStatus = overdue && bill.status !== 'paid' ? 'overdue' : bill.status;
-                  const badge       = STATUS_BADGE[displayStatus] || { label: displayStatus, cls: 'bg-gray-100 text-gray-600' };
-                  const isSelected  = selected.has(bill.id);
-                  const canPay      = ['approved','part_paid','awaiting_review'].includes(bill.status) || overdue;
-                  const reference   = bill.reference || bill.bill_number || '—';
+                {pageRows.map(row => {
+                  const isCredit = row.rowType === 'credit';
+                  const overdue = !isCredit && isOverdue(row);
+                  const displayStatus = isCredit
+                    ? 'unallocated_credit'
+                    : overdue && row.status !== 'paid' ? 'overdue' : row.status;
+                  const badge = isCredit
+                    ? { label: 'Unallocated credit', cls: 'bg-violet-100 text-violet-700' }
+                    : STATUS_BADGE[displayStatus] || { label: displayStatus, cls: 'bg-gray-100 text-gray-600' };
+                  const isSelected = !isCredit && selected.has(row.id);
+                  const canPay = !isCredit && (['approved', 'part_paid', 'awaiting_review'].includes(row.status) || overdue);
+                  const reference = isCredit
+                    ? row.credit_note_number || '—'
+                    : row.reference || row.bill_number || '—';
+                  const rowKey = isCredit ? `credit-${row.id}` : row.id;
 
                   return (
                     <tr
-                      key={bill.id}
-                      className={`group transition-colors hover:bg-muted/30 ${isSelected ? 'bg-primary/[0.03]' : ''}`}
+                      key={rowKey}
+                      className={`group transition-colors hover:bg-muted/30 ${isCredit ? 'bg-violet-500/[0.025]' : ''} ${isSelected ? 'bg-primary/[0.03]' : ''}`}
                     >
-                      {/* checkbox */}
+                      {/* checkbox: credits are intentionally not selectable in the bill payment total */}
                       <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleOne(bill.id)}
-                          aria-label={`Select bill ${bill.bill_number}`}
-                          className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
-                        />
+                        {isCredit ? (
+                          <span className="block w-4 text-center text-xs text-muted-foreground/50">—</span>
+                        ) : (
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleOne(row.id)}
+                            aria-label={`Select bill ${row.bill_number}`}
+                            className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                          />
+                        )}
                       </td>
 
                       {/* view icon */}
                       <td className="px-2 py-3" onClick={e => e.stopPropagation()}>
                         <button
-                          onClick={() => openView(bill)}
-                          aria-label={`View bill ${bill.bill_number}`}
+                          onClick={() => isCredit ? openCreditView(row) : openView(row)}
+                          aria-label={isCredit ? `View credit note ${row.credit_note_number}` : `View bill ${row.bill_number}`}
                           className="text-muted-foreground hover:text-primary transition-colors"
                         >
                           <Eye className="w-4 h-4" />
@@ -448,7 +515,10 @@ export default function Bills() {
 
                       {/* From — supplier name, bold */}
                       <td className="px-3 py-3 max-w-[200px]">
-                        <span className="font-semibold truncate block">{bill.supplier_name || 'Unnamed'}</span>
+                        <span className={`font-semibold truncate block ${isCredit ? 'text-violet-700' : ''}`}>
+                          {row.supplier_name || 'Unnamed'}
+                        </span>
+                        {isCredit && <span className="text-[10px] text-violet-600/80">Supplier credit note</span>}
                       </td>
 
                       {/* Status badge */}
@@ -465,50 +535,61 @@ export default function Bills() {
 
                       {/* Date */}
                       <td className="px-3 py-3 whitespace-nowrap text-xs text-muted-foreground">
-                        {bill.bill_date ? moment(bill.bill_date).format('D MMM YYYY') : '—'}
+                        {(isCredit ? row.credit_note_date : row.bill_date)
+                          ? moment(isCredit ? row.credit_note_date : row.bill_date).format('D MMM YYYY')
+                          : '—'}
                       </td>
 
                       {/* Due date */}
                       <td className={`px-3 py-3 whitespace-nowrap text-xs ${overdue ? 'text-orange-600 font-medium' : 'text-muted-foreground'}`}>
-                        {bill.due_date ? moment(bill.due_date).format('D MMM YYYY') : '—'}
+                        {isCredit ? '—' : row.due_date ? moment(row.due_date).format('D MMM YYYY') : '—'}
                       </td>
 
                       {/* Paid */}
                       <td className="px-3 py-3 text-right whitespace-nowrap tabular-nums text-xs text-muted-foreground">
-                        {num.format(Number(bill.amount_paid) || 0)}
+                        {isCredit ? '—' : num.format(Number(row.amount_paid) || 0)}
                       </td>
 
-                      {/* Due (balance) */}
-                      <td className={`px-3 py-3 text-right whitespace-nowrap tabular-nums text-xs font-medium ${overdue ? 'text-orange-600' : 'text-foreground'}`}>
-                        {num.format(Number(bill.balance_due) || 0)}
+                      {/* Due (balance; credits reduce the payment queue) */}
+                      <td className={`px-3 py-3 text-right whitespace-nowrap tabular-nums text-xs font-medium ${isCredit ? 'text-violet-700' : overdue ? 'text-orange-600' : 'text-foreground'}`}>
+                        {isCredit ? `−${num.format(Number(row.total) || 0)}` : num.format(Number(row.balance_due) || 0)}
                       </td>
 
                       {/* Action */}
                       <td className="px-3 py-3 text-right whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                        <span className="inline-flex items-center justify-end gap-2">
-                          {bill.status === 'awaiting_review' && (
-                            <button
-                              onClick={() => updateStatus(bill, 'approved')}
-                              className="rounded border border-blue-300 bg-white px-2.5 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-50 transition-colors"
-                            >
-                              Approve
-                            </button>
-                          )}
-                          {canPay && (
-                            <button
-                              onClick={() => updateStatus(bill, 'paid')}
-                              className="rounded border border-emerald-300 bg-white px-2.5 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50 transition-colors"
-                            >
-                              Make payment
-                            </button>
-                          )}
+                        {isCredit ? (
                           <Link
-                            to={`/bills/${bill.id}`}
-                            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            to={`/supplier-credit-notes/${row.id}`}
+                            className="rounded border border-violet-300 bg-violet-50 px-2.5 py-1 text-[11px] font-medium text-violet-700 hover:bg-violet-100 transition-colors"
                           >
-                            Edit
+                            Allocate credit
                           </Link>
-                        </span>
+                        ) : (
+                          <span className="inline-flex items-center justify-end gap-2">
+                            {row.status === 'awaiting_review' && (
+                              <button
+                                onClick={() => updateStatus(row, 'approved')}
+                                className="rounded border border-blue-300 bg-white px-2.5 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-50 transition-colors"
+                              >
+                                Approve
+                              </button>
+                            )}
+                            {canPay && (
+                              <button
+                                onClick={() => updateStatus(row, 'paid')}
+                                className="rounded border border-emerald-300 bg-white px-2.5 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50 transition-colors"
+                              >
+                                Make payment
+                              </button>
+                            )}
+                            <Link
+                              to={`/bills/${row.id}`}
+                              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              Edit
+                            </Link>
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );
@@ -533,6 +614,11 @@ export default function Bills() {
       )}
 
       <BillView bill={viewing} open={detailsOpen} onOpenChange={setDetailsOpen} />
+      <SupplierCreditNoteView
+        creditNote={creditViewing}
+        open={creditDetailsOpen}
+        onOpenChange={setCreditDetailsOpen}
+      />
     </div>
   );
 }
