@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { Plus, Search, Eye, ChevronUp, ChevronDown, ChevronsUpDown, Receipt, X } from 'lucide-react';
+import { Plus, Search, Eye, ChevronUp, ChevronDown, ChevronsUpDown, Receipt, X, Calendar } from 'lucide-react';
 import moment from 'moment';
 import BillView from '@/components/bills/BillView';
 
@@ -14,13 +14,6 @@ const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' 
 const num = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const PAGE_SIZE = 25;
 
-const DATE_RANGES = [
-  { value: 'all', label: 'All dates' },
-  { value: '30', label: 'Last 30 days' },
-  { value: '90', label: 'Last 3 months' },
-  { value: '180', label: 'Last 6 months' },
-  { value: '365', label: 'Last 12 months' },
-];
 
 // Tab → status groups
 const TAB_STATUSES = {
@@ -50,7 +43,8 @@ export default function Bills() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [supplierFilter, setSupplierFilter] = useState('all');
-  const [dateRange, setDateRange] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   // Table state
   const [sortField, setSortField] = useState('bill_date');
@@ -131,11 +125,6 @@ export default function Bills() {
     return [...new Set(bills.map(b => b.supplier_name).filter(Boolean))].sort();
   }, [bills]);
 
-  // ── Date cutoff ──────────────────────────────────────────────────────
-  const dateCutoff = useMemo(() => {
-    if (dateRange === 'all') return null;
-    return moment().subtract(Number(dateRange), 'days').format('YYYY-MM-DD');
-  }, [dateRange]);
 
   // ── Sort + filter ────────────────────────────────────────────────────
   const sorted = useMemo(() => {
@@ -158,21 +147,21 @@ export default function Bills() {
       || b.supplier_name?.toLowerCase().includes(q)
       || b.reference?.toLowerCase().includes(q);
 
-    // Tab-based status filter
     const tabStatuses = TAB_STATUSES[activeTab];
     const matchTab = !tabStatuses || tabStatuses.includes(b.status);
 
     const matchSupplier = supplierFilter === 'all' || b.supplier_name === supplierFilter;
-    const matchDate = !dateCutoff || (b.bill_date && b.bill_date >= dateCutoff);
+    const matchFrom = !dateFrom || (b.bill_date && b.bill_date >= dateFrom);
+    const matchTo   = !dateTo   || (b.bill_date && b.bill_date <= dateTo);
 
-    return matchSearch && matchTab && matchSupplier && matchDate;
-  }), [sorted, search, activeTab, supplierFilter, dateCutoff]);
+    return matchSearch && matchTab && matchSupplier && matchFrom && matchTo;
+  }), [sorted, search, activeTab, supplierFilter, dateFrom, dateTo]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage  = Math.min(page, pageCount);
   const pageRows  = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
-  useEffect(() => { setPage(1); }, [search, activeTab, supplierFilter, dateRange]);
+  useEffect(() => { setPage(1); }, [search, activeTab, supplierFilter, dateFrom, dateTo]);
 
   // ── Selection + running total ────────────────────────────────────────
   const allOnPageSelected = pageRows.length > 0 && pageRows.every(r => selected.has(r.id));
@@ -212,7 +201,7 @@ export default function Bills() {
     </th>
   );
 
-  const hasSecondaryFilters = search || supplierFilter !== 'all' || dateRange !== 'all';
+  const hasSecondaryFilters = search || supplierFilter !== 'all' || dateFrom || dateTo;
 
   if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
 
@@ -311,15 +300,35 @@ export default function Bills() {
             {suppliers.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={dateRange} onValueChange={setDateRange}>
-          <SelectTrigger className="h-9 w-40 text-sm border-border"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {DATE_RANGES.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {/* Start date */}
+        <div className="relative">
+          <Calendar className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={e => setDateFrom(e.target.value)}
+            aria-label="Start date"
+            max={dateTo || undefined}
+            className="h-9 rounded-md border border-border bg-background pl-8 pr-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring w-38"
+          />
+        </div>
+
+        {/* End date */}
+        <div className="relative">
+          <Calendar className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+          <input
+            type="date"
+            value={dateTo}
+            onChange={e => setDateTo(e.target.value)}
+            aria-label="End date"
+            min={dateFrom || undefined}
+            className="h-9 rounded-md border border-border bg-background pl-8 pr-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring w-38"
+          />
+        </div>
+
         {hasSecondaryFilters && (
           <button
-            onClick={() => { setSearch(''); setSupplierFilter('all'); setDateRange('all'); }}
+            onClick={() => { setSearch(''); setSupplierFilter('all'); setDateFrom(''); setDateTo(''); }}
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           >
             <X className="w-3 h-3" />Clear
@@ -363,7 +372,7 @@ export default function Bills() {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center py-20 text-center">
           <Receipt className="w-10 h-10 text-muted-foreground/30 mb-3" />
-          <p className="font-medium text-sm">{search || supplierFilter !== 'all' || dateRange !== 'all' || activeTab !== 'all' ? 'No bills match your filters' : 'No bills yet'}</p>
+          <p className="font-medium text-sm">{hasSecondaryFilters || activeTab !== 'all' ? 'No bills match your filters' : 'No bills yet'}</p>
           <p className="text-xs text-muted-foreground mt-1">
             {hasSecondaryFilters || activeTab !== 'all' ? 'Try adjusting your filters.' : 'Add your first bill to start tracking supplier invoices.'}
           </p>
