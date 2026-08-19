@@ -95,35 +95,44 @@ export default function SupplierCreditNoteForm() {
       toast({ title: 'Please fill in supplier and credit note number', variant: 'destructive' });
       return;
     }
-    const existing = await base44.entities.SupplierCreditNote.filter({ company_id: activeCompany.id, supplier_id: form.supplier_id, credit_note_number: form.credit_note_number });
-    if (existing.find(cn => cn.id !== id)) {
-      toast({ title: 'This credit note number already exists for this supplier.', variant: 'destructive' });
-      return;
-    }
     setSaving(true);
-    const supplier = suppliers.find(s => s.id === form.supplier_id);
-    const bill = bills.find(b => b.id === form.original_bill_id);
-    const shouldApply = form.status === 'applied' && form.original_bill_id;
-    const wasApplied = form.is_applied || false;
-    const data = {
-      ...form, company_id: activeCompany.id,
-      supplier_name: supplier?.name || '',
-      original_bill_number: bill?.bill_number || '',
-      subtotal, vat_total: vatTotal, total,
-      is_applied: shouldApply
-    };
     try {
+      const existing = await base44.entities.SupplierCreditNote.filter({
+        company_id: activeCompany.id,
+        supplier_id: form.supplier_id,
+        credit_note_number: form.credit_note_number,
+      });
+      if (existing.find(cn => cn.id !== id)) {
+        toast({ title: 'This credit note number already exists for this supplier.', variant: 'destructive' });
+        return;
+      }
+
+      const supplier = suppliers.find(s => s.id === form.supplier_id);
+      const originalBillId = form.original_bill_id || null;
+      const bill = bills.find(b => b.id === originalBillId);
+      const shouldApply = form.status === 'applied' && Boolean(originalBillId);
+      const wasApplied = Boolean(form.is_applied);
+      const data = {
+        ...form,
+        company_id: activeCompany.id,
+        supplier_name: supplier?.name || '',
+        original_bill_id: originalBillId,
+        original_bill_number: bill?.bill_number || '',
+        subtotal, vat_total: vatTotal, total,
+        is_applied: shouldApply,
+      };
+
       let savedId;
       if (isEdit) { await base44.entities.SupplierCreditNote.update(id, data); savedId = id; }
       else { const created = await base44.entities.SupplierCreditNote.create(data); savedId = created.id; }
       // Apply or reverse credit note on original bill
-      if (shouldApply && !wasApplied && form.original_bill_id) {
+      if (shouldApply && !wasApplied && originalBillId) {
         await base44.functions.invoke('updatePaymentStatus', {
-          entity_type: 'purchase_bill', record_id: form.original_bill_id, amount_paid_delta: total
+          entity_type: 'purchase_bill', record_id: originalBillId, amount_paid_delta: total
         });
-      } else if (!shouldApply && wasApplied && form.original_bill_id) {
+      } else if (!shouldApply && wasApplied && originalBillId) {
         await base44.functions.invoke('updatePaymentStatus', {
-          entity_type: 'purchase_bill', record_id: form.original_bill_id, amount_paid_delta: -total
+          entity_type: 'purchase_bill', record_id: originalBillId, amount_paid_delta: -total
         });
       }
       toast({ title: isEdit ? 'Credit note updated' : 'Credit note created' });
