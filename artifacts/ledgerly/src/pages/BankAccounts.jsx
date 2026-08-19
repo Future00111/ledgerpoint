@@ -120,7 +120,9 @@ export default function BankAccounts() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground/70">Balance</p>
-                      <p className="font-medium text-foreground">{account.currency} {(account.current_balance || 0).toFixed(2)}</p>
+                       <p className="font-medium text-foreground">
+                         {account.currency || 'GBP'} {Number(account.current_balance ?? 0).toFixed(2)}
+                       </p>
                     </div>
                   </div>
                   <div className="space-y-1">
