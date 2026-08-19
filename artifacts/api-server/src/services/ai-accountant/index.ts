@@ -17,3 +17,4 @@ export * from "./review.js";
 export * from "./detectors.js";
 export * from "./recommendations.js";
 export * from "./explain.js";
+export * from "./taskEngine.js";

@@ -16,6 +16,11 @@ export const aiApi = {
   refresh: (companyId) =>
     api('/api/ai/accountant/refresh', { method: 'POST', body: JSON.stringify({ company_id: companyId }) }),
   summary: (companyId) => api(`/api/ai/accountant/summary?company_id=${q(companyId)}`),
+  taskSummary: (companyId) => api(`/api/ai/accountant/tasks/summary?company_id=${q(companyId)}`),
+  tasks: (companyId, statuses) => api(`/api/ai/accountant/tasks?company_id=${q(companyId)}${statuses ? `&status=${statuses.join(',')}` : ''}`),
+  refreshTasks: (companyId) => api('/api/ai/accountant/tasks/refresh', { method: 'POST', body: JSON.stringify({ company_id: companyId }) }),
+  decideTask: (id, decision) => api(`/api/ai/accountant/tasks/${q(id)}/decision`, { method: 'POST', body: JSON.stringify({ decision }) }),
+  taskDetail: (id) => api(`/api/ai/accountant/tasks/${q(id)}`),
   recommendations: (companyId, statuses) =>
     api(`/api/ai/accountant/recommendations?company_id=${q(companyId)}${statuses ? `&status=${statuses.join(',')}` : ''}`),
   decide: (id, decision, note, snoozedUntil) =>

@@ -3,52 +3,58 @@ import { useNavigate } from 'react-router-dom';
 import { useCompany } from '@/lib/useCompany';
 import { Button } from '@/components/ui/button';
 import {
-  Sparkles, RefreshCw, ArrowRight, Inbox, ListChecks, Lightbulb,
-  ClipboardCheck, AlertTriangle, CheckCircle2, History, Scale,
+  Sparkles, RefreshCw, AlertTriangle, Lightbulb, ClipboardCheck,
+  CheckCircle2
 } from 'lucide-react';
-import { aiApi, gbp, DOMAIN_LABELS } from '@/components/ai-accountant/api';
+import { aiApi, gbp } from '@/components/ai-accountant/api';
+import AITaskCard from '@/components/ai-accountant/AITaskCard';
 
-const fmtWhen = (d) => (d ? new Date(d).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : null);
-
-function MetricCard({ icon: Icon, label, value, tone = 'text-slate-900', onClick, testId }) {
+function TaskSection({ title, icon: Icon, tasks, onDecide, decidingId, emptyText }) {
+  if (!tasks || tasks.length === 0) {
+    return (
+      <div className="space-y-3">
+        <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-2">
+          <Icon className="w-4 h-4 text-slate-500" /> {title}
+          <span className="bg-slate-100 text-slate-600 py-0.5 px-2 rounded-full text-[10px] ml-auto">0</span>
+        </h3>
+        <div className="text-xs text-slate-400 py-6 px-4 border border-dashed border-slate-200 bg-slate-50/50 rounded-lg text-center">
+          {emptyText || 'No tasks in this category.'}
+        </div>
+      </div>
+    );
+  }
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="text-left rounded-xl border border-slate-200 bg-white p-4 hover:border-[#007bff]/40 hover:shadow-sm transition-all"
-      data-testid={testId}
-    >
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-        <Icon className="w-3.5 h-3.5" /> {label}
-      </p>
-      <p className={`text-2xl font-black tabular-nums mt-1.5 ${tone}`}>{value}</p>
-      <p className="text-[11px] text-[#007bff] font-semibold mt-1 flex items-center gap-1">
-        View <ArrowRight className="w-3 h-3" />
-      </p>
-    </button>
+    <div className="space-y-3">
+      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-2">
+        <Icon className="w-4 h-4 text-slate-500" /> {title}
+        <span className="bg-indigo-100 text-indigo-700 font-bold py-0.5 px-2 rounded-full text-[10px] ml-auto">{tasks.length}</span>
+      </h3>
+      <div className="flex flex-col gap-1.5">
+        {tasks.map(t => <AITaskCard key={t.id} task={t} onDecide={onDecide} deciding={decidingId === t.id} />)}
+      </div>
+    </div>
   );
 }
 
-/** AI Accountant — proactive workspace overview. */
 export default function AIAccountant() {
   const nav = useNavigate();
   const { activeCompany } = useCompany();
   const [summary, setSummary] = useState(null);
-  const [review, setReview] = useState(null);
-  const [activity, setActivity] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
+  const [decidingId, setDecidingId] = useState(null);
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
     if (!activeCompany?.id) return;
     try {
-      const [s, r, a] = await Promise.all([
-        aiApi.summary(activeCompany.id),
-        aiApi.reviewSummary(activeCompany.id),
-        aiApi.activity(activeCompany.id),
+      const [sumRes, tasksRes] = await Promise.all([
+        aiApi.taskSummary(activeCompany.id),
+        aiApi.tasks(activeCompany.id, ['open', 'reviewing']),
       ]);
-      setSummary(s); setReview(r); setActivity(a.activity || []);
+      setSummary(sumRes);
+      setTasks(tasksRes.tasks || []);
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
   }, [activeCompany?.id]);
@@ -59,113 +65,166 @@ export default function AIAccountant() {
     if (!activeCompany?.id) return;
     setRunning(true); setError(null);
     try {
-      await aiApi.analyse(activeCompany.id).catch(() => {}); // refresh reconciliation analysis first (best-effort)
-      await aiApi.refresh(activeCompany.id);
+      await aiApi.refreshTasks(activeCompany.id);
       await load();
     } catch (e) { setError(e.message); }
     finally { setRunning(false); }
   };
 
-  const s = summary || {};
+  const handleDecide = async (id, decision) => {
+    setDecidingId(id);
+    try {
+      await aiApi.decideTask(id, decision);
+      setTasks(current => current.filter(t => t.id !== id));
+      const refreshedSummary = await aiApi.taskSummary(activeCompany.id);
+      setSummary(refreshedSummary);
+    } catch (err) {
+      setError(err.message || 'The task decision could not be recorded.');
+      await load();
+    } finally {
+      setDecidingId(null);
+    }
+  };
+
+  // Group tasks
+  const grouped = {
+    ready_to_approve: [],
+    needs_review: [],
+    warnings: [],
+    insights: []
+  };
+
+  tasks.forEach(task => {
+    const type = task.task_type || '';
+    if (type === 'reconciliation' && task.confidence_score >= 90) {
+      grouped.ready_to_approve.push(task);
+    } else if (['vat_warning', 'cash_flow_warning', 'overdue_invoice'].includes(type) || task.priority === 'critical') {
+      grouped.warnings.push(task);
+    } else if (['supplier_review', 'customer_follow_up'].includes(type) && !['high', 'critical'].includes(task.priority)) {
+      grouped.insights.push(task);
+    } else {
+      grouped.needs_review.push(task);
+    }
+  });
+
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-black text-slate-900 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#007bff]" /> AI Accountant
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Proactively checks your books and flags issues — every change still needs your explicit approval.
-          </p>
-          {s.last_run_at && (
-            <p className="text-[11px] text-slate-400 mt-1">Last check: {fmtWhen(s.last_run_at)}</p>
-          )}
+    <div className="p-6 max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
+      {/* Hero Banner */}
+      <div className="bg-[#0c1328] rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+           <Sparkles className="w-64 h-64" />
         </div>
-        <Button onClick={runCheck} disabled={running || !activeCompany?.id} data-testid="button-run-check">
-          <RefreshCw className={`w-4 h-4 mr-2 ${running ? 'animate-spin' : ''}`} />
-          {running ? 'Checking the books…' : 'Check my books'}
-        </Button>
-      </div>
-
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[...Array(4)].map((_, i) => <div key={i} className="h-28 rounded-xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <MetricCard icon={Inbox} label="Open findings" value={s.open ?? 0}
-              tone={s.open > 0 ? 'text-slate-900' : 'text-emerald-600'}
-              onClick={() => nav('/ai-accountant/inbox')} testId="card-open-findings" />
-            <MetricCard icon={AlertTriangle} label="High priority" value={s.high_priority ?? 0}
-              tone={s.high_priority > 0 ? 'text-red-600' : 'text-emerald-600'}
-              onClick={() => nav('/ai-accountant/inbox')} testId="card-high-priority" />
-            <MetricCard icon={Scale} label="Awaiting reconciliation" value={review?.awaiting_review ?? 0}
-              onClick={() => nav('/reconciliation')} testId="card-awaiting-recon" />
-            <MetricCard icon={Sparkles} label="At-risk amount" value={gbp(s.total_amount_at_risk)}
-              tone={s.total_amount_at_risk > 0 ? 'text-amber-600' : 'text-emerald-600'}
-              onClick={() => nav('/ai-accountant/tasks')} testId="card-at-risk" />
-          </div>
-
-          {s.by_domain && Object.keys(s.by_domain).length > 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Open findings by area</p>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(s.by_domain).map(([domain, count]) => (
-                  <button key={domain} type="button" onClick={() => nav('/ai-accountant/tasks')}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 hover:border-[#007bff]/40">
-                    {DOMAIN_LABELS[domain] || domain}
-                    <span className="bg-slate-100 rounded-full px-1.5 text-[10px] font-black">{count}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { icon: Inbox, label: 'Inbox', desc: 'Prioritised findings', path: '/ai-accountant/inbox' },
-              { icon: ListChecks, label: 'Tasks', desc: 'By accounting area', path: '/ai-accountant/tasks' },
-              { icon: ClipboardCheck, label: 'Reviews', desc: 'Decision history', path: '/ai-accountant/reviews' },
-              { icon: Lightbulb, label: 'Recommendations', desc: 'All suggestions', path: '/ai-accountant/recommendations' },
-            ].map((l) => (
-              <button key={l.path} type="button" onClick={() => nav(l.path)}
-                className="text-left rounded-xl border border-slate-200 bg-white p-4 hover:border-[#007bff]/40 hover:shadow-sm transition-all"
-                data-testid={`link-${l.label.toLowerCase()}`}>
-                <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <l.icon className="w-4 h-4 text-[#007bff]" /> {l.label}
-                </p>
-                <p className="text-xs text-slate-500 mt-1">{l.desc}</p>
-              </button>
-            ))}
-          </div>
-
-          <div className="rounded-xl border border-slate-200 bg-white">
-            <p className="px-4 pt-4 text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
-              <History className="w-3.5 h-3.5" /> AI activity
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-6">
+          <div className="flex-1">
+            <h1 className="text-3xl font-black tracking-tight mb-3 flex items-center gap-3">
+              <Sparkles className="w-7 h-7 text-indigo-400" /> AI Accountant
+            </h1>
+            <p className="text-slate-300 max-w-2xl text-sm leading-relaxed mb-4">
+              Your books are continuously monitored for anomalies, missing records, and reconciliation opportunities.
+              <strong className="text-indigo-200 block mt-1.5 font-medium">Decisions record your review but do not automatically alter the books.</strong>
             </p>
-            {activity.length === 0 ? (
-              <p className="px-4 py-6 text-sm text-slate-500">
-                No AI activity yet — run "Check my books" to get started.
+            {summary?.last_run_at && (
+              <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mt-4">
+                Last Analysis: {new Date(summary.last_run_at).toLocaleString('en-GB')}
               </p>
-            ) : (
-              <ul className="divide-y divide-slate-100 mt-2">
-                {activity.slice(0, 10).map((a) => (
-                  <li key={a.id} className="px-4 py-2.5 flex items-start gap-2.5 text-xs">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#007bff] mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-slate-700">{a.description}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{fmtWhen(a.event_date)}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
             )}
           </div>
-        </>
+          <Button onClick={runCheck} disabled={running || !activeCompany?.id} data-testid="button-run-task-analysis" className="bg-indigo-600 hover:bg-indigo-500 text-white border-none shadow-lg shrink-0">
+            <RefreshCw className={`w-4 h-4 mr-2 ${running ? 'animate-spin' : ''}`} />
+            {running ? 'Analysing books...' : 'Run Full Analysis'}
+          </Button>
+        </div>
+
+        {/* Metric Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 relative z-10">
+           <div className="bg-white/5 border border-white/10 rounded-xl p-4 transition-colors hover:bg-white/10">
+             <div className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1">
+               <CheckCircle2 className="w-3 h-3" /> Ready to Approve
+             </div>
+             <div className="text-3xl font-black text-white">{summary?.ready_to_approve ?? grouped.ready_to_approve.length}</div>
+           </div>
+           <div className="bg-white/5 border border-white/10 rounded-xl p-4 transition-colors hover:bg-white/10">
+             <div className="text-amber-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1">
+               <ClipboardCheck className="w-3 h-3" /> Needs Review
+             </div>
+             <div className="text-3xl font-black text-white">{summary?.needs_review ?? grouped.needs_review.length}</div>
+           </div>
+           <div className="bg-white/5 border border-white/10 rounded-xl p-4 transition-colors hover:bg-white/10">
+             <div className="text-rose-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1">
+               <AlertTriangle className="w-3 h-3" /> Warnings
+             </div>
+             <div className="text-3xl font-black text-white">{summary?.warnings ?? grouped.warnings.length}</div>
+           </div>
+           <div className="bg-white/5 border border-white/10 rounded-xl p-4 transition-colors hover:bg-white/10">
+             <div className="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1">
+               <Lightbulb className="w-3 h-3" /> Amount at Risk
+             </div>
+             <div className="text-3xl font-black text-white">{gbp(summary?.total_amount_at_risk || 0)}</div>
+           </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-lg flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0" /> {error}
+        </div>
       )}
+
+      {/* Task Registers */}
+      {loading ? (
+        <div className="space-y-4 pt-4">
+          <div className="h-10 w-48 bg-slate-100 rounded animate-pulse" />
+          <div className="h-20 bg-slate-50 rounded-lg border border-slate-100 animate-pulse" />
+          <div className="h-20 bg-slate-50 rounded-lg border border-slate-100 animate-pulse" />
+        </div>
+      ) : (
+        <div className="space-y-12">
+          <TaskSection
+            title="Ready to Approve"
+            icon={CheckCircle2}
+            tasks={grouped.ready_to_approve}
+            onDecide={handleDecide}
+            decidingId={decidingId}
+            emptyText="No high-confidence tasks waiting for approval."
+          />
+          <TaskSection
+            title="Needs Review"
+            icon={ClipboardCheck}
+            tasks={grouped.needs_review}
+            onDecide={handleDecide}
+            decidingId={decidingId}
+            emptyText="No tasks requiring manual review."
+          />
+          <TaskSection
+            title="Warnings"
+            icon={AlertTriangle}
+            tasks={grouped.warnings}
+            onDecide={handleDecide}
+            decidingId={decidingId}
+            emptyText="No active warnings or alerts."
+          />
+          <TaskSection
+            title="Insights"
+            icon={Lightbulb}
+            tasks={grouped.insights}
+            onDecide={handleDecide}
+            decidingId={decidingId}
+            emptyText="No new insights generated."
+          />
+        </div>
+      )}
+
+      {/* Legacy Links */}
+      <div className="pt-12 pb-8 mt-12 flex flex-wrap gap-4 text-xs font-medium border-t border-slate-200">
+        <span className="text-slate-400 uppercase tracking-wider font-bold mr-2 flex items-center">Legacy Views</span>
+        <button onClick={() => nav('/ai-accountant/inbox')} className="text-slate-500 hover:text-indigo-600 transition-colors">Inbox</button>
+        <span className="text-slate-300">•</span>
+        <button onClick={() => nav('/ai-accountant/tasks')} className="text-slate-500 hover:text-indigo-600 transition-colors">All Tasks</button>
+        <span className="text-slate-300">•</span>
+        <button onClick={() => nav('/ai-accountant/reviews')} className="text-slate-500 hover:text-indigo-600 transition-colors">Review History</button>
+        <span className="text-slate-300">•</span>
+        <button onClick={() => nav('/ai-accountant/recommendations')} className="text-slate-500 hover:text-indigo-600 transition-colors">Recommendations</button>
+      </div>
     </div>
   );
 }

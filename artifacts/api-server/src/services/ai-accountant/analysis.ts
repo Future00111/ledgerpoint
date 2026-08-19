@@ -20,6 +20,7 @@ import {
 } from "@workspace/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { aiService } from "../ai/index.js";
+import { logger } from "../../lib/logger.js";
 import {
   scoreTransaction,
   buildReconciliation,
@@ -171,7 +172,7 @@ export async function analyseTransactions(
       // fails (e.g. the ai_reconciliation_results table has not yet been
       // applied to this environment via Replit's publish flow), the caller
       // still gets full suggestions/reconciliation — log loudly, don't 500.
-      console.error("[ai-accountant] failed to persist analysis (schema up to date?):", err);
+      logger.error({ err, company_id: companyId }, "AI reconciliation analysis could not be persisted");
     }
   }
 

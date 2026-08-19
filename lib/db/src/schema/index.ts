@@ -1,5 +1,6 @@
 import {
   pgTable,
+  index,
   uniqueIndex,
   text,
   boolean,
@@ -655,6 +656,49 @@ export const aiRecommendationsTable = pgTable(
 );
 export const insertAIRecommendationSchema = createInsertSchema(aiRecommendationsTable).omit({ id: true, created_at: true, updated_at: true });
 export type AIRecommendation = typeof aiRecommendationsTable.$inferSelect;
+
+// ─── AITask ──────────────────────────────────────────────────────────────────
+// Phase 4 operating queue for the AI Accountant. Tasks are review records only:
+// they can explain and recommend work, but never perform accounting mutations.
+
+export const aiTasksTable = pgTable(
+  "ai_tasks",
+  {
+    id: primaryId(),
+    company_id: uuid("company_id").notNull(),
+    // Internal stable key used to refresh a live finding without duplicating it.
+    dedupe_key: text("dedupe_key").notNull(),
+    task_type: text("task_type").notNull(),
+    priority: text("priority").notNull().default("medium"),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    amount: numeric("amount", { precision: 12, scale: 2 }),
+    confidence_score: integer("confidence_score").notNull().default(0),
+    status: text("status").notNull().default("open"),
+    source_record_id: text("source_record_id"),
+    source_record_type: text("source_record_type"),
+    recommendation: text("recommendation"),
+    // Evidence and in-app route support an explainable, review-first UI.
+    evidence: jsonb("evidence").$type<Record<string, unknown>>(),
+    route: text("route"),
+    reviewed_by: text("reviewed_by"),
+    reviewed_at: timestamp("reviewed_at", { withTimezone: true }),
+    created_at: createdAt(),
+    resolved_at: timestamp("resolved_at", { withTimezone: true }),
+    updated_at: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex("ai_tasks_company_dedupe_idx").on(t.company_id, t.dedupe_key),
+    index("ai_tasks_company_status_idx").on(t.company_id, t.status),
+    index("ai_tasks_company_priority_idx").on(t.company_id, t.priority),
+  ],
+);
+export const insertAITaskSchema = createInsertSchema(aiTasksTable).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+export type AITask = typeof aiTasksTable.$inferSelect;
 
 // ─── AIReviewDecision ─────────────────────────────────────────────────────────
 // Append-only audit trail of user decisions on AI recommendations.

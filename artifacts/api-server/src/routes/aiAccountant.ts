@@ -33,6 +33,14 @@ import {
   listActivity,
   getWorkspaceSummary,
   explainTransaction,
+  AI_TASK_STATUSES,
+  decideAITask,
+  getAITask,
+  getAITaskWorkspaceSummary,
+  listAITasks,
+  markAITaskReviewing,
+  runAITaskAnalysis,
+  type AITaskStatus,
   type ApprovalRecord,
   type Decision,
 } from "../services/ai-accountant/index.js";
@@ -179,7 +187,7 @@ router.post("/categorise", async (req: Request, res: Response) => {
     bank_transaction_ids?: string[];
   };
   if (!company_id) { res.status(400).json({ error: "company_id is required" }); return; }
-  if (!(await assertMember(userId, company_id, res))) return;
+  if (!(await assertWriteAccess(userId, company_id, res))) return;
 
   const conditions = [
     eq(bankTransactionsTable.company_id, company_id),
@@ -323,6 +331,95 @@ router.get("/accountant/explain", async (req: Request, res: Response) => {
     res.json(await explainTransaction(txnId));
   } catch (e) {
     res.status(500).json({ error: e instanceof Error ? e.message : "Explanation failed" });
+  }
+});
+
+// ═══ Phase 4 — Continuous AI Accountant task engine ══════════════════════════
+// Task decisions update the review queue only. They never post or alter books.
+
+// ── POST /api/ai/accountant/tasks/refresh ─────────────────────────────────────
+router.post("/accountant/tasks/refresh", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id } = req.body as { company_id?: string };
+  if (!company_id) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, company_id, res))) return;
+  try {
+    res.json(await runAITaskAnalysis(company_id, userId));
+  } catch (e) {
+    req.log.error({ err: e }, "AI task refresh failed");
+    res.status(500).json({ error: "Task analysis failed" });
+  }
+});
+
+// ── GET /api/ai/accountant/tasks/summary?company_id= ──────────────────────────
+router.get("/accountant/tasks/summary", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  res.json(await getAITaskWorkspaceSummary(companyId));
+});
+
+// ── GET /api/ai/accountant/tasks?company_id=&status=open,reviewing ────────────
+router.get("/accountant/tasks", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  const rawStatuses = (req.query["status"] as string | undefined)
+    ?.split(",")
+    .map((status) => status.trim())
+    .filter(Boolean);
+  if (rawStatuses?.some((status) => !AI_TASK_STATUSES.includes(status as AITaskStatus))) {
+    res.status(400).json({ error: `status must be one of: ${AI_TASK_STATUSES.join(", ")}` });
+    return;
+  }
+  res.json({ tasks: await listAITasks(companyId, rawStatuses as AITaskStatus[] | undefined) });
+});
+
+// ── GET /api/ai/accountant/tasks/:id ──────────────────────────────────────────
+router.get("/accountant/tasks/:id", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const rawId = req.params["id"];
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
+  if (!id) { res.status(400).json({ error: "task id is required" }); return; }
+  const task = await getAITask(id);
+  if (!task) { res.status(404).json({ error: "AI task not found" }); return; }
+  if (!(await assertMember(userId, task.company_id, res))) return;
+  res.json({ task });
+});
+
+// ── POST /api/ai/accountant/tasks/:id/review ──────────────────────────────────
+router.post("/accountant/tasks/:id/review", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const rawId = req.params["id"];
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
+  if (!id) { res.status(400).json({ error: "task id is required" }); return; }
+  const task = await getAITask(id);
+  if (!task) { res.status(404).json({ error: "AI task not found" }); return; }
+  if (!(await assertWriteAccess(userId, task.company_id, res))) return;
+  res.json({ task: await markAITaskReviewing(id, userId) });
+});
+
+// ── POST /api/ai/accountant/tasks/:id/decision ────────────────────────────────
+router.post("/accountant/tasks/:id/decision", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const rawId = req.params["id"];
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
+  const { decision } = req.body as { decision?: string };
+  if (!id) { res.status(400).json({ error: "task id is required" }); return; }
+  if (decision !== "approved" && decision !== "dismissed") {
+    res.status(400).json({ error: "decision must be one of: approved, dismissed" });
+    return;
+  }
+  const task = await getAITask(id);
+  if (!task) { res.status(404).json({ error: "AI task not found" }); return; }
+  if (!(await assertWriteAccess(userId, task.company_id, res))) return;
+  try {
+    res.json({ success: true, task: await decideAITask(id, decision, userId) });
+  } catch (e) {
+    req.log.warn({ err: e, task_id: id }, "AI task decision failed");
+    res.status(409).json({ error: e instanceof Error ? e.message : "Task decision failed" });
   }
 });
 

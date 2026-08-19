@@ -2,3 +2,4 @@
 - [API server build quirks](api-server-build.md) — esbuild external list must include "pg" or pg fails at runtime; use @workspace/db for the drizzle instance, not a custom db.ts.
 - [TS project references staleness](ts-project-references.md) — new lib/db schema exports need `tsc -b lib/db` before dependent typechecks see them.
 - [Reconciliation write boundary](reconciliation-write-boundary.md) — bank matching, money, links, and account references must use protected reconciliation routes, not generic CRUD.
+- [AI task write permissions](ai-task-write-permissions.md) — any manual analysis or review action that persists task state requires a company write role.
