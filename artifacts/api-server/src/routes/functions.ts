@@ -725,6 +725,75 @@ router.post("/:name", async (req: Request, res: Response) => {
         break;
       }
 
+      // ── generateDemoData (development only) ──────────────────────────────
+      // The original Base44 generator is not available in this workspace.
+      // Keep the development control useful by generating real, reviewable
+      // bank data through the same validated schema used by manual entry.
+      case "generateDemoData": {
+        const { company_id, months, random } = args as {
+          company_id?: string;
+          months?: number;
+          random?: boolean;
+        };
+        if (process.env.NODE_ENV === "production") {
+          res.status(403).json({ error: "Demo data generation is unavailable in production" });
+          return;
+        }
+        if (!company_id || !(await assertWriteAccess(userId, company_id, res))) return;
+
+        const monthCount = random ? 1 : Math.max(1, Math.min(12, Math.round(Number(months) || 1)));
+        const transactionCount = random ? 12 : monthCount * 8;
+        const created = await db.transaction(async (tx) => {
+          let [account] = await tx.select().from(bankAccountsTable)
+            .where(eq(bankAccountsTable.company_id, company_id)).limit(1);
+          if (!account) {
+            [account] = await tx.insert(bankAccountsTable).values({
+              company_id,
+              account_name: "Development Current Account",
+              bank_name: "Ledgerly Demo Bank",
+              currency: "GBP",
+              account_type: "current",
+              status: "active",
+              connection_type: "manual",
+              opening_balance: "0.00",
+              current_balance: "0.00",
+            }).returning();
+          }
+
+          const rows = [];
+          for (let i = 0; i < transactionCount; i += 1) {
+            const isIncome = i % 3 === 0;
+            const amount = (25 + ((i * 17) % 175) + (i % 4) * 0.5).toFixed(2);
+            const date = new Date(Date.now() - (i * 3 + 1) * 86400000).toISOString().slice(0, 10);
+            const [row] = await tx.insert(bankTransactionsTable).values({
+              company_id,
+              bank_account_id: account.id,
+              date,
+              description: `${random ? "Random" : "Generated"} development transaction ${i + 1}`,
+              reference: `DEV-${Date.now()}-${i + 1}`,
+              amount,
+              money_in: isIncome ? amount : "0.00",
+              money_out: isIncome ? "0.00" : amount,
+              balance: "0.00",
+              transaction_type: isIncome ? "income" : "expense",
+              status: "review",
+              matched_type: null,
+              matched_record_id: null,
+              matched_record_number: null,
+              linked_invoice_id: null,
+              linked_bill_id: null,
+              linked_credit_note_id: null,
+              category: isIncome ? "sales" : "other",
+              vat_rate: "0.00",
+            }).returning();
+            rows.push(row);
+          }
+          return rows;
+        });
+        res.json({ success: true, counts: { bank_accounts: 1, bank_transactions: created.length } });
+        break;
+      }
+
       // ── resetDemoData (development only) ─────────────────────────────────
       // Deliberately separate from normal entity deletion: this is the
       // development workspace's explicit "start fresh" control. Production
@@ -783,7 +852,6 @@ router.post("/:name", async (req: Request, res: Response) => {
         break;
 
       case "manageDemoCompany":
-      case "generateDemoData":
         res.json({ success: true, message: `${funcName} is only available in the Base44 demo environment.` });
         break;
 
