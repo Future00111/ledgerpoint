@@ -761,16 +761,85 @@ router.post("/:name", async (req: Request, res: Response) => {
           }
 
           const rows = [];
+          let customerCount = 0;
+          let supplierCount = 0;
+          let invoiceCount = 0;
+          let billCount = 0;
           for (let i = 0; i < transactionCount; i += 1) {
             const isIncome = i % 3 === 0;
             const amount = (25 + ((i * 17) % 175) + (i % 4) * 0.5).toFixed(2);
             const date = new Date(Date.now() - (i * 3 + 1) * 86400000).toISOString().slice(0, 10);
+            const reference = `DEV-${Date.now()}-${i + 1}`;
+            let description = `${random ? "Random" : "Generated"} development transaction ${i + 1}`;
+
+            if (isIncome) {
+              const customerName = `Development Customer ${i + 1}`;
+              const [customer] = await tx.insert(customersTable).values({
+                company_id,
+                name: customerName,
+                customer_reference: `DEV-CUST-${i + 1}`,
+                payment_terms: 30,
+                status: "active",
+              }).returning();
+              customerCount += 1;
+              const invoiceNumber = `DEV-INV-${Date.now()}-${i + 1}`;
+              await tx.insert(salesInvoicesTable).values({
+                company_id,
+                customer_id: customer.id,
+                customer_name: customerName,
+                invoice_number: invoiceNumber,
+                issue_date: date,
+                due_date: date,
+                payment_terms: 30,
+                reference,
+                line_items: [{ description: "Development service", quantity: 1, unit_price: amount, amount }],
+                subtotal: amount,
+                vat_total: "0.00",
+                total: amount,
+                amount_paid: "0.00",
+                balance_due: amount,
+                status: "posted",
+              });
+              invoiceCount += 1;
+              description = `Payment from ${customerName} ${invoiceNumber}`;
+            } else {
+              const supplierName = `Development Supplier ${i + 1}`;
+              const [supplier] = await tx.insert(suppliersTable).values({
+                company_id,
+                name: supplierName,
+                supplier_reference: `DEV-SUP-${i + 1}`,
+                payment_terms: 30,
+                status: "active",
+              }).returning();
+              supplierCount += 1;
+              const billNumber = `DEV-BILL-${Date.now()}-${i + 1}`;
+              await tx.insert(purchaseBillsTable).values({
+                company_id,
+                supplier_id: supplier.id,
+                supplier_name: supplierName,
+                bill_number: billNumber,
+                bill_date: date,
+                due_date: date,
+                payment_terms: 30,
+                reference,
+                line_items: [{ description: "Development expense", quantity: 1, unit_price: amount, amount }],
+                subtotal: amount,
+                vat_total: "0.00",
+                total: amount,
+                amount_paid: "0.00",
+                balance_due: amount,
+                status: "posted",
+                category: "other",
+              });
+              billCount += 1;
+              description = `Payment to ${supplierName} ${billNumber}`;
+            }
             const [row] = await tx.insert(bankTransactionsTable).values({
               company_id,
               bank_account_id: account.id,
               date,
-              description: `${random ? "Random" : "Generated"} development transaction ${i + 1}`,
-              reference: `DEV-${Date.now()}-${i + 1}`,
+              description,
+              reference,
               amount,
               money_in: isIncome ? amount : "0.00",
               money_out: isIncome ? "0.00" : amount,
@@ -788,9 +857,24 @@ router.post("/:name", async (req: Request, res: Response) => {
             }).returning();
             rows.push(row);
           }
-          return rows;
+          return {
+            rows,
+            counts: {
+              customers: customerCount,
+              suppliers: supplierCount,
+              sales_invoices: invoiceCount,
+              purchase_bills: billCount,
+            },
+          };
         });
-        res.json({ success: true, counts: { bank_accounts: 1, bank_transactions: created.length } });
+        res.json({
+          success: true,
+          counts: {
+            bank_accounts: 1,
+            bank_transactions: created.rows.length,
+            ...created.counts,
+          },
+        });
         break;
       }
 
