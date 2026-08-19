@@ -6,7 +6,7 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Mail, Phone, Pencil, MoreHorizontal, Archive, Trash2, Copy, Download, GitMerge } from 'lucide-react';
+import { Mail, Phone, Pencil, MoreHorizontal, Archive, Trash2, Copy, Download, GitMerge, ArrowUpRight } from 'lucide-react';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
@@ -15,6 +15,13 @@ const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' 
 // Keyboard accessible (Enter / Space) with a clear focus ring and hover state.
 export default function CustomerCard({ customer, onOpen, onEdit, onArchive, onDelete, onDuplicate, onExport, onMerge }) {
   const c = customer;
+  const initials = (c.name || '?')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
   const handleKey = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -28,32 +35,40 @@ export default function CustomerCard({ customer, onOpen, onEdit, onArchive, onDe
       aria-label={`Open ${c.name} profile`}
       onClick={() => onOpen(c)}
       onKeyDown={handleKey}
-      className="border shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-primary/30 hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      className="group rounded-2xl border-border/80 shadow-sm cursor-pointer transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
-      <CardContent className="p-4 flex items-center justify-between">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="font-medium text-sm">{c.name}</p>
-            <Badge variant={c.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-              {c.status === 'active' ? 'Active' : 'Inactive'}
-            </Badge>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
-            {c.contact_name && <span>{c.contact_name}</span>}
-            {c.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{c.email}</span>}
-            {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{c.phone}</span>}
+      <CardContent className="flex items-center justify-between gap-3 p-4 sm:p-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-semibold text-primary">
+            {initials}
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate font-semibold text-sm">{c.name}</p>
+              <Badge variant={c.status === 'active' ? 'default' : 'secondary'} className="rounded-full text-[10px]">
+                {c.status === 'active' ? 'Active' : 'Inactive'}
+              </Badge>
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              {c.contact_name && <span className="truncate">{c.contact_name}</span>}
+              {c.email && <span className="flex max-w-full items-center gap-1 truncate"><Mail className="h-3 w-3 shrink-0" />{c.email}</span>}
+              {c.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3 shrink-0" />{c.phone}</span>}
+              {!c.contact_name && !c.email && !c.phone && <span>No contact details yet</span>}
+            </div>
             {c.outstanding_balance > 0 && (
-              <span className="font-medium text-foreground">Owed: {gbp.format(c.outstanding_balance)}</span>
+              <span className="mt-2 inline-flex rounded-md bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700">
+                Owed: {gbp.format(c.outstanding_balance)}
+              </span>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-1 flex-shrink-0 ml-3" onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="icon" onClick={() => onEdit(c)} title="Edit" aria-label={`Edit ${c.name}`}>
+        <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(c)} title="Edit" aria-label={`Edit ${c.name}`}>
             <Pencil className="w-4 h-4" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" title="More" aria-label={`More actions for ${c.name}`}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" title="More" aria-label={`More actions for ${c.name}`}>
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -76,6 +91,7 @@ export default function CustomerCard({ customer, onOpen, onEdit, onArchive, onDe
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <ArrowUpRight className="ml-1 hidden h-4 w-4 text-muted-foreground/50 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 sm:block" />
         </div>
       </CardContent>
     </Card>

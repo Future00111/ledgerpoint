@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { Users, Plus, Search } from 'lucide-react';
+import { Users, Plus, Search, UserRound, UserCheck, Mail, WalletCards } from 'lucide-react';
 import CustomerForm from '@/components/customers/CustomerForm';
 import CustomerCard from '@/components/customers/CustomerCard';
 import CustomerWorkspace from '@/components/customers/CustomerWorkspace';
@@ -99,35 +99,102 @@ export default function Customers() {
     c.contact_name?.toLowerCase().includes(search.toLowerCase()) ||
     c.email?.toLowerCase().includes(search.toLowerCase())
   );
+  const activeCount = customers.filter((c) => c.status !== 'inactive').length;
+  const contactCount = customers.filter((c) => c.email || c.phone).length;
+  const outstandingTotal = customers.reduce((sum, c) => sum + (Number(c.outstanding_balance) || 0), 0);
 
   if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Customers</h1>
-          <p className="text-muted-foreground text-sm mt-1">{customers.length} customer{customers.length !== 1 ? 's' : ''}</p>
-        </div>
-        <Button onClick={openCreate} className="gap-2"><Plus className="w-4 h-4" />Add Customer</Button>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-5 pb-8">
+      <section className="relative overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-br from-card via-card to-primary/[0.04] px-5 py-5 shadow-sm sm:px-6">
+        <div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-primary/[0.08] blur-3xl" />
+        <div className="relative flex flex-col gap-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Users className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.14em] text-primary">Sales directory</p>
+                <h1 className="mt-1 text-2xl font-semibold tracking-tight">Customers</h1>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Keep every customer relationship, conversation, and balance in one place.
+                </p>
+              </div>
+            </div>
+            <Button onClick={openCreate} className="gap-2 self-start shadow-sm">
+              <Plus className="w-4 h-4" />Add Customer
+            </Button>
+          </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="Search customers..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
-      </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="rounded-xl border border-border/70 bg-background/60 px-3.5 py-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <UserCheck className="h-3.5 w-3.5 text-emerald-600" /> Active customers
+              </div>
+              <p className="mt-1 text-xl font-semibold">{activeCount}</p>
+            </div>
+            <div className="rounded-xl border border-border/70 bg-background/60 px-3.5 py-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Mail className="h-3.5 w-3.5 text-primary" /> With contact details
+              </div>
+              <p className="mt-1 text-xl font-semibold">{contactCount}</p>
+            </div>
+            <div className="rounded-xl border border-border/70 bg-background/60 px-3.5 py-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <WalletCards className="h-3.5 w-3.5 text-amber-600" /> Outstanding balance
+              </div>
+              <p className="mt-1 text-xl font-semibold">{gbp.format(outstandingTotal)}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Card className="rounded-2xl border-border/80 shadow-sm">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <UserRound className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold">Customer directory</p>
+                <p className="text-xs text-muted-foreground">
+                  {search ? `${filtered.length} result${filtered.length !== 1 ? 's' : ''}` : `${customers.length} customer${customers.length !== 1 ? 's' : ''}`}
+                </p>
+              </div>
+            </div>
+            <div className="relative w-full sm:max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, contact or email"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="h-10 rounded-lg border-border/80 bg-background pl-9"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {loading ? (
         <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
       ) : filtered.length === 0 ? (
-        <Card className="border-0 shadow-sm">
-          <CardContent className="flex flex-col items-center py-16">
-            <Users className="w-12 h-12 text-muted-foreground/30 mb-4" />
-            <p className="text-muted-foreground">{search ? 'No customers match your search' : 'No customers yet'}</p>
+        <Card className="rounded-2xl border-border/80 shadow-sm">
+          <CardContent className="flex flex-col items-center py-16 text-center">
+            <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <Users className="w-7 h-7" />
+            </span>
+            <p className="font-medium">{search ? 'No customers match your search' : 'No customers yet'}</p>
+            <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+              {search ? 'Try a different name, contact or email.' : 'Add your first customer to start building your sales directory.'}
+            </p>
+            {!search && <Button onClick={openCreate} size="sm" className="mt-4 gap-2"><Plus className="h-3.5 w-3.5" />Add Customer</Button>}
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid gap-3 lg:grid-cols-2">
           {filtered.map(c => (
             <CustomerCard
               key={c.id}
