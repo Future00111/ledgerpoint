@@ -44,13 +44,13 @@ export default function WidgetCard({
     >
       <Card
         className={cn(
-          'h-full flex flex-col overflow-hidden transition-shadow hover:shadow-md',
-          editMode && 'ring-1 ring-dashed ring-border',
+          'h-full flex flex-col overflow-hidden rounded-2xl border-border/80 bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md',
+          editMode && 'ring-1 ring-dashed ring-border hover:translate-y-0',
           dragOver && 'ring-2 ring-primary',
           attention && 'ring-1 ring-amber-400/70'
         )}
       >
-        <CardHeader className="flex-row items-center justify-between py-3 px-4 space-y-0 border-b border-border/60 flex-shrink-0">
+        <CardHeader className="flex-row items-center justify-between py-3.5 px-4 space-y-0 border-b border-border/60 flex-shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             {editMode && (
               <button
@@ -64,8 +64,12 @@ export default function WidgetCard({
                 <GripVertical className="w-4 h-4" />
               </button>
             )}
-            {Icon && <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
-            <CardTitle className="text-sm font-medium truncate">{meta.title}</CardTitle>
+            {Icon && (
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/70 text-primary flex-shrink-0">
+                <Icon className="w-3.5 h-3.5" />
+              </span>
+            )}
+            <CardTitle className="text-sm font-semibold truncate">{meta.title}</CardTitle>
             {attention && (
               <span className="ml-1 inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 flex-shrink-0">
                 Needs attention
@@ -124,7 +128,7 @@ export default function WidgetCard({
             )}
           </div>
         </CardHeader>
-        {!collapsed && <CardContent className="flex-1 p-4 pt-3 overflow-auto min-h-0">{children}</CardContent>}
+        {!collapsed && <CardContent className="flex-1 p-4 pt-4 overflow-auto min-h-0">{children}</CardContent>}
       </Card>
       <WidgetInsightDialog
         open={insightOpen}

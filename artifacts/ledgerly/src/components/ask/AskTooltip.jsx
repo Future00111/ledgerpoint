@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 
 export default function AskTooltip({ onTry, onDismiss }) {
   return (
-    <div className="fixed bottom-[88px] right-6 z-40 w-64 bg-white rounded-xl shadow-xl border border-border p-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-200">
+    <div className="fixed bottom-[88px] right-6 z-40 hidden w-64 rounded-xl border border-border bg-card p-3 shadow-xl animate-in fade-in-0 slide-in-from-bottom-2 duration-200 sm:block">
       <div className="flex items-start gap-2">
-        <span className="text-lg leading-none">💬</span>
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <MessageSquare className="h-4 w-4" />
+        </span>
         <div className="flex-1">
           <p className="text-sm font-semibold">New!</p>
           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">

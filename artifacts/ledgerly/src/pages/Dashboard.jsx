@@ -248,18 +248,23 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-5">
-      <DashboardHeader />
+    <div className="mx-auto max-w-[1600px] space-y-6 pb-8">
+      <section className="relative overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-br from-card via-card to-primary/[0.035] px-4 py-5 shadow-sm sm:px-6">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-primary/[0.07] blur-3xl" />
+        <div className="relative">
+          <DashboardHeader />
 
-      {/* Ask bar — the single entry point into the Ask workspace */}
-      <div className="max-w-2xl">
-        <AskTrigger />
-      </div>
+          {/* Ask bar — the single entry point into the Ask workspace */}
+          <div className="mt-5 max-w-3xl">
+            <AskTrigger />
+          </div>
+        </div>
+      </section>
 
       {!focusMode && <MorningBriefing company={activeCompany} />}
 
       {focusMode ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-16 text-center">
           <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-3">
             <Focus className="w-6 h-6" />
           </div>
@@ -278,8 +283,9 @@ export default function Dashboard() {
           )}
 
           {/* Dashboard settings */}
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card/70 px-3 py-2 shadow-sm">
             <div className="flex items-center gap-2">
+              <span className="hidden text-xs font-medium text-muted-foreground sm:inline">Your workspace</span>
               <Button variant={editMode ? 'default' : 'outline'} size="sm" onClick={() => setEditMode((v) => !v)}>
                 {editMode ? <Check className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
                 {editMode ? 'Done' : 'Customise'}
@@ -356,23 +362,26 @@ export default function Dashboard() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <span className="text-xs text-muted-foreground">
-              {focusMode ? 'Focus mode' : adaptive ? 'Adaptive order' : MODES[state.mode]?.label}
+            <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+              {adaptive ? 'Adaptive order' : MODES[state.mode]?.label}
             </span>
           </div>
 
           {edit && (
-            <div className="text-xs text-muted-foreground rounded-lg bg-muted/60 px-3 py-2">
+            <div className="text-xs text-muted-foreground rounded-xl border border-primary/15 bg-primary/[0.035] px-3 py-2.5">
               Drag the grip handle to move widgets · use Narrow/Wide/Full and Short/Tall to resize · collapse widgets you want to keep but tuck away · hide widgets you don't need. Pinned widgets stay. Switching templates changes only the layout — never your data.
             </div>
           )}
 
           {/* Widget sections */}
           {groups.map((g) => (
-            <div key={g.section} className="space-y-2.5">
-              <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1">
-                {SECTION_TITLES[g.section]}
-              </h2>
+            <div key={g.section} className="space-y-3">
+              <div className="flex items-center gap-3 px-1">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  {SECTION_TITLES[g.section]}
+                </h2>
+                <div className="h-px flex-1 bg-border/70" />
+              </div>
               <div className={isDesktop ? 'grid grid-cols-12 gap-4' : 'flex flex-col gap-4'}>
                 {g.items.map((item) => renderCard(item))}
               </div>

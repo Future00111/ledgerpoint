@@ -80,7 +80,7 @@ export default function MorningBriefing({ company }) {
   );
 
   return (
-    <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-card p-4 relative">
+    <div className="rounded-2xl border border-primary/15 bg-gradient-to-r from-primary/[0.07] via-primary/[0.025] to-card px-4 py-4 shadow-sm relative sm:px-5">
       <button
         onClick={dismiss}
         className="absolute top-3 right-3 p-1 rounded-md hover:bg-muted text-muted-foreground"
@@ -88,21 +88,25 @@ export default function MorningBriefing({ company }) {
       >
         <X className="w-4 h-4" />
       </button>
-      <div className="flex items-center gap-1.5 mb-2">
-        <Sparkles className="w-4 h-4 text-primary" />
-        <span className="text-sm font-semibold">Since your last visit</span>
+      <div className="flex items-center gap-2">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Sparkles className="w-4 h-4" />
+        </span>
+        <div>
+          <span className="text-sm font-semibold">Since your last visit</span>
+          <p className="text-xs text-muted-foreground">A concise view of what changed.</p>
+        </div>
       </div>
-      <ul className="space-y-1 text-sm text-muted-foreground pr-6">
+      <ul className="mt-3 grid gap-2 pr-6 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
         {bullets.map((b) => (
-          <li key={b} className="flex items-start gap-2">
-            <span className="text-primary/60 mt-0.5">•</span>
+          <li key={b} className="rounded-lg border border-border/60 bg-background/60 px-3 py-2">
             <span>{b}</span>
           </li>
         ))}
       </ul>
       <button
         onClick={viewDetails}
-        className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted transition-colors"
+        className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-border/80 bg-background hover:bg-card hover:shadow-sm transition-all"
       >
         View Details
         <ArrowRight className="w-3.5 h-3.5" />

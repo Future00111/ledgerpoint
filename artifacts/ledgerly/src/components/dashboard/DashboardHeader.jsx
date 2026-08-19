@@ -50,14 +50,20 @@ export default function DashboardHeader() {
   const status = health.loading ? '…' : healthStatus(score);
 
   return (
-    <div className="flex items-center justify-between gap-3 flex-wrap">
+    <div className="flex items-start justify-between gap-5 flex-wrap">
       <div className="min-w-0">
-        <h1 className="text-lg font-semibold tracking-tight">
-          {greeting()}, {firstName} 👋
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-primary">
+          Financial command centre
+        </p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-[1.7rem]">
+          {greeting()}, {firstName}
         </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {activeCompany?.name || 'Your business'} <span className="mx-1 text-border">·</span> Here’s what needs your attention.
+        </p>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap pt-0.5">
         {health.priority && !health.loading && (
           <StatusCard
             as={Link}
