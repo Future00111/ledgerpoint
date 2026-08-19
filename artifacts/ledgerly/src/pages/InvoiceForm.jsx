@@ -14,6 +14,7 @@ import { ArrowLeft } from 'lucide-react';
 import { calculatePaymentStatus } from '@/lib/paymentStatus';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
+const numericValue = (value) => Number(value) || 0;
 
 export default function InvoiceForm() {
   const { activeCompany } = useCompany();
@@ -79,8 +80,8 @@ export default function InvoiceForm() {
     finally { setLoading(false); }
   };
 
-  const subtotal = form.line_items.reduce((s, l) => s + (l.amount || 0), 0);
-  const vatTotal = form.line_items.reduce((s, l) => s + (l.vat_amount || 0), 0);
+   const subtotal = form.line_items.reduce((s, l) => s + numericValue(l.amount), 0);
+   const vatTotal = form.line_items.reduce((s, l) => s + numericValue(l.vat_amount), 0);
   const total = subtotal + vatTotal;
   const balanceDue = total - (parseFloat(form.amount_paid) || 0);
 

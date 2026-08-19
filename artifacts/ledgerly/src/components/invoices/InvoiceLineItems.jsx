@@ -17,6 +17,10 @@ function getVatRate(vatRate) {
   return isNaN(n) ? 0 : n;
 }
 
+function formatAmount(value) {
+  return (Number(value) || 0).toFixed(2);
+}
+
 export default function InvoiceLineItems({ lineItems, onChange }) {
   const addLine = () => {
     onChange([...lineItems, { description: '', quantity: 1, unit_price: 0, vat_rate: '20', amount: 0, vat_amount: 0, line_total: 0 }]);
@@ -63,9 +67,9 @@ export default function InvoiceLineItems({ lineItems, onChange }) {
               </SelectContent>
             </Select>
           </div>
-          <div className="lg:col-span-1 flex items-center justify-end h-9 text-xs font-medium">£{(line.amount || 0).toFixed(2)}</div>
-          <div className="lg:col-span-1 flex items-center justify-end h-9 text-xs font-medium">£{(line.vat_amount || 0).toFixed(2)}</div>
-          <div className="lg:col-span-1 flex items-center justify-end h-9 text-xs font-semibold">£{(line.line_total || 0).toFixed(2)}</div>
+          <div className="lg:col-span-1 flex items-center justify-end h-9 text-xs font-medium">£{formatAmount(line.amount)}</div>
+          <div className="lg:col-span-1 flex items-center justify-end h-9 text-xs font-medium">£{formatAmount(line.vat_amount)}</div>
+          <div className="lg:col-span-1 flex items-center justify-end h-9 text-xs font-semibold">£{formatAmount(line.line_total)}</div>
           <div className="lg:col-span-1 flex justify-end">
             <Button variant="ghost" size="icon" onClick={() => removeLine(idx)} className="text-muted-foreground hover:text-destructive">
               <Trash2 className="w-4 h-4" />
