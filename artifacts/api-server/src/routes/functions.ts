@@ -23,13 +23,16 @@ import {
   salesCreditNotesTable,
   supplierCreditNotesTable,
   bankTransactionsTable,
+  bankAccountsTable,
   chartOfAccountsTable,
 } from "@workspace/db/schema";
-import { eq, inArray, and, sql } from "drizzle-orm";
+import { eq, inArray, and } from "drizzle-orm";
 import {
   analyseTransactions,
   applyReconciliationApproval,
+  applyNonPaymentReconciliationMatch,
   type ApprovalRecord,
+  type NonPaymentMatchInput,
 } from "../services/ai-accountant/index.js";
 
 const router = Router();
@@ -46,9 +49,9 @@ const WRITE_BLOCKED_ROLES = new Set(["read_only"]);
 async function getMembership(
   userId: string,
   companyId: string,
-): Promise<{ company_id: string; role: string | null } | null> {
+): Promise<{ company_id: string; role: string | null; is_active: boolean | null } | null> {
   const [m] = await db
-    .select({ company_id: companyUsersTable.company_id, role: companyUsersTable.role })
+    .select({ company_id: companyUsersTable.company_id, role: companyUsersTable.role, is_active: companyUsersTable.is_active })
     .from(companyUsersTable)
     .where(
       and(
@@ -70,7 +73,7 @@ async function assertWriteAccess(
   res: Response,
 ): Promise<boolean> {
   const m = await getMembership(userId, companyId);
-  if (!m) {
+  if (!m || m.is_active === false) {
     res.status(403).json({ error: "Access denied" });
     return false;
   }
@@ -212,17 +215,48 @@ router.post("/:name", async (req: Request, res: Response) => {
         // Step 2: verify membership AND write role on the record's actual company
         if (!(await assertWriteAccess(userId, companyId, res))) return;
 
-        const delta = Number(amount_paid_delta) || 0;
-        const updated = await db
-          .update(table)
-          .set({
-            amount_paid: sql`COALESCE(${table["amount_paid"]}, 0) + ${delta}`,
-            updated_at: new Date(),
-          })
-          .where(eq(table["id"], record_id))
-          .returning();
+        // Keep payment totals, the remaining balance, and the document status
+        // in sync. Numeric columns arrive from Postgres as strings, so operate
+        // in integer pence to avoid floating-point drift. The row lock prevents
+        // concurrent payments from both reading the same prior balance.
+        const updated = await db.transaction(async (tx) => {
+          const [current] = await tx
+            .select()
+            .from(table)
+            .where(eq(table["id"], record_id))
+            .for("update");
+          if (!current) throw new Error("Record not found");
 
-        res.json({ success: true, record: updated[0] });
+          const totalPence = Math.max(0, Math.round(Number(current.total ?? 0) * 100));
+          const paidPence = Math.max(0, Math.round(Number(current.amount_paid ?? 0) * 100));
+          const deltaPence = Math.round((Number(amount_paid_delta) || 0) * 100);
+          const nextPaidPence = Math.max(0, Math.min(totalPence, paidPence + deltaPence));
+          const balancePence = totalPence - nextPaidPence;
+
+          const currentStatus = String(current.status ?? "");
+          const status =
+            balancePence === 0 && totalPence > 0
+              ? "paid"
+              : nextPaidPence > 0
+                ? "part_paid"
+                : currentStatus === "paid" || currentStatus === "part_paid"
+                  ? (entity_type === "purchase_bill" ? "awaiting_payment" : "sent")
+                  : currentStatus;
+
+          const rows = await tx
+            .update(table)
+            .set({
+              amount_paid: (nextPaidPence / 100).toFixed(2),
+              balance_due: (balancePence / 100).toFixed(2),
+              status,
+              updated_at: new Date(),
+            })
+            .where(eq(table["id"], record_id))
+            .returning();
+          return rows[0];
+        });
+
+        res.json({ success: true, record: updated });
         break;
       }
 
@@ -265,6 +299,241 @@ router.post("/:name", async (req: Request, res: Response) => {
         } catch (e) {
           res.status(409).json({ error: e instanceof Error ? e.message : "Reconciliation failed" });
         }
+        break;
+      }
+
+      // ── approveNonPaymentReconciliationMatch ─────────────────────────────
+      // Credit-note and ledger/categorisation matches still need the same row
+      // lock, company validation, and all-link clearing as payment matches.
+      case "approveNonPaymentReconciliationMatch": {
+        const { bank_transaction_id, record_type, record_id, record_number, category, vat_rate, notes } = args as {
+          bank_transaction_id?: string;
+          record_type?: NonPaymentMatchInput["record_type"];
+          record_id?: string;
+          record_number?: string;
+          category?: string;
+          vat_rate?: number | null;
+          notes?: string | null;
+        };
+        if (!bank_transaction_id || !record_type || !["sales_credit_note", "supplier_credit_note", "ledger_account"].includes(record_type)) {
+          res.status(400).json({ error: "A bank transaction and valid non-payment match type are required" });
+          return;
+        }
+
+        const [txn] = await db.select().from(bankTransactionsTable)
+          .where(eq(bankTransactionsTable.id, bank_transaction_id)).limit(1);
+        if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
+        if (!(await assertWriteAccess(userId, txn.company_id, res))) return;
+
+        try {
+          const result = await applyNonPaymentReconciliationMatch(bank_transaction_id, {
+            record_type,
+            record_id,
+            record_number,
+            category,
+            vat_rate,
+            notes,
+          });
+          res.json({ success: true, ...result });
+        } catch (e) {
+          res.status(409).json({ error: e instanceof Error ? e.message : "Reconciliation failed" });
+        }
+        break;
+      }
+
+      // ── recordBankTransfer ────────────────────────────────────────────────
+      case "recordBankTransfer": {
+        const { bank_transaction_id, to_account_id, amount, description } = args as {
+          bank_transaction_id?: string;
+          to_account_id?: string;
+          amount?: number;
+          description?: string;
+        };
+        if (!bank_transaction_id || !to_account_id || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
+          res.status(400).json({ error: "Bank transaction, destination account, and positive amount are required" });
+          return;
+        }
+        const [source] = await db.select().from(bankTransactionsTable)
+          .where(eq(bankTransactionsTable.id, bank_transaction_id)).limit(1);
+        if (!source) { res.status(404).json({ error: "Transaction not found" }); return; }
+        if (!(await assertWriteAccess(userId, source.company_id, res))) return;
+
+        try {
+          const result = await db.transaction(async (tx) => {
+            const [fresh] = await tx.select().from(bankTransactionsTable)
+              .where(eq(bankTransactionsTable.id, bank_transaction_id)).for("update");
+            if (!fresh || (fresh.status !== "review" && fresh.status !== "unmatched")) {
+              throw new Error("This transaction has already been reconciled");
+            }
+            const [destination] = await tx.select().from(bankAccountsTable)
+              .where(eq(bankAccountsTable.id, to_account_id)).for("update");
+            if (!destination || destination.company_id !== fresh.company_id) {
+              throw new Error("Destination bank account belongs to a different company");
+            }
+            const inPence = Math.round(Number(fresh.money_in || 0) * 100);
+            const outPence = Math.round(Number(fresh.money_out || 0) * 100);
+            const sourcePence = inPence || outPence;
+            const transferPence = Math.round(Number(amount) * 100);
+            if ((inPence <= 0 && outPence <= 0) || (inPence > 0 && outPence > 0) || transferPence !== sourcePence) {
+              throw new Error("Transfer amount must exactly match a one-sided bank transaction");
+            }
+            const label = `Transfer ${inPence > 0 ? "to" : "from"} ${destination.account_name}`;
+            const [created] = await tx.insert(bankTransactionsTable).values({
+              company_id: fresh.company_id,
+              bank_account_id: destination.id,
+              date: fresh.date,
+              description: description || label,
+              reference: "Transfer",
+              amount: (transferPence / 100).toFixed(2),
+              money_in: inPence > 0 ? "0.00" : (transferPence / 100).toFixed(2),
+              money_out: inPence > 0 ? (transferPence / 100).toFixed(2) : "0.00",
+              transaction_type: "transfer",
+              status: "matched",
+              matched_type: "ledger_account",
+              matched_record_number: label,
+              linked_invoice_id: null,
+              linked_bill_id: null,
+              linked_credit_note_id: null,
+            }).returning();
+            const updateData = {
+              status: "matched",
+              matched_type: "ledger_account",
+              matched_record_id: null,
+              matched_record_number: label,
+              reference: description || fresh.reference,
+              linked_invoice_id: null,
+              linked_bill_id: null,
+              linked_credit_note_id: null,
+              updated_at: new Date(),
+            };
+            await tx.update(bankTransactionsTable).set(updateData)
+              .where(eq(bankTransactionsTable.id, bank_transaction_id));
+            return { updateData, created };
+          });
+          res.json({ success: true, ...result });
+        } catch (e) {
+          res.status(409).json({ error: e instanceof Error ? e.message : "Transfer could not be recorded" });
+        }
+        break;
+      }
+
+      // ── recordBankTransaction(s) ──────────────────────────────────────────
+      // Initial bank entry/import is deliberately separate from generic CRUD:
+      // it only creates a new, one-sided transaction awaiting review and can
+      // never inject reconciliation state or document links.
+      case "recordBankTransaction":
+      case "recordBankTransactions": {
+        const isBatch = funcName === "recordBankTransactions";
+        const entries = isBatch
+          ? (args as { transactions?: Array<Record<string, unknown>> }).transactions
+          : [args as Record<string, unknown>];
+        const companyId = (args as { company_id?: string }).company_id;
+        if (!companyId || !Array.isArray(entries) || entries.length === 0) {
+          res.status(400).json({ error: "A company and at least one bank transaction are required" });
+          return;
+        }
+        if (!(await assertWriteAccess(userId, companyId, res))) return;
+
+        try {
+          const created = await db.transaction(async (tx) => {
+            const rows = [];
+            for (const entry of entries) {
+              const moneyIn = entry.money_in == null || entry.money_in === "" ? 0 : Number(entry.money_in);
+              const moneyOut = entry.money_out == null || entry.money_out === "" ? 0 : Number(entry.money_out);
+              if (!Number.isFinite(moneyIn) || !Number.isFinite(moneyOut) || moneyIn < 0 || moneyOut < 0) {
+                throw new Error("Money in and money out must be valid non-negative amounts");
+              }
+              const inPence = Math.round(moneyIn * 100);
+              const outPence = Math.round(moneyOut * 100);
+              if ((inPence <= 0 && outPence <= 0) || (inPence > 0 && outPence > 0)) {
+                throw new Error("Each bank transaction must contain either money in or money out");
+              }
+              const vatRate = entry.vat_rate == null || entry.vat_rate === ""
+                ? null
+                : Number(entry.vat_rate);
+              if (vatRate != null && (!Number.isFinite(vatRate) || vatRate < 0 || vatRate > 100)) {
+                throw new Error("VAT rate must be between 0 and 100");
+              }
+              const bankAccountId = typeof entry.bank_account_id === "string" && entry.bank_account_id
+                ? entry.bank_account_id
+                : null;
+              if (bankAccountId) {
+                const [account] = await tx.select().from(bankAccountsTable)
+                  .where(eq(bankAccountsTable.id, bankAccountId)).for("update");
+                if (!account || account.company_id !== companyId) {
+                  throw new Error("Bank account belongs to a different company");
+                }
+              }
+              const totalPence = inPence || outPence;
+              const [row] = await tx.insert(bankTransactionsTable).values({
+                company_id: companyId,
+                bank_account_id: bankAccountId,
+                date: typeof entry.date === "string" ? entry.date : null,
+                description: typeof entry.description === "string" ? entry.description.trim() : null,
+                reference: typeof entry.reference === "string" ? entry.reference.trim() : null,
+                amount: (totalPence / 100).toFixed(2),
+                money_in: inPence > 0 ? (inPence / 100).toFixed(2) : "0.00",
+                money_out: outPence > 0 ? (outPence / 100).toFixed(2) : "0.00",
+                balance: entry.balance == null || entry.balance === "" ? null : String(entry.balance),
+                transaction_type: typeof entry.transaction_type === "string"
+                  ? entry.transaction_type
+                  : typeof entry.type === "string" ? entry.type : null,
+                status: "review",
+                matched_type: null,
+                matched_record_id: null,
+                matched_record_number: null,
+                linked_invoice_id: null,
+                linked_bill_id: null,
+                linked_credit_note_id: null,
+                category: typeof entry.category === "string" ? entry.category : null,
+                vat_rate: vatRate == null ? null : vatRate.toFixed(2),
+                notes: typeof entry.notes === "string" ? entry.notes : null,
+              }).returning();
+              rows.push(row);
+            }
+            return rows;
+          });
+          res.status(201).json(isBatch ? { success: true, data: created } : { success: true, data: created[0] });
+        } catch (e) {
+          res.status(400).json({ error: e instanceof Error ? e.message : "Bank transaction could not be recorded" });
+        }
+        break;
+      }
+
+      // ── updateBankTransactionClassification ───────────────────────────────
+      // A controlled correction path for descriptive/classification fields.
+      // It locks the bank row and validates VAT, but never changes money,
+      // links, reconciliation state, or bank-account ownership.
+      case "updateBankTransactionClassification": {
+        const { bank_transaction_id, date, description, reference, transaction_type, category, vat_rate, notes } = args as {
+          bank_transaction_id?: string; date?: string; description?: string; reference?: string;
+          transaction_type?: string; category?: string; vat_rate?: number | string | null; notes?: string | null;
+        };
+        if (!bank_transaction_id) { res.status(400).json({ error: "bank_transaction_id is required" }); return; }
+        const [existing] = await db.select().from(bankTransactionsTable)
+          .where(eq(bankTransactionsTable.id, bank_transaction_id)).limit(1);
+        if (!existing) { res.status(404).json({ error: "Transaction not found" }); return; }
+        if (!(await assertWriteAccess(userId, existing.company_id, res))) return;
+        const parsedVat = vat_rate == null || vat_rate === "" ? null : Number(vat_rate);
+        if (parsedVat != null && (!Number.isFinite(parsedVat) || parsedVat < 0 || parsedVat > 100)) {
+          res.status(400).json({ error: "VAT rate must be between 0 and 100" }); return;
+        }
+        const [updated] = await db.transaction(async (tx) => {
+          const [fresh] = await tx.select().from(bankTransactionsTable)
+            .where(eq(bankTransactionsTable.id, bank_transaction_id)).for("update");
+          if (!fresh) throw new Error("Transaction not found");
+          return tx.update(bankTransactionsTable).set({
+            date: date ?? fresh.date,
+            description: description ?? fresh.description,
+            reference: reference ?? fresh.reference,
+            transaction_type: transaction_type ?? fresh.transaction_type,
+            category: category ?? fresh.category,
+            vat_rate: parsedVat == null ? null : parsedVat.toFixed(2),
+            notes: notes ?? fresh.notes,
+            updated_at: new Date(),
+          }).where(eq(bankTransactionsTable.id, bank_transaction_id)).returning();
+        });
+        res.json({ success: true, data: updated });
         break;
       }
 

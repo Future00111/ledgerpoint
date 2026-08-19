@@ -147,7 +147,10 @@ export default function ImportCSVDialog({ open, onOpenChange, companyId, onImpor
     try {
       const { imported, duplicates } = await checkDuplicates(preview);
       if (imported.length > 0) {
-        await base44.entities.BankTransaction.bulkCreate(imported);
+        await base44.functions.invoke('recordBankTransactions', {
+          company_id: companyId,
+          transactions: imported,
+        });
       }
       setResults({
         imported: imported.length,

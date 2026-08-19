@@ -13,6 +13,9 @@ import {
   bankTransactionsTable,
   salesInvoicesTable,
   purchaseBillsTable,
+  salesCreditNotesTable,
+  supplierCreditNotesTable,
+  chartOfAccountsTable,
   aiReconciliationResultsTable,
 } from "@workspace/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -20,6 +23,8 @@ import { eq, and } from "drizzle-orm";
 export interface ApprovalRecord {
   record_type: "sales_invoice" | "purchase_bill";
   record_id: string;
+  /** Optional explicit allocation used by the split-reconciliation workflow. */
+  amount?: number;
 }
 
 export interface ApprovalResult {
@@ -45,13 +50,27 @@ export async function applyReconciliationApproval(
       .from(bankTransactionsTable)
       .where(eq(bankTransactionsTable.id, bankTransactionId))
       .for("update");
-    if (!fresh || fresh.status !== "review") {
+    if (!fresh || (fresh.status !== "review" && fresh.status !== "unmatched")) {
       throw new Error("This transaction has already been reconciled");
+    }
+
+    const moneyInPence = Math.round(Number(fresh.money_in || 0) * 100);
+    const moneyOutPence = Math.round(Number(fresh.money_out || 0) * 100);
+    if ((moneyInPence <= 0 && moneyOutPence <= 0) || (moneyInPence > 0 && moneyOutPence > 0)) {
+      throw new Error("Transaction must contain either money in or money out before it can be reconciled");
+    }
+    const expectedRecordType = moneyInPence > 0 ? "sales_invoice" : "purchase_bill";
+    if (records.some((r) => r.record_type !== expectedRecordType)) {
+      throw new Error(
+        expectedRecordType === "sales_invoice"
+          ? "Money-in transactions can only be matched to sales invoices"
+          : "Money-out transactions can only be matched to purchase bills",
+      );
     }
 
     const numbers: string[] = [];
     let appliedPence = 0;
-    const txnPence = Math.round((Number(fresh.money_in || 0) + Number(fresh.money_out || 0)) * 100);
+    const txnPence = moneyInPence || moneyOutPence;
 
     for (const r of records) {
       const table = r.record_type === "sales_invoice" ? salesInvoicesTable : purchaseBillsTable;
@@ -64,7 +83,16 @@ export async function applyReconciliationApproval(
 
       const balancePence = Math.round(Number(rec.balance_due ?? rec.total ?? 0) * 100);
       const remainingTxn = txnPence - appliedPence;
-      const deltaPence = Math.min(balancePence, Math.max(0, remainingTxn));
+      const requestedPence = r.amount == null
+        ? remainingTxn
+        : Math.round(Number(r.amount) * 100);
+      if (requestedPence <= 0 || requestedPence > remainingTxn) {
+        throw new Error("Each allocated match must be a positive amount within the bank transaction total");
+      }
+      if (requestedPence > balancePence) {
+        throw new Error("A matched record cannot be paid beyond its outstanding balance");
+      }
+      const deltaPence = requestedPence;
       if (deltaPence <= 0) throw new Error("Matched records exceed the bank transaction amount");
 
       const paidPence = Math.round(Number(rec.amount_paid ?? 0) * 100) + deltaPence;
@@ -74,7 +102,7 @@ export async function applyReconciliationApproval(
         .set({
           amount_paid: (paidPence / 100).toFixed(2),
           balance_due: (newBalancePence / 100).toFixed(2),
-          status: newBalancePence === 0 ? "paid" : rec.status,
+          status: newBalancePence === 0 ? "paid" : paidPence > 0 ? "part_paid" : rec.status,
           updated_at: new Date(),
         })
         .where(eq(table.id, r.record_id));
@@ -82,6 +110,9 @@ export async function applyReconciliationApproval(
       appliedPence += deltaPence;
       const num = (rec as Record<string, unknown>)["invoice_number"] || (rec as Record<string, unknown>)["bill_number"];
       if (num) numbers.push(String(num));
+    }
+    if (appliedPence !== txnPence) {
+      throw new Error("Matches must allocate the full bank transaction amount before approval");
     }
 
     const first = records[0]!;
@@ -93,6 +124,7 @@ export async function applyReconciliationApproval(
       matched_record_number: label,
       linked_invoice_id: first.record_type === "sales_invoice" ? first.record_id : null,
       linked_bill_id: first.record_type === "purchase_bill" ? first.record_id : null,
+      linked_credit_note_id: null,
       updated_at: new Date(),
     };
     await tx
@@ -128,4 +160,108 @@ export async function applyReconciliationApproval(
   }
 
   return result;
+}
+
+export type NonPaymentMatchType = "sales_credit_note" | "supplier_credit_note" | "ledger_account";
+
+export interface NonPaymentMatchInput {
+  record_type: NonPaymentMatchType;
+  record_id?: string;
+  record_number?: string;
+  category?: string;
+  vat_rate?: number | null;
+  notes?: string | null;
+}
+
+/**
+ * Apply a credit-note, ledger-account, or manual categorisation match. Unlike
+ * an invoice/bill payment this has no document balance movement, but it still
+ * locks the bank row and validates target tenancy before changing links.
+ */
+export async function applyNonPaymentReconciliationMatch(
+  bankTransactionId: string,
+  input: NonPaymentMatchInput,
+): Promise<ApprovalResult> {
+  return db.transaction(async (tx) => {
+    const [fresh] = await tx
+      .select()
+      .from(bankTransactionsTable)
+      .where(eq(bankTransactionsTable.id, bankTransactionId))
+      .for("update");
+    if (!fresh || (fresh.status !== "review" && fresh.status !== "unmatched")) {
+      throw new Error("This transaction has already been reconciled");
+    }
+
+    let recordNumber = input.record_number || "";
+    const category = input.category?.trim() || null;
+    const vatRate = input.vat_rate == null ? null : Number(input.vat_rate);
+    if (vatRate != null && (!Number.isFinite(vatRate) || vatRate < 0 || vatRate > 100)) {
+      throw new Error("VAT rate must be between 0 and 100");
+    }
+    const moneyInPence = Math.round(Number(fresh.money_in || 0) * 100);
+    const moneyOutPence = Math.round(Number(fresh.money_out || 0) * 100);
+    if ((moneyInPence <= 0 && moneyOutPence <= 0) || (moneyInPence > 0 && moneyOutPence > 0)) {
+      throw new Error("Transaction must contain either money in or money out before it can be reconciled");
+    }
+    const txnPence = moneyInPence || moneyOutPence;
+    if (input.record_type === "sales_credit_note") {
+      if (!input.record_id) throw new Error("A credit note is required");
+      const [target] = await tx.select().from(salesCreditNotesTable)
+        .where(eq(salesCreditNotesTable.id, input.record_id)).for("update");
+      if (!target || target.company_id !== fresh.company_id) throw new Error("Credit note belongs to a different company");
+      if (target.status === "draft" || target.status === "cancelled") throw new Error("Credit note is not available for matching");
+      if (target.is_applied) throw new Error("Credit note has already been applied");
+      if (moneyOutPence <= 0) throw new Error("Sales credit notes can only be matched to money-out refunds");
+      if (Math.round(Number(target.total || 0) * 100) !== txnPence) {
+        throw new Error("Credit-note matches must exactly equal the refund amount");
+      }
+      await tx.update(salesCreditNotesTable).set({ is_applied: true, status: "applied", updated_at: new Date() })
+        .where(eq(salesCreditNotesTable.id, target.id));
+      recordNumber = target.credit_note_number || recordNumber;
+    } else if (input.record_type === "supplier_credit_note") {
+      if (!input.record_id) throw new Error("A credit note is required");
+      const [target] = await tx.select().from(supplierCreditNotesTable)
+        .where(eq(supplierCreditNotesTable.id, input.record_id)).for("update");
+      if (!target || target.company_id !== fresh.company_id) throw new Error("Credit note belongs to a different company");
+      if (target.status === "draft" || target.status === "cancelled") throw new Error("Credit note is not available for matching");
+      if (target.is_applied) throw new Error("Credit note has already been applied");
+      if (moneyInPence <= 0) throw new Error("Supplier credit notes can only be matched to money-in refunds");
+      if (Math.round(Number(target.total || 0) * 100) !== txnPence) {
+        throw new Error("Credit-note matches must exactly equal the refund amount");
+      }
+      await tx.update(supplierCreditNotesTable).set({ is_applied: true, status: "applied", updated_at: new Date() })
+        .where(eq(supplierCreditNotesTable.id, target.id));
+      recordNumber = target.credit_note_number || recordNumber;
+    } else if (input.record_id) {
+      const [target] = await tx.select().from(chartOfAccountsTable)
+        .where(eq(chartOfAccountsTable.id, input.record_id)).for("update");
+      if (!target || target.company_id !== fresh.company_id) throw new Error("Ledger account belongs to a different company");
+      if (target.is_active === false) throw new Error("Ledger account is inactive");
+      recordNumber = `${target.code ? `${target.code} ` : ""}${target.name}`;
+    } else if (!category) {
+      throw new Error("Choose a ledger account or category before reconciling this transaction");
+    }
+
+    const updateData = {
+      status: "matched",
+      matched_type: input.record_type,
+      matched_record_id: input.record_id ?? null,
+      matched_record_number: recordNumber,
+      linked_invoice_id: null,
+      linked_bill_id: null,
+      linked_credit_note_id:
+        input.record_type === "sales_credit_note" || input.record_type === "supplier_credit_note"
+          ? input.record_id!
+          : null,
+      category,
+      vat_rate: vatRate == null ? null : vatRate.toFixed(2),
+      notes: input.notes ?? fresh.notes,
+      updated_at: new Date(),
+    };
+    await tx.update(bankTransactionsTable)
+      .set(updateData)
+      .where(eq(bankTransactionsTable.id, bankTransactionId));
+
+    return { label: recordNumber, applied: 0, updateData };
+  });
 }

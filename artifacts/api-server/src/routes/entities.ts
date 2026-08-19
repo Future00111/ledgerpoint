@@ -92,6 +92,35 @@ const READONLY_ENTITIES = new Set(["CompanyUser"]);
 const COMPANY_ENTITY = "Company";
 /** Roles that cannot perform write operations. */
 const WRITE_BLOCKED_ROLES = new Set(["read_only"]);
+const RECONCILIATION_LINK_FIELDS = new Set([
+  "matched_type",
+  "matched_record_id",
+  "matched_record_number",
+  "linked_invoice_id",
+  "linked_bill_id",
+  "linked_credit_note_id",
+]);
+const RECONCILIATION_MUTATION_FIELDS = new Set([
+  "status",
+  ...RECONCILIATION_LINK_FIELDS,
+  "money_in",
+  "money_out",
+  "amount",
+  "balance",
+  "bank_account_id",
+  "category",
+  "vat_rate",
+  "notes",
+]);
+
+function hasUnsafeReconciliationMutation(data: Record<string, unknown>): boolean {
+  return Object.keys(data).some((field) => RECONCILIATION_MUTATION_FIELDS.has(field));
+}
+
+function hasUnsafeReconciliationCreation(data: Record<string, unknown>): boolean {
+  return data["status"] === "matched" ||
+    Object.keys(data).some((field) => RECONCILIATION_LINK_FIELDS.has(field));
+}
 
 // ---------------------------------------------------------------------------
 // Auth helpers
@@ -102,7 +131,7 @@ async function getAuthorizedCompanyIds(userId: string): Promise<string[]> {
   const memberships = await db
     .select({ company_id: companyUsersTable.company_id })
     .from(companyUsersTable)
-    .where(eq(companyUsersTable.user_id, userId));
+    .where(and(eq(companyUsersTable.user_id, userId), eq(companyUsersTable.is_active, true)));
   return memberships.map((m) => m.company_id);
 }
 
@@ -111,7 +140,7 @@ async function getUserRole(userId: string, companyId: string): Promise<string | 
   const [m] = await db
     .select({ role: companyUsersTable.role })
     .from(companyUsersTable)
-    .where(and(eq(companyUsersTable.user_id, userId), eq(companyUsersTable.company_id, companyId)))
+    .where(and(eq(companyUsersTable.user_id, userId), eq(companyUsersTable.company_id, companyId), eq(companyUsersTable.is_active, true)))
     .limit(1);
   return m?.role ?? null;
 }
@@ -276,6 +305,10 @@ router.patch("/:entity/bulk-update", async (req: Request, res: Response) => {
       res.status(400).json({ error: "Body must be a non-empty array" });
       return;
     }
+    if (entityName === "BankTransaction" && records.some(hasUnsafeReconciliationMutation)) {
+      res.status(400).json({ error: "Use the reconciliation approval workflow to match a bank transaction" });
+      return;
+    }
 
     const table = ENTITY_MAP[entityName] as AnyTable;
     const results: Array<Record<string, unknown>> = [];
@@ -327,6 +360,10 @@ router.post("/:entity/bulk", async (req: Request, res: Response) => {
       res.status(400).json({ error: "Body must be a non-empty array" });
       return;
     }
+    if (entityName === "BankTransaction") {
+      res.status(400).json({ error: "Use the validated bank transaction import workflow to create bank transactions" });
+      return;
+    }
 
     // All records must target the same authorized company
     const companyId = records[0]["company_id"] as string | undefined;
@@ -368,6 +405,10 @@ router.post("/:entity", async (req: Request, res: Response) => {
       res.status(403).json({ error: "Use /api/companies for company management" });
       return;
     }
+    if (entityName === "BankTransaction") {
+      res.status(400).json({ error: "Use the validated bank transaction entry workflow to create bank transactions" });
+      return;
+    }
 
     const companyId = req.body["company_id"] as string | undefined;
     if (!companyId) {
@@ -406,6 +447,10 @@ router.put("/:entity/:id", async (req: Request, res: Response) => {
       res.status(403).json({ error: "Use /api/companies for company management" });
       return;
     }
+    if (entityName === "BankTransaction" && hasUnsafeReconciliationMutation(req.body)) {
+      res.status(400).json({ error: "Use the reconciliation approval workflow to match a bank transaction" });
+      return;
+    }
 
     const table = ENTITY_MAP[entityName] as AnyTable;
 
@@ -436,6 +481,14 @@ router.put("/:entity/:id", async (req: Request, res: Response) => {
 
     const updateData = { ...req.body };
     delete updateData["id"];
+    // Legacy Base44-compatible clients used empty strings to clear relations.
+    // PostgreSQL UUID columns require null instead; normalise at the boundary
+    // so an otherwise valid match can never fail with a 500 response.
+    if (entityName === "BankTransaction") {
+      for (const field of ["linked_invoice_id", "linked_bill_id", "linked_credit_note_id"]) {
+        if (updateData[field] === "") updateData[field] = null;
+      }
+    }
     if (table["updated_at"]) updateData["updated_at"] = new Date();
 
     const rows = await db.update(table).set(updateData).where(eq(table["id"], id)).returning();
@@ -477,6 +530,10 @@ router.delete("/:entity/:id", async (req: Request, res: Response) => {
     }
     if (WRITE_BLOCKED_ROLES.has(role)) {
       res.status(403).json({ error: "Your role does not permit deleting records" });
+      return;
+    }
+    if (entityName === "BankTransaction" && existingRow["status"] === "matched") {
+      res.status(400).json({ error: "A reconciled bank transaction cannot be deleted; create a correction instead" });
       return;
     }
 

@@ -267,6 +267,8 @@ export const bankTransactionsTable = pgTable("bank_transactions", {
   linked_invoice_id: uuid("linked_invoice_id"),
   linked_bill_id: uuid("linked_bill_id"),
   linked_credit_note_id: uuid("linked_credit_note_id"),
+  category: text("category"),
+  vat_rate: numeric("vat_rate", { precision: 5, scale: 2 }),
   notes: text("notes"),
   created_at: createdAt(),
   updated_at: updatedAt(),

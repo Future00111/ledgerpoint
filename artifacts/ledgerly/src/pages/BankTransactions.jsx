@@ -47,7 +47,9 @@ export default function BankTransactions() {
   const loadSuggestions = async () => {
     try {
       const result = await base44.functions.invoke('suggestTransactionMatches', { company_id: activeCompany.id });
-      setSuggestions(result.data.suggestions || {});
+      // The compatibility client returns the route body directly, while the
+      // historical Base44 client wrapped it in `data`.
+      setSuggestions(result?.data?.suggestions ?? result?.suggestions ?? {});
     } catch (e) { console.error(e); }
   };
 
@@ -68,10 +70,13 @@ export default function BankTransactions() {
     try {
       const payload = { ...data, company_id: activeCompany.id };
       if (editing) {
-        await base44.entities.BankTransaction.update(editing.id, payload);
+        const { date, description, reference, transaction_type, category, vat_rate, notes } = payload;
+        await base44.functions.invoke('updateBankTransactionClassification', {
+          bank_transaction_id: editing.id, date, description, reference, transaction_type, category, vat_rate, notes,
+        });
         toast({ title: 'Transaction updated' });
       } else {
-        await base44.entities.BankTransaction.create(payload);
+        await base44.functions.invoke('recordBankTransaction', payload);
         toast({ title: 'Transaction recorded' });
       }
       await loadTransactions();
@@ -92,32 +97,21 @@ export default function BankTransactions() {
   const approveSuggestion = async (transaction, suggestion) => {
     setApprovingId(transaction.id);
     try {
-      let updateData = { status: 'matched', linked_invoice_id: '', linked_bill_id: '' };
-      if (suggestion.record_type === 'sales_invoice') {
-        updateData = { ...updateData, matched_type: 'sales_invoice', matched_record_id: suggestion.record_id, matched_record_number: suggestion.record_number, linked_invoice_id: suggestion.record_id };
-      } else if (suggestion.record_type === 'purchase_bill') {
-        updateData = { ...updateData, matched_type: 'purchase_bill', matched_record_id: suggestion.record_id, matched_record_number: suggestion.record_number, linked_bill_id: suggestion.record_id };
-      } else if (suggestion.record_type === 'sales_credit_note') {
-        updateData = { ...updateData, matched_type: 'sales_credit_note', matched_record_id: suggestion.record_id, matched_record_number: suggestion.record_number };
-      } else if (suggestion.record_type === 'supplier_credit_note') {
-        updateData = { ...updateData, matched_type: 'supplier_credit_note', matched_record_id: suggestion.record_id, matched_record_number: suggestion.record_number };
-      }
-      await base44.entities.BankTransaction.update(transaction.id, updateData);
-      // Update amount paid on matched invoice/bill
-      if (suggestion.record_type === 'sales_invoice') {
-        const paymentAmount = transaction.money_in || transaction.amount || 0;
-        if (paymentAmount > 0) {
-          await base44.functions.invoke('updatePaymentStatus', {
-            entity_type: 'sales_invoice', record_id: suggestion.record_id, amount_paid_delta: paymentAmount
-          });
-        }
-      } else if (suggestion.record_type === 'purchase_bill') {
-        const paymentAmount = transaction.money_out || transaction.amount || 0;
-        if (paymentAmount > 0) {
-          await base44.functions.invoke('updatePaymentStatus', {
-            entity_type: 'purchase_bill', record_id: suggestion.record_id, amount_paid_delta: paymentAmount
-          });
-        }
+      const isPaymentMatch = suggestion.record_type === 'sales_invoice' || suggestion.record_type === 'purchase_bill';
+      if (isPaymentMatch) {
+        await base44.functions.invoke('approveReconciliationMatches', {
+          bank_transaction_id: transaction.id,
+          records: [{ record_type: suggestion.record_type, record_id: suggestion.record_id }],
+        });
+      } else {
+        await base44.functions.invoke('approveNonPaymentReconciliationMatch', {
+          bank_transaction_id: transaction.id,
+          record_type: ['sales_credit_note', 'supplier_credit_note'].includes(suggestion.record_type)
+            ? suggestion.record_type
+            : 'ledger_account',
+          record_id: suggestion.record_id || undefined,
+          record_number: suggestion.record_number || undefined,
+        });
       }
       toast({ title: 'Transaction matched' });
       await loadTransactions();
@@ -137,8 +131,9 @@ export default function BankTransactions() {
     return true;
   });
 
-  const totalIn = filtered.reduce((s, t) => s + (t.money_in || 0), 0);
-  const totalOut = filtered.reduce((s, t) => s + (t.money_out || 0), 0);
+  // PostgreSQL numeric fields are serialized as strings by the API.
+  const totalIn = filtered.reduce((s, t) => s + Number(t.money_in || 0), 0);
+  const totalOut = filtered.reduce((s, t) => s + Number(t.money_out || 0), 0);
 
   if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
 

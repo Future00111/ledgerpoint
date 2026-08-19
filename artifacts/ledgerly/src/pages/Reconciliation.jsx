@@ -157,27 +157,36 @@ export default function Reconciliation() {
     ? (bankAccounts.find((a) => a.id === accountFilter)?.account_name || '')
     : (bankAccounts[0]?.account_name || '');
 
-  const applyMatch = async (txn, rec) => {
-    let updateData = { status: 'matched', linked_invoice_id: '', linked_bill_id: '' };
+  const applyNonPaymentMatch = async (txn, rec) => {
     const rt = rec.record_type;
-    if (rt === 'sales_invoice') updateData = { ...updateData, matched_type: 'sales_invoice', matched_record_id: rec.record_id, matched_record_number: rec.record_number, linked_invoice_id: rec.record_id };
-    else if (rt === 'purchase_bill') updateData = { ...updateData, matched_type: 'purchase_bill', matched_record_id: rec.record_id, matched_record_number: rec.record_number, linked_bill_id: rec.record_id };
-    else if (rt === 'sales_credit_note') updateData = { ...updateData, matched_type: 'sales_credit_note', matched_record_id: rec.record_id, matched_record_number: rec.record_number };
-    else if (rt === 'supplier_credit_note') updateData = { ...updateData, matched_type: 'supplier_credit_note', matched_record_id: rec.record_id, matched_record_number: rec.record_number };
-    else if (rt === 'ledger_account') updateData = { ...updateData, matched_type: 'ledger_account', matched_record_id: rec.record_id || '', matched_record_number: rec.record_number || '' };
-    await base44.entities.BankTransaction.update(txn.id, updateData);
-    if (rt === 'sales_invoice' || rt === 'purchase_bill') {
-      const amt = Number(txn.money_in || 0) || Number(txn.money_out || 0);
-      if (amt > 0) await base44.functions.invoke('updatePaymentStatus', { entity_type: rt, record_id: rec.record_id, amount_paid_delta: amt });
+    if (!['sales_credit_note', 'supplier_credit_note', 'ledger_account'].includes(rt)) {
+      throw new Error('This match type requires payment approval');
     }
-    return updateData;
+    const response = await base44.functions.invoke('approveNonPaymentReconciliationMatch', {
+      bank_transaction_id: txn.id,
+      record_type: rt,
+      record_id: rec.record_id || undefined,
+      record_number: rec.record_number || undefined,
+    });
+    const body = response?.data ?? response;
+    return body?.updateData || { status: 'matched' };
   };
 
   const onMatch = async (txn, rec) => {
     if (!txn || !rec) return;
     setApprovingId(txn.id);
     try {
-      const updateData = await applyMatch(txn, rec);
+      const isPaymentMatch = rec.record_type === 'sales_invoice' || rec.record_type === 'purchase_bill';
+      const response = isPaymentMatch
+        ? await base44.functions.invoke('approveReconciliationMatches', {
+            bank_transaction_id: txn.id,
+            records: [{ record_type: rec.record_type, record_id: rec.record_id }],
+          })
+        : null;
+      const body = response?.data ?? response;
+      const updateData = isPaymentMatch
+        ? (body?.updateData || { status: 'matched' })
+        : await applyNonPaymentMatch(txn, rec);
       setTransactions((prev) => prev.map((t) => (t.id === txn.id ? { ...t, ...updateData } : t)));
       toast({ title: 'Reconciled', description: `Matched to ${rec.record_number}` });
       advance(txn.id);
@@ -195,7 +204,11 @@ export default function Reconciliation() {
       // amounts at each record's outstanding balance, and links the records.
       const res = await base44.functions.invoke('approveReconciliationMatches', {
         bank_transaction_id: txn.id,
-        records: recs.map((r) => ({ record_type: r.record_type, record_id: r.record_id })),
+        records: recs.map((r) => ({
+          record_type: r.record_type,
+          record_id: r.record_id,
+          amount: r.record_amount,
+        })),
       });
       const body = res?.data ?? res;
       const updateData = body?.updateData || { status: 'matched' };
@@ -210,8 +223,16 @@ export default function Reconciliation() {
     if (!txn) return;
     setApprovingId(txn.id);
     try {
-      const updateData = { status: 'matched', matched_type: 'ledger_account', category: data.category, vat_rate: data.vat_rate, notes: data.notes };
-      await base44.entities.BankTransaction.update(txn.id, updateData);
+      const response = await base44.functions.invoke('approveNonPaymentReconciliationMatch', {
+        bank_transaction_id: txn.id,
+        record_type: 'ledger_account',
+        record_number: data.category || 'Categorised transaction',
+        category: data.category || undefined,
+        vat_rate: data.vat_rate == null ? null : Number(data.vat_rate),
+        notes: data.notes || null,
+      });
+      const body = response?.data ?? response;
+      const updateData = body?.updateData || { status: 'matched' };
       setTransactions((prev) => prev.map((t) => (t.id === txn.id ? { ...t, ...updateData } : t)));
       toast({ title: 'Reconciled', description: 'Transaction categorised' });
       advance(txn.id);
@@ -223,17 +244,18 @@ export default function Reconciliation() {
     if (!txn) return;
     setApprovingId(txn.id);
     try {
-      const toAcc = bankAccounts.find((a) => a.id === data.to_account_id);
-      const isIncome = Number(txn.money_in || 0) > 0;
-      const created = await base44.entities.BankTransaction.create({
-        company_id: activeCompany.id, bank_account_id: data.to_account_id, bank_account_name: toAcc?.account_name || '',
-        date: txn.date, description: data.description || `Transfer ${isIncome ? 'from' : 'to'} ${txn.bank_account_name}`,
-        reference: 'Transfer', money_in: isIncome ? 0 : data.amount, money_out: isIncome ? data.amount : 0, amount: data.amount, type: 'transfer',
-        status: 'matched', matched_type: 'ledger_account', matched_record_number: `Transfer ${isIncome ? 'from' : 'to'} ${txn.bank_account_name}`, category: 'other',
+      const response = await base44.functions.invoke('recordBankTransfer', {
+        bank_transaction_id: txn.id,
+        to_account_id: data.to_account_id,
+        amount: data.amount,
+        description: data.description || undefined,
       });
-      const updateData = { status: 'matched', matched_type: 'ledger_account', matched_record_number: `Transfer to ${toAcc?.account_name || ''}`, reference: data.description || txn.reference };
-      await base44.entities.BankTransaction.update(txn.id, updateData);
-      setTransactions((prev) => [...prev.map((t) => (t.id === txn.id ? { ...t, ...updateData } : t)), created]);
+      const body = response?.data ?? response;
+      const updateData = body?.updateData || { status: 'matched' };
+      setTransactions((prev) => [
+        ...prev.map((t) => (t.id === txn.id ? { ...t, ...updateData } : t)),
+        ...(body?.created ? [body.created] : []),
+      ]);
       toast({ title: 'Reconciled', description: 'Transfer recorded' });
       advance(txn.id);
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
@@ -245,8 +267,13 @@ export default function Reconciliation() {
   const handleSave = async (data) => {
     try {
       const payload = { ...data, company_id: activeCompany.id };
-      if (editing) await base44.entities.BankTransaction.update(editing.id, payload);
-      else await base44.entities.BankTransaction.create(payload);
+      if (editing) {
+        const { date, description, reference, transaction_type, category, vat_rate, notes } = payload;
+        await base44.functions.invoke('updateBankTransactionClassification', {
+          bank_transaction_id: editing.id, date, description, reference, transaction_type, category, vat_rate, notes,
+        });
+      }
+      else await base44.functions.invoke('recordBankTransaction', payload);
       toast({ title: editing ? 'Transaction updated' : 'Transaction recorded' });
       setFormOpen(false); setEditing(null);
       await load();

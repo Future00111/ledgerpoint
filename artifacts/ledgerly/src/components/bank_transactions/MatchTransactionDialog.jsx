@@ -17,6 +17,7 @@ export default function MatchTransactionDialog({ open, onOpenChange, transaction
   const [salesCNs, setSalesCNs] = useState([]);
   const [supplierCNs, setSupplierCNs] = useState([]);
   const [ledgerAccounts, setLedgerAccounts] = useState([]);
+  const [matchError, setMatchError] = useState('');
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
   const { toast } = useToast();
@@ -37,47 +38,36 @@ export default function MatchTransactionDialog({ open, onOpenChange, transaction
         setLedgerAccounts(coa.filter(a => a.is_active !== false));
       });
     }
-    if (!open) { setSelected(null); setSearch(''); }
+    if (!open) { setSelected(null); setSearch(''); setMatchError(''); }
   }, [open, companyId]);
 
   const handleConfirm = async () => {
     if (!selected) return;
     setLoading(true);
+    setMatchError('');
     try {
-      let updateData = {};
-      if (tab === 'sales_invoice') {
-        updateData = { matched_type: 'sales_invoice', matched_record_id: selected.id, matched_record_number: selected.invoice_number, linked_invoice_id: selected.id, linked_bill_id: '', status: 'matched' };
-      } else if (tab === 'purchase_bill') {
-        updateData = { matched_type: 'purchase_bill', matched_record_id: selected.id, matched_record_number: selected.bill_number, linked_bill_id: selected.id, linked_invoice_id: '', status: 'matched' };
-      } else if (tab === 'sales_credit_note') {
-        updateData = { matched_type: 'sales_credit_note', matched_record_id: selected.id, matched_record_number: selected.credit_note_number, linked_invoice_id: '', linked_bill_id: '', status: 'matched' };
-      } else if (tab === 'supplier_credit_note') {
-        updateData = { matched_type: 'supplier_credit_note', matched_record_id: selected.id, matched_record_number: selected.credit_note_number, linked_invoice_id: '', linked_bill_id: '', status: 'matched' };
-      } else if (tab === 'ledger_account') {
-        updateData = { matched_type: 'ledger_account', matched_record_id: selected.id, matched_record_number: `${selected.code} ${selected.name}`, linked_invoice_id: '', linked_bill_id: '', status: 'matched' };
-      }
-      await base44.entities.BankTransaction.update(transaction.id, updateData);
-      // Update amount paid on matched invoice/bill
-      if (tab === 'sales_invoice') {
-        const paymentAmount = transaction.money_in || transaction.amount || 0;
-        if (paymentAmount > 0) {
-          await base44.functions.invoke('updatePaymentStatus', {
-            entity_type: 'sales_invoice', record_id: selected.id, amount_paid_delta: paymentAmount
-          });
-        }
-      } else if (tab === 'purchase_bill') {
-        const paymentAmount = transaction.money_out || transaction.amount || 0;
-        if (paymentAmount > 0) {
-          await base44.functions.invoke('updatePaymentStatus', {
-            entity_type: 'purchase_bill', record_id: selected.id, amount_paid_delta: paymentAmount
-          });
-        }
+      if (tab === 'sales_invoice' || tab === 'purchase_bill') {
+        await base44.functions.invoke('approveReconciliationMatches', {
+          bank_transaction_id: transaction.id,
+          records: [{ record_type: tab, record_id: selected.id }],
+        });
+      } else {
+        await base44.functions.invoke('approveNonPaymentReconciliationMatch', {
+          bank_transaction_id: transaction.id,
+          record_type: tab,
+          record_id: selected.id,
+          record_number: tab === 'ledger_account' ? `${selected.code} ${selected.name}` : selected.credit_note_number,
+        });
       }
       toast({ title: 'Transaction matched' });
       onMatched();
       onOpenChange(false);
       setSelected(null);
-    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
+    } catch (e) {
+      const message = e.message || 'The transaction could not be matched. Please review the selected record and try again.';
+      setMatchError(message);
+      toast({ title: 'Match not applied', description: message, variant: 'destructive' });
+    }
     finally { setLoading(false); }
   };
 
@@ -105,6 +95,11 @@ export default function MatchTransactionDialog({ open, onOpenChange, transaction
       <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Match Transaction</DialogTitle></DialogHeader>
         <p className="text-sm text-muted-foreground">{transaction?.description} — {formatCurrency(transaction?.money_in || transaction?.money_out || transaction?.amount)}</p>
+        {matchError && (
+          <div role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {matchError}
+          </div>
+        )}
         <Tabs value={tab} onValueChange={v => { setTab(v); setSelected(null); }}>
           <TabsList className="grid grid-cols-5 w-full text-xs">
             <TabsTrigger value="sales_invoice">Invoice</TabsTrigger>

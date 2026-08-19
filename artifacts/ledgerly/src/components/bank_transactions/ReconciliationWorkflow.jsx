@@ -96,32 +96,14 @@ export default function ReconciliationWorkflow({ open, onOpenChange, transaction
 
     setFinalizing(true);
     try {
-      // Update transaction to matched status
-      const updateData = {
-        status: 'matched',
-        matched_type: matches[0].type,
-        matched_record_id: matches[0].id,
-        matched_record_number: matches[0].number
-      };
-      await base44.entities.BankTransaction.update(transaction.id, updateData);
-
-      // Update payment status for each matched record
-      for (const match of matches) {
-        const amount = match.amount;
-        if (match.type === 'sales_invoice') {
-          await base44.functions.invoke('updatePaymentStatus', {
-            entity_type: 'sales_invoice',
-            record_id: match.id,
-            amount_paid_delta: amount
-          });
-        } else if (match.type === 'purchase_bill') {
-          await base44.functions.invoke('updatePaymentStatus', {
-            entity_type: 'purchase_bill',
-            record_id: match.id,
-            amount_paid_delta: amount
-          });
-        }
-      }
+      await base44.functions.invoke('approveReconciliationMatches', {
+        bank_transaction_id: transaction.id,
+        records: matches.map((match) => ({
+          record_type: match.type,
+          record_id: match.id,
+          amount: match.amount,
+        })),
+      });
 
       toast({ title: 'Transaction reconciled successfully' });
       setStage('done');
