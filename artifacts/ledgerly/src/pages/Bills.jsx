@@ -319,28 +319,30 @@ export default function Bills() {
         </div>
       </div>
 
-      {/* ── Selection running total bar ── */}
+      {/* ── Selection running total bar (sticky) ── */}
       {selectionCount > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
-          <div className="flex flex-wrap items-center gap-5">
-            <span className="text-sm font-medium text-foreground">
-              {selectionCount} bill{selectionCount !== 1 ? 's' : ''} selected
-            </span>
-            <span className="text-sm text-muted-foreground">
-              Total: <span className="font-semibold text-foreground">{gbp.format(selectionTotal)}</span>
-            </span>
-            {selectionOutstanding > 0 && (
-              <span className="text-sm text-muted-foreground">
-                Outstanding: <span className="font-semibold text-orange-600">{gbp.format(selectionOutstanding)}</span>
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4 pointer-events-none">
+          <div className="pointer-events-auto flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-background/95 backdrop-blur-sm shadow-lg ring-1 ring-black/5 px-5 py-3.5">
+            <div className="flex flex-wrap items-center gap-5">
+              <span className="text-sm font-semibold text-foreground">
+                {selectionCount} bill{selectionCount !== 1 ? 's' : ''} selected
               </span>
-            )}
+              <span className="text-sm text-muted-foreground">
+                Total: <span className="font-semibold text-foreground">{gbp.format(selectionTotal)}</span>
+              </span>
+              {selectionOutstanding > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  Outstanding: <span className="font-semibold text-orange-600">{gbp.format(selectionOutstanding)}</span>
+                </span>
+              )}
+            </div>
+            <button
+              onClick={clearSelection}
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="w-3 h-3" />Clear
+            </button>
           </div>
-          <button
-            onClick={clearSelection}
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <X className="w-3 h-3" />Clear selection
-          </button>
         </div>
       )}
 
