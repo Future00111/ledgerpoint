@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronsUpDown,
+  CircleCheck,
   Eye,
   Mail,
   Pencil,
@@ -16,6 +17,8 @@ import {
   Search,
   Trash2,
   Truck,
+  WalletCards,
+  AlertTriangle,
 } from 'lucide-react';
 import moment from 'moment';
 import SupplierForm from '@/components/suppliers/SupplierForm';
@@ -216,98 +219,88 @@ export default function Suppliers() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5 pb-10">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Suppliers</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage supplier contacts, balances, and bills in one place.
-          </p>
-        </div>
-        <Button
-          onClick={openCreate}
-          size="sm"
-          className="h-9 gap-1.5 bg-emerald-800 text-white hover:bg-emerald-900"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          New supplier
-        </Button>
-      </div>
+      <section className="relative overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-br from-card via-card to-primary/[0.05] px-5 py-5 shadow-sm sm:px-6">
+        <div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-primary/[0.08] blur-3xl" />
+        <div className="relative space-y-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Truck className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.14em] text-primary">Purchase directory</p>
+                <h1 className="mt-1 text-2xl font-semibold tracking-tight">Suppliers</h1>
+                <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                  Keep supplier contacts, payment activity, and open balances easy to review.
+                </p>
+              </div>
+            </div>
+            <Button onClick={openCreate} size="sm" className="gap-2 self-start shadow-sm">
+              <Plus className="h-4 w-4" />
+              New supplier
+            </Button>
+          </div>
 
-      <section aria-label="Supplier balances" className="grid gap-3 lg:grid-cols-[1.55fr_1fr]">
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                Unpaid
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">Last 365 days</p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="rounded-xl border border-border/70 bg-background/60 px-3.5 py-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <WalletCards className="h-3.5 w-3.5 text-primary" />
+                Unpaid balance
+              </div>
+              <p className="mt-1 text-xl font-semibold tabular-nums">{gbp.format(billMetrics.unpaid)}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Last 365 days</p>
             </div>
-            <p className="text-lg font-semibold tabular-nums">{gbp.format(billMetrics.unpaid)}</p>
-          </div>
-          <div className="flex h-14 overflow-hidden rounded-md bg-slate-100">
-            <div
-              className="flex min-w-[120px] flex-1 flex-col justify-center bg-orange-500 px-3 text-white"
-              style={{ flexGrow: Math.max(billMetrics.overdue, 0.01) }}
-            >
-              <span className="text-lg font-semibold tabular-nums">{gbp.format(billMetrics.overdue)}</span>
-              <span className="text-[10px] font-medium uppercase tracking-wide opacity-85">Overdue</span>
+            <div className="rounded-xl border border-border/70 bg-background/60 px-3.5 py-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <AlertTriangle className="h-3.5 w-3.5 text-orange-600" />
+                Needs attention
+              </div>
+              <p className="mt-1 text-xl font-semibold tabular-nums">{gbp.format(billMetrics.overdue)}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">{billMetrics.overduePercent}% of unpaid is overdue</p>
             </div>
-            <div
-              className="flex min-w-[120px] flex-1 flex-col justify-center bg-slate-200 px-3 text-slate-700"
-              style={{ flexGrow: Math.max(billMetrics.notDue, 0.01) }}
-            >
-              <span className="text-lg font-semibold tabular-nums">{gbp.format(billMetrics.notDue)}</span>
-              <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Open bills</span>
+            <div className="rounded-xl border border-border/70 bg-background/60 px-3.5 py-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <CircleCheck className="h-3.5 w-3.5 text-emerald-600" />
+                Paid activity
+              </div>
+              <p className="mt-1 text-xl font-semibold tabular-nums">{gbp.format(billMetrics.paid)}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Last 365 days</p>
             </div>
-          </div>
-          <div className="mt-2 flex justify-between text-[11px] text-muted-foreground">
-            <span>{billMetrics.overduePercent}% of unpaid balance is overdue</span>
-            <span>{bills.filter((bill) => bill.status !== 'paid' && bill.status !== 'cancelled').length} open bills</span>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Paid</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">Last 365 days</p>
-            </div>
-            <p className="text-lg font-semibold tabular-nums">{gbp.format(billMetrics.paid)}</p>
-          </div>
-          <div className="flex h-14 items-center rounded-md bg-emerald-600 px-3 text-white">
-            <div>
-              <p className="text-lg font-semibold tabular-nums">{gbp.format(billMetrics.paid)}</p>
-              <p className="text-[10px] font-medium uppercase tracking-wide text-emerald-100">Paid in last 365 days</p>
-            </div>
-          </div>
-          <div className="mt-2 text-[11px] text-muted-foreground">
-            Payments recorded against supplier bills
           </div>
         </div>
       </section>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative w-full sm:max-w-xs">
-          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search suppliers, contacts, or email"
-            className="h-9 pl-8 text-sm"
-          />
+      <section className="rounded-2xl border border-border/80 bg-card shadow-sm">
+        <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+              <Truck className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold">Supplier directory</p>
+              <p className="text-xs text-muted-foreground">
+                {search ? `${filtered.length} result${filtered.length !== 1 ? 's' : ''}` : `${suppliers.length} supplier${suppliers.length !== 1 ? 's' : ''}`}
+              </p>
+            </div>
+          </div>
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by name, contact or email"
+              className="h-10 rounded-lg border-border/80 bg-background pl-9"
+            />
+          </div>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {filtered.length} supplier{filtered.length !== 1 ? 's' : ''}
-        </span>
         {selected.size > 0 && (
-          <button
-            onClick={() => setSelected(new Set())}
-            className="text-xs font-medium text-primary hover:underline"
-          >
-            Clear {selected.size} selected
-          </button>
+          <div className="border-t border-border/70 bg-primary/[0.04] px-4 py-2 text-xs text-primary">
+            <button onClick={() => setSelected(new Set())} className="font-medium hover:underline">
+              Clear {selected.size} selected
+            </button>
+          </div>
         )}
-      </div>
+      </section>
 
       {loading ? (
         <div className="flex justify-center py-16">
@@ -359,7 +352,7 @@ export default function Suppliers() {
                   return (
                     <tr
                       key={supplier.id}
-                      className={`transition-colors hover:bg-muted/30 ${isSelected ? 'bg-primary/[0.03]' : ''}`}
+                      className={`transition-colors hover:bg-primary/[0.03] ${isSelected ? 'bg-primary/[0.05]' : ''}`}
                     >
                       <td className="px-3 py-2.5">
                         <input
@@ -395,7 +388,7 @@ export default function Suppliers() {
                           </a>
                         ) : '—'}
                       </td>
-                      <td className={`px-3 py-2.5 text-right text-xs tabular-nums ${hasBalance ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+                      <td className={`px-3 py-2.5 text-right text-xs tabular-nums ${hasBalance ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
                         {number.format(supplier.openBalance)}
                       </td>
                       <td className="px-3 py-2.5 text-right">
@@ -404,8 +397,8 @@ export default function Suppliers() {
                             to={hasBalance ? '/bills' : '/bills/new'}
                             className={`rounded border px-2.5 py-1 text-[11px] font-medium transition-colors ${
                               hasBalance
-                                ? 'border-emerald-300 bg-white text-emerald-700 hover:bg-emerald-50'
-                                : 'border-border bg-background text-primary hover:bg-muted'
+                                ? 'border-primary/25 bg-primary/[0.06] text-primary hover:bg-primary/10'
+                                : 'border-border bg-background text-muted-foreground hover:border-primary/30 hover:bg-primary/[0.04] hover:text-primary'
                             }`}
                           >
                             {hasBalance ? 'Make payment' : 'Create bill'}
