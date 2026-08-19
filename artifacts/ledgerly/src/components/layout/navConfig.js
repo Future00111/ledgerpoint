@@ -19,6 +19,17 @@ export const SECTIONS = [
     items: [{ label: 'Dashboard', path: '/' }],
   },
   {
+    key: 'ai-accountant', label: 'AI Accountant', icon: Sparkles,
+    items: [
+      { label: 'Overview', path: '/ai-accountant', icon: Sparkles },
+      { label: 'Inbox', path: '/ai-accountant/inbox', icon: Inbox },
+      { label: 'Tasks', path: '/ai-accountant/tasks', icon: ListChecks },
+      { label: 'Insights', path: '/insights', icon: Lightbulb },
+      { label: 'Reviews', path: '/ai-accountant/reviews', icon: ClipboardList },
+      { label: 'Recommendations', path: '/ai-accountant/recommendations', icon: Wand2 },
+    ],
+  },
+  {
     key: 'sales', label: 'Sales', icon: TrendingUp,
     items: [
       { label: 'Quotes', icon: FileCheck, soon: true },

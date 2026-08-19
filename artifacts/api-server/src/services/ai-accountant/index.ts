@@ -14,3 +14,6 @@ export * from "./analysis.js";
 export * from "./approval.js";
 export * from "./insights.js";
 export * from "./review.js";
+export * from "./detectors.js";
+export * from "./recommendations.js";
+export * from "./explain.js";

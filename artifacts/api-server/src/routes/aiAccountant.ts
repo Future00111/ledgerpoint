@@ -16,6 +16,7 @@ import {
   bankTransactionsTable,
   chartOfAccountsTable,
   aiReconciliationResultsTable,
+  aiRecommendationsTable,
 } from "@workspace/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import {
@@ -25,7 +26,15 @@ import {
   categoriseWithAI,
   generateCompanyInsights,
   getReviewSummary,
+  syncDetections,
+  decideRecommendation,
+  listRecommendations,
+  listDecisions,
+  listActivity,
+  getWorkspaceSummary,
+  explainTransaction,
   type ApprovalRecord,
+  type Decision,
 } from "../services/ai-accountant/index.js";
 
 const router: IRouter = Router();
@@ -37,7 +46,11 @@ async function getMembership(userId: string, companyId: string) {
   const [m] = await db
     .select({ company_id: companyUsersTable.company_id, role: companyUsersTable.role })
     .from(companyUsersTable)
-    .where(and(eq(companyUsersTable.user_id, userId), eq(companyUsersTable.company_id, companyId)))
+    .where(and(
+      eq(companyUsersTable.user_id, userId),
+      eq(companyUsersTable.company_id, companyId),
+      eq(companyUsersTable.is_active, true),
+    ))
     .limit(1);
   return m ?? null;
 }
@@ -209,6 +222,107 @@ router.post("/insights", async (req: Request, res: Response) => {
     res.json(await generateCompanyInsights(company_id));
   } catch (e) {
     res.status(500).json({ error: e instanceof Error ? e.message : "Insights generation failed" });
+  }
+});
+
+// ═══ Phase 2 — Proactive AI Accountant workspace ═════════════════════════════
+// All routes below are analysis/read + explicit review decisions only.
+// The AI never posts transactions, creates documents or changes records here.
+
+// ── POST /api/ai/accountant/refresh ──────────────────────────────────────────
+// Run all proactive detectors and sync findings into recommendations.
+router.post("/accountant/refresh", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id } = req.body as { company_id?: string };
+  if (!company_id) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, company_id, res))) return;
+  try {
+    res.json(await syncDetections(company_id, userId));
+  } catch (e) {
+    res.status(500).json({ error: e instanceof Error ? e.message : "Detection run failed" });
+  }
+});
+
+// ── GET /api/ai/accountant/summary?company_id= ───────────────────────────────
+router.get("/accountant/summary", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  res.json(await getWorkspaceSummary(companyId));
+});
+
+// ── GET /api/ai/accountant/recommendations?company_id=&status=open,snoozed ───
+router.get("/accountant/recommendations", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  const statusParam = req.query["status"] as string | undefined;
+  const statuses = statusParam ? statusParam.split(",").map((s) => s.trim()).filter(Boolean) : undefined;
+  res.json({ recommendations: await listRecommendations(companyId, statuses) });
+});
+
+// ── POST /api/ai/accountant/recommendations/:id/decision ─────────────────────
+// Explicit user decision: approve | dismiss | snooze | reopen. Requires write role.
+router.post("/accountant/recommendations/:id/decision", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const id = req.params["id"] as string;
+  const { decision, note, snoozed_until } = req.body as { decision?: string; note?: string; snoozed_until?: string };
+  const valid: Decision[] = ["approved", "dismissed", "snoozed", "reopened"];
+  if (!decision || !valid.includes(decision as Decision)) {
+    res.status(400).json({ error: `decision must be one of: ${valid.join(", ")}` });
+    return;
+  }
+
+  const [row] = await db
+    .select().from(aiRecommendationsTable)
+    .where(eq(aiRecommendationsTable.id, id)).limit(1);
+  if (!row) { res.status(404).json({ error: "Recommendation not found" }); return; }
+  if (!(await assertWriteAccess(userId, row.company_id, res))) return;
+
+  try {
+    const updated = await decideRecommendation(id, decision as Decision, userId, note, snoozed_until);
+    res.json({ success: true, recommendation: updated });
+  } catch (e) {
+    res.status(409).json({ error: e instanceof Error ? e.message : "Decision failed" });
+  }
+});
+
+// ── GET /api/ai/accountant/decisions?company_id= ─────────────────────────────
+router.get("/accountant/decisions", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  res.json({ decisions: await listDecisions(companyId) });
+});
+
+// ── GET /api/ai/accountant/activity?company_id= ──────────────────────────────
+router.get("/accountant/activity", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  res.json({ activity: await listActivity(companyId) });
+});
+
+// ── GET /api/ai/accountant/explain?bank_transaction_id= ──────────────────────
+router.get("/accountant/explain", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const txnId = req.query["bank_transaction_id"] as string | undefined;
+  if (!txnId) { res.status(400).json({ error: "bank_transaction_id is required" }); return; }
+
+  const [txn] = await db
+    .select().from(bankTransactionsTable)
+    .where(eq(bankTransactionsTable.id, txnId)).limit(1);
+  if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
+  if (!(await assertMember(userId, txn.company_id, res))) return;
+
+  try {
+    res.json(await explainTransaction(txnId));
+  } catch (e) {
+    res.status(500).json({ error: e instanceof Error ? e.message : "Explanation failed" });
   }
 });
 

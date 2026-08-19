@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { gbp, fmtDate } from '@/lib/format';
-import { ChevronUp, MoreHorizontal, MessageSquare, Search } from 'lucide-react';
+import { ChevronUp, MoreHorizontal, MessageSquare, Search, Sparkles } from 'lucide-react';
+import ExplainDialog from '@/components/ai-accountant/ExplainDialog';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import MatchTab from './MatchTab';
@@ -23,12 +24,14 @@ export default function ReconciliationRow({
 }) {
   const [tab, setTab] = useState('match');
   const [more, setMore] = useState(false);
+  const [explainOpen, setExplainOpen] = useState(false);
   const t = transaction;
   const isIncome = Number(t.money_in || 0) > 0;
   const amount = Number(t.money_in || 0) || Number(t.money_out || 0);
 
   return (
     <div className="flex flex-col md:flex-row relative">
+      <ExplainDialog transactionId={t.id} open={explainOpen} onClose={() => setExplainOpen(false)} />
       {/* LEFT — bank transaction */}
       <div className="md:w-[42%] border-b md:border-b-0 md:border-r border-slate-200 bg-slate-50/70 p-6 flex flex-col">
         <div className="flex items-start justify-between mb-5">
@@ -51,6 +54,9 @@ export default function ReconciliationRow({
                   {more ? 'Hide extended details' : 'Show extended details'}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setExplainOpen(true)} data-testid="menu-explain-this">
+                  <Sparkles className="w-4 h-4 mr-2 text-slate-400" /> Explain this
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTab('discuss')}>
                   <MessageSquare className="w-4 h-4 mr-2 text-slate-400" /> Discuss
                 </DropdownMenuItem>

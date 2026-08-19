@@ -1,5 +1,6 @@
 import {
   pgTable,
+  uniqueIndex,
   text,
   boolean,
   integer,
@@ -614,6 +615,60 @@ export const aiReconciliationResultsTable = pgTable("ai_reconciliation_results",
 });
 export const insertAIReconciliationResultSchema = createInsertSchema(aiReconciliationResultsTable).omit({ id: true, created_at: true, updated_at: true });
 export type AIReconciliationResult = typeof aiReconciliationResultsTable.$inferSelect;
+
+// ─── AIRecommendation ─────────────────────────────────────────────────────────
+// Proactive AI Accountant findings (Phase 2). Each row is a detected issue or
+// suggested action. `dedupe_key` is stable per finding so re-running detection
+// updates rather than duplicates. The AI never applies accounting changes —
+// rows only carry recommended actions; decisions are explicit user actions.
+
+export const aiRecommendationsTable = pgTable(
+  "ai_recommendations",
+  {
+  id: primaryId(),
+  company_id: uuid("company_id").notNull(),
+  dedupe_key: text("dedupe_key").notNull(),
+  domain: text("domain").notNull(), // revenue | expense | vat | debtor | creditor | cashflow
+  kind: text("kind").notNull(), // detector identifier e.g. overdue_invoices, duplicate_payment
+  priority: text("priority").default("medium"), // high | medium | low
+  title: text("title").notNull(), // the problem, in plain English
+  detail: text("detail"), // fuller explanation of why this was flagged
+  recommended_action: text("recommended_action"),
+  confidence: integer("confidence").default(0), // 0-100
+  amount: numeric("amount", { precision: 12, scale: 2 }), // monetary impact where relevant
+  evidence: jsonb("evidence").$type<Record<string, unknown>>(), // data points used
+  related_entity_type: text("related_entity_type"),
+  related_entity_id: text("related_entity_id"),
+  route: text("route"), // in-app path to act on this finding
+  status: text("status").default("open"), // open | approved | dismissed | snoozed | resolved
+  snoozed_until: date("snoozed_until"),
+  decided_by: text("decided_by"),
+  decided_at: timestamp("decided_at", { withTimezone: true }),
+  first_detected_at: timestamp("first_detected_at", { withTimezone: true }).defaultNow(),
+  last_detected_at: timestamp("last_detected_at", { withTimezone: true }).defaultNow(),
+  created_at: createdAt(),
+  updated_at: updatedAt(),
+  },
+  (t) => [uniqueIndex("ai_recommendations_company_dedupe_idx").on(t.company_id, t.dedupe_key)],
+);
+export const insertAIRecommendationSchema = createInsertSchema(aiRecommendationsTable).omit({ id: true, created_at: true, updated_at: true });
+export type AIRecommendation = typeof aiRecommendationsTable.$inferSelect;
+
+// ─── AIReviewDecision ─────────────────────────────────────────────────────────
+// Append-only audit trail of user decisions on AI recommendations.
+
+export const aiReviewDecisionsTable = pgTable("ai_review_decisions", {
+  id: primaryId(),
+  company_id: uuid("company_id").notNull(),
+  recommendation_id: uuid("recommendation_id").notNull(),
+  decision: text("decision").notNull(), // approved | dismissed | snoozed | reopened
+  note: text("note"),
+  user_id: text("user_id"),
+  created_at: createdAt(),
+  updated_at: updatedAt(),
+});
+export const insertAIReviewDecisionSchema = createInsertSchema(aiReviewDecisionsTable).omit({ id: true, created_at: true, updated_at: true });
+export type AIReviewDecision = typeof aiReviewDecisionsTable.$inferSelect;
 
 // ─── TransactionComment ───────────────────────────────────────────────────────
 

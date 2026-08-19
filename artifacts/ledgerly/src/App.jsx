@@ -45,6 +45,11 @@ import Insights from '@/pages/Insights';
 import SmartSuggestions from '@/pages/SmartSuggestions';
 import DevelopmentTools from '@/pages/DevelopmentTools';
 import Automation from '@/pages/Automation';
+import AIAccountant from '@/pages/AIAccountant';
+import AIAccountantInbox from '@/pages/AIAccountantInbox';
+import AIAccountantTasks from '@/pages/AIAccountantTasks';
+import AIAccountantReviews from '@/pages/AIAccountantReviews';
+import AIAccountantRecommendations from '@/pages/AIAccountantRecommendations';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -152,6 +157,11 @@ const AuthenticatedApp = () => {
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/sign-in" replace />} />}>
           <Route element={<CompanyProvider><AppLayout /></CompanyProvider>}>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/ai-accountant" element={<AIAccountant />} />
+            <Route path="/ai-accountant/inbox" element={<AIAccountantInbox />} />
+            <Route path="/ai-accountant/tasks" element={<AIAccountantTasks />} />
+            <Route path="/ai-accountant/reviews" element={<AIAccountantReviews />} />
+            <Route path="/ai-accountant/recommendations" element={<AIAccountantRecommendations />} />
             <Route path="/companies" element={<Companies />} />
             <Route path="/customers" element={<Customers />} />
             <Route path="/customers/:id" element={<Customers />} />
