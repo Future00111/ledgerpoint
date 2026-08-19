@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 // Each widget loads its own data independently so one slow/failing
 // widget never blocks the dashboard.
-export function useWidgetData(companyId, fetcher) {
+export function useWidgetData(companyId, fetcher, deps = []) {
   const [state, setState] = useState({ data: null, loading: true, error: null });
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export function useWidgetData(companyId, fetcher) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [companyId]);
+  }, [companyId, ...deps]);
 
   return state;
 }

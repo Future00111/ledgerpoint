@@ -28,6 +28,7 @@ import TopCustomersWidget from './widgets/TopCustomersWidget';
 import TopExpensesWidget from './widgets/TopExpensesWidget';
 import AiForecastsWidget from './widgets/AiForecastsWidget';
 import WorkflowWidget from './widgets/WorkflowWidget';
+import AiAccountantWidget from './widgets/AiAccountantWidget';
 
 import {
   LayoutDashboard, ListChecks, Sparkles, TrendingUp, BarChart3,
@@ -70,6 +71,7 @@ export const WIDGETS = {
   topExpenses: { id: 'topExpenses', title: 'Top Expenses', icon: Receipt, component: TopExpensesWidget, default: { w: 1, h: 1 }, priority: 27 },
   aiForecasts: { id: 'aiForecasts', title: 'AI Forecasts', icon: Sparkles, component: AiForecastsWidget, default: { w: 2, h: 2 }, priority: 28 },
   workflow: { id: 'workflow', title: 'Workflow', icon: Workflow, component: WorkflowWidget, default: { w: 2, h: 2 }, priority: 29 },
+  aiAccountant: { id: 'aiAccountant', title: 'AI Accountant Review', icon: Sparkles, component: AiAccountantWidget, default: { w: 1, h: 2 }, priority: 30 },
 };
 
 // Dashboard Modes — presets over the same engine. Each lists the widgets to
@@ -78,17 +80,17 @@ export const MODES = {
   owner: {
     label: 'Business Owner',
     icon: User,
-    widgets: ['snapshot', 'priorities', 'workflow', 'cashflow', 'profit', 'insights', 'invoices', 'bills', 'notifications', 'recent', 'vat'],
+    widgets: ['snapshot', 'priorities', 'aiAccountant', 'workflow', 'cashflow', 'profit', 'insights', 'invoices', 'bills', 'notifications', 'recent', 'vat'],
   },
   bookkeeper: {
     label: 'Bookkeeper',
     icon: ClipboardList,
-    widgets: ['reconciliation', 'transactionsReview', 'billsApproval', 'docsReview', 'vat', 'recent', 'notifications', 'quickActions'],
+    widgets: ['aiAccountant', 'reconciliation', 'transactionsReview', 'billsApproval', 'docsReview', 'vat', 'recent', 'notifications', 'quickActions'],
   },
   accountant: {
     label: 'Accountant',
     icon: Calculator,
-    widgets: ['trialBalance', 'profitLoss', 'balanceSheet', 'vat', 'agedDebtors', 'agedCreditors', 'generalLedger', 'reconciliation', 'notifications'],
+    widgets: ['trialBalance', 'profitLoss', 'balanceSheet', 'vat', 'agedDebtors', 'agedCreditors', 'generalLedger', 'reconciliation', 'aiAccountant', 'notifications'],
   },
   executive: {
     label: 'Executive',
@@ -151,6 +153,7 @@ export const WIDGET_SECTIONS = {
   invoices: 'owed', bills: 'owed', agedDebtors: 'owed', agedCreditors: 'owed', banking: 'owed',
   insights: 'intelligence', forecast: 'intelligence', aiForecasts: 'intelligence', recent: 'intelligence', watchlist: 'intelligence', trialBalance: 'intelligence', profitLoss: 'intelligence', balanceSheet: 'intelligence', generalLedger: 'intelligence', topCustomers: 'intelligence',
   workflow: 'todo',
+  aiAccountant: 'todo',
 };
 export function sectionOf(id) {
   return WIDGET_SECTIONS[id] || 'more';

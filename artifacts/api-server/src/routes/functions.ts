@@ -26,6 +26,11 @@ import {
   chartOfAccountsTable,
 } from "@workspace/db/schema";
 import { eq, inArray, and, sql } from "drizzle-orm";
+import {
+  analyseTransactions,
+  applyReconciliationApproval,
+  type ApprovalRecord,
+} from "../services/ai-accountant/index.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -250,71 +255,12 @@ router.post("/:name", async (req: Request, res: Response) => {
         if (!(await assertWriteAccess(userId, txn.company_id, res))) return;
 
         try {
-          const result = await db.transaction(async (tx) => {
-            // Re-check the transaction is still awaiting reconciliation.
-            const [fresh] = await tx
-              .select()
-              .from(bankTransactionsTable)
-              .where(eq(bankTransactionsTable.id, bank_transaction_id))
-              .for("update");
-            if (!fresh || fresh.status !== "review") {
-              throw new Error("This transaction has already been reconciled");
-            }
-
-            const numbers: string[] = [];
-            let appliedPence = 0;
-            const txnPence = Math.round((Number(fresh.money_in || 0) + Number(fresh.money_out || 0)) * 100);
-
-            for (const r of records) {
-              const table = r.record_type === "sales_invoice" ? salesInvoicesTable : purchaseBillsTable;
-              const [rec] = await tx.select().from(table).where(eq(table.id, r.record_id)).for("update");
-              if (!rec) throw new Error("A matched record no longer exists");
-              if (rec.company_id !== fresh.company_id) throw new Error("Record belongs to a different company");
-              if (rec.status === "cancelled" || rec.status === "paid") {
-                throw new Error(`${(rec as Record<string, unknown>)["invoice_number"] || (rec as Record<string, unknown>)["bill_number"]} is already settled`);
-              }
-
-              const balancePence = Math.round(Number(rec.balance_due ?? rec.total ?? 0) * 100);
-              const remainingTxn = txnPence - appliedPence;
-              const deltaPence = Math.min(balancePence, Math.max(0, remainingTxn));
-              if (deltaPence <= 0) throw new Error("Matched records exceed the bank transaction amount");
-
-              const paidPence = Math.round(Number(rec.amount_paid ?? 0) * 100) + deltaPence;
-              const newBalancePence = Math.max(0, Math.round(Number(rec.total ?? 0) * 100) - paidPence);
-              await tx
-                .update(table)
-                .set({
-                  amount_paid: (paidPence / 100).toFixed(2),
-                  balance_due: (newBalancePence / 100).toFixed(2),
-                  status: newBalancePence === 0 ? "paid" : rec.status,
-                  updated_at: new Date(),
-                })
-                .where(eq(table.id, r.record_id));
-
-              appliedPence += deltaPence;
-              const num = (rec as Record<string, unknown>)["invoice_number"] || (rec as Record<string, unknown>)["bill_number"];
-              if (num) numbers.push(String(num));
-            }
-
-            const first = records[0]!;
-            const label = numbers.length > 2 ? `${numbers.slice(0, 2).join(", ")} +${numbers.length - 2} more` : numbers.join(", ");
-            const updateData = {
-              status: "matched",
-              matched_type: first.record_type,
-              matched_record_id: first.record_id,
-              matched_record_number: label,
-              linked_invoice_id: first.record_type === "sales_invoice" ? first.record_id : null,
-              linked_bill_id: first.record_type === "purchase_bill" ? first.record_id : null,
-              updated_at: new Date(),
-            };
-            await tx
-              .update(bankTransactionsTable)
-              .set(updateData)
-              .where(eq(bankTransactionsTable.id, bank_transaction_id));
-
-            return { label, applied: appliedPence / 100, updateData };
-          });
-
+          // Shared atomic approval implementation (services/ai-accountant).
+          const result = await applyReconciliationApproval(
+            bank_transaction_id,
+            records as ApprovalRecord[],
+            userId,
+          );
           res.json({ success: true, ...result });
         } catch (e) {
           res.status(409).json({ error: e instanceof Error ? e.message : "Reconciliation failed" });
@@ -416,223 +362,14 @@ router.post("/:name", async (req: Request, res: Response) => {
 
         const companyId = txnsToScore[0].company_id;
 
-        // Load all unreconciled records for the company in parallel.
-        const [invoices, bills, salesCNs, supplierCNs] = await Promise.all([
-          db.select().from(salesInvoicesTable).where(eq(salesInvoicesTable.company_id, companyId)),
-          db.select().from(purchaseBillsTable).where(eq(purchaseBillsTable.company_id, companyId)),
-          db.select().from(salesCreditNotesTable).where(eq(salesCreditNotesTable.company_id, companyId)),
-          db.select().from(supplierCreditNotesTable).where(eq(supplierCreditNotesTable.company_id, companyId)),
-        ]);
-
-        const DAY_MS = 24 * 60 * 60 * 1000;
-        const allSuggestions: Record<string, object[]> = {};
-        const allReconciliations: Record<string, object> = {};
-
-        for (const txn of txnsToScore) {
-          const txnAmount = Number(txn.money_in || 0) + Number(txn.money_out || 0);
-          const txnDate = txn.date ? new Date(txn.date) : null;
-          const txnDesc = (txn.description || "").toLowerCase();
-          const txnRef = (txn.reference || "").toLowerCase();
-
-          const suggestions: {
-            record_type: string;
-            record_id: string;
-            record_number: string | null;
-            record_name: string | null;
-            record_amount: number;
-            record_date: string | null;
-            confidence: number;
-            reasons: string[];
-          }[] = [];
-
-          const scoreMatch = (
-            recordId: string,
-            recordType: string,
-            recordNumber: string | null,
-            recordDate: string | null,
-            recordAmount: number,
-            recordName: string | null,
-          ) => {
-            const reasons: string[] = [];
-            let confidence = 0;
-
-            // 1. Exact amount match
-            if (Math.abs(txnAmount - recordAmount) < 0.01) {
-              reasons.push("Exact amount match");
-              confidence += 40;
-            } else if (Math.abs(txnAmount - recordAmount) / Math.max(txnAmount, 0.01) < 0.05) {
-              // Within 5%
-              reasons.push("Amount within 5%");
-              confidence += 15;
-            }
-
-            // 2. Party name found in description or reference
-            if (recordName && recordName.length > 2) {
-              const nameLower = recordName.toLowerCase();
-              if (txnDesc.includes(nameLower) || txnRef.includes(nameLower)) {
-                reasons.push("Name found in description");
-                confidence += 25;
-              }
-            }
-
-            // 3. Record number found in description or reference
-            if (recordNumber) {
-              const numLower = recordNumber.toLowerCase();
-              if (txnDesc.includes(numLower) || txnRef.includes(numLower)) {
-                reasons.push("Reference number found in description");
-                confidence += 25;
-              }
-            }
-
-            // 4. Date within 14 days
-            if (recordDate && txnDate) {
-              const rDate = new Date(recordDate);
-              const dayDiff = Math.abs(txnDate.getTime() - rDate.getTime()) / DAY_MS;
-              if (dayDiff <= 14) {
-                reasons.push(`Date within ${Math.round(dayDiff)} day${Math.round(dayDiff) === 1 ? "" : "s"}`);
-                confidence += 10;
-              }
-            }
-
-            if (reasons.length > 0) {
-              suggestions.push({
-                record_type: recordType,
-                record_id: recordId,
-                record_number: recordNumber,
-                record_name: recordName,
-                record_amount: recordAmount,
-                record_date: recordDate,
-                confidence: Math.min(confidence, 100),
-                reasons,
-              });
-            }
-          };
-
-          // Sales invoices → money in
-          if (Number(txn.money_in || 0) > 0) {
-            for (const inv of invoices) {
-              if (inv.status === "cancelled" || inv.status === "paid") continue;
-              scoreMatch(
-                inv.id, "sales_invoice", inv.invoice_number, inv.issue_date,
-                Number(inv.balance_due || inv.total || 0), inv.customer_name,
-              );
-            }
-            // Supplier credit notes → money in (refunds from suppliers)
-            for (const cn of supplierCNs) {
-              if (cn.status === "cancelled" || cn.is_applied) continue;
-              scoreMatch(
-                cn.id, "supplier_credit_note", cn.credit_note_number, cn.credit_note_date,
-                Number(cn.total || 0), cn.supplier_name,
-              );
-            }
-          }
-
-          // Purchase bills → money out
-          if (Number(txn.money_out || 0) > 0) {
-            for (const bill of bills) {
-              if (bill.status === "cancelled" || bill.status === "paid") continue;
-              scoreMatch(
-                bill.id, "purchase_bill", bill.bill_number, bill.bill_date,
-                Number(bill.balance_due || bill.total || 0), bill.supplier_name,
-              );
-            }
-            // Sales credit notes → money out (refunds to customers)
-            for (const cn of salesCNs) {
-              if (cn.status === "cancelled" || cn.is_applied) continue;
-              scoreMatch(
-                cn.id, "sales_credit_note", cn.credit_note_number, cn.credit_note_date,
-                Number(cn.total || 0), cn.customer_name,
-              );
-            }
-          }
-
-          suggestions.sort((a, b) => b.confidence - a.confidence);
-          const strongSuggestions = suggestions.filter((s) => s.confidence >= 50);
-          if (strongSuggestions.length > 0) {
-            allSuggestions[txn.id] = strongSuggestions;
-          }
-
-          // ── AI reconciliation: one-to-many combination match ────────────────
-          // Money in → outstanding sales invoices only (revenue matching);
-          // money out → outstanding purchase bills only. All arithmetic in
-          // integer pence to avoid floating-point drift.
-          if (txnAmount > 0) {
-            const comboType = Number(txn.money_in || 0) > 0 ? "sales_invoice" : "purchase_bill";
-            const toPence = (n: number) => Math.round(n * 100);
-            const txnPence = toPence(txnAmount);
-
-            const candidates = suggestions
-              .filter((s) => s.record_type === comboType)
-              .sort((a, b) => b.confidence - a.confidence)
-              .slice(0, 20)
-              .map((s) => ({ ...s, pence: toPence(s.record_amount) }));
-
-            type Cand = (typeof candidates)[number];
-            const MAX_COMBO = 5;
-            const findCombo = (startIdx: number, remaining: number, picked: Cand[]): Cand[] | null => {
-              if (remaining === 0 && picked.length > 0) return picked;
-              if (remaining < 0 || picked.length >= MAX_COMBO) return null;
-              for (let i = startIdx; i < candidates.length; i++) {
-                const c = candidates[i];
-                if (c.pence > remaining) continue;
-                const found = findCombo(i + 1, remaining - c.pence, [...picked, c]);
-                if (found) return found;
-              }
-              return null;
-            };
-            const combo = findCombo(0, txnPence, []);
-
-            let matched: Cand[] = [];
-            let potential: Cand[] = [];
-            let status: "green" | "amber" | "red";
-            let overallConfidence = 0;
-
-            if (combo) {
-              matched = combo;
-              // Exact-total combination: high confidence, tempered slightly per
-              // extra document and lifted by per-record signals.
-              const avgSignal = combo.reduce((s, c) => s + c.confidence, 0) / combo.length;
-              overallConfidence = Math.min(100, Math.round(
-                70 + Math.min(avgSignal, 100) * 0.3 - (combo.length - 1) * 5,
-              ));
-              status = "green";
-              potential = candidates.filter(
-                (s) => s.confidence >= 50 && !combo.some((m) => m.record_id === s.record_id),
-              );
-            } else {
-              // Partial: greedily take high-confidence records that fit within
-              // the bank amount, then surface the rest as potential invoices.
-              let runningPence = 0;
-              for (const c of candidates) {
-                if (c.confidence >= 70 && c.pence <= txnPence - runningPence) {
-                  matched.push(c);
-                  runningPence += c.pence;
-                }
-              }
-              potential = candidates.filter(
-                (s) => s.confidence >= 50 && !matched.some((m) => m.record_id === s.record_id),
-              );
-              overallConfidence = matched.length
-                ? Math.round(matched.reduce((s, c) => s + c.confidence, 0) / matched.length)
-                : (potential[0] ? Math.round(potential[0].confidence) : 0);
-              status = matched.length > 0 || potential.length > 0 ? "amber" : "red";
-            }
-
-            const matchedPence = matched.reduce((s, c) => s + c.pence, 0);
-            const strip = (c: Cand) => { const { pence: _p, ...rest } = c; return rest; };
-            allReconciliations[txn.id] = {
-              transaction_amount: txnPence / 100,
-              matched_records: matched.map(strip),
-              matched_total: matchedPence / 100,
-              remaining: Math.max(0, txnPence - matchedPence) / 100,
-              potential_matches: potential.slice(0, 5).map(strip),
-              confidence: overallConfidence,
-              status,
-            };
-          }
-        }
-
-        res.json({ suggestions: allSuggestions, reconciliation: allReconciliations });
+        // Shared AI Accountant analysis: deterministic matcher + scenario
+        // classification + categorisation suggestions, persisted to
+        // ai_reconciliation_results (kept separate from final linkage fields).
+        const output = await analyseTransactions(companyId, txnsToScore, {
+          persist: true,
+          aiExplanation: Boolean(bank_transaction_id),
+        });
+        res.json(output);
         break;
       }
 

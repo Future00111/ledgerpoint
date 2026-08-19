@@ -582,6 +582,39 @@ export const suggestionSettingsTable = pgTable("suggestion_settings", {
 export const insertSuggestionSettingsSchema = createInsertSchema(suggestionSettingsTable).omit({ id: true, created_at: true, updated_at: true });
 export type SuggestionSettings = typeof suggestionSettingsTable.$inferSelect;
 
+// ─── AIReconciliationResult ──────────────────────────────────────────────────
+// Persisted output of the AI Accountant reconciliation analysis. Kept separate
+// from the bank transaction's final linkage fields (matched_type etc.) so the
+// analysis history survives approval and can be re-run safely.
+
+export const aiReconciliationResultsTable = pgTable("ai_reconciliation_results", {
+  id: primaryId(),
+  company_id: uuid("company_id").notNull(),
+  bank_transaction_id: uuid("bank_transaction_id").notNull(),
+  status: text("status").default("red"), // green | amber | red
+  scenario: text("scenario"), // exact | combination | overpayment | partial | no_match
+  confidence: integer("confidence").default(0),
+  transaction_amount: numeric("transaction_amount", { precision: 12, scale: 2 }),
+  matched_total: numeric("matched_total", { precision: 12, scale: 2 }),
+  remaining: numeric("remaining", { precision: 12, scale: 2 }),
+  matched_records: jsonb("matched_records").$type<Record<string, unknown>[]>(),
+  potential_matches: jsonb("potential_matches").$type<Record<string, unknown>[]>(),
+  possible_explanations: jsonb("possible_explanations").$type<string[]>(),
+  explanation: text("explanation"),
+  recommendation: text("recommendation"),
+  category_suggestion: text("category_suggestion"),
+  category_confidence: integer("category_confidence"),
+  ai_provider: text("ai_provider"),
+  ai_model: text("ai_model"),
+  approval_state: text("approval_state").default("pending"), // pending | approved | dismissed
+  approved_by: text("approved_by"),
+  approved_at: timestamp("approved_at", { withTimezone: true }),
+  created_at: createdAt(),
+  updated_at: updatedAt(),
+});
+export const insertAIReconciliationResultSchema = createInsertSchema(aiReconciliationResultsTable).omit({ id: true, created_at: true, updated_at: true });
+export type AIReconciliationResult = typeof aiReconciliationResultsTable.$inferSelect;
+
 // ─── TransactionComment ───────────────────────────────────────────────────────
 
 export const transactionCommentsTable = pgTable("transaction_comments", {

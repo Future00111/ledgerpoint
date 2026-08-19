@@ -30,7 +30,7 @@ function AiSummaryCard({ recon, onApprove, approving }) {
           ['Bank transaction', gbp(recon.transaction_amount)],
           ['Invoices matched', gbp(recon.matched_total)],
           ['Still to identify', recon.remaining > 0 ? gbp(recon.remaining) : '—'],
-          ['Confidence', `${Math.round(recon.confidence)}%`],
+          ['AI Confidence', `${Math.round(recon.confidence)}%`],
         ].map(([label, value]) => (
           <div key={label} className="px-4 py-3">
             <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">{label}</p>
@@ -69,6 +69,31 @@ function AiSummaryCard({ recon, onApprove, approving }) {
           </div>
         </div>
       )}
+      {(recon.possible_explanations?.length > 0 || recon.explanation || recon.recommendation) && (
+        <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/50 space-y-2">
+          {recon.scenario === 'overpayment' && (
+            <p className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-orange-200 bg-orange-50 text-orange-700 rounded-full text-[10px] font-black uppercase tracking-widest">
+              <AlertTriangle className="w-3 h-3" /> Possible overpayment of {gbp(recon.remaining)}
+            </p>
+          )}
+          {(recon.explanation || recon.recommendation) && (
+            <p className="text-sm text-slate-700 font-medium">{recon.explanation || recon.recommendation}</p>
+          )}
+          {recon.possible_explanations?.length > 0 && (
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Possible explanations</p>
+              <ul className="space-y-1">
+                {recon.possible_explanations.map((ex, i) => (
+                  <li key={i} className="flex gap-2 text-xs text-slate-600 font-medium">
+                    <span className="w-1 h-1 rounded-full bg-slate-400 mt-1.5 flex-shrink-0" />
+                    <span>{ex}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
       {fullyMatched && (
         <div className="px-4 pb-4">
           <Button
@@ -91,7 +116,7 @@ const TYPE_LABELS = {
 
 const txnAmount = (t) => Number(t.money_in || 0) + Number(t.money_out || 0);
 
-export default function MatchTab({ transaction, suggestions, aiRecon, onMatch, onMatchMany, onSplit, onFindMatch, onCategorise, approving }) {
+export default function MatchTab({ transaction, suggestions, aiRecon, categorySuggestion, onMatch, onMatchMany, onSplit, onFindMatch, onCategorise, approving }) {
   const top = suggestions?.[0];
   const alternatives = (suggestions || []).slice(1);
   const amountDiff = top ? Math.abs(txnAmount(transaction) - (top.record_amount || 0)) : 0;
@@ -121,6 +146,15 @@ export default function MatchTab({ transaction, suggestions, aiRecon, onMatch, o
         <p className="text-sm text-slate-500 mb-6 max-w-[280px]">
           We couldn't confidently match this transaction to an existing record.
         </p>
+        {categorySuggestion && (
+          <div className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 border border-blue-200 bg-blue-50 rounded-full">
+            <Sparkles className="w-3.5 h-3.5 text-[#007bff]" />
+            <span className="text-xs font-bold text-slate-700">
+              Suggested category: {categorySuggestion.category}
+            </span>
+            <span className="text-[10px] font-black text-[#007bff]">{Math.round(categorySuggestion.confidence)}%</span>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 w-full max-w-sm">
           {onFindMatch && (
             <Button variant="outline" className="w-full sm:flex-1 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:text-[#007bff] font-semibold transition-colors" onClick={onFindMatch}>
@@ -192,7 +226,7 @@ export default function MatchTab({ transaction, suggestions, aiRecon, onMatch, o
             return (
               <div className={`flex items-center gap-1.5 px-2.5 py-1 border rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${colorClass}`}>
                 <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotClass}`} />
-                <span>Smart Match</span>
+                <span>AI Confidence</span>
                 <span className="opacity-75">{pct}%</span>
               </div>
             );
