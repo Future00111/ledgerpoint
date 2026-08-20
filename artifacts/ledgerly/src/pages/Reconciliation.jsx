@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Search, Filter, ChevronDown, Upload, Plus, Landmark, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
 import ReconciliationRow from '@/components/reconciliation/ReconciliationRow';
 import CompactRow from '@/components/reconciliation/CompactRow';
 import BankTransactionForm from '@/components/bank_transactions/BankTransactionForm';
@@ -34,6 +35,8 @@ function priority(suggestion, isDup, t) {
 export default function Reconciliation() {
   const { activeCompany } = useCompany();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedTransactionId = searchParams.get('transaction_id');
   const [bankAccounts, setBankAccounts] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [suggestions, setSuggestions] = useState({});
@@ -56,12 +59,31 @@ export default function Reconciliation() {
     if (!activeCompany) return;
     setLoading(true);
     try {
-      const [accts, txns] = await Promise.all([
+      const [accts, txns, requestedTransaction] = await Promise.all([
         base44.entities.BankAccount.filter({ company_id: activeCompany.id }),
         base44.entities.BankTransaction.filter({ company_id: activeCompany.id }, '-date', 500),
+        requestedTransactionId
+          ? base44.entities.BankTransaction.get(requestedTransactionId).catch(() => null)
+          : Promise.resolve(null),
       ]);
+      // An AI task can reference an older receipt outside this register's
+      // default 500-row window. Fetch it directly and verify it belongs to the
+      // active company before putting it at the top of the review queue.
+      const focusedTransaction = requestedTransaction?.company_id === activeCompany.id
+        ? requestedTransaction
+        : null;
+      const visibleTransactions = focusedTransaction && !txns.some((transaction) => transaction.id === focusedTransaction.id)
+        ? [focusedTransaction, ...txns]
+        : txns;
       setBankAccounts(accts);
-      setTransactions(txns);
+      setTransactions(visibleTransactions);
+      if (focusedTransaction?.status === 'review') {
+        didInit.current = true;
+        setAccountFilter('all');
+        setSearch('');
+        setFilter('all');
+        setExpandedId(focusedTransaction.id);
+      }
       try {
         const res = await base44.functions.invoke('suggestTransactionMatches', { company_id: activeCompany.id });
         const body = res?.data ?? res;
@@ -70,7 +92,7 @@ export default function Reconciliation() {
         setCategorisation(body?.categorisation || {});
       } catch { setSuggestions({}); setAiRecon({}); setCategorisation({}); }
     } finally { setLoading(false); }
-  }, [activeCompany]);
+  }, [activeCompany, requestedTransactionId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -287,6 +309,14 @@ export default function Reconciliation() {
   return (
     <div className="bg-slate-50 min-h-[100dvh]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-16">
+        {requestedTransactionId && (
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
+            <span>Focused review: this receipt was opened from an AI Accountant task.</span>
+            <Button size="sm" variant="ghost" className="h-7 text-xs text-indigo-700 hover:text-indigo-900" onClick={() => setSearchParams({})}>
+              Clear focused receipt
+            </Button>
+          </div>
+        )}
         
         {/* Header & Metrics */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">

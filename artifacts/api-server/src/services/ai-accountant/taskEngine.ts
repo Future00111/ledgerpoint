@@ -70,6 +70,12 @@ export interface AITaskWorkspaceSummary {
   warnings: number;
   insights: number;
   total_amount_at_risk: number;
+  bank_receipts_analysed: number;
+  matched_to_invoices: number;
+  potential_missing_revenue: number;
+  matched_invoice_count: number;
+  invoice_review_count: number;
+  payments_with_no_invoice: number;
   last_run_at: string | null;
 }
 
@@ -238,6 +244,75 @@ function reconciliationTasks(
   });
 }
 
+function isUnexplainedRevenueResult(
+  result: typeof aiReconciliationResultsTable.$inferSelect,
+  transaction: typeof bankTransactionsTable.$inferSelect | undefined,
+) {
+  return Boolean(
+    transaction &&
+    Number(transaction.money_in || 0) > 0 &&
+    Number(result.remaining || 0) > 0 &&
+    ["no_match", "partial"].includes(result.scenario ?? ""),
+  );
+}
+
+/**
+ * One task per incoming receipt with revenue still unaccounted for. These are
+ * deliberately review tasks only: the task never creates an invoice, posts
+ * income, marks a payment reconciled, or manufactures a credit note.
+ */
+function missingRevenueTasks(
+  results: (typeof aiReconciliationResultsTable.$inferSelect)[],
+  transactions: (typeof bankTransactionsTable.$inferSelect)[],
+): TaskCandidate[] {
+  const transactionsById = new Map(transactions.map((transaction) => [transaction.id, transaction]));
+  return results.flatMap((result) => {
+    const transaction = transactionsById.get(result.bank_transaction_id);
+    if (!isUnexplainedRevenueResult(result, transaction)) return [];
+
+    const remaining = Number(result.remaining || 0);
+    const matchedTotal = Number(result.matched_total || 0);
+    const isNoMatch = result.scenario === "no_match";
+    const description = transaction?.description || transaction?.reference || "Bank receipt";
+    const route = `/reconciliation?transaction_id=${encodeURIComponent(result.bank_transaction_id)}`;
+    return [{
+      dedupe_key: `missing_invoice:${result.bank_transaction_id}`,
+      task_type: "missing_invoice" as const,
+      priority: remaining >= 10_000 ? "high" as const : "medium" as const,
+      title: isNoMatch
+        ? `${gbp(Math.round(remaining * 100))} bank receipt has no matching invoice`
+        : `${gbp(Math.round(remaining * 100))} of received revenue is not matched to an invoice`,
+      description: isNoMatch
+        ? `${description} was received on ${transaction?.date ?? "an unknown date"}, but no existing sales invoice could be matched.`
+        : `${gbp(Math.round(matchedTotal * 100))} of ${description} is linked to invoice candidates; ${gbp(Math.round(remaining * 100))} remains unexplained.`,
+      amount: remaining,
+      confidence_score: Number(result.confidence || 0),
+      source_record_id: result.bank_transaction_id,
+      source_record_type: "bank_transaction",
+      recommendation: "Find an existing invoice, create an invoice if the receipt represents new revenue, or categorise the receipt after checking its supporting evidence. No record has been created automatically.",
+      evidence: {
+        bank_transaction_id: result.bank_transaction_id,
+        receipt_date: transaction?.date ?? null,
+        receipt_description: transaction?.description ?? null,
+        receipt_reference: transaction?.reference ?? null,
+        receipt_amount: Number(result.transaction_amount || transaction?.money_in || 0),
+        matched_to_invoices: matchedTotal,
+        potential_missing_revenue: remaining,
+        scenario: result.scenario,
+        matched_records: result.matched_records,
+        potential_matches: result.potential_matches,
+        possible_explanations: result.possible_explanations,
+        safe_actions: {
+          find_invoice: route,
+          create_invoice: `/invoices/new?bank_transaction_id=${encodeURIComponent(result.bank_transaction_id)}`,
+          categorise_receipt: route,
+        },
+      },
+      route,
+    }];
+  });
+}
+
 function uncategorisedTransactionTask(
   transactions: (typeof bankTransactionsTable.$inferSelect)[],
 ): TaskCandidate | null {
@@ -296,8 +371,22 @@ async function buildCandidates(companyId: string): Promise<TaskCandidate[]> {
     db.select().from(vatReturnsTable).where(eq(vatReturnsTable.company_id, companyId)),
   ]);
 
-  const candidates = detections.map(taskFromDetection).filter((task): task is TaskCandidate => Boolean(task));
-  candidates.push(...reconciliationTasks(reconciliationResults));
+  const transactionsById = new Map(reviewTransactions.map((transaction) => [transaction.id, transaction]));
+  const unexplainedRevenueIds = new Set(
+    reconciliationResults
+      .filter((result) => isUnexplainedRevenueResult(result, transactionsById.get(result.bank_transaction_id)))
+      .map((result) => result.bank_transaction_id),
+  );
+  // The old detector returns one aggregated missing-invoice task. Phase 4B
+  // replaces it with stable, transaction-specific review tasks.
+  const candidates = detections
+    .filter((detection) => detection.kind !== "missing_invoices")
+    .map(taskFromDetection)
+    .filter((task): task is TaskCandidate => Boolean(task));
+  candidates.push(...reconciliationTasks(
+    reconciliationResults.filter((result) => !unexplainedRevenueIds.has(result.bank_transaction_id)),
+  ));
+  candidates.push(...missingRevenueTasks(reconciliationResults, reviewTransactions));
   const uncategorised = uncategorisedTransactionTask(reviewTransactions);
   if (uncategorised) candidates.push(uncategorised);
   candidates.push(...addVatLiabilityTasks(vatReturns));
@@ -462,7 +551,14 @@ export async function markAITaskReviewing(taskId: string, userId: string) {
 }
 
 export async function getAITaskWorkspaceSummary(companyId: string): Promise<AITaskWorkspaceSummary> {
-  const rows = await db.select().from(aiTasksTable).where(eq(aiTasksTable.company_id, companyId));
+  const [rows, results, transactions] = await Promise.all([
+    db.select().from(aiTasksTable).where(eq(aiTasksTable.company_id, companyId)),
+    db.select().from(aiReconciliationResultsTable).where(and(
+      eq(aiReconciliationResultsTable.company_id, companyId),
+      eq(aiReconciliationResultsTable.approval_state, "pending"),
+    )),
+    db.select().from(bankTransactionsTable).where(eq(bankTransactionsTable.company_id, companyId)),
+  ]);
   const open = rows.filter((task) => task.status === "open" || task.status === "reviewing");
   const ready = open.filter(isReadyToApprove);
   const warnings = open.filter(isWarning);
@@ -474,6 +570,18 @@ export async function getAITaskWorkspaceSummary(companyId: string): Promise<AITa
     const date = task.updated_at ? new Date(task.updated_at) : null;
     return date && (!latest || date > latest) ? date : latest;
   }, null);
+  const transactionsById = new Map(transactions.map((transaction) => [transaction.id, transaction]));
+  // Match the task builder's boundary: historic pending analysis must not
+  // remain visible as live missing revenue after a user resolves a receipt
+  // through a manual/non-payment reconciliation path.
+  const receiptResults = results.filter((result) => {
+    const transaction = transactionsById.get(result.bank_transaction_id);
+    return transaction?.status === "review" && Number(transaction.money_in || 0) > 0;
+  });
+  const matchedRecords = receiptResults.flatMap((result) => Array.isArray(result.matched_records) ? result.matched_records : []);
+  const missingRevenue = receiptResults
+    .filter((result) => isUnexplainedRevenueResult(result, transactionsById.get(result.bank_transaction_id)))
+    .reduce((sum, result) => sum + pence(result.remaining), 0);
 
   return {
     open: open.length,
@@ -482,6 +590,12 @@ export async function getAITaskWorkspaceSummary(companyId: string): Promise<AITa
     warnings: warnings.length,
     insights: insights.length,
     total_amount_at_risk: pounds(open.reduce((sum, task) => sum + pence(task.amount), 0)),
+    bank_receipts_analysed: pounds(receiptResults.reduce((sum, result) => sum + pence(result.transaction_amount), 0)),
+    matched_to_invoices: pounds(receiptResults.reduce((sum, result) => sum + pence(result.matched_total), 0)),
+    potential_missing_revenue: pounds(missingRevenue),
+    matched_invoice_count: matchedRecords.length,
+    invoice_review_count: open.filter((task) => task.task_type === "missing_invoice").length,
+    payments_with_no_invoice: receiptResults.filter((result) => result.scenario === "no_match").length,
     last_run_at: lastRun?.toISOString() ?? null,
   };
 }

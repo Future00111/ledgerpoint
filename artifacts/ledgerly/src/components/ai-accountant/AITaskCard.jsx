@@ -127,6 +127,23 @@ export default function AITaskCard({ task, onDecide, deciding }) {
                     </span>
                   </div>
                 )}
+                {task.task_type === 'missing_invoice' && (
+                  <div className="mb-3 space-y-1.5 border-b border-slate-100 pb-3">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Review this receipt</p>
+                    <Button size="sm" variant="outline" className="w-full h-8 text-xs border-slate-200 text-slate-700 hover:bg-slate-50"
+                      onClick={() => nav(`/reconciliation?transaction_id=${encodeURIComponent(task.source_record_id || '')}`)}>
+                      Find invoice <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </Button>
+                    <Button size="sm" variant="outline" className="w-full h-8 text-xs border-slate-200 text-slate-700 hover:bg-slate-50"
+                      onClick={() => nav(`/invoices/new?bank_transaction_id=${encodeURIComponent(task.source_record_id || '')}`)}>
+                      Create invoice <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </Button>
+                    <Button size="sm" variant="outline" className="w-full h-8 text-xs border-slate-200 text-slate-700 hover:bg-slate-50"
+                      onClick={() => nav(`/reconciliation?transaction_id=${encodeURIComponent(task.source_record_id || '')}`)}>
+                      Categorise receipt <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </Button>
+                  </div>
+                )}
                 {task.route && (
                   <Button size="sm" variant="ghost" className="w-full h-8 text-xs text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50"
                     onClick={() => nav(task.route)}>

@@ -28,10 +28,15 @@ export interface MatchSuggestion {
   record_id: string;
   record_number: string | null;
   record_name: string | null;
+  /** Outstanding balance of the candidate document. */
   record_amount: number;
   record_date: string | null;
   confidence: number;
   reasons: string[];
+  /** Proposed receipt allocation, set only on selected reconciliation matches. */
+  allocated_amount?: number;
+  /** Balance that would remain on the document after the proposed allocation. */
+  invoice_balance_remaining?: number;
 }
 
 export type ReconScenario = "exact" | "combination" | "overpayment" | "partial" | "no_match";
@@ -54,12 +59,25 @@ const toPence = (n: number) => Math.round(n * 100);
 const gbp = (n: number) =>
   `£${n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+const normalise = (value: string | null | undefined) =>
+  (value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+function nameSignal(name: string | null, transactionText: string) {
+  const candidate = normalise(name);
+  if (candidate.length < 3 || !transactionText) return null;
+  if (transactionText.includes(candidate) || candidate.includes(transactionText)) return "Name found in description";
+
+  const candidateWords = candidate.split(" ").filter((word) => word.length >= 4);
+  const transactionWords = new Set(transactionText.split(" ").filter((word) => word.length >= 4));
+  const sharedWords = candidateWords.filter((word) => transactionWords.has(word));
+  return sharedWords.length > 0 ? "Customer name is a close match" : null;
+}
+
 /** Score all candidate records against one bank transaction. */
 export function scoreTransaction(txn: BankTxn, records: CompanyRecords): MatchSuggestion[] {
   const txnAmount = Number(txn.money_in || 0) + Number(txn.money_out || 0);
   const txnDate = txn.date ? new Date(txn.date) : null;
-  const txnDesc = (txn.description || "").toLowerCase();
-  const txnRef = (txn.reference || "").toLowerCase();
+  const transactionText = normalise(`${txn.description ?? ""} ${txn.reference ?? ""}`);
 
   const suggestions: MatchSuggestion[] = [];
 
@@ -67,6 +85,7 @@ export function scoreTransaction(txn: BankTxn, records: CompanyRecords): MatchSu
     recordId: string,
     recordType: string,
     recordNumber: string | null,
+    recordReference: string | null,
     recordDate: string | null,
     recordAmount: number,
     recordName: string | null,
@@ -74,34 +93,38 @@ export function scoreTransaction(txn: BankTxn, records: CompanyRecords): MatchSu
     const reasons: string[] = [];
     let confidence = 0;
 
-    // 1. Exact amount match
+    // Amount helps rank a match, but never identifies an invoice on its own.
     if (Math.abs(txnAmount - recordAmount) < 0.01) {
       reasons.push("Exact amount match");
-      confidence += 40;
+      confidence += 45;
     } else if (Math.abs(txnAmount - recordAmount) / Math.max(txnAmount, 0.01) < 0.05) {
       reasons.push("Amount within 5%");
-      confidence += 15;
+      confidence += 20;
+    } else if (txnAmount < recordAmount && txnAmount / recordAmount >= 0.5) {
+      reasons.push("Payment could be a partial settlement");
+      confidence += 10;
+    } else if (txnAmount > recordAmount && txnAmount / recordAmount <= 1.15) {
+      reasons.push("Payment could include a small overpayment");
+      confidence += 10;
     }
 
-    // 2. Party name found in description or reference
-    if (recordName && recordName.length > 2) {
-      const nameLower = recordName.toLowerCase();
-      if (txnDesc.includes(nameLower) || txnRef.includes(nameLower)) {
-        reasons.push("Name found in description");
-        confidence += 25;
-      }
+    const nameMatch = nameSignal(recordName, transactionText);
+    if (nameMatch) {
+      reasons.push(nameMatch);
+      confidence += nameMatch === "Name found in description" ? 25 : 15;
     }
 
-    // 3. Record number found in description or reference
-    if (recordNumber) {
-      const numLower = recordNumber.toLowerCase();
-      if (txnDesc.includes(numLower) || txnRef.includes(numLower)) {
+    // Invoice number and customer payment reference are both deterministic,
+    // high-signal identifiers for money-in receipts.
+    for (const identifier of [recordNumber, recordReference]) {
+      const normalisedIdentifier = normalise(identifier);
+      if (normalisedIdentifier.length >= 3 && transactionText.includes(normalisedIdentifier)) {
         reasons.push("Reference number found in description");
-        confidence += 25;
+        confidence += 45;
+        break;
       }
     }
 
-    // 4. Date within 14 days
     if (recordDate && txnDate) {
       const rDate = new Date(recordDate);
       const dayDiff = Math.abs(txnDate.getTime() - rDate.getTime()) / DAY_MS;
@@ -119,7 +142,9 @@ export function scoreTransaction(txn: BankTxn, records: CompanyRecords): MatchSu
         record_name: recordName,
         record_amount: recordAmount,
         record_date: recordDate,
-        confidence: Math.min(confidence, 100),
+        // Do not return 100% from partial deterministic signals. A human must
+        // still approve the reconciliation through the existing workflow.
+        confidence: Math.min(confidence, 95),
         reasons,
       });
     }
@@ -130,7 +155,7 @@ export function scoreTransaction(txn: BankTxn, records: CompanyRecords): MatchSu
     for (const inv of records.invoices) {
       if (inv.status === "cancelled" || inv.status === "paid") continue;
       scoreMatch(
-        inv.id, "sales_invoice", inv.invoice_number, inv.issue_date,
+        inv.id, "sales_invoice", inv.invoice_number, inv.reference, inv.issue_date,
         Number(inv.balance_due || inv.total || 0), inv.customer_name,
       );
     }
@@ -138,7 +163,7 @@ export function scoreTransaction(txn: BankTxn, records: CompanyRecords): MatchSu
     for (const cn of records.supplierCNs) {
       if (cn.status === "cancelled" || cn.is_applied) continue;
       scoreMatch(
-        cn.id, "supplier_credit_note", cn.credit_note_number, cn.credit_note_date,
+        cn.id, "supplier_credit_note", cn.credit_note_number, null, cn.credit_note_date,
         Number(cn.total || 0), cn.supplier_name,
       );
     }
@@ -149,7 +174,7 @@ export function scoreTransaction(txn: BankTxn, records: CompanyRecords): MatchSu
     for (const bill of records.bills) {
       if (bill.status === "cancelled" || bill.status === "paid") continue;
       scoreMatch(
-        bill.id, "purchase_bill", bill.bill_number, bill.bill_date,
+        bill.id, "purchase_bill", bill.bill_number, bill.reference, bill.bill_date,
         Number(bill.balance_due || bill.total || 0), bill.supplier_name,
       );
     }
@@ -157,7 +182,7 @@ export function scoreTransaction(txn: BankTxn, records: CompanyRecords): MatchSu
     for (const cn of records.salesCNs) {
       if (cn.status === "cancelled" || cn.is_applied) continue;
       scoreMatch(
-        cn.id, "sales_credit_note", cn.credit_note_number, cn.credit_note_date,
+        cn.id, "sales_credit_note", cn.credit_note_number, null, cn.credit_note_date,
         Number(cn.total || 0), cn.customer_name,
       );
     }
@@ -189,12 +214,16 @@ export function buildReconciliation(txn: BankTxn, suggestions: MatchSuggestion[]
     .map((s) => ({ ...s, pence: toPence(s.record_amount) }));
 
   type Cand = (typeof candidates)[number];
+  type AllocatedCand = Cand & { allocation_pence: number };
   const MAX_COMBO = 5;
   const findCombo = (startIdx: number, remaining: number, picked: Cand[]): Cand[] | null => {
     if (remaining === 0 && picked.length > 0) return picked;
     if (remaining < 0 || picked.length >= MAX_COMBO) return null;
     for (let i = startIdx; i < candidates.length; i++) {
       const c = candidates[i]!;
+      // A coincidental set of low-signal amounts must never become a green
+      // ready-to-approve reconciliation.
+      if (c.confidence < 50) continue;
       if (c.pence > remaining) continue;
       const found = findCombo(i + 1, remaining - c.pence, [...picked, c]);
       if (found) return found;
@@ -203,41 +232,54 @@ export function buildReconciliation(txn: BankTxn, suggestions: MatchSuggestion[]
   };
   const combo = findCombo(0, txnPence, []);
 
-  let matched: Cand[] = [];
+  let matched: AllocatedCand[] = [];
   let potential: Cand[] = [];
   let status: "green" | "amber" | "red";
   let overallConfidence = 0;
+  let partialInvoicePayment = false;
 
   if (combo) {
-    matched = combo;
+    matched = combo.map((candidate) => ({ ...candidate, allocation_pence: candidate.pence }));
     const avgSignal = combo.reduce((s, c) => s + c.confidence, 0) / combo.length;
-    overallConfidence = Math.min(100, Math.round(
-      70 + Math.min(avgSignal, 100) * 0.3 - (combo.length - 1) * 5,
+    overallConfidence = Math.min(99, Math.round(
+      50 + Math.min(avgSignal, 95) * 0.5 - (combo.length - 1) * 5,
     ));
     status = "green";
     potential = candidates.filter(
       (s) => s.confidence >= 50 && !combo.some((m) => m.record_id === s.record_id),
     );
   } else {
-    // Partial: greedily take high-confidence records that fit within the bank
-    // amount, then surface the rest as potential matches.
-    let runningPence = 0;
-    for (const c of candidates) {
-      if (c.confidence >= 70 && c.pence <= txnPence - runningPence) {
-        matched.push(c);
-        runningPence += c.pence;
+    // A receipt can be a partial payment of one invoice. Record the proposed
+    // allocation separately from the document balance; it is only a proposal
+    // until the existing explicit reconciliation approval is used.
+    const top = candidates[0];
+    if (top && top.confidence >= 60 && top.pence > txnPence) {
+      matched = [{ ...top, allocation_pence: txnPence }];
+      partialInvoicePayment = true;
+      overallConfidence = Math.min(99, top.confidence);
+      status = "amber";
+      potential = candidates.filter((candidate) => candidate.record_id !== top.record_id && candidate.confidence >= 50);
+    } else {
+      // Greedily cover the receipt with high-confidence documents that fit
+      // inside it. Any remaining value is deliberately left unexplained.
+      let runningPence = 0;
+      for (const candidate of candidates) {
+        if (candidate.confidence >= 60 && candidate.pence <= txnPence - runningPence) {
+          matched.push({ ...candidate, allocation_pence: candidate.pence });
+          runningPence += candidate.pence;
+        }
       }
+      potential = candidates.filter(
+        (candidate) => candidate.confidence >= 50 && !matched.some((match) => match.record_id === candidate.record_id),
+      );
+      overallConfidence = matched.length
+        ? Math.min(99, Math.round(matched.reduce((sum, candidate) => sum + candidate.confidence, 0) / matched.length))
+        : (potential[0] ? Math.round(potential[0].confidence) : 0);
+      status = matched.length > 0 || potential.length > 0 ? "amber" : "red";
     }
-    potential = candidates.filter(
-      (s) => s.confidence >= 50 && !matched.some((m) => m.record_id === s.record_id),
-    );
-    overallConfidence = matched.length
-      ? Math.round(matched.reduce((s, c) => s + c.confidence, 0) / matched.length)
-      : (potential[0] ? Math.round(potential[0].confidence) : 0);
-    status = matched.length > 0 || potential.length > 0 ? "amber" : "red";
   }
 
-  const matchedPence = matched.reduce((s, c) => s + c.pence, 0);
+  const matchedPence = matched.reduce((sum, candidate) => sum + candidate.allocation_pence, 0);
   const remainingPence = Math.max(0, txnPence - matchedPence);
   const remaining = remainingPence / 100;
 
@@ -245,8 +287,16 @@ export function buildReconciliation(txn: BankTxn, suggestions: MatchSuggestion[]
   let scenario: ReconScenario;
   if (combo) {
     scenario = combo.length === 1 ? "exact" : "combination";
-  } else if (matched.length === 1 && remainingPence > 0 && remainingPence <= txnPence * 0.25) {
-    // One strong match covering most of the money → likely overpayment.
+  } else if (partialInvoicePayment) {
+    scenario = "partial";
+  } else if (
+    matched.length === 1 &&
+    remainingPence > 0 &&
+    matched[0]!.confidence >= 70 &&
+    remainingPence <= Math.max(100, Math.round(matched[0]!.pence * 0.1))
+  ) {
+    // A small excess against a strong single-invoice signal is an
+    // overpayment candidate, not an automatic credit-note instruction.
     scenario = "overpayment";
   } else if (matched.length > 0) {
     scenario = "partial";
@@ -284,18 +334,28 @@ export function buildReconciliation(txn: BankTxn, suggestions: MatchSuggestion[]
       recommendation = `Match ${matched[0]!.record_number} and investigate the remaining ${gbp(remaining)} before approving — it may need a credit or a new ${isMoneyIn ? "invoice" : "bill"}.`;
       break;
     case "partial":
-      possible_explanations = isMoneyIn
-        ? [
-            `An invoice may be missing for the remaining ${gbp(remaining)}`,
-            "Deposit or advance payment received ahead of invoicing",
-            "Part payment covering several invoices",
-          ]
-        : [
-            `A bill may be missing for the remaining ${gbp(remaining)}`,
-            "Prepayment made ahead of receiving the bill",
-            "Combined payment covering several bills",
-          ];
-      recommendation = `${gbp(matchedPence / 100)} is accounted for; identify the remaining ${gbp(remaining)} before approving.`;
+      if (partialInvoicePayment) {
+        const outstanding = matched[0]!.pence - matched[0]!.allocation_pence;
+        possible_explanations = [
+          `Partial payment detected: ${gbp(matchedPence / 100)} could be applied to ${matched[0]!.record_number ?? "the invoice"}`,
+          `${gbp(outstanding / 100)} would remain outstanding on that invoice`,
+          "The customer may make a further payment or need a statement reminder",
+        ];
+        recommendation = `${gbp(matchedPence / 100)} appears to be a partial settlement. Review the invoice and approve only through the reconciliation workflow.`;
+      } else {
+        possible_explanations = isMoneyIn
+          ? [
+              `An invoice may be missing for the remaining ${gbp(remaining)}`,
+              "Deposit or advance payment received ahead of invoicing",
+              "Part payment covering several invoices",
+            ]
+          : [
+              `A bill may be missing for the remaining ${gbp(remaining)}`,
+              "Prepayment made ahead of receiving the bill",
+              "Combined payment covering several bills",
+            ];
+        recommendation = `${gbp(matchedPence / 100)} is accounted for; identify the remaining ${gbp(remaining)} before approving.`;
+      }
       break;
     default:
       possible_explanations = isMoneyIn
@@ -318,10 +378,18 @@ export function buildReconciliation(txn: BankTxn, suggestions: MatchSuggestion[]
     const { pence: _p, ...rest } = c;
     return rest;
   };
+  const withAllocation = (candidate: AllocatedCand): MatchSuggestion => {
+    const { pence: _p, allocation_pence, ...rest } = candidate;
+    return {
+      ...rest,
+      allocated_amount: allocation_pence / 100,
+      invoice_balance_remaining: Math.max(0, (candidate.pence - allocation_pence) / 100),
+    };
+  };
 
   return {
     transaction_amount: txnPence / 100,
-    matched_records: matched.map(strip),
+    matched_records: matched.map(withAllocation),
     matched_total: matchedPence / 100,
     remaining,
     potential_matches: potential.slice(0, 5).map(strip),

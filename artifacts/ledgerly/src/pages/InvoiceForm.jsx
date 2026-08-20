@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,14 +19,17 @@ const numericValue = (value) => Number(value) || 0;
 export default function InvoiceForm() {
   const { activeCompany } = useCompany();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isEdit = id && id !== 'new';
+  const bankTransactionId = searchParams.get('bank_transaction_id');
 
   const [customers, setCustomers] = useState([]);
   const [saving, setSaving] = useState(false);
   const [posting, setPosting] = useState(false);
   const [loading, setLoading] = useState(!!isEdit);
+  const [receiptContext, setReceiptContext] = useState(null);
 
   const [form, setForm] = useState({
     customer_id: '', invoice_number: '', issue_date: new Date().toISOString().split('T')[0],
@@ -39,9 +42,29 @@ export default function InvoiceForm() {
     if (activeCompany) {
       loadCustomers();
       if (isEdit) loadInvoice();
-      else suggestInvoiceNumber();
+      else {
+        suggestInvoiceNumber();
+        if (bankTransactionId) loadReceiptContext(bankTransactionId);
+      }
     }
-  }, [activeCompany, id]);
+  }, [activeCompany, id, bankTransactionId]);
+
+  const loadReceiptContext = async (transactionId) => {
+    try {
+      const transaction = await base44.entities.BankTransaction.get(transactionId);
+      if (!transaction || transaction.company_id !== activeCompany.id || Number(transaction.money_in || 0) <= 0) return;
+      setReceiptContext(transaction);
+      // Keep contextual details available to the reviewer, but do not create a
+      // financial allocation, infer VAT, or mark the receipt as paid.
+      setForm(prev => ({
+        ...prev,
+        reference: prev.reference || transaction.reference || '',
+        notes: prev.notes || `Source receipt for review: ${transaction.date || 'undated'} — ${transaction.description || 'Bank receipt'}`,
+      }));
+    } catch (error) {
+      console.warn('Could not load source bank receipt:', error);
+    }
+  };
 
   const suggestInvoiceNumber = async () => {
     try {
@@ -140,6 +163,15 @@ export default function InvoiceForm() {
         <Button variant="ghost" size="icon" onClick={() => navigate('/invoices')}><ArrowLeft className="w-4 h-4" /></Button>
         <h1 className="text-2xl font-semibold tracking-tight">{isEdit ? 'Edit Invoice' : 'New Invoice'}</h1>
       </div>
+      {receiptContext && !isEdit && (
+        <div className="rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
+          <p className="font-semibold">Creating from a bank receipt for review</p>
+          <p className="mt-1 text-indigo-800">
+            {receiptContext.date || 'Undated'} · {receiptContext.description || receiptContext.reference || 'Bank receipt'} · {gbp.format(Number(receiptContext.money_in || 0))}
+          </p>
+          <p className="mt-1 text-xs text-indigo-700">Choose the customer and invoice details carefully. Saving an invoice does not reconcile this receipt or record a payment.</p>
+        </div>
+      )}
 
       <Card className="border-0 shadow-sm">
         <CardContent className="p-6 space-y-6">

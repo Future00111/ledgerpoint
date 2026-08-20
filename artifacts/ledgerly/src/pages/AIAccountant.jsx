@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCompany } from '@/lib/useCompany';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,6 +38,7 @@ function TaskSection({ title, icon: Icon, tasks, onDecide, decidingId, emptyText
 
 export default function AIAccountant() {
   const nav = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { activeCompany } = useCompany();
   const [summary, setSummary] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -86,6 +87,9 @@ export default function AIAccountant() {
     }
   };
 
+  const taskTypeFilter = searchParams.get('task_type');
+  const visibleTasks = taskTypeFilter ? tasks.filter(task => task.task_type === taskTypeFilter) : tasks;
+
   // Group tasks
   const grouped = {
     ready_to_approve: [],
@@ -94,7 +98,7 @@ export default function AIAccountant() {
     insights: []
   };
 
-  tasks.forEach(task => {
+  visibleTasks.forEach(task => {
     const type = task.task_type || '';
     if (type === 'reconciliation' && task.confidence_score >= 90) {
       grouped.ready_to_approve.push(task);
@@ -136,7 +140,7 @@ export default function AIAccountant() {
         </div>
 
         {/* Metric Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8 relative z-10">
            <div className="bg-white/5 border border-white/10 rounded-xl p-4 transition-colors hover:bg-white/10">
              <div className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1">
                <CheckCircle2 className="w-3 h-3" /> Ready to Approve
@@ -155,7 +159,14 @@ export default function AIAccountant() {
              </div>
              <div className="text-3xl font-black text-white">{summary?.warnings ?? grouped.warnings.length}</div>
            </div>
-           <div className="bg-white/5 border border-white/10 rounded-xl p-4 transition-colors hover:bg-white/10">
+            <button type="button" onClick={() => setSearchParams({ task_type: 'missing_invoice' })} className="text-left bg-white/5 border border-white/10 rounded-xl p-4 transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-rose-300">
+              <div className="text-rose-300 text-[10px] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" /> Potential Missing Revenue
+              </div>
+              <div className="text-3xl font-black text-white">{gbp(summary?.potential_missing_revenue || 0)}</div>
+              <div className="text-[9px] text-slate-400 mt-1">Review {summary?.invoice_review_count || 0} receipt{summary?.invoice_review_count === 1 ? '' : 's'}</div>
+            </button>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 transition-colors hover:bg-white/10">
              <div className="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1">
                <Lightbulb className="w-3 h-3" /> Amount at Risk
              </div>
@@ -179,6 +190,12 @@ export default function AIAccountant() {
         </div>
       ) : (
         <div className="space-y-12">
+          {taskTypeFilter && (
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-indigo-100 bg-indigo-50/60 px-4 py-3 text-sm text-indigo-900">
+              <span>Showing tasks for <strong>{taskTypeFilter.replace(/_/g, ' ')}</strong>.</span>
+              <button type="button" onClick={() => setSearchParams({})} className="text-xs font-bold text-indigo-700 hover:text-indigo-900">Clear filter</button>
+            </div>
+          )}
           <TaskSection
             title="Ready to Approve"
             icon={CheckCircle2}

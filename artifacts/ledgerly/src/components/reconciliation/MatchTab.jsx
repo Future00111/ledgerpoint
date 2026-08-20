@@ -46,7 +46,14 @@ function AiSummaryCard({ recon, onApprove, approving }) {
                 <StatusIcon className={`w-3.5 h-3.5 flex-shrink-0 ${s.text}`} />
                 <span className="truncate">{m.record_number} · {m.record_name}</span>
               </span>
-              <span className="font-bold tabular-nums text-slate-900 ml-3">{gbp(m.record_amount)}</span>
+              <span className="font-bold tabular-nums text-slate-900 ml-3 text-right">
+                {gbp(m.allocated_amount ?? m.record_amount)}
+                {m.invoice_balance_remaining > 0 && (
+                  <span className="block text-[9px] font-medium uppercase tracking-wide text-amber-700">
+                    {gbp(m.invoice_balance_remaining)} still due
+                  </span>
+                )}
+              </span>
             </div>
           ))}
         </div>
@@ -121,14 +128,10 @@ export default function MatchTab({ transaction, suggestions, aiRecon, categorySu
   const alternatives = (suggestions || []).slice(1);
   const amountDiff = top ? Math.abs(txnAmount(transaction) - (top.record_amount || 0)) : 0;
 
-  // Show the AI summary card when the engine found a multi-record combination,
-  // a partial reconciliation with revenue still to identify, or potential
-  // invoices worth reviewing.
+  // Always surface persisted deterministic evidence, including receipts with
+  // no candidate invoice, rather than hiding it behind an empty-state card.
   const multiCombo = (aiRecon?.matched_records?.length || 0) > 1;
-  const showAiSummary = aiRecon && (
-    multiCombo ||
-    (aiRecon.status === 'amber' && ((aiRecon.matched_records?.length || 0) > 0 || (aiRecon.potential_matches?.length || 0) > 0))
-  );
+  const showAiSummary = Boolean(aiRecon);
 
   if (!top) {
     return (

@@ -95,11 +95,11 @@ router.post("/reconciliation/analyse", async (req: Request, res: Response) => {
         .select().from(bankTransactionsTable)
         .where(eq(bankTransactionsTable.id, bank_transaction_id)).limit(1);
       if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
-      if (!(await assertMember(userId, txn.company_id, res))) return;
+      if (!(await assertWriteAccess(userId, txn.company_id, res))) return;
       companyId = txn.company_id;
       txns = [txn];
     } else if (company_id) {
-      if (!(await assertMember(userId, company_id, res))) return;
+      if (!(await assertWriteAccess(userId, company_id, res))) return;
       companyId = company_id;
       txns = await db
         .select().from(bankTransactionsTable)
@@ -243,7 +243,7 @@ router.post("/accountant/refresh", async (req: Request, res: Response) => {
   const { userId } = req as AuthenticatedRequest;
   const { company_id } = req.body as { company_id?: string };
   if (!company_id) { res.status(400).json({ error: "company_id is required" }); return; }
-  if (!(await assertMember(userId, company_id, res))) return;
+  if (!(await assertWriteAccess(userId, company_id, res))) return;
   try {
     res.json(await syncDetections(company_id, userId));
   } catch (e) {
@@ -342,7 +342,7 @@ router.post("/accountant/tasks/refresh", async (req: Request, res: Response): Pr
   const { userId } = req as AuthenticatedRequest;
   const { company_id } = req.body as { company_id?: string };
   if (!company_id) { res.status(400).json({ error: "company_id is required" }); return; }
-  if (!(await assertMember(userId, company_id, res))) return;
+  if (!(await assertWriteAccess(userId, company_id, res))) return;
   try {
     res.json(await runAITaskAnalysis(company_id, userId));
   } catch (e) {
