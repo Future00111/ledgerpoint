@@ -1,0 +1,1242 @@
+PHASE 4 – AI VAT ASSISTANT
+
+Build the next major component of LedgerPoint: an AI VAT Assistant.
+
+The objective is to make LedgerPoint capable of acting like an intelligent VAT accountant.
+
+The AI VAT Assistant should continuously analyse the company's accounting data, identify VAT issues, calculate VAT positions, explain them clearly, highlight transactions that may require attention, and prepare a VAT return for user review.
+
+IMPORTANT:
+
+This must build on the existing LedgerPoint application.
+
+DO NOT rebuild existing functionality.
+
+DO NOT replace existing accounting, banking, reconciliation, invoice, purchase, customer, supplier, dashboard or AI functionality.
+
+Reuse the existing:
+
+- database
+- accounting engine
+- transaction models
+- invoice models
+- purchase/bill models
+- chart of accounts
+- VAT/tax fields
+- AI service
+- authentication
+- dashboard components
+- notification system
+- existing design system
+
+Before changing anything:
+
+1. Inspect the existing accounting architecture.
+2. Identify how VAT is currently stored.
+3. Identify how sales invoices calculate VAT.
+4. Identify how purchase bills calculate VAT.
+5. Identify how credit notes calculate VAT.
+6. Identify how bank transactions are categorised.
+7. Identify the existing AI Accountant architecture.
+8. Identify any existing VAT functionality.
+9. Reuse existing services wherever possible.
+
+Do not create duplicate models if an equivalent model already exists.
+
+--------------------------------------------------
+1. VAT ASSISTANT OVERVIEW
+--------------------------------------------------
+
+Create an AI VAT Assistant within LedgerPoint.
+
+The assistant should provide:
+
+VAT position
+
+VAT return preparation
+
+VAT transaction review
+
+VAT anomaly detection
+
+VAT risk alerts
+
+VAT registration monitoring
+
+VAT explanations
+
+VAT forecasting
+
+VAT-related Ask Ledgerly questions
+
+The AI should never silently alter accounting records.
+
+--------------------------------------------------
+2. VAT DASHBOARD WIDGET
+--------------------------------------------------
+
+Add a dashboard widget:
+
+AI VAT ASSISTANT
+
+Example:
+
+VAT POSITION
+
+£8,420
+Estimated VAT payable
+
+Current VAT period
+
+1 July – 30 September 2026
+
+Status:
+
+READY FOR REVIEW
+
+Buttons:
+
+[Review VAT]
+
+[View transactions]
+
+[Ask AI]
+
+Also show:
+
+Output VAT
+£14,850
+
+Input VAT
+£6,430
+
+Estimated VAT payable
+£8,420
+
+Transactions requiring review
+4
+
+--------------------------------------------------
+3. VAT STATUS
+--------------------------------------------------
+
+Display a clear status:
+
+READY
+
+REVIEW REQUIRED
+
+HIGH RISK
+
+INCOMPLETE
+
+NOT VAT REGISTERED
+
+Examples:
+
+READY
+
+"VAT records are complete and no material anomalies were identified."
+
+REVIEW REQUIRED
+
+"4 transactions require VAT treatment review before the return can be finalised."
+
+HIGH RISK
+
+"Potential VAT errors have been identified that could materially affect the return."
+
+The status must be based on actual accounting data.
+
+Do not invent values.
+
+--------------------------------------------------
+4. VAT PERIOD
+--------------------------------------------------
+
+Support configurable VAT periods.
+
+At minimum:
+
+Quarterly
+
+Monthly
+
+Annual
+
+Allow the company VAT settings to define:
+
+VAT registration status
+
+VAT registration number
+
+VAT scheme
+
+VAT return frequency
+
+VAT period start
+
+VAT period end
+
+VAT accounting basis
+
+VAT return due date
+
+VAT payment deadline
+
+Do not hard-code dates.
+
+--------------------------------------------------
+5. TAX RULE ENGINE
+--------------------------------------------------
+
+Create or extend a tax rules system.
+
+VAT rates must be configurable and date-effective.
+
+Example:
+
+Standard VAT
+20%
+
+Reduced VAT
+5%
+
+Zero rated
+0%
+
+Exempt
+No VAT
+
+Do not hard-code these rates throughout the application.
+
+Store rates as tax rules with:
+
+name
+
+rate
+
+effective_from
+
+effective_to
+
+jurisdiction
+
+tax_type
+
+active
+
+This allows future changes without rewriting the accounting application.
+
+For UK businesses, use current HMRC rules as the initial configuration.
+
+The application must be designed so future VAT rule changes can be updated centrally.
+
+--------------------------------------------------
+6. VAT TRANSACTION CLASSIFICATION
+--------------------------------------------------
+
+Analyse sales and purchase transactions.
+
+For each transaction determine:
+
+VAT treatment
+
+VAT rate
+
+net amount
+
+VAT amount
+
+gross amount
+
+VAT recoverability
+
+VAT return treatment
+
+confidence
+
+source
+
+Example:
+
+Supplier invoice:
+
+Amazon Business
+
+Gross:
+£216
+
+Net:
+£180
+
+VAT:
+£36
+
+VAT rate:
+20%
+
+VAT treatment:
+Standard rated
+
+Recoverable:
+Yes
+
+AI confidence:
+98%
+
+--------------------------------------------------
+7. VAT REVIEW ENGINE
+--------------------------------------------------
+
+Create a deterministic VAT review engine.
+
+The engine should identify:
+
+Missing VAT codes
+
+Missing VAT amounts
+
+Incorrect VAT calculations
+
+Unexpected VAT rates
+
+VAT-inclusive/exclusive inconsistencies
+
+Transactions with VAT but no VAT code
+
+VAT codes with no VAT amount
+
+VAT amounts that do not mathematically reconcile
+
+Credit notes with unusual VAT treatment
+
+Sales invoices with inconsistent VAT
+
+Purchase invoices with inconsistent VAT
+
+Potential duplicate VAT transactions
+
+Transactions dated outside the expected VAT period
+
+Potentially non-business transactions
+
+Potentially blocked/non-recoverable VAT
+
+Transactions requiring manual review
+
+Do not automatically decide legally complex VAT treatments.
+
+Flag them for review.
+
+--------------------------------------------------
+8. VAT CALCULATION
+--------------------------------------------------
+
+For each VAT transaction calculate:
+
+Net
+
+VAT
+
+Gross
+
+Use deterministic arithmetic.
+
+Example:
+
+Gross £1,200 at 20%
+
+Net:
+£1,000
+
+VAT:
+£200
+
+Gross:
+£1,200
+
+Never ask the AI to calculate basic VAT arithmetic.
+
+Use the accounting engine.
+
+AI should explain the result, not replace the calculation engine.
+
+--------------------------------------------------
+9. VAT RETURN CALCULATION
+--------------------------------------------------
+
+Prepare a VAT return from the accounting records.
+
+Support the standard UK VAT return structure.
+
+At minimum prepare:
+
+Box 1
+VAT due on sales and other outputs
+
+Box 2
+VAT due in the period on acquisitions of goods and related services from EU member states where applicable
+
+Box 3
+Total VAT due
+
+Box 4
+VAT reclaimed in the period on purchases and other inputs
+
+Box 5
+Net VAT to pay or reclaim
+
+Box 6
+Total value of sales and other outputs excluding VAT
+
+Box 7
+Total value of purchases and other inputs excluding VAT
+
+Box 8
+Supplies of goods and related costs from Northern Ireland to EU member states where applicable
+
+Box 9
+Acquisitions of goods and related services from EU member states where applicable
+
+The implementation must be designed so VAT return rules can be updated.
+
+Do not assume all businesses have the same VAT treatment.
+
+--------------------------------------------------
+10. VAT RETURN WORKFLOW
+--------------------------------------------------
+
+Create:
+
+/accounting/vat
+
+or reuse an existing VAT route if available.
+
+Page structure:
+
+VAT Assistant
+
+VAT period selector
+
+VAT position
+
+VAT return summary
+
+Review required
+
+VAT transactions
+
+AI insights
+
+VAT adjustments
+
+Approval
+
+--------------------------------------------------
+11. VAT RETURN CARD
+--------------------------------------------------
+
+Create a large VAT return card.
+
+Example:
+
+VAT RETURN
+
+01 Jul 2026 – 30 Sep 2026
+
+Box 1
+£14,850
+
+Box 2
+£0
+
+Box 3
+£14,850
+
+Box 4
+£6,430
+
+Box 5
+£8,420
+
+Box 6
+£74,250
+
+Box 7
+£32,150
+
+Status:
+
+REVIEW REQUIRED
+
+4 items need attention
+
+Buttons:
+
+[Review]
+
+[Approve VAT Return]
+
+[Export]
+
+If HMRC submission is implemented later, add:
+
+[Submit to HMRC]
+
+But DO NOT implement live HMRC submission in this phase unless the existing architecture already supports it.
+
+--------------------------------------------------
+12. VAT RECONCILIATION
+--------------------------------------------------
+
+Reconcile the VAT return back to the underlying accounting data.
+
+Every VAT return figure must be traceable.
+
+Example:
+
+Box 1 £14,850
+
+Clicking Box 1 should show:
+
+Sales invoice VAT
+£12,850
+
+Reverse charge VAT
+£1,000
+
+Other output VAT
+£1,000
+
+Total
+£14,850
+
+The user must be able to drill down from:
+
+VAT return
+
+→ VAT box
+
+→ transaction
+
+→ invoice/bill
+
+--------------------------------------------------
+13. VAT EXCEPTIONS
+--------------------------------------------------
+
+Create a dedicated section:
+
+VAT ITEMS REQUIRING ATTENTION
+
+Example:
+
+⚠️ Missing VAT treatment
+£450
+Supplier invoice has no VAT code.
+
+⚠️ Unusual VAT amount
+£2,400 invoice contains £1,200 VAT.
+
+⚠️ Potential duplicate
+Two supplier invoices appear to contain identical VAT.
+
+⚠️ Possible non-recoverable VAT
+Transaction may represent a personal/non-business expense.
+
+Each item should have:
+
+Issue
+
+Amount
+
+Transaction
+
+Reason
+
+AI explanation
+
+Recommended action
+
+Buttons:
+
+[Review]
+
+[Correct]
+
+[Ignore]
+
+[Discuss]
+
+Do not automatically correct accounting data.
+
+--------------------------------------------------
+14. AI VAT EXPLANATIONS
+--------------------------------------------------
+
+For every flagged transaction provide a simple explanation.
+
+Example:
+
+"LedgerPoint has flagged this purchase because £240 of VAT has been recorded against a £600 gross transaction. At the recorded VAT rate this would imply a different net value than the invoice currently contains."
+
+The AI should explain the discrepancy.
+
+Do not make unsupported legal conclusions.
+
+--------------------------------------------------
+15. VAT CONFIDENCE
+--------------------------------------------------
+
+Use AI confidence indicators.
+
+Examples:
+
+100%
+Exact calculation and matching VAT data.
+
+98%
+Strong match with invoice and tax code.
+
+82%
+Likely treatment but manual review recommended.
+
+55%
+Insufficient information.
+
+Do not present confidence as legal certainty.
+
+Use wording:
+
+"AI confidence"
+
+not:
+
+"HMRC certainty"
+
+--------------------------------------------------
+16. VAT RISK SCORE
+--------------------------------------------------
+
+Create an overall VAT review score.
+
+Example:
+
+VAT HEALTH
+
+92 / 100
+
+Green
+
+Or:
+
+VAT HEALTH
+
+64 / 100
+
+Review Required
+
+Factors may include:
+
+Missing VAT codes
+
+Unusual VAT rates
+
+Unreconciled transactions
+
+Potential duplicates
+
+Manual adjustments
+
+Unusual changes from previous periods
+
+Incomplete records
+
+The score must be explainable.
+
+Display:
+
+"Why?"
+
+and show the factors contributing to the score.
+
+--------------------------------------------------
+17. PERIOD-ON-PERIOD VAT ANALYSIS
+--------------------------------------------------
+
+Compare the current VAT period against previous periods.
+
+Identify:
+
+VAT payable changes
+
+Sales changes
+
+Purchase changes
+
+Input VAT changes
+
+Output VAT changes
+
+VAT percentage changes
+
+Unusual movements
+
+Example:
+
+"Output VAT increased 31% compared with the previous VAT period."
+
+"Input VAT increased 8%."
+
+"Net VAT payable is £3,250 higher than the previous quarter."
+
+Only show comparisons where sufficient historical data exists.
+
+--------------------------------------------------
+18. VAT ANOMALY DETECTION
+--------------------------------------------------
+
+Identify unusual VAT patterns.
+
+Examples:
+
+VAT suddenly increases
+
+Input VAT unusually high
+
+Output VAT unusually low
+
+Large supplier VAT claim
+
+Large expense with unusual VAT
+
+Customer invoice using unexpected VAT rate
+
+Repeated transactions with different VAT treatment
+
+Large manual VAT adjustment
+
+VAT balance inconsistent with transaction history
+
+The AI should explain why something is unusual.
+
+Do not automatically assume fraud or wrongdoing.
+
+Use:
+
+"Unusual"
+
+"Requires review"
+
+"Potential issue"
+
+Never:
+
+"Fraud"
+
+unless explicitly supported by separate verified information.
+
+--------------------------------------------------
+19. VAT REGISTRATION MONITOR
+--------------------------------------------------
+
+For businesses that are not VAT registered:
+
+Monitor rolling taxable turnover.
+
+Display:
+
+VAT REGISTRATION MONITOR
+
+Rolling 12-month taxable turnover
+
+£84,500
+
+Current registration threshold
+
+£90,000
+
+Remaining headroom
+
+£5,500
+
+Status:
+
+APPROACHING THRESHOLD
+
+Also show:
+
+Turnover in previous 30 days
+
+Turnover trend
+
+Projected turnover
+
+The system should warn when the business is approaching the configured threshold.
+
+Do not automatically register the business.
+
+Do not present the threshold as permanent.
+
+Use the tax-rule configuration.
+
+--------------------------------------------------
+20. VAT FORECAST
+--------------------------------------------------
+
+Create an estimated VAT position for the current period.
+
+Example:
+
+CURRENT ESTIMATE
+
+Output VAT
+£18,200
+
+Input VAT
+£7,400
+
+Estimated VAT payable
+£10,800
+
+Forecast based on:
+
+Current invoices
+
+Current purchases
+
+Historical trends
+
+Known recurring transactions
+
+Clearly label this:
+
+ESTIMATE
+
+Do not present forecasts as final tax liabilities.
+
+--------------------------------------------------
+21. VAT CASH RESERVE
+--------------------------------------------------
+
+Add an optional dashboard insight:
+
+VAT TO RESERVE
+
+£10,800
+
+"Based on current records, approximately £10,800 may be payable for this VAT period."
+
+This is an estimate only.
+
+Allow the user to dismiss this recommendation.
+
+--------------------------------------------------
+22. ASK LEDGERLY VAT QUESTIONS
+--------------------------------------------------
+
+Extend Ask Ledgerly.
+
+The user should be able to ask:
+
+"How much VAT do I owe?"
+
+"What is my VAT position?"
+
+"How much VAT have I charged?"
+
+"How much input VAT have I claimed?"
+
+"Why has my VAT increased?"
+
+"Which transactions need VAT review?"
+
+"Show me the transactions affecting Box 1."
+
+"Why is Box 5 £8,420?"
+
+"How much VAT did I pay to Amazon?"
+
+"How much VAT have I paid this quarter?"
+
+"Am I approaching the VAT registration threshold?"
+
+"What is causing the VAT increase?"
+
+"Are there any unusual VAT transactions?"
+
+"Is my VAT return ready?"
+
+The answers must use live LedgerPoint accounting data.
+
+--------------------------------------------------
+23. VAT AUDIT TRAIL
+--------------------------------------------------
+
+Every VAT adjustment or approval must be logged.
+
+Record:
+
+User
+
+Date/time
+
+Transaction
+
+Old value
+
+New value
+
+Reason
+
+Action
+
+AI recommendation
+
+User approval
+
+Do not allow silent VAT changes.
+
+--------------------------------------------------
+24. VAT APPROVAL WORKFLOW
+--------------------------------------------------
+
+Workflow:
+
+VAT period opens
+
+↓
+
+LedgerPoint calculates VAT
+
+↓
+
+AI reviews VAT data
+
+↓
+
+Exceptions identified
+
+↓
+
+User reviews exceptions
+
+↓
+
+User resolves or accepts them
+
+↓
+
+LedgerPoint recalculates VAT
+
+↓
+
+VAT return becomes READY
+
+↓
+
+User clicks:
+
+[Approve VAT Return]
+
+After approval:
+
+Lock the VAT return from accidental changes.
+
+If a change is required:
+
+Create a new adjustment/revision event.
+
+Do not silently alter an approved return.
+
+--------------------------------------------------
+25. VAT ADJUSTMENTS
+--------------------------------------------------
+
+Allow manual VAT adjustments.
+
+Examples:
+
+Partial exemption adjustment
+
+Bad debt relief
+
+Capital goods scheme adjustment
+
+Other legitimate VAT adjustments
+
+However:
+
+Do not attempt to automatically determine complex adjustments.
+
+Provide:
+
+Adjustment type
+
+Amount
+
+Explanation
+
+Supporting note
+
+User approval
+
+Audit trail
+
+The AI may recommend that an adjustment should be reviewed.
+
+It must not automatically post it.
+
+--------------------------------------------------
+26. AI ACCOUNTANT INTEGRATION
+--------------------------------------------------
+
+Integrate this into the existing AI Accountant.
+
+AI Accountant should now have:
+
+BANKING
+
+RECONCILIATION
+
+SALES
+
+PURCHASES
+
+CUSTOMERS
+
+COLLECTIONS
+
+VAT
+
+The AI Accountant dashboard should show:
+
+VAT STATUS
+
+READY
+
+REVIEW
+
+HIGH RISK
+
+NOT REGISTERED
+
+--------------------------------------------------
+27. NOTIFICATIONS
+--------------------------------------------------
+
+Generate useful notifications.
+
+Examples:
+
+"VAT return is ready for review."
+
+"4 VAT transactions require attention."
+
+"You are approaching the VAT registration threshold."
+
+"VAT payable is £3,250 higher than last quarter."
+
+"Large unusual input VAT transaction detected."
+
+Notifications must link directly to the relevant screen.
+
+--------------------------------------------------
+28. COST CONTROL
+
+Use deterministic code for:
+
+VAT calculations
+
+VAT totals
+
+VAT return boxes
+
+Threshold calculations
+
+Dates
+
+Period calculations
+
+Transaction aggregation
+
+Use AI only for:
+
+Explanation
+
+Interpretation
+
+Recommendations
+
+Natural-language questions
+
+Anomaly explanations
+
+Do not send the entire ledger to OpenAI for every calculation.
+
+Only provide the minimum relevant data required.
+
+Cache AI explanations where appropriate.
+
+--------------------------------------------------
+29. SECURITY
+
+VAT information is financial data.
+
+Never expose:
+
+API keys
+
+Secrets
+
+Environment variables
+
+Authentication tokens
+
+Private credentials
+
+Do not send unnecessary customer information to the AI provider.
+
+Use server-side AI calls.
+
+Never expose the OpenAI API key to the browser.
+
+--------------------------------------------------
+30. TEST DATA
+
+Create comprehensive VAT test scenarios.
+
+Test:
+
+1. Standard 20% sale
+
+2. Standard 20% purchase
+
+3. 5% transaction
+
+4. Zero-rated transaction
+
+5. Exempt transaction
+
+6. No-VAT transaction
+
+7. Credit note
+
+8. Partial payment
+
+9. Invoice with incorrect VAT amount
+
+10. Missing VAT code
+
+11. Duplicate transaction
+
+12. Unusual VAT transaction
+
+13. VAT period boundary
+
+14. Previous VAT period comparison
+
+15. VAT registration threshold monitoring
+
+16. VAT forecast
+
+17. Manual adjustment
+
+18. Approved VAT return
+
+19. Attempt to modify approved return
+
+20. Drill-down from VAT box to transaction
+
+21. Ask Ledgerly VAT questions
+
+22. VAT exception resolution
+
+23. VAT return recalculation after correction
+
+--------------------------------------------------
+31. USER EXPERIENCE
+
+Keep LedgerPoint's existing visual language.
+
+Use:
+
+Clean white cards
+
+Blue primary actions
+
+Green for ready/healthy
+
+Amber for review
+
+Red only for genuine problems
+
+Clear typography
+
+Generous spacing
+
+Consistent icons
+
+AI confidence indicators
+
+Do not redesign unrelated parts of LedgerPoint.
+
+The VAT Assistant should feel like a natural part of LedgerPoint.
+
+--------------------------------------------------
+32. IMPORTANT ACCOUNTING SAFETY RULE
+
+The AI is an assistant, not the accounting ledger.
+
+The accounting engine remains the source of truth.
+
+AI must NEVER:
+
+- Invent VAT figures
+- Invent transactions
+- Invent invoices
+- Invent VAT rates
+- Invent HMRC rules
+- Automatically change accounting records
+- Automatically submit a VAT return
+- Automatically make a tax election
+- Automatically apply a complex VAT treatment
+- Automatically write off VAT
+- Automatically post adjustments
+
+All material accounting changes require deterministic logic and/or explicit user approval.
+
+--------------------------------------------------
+33. FINAL VALIDATION
+
+Before finishing:
+
+1. Inspect all existing VAT functionality.
+2. Reuse existing models.
+3. Run TypeScript/type checks.
+4. Run existing tests.
+5. Run all VAT tests.
+6. Verify reconciliation still works.
+7. Verify invoices still work.
+8. Verify purchases still work.
+9. Verify AI Accountant still works.
+10. Verify Collections still works.
+11. Verify dashboard widgets still work.
+12. Verify VAT calculations against deterministic arithmetic.
+13. Verify every VAT return box can be traced to transactions.
+14. Verify approved returns cannot be silently changed.
+15. Verify OpenAI is never used for basic arithmetic.
+16. Verify no API keys are exposed.
+17. Verify no live HMRC submission has been enabled unless explicitly requested.
+18. Do not modify unrelated functionality.
+
+When complete, provide a concise summary containing:
+
+- Files created
+- Files changed
+- Database changes
+- VAT functionality added
+- AI functionality added
+- Tests performed
+- Any issues requiring manual review
