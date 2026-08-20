@@ -4,7 +4,7 @@ import { useCompany } from '@/lib/useCompany';
 import { Button } from '@/components/ui/button';
 import {
   Sparkles, RefreshCw, AlertTriangle, Lightbulb, ClipboardCheck,
-  CheckCircle2
+  CheckCircle2, Gavel
 } from 'lucide-react';
 import { aiApi, gbp } from '@/components/ai-accountant/api';
 import AITaskCard from '@/components/ai-accountant/AITaskCard';
@@ -41,6 +41,7 @@ export default function AIAccountant() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { activeCompany } = useCompany();
   const [summary, setSummary] = useState(null);
+  const [collections, setCollections] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
@@ -50,12 +51,14 @@ export default function AIAccountant() {
   const load = useCallback(async () => {
     if (!activeCompany?.id) return;
     try {
-      const [sumRes, tasksRes] = await Promise.all([
+      const [sumRes, tasksRes, collectionsRes] = await Promise.all([
         aiApi.taskSummary(activeCompany.id),
         aiApi.tasks(activeCompany.id, ['open', 'reviewing']),
+        aiApi.collectionsOverview(activeCompany.id),
       ]);
       setSummary(sumRes);
       setTasks(tasksRes.tasks || []);
+      setCollections(collectionsRes);
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
   }, [activeCompany?.id]);
@@ -140,7 +143,7 @@ export default function AIAccountant() {
         </div>
 
         {/* Metric Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mt-8 relative z-10">
            <div className="bg-white/5 border border-white/10 rounded-xl p-4 transition-colors hover:bg-white/10">
              <div className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1">
                <CheckCircle2 className="w-3 h-3" /> Ready to Approve
@@ -172,6 +175,13 @@ export default function AIAccountant() {
              </div>
              <div className="text-3xl font-black text-white">{gbp(summary?.total_amount_at_risk || 0)}</div>
            </div>
+            <button type="button" onClick={() => nav('/collections')} className="text-left bg-white/5 border border-white/10 rounded-xl p-4 transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-300">
+              <div className="text-amber-300 text-[10px] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                <Gavel className="w-3 h-3" /> Customer Collections
+              </div>
+              <div className="text-3xl font-black text-white">{collections?.summary?.high_priority_customer_count || 0}</div>
+              <div className="text-[9px] text-slate-400 mt-1">{gbp(collections?.summary?.total_overdue || 0)} overdue · review priorities</div>
+            </button>
         </div>
       </div>
 

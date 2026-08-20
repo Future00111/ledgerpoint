@@ -32,6 +32,7 @@ import WorkflowTimeline from '@/components/workflow/WorkflowTimeline';
 import WorkflowRecommendation from '@/components/workflow/WorkflowRecommendation';
 import NeedsAttentionCard from '@/components/workspace/cards/NeedsAttentionCard';
 import ProfileCard from '@/components/workspace/cards/ProfileCard';
+import ReminderDraftDialog from '@/components/collections/ReminderDraftDialog';
 import { Mail as MailIcon, Phone, MapPin, FileText, PoundSterling, CreditCard } from 'lucide-react';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
@@ -61,6 +62,7 @@ export default function InvoiceDetail() {
   const [currentUser, setCurrentUser] = useState(null);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reminderDraftOpen, setReminderDraftOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -96,7 +98,7 @@ export default function InvoiceDetail() {
   const intel = computeInvoiceIntelligence({ invoice, customer, customerInvoices, payments, creditNotes });
 
   // ---- Workflow engine -----------------------------------------------------
-  const remindersSent = activities.filter((a) => a.action === 'reminder_sent').length;
+  const remindersSent = activities.filter((a) => (a.action || a.event_type) === 'reminder_sent').length;
   const onHold = customer?.tags?.includes('Credit Hold');
   const legalAction = customer?.tags?.includes('Legal Action');
   const wfCtx = { daysOverdue: intel.daysOverdue, remindersSent, onHold, legalAction };
@@ -128,11 +130,7 @@ export default function InvoiceDetail() {
     catch (e) { toast({ title: 'Error approving invoice', description: e.message, variant: 'destructive' }); }
   };
   const recordPayment = () => nav('/transactions');
-  const sendReminder = async () => {
-    window.location.href = `mailto:${customer?.email || ''}?subject=${encodeURIComponent('Reminder — invoice ' + invoice.invoice_number)}&body=${encodeURIComponent(`Reminder: invoice ${invoice.invoice_number} for ${gbp.format(intel.balanceDue)} is ${intel.isOverdue ? `${intel.daysOverdue} days overdue` : 'now due'}.`)}`;
-    await logActivity('reminder_sent', 'Reminder sent', `Email reminder · ${intel.isOverdue ? `${intel.daysOverdue} days overdue` : 'due'}`, 'reminder_sent');
-    toast({ title: 'Reminder prepared' });
-  };
+  const sendReminder = () => setReminderDraftOpen(true);
   const addCreditNote = () => nav('/sales-credit-notes/new');
   const edit = () => nav(`/invoices/${id}`);
   const viewCustomer = () => nav(`/customers/${customer?.id}`);
@@ -275,6 +273,18 @@ export default function InvoiceDetail() {
         <div className="space-y-4 min-w-0">
           <InvoiceDocument invoice={invoice} customer={customer} company={activeCompany} />
           <WorkflowTimeline events={workflowEvents} maxHeight="26rem" />
+          <div className="rounded-lg border bg-card p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold">Collections detail</h2>
+                <p className="text-xs text-muted-foreground">Outstanding {gbp.format(intel.balanceDue)} · {intel.daysOverdue || 0} days overdue · {remindersSent} previous reminder{remindersSent === 1 ? '' : 's'} marked sent</p>
+              </div>
+              <Badge variant="secondary" className={intel.riskLabel === 'High' ? 'bg-rose-50 text-rose-700' : intel.riskLabel === 'Medium' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}>
+                {intel.riskLabel || 'Low'} risk
+              </Badge>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Recommended action: {recommendation.nextAction}. Review the reminder before approving it; Ledgerly will not send a message automatically.</p>
+          </div>
           <RelatedInvoices invoices={intel.relatedInvoices} onOpen={(rid) => nav(`/invoices/${rid}/view`)} />
           <InvoiceAnalytics amountVsAvgPct={intel.amountVsAvgPct} largestPrevious={intel.largestPrevious} isLargestEver={intel.isLargestEver} trend={intel.trend} onTimeRate={intel.onTimeRate} />
         </div>
@@ -306,6 +316,13 @@ export default function InvoiceDetail() {
           />
         </aside>
       </div>
+      <ReminderDraftDialog
+        open={reminderDraftOpen}
+        onOpenChange={setReminderDraftOpen}
+        companyId={invoice.company_id}
+        invoice={invoice}
+        onRecorded={reload}
+      />
     </div>
   );
 }

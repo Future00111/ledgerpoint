@@ -12,6 +12,7 @@ import {
 
 import WorkspaceEngine from '@/components/workspace/WorkspaceEngine';
 import { useFavourite } from '@/components/workspace/useFavourite';
+import ReminderDraftDialog from '@/components/collections/ReminderDraftDialog';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
@@ -43,6 +44,8 @@ export default function CustomerWorkspace({
   const [creditNotes, setCreditNotes] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [reminderRequest, setReminderRequest] = useState(null);
   const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState('');
   const [tagsState, setTagsState] = useState([]);
@@ -73,6 +76,10 @@ export default function CustomerWorkspace({
         if (cancelled) return;
         const invIds = new Set((invs || []).map((i) => i.id));
         setPayments((txns || []).filter((t) => t.matched_type === 'sales_invoice' && invIds.has(t.linked_invoice_id)));
+
+        const acts = await base44.entities.WorkflowActivity.filter({ company_id: customer.company_id, entity_type: 'sales_invoice' }, '-event_date', 500);
+        if (cancelled) return;
+        setActivities((acts || []).filter((activity) => invIds.has(activity.entity_id)));
       } catch (e) {
         console.error(e);
       } finally {
@@ -136,6 +143,9 @@ export default function CustomerWorkspace({
       return evs;
     }),
     ...payments.map((p) => ({ date: p.date, type: 'Payment received', reference: p.matched_record_number || null, amount: p.money_in, kind: 'payment', status: 'Received', onClick: () => { onOpenChange(false); nav('/transactions'); } })),
+    ...activities
+      .filter((activity) => (activity.action || activity.event_type || '').startsWith('reminder_'))
+      .map((activity) => ({ date: activity.event_date, type: activity.description || (activity.action || activity.event_type).replace(/_/g, ' '), reference: invoices.find((invoice) => invoice.id === activity.entity_id)?.invoice_number || null, amount: null, kind: 'reminder_sent', status: (activity.action || activity.event_type).replace(/_/g, ' '), onClick: null })),
     ...creditNotes.map((c) => ({ date: c.credit_note_date, type: 'Credit note issued', reference: c.credit_note_number, amount: c.total, kind: 'credit_note', status: c.status || 'Issued', onClick: () => { onOpenChange(false); nav('/sales-credit-notes'); } })),
     ...documents.map((d) => ({ date: d.upload_date, type: 'Document uploaded', reference: d.name, amount: null, kind: 'document', status: d.status || 'Uploaded', onClick: () => { onOpenChange(false); nav('/documents'); } })),
   ].filter((e) => e.date).sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -144,11 +154,18 @@ export default function CustomerWorkspace({
 
   // ---- Handlers -----------------------------------------------------------
   const focusAsk = () => document.getElementById('workspace-ask-input')?.focus();
-  const mailtoReminder = () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Reminder — outstanding invoice')}`; };
+  const openReminder = (tone = 'professional') => {
+    const target = overdueInvoices.slice().sort((a, b) => (a.due_date < b.due_date ? -1 : 1))[0];
+    if (!target) {
+      toast({ title: 'No overdue invoice to remind', description: 'Choose an outstanding overdue invoice before preparing a reminder.', variant: 'destructive' });
+      return;
+    }
+    setReminderRequest({ invoice: target, tone });
+  };
+  const mailtoReminder = () => openReminder('professional');
   const mailtoEmail = () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Regarding your account')}`; };
   const callCustomer = () => { if (customer.phone) window.location.href = `tel:${customer.phone}`; };
-  const finalDemandBody = `Final Demand\n\n${customer.name},\n\nDespite previous reminders, the following invoices remain unpaid:\n\n${overdueInvoices.map((i) => `${i.invoice_number} — due ${i.due_date} — ${gbp.format(Number(i.balance_due) || 0)}`).join('\n') || 'None'}\n\nTotal overdue: ${gbp.format(overdueTotal)}\n\nPlease settle immediately to avoid account hold and further action.`;
-  const mailtoFinalDemand = () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Final Demand — overdue account')}&body=${encodeURIComponent(finalDemandBody)}`; };
+  const mailtoFinalDemand = () => openReminder('final');
   const statementBody = `Account Statement — ${customer.name}\n\nOutstanding invoices:\n${outstandingInvoices.map((i) => `${i.invoice_number} — due ${i.due_date} — ${gbp.format(Number(i.balance_due) || 0)}`).join('\n') || 'None'}\n\nTotal outstanding: ${gbp.format(outstanding)}`;
   const mailtoStatement = () => { window.location.href = `mailto:${customer.email || ''}?subject=${encodeURIComponent('Account Statement — ' + customer.name)}&body=${encodeURIComponent(statementBody)}`; };
 
@@ -193,11 +210,14 @@ export default function CustomerWorkspace({
     ? overdueInvoices.slice().sort((a, b) => (a.due_date < b.due_date ? -1 : 1))[0]
     : null;
   const oldestInvoiceDays = oldestInvoiceRec ? Math.floor((now - new Date(oldestInvoiceRec.due_date)) / 86400000) : 0;
-  const collectionsHistory = overdueInvoices.slice().sort((a, b) => (a.due_date < b.due_date ? -1 : 1)).slice(0, 4).map((i) => ({
+  const collectionsHistory = overdueInvoices.slice().sort((a, b) => (a.due_date < b.due_date ? -1 : 1)).slice(0, 4).map((i) => {
+    const reminders = activities.filter((activity) => activity.entity_id === i.id && (activity.action || activity.event_type) === 'reminder_sent').length;
+    return ({
     reference: i.invoice_number,
-    detail: `${Math.floor((now - new Date(i.due_date)) / 86400000)} days · ${gbp.format(Number(i.balance_due) || 0)}`,
+    detail: `${Math.floor((now - new Date(i.due_date)) / 86400000)} days · ${gbp.format(Number(i.balance_due) || 0)} · ${reminders} reminder${reminders === 1 ? '' : 's'} sent`,
     onClick: () => { onOpenChange(false); nav(`/invoices/${i.id}`); },
-  }));
+  });
+  });
 
   // ---- AI Collections Recommendation ---------------------------------------
   const hasCollections = overdueInvoices.length > 0;
@@ -464,6 +484,7 @@ export default function CustomerWorkspace({
   ];
 
   return (
+    <>
     <WorkspaceEngine
       type="customer"
       open={open}
@@ -481,5 +502,13 @@ export default function CustomerWorkspace({
         suggestions: ['Summarise this customer', 'Show overdue invoices', 'Create invoice', 'Email statement', 'Explain revenue trend'],
       }}
     />
+    <ReminderDraftDialog
+      open={Boolean(reminderRequest)}
+      onOpenChange={(nextOpen) => { if (!nextOpen) setReminderRequest(null); }}
+      companyId={activeCompany?.id}
+      invoice={reminderRequest?.invoice}
+      initialTone={reminderRequest?.tone || 'professional'}
+    />
+    </>
   );
 }

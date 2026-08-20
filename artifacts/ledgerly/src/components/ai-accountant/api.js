@@ -37,6 +37,25 @@ export const aiApi = {
     api('/api/ai/insights', { method: 'POST', body: JSON.stringify({ company_id: companyId }) }),
   analyse: (companyId) =>
     api('/api/ai/reconciliation/analyse', { method: 'POST', body: JSON.stringify({ company_id: companyId }) }),
+  collectionsOverview: (companyId) =>
+    api(`/api/ai/accountant/collections/overview?company_id=${q(companyId)}`),
+  refreshCollections: (companyId) =>
+    api('/api/ai/accountant/collections/refresh', { method: 'POST', body: JSON.stringify({ company_id: companyId }) }),
+  draftCollectionReminder: (companyId, invoiceId, tone) =>
+    api('/api/ai/accountant/collections/reminders/draft', {
+      method: 'POST',
+      body: JSON.stringify({ company_id: companyId, invoice_id: invoiceId, tone }),
+    }),
+  approveCollectionReminder: (companyId, invoiceId, tone, subject, body) =>
+    api('/api/ai/accountant/collections/reminders/approve', {
+      method: 'POST',
+      body: JSON.stringify({ company_id: companyId, invoice_id: invoiceId, tone, subject, body }),
+    }),
+  recordCollectionReminderSent: (companyId, invoiceId, tone, subject, body, approvalId) =>
+    api('/api/ai/accountant/collections/reminders/sent', {
+      method: 'POST',
+      body: JSON.stringify({ company_id: companyId, invoice_id: invoiceId, tone, subject, body, approval_id: approvalId }),
+    }),
 };
 
 export const gbp = (n) => `£${Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}`;

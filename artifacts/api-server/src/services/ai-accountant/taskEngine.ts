@@ -20,6 +20,7 @@ import {
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { analyseTransactions } from "./analysis.js";
 import { runDetectors, type Detection } from "./detectors.js";
+import { buildCustomerFollowUpTasks } from "./collections.js";
 
 export const AI_TASK_TYPES = [
   "reconciliation",
@@ -351,7 +352,7 @@ function uncategorisedTransactionTask(
 
 async function buildCandidates(companyId: string): Promise<TaskCandidate[]> {
   const todayISO = new Date().toISOString().slice(0, 10);
-  const [detections, reconciliationResults, reviewTransactions, bills, accounts, vatReturns] = await Promise.all([
+  const [detections, reconciliationResults, reviewTransactions, bills, accounts, vatReturns, collectionFollowUps] = await Promise.all([
     runDetectors(companyId),
     db
       .select()
@@ -369,6 +370,7 @@ async function buildCandidates(companyId: string): Promise<TaskCandidate[]> {
     db.select().from(purchaseBillsTable).where(eq(purchaseBillsTable.company_id, companyId)),
     db.select().from(bankAccountsTable).where(eq(bankAccountsTable.company_id, companyId)),
     db.select().from(vatReturnsTable).where(eq(vatReturnsTable.company_id, companyId)),
+    buildCustomerFollowUpTasks(companyId),
   ]);
 
   const transactionsById = new Map(reviewTransactions.map((transaction) => [transaction.id, transaction]));
@@ -377,10 +379,12 @@ async function buildCandidates(companyId: string): Promise<TaskCandidate[]> {
       .filter((result) => isUnexplainedRevenueResult(result, transactionsById.get(result.bank_transaction_id)))
       .map((result) => result.bank_transaction_id),
   );
-  // The old detector returns one aggregated missing-invoice task. Phase 4B
-  // replaces it with stable, transaction-specific review tasks.
+  // The old detectors return aggregated missing-invoice and customer-risk
+  // findings. Phase 4B and 4C replace those with stable receipt- and
+  // invoice-specific review tasks respectively, so no duplicate queue work is
+  // created for a single overdue invoice.
   const candidates = detections
-    .filter((detection) => detection.kind !== "missing_invoices")
+    .filter((detection) => !["missing_invoices", "credit_risk"].includes(detection.kind))
     .map(taskFromDetection)
     .filter((task): task is TaskCandidate => Boolean(task));
   candidates.push(...reconciliationTasks(
@@ -392,6 +396,7 @@ async function buildCandidates(companyId: string): Promise<TaskCandidate[]> {
   candidates.push(...addVatLiabilityTasks(vatReturns));
   const cashFlow = addCashFlowTask(bills, accounts, todayISO);
   if (cashFlow) candidates.push(cashFlow);
+  candidates.push(...collectionFollowUps);
   return candidates;
 }
 

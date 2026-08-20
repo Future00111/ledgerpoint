@@ -146,7 +146,18 @@ export function buildWorkflowTimeline(invoice, { payments = [], creditNotes = []
   if (invoice.status === 'paid') events.push({ id: 'd_paid', timestamp: invoice.posted_date || new Date().toISOString(), user: 'System', action: 'payment_received', label: 'Payment received', notes: 'Paid in full', stage: 'paid', done: true, source: 'derived' });
 
   (activities || []).forEach((a) => {
-    events.push({ id: 'a_' + a.id, timestamp: a.event_date, user: a.user_name || 'User', action: a.action, label: a.action_label || a.action, notes: a.notes || '', stage: a.stage, done: true, source: 'activity' });
+    const action = a.action || a.event_type || 'activity';
+    events.push({
+      id: 'a_' + a.id,
+      timestamp: a.event_date,
+      user: a.user_name || a.user_id || 'User',
+      action,
+      label: a.action_label || a.description || action.replace(/_/g, ' '),
+      notes: a.notes || a.description || '',
+      stage: a.stage || (action === 'reminder_sent' ? 'reminder_sent' : undefined),
+      done: true,
+      source: 'activity',
+    });
   });
   (payments || []).filter((p) => p.linked_invoice_id === invoice.id).forEach((p) => {
     events.push({ id: 'p_' + p.id, timestamp: p.date, user: 'System', action: 'payment_received', label: 'Payment received', notes: p.matched_record_number || '', stage: 'paid', done: true, source: 'payment' });

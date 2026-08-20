@@ -40,6 +40,12 @@ import {
   listAITasks,
   markAITaskReviewing,
   runAITaskAnalysis,
+  syncAITasks,
+  getCollectionsOverview,
+  generateReminderDraft,
+  approveReminderForEmail,
+  recordReminderSent,
+  type ReminderTone,
   type AITaskStatus,
   type ApprovalRecord,
   type Decision,
@@ -420,6 +426,90 @@ router.post("/accountant/tasks/:id/decision", async (req: Request, res: Response
   } catch (e) {
     req.log.warn({ err: e, task_id: id }, "AI task decision failed");
     res.status(409).json({ error: e instanceof Error ? e.message : "Task decision failed" });
+  }
+});
+
+// ═══ Phase 4C — Customer collections and approval-first reminders ════════════
+// Collection facts are deterministic. Draft creation and every audit event are
+// explicit user actions; none of these routes sends email or mutates invoices.
+
+router.get("/accountant/collections/overview", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  try {
+    res.json(await getCollectionsOverview(companyId));
+  } catch (error) {
+    req.log.error({ err: error, company_id: companyId }, "Collections overview failed");
+    res.status(500).json({ error: "Could not load collections overview" });
+  }
+});
+
+router.post("/accountant/collections/refresh", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id: companyId } = req.body as { company_id?: string };
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try {
+    // This refreshes review tasks only. It never posts payments or changes
+    // customer or invoice balances.
+    res.json(await syncAITasks(companyId, userId));
+  } catch (error) {
+    req.log.error({ err: error, company_id: companyId }, "Collections refresh failed");
+    res.status(500).json({ error: "Could not refresh collection tasks" });
+  }
+});
+
+router.post("/accountant/collections/reminders/draft", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id: companyId, invoice_id: invoiceId, tone } = req.body as {
+    company_id?: string; invoice_id?: string; tone?: ReminderTone;
+  };
+  if (!companyId || !invoiceId || !tone) { res.status(400).json({ error: "company_id, invoice_id, and tone are required" }); return; }
+  // The draft is persisted to auditable history, so this follows the same
+  // company write boundary as task analysis and task decisions.
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try {
+    res.json({ draft: await generateReminderDraft(companyId, invoiceId, tone, userId) });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not generate reminder draft";
+    res.status(message.includes("not found") ? 404 : 400).json({ error: message });
+  }
+});
+
+router.post("/accountant/collections/reminders/approve", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id: companyId, invoice_id: invoiceId, tone, subject, body } = req.body as {
+    company_id?: string; invoice_id?: string; tone?: ReminderTone; subject?: string; body?: string;
+  };
+  if (!companyId || !invoiceId || !tone || typeof subject !== "string" || typeof body !== "string") {
+    res.status(400).json({ error: "company_id, invoice_id, tone, subject, and body are required" }); return;
+  }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try {
+    res.json({ handoff: await approveReminderForEmail(companyId, invoiceId, tone, subject, body, userId) });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not approve reminder";
+    res.status(message.includes("not found") ? 404 : 400).json({ error: message });
+  }
+});
+
+router.post("/accountant/collections/reminders/sent", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id: companyId, invoice_id: invoiceId, tone, subject, body, approval_id: approvalId } = req.body as {
+    company_id?: string; invoice_id?: string; tone?: ReminderTone; subject?: string; body?: string; approval_id?: string;
+  };
+  if (!companyId || !invoiceId || !tone || typeof subject !== "string" || typeof body !== "string" || !approvalId) {
+    res.status(400).json({ error: "company_id, invoice_id, tone, subject, body, and approval_id are required" }); return;
+  }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try {
+    await recordReminderSent(companyId, invoiceId, tone, subject, body, approvalId, userId);
+    res.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not record sent reminder";
+    res.status(message.includes("not found") ? 404 : 400).json({ error: message });
   }
 });
 
