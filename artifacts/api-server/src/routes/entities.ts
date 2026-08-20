@@ -435,8 +435,7 @@ router.post("/:entity", async (req: Request, res: Response) => {
   }
 });
 
-// ─── PUT /api/entities/:entity/:id — update ──────────────────────────────────
-router.put("/:entity/:id", async (req: Request, res: Response) => {
+async function updateEntity(req: Request, res: Response) {
   try {
     const { userId } = req as AuthenticatedRequest;
     const entityName = req.params["entity"] as string;
@@ -497,7 +496,11 @@ router.put("/:entity/:id", async (req: Request, res: Response) => {
     req.log.error({ err }, "entity update error");
     res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
   }
-});
+}
+
+// ─── PUT / PATCH /api/entities/:entity/:id — update ─────────────────────────
+router.put("/:entity/:id", updateEntity);
+router.patch("/:entity/:id", updateEntity);
 
 // ─── DELETE /api/entities/:entity/:id — delete ───────────────────────────────
 router.delete("/:entity/:id", async (req: Request, res: Response) => {

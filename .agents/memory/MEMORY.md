@@ -5,3 +5,4 @@
 - [AI task write permissions](ai-task-write-permissions.md) — any manual analysis or review action that persists task state requires a company write role.
 - [VAT Assistant calculation boundary](vat-assistant-boundaries.md) — only standard-scheme, invoice-basis VAT is calculated until distinct scheme rules exist.
 - [VAT return locking](vat-return-locking.md) — conditional row locks and audit writes must commit together for concurrent review actions.
+- [API HTTP test bundling](api-http-test-bundling.md) — Express integration tests need CommonJS output with Pino runtime packages externalized.

@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type RequestHandler } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import cookieParser from "cookie-parser";
@@ -12,6 +12,15 @@ import {
 import router from "./routes";
 import { logger } from "./lib/logger";
 
+export interface ApiAppOptions {
+  /**
+   * Optional middleware installed before Clerk. This is only used by isolated
+   * integration tests that provide an already-authenticated Clerk request.
+   */
+  beforeClerkMiddleware?: RequestHandler;
+}
+
+export function createApp({ beforeClerkMiddleware }: ApiAppOptions = {}): Express {
 const app: Express = express();
 
 app.use(
@@ -33,6 +42,8 @@ app.use(
     },
   }),
 );
+
+if (beforeClerkMiddleware) app.use(beforeClerkMiddleware);
 
 // Clerk proxy must come before body parsers (streams raw bytes)
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
@@ -94,5 +105,10 @@ app.use(
 );
 
 app.use("/api", router);
+
+return app;
+}
+
+const app = createApp();
 
 export default app;
