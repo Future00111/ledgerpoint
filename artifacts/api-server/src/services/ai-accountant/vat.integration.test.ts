@@ -8,8 +8,10 @@ import {
   companiesTable,
   companyUsersTable,
   vatAdjustmentsTable,
+  vatExceptionsTable,
   vatReturnAuditsTable,
   vatReturnsTable,
+  vatTaxRulesTable,
 } from "@workspace/db/schema";
 import { db, pool } from "@workspace/db";
 import { createApp } from "../../app.js";
@@ -55,7 +57,9 @@ async function addTestMembership(companyId: string, userId: string, role = "owne
 async function removeTestData(companyIds: string[]) {
   await db.delete(companyUsersTable).where(inArray(companyUsersTable.company_id, companyIds));
   await db.delete(vatAdjustmentsTable).where(inArray(vatAdjustmentsTable.company_id, companyIds));
+  await db.delete(vatExceptionsTable).where(inArray(vatExceptionsTable.company_id, companyIds));
   await db.delete(vatReturnAuditsTable).where(inArray(vatReturnAuditsTable.company_id, companyIds));
+  await db.delete(vatTaxRulesTable).where(inArray(vatTaxRulesTable.company_id, companyIds));
   await db.delete(vatReturnsTable).where(inArray(vatReturnsTable.company_id, companyIds));
   await db.delete(companiesTable).where(inArray(companiesTable.id, companyIds));
 }
@@ -188,6 +192,153 @@ test("VAT HTTP integration: read-only members cannot mutate protected VAT workfl
   const audits = await db.select().from(vatReturnAuditsTable)
     .where(eq(vatReturnAuditsTable.vat_return_id, vatReturn.id));
   assert.equal(audits.length, 0);
+});
+
+test("VAT HTTP integration: read-only members cannot mutate the remaining VAT workspace", async (t) => {
+  const company = await createTestCompany("read-only-workspace");
+  const userId = `vat-read-only-${randomUUID()}`;
+  const vatReturn = await createTestReturn(company.id);
+  await addTestMembership(company.id, userId, "read_only");
+  t.after(async () => removeTestData([company.id]));
+
+  await db.update(vatReturnsTable).set({ status: "draft" })
+    .where(eq(vatReturnsTable.id, vatReturn.id));
+  const [taxRule] = await db.insert(vatTaxRulesTable).values({
+    company_id: company.id,
+    code: "STANDARD",
+    label: "Standard rate",
+    rate: "20.00",
+    effective_from: period.start,
+  }).returning();
+  const [exception] = await db.insert(vatExceptionsTable).values({
+    company_id: company.id,
+    dedupe_key: `read-only-exception-${randomUUID()}`,
+    period_start: period.start,
+    period_end: period.end,
+    exception_type: "missing_treatment",
+    severity: "medium",
+    title: "VAT treatment needs review",
+    status: "open",
+  }).returning();
+  const [adjustment] = await db.insert(vatAdjustmentsTable).values({
+    company_id: company.id,
+    vat_return_id: vatReturn.id,
+    period_start: period.start,
+    period_end: period.end,
+    box_number: 1,
+    amount: "10.00",
+    reason: "Seeded adjustment",
+    status: "pending",
+  }).returning();
+  assert.ok(taxRule && exception && adjustment, "VAT workspace fixtures should be created");
+
+  const ready = await api.request(userId, "POST", `/api/ai/accountant/vat/returns/${vatReturn.id}/ready`, {
+    company_id: company.id,
+  });
+  assert.equal(ready.status, 403);
+  assert.match(ready.body.error ?? "", /role does not permit this operation/);
+
+  const [returnAfterReadyAttempt] = await db.select().from(vatReturnsTable)
+    .where(eq(vatReturnsTable.id, vatReturn.id));
+  assert.equal(returnAfterReadyAttempt?.status, "draft");
+
+  await db.update(vatReturnsTable).set({ status: "approved", locked: true })
+    .where(eq(vatReturnsTable.id, vatReturn.id));
+
+  const responses = await Promise.all([
+    api.request(userId, "POST", "/api/ai/accountant/vat/review/refresh", {
+      company_id: company.id,
+      period_start: period.start,
+      period_end: period.end,
+    }),
+    api.request(userId, "POST", `/api/ai/accountant/vat/exceptions/${exception.id}/resolve`, {
+      company_id: company.id,
+      note: "Read-only exception resolution attempt",
+    }),
+    api.request(userId, "PUT", "/api/ai/accountant/vat/settings", {
+      company_id: company.id,
+      vat_number: "GB123456789",
+    }),
+    api.request(userId, "POST", "/api/ai/accountant/vat/tax-rules", {
+      company_id: company.id,
+      code: "REDUCED",
+      label: "Reduced rate",
+      rate: 5,
+      effective_from: period.start,
+    }),
+    api.request(userId, "POST", "/api/ai/accountant/vat/returns", {
+      company_id: company.id,
+      period_start: "2026-04-01",
+      period_end: "2026-06-30",
+    }),
+    api.request(userId, "POST", `/api/ai/accountant/vat/returns/${vatReturn.id}/revision`, {
+      company_id: company.id,
+    }),
+    api.request(userId, "POST", `/api/ai/accountant/vat/adjustments/${adjustment.id}/approve`, {
+      company_id: company.id,
+    }),
+  ]);
+
+  for (const response of responses) {
+    assert.equal(response.status, 403);
+    assert.match(response.body.error ?? "", /role does not permit this operation/);
+  }
+
+  const [[unchangedCompany], taxRules, [unchangedException], returns, [unchangedAdjustment], audits] = await Promise.all([
+    db.select().from(companiesTable).where(eq(companiesTable.id, company.id)),
+    db.select().from(vatTaxRulesTable).where(eq(vatTaxRulesTable.company_id, company.id)),
+    db.select().from(vatExceptionsTable).where(eq(vatExceptionsTable.id, exception.id)),
+    db.select().from(vatReturnsTable).where(eq(vatReturnsTable.company_id, company.id)),
+    db.select().from(vatAdjustmentsTable).where(eq(vatAdjustmentsTable.id, adjustment.id)),
+    db.select().from(vatReturnAuditsTable).where(eq(vatReturnAuditsTable.company_id, company.id)),
+  ]);
+  assert.equal(unchangedCompany?.vat_number, null);
+  assert.deepEqual(taxRules.map((rule) => rule.id), [taxRule.id]);
+  assert.equal(unchangedException?.status, "open");
+  assert.equal(unchangedException?.resolved_by, null);
+  assert.equal(returns.length, 1);
+  assert.equal(returns[0]?.id, vatReturn.id);
+  assert.equal(returns[0]?.status, "approved");
+  assert.equal(returns[0]?.locked, true);
+  assert.equal(unchangedAdjustment?.status, "pending");
+  assert.equal(unchangedAdjustment?.approved_by, null);
+  assert.equal(audits.length, 0);
+});
+
+test("VAT HTTP integration: standard members retain VAT workflow write access", async (t) => {
+  const company = await createTestCompany("standard-member-workflow");
+  const userId = `vat-member-${randomUUID()}`;
+  const vatReturn = await createTestReturn(company.id);
+  await addTestMembership(company.id, userId, "member");
+  t.after(async () => removeTestData([company.id]));
+
+  await db.update(vatReturnsTable).set({ status: "draft" })
+    .where(eq(vatReturnsTable.id, vatReturn.id));
+
+  const [settings, taxRule, ready] = await Promise.all([
+    api.request(userId, "PUT", "/api/ai/accountant/vat/settings", {
+      company_id: company.id,
+      vat_number: "GB987654321",
+    }),
+    api.request(userId, "POST", "/api/ai/accountant/vat/tax-rules", {
+      company_id: company.id,
+      code: "REDUCED",
+      label: "Reduced rate",
+      rate: 5,
+      effective_from: period.start,
+    }),
+    api.request(userId, "POST", `/api/ai/accountant/vat/returns/${vatReturn.id}/ready`, {
+      company_id: company.id,
+    }),
+  ]);
+
+  assert.equal(settings.status, 200);
+  assert.equal(taxRule.status, 200);
+  assert.equal(ready.status, 200);
+
+  const [updatedReturn] = await db.select().from(vatReturnsTable)
+    .where(eq(vatReturnsTable.id, vatReturn.id));
+  assert.equal(updatedReturn?.status, "ready_for_review");
 });
 
 test("VAT HTTP integration: concurrent approval and recalculation preserve one locked, audited return", async (t) => {
