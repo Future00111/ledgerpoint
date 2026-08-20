@@ -1,0 +1,325 @@
+DO NOT IMPLEMENT OR PUBLISH ANYTHING.
+
+We have now completed the read-only product gap analysis. The analysis confirms that Ledgerly is approximately 40% product-complete and approximately 20% release-ready, with many existing screens and endpoints representing partial workflows rather than completed accounting functionality.
+
+Before any further implementation, I want a COMPLETE PRODUCT DEFINITION / SCOPE-LOCK PASS.
+
+Your job in this task is planning and analysis only. Do not modify application code, database schema, configuration, dependencies, routes, UI, or deployment settings.
+
+Use:
+1. The existing in-repo product manifest/governance documents.
+2. The Phase A–J roadmap from the gap analysis.
+3. The complete feature matrix and master backlog from the gap analysis.
+4. The current repository structure and existing implementation.
+
+Produce a definitive "Ledgerly Product Scope & Build Specification".
+
+The purpose is to establish exactly what the finished Ledgerly product is supposed to contain BEFORE we continue building it.
+
+Cover ALL of the following:
+
+1. PRODUCT SCOPE
+Define the complete finished Ledgerly product, not merely the currently implemented features.
+
+2. MODULE INVENTORY
+Create the authoritative list of every module required for the finished product, including:
+- Authentication/onboarding
+- Companies
+- Users/teams/permissions
+- Dashboard
+- Customers
+- Suppliers
+- Contacts
+- Products/services/items
+- Quotes/estimates
+- Sales invoices
+- Credit notes
+- Purchase orders
+- Purchase bills
+- Payments
+- Customer balances
+- Supplier balances
+- Banking
+- Bank transaction importing
+- Categorisation
+- Transfers
+- Recurring transactions
+- Reconciliation
+- Chart of accounts
+- Accounting configuration
+- Journals
+- Adjustments
+- Financial periods/years
+- VAT
+- VAT returns
+- Accounts receivable
+- Accounts payable
+- Collections
+- Reporting
+- P&L
+- Balance Sheet
+- Trial Balance
+- General Ledger
+- Aged debtors
+- Aged creditors
+- Cash/cashflow reporting
+- Documents
+- Email capture/delivery
+- AI Accountant
+- Ask
+- AI tasks/reviews/approvals
+- Automation
+- Notifications
+- Audit/activity history
+- Search/filtering
+- Import/export
+- Settings
+- Mobile/responsive UX
+- Integrations
+- Production/release controls
+
+Add anything else required for a credible UK small-business accounting product.
+
+3. USER WORKFLOWS
+For EVERY major module define the complete intended lifecycle.
+
+Use explicit workflows such as:
+
+Create → Validate → Save → Review → Approve → Post → Allocate/Pay → Journal → Report → Audit
+
+Do not treat a screen or CRUD operation as complete unless the downstream accounting consequences are defined.
+
+4. ACCOUNTING AUTHORITY
+Define the canonical accounting architecture.
+
+Specify:
+- source transactions
+- posting engine
+- double-entry journals
+- immutable posted records
+- reversals/corrections
+- periods
+- account balances
+- VAT evidence
+- payment allocation
+- reconciliation effects
+- reporting source of truth
+- audit trail
+
+Identify exactly what must become authoritative before the UI is considered complete.
+
+5. DATA MODEL
+Create an authoritative entity/data-model inventory.
+
+For every major entity identify:
+- purpose
+- key fields
+- relationships
+- ownership/company scoping
+- lifecycle/status
+- whether mutable after posting
+- accounting consequences
+- audit requirements
+
+Do not implement the schema.
+
+6. PERMISSIONS AND SECURITY
+Define the complete role/capability model.
+
+Specify:
+- roles
+- capabilities
+- read/write permissions
+- financial write permissions
+- approval permissions
+- VAT permissions
+- company/member restrictions
+- inactive-member behaviour
+- tenant isolation
+- server-side enforcement requirements
+
+7. REPORTING
+Define every authoritative accounting and management report required.
+
+At minimum consider:
+- Profit & Loss
+- Balance Sheet
+- Trial Balance
+- General Ledger
+- Accounts Receivable
+- Accounts Payable
+- Aged Debtors
+- Aged Creditors
+- Customer statements
+- Supplier statements
+- VAT reports
+- Cash/bank reports
+- Cashflow/cash position
+- Management reporting
+
+For each report define its source of truth and required drill-down.
+
+8. AI / ASK
+Define exactly what AI Accountant and Ask should be able to:
+- read
+- explain
+- recommend
+- create
+- modify
+- approve
+- execute
+
+Separate read-only, draft, approval-required and prohibited actions.
+
+9. AUTOMATION
+Define the complete automation model including:
+- triggers
+- schedules
+- drafts
+- approvals
+- execution
+- idempotency
+- retries
+- auditability
+- notifications
+- failure handling
+
+10. DOCUMENTS AND EMAIL
+Resolve the complete intended workflow for:
+document upload → storage → extraction → review → create transaction → approval → posting
+
+and:
+
+invoice/bill/document → email → delivery → audit
+
+Identify provider decisions that must be made.
+
+11. BANKING / OPEN BANKING
+Define the intended final banking experience.
+
+Separate:
+- CSV import
+- manual transactions
+- reconciliation
+- categorisation
+- transfers
+- recurring transactions
+- live bank feeds/Open Banking
+
+Identify what is required for launch and what is optional/future scope.
+
+12. VAT
+Define the complete VAT lifecycle, including:
+configuration → calculation → evidence → review → approval → locking → return → filing/export → audit.
+
+Identify any VAT scheme decisions that must be made before implementation.
+
+13. UX / NAVIGATION
+Define the complete application information architecture.
+
+List:
+- primary navigation
+- secondary navigation
+- module pages
+- create/edit/view pages
+- dashboards
+- detail pages
+- workflows
+- modals/drawers
+- mobile behaviour
+- global search
+- filtering
+- notifications
+- task centre
+
+The objective is to ensure we don't build isolated pages that later need restructuring.
+
+14. INTEGRATIONS
+Inventory every external integration required or potentially required:
+- authentication
+- email
+- document storage
+- OCR/extraction
+- AI
+- Open Banking
+- accounting/export integrations
+- payment providers if applicable
+
+For each, state whether it is:
+REQUIRED / OPTIONAL / FUTURE / NOT IN SCOPE.
+
+15. PRODUCT DECISIONS
+Create a separate list called "DECISIONS REQUIRED BEFORE BUILD".
+
+This must contain every unresolved product decision discovered during the analysis.
+
+Do not silently make decisions on my behalf.
+
+Examples include:
+- Contacts model
+- Quotes/estimates
+- Purchase orders
+- Items/products/services
+- VAT schemes
+- Open Banking provider
+- email provider
+- document storage provider
+- payment functionality
+- accounting period model
+- recurring transaction behaviour
+- notification model
+- AI action boundaries
+- supported currencies
+- supported countries/tax regimes
+- integrations
+- pricing/subscription scope if relevant
+
+16. BUILD ORDER
+Using the dependency graph, produce the definitive implementation order.
+
+Do not simply repeat the existing Phase A–J roadmap.
+
+Re-evaluate it against the complete product definition and identify whether phases need to be:
+- retained
+- reordered
+- split
+- combined
+- expanded
+
+17. DEFINITION OF DONE
+For every major module define what "complete" means.
+
+A feature must not be considered complete merely because:
+- a page exists
+- an endpoint exists
+- a record can be created
+- a database table exists
+
+Completion must mean the intended user workflow works end-to-end and produces the correct downstream accounting/reporting/audit effects.
+
+18. FINAL OUTPUT
+Finish with:
+
+A. Authoritative product/module inventory
+B. Unresolved product decisions
+C. Dependency graph
+D. Revised build phases
+E. Definition of done for every phase
+F. Definition of done for every major module
+G. Risks and architectural decisions
+H. Items that must NOT be built yet
+I. Recommended next action
+
+IMPORTANT:
+
+This is a READ-ONLY PRODUCT PLANNING TASK.
+
+Do not modify code.
+Do not modify the database.
+Do not create migrations.
+Do not create routes.
+Do not alter the UI.
+Do not install dependencies.
+Do not publish or deploy anything.
+
+We are deliberately doing this planning pass first so that the entire product is defined before implementation continues.
