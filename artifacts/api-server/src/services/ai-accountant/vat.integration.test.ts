@@ -132,6 +132,69 @@ test.before(async () => {
   api = await startAuthenticatedApi();
 });
 
+test("Rich text security integration: crafted markup remains inert data and tenant scoped", async (t) => {
+  const companyA = await createTestCompany("rich-text-owner");
+  const companyB = await createTestCompany("rich-text-isolation");
+  const ownerA = `rich-text-owner-${randomUUID()}`;
+  const ownerB = `rich-text-other-${randomUUID()}`;
+  await addTestMembership(companyA.id, ownerA);
+  await addTestMembership(companyB.id, ownerB);
+  t.after(async () => removeTestData([companyA.id, companyB.id]));
+
+  const payload = [
+    '<img src=x onerror="globalThis.__ledgerlyXss=1">',
+    '<a href="javascript:globalThis.__ledgerlyXss=2">unsafe link</a>',
+    '<svg><script>globalThis.__ledgerlyXss=3</script></svg>',
+    '<iframe src="javascript:globalThis.__ledgerlyXss=4"></iframe>',
+    '<object data="javascript:globalThis.__ledgerlyXss=5"></object>',
+    '<div><b>malformed rich text',
+  ].join("\n");
+  const lineItems = [{
+    description: payload,
+    quantity: 1,
+    unit_price: 10,
+    amount: 10,
+    vat_rate: "20",
+    vat_amount: 2,
+    line_total: 12,
+  }];
+
+  const created = await api.request(ownerA, "POST", "/api/entities/SalesInvoice", {
+    company_id: companyA.id,
+    customer_name: "Rich text test customer",
+    invoice_number: `XSS-${randomUUID()}`,
+    issue_date: "2026-08-20",
+    due_date: "2026-09-19",
+    payment_terms: 30,
+    status: "draft",
+    notes: payload,
+    line_items: lineItems,
+    subtotal: 10,
+    vat_total: 2,
+    total: 12,
+    balance_due: 12,
+  });
+  assert.equal(created.status, 201);
+  const createdInvoice = created.body as unknown as Record<string, unknown>;
+  assert.equal(createdInvoice["company_id"], companyA.id);
+  assert.equal(createdInvoice["notes"], payload);
+  assert.deepEqual(createdInvoice["line_items"], lineItems);
+  const invoiceId = createdInvoice["id"] as string;
+  assert.ok(invoiceId, "created invoice should have an id");
+
+  const ownerRead = await api.request(ownerA, "GET", `/api/entities/SalesInvoice/${invoiceId}`);
+  assert.equal(ownerRead.status, 200);
+  const ownerInvoice = ownerRead.body as unknown as Record<string, unknown>;
+  assert.equal(ownerInvoice["notes"], payload);
+  assert.deepEqual(ownerInvoice["line_items"], lineItems);
+
+  const otherTenantRead = await api.request(ownerB, "GET", `/api/entities/SalesInvoice/${invoiceId}`);
+  assert.equal(otherTenantRead.status, 403);
+
+  const crossTenantList = await api.request(ownerA, "GET", `/api/entities/SalesInvoice?company_id=${companyB.id}`);
+  assert.equal(crossTenantList.status, 403);
+});
+
 test("VAT HTTP integration: generic VAT return writes are denied to authenticated members", async (t) => {
   const company = await createTestCompany("generic-write-block");
   const userId = `vat-http-${randomUUID()}`;
