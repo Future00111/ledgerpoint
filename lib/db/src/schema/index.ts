@@ -711,7 +711,16 @@ export const aiReconciliationResultsTable = pgTable("ai_reconciliation_results",
   bank_transaction_id: uuid("bank_transaction_id").notNull(),
   status: text("status").default("red"), // green | amber | red
   scenario: text("scenario"), // exact | combination | overpayment | partial | no_match
+  decision_state: text("decision_state").default("REVIEW_REQUIRED"), // UNANALYSED | ANALYSING | READY | REVIEW_REQUIRED | NO_MATCH | PARTIAL_MATCH | MULTI_MATCH | POSSIBLE_DUPLICATE | VAT_REVIEW | APPROVED | RECONCILED | REJECTED
   confidence: integer("confidence").default(0),
+  priority_score: integer("priority_score").default(0),
+  priority_band: text("priority_band").default("low"), // high | medium | low
+  duplicate_flag: boolean("duplicate_flag").default(false),
+  vat_review_required: boolean("vat_review_required").default(false),
+  vat_treatment: text("vat_treatment"), // pending_source_document | standard_rate_provisional | unusual_rate | unsupported_vat_setup
+  analysis_version: text("analysis_version").default("phase5-v1"),
+  analysis_run_id: text("analysis_run_id"),
+  deterministic_signals: jsonb("deterministic_signals").$type<string[]>(),
   transaction_amount: numeric("transaction_amount", { precision: 12, scale: 2 }),
   matched_total: numeric("matched_total", { precision: 12, scale: 2 }),
   remaining: numeric("remaining", { precision: 12, scale: 2 }),
@@ -721,9 +730,14 @@ export const aiReconciliationResultsTable = pgTable("ai_reconciliation_results",
   explanation: text("explanation"),
   recommendation: text("recommendation"),
   category_suggestion: text("category_suggestion"),
+  category_account_id: uuid("category_account_id"),
+  category_account_code: text("category_account_code"),
+  category_account_name: text("category_account_name"),
   category_confidence: integer("category_confidence"),
   ai_provider: text("ai_provider"),
   ai_model: text("ai_model"),
+  previous_decision: text("previous_decision"),
+  final_accounting_action: text("final_accounting_action"),
   approval_state: text("approval_state").default("pending"), // pending | approved | dismissed
   approved_by: text("approved_by"),
   approved_at: timestamp("approved_at", { withTimezone: true }),
@@ -829,6 +843,34 @@ export const aiReviewDecisionsTable = pgTable("ai_review_decisions", {
 });
 export const insertAIReviewDecisionSchema = createInsertSchema(aiReviewDecisionsTable).omit({ id: true, created_at: true, updated_at: true });
 export type AIReviewDecision = typeof aiReviewDecisionsTable.$inferSelect;
+
+// Append-only, evidence-rich audit of transaction analysis and accounting
+// decisions. This is intentionally not exposed through generic CRUD.
+export const aiDecisionAuditsTable = pgTable("ai_decision_audits", {
+  id: primaryId(),
+  company_id: uuid("company_id").notNull(),
+  bank_transaction_id: uuid("bank_transaction_id"),
+  analysis_id: uuid("analysis_id"),
+  recommendation_id: uuid("recommendation_id"),
+  candidate_id: text("candidate_id"),
+  event_type: text("event_type").notNull(), // analysed | approved | rejected | categorised | reconciled | reviewed
+  decision_source: text("decision_source").notNull(), // deterministic | ai | user
+  confidence: integer("confidence"),
+  evidence: jsonb("evidence").$type<Record<string, unknown>>(),
+  previous_state: text("previous_state"),
+  new_state: text("new_state"),
+  user_decision: text("user_decision"),
+  final_accounting_action: text("final_accounting_action"),
+  provider: text("provider"),
+  model: text("model"),
+  user_id: text("user_id"),
+  created_at: createdAt(),
+}, (t) => [
+  index("ai_decision_audits_company_transaction_idx").on(t.company_id, t.bank_transaction_id),
+  index("ai_decision_audits_company_created_idx").on(t.company_id, t.created_at),
+]);
+export const insertAIDecisionAuditSchema = createInsertSchema(aiDecisionAuditsTable).omit({ id: true, created_at: true });
+export type AIDecisionAudit = typeof aiDecisionAuditsTable.$inferSelect;
 
 // ─── TransactionComment ───────────────────────────────────────────────────────
 

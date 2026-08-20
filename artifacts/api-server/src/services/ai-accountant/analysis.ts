@@ -12,7 +12,11 @@
  */
 import { db } from "@workspace/db";
 import {
+  aiDecisionAuditsTable,
   aiReconciliationResultsTable,
+  accountLearningsTable,
+  bankTransactionsTable,
+  chartOfAccountsTable,
   salesInvoicesTable,
   purchaseBillsTable,
   salesCreditNotesTable,
@@ -28,23 +32,74 @@ import {
   type MatchSuggestion,
   type Reconciliation,
 } from "./matcher.js";
-import { categoriseByRules, type CategorySuggestion } from "./categorise.js";
+import { suggestNominalAccount, type CategorySuggestion } from "./categorise.js";
+import { getVATTransactionReview } from "./vat.js";
 
 export interface AnalysisOutput {
   suggestions: Record<string, MatchSuggestion[]>;
   reconciliation: Record<string, Reconciliation>;
   categorisation: Record<string, CategorySuggestion>;
+  decisions: Record<string, {
+    state: string;
+    priority_score: number;
+    priority_band: "high" | "medium" | "low";
+    duplicate_flag: boolean;
+    vat_review_required: boolean;
+    vat_treatment: string;
+    signals: string[];
+  }>;
 }
 
 /** Load all matchable records for a company in parallel. */
 export async function loadCompanyRecords(companyId: string) {
-  const [invoices, bills, salesCNs, supplierCNs] = await Promise.all([
+  const [invoices, bills, salesCNs, supplierCNs, accounts, bankTransactions, accountLearnings] = await Promise.all([
     db.select().from(salesInvoicesTable).where(eq(salesInvoicesTable.company_id, companyId)),
     db.select().from(purchaseBillsTable).where(eq(purchaseBillsTable.company_id, companyId)),
     db.select().from(salesCreditNotesTable).where(eq(salesCreditNotesTable.company_id, companyId)),
     db.select().from(supplierCreditNotesTable).where(eq(supplierCreditNotesTable.company_id, companyId)),
+    db.select().from(chartOfAccountsTable).where(eq(chartOfAccountsTable.company_id, companyId)),
+    db.select().from(bankTransactionsTable).where(eq(bankTransactionsTable.company_id, companyId)),
+    db.select().from(accountLearningsTable).where(eq(accountLearningsTable.company_id, companyId)),
   ]);
-  return { invoices, bills, salesCNs, supplierCNs };
+  return { invoices, bills, salesCNs, supplierCNs, accounts, bankTransactions, accountLearnings };
+}
+
+const pence = (value: unknown) => Math.round(Number(value || 0) * 100);
+const normalise = (value: string | null | undefined) =>
+  (value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+export function detectPossibleDuplicate(txn: BankTxn, companyTransactions: (typeof bankTransactionsTable.$inferSelect)[]) {
+  const amount = pence(Number(txn.money_in || 0) || Number(txn.money_out || 0));
+  const directionIsIn = pence(txn.money_in) > 0;
+  if (!txn.date || amount <= 0) return false;
+  const description = normalise(txn.description);
+  if (!description) return false;
+  return companyTransactions.some((other) => {
+    if (other.id === txn.id || !other.date) return false;
+    const otherAmount = pence(directionIsIn ? other.money_in : other.money_out);
+    if (otherAmount !== amount) return false;
+    const otherDescription = normalise(other.description);
+    if (!otherDescription || (otherDescription !== description && !otherDescription.includes(description) && !description.includes(otherDescription))) return false;
+    const days = Math.abs(new Date(other.date).getTime() - new Date(txn.date!).getTime()) / 86_400_000;
+    return days <= 5;
+  });
+}
+
+export function deriveDecision(
+  recon: Reconciliation,
+  duplicate: boolean,
+  vatReviewRequired: boolean,
+): { state: string; priority: number; band: "high" | "medium" | "low"; signals: string[] } {
+  const signals = [...recon.possible_explanations];
+  let state = "REVIEW_REQUIRED";
+  let priority = 55;
+  if (recon.scenario === "no_match") { state = "NO_MATCH"; priority = 70; }
+  if (recon.scenario === "partial") { state = "PARTIAL_MATCH"; priority = 75; }
+  if (recon.scenario === "combination") { state = "MULTI_MATCH"; priority = 60; }
+  if (recon.scenario === "exact" && recon.confidence >= 90) { state = "READY"; priority = 25; }
+  if (duplicate) { state = "POSSIBLE_DUPLICATE"; priority = 95; signals.push("A nearby transaction has the same direction, amount, and similar description."); }
+  if (vatReviewRequired) { state = "VAT_REVIEW"; priority = Math.max(priority, 80); signals.push("The transaction carries an unusual VAT rate and needs tax treatment review."); }
+  return { state, priority, band: priority >= 80 ? "high" : priority >= 50 ? "medium" : "low", signals: signals.slice(0, 8) };
 }
 
 /**
@@ -61,11 +116,13 @@ export async function analyseTransactions(
   const suggestions: Record<string, MatchSuggestion[]> = {};
   const reconciliation: Record<string, Reconciliation> = {};
   const categorisation: Record<string, CategorySuggestion> = {};
+  const decisions: AnalysisOutput["decisions"] = {};
 
-  if (txns.length === 0) return { suggestions, reconciliation, categorisation };
+  if (txns.length === 0) return { suggestions, reconciliation, categorisation, decisions };
 
   const records = await loadCompanyRecords(companyId);
   const rows: (typeof aiReconciliationResultsTable.$inferInsert)[] = [];
+  const analysisRunId = `phase5-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   for (const txn of txns) {
     const scored = scoreTransaction(txn, records);
@@ -79,9 +136,23 @@ export async function analyseTransactions(
     // Categorisation only matters when there's nothing to match against.
     let cat: CategorySuggestion | null = null;
     if (recon.scenario === "no_match") {
-      cat = categoriseByRules(txn);
+      cat = suggestNominalAccount(txn, records.accounts, records.accountLearnings);
       if (cat) categorisation[txn.id] = cat;
     }
+    const duplicate = detectPossibleDuplicate(txn, records.bankTransactions);
+    const vatReview = await getVATTransactionReview(companyId, txn, recon.matched_records);
+    const vatReviewRequired = vatReview.review_required;
+    const decision = deriveDecision(recon, duplicate, vatReviewRequired);
+    decision.signals.push(vatReview.detail);
+    decisions[txn.id] = {
+      state: decision.state,
+      priority_score: decision.priority,
+      priority_band: decision.band,
+      duplicate_flag: duplicate,
+      vat_review_required: vatReviewRequired,
+      vat_treatment: vatReview.treatment,
+      signals: decision.signals,
+    };
 
     // Optional AI explanation (single-transaction mode only, text-only output).
     let explanation: string | null = null;
@@ -134,16 +205,28 @@ export async function analyseTransactions(
       bank_transaction_id: txn.id,
       status: recon.status,
       scenario: recon.scenario,
+      decision_state: decision.state,
       confidence: recon.confidence,
+      priority_score: decision.priority,
+      priority_band: decision.band,
+      duplicate_flag: duplicate,
+      vat_review_required: vatReviewRequired,
+      vat_treatment: vatReview.treatment,
+      analysis_version: "phase5-v1",
+      analysis_run_id: analysisRunId,
+      deterministic_signals: decision.signals,
       transaction_amount: recon.transaction_amount.toFixed(2),
       matched_total: recon.matched_total.toFixed(2),
       remaining: recon.remaining.toFixed(2),
       matched_records: recon.matched_records as unknown as Record<string, unknown>[],
       potential_matches: recon.potential_matches as unknown as Record<string, unknown>[],
       possible_explanations: recon.possible_explanations,
-      explanation,
+      explanation: explanation || recon.possible_explanations[0] || null,
       recommendation: recon.recommendation,
       category_suggestion: cat?.category ?? null,
+      category_account_id: cat?.account_id ?? null,
+      category_account_code: cat?.account_code ?? null,
+      category_account_name: cat?.account_name ?? null,
       category_confidence: cat?.confidence ?? null,
       ai_provider: aiProvider,
       ai_model: aiModel,
@@ -165,7 +248,27 @@ export async function analyseTransactions(
               eq(aiReconciliationResultsTable.approval_state, "pending"),
             ),
           );
-        await tx.insert(aiReconciliationResultsTable).values(rows);
+        const created = await tx.insert(aiReconciliationResultsTable).values(rows).returning();
+        await tx.insert(aiDecisionAuditsTable).values(created.map((result) => ({
+          company_id: companyId,
+          bank_transaction_id: result.bank_transaction_id,
+          analysis_id: result.id,
+          event_type: "analysed",
+          decision_source: "deterministic",
+          confidence: result.confidence,
+          previous_state: "UNANALYSED",
+          new_state: result.decision_state,
+          evidence: {
+            scenario: result.scenario,
+            signals: result.deterministic_signals,
+            potential_matches: result.potential_matches,
+            duplicate_flag: result.duplicate_flag,
+            vat_review_required: result.vat_review_required,
+            analysis_run_id: analysisRunId,
+          },
+          provider: result.ai_provider,
+          model: result.ai_model,
+        })));
       });
     } catch (err) {
       // Persistence is an enhancement on top of the live analysis. If it
@@ -176,5 +279,5 @@ export async function analyseTransactions(
     }
   }
 
-  return { suggestions, reconciliation, categorisation };
+  return { suggestions, reconciliation, categorisation, decisions };
 }

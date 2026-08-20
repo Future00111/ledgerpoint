@@ -37,6 +37,8 @@ export const aiApi = {
     api('/api/ai/insights', { method: 'POST', body: JSON.stringify({ company_id: companyId }) }),
   analyse: (companyId) =>
     api('/api/ai/reconciliation/analyse', { method: 'POST', body: JSON.stringify({ company_id: companyId }) }),
+  transactionReview: (companyId, state) =>
+    api(`/api/ai/accountant/transaction-review?company_id=${q(companyId)}${state && state !== 'all' ? `&state=${q(state)}` : ''}`),
   collectionsOverview: (companyId) =>
     api(`/api/ai/accountant/collections/overview?company_id=${q(companyId)}`),
   refreshCollections: (companyId) =>

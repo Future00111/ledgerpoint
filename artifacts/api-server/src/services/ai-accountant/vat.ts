@@ -6,6 +6,7 @@
  */
 import { db } from "@workspace/db";
 import {
+  bankTransactionsTable,
   companiesTable,
   purchaseBillsTable,
   salesCreditNotesTable,
@@ -17,7 +18,7 @@ import {
   vatReturnsTable,
   vatTaxRulesTable,
 } from "@workspace/db/schema";
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import type { VATBoxMap } from "./vatMath.js";
 import { isAdjustableVATBox } from "./vatMath.js";
 
@@ -30,6 +31,108 @@ const standardRates = [0, 5, 20];
 
 type BoxMap = VATBoxMap;
 type SourceType = "sales_invoice" | "sales_credit_note" | "purchase_bill" | "supplier_credit_note";
+
+export interface VATTransactionReview {
+  treatment: "source_document" | "pending_source_document" | "standard_rate_provisional" | "unusual_rate" | "unsupported_vat_setup";
+  review_required: boolean;
+  detail: string;
+  rate: number | null;
+}
+
+/**
+ * Deterministic VAT treatment for a bank-feed item before it is reconciled.
+ * Bank transactions do not contribute directly to Boxes 1–9: source invoices
+ * and bills do. This prevents a bank-feed VAT rate from silently changing a
+ * return while still identifying unsupported setups and unusual provisional
+ * rates for the review queue.
+ */
+export async function getVATTransactionReview(
+  companyId: string,
+  transaction: Pick<typeof bankTransactionsTable.$inferSelect, "vat_rate">,
+  matchedRecords: Array<{ record_type: string; record_id: string; confidence: number }> = [],
+): Promise<VATTransactionReview> {
+  const [company] = await db.select({
+    vat_scheme: companiesTable.vat_scheme,
+    vat_accounting_basis: companiesTable.vat_accounting_basis,
+  }).from(companiesTable).where(eq(companiesTable.id, companyId)).limit(1);
+  if (!company) throw new Error("Company not found");
+  if ((company.vat_scheme && company.vat_scheme !== "standard") ||
+    (company.vat_accounting_basis && company.vat_accounting_basis !== "invoice")) {
+    return {
+      treatment: "unsupported_vat_setup",
+      review_required: true,
+      rate: transaction.vat_rate == null ? null : Number(transaction.vat_rate),
+      detail: "VAT setup is outside the currently supported standard, invoice-basis treatment; review before relying on VAT analysis.",
+    };
+  }
+  // A credible invoice or bill is the authoritative source for VAT treatment.
+  // The bank feed rate is never used to calculate Boxes 1–9.
+  const invoiceIds = matchedRecords
+    .filter((match) => match.record_type === "sales_invoice" && match.confidence >= 50)
+    .map((match) => match.record_id);
+  const billIds = matchedRecords
+    .filter((match) => match.record_type === "purchase_bill" && match.confidence >= 50)
+    .map((match) => match.record_id);
+  if (invoiceIds.length || billIds.length) {
+    const [invoices, bills] = await Promise.all([
+      invoiceIds.length
+        ? db.select().from(salesInvoicesTable).where(and(eq(salesInvoicesTable.company_id, companyId), inArray(salesInvoicesTable.id, invoiceIds)))
+        : Promise.resolve([]),
+      billIds.length
+        ? db.select().from(purchaseBillsTable).where(and(eq(purchaseBillsTable.company_id, companyId), inArray(purchaseBillsTable.id, billIds)))
+        : Promise.resolve([]),
+    ]);
+    const sources = [...invoices, ...bills];
+    if (sources.length === invoiceIds.length + billIds.length) {
+      const unusual = sources.some((source) => {
+        const net = toPence(source.subtotal);
+        const vat = toPence(source.vat_total);
+        const rate = effectiveRate(net, vat);
+        return net !== 0 && !standardRates.some((expected) => Math.abs(expected - rate) < 0.01);
+      });
+      if (unusual) {
+        return {
+          treatment: "unusual_rate",
+          review_required: true,
+          rate: null,
+          detail: "A matched invoice or bill has an unusual VAT rate; confirm its source treatment before reconciliation.",
+        };
+      }
+      return {
+        treatment: "source_document",
+        review_required: false,
+        rate: null,
+        detail: "VAT treatment was deterministically established from the matched invoice or bill. Bank-feed metadata does not change VAT return boxes.",
+      };
+    }
+  }
+  const rate = transaction.vat_rate == null || transaction.vat_rate === "" ? null : Number(transaction.vat_rate);
+  if (rate == null || !Number.isFinite(rate)) {
+    return {
+      treatment: "pending_source_document",
+      // A bank-feed entry without an explicit VAT treatment or linked source
+      // document is insufficient evidence for a tax decision. It must never
+      // promote an otherwise strong match into the ready-to-approve queue.
+      review_required: true,
+      rate: null,
+      detail: "VAT is pending the linked invoice, bill, or source evidence; this bank item is not included in VAT return boxes.",
+    };
+  }
+  if (!standardRates.some((expected) => Math.abs(expected - rate) < 0.01)) {
+    return {
+      treatment: "unusual_rate",
+      review_required: true,
+      rate,
+      detail: `The provisional ${rate.toFixed(2)}% rate is outside standard UK VAT rates; confirm source evidence before reconciliation.`,
+    };
+  }
+  return {
+    treatment: "standard_rate_provisional",
+    review_required: false,
+    rate,
+    detail: `A provisional ${rate.toFixed(2)}% rate is recorded. VAT boxes are still driven by the linked source document, not this bank feed entry.`,
+  };
+}
 
 interface VatSource {
   id: string;

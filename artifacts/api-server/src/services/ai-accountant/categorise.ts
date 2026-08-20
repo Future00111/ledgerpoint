@@ -12,7 +12,27 @@ import type { BankTxn } from "./matcher.js";
 export interface CategorySuggestion {
   category: string;
   confidence: number; // 0-100
-  source: "rules" | "ai";
+  source: "rules" | "ai" | "learning";
+  account_id?: string;
+  account_code?: string | null;
+  account_name?: string;
+  evidence?: string[];
+}
+
+export interface NominalAccount {
+  id: string;
+  code: string | null;
+  name: string | null;
+  account_type: string | null;
+}
+
+export interface AccountLearning {
+  party_name: string | null;
+  account_id: string | null;
+  account_code: string | null;
+  account_name: string | null;
+  confidence: unknown;
+  occurrence_count: number | null;
 }
 
 const RULES: { pattern: RegExp; category: string; confidence: number }[] = [
@@ -47,6 +67,81 @@ export function categoriseByRules(txn: BankTxn): CategorySuggestion | null {
   return null;
 }
 
+const normalise = (value: string | null | undefined) =>
+  (value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+/**
+ * Maps a deterministic category (or an exact account-name signal) onto a
+ * company-owned nominal account. A suggestion is never allowed to invent a
+ * chart code: callers only receive an account id/code from the supplied chart.
+ */
+export function suggestNominalAccount(
+  txn: BankTxn,
+  accounts: NominalAccount[],
+  learnings: AccountLearning[] = [],
+): CategorySuggestion | null {
+  if (accounts.length === 0) return null;
+  const text = normalise(`${txn.description || ""} ${txn.reference || ""}`);
+  const direction = Number(txn.money_in || 0) > 0 ? "income" : "expense";
+  const rule = categoriseByRules(txn);
+  const accountsById = new Map(accounts.map((account) => [account.id, account]));
+
+  // Approved company history wins over a generic keyword rule. The account
+  // must still exist in the active chart, so a stale learning row cannot
+  // suggest an unavailable nominal code.
+  const learning = learnings
+    .filter((entry) => entry.party_name && entry.account_id && accountsById.has(entry.account_id))
+    .map((entry) => ({ entry, party: normalise(entry.party_name) }))
+    .filter(({ party }) => party && (text === party || text.includes(party) || party.includes(text)))
+    .sort((a, b) => (b.entry.occurrence_count ?? 0) - (a.entry.occurrence_count ?? 0))[0];
+  if (learning?.entry.account_id) {
+    const account = accountsById.get(learning.entry.account_id)!;
+    return {
+      category: account.name ?? learning.entry.account_name ?? "Account",
+      confidence: Math.min(95, Math.max(80, Math.round(Number(learning.entry.confidence ?? 85)))),
+      source: "learning",
+      account_id: account.id,
+      account_code: account.code,
+      account_name: account.name ?? undefined,
+      evidence: [`Matched an approved company learning for "${learning.entry.party_name}".`],
+    };
+  }
+
+  const candidates = accounts
+    .filter((account) => account.name)
+    .map((account) => {
+      const accountName = normalise(account.name);
+      const nameWords = accountName.split(" ").filter((word) => word.length >= 4);
+      const matchedWords = nameWords.filter((word) => text.includes(word));
+      const typeSignal = direction === "income"
+        ? /income|revenue|sales|turnover/.test(normalise(account.account_type) + " " + accountName)
+        : /expense|cost|overhead|admin|purchases/.test(normalise(account.account_type) + " " + accountName);
+      const categoryMatch = rule && (
+        accountName.includes(normalise(rule.category)) || normalise(rule.category).includes(accountName)
+      );
+      const score = (categoryMatch ? 75 : 0) + Math.min(20, matchedWords.length * 10) + (typeSignal ? 5 : 0);
+      return { account, score, matchedWords, categoryMatch };
+    })
+    .filter((candidate) => candidate.score >= 50)
+    .sort((a, b) => b.score - a.score);
+
+  const best = candidates[0];
+  if (!best || !best.account.name) return null;
+  const confidence = Math.min(95, Math.max(rule?.confidence ?? 50, best.score));
+  return {
+    category: best.account.name,
+    confidence,
+    source: "rules",
+    account_id: best.account.id,
+    account_code: best.account.code,
+    account_name: best.account.name,
+    evidence: [
+      rule ? `Matched bookkeeping rule: ${rule.category}` : "Matched bank description to your chart of accounts",
+      ...(best.matchedWords.length ? [`Matching terms: ${best.matchedWords.join(", ")}`] : []),
+    ],
+  };
+}
+
 /**
  * Batch AI categorisation for transactions the rules couldn't classify.
  * Single completion call; failures degrade gracefully to no suggestion.
@@ -64,9 +159,11 @@ export async function categoriseWithAI(
     amount: Number(t.money_in || 0) + Number(t.money_out || 0),
   }));
 
-  const categories = accountNames.length > 0
-    ? accountNames.join(", ")
-    : "Sales Income, Other Income, Office Supplies, Software Subscriptions, Travel, Motor Expenses, Rent, Utilities, Insurance, Payroll, Taxes, Bank Fees, Bank Interest, IT & Hosting, Professional Fees, Marketing";
+  // AI may rank only accounts which already exist in the company's chart. It
+  // must not fabricate a nominal category or code when the chart is empty.
+  if (accountNames.length === 0) return {};
+  const categories = accountNames.join(", ");
+  const canonicalNames = new Map(accountNames.map((name) => [normalise(name), name]));
 
   try {
     const result = await aiService.complete({
@@ -89,9 +186,10 @@ export async function categoriseWithAI(
     const out: Record<string, CategorySuggestion> = {};
     const validIds = new Set(list.map((l) => l.id));
     for (const s of parsed.suggestions ?? []) {
-      if (!validIds.has(s.id) || typeof s.category !== "string") continue;
+      const canonical = typeof s.category === "string" ? canonicalNames.get(normalise(s.category)) : undefined;
+      if (!validIds.has(s.id) || !canonical) continue;
       out[s.id] = {
-        category: s.category.slice(0, 100),
+        category: canonical.slice(0, 100),
         confidence: Math.max(0, Math.min(100, Math.round(Number(s.confidence) || 50))),
         source: "ai",
       };

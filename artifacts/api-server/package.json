@@ -11,6 +11,7 @@
     "test:matcher": "esbuild src/services/ai-accountant/matcher.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-matcher-scenarios.mjs && node --test /tmp/ledgerly-matcher-scenarios.mjs",
     "test:collections": "esbuild src/services/ai-accountant/collectionsAnalysis.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-collections-scenarios.mjs && node --test /tmp/ledgerly-collections-scenarios.mjs",
     "test:vat": "esbuild src/services/ai-accountant/vat.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-vat-scenarios.mjs && node --test /tmp/ledgerly-vat-scenarios.mjs",
+    "test:phase5": "esbuild src/services/ai-accountant/phase5.scenarios.test.ts --bundle --platform=node --format=cjs --external:pg --external:pino --external:pino-http --external:pino-pretty --external:thread-stream --outfile=.phase5-scenarios.cjs && node --test .phase5-scenarios.cjs; status=$?; rm -f .phase5-scenarios.cjs; exit $status",
     "test:vat:integration": "esbuild src/services/ai-accountant/vat.integration.test.ts --bundle --platform=node --format=cjs --external:pg --external:pino --external:pino-http --external:pino-pretty --external:thread-stream --outfile=.vat-integration-test.cjs && node --test .vat-integration-test.cjs; status=$?; rm -f .vat-integration-test.cjs; exit $status"
   },
   "dependencies": {

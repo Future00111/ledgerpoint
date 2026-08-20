@@ -42,6 +42,8 @@ export default function AIAccountant() {
   const { activeCompany } = useCompany();
   const [summary, setSummary] = useState(null);
   const [collections, setCollections] = useState(null);
+  const [transactionReview, setTransactionReview] = useState(null);
+  const [reviewFilter, setReviewFilter] = useState('all');
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
@@ -51,14 +53,16 @@ export default function AIAccountant() {
   const load = useCallback(async () => {
     if (!activeCompany?.id) return;
     try {
-      const [sumRes, tasksRes, collectionsRes] = await Promise.all([
+      const [sumRes, tasksRes, collectionsRes, reviewRes] = await Promise.all([
         aiApi.taskSummary(activeCompany.id),
         aiApi.tasks(activeCompany.id, ['open', 'reviewing']),
         aiApi.collectionsOverview(activeCompany.id),
+        aiApi.transactionReview(activeCompany.id),
       ]);
       setSummary(sumRes);
       setTasks(tasksRes.tasks || []);
       setCollections(collectionsRes);
+      setTransactionReview(reviewRes);
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
   }, [activeCompany?.id]);
@@ -184,6 +188,47 @@ export default function AIAccountant() {
             </button>
         </div>
       </div>
+
+       {/* Transaction decision queue — analysis is advisory until the user
+           opens Reconciliation and explicitly approves a change. */}
+       <section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-slate-100">
+           <div>
+             <h2 className="text-sm font-black text-slate-900">Transaction review queue</h2>
+             <p className="text-xs text-slate-500 mt-0.5">Prioritised deterministic decisions from your bank feed.</p>
+           </div>
+           <div className="flex gap-1.5 flex-wrap">
+             {[['all', 'All'], ['READY', 'Ready'], ['POSSIBLE_DUPLICATE', 'Duplicates'], ['VAT_REVIEW', 'VAT'], ['NO_MATCH', 'No match']].map(([value, label]) => (
+               <button key={value} type="button" onClick={() => setReviewFilter(value)}
+                 className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors ${reviewFilter === value ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                 {label}
+               </button>
+             ))}
+           </div>
+         </div>
+         <div className="grid grid-cols-2 sm:grid-cols-5 gap-px bg-slate-100 border-b border-slate-100">
+           {[
+             ['Ready', transactionReview?.summary?.ready ?? 0],
+             ['Needs review', transactionReview?.summary?.review ?? 0],
+             ['High priority', transactionReview?.summary?.high_priority ?? 0],
+             ['Duplicates', transactionReview?.summary?.duplicates ?? 0],
+             ['VAT review', transactionReview?.summary?.vat_review ?? 0],
+           ].map(([label, value]) => <div key={label} className="bg-white px-4 py-3"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</p><p className="mt-1 text-xl font-black text-slate-900">{value}</p></div>)}
+         </div>
+         <div className="divide-y divide-slate-100">
+           {(transactionReview?.items || []).filter(({ analysis }) => reviewFilter === 'all' || analysis.decision_state === reviewFilter).slice(0, 8).map(({ analysis, transaction }) => (
+             <button key={analysis.id} type="button" onClick={() => nav(`/reconciliation?transaction_id=${encodeURIComponent(transaction.id)}`)}
+               className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-slate-50 transition-colors">
+               <span className={`h-2 w-2 shrink-0 rounded-full ${analysis.priority_band === 'high' ? 'bg-rose-500' : analysis.decision_state === 'READY' ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+               <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-slate-800">{transaction.description || 'Untitled transaction'}</span><span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{analysis.decision_state.replace(/_/g, ' ')}</span></span>
+               <span className="shrink-0 text-xs font-bold tabular-nums text-slate-700">{gbp(Number(transaction.money_in || transaction.money_out || 0))}</span>
+             </button>
+           ))}
+           {transactionReview && !(transactionReview.items || []).some(({ analysis }) => reviewFilter === 'all' || analysis.decision_state === reviewFilter) && (
+             <p className="px-5 py-6 text-center text-xs text-slate-400">No transactions match this filter.</p>
+           )}
+         </div>
+       </section>
 
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-lg flex items-center gap-2">

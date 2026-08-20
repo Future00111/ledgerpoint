@@ -28,6 +28,7 @@ import {
   customersTable,
   suppliersTable,
   documentsTable,
+  aiReconciliationResultsTable,
   vatReturnsTable,
   journalEntriesTable,
   emailCaptureLogsTable,
@@ -169,6 +170,37 @@ router.post("/:name", async (req: Request, res: Response) => {
               "Provide clear, accurate, and concise answers. Do not provide legal or regulated financial advice.",
           },
         ];
+        if (company_id) {
+          // Give Ask Ledgerly a compact, company-scoped view of the review
+          // queue. It is factual context only: the model cannot approve,
+          // categorise, or alter a transaction.
+          const analyses = await db.select({
+            decision_state: aiReconciliationResultsTable.decision_state,
+            priority_band: aiReconciliationResultsTable.priority_band,
+            duplicate_flag: aiReconciliationResultsTable.duplicate_flag,
+            vat_review_required: aiReconciliationResultsTable.vat_review_required,
+            confidence: aiReconciliationResultsTable.confidence,
+            remaining: aiReconciliationResultsTable.remaining,
+          }).from(aiReconciliationResultsTable).where(and(
+            eq(aiReconciliationResultsTable.company_id, company_id),
+            eq(aiReconciliationResultsTable.approval_state, "pending"),
+          )).limit(100);
+          const byState = analyses.reduce<Record<string, number>>((counts, analysis) => {
+            const state = analysis.decision_state ?? "REVIEW_REQUIRED";
+            counts[state] = (counts[state] ?? 0) + 1;
+            return counts;
+          }, {});
+          chatMessages.push({
+            role: "system",
+            content: `Company transaction-review context (deterministic, current): ${JSON.stringify({
+              total_pending: analyses.length,
+              by_state: byState,
+              possible_duplicates: analyses.filter((analysis) => analysis.duplicate_flag).length,
+              vat_reviews: analyses.filter((analysis) => analysis.vat_review_required).length,
+              high_priority: analyses.filter((analysis) => analysis.priority_band === "high").length,
+            })}. Explain these facts clearly and state that a user must review and explicitly approve any accounting change.`,
+          });
+        }
 
         if (messages && messages.length > 0) {
           for (const m of messages) {
@@ -339,7 +371,7 @@ router.post("/:name", async (req: Request, res: Response) => {
             category,
             vat_rate,
             notes,
-          });
+          }, userId);
           res.json({ success: true, ...result });
         } catch (e) {
           res.status(409).json({ error: e instanceof Error ? e.message : "Reconciliation failed" });
@@ -499,6 +531,17 @@ router.post("/:name", async (req: Request, res: Response) => {
             }
             return rows;
           });
+          // Imports must enter the same deterministic review queue as manually
+          // entered bank items. Analysis only writes review metadata and never
+          // links, posts, or changes the newly-created transactions.
+          try {
+            await analyseTransactions(companyId, created, { persist: true });
+          } catch (analysisError) {
+            // The import itself is valid bookkeeping data. Preserve it when
+            // optional analysis is temporarily unavailable, and surface the
+            // failure in server logs rather than silently losing the receipt.
+            req.log.warn({ err: analysisError, company_id: companyId }, "Imported transactions were not analysed");
+          }
           res.status(201).json(isBatch ? { success: true, data: created } : { success: true, data: created[0] });
         } catch (e) {
           res.status(400).json({ error: e instanceof Error ? e.message : "Bank transaction could not be recorded" });
@@ -602,6 +645,10 @@ router.post("/:name", async (req: Request, res: Response) => {
 
         // Determine company scope and fetch transactions to score.
         let txnsToScore: (typeof bankTransactionsTable.$inferSelect)[];
+        // Read-only members may inspect deterministic suggestions but must
+        // never create, replace, or audit persisted analysis. Writers use the
+        // same endpoint with persistence enabled.
+        let persistAnalysis = false;
 
         if (bank_transaction_id) {
           // Single-transaction mode: load the specific transaction and derive company from it.
@@ -614,11 +661,13 @@ router.post("/:name", async (req: Request, res: Response) => {
           // Verify the caller is a member of the transaction's actual company.
           const m = await getMembership(userId, txn.company_id);
           if (!m) { res.status(403).json({ error: "Access denied" }); return; }
+          persistAnalysis = !WRITE_BLOCKED_ROLES.has(m.role ?? "");
           txnsToScore = [txn];
         } else if (argCompanyId) {
           // Bulk mode: verify membership then fetch all review-status transactions.
           const m = await getMembership(userId, argCompanyId);
           if (!m) { res.status(403).json({ error: "Access denied" }); return; }
+          persistAnalysis = !WRITE_BLOCKED_ROLES.has(m.role ?? "");
           txnsToScore = await db
             .select()
             .from(bankTransactionsTable)
@@ -641,8 +690,10 @@ router.post("/:name", async (req: Request, res: Response) => {
         // classification + categorisation suggestions, persisted to
         // ai_reconciliation_results (kept separate from final linkage fields).
         const output = await analyseTransactions(companyId, txnsToScore, {
-          persist: true,
-          aiExplanation: Boolean(bank_transaction_id),
+          persist: persistAnalysis,
+          // A text explanation is optional and unavailable for a read-only
+          // page load; read-only access remains entirely side-effect free.
+          aiExplanation: persistAnalysis && Boolean(bank_transaction_id),
         });
         res.json(output);
         break;

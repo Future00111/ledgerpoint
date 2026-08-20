@@ -7,11 +7,15 @@ import type { NextFunction, Request, Response } from "express";
 import {
   companiesTable,
   companyUsersTable,
+  bankTransactionsTable,
+  aiDecisionAuditsTable,
+  aiReconciliationResultsTable,
   vatAdjustmentsTable,
   vatExceptionsTable,
   vatReturnAuditsTable,
   vatReturnsTable,
   vatTaxRulesTable,
+  salesInvoicesTable,
 } from "@workspace/db/schema";
 import { db, pool } from "@workspace/db";
 import { createApp } from "../../app.js";
@@ -55,6 +59,10 @@ async function addTestMembership(companyId: string, userId: string, role = "owne
 }
 
 async function removeTestData(companyIds: string[]) {
+  await db.delete(aiDecisionAuditsTable).where(inArray(aiDecisionAuditsTable.company_id, companyIds));
+  await db.delete(aiReconciliationResultsTable).where(inArray(aiReconciliationResultsTable.company_id, companyIds));
+  await db.delete(bankTransactionsTable).where(inArray(bankTransactionsTable.company_id, companyIds));
+  await db.delete(salesInvoicesTable).where(inArray(salesInvoicesTable.company_id, companyIds));
   await db.delete(companyUsersTable).where(inArray(companyUsersTable.company_id, companyIds));
   await db.delete(vatAdjustmentsTable).where(inArray(vatAdjustmentsTable.company_id, companyIds));
   await db.delete(vatExceptionsTable).where(inArray(vatExceptionsTable.company_id, companyIds));
@@ -192,6 +200,109 @@ test("VAT HTTP integration: read-only members cannot mutate protected VAT workfl
   const audits = await db.select().from(vatReturnAuditsTable)
     .where(eq(vatReturnAuditsTable.vat_return_id, vatReturn.id));
   assert.equal(audits.length, 0);
+});
+
+test("Phase 5 HTTP integration: read-only reconciliation suggestions never persist analysis or audit rows", async (t) => {
+  const company = await createTestCompany("read-only-reconciliation");
+  const userId = `phase5-read-only-${randomUUID()}`;
+  await addTestMembership(company.id, userId, "read_only");
+  const [transaction] = await db.insert(bankTransactionsTable).values({
+    company_id: company.id,
+    date: "2026-08-20",
+    description: "Read-only review receipt",
+    reference: "RO-REVIEW-1",
+    amount: "100.00",
+    money_in: "100.00",
+    money_out: "0.00",
+    status: "review",
+  }).returning();
+  assert.ok(transaction, "test bank transaction should be created");
+  t.after(async () => removeTestData([company.id]));
+
+  const response = await api.request(userId, "POST", "/api/functions/suggestTransactionMatches", {
+    company_id: company.id,
+  });
+  assert.equal(response.status, 200, "read-only users can view deterministic suggestions");
+
+  const [analyses, audits] = await Promise.all([
+    db.select().from(aiReconciliationResultsTable).where(eq(aiReconciliationResultsTable.company_id, company.id)),
+    db.select().from(aiDecisionAuditsTable).where(eq(aiDecisionAuditsTable.company_id, company.id)),
+  ]);
+  assert.equal(analyses.length, 0, "read-only suggestion loads must not persist analysis");
+  assert.equal(audits.length, 0, "read-only suggestion loads must not append audits");
+});
+
+test("Phase 5 HTTP integration: unmatched null-rate bank activity remains VAT review", async (t) => {
+  const company = await createTestCompany("missing-vat-evidence");
+  const userId = `phase5-owner-${randomUUID()}`;
+  await addTestMembership(company.id, userId, "owner");
+  await db.insert(bankTransactionsTable).values({
+    company_id: company.id,
+    date: "2026-08-20",
+    description: "Unexplained VAT evidence receipt",
+    reference: "NO-SOURCE-VAT",
+    amount: "100.00",
+    money_in: "100.00",
+    money_out: "0.00",
+    status: "review",
+    vat_rate: null,
+  });
+  t.after(async () => removeTestData([company.id]));
+
+  const response = await api.request(userId, "POST", "/api/functions/suggestTransactionMatches", {
+    company_id: company.id,
+  });
+  assert.equal(response.status, 200);
+  const [analysis] = await db.select().from(aiReconciliationResultsTable)
+    .where(eq(aiReconciliationResultsTable.company_id, company.id));
+  assert.equal(analysis?.scenario, "no_match");
+  assert.equal(analysis?.vat_treatment, "pending_source_document");
+  assert.equal(analysis?.vat_review_required, true);
+  assert.equal(analysis?.decision_state, "VAT_REVIEW");
+  assert.notEqual(analysis?.decision_state, "READY");
+});
+
+test("Phase 5 HTTP integration: an imported null-rate exact match uses invoice VAT evidence and stays ready", async (t) => {
+  const company = await createTestCompany("source-vat-evidence");
+  const userId = `phase5-owner-${randomUUID()}`;
+  await addTestMembership(company.id, userId, "owner");
+  const invoiceNumber = `INV-SOURCE-${randomUUID().slice(0, 8)}`;
+  await db.insert(salesInvoicesTable).values({
+    company_id: company.id,
+    invoice_number: invoiceNumber,
+    customer_name: "Source VAT customer",
+    issue_date: "2026-08-15",
+    due_date: "2026-09-15",
+    subtotal: "100.00",
+    vat_total: "20.00",
+    total: "120.00",
+    amount_paid: "0.00",
+    balance_due: "120.00",
+    status: "sent",
+  });
+  await db.insert(bankTransactionsTable).values({
+    company_id: company.id,
+    date: "2026-08-20",
+    description: `Source VAT customer ${invoiceNumber}`,
+    reference: invoiceNumber,
+    amount: "120.00",
+    money_in: "120.00",
+    money_out: "0.00",
+    status: "review",
+    vat_rate: null,
+  });
+  t.after(async () => removeTestData([company.id]));
+
+  const response = await api.request(userId, "POST", "/api/functions/suggestTransactionMatches", {
+    company_id: company.id,
+  });
+  assert.equal(response.status, 200);
+  const [analysis] = await db.select().from(aiReconciliationResultsTable)
+    .where(eq(aiReconciliationResultsTable.company_id, company.id));
+  assert.equal(analysis?.scenario, "exact");
+  assert.equal(analysis?.vat_treatment, "source_document");
+  assert.equal(analysis?.vat_review_required, false);
+  assert.equal(analysis?.decision_state, "READY");
 });
 
 test("VAT HTTP integration: read-only members cannot mutate the remaining VAT workspace", async (t) => {

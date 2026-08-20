@@ -42,6 +42,7 @@ export default function Reconciliation() {
   const [suggestions, setSuggestions] = useState({});
   const [aiRecon, setAiRecon] = useState({});
   const [categorisation, setCategorisation] = useState({});
+  const [analysisDecisions, setAnalysisDecisions] = useState({});
   const [loading, setLoading] = useState(true);
   const [accountFilter, setAccountFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -90,7 +91,8 @@ export default function Reconciliation() {
         setSuggestions(body?.suggestions || {});
         setAiRecon(body?.reconciliation || {});
         setCategorisation(body?.categorisation || {});
-      } catch { setSuggestions({}); setAiRecon({}); setCategorisation({}); }
+        setAnalysisDecisions(body?.decisions || {});
+      } catch { setSuggestions({}); setAiRecon({}); setCategorisation({}); setAnalysisDecisions({}); }
     } finally { setLoading(false); }
   }, [activeCompany, requestedTransactionId]);
 
@@ -442,6 +444,7 @@ export default function Reconciliation() {
                       suggestions={suggestions[t.id] || (suggestion ? [suggestion] : [])}
                       aiRecon={aiRecon[t.id]}
                       categorySuggestion={categorisation[t.id]}
+                      analysisDecision={analysisDecisions[t.id]}
                       onMatchMany={(recs) => onMatchMany(t, recs)}
                       bankAccounts={bankAccounts}
                       companyId={activeCompany.id}

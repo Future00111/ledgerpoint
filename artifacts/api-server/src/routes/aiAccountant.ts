@@ -15,14 +15,15 @@ import {
   companyUsersTable,
   bankTransactionsTable,
   chartOfAccountsTable,
+  aiDecisionAuditsTable,
   aiReconciliationResultsTable,
   aiRecommendationsTable,
 } from "@workspace/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, desc } from "drizzle-orm";
 import {
   analyseTransactions,
   applyReconciliationApproval,
-  categoriseByRules,
+  suggestNominalAccount,
   categoriseWithAI,
   generateCompanyInsights,
   getReviewSummary,
@@ -159,6 +160,166 @@ router.get("/reconciliation/results", async (req: Request, res: Response) => {
   res.json({ results: rows });
 });
 
+// ── Phase 5 transaction-analysis workspace ───────────────────────────────────
+// These views intentionally expose the persisted deterministic evidence rather
+// than another transient AI result. Every record is loaded first to derive its
+// company; callers cannot read another company's review queue by guessing IDs.
+router.get("/accountant/transactions/:id/analysis", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const rawId = req.params["id"];
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
+  if (!id) { res.status(400).json({ error: "Transaction id is required" }); return; }
+  const [txn] = await db.select().from(bankTransactionsTable).where(eq(bankTransactionsTable.id, id)).limit(1);
+  if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
+  if (!(await assertMember(userId, txn.company_id, res))) return;
+  const [analysis] = await db.select().from(aiReconciliationResultsTable)
+    .where(and(
+      eq(aiReconciliationResultsTable.company_id, txn.company_id),
+      eq(aiReconciliationResultsTable.bank_transaction_id, txn.id),
+    ))
+    .orderBy(desc(aiReconciliationResultsTable.created_at))
+    .limit(1);
+  res.json({ transaction: txn, analysis: analysis ?? null });
+});
+
+router.get("/accountant/transactions/:id/candidates", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const rawId = req.params["id"];
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
+  if (!id) { res.status(400).json({ error: "Transaction id is required" }); return; }
+  const [txn] = await db.select().from(bankTransactionsTable).where(eq(bankTransactionsTable.id, id)).limit(1);
+  if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
+  if (!(await assertMember(userId, txn.company_id, res))) return;
+  const [analysis] = await db.select({
+    id: aiReconciliationResultsTable.id,
+    decision_state: aiReconciliationResultsTable.decision_state,
+    confidence: aiReconciliationResultsTable.confidence,
+    scenario: aiReconciliationResultsTable.scenario,
+    matched_records: aiReconciliationResultsTable.matched_records,
+    potential_matches: aiReconciliationResultsTable.potential_matches,
+    deterministic_signals: aiReconciliationResultsTable.deterministic_signals,
+  }).from(aiReconciliationResultsTable).where(and(
+    eq(aiReconciliationResultsTable.company_id, txn.company_id),
+    eq(aiReconciliationResultsTable.bank_transaction_id, txn.id),
+  )).orderBy(desc(aiReconciliationResultsTable.created_at)).limit(1);
+  res.json({ analysis_id: analysis?.id ?? null, state: analysis?.decision_state ?? "UNANALYSED", candidates: analysis?.potential_matches ?? [], selected_candidates: analysis?.matched_records ?? [], signals: analysis?.deterministic_signals ?? [] });
+});
+
+router.post("/accountant/transactions/:id/reanalyse", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const rawId = req.params["id"];
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
+  if (!id) { res.status(400).json({ error: "Transaction id is required" }); return; }
+  const [txn] = await db.select().from(bankTransactionsTable).where(eq(bankTransactionsTable.id, id)).limit(1);
+  if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
+  if (!(await assertWriteAccess(userId, txn.company_id, res))) return;
+  if (txn.status !== "review" && txn.status !== "unmatched") {
+    res.status(409).json({ error: "Only unreconciled transactions can be re-analysed" }); return;
+  }
+  const output = await analyseTransactions(txn.company_id, [txn], { persist: true, aiExplanation: true });
+  res.json({ success: true, ...output });
+});
+
+router.post("/accountant/transactions/:id/reject-analysis", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const rawId = req.params["id"];
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
+  if (!id) { res.status(400).json({ error: "Transaction id is required" }); return; }
+  const [txn] = await db.select().from(bankTransactionsTable).where(eq(bankTransactionsTable.id, id)).limit(1);
+  if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
+  if (!(await assertWriteAccess(userId, txn.company_id, res))) return;
+  const result = await db.transaction(async (tx) => {
+    const [analysis] = await tx.select().from(aiReconciliationResultsTable)
+      .where(and(
+        eq(aiReconciliationResultsTable.company_id, txn.company_id),
+        eq(aiReconciliationResultsTable.bank_transaction_id, id),
+        eq(aiReconciliationResultsTable.approval_state, "pending"),
+      ))
+      .orderBy(desc(aiReconciliationResultsTable.created_at)).limit(1);
+    if (!analysis) throw new Error("No pending analysis to reject");
+    const [updated] = await tx.update(aiReconciliationResultsTable).set({
+      approval_state: "dismissed",
+      previous_decision: analysis.decision_state,
+      decision_state: "REJECTED",
+      approved_by: userId,
+      approved_at: new Date(),
+      updated_at: new Date(),
+    }).where(eq(aiReconciliationResultsTable.id, analysis.id)).returning();
+    await tx.insert(aiDecisionAuditsTable).values({
+      company_id: txn.company_id,
+      bank_transaction_id: id,
+      analysis_id: analysis.id,
+      event_type: "rejected",
+      decision_source: "user",
+      confidence: analysis.confidence,
+      previous_state: analysis.decision_state,
+      new_state: "REJECTED",
+      user_decision: "rejected",
+      user_id: userId,
+      evidence: { reason: "User rejected the proposed analysis; no accounting records were changed." },
+    });
+    return updated;
+  }).catch((error) => {
+    res.status(409).json({ error: error instanceof Error ? error.message : "Could not reject analysis" });
+    return null;
+  });
+  if (result) res.json({ success: true, analysis: result });
+});
+
+router.get("/accountant/audit", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  const limit = Math.min(200, Math.max(1, Number(req.query["limit"] || 100)));
+  const events = await db.select().from(aiDecisionAuditsTable)
+    .where(eq(aiDecisionAuditsTable.company_id, companyId))
+    .orderBy(desc(aiDecisionAuditsTable.created_at))
+    .limit(limit);
+  res.json({ events });
+});
+
+router.get("/accountant/transaction-review", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  const requestedState = req.query["state"] as string | undefined;
+  const requestedPriority = req.query["priority"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  const results = await db.select().from(aiReconciliationResultsTable).where(and(
+    eq(aiReconciliationResultsTable.company_id, companyId),
+    eq(aiReconciliationResultsTable.approval_state, "pending"),
+  )).orderBy(desc(aiReconciliationResultsTable.priority_score), desc(aiReconciliationResultsTable.created_at));
+  const filtered = results.filter((result) =>
+    (!requestedState || result.decision_state === requestedState) &&
+    (!requestedPriority || result.priority_band === requestedPriority),
+  );
+  const txnIds = filtered.map((result) => result.bank_transaction_id);
+  const transactions = txnIds.length
+    ? await db.select().from(bankTransactionsTable).where(and(
+      eq(bankTransactionsTable.company_id, companyId),
+      inArray(bankTransactionsTable.id, txnIds),
+    ))
+    : [];
+  const transactionById = new Map(transactions.map((transaction) => [transaction.id, transaction]));
+  const allSummary = results.reduce((summary, result) => {
+    summary.total += 1;
+    if (result.decision_state === "READY") summary.ready += 1;
+    else summary.review += 1;
+    if (result.duplicate_flag) summary.duplicates += 1;
+    if (result.vat_review_required) summary.vat_review += 1;
+    if (result.priority_band === "high") summary.high_priority += 1;
+    return summary;
+  }, { total: 0, ready: 0, review: 0, duplicates: 0, vat_review: 0, high_priority: 0 });
+  res.json({
+    summary: allSummary,
+    items: filtered.map((analysis) => ({
+      analysis,
+      transaction: transactionById.get(analysis.bank_transaction_id) ?? null,
+    })).filter((item) => item.transaction),
+  });
+});
+
 // ── POST /api/ai/reconciliation/approve ──────────────────────────────────────
 // Explicit user approval of matched records — the ONLY mutation in this API.
 router.post("/reconciliation/approve", async (req: Request, res: Response) => {
@@ -219,22 +380,37 @@ router.post("/categorise", async (req: Request, res: Response) => {
   }
   const txns = await db.select().from(bankTransactionsTable).where(and(...conditions));
 
-  const suggestions: Record<string, { category: string; confidence: number; source: string }> = {};
+  const suggestions: Record<string, {
+    category: string; confidence: number; source: string; account_id?: string; account_code?: string | null; account_name?: string;
+  }> = {};
   const unresolved: typeof txns = [];
+  const accounts = await db.select({
+    id: chartOfAccountsTable.id,
+    name: chartOfAccountsTable.name,
+    code: chartOfAccountsTable.code,
+    account_type: chartOfAccountsTable.account_type,
+  }).from(chartOfAccountsTable).where(and(
+    eq(chartOfAccountsTable.company_id, company_id),
+    eq(chartOfAccountsTable.is_active, true),
+  ));
   for (const t of txns) {
-    const byRule = categoriseByRules(t);
+    const byRule = suggestNominalAccount(t, accounts);
     if (byRule) suggestions[t.id] = byRule;
     else unresolved.push(t);
   }
 
   // AI pass only for what the rules couldn't classify.
   if (unresolved.length > 0) {
-    const accounts = await db
-      .select({ name: chartOfAccountsTable.name })
-      .from(chartOfAccountsTable)
-      .where(eq(chartOfAccountsTable.company_id, company_id));
     const aiResults = await categoriseWithAI(unresolved, accounts.map((a) => a.name ?? "").filter(Boolean));
-    Object.assign(suggestions, aiResults);
+    for (const [txnId, suggestion] of Object.entries(aiResults)) {
+      const account = accounts.find((candidate) => candidate.name === suggestion.category);
+      if (account) suggestions[txnId] = {
+        ...suggestion,
+        account_id: account.id,
+        account_code: account.code,
+        account_name: account.name,
+      };
+    }
   }
 
   res.json({ suggestions });

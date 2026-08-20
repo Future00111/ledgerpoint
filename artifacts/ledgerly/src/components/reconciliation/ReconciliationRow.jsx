@@ -20,7 +20,7 @@ const TABS = [
 ];
 
 export default function ReconciliationRow({
-  transaction, suggestions, aiRecon, categorySuggestion, bankAccounts, companyId, onMatch, onMatchMany, onCreate, onTransfer, onSplit, onCollapse, approving,
+  transaction, suggestions, aiRecon, categorySuggestion, analysisDecision, bankAccounts, companyId, onMatch, onMatchMany, onCreate, onTransfer, onSplit, onCollapse, approving,
 }) {
   const [tab, setTab] = useState('match');
   const [more, setMore] = useState(false);
@@ -28,6 +28,14 @@ export default function ReconciliationRow({
   const t = transaction;
   const isIncome = Number(t.money_in || 0) > 0;
   const amount = Number(t.money_in || 0) || Number(t.money_out || 0);
+  const decisionStyle = {
+    READY: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    POSSIBLE_DUPLICATE: 'bg-rose-50 text-rose-700 border-rose-200',
+    VAT_REVIEW: 'bg-amber-50 text-amber-700 border-amber-200',
+    PARTIAL_MATCH: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    MULTI_MATCH: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    NO_MATCH: 'bg-slate-100 text-slate-700 border-slate-200',
+  }[analysisDecision?.state] || 'bg-slate-100 text-slate-600 border-slate-200';
 
   return (
     <div className="flex flex-col md:flex-row relative">
@@ -73,6 +81,16 @@ export default function ReconciliationRow({
 
         <div className="mb-4">
           <h3 className="text-lg font-bold text-slate-900 leading-snug">{t.description || 'Untitled transaction'}</h3>
+          {analysisDecision?.state && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${decisionStyle}`}>
+                {analysisDecision.state.replace(/_/g, ' ')}
+              </span>
+              {analysisDecision.priority_band === 'high' && (
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-rose-600">High priority</span>
+              )}
+            </div>
+          )}
           <p className={`mt-1.5 text-2xl font-black tabular-nums tracking-tight ${isIncome ? 'text-emerald-600' : 'text-slate-900'}`}>
             {isIncome ? '+' : '-'}{gbp(amount).replace('£', '£ ')}
             <span className="ml-2 align-middle text-[10px] text-slate-500 font-bold uppercase tracking-widest">
