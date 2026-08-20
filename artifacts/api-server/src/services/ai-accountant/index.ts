@@ -19,3 +19,4 @@ export * from "./recommendations.js";
 export * from "./explain.js";
 export * from "./taskEngine.js";
 export * from "./collections.js";
+export * from "./vat.js";

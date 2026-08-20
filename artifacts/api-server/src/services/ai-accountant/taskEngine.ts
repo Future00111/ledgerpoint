@@ -21,6 +21,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { analyseTransactions } from "./analysis.js";
 import { runDetectors, type Detection } from "./detectors.js";
 import { buildCustomerFollowUpTasks } from "./collections.js";
+import { getVATOverview } from "./vat.js";
 
 export const AI_TASK_TYPES = [
   "reconciliation",
@@ -209,6 +210,22 @@ function addVatLiabilityTasks(returns: (typeof vatReturnsTable.$inferSelect)[]):
     });
 }
 
+function addVatReviewTasks(overview: Awaited<ReturnType<typeof getVATOverview>>): TaskCandidate[] {
+  return overview.exceptions.map((exception) => ({
+    dedupe_key: `vat_review:${exception.dedupe_key}`,
+    task_type: "vat_warning" as const,
+    priority: exception.severity === "high" ? "high" as const : exception.severity === "medium" ? "medium" as const : "low" as const,
+    title: exception.title,
+    description: exception.detail,
+    confidence_score: exception.severity === "high" ? 95 : 80,
+    source_record_id: exception.source_record_id ?? undefined,
+    source_record_type: exception.source_record_type ?? "vat_exception",
+    recommendation: "Open the VAT workspace, inspect the supporting evidence, and record a review decision. No VAT treatment is changed automatically.",
+    evidence: exception.evidence,
+    route: "/vat",
+  }));
+}
+
 function reconciliationTasks(
   results: (typeof aiReconciliationResultsTable.$inferSelect)[],
 ): TaskCandidate[] {
@@ -352,7 +369,7 @@ function uncategorisedTransactionTask(
 
 async function buildCandidates(companyId: string): Promise<TaskCandidate[]> {
   const todayISO = new Date().toISOString().slice(0, 10);
-  const [detections, reconciliationResults, reviewTransactions, bills, accounts, vatReturns, collectionFollowUps] = await Promise.all([
+  const [detections, reconciliationResults, reviewTransactions, bills, accounts, vatReturns, collectionFollowUps, vatOverview] = await Promise.all([
     runDetectors(companyId),
     db
       .select()
@@ -371,6 +388,7 @@ async function buildCandidates(companyId: string): Promise<TaskCandidate[]> {
     db.select().from(bankAccountsTable).where(eq(bankAccountsTable.company_id, companyId)),
     db.select().from(vatReturnsTable).where(eq(vatReturnsTable.company_id, companyId)),
     buildCustomerFollowUpTasks(companyId),
+    getVATOverview(companyId),
   ]);
 
   const transactionsById = new Map(reviewTransactions.map((transaction) => [transaction.id, transaction]));
@@ -394,6 +412,7 @@ async function buildCandidates(companyId: string): Promise<TaskCandidate[]> {
   const uncategorised = uncategorisedTransactionTask(reviewTransactions);
   if (uncategorised) candidates.push(uncategorised);
   candidates.push(...addVatLiabilityTasks(vatReturns));
+  candidates.push(...addVatReviewTasks(vatOverview));
   const cashFlow = addCashFlowTask(bills, accounts, todayISO);
   if (cashFlow) candidates.push(cashFlow);
   candidates.push(...collectionFollowUps);

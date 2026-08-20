@@ -87,7 +87,7 @@ const ENTITY_MAP: Record<string, AnyTable> = {
 };
 
 /** CompanyUser mutations go through /api/companies; block generic CRUD writes. */
-const READONLY_ENTITIES = new Set(["CompanyUser"]);
+const READONLY_ENTITIES = new Set(["CompanyUser", "VATReturn"]);
 /** Company has no company_id column; scope to membership list via /api/companies. */
 const COMPANY_ENTITY = "Company";
 /** Roles that cannot perform write operations. */
@@ -296,7 +296,7 @@ router.patch("/:entity/bulk-update", async (req: Request, res: Response) => {
     const entityName = req.params["entity"] as string;
 
     if (READONLY_ENTITIES.has(entityName) || entityName === COMPANY_ENTITY) {
-      res.status(403).json({ error: "Use /api/companies for company management" });
+      res.status(403).json({ error: entityName === "VATReturn" ? "Use the VAT Assistant workflow to change VAT returns" : "Use /api/companies for company management" });
       return;
     }
 
@@ -351,7 +351,7 @@ router.post("/:entity/bulk", async (req: Request, res: Response) => {
     const entityName = req.params["entity"] as string;
 
     if (READONLY_ENTITIES.has(entityName) || entityName === COMPANY_ENTITY) {
-      res.status(403).json({ error: "Use /api/companies for company management" });
+      res.status(403).json({ error: entityName === "VATReturn" ? "Use the VAT Assistant workflow to change VAT returns" : "Use /api/companies for company management" });
       return;
     }
 
@@ -402,7 +402,7 @@ router.post("/:entity", async (req: Request, res: Response) => {
     const entityName = req.params["entity"] as string;
 
     if (READONLY_ENTITIES.has(entityName) || entityName === COMPANY_ENTITY) {
-      res.status(403).json({ error: "Use /api/companies for company management" });
+      res.status(403).json({ error: entityName === "VATReturn" ? "Use the VAT Assistant workflow to change VAT returns" : "Use /api/companies for company management" });
       return;
     }
     if (entityName === "BankTransaction") {
@@ -444,7 +444,7 @@ router.put("/:entity/:id", async (req: Request, res: Response) => {
     const id = req.params["id"] as string;
 
     if (READONLY_ENTITIES.has(entityName) || entityName === COMPANY_ENTITY) {
-      res.status(403).json({ error: "Use /api/companies for company management" });
+      res.status(403).json({ error: entityName === "VATReturn" ? "Use the VAT Assistant workflow to change VAT returns" : "Use /api/companies for company management" });
       return;
     }
     if (entityName === "BankTransaction" && hasUnsafeReconciliationMutation(req.body)) {

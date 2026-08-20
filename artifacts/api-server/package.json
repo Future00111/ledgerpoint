@@ -9,7 +9,8 @@
     "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:matcher": "esbuild src/services/ai-accountant/matcher.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-matcher-scenarios.mjs && node --test /tmp/ledgerly-matcher-scenarios.mjs",
-    "test:collections": "esbuild src/services/ai-accountant/collectionsAnalysis.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-collections-scenarios.mjs && node --test /tmp/ledgerly-collections-scenarios.mjs"
+    "test:collections": "esbuild src/services/ai-accountant/collectionsAnalysis.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-collections-scenarios.mjs && node --test /tmp/ledgerly-collections-scenarios.mjs",
+    "test:vat": "esbuild src/services/ai-accountant/vat.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-vat-scenarios.mjs && node --test /tmp/ledgerly-vat-scenarios.mjs"
   },
   "dependencies": {
     "@clerk/express": "^2.1.57",

@@ -56,6 +56,31 @@ export const aiApi = {
       method: 'POST',
       body: JSON.stringify({ company_id: companyId, invoice_id: invoiceId, tone, subject, body, approval_id: approvalId }),
     }),
+  vatOverview: (companyId, periodStart, periodEnd) =>
+    api(`/api/ai/accountant/vat/overview?company_id=${q(companyId)}${periodStart ? `&period_start=${q(periodStart)}` : ''}${periodEnd ? `&period_end=${q(periodEnd)}` : ''}`),
+  refreshVatReview: (companyId, periodStart, periodEnd) =>
+    api('/api/ai/accountant/vat/review/refresh', { method: 'POST', body: JSON.stringify({ company_id: companyId, period_start: periodStart, period_end: periodEnd }) }),
+  vatExceptions: (companyId, periodStart, periodEnd) =>
+    api(`/api/ai/accountant/vat/exceptions?company_id=${q(companyId)}${periodStart ? `&period_start=${q(periodStart)}` : ''}${periodEnd ? `&period_end=${q(periodEnd)}` : ''}`),
+  resolveVatException: (companyId, id, note) =>
+    api(`/api/ai/accountant/vat/exceptions/${q(id)}/resolve`, { method: 'POST', body: JSON.stringify({ company_id: companyId, note }) }),
+  explainVat: (companyId, periodStart, periodEnd, question) =>
+    api('/api/ai/accountant/vat/explain', { method: 'POST', body: JSON.stringify({ company_id: companyId, period_start: periodStart, period_end: periodEnd, question }) }),
+  updateVatSettings: (companyId, settings) =>
+    api('/api/ai/accountant/vat/settings', { method: 'PUT', body: JSON.stringify({ company_id: companyId, ...settings }) }),
+  addVatTaxRule: (companyId, rule) =>
+    api('/api/ai/accountant/vat/tax-rules', { method: 'POST', body: JSON.stringify({ company_id: companyId, ...rule }) }),
+  createVatReturn: (companyId, periodStart, periodEnd) =>
+    api('/api/ai/accountant/vat/returns', { method: 'POST', body: JSON.stringify({ company_id: companyId, period_start: periodStart, period_end: periodEnd }) }),
+  vatReturn: (companyId, id) => api(`/api/ai/accountant/vat/returns/${q(id)}?company_id=${q(companyId)}`),
+  recalculateVatReturn: (companyId, id) =>
+    api(`/api/ai/accountant/vat/returns/${q(id)}/recalculate`, { method: 'POST', body: JSON.stringify({ company_id: companyId }) }),
+  markVatReturnReady: (companyId, id) =>
+    api(`/api/ai/accountant/vat/returns/${q(id)}/ready`, { method: 'POST', body: JSON.stringify({ company_id: companyId }) }),
+  approveVatReturn: (companyId, id, note) =>
+    api(`/api/ai/accountant/vat/returns/${q(id)}/approve`, { method: 'POST', body: JSON.stringify({ company_id: companyId, note }) }),
+  createVatRevision: (companyId, id) =>
+    api(`/api/ai/accountant/vat/returns/${q(id)}/revision`, { method: 'POST', body: JSON.stringify({ company_id: companyId }) }),
 };
 
 export const gbp = (n) => `£${Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}`;

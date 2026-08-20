@@ -45,6 +45,21 @@ import {
   generateReminderDraft,
   approveReminderForEmail,
   recordReminderSent,
+  addVATTaxRule,
+  approveVATAdjustment,
+  approveVATReturn,
+  createVATAdjustment,
+  createVATReturn,
+  createVATRevision,
+  explainVATOverview,
+  getVATOverview,
+  getVATReturnDetail,
+  listVATExceptions,
+  markVATReturnReady,
+  recalculateVATReturn,
+  resolveVATException,
+  syncVATExceptions,
+  updateVATSettings,
   type ReminderTone,
   type AITaskStatus,
   type ApprovalRecord,
@@ -511,6 +526,180 @@ router.post("/accountant/collections/reminders/sent", async (req: Request, res: 
     const message = error instanceof Error ? error.message : "Could not record sent reminder";
     res.status(message.includes("not found") ? 404 : 400).json({ error: message });
   }
+});
+
+// ═══ Phase 4D — VAT Assistant ════════════════════════════════════════════════
+// VAT figures are generated server-side from source documents in integer pence.
+// These routes never change source accounting records and never submit to HMRC.
+
+router.get("/accountant/vat/overview", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  const start = req.query["period_start"] as string | undefined;
+  const end = req.query["period_end"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  try {
+    res.json(await getVATOverview(companyId, start, end));
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Could not calculate VAT overview" });
+  }
+});
+
+router.post("/accountant/vat/review/refresh", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id: companyId, period_start: start, period_end: end } = req.body as { company_id?: string; period_start?: string; period_end?: string };
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try {
+    res.json(await syncVATExceptions(companyId, userId, start, end));
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Could not refresh VAT review" });
+  }
+});
+
+router.get("/accountant/vat/exceptions", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  const start = req.query["period_start"] as string | undefined;
+  const end = req.query["period_end"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  res.json({ exceptions: await listVATExceptions(companyId, start, end) });
+});
+
+router.post("/accountant/vat/exceptions/:id/resolve", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.body?.company_id as string | undefined;
+  const note = req.body?.note as string | undefined;
+  if (!companyId || !note?.trim()) { res.status(400).json({ error: "company_id and a review note are required" }); return; }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try {
+    res.json({ exception: await resolveVATException(companyId, String(req.params["id"]), userId, note.trim()) });
+  } catch (error) {
+    res.status(404).json({ error: error instanceof Error ? error.message : "VAT exception not found" });
+  }
+});
+
+router.post("/accountant/vat/explain", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id: companyId, period_start: start, period_end: end, question } = req.body as { company_id?: string; period_start?: string; period_end?: string; question?: string };
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  try {
+    const overview = await getVATOverview(companyId, start, end);
+    res.json(explainVATOverview(overview, typeof question === "string" ? question.slice(0, 500) : undefined));
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Could not explain VAT position" });
+  }
+});
+
+router.put("/accountant/vat/settings", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id: companyId, ...settings } = req.body as Record<string, unknown> & { company_id?: string };
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try {
+    res.json({ company: await updateVATSettings(companyId, settings, userId) });
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Could not save VAT settings" });
+  }
+});
+
+router.post("/accountant/vat/tax-rules", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id: companyId, ...rule } = req.body as Record<string, unknown> & { company_id?: string };
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try {
+    res.json({ rule: await addVATTaxRule(companyId, rule, userId) });
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Could not create VAT tax rule" });
+  }
+});
+
+router.post("/accountant/vat/returns", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id: companyId, period_start: start, period_end: end } = req.body as { company_id?: string; period_start?: string; period_end?: string };
+  if (!companyId || !start || !end) { res.status(400).json({ error: "company_id, period_start, and period_end are required" }); return; }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try {
+    res.status(201).json(await createVATReturn(companyId, start, end, userId));
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Could not create VAT return" });
+  }
+});
+
+router.get("/accountant/vat/returns/:id", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  try {
+    res.json(await getVATReturnDetail(companyId, String(req.params["id"])));
+  } catch (error) {
+    res.status(404).json({ error: error instanceof Error ? error.message : "VAT return not found" });
+  }
+});
+
+router.post("/accountant/vat/returns/:id/recalculate", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.body?.company_id as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try {
+    res.json(await recalculateVATReturn(companyId, String(req.params["id"]), userId));
+  } catch (error) {
+    res.status(409).json({ error: error instanceof Error ? error.message : "Could not recalculate VAT return" });
+  }
+});
+
+router.post("/accountant/vat/returns/:id/ready", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.body?.company_id as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try { res.json({ vat_return: await markVATReturnReady(companyId, String(req.params["id"]), userId) }); }
+  catch (error) { res.status(409).json({ error: error instanceof Error ? error.message : "Could not mark VAT return ready" }); }
+});
+
+router.post("/accountant/vat/returns/:id/approve", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.body?.company_id as string | undefined;
+  const note = req.body?.note as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try { res.json({ vat_return: await approveVATReturn(companyId, String(req.params["id"]), userId, note) }); }
+  catch (error) { res.status(409).json({ error: error instanceof Error ? error.message : "Could not approve VAT return" }); }
+});
+
+router.post("/accountant/vat/returns/:id/revision", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.body?.company_id as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try { res.status(201).json(await createVATRevision(companyId, String(req.params["id"]), userId)); }
+  catch (error) { res.status(409).json({ error: error instanceof Error ? error.message : "Could not create VAT return revision" }); }
+});
+
+router.post("/accountant/vat/adjustments", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id: companyId, vat_return_id: vatReturnId = null, period_start, period_end, box_number, amount, reason } = req.body as {
+    company_id?: string; vat_return_id?: string | null; period_start?: string; period_end?: string; box_number?: number; amount?: number; reason?: string;
+  };
+  if (!companyId || !period_start || !period_end || box_number == null || amount == null || !reason) { res.status(400).json({ error: "company_id, period, box_number, amount, and reason are required" }); return; }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try { res.status(201).json({ adjustment: await createVATAdjustment(companyId, vatReturnId, { period_start, period_end, box_number, amount, reason }, userId) }); }
+  catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : "Could not create VAT adjustment" }); }
+});
+
+router.post("/accountant/vat/adjustments/:id/approve", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.body?.company_id as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertWriteAccess(userId, companyId, res))) return;
+  try { res.json({ adjustment: await approveVATAdjustment(companyId, String(req.params["id"]), userId) }); }
+  catch (error) { res.status(409).json({ error: error instanceof Error ? error.message : "Could not approve VAT adjustment" }); }
 });
 
 export default router;

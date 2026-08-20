@@ -8,8 +8,6 @@ import moment from 'moment';
 
 const SCHEMES = [
   { value: 'standard', label: 'Standard Accounting' },
-  { value: 'cash_accounting', label: 'Cash Accounting' },
-  { value: 'flat_rate', label: 'Flat Rate' },
 ];
 
 export default function VATReturnForm({ open, onOpenChange, companyScheme, onCreate, creating }) {

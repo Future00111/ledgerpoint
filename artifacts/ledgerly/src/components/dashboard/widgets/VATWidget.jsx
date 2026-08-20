@@ -1,21 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
 import { useWidgetData } from '../useWidgetData';
 import { Skeleton, EmptyState } from '../WidgetPrimitives';
 import { gbp, fmtDate } from '@/lib/format';
 import { nextVatDeadlineDate, currentQuarter } from '@/lib/vat';
-import { Percent, ArrowRight } from 'lucide-react';
+import { Percent, ArrowRight, ShieldCheck } from 'lucide-react';
+import { aiApi } from '@/components/ai-accountant/api';
 
 export default function VATWidget({ company }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, async (cid) => {
-    const [vat, inv, bills] = await Promise.all([
-      base44.entities.VATReturn.filter({ company_id: cid }, '-created_date', 5),
-      base44.entities.SalesInvoice.filter({ company_id: cid }, '-issue_date', 500),
-      base44.entities.PurchaseBill.filter({ company_id: cid }, '-bill_date', 500),
-    ]);
-    return { vat, inv, bills };
+    return aiApi.vatOverview(cid);
   });
 
   if (loading) return <Skeleton className="h-28 w-full" />;
@@ -31,12 +26,9 @@ export default function VATWidget({ company }) {
       />
     );
 
-  const { vat, inv, bills } = data || {};
-  const latest = vat && vat[0];
-  const estimate =
-    (latest && Number(latest.vat_due)) ||
-    (inv || []).reduce((s, i) => s + (Number(i.vat_total) || 0), 0) - (bills || []).reduce((s, b) => s + (Number(b.vat_total) || 0), 0);
-  const dueDate = nextVatDeadlineDate(company?.vat_frequency);
+  const estimate = Number(data?.boxes?.[5] || 0);
+  const period = data?.period ? `${data.period.start} – ${data.period.end}` : currentQuarter();
+  const dueDate = nextVatDeadlineDate(data?.settings?.frequency || company?.vat_frequency);
 
   return (
     <div className="space-y-3">
@@ -47,7 +39,11 @@ export default function VATWidget({ company }) {
       <div className="grid grid-cols-2 gap-2 text-xs">
         <div className="rounded-lg bg-muted/50 px-2.5 py-2">
           <p className="text-[10px] text-muted-foreground">Period</p>
-          <p className="text-sm font-semibold">{latest?.period || currentQuarter()}</p>
+          <p className="text-sm font-semibold">{period}</p>
+        </div>
+        <div className="rounded-lg bg-muted/50 px-2.5 py-2 text-xs flex items-center justify-between">
+          <span className="text-muted-foreground flex items-center gap-1"><ShieldCheck className="w-3 h-3" />VAT health</span>
+          <span className="font-semibold">{data?.health?.score ?? 0}/100 · {data?.health?.open_exception_count ?? 0} review</span>
         </div>
         <div className="rounded-lg bg-muted/50 px-2.5 py-2">
           <p className="text-[10px] text-muted-foreground">Submission Due</p>

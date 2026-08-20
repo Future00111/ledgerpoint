@@ -44,6 +44,14 @@ export const companiesTable = pgTable("companies", {
   base_currency: text("base_currency").default("GBP"),
   default_vat_rate: numeric("default_vat_rate", { precision: 5, scale: 2 }),
   vat_registered: boolean("vat_registered").default(false),
+  vat_scheme: text("vat_scheme").default("standard"),
+  vat_return_frequency: text("vat_return_frequency").default("quarterly"),
+  vat_accounting_basis: text("vat_accounting_basis").default("invoice"),
+  vat_period_start: date("vat_period_start"),
+  vat_period_end: date("vat_period_end"),
+  vat_return_due_days: integer("vat_return_due_days").default(37),
+  vat_registration_threshold: numeric("vat_registration_threshold", { precision: 12, scale: 2 }).default("90000"),
+  vat_threshold_monitoring: boolean("vat_threshold_monitoring").default(true),
   invoice_prefix: text("invoice_prefix"),
   invoice_next_number: integer("invoice_next_number").default(1),
   business_type: text("business_type"),
@@ -317,28 +325,134 @@ export type JournalEntry = typeof journalEntriesTable.$inferSelect;
 
 // ─── VATReturn ───────────────────────────────────────────────────────────────
 
-export const vatReturnsTable = pgTable("vat_returns", {
+export const vatReturnsTable = pgTable(
+  "vat_returns",
+  {
+    id: primaryId(),
+    company_id: uuid("company_id").notNull(),
+    period_start: date("period_start"),
+    period_end: date("period_end"),
+    box1_output_vat: numeric("box1_output_vat", { precision: 12, scale: 2 }).default("0"),
+    box2_acquisitions_vat: numeric("box2_acquisitions_vat", { precision: 12, scale: 2 }).default("0"),
+    box3_total_vat_due: numeric("box3_total_vat_due", { precision: 12, scale: 2 }).default("0"),
+    box4_input_vat: numeric("box4_input_vat", { precision: 12, scale: 2 }).default("0"),
+    box5_net_vat_due: numeric("box5_net_vat_due", { precision: 12, scale: 2 }).default("0"),
+    box6_total_sales: numeric("box6_total_sales", { precision: 12, scale: 2 }).default("0"),
+    box7_total_purchases: numeric("box7_total_purchases", { precision: 12, scale: 2 }).default("0"),
+    box8_eu_sales: numeric("box8_eu_sales", { precision: 12, scale: 2 }).default("0"),
+    box9_eu_purchases: numeric("box9_eu_purchases", { precision: 12, scale: 2 }).default("0"),
+    status: text("status").default("draft"),
+    locked: boolean("locked").default(false),
+    submission_date: date("submission_date"),
+    vat_scheme: text("vat_scheme").default("standard"),
+    calculation_snapshot: jsonb("calculation_snapshot").$type<Record<string, unknown>>(),
+    approved_by: text("approved_by"),
+    approved_at: timestamp("approved_at", { withTimezone: true }),
+    locked_by: text("locked_by"),
+    locked_at: timestamp("locked_at", { withTimezone: true }),
+    revision_of_id: uuid("revision_of_id"),
+    revision_number: integer("revision_number").default(1),
+    approval_note: text("approval_note"),
+    created_at: createdAt(),
+    updated_at: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex("vat_returns_company_period_revision_idx").on(t.company_id, t.period_start, t.period_end, t.revision_number),
+  ],
+);
+export const insertVATReturnSchema = createInsertSchema(vatReturnsTable).omit({ id: true, created_at: true, updated_at: true });
+export type VATReturn = typeof vatReturnsTable.$inferSelect;
+
+// ─── VAT Assistant ───────────────────────────────────────────────────────────
+// These workflow records deliberately sit alongside existing source documents.
+// They never replace invoice, bill, credit-note, or bank-record VAT fields.
+
+export const vatTaxRulesTable = pgTable(
+  "vat_tax_rules",
+  {
+    id: primaryId(),
+    company_id: uuid("company_id").notNull(),
+    code: text("code").notNull(),
+    label: text("label").notNull(),
+    rate: numeric("rate", { precision: 5, scale: 2 }).notNull(),
+    treatment: text("treatment").notNull().default("standard"),
+    effective_from: date("effective_from").notNull(),
+    effective_to: date("effective_to"),
+    is_recoverable: boolean("is_recoverable").default(true),
+    is_active: boolean("is_active").default(true),
+    created_at: createdAt(),
+    updated_at: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex("vat_tax_rules_company_code_start_idx").on(t.company_id, t.code, t.effective_from),
+    index("vat_tax_rules_company_active_idx").on(t.company_id, t.is_active),
+  ],
+);
+export const insertVATTaxRuleSchema = createInsertSchema(vatTaxRulesTable).omit({ id: true, created_at: true, updated_at: true });
+export type VATTaxRule = typeof vatTaxRulesTable.$inferSelect;
+
+export const vatExceptionsTable = pgTable(
+  "vat_exceptions",
+  {
+    id: primaryId(),
+    company_id: uuid("company_id").notNull(),
+    dedupe_key: text("dedupe_key").notNull(),
+    period_start: date("period_start"),
+    period_end: date("period_end"),
+    source_record_type: text("source_record_type"),
+    source_record_id: text("source_record_id"),
+    exception_type: text("exception_type").notNull(),
+    severity: text("severity").notNull().default("medium"),
+    title: text("title").notNull(),
+    detail: text("detail"),
+    evidence: jsonb("evidence").$type<Record<string, unknown>>(),
+    status: text("status").notNull().default("open"),
+    resolved_by: text("resolved_by"),
+    resolved_at: timestamp("resolved_at", { withTimezone: true }),
+    resolution_note: text("resolution_note"),
+    created_at: createdAt(),
+    updated_at: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex("vat_exceptions_company_dedupe_idx").on(t.company_id, t.dedupe_key),
+    index("vat_exceptions_company_status_idx").on(t.company_id, t.status),
+  ],
+);
+export const insertVATExceptionSchema = createInsertSchema(vatExceptionsTable).omit({ id: true, created_at: true, updated_at: true });
+export type VATException = typeof vatExceptionsTable.$inferSelect;
+
+export const vatAdjustmentsTable = pgTable("vat_adjustments", {
   id: primaryId(),
   company_id: uuid("company_id").notNull(),
-  period_start: date("period_start"),
-  period_end: date("period_end"),
-  box1_output_vat: numeric("box1_output_vat", { precision: 12, scale: 2 }).default("0"),
-  box2_acquisitions_vat: numeric("box2_acquisitions_vat", { precision: 12, scale: 2 }).default("0"),
-  box3_total_vat_due: numeric("box3_total_vat_due", { precision: 12, scale: 2 }).default("0"),
-  box4_input_vat: numeric("box4_input_vat", { precision: 12, scale: 2 }).default("0"),
-  box5_net_vat_due: numeric("box5_net_vat_due", { precision: 12, scale: 2 }).default("0"),
-  box6_total_sales: numeric("box6_total_sales", { precision: 12, scale: 2 }).default("0"),
-  box7_total_purchases: numeric("box7_total_purchases", { precision: 12, scale: 2 }).default("0"),
-  box8_eu_sales: numeric("box8_eu_sales", { precision: 12, scale: 2 }).default("0"),
-  box9_eu_purchases: numeric("box9_eu_purchases", { precision: 12, scale: 2 }).default("0"),
-  status: text("status").default("draft"),
-  locked: boolean("locked").default(false),
-  submission_date: date("submission_date"),
+  vat_return_id: uuid("vat_return_id"),
+  period_start: date("period_start").notNull(),
+  period_end: date("period_end").notNull(),
+  box_number: integer("box_number").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  reason: text("reason").notNull(),
+  status: text("status").notNull().default("pending"),
+  created_by: text("created_by"),
+  approved_by: text("approved_by"),
+  approved_at: timestamp("approved_at", { withTimezone: true }),
   created_at: createdAt(),
   updated_at: updatedAt(),
 });
-export const insertVATReturnSchema = createInsertSchema(vatReturnsTable).omit({ id: true, created_at: true, updated_at: true });
-export type VATReturn = typeof vatReturnsTable.$inferSelect;
+export const insertVATAdjustmentSchema = createInsertSchema(vatAdjustmentsTable).omit({ id: true, created_at: true, updated_at: true });
+export type VATAdjustment = typeof vatAdjustmentsTable.$inferSelect;
+
+export const vatReturnAuditsTable = pgTable("vat_return_audits", {
+  id: primaryId(),
+  company_id: uuid("company_id").notNull(),
+  vat_return_id: uuid("vat_return_id"),
+  event_type: text("event_type").notNull(),
+  description: text("description").notNull(),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  user_id: text("user_id"),
+  created_at: createdAt(),
+  updated_at: updatedAt(),
+});
+export const insertVATReturnAuditSchema = createInsertSchema(vatReturnAuditsTable).omit({ id: true, created_at: true, updated_at: true });
+export type VATReturnAudit = typeof vatReturnAuditsTable.$inferSelect;
 
 // ─── Document ────────────────────────────────────────────────────────────────
 
