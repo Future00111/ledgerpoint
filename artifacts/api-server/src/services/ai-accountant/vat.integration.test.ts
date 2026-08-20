@@ -145,6 +145,51 @@ test("VAT HTTP integration: generic VAT return writes are denied to authenticate
   assert.equal(unchanged?.locked, false);
 });
 
+test("VAT HTTP integration: read-only members cannot mutate protected VAT workflow data", async (t) => {
+  const company = await createTestCompany("read-only-workflow");
+  const userId = `vat-read-only-${randomUUID()}`;
+  const vatReturn = await createTestReturn(company.id);
+  await addTestMembership(company.id, userId, "read_only");
+  t.after(async () => removeTestData([company.id]));
+
+  const [approval, recalculation, adjustment] = await Promise.all([
+    api.request(userId, "POST", `/api/ai/accountant/vat/returns/${vatReturn.id}/approve`, {
+      company_id: company.id,
+      note: "Read-only approval attempt",
+    }),
+    api.request(userId, "POST", `/api/ai/accountant/vat/returns/${vatReturn.id}/recalculate`, {
+      company_id: company.id,
+    }),
+    api.request(userId, "POST", "/api/ai/accountant/vat/adjustments", {
+      company_id: company.id,
+      vat_return_id: vatReturn.id,
+      period_start: period.start,
+      period_end: period.end,
+      box_number: 1,
+      amount: 10,
+      reason: "Read-only adjustment attempt",
+    }),
+  ]);
+
+  for (const response of [approval, recalculation, adjustment]) {
+    assert.equal(response.status, 403);
+    assert.match(response.body.error ?? "", /role does not permit this operation/);
+  }
+
+  const [unchanged] = await db.select().from(vatReturnsTable)
+    .where(and(eq(vatReturnsTable.id, vatReturn.id), eq(vatReturnsTable.company_id, company.id)));
+  assert.equal(unchanged?.status, "ready_for_review");
+  assert.equal(unchanged?.locked, false);
+
+  const adjustments = await db.select().from(vatAdjustmentsTable)
+    .where(eq(vatAdjustmentsTable.vat_return_id, vatReturn.id));
+  assert.equal(adjustments.length, 0);
+
+  const audits = await db.select().from(vatReturnAuditsTable)
+    .where(eq(vatReturnAuditsTable.vat_return_id, vatReturn.id));
+  assert.equal(audits.length, 0);
+});
+
 test("VAT HTTP integration: concurrent approval and recalculation preserve one locked, audited return", async (t) => {
   const company = await createTestCompany("concurrency");
   const vatReturn = await createTestReturn(company.id);
