@@ -1,0 +1,177 @@
+LEDGERLY GOVERNANCE ALIGNMENT — DO NOT BUILD FEATURES
+
+We now have the Ledgerly Manifesto, Product Gap Analysis, Feature Matrix, Phase A–J Roadmap and Master Backlog.
+
+Do not implement any product features as part of this task.
+
+The Ledgerly Manifesto is the highest-level authority for the project.
+
+I want the existing project governance/documentation reviewed and aligned so that the development agent consistently treats the documentation hierarchy correctly.
+
+AUTHORITY HIERARCHY
+
+1. LEDGERLY MANIFESTO
+2. Product Principles
+3. PRD / Product Scope
+4. Technical Architecture
+5. Product Gap Analysis / Feature Matrix
+6. Master Backlog
+7. Approved individual implementation task
+8. Existing implementation/code
+
+Where documents conflict, the higher-level document takes precedence.
+
+IMPORTANT DEVELOPMENT RULE:
+
+The coding agent must NOT decide the Ledgerly roadmap autonomously.
+
+The agent may recommend work, identify defects, identify dependencies or suggest improvements, but it must not implement new product scope simply because:
+- a feature is technically convenient
+- another accounting product has it
+- a dependency suggests it
+- an automated coding task suggests it
+- the agent believes it would be useful
+
+Product scope must come from the approved Ledgerly documentation and the currently authorised backlog item.
+
+MANIFESTO REQUIREMENT
+
+Before implementing, modifying or approving any feature, verify it against:
+
+1. Ledgerly Manifesto
+2. Product Principles
+3. PRD/Product Scope
+4. Technical Architecture
+5. Master Backlog
+6. Definition of Done
+
+If a conflict is discovered:
+- do not silently choose a solution
+- identify the conflict
+- explain the impact
+- request product/architecture direction before proceeding where necessary.
+
+DEFINITION OF COMPLETE
+
+A feature is NOT complete merely because:
+- a page exists
+- a component renders
+- an API exists
+- a database table exists
+- a CRUD operation works
+- a test passes
+
+A feature is complete only when it satisfies the applicable Definition of Done, including where relevant:
+
+- end-to-end user workflow
+- correct accounting effects
+- correct VAT effects
+- correct permissions
+- company isolation
+- auditability
+- error handling
+- loading states
+- empty states
+- responsive UX
+- Ask accessibility
+- automated tests
+- browser verification
+- Manifesto compliance.
+
+ASK
+
+The Manifesto states:
+
+"Ask is the heart of Ledgerly."
+
+Therefore, when implementing any major user-facing feature, consider:
+- how Ask discovers it
+- how Ask explains it
+- how Ask navigates to it
+- whether Ask can safely initiate the workflow
+- what actions Ask may draft
+- what actions require approval.
+
+Do not force AI into workflows where deterministic rules are better.
+
+ACCOUNTING
+
+The Manifesto states:
+
+"Ledgerly is accounting software first."
+
+Therefore:
+
+- accounting rules take precedence over AI
+- financial calculations must be authoritative
+- accounting records must be auditable
+- automation must be transparent
+- AI must never silently make financial decisions.
+
+AI PRINCIPLES
+
+Follow:
+
+Rules before AI.
+AI before asking the user.
+Explain every suggestion.
+Never automate silently.
+
+AI must assist accounting rather than replace accounting principles.
+
+ENGINEERING PRINCIPLES
+
+Maintain the existing principles:
+
+- Build once.
+- Build properly.
+- Never expose technical information to customers.
+- Never expose JSON.
+- Never expose database IDs.
+- Never expose stack traces.
+- Never expose implementation details.
+- Developer tools belong in Developer Mode.
+- Customers see business language.
+
+UX PRINCIPLES
+
+Every screen should answer:
+
+1. What am I looking at?
+2. Why does it matter?
+3. What should I do next?
+
+The product should remain:
+- Calm
+- Modern
+- Professional
+- Fast
+- Friendly
+- Confident
+- Approachable
+
+DO NOT create a duplicate manifesto.
+
+Instead:
+
+1. Locate the existing Manifesto and governance documents.
+2. Inspect their current relationships.
+3. Ensure the Master Backlog references the Manifesto hierarchy correctly.
+4. Ensure Replit project instructions/agent guidance, where already supported by the project, point to these authoritative documents rather than creating competing instructions.
+5. Do not rewrite existing documentation unless there is a genuine conflict or missing governance requirement.
+6. If a governance document is missing, report it rather than inventing product decisions.
+
+FINAL OUTPUT
+
+Report:
+
+1. Existing governance documents found
+2. Current authority hierarchy
+3. Any conflicts discovered
+4. Any missing governance documents
+5. Any changes made to governance documentation
+6. How the coding agent is expected to use the Manifesto and backlog
+7. Confirmation that NO application features were implemented
+8. Confirmation that NO deployment/publishing occurred
+
+STOP AFTER THE GOVERNANCE REVIEW.

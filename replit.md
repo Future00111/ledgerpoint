@@ -2,6 +2,23 @@
 
 _Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
 
+## Ledgerly governance
+
+For Ledgerly product and implementation decisions, use the active governance documents under `artifacts/ledgerly/src/docs/` and the planning records under `docs/`.
+
+Authority order:
+
+1. `artifacts/ledgerly/src/docs/00-ledgerly-manifesto.md`
+2. Product Principles
+3. PRD / Product Scope
+4. Technical Architecture
+5. `docs/ledgerly-product-gap-analysis.md` and `docs/ledgerly-feature-matrix.md`
+6. `docs/ledgerly-master-backlog.md`
+7. An approved implementation task
+8. Existing code
+
+The Manifesto is the highest authority. Product Principles, PRD/Product Scope, and Technical Architecture are currently referenced governance inputs but are not present as active documents; do not infer them or silently replace them. Do not choose roadmap scope autonomously. Before implementation, also review the Core Maxims, Design System, Definition of Done, Product Development Workflow, and Workspace Framework.
+
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
