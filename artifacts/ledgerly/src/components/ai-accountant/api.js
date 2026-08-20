@@ -37,6 +37,18 @@ export const aiApi = {
     api('/api/ai/insights', { method: 'POST', body: JSON.stringify({ company_id: companyId }) }),
   analyse: (companyId) =>
     api('/api/ai/reconciliation/analyse', { method: 'POST', body: JSON.stringify({ company_id: companyId }) }),
+  approveReadyBatch: (companyId, transactionIds) =>
+    api('/api/ai/reconciliation/approve-batch', {
+      method: 'POST',
+      body: JSON.stringify({ company_id: companyId, bank_transaction_ids: transactionIds }),
+    }),
+  bankAutomationSettings: (companyId) =>
+    api(`/api/ai/accountant/bank-automation-settings?company_id=${q(companyId)}`),
+  updateBankAutomationSettings: (companyId, settings) =>
+    api('/api/ai/accountant/bank-automation-settings', {
+      method: 'PUT',
+      body: JSON.stringify({ company_id: companyId, ...settings }),
+    }),
   transactionReview: (companyId, state) =>
     api(`/api/ai/accountant/transaction-review?company_id=${q(companyId)}${state && state !== 'all' ? `&state=${q(state)}` : ''}`),
   collectionsOverview: (companyId) =>

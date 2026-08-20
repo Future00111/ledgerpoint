@@ -34,6 +34,7 @@ export default function ReconciliationRow({
     VAT_REVIEW: 'bg-amber-50 text-amber-700 border-amber-200',
     PARTIAL_MATCH: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     MULTI_MATCH: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    TRANSFER: 'bg-cyan-50 text-cyan-700 border-cyan-200',
     NO_MATCH: 'bg-slate-100 text-slate-700 border-slate-200',
   }[analysisDecision?.state] || 'bg-slate-100 text-slate-600 border-slate-200';
 
@@ -89,6 +90,8 @@ export default function ReconciliationRow({
               {analysisDecision.priority_band === 'high' && (
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-rose-600">High priority</span>
               )}
+               {analysisDecision.recurring_flag && <span className="text-[10px] font-semibold uppercase tracking-wide text-indigo-600">Recurring</span>}
+               {analysisDecision.transfer_flag && <span className="text-[10px] font-semibold uppercase tracking-wide text-cyan-700">Internal transfer candidate</span>}
             </div>
           )}
           <p className={`mt-1.5 text-2xl font-black tabular-nums tracking-tight ${isIncome ? 'text-emerald-600' : 'text-slate-900'}`}>

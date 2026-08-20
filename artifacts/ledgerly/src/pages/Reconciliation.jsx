@@ -14,14 +14,17 @@ import CompactRow from '@/components/reconciliation/CompactRow';
 import BankTransactionForm from '@/components/bank_transactions/BankTransactionForm';
 import ReconciliationWorkflow from '@/components/bank_transactions/ReconciliationWorkflow';
 import ImportCSVDialog from '@/components/bank_transactions/ImportCSVDialog';
+import { aiApi } from '@/components/ai-accountant/api';
 
 const txnAmount = (t) => Number(t.money_in || 0) + Number(t.money_out || 0);
 
 const FILTERS = [
   { key: 'all', label: 'All' },
-  { key: 'suggested', label: 'Suggested match' },
+  { key: 'ready', label: 'Ready' },
+  { key: 'review', label: 'Review' },
   { key: 'nomatch', label: 'No match' },
-  { key: 'highvalue', label: 'High value' },
+  { key: 'duplicates', label: 'Duplicates' },
+  { key: 'vat', label: 'VAT review' },
 ];
 
 function priority(suggestion, isDup, t) {
@@ -55,6 +58,8 @@ export default function Reconciliation() {
   const [splitTarget, setSplitTarget] = useState(null);
   const [splitOpen, setSplitOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [selectedReady, setSelectedReady] = useState(new Set());
+  const [batchApproving, setBatchApproving] = useState(false);
 
   const load = useCallback(async () => {
     if (!activeCompany) return;
@@ -116,10 +121,12 @@ export default function Reconciliation() {
       (map[k] = map[k] || []).push(t.id);
     });
     const dupIds = new Set(Object.values(map).filter((g) => g.length > 1).flat());
-    let list = review.map((t) => ({ t, suggestion: suggestions[t.id]?.[0], isDup: dupIds.has(t.id) }));
-    if (filter === 'suggested') list = list.filter((x) => x.suggestion);
-    else if (filter === 'nomatch') list = list.filter((x) => !x.suggestion);
-    else if (filter === 'highvalue') list = list.filter((x) => txnAmount(x.t) > 1000);
+    let list = review.map((t) => ({ t, suggestion: suggestions[t.id]?.[0], isDup: dupIds.has(t.id), decision: analysisDecisions[t.id] }));
+    if (filter === 'ready') list = list.filter((x) => x.decision?.state === 'READY');
+    else if (filter === 'review') list = list.filter((x) => x.decision?.state && x.decision.state !== 'READY');
+    else if (filter === 'nomatch') list = list.filter((x) => x.decision?.state === 'NO_MATCH');
+    else if (filter === 'duplicates') list = list.filter((x) => x.decision?.duplicate_flag || x.decision?.state === 'POSSIBLE_DUPLICATE' || x.isDup);
+    else if (filter === 'vat') list = list.filter((x) => x.decision?.vat_review_required || x.decision?.state === 'VAT_REVIEW');
     list.sort((a, b) => {
       const pa = priority(a.suggestion, a.isDup, a.t);
       const pb = priority(b.suggestion, b.isDup, b.t);
@@ -130,7 +137,7 @@ export default function Reconciliation() {
       return new Date(b.t.date) - new Date(a.t.date);
     });
     return list;
-  }, [filteredTxns, suggestions, filter]);
+  }, [filteredTxns, suggestions, analysisDecisions, filter]);
 
   // Auto-select first review item once loaded.
   useEffect(() => {
@@ -180,6 +187,28 @@ export default function Reconciliation() {
   const headerAccount = accountFilter !== 'all'
     ? (bankAccounts.find((a) => a.id === accountFilter)?.account_name || '')
     : (bankAccounts[0]?.account_name || '');
+
+  const readyItems = reviewList.filter(({ decision }) => decision?.state === 'READY' && !decision.duplicate_flag && !decision.vat_review_required && !decision.transfer_flag);
+  const toggleReady = (id) => setSelectedReady((previous) => {
+    const next = new Set(previous);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const selectAllReady = () => setSelectedReady(new Set(readyItems.map(({ t }) => t.id)));
+  const approveReadyBatch = async () => {
+    const ids = [...selectedReady].filter((id) => readyItems.some(({ t }) => t.id === id));
+    if (!ids.length) return;
+    setBatchApproving(true);
+    try {
+      const result = await aiApi.approveReadyBatch(activeCompany.id, ids);
+      const skipped = result.skipped?.length || 0;
+      toast({ title: `${result.approved?.length || 0} transaction${result.approved?.length === 1 ? '' : 's'} reconciled`, description: skipped ? `${skipped} item${skipped === 1 ? '' : 's'} were skipped because their evidence changed.` : 'Only current high-confidence matches were included.' });
+      setSelectedReady(new Set());
+      await load();
+    } catch (e) {
+      toast({ title: 'Batch approval could not complete', description: e.message, variant: 'destructive' });
+    } finally { setBatchApproving(false); }
+  };
 
   const applyNonPaymentMatch = async (txn, rec) => {
     const rt = rec.record_type;
@@ -392,6 +421,24 @@ export default function Reconciliation() {
             </div>
           </div>
         </div>
+        <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-5">
+          {[
+            ['Ready', readyItems.length, 'text-emerald-700'],
+            ['Review', reviewList.filter(({ decision }) => decision?.state && decision.state !== 'READY').length, 'text-amber-700'],
+            ['No match', reviewList.filter(({ decision }) => decision?.state === 'NO_MATCH').length, 'text-slate-700'],
+            ['Duplicates', reviewList.filter(({ decision, isDup }) => decision?.duplicate_flag || isDup).length, 'text-rose-700'],
+            ['VAT review', reviewList.filter(({ decision }) => decision?.vat_review_required).length, 'text-amber-700'],
+          ].map(([label, value, colour]) => <div key={label} className="px-2 py-1"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</p><p className={`mt-1 text-xl font-black ${colour}`}>{value}</p></div>)}
+        </div>
+        {readyItems.length > 0 && (
+          <div className="mb-5 flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="text-sm font-bold text-emerald-950">Ready to approve</p><p className="text-xs text-emerald-800">{readyItems.length} high-confidence match{readyItems.length === 1 ? '' : 'es'} have passed the deterministic safety checks.</p></div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="border-emerald-300 bg-white text-emerald-800" onClick={selectAllReady}>Select all</Button>
+              <Button size="sm" className="bg-emerald-700 hover:bg-emerald-800" disabled={selectedReady.size === 0 || batchApproving} onClick={approveReadyBatch}>{batchApproving ? 'Approving…' : `Approve selected (${[...selectedReady].filter((id) => readyItems.some(({ t }) => t.id === id)).length})`}</Button>
+            </div>
+          </div>
+        )}
 
         {/* Transaction rows */}
         {loading ? (
@@ -423,7 +470,7 @@ export default function Reconciliation() {
         ) : (
           <div className="space-y-4">
             <AnimatePresence initial={false} mode="popLayout">
-              {reviewList.map(({ t, suggestion }) => (
+              {reviewList.map(({ t, suggestion, decision }) => (
                 <motion.div 
                   layout="position"
                   initial={{ opacity: 0, y: 20 }}
@@ -438,6 +485,11 @@ export default function Reconciliation() {
                   key={t.id}
                   className="rounded-xl shadow-sm border border-slate-200 bg-white overflow-hidden hover:shadow-md transition-shadow duration-300 relative z-10"
                 >
+                   {decision?.state === 'READY' && (
+                     <label className="absolute left-3 top-3 z-20 flex h-6 w-6 cursor-pointer items-center justify-center rounded border border-emerald-300 bg-white shadow-sm">
+                       <input aria-label={`Select ${t.description || 'transaction'} for batch approval`} type="checkbox" checked={selectedReady.has(t.id)} onChange={() => toggleReady(t.id)} className="h-3.5 w-3.5 accent-emerald-700" />
+                     </label>
+                   )}
                   {expandedId === t.id ? (
                     <ReconciliationRow
                       transaction={t}

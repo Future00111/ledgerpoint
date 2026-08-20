@@ -700,6 +700,23 @@ export const suggestionSettingsTable = pgTable("suggestion_settings", {
 export const insertSuggestionSettingsSchema = createInsertSchema(suggestionSettingsTable).omit({ id: true, created_at: true, updated_at: true });
 export type SuggestionSettings = typeof suggestionSettingsTable.$inferSelect;
 
+// ─── Bank Automation Settings ────────────────────────────────────────────────
+// Company-scoped controls for the automated bank-to-books preparation workflow.
+// Automatic posting remains disabled by default and is not performed by this
+// table; explicit approval remains the accounting write boundary.
+export const bankAutomationSettingsTable = pgTable("bank_automation_settings", {
+  id: primaryId(),
+  company_id: uuid("company_id").notNull().unique(),
+  automatic_analysis_enabled: boolean("automatic_analysis_enabled").default(true),
+  automatic_reconciliation_enabled: boolean("automatic_reconciliation_enabled").default(false),
+  high_confidence_threshold: integer("high_confidence_threshold").default(95),
+  batch_approval_enabled: boolean("batch_approval_enabled").default(true),
+  created_at: createdAt(),
+  updated_at: updatedAt(),
+});
+export const insertBankAutomationSettingsSchema = createInsertSchema(bankAutomationSettingsTable).omit({ id: true, created_at: true, updated_at: true });
+export type BankAutomationSettings = typeof bankAutomationSettingsTable.$inferSelect;
+
 // ─── AIReconciliationResult ──────────────────────────────────────────────────
 // Persisted output of the AI Accountant reconciliation analysis. Kept separate
 // from the bank transaction's final linkage fields (matched_type etc.) so the
@@ -711,15 +728,19 @@ export const aiReconciliationResultsTable = pgTable("ai_reconciliation_results",
   bank_transaction_id: uuid("bank_transaction_id").notNull(),
   status: text("status").default("red"), // green | amber | red
   scenario: text("scenario"), // exact | combination | overpayment | partial | no_match
-  decision_state: text("decision_state").default("REVIEW_REQUIRED"), // UNANALYSED | ANALYSING | READY | REVIEW_REQUIRED | NO_MATCH | PARTIAL_MATCH | MULTI_MATCH | POSSIBLE_DUPLICATE | VAT_REVIEW | APPROVED | RECONCILED | REJECTED
+  decision_state: text("decision_state").default("REVIEW_REQUIRED"), // UNANALYSED | ANALYSING | READY | REVIEW_REQUIRED | NO_MATCH | PARTIAL_MATCH | MULTI_MATCH | POSSIBLE_DUPLICATE | TRANSFER | VAT_REVIEW | APPROVED | RECONCILED | REJECTED
   confidence: integer("confidence").default(0),
   priority_score: integer("priority_score").default(0),
   priority_band: text("priority_band").default("low"), // high | medium | low
   duplicate_flag: boolean("duplicate_flag").default(false),
+  recurring_flag: boolean("recurring_flag").default(false),
+  transfer_flag: boolean("transfer_flag").default(false),
+  related_transaction_id: uuid("related_transaction_id"),
   vat_review_required: boolean("vat_review_required").default(false),
   vat_treatment: text("vat_treatment"), // pending_source_document | standard_rate_provisional | unusual_rate | unsupported_vat_setup
-  analysis_version: text("analysis_version").default("phase5-v1"),
+  analysis_version: text("analysis_version").default("phase6-v1"),
   analysis_run_id: text("analysis_run_id"),
+  analysis_batch_id: text("analysis_batch_id"),
   deterministic_signals: jsonb("deterministic_signals").$type<string[]>(),
   transaction_amount: numeric("transaction_amount", { precision: 12, scale: 2 }),
   matched_total: numeric("matched_total", { precision: 12, scale: 2 }),

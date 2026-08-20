@@ -7,3 +7,4 @@
 - [Reconciliation VAT evidence](reconciliation-vat-evidence.md) — matched invoices and bills are the VAT authority; bank-feed rates are advisory and never drive return boxes.
 - [VAT return locking](vat-return-locking.md) — conditional row locks and audit writes must commit together for concurrent review actions.
 - [API HTTP test bundling](api-http-test-bundling.md) — Express integration tests need CommonJS output with Pino runtime packages externalized.
+- [Batch approval freshness](batch-approval-freshness.md) — batch reconciliation must bind its accounting write to one locked, current analysis record.

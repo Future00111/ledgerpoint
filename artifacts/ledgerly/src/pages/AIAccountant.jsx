@@ -43,26 +43,30 @@ export default function AIAccountant() {
   const [summary, setSummary] = useState(null);
   const [collections, setCollections] = useState(null);
   const [transactionReview, setTransactionReview] = useState(null);
+  const [automationSettings, setAutomationSettings] = useState(null);
   const [reviewFilter, setReviewFilter] = useState('all');
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [decidingId, setDecidingId] = useState(null);
   const [error, setError] = useState(null);
+  const [savingSettings, setSavingSettings] = useState(false);
 
   const load = useCallback(async () => {
     if (!activeCompany?.id) return;
     try {
-      const [sumRes, tasksRes, collectionsRes, reviewRes] = await Promise.all([
+      const [sumRes, tasksRes, collectionsRes, reviewRes, settingsRes] = await Promise.all([
         aiApi.taskSummary(activeCompany.id),
         aiApi.tasks(activeCompany.id, ['open', 'reviewing']),
         aiApi.collectionsOverview(activeCompany.id),
         aiApi.transactionReview(activeCompany.id),
+        aiApi.bankAutomationSettings(activeCompany.id),
       ]);
       setSummary(sumRes);
       setTasks(tasksRes.tasks || []);
       setCollections(collectionsRes);
       setTransactionReview(reviewRes);
+      setAutomationSettings(settingsRes.settings);
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
   }, [activeCompany?.id]);
@@ -92,6 +96,20 @@ export default function AIAccountant() {
     } finally {
       setDecidingId(null);
     }
+  };
+
+  const saveAutomationSettings = async () => {
+    if (!activeCompany?.id || !automationSettings) return;
+    setSavingSettings(true);
+    try {
+      const result = await aiApi.updateBankAutomationSettings(activeCompany.id, {
+        automatic_analysis_enabled: Boolean(automationSettings.automatic_analysis_enabled),
+        high_confidence_threshold: Number(automationSettings.high_confidence_threshold || 95),
+        batch_approval_enabled: Boolean(automationSettings.batch_approval_enabled),
+      });
+      setAutomationSettings(result.settings);
+    } catch (e) { setError(e.message); }
+    finally { setSavingSettings(false); }
   };
 
   const taskTypeFilter = searchParams.get('task_type');
@@ -125,6 +143,32 @@ export default function AIAccountant() {
         <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
            <Sparkles className="w-64 h-64" />
         </div>
+
+       {automationSettings && (
+         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+             <div>
+               <h2 className="text-sm font-black text-slate-900">Bank automation controls</h2>
+               <p className="mt-1 text-xs text-slate-500">Analysis prepares your books automatically. Accounting changes still require an explicit approval.</p>
+             </div>
+             <Button size="sm" variant="outline" onClick={saveAutomationSettings} disabled={savingSettings}>{savingSettings ? 'Saving…' : 'Save controls'}</Button>
+           </div>
+           <div className="mt-4 grid gap-3 sm:grid-cols-3">
+             <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3 text-sm">
+               <input type="checkbox" checked={Boolean(automationSettings.automatic_analysis_enabled)} onChange={(e) => setAutomationSettings((current) => ({ ...current, automatic_analysis_enabled: e.target.checked }))} className="h-4 w-4 accent-indigo-600" />
+               <span><strong className="block text-slate-800">Automatic analysis</strong><span className="text-xs text-slate-500">Run after each import</span></span>
+             </label>
+             <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3 text-sm">
+               <input type="checkbox" checked={Boolean(automationSettings.batch_approval_enabled)} onChange={(e) => setAutomationSettings((current) => ({ ...current, batch_approval_enabled: e.target.checked }))} className="h-4 w-4 accent-indigo-600" />
+               <span><strong className="block text-slate-800">Batch approval</strong><span className="text-xs text-slate-500">Only safe ready matches</span></span>
+             </label>
+             <label className="rounded-lg border border-slate-200 p-3 text-sm">
+               <strong className="block text-slate-800">High-confidence threshold</strong>
+               <div className="mt-1 flex items-center gap-2"><input type="number" min="50" max="100" value={automationSettings.high_confidence_threshold ?? 95} onChange={(e) => setAutomationSettings((current) => ({ ...current, high_confidence_threshold: e.target.value }))} className="h-7 w-16 rounded border border-slate-300 px-2 text-xs" /><span className="text-xs text-slate-500">percent</span></div>
+             </label>
+           </div>
+         </section>
+       )}
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-6">
           <div className="flex-1">
             <h1 className="text-3xl font-black tracking-tight mb-3 flex items-center gap-3">
@@ -198,7 +242,7 @@ export default function AIAccountant() {
              <p className="text-xs text-slate-500 mt-0.5">Prioritised deterministic decisions from your bank feed.</p>
            </div>
            <div className="flex gap-1.5 flex-wrap">
-             {[['all', 'All'], ['READY', 'Ready'], ['POSSIBLE_DUPLICATE', 'Duplicates'], ['VAT_REVIEW', 'VAT'], ['NO_MATCH', 'No match']].map(([value, label]) => (
+              {[['all', 'All'], ['READY', 'Ready'], ['POSSIBLE_DUPLICATE', 'Duplicates'], ['TRANSFER', 'Transfers'], ['VAT_REVIEW', 'VAT'], ['NO_MATCH', 'No match']].map(([value, label]) => (
                <button key={value} type="button" onClick={() => setReviewFilter(value)}
                  className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors ${reviewFilter === value ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                  {label}

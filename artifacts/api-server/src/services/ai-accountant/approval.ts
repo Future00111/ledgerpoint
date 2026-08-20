@@ -36,6 +36,15 @@ export interface ApprovalResult {
   updateData: Record<string, unknown>;
 }
 
+export interface ApprovalGuard {
+  /** Bind the accounting write to the exact persisted analysis selected by the caller. */
+  expectedAnalysisId?: string;
+  /** Batch approvals must re-check this threshold while holding the analysis lock. */
+  minimumConfidence?: number;
+  /** Batch approvals require the analysis to remain a clean READY decision. */
+  requireReady?: boolean;
+}
+
 /**
  * Apply one bank transaction against one or more invoices/bills atomically.
  * Caller MUST have already verified write access on the transaction's company.
@@ -45,6 +54,7 @@ export async function applyReconciliationApproval(
   bankTransactionId: string,
   records: ApprovalRecord[],
   approvedBy?: string,
+  guard?: ApprovalGuard,
 ): Promise<ApprovalResult> {
   const result = await db.transaction(async (tx) => {
     // Re-check the transaction is still awaiting reconciliation.
@@ -69,6 +79,38 @@ export async function applyReconciliationApproval(
           ? "Money-in transactions can only be matched to sales invoices"
           : "Money-out transactions can only be matched to purchase bills",
       );
+    }
+
+    if (guard?.expectedAnalysisId) {
+      const [analysis] = await tx
+        .select()
+        .from(aiReconciliationResultsTable)
+        .where(and(
+          eq(aiReconciliationResultsTable.id, guard.expectedAnalysisId),
+          eq(aiReconciliationResultsTable.company_id, fresh.company_id),
+          eq(aiReconciliationResultsTable.bank_transaction_id, bankTransactionId),
+          eq(aiReconciliationResultsTable.approval_state, "pending"),
+        ))
+        .for("update");
+      if (!analysis) throw new Error("This analysis is no longer current; review the transaction again");
+      if (guard.requireReady && (
+        analysis.decision_state !== "READY" ||
+        (analysis.confidence ?? 0) < (guard.minimumConfidence ?? 0) ||
+        analysis.duplicate_flag ||
+        analysis.vat_review_required ||
+        analysis.transfer_flag
+      )) {
+        throw new Error("This analysis is no longer eligible for batch approval");
+      }
+      const analysisMatches = Array.isArray(analysis.matched_records) ? analysis.matched_records : [];
+      const sameSingleMatch = analysisMatches.length === records.length && records.every((record) =>
+        analysisMatches.some((match) =>
+          match && typeof match === "object" &&
+          (match as Record<string, unknown>).record_type === record.record_type &&
+          (match as Record<string, unknown>).record_id === record.record_id,
+        ),
+      );
+      if (!sameSingleMatch) throw new Error("The matched evidence changed; review the transaction again");
     }
 
     const numbers: string[] = [];

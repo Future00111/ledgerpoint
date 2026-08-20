@@ -16,6 +16,7 @@ import {
   vatReturnsTable,
   vatTaxRulesTable,
   salesInvoicesTable,
+  bankAutomationSettingsTable,
 } from "@workspace/db/schema";
 import { db, pool } from "@workspace/db";
 import { createApp } from "../../app.js";
@@ -24,6 +25,7 @@ import {
   createVATAdjustment,
   recalculateVATReturn,
 } from "./vat.js";
+import { applyReconciliationApproval } from "./approval.js";
 
 const period = { start: "2026-01-01", end: "2026-03-31" };
 const testUserHeader = "x-vat-integration-user";
@@ -59,6 +61,7 @@ async function addTestMembership(companyId: string, userId: string, role = "owne
 }
 
 async function removeTestData(companyIds: string[]) {
+  await db.delete(bankAutomationSettingsTable).where(inArray(bankAutomationSettingsTable.company_id, companyIds));
   await db.delete(aiDecisionAuditsTable).where(inArray(aiDecisionAuditsTable.company_id, companyIds));
   await db.delete(aiReconciliationResultsTable).where(inArray(aiReconciliationResultsTable.company_id, companyIds));
   await db.delete(bankTransactionsTable).where(inArray(bankTransactionsTable.company_id, companyIds));
@@ -303,6 +306,72 @@ test("Phase 5 HTTP integration: an imported null-rate exact match uses invoice V
   assert.equal(analysis?.vat_treatment, "source_document");
   assert.equal(analysis?.vat_review_required, false);
   assert.equal(analysis?.decision_state, "READY");
+});
+
+test("Phase 6 HTTP integration: batch approval applies only current high-confidence ready matches", async (t) => {
+  const company = await createTestCompany("batch-approval");
+  const userId = `phase6-owner-${randomUUID()}`;
+  await addTestMembership(company.id, userId, "owner");
+  const firstNumber = `INV-BATCH-${randomUUID().slice(0, 6)}`;
+  const secondNumber = `INV-BATCH-${randomUUID().slice(0, 6)}`;
+  const invoices = await db.insert(salesInvoicesTable).values([
+    { company_id: company.id, invoice_number: firstNumber, customer_name: "Batch customer A", issue_date: "2026-08-01", due_date: "2026-09-01", subtotal: "100.00", vat_total: "20.00", total: "120.00", amount_paid: "0.00", balance_due: "120.00", status: "sent" },
+    { company_id: company.id, invoice_number: secondNumber, customer_name: "Batch customer B", issue_date: "2026-08-01", due_date: "2026-09-01", subtotal: "50.00", vat_total: "10.00", total: "60.00", amount_paid: "0.00", balance_due: "60.00", status: "sent" },
+  ]).returning();
+  const transactions = await db.insert(bankTransactionsTable).values([
+    { company_id: company.id, date: "2026-08-20", description: `Batch customer A ${firstNumber}`, reference: firstNumber, amount: "120.00", money_in: "120.00", money_out: "0.00", status: "review" },
+    { company_id: company.id, date: "2026-08-20", description: `Batch customer B ${secondNumber}`, reference: secondNumber, amount: "60.00", money_in: "60.00", money_out: "0.00", status: "review" },
+    { company_id: company.id, date: "2026-08-20", description: "Unexplained batch receipt", reference: "NO-MATCH", amount: "40.00", money_in: "40.00", money_out: "0.00", status: "review" },
+  ]).returning();
+  assert.equal(invoices.length, 2);
+  assert.equal(transactions.length, 3);
+  t.after(async () => removeTestData([company.id]));
+
+  const analysis = await api.request(userId, "POST", "/api/functions/suggestTransactionMatches", { company_id: company.id });
+  assert.equal(analysis.status, 200);
+  const result = await api.request(userId, "POST", "/api/ai/reconciliation/approve-batch", {
+    company_id: company.id,
+    bank_transaction_ids: transactions.map((transaction) => transaction.id),
+  });
+  assert.equal(result.status, 200);
+  const body = result.body as { approved?: unknown[]; skipped?: unknown[] };
+  assert.equal(body.approved?.length, 2);
+  assert.equal(body.skipped?.length, 1);
+  const updated = await db.select().from(bankTransactionsTable)
+    .where(eq(bankTransactionsTable.company_id, company.id));
+  assert.equal(updated.filter((transaction) => transaction.status === "matched").length, 2);
+  assert.equal(updated.filter((transaction) => transaction.status === "review").length, 1);
+});
+
+test("Phase 6 approval guard refuses a replaced analysis before writing accounting state", async (t) => {
+  const company = await createTestCompany("stale-analysis");
+  const userId = `phase6-stale-${randomUUID()}`;
+  await addTestMembership(company.id, userId, "owner");
+  const [invoice] = await db.insert(salesInvoicesTable).values({
+    company_id: company.id, invoice_number: `INV-STALE-${randomUUID().slice(0, 6)}`, customer_name: "Stale evidence customer",
+    issue_date: "2026-08-01", due_date: "2026-09-01", subtotal: "100.00", vat_total: "20.00", total: "120.00",
+    amount_paid: "0.00", balance_due: "120.00", status: "sent",
+  }).returning();
+  const [transaction] = await db.insert(bankTransactionsTable).values({
+    company_id: company.id, date: "2026-08-20", description: invoice?.invoice_number || "stale", reference: invoice?.invoice_number || "stale",
+    amount: "120.00", money_in: "120.00", money_out: "0.00", status: "review",
+  }).returning();
+  assert.ok(invoice && transaction);
+  t.after(async () => removeTestData([company.id]));
+
+  await api.request(userId, "POST", "/api/functions/suggestTransactionMatches", { company_id: company.id });
+  const [analysis] = await db.select().from(aiReconciliationResultsTable)
+    .where(eq(aiReconciliationResultsTable.bank_transaction_id, transaction.id)).limit(1);
+  assert.ok(analysis);
+  await db.delete(aiReconciliationResultsTable).where(eq(aiReconciliationResultsTable.id, analysis.id));
+  await assert.rejects(
+    applyReconciliationApproval(transaction.id, [{ record_type: "sales_invoice", record_id: invoice.id }], userId, {
+      expectedAnalysisId: analysis.id, minimumConfidence: 95, requireReady: true,
+    }),
+    /no longer current/,
+  );
+  const [unchanged] = await db.select().from(bankTransactionsTable).where(eq(bankTransactionsTable.id, transaction.id));
+  assert.equal(unchanged?.status, "review");
 });
 
 test("VAT HTTP integration: read-only members cannot mutate the remaining VAT workspace", async (t) => {

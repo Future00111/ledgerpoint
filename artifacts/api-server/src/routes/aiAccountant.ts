@@ -18,6 +18,7 @@ import {
   aiDecisionAuditsTable,
   aiReconciliationResultsTable,
   aiRecommendationsTable,
+  bankAutomationSettingsTable,
 } from "@workspace/db/schema";
 import { eq, and, inArray, desc } from "drizzle-orm";
 import {
@@ -349,6 +350,136 @@ router.post("/reconciliation/approve", async (req: Request, res: Response) => {
   } catch (e) {
     res.status(409).json({ error: e instanceof Error ? e.message : "Reconciliation failed" });
   }
+});
+
+// ── POST /api/ai/reconciliation/approve-batch ─────────────────────────────────
+// Batch approval is intentionally constrained to persisted, deterministic READY
+// payment matches. The browser may select rows, but the server re-derives every
+// eligible record and skips all exceptions.
+router.post("/reconciliation/approve-batch", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id, bank_transaction_ids } = req.body as {
+    company_id?: string;
+    bank_transaction_ids?: string[];
+  };
+  if (!company_id || !Array.isArray(bank_transaction_ids) || bank_transaction_ids.length === 0) {
+    res.status(400).json({ error: "company_id and at least one transaction are required" });
+    return;
+  }
+  if (bank_transaction_ids.length > 100) {
+    res.status(400).json({ error: "Approve no more than 100 transactions at once" });
+    return;
+  }
+  if (!(await assertWriteAccess(userId, company_id, res))) return;
+  const [settings] = await db.select().from(bankAutomationSettingsTable)
+    .where(eq(bankAutomationSettingsTable.company_id, company_id)).limit(1);
+  if (settings?.batch_approval_enabled === false) {
+    res.status(409).json({ error: "Batch approval is disabled for this company" });
+    return;
+  }
+  const threshold = settings?.high_confidence_threshold ?? 95;
+  const requestedIds = [...new Set(bank_transaction_ids)];
+  const pending = await db.select().from(aiReconciliationResultsTable).where(and(
+    eq(aiReconciliationResultsTable.company_id, company_id),
+    eq(aiReconciliationResultsTable.approval_state, "pending"),
+    inArray(aiReconciliationResultsTable.bank_transaction_id, requestedIds),
+  )).orderBy(desc(aiReconciliationResultsTable.created_at));
+  const latest = new Map<string, typeof pending[number]>();
+  for (const analysis of pending) {
+    if (!latest.has(analysis.bank_transaction_id)) latest.set(analysis.bank_transaction_id, analysis);
+  }
+  const approved: Array<{ bank_transaction_id: string; label: string }> = [];
+  const skipped: Array<{ bank_transaction_id: string; reason: string }> = [];
+  for (const id of requestedIds) {
+    const analysis = latest.get(id);
+    const matches = Array.isArray(analysis?.matched_records) ? analysis.matched_records : [];
+    const records = matches
+      .filter((match): match is Record<string, unknown> =>
+        Boolean(match) && typeof match === "object" &&
+        (match as Record<string, unknown>).record_type !== undefined &&
+        (match as Record<string, unknown>).record_id !== undefined,
+      )
+      .map((match) => ({
+        record_type: match.record_type,
+        record_id: match.record_id,
+      }))
+      .filter((match): match is { record_type: "sales_invoice" | "purchase_bill"; record_id: string } =>
+        (match.record_type === "sales_invoice" || match.record_type === "purchase_bill") && typeof match.record_id === "string",
+      );
+    if (!analysis || analysis.decision_state !== "READY" || (analysis.confidence ?? 0) < threshold ||
+      analysis.duplicate_flag || analysis.vat_review_required || analysis.transfer_flag || records.length !== 1) {
+      skipped.push({ bank_transaction_id: id, reason: "Only current, high-confidence READY invoice or bill matches can be batch-approved" });
+      continue;
+    }
+    try {
+      const result = await applyReconciliationApproval(id, records, userId, {
+        expectedAnalysisId: analysis.id,
+        minimumConfidence: threshold,
+        requireReady: true,
+      });
+      approved.push({ bank_transaction_id: id, label: result.label });
+    } catch (error) {
+      skipped.push({ bank_transaction_id: id, reason: error instanceof Error ? error.message : "Approval could not be completed" });
+    }
+  }
+  res.json({ success: true, approved, skipped, threshold });
+});
+
+// ── Bank automation settings ──────────────────────────────────────────────────
+router.get("/accountant/bank-automation-settings", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const companyId = req.query["company_id"] as string | undefined;
+  if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertMember(userId, companyId, res))) return;
+  const [settings] = await db.select().from(bankAutomationSettingsTable)
+    .where(eq(bankAutomationSettingsTable.company_id, companyId)).limit(1);
+  res.json({ settings: settings ?? {
+    company_id: companyId,
+    automatic_analysis_enabled: true,
+    automatic_reconciliation_enabled: false,
+    high_confidence_threshold: 95,
+    batch_approval_enabled: true,
+  } });
+});
+
+router.put("/accountant/bank-automation-settings", async (req: Request, res: Response) => {
+  const { userId } = req as AuthenticatedRequest;
+  const { company_id, automatic_analysis_enabled, automatic_reconciliation_enabled, high_confidence_threshold, batch_approval_enabled } = req.body as {
+    company_id?: string;
+    automatic_analysis_enabled?: boolean;
+    automatic_reconciliation_enabled?: boolean;
+    high_confidence_threshold?: number;
+    batch_approval_enabled?: boolean;
+  };
+  if (!company_id) { res.status(400).json({ error: "company_id is required" }); return; }
+  if (!(await assertWriteAccess(userId, company_id, res))) return;
+  const [existing] = await db.select().from(bankAutomationSettingsTable)
+    .where(eq(bankAutomationSettingsTable.company_id, company_id)).limit(1);
+  const threshold = high_confidence_threshold == null
+    ? (existing?.high_confidence_threshold ?? 95)
+    : Number(high_confidence_threshold);
+  if (!Number.isInteger(threshold) || threshold < 50 || threshold > 100) {
+    res.status(400).json({ error: "High-confidence threshold must be an integer between 50 and 100" }); return;
+  }
+  // A setting can record an organisation's preference, but Phase 6 never uses
+  // it to bypass explicit approval. It stays a future-safe opt-in configuration.
+  const [settings] = await db.insert(bankAutomationSettingsTable).values({
+    company_id,
+    automatic_analysis_enabled: automatic_analysis_enabled ?? existing?.automatic_analysis_enabled ?? true,
+    automatic_reconciliation_enabled: automatic_reconciliation_enabled ?? existing?.automatic_reconciliation_enabled ?? false,
+    high_confidence_threshold: threshold,
+    batch_approval_enabled: batch_approval_enabled ?? existing?.batch_approval_enabled ?? true,
+  }).onConflictDoUpdate({
+    target: bankAutomationSettingsTable.company_id,
+    set: {
+      automatic_analysis_enabled: automatic_analysis_enabled ?? existing?.automatic_analysis_enabled ?? true,
+      automatic_reconciliation_enabled: automatic_reconciliation_enabled ?? existing?.automatic_reconciliation_enabled ?? false,
+      high_confidence_threshold: threshold,
+      batch_approval_enabled: batch_approval_enabled ?? existing?.batch_approval_enabled ?? true,
+      updated_at: new Date(),
+    },
+  }).returning();
+  res.json({ settings });
 });
 
 // ── GET /api/ai/review-summary?company_id= ───────────────────────────────────

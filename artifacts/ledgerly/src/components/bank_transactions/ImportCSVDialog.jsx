@@ -95,7 +95,7 @@ export default function ImportCSVDialog({ open, onOpenChange, companyId, onImpor
 
   const buildPreview = () => {
     const mapped = rawRows.map(row => {
-      const obj = { category: 'other', vat_rate: '0' };
+      const obj = {};
       headers.forEach((h, i) => {
         const field = columnMap[i];
         if (field) obj[field] = row[i]?.trim() || '';
@@ -147,16 +147,27 @@ export default function ImportCSVDialog({ open, onOpenChange, companyId, onImpor
     try {
       const { imported, duplicates } = await checkDuplicates(preview);
       if (imported.length > 0) {
-        await base44.functions.invoke('recordBankTransactions', {
+        const response = await base44.functions.invoke('recordBankTransactions', {
           company_id: companyId,
           transactions: imported,
         });
+        const body = response?.data ?? response;
+        setResults({
+          imported: imported.length,
+          duplicates: duplicates.length,
+          total: preview.length,
+          analysis: body?.analysis_summary || null,
+          analysisStatus: body?.analysis_status || 'complete',
+        });
+      } else {
+        setResults({
+          imported: 0,
+          duplicates: duplicates.length,
+          total: preview.length,
+          analysis: null,
+          analysisStatus: 'complete',
+        });
       }
-      setResults({
-        imported: imported.length,
-        duplicates: duplicates.length,
-        total: preview.length
-      });
       onImported();
       setStep('results');
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
@@ -282,6 +293,27 @@ export default function ImportCSVDialog({ open, onOpenChange, companyId, onImpor
                 </div>
               )}
               <p className="text-xs text-muted-foreground">Total: {results.total} transactions processed</p>
+               {results.analysisStatus === 'disabled' ? (
+                 <p className="text-xs text-slate-500">Automatic analysis is disabled for this company. Imported transactions are ready for manual review.</p>
+               ) : results.analysis && (
+                 <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                   <p className="text-sm font-semibold text-indigo-950">Bank statement analysis complete</p>
+                   <p className="mt-1 text-xs text-indigo-800">{results.analysis.analysed} transaction{results.analysis.analysed === 1 ? '' : 's'} analysed automatically</p>
+                   <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                     <span><strong>{results.analysis.ready}</strong> ready</span>
+                     <span><strong>{results.analysis.review_required}</strong> review required</span>
+                     <span><strong>{results.analysis.no_match}</strong> no match</span>
+                     <span><strong>{results.analysis.duplicates}</strong> possible duplicate</span>
+                   </div>
+                   {(Number(results.analysis.unexplained_receipts || 0) > 0 || Number(results.analysis.potential_invoice_value || 0) > 0) && (
+                     <p className="mt-2 text-xs text-indigo-800">
+                       {Number(results.analysis.unexplained_receipts || 0) > 0 && <>Unexplained receipts: <strong>£{Number(results.analysis.unexplained_receipts).toFixed(2)}</strong></>}
+                       {Number(results.analysis.unexplained_receipts || 0) > 0 && Number(results.analysis.potential_invoice_value || 0) > 0 && ' · '}
+                       {Number(results.analysis.potential_invoice_value || 0) > 0 && <>Potential invoice value: <strong>£{Number(results.analysis.potential_invoice_value).toFixed(2)}</strong></>}
+                     </p>
+                   )}
+                 </div>
+               )}
             </div>
           )}
 
@@ -303,7 +335,7 @@ export default function ImportCSVDialog({ open, onOpenChange, companyId, onImpor
               {step === 'review' && (
                 <>
                   <Button variant="outline" onClick={() => setStep('map')}>Back</Button>
-                  <Button onClick={handleImport} disabled={importing}>{importing ? 'Importing...' : 'Import'}</Button>
+                  <Button onClick={handleImport} disabled={importing}>{importing ? `Importing & analysing ${preview.length}…` : 'Import & analyse'}</Button>
                 </>
               )}
             </>

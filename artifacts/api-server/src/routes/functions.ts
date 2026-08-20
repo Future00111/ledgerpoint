@@ -32,6 +32,7 @@ import {
   vatReturnsTable,
   journalEntriesTable,
   emailCaptureLogsTable,
+  bankAutomationSettingsTable,
 } from "@workspace/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
 import {
@@ -531,18 +532,26 @@ router.post("/:name", async (req: Request, res: Response) => {
             }
             return rows;
           });
+          const [automationSettings] = await db.select().from(bankAutomationSettingsTable)
+            .where(eq(bankAutomationSettingsTable.company_id, companyId)).limit(1);
+          let analysisSummary: unknown = null;
           // Imports must enter the same deterministic review queue as manually
           // entered bank items. Analysis only writes review metadata and never
           // links, posts, or changes the newly-created transactions.
           try {
-            await analyseTransactions(companyId, created, { persist: true });
+            if (automationSettings?.automatic_analysis_enabled !== false) {
+              const analysis = await analyseTransactions(companyId, created, { persist: true });
+              analysisSummary = analysis.summary;
+            }
           } catch (analysisError) {
             // The import itself is valid bookkeeping data. Preserve it when
             // optional analysis is temporarily unavailable, and surface the
             // failure in server logs rather than silently losing the receipt.
             req.log.warn({ err: analysisError, company_id: companyId }, "Imported transactions were not analysed");
           }
-          res.status(201).json(isBatch ? { success: true, data: created } : { success: true, data: created[0] });
+          res.status(201).json(isBatch
+            ? { success: true, data: created, analysis_summary: analysisSummary, analysis_status: analysisSummary ? "complete" : "disabled" }
+            : { success: true, data: created[0], analysis_summary: analysisSummary, analysis_status: analysisSummary ? "complete" : "disabled" });
         } catch (e) {
           res.status(400).json({ error: e instanceof Error ? e.message : "Bank transaction could not be recorded" });
         }
