@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { calculateVATBoxes, isAdjustableVATBox } from "./vatMath.js";
+import { genericEntityWriteError, isGenericEntityWriteBlocked } from "../../routes/entityWritePolicy.js";
 
 const p = (value: number) => Math.round(value * 100);
 const money = (value: number) => value / 100;
@@ -45,4 +46,10 @@ test("VAT scenario: derived boxes cannot be manual adjustments", () => {
   assert.equal(isAdjustableVATBox(5), false);
   assert.equal(isAdjustableVATBox(1), true);
   assert.equal(isAdjustableVATBox(9), true);
+});
+
+test("VAT scenario: generic entity writes cannot bypass the VAT workflow", () => {
+  assert.equal(isGenericEntityWriteBlocked("VATReturn"), true);
+  assert.match(genericEntityWriteError("VATReturn"), /cannot be changed through generic entity routes/);
+  assert.equal(isGenericEntityWriteBlocked("SalesInvoice"), false);
 });

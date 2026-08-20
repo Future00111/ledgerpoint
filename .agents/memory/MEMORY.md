@@ -4,3 +4,4 @@
 - [Reconciliation write boundary](reconciliation-write-boundary.md) — bank matching, money, links, and account references must use protected reconciliation routes, not generic CRUD.
 - [AI task write permissions](ai-task-write-permissions.md) — any manual analysis or review action that persists task state requires a company write role.
 - [VAT Assistant calculation boundary](vat-assistant-boundaries.md) — only standard-scheme, invoice-basis VAT is calculated until distinct scheme rules exist.
+- [VAT return locking](vat-return-locking.md) — conditional row locks and audit writes must commit together for concurrent review actions.

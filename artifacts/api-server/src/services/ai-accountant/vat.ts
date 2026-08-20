@@ -308,8 +308,18 @@ export async function syncVATExceptions(companyId: string, userId?: string, star
   return overview;
 }
 
-async function auditVAT(companyId: string, vatReturnId: string | null, eventType: string, description: string, metadata?: Record<string, unknown>, userId?: string) {
-  await db.insert(vatReturnAuditsTable).values({
+type VATAuditDatabase = Pick<typeof db, "insert">;
+
+async function auditVAT(
+  companyId: string,
+  vatReturnId: string | null,
+  eventType: string,
+  description: string,
+  metadata?: Record<string, unknown>,
+  userId?: string,
+  database: VATAuditDatabase = db,
+) {
+  await database.insert(vatReturnAuditsTable).values({
     company_id: companyId, vat_return_id: vatReturnId, event_type: eventType, description, metadata: metadata ?? null, user_id: userId ?? null,
   });
 }
@@ -362,10 +372,13 @@ export async function recalculateVATReturn(companyId: string, vatReturnId: strin
   const detail = await getVATReturnDetail(companyId, vatReturnId);
   if (detail.vat_return.locked) throw new Error("Approved VAT returns are locked. Create an explicit adjustment or revision instead.");
   const overview = await syncVATExceptions(companyId, userId, detail.vat_return.period_start!, detail.vat_return.period_end!);
-  const [updated] = await db.update(vatReturnsTable).set({ ...overview.schema_boxes, calculation_snapshot: overview, updated_at: new Date() })
-    .where(and(eq(vatReturnsTable.id, vatReturnId), eq(vatReturnsTable.company_id, companyId), eq(vatReturnsTable.locked, false))).returning();
-  if (!updated) throw new Error("The VAT return was approved and locked while it was being recalculated.");
-  await auditVAT(companyId, vatReturnId, "vat_return_recalculated", "VAT return recalculated from live source records.", { period: overview.period }, userId);
+  const updated = await db.transaction(async (tx) => {
+    const [recalculated] = await tx.update(vatReturnsTable).set({ ...overview.schema_boxes, calculation_snapshot: overview, updated_at: new Date() })
+      .where(and(eq(vatReturnsTable.id, vatReturnId), eq(vatReturnsTable.company_id, companyId), eq(vatReturnsTable.locked, false))).returning();
+    if (!recalculated) throw new Error("The VAT return was approved and locked while it was being recalculated.");
+    await auditVAT(companyId, vatReturnId, "vat_return_recalculated", "VAT return recalculated from live source records.", { period: overview.period }, userId, tx);
+    return recalculated;
+  });
   return { vat_return: updated, overview };
 }
 
@@ -386,12 +399,14 @@ export async function approveVATReturn(companyId: string, vatReturnId: string, u
     .filter((item) => item.severity === "high" && item.status === "open");
   if (openHigh.length > 0) throw new Error("Resolve or explicitly review high-risk VAT exceptions before approving this return.");
   const now = new Date();
-  const [updated] = await db.update(vatReturnsTable).set({
-    status: "approved", locked: true, approved_by: userId, approved_at: now, locked_by: userId, locked_at: now, approval_note: note ?? null, updated_at: now,
-  }).where(and(eq(vatReturnsTable.id, vatReturnId), eq(vatReturnsTable.company_id, companyId), eq(vatReturnsTable.locked, false))).returning();
-  if (!updated) throw new Error("The VAT return was already locked by another review.");
-  await auditVAT(companyId, vatReturnId, "vat_return_approved", "VAT return approved and locked. Ledgerly has not submitted anything to HMRC.", { note: note ?? null }, userId);
-  return updated;
+  return db.transaction(async (tx) => {
+    const [updated] = await tx.update(vatReturnsTable).set({
+      status: "approved", locked: true, approved_by: userId, approved_at: now, locked_by: userId, locked_at: now, approval_note: note ?? null, updated_at: now,
+    }).where(and(eq(vatReturnsTable.id, vatReturnId), eq(vatReturnsTable.company_id, companyId), eq(vatReturnsTable.locked, false))).returning();
+    if (!updated) throw new Error("The VAT return was already locked by another review.");
+    await auditVAT(companyId, vatReturnId, "vat_return_approved", "VAT return approved and locked. Ledgerly has not submitted anything to HMRC.", { note: note ?? null }, userId, tx);
+    return updated;
+  });
 }
 
 export async function listVATExceptions(companyId: string, start?: string, end?: string) {
