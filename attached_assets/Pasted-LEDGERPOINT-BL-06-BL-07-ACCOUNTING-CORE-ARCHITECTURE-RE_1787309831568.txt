@@ -1,0 +1,904 @@
+LEDGERPOINT — BL-06 / BL-07 ACCOUNTING CORE ARCHITECTURE REVIEW
+
+IMPORTANT:
+THIS IS AN ARCHITECTURE AND DESIGN REVIEW ONLY.
+
+DO NOT IMPLEMENT ANY CODE.
+DO NOT MODIFY THE DATABASE.
+DO NOT CREATE MIGRATIONS.
+DO NOT MODIFY EXISTING ACCOUNTING LOGIC.
+DO NOT MODIFY UI.
+DO NOT INSTALL DEPENDENCIES.
+DO NOT PUBLISH OR DEPLOY.
+
+We are preparing to build the foundational accounting engine for Ledgerpoint.
+
+This is one of the most important architectural stages of the project.
+
+The Master Backlog identifies:
+
+BL-06 — Accounting Core: Canonical Posting Engine
+Priority: P0
+Status: Missing
+Complexity: Large
+
+BL-07 — Accounting Core: Chart, Defaults, Periods and Accounting Configuration
+Priority: P0
+Status: Partial/Missing
+Complexity: Large
+
+BL-06 and BL-07 must be designed correctly before implementation because the rest of Ledgerpoint will depend on them.
+
+==================================================
+1. GOVERNING DOCUMENTS
+==================================================
+
+Before doing anything:
+
+Read and follow:
+
+1. Ledgerly Manifesto
+2. Product Principles
+3. PRD / Product Scope
+4. Technical Architecture
+5. Product Gap Analysis
+6. Feature Matrix
+7. Master Backlog
+8. Living Product Decisions Register
+9. Existing accounting-related implementation
+
+The Manifesto remains the highest authority.
+
+The Master Backlog identifies BL-06 and BL-07 as the current intended work.
+
+Do not silently change product scope.
+
+If an unresolved product decision materially affects the accounting architecture, identify it explicitly.
+
+==================================================
+2. OBJECTIVE
+==================================================
+
+Design the canonical accounting foundation that will become the authoritative financial source of truth for Ledgerpoint.
+
+The intended architecture must support:
+
+- double-entry accounting
+- balanced journals
+- source-linked postings
+- immutable posted accounting records
+- controlled reversals/corrections
+- accounting periods
+- chart of accounts
+- account types
+- VAT/tax postings
+- accounts receivable
+- accounts payable
+- bank/cash
+- revenue
+- expenses
+- payments
+- payment allocations
+- reconciliation
+- credit notes
+- reporting
+- audit
+- idempotency
+- company/tenant isolation.
+
+The goal is NOT to build every feature now.
+
+The goal is to establish the accounting authority that those features will use later.
+
+==================================================
+3. CURRENT SYSTEM INSPECTION
+==================================================
+
+Before proposing the architecture, inspect the CURRENT Ledgerpoint implementation.
+
+Specifically inspect:
+
+- database schema
+- invoice models
+- bill models
+- customer models
+- supplier models
+- payment models
+- bank transaction models
+- reconciliation models
+- VAT models
+- existing journal models
+- chart of accounts if present
+- accounting configuration
+- company configuration
+- financial periods if present
+- audit trail
+- existing reports
+- existing accounting calculations
+- API services
+- server-side validation
+- existing AI Accountant interactions with financial data.
+
+Do not assume existing models are correct.
+
+Map what currently exists.
+
+Identify:
+- what can be retained
+- what should be extended
+- what should become legacy
+- what is missing
+- what is unsafe
+- what conflicts with the canonical accounting model.
+
+==================================================
+4. ACCOUNTING SOURCE OF TRUTH
+==================================================
+
+Design and explicitly define:
+
+SOURCE TRANSACTIONS
+        ↓
+VALIDATION
+        ↓
+ACCOUNTING POSTING
+        ↓
+JOURNAL
+        ↓
+JOURNAL LINES
+        ↓
+ACCOUNT BALANCES
+        ↓
+REPORTS
+
+The journal/posting layer must become the authoritative source for financial reporting.
+
+Do NOT make invoices, bills, bank transactions or frontend state the authoritative source for financial reports.
+
+Reports should ultimately derive from posted accounting entries.
+
+==================================================
+5. DOUBLE-ENTRY MODEL
+==================================================
+
+Define the canonical double-entry model.
+
+Every posted transaction must contain:
+
+- journal/header
+- journal lines
+- debit and credit amounts
+- accounts
+- source reference
+- company
+- posting date
+- accounting period
+- currency where applicable
+- description/memo
+- creation timestamp
+- posting timestamp
+- audit information
+- idempotency key.
+
+Enforce:
+
+TOTAL DEBITS = TOTAL CREDITS
+
+This must be enforced server-side.
+
+Never trust the browser to provide the final accounting totals.
+
+==================================================
+6. JOURNAL IMMUTABILITY
+==================================================
+
+Once posted:
+
+Journal entries must be immutable.
+
+Do NOT allow generic UPDATE or DELETE operations against posted accounting entries.
+
+Corrections must occur through controlled accounting mechanisms.
+
+Examples:
+
+Original:
+DR Expense £100
+CR Bank £100
+
+Correction:
+
+REVERSAL
+DR Bank £100
+CR Expense £100
+
+Then, if appropriate, a corrected posting.
+
+Define this properly.
+
+Do not physically rewrite accounting history.
+
+==================================================
+7. REVERSALS AND CORRECTIONS
+==================================================
+
+Design controlled mechanisms for:
+
+- reversal
+- correction
+- void/cancellation where legally/accountingly appropriate
+- credit notes
+- payment reversal
+- duplicate correction
+- period correction.
+
+Every reversal/correction must reference the original posting.
+
+The original journal must remain visible in the audit trail.
+
+Never silently overwrite accounting history.
+
+==================================================
+8. IDEMPOTENCY
+==================================================
+
+Design strong idempotency protection.
+
+The same source transaction must never create duplicate journal entries because of:
+
+- double-click
+- retry
+- network failure
+- worker retry
+- browser refresh
+- API retry
+- webhook retry
+- import retry
+- AI retry.
+
+Define the idempotency key strategy.
+
+Show where the unique constraint belongs.
+
+==================================================
+9. ACCOUNTING PERIODS
+==================================================
+
+Design:
+
+- financial year
+- accounting periods
+- open/closed state
+- posting date
+- period validation
+- period closing
+- controlled reopening
+- audit trail.
+
+A normal posting must not occur into a closed period.
+
+A reopening must be a controlled privileged action and fully audited.
+
+Define how year-end behaviour works.
+
+Do not assume year-end automatically deletes or modifies accounting history.
+
+==================================================
+10. CHART OF ACCOUNTS
+==================================================
+
+Design the canonical chart of accounts.
+
+At minimum support appropriate account classifications such as:
+
+- assets
+- liabilities
+- equity/capital
+- revenue/income
+- cost of sales
+- expenses
+- VAT/tax
+- bank/cash
+- receivables
+- payables.
+
+Do not hard-code assumptions that prevent future expansion.
+
+Define:
+
+- account code
+- account name
+- account type
+- parent account where appropriate
+- active/inactive
+- system/default account
+- company ownership
+- VAT/tax relationship where appropriate
+- reporting classification.
+
+Determine whether Ledgerpoint should use a default UK small-business chart of accounts with company-level customisation.
+
+Do not implement it yet.
+
+==================================================
+11. CONTROL ACCOUNTS
+==================================================
+
+Explicitly define how the accounting engine handles:
+
+Accounts Receivable
+Accounts Payable
+VAT
+Bank/Cash
+Revenue
+Expenses
+Equity/Capital
+
+For example:
+
+SALES INVOICE
+
+DR Accounts Receivable
+CR Revenue
+CR VAT Output
+
+SUPPLIER BILL
+
+DR Expense / Asset
+DR VAT Input
+CR Accounts Payable
+
+CUSTOMER PAYMENT
+
+DR Bank
+CR Accounts Receivable
+
+SUPPLIER PAYMENT
+
+DR Accounts Payable
+CR Bank
+
+Confirm the exact treatment and identify any cases requiring different handling.
+
+==================================================
+12. PAYMENTS AND ALLOCATIONS
+==================================================
+
+Design payment architecture so that:
+
+Payment
+≠
+Payment allocation
+≠
+Bank transaction
+
+These may be related but should not be incorrectly conflated.
+
+Support:
+
+- full payment
+- partial payment
+- multiple invoices
+- multiple payments
+- overpayment
+- underpayment
+- unapplied cash
+- allocation changes
+- payment reversal.
+
+Every allocation must produce the correct accounting effect.
+
+==================================================
+13. BANK TRANSACTIONS
+==================================================
+
+Define how bank transactions interact with the accounting engine.
+
+A bank transaction should not automatically become a journal merely because it was imported.
+
+Distinguish:
+
+BANK FEED DATA
+→
+RECONCILIATION / CLASSIFICATION
+→
+ACCOUNTING POSTING
+
+This is important.
+
+Imported bank data is source evidence.
+
+Approved accounting treatment produces the authoritative posting.
+
+Define how transfers are represented.
+
+==================================================
+14. INVOICE POSTING
+==================================================
+
+Define the accounting lifecycle:
+
+DRAFT
+→
+VALIDATE
+→
+APPROVE
+→
+POST
+→
+ISSUE
+→
+PAY
+→
+ALLOCATE
+→
+RECONCILE
+
+Define which transitions create accounting entries.
+
+Determine what happens if an invoice is cancelled before posting.
+
+Determine what happens after posting.
+
+Do not allow posted invoice amounts to be silently edited.
+
+==================================================
+15. BILL POSTING
+==================================================
+
+Define equivalent purchase lifecycle:
+
+DRAFT
+→
+VALIDATE
+→
+APPROVE
+→
+POST
+→
+PAY
+→
+ALLOCATE
+→
+RECONCILE
+
+Define the accounting consequences.
+
+==================================================
+16. CREDIT NOTES
+==================================================
+
+Define how credit notes will reverse/reduce:
+
+- invoice balances
+- revenue
+- VAT
+- AR/AP
+- journals.
+
+Ensure they never modify posted historical journal lines directly.
+
+==================================================
+17. VAT INTEGRATION
+==================================================
+
+The accounting engine must integrate with the existing deterministic VAT architecture.
+
+DO NOT create a second VAT engine.
+
+The posting engine should consume authoritative VAT results from the VAT service.
+
+Define how VAT postings are represented in journals.
+
+Example:
+
+Sales invoice:
+
+DR AR
+CR Revenue
+CR VAT Output
+
+Purchase bill:
+
+DR Expense
+DR VAT Input
+CR AP
+
+Ensure VAT reporting can trace back to source evidence and posted journals.
+
+==================================================
+18. AUDIT TRAIL
+==================================================
+
+Every accounting posting must be traceable:
+
+Report
+→ Journal
+→ Source transaction
+→ User/system action
+→ Timestamp
+→ Approval
+→ Original/reversal relationship.
+
+Define the audit model.
+
+Posted journals must not be deletable.
+
+==================================================
+19. COMPANY / TENANT ISOLATION
+==================================================
+
+Every accounting entity must be company scoped.
+
+No:
+
+- journal
+- journal line
+- account
+- period
+- payment
+- allocation
+- posting
+- balance
+
+may cross company boundaries.
+
+All server-side operations must verify company membership and permissions.
+
+==================================================
+20. PERMISSIONS
+==================================================
+
+Define capabilities required for:
+
+- viewing accounts
+- creating drafts
+- approving transactions
+- posting
+- reversing
+- closing periods
+- reopening periods
+- editing chart of accounts
+- changing accounting defaults.
+
+Do not allow the UI alone to enforce permissions.
+
+Server-side enforcement is mandatory.
+
+==================================================
+21. REPORTING CONTRACT
+==================================================
+
+Define how the accounting engine exposes data to reporting.
+
+Reports should be able to derive:
+
+- Trial Balance
+- General Ledger
+- Profit & Loss
+- Balance Sheet
+- AR
+- AP
+- VAT
+- cash/bank
+- aged debtors
+- aged creditors.
+
+Do not build the reports in this task.
+
+Define the data contract they will consume.
+
+==================================================
+22. ROUNDING AND MONEY
+==================================================
+
+Define how Ledgerpoint handles:
+
+- currency precision
+- VAT rounding
+- line-level rounding
+- invoice-level rounding
+- journal rounding
+- zero-value lines
+- tiny residuals
+- balancing differences.
+
+The system must never create an unbalanced journal because of floating-point behaviour.
+
+Prefer integer minor units or another deterministic monetary representation.
+
+==================================================
+23. DATE HANDLING
+==================================================
+
+Clearly distinguish:
+
+- document date
+- transaction date
+- payment date
+- posting date
+- VAT period
+- accounting period
+- bank value date.
+
+Define which date controls accounting posting.
+
+==================================================
+24. STATUS MODEL
+==================================================
+
+Define authoritative lifecycle states.
+
+Do not rely on dozens of unrelated booleans.
+
+Clearly distinguish:
+
+DRAFT
+APPROVED
+POSTED
+PAID
+PARTIALLY_PAID
+CANCELLED
+REVERSED
+CLOSED
+
+where applicable.
+
+Avoid impossible states.
+
+==================================================
+25. DATABASE DESIGN
+==================================================
+
+Produce a proposed canonical data model.
+
+For each proposed entity specify:
+
+- purpose
+- fields
+- relationships
+- unique constraints
+- indexes
+- company scoping
+- immutability rules
+- lifecycle
+- audit requirements.
+
+Pay particular attention to:
+
+accounts
+accounting periods
+journals
+journal lines
+posting sources
+posting batches
+reversals
+payments
+payment allocations.
+
+Do NOT implement migrations.
+
+==================================================
+26. SERVICE ARCHITECTURE
+==================================================
+
+Propose the server-side service boundaries.
+
+For example:
+
+AccountingPostingService
+PeriodService
+ChartOfAccountsService
+PaymentAllocationService
+JournalService
+AccountingValidationService
+
+Use the existing architecture where appropriate.
+
+Do not create duplicate services if equivalent ones already exist.
+
+The browser must never directly create journal lines.
+
+==================================================
+27. API CONTRACTS
+==================================================
+
+Define proposed APIs for:
+
+- post transaction
+- reverse posting
+- close period
+- reopen period
+- create payment
+- allocate payment
+- get journal
+- get ledger
+- get account balance.
+
+Every mutation must:
+
+- authenticate
+- authorise
+- company-scope
+- validate
+- enforce accounting rules
+- enforce idempotency
+- create audit information.
+
+==================================================
+28. AI BOUNDARY
+==================================================
+
+The AI Accountant must never become the accounting authority.
+
+AI may:
+
+- recommend account
+- suggest invoice match
+- explain posting
+- identify anomalies
+- prepare a draft.
+
+The accounting engine determines:
+
+- whether a posting is valid
+- journal balance
+- VAT treatment
+- period validity
+- account validity
+- final accounting effect.
+
+This distinction must be explicit in the architecture.
+
+==================================================
+29. MIGRATION STRATEGY
+==================================================
+
+Identify how the current Ledgerpoint data could transition to the canonical accounting model.
+
+Do NOT perform migration.
+
+Determine:
+
+- which current records map to canonical sources
+- which existing journal data can be retained
+- which data is incomplete
+- what historical reconstruction may be required
+- what cannot safely be migrated automatically.
+
+Do not invent historical accounting data.
+
+==================================================
+30. EXISTING FUNCTIONALITY COMPATIBILITY
+==================================================
+
+Identify how the new accounting core will eventually connect to:
+
+- invoices
+- bills
+- payments
+- banking
+- reconciliation
+- VAT
+- collections
+- AI Accountant
+- reporting.
+
+Do not implement these integrations yet unless required to validate the architecture.
+
+==================================================
+31. TEST STRATEGY
+==================================================
+
+Design comprehensive tests for the future implementation.
+
+At minimum:
+
+1. Balanced journal
+2. Unbalanced journal rejected
+3. Duplicate posting rejected
+4. Retry remains idempotent
+5. Closed period rejected
+6. Reopen requires permission
+7. Posted journal cannot be edited
+8. Posted journal cannot be deleted
+9. Reversal creates linked balancing journal
+10. Invoice posting
+11. Bill posting
+12. Customer payment
+13. Supplier payment
+14. Partial payment
+15. Multi-invoice allocation
+16. Overpayment
+17. Unapplied cash
+18. VAT posting
+19. Credit note
+20. Company isolation
+21. Permission enforcement
+22. Audit trail
+23. Rounding
+24. Period boundaries.
+
+==================================================
+32. ARCHITECTURAL DECISION RECORD
+==================================================
+
+For every major architectural decision, provide:
+
+DECISION
+REASON
+ALTERNATIVES CONSIDERED
+TRADE-OFFS
+IMPACT
+REVERSIBILITY
+
+Do not hide uncertainty.
+
+If there are multiple viable approaches, recommend one and explain why.
+
+==================================================
+33. IMPLEMENTATION BOUNDARY
+==================================================
+
+Do NOT implement BL-06 or BL-07 yet.
+
+This task ends when the architecture/design proposal is complete.
+
+After producing the proposal, WAIT for explicit approval.
+
+Do not automatically proceed from design into implementation.
+
+==================================================
+34. FINAL OUTPUT
+==================================================
+
+Produce a clear architecture review containing:
+
+1. Current accounting architecture
+2. Current problems/gaps
+3. Proposed canonical accounting architecture
+4. Accounting source of truth
+5. Double-entry model
+6. Journal model
+7. Chart of accounts model
+8. Period model
+9. Posting lifecycle
+10. Reversal/correction model
+11. Payment/allocation model
+12. VAT integration
+13. Bank integration boundary
+14. Invoice/bill integration
+15. Reporting contract
+16. Audit model
+17. Permissions
+18. Tenant isolation
+19. Money/rounding model
+20. Date model
+21. Status model
+22. Database model
+23. Service architecture
+24. API contracts
+25. Migration strategy
+26. Test strategy
+27. Architectural decisions
+28. Risks
+29. Unresolved questions
+30. Recommended implementation order
+
+At the end provide:
+
+ARCHITECTURE STATUS:
+READY FOR REVIEW / BLOCKED
+
+RECOMMENDED IMPLEMENTATION:
+BL-06 + BL-07
+
+DO NOT IMPLEMENT.
+
+DO NOT MODIFY CODE.
+
+DO NOT MODIFY DATABASE.
+
+DO NOT PUBLISH.
+
+WAIT FOR EXPLICIT APPROVAL.
