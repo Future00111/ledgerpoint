@@ -386,6 +386,20 @@ Living Product Decisions Register until it has been explicitly accepted.
 - **Explicit product decision:** Approve stale-source rejection semantics and
   whether every approval creates a durable source snapshot.
 
+### DEC-12 — Payment, Allocation and Settlement Policy
+
+- **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-12 Payment, Allocation and Settlement Policy
+  Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md).
+- **Decision needed:** Define the canonical boundary between payment evidence,
+  payment posting, many-to-many allocation, and derived settlement.
+- **Recommendation:** Use a separate canonical payment event, append-only
+  allocation events, derived settlement status, and idempotent bank-evidence
+  links. Do not permit allocation to create duplicate accounting.
+- **Deliberate non-lock:** DEC-13 through DEC-16 retain overpayment,
+  unapplied-cash, refund, and payment-on-account policy. Source freshness
+  remains a separate unresolved posting-safety policy.
+
 ## 12. Overpayments
 
 - **Status:** REQUIRES USER DECISION

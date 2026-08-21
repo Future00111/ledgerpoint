@@ -50,6 +50,11 @@ Review](ledgerly-dec-11-configuration-versioning-review.md) records an
 approved configuration-versioning policy only. It does not authorise
 implementation or resolve any DEC-12 through DEC-22 policy.
 
+The [DEC-12 Payment, Allocation and Settlement Policy
+Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md)
+records a recommendation only. DEC-12 remains unresolved and does not
+authorise implementation or resolve DEC-13 through DEC-22 policy.
+
 ## Architecture obligations derived from governance
 
 Any future technical design must uphold the following constraints:

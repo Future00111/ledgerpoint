@@ -456,26 +456,35 @@ to the accounting core.
 
 ## Source and payment decisions
 
-### DEC-12 — Invoice, bill, and VAT source freshness
+### DEC-12 — Payment, Allocation and Settlement Policy
 
 - **Status:** REQUIRES USER DECISION
-- **Decision:** Define how source revisions, hashes, VAT results, and stale
-  approval attempts are detected and handled.
-- **Options available:** (a) trust post-time values; (b) revision/hash checks;
-  (c) approval-to-post locking; or (d) revision checks combined with short
-  transactional locks.
-- **Replit's recommendation:** Revision/hash checks with transactional locking;
-  reject stale approvals and require recalculation.
-- **Why it is recommended:** It binds accounting and VAT effects to the source
-  the user actually approved.
-- **Accounting implications:** Posted entries retain the exact source basis;
-  later edits require correction or replacement rather than mutation.
-- **Data/schema implications:** Requires source revision/hash, VAT result/version,
-  durable snapshot, idempotency, and audit contracts.
-- **Migration implications:** Older sources need a baseline or explicit
-  unknown-version state; incomplete history must not be invented.
-- **Backlog implications:** Gates BL-04, BL-05, BL-06, BL-08, and BL-15.
-- **Dependency:** DEC-04 and DEC-05; it must be resolved before source posting.
+- **Decision review:** [DEC-12 Payment, Allocation and Settlement Policy
+  Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md).
+- **Decision:** Define payment evidence, accounting payment, allocation, and
+  derived document settlement as distinct concepts; determine their canonical
+  journal, allocation, reporting, audit, and reconciliation boundaries.
+- **Recommendation:** Use a standalone canonical payment event that posts
+  money exactly once, many-to-many allocation records, and settlement status
+  derived from authoritative open-item/allocation data. Allocation changes are
+  append-only reversal/supersession events and do not create duplicate cash or
+  AR/AP journals.
+- **Boundary:** Do not over-allocate documents or discard excess money.
+  Customer/supplier overpayment treatment, first-class unapplied cash, refund
+  workflow, and payment-on-account scope remain DEC-13 through DEC-16.
+  Source freshness remains a separate unresolved posting-safety dependency;
+  this review neither decides nor reassigns it.
+- **Accounting implications:** Direct customer payments are Bank/Cash to AR;
+  direct supplier payments are AP to Bank/Cash. Bank evidence links to payment
+  accounting idempotently and is never itself a payment journal.
+- **Data/schema implications:** Requires payment, allocation, open-item,
+  canonical-journal, evidence, configuration, idempotency, and immutable audit
+  relationships when implementation is separately authorised.
+- **Migration implications:** Historical payment/settlement relationships are
+  migrated only from evidence; ambiguity is a DEC-22 exception.
+- **Backlog implications:** Informs BL-06, BL-07, BL-09, BL-10, BL-14, and
+  BL-16; all remain blocked or subject to applicable later decisions.
+- **Dependency:** DEC-03 through DEC-11; DEC-13 through DEC-16 build on it.
 
 ### DEC-13 — Customer overpayments and supplier prepayments
 

@@ -132,6 +132,10 @@ be approved:
    records the approved configuration-versioning policy; DEC-12 and later
    applicable decisions remain
    unresolved.
+7. [DEC-12 Payment, Allocation and Settlement Policy
+   Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md)
+   records a recommendation only for the payment/evidence/allocation/settlement
+   boundary. DEC-12 and later applicable decisions remain unresolved.
 7. Source freshness, overpayment, unapplied cash, refund, and
    payment-on-account treatment.
 8. Audit retention, deletion/anonymisation, export, backup/recovery, and tenant

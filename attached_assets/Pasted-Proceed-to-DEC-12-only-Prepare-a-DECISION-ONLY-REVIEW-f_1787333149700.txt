@@ -1,0 +1,546 @@
+Proceed to DEC-12 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-12 — Payment, Allocation and Settlement Policy
+
+Review all existing governance and accounting documentation, including:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- Accounting Core Decision Pack
+- Master Backlog
+- DEC-01 through DEC-11
+- DEC-03 VAT policy
+- DEC-04 canonical accounting architecture
+- DEC-05 capability model
+- DEC-06 financial-year policy
+- DEC-07 accounting-period policy
+- DEC-08 year-end policy
+- DEC-09 Chart of Accounts policy
+- DEC-10 control-account mapping policy
+- DEC-11 configuration-versioning policy
+- Existing invoice, bill, payment, banking, reconciliation and VAT documentation
+
+This is a DECISION-ONLY review.
+
+DO NOT implement anything.
+
+DO NOT modify:
+
+- application code
+- database schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Do NOT approve DEC-12.
+Do NOT start DEC-13 or any later decision.
+Keep BL-06 and BL-07 BLOCKED.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Determine Ledgerly's authoritative policy for:
+
+- payments;
+- payment allocation;
+- settlement;
+- partially paid invoices/bills;
+- fully paid invoices/bills;
+- unapplied payments;
+- overpayments;
+- payment-on-account where applicable;
+- allocation changes.
+
+The review must clearly separate:
+
+1. PAYMENT EVIDENCE
+2. PAYMENT ACCOUNTING
+3. PAYMENT ALLOCATION
+4. DOCUMENT SETTLEMENT STATUS
+
+These must not be treated as the same thing.
+
+==================================================
+1. PAYMENT AS AN ACCOUNTING CONCEPT
+==================================================
+
+Define what a payment represents in the canonical accounting model.
+
+Determine whether a payment should be treated as:
+
+- a standalone accounting event;
+- an allocation event;
+- both, with separate evidence and accounting effects;
+- another controlled model.
+
+Respect DEC-04's separation of:
+
+- bank evidence;
+- payment;
+- allocation;
+- canonical journal.
+
+==================================================
+2. CUSTOMER PAYMENTS
+==================================================
+
+Define the accounting model for customer payments.
+
+At minimum consider:
+
+BANK/CASH → ACCOUNTS RECEIVABLE
+
+Explain how this affects:
+
+- customer balance;
+- invoice balance;
+- aged receivables;
+- bank reconciliation;
+- reporting.
+
+==================================================
+3. SUPPLIER PAYMENTS
+==================================================
+
+Define the accounting model for supplier payments.
+
+At minimum consider:
+
+ACCOUNTS PAYABLE → BANK/CASH
+
+Explain how this affects:
+
+- supplier balance;
+- bill balance;
+- aged payables;
+- bank reconciliation;
+- reporting.
+
+==================================================
+4. ALLOCATION
+==================================================
+
+Define payment allocation.
+
+Determine:
+
+- whether a payment can exist before allocation;
+- whether allocation creates accounting postings;
+- whether allocation changes accounting or only settlement state;
+- whether allocation is reversible;
+- how allocation is audited.
+
+A payment allocation must not accidentally create duplicate accounting entries.
+
+==================================================
+5. PARTIAL PAYMENTS
+==================================================
+
+Define treatment of:
+
+- partially paid customer invoices;
+- partially paid supplier bills;
+- multiple payments against one document;
+- one payment against multiple documents.
+
+Explain how outstanding balances are calculated.
+
+==================================================
+6. FULL SETTLEMENT
+==================================================
+
+Define when an invoice/bill becomes:
+
+- partially paid;
+- fully paid;
+- overpaid.
+
+Settlement status must be derived from authoritative payment/allocation data rather than being an independently editable accounting fact.
+
+==================================================
+7. UNAPPLIED PAYMENTS
+==================================================
+
+Determine the launch policy for payments that have been received/paid but are not yet allocated.
+
+Consider:
+
+- customer payment received with no invoice identified;
+- supplier payment made with no bill identified;
+- payment held on account;
+- bank transaction awaiting classification.
+
+Explain the accounting and reporting consequences.
+
+Do not resolve DEC-13 through DEC-16 beyond their dependencies.
+
+==================================================
+8. OVERPAYMENTS
+==================================================
+
+Identify the correct accounting model for:
+
+- customer overpayment;
+- supplier overpayment.
+
+Determine whether the excess amount becomes:
+
+- unapplied/on-account balance;
+- separate liability/asset treatment;
+- another controlled accounting state.
+
+Do not approve DEC-13/14/15/16 policies through DEC-12.
+
+Identify which parts must remain for those later decisions.
+
+==================================================
+9. PAYMENT-ON-ACCOUNT
+==================================================
+
+Determine whether Ledgerly should support payment-on-account at launch.
+
+If recommended, explain:
+
+- accounting treatment;
+- customer/supplier balance;
+- allocation later;
+- refunds;
+- reporting;
+- audit.
+
+Clearly distinguish payment-on-account from an ordinary bank transaction awaiting reconciliation.
+
+==================================================
+10. ALLOCATION CHANGES
+==================================================
+
+Determine what happens when an existing allocation is changed.
+
+Examples:
+
+- payment allocated to Invoice A, then moved to Invoice B;
+- payment partially allocated, then reallocated;
+- payment becomes unapplied;
+- overpayment is subsequently allocated.
+
+Determine whether:
+
+- settlement state is recalculated;
+- accounting journals change;
+- reversal/reposting is required;
+- allocation history is preserved.
+
+Do not allow silent historical mutation.
+
+==================================================
+11. MULTIPLE DOCUMENTS
+==================================================
+
+Determine whether one payment may settle:
+
+- multiple invoices;
+- multiple bills.
+
+If supported, define how allocation is represented.
+
+==================================================
+12. MULTIPLE PAYMENTS
+==================================================
+
+Determine whether multiple payments may settle one:
+
+- invoice;
+- bill.
+
+Define the authoritative balance calculation.
+
+==================================================
+13. CREDIT NOTES
+==================================================
+
+Determine how payments interact with:
+
+- customer credit notes;
+- supplier credit notes.
+
+Do not create a second accounting path outside the canonical journal model.
+
+==================================================
+14. REFUNDS
+==================================================
+
+Identify dependencies with future refund decisions.
+
+Do NOT fully resolve refund policy here if it belongs to DEC-14/15/16.
+
+Explain what DEC-12 must establish so those decisions can build safely on it.
+
+==================================================
+15. BANK RECONCILIATION
+==================================================
+
+Respect the existing reconciliation design.
+
+Clearly separate:
+
+BANK TRANSACTION / EVIDENCE
+
+from:
+
+ACCOUNTING PAYMENT
+
+from:
+
+PAYMENT ALLOCATION
+
+from:
+
+CANONICAL JOURNAL
+
+Explain how reconciliation should link these concepts without creating duplicate accounting.
+
+==================================================
+16. VAT
+==================================================
+
+DEC-03 remains the sole VAT authority.
+
+Determine whether payment events affect VAT treatment under the approved launch VAT scheme.
+
+Do not expand VAT scope.
+
+Do not create a second VAT engine.
+
+==================================================
+17. PERIODS
+
+Respect DEC-07.
+
+Determine how payment posting dates interact with:
+
+- open periods;
+- closed periods;
+- future periods.
+
+Do not allow payment operations to bypass closed-period controls.
+
+==================================================
+18. CONFIGURATION
+
+Respect DEC-11.
+
+If payment posting behaviour depends on material configuration:
+
+- identify the relevant configuration version;
+- explain how it is resolved;
+- do not redesign DEC-11.
+
+==================================================
+19. AUDIT
+
+Define audit requirements for:
+
+- payment creation;
+- payment posting;
+- allocation;
+- reallocation;
+- unallocation;
+- overpayment;
+- payment-on-account;
+- settlement status changes.
+
+Historical payment/accounting events must remain traceable.
+
+==================================================
+20. PERMISSIONS
+
+Use DEC-05.
+
+Determine which payment actions require:
+
+- ordinary capability;
+- elevated capability;
+- approval.
+
+Do not silently grant permissions.
+
+==================================================
+21. REPORTING
+
+Explain the effect on:
+
+- customer balances;
+- supplier balances;
+- aged receivables;
+- aged payables;
+- bank reconciliation;
+- cash/bank reporting;
+- Trial Balance;
+- General Ledger;
+- Balance Sheet;
+- Profit & Loss where relevant.
+
+Reports must remain derived from authoritative accounting data.
+
+==================================================
+22. MIGRATION
+
+Review migration requirements for existing:
+
+- payments;
+- payment allocations;
+- settlement states;
+- customer balances;
+- supplier balances.
+
+Never invent historical payment allocations or settlement events.
+
+Ambiguity must become an explicit migration exception for DEC-22.
+
+==================================================
+23. OPTIONS
+
+Present realistic options for:
+
+- payment representation;
+- allocation representation;
+- on-account treatment;
+- overpayments;
+- settlement calculation;
+- allocation reversal/reallocation.
+
+For each material option explain:
+
+- accounting consequences;
+- data/schema consequences;
+- migration consequences;
+- reporting consequences;
+- audit/security consequences;
+- operational consequences;
+- compatibility consequences;
+- future flexibility;
+- what becomes difficult to change later.
+
+==================================================
+24. RECOMMENDATION
+==================================================
+
+Provide:
+
+RECOMMENDATION — NOT APPROVAL
+
+Recommend the approach that best satisfies:
+
+- DEC-04 canonical accounting;
+- DEC-05 capabilities;
+- DEC-07 period controls;
+- DEC-09 chart policy;
+- DEC-10 control mappings;
+- DEC-11 configuration versioning;
+- accurate settlement;
+- simple user experience;
+- auditability;
+- future flexibility.
+
+Do not convert the recommendation into approval.
+
+==================================================
+25. DECISION BOUNDARIES
+==================================================
+
+Clearly distinguish:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Explicitly identify:
+
+- what approving DEC-12 would lock in;
+- what remains changeable;
+- what belongs to DEC-13;
+- what belongs to DEC-14;
+- what belongs to DEC-15;
+- what belongs to DEC-16;
+- what belongs to DEC-22 migration.
+
+Do not resolve later decisions prematurely.
+
+==================================================
+26. IMPORTANT ACCOUNTING PRINCIPLE
+==================================================
+
+Payment, allocation and settlement are related but distinct concepts.
+
+Do not allow:
+
+- allocation to duplicate accounting;
+- settlement status to become an independently editable accounting fact;
+- bank evidence to be mistaken for an accounting payment;
+- reallocation to silently rewrite historical accounting.
+
+Where accounting must change, use the canonical posting/reversal mechanisms approved under DEC-04.
+
+==================================================
+27. FUTURE FLEXIBILITY
+==================================================
+
+Do not unnecessarily prevent future:
+
+- payment-on-account workflows;
+- overpayment workflows;
+- refund workflows;
+- credit-note workflows;
+- additional currencies;
+- additional markets;
+- payment methods;
+- banking integrations.
+
+==================================================
+28. DOCUMENTATION
+==================================================
+
+Create or update:
+
+docs/ledgerly-dec-12-payment-allocation-settlement-policy-review.md
+
+Link it into:
+
+- Current Decision Register;
+- Living Product Decisions;
+- Accounting Core Decision Pack;
+- Technical Architecture;
+- PRD / Product Scope;
+
+where appropriate.
+
+Do not modify implementation files.
+
+==================================================
+29. FINAL VERIFICATION
+==================================================
+
+At the end verify:
+
+1. DEC-01 through DEC-11 retain their approved statuses.
+2. DEC-12 remains REQUIRES USER DECISION.
+3. DEC-13 through DEC-22 remain REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-13 work was started.
+8. No payment, allocation, settlement or accounting logic was implemented.
+
+Stop after the DEC-12 decision-only review is complete.

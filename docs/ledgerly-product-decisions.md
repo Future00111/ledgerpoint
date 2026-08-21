@@ -388,6 +388,25 @@ not higher authority.
   authorise code, schema, migration, UI, workflow, dependency, deployment,
   publishing, or an implementation task. BL-06 and BL-07 remain blocked.
 
+### DEC-12 — Payment, Allocation and Settlement Policy
+
+- **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-12 Payment, Allocation and Settlement Policy
+  Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md).
+- **Current decision/direction:** Decide the boundary between payment evidence,
+  payment accounting, allocation, and derived document settlement.
+- **Recommendation:** Post an accounting payment once through the canonical
+  journal; use many-to-many, append-only allocation events to explain
+  settlement; derive settlement status; and link bank evidence idempotently
+  without creating duplicate accounting.
+- **Boundary:** DEC-13 through DEC-16 retain authority over overpayments,
+  first-class unapplied cash, refunds, and payment-on-account. Source freshness
+  remains a separate unresolved posting-safety dependency and is neither
+  decided nor reassigned by this review.
+- **Implementation limit:** This review and unresolved decision do not
+  authorise code, schema, migration, UI, workflow, dependency, deployment,
+  publishing, or an implementation task. BL-06 and BL-07 remain blocked.
+
 ### PD-01 — Product name
 
 - **Status:** OPEN
