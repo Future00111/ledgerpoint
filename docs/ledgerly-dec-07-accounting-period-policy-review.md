@@ -806,7 +806,8 @@ Until DEC-07 is approved or amended:
 **DEC-17:** **APPROVED — Audit Retention Period**
 **DEC-18:** **APPROVED — Deletion and Anonymisation Policy**
 **DEC-19:** **APPROVED — Export Policy**
-**DEC-20 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-20:** **APPROVED — Backup and Recovery Policy**
+**DEC-21 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application code changed by this review:** **NO**  
 **Database or migrations changed by this review:** **NO**

@@ -9,7 +9,7 @@ privacy, security, and architecture review
 **Implementation authority:** None
 
 > This records an approved product/data-export policy. It does not approve
-> DEC-20 through DEC-22, and it does not authorise an implementation task, code, schema,
+> DEC-21 and DEC-22, and it does not authorise an implementation task, code, schema,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
@@ -696,7 +696,7 @@ The bounded launch export model described in section 17.
   auditable;
 - DEC-17 retention and DEC-18 disposal state apply to exported information;
 - exports do not recreate disposed data or act as backups; and
-- DEC-20 through DEC-22 retain their registered policy boundaries.
+- DEC-21 and DEC-22 retain their registered policy boundaries.
 
 ### What remains changeable
 
@@ -727,7 +727,7 @@ DEC-19 was explicitly approved on 2026-08-21. The approval is a
 product/data-export policy only. Until the applicable remaining decisions are
 approved or amended:
 
-- DEC-20 through DEC-22 remain untouched and unresolved;
+- DEC-21 and DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
 - no export format, scope, permission, schema, migration, accounting, UI,
   workflow, dependency, deployment, or publishing implementation may begin;
@@ -735,7 +735,8 @@ approved or amended:
 - no implementation task is authorised.
 
 **DEC-01 through DEC-19:** **APPROVED**
-**DEC-20 through DEC-22:** **REQUIRE USER DECISION**
+**DEC-20:** **APPROVED — Backup and Recovery Policy**
+**DEC-21 and DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

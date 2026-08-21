@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–19 approved; DEC-20 through DEC-22 require
+**Register status:** Decisions 1–20 approved; DEC-21 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -595,7 +595,7 @@ to the accounting core.
   explicit classification would require additional intent and history fields.
 - **Migration implications:** Unmatched bank rows need approved classification;
   old paid totals cannot be assumed to represent on-account amounts.
-- **Boundary:** DEC-20 onward and DEC-22 migration policy remain unresolved.
+- **Boundary:** DEC-21 onward and DEC-22 migration policy remain unresolved.
   Source freshness remains separate.
 - **Backlog implications:** Gates BL-09, BL-14, and BL-16.
 - **Dependency:** DEC-13, DEC-14, and DEC-15.
@@ -625,7 +625,7 @@ to the accounting core.
   audit evidence remains visible rather than fabricated.
 - **Boundary:** DEC-18 remains responsible for deletion, anonymisation,
   archival, redaction, destruction, and subject-access-related handling.
-  DEC-20 through DEC-22 retain their own policy boundaries. Source freshness
+  DEC-21 and DEC-22 retain their own policy boundaries. Source freshness
   remains separate.
 - **Backlog implications:** Gates BL-18, BL-19, BL-21, BL-24, and BL-25.
 - **Dependency:** DEC-02, DEC-04, DEC-05, and DEC-18.
@@ -688,18 +688,18 @@ to the accounting core.
 
 ### DEC-20 — Backup and recovery objectives
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/operational resilience policy only
 - **Decision review:** [DEC-20 Backup and Recovery Policy
   Review](ledgerly-dec-20-backup-and-recovery-policy-review.md).
-- **Decision:** Set recovery point objective, recovery time objective, backup
-  retention, restore-test frequency, and regional/operational recovery needs.
-- **Recommendation:** Use encrypted managed backups, point-in-time recovery
-  where available, documented backup retention, explicit tiered RPO/RTO,
+- **Decision review:** [DEC-20 Backup and Recovery Policy
+  Review](ledgerly-dec-20-backup-and-recovery-policy-review.md).
+- **Approved policy:** Use encrypted managed backups, point-in-time recovery
+  where available, documented backup retention, explicit target RPO/RTO,
   isolated validated restoration, and tested recovery procedures.
 - **Options available:** (a) provider defaults; (b) managed daily backups or
   point-in-time recovery; or (c) managed backups plus tested restore and
   regional recovery.
-- **Why it is recommended:** Recovery must preserve accounting ordering,
+- **Why it is approved:** Recovery must preserve accounting ordering,
   immutability, source links, periods, and idempotency rather than merely
   restore database bytes.
 - **Accounting implications:** Prevents duplicate posting, missing journal

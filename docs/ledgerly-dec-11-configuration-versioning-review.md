@@ -530,7 +530,7 @@ decisions are approved or amended:
 
 - no configuration-versioning or effective-dating mechanism may be
   implemented;
-- DEC-20 through DEC-22 remain untouched and unresolved;
+- DEC-21 and DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**; and
 - no implementation task is authorised.
 
@@ -543,7 +543,8 @@ decisions are approved or amended:
 **DEC-17:** **APPROVED — Audit Retention Period**
 **DEC-18:** **APPROVED — Deletion and Anonymisation Policy**
 **DEC-19:** **APPROVED — Export Policy**
-**DEC-20 through DEC-22:** **REQUIRE USER DECISION**
+**DEC-20:** **APPROVED — Backup and Recovery Policy**
+**DEC-21 and DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

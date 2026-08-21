@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-19 APPROVED; DEC-20 through DEC-22
+**Decision status:** DEC-01 through DEC-20 APPROVED; DEC-21 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -500,7 +500,7 @@ Living Product Decisions Register until it has been explicitly accepted.
   classification.
 - **Dependencies:** Unapplied cash, overpayments, refunds, statements,
   bank/reconciliation, BL-09, BL-16.
-- **Decision boundary:** DEC-20 onward and DEC-22 migration policy remain open.
+- **Decision boundary:** DEC-21 onward and DEC-22 migration policy remain open.
   Source freshness remains separate.
 
 ## 16. Audit retention
@@ -557,7 +557,7 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 18. Export policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/operational resilience policy only
 - **Decision review:** [DEC-19 Export Policy
   Review](ledgerly-dec-19-export-policy-review.md).
 - **Approved policy:** Support bounded company-scoped PDF/CSV reports,
@@ -587,9 +587,9 @@ Living Product Decisions Register until it has been explicitly accepted.
 - **Status:** REQUIRES USER DECISION
 - **Decision review:** [DEC-20 Backup and Recovery Policy
   Review](ledgerly-dec-20-backup-and-recovery-policy-review.md).
-- **Decision needed:** Decide recovery point objective, recovery time objective,
-  backup retention, restore testing, and company/customer visibility.
-- **Recommendation:** Use encrypted managed backups, point-in-time recovery
+- **Decision review:** [DEC-20 Backup and Recovery Policy
+  Review](ledgerly-dec-20-backup-and-recovery-policy-review.md).
+- **Approved policy:** Use encrypted managed backups, point-in-time recovery
   where available, documented backup retention, explicit tiered RPO/RTO,
   isolated validated restoration, and tested recovery procedures.
 - **Options:**
@@ -605,8 +605,6 @@ Living Product Decisions Register until it has been explicitly accepted.
   not replay postings twice.
 - **Migration consequences:** Take verified backups before each schema or
   company cutover; provide rollback checkpoints for adapters and projections.
-- **Explicit product decision:** Approve target RPO/RTO and restore-test
-  requirements.
 - **Dependencies:** Deployment/operations, database architecture, audit,
   idempotency, BL-24.
 

@@ -2,14 +2,14 @@
 
 **Decision:** DEC-20 — Backup and recovery objectives
 **Scope:** Backup and recovery policy
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — product/operational resilience policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, security,
 reliability, privacy, and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-20 or DEC-21 through
-> DEC-22, and it does not authorise an implementation task, code, schema,
+> This records an approved product/operational resilience policy. It does not
+> approve DEC-21 through DEC-22, and it does not authorise an implementation task, code, schema,
 > migration, accounting logic, UI, workflow, dependency, deployment,
 > infrastructure configuration, or publishing work.
 
@@ -32,7 +32,7 @@ The registered recommendation is:
 > Encrypted managed backups, point-in-time recovery where available,
 > documented retention, explicit RPO/RTO, and tested restores.
 
-This review evaluates that recommendation without approving DEC-20.
+This review records that policy without authorising its implementation.
 
 ## 2. Purpose and core principles
 
@@ -164,9 +164,9 @@ state they describe.
 Object-storage backup must not be assumed merely because a database row
 contains a document reference.
 
-## 5. Backup types and recommended combination
+## 5. Approved backup model
 
-Recommend a layered approach:
+Use a layered approach:
 
 1. **Managed encrypted database snapshots:** scheduled full or provider
    equivalent snapshots for complete recovery points.
@@ -191,14 +191,14 @@ limits, region behaviour, verification, and failure escalation.
 RPO and RTO are targets for planning and service measurement, not a promise
 that every incident will meet them.
 
-### Recommended recovery tiers
+### Approved target objectives
 
 #### Tier 1 — Canonical accounting and critical control data
 
 Includes journals, posting state, periods, configuration, approvals, audit
 relationships, and data required to prevent duplicate or missing accounting.
 
-Recommended target:
+Target objective:
 
 - **RPO:** no more than one hour under normal managed-service operation, with
   a tighter target considered only if supported by verified infrastructure.
@@ -210,7 +210,7 @@ Recommended target:
 Includes invoices, bills, payments, allocations, credits, prepayments,
 refunds, bank evidence, reconciliation, parties, and operational metadata.
 
-Recommended target:
+Target objective:
 
 - **RPO:** no more than four hours;
 - **RTO:** within eight hours for a scoped recovery after the recovery
@@ -224,7 +224,7 @@ for the relevant relationship.
 Includes invoices, bills, receipts, credit notes, and supporting documents
 required for accounting, VAT, reconciliation, or audit.
 
-Recommended target:
+Target objective:
 
 - **RPO:** no more than twenty-four hours where object-storage constraints
   require a different tier;
@@ -233,22 +233,22 @@ Recommended target:
 
 #### Tier 4 — Derived and rebuildable data
 
-Recommended target:
+Target objective:
 
 - best effort within twenty-four hours;
 - no independent RPO where deterministic rebuild from protected sources is
   verified; and
 - no effect on accounting correctness or retention obligations.
 
-These targets are recommendations for user decision. They must be validated
-against the selected provider, product availability objective, company size,
-document volume, and operational staffing before being treated as a
-commitment.
+These are approved policy targets, subject to operational validation against
+the selected provider, product availability objective, company size, document
+volume, and operating model. They are not guaranteed service-level
+commitments.
 
 ## 7. Point-in-time recovery
 
-Recommend point-in-time recovery where the managed data service supports it.
-It is valuable for:
+Support point-in-time recovery where the managed data service supports it and
+where it is operationally appropriate. It is valuable for:
 
 - accidental destructive changes;
 - corruption;
@@ -273,7 +273,7 @@ recorded, and resolved through controlled accounting or operational procedures.
 
 ## 8. Restoration model
 
-Recommend two restoration paths:
+Use two restoration paths:
 
 ### Scoped recovery
 
@@ -299,7 +299,7 @@ through an authorised incident process.
 ### No silent live overwrite
 
 Restoring over live production without a recovery assessment and approval is
-not recommended. If a controlled promotion is necessary, record:
+not permitted. If a controlled promotion is necessary, record:
 
 - the recovery point;
 - affected companies and systems;
@@ -353,7 +353,7 @@ Backup retention is distinct from production-data retention. It should be
 long enough to support the approved RPO/RTO and recovery scenarios, but it
 must not automatically become an indefinite accounting archive.
 
-Recommend:
+Approved retention principles:
 
 - document backup schedules and expiry by backup tier;
 - retain at least one verified recovery path for each period required by the
@@ -373,7 +373,7 @@ assumed to be solved by silently mutating immutable backup media.
 
 ## 11. Security
 
-Recommend these minimum policy controls:
+The policy requires these minimum controls:
 
 - encryption at rest;
 - encryption in transit;
@@ -476,7 +476,7 @@ the recovery point that require reconciliation.
 
 ## 16. Backup verification and recovery testing
 
-Recommend:
+The policy expects:
 
 - automated success and integrity verification for every backup cycle;
 - periodic checksum, completeness, and readability checks;
@@ -623,16 +623,16 @@ be stale and what user actions are temporarily restricted.
   recoverable system state.
 - **Future flexibility:** Blocks robust disaster recovery.
 
-## 21. RECOMMENDATION — NOT APPROVAL
+## 21. APPROVED POLICY
 
-Recommend **Option C: managed, encrypted, tested recovery with explicit
+Approve **Option C: managed, encrypted, tested recovery with explicit
 objectives**:
 
 1. Protect canonical accounting, operational records, authoritative documents,
    configuration, audit, retention/disposal state, and recovery metadata.
 2. Use managed encrypted snapshots plus incremental or differential protection,
    transaction-log/WAL capture and point-in-time recovery where available.
-3. Set and measure tiered targets, initially recommending:
+3. Set and measure approved tiered targets:
    - Tier 1 accounting/control data: RPO no more than one hour and RTO within
      four hours;
    - Tier 2 operational data: RPO no more than four hours and RTO within eight
@@ -660,11 +660,11 @@ objectives**:
 10. Keep exports separate from backups and retain DEC-21 and DEC-22 within
     their registered boundaries.
 
-The RPO/RTO values above are recommendations for user decision, not an
-implementation commitment or guarantee. They require operational validation
-before adoption.
+The RPO/RTO values above are approved policy targets, not an implementation
+commitment or guaranteed service-level commitment. They require operational
+validation before implementation.
 
-This recommendation is **not approval**.
+This policy is approved as a product/operational resilience policy only.
 
 ## 22. Decision boundaries
 
@@ -675,7 +675,7 @@ capabilities, effective-dated configuration, source-linked VAT and
 reconciliation, payment/allocation/settlement history, class-based retention,
 controlled disposal, and exports as distinct user-facing representations.
 
-### Recommended
+### Approved policy
 
 Managed encrypted backups with layered snapshots and log/PITR capability where
 available, explicit tiered RPO/RTO, isolated validated restoration, separate
@@ -684,9 +684,10 @@ procedures.
 
 ### Requires user decision
 
-Approval of the DEC-20 backup and recovery objectives, including backup scope,
-types, retention, RPO/RTO, restoration, testing, security, and regional or
-operational recovery needs.
+Managed encrypted backups with layered snapshots and log/PITR capability where
+available, explicit target RPO/RTO, isolated validated restoration, separate
+backup retention, appropriate security, company-scoped recovery, and tested
+procedures, as set out in section 21.
 
 ### Deliberately left open
 
@@ -703,7 +704,7 @@ operational recovery needs.
 - implementation details, schema, APIs, UI, tests, dependencies, deployment,
   infrastructure configuration, and publishing.
 
-### What approving DEC-20 would lock in
+### What DEC-20 approval locks in
 
 - backups are resilience infrastructure, not exports or accounting authority;
 - authoritative accounting and evidence receive protected backup coverage;
@@ -734,7 +735,9 @@ merely to erase the error.
 
 ## 24. Decision readiness
 
-DEC-20 is ready for an explicit user decision. Until it is approved or amended:
+DEC-20 was explicitly approved on 2026-08-21. The approval is a
+product/operational resilience policy only. Until the applicable remaining
+decisions are approved or amended:
 
 - DEC-21 and DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
@@ -742,8 +745,7 @@ DEC-20 is ready for an explicit user decision. Until it is approved or amended:
   deployment, or publishing implementation may begin; and
 - no implementation task is authorised.
 
-**DEC-01 through DEC-19:** **APPROVED**
-**DEC-20:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-20:** **APPROVED**
 **DEC-21 and DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**

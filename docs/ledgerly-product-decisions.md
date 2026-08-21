@@ -548,22 +548,19 @@ not higher authority.
 
 ### DEC-20 — Backup and Recovery Policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/operational resilience policy only
 - **Decision review:** [DEC-20 Backup and Recovery Policy
   Review](ledgerly-dec-20-backup-and-recovery-policy-review.md).
-- **Current decision/direction:** Decide backup scope, recovery objectives,
-  retention, restoration, testing, security, and regional/operational
-  recovery needs.
-- **Recommendation:** Use encrypted managed backups, point-in-time recovery
+- **Approved policy:** Use encrypted managed backups, point-in-time recovery
   where available, documented backup retention, explicit tiered RPO/RTO,
   isolated validated restoration, and tested recovery procedures.
-- **Recommended controls:** Protect authoritative accounting, documents, configuration,
+- **Controls:** Protect authoritative accounting, documents, configuration,
   audit, and retention/disposal state; keep backups distinct from exports;
   preserve accounting immutability; and use company-scoped,
   server-side, capability-controlled, auditable recovery.
 - **Boundary:** DEC-21 retains detailed tenant-isolation policy and DEC-22
   retains migration/cutover policy. Source freshness remains separate.
-- **Implementation limit:** This unresolved decision does not authorise code,
+- **Implementation limit:** This approved policy does not authorise code,
   schema, migration, UI, workflow, dependency, deployment, publishing, or an
   implementation task. BL-06 and BL-07 remain blocked.
 

@@ -36,7 +36,9 @@ DEC-17 approves class-based audit retention that preserves authoritative
 accounting evidence for company life plus the applicable legal/regulatory
 period. DEC-18 approves controlled, class-based disposal without accounting
 mutation. DEC-19 approves bounded, company-scoped exports without accounting
-authority. DEC-20 through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked
+authority. DEC-20 approves managed, encrypted, tested backup/recovery targets
+without implementation authority. DEC-21 and DEC-22 remain unresolved, and
+BL-06/BL-07 remain blocked
 until
 the applicable decisions and an implementation task are explicitly approved.
 Do not choose roadmap scope or silently change a recorded decision autonomously.
