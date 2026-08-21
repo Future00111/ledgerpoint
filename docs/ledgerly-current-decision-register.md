@@ -575,20 +575,28 @@ to the accounting core.
 ### DEC-16 — Payment-on-account scope
 
 - **Status:** REQUIRES USER DECISION
-- **Decision:** Decide whether customer and/or supplier payment-on-account is
-  supported and how it differs from unapplied cash.
+- **Decision review:** [DEC-16 Payment-on-Account Launch Scope
+  Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md).
+- **Decision:** Decide whether user-facing customer and/or supplier
+  payment-on-account is supported at launch and how it differs from unapplied
+  cash.
 - **Options available:** (a) reject payments without a source; (b) customer
   payment-on-account only; or (c) customer and supplier payment-on-account.
-- **Replit's recommendation:** Explicit unapplied state, with customer credit
-  and supplier prepayment treated distinctly.
-- **Why it is recommended:** It avoids overstating settlement and keeps future
-  allocation or refund decisions auditable.
+- **Replit's recommendation:** Do not expose a separate user-facing
+  payment-on-account feature at launch; use DEC-13 customer-credit and
+  supplier-prepayment balances through the DEC-14 workflow.
+- **Why it is recommended:** It avoids an ambiguous extra label and preserves
+  accounting correctness, clear user language, and auditable allocation and
+  refund decisions.
 - **Accounting implications:** Payment, allocation, open-item, refund, and
   statement balances remain separate.
-- **Data/schema implications:** Requires state, later allocation/refund/reversal,
-  and customer/supplier treatment fields.
+- **Data/schema implications:** The recommended launch scope reuses approved
+  payment, party-balance, allocation, refund, and audit concepts; a later
+  explicit classification would require additional intent and history fields.
 - **Migration implications:** Unmatched bank rows need approved classification;
   old paid totals cannot be assumed to represent on-account amounts.
+- **Boundary:** DEC-17 onward and DEC-22 migration policy remain unresolved.
+  Source freshness remains separate.
 - **Backlog implications:** Gates BL-09, BL-14, and BL-16.
 - **Dependency:** DEC-13, DEC-14, and DEC-15.
 

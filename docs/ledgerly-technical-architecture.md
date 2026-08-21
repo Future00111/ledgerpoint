@@ -69,6 +69,11 @@ The [DEC-15 Refund Policy Review](ledgerly-dec-15-refund-policy-review.md)
 records an approved refund policy only. It does not
 authorise implementation or resolve DEC-16 through DEC-22 policy.
 
+The [DEC-16 Payment-on-Account Launch Scope
+Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md) records a
+recommendation only. DEC-16 remains unresolved and does not authorise
+implementation or resolve DEC-17 through DEC-22 policy.
+
 ## Architecture obligations derived from governance
 
 Any future technical design must uphold the following constraints:

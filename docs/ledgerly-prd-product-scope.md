@@ -138,7 +138,7 @@ be approved:
     DEC-16 and later applicable decisions remain unresolved.
  8. [DEC-13 Overpayments, Unapplied Cash and Excess Payment Policy
     Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md)
-    records the approved excess-money and party-balance policy. DEC-15 and
+    records the approved excess-money and party-balance policy. DEC-16 and
     later applicable decisions remain unresolved.
  9. Source freshness remains a separate unresolved posting-safety dependency.
 10. [DEC-14 Unapplied Cash Workflow Policy
@@ -149,6 +149,10 @@ be approved:
     launch scope, audit retention, deletion/anonymisation, export,
     backup/recovery, tenant isolation, and legacy migration/cutover policy
     remain open.
+12. [DEC-16 Payment-on-Account Launch Scope
+    Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md) records
+    a recommendation only; DEC-16 remains unresolved. DEC-17 onward and
+    migration/cutover policy remain open.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix

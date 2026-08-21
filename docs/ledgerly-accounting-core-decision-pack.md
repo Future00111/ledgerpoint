@@ -477,16 +477,17 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 15. Payment-on-account
 
 - **Status:** REQUIRES USER DECISION
-- **Decision needed:** Decide whether users can record payment before an
-  invoice/bill exists or before allocation is known.
+- **Decision review:** [DEC-16 Payment-on-Account Launch Scope
+  Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md).
+- **Decision needed:** Decide whether user-facing payment-on-account launches
+  for customers, suppliers, or both.
 - **Options:**
   1. Reject payments without an open source.
   2. Support customer payment-on-account.
   3. Support both customer and supplier payment-on-account.
-- **Recommendation:** Support payment-on-account as an explicit unapplied
-  payment state, not as a fake invoice or bill. Permit later allocation,
-  refund, and reversal with full audit. Supplier prepayments should be
-  separately labelled from customer credit.
+- **Recommendation:** Do not expose a separate user-facing payment-on-account
+  feature at launch. Use DEC-13 customer-credit and supplier-prepayment
+  balances through the DEC-14 workflow, with DEC-15 refund treatment.
 - **Accounting/data consequences:** Payment posting and allocation remain
   distinct. Statements must expose on-account balances and avoid overstating
   settled invoices.
@@ -495,8 +496,8 @@ Living Product Decisions Register until it has been explicitly accepted.
   classification.
 - **Dependencies:** Unapplied cash, overpayments, refunds, statements,
   bank/reconciliation, BL-09, BL-16.
-- **Explicit product decision:** Approve customer, supplier, or both
-  payment-on-account workflows for launch.
+- **Decision boundary:** DEC-17 onward and DEC-22 migration policy remain open.
+  Source freshness remains separate.
 
 ## 16. Audit retention
 
