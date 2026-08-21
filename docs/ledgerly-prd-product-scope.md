@@ -122,11 +122,13 @@ be approved:
    beyond the approved DEC-03 scope.
 5. Any amendment or specialised capability/approval rule beyond the approved
    DEC-05 model.
-6. Control-account mappings and configuration versioning. The [approved DEC-09
+6. Configuration versioning and the remaining accounting-core policies. The
+   [approved DEC-09
    Chart of Accounts and Default Account Policy](ledgerly-dec-09-chart-of-accounts-policy-review.md)
-   establishes the chart template and account policy. The [DEC-10
+   establishes the chart template and account policy. The [approved DEC-10
    Control-Account Mapping Policy Review](ledgerly-dec-10-control-account-mapping-policy-review.md)
-   records a recommendation only; DEC-10 and DEC-11 remain unresolved.
+   establishes control-account policy. DEC-11 and later applicable decisions
+   remain unresolved.
 7. Source freshness, overpayment, unapplied cash, refund, and
    payment-on-account treatment.
 8. Audit retention, deletion/anonymisation, export, backup/recovery, and tenant

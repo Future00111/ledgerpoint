@@ -146,11 +146,12 @@ not higher authority.
   journal-authoritative reporting with rebuildable projections; company-scoped
   server-side capability/audit boundaries; and additive, evidence-based
   compatibility and migration architecture.
-- **Deliberate non-locks:** DEC-05, DEC-06, DEC-07, DEC-08, and DEC-09 were
+- **Deliberate non-locks:** DEC-05, DEC-06, DEC-07, DEC-08, DEC-09, and DEC-10 were
   separately approved as the capability model, financial-year policy,
-  accounting-period policy, reporting-only year-end policy, and Chart of
-  Accounts and Default Account Policy. DEC-10 through DEC-22 remain unresolved.
-  DEC-04 does not select active control-account mappings,
+  accounting-period policy, reporting-only year-end policy, Chart of Accounts
+  and Default Account Policy, and Control-Account Mapping Policy. DEC-11
+  through DEC-22 remain unresolved. DEC-04 does not select active
+  control-account mappings,
   configuration versioning, source-freshness, payment/refund treatment,
   retention, deletion, export, backup/recovery, RLS, historical migration
   cohort, cutover, or rollback policy.
@@ -335,25 +336,27 @@ not higher authority.
 
 ### DEC-10 — Control-Account Mappings
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-10 Control-Account Mapping Policy
   Review](ledgerly-dec-10-control-account-mapping-policy-review.md).
-- **Current decision/direction:** Decide the mandatory company-scoped control
-  roles, validated eligible classifications, mapping protection, remapping
-  authority, and future-only effect for AR, AP, bank/cash, input/output VAT,
-  VAT settlement, and ordinary source defaults.
-- **Recommendation:** Use protected company-scoped mappings for AR, AP,
-  accounting bank/cash locations, and input/output VAT. Treat revenue, cost of
-  sales, ordinary expense, ordinary asset, and general equity as validated
-  configurable source/default selections rather than universal control accounts.
-  Reserve VAT settlement for an approved settlement workflow. Require
-  prospective-only changes with capability, validation, reason, audit, and
-  retained posting context.
+- **Current decision/direction:** Use one protected company-scoped AR account,
+  one protected company-scoped AP account, a protected accounting account for
+  each bank/cash location, one protected Output VAT account, and one protected
+  Input VAT account. VAT settlement is protected only where an approved
+  VAT-return settlement workflow requires it.
+- **Approved ordinary-account boundary:** Revenue, Cost of Sales, ordinary
+  Expense, ordinary Asset, and general Equity accounts remain validated
+  configurable selections rather than universal control accounts. Retained
+  earnings is not a launch default control account.
+- **Approved change and history boundary:** Mapping changes are prospective
+  only, company-scoped, server-side capability-gated under DEC-05, validated,
+  reasoned where required, and audited. Historical postings retain their
+  resolved account identity and are never reinterpreted.
 - **Boundary:** DEC-03 remains the sole VAT authority. DEC-04 journals retain
   resolved stable account IDs; later mappings cannot reinterpret history.
   DEC-11 decides the complete versioning/effective-dating mechanism, and
   DEC-12 through DEC-16 decide source freshness and payment/refund edge cases.
-- **Implementation limit:** This review and unresolved decision do not
+- **Implementation limit:** This approved policy does not
   authorise code, schema, migration, UI, workflow, dependency, deployment,
   publishing, or an implementation task. BL-06 and BL-07 remain blocked.
 

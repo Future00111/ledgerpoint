@@ -1,15 +1,15 @@
 # DEC-10 Control-Account Mapping Policy Review
 
 **Decision:** DEC-10 — Control-Account Mappings
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — product/accounting policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, security,
 and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-10, DEC-11, an
-> implementation task, code, schema, migration, UI, workflow, dependency,
-> deployment, or publishing work.
+> This records an approved product/accounting policy. It does not approve
+> DEC-11, an implementation task, code, schema, migration, UI, workflow,
+> dependency, deployment, or publishing work.
 
 ## 1. Purpose and decision question
 
@@ -333,9 +333,9 @@ Option C is extended with controlled effective-from configuration versions.
   configuration/version complexity. The exact record shape, version identity,
   effective-date rules, and posting snapshot contract belong to DEC-11.
 
-## 10. RECOMMENDATION — NOT APPROVAL
+## 10. APPROVED POLICY
 
-Recommend **Option C with Option D's prospective-versioning direction**:
+Approve **Option C with Option D's prospective-versioning direction**:
 
 1. Require company-scoped, protected, typed mappings for one AR account, one
    AP account, each accounting bank/cash location, one output-VAT account, and
@@ -356,14 +356,30 @@ Recommend **Option C with Option D's prospective-versioning direction**:
    mechanism before implementation.
 7. Preserve all unproven legacy mappings as visible DEC-22 migration exceptions.
 
-This recommendation best satisfies DEC-03 VAT authority, DEC-04 canonical
+This approved policy best satisfies DEC-03 VAT authority, DEC-04 canonical
 accounting, DEC-05 capabilities, DEC-06/DEC-07 period integrity, DEC-08
 reporting-only year-end, DEC-09 chart policy, small-business usability,
-auditability, and future flexibility. It is **not approval**.
+auditability, and future flexibility.
+
+## 10A. Approval boundary
+
+The explicit approval records:
+
+- one protected company-scoped AR account and one protected company-scoped AP
+  account;
+- a protected accounting account for each bank/cash location;
+- one protected Output VAT account and one protected Input VAT account;
+- protected VAT settlement only when an approved settlement workflow requires it;
+- ordinary revenue, Cost of Sales, expense, asset, and general equity selections
+  as validated configurable accounts rather than universal controls;
+- no launch default retained-earnings control account and no automatic
+  retained-earnings postings; and
+- prospective-only mapping changes with DEC-05 capability, validation, reason,
+  audit, and preservation of historical resolved account identity.
 
 ## 11. Decision boundaries
 
-### What approving DEC-10 would lock in
+### What DEC-10 approval locks in
 
 - the mandatory control-role list and eligibility rules;
 - which roles are protected versus ordinary configurable selections;
@@ -392,7 +408,9 @@ auditability, and future flexibility. It is **not approval**.
 
 ## 12. Decision readiness
 
-DEC-10 is ready for an explicit user decision. Until it is approved or amended:
+DEC-10 was explicitly approved on 2026-08-21. The approval is a
+product/accounting-policy decision only. Until the applicable remaining
+decisions are approved or amended:
 
 - no active control mappings, mapping-protection behavior, account-configuration
   versioning, posting-template implementation, or account remapping may be
@@ -401,8 +419,7 @@ DEC-10 is ready for an explicit user decision. Until it is approved or amended:
 - BL-06 and BL-07 remain **BLOCKED**; and
 - no implementation task is authorised.
 
-**DEC-01 through DEC-09:** **APPROVED**
-**DEC-10:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-10:** **APPROVED**
 **DEC-11 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**

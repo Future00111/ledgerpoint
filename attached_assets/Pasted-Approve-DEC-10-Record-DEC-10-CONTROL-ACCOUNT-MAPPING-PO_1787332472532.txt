@@ -1,0 +1,184 @@
+Approve DEC-10.
+
+Record:
+
+DEC-10 — CONTROL-ACCOUNT MAPPING POLICY
+STATUS: APPROVED
+
+Approve the recommended protected, company-scoped control-account mapping model.
+
+1. ACCOUNTS RECEIVABLE
+
+Each company will have one authoritative Accounts Receivable control account for normal customer receivable accounting.
+
+The mapping is protected and company-scoped.
+
+It must be used consistently by canonical customer receivable postings.
+
+2. ACCOUNTS PAYABLE
+
+Each company will have one authoritative Accounts Payable control account for normal supplier payable accounting.
+
+The mapping is protected and company-scoped.
+
+It must be used consistently by canonical supplier payable postings.
+
+3. BANK / CASH
+
+Each accounting bank/cash location may have its own protected accounting account mapping.
+
+Bank-feed evidence must remain distinct from the canonical accounting bank/cash account and from the accounting journal itself, in accordance with DEC-04.
+
+4. VAT
+
+The approved VAT control mappings are:
+
+- one Output VAT account;
+- one Input VAT account.
+
+These mappings are protected and company-scoped.
+
+VAT settlement may use a protected settlement role only where an approved VAT-return settlement workflow requires it.
+
+Do not create unnecessary VAT control accounts beyond what the approved DEC-03 workflow requires.
+
+DEC-03 remains the sole VAT authority.
+
+5. OTHER ACCOUNTS
+
+The following are NOT universal control accounts:
+
+- Revenue
+- Cost of Sales
+- ordinary Expenses
+- ordinary Assets
+- general Equity.
+
+These remain validated configurable account selections.
+
+Do not unnecessarily restrict normal company chart customisation.
+
+6. RETAINED EARNINGS
+
+Retained earnings must NOT become a launch default control account.
+
+This follows DEC-08's approved reporting-only year-end policy.
+
+Do not create automatic retained-earnings postings.
+
+Any future explicit retained-earnings accounting treatment requires a separately approved policy.
+
+7. MAPPING CHANGES
+
+Control-account mapping changes must be:
+
+- prospective only;
+- company-scoped;
+- server-side capability-gated under DEC-05;
+- validated;
+- reasoned where required;
+- auditable.
+
+A mapping change must NEVER reinterpret historical accounting.
+
+8. HISTORICAL JOURNALS
+
+Historical posted journals retain their resolved account identity.
+
+Changing a current control-account mapping must NOT:
+
+- rewrite historical journal lines;
+- move historical balances;
+- change historical VAT results;
+- change historical AR/AP balances;
+- reinterpret historical postings.
+
+9. CONFIGURATION VERSIONING BOUNDARY
+
+DEC-11 remains responsible for the complete configuration-versioning and effective-dating policy.
+
+DEC-10 establishes the accounting principle that mapping changes are prospective and historical accounting remains unchanged.
+
+Do not resolve the complete DEC-11 mechanism here.
+
+10. DEC-05 INTEGRATION
+
+All consequential mapping changes must use the approved DEC-05 architecture:
+
+- active company membership;
+- company scope;
+- server-side capability;
+- appropriate authority;
+- audit evidence.
+
+Do not rely solely on role names or frontend controls.
+
+11. REPORTING
+
+Reports must derive from the canonical DEC-04 journal model and the account identity resolved at posting time.
+
+Do not recalculate historical accounting using the company's current mapping configuration.
+
+12. MIGRATION
+
+Historical mappings must be migrated using available evidence.
+
+Never invent:
+
+- AR mappings;
+- AP mappings;
+- bank mappings;
+- VAT mappings;
+- historical account relationships.
+
+Ambiguous mappings must become explicit migration exceptions for DEC-22.
+
+13. FUTURE FLEXIBILITY
+
+The model must allow future changes to:
+
+- company mappings;
+- chart structures;
+- VAT workflows;
+- payment workflows;
+- additional markets;
+- additional currencies.
+
+Future changes must follow the Living Product Decisions process.
+
+IMPORTANT GOVERNANCE RULES:
+
+- DEC-01 through DEC-10 are now APPROVED.
+- DEC-11 through DEC-22 remain REQUIRES USER DECISION.
+- Do NOT approve DEC-11 or any later decision.
+- Keep BL-06 and BL-07 BLOCKED.
+- Do NOT create or execute an implementation task.
+- Do NOT restart any previously cancelled account-mapping task.
+- This is a product/accounting-policy approval only.
+- It is NOT implementation authorisation.
+
+Do NOT modify:
+
+- application code;
+- database schema;
+- migrations;
+- accounting logic;
+- UI;
+- workflows;
+- dependencies;
+- deployment;
+- publishing.
+
+Update only the relevant governance and decision documentation.
+
+FINAL VERIFICATION:
+
+1. DEC-01–DEC-10 are APPROVED.
+2. DEC-11–DEC-22 remain unresolved.
+3. BL-06 and BL-07 remain BLOCKED.
+4. No implementation task was created or restarted.
+5. No application, schema, migration, UI, workflow, dependency, deployment or publishing changes were made.
+6. No DEC-11 work was started.
+7. No account mappings were implemented.
+
+Stop after verification.

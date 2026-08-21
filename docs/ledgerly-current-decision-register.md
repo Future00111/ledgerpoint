@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–9 approved; DEC-10 through DEC-22 require
+**Register status:** Decisions 1–10 approved; DEC-11 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -384,18 +384,28 @@ to the accounting core.
 
 ### DEC-10 — Mandatory control-account mappings
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-10 Control-Account Mapping Policy
   Review](ledgerly-dec-10-control-account-mapping-policy-review.md).
-- **Decision:** Define mandatory mappings for AR, AP, output/input VAT, bank/cash,
-  revenue, expense, equity, and other required control accounts, including
-  remapping rules.
-- **Options available:** (a) one global hard-coded set; (b) required
-  company-level configuration; or (c) arbitrary account selection per posting.
-- **Replit's recommendation:** Company-scoped required mappings with
-  effective-dated changes and controlled future-only effect.
-- **Why it is recommended:** It prevents client input or mutable configuration
-  from silently changing posted accounting outcomes.
+- **Decision:** Approve protected, company-scoped mappings for one AR account,
+  one AP account, each accounting bank/cash location, one Output VAT account,
+  and one Input VAT account. VAT settlement is protected only where an
+  approved VAT-return settlement workflow requires it.
+- **Approved ordinary-account boundary:** Revenue, Cost of Sales, ordinary
+  Expenses, ordinary Assets, and general Equity remain validated configurable
+  selections rather than universal control accounts. Retained earnings is not
+  a launch default control account, and no automatic retained-earnings
+  postings are created.
+- **Approved change and history boundary:** Mapping changes are prospective
+  only, company-scoped, server-side capability-gated under DEC-05, validated,
+  reasoned where required, and audited. Historical journals retain their
+  resolved account identity and are never rewritten or reinterpreted.
+- **Approved evidence boundary:** Bank-feed evidence remains distinct from
+  accounting bank/cash accounts and journals. Reports resolve historical
+  accounting from the canonical journal and posting-time account identity,
+  not current mappings.
+- **Versioning boundary:** DEC-11 remains responsible for the complete
+  configuration-versioning and effective-dating mechanism.
 - **Accounting implications:** Determines debit/credit destinations, VAT
   classification, control-account integrity, and report grouping.
 - **Data/schema implications:** Requires typed mapping records, effective dates,
@@ -405,6 +415,10 @@ to the accounting core.
 - **Backlog implications:** Gates BL-06, BL-07, BL-08, BL-09, BL-13, BL-15, and
   BL-17.
 - **Dependency:** DEC-09 and DEC-03.
+- **Implementation limit:** DEC-10 is a product/accounting-policy approval
+  only. It does not authorise code, schema, migration, UI, workflow,
+  dependency, deployment, publishing, or an implementation task. BL-06 and
+  BL-07 remain blocked.
 
 ### DEC-11 — Account and configuration versioning
 

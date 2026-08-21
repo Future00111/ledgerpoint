@@ -31,9 +31,11 @@ DEC-09 approves the versioned, company-copied UK small-business Chart of
 Accounts policy: six primary account types, stable identities independent of
 names/codes, controlled lifecycle, no destructive deletion after use, no launch
 account merging, protected system-account candidates, and journal-authoritative
-reporting. Active control-account mappings remain DEC-10. DEC-10 through
-DEC-22 remain unresolved, and BL-06/BL-07 remain blocked pending the applicable
-decisions and an approved implementation task. Do not implement
+reporting. DEC-10 approves protected company-scoped AR, AP, bank/cash, Output
+VAT, and Input VAT mappings, with prospective-only capability-gated changes and
+historical posting identity preserved. DEC-11 through DEC-22 remain unresolved,
+and BL-06/BL-07 remain blocked pending the applicable decisions and an approved
+implementation task. Do not implement
 backlog items or publish Ledgerly until the user has reviewed and selected the
 next roadmap task. Treat the Living Product Decisions Register as the
 revisitable product-direction record below the Master Backlog; it never

@@ -640,8 +640,10 @@ implementation is approved:
   year-end treatment must be compatible.
 - **DEC-09:** The approved chart policy provides account taxonomy, classifications,
   and VAT-related account candidates without creating VAT logic.
-- **DEC-10–DEC-11:** control-account mappings, tax-code configuration, and
-  effective-dated rule versions must be defined.
+- **DEC-10:** Approved control-account policy provides protected company-scoped
+  Output VAT and Input VAT mappings without changing VAT authority.
+- **DEC-11:** Tax-code configuration and effective-dated rule versions remain
+  to be defined.
 - **DEC-12–DEC-16:** payment, allocation, refunds, unapplied cash, and
   payment-on-account policy must not accidentally change invoice-basis VAT.
 - **DEC-17–DEC-21:** VAT evidence, exports, retention, recovery, tenant

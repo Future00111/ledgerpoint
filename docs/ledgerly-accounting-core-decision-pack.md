@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-09 APPROVED; DEC-10 through DEC-22
+**Decision status:** DEC-01 through DEC-10 APPROVED; DEC-11 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -303,30 +303,33 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 9. Control-account mappings
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-10 Control-Account Mapping Policy
   Review](ledgerly-dec-10-control-account-mapping-policy-review.md).
-- **Decision needed:** Decide mandatory control accounts and how companies may
-  remap them.
+- **Approved decision:** Use protected company-scoped mappings for one AR
+  account, one AP account, each accounting bank/cash location, one Output VAT
+  account, and one Input VAT account. VAT settlement is protected only where an
+  approved VAT-return settlement workflow requires it.
 - **Options:**
   1. Hard-code one global set.
   2. Require company configuration for AR, AP, VAT, bank/cash, revenue, and
      expense defaults.
   3. Allow arbitrary account selection for every posting.
-- **Recommendation:** Require company-scoped mappings for Accounts
-  Receivable, Accounts Payable, output VAT, input VAT, bank/cash, default
-  revenue, default expense, and equity/capital. Validate mappings by account
-  type and preserve an effective-dated configuration snapshot on each posting.
+- **Approved ordinary-account boundary:** Revenue, cost of sales, ordinary
+  expense, ordinary asset, and general equity remain validated configurable
+  selections rather than universal control accounts. Retained earnings is not
+  a launch default control account.
 - **Accounting/data consequences:** A mapping change affects future postings
   only. Existing journals retain their original account IDs. Control-account
-  changes require capability, reason, and audit.
+  changes require DEC-05 capability, validation, reason where required, and
+  audit. DEC-11 decides the complete configuration-versioning mechanism.
 - **Migration consequences:** Existing categories and account references need
   a reviewed mapping. Unmapped historical categories remain legacy or require
   explicit correction.
 - **Dependencies:** Chart template, VAT, invoice/bill posting, bank posting,
   permissions, BL-06, BL-07.
-- **Explicit product decision:** Approve the mandatory mapping list and whether
-  each company may use multiple control accounts.
+- **Implementation limit:** DEC-10 does not authorise code, schema, migration,
+  UI, workflow, dependency, deployment, publishing, or an implementation task.
 
 ## 10. Account configuration and versioning
 
