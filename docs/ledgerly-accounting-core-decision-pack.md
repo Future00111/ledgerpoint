@@ -5,6 +5,7 @@
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
 **Decision status:** DECISION 1 APPROVED; REMAINING DECISIONS REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
+**Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
 
 > This is a decision pack, not an implementation plan authorised for execution.
 > It does not approve code, schema changes, migrations, UI changes,
@@ -681,6 +682,7 @@ Implementation remains **BLOCKED** by:
 
 **DECISION PACK:** READY FOR LEE'S REVIEW  
 **DECISION 1:** APPROVED
+**CURRENT DECISION REGISTER:** READY FOR LEE'S REVIEW
 **BL-06 / BL-07 IMPLEMENTATION:** BLOCKED  
 **APPLICATION CODE CHANGED:** NO  
 **DATABASE OR MIGRATIONS CHANGED:** NO  

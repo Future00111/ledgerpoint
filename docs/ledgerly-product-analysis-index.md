@@ -18,6 +18,7 @@ This documentation is the durable record of the read-only Ledgerly product gap a
 8. [Product Principles](ledgerly-product-principles.md)
 9. [PRD / Product Scope](ledgerly-prd-product-scope.md)
 10. [Technical Architecture](ledgerly-technical-architecture.md)
+11. [Current decision register](ledgerly-current-decision-register.md)
 
 ## Source authority
 
@@ -32,6 +33,7 @@ The analysis was compared against:
 - `docs/ledgerly-product-principles.md`
 - `docs/ledgerly-prd-product-scope.md`
 - `docs/ledgerly-technical-architecture.md`
+- `docs/ledgerly-current-decision-register.md`
 - `docs/ledgerly-product-decisions.md`
 - `docs/ledgerly-accounting-core-architecture-review.md`
 - `docs/ledgerly-accounting-core-decision-pack.md`
