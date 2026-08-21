@@ -276,21 +276,21 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 8. Default UK small-business chart of accounts
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-09 Chart of Accounts and Default Account Policy
   Review](ledgerly-dec-09-chart-of-accounts-policy-review.md).
-- **Decision needed:** Decide the initial chart template, account taxonomy,
-  customisation limits, and versioning.
+- **Approved decision:** Use the versioned UK small-business template copied to
+  each company, with stable identities, controlled lifecycle, protected
+  system-account candidates, and no launch account merging.
 - **Options:**
   1. Minimal Ledgerly-owned chart.
   2. A versioned UK small-business template copied into each company.
   3. User-created chart only.
-- **Recommendation:** Provide a versioned UK small-business template copied
-  into each company, with company-level names/codes and optional accounts.
-  Protect required control accounts and preserve any account referenced by
-  posted history. Avoid implying that payroll, inventory, fixed assets, or
-  corporation tax are supported merely because optional template accounts
-  exist.
+- **Approved boundary:** Company-level names/codes and optional accounts are
+  permitted within the approved policy. Protect required control-account
+  candidates and preserve any account referenced by posted history. Optional
+  template accounts do not imply payroll, inventory, fixed-asset, or
+  corporation-tax workflow support.
 - **Accounting/data consequences:** Account type, subtype, reporting class,
   control role, active state, and company code must be stable and validated.
   Account deactivation replaces deletion after posting references exist.
@@ -298,12 +298,14 @@ Living Product Decisions Register until it has been explicitly accepted.
   review. A guess based only on account name must be marked for review.
 - **Dependencies:** Product scope, reporting, VAT, permissions, configuration
   versioning, BL-07, BL-17.
-- **Explicit product decision:** Approve the template approach and provide or
-  review the launch account list.
+- **Implementation limit:** DEC-09 does not authorise code, schema, migration,
+  UI, workflow, dependency, deployment, publishing, or an implementation task.
 
 ## 9. Control-account mappings
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-10 Control-Account Mapping Policy
+  Review](ledgerly-dec-10-control-account-mapping-policy-review.md).
 - **Decision needed:** Decide mandatory control accounts and how companies may
   remap them.
 - **Options:**

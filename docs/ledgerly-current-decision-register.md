@@ -385,6 +385,8 @@ to the accounting core.
 ### DEC-10 — Mandatory control-account mappings
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-10 Control-Account Mapping Policy
+  Review](ledgerly-dec-10-control-account-mapping-policy-review.md).
 - **Decision:** Define mandatory mappings for AR, AP, output/input VAT, bank/cash,
   revenue, expense, equity, and other required control accounts, including
   remapping rules.

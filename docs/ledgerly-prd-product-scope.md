@@ -124,8 +124,9 @@ be approved:
    DEC-05 model.
 6. Control-account mappings and configuration versioning. The [approved DEC-09
    Chart of Accounts and Default Account Policy](ledgerly-dec-09-chart-of-accounts-policy-review.md)
-   establishes the chart template and account policy; DEC-10 and DEC-11 remain
-   unresolved.
+   establishes the chart template and account policy. The [DEC-10
+   Control-Account Mapping Policy Review](ledgerly-dec-10-control-account-mapping-policy-review.md)
+   records a recommendation only; DEC-10 and DEC-11 remain unresolved.
 7. Source freshness, overpayment, unapplied cash, refund, and
    payment-on-account treatment.
 8. Audit retention, deletion/anonymisation, export, backup/recovery, and tenant

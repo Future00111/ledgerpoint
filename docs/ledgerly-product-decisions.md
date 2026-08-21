@@ -333,6 +333,30 @@ not higher authority.
   authorise code, schema, migration, UI, workflow, dependency, deployment,
   publishing, or an implementation task. BL-06 and BL-07 remain blocked.
 
+### DEC-10 — Control-Account Mappings
+
+- **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-10 Control-Account Mapping Policy
+  Review](ledgerly-dec-10-control-account-mapping-policy-review.md).
+- **Current decision/direction:** Decide the mandatory company-scoped control
+  roles, validated eligible classifications, mapping protection, remapping
+  authority, and future-only effect for AR, AP, bank/cash, input/output VAT,
+  VAT settlement, and ordinary source defaults.
+- **Recommendation:** Use protected company-scoped mappings for AR, AP,
+  accounting bank/cash locations, and input/output VAT. Treat revenue, cost of
+  sales, ordinary expense, ordinary asset, and general equity as validated
+  configurable source/default selections rather than universal control accounts.
+  Reserve VAT settlement for an approved settlement workflow. Require
+  prospective-only changes with capability, validation, reason, audit, and
+  retained posting context.
+- **Boundary:** DEC-03 remains the sole VAT authority. DEC-04 journals retain
+  resolved stable account IDs; later mappings cannot reinterpret history.
+  DEC-11 decides the complete versioning/effective-dating mechanism, and
+  DEC-12 through DEC-16 decide source freshness and payment/refund edge cases.
+- **Implementation limit:** This review and unresolved decision do not
+  authorise code, schema, migration, UI, workflow, dependency, deployment,
+  publishing, or an implementation task. BL-06 and BL-07 remain blocked.
+
 ### PD-01 — Product name
 
 - **Status:** OPEN

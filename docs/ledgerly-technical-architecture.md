@@ -41,6 +41,10 @@ DEC-04, DEC-05, DEC-06, DEC-07, DEC-08, and DEC-09 are
 architecture/product/accounting-policy approvals only. They do not approve an
 implementation task or resolve any DEC-10 through DEC-22 policy.
 
+The [DEC-10 Control-Account Mapping Policy Review](ledgerly-dec-10-control-account-mapping-policy-review.md)
+records a recommendation only. DEC-10 remains unresolved and does not authorise
+implementation.
+
 ## Architecture obligations derived from governance
 
 Any future technical design must uphold the following constraints:
