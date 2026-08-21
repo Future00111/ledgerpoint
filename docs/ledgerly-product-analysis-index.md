@@ -12,6 +12,7 @@ This documentation is the durable record of the read-only Ledgerly product gap a
 2. [Phase A–J roadmap](ledgerly-phase-a-j-roadmap.md)
 3. [70-area feature matrix](ledgerly-feature-matrix.md)
 4. [Master backlog](ledgerly-master-backlog.md)
+5. [Living product decisions register](ledgerly-product-decisions.md)
 
 ## Source authority
 
@@ -23,6 +24,7 @@ The analysis was compared against:
 - `artifacts/ledgerly/src/docs/17-definition-of-done.md`
 - `artifacts/ledgerly/src/docs/18-product-development-workflow.md`
 - `artifacts/ledgerly/src/docs/19-workspace-framework.md`
+- `docs/ledgerly-product-decisions.md`
 - Attached Phase 1–6 product specifications
 - The active Ledgerly frontend, API server, database schema, routes, services, and tests
 
@@ -36,14 +38,15 @@ Use the following order when documents or implementation disagree:
 4. Technical Architecture
 5. Product Gap Analysis / Feature Matrix
 6. Master Backlog
-7. Approved individual implementation task
-8. Existing implementation/code
+7. Living Product Decisions Register
+8. Approved individual implementation task
+9. Existing implementation/code
 
 The Manifesto is present and explicitly states that it is the highest authority. The Product Principles, PRD/Product Scope, and Technical Architecture documents referenced by the Manifesto/workflow were not found in the active repository. They must be reported as missing and must not be inferred from code or replaced with a competing document.
 
 ## Governance use
 
-The coding agent may identify defects, dependencies, conflicts, and recommendations. It must not choose roadmap scope autonomously or implement a backlog item without an approved task. Before implementation, compare the proposed work against the Manifesto, the applicable governance documents, the approved scope, the technical architecture, the backlog, and the Definition of Done.
+The coding agent may identify defects, dependencies, conflicts, and recommendations. It must not choose roadmap scope autonomously, silently change an approved decision, or implement a backlog item without an approved task. Before implementation, compare the proposed work against the Manifesto, the applicable governance documents, the approved scope, the technical architecture, the backlog, the Living Product Decisions Register, and the Definition of Done.
 
 ## Completion statement
 
@@ -53,4 +56,4 @@ Features that were found to be sufficiently implemented for their limited curren
 
 ## Current gate
 
-Do not implement backlog items or publish Ledgerly until the product scope, unresolved decisions, accounting authority, and next build task have been reviewed and selected.
+Do not implement backlog items or publish Ledgerly until the product scope, unresolved decisions, accounting authority, the Living Product Decisions Register, and next build task have been reviewed and selected.

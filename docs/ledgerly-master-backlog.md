@@ -21,12 +21,13 @@ When documents conflict, use this order:
 4. Technical Architecture
 5. Product Gap Analysis / Feature Matrix
 6. This Master Backlog
-7. Approved individual implementation task
-8. Existing implementation/code
+7. Living Product Decisions Register
+8. Approved individual implementation task
+9. Existing implementation/code
 
 The active repository contains the Ledgerly Manifesto, Core Maxims, Design System, Definition of Done, Product Development Workflow, and Workspace Framework. Product Principles, PRD/Product Scope, and Technical Architecture are referenced by the existing governance but were not found as active documents. Do not infer or silently create decisions for those missing authority levels.
 
-An agent may recommend backlog work or identify conflicts, but must not select roadmap scope autonomously. An item requires an approved implementation task before code changes begin.
+The [Living Product Decisions Register](ledgerly-product-decisions.md) records current product direction without replacing higher-level authority. An agent may recommend backlog work or identify conflicts, but must not select roadmap scope autonomously or silently change a recorded decision. An item requires an approved implementation task before code changes begin.
 
 ## Backlog
 
@@ -56,7 +57,7 @@ An agent may recommend backlog work or identify conflicts, but must not select r
 | BL-22 | Workspaces/UX | Workspaces, errors, loading, empty states, and mobile | Partial | Complete major Workspaces, role-aware controls, business-language errors, responsive layouts, accessibility. | P1 | Stable core workflows | Medium | Every major object follows the Workspace/DoD standard across desktop, tablet, and mobile. |
 | BL-23 | Quality | Frontend/API regression coverage | Missing/partial | Add end-to-end UI, role, financial-invariant, responsive, error-state, and export parity suites. | P0 | Incrementally from BL-01 onward | Large | Release suite catches permission, posting, VAT, reconciliation, form, mobile, and error regressions. |
 | BL-24 | Production controls | Deployment, operations, and defence-in-depth | Missing | Verify production configuration, schema promotion, backups/recovery, monitoring, logs, limits, and RLS decision. | P0 before publish | BL-01–23 | Medium | Production review has no critical/high findings and recovery/observability have been verified. |
-| BL-25 | Scope governance | Product decision register and launch definition | Open | Resolve every decision recorded in the scope specification before affected build phases start. | P0 | Stakeholder decision | Medium | Approved launch scope, future scope, provider choices, tax/currency model, and AI boundaries are documented. |
+| BL-25 | Scope governance | Product decision register and launch definition | Partial/Open | Maintain the [Living Product Decisions Register](ledgerly-product-decisions.md), then resolve the decisions needed for the approved launch scope before affected build phases start. | P0 | Stakeholder decision | Medium | The register records each decision with status, impact, dependencies, revisit point, and change authority; launch scope, future scope, provider choices, tax/currency model, and AI boundaries are explicitly approved where required. |
 | BL-26 | Product governance | Feature completion governance | Partial | Apply the full Manifesto authority hierarchy, Workspace, Ask, Design System, and Definition of Done gates to every backlog delivery. | P1 | BL-25 | Medium | No feature is marked complete without higher-authority review, end-to-end workflow, accounting effects, tests, responsive UX, and Ask review. |
 
 ## Backlog-to-feature-matrix traceability
@@ -84,7 +85,7 @@ Every matrix feature is covered below. `A*` denotes an existing phase-scoped cap
 
 The following must remain decisions rather than assumed backlog implementation:
 
-1. Ledgerly versus Ledgerpoint product name.
+1. Ledgerly versus Ledgerpoint product name (see the Living Product Decisions Register).
 2. Launch market, country/tax regime, and currency support.
 3. Quotes/estimates.
 4. Purchase orders.

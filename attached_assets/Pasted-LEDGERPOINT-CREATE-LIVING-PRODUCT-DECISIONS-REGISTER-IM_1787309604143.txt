@@ -1,0 +1,632 @@
+LEDGERPOINT — CREATE LIVING PRODUCT DECISIONS REGISTER
+
+IMPORTANT:
+This is a PRODUCT GOVERNANCE task only.
+
+DO NOT implement application features.
+DO NOT modify the database.
+DO NOT modify APIs.
+DO NOT modify accounting logic.
+DO NOT modify UI.
+DO NOT install dependencies.
+DO NOT publish or deploy.
+
+We are deliberately creating a living product-decision system that allows Ledgerpoint to evolve without allowing the coding agent to make product decisions autonomously.
+
+==================================================
+1. GOVERNING PRINCIPLE
+==================================================
+
+The Ledgerly Manifesto remains the highest-level authority.
+
+The Manifesto is intentionally stable and defines:
+- why the product exists
+- product beliefs
+- accounting-first principles
+- AI boundaries
+- design philosophy
+- UX principles
+- engineering principles.
+
+The product itself must remain capable of evolving.
+
+Therefore:
+
+DO NOT treat every product decision as permanently locked.
+
+A product decision can be deliberately revisited, changed or deferred.
+
+However, the coding agent must NEVER silently change an approved product decision.
+
+Any change to product direction must be explicitly recorded.
+
+==================================================
+2. DOCUMENT HIERARCHY
+==================================================
+
+Maintain the following authority hierarchy:
+
+1. Ledgerly Manifesto
+2. Product Principles
+3. PRD / Product Scope
+4. Technical Architecture
+5. Product Gap Analysis / Feature Matrix
+6. Master Backlog
+7. Living Product Decisions Register
+8. Approved implementation task
+9. Existing implementation/code
+
+If documents conflict:
+
+- Higher-level principles take precedence.
+- Product decisions may evolve through the decision process.
+- Existing code must NOT be treated as the authority over approved product requirements.
+
+==================================================
+3. CREATE A LIVING PRODUCT DECISIONS REGISTER
+==================================================
+
+Locate any existing product decision/governance document first.
+
+If an appropriate document already exists, extend it rather than creating a duplicate.
+
+If none exists, create an appropriate document such as:
+
+docs/ledgerly-product-decisions.md
+
+Do not create multiple competing decision registers.
+
+==================================================
+4. DECISION STATUSES
+==================================================
+
+Every decision must have one of these statuses:
+
+APPROVED
+Current intended product decision.
+
+PROVISIONAL
+Current direction, but deliberately allowed to change as the product develops.
+
+DEFERRED
+A decision is required eventually, but there is no reason to decide it yet.
+
+OPEN
+No decision has been made.
+
+FUTURE
+Explicitly outside the current product scope but potentially relevant later.
+
+REVISIT
+A previous decision should be deliberately reassessed at a specified stage.
+
+Do not use "LOCKED" as a permanent state.
+
+The product is allowed to evolve.
+
+==================================================
+5. DECISION PRINCIPLES
+==================================================
+
+For every decision, record:
+
+- Decision ID
+- Subject
+- Current status
+- Current decision/direction
+- Reason
+- Impact
+- Dependencies
+- What it affects
+- When it must be revisited
+- Who/what can change it
+- Date recorded
+- Related backlog items
+- Related architecture decisions where applicable
+
+Keep the explanation concise and useful.
+
+==================================================
+6. CURRENT PRODUCT DECISIONS
+==================================================
+
+Record the following as the CURRENT position.
+
+Do not treat these as irreversible.
+
+--------------------------------------------------
+PD-01 — PRODUCT NAME
+--------------------------------------------------
+
+Status:
+OPEN
+
+Current position:
+The final product name has not yet been decided.
+
+Possible names currently include:
+- Ledgerly
+- Ledgerpoint
+
+Do NOT rename the application broadly.
+
+Do NOT assume either name is the final brand.
+
+Do NOT make architecture dependent on the product name.
+
+The final brand decision will be made separately.
+
+--------------------------------------------------
+PD-02 — LAUNCH MARKET
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+United Kingdom small and medium-sized businesses.
+
+Reason:
+The current accounting/VAT product direction is UK-focused.
+
+This may evolve in the future.
+
+--------------------------------------------------
+PD-03 — LAUNCH CURRENCY
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+GBP (£).
+
+The accounting architecture should avoid unnecessarily preventing future multi-currency support.
+
+Do not implement full multi-currency unless separately approved.
+
+--------------------------------------------------
+PD-04 — QUOTES / ESTIMATES
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+Quotes/estimates are intended to be part of the product.
+
+Expected lifecycle:
+
+Quote
+→ acceptance
+→ invoice
+→ payment
+→ reconciliation
+→ accounting
+
+Detailed scope may be refined later.
+
+--------------------------------------------------
+PD-05 — PURCHASE ORDERS
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+Purchase orders are intended to be supported.
+
+Expected lifecycle:
+
+Purchase Order
+→ Bill
+→ Payment
+→ Accounting
+
+Detailed scope may be refined later.
+
+--------------------------------------------------
+PD-06 — PRODUCTS / SERVICES / ITEMS
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+Support reusable products/services/items.
+
+Potential capabilities:
+- description
+- price
+- VAT treatment
+- nominal/account mapping
+- optional SKU/reference
+- active/inactive status
+
+Detailed scope may evolve.
+
+--------------------------------------------------
+PD-07 — CONTACTS
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+Use an underlying Contacts model that can support customer/supplier relationships without unnecessary duplication.
+
+Detailed entity design remains an architecture decision.
+
+--------------------------------------------------
+PD-08 — VAT
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+UK VAT accounting is a core product capability.
+
+The VAT engine must remain:
+- deterministic
+- authoritative
+- auditable.
+
+VAT functionality must ultimately support the applicable UK requirements for the product's launch scope.
+
+--------------------------------------------------
+PD-09 — MTD / HMRC
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+MTD/HMRC VAT filing is intended to be supported.
+
+However:
+
+VAT calculation/accounting authority must be completed first.
+
+HMRC integration must use controlled authentication and submission flows.
+
+Filing must be auditable.
+
+Do not implement HMRC submission as part of this governance task.
+
+--------------------------------------------------
+PD-10 — BANKING
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+
+Ledgerpoint should support:
+- reliable CSV/manual imports
+- bank transaction processing
+- categorisation
+- transfers
+- recurring transactions
+- reconciliation.
+
+Live Open Banking is an intended future/launch capability.
+
+The specific provider is NOT YET DECIDED.
+
+Provider selection must not block development of the canonical accounting engine.
+
+--------------------------------------------------
+PD-11 — EMAIL
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+
+Email should eventually support:
+- invoices
+- statements
+- payment reminders
+- collections communication
+- important notifications.
+
+Provider is not yet selected.
+
+External communications must be auditable.
+
+--------------------------------------------------
+PD-12 — DOCUMENTS / OCR
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+
+Support the eventual workflow:
+
+Upload
+→ extraction/OCR
+→ review
+→ approval
+→ accounting record.
+
+Document storage and OCR provider remain OPEN/DEFERRED decisions.
+
+Do not choose a provider without an explicit implementation decision.
+
+--------------------------------------------------
+PD-13 — PAYMENTS
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+
+Payment recording and allocation are core accounting capabilities.
+
+Support:
+- manual payments
+- partial payments
+- multiple allocations
+- overpayments
+- underpayments
+- unapplied cash
+- customer/supplier statements.
+
+Actual payment collection/card-processing integration is FUTURE unless separately approved.
+
+--------------------------------------------------
+PD-14 — PAYROLL
+--------------------------------------------------
+
+Status:
+FUTURE
+
+Payroll is not part of the immediate core accounting build.
+
+Do not build unless separately approved.
+
+--------------------------------------------------
+PD-15 — INVENTORY
+--------------------------------------------------
+
+Status:
+FUTURE
+
+Full inventory management is not part of the immediate core accounting build.
+
+Products/services can exist without inventory management.
+
+--------------------------------------------------
+PD-16 — FIXED ASSETS
+--------------------------------------------------
+
+Status:
+FUTURE
+
+Full fixed-asset functionality is future scope unless separately approved.
+
+--------------------------------------------------
+PD-17 — EXPENSES
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Basic business expense functionality is intended.
+
+Advanced expense-management functionality remains future scope.
+
+--------------------------------------------------
+PD-18 — BUDGETING / FORECASTING
+--------------------------------------------------
+
+Status:
+FUTURE
+
+Budgeting and forecasting should be considered after the authoritative accounting and reporting foundation exists.
+
+--------------------------------------------------
+PD-19 — ACCOUNTING PERIODS
+--------------------------------------------------
+
+Status:
+APPROVED DIRECTION
+
+Ledgerpoint requires:
+
+- financial years
+- accounting periods
+- open/closed status
+- controlled reopening
+- posting restrictions
+- audit trail.
+
+Exact implementation remains part of the technical architecture.
+
+--------------------------------------------------
+PD-20 — AI BOUNDARIES
+--------------------------------------------------
+
+Status:
+APPROVED
+
+The Ledgerly Manifesto is authoritative.
+
+AI is an assistant.
+
+AI may:
+- analyse
+- explain
+- recommend
+- classify
+- identify anomalies
+- prepare drafts
+- assist with repetitive work.
+
+AI must NOT silently:
+- make irreversible financial decisions
+- post consequential accounting transactions without the required control
+- submit VAT returns without the required approval/control
+- delete accounting records
+- modify locked records
+- send consequential external financial communications without the required approval/control.
+
+Rules before AI.
+
+AI before asking the user.
+
+Explain every suggestion.
+
+Never automate silently.
+
+These principles must not be weakened by implementation convenience.
+
+--------------------------------------------------
+PD-21 — NOTIFICATIONS
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+- in-app notifications
+- important email notifications.
+
+Additional channels may be considered later.
+
+--------------------------------------------------
+PD-22 — AUDIT / RETENTION
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Current direction:
+
+Consequential accounting and AI actions must be auditable.
+
+This includes:
+- accounting actions
+- approvals
+- reversals/corrections
+- VAT actions
+- reconciliation
+- AI recommendations
+- consequential AI actions
+- external communications.
+
+Exact retention/deletion/export policy remains to be defined appropriately.
+
+--------------------------------------------------
+PD-23 — TENANT SECURITY / RLS
+--------------------------------------------------
+
+Status:
+PROVISIONAL
+
+Primary security boundary:
+
+- authentication
+- authorization
+- server-side company/tenant scoping.
+
+Database-level RLS may be considered as defence-in-depth where appropriate.
+
+Do not introduce RLS merely because it is theoretically stronger if it conflicts with the existing architecture without a clear benefit.
+
+--------------------------------------------------
+7. PRODUCT EVOLUTION RULE
+--------------------------------------------------
+
+Ledgerpoint is a living product.
+
+A decision may be changed when:
+
+- new user evidence becomes available
+- technical constraints change
+- regulatory requirements change
+- business requirements change
+- product strategy changes
+- a better solution is discovered.
+
+When changing a decision:
+
+1. Identify the existing decision.
+2. Explain why it is being reconsidered.
+3. Assess affected architecture/features/backlog items.
+4. Record the new decision.
+5. Update affected documentation.
+6. Identify required migration/rework.
+7. Only then implement the change.
+
+Never silently change product direction through code.
+
+==================================================
+8. DEFERRED DECISIONS
+==================================================
+
+Create a separate section identifying decisions that do NOT need to be made yet.
+
+At minimum consider:
+
+- final product name
+- Open Banking provider
+- email provider
+- OCR provider
+- document storage provider
+- payment provider
+- detailed quote functionality
+- detailed purchase-order functionality
+- detailed notification channels
+- advanced expense functionality
+- multi-currency
+- payroll
+- inventory
+- fixed assets
+- budgeting/forecasting.
+
+==================================================
+9. IMPLEMENTATION RULE
+==================================================
+
+The coding agent must not use this register as permission to implement every item.
+
+The register describes product direction.
+
+The Master Backlog determines implementation priority.
+
+An implementation task must still be explicitly approved before code is changed.
+
+If an implementation task depends on an OPEN or unresolved decision, identify that dependency rather than silently making the decision.
+
+==================================================
+10. FINAL OUTPUT
+==================================================
+
+After completing the governance update, report:
+
+1. Document created or updated
+2. Exact file path
+3. Decisions recorded
+4. Decisions marked OPEN
+5. Decisions marked PROVISIONAL
+6. Decisions marked DEFERRED/FUTURE
+7. Any conflicts found with the Manifesto
+8. Any conflicts found with the Master Backlog
+9. Any product decisions that still require my explicit input
+
+IMPORTANT:
+
+Do not implement features.
+Do not modify application logic.
+Do not modify database schema.
+Do not install packages.
+Do not publish.
+
+This task is complete when the Living Product Decisions Register is documented and the existing project governance clearly allows Ledgerpoint to evolve without allowing the coding agent to make product decisions autonomously.

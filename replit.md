@@ -14,10 +14,11 @@ Authority order:
 4. Technical Architecture
 5. `docs/ledgerly-product-gap-analysis.md` and `docs/ledgerly-feature-matrix.md`
 6. `docs/ledgerly-master-backlog.md`
-7. An approved implementation task
-8. Existing code
+7. `docs/ledgerly-product-decisions.md`
+8. An approved implementation task
+9. Existing code
 
-The Manifesto is the highest authority. Product Principles, PRD/Product Scope, and Technical Architecture are currently referenced governance inputs but are not present as active documents; do not infer them or silently replace them. Do not choose roadmap scope autonomously. Before implementation, also review the Core Maxims, Design System, Definition of Done, Product Development Workflow, and Workspace Framework.
+The Manifesto is the highest authority. Product Principles, PRD/Product Scope, and Technical Architecture are currently referenced governance inputs but are not present as active documents; do not infer them or silently replace them. The Living Product Decisions Register records explicit, revisitable product direction but does not authorise implementation. Do not choose roadmap scope or silently change a recorded decision autonomously. Before implementation, also review the Core Maxims, Design System, Definition of Done, Product Development Workflow, and Workspace Framework.
 
 ## Run & Operate
 

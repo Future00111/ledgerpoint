@@ -1,0 +1,597 @@
+# Ledgerly Living Product Decisions Register
+
+**Product working names:** Ledgerly / Ledgerpoint  
+**Register status:** Living governance record  
+**Date established:** 2026-08-21
+
+## Purpose and governing rule
+
+This register records the current product direction without treating every decision
+as permanent. A decision may be changed, deferred, or revisited, but the change
+must be explicitly recorded before implementation changes direction.
+
+The Ledgerly Manifesto remains the highest-level authority. This register does
+not authorise implementation by itself:
+
+- The Master Backlog determines implementation priority.
+- An approved implementation task is still required before code changes.
+- An unresolved decision is a dependency, not permission for the coding agent to
+  choose an answer.
+- Existing code is evidence of the current implementation, not authority over
+  approved product requirements.
+
+## Authority hierarchy
+
+Use this order when documents or implementation disagree:
+
+1. Ledgerly Manifesto
+2. Product Principles
+3. PRD / Product Scope
+4. Technical Architecture
+5. Product Gap Analysis / Feature Matrix
+6. Master Backlog
+7. This Living Product Decisions Register
+8. Approved implementation task
+9. Existing implementation/code
+
+The Product Principles, PRD/Product Scope, and Technical Architecture referenced
+by the existing governance are not currently present as active repository
+documents. They must not be inferred or silently replaced with this register.
+
+## Decision statuses
+
+- **APPROVED** — current intended product decision.
+- **PROVISIONAL** — current direction deliberately allowed to change.
+- **DEFERRED** — a decision is needed eventually, but not yet.
+- **OPEN** — no decision has been made.
+- **FUTURE** — explicitly outside the current scope, but potentially relevant later.
+- **REVISIT** — a previous decision must be reassessed at a specified stage.
+
+`LOCKED` is not a valid permanent status.
+
+## Current decisions
+
+### PD-01 — Product name
+
+- **Status:** OPEN
+- **Current decision/direction:** The final product name is undecided. Current
+  candidates include Ledgerly and Ledgerpoint. Do not broadly rename the
+  application or make architecture dependent on either name.
+- **Reason:** The working name and final brand have not been separately decided.
+- **Impact:** Branding, URLs, copy, domain configuration, and broad application
+  naming remain subject to a later brand decision.
+- **Dependencies:** Final brand/positioning decision.
+- **What it affects:** Product copy, visual identity, documentation, URLs, and
+  release communications.
+- **Revisit:** Before public launch or broad rebranding.
+- **Change authority:** Product owner/stakeholder through an explicit register
+  update; technical consequences require architecture review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-11, BL-25
+- **Related architecture:** None; architecture must remain name-neutral.
+
+### PD-02 — Launch market
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** Target UK small and medium-sized businesses.
+- **Reason:** The current accounting and VAT direction is UK-focused.
+- **Impact:** UK terminology, tax assumptions, compliance scope, and launch
+  workflows are the initial product baseline.
+- **Dependencies:** Product scope, applicable tax/regulatory requirements, and
+  launch definition.
+- **What it affects:** VAT, banking, reporting, currency, filing, copy, and
+  onboarding.
+- **Revisit:** When launch strategy or supported jurisdictions change.
+- **Change authority:** Product owner/stakeholder; regulatory and architecture
+  review required for affected tax or data changes.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-15, BL-25
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-03 — Launch currency
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** GBP (£) is the launch currency. Avoid needless
+  architectural barriers to future multi-currency support. Do not implement
+  full multi-currency without separate approval.
+- **Reason:** UK launch focus with a need to preserve reasonable future options.
+- **Impact:** Monetary display, storage, validation, reports, and integrations
+  use GBP initially.
+- **Dependencies:** Launch market and future multi-currency decision.
+- **What it affects:** Documents, payments, journals, VAT, banking, reports, and
+  exports.
+- **Revisit:** Before entering a non-GBP market or adding foreign-currency
+  workflows.
+- **Change authority:** Product owner/stakeholder with accounting and
+  architecture review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-04, BL-09, BL-15, BL-25
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-04 — Quotes / estimates
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** Quotes/estimates are intended product scope
+  with the lifecycle: quote → acceptance → invoice → payment →
+  reconciliation → accounting. Detailed scope is not yet fixed.
+- **Reason:** A complete sales workflow should connect accepted commercial
+  proposals to authoritative accounting records.
+- **Impact:** Quote status, source snapshots, conversion, audit, and document
+  generation will need defined rules.
+- **Dependencies:** Product scope, invoice lifecycle, canonical posting engine,
+  and customer/contact model.
+- **What it affects:** Sales, invoices, documents, reporting, AI, and
+  notifications.
+- **Revisit:** Before implementation of quotes or the next sales-scope review.
+- **Change authority:** Product owner/stakeholder; accounting and architecture
+  review before lifecycle changes.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-08, BL-11, BL-18, BL-25
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-05 — Purchase orders
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** Purchase orders are intended product scope
+  with the lifecycle: purchase order → bill → payment → accounting. Detailed
+  scope is not yet fixed.
+- **Reason:** A complete purchasing workflow should connect commitments to
+  payable and accounting records without posting prematurely.
+- **Impact:** PO status, bill conversion, source snapshots, approvals, and audit
+  rules must be defined.
+- **Dependencies:** Product scope, bill lifecycle, canonical posting engine, and
+  supplier/contact model.
+- **What it affects:** Purchases, bills, suppliers, documents, reporting, and
+  approvals.
+- **Revisit:** Before implementation of purchase orders or the next purchasing
+  scope review.
+- **Change authority:** Product owner/stakeholder; accounting and architecture
+  review before lifecycle changes.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-08, BL-11, BL-18, BL-25
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-06 — Products / services / items
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** Support reusable products, services, or items.
+  Potential fields include description, price, VAT treatment, nominal/account
+  mapping, optional SKU/reference, and active/inactive status.
+- **Reason:** Reusable catalogue data can reduce repeated entry while preserving
+  controlled accounting defaults.
+- **Impact:** Item values must be snapshotted onto accounting documents; changing
+  an item later must not rewrite posted history.
+- **Dependencies:** Product scope, VAT rules, chart of accounts, invoice/bill
+  calculation authority, and contacts.
+- **What it affects:** Invoices, bills, quotes, purchase orders, VAT, reporting,
+  and AI recommendations.
+- **Revisit:** Before item-catalogue implementation and when inventory scope is
+  considered.
+- **Change authority:** Product owner/stakeholder; accounting and architecture
+  review for posting or VAT effects.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-04, BL-08, BL-11, BL-15
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-07 — Contacts
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** Use an underlying Contacts model capable of
+  supporting customer and supplier relationships without unnecessary duplication.
+  Detailed entity design remains an architecture decision.
+- **Reason:** A shared relationship model can reduce inconsistent party data.
+- **Impact:** Customer/supplier views, roles, addresses, statements, documents,
+  and duplicate handling depend on the final model.
+- **Dependencies:** Product scope, entity validation, permissions, and
+  architecture.
+- **What it affects:** Customers, suppliers, invoices, bills, payments,
+  collections, search, and reporting.
+- **Revisit:** Before contacts are expanded beyond the current limited scope.
+- **Change authority:** Product owner/stakeholder for behaviour; architecture
+  owner for entity design.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-03, BL-09, BL-11, BL-16
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-08 — VAT
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** UK VAT accounting is a core capability. The
+  VAT engine must remain deterministic, authoritative, and auditable, and must
+  ultimately cover the applicable UK requirements for the launch scope.
+- **Reason:** VAT is a consequential accounting responsibility and cannot be
+  delegated to opaque or silent automation.
+- **Impact:** VAT evidence, schemes, calculations, returns, locks, approvals,
+  corrections, and reports must have traceable authority.
+- **Dependencies:** Launch market, supported schemes, canonical posting engine,
+  document source authority, and product scope.
+- **What it affects:** Invoices, bills, payments, reconciliation, VAT returns,
+  reports, filing, AI, and audit.
+- **Revisit:** At launch-scope approval, when schemes change, or when regulatory
+  requirements change.
+- **Change authority:** Product owner/stakeholder with accounting and
+  regulatory review; implementation cannot weaken deterministic authority.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-04, BL-05, BL-06, BL-08, BL-15, BL-19
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-09 — MTD / HMRC
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** MTD/HMRC VAT filing is intended to be
+  supported, but VAT calculation and accounting authority must be completed
+  first. HMRC access and submission must use controlled authentication and
+  auditable flows.
+- **Reason:** Filing must be based on trusted accounting evidence and explicit
+  control, not on an incomplete VAT foundation.
+- **Impact:** Filing status, authorisation, submission records, error handling,
+  and audit evidence will require a defined lifecycle.
+- **Dependencies:** PD-08, supported schemes, HMRC requirements, and provider
+  or authentication decisions.
+- **What it affects:** VAT returns, settings, permissions, notifications, audit,
+  and production operations.
+- **Revisit:** After VAT authority and launch filing scope are approved.
+- **Change authority:** Product owner/stakeholder with accounting, regulatory,
+  security, and architecture review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-15, BL-24, BL-25
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-10 — Banking
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** Support reliable CSV/manual imports, bank
+  transaction processing, categorisation, transfers, recurring transactions,
+  and reconciliation. Live Open Banking is intended, but the provider is not
+  yet decided.
+- **Reason:** Reliable manual banking must not be blocked by provider selection,
+  while live feeds remain a future/launch consideration.
+- **Impact:** Import idempotency, transfer treatment, bank-account controls,
+  matching, recurring automation, and provider abstraction are required.
+- **Dependencies:** Canonical posting engine, accounting configuration, provider
+  decision, and reconciliation rules.
+- **What it affects:** Banking, reconciliation, payments, journals, VAT,
+  automation, and reports.
+- **Revisit:** At launch-scope approval and before selecting an Open Banking
+  provider.
+- **Change authority:** Product owner/stakeholder; security, compliance,
+  accounting, and architecture review for provider or posting changes.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-06, BL-12, BL-13, BL-14, BL-25
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-11 — Email
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** Email should eventually support invoices,
+  statements, payment reminders, collections communication, and important
+  notifications. The provider is not selected. External communications must
+  be auditable.
+- **Reason:** Communication is useful to the accounting workflow but has
+  consequential external effects.
+- **Impact:** Sending requires approval boundaries, delivery/failure states,
+  retries, templates, preferences, and audit records.
+- **Dependencies:** Notification policy, collections scope, provider decision,
+  permissions, and document generation.
+- **What it affects:** Documents, collections, notifications, automation, audit,
+  and AI actions.
+- **Revisit:** Before any external email implementation or provider commitment.
+- **Change authority:** Product owner/stakeholder; security, privacy,
+  architecture, and communications review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-16, BL-18, BL-21, BL-25
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-12 — Documents / OCR
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** Support the eventual workflow upload →
+  extraction/OCR → review → approval → accounting record. Storage and OCR
+  provider choices remain open/deferred.
+- **Reason:** Documents can provide useful evidence, but extracted data must not
+  become accounting truth without review and approval.
+- **Impact:** Durable company-scoped storage, extraction confidence, source
+  evidence, review states, retention, and accounting handoff are required.
+- **Dependencies:** Provider decisions, document retention policy, invoice/bill
+  authority, permissions, and audit.
+- **What it affects:** Invoices, bills, VAT, AI, documents, storage, and
+  notifications.
+- **Revisit:** Before OCR, inbound document capture, or provider selection.
+- **Change authority:** Product owner/stakeholder; security, privacy,
+  accounting, and architecture review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-08, BL-15, BL-18, BL-19, BL-25
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-13 — Payments
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** Payment recording and allocation are core
+  accounting capabilities. Support manual payments, partial payments, multiple
+  allocations, overpayments, underpayments, unapplied cash, and
+  customer/supplier statements. Payment collection or card-processing
+  integration is future unless separately approved.
+- **Reason:** Recording and allocating received or made money is distinct from
+  collecting money through a provider.
+- **Impact:** Payment allocation, balances, cash, statements, journals, and
+  reconciliation must remain authoritative and auditable.
+- **Dependencies:** Canonical posting engine, invoice/bill lifecycle, banking,
+  and party model.
+- **What it affects:** Sales, purchases, banking, reconciliation, collections,
+  statements, VAT, and reporting.
+- **Revisit:** At payment-provider scope review or before collection features.
+- **Change authority:** Product owner/stakeholder with accounting, security, and
+  architecture review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-06, BL-08, BL-09, BL-14, BL-16
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-14 — Payroll
+
+- **Status:** FUTURE
+- **Current decision/direction:** Payroll is outside the immediate core
+  accounting build and must not be built without separate approval.
+- **Reason:** It introduces a distinct compliance and product domain.
+- **Impact:** Payroll integrations, ledgers, permissions, reporting, and
+  compliance are not launch assumptions.
+- **Dependencies:** Separate product-scope and regulatory decision.
+- **What it affects:** Roadmap, integrations, reporting, permissions, and
+  support obligations.
+- **Revisit:** Only through an explicit future-scope review.
+- **Change authority:** Product owner/stakeholder through an explicit decision;
+  legal, compliance, and architecture review required.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-25
+- **Related architecture:** None until separately scoped.
+
+### PD-15 — Inventory
+
+- **Status:** FUTURE
+- **Current decision/direction:** Full inventory management is outside the
+  immediate core accounting build. Products/services may exist without
+  inventory management.
+- **Reason:** Catalogue items and inventory control are different scopes.
+- **Impact:** No stock ledger, valuation, movements, or inventory accounting
+  should be assumed by current product work.
+- **Dependencies:** Separate product-scope, valuation, and accounting decision.
+- **What it affects:** Products, purchasing, sales, reporting, and integrations.
+- **Revisit:** Only after authoritative accounting and a separate inventory
+  scope decision.
+- **Change authority:** Product owner/stakeholder with accounting and
+  architecture review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-06, BL-11, BL-25
+- **Related architecture:** None until separately scoped.
+
+### PD-16 — Fixed assets
+
+- **Status:** FUTURE
+- **Current decision/direction:** Full fixed-asset functionality is future scope
+  unless separately approved.
+- **Reason:** Asset registers, depreciation, disposals, and tax treatment need
+  dedicated accounting rules.
+- **Impact:** No fixed-asset lifecycle or depreciation behaviour is part of the
+  immediate core product assumption.
+- **Dependencies:** Separate accounting, tax, reporting, and product-scope
+  decision.
+- **What it affects:** Journals, reports, periods, tax, and permissions.
+- **Revisit:** Only through an explicit future-scope review.
+- **Change authority:** Product owner/stakeholder with accounting, tax, and
+  architecture review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-06, BL-07, BL-17, BL-25
+- **Related architecture:** None until separately scoped.
+
+### PD-17 — Expenses
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** Basic business-expense functionality is
+  intended. Advanced expense-management features remain future scope.
+- **Reason:** Basic expense recording supports the core accounting product
+  without committing to a full expense-management suite.
+- **Impact:** Expense evidence, VAT treatment, approval, payment, and posting
+  rules need a defined initial scope.
+- **Dependencies:** Canonical posting engine, VAT rules, documents, permissions,
+  and product scope.
+- **What it affects:** Purchases, bills, documents, VAT, payments, reports, and
+  AI.
+- **Revisit:** Before implementing expense workflows and when advanced
+  functionality is proposed.
+- **Change authority:** Product owner/stakeholder with accounting and
+  architecture review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-06, BL-08, BL-15, BL-25
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-18 — Budgeting / forecasting
+
+- **Status:** FUTURE
+- **Current decision/direction:** Budgeting and forecasting should be
+  considered after authoritative accounting and reporting exist.
+- **Reason:** Forecasts must be grounded in trusted posted evidence and clear
+  assumptions.
+- **Impact:** No budget or forecast commitments, controls, or reports are
+  assumed in the immediate core build.
+- **Dependencies:** Canonical posting engine, authoritative reports, and
+  separate product-scope decision.
+- **What it affects:** Reporting, dashboard, AI, exports, and future planning
+  workflows.
+- **Revisit:** After the accounting and reporting foundation is complete.
+- **Change authority:** Product owner/stakeholder with accounting, product, and
+  architecture review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-17, BL-19, BL-25
+- **Related architecture:** None until separately scoped.
+
+### PD-19 — Accounting periods
+
+- **Status:** APPROVED
+- **Current decision/direction:** The product requires financial years,
+  accounting periods, open/closed status, controlled reopening, posting
+  restrictions, and an audit trail. Exact implementation remains a technical
+  architecture decision.
+- **Reason:** Accounting authority requires controlled period boundaries and
+  prevents unauthorised changes to closed history.
+- **Impact:** Posting, corrections, reports, VAT, permissions, and audit must
+  respect period state.
+- **Dependencies:** Canonical posting engine, chart/configuration, permissions,
+  and correction policy.
+- **What it affects:** Journals, invoices, bills, payments, VAT, reports,
+  reversals, and audit.
+- **Revisit:** When the technical architecture or close/reopen policy is
+  explicitly refined.
+- **Change authority:** Product owner/stakeholder may change the product
+  requirement explicitly; accounting and architecture review required.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-06, BL-07, BL-10, BL-17, BL-24
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-20 — AI boundaries
+
+- **Status:** APPROVED
+- **Current decision/direction:** The Manifesto is authoritative. AI may
+  analyse, explain, recommend, classify, identify anomalies, prepare drafts,
+  and assist with repetitive work. AI must not silently make irreversible
+  financial decisions, post consequential accounting transactions without the
+  required control, submit VAT returns without approval/control, delete
+  accounting records, modify locked records, or send consequential external
+  financial communications without approval/control.
+- **Reason:** AI must remain an assistant within explicit accounting and human
+  control boundaries.
+- **Impact:** Rules precede automation, suggestions require explanations, and
+  consequential actions require explicit authenticated approval and audit.
+- **Dependencies:** Manifesto, permissions, canonical posting, VAT authority,
+  audit, and notification policy.
+- **What it affects:** AI Accountant, reconciliation, VAT, automation, posting,
+  communications, and every consequential workflow.
+- **Revisit:** Only through an explicit product-governance review that remains
+  consistent with the Manifesto.
+- **Change authority:** Product owner/stakeholder and Manifesto-level governance;
+  implementation convenience cannot weaken this decision.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-05, BL-06, BL-14, BL-15, BL-19, BL-21
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-21 — Notifications
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** Support in-app notifications and important
+  email notifications initially. Additional channels may be considered later.
+- **Reason:** Users need visible operational follow-up without committing to
+  every communication channel at launch.
+- **Impact:** Preferences, severity, delivery state, retries, escalation, and
+  external-send approval need explicit rules.
+- **Dependencies:** Email provider, notification policy, permissions,
+  collections, automation, and audit.
+- **What it affects:** Tasks, VAT, collections, documents, AI, automation, and
+  settings.
+- **Revisit:** Before implementing additional channels or consequential sends.
+- **Change authority:** Product owner/stakeholder with security, privacy, and
+  architecture review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-18, BL-21, BL-22, BL-25
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-22 — Audit / retention
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** Consequential accounting and AI actions must
+  be auditable, including accounting actions, approvals, reversals/corrections,
+  VAT, reconciliation, AI recommendations, consequential AI actions, and
+  external communications. Exact retention, deletion, and export policy remains
+  to be defined.
+- **Reason:** Financial trust requires traceability while legal and operational
+  retention requirements still need a precise policy.
+- **Impact:** Audit records, actor identity, timestamps, source evidence,
+  immutable history, retention, deletion, and export must be designed together.
+- **Dependencies:** Product scope, legal/regulatory requirements, documents,
+  permissions, and architecture.
+- **What it affects:** Every consequential workflow, documents, reports,
+  settings, and production operations.
+- **Revisit:** Before launch and when retention or deletion requirements become
+  specific.
+- **Change authority:** Product owner/stakeholder with accounting, legal,
+  privacy, security, and architecture review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-10, BL-14, BL-18, BL-19, BL-21, BL-24
+- **Related architecture:** Technical Architecture document, currently missing.
+
+### PD-23 — Tenant security / RLS
+
+- **Status:** PROVISIONAL
+- **Current decision/direction:** The primary security boundary is
+  authentication, authorization, and server-side company/tenant scoping.
+  Database-level RLS may be considered as defence-in-depth where appropriate.
+  Do not introduce RLS solely because it is theoretically stronger if it
+  conflicts with the existing architecture without a clear benefit.
+- **Reason:** Tenant isolation must be reliable, while the layered security
+  design should be evaluated against the actual architecture and operations.
+- **Impact:** Membership checks, role capabilities, query scoping, mutation
+  boundaries, audit, testing, and possible database policy design are affected.
+- **Dependencies:** Identity, role/capability matrix, database architecture,
+  production operations, and threat assessment.
+- **What it affects:** All company-scoped data and every authenticated workflow.
+- **Revisit:** Before release readiness and whenever the security architecture
+  materially changes.
+- **Change authority:** Product owner/stakeholder with security, architecture,
+  and operations review.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-01, BL-02, BL-03, BL-24, BL-25
+- **Related architecture:** Technical Architecture document, currently missing.
+
+## Explicitly open decisions
+
+These are not silently resolved by the provisional directions above:
+
+- Final product name: Ledgerly or Ledgerpoint.
+- Final launch definition, including supported countries and tax regimes.
+- Open Banking provider and whether live feeds are required at launch.
+- Email provider and inbound email requirements.
+- OCR provider and document-storage provider.
+- Payment collection/card-processing provider and scope.
+- Detailed quote and estimate lifecycle.
+- Detailed purchase-order lifecycle.
+- Detailed item and Contacts entity design.
+- Supported VAT schemes and exact MTD/HMRC filing scope.
+- Detailed notification channels, preferences, retries, and escalation.
+- Audit, document retention, deletion, and export policy.
+- Exact Owner/Admin/Accountant/Manager/Read-only capability matrix.
+- Detailed AI and automation execution boundaries where the Manifesto does not
+  already decide the issue.
+- Production monitoring, backups, recovery, and RLS policy.
+
+## Deferred and future decisions
+
+The following do not need to be decided for every immediate core-accounting
+task:
+
+- Final product name until branding or public launch work.
+- Open Banking, email, OCR, document-storage, and payment providers until the
+  relevant integration is approved.
+- Detailed quotes, purchase orders, item catalogue, notification channels,
+  and advanced expense scope until their implementation is prioritised.
+- Full multi-currency until a non-GBP requirement is approved.
+- Payroll, inventory, fixed assets, and budgeting/forecasting until separately
+  scoped after the authoritative accounting foundation.
+
+## Decision-change process
+
+When changing an existing decision:
+
+1. Identify the existing decision ID.
+2. Explain why it is being reconsidered.
+3. Assess affected architecture, features, backlog items, and migrations.
+4. Record the new decision and status.
+5. Update affected governance documentation.
+6. Identify required rework or migration.
+7. Only then create or approve implementation work.
+
+The coding agent must never change product direction silently through code.
+
+## Implementation rule
+
+This register describes product direction; it is not an implementation queue.
+The Master Backlog determines priority, and an implementation task must be
+explicitly approved before code changes begin. If a task depends on an OPEN,
+DEFERRED, or unresolved decision, the dependency must be reported instead of
+being decided by the coding agent.
