@@ -76,8 +76,8 @@ This review does not decide:
   (DEC-07);
 - year-end closing journals, retained-earnings mechanics, or reporting-only
   year-end treatment (DEC-08);
-- the default chart, control accounts, configuration versioning, or payment
-  treatment (DEC-09 onward);
+- control accounts, configuration versioning, or payment treatment (DEC-10
+  onward);
 - physical table names, API routes, UI design, or provider choices;
 - the historical migration cohort, cutover sequence, or rollback policy
   reserved to DEC-22; or
@@ -680,7 +680,8 @@ Until DEC-06 is approved or amended:
 **DEC-06:** **APPROVED — product/accounting policy only**
 **DEC-07:** **APPROVED — accounting-period policy only**
 **DEC-08:** **APPROVED — reporting-only year-end policy only**
-**DEC-09 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-09:** **APPROVED — Chart of Accounts and Default Account Policy**
+**DEC-10 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application code changed by this review:** **NO**  
 **Database or migrations changed by this review:** **NO**

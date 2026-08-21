@@ -146,10 +146,11 @@ not higher authority.
   journal-authoritative reporting with rebuildable projections; company-scoped
   server-side capability/audit boundaries; and additive, evidence-based
   compatibility and migration architecture.
-- **Deliberate non-locks:** DEC-05, DEC-06, DEC-07, and DEC-08 were separately
-  approved as the capability model, financial-year policy, accounting-period
-  policy, and reporting-only year-end policy. DEC-09 through DEC-22 remain
-  unresolved. DEC-04 does not select chart/control-account defaults,
+- **Deliberate non-locks:** DEC-05, DEC-06, DEC-07, DEC-08, and DEC-09 were
+  separately approved as the capability model, financial-year policy,
+  accounting-period policy, reporting-only year-end policy, and Chart of
+  Accounts and Default Account Policy. DEC-10 through DEC-22 remain unresolved.
+  DEC-04 does not select active control-account mappings,
   configuration versioning, source-freshness, payment/refund treatment,
   retention, deletion, export, backup/recovery, RLS, historical migration
   cohort, cutover, or rollback policy.
@@ -304,22 +305,31 @@ not higher authority.
 
 ### DEC-09 — Chart of Accounts and Default Account Policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-09 Chart of Accounts and Default Account Policy
   Review](ledgerly-dec-09-chart-of-accounts-policy-review.md).
-- **Current decision/direction:** Decide the default UK small-business template,
-  account taxonomy, reporting classification, system/default/user account
-  treatment, customisation limits, lifecycle, deletion, and merge policy.
-- **Recommendation:** Use a versioned UK small-business template copied to each
-  company, with stable identity, explicit primary type/reporting classification,
-  readable company codes, protected system-account candidates, controlled
-  customisation, no destructive deletion after use, and no account merging at
-  launch.
+- **Current decision/direction:** Adopt a versioned UK small-business Chart of
+  Accounts template copied into each company. The authoritative primary types
+  are Asset, Liability, Equity, Revenue, Cost of Sales, and Expense. Accounts
+  use stable identity and explicit classification; company-scoped four-digit
+  codes and names are presentation/configuration attributes, not accounting
+  logic.
+- **Approved lifecycle and reporting policy:** Availability uses only `ACTIVE`
+  and `INACTIVE`; historical is derived from references and system is a
+  protection role. Referenced accounts cannot be physically deleted, primary
+  type or meaning-changing classification changes are prohibited after use, and
+  account merging is not supported at launch. Reports use canonical journals,
+  stable account identities, and explicit classifications rather than names,
+  code ranges, or frontend inference.
+- **Approved protection boundary:** AR, AP, bank/cash, VAT, VAT settlement, and
+  applicable posted retained-results/equity accounts may be protected
+  system-account candidates. DEC-09 does not select their active control
+  mappings or any invoice, bill, payment, or VAT posting mappings.
 - **Boundary:** DEC-03 VAT, DEC-04 canonical journals, DEC-05 capabilities,
   DEC-06/DEC-07 periods, and DEC-08 reporting-only year-end remain
   authoritative. DEC-10 decides active control-account mappings, and DEC-11
   decides configuration versioning.
-- **Implementation limit:** This review and unresolved decision do not
+- **Implementation limit:** This approved policy does not
   authorise code, schema, migration, UI, workflow, dependency, deployment,
   publishing, or an implementation task. BL-06 and BL-07 remain blocked.
 

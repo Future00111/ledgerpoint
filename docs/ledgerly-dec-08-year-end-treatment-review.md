@@ -385,9 +385,10 @@ earnings must not be increased by a display calculation that is represented as
 an ordinary posted balance. A derived result may be shown separately with
 source-year traceability.
 
-DEC-09 remains responsible for the approved chart and account mappings. DEC-08
-must not silently select a protected account or invent an account that the
-approved chart does not contain.
+DEC-09 approves the chart policy and protected system-account candidates.
+DEC-10 remains responsible for active control-account mappings. DEC-08 must
+not silently select a protected account or invent an account that the approved
+chart does not contain.
 
 ## 7. Trial Balance behavior
 
@@ -682,11 +683,10 @@ journals or invent unsupported legacy year-end events.
 
 ## 18. Decisions that remain outside DEC-08
 
-DEC-09 onward must separately decide:
+DEC-10 onward must separately decide:
 
-- chart templates, account types, protected accounts, and retained-earnings
-  mappings;
-- control-account mappings and configuration versioning;
+- active control-account mappings, configuration versioning, and detailed
+  retained-earnings treatment;
 - payments, allocations, refunds, overpayments, and payment-on-account;
 - retention, deletion, export, backup/recovery, and RLS;
 - historical migration cohort, cutover, and legacy authority retirement;
@@ -710,11 +710,12 @@ The approval does not authorise:
   publishing work; or
 - an implementation task.
 
-BL-06 and BL-07 remain **BLOCKED**. DEC-09 and all later decisions remain
-untouched and unresolved.
+BL-06 and BL-07 remain **BLOCKED**. DEC-09 is approved; DEC-10 and all later
+decisions remain untouched and unresolved.
 
 **DEC-08:** **APPROVED — product/accounting policy only**
-**DEC-09 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-09:** **APPROVED — Chart of Accounts and Default Account Policy**
+**DEC-10 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

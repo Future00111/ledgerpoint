@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-08 APPROVED; DEC-09 through DEC-22
+**Decision status:** DEC-01 through DEC-09 APPROVED; DEC-10 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)

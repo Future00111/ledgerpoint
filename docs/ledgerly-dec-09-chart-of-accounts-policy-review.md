@@ -1,15 +1,15 @@
 # DEC-09 Chart of Accounts and Default Account Policy Review
 
 **Decision:** DEC-09 — Chart of Accounts and Default Account Policy
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — product/accounting policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, security,
 and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-09, DEC-10, an
-> implementation task, code, schema, migration, UI, workflow, dependency,
-> deployment, or publishing work.
+> This records an approved product/accounting policy. It does not approve
+> DEC-10, an implementation task, code, schema, migration, UI, workflow,
+> dependency, deployment, or publishing work.
 
 ## 1. Purpose and decision question
 
@@ -81,10 +81,9 @@ separately approved canonical source and mapping policy.
   retained-earnings transfer journals; reports remain subordinate to canonical
   history.
 
-### REQUIRES USER DECISION
+### APPROVED DECISION
 
-The user must approve, amend, or reject the recommendation in section 16,
-including:
+DEC-09 approves the policy in section 16, including:
 
 - a versioned UK small-business template copied to each company;
 - the recommended account taxonomy, numbering ranges, and launch account list;
@@ -493,9 +492,9 @@ DEC-11 must decide:
 DEC-09 defines the safety need for stable identity and non-rewritten history,
 not the final configuration-version mechanism.
 
-## 15. What approving DEC-09 would lock in
+## 15. Approved DEC-09 policy
 
-Approval of the recommendation would lock in:
+DEC-09 approves:
 
 1. a versioned UK small-business template copied into each company;
 2. the six primary account types and explicit reporting classifications;
@@ -510,11 +509,11 @@ Approval of the recommendation would lock in:
    year-end journal; and
 9. evidence-based account migration.
 
-Approval would not authorise implementation.
+This approval does not authorise implementation.
 
-## 16. RECOMMENDATION — NOT APPROVAL
+## 16. APPROVED POLICY
 
-Recommend that Ledgerpoint:
+Ledgerly approves:
 
 1. adopts **Option B**, a versioned UK small-business chart template copied into
    each company;
@@ -540,9 +539,8 @@ Recommend that Ledgerpoint:
 10. keeps DEC-03 VAT, DEC-08 reporting-only year-end, DEC-10 control mappings,
     and DEC-11 configuration versioning as separate authorities.
 
-This recommendation best balances useful UK defaults, small-business usability,
-canonical accounting integrity, auditability, and future extensibility. It is
-**not approval**.
+This approved policy balances useful UK defaults, small-business usability,
+canonical accounting integrity, auditability, and future extensibility.
 
 ## 17. What remains changeable after approval
 
@@ -561,10 +559,10 @@ journals, VAT evidence, financial-year assignments, or source links.
 
 ## 18. Decision readiness
 
-DEC-09 is ready for explicit user decision. The recommendation is **not
-approval**.
+DEC-09 was explicitly approved on 2026-08-21 with the policy in section 16.
 
-Until DEC-09 is approved or amended:
+DEC-10 and all later decisions remain unresolved. Until the applicable
+remaining decisions are approved or amended:
 
 - no canonical chart/account policy, system-account protection, account
   lifecycle, control mapping, or account configuration versioning may be
@@ -572,7 +570,7 @@ Until DEC-09 is approved or amended:
 - BL-06 and BL-07 remain **BLOCKED**; and
 - DEC-10 and all later decisions remain untouched and unresolved.
 
-**DEC-09:** **REQUIRES USER DECISION**
+**DEC-09:** **APPROVED — product/accounting policy only**
 **DEC-10 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**

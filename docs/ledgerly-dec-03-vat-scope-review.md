@@ -638,8 +638,10 @@ implementation is approved:
   action need explicit capabilities and active-membership enforcement.
 - **DEC-06–DEC-08:** VAT period boundaries, corrections, locks, reopening, and
   year-end treatment must be compatible.
-- **DEC-09–DEC-11:** tax accounts, control-account mappings, tax-code
-  configuration, and effective-dated rule versions must be defined.
+- **DEC-09:** The approved chart policy provides account taxonomy, classifications,
+  and VAT-related account candidates without creating VAT logic.
+- **DEC-10–DEC-11:** control-account mappings, tax-code configuration, and
+  effective-dated rule versions must be defined.
 - **DEC-12–DEC-16:** payment, allocation, refunds, unapplied cash, and
   payment-on-account policy must not accidentally change invoice-basis VAT.
 - **DEC-17–DEC-21:** VAT evidence, exports, retention, recovery, tenant

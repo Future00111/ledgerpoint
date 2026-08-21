@@ -734,16 +734,17 @@ model. This historical DEC-04 approval record does not keep DEC-05 unresolved.
 | **DEC-04 status** | **APPROVED — architecture only** |
 | **Approved architecture** | Option A: adopt the existing review as the accounting-core foundation within the Technical Architecture, with targeted amendments |
 | **Actually locked by approval** | Canonical normalized append-only journals; atomic server-side double-entry posting; integer minor units; source-linked company-scoped idempotency; immutable corrections; separate payments/allocations/bank evidence; deterministic VAT adapter; journal-authoritative reporting; capability/company/audit boundaries; additive compatibility |
-| **Deliberately left open** | DEC-09 through DEC-22 policies, exact chart/mappings, role-preset refinements, retention/RLS, migration cohort/cutover, API/schema names, providers, and implementation sequencing |
-| **Dependencies** | DEC-06, DEC-07, DEC-08, and DEC-09 through DEC-22 as applicable; BL-01–05, BL-06–10, BL-12–17, BL-19, BL-23–26 |
+| **Deliberately left open** | DEC-10 through DEC-22 policies, exact control-account mappings, role-preset refinements, retention/RLS, migration cohort/cutover, API/schema names, providers, and implementation sequencing |
+| **Dependencies** | DEC-06, DEC-07, DEC-08, approved DEC-09, and DEC-10 through DEC-22 as applicable; BL-01–05, BL-06–10, BL-12–17, BL-19, BL-23–26 |
 | **Implementation consequence** | Architecture constrains future specifications; no implementation, migration, or task is authorised by this review |
-| **Next approvals required** | The applicable DEC-09 through DEC-22 decisions, then an approved implementation task |
+| **Next approvals required** | The applicable DEC-10 through DEC-22 decisions, then an approved implementation task |
 
 **DEC-04 status:** **APPROVED — architecture only**
 **DEC-05:** **APPROVED — separate capability-model decision**
 **DEC-06:** **APPROVED — separate financial-year-policy decision**
 **DEC-07:** **APPROVED — separate accounting-period-policy decision**
 **DEC-08:** **APPROVED — separate reporting-only-year-end-policy decision**
-**DEC-09 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
+**DEC-09:** **APPROVED — separate Chart of Accounts and Default Account Policy**
+**DEC-10 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application-path changes:** **NONE**

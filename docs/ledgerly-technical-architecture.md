@@ -37,9 +37,9 @@ Future specifications must preserve the DEC-04 architectural invariants:
 - company-scoped server-side capability and audit boundaries; and
 - additive, evidence-based compatibility and migration.
 
-DEC-04, DEC-05, DEC-06, DEC-07, and DEC-08 are architecture/product/accounting-policy
-approvals only. They do not approve an implementation task or resolve any
-DEC-09 through DEC-22 policy.
+DEC-04, DEC-05, DEC-06, DEC-07, DEC-08, and DEC-09 are
+architecture/product/accounting-policy approvals only. They do not approve an
+implementation task or resolve any DEC-10 through DEC-22 policy.
 
 ## Architecture obligations derived from governance
 

@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–8 approved; DEC-09 through DEC-22 require
+**Register status:** Decisions 1–9 approved; DEC-10 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -198,8 +198,8 @@ to the accounting core.
 - **Backlog implications:** Defines the intended BL-02 role/capability
   contract and the permission boundary for BL-01, BL-03, BL-06, BL-07, BL-19,
   and BL-24. This does not approve any implementation item.
-- **Dependencies:** DEC-04, DEC-06, and applicable DEC-09 through DEC-22
-  decisions.
+- **Dependencies:** DEC-04, DEC-06, approved DEC-09, and applicable DEC-10
+  through DEC-22 decisions.
 - **Implementation limit:** DEC-05 does not authorise an implementation task,
   code, schema, migration, UI, workflow, dependency, deployment, or publishing.
   BL-06 and BL-07 remain blocked.
@@ -348,27 +348,39 @@ to the accounting core.
 
 ### DEC-09 — Default chart of accounts and template
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-09 Chart of Accounts and Default Account Policy
   Review](ledgerly-dec-09-chart-of-accounts-policy-review.md).
-- **Decision:** Approve the default UK small-business chart, account types,
-  subtypes, protected accounts, and company customization rules.
-- **Options available:** (a) minimal Ledgerly chart; (b) versioned UK template;
-  or (c) user-created chart only.
-- **Replit's recommendation:** A versioned UK template copied into each company,
-  customizable only within controlled accounting constraints.
-- **Why it is recommended:** It gives small businesses a useful starting point
-  while preserving repeatable posting and reporting behavior.
-- **Accounting implications:** Establishes stable account classifications and
-  control/reporting roles; referenced accounts should deactivate rather than be
-  deleted.
-- **Data/schema implications:** Requires company-scoped accounts, codes,
-  types/subtypes, active/protected states, and validation rules.
-- **Migration implications:** Legacy accounts need explicit mapping; name-only
-  guesses remain review items.
+- **Decision:** Adopt the versioned UK small-business Chart of Accounts
+  template, copied into each company and limited to the concise, practical
+  launch chart described in the review.
+- **Approved taxonomy and identity:** The authoritative primary types are Asset,
+  Liability, Equity, Revenue, Cost of Sales, and Expense. Accounts have stable
+  identities independent of names, codes, and display labels; explicit
+  classification and approved mappings determine accounting meaning.
+- **Approved codes and lifecycle:** Codes are company-scoped four-digit
+  presentation/configuration attributes. Availability uses only `ACTIVE` and
+  `INACTIVE`; historical is derived from references and system is a protection
+  role. Referenced accounts deactivate rather than delete, and account merging
+  is not supported at launch.
+- **Approved protection and reporting boundary:** Protected system-account
+  candidates may include AR, AP, bank/cash, VAT, VAT settlement, and applicable
+  posted retained-results/equity accounts. Reporting derives from stable
+  account identity, explicit classification, and canonical journals—not names,
+  code ranges, or frontend logic.
+- **Control-mapping boundary:** DEC-09 does not select active control-account
+  mappings or invoice, bill, payment, or VAT posting mappings; those remain
+  DEC-10 decisions.
+- **Migration implications:** Historical mapping is evidence-based. Ambiguous
+  accounts remain explicit migration exceptions and historic account references
+  are never invented, deleted, or rewritten.
 - **Backlog implications:** Gates BL-06, BL-07, BL-15, BL-17, and dependent
   source-posting work.
 - **Dependency:** DEC-02, DEC-03, DEC-04, and DEC-05.
+- **Implementation limit:** DEC-09 is a product/accounting-policy approval
+  only. It does not authorise code, schema, migration, UI, workflow,
+  dependency, deployment, publishing, or an implementation task. BL-06 and
+  BL-07 remain blocked.
 
 ### DEC-10 — Mandatory control-account mappings
 
