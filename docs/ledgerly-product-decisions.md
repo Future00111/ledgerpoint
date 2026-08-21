@@ -390,12 +390,12 @@ not higher authority.
 
 ### DEC-12 — Payment, Allocation and Settlement Policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-12 Payment, Allocation and Settlement Policy
   Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md).
-- **Current decision/direction:** Decide the boundary between payment evidence,
-  payment accounting, allocation, and derived document settlement.
-- **Recommendation:** Post an accounting payment once through the canonical
+- **Current decision/direction:** Keep payment evidence, payment accounting,
+  allocation, and derived document settlement distinct.
+- **Approved policy:** Post an accounting payment once through the canonical
   journal; use many-to-many, append-only allocation events to explain
   settlement; derive settlement status; and link bank evidence idempotently
   without creating duplicate accounting.
@@ -403,7 +403,7 @@ not higher authority.
   first-class unapplied cash, refunds, and payment-on-account. Source freshness
   remains a separate unresolved posting-safety dependency and is neither
   decided nor reassigned by this review.
-- **Implementation limit:** This review and unresolved decision do not
+- **Implementation limit:** This approved policy does not
   authorise code, schema, migration, UI, workflow, dependency, deployment,
   publishing, or an implementation task. BL-06 and BL-07 remain blocked.
 

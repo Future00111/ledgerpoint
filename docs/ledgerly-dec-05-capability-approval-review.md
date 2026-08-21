@@ -536,7 +536,8 @@ use an unrecorded change.
 **DEC-09:** **APPROVED — Chart of Accounts and Default Account Policy**
 **DEC-10:** **APPROVED — Control-Account Mapping Policy**
 **DEC-11:** **APPROVED — Configuration Versioning and Effective Dating Policy**
-**DEC-12 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
+**DEC-12:** **APPROVED — Payment, Allocation and Settlement Policy**
+**DEC-13 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
 **DEC-04:** **APPROVED — architecture only**
 **BL-06 / BL-07:** **BLOCKED**
 **Implementation task:** **NONE CREATED OR EXECUTED**

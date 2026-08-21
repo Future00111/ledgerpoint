@@ -530,12 +530,13 @@ decisions are approved or amended:
 
 - no configuration-versioning or effective-dating mechanism may be
   implemented;
-- DEC-12 through DEC-22 remain untouched and unresolved;
+- DEC-13 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**; and
 - no implementation task is authorised.
 
 **DEC-01 through DEC-11:** **APPROVED**
-**DEC-12 through DEC-22:** **REQUIRE USER DECISION**
+**DEC-12:** **APPROVED — Payment, Allocation and Settlement Policy**
+**DEC-13 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

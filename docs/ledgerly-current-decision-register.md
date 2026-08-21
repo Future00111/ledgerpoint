@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–11 approved; DEC-12 through DEC-22 require
+**Register status:** Decisions 1–12 approved; DEC-13 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -458,17 +458,20 @@ to the accounting core.
 
 ### DEC-12 — Payment, Allocation and Settlement Policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-12 Payment, Allocation and Settlement Policy
   Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md).
-- **Decision:** Define payment evidence, accounting payment, allocation, and
-  derived document settlement as distinct concepts; determine their canonical
-  journal, allocation, reporting, audit, and reconciliation boundaries.
-- **Recommendation:** Use a standalone canonical payment event that posts
+- **Decision:** Keep payment evidence, accounting payment, allocation, and
+  derived document settlement as distinct concepts. Use a standalone canonical
+  payment event that posts
   money exactly once, many-to-many allocation records, and settlement status
   derived from authoritative open-item/allocation data. Allocation changes are
   append-only reversal/supersession events and do not create duplicate cash or
   AR/AP journals.
+- **Approved policy:** Direct customer payments are Bank/Cash to AR; direct
+  supplier payments are AP to Bank/Cash. Allocation does not duplicate
+  accounting, settlement is derived, bank evidence is not itself a payment,
+  and historical payment journals and allocation history remain immutable.
 - **Boundary:** Do not over-allocate documents or discard excess money.
   Customer/supplier overpayment treatment, first-class unapplied cash, refund
   workflow, and payment-on-account scope remain DEC-13 through DEC-16.
@@ -483,7 +486,8 @@ to the accounting core.
 - **Migration implications:** Historical payment/settlement relationships are
   migrated only from evidence; ambiguity is a DEC-22 exception.
 - **Backlog implications:** Informs BL-06, BL-07, BL-09, BL-10, BL-14, and
-  BL-16; all remain blocked or subject to applicable later decisions.
+  BL-16; implementation remains blocked pending applicable later decisions and
+  an explicitly authorised task.
 - **Dependency:** DEC-03 through DEC-11; DEC-13 through DEC-16 build on it.
 
 ### DEC-13 — Customer overpayments and supplier prepayments

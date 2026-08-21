@@ -683,7 +683,7 @@ journals or invent unsupported legacy year-end events.
 
 ## 18. Decisions that remain outside DEC-08
 
-DEC-12 onward must separately decide:
+DEC-13 onward must separately decide:
 
 - active control-account mappings, configuration versioning, and detailed
   retained-earnings treatment;
@@ -710,14 +710,15 @@ The approval does not authorise:
   publishing work; or
 - an implementation task.
 
-BL-06 and BL-07 remain **BLOCKED**. DEC-09, DEC-10, and DEC-11 are approved;
-DEC-12 and all later decisions remain untouched and unresolved.
+BL-06 and BL-07 remain **BLOCKED**. DEC-09, DEC-10, DEC-11, and DEC-12 are
+approved; DEC-13 and all later decisions remain untouched and unresolved.
 
 **DEC-08:** **APPROVED — product/accounting policy only**
 **DEC-09:** **APPROVED — Chart of Accounts and Default Account Policy**
 **DEC-10:** **APPROVED — Control-Account Mapping Policy**
 **DEC-11:** **APPROVED — Configuration Versioning and Effective Dating Policy**
-**DEC-12 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-12:** **APPROVED — Payment, Allocation and Settlement Policy**
+**DEC-13 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-11 APPROVED; DEC-12 through DEC-22
+**Decision status:** DEC-01 through DEC-12 APPROVED; DEC-13 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -388,12 +388,12 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ### DEC-12 — Payment, Allocation and Settlement Policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-12 Payment, Allocation and Settlement Policy
   Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md).
-- **Decision needed:** Define the canonical boundary between payment evidence,
-  payment posting, many-to-many allocation, and derived settlement.
-- **Recommendation:** Use a separate canonical payment event, append-only
+- **Approved decision:** Keep payment evidence, payment posting, many-to-many
+  allocation, and derived settlement distinct. Use a separate canonical
+  payment event, append-only
   allocation events, derived settlement status, and idempotent bank-evidence
   links. Do not permit allocation to create duplicate accounting.
 - **Deliberate non-lock:** DEC-13 through DEC-16 retain overpayment,

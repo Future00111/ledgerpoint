@@ -798,7 +798,8 @@ Until DEC-07 is approved or amended:
 **DEC-09:** **APPROVED — Chart of Accounts and Default Account Policy**
 **DEC-10:** **APPROVED — Control-Account Mapping Policy**
 **DEC-11:** **APPROVED — Configuration Versioning and Effective Dating Policy**
-**DEC-12 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-12:** **APPROVED — Payment, Allocation and Settlement Policy**
+**DEC-13 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application code changed by this review:** **NO**  
 **Database or migrations changed by this review:** **NO**

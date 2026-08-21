@@ -1,14 +1,14 @@
 # DEC-12 Payment, Allocation and Settlement Policy Review
 
 **Decision:** DEC-12 — Payment, Allocation and Settlement Policy
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — product/accounting policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, security,
 and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-12 or DEC-13 through
-> DEC-22, and it does not authorise an implementation task, code, schema,
+> This records an approved product/accounting policy. It does not approve
+> DEC-13 through DEC-22, and it does not authorise an implementation task, code, schema,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
@@ -422,9 +422,9 @@ rollback, and retirement of legacy authority.
    preserves money and later allocation/refund lineage, but requires the
    separate decisions in DEC-13, DEC-14, DEC-15, and DEC-16.
 
-## 14. RECOMMENDATION — NOT APPROVAL
+## 14. APPROVED POLICY
 
-Recommend **Option C** with the following policy:
+Approve **Option C** with the following policy:
 
 1. Treat an accounting payment as a standalone canonical event that posts
    money exactly once.
@@ -449,7 +449,7 @@ Recommend **Option C** with the following policy:
 10. Migrate only evidenced historical payment/allocation facts and route
     ambiguity to DEC-22.
 
-This recommendation is **not approval**.
+This policy is approved as a product/accounting decision only.
 
 ## 15. Decision boundaries
 
@@ -483,7 +483,7 @@ DEC-12 approval of the recommended payment, allocation, and settlement policy.
 - physical schema, APIs, user interface, workflow, role matrix, tests,
   dependency changes, deployment, publishing, and implementation tasks.
 
-### What approving DEC-12 would lock in
+### What DEC-12 approval locks in
 
 - payment, evidence, allocation, and settlement as distinct concepts;
 - one canonical accounting effect per posted payment;
@@ -505,7 +505,9 @@ accounting boundaries.
 
 ## 16. Decision readiness
 
-DEC-12 is ready for an explicit user decision. Until it is approved or amended:
+DEC-12 was explicitly approved on 2026-08-21. The approval is a
+product/accounting-policy decision only. Until the applicable remaining
+decisions are approved or amended:
 
 - DEC-13 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
@@ -513,8 +515,7 @@ DEC-12 is ready for an explicit user decision. Until it is approved or amended:
   implemented; and
 - no implementation task is authorised.
 
-**DEC-01 through DEC-11:** **APPROVED**
-**DEC-12:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-12:** **APPROVED**
 **DEC-13 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
