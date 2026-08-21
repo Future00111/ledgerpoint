@@ -18,6 +18,11 @@ The [Implementation Brief](ledgerly-implementation-brief.md) translates the
 approved decisions into planning requirements only. It does not authorise
 execution.
 
+The [Source-Freshness and Posting-Safety
+Contract](ledgerly-source-freshness-posting-safety-contract.md) defines the
+proposed final revalidation behavior without assigning a new decision or
+authorising implementation.
+
 The Ledgerly Manifesto remains the highest-level authority. This register does
 not authorise implementation by itself:
 

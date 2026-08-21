@@ -5,7 +5,8 @@
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog; [Implementation
 Readiness Review](ledgerly-implementation-readiness-review.md)
-; [Implementation Brief](ledgerly-implementation-brief.md)
+; [Implementation Brief](ledgerly-implementation-brief.md); [Source-Freshness
+and Posting-Safety Contract](ledgerly-source-freshness-posting-safety-contract.md)
 **Register status:** Decisions 1–22 approved; DEC-22 is a migration/cutover
 policy approval only
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**

@@ -47,6 +47,10 @@ records that planning may begin separately, but implementation remains
 unauthorised.
 The [implementation brief](docs/ledgerly-implementation-brief.md) is planning
 only; it does not create executable tasks or authorise implementation.
+The [source-freshness and posting-safety
+contract](docs/ledgerly-source-freshness-posting-safety-contract.md) is a
+planning design; its final governance ownership and implementation require
+separate approval.
 Do not choose roadmap scope or silently change a recorded decision autonomously.
 Before implementation, also review the Core Maxims, Design System, Definition
 of Done, Product Development Workflow, and Workspace Framework.

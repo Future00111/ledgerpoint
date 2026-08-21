@@ -10,6 +10,9 @@ below requires explicit review before consequential posting is implemented
 **DEC-23:** Not created and not required by this brief  
 **Prepared:** 2026-08-21
 
+**Detailed source-freshness contract:** [Ledgerly Source-Freshness and
+Posting-Safety Contract](ledgerly-source-freshness-posting-safety-contract.md)
+
 > This document translates approved governance into a concrete plan for
 > separately approved implementation work. It does not implement code, schema,
 > migrations, accounting logic, UI, workflows, dependencies, infrastructure,
@@ -227,8 +230,9 @@ control before approval.
 Before BL-06, BL-07, payment, reconciliation, bulk approval, refund, VAT
 locking, or migration posting work is authorised, accounting, security,
 architecture, and product reviewers must approve the final source-freshness
-contract. The owner must also decide whether it fits within DEC-12 or requires
-an explicit DEC-12 amendment. No DEC-23 is needed.
+contract. Because DEC-12 explicitly does not assign source freshness, the
+owner must separately decide its governance placement and any amendment path.
+No DEC-23 is needed.
 
 ## 5. BL-06 and BL-07
 
@@ -1138,8 +1142,8 @@ tasks are approved. They are not all new governance decisions.
 
 ### Accounting decisions
 
-- Does the proposed source-freshness contract fit DEC-12, or is a DEC-12
-  amendment required?
+- What is the approved governance placement for the source-freshness contract,
+  given DEC-12's explicit non-assignment, and is an amendment required?
 - What materiality and precision treatment is acceptable for each migration
   source?
 - Which historical records can be represented canonically versus retained as
