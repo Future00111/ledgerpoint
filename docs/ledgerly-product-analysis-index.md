@@ -14,6 +14,7 @@ This documentation is the durable record of the read-only Ledgerly product gap a
 4. [Master backlog](ledgerly-master-backlog.md)
 5. [Living product decisions register](ledgerly-product-decisions.md)
 6. [BL-06 / BL-07 accounting core architecture review](ledgerly-accounting-core-architecture-review.md)
+7. [BL-06 / BL-07 pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 
 ## Source authority
 
@@ -27,6 +28,7 @@ The analysis was compared against:
 - `artifacts/ledgerly/src/docs/19-workspace-framework.md`
 - `docs/ledgerly-product-decisions.md`
 - `docs/ledgerly-accounting-core-architecture-review.md`
+- `docs/ledgerly-accounting-core-decision-pack.md`
 - Attached Phase 1–6 product specifications
 - The active Ledgerly frontend, API server, database schema, routes, services, and tests
 

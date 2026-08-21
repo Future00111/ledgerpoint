@@ -4,7 +4,7 @@
 **Backlog items:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
 **Review date:** 2026-08-21  
 **Architecture status:** READY FOR REVIEW  
-**Implementation status:** BLOCKED pending explicit approval  
+**Implementation status:** BLOCKED pending explicit approval and completion of the [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 **Recommended implementation:** BL-06 + BL-07  
 
 > This document is a proposal. It does not authorise code, schema changes,
@@ -22,6 +22,11 @@ The Product Principles, PRD/Product Scope, and Technical Architecture referenced
 by the existing governance are still not present as approved active documents.
 This review is therefore a proposed accounting architecture, not a replacement
 for the missing Technical Architecture authority.
+
+The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
+must resolve the review's open product, accounting, permissions, retention,
+operations, and migration decisions before BL-06 or BL-07 implementation can
+be approved.
 
 The review follows these non-negotiable boundaries:
 
@@ -1154,7 +1159,8 @@ approved or must remain explicit dependencies:
 
 ## 32. Recommended implementation order
 
-Do not begin this order without explicit architecture and scope approval.
+Do not begin this order without explicit architecture and scope approval plus
+completion of the [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md).
 
 1. Approve or amend this architecture review and restore the missing higher
    authority documents.
@@ -1176,7 +1182,7 @@ Do not begin this order without explicit architecture and scope approval.
 ## 33. Final architecture decision
 
 **ARCHITECTURE STATUS:** READY FOR REVIEW  
-**IMPLEMENTATION STATUS:** BLOCKED — explicit approval required  
+**IMPLEMENTATION STATUS:** BLOCKED — explicit approval and decision pack completion required
 **RECOMMENDED IMPLEMENTATION:** BL-06 + BL-07  
 
 This review identifies the recommended canonical accounting foundation and the

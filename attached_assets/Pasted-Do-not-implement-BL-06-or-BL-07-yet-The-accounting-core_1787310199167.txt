@@ -1,0 +1,60 @@
+Do not implement BL-06 or BL-07 yet.
+
+The accounting-core architecture review is accepted as a design proposal, but implementation remains blocked.
+
+Before implementation, create a pre-implementation decision pack resolving every unresolved decision identified in docs/ledgerly-accounting-core-architecture-review.md.
+
+For each decision:
+
+State the decision that needs to be made.
+Explain the options.
+Recommend the option that best fits the Ledgerly Manifesto and existing product direction.
+Explain the accounting/data consequences.
+Identify any migration consequences for existing data.
+Identify dependencies on other backlog items.
+Clearly mark anything that requires my explicit product decision.
+
+The decision pack must specifically cover:
+
+Product Principles
+PRD/Product Scope
+Technical Architecture
+Owner/Admin/Accountant/Manager/Read-only capability matrix
+Financial-year policy
+Accounting-period creation, closing and reopening
+Year-end treatment
+Default UK small-business chart of accounts
+Control-account mappings
+Account configuration/versioning
+Invoice/bill/VAT source freshness and version rules
+Overpayments
+Unapplied cash
+Refunds
+Payment-on-account
+Audit retention
+Deletion policy
+Export policy
+Backup/recovery policy
+RLS/tenant-isolation policy
+Historical JSON/legacy-data migration and compatibility strategy
+
+Do not invent decisions and mark them as approved.
+
+Distinguish clearly between:
+
+RECOMMENDED — your proposed design
+REQUIRES USER DECISION — something Lee must explicitly approve
+ALREADY DECIDED — supported by existing project documentation
+
+Do not modify application code, database schema, migrations, UI, dependencies, workflows or deployment.
+
+Create only the documentation necessary for this decision pack and update existing planning/backlog references if required.
+
+At the end, provide:
+
+decisions already settled
+decisions requiring my approval
+recommended implementation order
+any remaining blockers to BL-06/BL-07
+
+Implementation must remain BLOCKED until I explicitly approve it.
