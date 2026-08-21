@@ -274,6 +274,26 @@ not higher authority.
   authorise code, schema, migration, UI, workflow, dependency, deployment,
   publishing, or an implementation task. BL-06 and BL-07 remain blocked.
 
+### DEC-08 — Year-end treatment and financial-year transition
+
+- **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-08 Year-End Treatment and Financial-Year
+  Transition Review](ledgerly-dec-08-year-end-treatment-review.md).
+- **Current decision/direction:** Decide whether year-end is a reporting
+  boundary only, creates an explicit closing journal, or uses a controlled
+  hybrid approach.
+- **Recommendation:** Use reporting-only year-end treatment at launch, with no
+  automatic closing journal. Preserve canonical journal continuity, derive
+  current/prior-year reporting from posted records, and add an explicit
+  source-linked closing-journal workflow only through a later approved policy.
+- **Boundary:** Year-end must not delete, rewrite, reclassify, or invent
+  posted journals, retained earnings, historical approvals, or accounting facts.
+  DEC-03 VAT authority, DEC-06 financial-year identity, and DEC-07 period
+  controls remain authoritative.
+- **Implementation limit:** This review and unresolved decision do not
+  authorise code, schema, migration, UI, workflow, dependency, deployment,
+  publishing, or an implementation task. BL-06 and BL-07 remain blocked.
+
 ### PD-01 — Product name
 
 - **Status:** OPEN

@@ -246,6 +246,8 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 7. Year-end treatment
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-08 Year-End Treatment and Financial-Year
+  Transition Review](ledgerly-dec-08-year-end-treatment-review.md).
 - **Decision needed:** Decide whether year-end creates an explicit closing
   journal or uses reporting-only year boundaries initially.
 - **Options:**

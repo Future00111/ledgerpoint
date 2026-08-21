@@ -100,7 +100,10 @@ DEC-05 is approved separately. The following remain **REQUIRES USER DECISION**
 before BL-06 or BL-07 can be approved for implementation:
 
 1. Year-end policy. Financial-year policy is approved through DEC-06 and
-   accounting-period policy is approved through DEC-07. See the
+   accounting-period policy is approved through DEC-07. The [DEC-08 Year-End
+   Treatment and Financial-Year Transition
+   Review](ledgerly-dec-08-year-end-treatment-review.md) records the
+   recommendation but remains unresolved. See the
    [DEC-07 Accounting-Period Policy
    Review](ledgerly-dec-07-accounting-period-policy-review.md) for the
    approved period boundary and

@@ -299,6 +299,8 @@ to the accounting core.
 ### DEC-08 — Year-end treatment
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-08 Year-End Treatment and Financial-Year
+  Transition Review](ledgerly-dec-08-year-end-treatment-review.md).
 - **Decision:** Decide whether year-end is a reporting boundary only or creates
   explicit closing entries.
 - **Options available:** (a) automatic retained-earnings journal; (b) explicit
