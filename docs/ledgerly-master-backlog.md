@@ -36,8 +36,8 @@ approved implementation task before code changes begin.
 
 The [DEC-22 Migration and Cutover Policy
 Review](ledgerly-dec-22-migration-and-cutover-policy-review.md) records the
-final governance recommendation only. DEC-22 remains unresolved, and BL-06 and
-BL-07 remain blocked pending its approval and an explicit implementation task.
+approved migration/cutover policy only. BL-06 and BL-07 remain blocked pending
+separate implementation planning and the required implementation approvals.
 
 ## Backlog
 

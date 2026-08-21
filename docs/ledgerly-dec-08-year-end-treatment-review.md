@@ -712,7 +712,8 @@ The approval does not authorise:
 
 BL-06 and BL-07 remain **BLOCKED**. DEC-09, DEC-10, DEC-11, and DEC-12 are
 approved; DEC-13, DEC-14, DEC-15, DEC-16, DEC-17, and DEC-18 are approved and
-DEC-22 and all later decisions remain untouched and unresolved.
+DEC-19, DEC-20, DEC-21, and DEC-22 are also approved in their separate policy
+records.
 
 **DEC-08:** **APPROVED — product/accounting policy only**
 **DEC-09:** **APPROVED — Chart of Accounts and Default Account Policy**
@@ -728,7 +729,7 @@ DEC-22 and all later decisions remain untouched and unresolved.
 **DEC-19:** **APPROVED — Export Policy**
 **DEC-20:** **APPROVED — Backup and Recovery Policy**
 **DEC-21:** **APPROVED — Tenant Isolation Policy**
-**DEC-22 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-22:** **APPROVED — migration/cutover policy only**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

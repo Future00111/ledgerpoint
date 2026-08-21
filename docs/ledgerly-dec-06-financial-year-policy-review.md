@@ -693,7 +693,7 @@ Until DEC-06 is approved or amended:
 **DEC-19:** **APPROVED — Export Policy**
 **DEC-20:** **APPROVED — Backup and Recovery Policy**
 **DEC-21:** **APPROVED — Tenant Isolation Policy**
-**DEC-22 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-22:** **APPROVED — migration/cutover policy only**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application code changed by this review:** **NO**  
 **Database or migrations changed by this review:** **NO**

@@ -148,40 +148,40 @@ be approved:
     records an approved refund policy. Payment-on-account
     launch scope, audit retention, deletion/anonymisation, export,
     backup/recovery, tenant isolation, and legacy migration/cutover policy
-    remain open.
+    retain their separately approved policies.
 12. [DEC-16 Payment-on-Account Launch Scope
     Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md) records
     an approved launch-scope policy: no separate user-facing
-    payment-on-account feature at launch. DEC-22 onward and migration/cutover
-    policy remain open.
+    payment-on-account feature at launch. DEC-17 through DEC-22 retain their
+    separately approved policies.
 13. [DEC-17 Audit Retention Period
     Review](ledgerly-dec-17-audit-retention-period-review.md) records a
-    approved class-based retention policy. DEC-21 and DEC-22 remain open
-    for their own policies.
+    approved class-based retention policy. DEC-21 and DEC-22 retain their
+    separately approved policies.
 14. [DEC-18 Deletion, Anonymisation, Archival and Redaction Policy
     Review](ledgerly-dec-18-data-disposal-policy-review.md) records a
-    approved controlled, class-based disposal policy. DEC-21 and DEC-22
-    remain open for their own policies.
+    approved controlled, class-based disposal policy. DEC-21 and DEC-22 retain
+    their separately approved policies.
 15. [DEC-19 Export Policy Review](ledgerly-dec-19-export-policy-review.md)
-    records an approved bounded export policy. DEC-21 and DEC-22 remain
-    open for their own policies.
+    records an approved bounded export policy. DEC-21 and DEC-22 retain their
+    separately approved policies.
 16. [DEC-20 Backup and Recovery Policy
     Review](ledgerly-dec-20-backup-and-recovery-policy-review.md) records an
-    approved product/operational resilience policy. DEC-21 and DEC-22 remain
-    open for their own policies.
+    approved product/operational resilience policy. DEC-21 and DEC-22 retain
+    their separately approved policies.
 17. [DEC-21 Tenant Isolation Policy
     Review](ledgerly-dec-21-tenant-isolation-policy-review.md) records a
-    approved security/product architecture policy. DEC-22 remains open for its
-    own policy.
+    approved security/product architecture policy. DEC-22 retains its approved
+    migration/cutover policy.
 18. [DEC-22 Migration and Cutover Policy
     Review](ledgerly-dec-22-migration-and-cutover-policy-review.md) records a
-    recommendation only. DEC-22 remains open until explicitly approved.
+    approved migration/cutover policy only; it does not authorise execution.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix
 Review](ledgerly-dec-05-capability-approval-review.md) are the detailed
-decision records for the approved DEC-05 boundary and unresolved items 6–10 as
-they affect BL-06 and BL-07.
+decision records for the approved governance boundaries affecting BL-06 and
+BL-07.
 
 ## Scope governance
 

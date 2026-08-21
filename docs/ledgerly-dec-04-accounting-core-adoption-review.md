@@ -79,8 +79,8 @@ DEC-04 approves:
    adapter; and
 4. the requirement that DEC-05 through DEC-22 remain separate decisions.
 
-DEC-05 was subsequently approved through its own decision record. DEC-06
-through DEC-22 remain unresolved.
+DEC-05 through DEC-22 were subsequently approved through their own decision
+records.
 
 DEC-04 does not approve implementation, an implementation task, or any policy
 reserved to a subsequent decision.
@@ -714,7 +714,7 @@ Lee approved the following:
 > Approve Option A: adopt the existing BL-06/BL-07 Accounting Core
 > Architecture Review as the accounting-core foundation within the Technical
 > Architecture, with the invariants and deliberate non-locks listed in this
-> DEC-04 review. Keep DEC-05 through DEC-22 as separate unresolved decisions,
+> DEC-04 review. Keep DEC-05 through DEC-22 as separate policy decisions,
 > keep BL-06 and BL-07 blocked, and do not treat this approval as
 > implementation authorisation.
 
@@ -734,10 +734,10 @@ model. This historical DEC-04 approval record does not keep DEC-05 unresolved.
 | **DEC-04 status** | **APPROVED — architecture only** |
 | **Approved architecture** | Option A: adopt the existing review as the accounting-core foundation within the Technical Architecture, with targeted amendments |
 | **Actually locked by approval** | Canonical normalized append-only journals; atomic server-side double-entry posting; integer minor units; source-linked company-scoped idempotency; immutable corrections; separate payments/allocations/bank evidence; deterministic VAT adapter; journal-authoritative reporting; capability/company/audit boundaries; additive compatibility |
-| **Deliberately left open** | DEC-21 and DEC-22 policies, role-preset refinements, retention/RLS, migration cohort/cutover, API/schema names, providers, and implementation sequencing |
-| **Dependencies** | DEC-06, DEC-07, DEC-08, approved DEC-09, approved DEC-10, approved DEC-11, approved DEC-12, approved DEC-13, approved DEC-14, approved DEC-15, approved DEC-16, approved DEC-17, approved DEC-18, approved DEC-19, approved DEC-20, and DEC-21/DEC-22 as applicable; BL-01–05, BL-06–10, BL-12–17, BL-19, BL-23–26 |
+| **Deliberately left open** | Role-preset refinements, retention/RLS implementation, migration cohort/cutover execution, API/schema names, providers, and implementation sequencing |
+| **Dependencies** | Approved DEC-06 through DEC-22 as applicable; BL-01–05, BL-06–10, BL-12–17, BL-19, BL-23–26 |
 | **Implementation consequence** | Architecture constrains future specifications; no implementation, migration, or task is authorised by this review |
-| **Next approvals required** | The applicable DEC-21 and DEC-22 decisions, then an approved implementation task |
+| **Next gate** | Separate implementation planning and the required implementation approvals |
 
 **DEC-04 status:** **APPROVED — architecture only**
 **DEC-05:** **APPROVED — separate capability-model decision**
@@ -757,6 +757,6 @@ model. This historical DEC-04 approval record does not keep DEC-05 unresolved.
 **DEC-19:** **APPROVED — Export Policy**
 **DEC-20:** **APPROVED — Backup and Recovery Policy**
 **DEC-21:** **APPROVED — Tenant Isolation Policy**
-**DEC-22:** **REMAINS UNRESOLVED AND UNAPPROVED**
+**DEC-22:** **APPROVED — migration/cutover policy only**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application-path changes:** **NONE**

@@ -614,7 +614,8 @@ DEC-16 was explicitly approved on 2026-08-21. The approval is a
 product/accounting launch-scope decision only. Until the applicable remaining
 decisions are approved or amended:
 
-- DEC-22 remains untouched and unresolved;
+- DEC-22 is approved separately as the historical accounting-data compatibility
+  and cutover policy;
 - BL-06 and BL-07 remain **BLOCKED**;
 - no payment-on-account feature, UI, schema, migration, or accounting
   mechanism may be implemented; and

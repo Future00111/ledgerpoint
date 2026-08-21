@@ -110,7 +110,7 @@ Living Product Decisions Register until it has been explicitly accepted.
 - **Decision boundary:** DEC-05, DEC-06, and DEC-07 are separately approved as
   the capability model, financial-year policy, and accounting-period policy.
   DEC-08 is separately approved as the reporting-only year-end policy. DEC-09
-  through DEC-22 remain unresolved. These approvals do not approve
+  through DEC-22 are separately governed decisions. These approvals do not approve
   their policy choices, physical schema, migration execution, API/UI changes,
   or an implementation task.
 - **Accounting/data consequences:** The architecture determines canonical
@@ -500,7 +500,7 @@ Living Product Decisions Register until it has been explicitly accepted.
   classification.
 - **Dependencies:** Unapplied cash, overpayments, refunds, statements,
   bank/reconciliation, BL-09, BL-16.
-- **Decision boundary:** DEC-22 migration policy remains open.
+- **Decision boundary:** DEC-22 migration/cutover policy is approved.
   Source freshness remains separate.
 
 ## 16. Audit retention
@@ -584,7 +584,7 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 19. Backup and recovery policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/operational resilience policy only
 - **Decision review:** [DEC-20 Backup and Recovery Policy
   Review](ledgerly-dec-20-backup-and-recovery-policy-review.md).
 - **Decision review:** [DEC-20 Backup and Recovery Policy
@@ -639,17 +639,17 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 21. Historical JSON / legacy-data migration and compatibility
 
-- **Status:** ALREADY DECIDED in principle; REQUIRES USER DECISION on cutover
-  policy
+- **Status:** APPROVED — migration/cutover policy only
 - **Decision review:** [DEC-22 Migration and Cutover Policy
   Review](ledgerly-dec-22-migration-and-cutover-policy-review.md).
-- **Decision needed:** Decide how and when current JSON journals, source
-  totals, bank links, VAT snapshots, and Base44-shaped APIs transition.
+- **Implementation-planning boundary:** Define how and when current JSON
+  journals, source totals, bank links, VAT snapshots, and Base44-shaped APIs
+  transition within the approved DEC-22 policy.
 - **Options:**
   1. Destructive replacement.
   2. Additive canonical tables with adapters and controlled cutover.
   3. Permanent dual accounting authorities.
-- **Recommendation:** Use the accepted additive approach:
+- **Approved policy:** Use the approved additive-adapter approach:
   - preserve current source records and client contracts during transition;
   - treat JSON journals as legacy until individually validated;
   - backfill only evidenced, balanced, company-scoped records;
@@ -666,9 +666,9 @@ Living Product Decisions Register until it has been explicitly accepted.
   treatment for incomplete history.
 - **Dependencies:** All BL-06/BL-07 decisions, BL-03/04/05/06/07/08/09/12/
   14/15/17/23/24, current API consumers.
-- **Explicit product decision:** Approve additive migration and choose whether
-  canonical posting is enabled by source type, company cohort, or one launch
-  cutover.
+- **Implementation-planning choice:** Choose whether canonical posting is
+  enabled by source type, company cohort, or one launch cutover, subject to
+  DEC-22 validation, reconciliation, approval, and rollback controls.
 
 ## 22. Settled decisions and constraints
 

@@ -4,8 +4,8 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–21 approved; DEC-22 requires
-explicit approval
+**Register status:** Decisions 1–22 approved; DEC-22 is a migration/cutover
+policy approval only
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
 ## How to use this register
@@ -137,8 +137,8 @@ to the accounting core.
   server-side capability/audit boundaries; and additive, evidence-based
   compatibility and migration.
 - **Decision boundary:** DEC-05 and DEC-06 were separately approved as the
-  capability model and financial-year policy. DEC-07 through DEC-22 remain
-  separate unresolved decisions. DEC-04 selects no period, chart,
+  capability model and financial-year policy. DEC-07 through DEC-22 are
+  separately governed decisions. DEC-04 selects no period, chart,
   control-account, payment-treatment, retention, RLS, migration-cohort,
   cutover, schema, API, or implementation policy reserved to those decisions.
 - **Accounting implications:** Establishes the canonical journal, posting,
@@ -149,14 +149,14 @@ to the accounting core.
   physical schema or migration work.
 - **Migration implications:** Establishes additive adapters, validation,
   dual-read comparison, and controlled cutover as the architecture; DEC-22
-  still decides the cohort, sequencing, rollback, and authority retirement.
+  approves the cohort, sequencing, rollback, and authority-retirement policy.
 - **Backlog implications:** Direct prerequisite for BL-06 and BL-07 and
   dependency for BL-08, BL-09, BL-13, BL-14, BL-15, and BL-17.
 - **Implementation limit:** Architecture approval does not authorise an
   implementation task, code, schema, migration, UI, workflow, dependency,
   deployment, or publishing change. BL-06 and BL-07 remain blocked.
-- **Dependency:** DEC-02 and DEC-03; the applicable remaining decisions below
-  must still be resolved before implementation approval.
+- **Dependency:** DEC-02 and DEC-03; implementation planning and explicit
+  implementation approval remain required before implementation.
 - **Amendment rule:** DEC-04 may be amended only through an explicit documented
   decision that identifies accounting, data/schema, migration, reporting,
   compatibility, security/audit, dependency, and backlog consequences before
@@ -539,8 +539,8 @@ to the accounting core.
 - **Migration implications:** Unmatched historical bank matches need reviewed
   classification rather than arbitrary attachment.
 - **Boundary:** DEC-15 retains refunds and DEC-16 retains user-facing
-  payment-on-account scope. Source freshness and DEC-22 migration policy remain
-  separate.
+  payment-on-account scope. Source freshness remains separate; DEC-22 governs
+  migration/cutover policy.
 - **Backlog implications:** Gates BL-09, BL-14, BL-16, and BL-17.
 - **Dependency:** DEC-13 and DEC-10.
 
@@ -595,7 +595,7 @@ to the accounting core.
   explicit classification would require additional intent and history fields.
 - **Migration implications:** Unmatched bank rows need approved classification;
   old paid totals cannot be assumed to represent on-account amounts.
-- **Boundary:** DEC-22 migration policy remains unresolved.
+- **Boundary:** DEC-22 migration/cutover policy is approved.
   Source freshness remains separate.
 - **Backlog implications:** Gates BL-09, BL-14, and BL-16.
 - **Dependency:** DEC-13, DEC-14, and DEC-15.
@@ -742,20 +742,15 @@ to the accounting core.
 
 ### DEC-22 — Historical accounting-data compatibility and cutover
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — migration/cutover policy only
 - **Decision review:** [DEC-22 Migration and Cutover Policy
   Review](ledgerly-dec-22-migration-and-cutover-policy-review.md).
-- **Decision:** Define supported legacy shapes and sources, migration cohort,
-  sequencing, validation, cutover, rollback, and backwards-compatibility
-  policy.
-- **Options available:** (a) destructive replacement; (b) additive canonical
-  tables with adapters and controlled cutover; or (c) permanent dual
-  authorities.
-- **Replit's recommendation:** Validated additive adapters with a controlled
-  cohort/source cutover, dual-read comparison, visible ambiguity, and rollback
-  checkpoints. Canonical posted journals become the sole reporting authority
-  after cutover.
-- **Why it is recommended:** It protects existing evidence while allowing the
+- **Approved policy:** Use validated additive adapters with controlled
+  cohort/source cutover, bounded dual-read comparison, explicit migration
+  exceptions, and recovery checkpoints. Canonical posted journals become the
+  sole reporting and accounting authority after validated cutover; legacy
+  systems remain read-only evidence or bounded comparison sources.
+- **Why it is approved:** It protects existing evidence while allowing the
   product to move from JSON journals and denormalized balances to authoritative
   accounting records.
 - **Accounting implications:** Determines opening balances, historical
@@ -769,6 +764,11 @@ to the accounting core.
   compatibility must be explicit.
 - **Backlog implications:** Gates BL-03, BL-04, BL-05, BL-06, BL-07, BL-08,
   BL-09, BL-12, BL-14, BL-15, BL-17, BL-23, BL-24, and BL-25.
+- **Implementation boundary:** This approval does not authorise migration or
+  cutover execution, production-data transformation, schema changes, scripts,
+  adapters, UI, accounting implementation, infrastructure changes, deployment,
+  publishing, or an implementation task. Those require separate planning and
+  explicit approval.
 - **Dependency:** All preceding decisions.
 
 ## Approval order and current gate
@@ -788,10 +788,10 @@ The logical approval order is:
    isolation.
 9. DEC-22 — Historical compatibility and cutover.
 
-Recommendations in this register are not approvals. BL-06 and BL-07 remain
-**BLOCKED** until the required decisions are explicitly approved or amended,
-recorded in the Living Product Decisions Register, and reflected in the
-Technical Architecture, PRD/Product Scope, and affected backlog dependencies.
+DEC-01 through DEC-22 are approved policy decisions. BL-06 and BL-07 remain
+**BLOCKED** until implementation planning and the required implementation
+approvals are completed. Source freshness remains a separate unresolved
+posting-safety dependency.
 
 No application code, database schema, migrations, UI, workflows, dependencies,
 deployment, or publishing changes are authorised by this register.

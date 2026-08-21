@@ -100,8 +100,7 @@ implementation or resolve DEC-22 policy.
 
 The [DEC-22 Migration and Cutover Policy
 Review](ledgerly-dec-22-migration-and-cutover-policy-review.md) records a
-recommendation only. DEC-22 remains unresolved and does not authorise
-implementation.
+approved migration/cutover policy only. It does not authorise implementation.
 
 ## Architecture obligations derived from governance
 

@@ -62,8 +62,11 @@ company-scoped PDF/CSV reports plus CSV and versioned JSON accounting/audit
 exports, without making exports accounting authority. DEC-20 approves managed,
 encrypted, tested backup/recovery targets without implementation authority.
 DEC-21 approves layered company isolation without implementation authority.
-DEC-22 remains unresolved, and BL-06/BL-07 remain blocked
-pending the applicable decisions and an approved implementation task.
+DEC-22 approves the historical accounting-data compatibility and cutover policy:
+validated additive adapters, controlled cohorts, bounded comparison, explicit
+exceptions, recovery checkpoints, and canonical Ledgerly journals as the sole
+authority after validated cutover. BL-06/BL-07 remain blocked pending separate
+implementation planning and the required implementation approvals.
 Do not implement
 backlog items or publish Ledgerly until the user has reviewed and selected the
 next roadmap task. Treat the Living Product Decisions Register as the
@@ -74,14 +77,15 @@ authorises implementation on its own.
 complete, end-to-end product workflows; the user explicitly requires
 roadmap-led prioritisation, recorded product decisions, and approved work before
 more delivery. The canonical accounting foundation affects every consequential
-financial workflow, so unresolved accounting, security, migration, and
-operations decisions cannot be silently filled in during implementation. The
-approved hierarchy makes those decision boundaries explicit without making them
-permanent or bypassable.
+financial workflow, so approved governance policy must still be translated into
+separately planned, reviewed, and authorised implementation rather than being
+silently filled in during delivery. The approved hierarchy makes those decision
+boundaries explicit without making them permanent or bypassable.
 
-**How to apply:** Treat product-gap analysis, roadmap confirmation, decision
-status/dependencies, and the selected next task as the gate for future build or
-release work. For BL-06/BL-07, also check the accounting-core decision pack for
+**How to apply:** Treat product-gap analysis, roadmap confirmation, source
+freshness/posting-safety constraints, and the selected next task as the gate for
+future build or release work. For BL-06/BL-07, also check the accounting-core
+decision pack for
 Lee's recorded approvals. Do not resolve an OPEN, PROVISIONAL, or DEFERRED
 decision silently; record the decision update first. Continue to respect
 explicit accounting-safety and approval boundaries.

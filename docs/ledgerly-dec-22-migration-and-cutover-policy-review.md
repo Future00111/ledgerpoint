@@ -1,15 +1,15 @@
-# DEC-22 — Migration and Cutover Policy
+# DEC-22 — Historical Accounting-Data Compatibility and Cutover
 
 **Decision:** DEC-22 — Historical accounting-data compatibility and cutover
 **Scope:** Migration and cutover policy
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — migration/cutover policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, migration,
 security, privacy, reliability, tenant-isolation, and architecture review
 **Implementation authority:** None
 
-> This is the final governance decision review. It does not approve DEC-22 and
-> does not authorise an implementation task, code, schema, migration,
+> This records the final approved governance policy. It does not authorise an
+> implementation task, code, schema, migration,
 > accounting logic, UI, workflow, dependency, infrastructure configuration,
 > deployment, publishing, or migration execution.
 
@@ -694,9 +694,9 @@ authorities.
 - **Legacy dependency:** Permanent and costly.
 - **Future flexibility:** Constrains canonical design and future sources.
 
-## 26. RECOMMENDATION — NOT APPROVAL
+## 26. Approved policy
 
-Recommend **Option B: validated additive adapters with controlled
+DEC-22 approves **Option B: validated additive adapters with controlled
 cohort/source cutover**, with these policy requirements:
 
 1. Preserve source data, evidence, provenance, and company ownership before
@@ -732,11 +732,11 @@ cohort/source cutover**, with these policy requirements:
 15. Resolve post-cutover accounting discrepancies through DEC-04 corrections
     and reversals, not casual rollback or historical rewriting.
 
-This recommendation satisfies approved DEC-01 through DEC-21 while keeping
+This approved policy satisfies DEC-01 through DEC-21 while keeping
 source authority, historical uncertainty, accounting integrity, tenant
 isolation, backup safeguards, and future migration flexibility explicit.
 
-This recommendation is **not approval**.
+This is a **policy approval only**, not implementation authority.
 
 ## 27. Decision boundaries
 
@@ -755,9 +755,9 @@ dual-read comparison for a bounded validation period, visible migration
 exceptions, DEC-20 recovery checkpoints, explicit reconciliation, and
 canonical Ledgerly journals as the sole reporting authority after cutover.
 
-### Requires user decision
+### Approved
 
-Approval of the DEC-22 historical accounting-data compatibility and cutover
+DEC-22 approves the historical accounting-data compatibility and cutover
 policy, including supported sources and shapes, migration scope, source
 authority, mapping, validation, reconciliation, exceptions, cohort
 sequencing, cutover, rollback, legacy authority, and post-cutover controls.
@@ -777,7 +777,7 @@ sequencing, cutover, rollback, legacy authority, and post-cutover controls.
 - source freshness/posting safety; and
 - implementation tasks, tests, dependencies, deployment, and publishing.
 
-### What approving DEC-22 would lock in
+### What DEC-22 approval locks in
 
 - migration is evidence-led transformation, not historical rewriting;
 - unsupported or conflicting facts become explicit exceptions;
@@ -812,12 +812,12 @@ record the exception. Never silently manufacture certainty.
 
 ## 29. Final governance boundary
 
-DEC-22 is the final governance decision in this sequence. Approval of DEC-22
-would complete the policy layer only. It would not automatically authorise
+DEC-22 is the final governance decision in this sequence. Its approval
+completes the policy layer only. It does not automatically authorise
 migration execution, schema changes, adapters, infrastructure work, or
 deployment.
 
-After DEC-22 approval:
+After this approval:
 
 - governance is complete;
 - implementation planning must begin separately;
@@ -827,9 +827,9 @@ After DEC-22 approval:
 
 No DEC-23 decision is created by this review.
 
-## 30. Decision readiness
+## 30. Approved policy boundary
 
-DEC-22 is ready for an explicit user decision. Until it is approved or amended:
+DEC-22 is approved. It does not authorise implementation:
 
 - BL-06 and BL-07 remain **BLOCKED**;
 - no migration, cutover, schema, accounting, application, UI, workflow,
@@ -839,9 +839,8 @@ DEC-22 is ready for an explicit user decision. Until it is approved or amended:
 - source freshness remains separately unresolved unless DEC-22 explicitly
   governs it.
 
-**DEC-01 through DEC-21:** **APPROVED**
-**DEC-22:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-22:** **APPROVED**
 **BL-06 / BL-07:** **BLOCKED**
-**Application code changed by this review:** **NO**
-**Database or migrations changed by this review:** **NO**
+**Application code changed by this approval:** **NO**
+**Database or migrations changed by this approval:** **NO**
 **DEC-23 created:** **NO**

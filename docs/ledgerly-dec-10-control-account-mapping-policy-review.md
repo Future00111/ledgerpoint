@@ -415,7 +415,8 @@ decisions are approved or amended:
 - no active control mappings, mapping-protection behavior, account-configuration
   versioning, posting-template implementation, or account remapping may be
   implemented;
-- DEC-22 and all later decisions remain untouched and unresolved;
+- DEC-22 is approved separately as the historical accounting-data compatibility
+  and cutover policy. No DEC-23 is created;
 - BL-06 and BL-07 remain **BLOCKED**; and
 - no implementation task is authorised.
 

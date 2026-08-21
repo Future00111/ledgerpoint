@@ -705,7 +705,8 @@ DEC-21 was explicitly approved on 2026-08-21. The approval is a
 security/product architecture policy only. Until the applicable remaining
 decision is approved or amended:
 
-- DEC-22 remains untouched and unresolved;
+- DEC-22 is approved separately as the historical accounting-data compatibility
+  and cutover policy;
 - BL-06 and BL-07 remain **BLOCKED**;
 - no tenant-isolation, database, schema, migration, accounting, UI, workflow,
   dependency, infrastructure, deployment, or publishing implementation may
@@ -713,7 +714,7 @@ decision is approved or amended:
 - no implementation task is authorised.
 
 **DEC-01 through DEC-21:** **APPROVED**
-**DEC-22:** **REQUIRES USER DECISION**
+**DEC-22:** **APPROVED — migration/cutover policy only**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

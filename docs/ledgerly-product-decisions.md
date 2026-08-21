@@ -150,7 +150,7 @@ not higher authority.
   separately approved as the capability model, financial-year policy,
   accounting-period policy, reporting-only year-end policy, Chart of Accounts
   and Default Account Policy, and Control-Account Mapping Policy. DEC-11
-  through DEC-22 remain unresolved. DEC-04 does not select active
+  through DEC-22 are separately governed decisions. DEC-04 does not select active
   control-account mappings,
   configuration versioning, source-freshness, payment/refund treatment,
   retention, deletion, export, backup/recovery, RLS, historical migration
@@ -582,19 +582,17 @@ not higher authority.
 
 ### DEC-22 — Migration and Cutover Policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — migration/cutover policy only
 - **Decision review:** [DEC-22 Migration and Cutover Policy
   Review](ledgerly-dec-22-migration-and-cutover-policy-review.md).
-- **Current decision/direction:** Decide supported legacy shapes and sources,
-  migration cohorts, sequencing, validation, cutover, rollback, legacy-system
-  authority, and backward compatibility.
-- **Recommendation:** Use validated additive adapters, controlled cohorts,
+- **Approved policy:** Use validated additive adapters, controlled cohorts,
   bounded dual-read comparison, explicit migration exceptions, recovery
   checkpoints, and reconciled cutover. Canonical posted journals become the
-  sole reporting authority after cutover.
-- **Boundary:** This is the final governance decision. Source freshness remains
+  sole reporting and accounting authority after validated cutover; legacy
+  systems remain read-only evidence or bounded comparison sources.
+- **Boundary:** This completes the current governance decision sequence. Source freshness remains
   separately unresolved.
-- **Implementation limit:** This unresolved decision does not authorise code,
+- **Implementation limit:** This approved policy does not authorise code,
   schema, migration, UI, workflow, dependency, deployment, publishing, or an
   implementation task. BL-06 and BL-07 remain blocked.
 

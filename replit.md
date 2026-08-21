@@ -38,10 +38,10 @@ period. DEC-18 approves controlled, class-based disposal without accounting
 mutation. DEC-19 approves bounded, company-scoped exports without accounting
 authority. DEC-20 approves managed, encrypted, tested backup/recovery targets
 without implementation authority. DEC-21 approves layered company isolation
-without implementation authority. DEC-22 remains unresolved, and
-BL-06/BL-07 remain blocked
-until
-the applicable decisions and an implementation task are explicitly approved.
+without implementation authority. DEC-22 approves the historical
+accounting-data compatibility and cutover policy only. BL-06/BL-07 remain
+blocked until implementation planning and the required implementation approvals
+are complete.
 Do not choose roadmap scope or silently change a recorded decision autonomously.
 Before implementation, also review the Core Maxims, Design System, Definition
 of Done, Product Development Workflow, and Workspace Framework.

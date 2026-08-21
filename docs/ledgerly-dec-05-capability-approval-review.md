@@ -546,7 +546,7 @@ use an unrecorded change.
 **DEC-19:** **APPROVED — Export Policy**
 **DEC-20:** **APPROVED — Backup and Recovery Policy**
 **DEC-21:** **APPROVED — Tenant Isolation Policy**
-**DEC-22:** **REMAINS UNRESOLVED AND UNAPPROVED**
+**DEC-22:** **APPROVED — migration/cutover policy only**
 **DEC-04:** **APPROVED — architecture only**
 **BL-06 / BL-07:** **BLOCKED**
 **Implementation task:** **NONE CREATED OR EXECUTED**
