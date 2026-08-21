@@ -545,7 +545,8 @@ use an unrecorded change.
 **DEC-18:** **APPROVED — Deletion and Anonymisation Policy**
 **DEC-19:** **APPROVED — Export Policy**
 **DEC-20:** **APPROVED — Backup and Recovery Policy**
-**DEC-21 and DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
+**DEC-21:** **APPROVED — Tenant Isolation Policy**
+**DEC-22:** **REMAINS UNRESOLVED AND UNAPPROVED**
 **DEC-04:** **APPROVED — architecture only**
 **BL-06 / BL-07:** **BLOCKED**
 **Implementation task:** **NONE CREATED OR EXECUTED**

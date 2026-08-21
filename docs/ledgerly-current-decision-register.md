@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–20 approved; DEC-21 through DEC-22 require
+**Register status:** Decisions 1–21 approved; DEC-22 requires
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -595,7 +595,7 @@ to the accounting core.
   explicit classification would require additional intent and history fields.
 - **Migration implications:** Unmatched bank rows need approved classification;
   old paid totals cannot be assumed to represent on-account amounts.
-- **Boundary:** DEC-21 onward and DEC-22 migration policy remain unresolved.
+- **Boundary:** DEC-22 migration policy remains unresolved.
   Source freshness remains separate.
 - **Backlog implications:** Gates BL-09, BL-14, and BL-16.
 - **Dependency:** DEC-13, DEC-14, and DEC-15.
@@ -713,17 +713,19 @@ to the accounting core.
 
 ### DEC-21 — Tenant isolation and RLS
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — security/product architecture policy only
 - **Decision review:** [DEC-21 Tenant Isolation Policy
   Review](ledgerly-dec-21-tenant-isolation-policy-review.md).
-- **Decision:** Decide the required combination of server-side company scoping,
-  permission enforcement, and database-level row-level security.
+- **Approved policy:** Require authenticated, server-side company scoping and
+  DEC-05 membership/capability checks for every company-owned access path.
+  Treat tested RLS as defence-in-depth, especially for high-risk accounting
+  tables, without assuming universal RLS before compatibility is validated.
 - **Options available:** (a) application scoping only; (b) RLS for accounting
   tables; or (c) RLS for all company-scoped tables.
 - **Replit's recommendation:** Mandatory authenticated server-side company
   scoping, with tested RLS evaluated as defence-in-depth rather than assumed
   universally.
-- **Why it is recommended:** It preserves compatibility with the current
+- **Why it is approved:** It preserves compatibility with the current
   architecture while requiring reliable tenant isolation at every route and
   mutation boundary.
 - **Accounting implications:** Every entity, report, posting, approval, and

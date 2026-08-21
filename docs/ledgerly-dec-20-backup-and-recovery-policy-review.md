@@ -9,7 +9,7 @@ reliability, privacy, and architecture review
 **Implementation authority:** None
 
 > This records an approved product/operational resilience policy. It does not
-> approve DEC-21 through DEC-22, and it does not authorise an implementation task, code, schema,
+> approve DEC-22, and it does not authorise an implementation task, code, schema,
 > migration, accounting logic, UI, workflow, dependency, deployment,
 > infrastructure configuration, or publishing work.
 
@@ -58,7 +58,8 @@ Every backup and recovery policy must:
 - remain distinct from DEC-19 exports;
 - use company-scoped recovery access;
 - provide tested, auditable recovery procedures; and
-- leave room for DEC-21 tenant isolation and DEC-22 migration policy.
+- respect approved DEC-21 tenant isolation and leave room for DEC-22 migration
+  policy.
 
 Recovery is for restoring an authorised historical system state or service
 availability. If an accounting error exists, use the approved correction or
@@ -394,7 +395,7 @@ ownership.
 
 ## 12. Company scope and tenant isolation
 
-DEC-21 owns detailed tenant-isolation policy. DEC-20 nevertheless requires:
+DEC-21 sets tenant-isolation policy. DEC-20 nevertheless requires:
 
 - recovery requests to identify the company or service scope;
 - scoped restores to prevent data from being exposed to another company;
@@ -657,8 +658,8 @@ objectives**:
 9. Record immutable audit evidence for backup, verification, retention,
    expiry, legal holds, restore tests, recovery, discrepancies, and recovery
    decisions.
-10. Keep exports separate from backups and retain DEC-21 and DEC-22 within
-    their registered boundaries.
+10. Keep exports separate from backups, respect DEC-21 tenant isolation, and
+    retain DEC-22 within its registered boundary.
 
 The RPO/RTO values above are approved policy targets, not an implementation
 commitment or guaranteed service-level commitment. They require operational
@@ -698,7 +699,7 @@ procedures, as set out in section 21.
 - detailed key management and credential operations;
 - detailed backup propagation for DEC-18 disposal;
 - export policy under DEC-19;
-- tenant-isolation architecture under DEC-21;
+- tenant-isolation implementation architecture under DEC-21;
 - migration and cutover under DEC-22;
 - source freshness/posting safety; and
 - implementation details, schema, APIs, UI, tests, dependencies, deployment,
@@ -739,14 +740,15 @@ DEC-20 was explicitly approved on 2026-08-21. The approval is a
 product/operational resilience policy only. Until the applicable remaining
 decisions are approved or amended:
 
-- DEC-21 and DEC-22 remain untouched and unresolved;
+- DEC-22 remains untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
 - no backup, recovery, infrastructure, schema, migration, accounting,
   deployment, or publishing implementation may begin; and
 - no implementation task is authorised.
 
 **DEC-01 through DEC-20:** **APPROVED**
-**DEC-21 and DEC-22:** **REQUIRE USER DECISION**
+**DEC-21:** **APPROVED — Tenant Isolation Policy**
+**DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

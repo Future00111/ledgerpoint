@@ -37,7 +37,8 @@ accounting evidence for company life plus the applicable legal/regulatory
 period. DEC-18 approves controlled, class-based disposal without accounting
 mutation. DEC-19 approves bounded, company-scoped exports without accounting
 authority. DEC-20 approves managed, encrypted, tested backup/recovery targets
-without implementation authority. DEC-21 and DEC-22 remain unresolved, and
+without implementation authority. DEC-21 approves layered company isolation
+without implementation authority. DEC-22 remains unresolved, and
 BL-06/BL-07 remain blocked
 until
 the applicable decisions and an implementation task are explicitly approved.

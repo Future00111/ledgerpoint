@@ -756,6 +756,7 @@ model. This historical DEC-04 approval record does not keep DEC-05 unresolved.
 **DEC-18:** **APPROVED — Deletion and Anonymisation Policy**
 **DEC-19:** **APPROVED — Export Policy**
 **DEC-20:** **APPROVED — Backup and Recovery Policy**
-**DEC-21 and DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
+**DEC-21:** **APPROVED — Tenant Isolation Policy**
+**DEC-22:** **REMAINS UNRESOLVED AND UNAPPROVED**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application-path changes:** **NONE**

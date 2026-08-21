@@ -152,7 +152,7 @@ be approved:
 12. [DEC-16 Payment-on-Account Launch Scope
     Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md) records
     an approved launch-scope policy: no separate user-facing
-    payment-on-account feature at launch. DEC-21 onward and migration/cutover
+    payment-on-account feature at launch. DEC-22 onward and migration/cutover
     policy remain open.
 13. [DEC-17 Audit Retention Period
     Review](ledgerly-dec-17-audit-retention-period-review.md) records a
@@ -171,7 +171,8 @@ be approved:
     open for their own policies.
 17. [DEC-21 Tenant Isolation Policy
     Review](ledgerly-dec-21-tenant-isolation-policy-review.md) records a
-    recommendation only. DEC-21 and DEC-22 remain open for their own policies.
+    approved security/product architecture policy. DEC-22 remains open for its
+    own policy.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix

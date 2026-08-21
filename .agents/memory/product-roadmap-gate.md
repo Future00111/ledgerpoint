@@ -61,7 +61,8 @@ accounting, and separate personal-data treatment. DEC-19 approves bounded,
 company-scoped PDF/CSV reports plus CSV and versioned JSON accounting/audit
 exports, without making exports accounting authority. DEC-20 approves managed,
 encrypted, tested backup/recovery targets without implementation authority.
-DEC-21 and DEC-22 remain unresolved, and BL-06/BL-07 remain blocked
+DEC-21 approves layered company isolation without implementation authority.
+DEC-22 remains unresolved, and BL-06/BL-07 remain blocked
 pending the applicable decisions and an approved implementation task.
 Do not implement
 backlog items or publish Ledgerly until the user has reviewed and selected the

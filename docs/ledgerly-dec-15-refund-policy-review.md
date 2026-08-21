@@ -8,7 +8,7 @@ and architecture review
 **Implementation authority:** None
 
 > This records an approved product/accounting policy. It does not approve
-> DEC-21 and DEC-22, and it does not authorise an implementation task, code,
+> DEC-22, and it does not authorise an implementation task, code,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
@@ -33,7 +33,7 @@ The review covers:
 DEC-15 does not decide:
 
 - user-facing payment-on-account launch scope, which remains DEC-16;
-- any later decision from DEC-21 and DEC-22;
+- any later decision from DEC-22;
 - source-freshness/posting-safety policy;
 - the complete credit-note policy where that is owned by another decision;
 - implementation, schema, API, UI, workflow, or deployment details.
@@ -606,7 +606,7 @@ customer refunds and supplier refund receipts.
 ### Deliberately left open
 
 - **DEC-16:** user-facing payment-on-account scope and its refund interaction;
-- **DEC-21 onward:** later product, accounting, security, and operational
+- **DEC-22 onward:** later product, accounting, security, and operational
   decisions;
 - **DEC-22:** migration evidence, exceptions, cohort, cutover, rollback, and
   legacy authority retirement;
@@ -638,7 +638,7 @@ DEC-15 was explicitly approved on 2026-08-21. The approval is a
 product/accounting-policy decision only. Until the applicable remaining
 decisions are approved or amended:
 
-- DEC-21 and DEC-22 remain untouched and unresolved;
+- DEC-22 remains untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
 - no refund workflow, UI, schema, migration, or accounting mechanism may be
   implemented; and
@@ -650,7 +650,8 @@ decisions are approved or amended:
 **DEC-18:** **APPROVED — Deletion and Anonymisation Policy**
 **DEC-19:** **APPROVED — Export Policy**
 **DEC-20:** **APPROVED — Backup and Recovery Policy**
-**DEC-21 and DEC-22:** **REQUIRE USER DECISION**
+**DEC-21:** **APPROVED — Tenant Isolation Policy**
+**DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

@@ -2,14 +2,14 @@
 
 **Decision:** DEC-21 — Tenant isolation and RLS
 **Scope:** Tenant isolation policy
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — security/product architecture policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with security, accounting,
 privacy, reliability, and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-21 or DEC-22, and it
-> does not authorise an implementation task, code, schema, migration,
+> This records an approved security/product architecture policy. It does not
+> approve DEC-22, and it does not authorise an implementation task, code, schema, migration,
 > accounting logic, UI, workflow, dependency, infrastructure configuration,
 > deployment, or publishing work.
 
@@ -32,7 +32,7 @@ The registered recommendation is:
 > Mandatory authenticated server-side company scoping, with tested RLS
 > evaluated as defence-in-depth rather than assumed universally.
 
-This review evaluates that recommendation without approving DEC-21.
+This review records that policy without authorising its implementation.
 
 ## 2. Purpose and trust-boundary principle
 
@@ -596,9 +596,9 @@ to mandatory service-layer controls.
 - **Future flexibility:** Strong database boundary, but may constrain future
   group, consolidation, and system-level operations.
 
-## 23. RECOMMENDATION — NOT APPROVAL
+## 23. APPROVED POLICY
 
-Recommend a **mandatory layered company-isolation policy**:
+Approve a **mandatory layered company-isolation policy**:
 
 1. Require authenticated, server-side company scoping for every company-owned
    read, write, report, export, job, document, AI, and recovery operation.
@@ -621,11 +621,11 @@ Recommend a **mandatory layered company-isolation policy**:
 9. Keep multi-company reporting, consolidation, intercompany accounting, and
    group structures outside launch scope unless separately decided.
 
-This recommendation follows the registered DEC-21 direction: mandatory
+This policy follows the registered DEC-21 direction: mandatory
 authenticated server-side company scoping, with tested RLS evaluated as
 defence-in-depth rather than assumed universally.
 
-This recommendation is **not approval**.
+This policy is approved as a security/product architecture policy only.
 
 ## 24. Decision boundaries
 
@@ -635,7 +635,7 @@ DEC-01 through DEC-20, including server-side capabilities, immutable
 canonical accounting, company-scoped exports, controlled disposal, and
 company-isolated backup and recovery.
 
-### Recommended
+### Approved policy
 
 The mandatory layered company-isolation policy in section 23, with
 authenticated server-side company scoping as the non-negotiable baseline and
@@ -643,9 +643,7 @@ tested RLS evaluated as defence-in-depth.
 
 ### Requires user decision
 
-Approval of the DEC-21 tenant-isolation policy, including the required
-combination of server-side company scoping, permission enforcement, and
-database-level RLS.
+The mandatory layered company-isolation policy in section 23.
 
 ### Deliberately left open
 
@@ -703,8 +701,9 @@ Company B must be treated as separate accounting and security domains.
 
 ## 26. Decision readiness
 
-DEC-21 is ready for an explicit user decision. Until it is approved or
-amended:
+DEC-21 was explicitly approved on 2026-08-21. The approval is a
+security/product architecture policy only. Until the applicable remaining
+decision is approved or amended:
 
 - DEC-22 remains untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
@@ -713,8 +712,7 @@ amended:
   begin; and
 - no implementation task is authorised.
 
-**DEC-01 through DEC-20:** **APPROVED**
-**DEC-21:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-21:** **APPROVED**
 **DEC-22:** **REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**

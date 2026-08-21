@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-20 APPROVED; DEC-21 through DEC-22
+**Decision status:** DEC-01 through DEC-21 APPROVED; DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -500,7 +500,7 @@ Living Product Decisions Register until it has been explicitly accepted.
   classification.
 - **Dependencies:** Unapplied cash, overpayments, refunds, statements,
   bank/reconciliation, BL-09, BL-16.
-- **Decision boundary:** DEC-21 onward and DEC-22 migration policy remain open.
+- **Decision boundary:** DEC-22 migration policy remains open.
   Source freshness remains separate.
 
 ## 16. Audit retention
@@ -610,16 +610,18 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 20. RLS / tenant-isolation policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — security/product architecture policy only
 - **Decision review:** [DEC-21 Tenant Isolation Policy
   Review](ledgerly-dec-21-tenant-isolation-policy-review.md).
-- **Decision needed:** Decide whether PostgreSQL RLS is required in addition to
-  authentication, authorization, and server-side company scoping.
+- **Approved policy:** Require authenticated server-side company scoping and
+  DEC-05 membership/capability checks for every company-owned access path.
+  Evaluate tested RLS as defence-in-depth, especially for high-risk accounting
+  tables, without assuming universal RLS before compatibility is validated.
 - **Options:**
   1. Application/service scoping only.
   2. RLS for accounting tables only.
   3. RLS across all company-scoped tables.
-- **Recommendation:** Keep authenticated server-side company scoping as the
+- **Controls:** Keep authenticated server-side company scoping as the
   mandatory primary boundary. Evaluate RLS as defence-in-depth for canonical
   accounting tables after a tested architecture design, including connection
   pooling, migrations, admin operations, background jobs, and recovery. Do not
