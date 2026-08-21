@@ -490,26 +490,32 @@ to the accounting core.
   an explicitly authorised task.
 - **Dependency:** DEC-03 through DEC-11; DEC-13 through DEC-16 build on it.
 
-### DEC-13 — Customer overpayments and supplier prepayments
+### DEC-13 — Overpayments, Unapplied Cash and Payment-on-Account Policy
 
 - **Status:** REQUIRES USER DECISION
-- **Decision:** Define how amounts exceeding an invoice or bill are retained,
-  allocated, refunded, and presented.
-- **Options available:** (a) cap or discard the remainder; (b) retain the
-  remainder as a distinct state; or (c) force a refund.
-- **Replit's recommendation:** Retain a distinct unapplied remainder, normally
-  represented as a customer credit liability or supplier prepayment asset.
-- **Why it is recommended:** It preserves received cash and prevents balances
-  from being falsified by forced allocation.
-- **Accounting implications:** Separates payment total, allocations, open
-  balance, unapplied amount, refund, and VAT effects.
-- **Data/schema implications:** Requires payment/allocation states, configured
-  accounts, journal links, and audit events.
-- **Migration implications:** Existing capped paid/balance fields cannot safely
-  reconstruct the remainder without evidence.
-- **Backlog implications:** Gates BL-09, BL-10, BL-14, and BL-16 and informs
-  BL-06/BL-07 control design.
-- **Dependency:** DEC-04, DEC-09, DEC-10, and DEC-12.
+- **Decision review:** [DEC-13 Overpayments, Unapplied Cash and Payment-on-Account
+  Policy Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md).
+- **Decision:** Determine whether to retain customer excess as a distinct
+  customer-credit/receipt-on-account liability and supplier excess as a
+  supplier-prepayment/receivable asset, with valid allocations and balances
+  kept separate.
+- **Recommendation:** Never discard or cap excess money. Permit a known-party
+  payment before allocation, prevent allocation beyond the payment remainder
+  or document open amount, and use controlled canonical reclassification when
+  an approved party balance later moves to AR/AP.
+- **Boundary:** DEC-14 retains authority over detailed first-class unapplied
+  cash workflow, DEC-15 over refunds, and DEC-16 over user-facing
+  payment-on-account launch scope. Bank evidence is not automatically a
+  payment, and unmatched evidence is not automatically a party credit.
+- **Accounting implications:** Customer excess is a liability; supplier excess
+  is an asset. Statements and aging must distinguish these balances from AR/AP
+  open items.
+- **Migration implications:** Historical excess, credit, prepayment, and
+  allocation states require evidence; ambiguity is a DEC-22 exception.
+- **Backlog implications:** Would inform BL-06, BL-07, BL-09, BL-10, BL-14,
+  and BL-16; all remain blocked pending applicable later decisions and an
+  explicitly authorised task.
+- **Dependency:** DEC-04, DEC-09, DEC-10, DEC-11, and DEC-12.
 
 ### DEC-14 — First-class unapplied cash
 

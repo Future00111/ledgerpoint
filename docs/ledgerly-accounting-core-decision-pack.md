@@ -403,17 +403,15 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 12. Overpayments
 
 - **Status:** REQUIRES USER DECISION
-- **Decision needed:** Decide where customer and supplier overpayments reside
-  when they exceed open invoice/bill balances.
-- **Options:**
-  1. Cap at the source balance and discard the remainder.
-  2. Keep the remainder as unapplied customer credit or supplier prepayment.
-  3. Force immediate refund.
-- **Recommendation:** Never discard or silently cap money. Keep a distinct
-  unapplied remainder: a customer overpayment is normally a customer credit/
-  receipt-on-account liability until allocated or refunded; a supplier
-  overpayment is normally a supplier prepayment asset until allocated or
-  recovered. Exact legal/accounting treatment needs confirmation.
+- **Decision review:** [DEC-13 Overpayments, Unapplied Cash and Payment-on-Account
+  Policy Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md).
+- **Decision needed:** Decide whether never to discard or silently cap money and retain a
+  distinct remainder: customer excess is a customer-credit/receipt-on-account
+  liability and supplier excess is a supplier-prepayment/receivable asset.
+- **Recommended accounting boundary:** Payment total, allocation total, open-item
+  balance, unapplied amount, and refund remain separate. Later allocation from
+  a customer credit or supplier prepayment uses canonical reclassification;
+  allocation cannot make an invoice or bill negative.
 - **Accounting/data consequences:** Payment total, allocation total, open item
   balance, unapplied amount, and refund must be separate. Statements must show
   the remainder.
@@ -422,8 +420,8 @@ Living Product Decisions Register until it has been explicitly accepted.
   backfilled.
 - **Dependencies:** Payment/allocation model, chart control accounts,
   statements, refunds, BL-09, BL-16.
-- **Explicit product decision:** Approve the customer-credit and
-  supplier-prepayment treatment, including whether both are launch scope.
+- **Decision boundary:** DEC-14, DEC-15, and DEC-16 retain detailed unapplied
+  cash, refund, and payment-on-account workflow and launch-scope decisions.
 
 ## 13. Unapplied cash
 

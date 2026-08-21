@@ -1,0 +1,492 @@
+Proceed to DEC-13 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-13 — Overpayments, Unapplied Cash and Payment-on-Account Policy
+
+Review all existing governance and accounting documentation, including:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- Accounting Core Decision Pack
+- Master Backlog
+- DEC-01 through DEC-12
+- DEC-03 VAT policy
+- DEC-04 canonical accounting architecture
+- DEC-05 capability model
+- DEC-06 financial-year policy
+- DEC-07 accounting-period policy
+- DEC-08 year-end policy
+- DEC-09 Chart of Accounts policy
+- DEC-10 control-account mapping policy
+- DEC-11 configuration-versioning policy
+- DEC-12 payment/allocation/settlement policy
+- Existing invoice, bill, payment, banking, reconciliation and VAT documentation
+
+This is a DECISION-ONLY review.
+
+DO NOT implement anything.
+
+DO NOT modify:
+
+- application code
+- database schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Do NOT approve DEC-13.
+Do NOT start DEC-14 or any later decision.
+Keep BL-06 and BL-07 BLOCKED.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Determine Ledgerly's policy for:
+
+- customer overpayments;
+- supplier overpayments;
+- unapplied customer cash;
+- unapplied supplier cash;
+- payment-on-account;
+- allocation of previously unapplied or on-account amounts;
+- treatment of excess amounts;
+- subsequent refunds where applicable.
+
+The review must build directly on DEC-12.
+
+Clearly distinguish:
+
+1. BANK EVIDENCE
+2. ACCOUNTING PAYMENT
+3. UNAPPLIED PAYMENT
+4. PAYMENT-ON-ACCOUNT
+5. OVERPAYMENT
+6. ALLOCATION
+7. REFUND
+8. DOCUMENT SETTLEMENT
+
+==================================================
+1. CUSTOMER OVERPAYMENTS
+==================================================
+
+Determine the accounting and product treatment when a customer pays more than the amount currently due.
+
+Consider:
+
+- payment greater than one invoice;
+- payment greater than multiple invoices;
+- payment exceeding all currently outstanding customer invoices;
+- excess remaining after allocation.
+
+Evaluate whether the excess should become:
+
+- unapplied customer cash;
+- customer credit/on-account balance;
+- a separate liability;
+- another controlled representation.
+
+Explain the accounting consequences.
+
+==================================================
+2. SUPPLIER OVERPAYMENTS
+==================================================
+
+Determine the treatment when a company pays a supplier more than the amount currently due.
+
+Consider whether the excess should become:
+
+- unapplied supplier payment;
+- supplier debit/on-account balance;
+- an asset/receivable;
+- another controlled representation.
+
+Explain the accounting consequences.
+
+==================================================
+3. UNAPPLIED CASH
+==================================================
+
+Define what an unapplied payment means.
+
+Determine whether a payment can exist as:
+
+- posted accounting payment;
+- unallocated remainder;
+- unapplied balance;
+
+without being allocated to a specific invoice or bill.
+
+Explain how this differs from:
+
+- bank evidence awaiting reconciliation;
+- an accounting payment awaiting allocation;
+- payment-on-account.
+
+==================================================
+4. PAYMENT-ON-ACCOUNT
+==================================================
+
+Determine whether Ledgerly should support payment-on-account at launch.
+
+If yes, define:
+
+- accounting representation;
+- customer/supplier balance;
+- relationship to AR/AP;
+- allocation later;
+- reporting;
+- audit;
+- refund implications.
+
+If no, explain how users should handle the equivalent situation without creating misleading accounting.
+
+==================================================
+5. ACCOUNTING TREATMENT
+==================================================
+
+For each supported state, define the canonical accounting treatment.
+
+Consider examples such as:
+
+CUSTOMER PAYMENT
+
+DR Bank/Cash
+CR AR
+
+Then determine what happens to any amount that remains unapplied/overpaid.
+
+SUPPLIER PAYMENT
+
+DR AP
+CR Bank/Cash
+
+Then determine what happens to any amount that remains unapplied/overpaid.
+
+Do not create accounting entries merely to represent UI states.
+
+==================================================
+6. BALANCE SHEET TREATMENT
+==================================================
+
+Explain where customer and supplier overpayments appear on the Balance Sheet.
+
+Pay particular attention to the distinction between:
+
+- customer overpayment potentially creating a liability;
+- supplier overpayment potentially creating a receivable/asset;
+- normal AR/AP balances.
+
+Do not allow an overpayment to make AR/AP reporting misleading.
+
+==================================================
+7. VAT
+==================================================
+
+DEC-03 remains the sole VAT authority.
+
+Determine whether overpayments or payment-on-account affect VAT treatment under the approved VAT policy.
+
+Do not invent new VAT rules.
+
+Do not create a second VAT engine.
+
+Clearly identify any VAT policy questions that must remain outside DEC-13.
+
+==================================================
+8. ALLOCATION LATER
+
+Determine how an unapplied/on-account amount can later be allocated.
+
+Examples:
+
+- customer pays £1,000;
+- £700 allocated to Invoice A;
+- £300 remains unapplied;
+- later Invoice B is raised;
+- £300 is allocated to Invoice B.
+
+Determine whether allocation creates additional accounting or merely changes settlement/open-item relationships.
+
+Respect DEC-12.
+
+==================================================
+9. REALLOCATION
+
+Determine how an unapplied/on-account amount can be reallocated.
+
+Examples:
+
+- payment allocated to Invoice A;
+- allocation removed;
+- amount becomes unapplied;
+- amount then allocated to Invoice B.
+
+Preserve append-only allocation history.
+
+Do not silently rewrite the original payment journal.
+
+==================================================
+10. REFUNDS
+
+Determine the dependency between overpayments and refunds.
+
+Do NOT fully resolve the refund policy if that belongs to DEC-14/15/16.
+
+Instead define:
+
+- what DEC-13 must establish;
+- what the later refund decision must establish;
+- how the two decisions must interact.
+
+==================================================
+11. CUSTOMER / SUPPLIER BALANCES
+
+Define how unapplied/on-account amounts affect:
+
+- customer balance;
+- supplier balance;
+- aged receivables;
+- aged payables;
+- statements;
+- settlement reporting.
+
+Avoid presenting an unapplied customer payment as if it were an unpaid customer invoice.
+
+==================================================
+12. REPORTING
+
+Explain treatment in:
+
+- Balance Sheet;
+- Trial Balance;
+- General Ledger;
+- customer statements;
+- supplier statements;
+- aged receivables;
+- aged payables;
+- cash/bank reporting.
+
+Reporting must remain derived from canonical accounting data.
+
+==================================================
+13. PERIOD CONTROLS
+
+Respect DEC-07.
+
+Determine how:
+
+- payment date;
+- allocation date;
+- reallocation date;
+- refund date
+
+interact with open and closed accounting periods.
+
+Do not permit these actions to bypass period controls.
+
+==================================================
+14. CONFIGURATION
+
+Respect DEC-10 and DEC-11.
+
+Where the accounting treatment depends on a material account mapping:
+
+- identify the required mapping;
+- resolve it using the applicable configuration version;
+- preserve the resolved account identity on canonical postings.
+
+Do not redesign DEC-11.
+
+==================================================
+15. PERMISSIONS
+
+Use DEC-05.
+
+Determine appropriate authority for:
+
+- creating payment-on-account;
+- marking/retaining an unapplied balance;
+- allocating;
+- reallocating;
+- approving refunds if relevant;
+- writing off or otherwise clearing balances.
+
+Do not silently grant permissions.
+
+==================================================
+16. AUDIT
+
+Define audit requirements for:
+
+- overpayment creation;
+- unapplied balance creation;
+- payment-on-account;
+- allocation;
+- reallocation;
+- conversion from unapplied/on-account to allocated;
+- clearing/adjustment;
+- refund relationship.
+
+Audit history must remain immutable.
+
+==================================================
+17. MIGRATION
+
+Review migration treatment for historical:
+
+- overpayments;
+- unapplied cash;
+- payment-on-account;
+- customer credits;
+- supplier credits;
+- outstanding allocations.
+
+Never invent historical states.
+
+Ambiguity must become an explicit DEC-22 migration exception.
+
+==================================================
+18. OPTIONS
+
+Present realistic options for:
+
+- customer overpayments;
+- supplier overpayments;
+- unapplied cash;
+- payment-on-account;
+- balance-sheet representation;
+- allocation later;
+- launch scope.
+
+For each material option explain:
+
+- accounting consequences;
+- data/schema consequences;
+- migration consequences;
+- reporting consequences;
+- VAT consequences;
+- audit/security consequences;
+- operational consequences;
+- compatibility consequences;
+- future flexibility;
+- what becomes difficult to change later.
+
+==================================================
+19. RECOMMENDATION
+==================================================
+
+Provide:
+
+RECOMMENDATION — NOT APPROVAL
+
+Recommend the approach that best satisfies:
+
+- DEC-04 canonical accounting;
+- DEC-05 capabilities;
+- DEC-07 period controls;
+- DEC-09 chart policy;
+- DEC-10 control mappings;
+- DEC-11 configuration versioning;
+- DEC-12 payment/allocation/settlement policy;
+- accounting correctness;
+- simple user experience;
+- clear customer/supplier balances;
+- auditability;
+- future flexibility.
+
+Do not convert the recommendation into approval.
+
+==================================================
+20. DECISION BOUNDARIES
+==================================================
+
+Clearly distinguish:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Explicitly identify:
+
+- what approving DEC-13 would lock in;
+- what remains changeable;
+- what belongs to DEC-14;
+- what belongs to DEC-15;
+- what belongs to DEC-16;
+- what belongs to DEC-22 migration.
+
+Do not resolve later decisions prematurely.
+
+==================================================
+21. IMPORTANT ACCOUNTING PRINCIPLE
+==================================================
+
+An unapplied payment, payment-on-account and overpayment must never be represented merely as a UI status if the underlying accounting requires a different Balance Sheet classification.
+
+Do not create artificial journal entries merely to make a screen display a particular status.
+
+Where accounting treatment is required, it must use the DEC-04 canonical journal.
+
+==================================================
+22. FUTURE FLEXIBILITY
+==================================================
+
+Do not unnecessarily prevent future:
+
+- customer credit workflows;
+- supplier credit workflows;
+- refunds;
+- payment-on-account;
+- overpayment handling;
+- automated allocation;
+- additional currencies;
+- additional markets;
+- payment methods.
+
+==================================================
+23. DOCUMENTATION
+==================================================
+
+Create or update:
+
+docs/ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md
+
+Link it into:
+
+- Current Decision Register;
+- Living Product Decisions;
+- Accounting Core Decision Pack;
+- Technical Architecture;
+- PRD / Product Scope;
+
+where appropriate.
+
+Do not modify implementation files.
+
+==================================================
+24. FINAL VERIFICATION
+==================================================
+
+At the end verify:
+
+1. DEC-01 through DEC-12 retain their approved statuses.
+2. DEC-13 remains REQUIRES USER DECISION.
+3. DEC-14 through DEC-22 remain REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-14 work was started.
+8. No overpayment, unapplied-cash, payment-on-account, refund, schema, migration or accounting logic was implemented.
+
+Stop after the DEC-13 decision-only review is complete.

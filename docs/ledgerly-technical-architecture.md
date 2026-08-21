@@ -55,6 +55,11 @@ Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md)
 records an approved payment/allocation/settlement policy only. It does not
 authorise implementation or resolve DEC-13 through DEC-22 policy.
 
+The [DEC-13 Overpayments, Unapplied Cash and Payment-on-Account Policy
+Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md) records
+a recommendation only. DEC-13 remains unresolved and does not authorise
+implementation or resolve DEC-14 through DEC-22 policy.
+
 ## Architecture obligations derived from governance
 
 Any future technical design must uphold the following constraints:

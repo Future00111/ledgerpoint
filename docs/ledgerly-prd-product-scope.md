@@ -129,18 +129,21 @@ be approved:
    Control-Account Mapping Policy Review](ledgerly-dec-10-control-account-mapping-policy-review.md)
    establishes control-account policy. The [DEC-11 Configuration Versioning
    and Effective Dating Review](ledgerly-dec-11-configuration-versioning-review.md)
-   records the approved configuration-versioning policy; DEC-12 and later
+   records the approved configuration-versioning policy; DEC-13 and later
    applicable decisions remain
    unresolved.
 7. [DEC-12 Payment, Allocation and Settlement Policy
    Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md)
    records the approved payment/evidence/allocation/settlement boundary.
    DEC-13 and later applicable decisions remain unresolved.
-7. Source freshness, overpayment, unapplied cash, refund, and
-   payment-on-account treatment.
-8. Audit retention, deletion/anonymisation, export, backup/recovery, and tenant
-   isolation policy.
-9. Legacy accounting-data compatibility, migration cohort, and cutover policy.
+ 8. [DEC-13 Overpayments, Unapplied Cash and Payment-on-Account Policy
+    Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md)
+    records a recommendation only for excess-money and party-balance policy.
+    DEC-13 and later applicable decisions remain unresolved.
+ 9. Source freshness remains a separate unresolved posting-safety dependency.
+10. Detailed unapplied-cash workflow, refunds, payment-on-account launch scope,
+    audit retention, deletion/anonymisation, export, backup/recovery, tenant
+    isolation, and legacy migration/cutover policy remain open.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix
