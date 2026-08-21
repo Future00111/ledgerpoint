@@ -9,15 +9,18 @@ Backlog. DEC-02 approved the initial UK/GBP accounting scope: authoritative
 core accounting, VAT preparation, invoices, bills, payments, banking,
 reconciliation, and reporting. DEC-03 approves Standard VAT on invoice basis,
 controlled source-linked and return-level corrections, and VAT
-preparation/export without direct HMRC submission. Special schemes, specialist
-adjustments, and direct HMRC workflows remain future scope. These decisions do
-not approve accounting-core design choices or implementation. Do not implement
-backlog items or publish Ledgerly until the user has reviewed and selected the
-next roadmap task. Treat the Living Product Decisions Register as the
-revisitable product-direction record below the Master Backlog; it never
-authorises implementation on its own. BL-06 and BL-07 additionally require the
-pre-implementation accounting-core decision pack to be explicitly resolved and
-approved before work begins.
+preparation/export without direct HMRC submission. DEC-04 approves the
+accounting-core architecture foundation: canonical normalized append-only
+journals, server-side transactional posting, immutable correction history,
+deterministic VAT integration, journal-authoritative reporting, company-scoped
+capability/audit boundaries, and additive evidence-based migration. Special VAT
+schemes, specialist adjustments, and direct HMRC workflows remain future scope.
+DEC-04 is architecture approval only: DEC-05 through DEC-22 remain unresolved,
+and BL-06/BL-07 remain blocked pending the applicable decisions and an approved
+implementation task. Do not implement backlog items or publish Ledgerly until
+the user has reviewed and selected the next roadmap task. Treat the Living
+Product Decisions Register as the revisitable product-direction record below
+the Master Backlog; it never authorises implementation on its own.
 
 **Why:** The existing technical foundation and phase work do not demonstrate
 complete, end-to-end product workflows; the user explicitly requires

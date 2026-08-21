@@ -3,20 +3,40 @@
 **Authority level:** 4 — beneath the PRD / Product Scope and above feature
 specifications and the Master Backlog  
 **Status:** Living governance document established by Decision 1 on 2026-08-21  
-**Accounting-core design status:** **REQUIRES USER DECISION**  
+**Accounting-core design status:** **APPROVED — DEC-04 architecture only**
 **Implementation authority:** None
 
 ## Purpose
 
 This document defines the mandatory technical constraints and decision structure
 needed to satisfy the Manifesto, Product Principles, and PRD/Product Scope. It
-does not silently adopt the BL-06/BL-07 architecture review or authorise any
+adopts the DEC-04 accounting-core foundation but does not authorise any
 implementation work.
 
 The [BL-06 / BL-07 accounting-core architecture review](ledgerly-accounting-core-architecture-review.md)
-remains a design proposal **READY FOR REVIEW**. It may inform this document, but
-its proposed schema, posting, migration, and operational choices are not
-approved until explicitly recorded as such.
+is the approved accounting-core foundation through
+[DEC-04](ledgerly-dec-04-accounting-core-adoption-review.md). Its approved
+architectural invariants constrain future specifications; its physical schema,
+API/UI design, migration execution, and policy choices reserved to DEC-05
+through DEC-22 are not approved by DEC-04.
+
+## Approved accounting-core foundation
+
+Future specifications must preserve the DEC-04 architectural invariants:
+
+- canonical normalized append-only journals;
+- server-side transactional double-entry posting;
+- integer minor-unit money with explicit currency;
+- source linkage, source/version context, and company-scoped idempotency;
+- immutable posted journals with linked reversals/corrections;
+- separate payment, allocation, and bank-evidence concepts;
+- DEC-03's deterministic VAT service through a traceable adapter;
+- journal-authoritative reporting with rebuildable projections;
+- company-scoped server-side capability and audit boundaries; and
+- additive, evidence-based compatibility and migration.
+
+DEC-04 is architecture approval only. It does not approve an implementation
+task or resolve any DEC-05 through DEC-22 policy.
 
 ## Architecture obligations derived from governance
 
@@ -74,19 +94,18 @@ merely because it exists today.
 ## Architecture decisions still required
 
 The following remain **REQUIRES USER DECISION** before BL-06 or BL-07 can be
-approved:
+approved for implementation:
 
-1. Whether to adopt, amend, or replace the accounting-core design proposal.
-2. The capability model for posting, reversal/correction, close/reopen, chart,
+1. The capability model for posting, reversal/correction, close/reopen, chart,
    and configuration changes.
-3. Financial-year, period generation, close/reopen, and year-end policy.
-4. Chart template, control-account mappings, and effective-dated configuration
+2. Financial-year, period generation, close/reopen, and year-end policy.
+3. Chart template, control-account mappings, and effective-dated configuration
    policy.
-5. Source revision/freshness rules, including VAT evidence.
-6. Overpayment, unapplied cash, refund, and payment-on-account treatment.
-7. Audit retention, deletion/anonymisation, and export policy.
-8. Backup/recovery objectives and tenant-isolation/RLS policy.
-9. Historical JSON journal validation, compatibility, migration cohort, and
+4. Source revision/freshness rules, including VAT evidence.
+5. Overpayment, unapplied cash, refund, and payment-on-account treatment.
+6. Audit retention, deletion/anonymisation, and export policy.
+7. Backup/recovery objectives and tenant-isolation/RLS policy.
+8. Historical JSON journal validation, compatibility, migration cohort, and
    cutover policy.
 
 The detailed options, recommendations, implications, and dependencies are

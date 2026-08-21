@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–3 approved; remaining decisions require
+**Register status:** Decisions 1–4 approved; DEC-05 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -122,29 +122,44 @@ to the accounting core.
 
 ### DEC-04 — Accounting-core architecture adoption
 
-- **Status:** REQUIRES USER DECISION
-- **Decision:** Decide whether the BL-06 / BL-07 Accounting Core Architecture
-  Review becomes the accounting foundation within the Technical Architecture.
-- **Options available:** (a) adopt the review with targeted amendments; (b) use
-  it as an accounting chapter within the Technical Architecture; or (c) reject
-  it and commission a different design.
-- **Replit's recommendation:** Adopt the review with targeted amendments,
-  retaining normalized, additive, append-only, server-side, company-scoped
-  accounting and compatibility with the deterministic VAT service.
-- **Why it is recommended:** It addresses the current JSON-journal,
-  client-authority, missing-period, missing-allocation, and
-  non-authoritative-reporting risks without requiring a destructive replacement.
+- **Status:** APPROVED — architecture only
+- **Decision:** Option A is approved. The BL-06 / BL-07 Accounting Core
+  Architecture Review becomes the accounting-core foundation within the
+  Technical Architecture, with the targeted amendments and deliberate
+  non-locks recorded in the [DEC-04 adoption review](ledgerly-dec-04-accounting-core-adoption-review.md).
+- **Approved architecture:** Canonical normalized append-only journals;
+  server-side transactional double-entry posting; integer minor-unit money with
+  explicit currency; source linkage, source/version context, and
+  company-scoped idempotency; immutable posted journals with linked
+  reversals/corrections; separate payments, allocations, and bank evidence;
+  DEC-03's deterministic VAT service through a traceable adapter;
+  journal-authoritative reporting with rebuildable projections; company-scoped
+  server-side capability/audit boundaries; and additive, evidence-based
+  compatibility and migration.
+- **Decision boundary:** DEC-05 through DEC-22 remain separate unresolved
+  decisions. This approval selects no period, chart, control-account,
+  capability, payment-treatment, retention, RLS, migration-cohort, cutover,
+  schema, API, or implementation policy reserved to those decisions.
 - **Accounting implications:** Establishes the canonical journal, posting,
-  period, account, payment, allocation, source, audit, and reporting contracts.
-- **Data/schema implications:** Determines normalized journal lines,
-  idempotency, source links, account/period relationships, and protected
-  mutation boundaries.
-- **Migration implications:** Determines whether additive adapters, validation,
-  dual-read comparison, and controlled cutover are used.
+  payment, allocation, source, audit, VAT-adapter, and reporting authority
+  contracts; the remaining policy decisions refine how those contracts operate.
+- **Data/schema implications:** Establishes the logical normalized journal,
+  idempotency, source-link, and protected mutation boundaries without approving
+  physical schema or migration work.
+- **Migration implications:** Establishes additive adapters, validation,
+  dual-read comparison, and controlled cutover as the architecture; DEC-22
+  still decides the cohort, sequencing, rollback, and authority retirement.
 - **Backlog implications:** Direct prerequisite for BL-06 and BL-07 and
   dependency for BL-08, BL-09, BL-13, BL-14, BL-15, and BL-17.
-- **Dependency:** DEC-02 and DEC-03; the remaining decisions below refine the
-  architecture and must be resolved before implementation approval.
+- **Implementation limit:** Architecture approval does not authorise an
+  implementation task, code, schema, migration, UI, workflow, dependency,
+  deployment, or publishing change. BL-06 and BL-07 remain blocked.
+- **Dependency:** DEC-02 and DEC-03; the applicable remaining decisions below
+  must still be resolved before implementation approval.
+- **Amendment rule:** DEC-04 may be amended only through an explicit documented
+  decision that identifies accounting, data/schema, migration, reporting,
+  compatibility, security/audit, dependency, and backlog consequences before
+  implementation direction changes.
 
 ## Authority, period, and chart decisions
 

@@ -109,7 +109,7 @@ not higher authority.
   rather than silently defaulting them to Standard VAT. VAT exports must be
   described as prepared/exported unless a verified external filing receipt
   exists.
-- **Dependencies:** DEC-02, DEC-04–DEC-05, period/chart/configuration
+- **Dependencies:** DEC-02, approved DEC-04, DEC-05, period/chart/configuration
   decisions, payment/refund decisions, and historical migration policy.
 - **What it affects:** VAT profiles, tax rules, invoices, bills, credit notes,
   payments, returns, corrections, reports, exports, HMRC integrations, AI
@@ -127,8 +127,53 @@ not higher authority.
 - **Related backlog:** BL-04, BL-05, BL-06, BL-07, BL-08, BL-10, BL-12, BL-13,
   BL-15, BL-17, BL-18, BL-23, BL-24, BL-25
 - **Related architecture:** Existing deterministic VAT and accounting-core
-  review remain the evidence base. No architecture adoption or implementation
-  decision is made here.
+  review remain the evidence base. DEC-04 separately records architecture
+  adoption; no implementation decision is made here.
+
+### DEC-04 — Accounting-core architecture adoption
+
+- **Status:** APPROVED — architecture only
+- **Current decision/direction:** Option A is approved. The BL-06 / BL-07
+  Accounting Core Architecture Review is the accounting-core foundation within
+  the Technical Architecture, subject to the targeted amendments and deliberate
+  non-locks in the [DEC-04 adoption review](ledgerly-dec-04-accounting-core-adoption-review.md).
+- **Approved architecture:** Canonical normalized append-only journals;
+  server-side transactional double-entry posting; integer minor-unit monetary
+  representation with explicit currency; source linkage, source/version
+  context, and company-scoped idempotency; immutable journals with linked
+  reversals/corrections; separate payment, allocation, and bank-evidence
+  concepts; DEC-03's deterministic VAT service through a traceable adapter;
+  journal-authoritative reporting with rebuildable projections; company-scoped
+  server-side capability/audit boundaries; and additive, evidence-based
+  compatibility and migration architecture.
+- **Deliberate non-locks:** DEC-05 through DEC-22 remain unresolved. DEC-04
+  does not select the capability matrix, financial year, periods, year-end,
+  chart/control-account defaults, configuration versioning, source-freshness,
+  payment/refund treatment, retention, deletion, export, backup/recovery, RLS,
+  historical migration cohort, cutover, or rollback policy.
+- **Reason:** The architecture supplies a safe, authoritative accounting
+  foundation while preserving explicit product-owner decisions for policies
+  that affect operations, compliance, access, and migration.
+- **Impact:** Future specifications must conform to this accounting authority;
+  current implementation remains evidence, not an approved target.
+- **Dependencies:** DEC-02 and DEC-03. The applicable DEC-05 through DEC-22
+  decisions remain required before implementation approval.
+- **What it affects:** Accounting sources, journals, payments, allocations,
+  banking, VAT, reports, permissions, audit, compatibility, migration, and
+  related backlog dependencies.
+- **Revisit:** When an explicit accounting authority, safety invariant, data
+  contract, compatibility, or migration assumption needs to change.
+- **Change authority:** Product owner/stakeholder with accounting, security,
+  and architecture review. An amendment must identify effects on accounting
+  data, database/schema, migrations, backwards compatibility, reporting,
+  security/audit, dependent features, and Master Backlog items before
+  implementation direction changes.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-06, BL-07, BL-08, BL-09, BL-13, BL-14, BL-15, BL-17,
+  BL-23, BL-24, BL-25
+- **Implementation limit:** This approval does not authorise code, schema,
+  migrations, UI, workflows, dependencies, deployment, publishing, or an
+  implementation task. BL-06 and BL-07 remain blocked.
 
 ### PD-01 — Product name
 

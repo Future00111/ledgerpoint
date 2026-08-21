@@ -3,7 +3,8 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DECISIONS 1–2 APPROVED; REMAINING DECISIONS REQUIRE EXPLICIT REVIEW
+**Decision status:** DEC-01 through DEC-04 APPROVED; DEC-05 through DEC-22
+REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
 
@@ -94,32 +95,33 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 3. Technical Architecture
 
-- **Status:** APPROVED — governance document established by Decision 1;
-  **REQUIRES USER DECISION** — accounting-core design adoption or amendment.
-- **Decision needed:** Decide whether the accounting-core review becomes the
-  basis for the approved accounting-core design within the Technical
-  Architecture.
-- **Options:**
-  1. Adopt the review with targeted amendments.
-  2. Create a separate Technical Architecture document and use the review as
-     its accounting-core chapter.
-  3. Reject the proposed architecture and commission a different design.
-- **Recommendation:** Use
-  `docs/ledgerly-accounting-core-architecture-review.md` as the proposed
-  accounting foundation within the Technical Architecture document, after
-  resolving this pack. Keep the architecture additive, normalized,
-  append-only, server-side, company-scoped, and compatible with the existing
-  VAT service.
+- **Status:** APPROVED — governance document established by Decision 1; DEC-04
+  approves the accounting-core architecture foundation.
+- **Approved outcome:** Option A adopts
+  `docs/ledgerly-accounting-core-architecture-review.md` as the accounting-core
+  foundation within the Technical Architecture, with the targeted amendments
+  and deliberate non-locks in the [DEC-04 adoption review](ledgerly-dec-04-accounting-core-adoption-review.md).
+  The approved invariants are normalized append-only journals, server-side
+  transactional double-entry posting, integer minor-unit money with explicit
+  currency, source/version/company-scoped idempotency, immutable linked
+  corrections, separate settlement/evidence concepts, the DEC-03 VAT adapter,
+  journal-authoritative reporting, company-scoped capability/audit boundaries,
+  and additive evidence-based compatibility and migration.
+- **Decision boundary:** DEC-05 through DEC-22 remain unresolved. This approval
+  does not approve their policy choices, physical schema, migration execution,
+  API/UI changes, or an implementation task.
 - **Accounting/data consequences:** The architecture determines canonical
   journal, period, account, payment, allocation, source, audit, and reporting
   contracts. It must not permit browser-created journal lines or generic
   mutation of posted history.
 - **Migration consequences:** The accepted additive/adapter approach remains
   the safest route for current JSON journals, source totals, and clients.
-- **Dependencies:** Approved Product Principles and PRD/Product Scope,
-  unresolved decision-pack items, BL-06, BL-07.
-- **Explicit product decision:** Approve the review as the accounting-core
-  basis, or specify required architectural changes.
+- **Dependencies:** Approved Product Principles, PRD/Product Scope, DEC-03,
+  applicable unresolved decision-pack items, BL-06, and BL-07.
+- **Amendment rule:** DEC-04 may change only through an explicit documented
+  decision that records accounting, data/schema, migration, reporting,
+  compatibility, security/audit, dependency, and backlog consequences before
+  implementation direction changes.
 
 ## 4. Owner / Admin / Accountant / Manager / Read-only capabilities
 
@@ -679,11 +681,14 @@ Implementation remains **BLOCKED** by:
 
 ## Final decision-pack status
 
-**DECISION PACK:** READY FOR LEE'S REVIEW  
+**DECISION PACK:** DEC-04 ARCHITECTURE APPROVAL RECORDED; REMAINING DECISIONS
+REQUIRE REVIEW
 **DECISION 1:** APPROVED
 **DECISION 2:** APPROVED
 **DECISION 3:** APPROVED — S1 + A + H1
-**CURRENT DECISION REGISTER:** READY FOR LEE'S REVIEW
+**DECISION 4:** APPROVED — architecture only
+**DECISION 5–22:** UNRESOLVED
+**CURRENT DECISION REGISTER:** DEC-04 APPROVAL RECORDED
 **BL-06 / BL-07 IMPLEMENTATION:** BLOCKED  
 **APPLICATION CODE CHANGED:** NO  
 **DATABASE OR MIGRATIONS CHANGED:** NO  

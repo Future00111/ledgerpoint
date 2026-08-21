@@ -20,14 +20,14 @@ by Decision 1; they do not silently approve their unresolved decisions. The
 Living Product Decisions Register records explicit, revisitable product
 direction but does not authorise implementation. The product gap analysis and
 feature matrix are supporting evidence, not authority over this hierarchy.
-Existing code is evidence of current behaviour, not product authority. The
-BL-06/BL-07 accounting core architecture review remains a design proposal
-pending explicit approval, not an implementation authority. The BL-06/BL-07
-pre-implementation decision pack must be resolved before implementation
-approval; recommendations in it are not approved decisions. Do not choose
-roadmap scope or silently change a recorded decision autonomously. Before
-implementation, also review the Core Maxims, Design System, Definition of Done,
-Product Development Workflow, and Workspace Framework.
+Existing code is evidence of current behaviour, not product authority. DEC-04
+approves the BL-06/BL-07 accounting-core architecture foundation only; it does
+not authorise implementation. DEC-05 through DEC-22 remain unresolved, and
+BL-06/BL-07 remain blocked until the applicable decisions and an implementation
+task are explicitly approved. Do not choose roadmap scope or silently change a
+recorded decision autonomously. Before implementation, also review the Core
+Maxims, Design System, Definition of Done, Product Development Workflow, and
+Workspace Framework.
 
 ## Run & Operate
 

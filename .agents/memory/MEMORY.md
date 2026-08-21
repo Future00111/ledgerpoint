@@ -8,4 +8,4 @@
 - [VAT return locking](vat-return-locking.md) — conditional row locks and audit writes must commit together for concurrent review actions.
 - [API HTTP test bundling](api-http-test-bundling.md) — Express integration tests need CommonJS output with Pino runtime packages externalized.
 - [Batch approval freshness](batch-approval-freshness.md) — batch reconciliation must bind its accounting write to one locked, current analysis record.
-- [Product roadmap gate](product-roadmap-gate.md) — implementation and publishing are paused pending roadmap review and next-task selection.
+- [Product roadmap gate](product-roadmap-gate.md) — DEC-04 architecture is approved, but implementation stays paused pending later decisions and task approval.

@@ -1,8 +1,9 @@
 # DEC-04 Accounting-Core Architecture Adoption Review
 
 **Decision:** DEC-04 — Accounting-core architecture adoption  
-**Status:** **REQUIRES USER DECISION**  
+**Status:** **APPROVED**
 **Review date:** 2026-08-21  
+**Decision recorded:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, security,
 and architecture review  
 **Implementation authority:** None
@@ -51,36 +52,42 @@ The following are already established by higher authority or explicit decisions:
 - BL-06 and BL-07 remain blocked until the required decisions are approved and
   recorded.
 
-The existing architecture review is **not** already approved. Its ADR-AC
-entries are design recommendations and evidence for this decision.
+The existing architecture review is approved as the accounting-core foundation
+within the Technical Architecture, subject to the approved invariants and
+deliberate non-locks recorded in this decision. Its implementation details
+remain proposals until separately specified and authorised.
 
-### RECOMMENDED
+### APPROVED ADOPTION
 
-Adopt the architecture review as the canonical accounting-core chapter within
-the existing Technical Architecture, with the targeted amendments and open
-decision boundaries in this document.
+Lee approved Option A: adopt the architecture review as the canonical
+accounting-core chapter within the existing Technical Architecture, with the
+targeted amendments and open decision boundaries in this document.
 
-The recommended adoption locks the accounting authority and safety invariants,
-not every product policy, account list, role assignment, period calendar, API
-shape, or migration cohort.
+This approval locks the accounting authority and safety invariants, not every
+product policy, account list, role assignment, period calendar, API shape, or
+migration cohort.
 
-### REQUIRES USER DECISION
+### APPROVED DECISION BOUNDARY
 
-Lee must explicitly approve, amend, or reject:
+DEC-04 approves:
 
-1. the adoption option;
-2. the architectural invariants that become the approved foundation;
-3. the targeted amendments and explicit non-locks;
-4. the compatibility and migration boundary;
-5. the requirement that DEC-05 onward remain separate decisions; and
-6. whether the recommendation is sufficient for the Technical Architecture to
-   reference as its accounting-core foundation.
+1. Option A and the architectural invariants that become the accounting-core
+   foundation;
+2. the targeted amendments, explicit non-locks, and compatibility/migration
+   boundary in this review;
+3. DEC-03 as the authoritative deterministic VAT service through a traceable
+   adapter; and
+4. the requirement that DEC-05 through DEC-22 remain separate, unresolved
+   decisions.
+
+DEC-04 does not approve implementation, an implementation task, or any policy
+reserved to a subsequent decision.
 
 ## 3. Adoption options
 
 ### Option A — Adopt as the accounting-core foundation with targeted amendments
 
-**Recommendation:** **RECOMMENDED — NOT APPROVED.**
+**Status:** **APPROVED.**
 
 Use the existing architecture review as the accounting-core chapter within the
 Technical Architecture. Approve the authority, integrity, source, reporting,
@@ -615,8 +622,7 @@ Also left open by DEC-04:
 
 ## 6. What DEC-04 would actually lock in
 
-If Lee approves Option A as written, DEC-04 would lock in these architectural
-principles:
+DEC-04 approves the following architectural principles:
 
 1. Normalized append-only journal headers and lines are the canonical posted
    accounting model.
@@ -680,11 +686,11 @@ implementation tasks.
 - Provider integrations and direct HMRC filing.
 - Migration cohort and cutover schedule.
 
-## 8. Implementation consequences if DEC-04 is approved
+## 8. Implementation consequences of DEC-04 approval
 
-Approval would permit the architecture to constrain future specifications; it
-would not permit implementation to start. Before any code or schema work, the
-project would still need:
+Approval permits the architecture to constrain future specifications; it does
+not permit implementation to start. Before any code or schema work, the project
+still needs:
 
 1. explicit DEC-05–DEC-22 decisions where they affect the selected design;
 2. an approved implementation task for BL-06/BL-07;
@@ -699,9 +705,9 @@ The affected backlog would include BL-01 through BL-05, BL-06–BL-10,
 BL-12–BL-17, BL-19, BL-23–BL-26. This is a dependency consequence, not task
 creation or implementation approval.
 
-## 9. Exact approval required from Lee
+## 9. Recorded approval
 
-DEC-04 remains **REQUIRES USER DECISION**. The exact approval requested is:
+Lee approved the following:
 
 > Approve Option A: adopt the existing BL-06/BL-07 Accounting Core
 > Architecture Review as the accounting-core foundation within the Technical
@@ -710,24 +716,25 @@ DEC-04 remains **REQUIRES USER DECISION**. The exact approval requested is:
 > keep BL-06 and BL-07 blocked, and do not treat this approval as
 > implementation authorisation.
 
-Lee may instead amend the invariants, preserve additional options, or reject
-the adoption. Any amendment must record its accounting, data/schema, migration,
-reporting, compatibility, security/audit, dependency, and backlog consequences.
+**Amendment path:** DEC-04 remains amendable through an explicit documented
+decision by the product owner/stakeholder with accounting, security, and
+architecture review. An amendment must identify accounting, data/schema,
+migration, reporting, compatibility, security/audit, dependency, and backlog
+consequences before any implementation direction changes.
 
 ## 10. Decision summary
 
 | Item | Decision-only conclusion |
 |---|---|
-| **DEC-04 status** | **REQUIRES USER DECISION** |
-| **Recommended architecture** | Option A: adopt the existing review as the accounting-core foundation within the Technical Architecture, with targeted amendments |
+| **DEC-04 status** | **APPROVED — architecture only** |
+| **Approved architecture** | Option A: adopt the existing review as the accounting-core foundation within the Technical Architecture, with targeted amendments |
 | **Actually locked by approval** | Canonical normalized append-only journals; atomic server-side double-entry posting; integer minor units; source-linked company-scoped idempotency; immutable corrections; separate payments/allocations/bank evidence; deterministic VAT adapter; journal-authoritative reporting; capability/company/audit boundaries; additive compatibility |
 | **Deliberately left open** | DEC-05 through DEC-22 policies, exact chart/mappings, periods/year-end, roles, retention/RLS, migration cohort/cutover, API/schema names, providers, and implementation sequencing |
 | **Dependencies** | DEC-05 through DEC-22 as applicable; BL-01–05, BL-06–10, BL-12–17, BL-19, BL-23–26 |
-| **Implementation consequence** | Architecture may constrain future specifications after approval; no implementation, migration, or task is authorised by this review |
-| **Next approval required** | Lee explicitly approves, amends, or rejects Option A using the wording in section 9 |
+| **Implementation consequence** | Architecture constrains future specifications; no implementation, migration, or task is authorised by this review |
+| **Next approvals required** | The applicable DEC-05 through DEC-22 decisions, then an approved implementation task |
 
-**DEC-04 status:** **REQUIRES USER DECISION**  
-**DEC-05 and all subsequent decisions:** **NOT REVIEWED OR APPROVED BY THIS
-DOCUMENT**  
+**DEC-04 status:** **APPROVED — architecture only**
+**DEC-05 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application-path changes:** **NONE**
