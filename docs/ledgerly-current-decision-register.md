@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–12 approved; DEC-13 through DEC-22 require
+**Register status:** Decisions 1–13 approved; DEC-14 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -490,16 +490,16 @@ to the accounting core.
   an explicitly authorised task.
 - **Dependency:** DEC-03 through DEC-11; DEC-13 through DEC-16 build on it.
 
-### DEC-13 — Overpayments, Unapplied Cash and Payment-on-Account Policy
+### DEC-13 — Overpayments, Unapplied Cash and Excess Payment Policy
 
-- **Status:** REQUIRES USER DECISION
-- **Decision review:** [DEC-13 Overpayments, Unapplied Cash and Payment-on-Account
+- **Status:** APPROVED — product/accounting policy only
+- **Decision review:** [DEC-13 Overpayments, Unapplied Cash and Excess Payment
   Policy Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md).
-- **Decision:** Determine whether to retain customer excess as a distinct
+- **Decision:** Retain customer excess as a distinct
   customer-credit/receipt-on-account liability and supplier excess as a
   supplier-prepayment/receivable asset, with valid allocations and balances
   kept separate.
-- **Recommendation:** Never discard or cap excess money. Permit a known-party
+- **Approved policy:** Never discard or cap excess money. Permit a known-party
   payment before allocation, prevent allocation beyond the payment remainder
   or document open amount, and use controlled canonical reclassification when
   an approved party balance later moves to AR/AP.
@@ -512,7 +512,7 @@ to the accounting core.
   open items.
 - **Migration implications:** Historical excess, credit, prepayment, and
   allocation states require evidence; ambiguity is a DEC-22 exception.
-- **Backlog implications:** Would inform BL-06, BL-07, BL-09, BL-10, BL-14,
+- **Backlog implications:** Informs BL-06, BL-07, BL-09, BL-10, BL-14,
   and BL-16; all remain blocked pending applicable later decisions and an
   explicitly authorised task.
 - **Dependency:** DEC-04, DEC-09, DEC-10, DEC-11, and DEC-12.

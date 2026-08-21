@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-12 APPROVED; DEC-13 through DEC-22
+**Decision status:** DEC-01 through DEC-13 APPROVED; DEC-14 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -402,13 +402,13 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 12. Overpayments
 
-- **Status:** REQUIRES USER DECISION
-- **Decision review:** [DEC-13 Overpayments, Unapplied Cash and Payment-on-Account
+- **Status:** APPROVED — product/accounting policy only
+- **Decision review:** [DEC-13 Overpayments, Unapplied Cash and Excess Payment
   Policy Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md).
-- **Decision needed:** Decide whether never to discard or silently cap money and retain a
+- **Approved decision:** Never discard or silently cap money and retain a
   distinct remainder: customer excess is a customer-credit/receipt-on-account
   liability and supplier excess is a supplier-prepayment/receivable asset.
-- **Recommended accounting boundary:** Payment total, allocation total, open-item
+- **Approved accounting boundary:** Payment total, allocation total, open-item
   balance, unapplied amount, and refund remain separate. Later allocation from
   a customer credit or supplier prepayment uses canonical reclassification;
   allocation cannot make an invoice or bill negative.

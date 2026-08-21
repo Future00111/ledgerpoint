@@ -40,8 +40,11 @@ IDs and version context retained on postings, and immutable audit. DEC-12
 approves distinct payment evidence, accounting payment, allocation, and
 settlement concepts; one canonical payment posting; non-duplicating,
 many-to-many allocation; derived settlement; and immutable payment/allocation
-history. DEC-13 through DEC-22 remain unresolved, and BL-06/BL-07 remain
-blocked pending the applicable decisions and an approved implementation task.
+history. DEC-13 approves no-loss excess handling: customer excess is a
+customer-credit liability, supplier excess is a supplier-prepayment asset, and
+known-party payments may exist before allocation without negative documents.
+DEC-14 through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked
+pending the applicable decisions and an approved implementation task.
 Do not implement
 backlog items or publish Ledgerly until the user has reviewed and selected the
 next roadmap task. Treat the Living Product Decisions Register as the

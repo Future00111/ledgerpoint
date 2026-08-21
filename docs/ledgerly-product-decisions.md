@@ -408,17 +408,17 @@ not higher authority.
   authorise code, schema, migration, UI, workflow, dependency, deployment,
   publishing, or an implementation task. BL-06 and BL-07 remain blocked.
 
-### DEC-13 — Overpayments, Unapplied Cash and Payment-on-Account Policy
+### DEC-13 — Overpayments, Unapplied Cash and Excess Payment Policy
 
-- **Status:** REQUIRES USER DECISION
-- **Decision review:** [DEC-13 Overpayments, Unapplied Cash and Payment-on-Account
+- **Status:** APPROVED — product/accounting policy only
+- **Decision review:** [DEC-13 Overpayments, Unapplied Cash and Excess Payment
   Policy Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md).
-- **Recommendation:** Never discard or cap excess money. Customer excess should be
+- **Approved policy:** Never discard or cap excess money. Customer excess should be
   represented as a customer-credit/receipt-on-account liability and supplier
   excess as a supplier-prepayment/receivable asset. Known-party payments may
   exist before allocation; allocation cannot exceed payment remainder or
   document open amount.
-- **Proposed accounting boundary:** Direct cash is posted once. Later allocation from a
+- **Approved accounting boundary:** Direct cash is posted once. Later allocation from a
   customer credit or supplier prepayment uses controlled canonical
   reclassification; moving a direct payment between eligible documents does
   not repost cash or AR/AP. Settlement remains derived under DEC-12.
@@ -426,7 +426,7 @@ not higher authority.
   workflow, DEC-15 retains refund policy, and DEC-16 retains user-facing
   payment-on-account launch scope. Source freshness remains separate and
   unresolved.
-- **Implementation limit:** This review and unresolved decision do not authorise code,
+- **Implementation limit:** This approved policy does not authorise code,
   schema, migration, UI, workflow, dependency, deployment, publishing, or an
   implementation task. BL-06 and BL-07 remain blocked.
 

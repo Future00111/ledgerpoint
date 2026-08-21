@@ -1,15 +1,14 @@
-# DEC-13 Overpayments, Unapplied Cash and Payment-on-Account Policy Review
+# DEC-13 Overpayments, Unapplied Cash and Excess Payment Policy Review
 
-**Decision:** DEC-13 — Overpayments, Unapplied Cash and Payment-on-Account
-Policy
-**Status:** **REQUIRES USER DECISION**
+**Decision:** DEC-13 — Overpayments, Unapplied Cash and Excess Payment Policy
+**Status:** **APPROVED — product/accounting policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, security,
 and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-13 or DEC-14 through
-> DEC-22, and it does not authorise an implementation task, code, schema,
+> This records an approved product/accounting policy. It does not approve
+> DEC-14 through DEC-22, and it does not authorise an implementation task, code,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
@@ -523,9 +522,9 @@ and legacy authority retirement.
 - **Flexibility:** Makes customer credits, supplier prepayments, and
   payment-on-account workflows difficult to add later.
 
-## 15. RECOMMENDATION — NOT APPROVAL
+## 15. APPROVED POLICY
 
-Recommend **Option C: first-class party credit/prepayment balances**, with the
+Approve **Option C: first-class party credit/prepayment balances**, with the
 following boundaries:
 
 1. Never discard or cap an excess payment. Preserve the full accounting
@@ -553,7 +552,7 @@ following boundaries:
 10. Migrate only evidenced historical balances and relationships; route
     ambiguity to DEC-22.
 
-This recommendation is **not approval**.
+This policy is approved as a product/accounting decision only.
 
 ## 16. Decision boundaries
 
@@ -571,8 +570,8 @@ reclassification; derived settlement; and append-only allocation history.
 
 ### Requires user decision
 
-Approval of the recommended DEC-13 overpayment, unapplied-balance, and
-payment-on-account accounting policy.
+The approved DEC-13 overpayment, unapplied-balance, and payment-on-account
+accounting structure.
 
 ### Deliberately left open
 
@@ -590,7 +589,7 @@ payment-on-account accounting policy.
 - physical schema, APIs, UI, workflows, capability identifiers, tests,
   dependencies, deployment, publishing, and implementation tasks.
 
-### What approving DEC-13 would lock in
+### What DEC-13 approval locks in
 
 - customer excess as a distinct liability rather than a negative invoice;
 - supplier excess as a distinct asset/prepayment rather than a negative bill;
@@ -612,7 +611,9 @@ market-specific treatment.
 
 ## 17. Decision readiness
 
-DEC-13 is ready for an explicit user decision. Until it is approved or amended:
+DEC-13 was explicitly approved on 2026-08-21. The approval is a
+product/accounting-policy decision only. Until the applicable remaining
+decisions are approved or amended:
 
 - DEC-14 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
@@ -620,8 +621,7 @@ DEC-13 is ready for an explicit user decision. Until it is approved or amended:
   schema, migration, or accounting mechanism may be implemented; and
 - no implementation task is authorised.
 
-**DEC-01 through DEC-12:** **APPROVED**
-**DEC-13:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-13:** **APPROVED**
 **DEC-14 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**

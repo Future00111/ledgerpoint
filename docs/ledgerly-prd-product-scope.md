@@ -135,11 +135,11 @@ be approved:
 7. [DEC-12 Payment, Allocation and Settlement Policy
    Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md)
    records the approved payment/evidence/allocation/settlement boundary.
-   DEC-13 and later applicable decisions remain unresolved.
- 8. [DEC-13 Overpayments, Unapplied Cash and Payment-on-Account Policy
+   DEC-14 and later applicable decisions remain unresolved.
+ 8. [DEC-13 Overpayments, Unapplied Cash and Excess Payment Policy
     Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md)
-    records a recommendation only for excess-money and party-balance policy.
-    DEC-13 and later applicable decisions remain unresolved.
+    records the approved excess-money and party-balance policy. DEC-14 and
+    later applicable decisions remain unresolved.
  9. Source freshness remains a separate unresolved posting-safety dependency.
 10. Detailed unapplied-cash workflow, refunds, payment-on-account launch scope,
     audit retention, deletion/anonymisation, export, backup/recovery, tenant
