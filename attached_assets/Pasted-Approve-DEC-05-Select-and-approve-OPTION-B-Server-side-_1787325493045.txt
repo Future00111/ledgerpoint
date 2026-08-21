@@ -1,0 +1,115 @@
+Approve DEC-05.
+
+Select and approve:
+
+OPTION B — Server-side capabilities with conservative role presets.
+
+Record DEC-05 as APPROVED with the following principles:
+
+1. Capabilities, not role names alone, are the authoritative mechanism for consequential accounting permissions.
+
+2. Every consequential operation must be authorised server-side in the active company context.
+
+3. Company membership must be active and company-scoped for every capability evaluation.
+
+4. Permission checks must never rely solely on:
+   - the browser/UI;
+   - client-supplied role values;
+   - arbitrary role strings;
+   - hidden frontend controls.
+
+5. The initial role presets are:
+
+OWNER
+- Broad company authority subject to all accounting safety, immutability and audit controls.
+
+ADMIN
+- Administrative authority.
+- Posting, reversal/correction and period-reopen authority are NOT granted by default.
+- Any such capability must require an explicit, auditable grant.
+
+ACCOUNTANT
+- Accounting authority including normal accounting work and posting.
+- Controlled consequential corrections require appropriate reason and audit evidence.
+- Additional elevated actions remain subject to the approved capability model and later policy decisions.
+
+MANAGER
+- Scoped operational access.
+- No posting, reversal/correction or period-reopen authority by default.
+
+READ-ONLY
+- Can view permitted information.
+- Has NO mutation path.
+
+6. No role may edit or delete a posted journal under any circumstances.
+Posted-journal immutability remains an independent accounting safety boundary.
+
+7. AI recommendations do not create accounting authority.
+
+AI may recommend or prepare work, but persistence of an AI-prepared or AI-assisted accounting action requires the same server-side capability that would be required for the equivalent manual action.
+
+8. Consequential operations must support appropriate:
+- actor identification
+- company scope
+- capability
+- target
+- source
+- reason where required
+- approval where required
+- result
+- request context
+- audit evidence.
+
+9. Permission changes must affect future actions according to the approved effective behaviour, while historical audit records retain the authority context that existed when the action occurred.
+
+10. Existing broad roles must be migrated conservatively.
+Do not automatically grant new consequential powers where existing authority is ambiguous or over-broad.
+Ambiguity must become a visible review exception rather than an automatic permission grant.
+
+11. Preserve the ability to add future capabilities and amend role presets through the Living Product Decisions process, provided the approved accounting safety boundaries are not weakened.
+
+IMPORTANT GOVERNANCE BOUNDARIES:
+
+- This approval does NOT resolve DEC-06 through DEC-22.
+- Do not infer financial-year, period, year-end, chart, payment, refund, retention, RLS, backup, or migration policies from DEC-05.
+- Exact approval chains and any future specialised capabilities may be refined through later decisions.
+- Do not approve DEC-06 or any later decision.
+- Keep BL-06 and BL-07 BLOCKED.
+
+This is a PRODUCT/ARCHITECTURE DECISION approval only.
+
+Do NOT implement:
+- application code
+- database schema
+- migrations
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Update:
+- DEC-05 review
+- Current Decision Register
+- Product Decisions Register
+- relevant Technical Architecture references
+- relevant PRD/decision-pack references
+
+only as necessary to record the approval.
+
+Preserve the amendment path.
+
+After updating the governance documentation, verify:
+
+1. DEC-01 = APPROVED
+2. DEC-02 = APPROVED
+3. DEC-03 = APPROVED
+4. DEC-04 = APPROVED — architecture only
+5. DEC-05 = APPROVED
+6. DEC-06 through DEC-22 = REQUIRES USER DECISION
+7. BL-06 and BL-07 = BLOCKED
+8. No implementation task was created or executed
+9. No application-path changes were made
+10. No subsequent decision was started
+
+Stop after verification.

@@ -16,9 +16,11 @@ implementation work.
 The [BL-06 / BL-07 accounting-core architecture review](ledgerly-accounting-core-architecture-review.md)
 is the approved accounting-core foundation through
 [DEC-04](ledgerly-dec-04-accounting-core-adoption-review.md). Its approved
-architectural invariants constrain future specifications; its physical schema,
-API/UI design, migration execution, and policy choices reserved to DEC-05
-through DEC-22 are not approved by DEC-04.
+architectural invariants constrain future specifications. DEC-05 separately
+approves the capability model recorded in the [DEC-05 Capability and Approval
+Matrix Review](ledgerly-dec-05-capability-approval-review.md). Physical schema,
+API/UI design, migration execution, and policy choices reserved to DEC-06
+through DEC-22 are not approved.
 
 ## Approved accounting-core foundation
 
@@ -35,8 +37,8 @@ Future specifications must preserve the DEC-04 architectural invariants:
 - company-scoped server-side capability and audit boundaries; and
 - additive, evidence-based compatibility and migration.
 
-DEC-04 is architecture approval only. It does not approve an implementation
-task or resolve any DEC-05 through DEC-22 policy.
+DEC-04 and DEC-05 are architecture/product approvals only. They do not approve
+an implementation task or resolve any DEC-06 through DEC-22 policy.
 
 ## Architecture obligations derived from governance
 
@@ -93,20 +95,17 @@ merely because it exists today.
 
 ## Architecture decisions still required
 
-The following remain **REQUIRES USER DECISION** before BL-06 or BL-07 can be
-approved for implementation:
+DEC-05 is approved separately. The following remain **REQUIRES USER DECISION**
+before BL-06 or BL-07 can be approved for implementation:
 
-1. The capability model for posting, reversal/correction, close/reopen, chart,
-   and configuration changes. See the [DEC-05 Capability and Approval Matrix
-   Review](ledgerly-dec-05-capability-approval-review.md).
-2. Financial-year, period generation, close/reopen, and year-end policy.
-3. Chart template, control-account mappings, and effective-dated configuration
+1. Financial-year, period generation, close/reopen, and year-end policy.
+2. Chart template, control-account mappings, and effective-dated configuration
    policy.
-4. Source revision/freshness rules, including VAT evidence.
-5. Overpayment, unapplied cash, refund, and payment-on-account treatment.
-6. Audit retention, deletion/anonymisation, and export policy.
-7. Backup/recovery objectives and tenant-isolation/RLS policy.
-8. Historical JSON journal validation, compatibility, migration cohort, and
+3. Source revision/freshness rules, including VAT evidence.
+4. Overpayment, unapplied cash, refund, and payment-on-account treatment.
+5. Audit retention, deletion/anonymisation, and export policy.
+6. Backup/recovery objectives and tenant-isolation/RLS policy.
+7. Historical JSON journal validation, compatibility, migration cohort, and
    cutover policy.
 
 The detailed options, recommendations, implications, and dependencies are

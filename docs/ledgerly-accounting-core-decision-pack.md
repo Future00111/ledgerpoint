@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-04 APPROVED; DEC-05 through DEC-22
+**Decision status:** DEC-01 through DEC-05 APPROVED; DEC-06 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -107,9 +107,10 @@ Living Product Decisions Register until it has been explicitly accepted.
   corrections, separate settlement/evidence concepts, the DEC-03 VAT adapter,
   journal-authoritative reporting, company-scoped capability/audit boundaries,
   and additive evidence-based compatibility and migration.
-- **Decision boundary:** DEC-05 through DEC-22 remain unresolved. This approval
-  does not approve their policy choices, physical schema, migration execution,
-  API/UI changes, or an implementation task.
+- **Decision boundary:** DEC-05 is separately approved as the capability model.
+  DEC-06 through DEC-22 remain unresolved. These approvals do not approve their
+  policy choices, physical schema, migration execution, API/UI changes, or an
+  implementation task.
 - **Accounting/data consequences:** The architecture determines canonical
   journal, period, account, payment, allocation, source, audit, and reporting
   contracts. It must not permit browser-created journal lines or generic
@@ -125,17 +126,33 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 4. Owner / Admin / Accountant / Manager / Read-only capabilities
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — DEC-05 Option B, product/architecture decision only
 - **Decision review:** [DEC-05 Capability and Approval Matrix
   Review](ledgerly-dec-05-capability-approval-review.md).
-- **Decision needed:** Approve the capability matrix. Role names alone must
-  not decide accounting authority.
+- **Approved outcome:** Option B is approved: named capabilities evaluated
+  server-side in the active company context, with active company membership and
+  conservative OWNER, ADMIN, ACCOUNTANT, MANAGER, and READ-ONLY presets.
+- **Approved principles:** Role names alone are not authoritative; permission
+  checks cannot rely solely on browser/UI controls, client-supplied roles,
+  arbitrary role strings, or hidden frontend controls; no role may edit or
+  delete a posted journal; and AI persistence requires the equivalent manual
+  action's server-side capability.
+- **Approved role boundary:** OWNER has broad authority subject to accounting
+  safety, immutability, and audit. ADMIN has no default posting,
+  reversal/correction, or period-reopen authority and requires explicit
+  auditable grants. ACCOUNTANT has normal accounting and posting authority,
+  with reasoned/audited controlled corrections. MANAGER has scoped operational
+  access and no default posting, reversal/correction, or reopen authority.
+  READ-ONLY has no mutation path.
 - **Options:**
   1. Broad role-based writes.
   2. Capability-based permissions with role presets.
   3. Per-company custom permissions at launch.
-- **Recommendation:** Use capability-based server-side permissions with
-  conservative role presets:
+- **Approved audit and migration boundary:** Consequential operations retain
+  applicable actor, company, capability, target, source, reason, approval,
+  result, request context, and audit evidence. Existing broad roles map
+  conservatively; ambiguous authority becomes a visible review exception.
+- **Role-presets detail:** The approved starting direction is:
 
   | Capability | Owner | Admin | Accountant | Manager | Read-only |
   |---|---:|---:|---:|---:|---:|
@@ -151,7 +168,8 @@ Living Product Decisions Register until it has been explicitly accepted.
   | View AI recommendations | Yes | Yes | Yes | Yes | Yes |
   | Persist AI/accounting actions | Based on matching write capability | Based on matching write capability | Based on matching write capability | Scoped | No |
 
-  `Read-only` must have no mutation path. No role may edit a posted journal.
+   `Read-only` must have no mutation path. No role may edit or delete a posted
+   journal.
   Admin defaults must not silently grant posting, reversal, or period-reopen
   authority.
 - **Accounting/data consequences:** Every mutation needs a named capability,
@@ -161,9 +179,14 @@ Living Product Decisions Register until it has been explicitly accepted.
   mapped conservatively; some users may lose accounting capabilities until
   explicitly granted.
 - **Dependencies:** Active membership enforcement, role validation, audit,
-  BL-01, BL-02, BL-19, BL-24.
-- **Explicit product decision:** Approve the proposed presets and identify
-  which capabilities, if any, should differ.
+  BL-01, BL-02, BL-19, BL-24, DEC-04, and the applicable DEC-06 through
+  DEC-22 decisions.
+- **Implementation limit:** DEC-05 approval does not authorise code, schema,
+  migrations, UI, workflows, dependencies, deployment, publishing, or an
+  implementation task. BL-06 and BL-07 remain blocked.
+- **Amendment rule:** Future capabilities and role-preset amendments must use
+  the Living Product Decisions process and must not weaken approved accounting
+  safety boundaries.
 
 ## 5. Financial-year policy
 
@@ -683,13 +706,14 @@ Implementation remains **BLOCKED** by:
 
 ## Final decision-pack status
 
-**DECISION PACK:** DEC-04 ARCHITECTURE APPROVAL RECORDED; REMAINING DECISIONS
+**DECISION PACK:** DEC-04 AND DEC-05 APPROVALS RECORDED; REMAINING DECISIONS
 REQUIRE REVIEW
 **DECISION 1:** APPROVED
 **DECISION 2:** APPROVED
 **DECISION 3:** APPROVED — S1 + A + H1
 **DECISION 4:** APPROVED — architecture only
-**DECISION 5–22:** UNRESOLVED
+**DECISION 5:** APPROVED — Option B
+**DECISION 6–22:** UNRESOLVED
 **CURRENT DECISION REGISTER:** DEC-04 APPROVAL RECORDED
 **BL-06 / BL-07 IMPLEMENTATION:** BLOCKED  
 **APPLICATION CODE CHANGED:** NO  

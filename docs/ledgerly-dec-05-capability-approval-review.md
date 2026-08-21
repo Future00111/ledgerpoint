@@ -1,15 +1,16 @@
 # DEC-05 Accounting Capability and Approval Matrix Review
 
 **Decision:** DEC-05 — Accounting capability and approval matrix
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED**
 **Review date:** 2026-08-21
+**Decision recorded:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting and security
 review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve a permission matrix,
-> implementation task, code, schema, migration, UI, workflow, dependency,
-> deployment, or publishing work.
+> This records an approved permission model as a product/architecture decision.
+> It does not approve an implementation task, code, schema, migration, UI,
+> workflow, dependency, deployment, or publishing work.
 
 ## 1. Decision question
 
@@ -106,8 +107,9 @@ The brief also establishes two minimum safety constraints:
 - `Read-only` must have no mutation path.
 - No role may edit a posted journal.
 
-The proposed matrix in the brief is a recommendation only. It is not an
-approved permission grant.
+The selected Option B model and initial role-presets direction are approved by
+DEC-05. Exact approval chains and future specialised capabilities remain
+subject to the approved capability model and later decisions.
 
 ## 4. Available options
 
@@ -186,10 +188,9 @@ The server evaluates the capability in the active company context for every
 request. Role presets are defaults, not a substitute for operation-level
 authorization.
 
-This is the current recommendation. It is not approved by this review.
+This is the option approved by DEC-05.
 
-The existing brief proposes the following starting direction for Lee to accept,
-amend, or reject:
+The approved initial role-presets direction is:
 
 | Capability | Owner | Admin | Accountant | Manager | Read-only |
 |---|---:|---:|---:|---:|---:|
@@ -205,9 +206,9 @@ amend, or reject:
 | View AI recommendations | Yes | Yes | Yes | Yes | Yes |
 | Persist AI/accounting actions | Matching write capability | Matching write capability | Matching write capability | Scoped | No |
 
-The table is a proposed baseline, not an approved matrix. `Configurable`,
-`Scoped`, and `Separate elevated grant` require explicit definitions if this
-option is selected.
+The table records the approved starting direction. `Configurable`, `Scoped`,
+and `Separate elevated grant` remain subject to the approved capability model,
+applicable later decisions, and any documented amendment before implementation.
 
 **Accounting consequences:**
 
@@ -346,35 +347,62 @@ immutable journals or other approved safety boundaries.
 - Could reduce future migration to custom permissions if chosen deliberately,
   but adds launch complexity and more testing combinations.
 
-## 5. Recommendation
+## 5. Recorded approval
 
-### RECOMMENDATION — NOT APPROVAL
+### APPROVED DECISION — OPTION B
 
-Adopt **Option B: server-side capabilities with conservative role presets**.
+Lee approved **Option B: server-side capabilities with conservative role
+presets**.
 
-The proposed starting direction is:
+The approval records these principles:
 
-- Owner can receive broad company authority, subject to the same immutable
-  journal and audit controls.
-- Accountant can perform accounting work and approved corrections, with
-  explicit reason and audit requirements for consequential actions.
-- Admin is not granted posting, reversal, or period-reopen authority by default;
-  any grant is explicit and auditable.
-- Manager receives scoped operational access and no posting, reversal, or
-  reopening authority by default.
-- Read-only can view permitted data but has no mutation path.
-- AI recommendations are viewable according to visibility rules, but AI or
-  manual persistence requires the matching write capability.
+1. Capabilities, not role names alone, are the authoritative mechanism for
+   consequential accounting permissions.
+2. Every consequential operation must be authorised server-side in the active
+   company context.
+3. Company membership must be active and company-scoped for every capability
+   evaluation.
+4. Permission checks must never rely solely on the browser/UI, client-supplied
+   role values, arbitrary role strings, or hidden frontend controls.
+5. The initial role presets are:
+   - **OWNER:** Broad company authority subject to all accounting safety,
+     immutability, and audit controls.
+   - **ADMIN:** Administrative authority. Posting, reversal/correction, and
+     period-reopen authority are not granted by default; any such capability
+     requires an explicit, auditable grant.
+   - **ACCOUNTANT:** Accounting authority including normal accounting work and
+     posting. Controlled consequential corrections require appropriate reason
+     and audit evidence. Additional elevated actions remain subject to the
+     approved capability model and later policy decisions.
+   - **MANAGER:** Scoped operational access. No posting, reversal/correction,
+     or period-reopen authority by default.
+   - **READ-ONLY:** Can view permitted information and has no mutation path.
+6. No role may edit or delete a posted journal under any circumstances.
+   Posted-journal immutability remains an independent accounting safety
+   boundary.
+7. AI recommendations do not create accounting authority. AI may recommend or
+   prepare work, but persistence of an AI-prepared or AI-assisted accounting
+   action requires the same server-side capability as the equivalent manual
+   action.
+8. Consequential operations must support appropriate actor identification,
+   company scope, capability, target, source, reason where required, approval
+   where required, result, request context, and audit evidence.
+9. Permission changes must affect future actions according to the approved
+   effective behaviour, while historical audit records retain the authority
+   context that existed when the action occurred.
+10. Existing broad roles must be migrated conservatively. Ambiguous or
+    over-broad authority must not automatically grant new consequential powers;
+    ambiguity becomes a visible review exception.
+11. Future capabilities and role-preset amendments remain possible through the
+    Living Product Decisions process, provided approved accounting safety
+    boundaries are not weakened.
 
-This is a recommendation for Lee to approve, amend, or reject. It does not
-select the exact matrix, configurable grants, approval chain, or segregation
-rules.
-
-**Why:** Option B best implements DEC-04's approved company-scoped
+**Rationale:** Option B best implements DEC-04's approved company-scoped
 server-side capability/audit boundary while keeping role presets understandable
 for small businesses. It supports least privilege, explicit approval, future
 role evolution, and safe AI hand-offs without making every company configure a
-permission system before it can operate.
+permission system before it can operate. Exact approval chains and specialised
+capabilities remain subject to later decisions and documented amendments.
 
 ## 6. Dependencies on later decisions
 
@@ -425,34 +453,31 @@ writes without named server-side capability checks. Option C conflicts if custom
 configuration can bypass the same controls. Both options can remain considered
 only within the approved DEC-04 boundary.
 
-## 8. What would become locked if DEC-05 were approved
+## 8. What DEC-05 locks
 
-The exact lock depends on Lee's selected option and amendments. At minimum,
-approval would lock:
+DEC-05 locks:
 
-1. the selected authority model: broad role mapping, role presets, or
-   per-company custom permissions;
-2. the named consequential operations that require explicit server-side
-   authorization;
-3. the active-membership and company-scope requirement for every capability
-   evaluation;
-4. the minimum read-only and posted-journal immutability boundaries;
-5. the selected role-to-capability grants or custom-grant rules;
-6. the approval, reason, freshness, and audit requirements assigned to each
-   consequential operation;
-7. how AI recommendations and AI-prepared actions inherit the matching write
-   capability; and
-8. the effective behavior for permission changes, including whether future
-   actions use the current grant while historical audit retains prior context.
-
-If Option B is approved, the selected role presets and any explicitly approved
-configurable grants would become the launch permission contract. If Option C is
-approved, the custom permission lifecycle, management authority, validation,
-and fail-closed behavior would also become part of the launch contract.
+1. Option B as the authority model: named capabilities with conservative role
+   presets, evaluated server-side in the active company context.
+2. Active membership and company scope as prerequisites for every capability
+   evaluation.
+3. The prohibition on relying solely on browser/UI controls, client-supplied
+   roles, arbitrary role strings, or hidden frontend controls.
+4. The approved initial OWNER, ADMIN, ACCOUNTANT, MANAGER, and READ-ONLY
+   role-presets direction recorded in section 5.
+5. The independent prohibition on editing or deleting posted journals.
+6. The requirement that AI-assisted persistence use the equivalent manual
+   action's server-side capability.
+7. The required actor, company, capability, target, source, reason, approval,
+   result, request-context, and audit evidence as applicable.
+8. Conservative migration of existing broad roles and visible review of
+   ambiguous authority.
+9. The approved amendment mechanism for future capabilities and role presets,
+   without weakening accounting safety boundaries.
 
 ## 9. What would remain changeable after approval
 
-DEC-05 approval would not resolve or lock:
+DEC-05 does not resolve or lock:
 
 - financial-year start and change policy;
 - period frequency, close, or reopen policy beyond the capability boundary;
@@ -493,18 +518,18 @@ the amended decision is explicitly recorded.
 
 ## 11. Decision readiness
 
-**DEC-05 is ready for a user decision.** The existing brief contains enough
-information to select, amend, or reject one of the three material options.
+**DEC-05 approval is recorded.** Option B and the initial role-presets
+direction are selected. Exact approval chains and specialised capabilities can
+be refined through later decisions or the amendment path before implementation
+approval.
 
-If Lee wants a bespoke matrix, the requested differences should be recorded as
-amendments to the proposed Option B baseline or as an explicit selection of
-Option C. No further technical information is required to decide the
-architectural direction, but exact capability names, grants, approval chains,
-and effective-date details must be recorded before implementation approval.
+Any future change to the approved model must be recorded as an amendment to
+DEC-05 through the Living Product Decisions process. No implementation task may
+use an unrecorded change.
 
 ## 12. Decision-only status
 
-**DEC-05:** **REQUIRES USER DECISION**
+**DEC-05:** **APPROVED — Option B, architecture/product decision only**
 **DEC-06 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
 **DEC-04:** **APPROVED — architecture only**
 **BL-06 / BL-07:** **BLOCKED**

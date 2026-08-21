@@ -146,17 +146,18 @@ not higher authority.
   journal-authoritative reporting with rebuildable projections; company-scoped
   server-side capability/audit boundaries; and additive, evidence-based
   compatibility and migration architecture.
-- **Deliberate non-locks:** DEC-05 through DEC-22 remain unresolved. DEC-04
-  does not select the capability matrix, financial year, periods, year-end,
-  chart/control-account defaults, configuration versioning, source-freshness,
-  payment/refund treatment, retention, deletion, export, backup/recovery, RLS,
-  historical migration cohort, cutover, or rollback policy.
+- **Deliberate non-locks:** DEC-05 was separately approved as the capability
+  model. DEC-06 through DEC-22 remain unresolved. DEC-04 does not select the
+  financial year, periods, year-end, chart/control-account defaults,
+  configuration versioning, source-freshness, payment/refund treatment,
+  retention, deletion, export, backup/recovery, RLS, historical migration
+  cohort, cutover, or rollback policy.
 - **Reason:** The architecture supplies a safe, authoritative accounting
   foundation while preserving explicit product-owner decisions for policies
   that affect operations, compliance, access, and migration.
 - **Impact:** Future specifications must conform to this accounting authority;
   current implementation remains evidence, not an approved target.
-- **Dependencies:** DEC-02 and DEC-03. The applicable DEC-05 through DEC-22
+- **Dependencies:** DEC-02 and DEC-03. The applicable DEC-06 through DEC-22
   decisions remain required before implementation approval.
 - **What it affects:** Accounting sources, journals, payments, allocations,
   banking, VAT, reports, permissions, audit, compatibility, migration, and
@@ -177,31 +178,44 @@ not higher authority.
 
 ### DEC-05 — Accounting capability and approval matrix
 
-- **Status:** REQUIRES USER DECISION
-- **Current decision/direction:** Decide the company-scoped server-side
-  capability and approval model for viewing, drafting, approving, posting,
+- **Status:** APPROVED — product/architecture decision only
+- **Current decision/direction:** Option B is approved: company-scoped
+  server-side capabilities with conservative OWNER, ADMIN, ACCOUNTANT, MANAGER,
+  and READ-ONLY role presets for viewing, drafting, approving, posting,
   reversing/correcting, closing/reopening periods, editing the chart, changing
   accounting configuration, and persisting AI/accounting actions.
 - **Decision review:** [DEC-05 Capability and Approval Matrix
   Review](ledgerly-dec-05-capability-approval-review.md).
-- **Options:** Broad role-based writes; server-side capabilities with
-  conservative Owner, Admin, Accountant, Manager, and Read-only presets; or
-  per-company custom permissions at launch.
-- **Recommendation:** Server-side capabilities with conservative role presets.
-  This is a recommendation only and is not approved.
-- **Constraints:** Read-only must have no mutation path; no role may edit a
-  posted journal; inactive members and cross-company actions must be rejected;
-  and AI persistence must use the matching write capability.
+- **Approved principles:** Capabilities, not role names alone, are authoritative
+  for consequential permissions. Every consequential operation is authorised
+  server-side in the active company context, with active company membership.
+  Permission checks cannot rely solely on browser/UI controls, client-supplied
+  roles, arbitrary role strings, or hidden frontend controls.
+- **Role presets:** OWNER has broad authority subject to safety, immutability,
+  and audit controls. ADMIN has no default posting, reversal/correction, or
+  period-reopen authority and requires explicit auditable grants. ACCOUNTANT
+  has normal accounting and posting authority; controlled consequential
+  corrections require reason and audit evidence. MANAGER has scoped operational
+  access and no default posting, reversal/correction, or period-reopen
+  authority. READ-ONLY has no mutation path.
+- **Safety and AI boundary:** No role may edit or delete a posted journal.
+  AI recommendations do not create authority; AI-assisted persistence requires
+  the equivalent manual action's server-side capability.
+- **Audit and migration:** Consequential operations retain applicable actor,
+  company, capability, target, source, reason, approval, result, request
+  context, and audit evidence. Existing broad roles map conservatively, with
+  ambiguous authority becoming a visible review exception.
 - **Dependencies:** DEC-04 and the applicable DEC-06 through DEC-22 decisions.
-- **Impact:** The selected model will define the server-side permission,
-  approval, audit, migration, compatibility, reporting-access, and backlog
-  boundaries for consequential accounting actions.
+- **Impact:** The approved model defines the server-side permission, approval,
+  audit, migration, compatibility, reporting-access, and backlog boundaries for
+  consequential accounting actions.
 - **Change authority:** Product owner/stakeholder with accounting and security
-  review through the Living Product Decisions process. DEC-05 remains
-  **REQUIRES USER DECISION** until explicitly approved, amended, or rejected.
-- **Implementation limit:** No code, schema, migration, UI, workflow,
-  dependency, deployment, publishing, or implementation task is authorised by
-  this unresolved decision.
+  review through the Living Product Decisions process. Future capabilities or
+  role-preset changes must not weaken approved accounting safety boundaries.
+- **Implementation limit:** This approval authorises architecture/product
+  direction only. It does not authorise code, schema, migration, UI, workflow,
+  dependency, deployment, publishing, or an implementation task. BL-06 and
+  BL-07 remain blocked.
 
 ### PD-01 — Product name
 

@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–4 approved; DEC-05 through DEC-22 require
+**Register status:** Decisions 1–5 approved; DEC-06 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -136,10 +136,11 @@ to the accounting core.
   journal-authoritative reporting with rebuildable projections; company-scoped
   server-side capability/audit boundaries; and additive, evidence-based
   compatibility and migration.
-- **Decision boundary:** DEC-05 through DEC-22 remain separate unresolved
-  decisions. This approval selects no period, chart, control-account,
-  capability, payment-treatment, retention, RLS, migration-cohort, cutover,
-  schema, API, or implementation policy reserved to those decisions.
+- **Decision boundary:** DEC-05 was separately approved as the capability
+  model. DEC-06 through DEC-22 remain separate unresolved decisions. DEC-04
+  selects no period, chart, control-account, payment-treatment, retention, RLS,
+  migration-cohort, cutover, schema, API, or implementation policy reserved to
+  those decisions.
 - **Accounting implications:** Establishes the canonical journal, posting,
   payment, allocation, source, audit, VAT-adapter, and reporting authority
   contracts; the remaining policy decisions refine how those contracts operate.
@@ -165,28 +166,45 @@ to the accounting core.
 
 ### DEC-05 — Accounting capability and approval matrix
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/architecture decision only
 - **Decision review:** [DEC-05 Capability and Approval Matrix
   Review](ledgerly-dec-05-capability-approval-review.md).
-- **Decision:** Approve who may view, draft, approve, post, reverse/correct,
-  close/reopen periods, edit the chart, and change accounting configuration.
-- **Options available:** (a) broad role-based writes; (b) capability-based
-  permissions with role presets; or (c) per-company custom permissions at
-  launch.
-- **Replit's recommendation:** Capability-based server-side permissions with
-  conservative Owner, Admin, Accountant, Manager, and Read-only presets.
-- **Why it is recommended:** Role names alone do not establish accounting
-  authority or segregation of duties.
-- **Accounting implications:** Controls every consequential mutation and
-  preserves explicit actor, approval, correction, and audit boundaries.
-- **Data/schema implications:** Requires validated role/capability values,
-  membership scoping, protected mutation contracts, and authorization evidence.
-- **Migration implications:** Existing users and broad roles need conservative
-  mapping; deactivated members must lose access immediately.
-- **Backlog implications:** Gates BL-01, BL-02, BL-03, BL-06, BL-07, BL-19, and
-  BL-24.
-- **Dependency:** DEC-02 and DEC-04; it must precede posting and period-control
-  implementation.
+- **Decision:** Option B is approved: server-side capabilities with
+  conservative OWNER, ADMIN, ACCOUNTANT, MANAGER, and READ-ONLY role presets.
+- **Approved principles:** Capabilities, not role names alone, authorise
+  consequential accounting actions; every operation is checked server-side in
+  the active company context; membership is active and company-scoped; checks
+  cannot rely solely on browser/UI controls, client-supplied roles, arbitrary
+  role strings, or hidden controls; posted journals cannot be edited or
+  deleted; and AI persistence requires the equivalent manual capability.
+- **Role boundary:** OWNER has broad authority subject to safety, immutability,
+  and audit controls. ADMIN has no default posting, reversal/correction, or
+  period-reopen authority. ACCOUNTANT has normal accounting and posting
+  authority, with reasoned/audited controlled corrections. MANAGER has scoped
+  operational access and no default posting, reversal/correction, or reopen
+  authority. READ-ONLY has no mutation path.
+- **Audit and migration:** Consequential operations retain applicable actor,
+  company, capability, target, source, reason, approval, result, request
+  context, and audit evidence. Existing broad roles map conservatively, and
+  ambiguous authority becomes a visible review exception.
+- **Accounting implications:** Controls consequential mutations and preserves
+  explicit actor, approval, correction, immutability, and audit boundaries.
+- **Data/schema implications:** Requires validated capability identifiers,
+  active membership and company scoping, protected mutation contracts, and
+  authorization evidence.
+- **Migration implications:** Existing broad roles require conservative mapping;
+  permission changes apply to future actions while historical audit retains its
+  original authority context.
+- **Backlog implications:** Defines the intended BL-02 role/capability
+  contract and the permission boundary for BL-01, BL-03, BL-06, BL-07, BL-19,
+  and BL-24. This does not approve any implementation item.
+- **Dependencies:** DEC-04 and applicable DEC-06 through DEC-22 decisions.
+- **Implementation limit:** DEC-05 does not authorise an implementation task,
+  code, schema, migration, UI, workflow, dependency, deployment, or publishing.
+  BL-06 and BL-07 remain blocked.
+- **Amendment rule:** Future capabilities or role-preset changes must be
+  recorded through the Living Product Decisions process and must not weaken
+  approved accounting safety boundaries.
 
 ### DEC-06 — Financial-year start and change policy
 

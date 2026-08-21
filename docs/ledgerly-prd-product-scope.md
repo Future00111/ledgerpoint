@@ -83,7 +83,7 @@ approve each one for launch or authorise implementation:
 
 | Capability area | Product intent supported by existing documentation | Current decision state |
 | --- | --- | --- |
-| Accounting foundation | Authoritative financial records, controlled corrections, periods, configuration, and reporting. | **REQUIRES USER DECISION** for the BL-06/BL-07 accounting-core design and policies. |
+| Accounting foundation | Authoritative financial records, controlled corrections, periods, configuration, and reporting. | DEC-04 architecture and DEC-05 capability model approved; remaining BL-06/BL-07 policies are **REQUIRES USER DECISION**. |
 | Sales and purchases | Invoices, bills, payments, and related customer/supplier workflows are in the approved initial scope; credit-note and detailed allocation lifecycle remains **REQUIRES USER DECISION**. | DEC-02 approved; detailed lifecycle depends on later accounting decisions. |
 | Banking and reconciliation | Banking and reconciliation are in the approved initial scope. | DEC-02 approved; live banking/feed scope remains **REQUIRES USER DECISION**. |
 | VAT | UK Standard VAT Scheme on invoice basis, controlled corrections, and supported VAT-return preparation/export are in the approved initial scope. | DEC-03 approved. Direct HMRC filing and all specialist schemes/treatments remain future scope. |
@@ -120,7 +120,8 @@ be approved:
 3. Additional product capabilities beyond the approved initial scope.
 4. Additional VAT schemes, specialist adjustments, or direct MTD/HMRC filing
    beyond the approved DEC-03 scope.
-5. The role/capability model for consequential accounting actions.
+5. Any amendment or specialised capability/approval rule beyond the approved
+   DEC-05 model.
 6. The financial-year, period close/reopen, and year-end policy.
 7. The chart template, control-account mappings, and configuration versioning.
 8. Source freshness, overpayment, unapplied cash, refund, and
@@ -132,7 +133,8 @@ be approved:
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix
 Review](ledgerly-dec-05-capability-approval-review.md) are the detailed
-decision records for item 5 and items 5–10 as they affect BL-06 and BL-07.
+decision records for the approved DEC-05 boundary and unresolved items 6–10 as
+they affect BL-06 and BL-07.
 
 ## Scope governance
 

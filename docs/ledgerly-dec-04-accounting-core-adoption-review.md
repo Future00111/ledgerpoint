@@ -77,8 +77,10 @@ DEC-04 approves:
    boundary in this review;
 3. DEC-03 as the authoritative deterministic VAT service through a traceable
    adapter; and
-4. the requirement that DEC-05 through DEC-22 remain separate, unresolved
-   decisions.
+4. the requirement that DEC-05 through DEC-22 remain separate decisions.
+
+DEC-05 was subsequently approved through its own decision record. DEC-06
+through DEC-22 remain unresolved.
 
 DEC-04 does not approve implementation, an implementation task, or any policy
 reserved to a subsequent decision.
@@ -692,7 +694,7 @@ Approval permits the architecture to constrain future specifications; it does
 not permit implementation to start. Before any code or schema work, the project
 still needs:
 
-1. explicit DEC-05–DEC-22 decisions where they affect the selected design;
+1. explicit DEC-06–DEC-22 decisions where they affect the selected design;
 2. an approved implementation task for BL-06/BL-07;
 3. additive schema and compatibility design;
 4. source freshness, period, chart, account, and capability contracts;
@@ -722,6 +724,9 @@ architecture review. An amendment must identify accounting, data/schema,
 migration, reporting, compatibility, security/audit, dependency, and backlog
 consequences before any implementation direction changes.
 
+**Later decision status:** DEC-05 was approved separately as the capability
+model. This historical DEC-04 approval record does not keep DEC-05 unresolved.
+
 ## 10. Decision summary
 
 | Item | Decision-only conclusion |
@@ -729,12 +734,13 @@ consequences before any implementation direction changes.
 | **DEC-04 status** | **APPROVED — architecture only** |
 | **Approved architecture** | Option A: adopt the existing review as the accounting-core foundation within the Technical Architecture, with targeted amendments |
 | **Actually locked by approval** | Canonical normalized append-only journals; atomic server-side double-entry posting; integer minor units; source-linked company-scoped idempotency; immutable corrections; separate payments/allocations/bank evidence; deterministic VAT adapter; journal-authoritative reporting; capability/company/audit boundaries; additive compatibility |
-| **Deliberately left open** | DEC-05 through DEC-22 policies, exact chart/mappings, periods/year-end, roles, retention/RLS, migration cohort/cutover, API/schema names, providers, and implementation sequencing |
-| **Dependencies** | DEC-05 through DEC-22 as applicable; BL-01–05, BL-06–10, BL-12–17, BL-19, BL-23–26 |
+| **Deliberately left open** | DEC-06 through DEC-22 policies, exact chart/mappings, periods/year-end, role-preset refinements, retention/RLS, migration cohort/cutover, API/schema names, providers, and implementation sequencing |
+| **Dependencies** | DEC-06 through DEC-22 as applicable; BL-01–05, BL-06–10, BL-12–17, BL-19, BL-23–26 |
 | **Implementation consequence** | Architecture constrains future specifications; no implementation, migration, or task is authorised by this review |
-| **Next approvals required** | The applicable DEC-05 through DEC-22 decisions, then an approved implementation task |
+| **Next approvals required** | The applicable DEC-06 through DEC-22 decisions, then an approved implementation task |
 
 **DEC-04 status:** **APPROVED — architecture only**
-**DEC-05 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
+**DEC-05:** **APPROVED — separate capability-model decision**
+**DEC-06 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application-path changes:** **NONE**
