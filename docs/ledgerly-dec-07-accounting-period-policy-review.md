@@ -794,7 +794,8 @@ Until DEC-07 is approved or amended:
 - DEC-08 and all later decisions remain untouched and unresolved.
 
 **DEC-07:** **APPROVED — product/accounting policy only**
-**DEC-08 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-08:** **APPROVED — reporting-only year-end policy only**
+**DEC-09 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application code changed by this review:** **NO**  
 **Database or migrations changed by this review:** **NO**

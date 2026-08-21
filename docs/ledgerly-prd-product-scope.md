@@ -122,23 +122,12 @@ be approved:
    beyond the approved DEC-03 scope.
 5. Any amendment or specialised capability/approval rule beyond the approved
    DEC-05 model.
-6. The year-end policy. The financial-year policy is approved through DEC-06
-   and the accounting-period policy through DEC-07. The [DEC-08 Year-End
-   Treatment and Financial-Year Transition
-   Review](ledgerly-dec-08-year-end-treatment-review.md) records the
-   recommendation but remains unresolved. The [DEC-07
-   Accounting-Period Policy
-   Review](ledgerly-dec-07-accounting-period-policy-review.md) records that
-   approval. The
-   [DEC-06 Financial-Year Policy
-   Review](ledgerly-dec-06-financial-year-policy-review.md) records that
-   approval.
-7. The chart template, control-account mappings, and configuration versioning.
-8. Source freshness, overpayment, unapplied cash, refund, and
+6. The chart template, control-account mappings, and configuration versioning.
+7. Source freshness, overpayment, unapplied cash, refund, and
    payment-on-account treatment.
-9. Audit retention, deletion/anonymisation, export, backup/recovery, and tenant
+8. Audit retention, deletion/anonymisation, export, backup/recovery, and tenant
    isolation policy.
-10. Legacy accounting-data compatibility, migration cohort, and cutover policy.
+9. Legacy accounting-data compatibility, migration cohort, and cutover policy.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix

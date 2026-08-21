@@ -24,12 +24,15 @@ posting, historical boundaries cannot be rebased through ordinary settings, and
 changes require privileged audit controls. DEC-07 approves contiguous
 company-scoped monthly periods, automated generation, OPEN/CLOSED states,
 server-side posting-date assignment, audited close/reopen, and no direct
-closed-period posting bypass. DEC-08 through DEC-22 remain unresolved, and
-BL-06/BL-07 remain blocked pending the applicable decisions and an approved
-implementation task. Do not implement backlog items or publish Ledgerly until
-the user has reviewed and selected the next roadmap task. Treat the Living
-Product Decisions Register as the revisitable product-direction record below
-the Master Backlog; it never authorises implementation on its own.
+closed-period posting bypass. DEC-08 approves reporting-only year-end
+treatment: no automatic closing or retained-earnings journals, canonical
+history remains unchanged, and completion is an auditable derived condition.
+DEC-09 through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked pending
+the applicable decisions and an approved implementation task. Do not implement
+backlog items or publish Ledgerly until the user has reviewed and selected the
+next roadmap task. Treat the Living Product Decisions Register as the
+revisitable product-direction record below the Master Backlog; it never
+authorises implementation on its own.
 
 **Why:** The existing technical foundation and phase work do not demonstrate
 complete, end-to-end product workflows; the user explicitly requires

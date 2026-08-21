@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–7 approved; DEC-08 through DEC-22 require
+**Register status:** Decisions 1–8 approved; DEC-09 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -198,7 +198,7 @@ to the accounting core.
 - **Backlog implications:** Defines the intended BL-02 role/capability
   contract and the permission boundary for BL-01, BL-03, BL-06, BL-07, BL-19,
   and BL-24. This does not approve any implementation item.
-- **Dependencies:** DEC-04, DEC-06, and applicable DEC-08 through DEC-22
+- **Dependencies:** DEC-04, DEC-06, and applicable DEC-09 through DEC-22
   decisions.
 - **Implementation limit:** DEC-05 does not authorise an implementation task,
   code, schema, migration, UI, workflow, dependency, deployment, or publishing.
@@ -243,7 +243,7 @@ to the accounting core.
   assignment; missing or ambiguous dates require review.
 - **Backlog implications:** Gates BL-07 and BL-17 and affects BL-06, BL-08,
   BL-13, and BL-15.
-- **Dependency:** DEC-04 and DEC-05; DEC-08 remains a separate decision.
+- **Dependency:** DEC-04, DEC-05, and approved DEC-08 year-end policy.
 - **Implementation limit:** DEC-06 is a product/accounting-policy approval
   only. It does not authorise code, schema, migration, UI, workflow,
   dependency, deployment, publishing, or an implementation task. BL-06 and
@@ -287,7 +287,7 @@ to the accounting core.
   using available evidence; ambiguous information remains an explicit
   migration limitation.
 - **Backlog implications:** Gates BL-06, BL-07, BL-15, BL-17, and BL-24.
-- **Dependency:** DEC-05 and DEC-06; DEC-08 remains separate.
+- **Dependency:** DEC-05, DEC-06, and approved DEC-08 year-end policy.
 - **Implementation limit:** DEC-07 is a product/accounting-policy approval
   only. It does not authorise code, schema, migration, UI, workflow,
   dependency, deployment, publishing, or an implementation task. BL-06 and
@@ -298,17 +298,37 @@ to the accounting core.
 
 ### DEC-08 — Year-end treatment
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-08 Year-End Treatment and Financial-Year
   Transition Review](ledgerly-dec-08-year-end-treatment-review.md).
-- **Decision:** Decide whether year-end is a reporting boundary only or creates
-  explicit closing entries.
-- **Options available:** (a) automatic retained-earnings journal; (b) explicit
-  approved closing journal; or (c) reporting-only treatment initially.
-- **Replit's recommendation:** Use reporting-only boundaries initially and do
-  not create automatic closing journals.
-- **Why it is recommended:** It avoids inventing unsupported historical entries
-  and keeps year-end effects reviewable until a complete closing model exists.
+- **Decision:** Use reporting-only year-end treatment at launch.
+- **Approved year-end method:** Financial-year boundaries affect reporting and
+  financial-year presentation without mutating canonical journal history. Do
+  not automatically create closing journals, retained-earnings transfer
+  journals, or artificial year-end postings.
+- **Approved account/reporting boundary:** Revenue, cost of sales, and expenses
+  are temporary for financial-year reporting. Assets, liabilities, and equity
+  continue across years. Current/prior-year results and any accumulated-results
+  or retained-earnings presentation derive authoritatively from canonical
+  records and remain traceable; reports do not manufacture journals.
+- **Approved completion boundary:** All DEC-07 periods in a financial year must
+  be closed before year-end review/completion. Completion is a derived condition
+  plus an auditable review/completion event, not a separate overlapping
+  accounting-period state.
+- **Approved validation and authority boundary:** Drafts, unallocated payments,
+  unreconciled banking, and ordinary VAT timetable differences are visible
+  warnings unless another policy later decides otherwise. Accounting or VAT
+  integrity failures can block completion. Year-end actions require DEC-05
+  active membership, company scope, server-side capability enforcement,
+  appropriate authority, and audit evidence.
+- **Approved correction and VAT boundary:** Post-year-end errors use controlled
+  period reopen, explicit correction/reversal, or an approved later-period
+  adjustment. They must not rewrite history, silently change dates or financial
+  years, or overwrite balances. DEC-03 remains the sole VAT authority.
+- **Approved migration/future boundary:** Migration must not invent closing
+  journals, retained-earnings postings, approvals, year-end events, dates, or
+  accounting facts. Explicit closing/retained-earnings journals remain possible
+  only through a later approved decision and normal canonical posting controls.
 - **Accounting implications:** Determines treatment of P&L, retained earnings,
   balance-sheet carry-forward, reopening, and year-end corrections.
 - **Data/schema implications:** If closing entries are approved, they require an
@@ -316,7 +336,15 @@ to the accounting core.
 - **Migration implications:** Historical closing entries must not be
   reconstructed where evidence is missing.
 - **Backlog implications:** Gates BL-06, BL-07, and BL-17.
-- **Dependency:** DEC-06 and DEC-07, plus the adopted architecture in DEC-04.
+- **Dependency:** DEC-04, DEC-05, DEC-06, and DEC-07; DEC-09 onward remains
+  separate.
+- **Implementation limit:** DEC-08 is a product/accounting-policy approval
+  only. It does not authorise code, schema, migration, UI, workflow,
+  dependency, deployment, publishing, or an implementation task. BL-06 and
+  BL-07 remain blocked.
+- **Amendment rule:** Future changes must use the Living Product Decisions
+  process and preserve DEC-03 VAT authority, DEC-04 immutable journals, DEC-05
+  capability/audit controls, and DEC-06/DEC-07 identities.
 
 ### DEC-09 — Default chart of accounts and template
 

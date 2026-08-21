@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-07 APPROVED; DEC-08 through DEC-22
+**Decision status:** DEC-01 through DEC-08 APPROVED; DEC-09 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -109,7 +109,8 @@ Living Product Decisions Register until it has been explicitly accepted.
   and additive evidence-based compatibility and migration.
 - **Decision boundary:** DEC-05, DEC-06, and DEC-07 are separately approved as
   the capability model, financial-year policy, and accounting-period policy.
-  DEC-08 through DEC-22 remain unresolved. These approvals do not approve
+  DEC-08 is separately approved as the reporting-only year-end policy. DEC-09
+  through DEC-22 remain unresolved. These approvals do not approve
   their policy choices, physical schema, migration execution, API/UI changes,
   or an implementation task.
 - **Accounting/data consequences:** The architecture determines canonical
@@ -245,20 +246,22 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 7. Year-end treatment
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — DEC-08, product/accounting policy only
 - **Decision review:** [DEC-08 Year-End Treatment and Financial-Year
   Transition Review](ledgerly-dec-08-year-end-treatment-review.md).
-- **Decision needed:** Decide whether year-end creates an explicit closing
-  journal or uses reporting-only year boundaries initially.
-- **Options:**
-  1. Automatic closing journal to retained earnings.
-  2. Explicit user-approved closing journal.
-  3. No closing journal initially; reports apply year boundaries and retain
-     posted history unchanged.
-- **Recommendation:** Do not create an automatic year-end journal in the first
-  core build. Use explicit period/report boundaries and preserve history.
-  Add an explicit, approved closing journal only when accounting policy and
-  retained-earnings treatment are defined.
+- **Approved outcome:** Use reporting-only year-end treatment at launch. Do not
+  automatically create closing journals, retained-earnings transfers, or
+  artificial year-end postings. Financial-year boundaries change reporting and
+  presentation without mutating canonical history.
+- **Approved completion/correction outcome:** All DEC-07 periods must be closed
+  before an auditable year-end review/completion event. No separate overlapping
+  period state is created. Corrections use controlled reopen, explicit
+  correction/reversal, or approved later-period adjustment without rewriting
+  history.
+- **Approved reporting/migration outcome:** Temporary-account results derive
+  from canonical reporting; permanent balances continue. Migration cannot invent
+  closing journals, retained-earnings postings, approvals, events, dates, or
+  accounting facts. Explicit closing journals require a later approved policy.
 - **Accounting/data consequences:** P&L, balance sheet, retained earnings,
   reopening, and year-end reports must agree. No year-end process may delete or
   rewrite prior journals.
@@ -267,8 +270,9 @@ Living Product Decisions Register until it has been explicitly accepted.
   and validated.
 - **Dependencies:** Financial-year policy, periods, chart defaults, reporting,
   correction policy, BL-06, BL-07, BL-17.
-- **Explicit product decision:** Choose reporting-only initial treatment or
-  require an explicit closing-journal workflow at launch.
+- **Implementation limit:** DEC-08 does not authorise code, schema, migration,
+  UI, workflow, dependency, deployment, publishing, or an implementation task.
+  BL-06 and BL-07 remain blocked.
 
 ## 8. Default UK small-business chart of accounts
 
@@ -698,7 +702,6 @@ Implementation remains **BLOCKED** by:
 - unresolved accounting-core design adoption, subject to the approved DEC-03
   VAT constraints;
 - unresolved capability matrix and elevated accounting permissions;
-- unresolved year-end policy;
 - unresolved chart template and control-account mappings;
 - unresolved source freshness/version contract;
 - unresolved overpayment, unapplied cash, refund, and payment-on-account
@@ -711,7 +714,7 @@ Implementation remains **BLOCKED** by:
 
 ## Final decision-pack status
 
-**DECISION PACK:** DEC-04 AND DEC-05 APPROVALS RECORDED; REMAINING DECISIONS
+**DECISION PACK:** DEC-04 THROUGH DEC-08 APPROVALS RECORDED; REMAINING DECISIONS
 REQUIRE REVIEW
 **DECISION 1:** APPROVED
 **DECISION 2:** APPROVED
@@ -720,8 +723,9 @@ REQUIRE REVIEW
 **DECISION 5:** APPROVED — Option B
 **DECISION 6:** APPROVED — financial-year policy
 **DECISION 7:** APPROVED — accounting-period policy
-**DECISION 8–22:** UNRESOLVED
-**CURRENT DECISION REGISTER:** DEC-04, DEC-05, DEC-06, AND DEC-07 APPROVALS RECORDED
+**DECISION 8:** APPROVED — reporting-only year-end policy
+**DECISION 9–22:** UNRESOLVED
+**CURRENT DECISION REGISTER:** DEC-04 THROUGH DEC-08 APPROVALS RECORDED
 **BL-06 / BL-07 IMPLEMENTATION:** BLOCKED  
 **APPLICATION CODE CHANGED:** NO  
 **DATABASE OR MIGRATIONS CHANGED:** NO  

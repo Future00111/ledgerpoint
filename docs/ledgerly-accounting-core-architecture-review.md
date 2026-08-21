@@ -452,11 +452,12 @@ or re-run. It must not silently rewrite prior journals.
 
 ### Year-end behaviour
 
-Year-end must not delete, rewrite, or automatically rebalance accounting
-history. Initially, the system should carry retained earnings/reporting
-behaviour through controlled reporting rules. Any explicit year-end closing
-journal should be a separately approved workflow with its own source, period,
-idempotency, and audit record.
+DEC-08 approves reporting-only year-end treatment at launch. Year-end must not
+delete, rewrite, or automatically rebalance accounting history. Current/prior
+results and retained-earnings presentation derive through controlled reporting
+rules unless canonical equity postings exist. Any explicit year-end closing
+journal remains a separately approved future workflow with its own source,
+period, idempotency, and audit record.
 
 ## 10. Posting lifecycle
 
@@ -1118,7 +1119,9 @@ browser coverage for at least:
   payment posting.
 - Missing foreign keys, uniqueness, and company-safe relationships could
   weaken tenant isolation.
-- Period-close and year-end policy is not yet approved.
+- Period-close policy is approved through DEC-07 and reporting-only year-end
+  policy through DEC-08; implementation remains blocked pending later
+  decisions and an approved task.
 
 ### Medium
 

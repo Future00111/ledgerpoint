@@ -22,9 +22,10 @@ direction but does not authorise implementation. The product gap analysis and
 feature matrix are supporting evidence, not authority over this hierarchy.
 Existing code is evidence of current behaviour, not product authority. DEC-04
 approves the BL-06/BL-07 accounting-core architecture foundation, DEC-05
-approves the capability model, DEC-06 approves the financial-year policy, and
-DEC-07 approves the accounting-period policy; all are
-architecture/product/accounting-policy decisions only. DEC-08 through DEC-22
+approves the capability model, DEC-06 approves the financial-year policy,
+DEC-07 approves the accounting-period policy, and DEC-08 approves the
+reporting-only year-end policy; all are
+architecture/product/accounting-policy decisions only. DEC-09 through DEC-22
 remain unresolved, and BL-06/BL-07 remain blocked until
 the applicable decisions and an implementation task are explicitly approved.
 Do not choose roadmap scope or silently change a recorded decision autonomously.

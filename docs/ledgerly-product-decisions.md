@@ -146,12 +146,13 @@ not higher authority.
   journal-authoritative reporting with rebuildable projections; company-scoped
   server-side capability/audit boundaries; and additive, evidence-based
   compatibility and migration architecture.
-- **Deliberate non-locks:** DEC-05, DEC-06, and DEC-07 were separately approved
-  as the capability model, financial-year policy, and accounting-period policy.
-  DEC-08 through DEC-22 remain unresolved. DEC-04 does not select year-end,
-  chart/control-account defaults, configuration versioning, source-freshness,
-  payment/refund treatment, retention, deletion, export, backup/recovery, RLS,
-  historical migration cohort, cutover, or rollback policy.
+- **Deliberate non-locks:** DEC-05, DEC-06, DEC-07, and DEC-08 were separately
+  approved as the capability model, financial-year policy, accounting-period
+  policy, and reporting-only year-end policy. DEC-09 through DEC-22 remain
+  unresolved. DEC-04 does not select chart/control-account defaults,
+  configuration versioning, source-freshness, payment/refund treatment,
+  retention, deletion, export, backup/recovery, RLS, historical migration
+  cohort, cutover, or rollback policy.
 - **Reason:** The architecture supplies a safe, authoritative accounting
   foundation while preserving explicit product-owner decisions for policies
   that affect operations, compliance, access, and migration.
@@ -276,21 +277,28 @@ not higher authority.
 
 ### DEC-08 — Year-end treatment and financial-year transition
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-08 Year-End Treatment and Financial-Year
   Transition Review](ledgerly-dec-08-year-end-treatment-review.md).
-- **Current decision/direction:** Decide whether year-end is a reporting
-  boundary only, creates an explicit closing journal, or uses a controlled
-  hybrid approach.
-- **Recommendation:** Use reporting-only year-end treatment at launch, with no
-  automatic closing journal. Preserve canonical journal continuity, derive
-  current/prior-year reporting from posted records, and add an explicit
-  source-linked closing-journal workflow only through a later approved policy.
-- **Boundary:** Year-end must not delete, rewrite, reclassify, or invent
-  posted journals, retained earnings, historical approvals, or accounting facts.
-  DEC-03 VAT authority, DEC-06 financial-year identity, and DEC-07 period
-  controls remain authoritative.
-- **Implementation limit:** This review and unresolved decision do not
+- **Approved direction:** Use reporting-only year-end treatment at launch with
+  no automatic closing journal, retained-earnings transfer, or artificial
+  year-end posting. Financial-year boundaries affect authoritative reporting
+  and presentation without mutating canonical journal history.
+- **Approved completion/authority boundary:** All DEC-07 periods in the
+  financial year must be closed before year-end review/completion. Completion is
+  a derived condition plus an auditable event, not a separate accounting-period
+  state. It requires DEC-05 active membership, company scope, server-side
+  capability enforcement, appropriate authority, and audit evidence.
+- **Approved reporting/correction boundary:** Temporary-account P&L and
+  current/prior-year results derive from canonical records; permanent assets,
+  liabilities, and equity continue across years. Corrections use controlled
+  reopen, explicit reversal/correction, or approved later-period adjustment,
+  never history rewriting or silent reassignment.
+- **Boundary:** DEC-03 remains the sole VAT authority. Migration must not
+  invent closing journals, retained-earnings postings, approvals, year-end
+  events, dates, or accounting facts. Explicit year-end journals remain a
+  separately approved future policy.
+- **Implementation limit:** DEC-08 is an approved policy only. It does not
   authorise code, schema, migration, UI, workflow, dependency, deployment,
   publishing, or an implementation task. BL-06 and BL-07 remain blocked.
 

@@ -37,9 +37,9 @@ Future specifications must preserve the DEC-04 architectural invariants:
 - company-scoped server-side capability and audit boundaries; and
 - additive, evidence-based compatibility and migration.
 
-DEC-04, DEC-05, DEC-06, and DEC-07 are architecture/product/accounting-policy
+DEC-04, DEC-05, DEC-06, DEC-07, and DEC-08 are architecture/product/accounting-policy
 approvals only. They do not approve an implementation task or resolve any
-DEC-08 through DEC-22 policy.
+DEC-09 through DEC-22 policy.
 
 ## Architecture obligations derived from governance
 
@@ -99,24 +99,13 @@ merely because it exists today.
 DEC-05 is approved separately. The following remain **REQUIRES USER DECISION**
 before BL-06 or BL-07 can be approved for implementation:
 
-1. Year-end policy. Financial-year policy is approved through DEC-06 and
-   accounting-period policy is approved through DEC-07. The [DEC-08 Year-End
-   Treatment and Financial-Year Transition
-   Review](ledgerly-dec-08-year-end-treatment-review.md) records the
-   recommendation but remains unresolved. See the
-   [DEC-07 Accounting-Period Policy
-   Review](ledgerly-dec-07-accounting-period-policy-review.md) for the
-   approved period boundary and
-   the [DEC-06 Financial-Year Policy
-   Review](ledgerly-dec-06-financial-year-policy-review.md) for the
-   approved financial-year boundary.
-2. Chart template, control-account mappings, and effective-dated configuration
+1. Chart template, control-account mappings, and effective-dated configuration
    policy.
-3. Source revision/freshness rules, including VAT evidence.
-4. Overpayment, unapplied cash, refund, and payment-on-account treatment.
-5. Audit retention, deletion/anonymisation, and export policy.
-6. Backup/recovery objectives and tenant-isolation/RLS policy.
-7. Historical JSON journal validation, compatibility, migration cohort, and
+2. Source revision/freshness rules, including VAT evidence.
+3. Overpayment, unapplied cash, refund, and payment-on-account treatment.
+4. Audit retention, deletion/anonymisation, and export policy.
+5. Backup/recovery objectives and tenant-isolation/RLS policy.
+6. Historical JSON journal validation, compatibility, migration cohort, and
    cutover policy.
 
 The detailed options, recommendations, implications, and dependencies are

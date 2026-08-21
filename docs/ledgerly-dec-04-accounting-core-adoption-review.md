@@ -694,7 +694,7 @@ Approval permits the architecture to constrain future specifications; it does
 not permit implementation to start. Before any code or schema work, the project
 still needs:
 
-1. explicit DEC-08–DEC-22 decisions where they affect the selected design;
+1. explicit DEC-09–DEC-22 decisions where they affect the selected design;
 2. an approved implementation task for BL-06/BL-07;
 3. additive schema and compatibility design;
 4. source freshness, period, chart, account, and capability contracts;
@@ -734,15 +734,16 @@ model. This historical DEC-04 approval record does not keep DEC-05 unresolved.
 | **DEC-04 status** | **APPROVED — architecture only** |
 | **Approved architecture** | Option A: adopt the existing review as the accounting-core foundation within the Technical Architecture, with targeted amendments |
 | **Actually locked by approval** | Canonical normalized append-only journals; atomic server-side double-entry posting; integer minor units; source-linked company-scoped idempotency; immutable corrections; separate payments/allocations/bank evidence; deterministic VAT adapter; journal-authoritative reporting; capability/company/audit boundaries; additive compatibility |
-| **Deliberately left open** | DEC-08 through DEC-22 policies, exact chart/mappings, year-end, role-preset refinements, retention/RLS, migration cohort/cutover, API/schema names, providers, and implementation sequencing |
-| **Dependencies** | DEC-06, DEC-07, and DEC-08 through DEC-22 as applicable; BL-01–05, BL-06–10, BL-12–17, BL-19, BL-23–26 |
+| **Deliberately left open** | DEC-09 through DEC-22 policies, exact chart/mappings, role-preset refinements, retention/RLS, migration cohort/cutover, API/schema names, providers, and implementation sequencing |
+| **Dependencies** | DEC-06, DEC-07, DEC-08, and DEC-09 through DEC-22 as applicable; BL-01–05, BL-06–10, BL-12–17, BL-19, BL-23–26 |
 | **Implementation consequence** | Architecture constrains future specifications; no implementation, migration, or task is authorised by this review |
-| **Next approvals required** | The applicable DEC-08 through DEC-22 decisions, then an approved implementation task |
+| **Next approvals required** | The applicable DEC-09 through DEC-22 decisions, then an approved implementation task |
 
 **DEC-04 status:** **APPROVED — architecture only**
 **DEC-05:** **APPROVED — separate capability-model decision**
 **DEC-06:** **APPROVED — separate financial-year-policy decision**
 **DEC-07:** **APPROVED — separate accounting-period-policy decision**
-**DEC-08 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
+**DEC-08:** **APPROVED — separate reporting-only-year-end-policy decision**
+**DEC-09 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application-path changes:** **NONE**

@@ -1,15 +1,16 @@
 # DEC-08 Year-End Treatment and Financial-Year Transition Review
 
 **Decision:** DEC-08 — Year-end treatment and financial-year transition
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED**
 **Review date:** 2026-08-21
+**Decision recorded:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, security,
 and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-08, DEC-09, an
-> implementation task, code, schema, migration, UI, workflow, dependency,
-> deployment, or publishing work.
+> This records an approved product/accounting policy. It does not approve
+> DEC-09, an implementation task, code, schema, migration, UI, workflow,
+> dependency, deployment, or publishing work.
 
 ## 1. Purpose and decision question
 
@@ -80,10 +81,11 @@ label must not be treated as an accounting event.
 - Reports must derive from the canonical accounting model rather than browser
   calculations or operational-document state.
 
-### REQUIRES USER DECISION
+### APPROVED DECISION
 
-The user must approve, amend, or reject the year-end policy in section 15,
-including:
+DEC-08 records the reporting-only year-end policy in section 15. Future
+amendments must use the Living Product Decisions process and preserve the
+DEC-04 journal, DEC-03 VAT, DEC-05 capability, and DEC-06/DEC-07 boundaries.
 
 - reporting-only, automatic journal, explicit journal, or hybrid treatment;
 - the representation of current-year and prior-year results;
@@ -610,9 +612,9 @@ DEC-03 remains authoritative. Year-end boundaries may organize accounting
 analysis but do not change VAT-box inclusion, VAT return status, invoice-basis
 timing, correction evidence, export state, or HMRC filing scope.
 
-## 15. RECOMMENDATION — NOT APPROVAL
+## 15. Recorded approval — DEC-08
 
-Recommend **Option A at launch, designed with the controlled extension seam
+Lee approved **Option A at launch, designed with the controlled extension seam
 from Option D**:
 
 1. Use a reporting-only financial-year boundary initially; do not create an
@@ -638,13 +640,14 @@ from Option D**:
    policy that defines source, accounts, posting date, period, idempotency,
    approval, reversal, and audit behavior.
 
-This recommendation best fits the DEC-04 canonical journal architecture,
+This approved policy best fits the DEC-04 canonical journal architecture,
 preserves historical immutability, avoids inventing unsupported legacy
-closures, and remains practical for small businesses. It is **not approval**.
+closures, and remains practical for small businesses. It does not authorise
+implementation.
 
-## 16. What approving DEC-08 would lock in
+## 16. What DEC-08 locks in
 
-Approval of the recommendation would lock in:
+The approved policy locks in:
 
 1. reporting-only year-end treatment at launch, with no automatic closing
    journal;
@@ -696,17 +699,21 @@ not amend either decision.
 
 ## 19. Decision readiness
 
-DEC-08 is ready for explicit user decision. The recommendation is **not
-approval**.
+**DEC-08 approval is recorded.** It is a product/accounting-policy approval
+only and is not implementation authorisation.
 
-Until DEC-08 is approved or amended:
+The approval does not authorise:
 
-- no year-end closing journal or retained-earnings posting may be implemented;
-- no year-end workflow or completed-year status may be implemented;
-- BL-06 and BL-07 remain **BLOCKED**; and
-- DEC-09 and all later decisions remain untouched and unresolved.
+- year-end closing-journal or retained-earnings-posting implementation;
+- year-end workflow or completed-year-status implementation;
+- code, schema, migration, UI, workflow, dependency, deployment, or
+  publishing work; or
+- an implementation task.
 
-**DEC-08:** **REQUIRES USER DECISION**
+BL-06 and BL-07 remain **BLOCKED**. DEC-09 and all later decisions remain
+untouched and unresolved.
+
+**DEC-08:** **APPROVED — product/accounting policy only**
 **DEC-09 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
