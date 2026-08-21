@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** PROPOSALS FOR EXPLICIT REVIEW  
+**Decision status:** DECISION 1 APPROVED; REMAINING DECISIONS REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 
 > This is a decision pack, not an implementation plan authorised for execution.
@@ -25,19 +25,39 @@ Each section uses the following labels:
 No recommendation in this document should be represented as `APPROVED` in the
 Living Product Decisions Register until it has been explicitly accepted.
 
+## Recorded approval
+
+### Decision 1 — Governance hierarchy and living authority documents
+
+- **Status:** APPROVED
+- **Decision:** The Ledgerly governance hierarchy is:
+  1. Ledgerly Manifesto.
+  2. Product Principles.
+  3. PRD / Product Scope.
+  4. Technical Architecture.
+  5. Feature Specifications / Master Backlog.
+- **Approved outcome:** The Manifesto remains unchanged and is the highest
+  authority. The [Product Principles](ledgerly-product-principles.md),
+  [PRD / Product Scope](ledgerly-prd-product-scope.md), and [Technical
+  Architecture](ledgerly-technical-architecture.md) are established as living
+  governance documents based on the Manifesto and existing project
+  documentation.
+- **Limit:** This approval establishes the hierarchy and documents. It does not
+  approve unresolved product scope, accounting-core architecture, schema,
+  migration, UI, workflow, deployment, or implementation decisions.
+- **Amendment rule:** A future amendment requires an explicit documented
+  decision that identifies consequences for existing implementation, accounting
+  data, database/schema, migrations, backwards compatibility, dependent
+  features, and Master Backlog items.
+
 ## 1. Product Principles
 
-- **Status:** REQUIRES USER DECISION
-- **Decision needed:** Restore or author the Product Principles document
-  referenced by the Manifesto and workflow.
-- **Options:**
-  1. Restore the missing source document.
-  2. Author a new Product Principles document and explicitly adopt it.
-  3. Continue with only the Manifesto and treat the lower-level principles as
-     intentionally absent.
-- **Recommendation:** Restore or author one canonical Product Principles
-  document before BL-06/BL-07 implementation. Do not infer it from code,
-  backlog items, or this decision pack.
+- **Status:** APPROVED — governance document established by Decision 1.
+- **Approved outcome:** The Product Principles document now translates the
+  Manifesto and existing governance into practical decision principles without
+  selecting unresolved product scope or technical design.
+- **Remaining decision:** No separate creation/restoration decision remains.
+  Any future amendment follows the Decision 1 amendment rule.
 - **Accounting/data consequences:** The principles will constrain choices such
   as explainability, control, simplicity, correction, and reporting authority.
   They should not directly define table names or implementation details.
@@ -45,12 +65,11 @@ Living Product Decisions Register until it has been explicitly accepted.
   checked against the adopted principles.
 - **Dependencies:** Manifesto, PRD/Product Scope, Technical Architecture,
   BL-25, BL-26.
-- **Explicit product decision:** Confirm whether an existing source should be
-  restored or whether a new Product Principles document should be created.
 
 ## 2. PRD / Product Scope
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — governance document established by Decision 1;
+  **REQUIRES USER DECISION** — final launch/product scope.
 - **Decision needed:** Confirm the launch scope around UK SMBs, GBP, VAT,
   invoices, bills, payments, banking, reporting, quotes, purchase orders,
   products/items, expenses, and filing.
@@ -76,27 +95,30 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 3. Technical Architecture
 
-- **Status:** REQUIRES USER DECISION
-- **Decision needed:** Decide whether the accepted accounting-core review
-  becomes the basis for an approved Technical Architecture document.
+- **Status:** APPROVED — governance document established by Decision 1;
+  **REQUIRES USER DECISION** — accounting-core design adoption or amendment.
+- **Decision needed:** Decide whether the accounting-core review becomes the
+  basis for the approved accounting-core design within the Technical
+  Architecture.
 - **Options:**
   1. Adopt the review with targeted amendments.
   2. Create a separate Technical Architecture document and use the review as
      its accounting-core chapter.
   3. Reject the proposed architecture and commission a different design.
 - **Recommendation:** Use
-  `docs/ledgerly-accounting-core-architecture-review.md` as the accounting
-  foundation for a canonical Technical Architecture document, after resolving
-  this pack. Keep the architecture additive, normalized, append-only,
-  server-side, company-scoped, and compatible with the existing VAT service.
+  `docs/ledgerly-accounting-core-architecture-review.md` as the proposed
+  accounting foundation within the Technical Architecture document, after
+  resolving this pack. Keep the architecture additive, normalized,
+  append-only, server-side, company-scoped, and compatible with the existing
+  VAT service.
 - **Accounting/data consequences:** The architecture determines canonical
   journal, period, account, payment, allocation, source, audit, and reporting
   contracts. It must not permit browser-created journal lines or generic
   mutation of posted history.
 - **Migration consequences:** The accepted additive/adapter approach remains
   the safest route for current JSON journals, source totals, and clients.
-- **Dependencies:** Missing Product Principles and PRD/Product Scope,
-  decision pack, BL-06, BL-07.
+- **Dependencies:** Approved Product Principles and PRD/Product Scope,
+  unresolved decision-pack items, BL-06, BL-07.
 - **Explicit product decision:** Approve the review as the accounting-core
   basis, or specify required architectural changes.
 
@@ -587,27 +609,26 @@ These constraints are not invitations to implement BL-06 or BL-07.
 
 Before implementation, Lee must explicitly approve or amend:
 
-1. Restoration/creation of Product Principles.
-2. The launch PRD/Product Scope.
-3. Adoption or amendment of the accounting-core architecture review.
-4. The capability matrix.
-5. Financial-year start and change policy.
-6. Monthly period generation and close/reopen rules.
-7. Year-end reporting-only versus explicit closing journal.
-8. Default UK chart template and account list.
-9. Mandatory control-account mappings.
-10. Effective-dated account/configuration versioning.
-11. Source revision/hash and VAT freshness semantics.
-12. Customer overpayment and supplier prepayment treatment.
-13. First-class unapplied cash.
-14. Refund requirements and launch scope.
-15. Customer/supplier payment-on-account scope.
-16. Audit retention periods.
-17. Deletion/anonymisation policy.
-18. Export formats, scope, and permissions.
-19. Backup RPO/RTO and restore-test requirements.
-20. Application scoping versus RLS policy.
-21. Historical migration cohort/cutover policy.
+1. The final launch PRD/Product Scope.
+2. Adoption or amendment of the accounting-core architecture review.
+3. The capability matrix.
+4. Financial-year start and change policy.
+5. Monthly period generation and close/reopen rules.
+6. Year-end reporting-only versus explicit closing journal.
+7. Default UK chart template and account list.
+8. Mandatory control-account mappings.
+9. Effective-dated account/configuration versioning.
+10. Source revision/hash and VAT freshness semantics.
+11. Customer overpayment and supplier prepayment treatment.
+12. First-class unapplied cash.
+13. Refund requirements and launch scope.
+14. Customer/supplier payment-on-account scope.
+15. Audit retention periods.
+16. Deletion/anonymisation policy.
+17. Export formats, scope, and permissions.
+18. Backup RPO/RTO and restore-test requirements.
+19. Application scoping versus RLS policy.
+20. Historical migration cohort/cutover policy.
 
 No item above should be marked approved merely because this pack recommends an
 option.
@@ -617,36 +638,33 @@ option.
 This order is conditional and must not start until the required decisions are
 explicitly approved:
 
-1. Restore or author Product Principles, PRD/Product Scope, and the approved
-   Technical Architecture.
-2. Record Lee's decisions in the Living Product Decisions Register.
-3. Finalise the capability matrix and active-membership enforcement.
-4. Finalise money, source freshness, status, period, and correction policies.
-5. Define the versioned chart template, control mappings, and configuration
+1. Record Lee's remaining decisions in the Living Product Decisions Register.
+2. Finalise the capability matrix and active-membership enforcement.
+3. Finalise money, source freshness, status, period, and correction policies.
+4. Define the versioned chart template, control mappings, and configuration
    model.
-6. Design additive schema constraints and compatibility adapters.
-7. Implement and test BL-07 period, chart, default, and configuration
+5. Design additive schema constraints and compatibility adapters.
+6. Implement and test BL-07 period, chart, default, and configuration
    primitives.
-8. Implement and test BL-06 normalized journals, server-side balance checks,
+7. Implement and test BL-06 normalized journals, server-side balance checks,
    source posting, and idempotency.
-9. Protect generic CRUD and remove direct posted-journal mutation bypasses.
-10. Integrate invoice/bill posting with authoritative source and VAT checks.
-11. Add payments, allocations, unapplied cash, overpayments, refunds, and
+8. Protect generic CRUD and remove direct posted-journal mutation bypasses.
+9. Integrate invoice/bill posting with authoritative source and VAT checks.
+10. Add payments, allocations, unapplied cash, overpayments, refunds, and
     payment reversals.
-12. Connect bank classification, transfers, and reconciliation without
+11. Connect bank classification, transfers, and reconciliation without
     double-posting.
-13. Expose server-side journal-authoritative reporting and compare legacy
+12. Expose server-side journal-authoritative reporting and compare legacy
     outputs.
-14. Validate historical migration candidates and run a controlled cutover.
-15. Complete restore tests, security checks, end-to-end tests, and release
+13. Validate historical migration candidates and run a controlled cutover.
+14. Complete restore tests, security checks, end-to-end tests, and release
     review before any publication.
 
 ## 25. Remaining blockers to BL-06 / BL-07
 
 Implementation remains **BLOCKED** by:
 
-- absence of approved Product Principles, PRD/Product Scope, and Technical
-  Architecture documents;
+- unresolved launch PRD/Product Scope and accounting-core design adoption;
 - unresolved capability matrix and elevated accounting permissions;
 - unresolved financial-year, period, and year-end policy;
 - unresolved chart template and control-account mappings;
@@ -662,6 +680,7 @@ Implementation remains **BLOCKED** by:
 ## Final decision-pack status
 
 **DECISION PACK:** READY FOR LEE'S REVIEW  
+**DECISION 1:** APPROVED
 **BL-06 / BL-07 IMPLEMENTATION:** BLOCKED  
 **APPLICATION CODE CHANGED:** NO  
 **DATABASE OR MIGRATIONS CHANGED:** NO  

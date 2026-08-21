@@ -15,6 +15,9 @@ This documentation is the durable record of the read-only Ledgerly product gap a
 5. [Living product decisions register](ledgerly-product-decisions.md)
 6. [BL-06 / BL-07 accounting core architecture review](ledgerly-accounting-core-architecture-review.md)
 7. [BL-06 / BL-07 pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
+8. [Product Principles](ledgerly-product-principles.md)
+9. [PRD / Product Scope](ledgerly-prd-product-scope.md)
+10. [Technical Architecture](ledgerly-technical-architecture.md)
 
 ## Source authority
 
@@ -26,6 +29,9 @@ The analysis was compared against:
 - `artifacts/ledgerly/src/docs/17-definition-of-done.md`
 - `artifacts/ledgerly/src/docs/18-product-development-workflow.md`
 - `artifacts/ledgerly/src/docs/19-workspace-framework.md`
+- `docs/ledgerly-product-principles.md`
+- `docs/ledgerly-prd-product-scope.md`
+- `docs/ledgerly-technical-architecture.md`
 - `docs/ledgerly-product-decisions.md`
 - `docs/ledgerly-accounting-core-architecture-review.md`
 - `docs/ledgerly-accounting-core-decision-pack.md`
@@ -40,13 +46,18 @@ Use the following order when documents or implementation disagree:
 2. Product Principles
 3. PRD / Product Scope
 4. Technical Architecture
-5. Product Gap Analysis / Feature Matrix
-6. Master Backlog
-7. Living Product Decisions Register
-8. Approved individual implementation task
-9. Existing implementation/code
+5. Feature Specifications / Master Backlog
 
-The Manifesto is present and explicitly states that it is the highest authority. The Product Principles, PRD/Product Scope, and Technical Architecture documents referenced by the Manifesto/workflow were not found in the active repository. They must be reported as missing and must not be inferred from code or replaced with a competing document.
+The Manifesto is present and explicitly remains the highest authority. Decision
+1 established the Product Principles, PRD/Product Scope, and Technical
+Architecture as living governance documents. Their unresolved decisions remain
+explicitly marked **REQUIRES USER DECISION**; the documents do not turn
+recommendations, current code, or provisional directions into approval.
+
+The Product Gap Analysis, Feature Matrix, Living Product Decisions Register,
+approved implementation tasks, and existing code are supporting evidence,
+decision records, or execution controls. They do not outrank the hierarchy
+above.
 
 ## Governance use
 

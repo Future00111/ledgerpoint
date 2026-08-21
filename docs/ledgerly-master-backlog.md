@@ -11,7 +11,8 @@ This is the complete backlog derived from the read-only product gap analysis. It
 
 ## Governance authority
 
-This backlog is a level-6 planning document. It does not override higher-level product or technical authority.
+This backlog is a level-5 planning document. It does not override higher-level
+product or technical authority.
 
 When documents conflict, use this order:
 
@@ -19,15 +20,19 @@ When documents conflict, use this order:
 2. Product Principles
 3. PRD / Product Scope
 4. Technical Architecture
-5. Product Gap Analysis / Feature Matrix
-6. This Master Backlog
-7. Living Product Decisions Register
-8. Approved individual implementation task
-9. Existing implementation/code
+5. Feature Specifications / This Master Backlog
 
-The active repository contains the Ledgerly Manifesto, Core Maxims, Design System, Definition of Done, Product Development Workflow, and Workspace Framework. Product Principles, PRD/Product Scope, and Technical Architecture are referenced by the existing governance but were not found as active documents. Do not infer or silently create decisions for those missing authority levels.
+The active repository contains the Product Principles, PRD/Product Scope, and
+Technical Architecture established by Decision 1, alongside the Manifesto, Core
+Maxims, Design System, Definition of Done, Product Development Workflow, and
+Workspace Framework. The new governance documents are living records: a
+recommendation or unresolved entry in them is not implementation permission.
 
-The [Living Product Decisions Register](ledgerly-product-decisions.md) records current product direction without replacing higher-level authority. An agent may recommend backlog work or identify conflicts, but must not select roadmap scope autonomously or silently change a recorded decision. An item requires an approved implementation task before code changes begin.
+The [Living Product Decisions Register](ledgerly-product-decisions.md) records
+current product direction without replacing higher-level authority. An agent may
+recommend backlog work or identify conflicts, but must not select roadmap scope
+autonomously or silently change a recorded decision. An item requires an
+approved implementation task before code changes begin.
 
 ## Backlog
 

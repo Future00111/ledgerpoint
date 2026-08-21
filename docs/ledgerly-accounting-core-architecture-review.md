@@ -18,10 +18,11 @@ Development Workflow, Workspace Framework, Product Gap Analysis, Feature
 Matrix, Master Backlog, Living Product Decisions Register, and the current
 accounting-related implementation.
 
-The Product Principles, PRD/Product Scope, and Technical Architecture referenced
-by the existing governance are still not present as approved active documents.
-This review is therefore a proposed accounting architecture, not a replacement
-for the missing Technical Architecture authority.
+The Product Principles, PRD/Product Scope, and Technical Architecture were
+established as living governance documents by Decision 1. Their unresolved
+decisions remain explicitly open. This review remains a proposed
+accounting-core design, not a replacement for or approval of the Technical
+Architecture authority.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 must resolve the review's open product, accounting, permissions, retention,

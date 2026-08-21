@@ -9,16 +9,25 @@ For Ledgerly product and implementation decisions, use the active governance doc
 Authority order:
 
 1. `artifacts/ledgerly/src/docs/00-ledgerly-manifesto.md`
-2. Product Principles
-3. PRD / Product Scope
-4. Technical Architecture
-5. `docs/ledgerly-product-gap-analysis.md` and `docs/ledgerly-feature-matrix.md`
-6. `docs/ledgerly-master-backlog.md`
-7. `docs/ledgerly-product-decisions.md`
-8. An approved implementation task
-9. Existing code
+2. `docs/ledgerly-product-principles.md`
+3. `docs/ledgerly-prd-product-scope.md`
+4. `docs/ledgerly-technical-architecture.md`
+5. Feature specifications and `docs/ledgerly-master-backlog.md`
 
-The Manifesto is the highest authority. Product Principles, PRD/Product Scope, and Technical Architecture are currently referenced governance inputs but are not present as active documents; do not infer them or silently replace them. The Living Product Decisions Register records explicit, revisitable product direction but does not authorise implementation. The BL-06/BL-07 accounting core architecture review is a design proposal pending explicit approval, not an implementation authority. The BL-06/BL-07 pre-implementation decision pack must be resolved before implementation approval; recommendations in it are not approved decisions. Do not choose roadmap scope or silently change a recorded decision autonomously. Before implementation, also review the Core Maxims, Design System, Definition of Done, Product Development Workflow, and Workspace Framework.
+The Manifesto is the highest authority. The Product Principles, PRD/Product
+Scope, and Technical Architecture are living governance documents established
+by Decision 1; they do not silently approve their unresolved decisions. The
+Living Product Decisions Register records explicit, revisitable product
+direction but does not authorise implementation. The product gap analysis and
+feature matrix are supporting evidence, not authority over this hierarchy.
+Existing code is evidence of current behaviour, not product authority. The
+BL-06/BL-07 accounting core architecture review remains a design proposal
+pending explicit approval, not an implementation authority. The BL-06/BL-07
+pre-implementation decision pack must be resolved before implementation
+approval; recommendations in it are not approved decisions. Do not choose
+roadmap scope or silently change a recorded decision autonomously. Before
+implementation, also review the Core Maxims, Design System, Definition of Done,
+Product Development Workflow, and Workspace Framework.
 
 ## Run & Operate
 

@@ -28,15 +28,13 @@ Use this order when documents or implementation disagree:
 2. Product Principles
 3. PRD / Product Scope
 4. Technical Architecture
-5. Product Gap Analysis / Feature Matrix
-6. Master Backlog
-7. This Living Product Decisions Register
-8. Approved implementation task
-9. Existing implementation/code
+5. Feature Specifications / Master Backlog
 
-The Product Principles, PRD/Product Scope, and Technical Architecture referenced
-by the existing governance are not currently present as active repository
-documents. They must not be inferred or silently replaced with this register.
+Decision 1 established the Product Principles, PRD/Product Scope, and Technical
+Architecture as living governance documents. This register records decisions and
+their status but cannot override those documents or silently resolve an open
+decision. Existing code, product analysis, and feature matrices are evidence,
+not higher authority.
 
 ## Decision statuses
 
@@ -86,7 +84,8 @@ documents. They must not be inferred or silently replaced with this register.
   review required for affected tax or data changes.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-15, BL-25
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; launch-market details
+  remain **REQUIRES USER DECISION**.
 
 ### PD-03 — Launch currency
 
@@ -106,7 +105,8 @@ documents. They must not be inferred or silently replaced with this register.
   architecture review.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-04, BL-09, BL-15, BL-25
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; launch-currency
+  details remain **REQUIRES USER DECISION**.
 
 ### PD-04 — Quotes / estimates
 
@@ -127,7 +127,8 @@ documents. They must not be inferred or silently replaced with this register.
   review before lifecycle changes.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-08, BL-11, BL-18, BL-25
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; lifecycle design
+  remains **REQUIRES USER DECISION**.
 
 ### PD-05 — Purchase orders
 
@@ -149,7 +150,8 @@ documents. They must not be inferred or silently replaced with this register.
   review before lifecycle changes.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-08, BL-11, BL-18, BL-25
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; lifecycle design
+  remains **REQUIRES USER DECISION**.
 
 ### PD-06 — Products / services / items
 
@@ -171,7 +173,8 @@ documents. They must not be inferred or silently replaced with this register.
   review for posting or VAT effects.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-04, BL-08, BL-11, BL-15
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; scope and design
+  remain **REQUIRES USER DECISION**.
 
 ### PD-07 — Contacts
 
@@ -191,7 +194,8 @@ documents. They must not be inferred or silently replaced with this register.
   owner for entity design.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-03, BL-09, BL-11, BL-16
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; model and scope
+  remain **REQUIRES USER DECISION**.
 
 ### PD-08 — VAT
 
@@ -213,7 +217,8 @@ documents. They must not be inferred or silently replaced with this register.
   regulatory review; implementation cannot weaken deterministic authority.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-04, BL-05, BL-06, BL-08, BL-15, BL-19
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; scheme and filing
+  design remain **REQUIRES USER DECISION**.
 
 ### PD-09 — MTD / HMRC
 
@@ -235,7 +240,8 @@ documents. They must not be inferred or silently replaced with this register.
   security, and architecture review.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-15, BL-24, BL-25
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; filing scope and
+  design remain **REQUIRES USER DECISION**.
 
 ### PD-10 — Banking
 
@@ -258,7 +264,8 @@ documents. They must not be inferred or silently replaced with this register.
   accounting, and architecture review for provider or posting changes.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-06, BL-12, BL-13, BL-14, BL-25
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; provider and
+  live-feed decisions remain **REQUIRES USER DECISION**.
 
 ### PD-11 — Email
 
@@ -280,7 +287,8 @@ documents. They must not be inferred or silently replaced with this register.
   architecture, and communications review.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-16, BL-18, BL-21, BL-25
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; provider and
+  lifecycle decisions remain **REQUIRES USER DECISION**.
 
 ### PD-12 — Documents / OCR
 
@@ -301,7 +309,8 @@ documents. They must not be inferred or silently replaced with this register.
   accounting, and architecture review.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-08, BL-15, BL-18, BL-19, BL-25
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; provider, storage,
+  and lifecycle decisions remain **REQUIRES USER DECISION**.
 
 ### PD-13 — Payments
 
@@ -324,7 +333,8 @@ documents. They must not be inferred or silently replaced with this register.
   architecture review.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-06, BL-08, BL-09, BL-14, BL-16
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; payment treatment
+  remains **REQUIRES USER DECISION**.
 
 ### PD-14 — Payroll
 
@@ -401,7 +411,8 @@ documents. They must not be inferred or silently replaced with this register.
   architecture review.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-06, BL-08, BL-15, BL-25
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; launch scope and
+  treatment remain **REQUIRES USER DECISION**.
 
 ### PD-18 — Budgeting / forecasting
 
@@ -444,7 +455,8 @@ documents. They must not be inferred or silently replaced with this register.
   requirement explicitly; accounting and architecture review required.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-06, BL-07, BL-10, BL-17, BL-24
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; exact period policy
+  remains **REQUIRES USER DECISION**.
 
 ### PD-20 — AI boundaries
 
@@ -470,7 +482,8 @@ documents. They must not be inferred or silently replaced with this register.
   implementation convenience cannot weaken this decision.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-05, BL-06, BL-14, BL-15, BL-19, BL-21
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; approved AI
+  boundaries remain binding.
 
 ### PD-21 — Notifications
 
@@ -490,7 +503,8 @@ documents. They must not be inferred or silently replaced with this register.
   architecture review.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-18, BL-21, BL-22, BL-25
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; delivery policy
+  remains **REQUIRES USER DECISION**.
 
 ### PD-22 — Audit / retention
 
@@ -514,7 +528,8 @@ documents. They must not be inferred or silently replaced with this register.
   privacy, security, and architecture review.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-10, BL-14, BL-18, BL-19, BL-21, BL-24
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; retention,
+  deletion, and export policy remain **REQUIRES USER DECISION**.
 
 ### PD-23 — Tenant security / RLS
 
@@ -537,7 +552,44 @@ documents. They must not be inferred or silently replaced with this register.
   and operations review.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-01, BL-02, BL-03, BL-24, BL-25
-- **Related architecture:** Technical Architecture document, currently missing.
+- **Related architecture:** Active Technical Architecture; RLS policy remains
+  **REQUIRES USER DECISION**.
+
+### PD-24 — Governance hierarchy and living authority documents
+
+- **Status:** APPROVED
+- **Current decision/direction:** The Ledgerly governance hierarchy is:
+  1. Ledgerly Manifesto.
+  2. Product Principles.
+  3. PRD / Product Scope.
+  4. Technical Architecture.
+  5. Feature Specifications / Master Backlog.
+  The Manifesto remains unchanged and is the highest authority. The Product
+  Principles, PRD/Product Scope, and Technical Architecture are living
+  governance documents; they do not make unresolved decisions permanent or
+  silently authorise implementation.
+- **Reason:** Ledgerly requires a clear authority chain from product purpose to
+  individual implementation work, while preserving explicit review of unresolved
+  product and accounting-core decisions.
+- **Impact:** Feature specifications, backlog items, implementation tasks,
+  product decisions, and existing code must conform to the higher documents.
+  Product analysis, feature matrices, implementation tasks, and code remain
+  supporting evidence or execution controls rather than authority over the
+  hierarchy.
+- **Dependencies:** Manifesto, Product Principles, PRD/Product Scope, Technical
+  Architecture, Master Backlog, and the accounting-core decision pack.
+- **What it affects:** All product decisions, accounting design, migrations,
+  feature specifications, implementation prioritisation, release readiness, and
+  governance review.
+- **Revisit:** Whenever an explicit governance amendment is proposed.
+- **Change authority:** Product owner/stakeholder through an explicit documented
+  decision. The decision must identify consequences for existing
+  implementation, accounting data, database/schema, migrations, backwards
+  compatibility, dependent features, and Master Backlog items.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-25, BL-26
+- **Related architecture:** Active Technical Architecture; the accounting-core
+  design remains **REQUIRES USER DECISION**.
 
 ## Explicitly open decisions
 
