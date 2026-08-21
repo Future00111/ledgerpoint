@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-16 APPROVED; DEC-17 through DEC-22
+**Decision status:** DEC-01 through DEC-17 APPROVED; DEC-18 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -500,28 +500,26 @@ Living Product Decisions Register until it has been explicitly accepted.
   classification.
 - **Dependencies:** Unapplied cash, overpayments, refunds, statements,
   bank/reconciliation, BL-09, BL-16.
-- **Decision boundary:** DEC-17 onward and DEC-22 migration policy remain open.
+- **Decision boundary:** DEC-18 onward and DEC-22 migration policy remain open.
   Source freshness remains separate.
 
 ## 16. Audit retention
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/governance policy only
 - **Decision review:** [DEC-17 Audit Retention Period
   Review](ledgerly-dec-17-audit-retention-period-review.md).
-- **Decision needed:** Decide how long journals, approvals, reversals,
-  calculations, communications, and audit events are retained.
+- **Approved policy:** Use class-based retention. Retain posted journals and
+  authoritative audit evidence for the company life plus the applicable
+  legal/regulatory period. Classify personal data, documents, and AI actions
+  separately and proportionately.
 - **Options:**
   1. Retain indefinitely for the life of the company.
   2. Retain for a defined legal/compliance period.
   3. Retain accounting history indefinitely but apply separate policy to
      personal/document data.
-- **Recommendation:** Retain posted journals, source relationships, approvals,
-  reversals, VAT actions, and accounting audit evidence for the life of the
-  company plus the applicable legal/compliance period. Keep a separately
-  governed policy for personal data, documents, and AI explanation detail.
-  This is a product recommendation, not legal advice.
-- **Accounting/data consequences:** Posted history and audit evidence cannot be
-  casually deleted. Retention metadata and legal holds must be explicit.
+- **Controls:** Use explicit retention triggers, auditable legal holds,
+  company-scoped server-side capability enforcement, immutable retention audit
+  evidence, and controlled policy changes. Retention must not rewrite history.
 - **Migration consequences:** Historical records need retention classification;
   absence of old audit data must be visible rather than fabricated.
 - **Dependencies:** Legal/privacy review, deletion policy, export policy,

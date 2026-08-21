@@ -135,7 +135,7 @@ be approved:
 7. [DEC-12 Payment, Allocation and Settlement Policy
    Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md)
    records the approved payment/evidence/allocation/settlement boundary.
-    DEC-17 and later applicable decisions remain unresolved.
+    DEC-18 and later applicable decisions remain unresolved.
  8. [DEC-13 Overpayments, Unapplied Cash and Excess Payment Policy
     Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md)
     records the approved excess-money and party-balance policy. DEC-16 and
@@ -152,12 +152,12 @@ be approved:
 12. [DEC-16 Payment-on-Account Launch Scope
     Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md) records
     an approved launch-scope policy: no separate user-facing
-    payment-on-account feature at launch. DEC-17 onward and migration/cutover
+    payment-on-account feature at launch. DEC-18 onward and migration/cutover
     policy remain open.
 13. [DEC-17 Audit Retention Period
     Review](ledgerly-dec-17-audit-retention-period-review.md) records a
-    recommendation only; DEC-17 remains unresolved. DEC-18 through DEC-22
-    remain open for their own policies.
+    approved class-based retention policy. DEC-18 through DEC-22 remain open
+    for their own policies.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix

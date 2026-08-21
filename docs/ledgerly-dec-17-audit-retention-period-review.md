@@ -1,14 +1,14 @@
 # DEC-17 Audit Retention Period Review
 
 **Decision:** DEC-17 — Audit retention period
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — product/governance policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, legal,
 security, privacy, and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-17 or DEC-18 through
-> DEC-22, and it does not authorise an implementation task, code, schema,
+> This records an approved product/governance policy. It does not approve
+> DEC-18 through DEC-22, and it does not authorise an implementation task, code, schema,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
@@ -409,9 +409,9 @@ retirement.
 - **Future flexibility:** Operationally inflexible despite apparent
   availability.
 
-## 11. RECOMMENDATION — NOT APPROVAL
+## 11. APPROVED POLICY
 
-Recommend **Option C: class-based retention with protected accounting
+Approve **Option C: class-based retention with protected accounting
 evidence**:
 
 1. Retain posted journals and the audit trail needed to reconstruct them for
@@ -433,7 +433,7 @@ evidence**:
 8. Defer deletion, anonymisation, export, backup, tenant-isolation, and
    migration execution rules to DEC-18 through DEC-22.
 
-This recommendation is **not approval**.
+This policy is approved as a product/governance policy only.
 
 ## 12. Decision boundaries
 
@@ -452,9 +452,9 @@ Class-based retention with accounting evidence and its audit trail retained for
 the company life plus the applicable legal period, while personal, document,
 and AI data receive separate classifications and proportionate retention.
 
-### Requires user decision
+### Approved policy
 
-Approval of the DEC-17 audit retention period and classification policy.
+Class-based audit retention consistent with the policy in section 11.
 
 ### Deliberately left open
 
@@ -470,7 +470,7 @@ Approval of the DEC-17 audit retention period and classification policy.
 - implementation details, schema, APIs, UI, tests, dependencies, deployment,
   and publishing.
 
-### What approving DEC-17 would lock in
+### What DEC-17 approval locks in
 
 - retention classes for accounting, audit, VAT/reconciliation, documents,
   personal data, and AI actions;
@@ -489,7 +489,9 @@ migration treatment, AI-content detail, and implementation design.
 
 ## 13. Decision readiness
 
-DEC-17 is ready for an explicit user decision. Until it is approved or amended:
+DEC-17 was explicitly approved on 2026-08-21. The approval is a
+product/governance policy only. Until the applicable remaining decisions are
+approved or amended:
 
 - DEC-18 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
@@ -497,8 +499,7 @@ DEC-17 is ready for an explicit user decision. Until it is approved or amended:
   accounting mechanism may be implemented; and
 - no implementation task is authorised.
 
-**DEC-01 through DEC-16:** **APPROVED**
-**DEC-17:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-17:** **APPROVED**
 **DEC-18 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**

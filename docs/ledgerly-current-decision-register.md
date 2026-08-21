@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–16 approved; DEC-17 through DEC-22 require
+**Register status:** Decisions 1–17 approved; DEC-18 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -595,7 +595,7 @@ to the accounting core.
   explicit classification would require additional intent and history fields.
 - **Migration implications:** Unmatched bank rows need approved classification;
   old paid totals cannot be assumed to represent on-account amounts.
-- **Boundary:** DEC-17 onward and DEC-22 migration policy remain unresolved.
+- **Boundary:** DEC-18 onward and DEC-22 migration policy remain unresolved.
   Source freshness remains separate.
 - **Backlog implications:** Gates BL-09, BL-14, and BL-16.
 - **Dependency:** DEC-13, DEC-14, and DEC-15.
@@ -604,26 +604,29 @@ to the accounting core.
 
 ### DEC-17 — Audit retention period
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/governance policy only
 - **Decision review:** [DEC-17 Audit Retention Period
   Review](ledgerly-dec-17-audit-retention-period-review.md).
-- **Decision:** Define retention duration and classification for posted journals,
-  source links, approvals, reversals, VAT, reconciliation, AI actions,
-  documents, and personal data.
+- **Approved policy:** Use class-based retention. Retain posted journals and
+  authoritative evidence required to explain them for the company life plus the
+  applicable legal/regulatory retention period. Apply separate proportionate
+  classes to personal data, documents, and AI actions/outputs.
 - **Options available:** (a) retain for the company life; (b) use a defined
   legal period; or (c) retain accounting evidence indefinitely while applying a
   separate policy to personal data, documents, and AI records.
-- **Replit's recommendation:** Retain posted accounting evidence and its audit
-  trail for the company life plus the applicable legal period, with separate
-  classifications for personal, document, and AI data.
-- **Why it is recommended:** Financial history must remain reconstructable while
+- **Why it is approved:** Financial history must remain reconstructable while
   allowing privacy and retention rules to differ by data type.
 - **Accounting implications:** Posted journals, approvals, source links, and
   corrections cannot be casually removed.
-- **Data/schema implications:** Requires retention classes, legal-hold state,
+- **Data/schema implications:** Requires retention classes, explicit triggers,
+  legal-hold state,
   actor/timestamp evidence, and durable audit relationships.
 - **Migration implications:** Historical records need classification; missing
   audit evidence remains visible rather than fabricated.
+- **Boundary:** DEC-18 remains responsible for deletion, anonymisation,
+  archival, redaction, destruction, and subject-access-related handling.
+  DEC-19 through DEC-22 retain their own policy boundaries. Source freshness
+  remains separate.
 - **Backlog implications:** Gates BL-18, BL-19, BL-21, BL-24, and BL-25.
 - **Dependency:** DEC-02, DEC-04, DEC-05, and DEC-18.
 

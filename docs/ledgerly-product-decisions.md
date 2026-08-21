@@ -489,19 +489,20 @@ not higher authority.
 
 ### DEC-17 — Audit Retention Period
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/governance policy only
 - **Decision review:** [DEC-17 Audit Retention Period
   Review](ledgerly-dec-17-audit-retention-period-review.md).
-- **Current decision/direction:** Decide retention duration and classification
-  for posted journals, source links, approvals, reversals, VAT,
-  reconciliation, AI actions, documents, and personal data.
-- **Recommendation:** Retain authoritative accounting evidence and its audit
-  trail for the company life plus the applicable legal period, with separate
-  retention classes for personal data, documents, and AI actions.
+- **Approved policy:** Retain authoritative accounting evidence and the audit
+  trail required to explain it for the company life plus the applicable legal
+  or regulatory period. Apply explicit, proportionate classes to personal
+  data, documents, and AI actions/outputs.
+- **Controls:** Use documented triggers, auditable legal holds, company-scoped
+  server-side enforcement, immutable retention audit evidence, and controlled,
+  audited policy changes. Retention must never rewrite accounting history.
 - **Boundary:** DEC-18 retains deletion and anonymisation policy, DEC-19
   export, DEC-20 backup/recovery, DEC-21 tenant isolation, and DEC-22
   migration/cutover policy. Source freshness remains separate.
-- **Implementation limit:** This unresolved decision does not authorise code,
+- **Implementation limit:** This approved policy does not authorise code,
   schema, migration, UI, workflow, dependency, deployment, publishing, or an
   implementation task. BL-06 and BL-07 remain blocked.
 

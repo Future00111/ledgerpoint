@@ -52,7 +52,10 @@ reconciliation, immutable correction, and no silent launch automation. DEC-16
 approves no separate user-facing payment-on-account feature, workflow,
 navigation item, accounting object, or journal type at launch; it relies on the
 approved payment, credit/prepayment, unapplied-cash, allocation, and refund
-foundation. DEC-17 through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked
+foundation. DEC-17 approves class-based retention: authoritative accounting
+evidence and necessary audit evidence are retained for company life plus the
+applicable legal/regulatory period; personal data, documents, and AI evidence
+have separate proportionate classes. DEC-18 through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked
 pending the applicable decisions and an approved implementation task.
 Do not implement
 backlog items or publish Ledgerly until the user has reviewed and selected the
