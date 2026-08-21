@@ -44,6 +44,8 @@ not higher authority.
 - **OPEN** — no decision has been made.
 - **FUTURE** — explicitly outside the current scope, but potentially relevant later.
 - **REVISIT** — a previous decision must be reassessed at a specified stage.
+- **REQUIRES USER DECISION** — an unresolved decision awaiting explicit
+  approval or amendment.
 
 `LOCKED` is not a valid permanent status.
 
@@ -80,6 +82,39 @@ not higher authority.
   UK/GBP hard-coding so later markets, currencies, and capabilities do not
   require a fundamental redesign. This decision does not approve DEC-03 or any
   subsequent architecture decision.
+
+### DEC-03 — VAT schemes, adjustments, and MTD/HMRC scope
+
+- **Status:** REQUIRES USER DECISION
+- **Current decision/direction:** No DEC-03 option is approved. The
+  decision-only review recommends S1 + A + H1: Standard VAT on invoice basis,
+  controlled source-linked and return-level corrections, and evidence-linked
+  VAT preparation/export without direct HMRC submission.
+- **Reason:** The current deterministic foundation supports a bounded standard
+  scheme. Special schemes, specialist adjustments, and direct filing each need
+  separate accounting, evidence, security, reporting, and compliance rules.
+- **Impact:** Launch onboarding must identify unsupported schemes or treatments
+  rather than silently defaulting them to Standard VAT. VAT exports must be
+  described as prepared/exported unless a verified external filing receipt
+  exists.
+- **Dependencies:** DEC-02, DEC-04–DEC-05, period/chart/configuration
+  decisions, payment/refund decisions, and historical migration policy.
+- **What it affects:** VAT profiles, tax rules, invoices, bills, credit notes,
+  payments, returns, corrections, reports, exports, HMRC integrations, AI
+  boundaries, permissions, audit, and migration.
+- **Revisit:** When Lee explicitly approves or amends DEC-03, when a new
+  scheme/treatment is proposed, or when HMRC/regulatory requirements change.
+- **Change authority:** Product owner/stakeholder with accounting and
+  regulatory review; implementation cannot convert a recommendation into a
+  decision.
+- **Date recorded:** 2026-08-21
+- **Related review:** [DEC-03 VAT Scope
+  Review](ledgerly-dec-03-vat-scope-review.md)
+- **Related backlog:** BL-04, BL-05, BL-06, BL-07, BL-08, BL-10, BL-12, BL-13,
+  BL-15, BL-17, BL-18, BL-23, BL-24, BL-25
+- **Related architecture:** Existing deterministic VAT and accounting-core
+  review remain the evidence base. No architecture adoption or implementation
+  decision is made here.
 
 ### PD-01 — Product name
 

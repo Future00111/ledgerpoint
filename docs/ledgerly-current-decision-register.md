@@ -80,23 +80,34 @@ to the accounting core.
 - **Status:** REQUIRES USER DECISION
 - **Decision:** Confirm which VAT schemes, adjustment types, exports, and
   MTD/HMRC filing capabilities are in scope for the selected launch.
-- **Options available:** (a) retain only the current standard-scheme,
-  invoice-basis foundation; (b) approve a defined set of UK schemes and
-  adjustments without filing; or (c) approve the defined schemes plus
-  MTD/HMRC submission/export requirements.
-- **Replit's recommendation:** Start with the deterministic standard-scheme,
-  invoice-basis foundation and defer additional schemes and filing until each
-  has an explicit rule and compliance boundary.
+- **Decision review:** [DEC-03 VAT Scope
+  Review](ledgerly-dec-03-vat-scope-review.md).
+- **Options available:** (S1) Standard VAT/invoice basis only; (S2) Standard
+  VAT plus a named set of special schemes/treatments; or (S3) broad UK VAT
+  coverage. For adjustments: (A) controlled source-linked and return-level
+  corrections; (B) free-form box overrides; or (C) broad specialist
+  adjustments. For MTD/HMRC: (H1) preparation plus export/hand-off; (H2)
+  direct MTD submission; or (H3) the broader HMRC account surface.
+- **Replit's recommendation:** **RECOMMENDED, NOT APPROVED:** choose S1 + A +
+  H1: deterministic Standard VAT on invoice basis, controlled corrections,
+  and evidence-linked preparation/export without direct HMRC submission.
+  Defer special schemes, specialist adjustments, and live HMRC filing until
+  each has an explicit rule and compliance boundary.
 - **Why it is recommended:** VAT must remain explainable and authoritative;
-  unsupported scheme logic must not be approximated by the posting engine.
+  unsupported scheme logic must not be approximated by the posting engine, and
+  an export must not be represented as an HMRC filing.
 - **Accounting implications:** Determines tax account behavior, VAT evidence,
-  return boxes, adjustments, and whether filing creates consequential actions.
+  return boxes, adjustments, payment timing, and whether filing creates
+  consequential external actions.
 - **Data/schema implications:** Determines tax-rule versions, source evidence,
-  VAT snapshots, return structures, filing state, and audit records.
+  VAT snapshots, return structures, adjustment relationships, export/filing
+  state, and audit records.
 - **Migration implications:** Historical VAT records require scheme-aware
-  classification; unsupported or ambiguous history must remain visible.
+  classification; unsupported or ambiguous history must remain visible and must
+  not be silently recalculated as Standard VAT.
 - **Backlog implications:** Gates BL-05, BL-06, BL-07, BL-08, BL-15, BL-17, and
-  BL-25.
+  BL-18, BL-23, BL-24, and BL-25. This remains a dependency statement, not
+  implementation approval.
 - **Dependency:** DEC-02.
 
 ### DEC-04 — Accounting-core architecture adoption

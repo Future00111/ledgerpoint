@@ -100,7 +100,9 @@ must not be treated as part of the approved initial accounting-core scope:
 - Final product name: Ledgerly or Ledgerpoint.
 - Quotes, purchase orders, a shared contacts model, and reusable
   products/services/items.
-- The exact UK VAT scheme set and MTD/HMRC filing scope.
+- The exact UK VAT scheme set and MTD/HMRC filing scope; see the
+  [DEC-03 VAT Scope Review](ledgerly-dec-03-vat-scope-review.md). The review is
+  recommendation-only until explicitly approved.
 - Live Open Banking requirements and provider.
 - Email, inbound-mail, document-storage, and OCR providers.
 - Payment-provider, advanced expenses, payroll, inventory, fixed-assets,
