@@ -45,6 +45,11 @@ The [DEC-10 Control-Account Mapping Policy Review](ledgerly-dec-10-control-accou
 records an approved control-account policy only. It does not authorise
 implementation or resolve any DEC-11 through DEC-22 policy.
 
+The [DEC-11 Configuration Versioning and Effective Dating
+Review](ledgerly-dec-11-configuration-versioning-review.md) records a
+recommendation only. DEC-11 remains unresolved and does not authorise
+implementation.
+
 ## Architecture obligations derived from governance
 
 Any future technical design must uphold the following constraints:

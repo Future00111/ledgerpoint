@@ -334,6 +334,8 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 10. Account configuration and versioning
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-11 Configuration Versioning and Effective Dating
+  Review](ledgerly-dec-11-configuration-versioning-review.md).
 - **Decision needed:** Decide whether chart/default configuration is mutable,
   versioned, or effective-dated.
 - **Options:**

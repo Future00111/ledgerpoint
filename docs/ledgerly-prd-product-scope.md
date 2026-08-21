@@ -127,8 +127,10 @@ be approved:
    Chart of Accounts and Default Account Policy](ledgerly-dec-09-chart-of-accounts-policy-review.md)
    establishes the chart template and account policy. The [approved DEC-10
    Control-Account Mapping Policy Review](ledgerly-dec-10-control-account-mapping-policy-review.md)
-   establishes control-account policy. DEC-11 and later applicable decisions
-   remain unresolved.
+   establishes control-account policy. The [DEC-11 Configuration Versioning
+   and Effective Dating Review](ledgerly-dec-11-configuration-versioning-review.md)
+   records a recommendation only; DEC-11 and later applicable decisions remain
+   unresolved.
 7. Source freshness, overpayment, unapplied cash, refund, and
    payment-on-account treatment.
 8. Audit retention, deletion/anonymisation, export, backup/recovery, and tenant

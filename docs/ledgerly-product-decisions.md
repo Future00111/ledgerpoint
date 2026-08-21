@@ -360,6 +360,29 @@ not higher authority.
   authorise code, schema, migration, UI, workflow, dependency, deployment,
   publishing, or an implementation task. BL-06 and BL-07 remain blocked.
 
+### DEC-11 — Configuration Versioning and Effective Dating
+
+- **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-11 Configuration Versioning and Effective Dating
+  Review](ledgerly-dec-11-configuration-versioning-review.md).
+- **Current decision/direction:** Decide which material accounting
+  configuration requires version context, how versions are identified and
+  selected by posting date, how future and exceptional changes are controlled,
+  and how posting-time configuration is retained.
+- **Recommendation:** Use immutable company-scoped effective-dated versions.
+  Select one approved version by canonical posting date, preserve resolved
+  account IDs and configuration context on every posting, prohibit ordinary
+  backdating over posted journals or closed periods, and keep cosmetic chart
+  changes outside accounting versioning.
+- **Boundary:** DEC-10's prospective-only mapping principle remains
+  authoritative. DEC-03 VAT evidence, DEC-04 journals, DEC-06/DEC-07
+  identities, DEC-08 year-end, and DEC-09 account identity remain unchanged.
+  DEC-12 through DEC-16 retain payment-edge-case authority, and DEC-22 retains
+  migration/cutover authority.
+- **Implementation limit:** This review and unresolved decision do not
+  authorise code, schema, migration, UI, workflow, dependency, deployment,
+  publishing, or an implementation task. BL-06 and BL-07 remain blocked.
+
 ### PD-01 — Product name
 
 - **Status:** OPEN

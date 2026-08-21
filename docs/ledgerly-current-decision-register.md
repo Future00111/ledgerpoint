@@ -423,6 +423,8 @@ to the accounting core.
 ### DEC-11 — Account and configuration versioning
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-11 Configuration Versioning and Effective Dating
+  Review](ledgerly-dec-11-configuration-versioning-review.md).
 - **Decision:** Decide how chart, tax, control mappings, and posting
   configuration change over time.
 - **Options available:** (a) mutable current configuration; (b) immutable
