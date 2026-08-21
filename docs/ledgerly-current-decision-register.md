@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–2 approved; remaining decisions require
+**Register status:** Decisions 1–3 approved; remaining decisions require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -72,28 +72,33 @@ to the accounting core.
   require a later approved compatibility decision.
 - **Backlog implications:** Constrains BL-06, BL-07, BL-08, BL-09, BL-12,
   BL-13, BL-14, BL-15, BL-17, and BL-25. It does not approve any of them.
-- **Dependency:** Product Principles and Decision 1 (approved). DEC-03 and
-  subsequent accounting-core decisions remain required.
+- **Dependency:** Product Principles and Decisions 1–3 (approved). Subsequent
+  accounting-core decisions remain required.
 
 ### DEC-03 — VAT schemes, adjustments, and MTD/HMRC scope
 
-- **Status:** REQUIRES USER DECISION
-- **Decision:** Confirm which VAT schemes, adjustment types, exports, and
-  MTD/HMRC filing capabilities are in scope for the selected launch.
+- **Status:** APPROVED
+- **Decision:** Approve S1 + A + H1 for the initial launch:
+  - **S1:** UK Standard VAT Scheme using invoice-basis accounting.
+  - **A:** Controlled, source-linked and return-level corrections only.
+  - **H1:** Supported VAT-return preparation and auditable export/hand-off,
+    without direct HMRC submission.
 - **Decision review:** [DEC-03 VAT Scope
   Review](ledgerly-dec-03-vat-scope-review.md).
-- **Options available:** (S1) Standard VAT/invoice basis only; (S2) Standard
-  VAT plus a named set of special schemes/treatments; or (S3) broad UK VAT
-  coverage. For adjustments: (A) controlled source-linked and return-level
-  corrections; (B) free-form box overrides; or (C) broad specialist
-  adjustments. For MTD/HMRC: (H1) preparation plus export/hand-off; (H2)
-  direct MTD submission; or (H3) the broader HMRC account surface.
-- **Replit's recommendation:** **RECOMMENDED, NOT APPROVED:** choose S1 + A +
-  H1: deterministic Standard VAT on invoice basis, controlled corrections,
-  and evidence-linked preparation/export without direct HMRC submission.
-  Defer special schemes, specialist adjustments, and live HMRC filing until
-  each has an explicit rule and compliance boundary.
-- **Why it is recommended:** VAT must remain explainable and authoritative;
+- **Approved scope:** Corrections require an explicit reason, evidence,
+  appropriate VAT-box mapping, reviewer/approver information, and an audit
+  trail. Free-form VAT-box overrides are prohibited. Ledgerly prepares
+  supported VAT returns with box-by-box evidence and source drill-down, review,
+  approval, locking, and export audit records. It provides human-readable and
+  structured export/hand-off. A return must be labelled prepared/exported, not
+  filed, unless there is a verified HMRC submission receipt.
+- **Future scope, not approved for initial launch:** Cash Accounting, Flat
+  Rate, Annual Accounting, Retail, margin, agricultural/sector-specific,
+  partial-exemption, Capital Goods, import/postponed-import VAT, broad domestic
+  or international reverse-charge coverage, bad-debt relief/recovery,
+  specialist adjustments, direct HMRC submission, HMRC authorisation/account
+  workflows, obligations, and HMRC receipts/rejections/retries.
+- **Why approved:** VAT must remain explainable and authoritative;
   unsupported scheme logic must not be approximated by the posting engine, and
   an export must not be represented as an HMRC filing.
 - **Accounting implications:** Determines tax account behavior, VAT evidence,
@@ -108,7 +113,12 @@ to the accounting core.
 - **Backlog implications:** Gates BL-05, BL-06, BL-07, BL-08, BL-15, BL-17, and
   BL-18, BL-23, BL-24, and BL-25. This remains a dependency statement, not
   implementation approval.
-- **Dependency:** DEC-02.
+- **Dependency:** DEC-02. This approved scope constrains DEC-04 and subsequent
+  decisions; it does not approve them.
+- **Amendment rule:** DEC-03 may be amended only through the Living Product
+  Decisions process. An amendment must document effects on accounting data,
+  schema, migration, backwards compatibility, reporting, dependent features,
+  and backlog items before implementation direction changes.
 
 ### DEC-04 — Accounting-core architecture adoption
 
@@ -541,7 +551,7 @@ The logical approval order is:
 
 1. DEC-01 — Governance hierarchy (**APPROVED**).
 2. DEC-02 — Final launch PRD / Product Scope (**APPROVED**).
-3. DEC-03 — VAT schemes and filing scope.
+3. DEC-03 — VAT schemes and filing scope (**APPROVED: S1 + A + H1**).
 4. DEC-04 — Accounting-core architecture adoption.
 5. DEC-05 — Capability and approval matrix.
 6. DEC-06 through DEC-11 — Financial years, periods, year-end, chart,

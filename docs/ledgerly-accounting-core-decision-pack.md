@@ -606,28 +606,28 @@ These constraints are not invitations to implement BL-06 or BL-07.
 
 ## 23. Decisions requiring Lee's explicit approval
 
-Before implementation, Lee must explicitly approve or amend:
+DEC-03 is approved as S1 + A + H1. Before implementation, Lee must explicitly
+approve or amend:
 
-1. DEC-03: VAT schemes, adjustments, exports, and MTD/HMRC filing scope.
-2. Adoption or amendment of the accounting-core architecture review.
-3. The capability matrix.
-4. Financial-year start and change policy.
-5. Monthly period generation and close/reopen rules.
-6. Year-end reporting-only versus explicit closing journal.
-7. Default UK chart template and account list.
-8. Mandatory control-account mappings.
-9. Effective-dated account/configuration versioning.
-10. Source revision/hash and VAT freshness semantics.
-11. Customer overpayment and supplier prepayment treatment.
-12. First-class unapplied cash.
-13. Refund requirements and launch scope.
-14. Customer/supplier payment-on-account scope.
-15. Audit retention periods.
-16. Deletion/anonymisation policy.
-17. Export formats, scope, and permissions.
-18. Backup RPO/RTO and restore-test requirements.
-19. Application scoping versus RLS policy.
-20. Historical migration cohort/cutover policy.
+1. Adoption or amendment of the accounting-core architecture review.
+2. The capability matrix.
+3. Financial-year start and change policy.
+4. Monthly period generation and close/reopen rules.
+5. Year-end reporting-only versus explicit closing journal.
+6. Default UK chart template and account list.
+7. Mandatory control-account mappings.
+8. Effective-dated account/configuration versioning.
+9. Source revision/hash and VAT freshness semantics.
+10. Customer overpayment and supplier prepayment treatment.
+11. First-class unapplied cash.
+12. Refund requirements and launch scope.
+13. Customer/supplier payment-on-account scope.
+14. Audit retention periods.
+15. Deletion/anonymisation policy.
+16. Export formats, scope, and permissions.
+17. Backup RPO/RTO and restore-test requirements.
+18. Application scoping versus RLS policy.
+19. Historical migration cohort/cutover policy.
 
 No item above should be marked approved merely because this pack recommends an
 option.
@@ -663,7 +663,8 @@ explicitly approved:
 
 Implementation remains **BLOCKED** by:
 
-- unresolved DEC-03 VAT scope and accounting-core design adoption;
+- unresolved accounting-core design adoption, subject to the approved DEC-03
+  VAT constraints;
 - unresolved capability matrix and elevated accounting permissions;
 - unresolved financial-year, period, and year-end policy;
 - unresolved chart template and control-account mappings;
@@ -681,6 +682,7 @@ Implementation remains **BLOCKED** by:
 **DECISION PACK:** READY FOR LEE'S REVIEW  
 **DECISION 1:** APPROVED
 **DECISION 2:** APPROVED
+**DECISION 3:** APPROVED — S1 + A + H1
 **CURRENT DECISION REGISTER:** READY FOR LEE'S REVIEW
 **BL-06 / BL-07 IMPLEMENTATION:** BLOCKED  
 **APPLICATION CODE CHANGED:** NO  

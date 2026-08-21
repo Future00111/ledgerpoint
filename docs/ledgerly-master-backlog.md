@@ -88,11 +88,11 @@ Every matrix feature is covered below. `A*` denotes an existing phase-scoped cap
 
 ## Scope-decision items
 
-DEC-02 approves the initial UK/GBP accounting-core scope: authoritative core
-accounting, UK accounting and VAT preparation, invoices, bills, payments,
-banking, reconciliation, and reporting. It does not approve any backlog item or
-the decisions below. The following must remain decisions rather than assumed
-backlog implementation:
+DEC-02 approves the initial UK/GBP accounting-core scope. DEC-03 approves
+Standard VAT on invoice basis, controlled corrections, and VAT
+preparation/export without direct HMRC submission. Neither decision approves a
+backlog item or the decisions below. The following must remain decisions rather
+than assumed backlog implementation:
 
 1. Ledgerly versus Ledgerpoint product name (see the Living Product Decisions Register).
 2. Additional market, country/tax-regime, and currency support beyond the
@@ -101,7 +101,8 @@ backlog implementation:
 4. Purchase orders.
 5. Products/services/items.
 6. Separate Contacts model.
-7. VAT schemes and MTD/HMRC filing.
+7. Additional VAT schemes, specialist adjustments, and direct MTD/HMRC filing
+   beyond the approved DEC-03 scope.
 8. Open Banking provider and launch requirement.
 9. Email delivery and inbound-capture provider.
 10. Document storage and OCR provider.

@@ -1,12 +1,12 @@
 # DEC-03 VAT Schemes, Adjustments, and MTD/HMRC Scope Review
 
 **Decision:** DEC-03 — VAT schemes, adjustments, and MTD/HMRC scope  
-**Status:** **REQUIRES USER DECISION**  
+**Status:** **APPROVED — S1 + A + H1**
 **Review date:** 2026-08-21  
 **Decision authority:** Product owner/stakeholder, with accounting and
 regulatory review  
-**Approval rule:** Nothing in this review is approved merely because it is
-recommended.
+**Approval record:** Lee explicitly approved S1 + A + H1 on 2026-08-21. The
+other options and recommendations in this review do not expand that approval.
 
 ## 1. Review basis and governing constraints
 
@@ -38,11 +38,11 @@ The existing documentation establishes these constraints:
   launch. It does not approve every UK VAT scheme, direct HMRC filing, or any
   implementation task.
 
-## 2. Executive recommendation
+## 2. Approved decision
 
-### Recommended launch position — not approved
+### Approved launch position — DEC-03
 
-For the initial launch, Ledgerly should support:
+For the initial launch, Ledgerly supports:
 
 1. **One VAT scheme:** the UK **Standard VAT Scheme using invoice-basis
    accounting**.
@@ -77,7 +77,7 @@ business whose records require an unsupported scheme or treatment must be told
 that the workflow is unsupported; Ledgerly must not approximate a result using
 the standard scheme.
 
-The recommendation is intentionally narrower than “all UK VAT.” It preserves
+The approved scope is intentionally narrower than “all UK VAT.” It preserves
 the approved DEC-02 VAT-preparation scope without making an incomplete tax
 engine look filing-ready.
 
@@ -90,7 +90,7 @@ accounting. Treat standard, reduced, and zero-rated supplies, exempt supplies,
 outside-scope items, and explicit no-VAT classifications. Do not support
 special accounting schemes at launch.
 
-**Recommendation:** **RECOMMENDED FOR LAUNCH — NOT APPROVED.**
+**Decision:** **APPROVED FOR INITIAL LAUNCH — DEC-03 S1.**
 
 **Why:** This is the only scheme already represented by the deterministic VAT
 service and the existing accounting-core review. It gives Ledgerly a bounded,
@@ -301,7 +301,7 @@ reviewed, approved, and traceable.
 **Description:** Support credit/debit notes, deterministic rounding, and
 approved return-level corrections with evidence and explicit box mapping.
 
-**Recommendation:** **RECOMMENDED FOR LAUNCH — NOT APPROVED.**
+**Decision:** **APPROVED FOR INITIAL LAUNCH — DEC-03 A.**
 
 **Accounting consequences:**
 
@@ -436,7 +436,7 @@ with source evidence, lock and approve it, and provide auditable structured and
 human-readable exports for an accountant, agent, or compatible filing/bridging
 workflow. Do not submit directly to HMRC.
 
-**Recommendation:** **RECOMMENDED FOR INITIAL LAUNCH — NOT APPROVED.**
+**Decision:** **APPROVED FOR INITIAL LAUNCH — DEC-03 H1.**
 
 **Accounting consequences:**
 
@@ -604,36 +604,33 @@ The recommended position is consistent with DEC-01 and DEC-02:
   the deterministic and accounting-first requirements, even if the UI labels
   the result as a recommendation.
 
-## 8. Approval required from Lee
+## 8. Approval record and amendment rule
 
-DEC-03 remains **REQUIRES USER DECISION** until Lee explicitly approves or
-amends all of the following:
+Lee approved the following DEC-03 scope:
 
-1. The launch scheme set:
-   - the recommended one-scheme Standard VAT/invoice-basis option; or
-   - a named alternative scheme set.
-2. The launch tax treatments:
-   - whether the listed rates and non-taxable classifications are sufficient;
-   - whether any reverse-charge or import treatment is required at launch.
-3. The launch adjustment set:
-   - controlled source-linked corrections and prior-period adjustments; and
-   - whether bad debt, partial exemption, Capital Goods, private-use/fuel, or
-     other specialist adjustments are required.
-4. The MTD/HMRC boundary:
-   - preparation plus export/hand-off; or
-   - direct submission; or
-   - a broader HMRC account surface.
-5. The unsupported-customer boundary and migration treatment for historical
-   special-scheme or ambiguous VAT records.
+1. **S1 — Scheme:** UK Standard VAT Scheme using invoice-basis accounting.
+2. **A — Corrections:** Controlled, source-linked and return-level corrections
+   only, with an explicit reason, evidence, appropriate VAT-box mapping,
+   reviewer/approver information, and audit trail. Free-form VAT-box overrides
+   are prohibited.
+3. **H1 — MTD/HMRC boundary:** supported return preparation, evidence and
+   source drill-down, review, approval, locking, and export audit records,
+   together with human-readable and structured export/hand-off. A return is
+   prepared/exported rather than filed unless there is a verified HMRC
+   submission receipt.
 
-An approval should state the chosen option or amended scope explicitly. A
-general agreement with the recommendation is not to be interpreted as approval
-of any unmentioned specialist treatment.
+All special schemes, specialist adjustments, and direct HMRC capabilities
+listed in the approved future-scope boundary remain outside the initial launch.
+
+DEC-03 may be amended through the Living Product Decisions process. Any
+amendment must identify the effect on existing implementation, accounting data,
+schema, migrations, backwards compatibility, reporting, dependent features, and
+backlog items before implementation direction changes.
 
 ## 9. Dependencies created by DEC-03
 
-Regardless of the selected option, DEC-03 must be resolved before affected
-implementation is approved. The decision creates or refines these dependencies:
+The approved DEC-03 scope creates or refines these dependencies before affected
+implementation is approved:
 
 - **DEC-04:** the accounting-core architecture must represent authoritative
   tax results and immutable corrections.
@@ -659,12 +656,12 @@ implementation is approved. The decision creates or refines these dependencies:
 |---|---|
 | **Decision** | Which VAT schemes, adjustments, and MTD/HMRC capabilities Ledgerly supports at launch |
 | **Options** | S1/S2/S3 for scheme breadth; A/B/C for adjustments; H1/H2/H3 for HMRC scope |
-| **Recommendation** | S1 + A + H1: Standard invoice-basis VAT, controlled corrections, preparation/export without direct HMRC filing |
+| **Approved scope** | S1 + A + H1: Standard invoice-basis VAT, controlled corrections, preparation/export without direct HMRC filing |
 | **Consequences** | Bounded deterministic tax engine; explicit source evidence and audit; narrower onboarding; specialist schemes and live filing deferred |
-| **What requires Lee's approval** | Scheme set, tax treatments, adjustment categories, MTD/HMRC boundary, unsupported-customer and migration rules |
+| **What Lee approved** | Scheme set, correction controls, MTD/HMRC preparation/export boundary, and excluded future scope |
 | **Dependencies** | DEC-04 through DEC-22 as applicable, plus the affected VAT/accounting/reporting/backlog items listed above |
 
-**DEC-03 status after this review:** **REQUIRES USER DECISION**  
+**DEC-03 status after this review:** **APPROVED — S1 + A + H1**
 **DEC-04 and all subsequent decisions:** **NOT REVIEWED OR APPROVED BY THIS
 DOCUMENT**  
 **Implementation authorised:** **NO**

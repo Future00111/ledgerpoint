@@ -63,8 +63,8 @@ not higher authority.
 - **Impact:** Initial accounting-core work must support only the approved source
   types and tax treatments. Additional product capabilities are not part of the
   initial accounting-core implementation unless separately approved.
-- **Dependencies:** Decision 1, Product Principles, PRD/Product Scope; DEC-03
-  and all subsequent accounting-core decisions remain unresolved.
+- **Dependencies:** Decision 1, Product Principles, PRD/Product Scope, and
+  DEC-03; subsequent accounting-core decisions remain unresolved.
 - **What it affects:** Accounting sources, posting boundaries, VAT, payments,
   banking, reconciliation, reporting, migration cohort, and affected backlog
   dependencies.
@@ -85,11 +85,23 @@ not higher authority.
 
 ### DEC-03 — VAT schemes, adjustments, and MTD/HMRC scope
 
-- **Status:** REQUIRES USER DECISION
-- **Current decision/direction:** No DEC-03 option is approved. The
-  decision-only review recommends S1 + A + H1: Standard VAT on invoice basis,
-  controlled source-linked and return-level corrections, and evidence-linked
-  VAT preparation/export without direct HMRC submission.
+- **Status:** APPROVED
+- **Current decision/direction:** DEC-03 approves S1 + A + H1 for the initial
+  launch: UK Standard VAT Scheme on invoice basis; controlled source-linked and
+  return-level corrections; and supported VAT-return preparation/export without
+  direct HMRC submission.
+- **Approved controls:** Each correction must have an explicit reason, evidence,
+  appropriate VAT-box mapping, reviewer/approver information, and an audit
+  trail. Free-form VAT-box overrides are prohibited. Returns require
+  box-by-box evidence and source drill-down, review, approval, locking, and
+  export audit records. They must be labelled prepared/exported unless a
+  verified HMRC submission receipt exists.
+- **Future scope:** Cash Accounting, Flat Rate, Annual Accounting, Retail,
+  margin, agricultural/sector-specific schemes, partial exemption, Capital
+  Goods, import/postponed-import VAT, broad reverse charge, bad-debt
+  relief/recovery, specialist adjustments, direct HMRC submission,
+  authorisation/account workflows, obligations, and HMRC
+  receipts/rejections/retries are not approved for the initial launch.
 - **Reason:** The current deterministic foundation supports a bounded standard
   scheme. Special schemes, specialist adjustments, and direct filing each need
   separate accounting, evidence, security, reporting, and compliance rules.
@@ -102,11 +114,13 @@ not higher authority.
 - **What it affects:** VAT profiles, tax rules, invoices, bills, credit notes,
   payments, returns, corrections, reports, exports, HMRC integrations, AI
   boundaries, permissions, audit, and migration.
-- **Revisit:** When Lee explicitly approves or amends DEC-03, when a new
-  scheme/treatment is proposed, or when HMRC/regulatory requirements change.
+- **Revisit:** When a new scheme/treatment is proposed or when HMRC/regulatory
+  requirements change. Any amendment must use the Living Product Decisions
+  process and identify accounting, data, migration, compatibility, reporting,
+  dependency, and backlog consequences before implementation changes direction.
 - **Change authority:** Product owner/stakeholder with accounting and
-  regulatory review; implementation cannot convert a recommendation into a
-  decision.
+  regulatory review; implementation cannot expand this approved scope without
+  an explicit amendment.
 - **Date recorded:** 2026-08-21
 - **Related review:** [DEC-03 VAT Scope
   Review](ledgerly-dec-03-vat-scope-review.md)

@@ -86,7 +86,7 @@ approve each one for launch or authorise implementation:
 | Accounting foundation | Authoritative financial records, controlled corrections, periods, configuration, and reporting. | **REQUIRES USER DECISION** for the BL-06/BL-07 accounting-core design and policies. |
 | Sales and purchases | Invoices, bills, payments, and related customer/supplier workflows are in the approved initial scope; credit-note and detailed allocation lifecycle remains **REQUIRES USER DECISION**. | DEC-02 approved; detailed lifecycle depends on later accounting decisions. |
 | Banking and reconciliation | Banking and reconciliation are in the approved initial scope. | DEC-02 approved; live banking/feed scope remains **REQUIRES USER DECISION**. |
-| VAT | UK accounting and VAT preparation are in the approved initial scope. | Supported schemes, adjustments, and MTD/HMRC filing scope remain **REQUIRES USER DECISION**. |
+| VAT | UK Standard VAT Scheme on invoice basis, controlled corrections, and supported VAT-return preparation/export are in the approved initial scope. | DEC-03 approved. Direct HMRC filing and all specialist schemes/treatments remain future scope. |
 | Reporting | Financial and management reporting that explains the business and is traceable to authoritative records. | Required direction; final report scope and journal authority depend on BL-06/BL-07. |
 | Documents and communications | Documents, extraction/review, approved sending, and durable audit trails. | Providers, inbound handling, retention, and launch scope are **REQUIRES USER DECISION**. |
 | Ask and AI Accountant | Search, explanation, safe assistance, recommendations, tasks, and contextual actions. | Assistant/approval boundary is established; action coverage and delivery sequencing remain **REQUIRES USER DECISION**. |
@@ -100,9 +100,8 @@ must not be treated as part of the approved initial accounting-core scope:
 - Final product name: Ledgerly or Ledgerpoint.
 - Quotes, purchase orders, a shared contacts model, and reusable
   products/services/items.
-- The exact UK VAT scheme set and MTD/HMRC filing scope; see the
-  [DEC-03 VAT Scope Review](ledgerly-dec-03-vat-scope-review.md). The review is
-  recommendation-only until explicitly approved.
+- Additional VAT schemes, specialist adjustments, and MTD/HMRC filing beyond
+  the [approved DEC-03 scope](ledgerly-dec-03-vat-scope-review.md).
 - Live Open Banking requirements and provider.
 - Email, inbound-mail, document-storage, and OCR providers.
 - Payment-provider, advanced expenses, payroll, inventory, fixed-assets,
@@ -119,7 +118,8 @@ be approved:
 2. Additional supported countries, tax regimes, and currencies beyond the
    initial UK/GBP direction.
 3. Additional product capabilities beyond the approved initial scope.
-4. Supported VAT schemes, adjustments, exports, and MTD/HMRC filing scope.
+4. Additional VAT schemes, specialist adjustments, or direct MTD/HMRC filing
+   beyond the approved DEC-03 scope.
 5. The role/capability model for consequential accounting actions.
 6. The financial-year, period close/reopen, and year-end policy.
 7. The chart template, control-account mappings, and configuration versioning.
