@@ -191,6 +191,8 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 5. Financial-year policy
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-06 Financial-Year Policy
+  Review](ledgerly-dec-06-financial-year-policy-review.md).
 - **Decision needed:** Decide how a company chooses its financial year and
   whether it may change the start date after posting.
 - **Options:**

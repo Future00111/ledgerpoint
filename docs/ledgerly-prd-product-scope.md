@@ -122,7 +122,10 @@ be approved:
    beyond the approved DEC-03 scope.
 5. Any amendment or specialised capability/approval rule beyond the approved
    DEC-05 model.
-6. The financial-year, period close/reopen, and year-end policy.
+6. The financial-year, period close/reopen, and year-end policy. The
+   [DEC-06 Financial-Year Policy
+   Review](ledgerly-dec-06-financial-year-policy-review.md) is a
+   recommendation only; DEC-06 remains unresolved.
 7. The chart template, control-account mappings, and configuration versioning.
 8. Source freshness, overpayment, unapplied cash, refund, and
    payment-on-account treatment.

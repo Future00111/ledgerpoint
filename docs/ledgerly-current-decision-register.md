@@ -209,6 +209,8 @@ to the accounting core.
 ### DEC-06 — Financial-year start and change policy
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-06 Financial-Year Policy
+  Review](ledgerly-dec-06-financial-year-policy-review.md).
 - **Decision:** Define the financial-year start, whether companies may change it,
   and how a change behaves after accounting records exist.
 - **Options available:** (a) fixed calendar year; (b) configurable company

@@ -98,7 +98,10 @@ merely because it exists today.
 DEC-05 is approved separately. The following remain **REQUIRES USER DECISION**
 before BL-06 or BL-07 can be approved for implementation:
 
-1. Financial-year, period generation, close/reopen, and year-end policy.
+1. Financial-year, period generation, close/reopen, and year-end policy. See
+   the [DEC-06 Financial-Year Policy
+   Review](ledgerly-dec-06-financial-year-policy-review.md) for the
+   financial-year recommendation; it remains unapproved.
 2. Chart template, control-account mappings, and effective-dated configuration
    policy.
 3. Source revision/freshness rules, including VAT evidence.
