@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-13 APPROVED; DEC-14 through DEC-22
+**Decision status:** DEC-01 through DEC-14 APPROVED; DEC-15 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -425,16 +425,16 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 13. Unapplied cash
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting workflow policy only
 - **Decision review:** [DEC-14 Unapplied Cash Workflow
   Policy Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md).
-- **Decision needed:** Decide the detailed user workflow for unapplied cash
+- **Approved policy:** Define the detailed user workflow for unapplied cash
   identification, review, matching, allocation, reallocation, and reporting.
 - **Options:**
   1. Hold only as a payment metadata flag.
   2. Hold in a dedicated unapplied-cash account/subledger.
   3. Immediately allocate to a selected invoice/bill.
-- **Recommendation:** Use a dedicated unapplied-cash workspace with contextual
+- **Approved workflow:** Use a dedicated unapplied-cash workspace with contextual
   entry points, deterministic suggestions, explicit user confirmation, and no
   silent automatic allocation at launch. DEC-13 remains the accounting
   representation authority.

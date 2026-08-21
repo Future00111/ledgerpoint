@@ -39,30 +39,30 @@ Future specifications must preserve the DEC-04 architectural invariants:
 
 DEC-04, DEC-05, DEC-06, DEC-07, DEC-08, and DEC-09 are
 architecture/product/accounting-policy approvals only. They do not approve an
-implementation task or resolve any DEC-14 through DEC-22 policy.
+implementation task or resolve any DEC-15 through DEC-22 policy.
 
 The [DEC-10 Control-Account Mapping Policy Review](ledgerly-dec-10-control-account-mapping-policy-review.md)
 records an approved control-account policy only. It does not authorise
-implementation or resolve any DEC-14 through DEC-22 policy.
+implementation or resolve any DEC-15 through DEC-22 policy.
 
 The [DEC-11 Configuration Versioning and Effective Dating
 Review](ledgerly-dec-11-configuration-versioning-review.md) records an
 approved configuration-versioning policy only. It does not authorise
-implementation or resolve any DEC-14 through DEC-22 policy.
+implementation or resolve any DEC-15 through DEC-22 policy.
 
 The [DEC-12 Payment, Allocation and Settlement Policy
 Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md)
 records an approved payment/allocation/settlement policy only. It does not
-authorise implementation or resolve DEC-14 through DEC-22 policy.
+authorise implementation or resolve DEC-15 through DEC-22 policy.
 
 The [DEC-13 Overpayments, Unapplied Cash and Excess Payment Policy
 Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md) records
 an approved overpayment and party-balance policy only. It does not authorise
-implementation or resolve DEC-14 through DEC-22 policy.
+implementation or resolve DEC-15 through DEC-22 policy.
 
 The [DEC-14 Unapplied Cash Workflow Policy
-Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md) records a
-recommendation only. DEC-14 remains unresolved and does not authorise
+Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md) records an
+approved workflow policy only. It does not authorise
 implementation or resolve DEC-15 through DEC-22 policy.
 
 ## Architecture obligations derived from governance

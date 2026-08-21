@@ -1,20 +1,21 @@
 # DEC-14 Unapplied Cash Workflow Policy Review
 
 **Decision:** DEC-14 — Unapplied Cash Workflow Policy
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — product/accounting workflow policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, security,
 and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-14 or DEC-15 through
-> DEC-22, and it does not authorise an implementation task, code, schema,
+> This records an approved product/accounting workflow policy. It does not
+> approve DEC-15 through DEC-22, and it does not authorise an implementation
+> task, code, schema,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
 ## 1. Purpose and scope
 
-DEC-14 must decide how users identify, review, manage, and allocate unapplied
+DEC-14 defines how users identify, review, manage, and allocate unapplied
 customer and supplier cash after the accounting representation approved by
 DEC-13 exists.
 
@@ -522,9 +523,9 @@ legacy authority retirement.
 4. Automatic allocation: efficient for strict cases but introduces material
    control, reversal, stale-data, and audit risk; not recommended at launch.
 
-## 18. RECOMMENDATION — NOT APPROVAL
+## 18. APPROVED POLICY
 
-Recommend **Option C: a dedicated Unapplied Cash workspace with contextual
+Approve **Option C: a dedicated Unapplied Cash workspace with contextual
 entry points**, combined with deterministic suggestions and explicit user
 confirmation:
 
@@ -554,7 +555,7 @@ confirmation:
 12. Define only the hand-offs to DEC-15 refunds and DEC-16 payment-on-account;
     do not resolve those policies.
 
-This recommendation is **not approval**.
+This policy is approved as a product/accounting workflow decision only.
 
 ## 19. Decision boundaries
 
@@ -586,7 +587,7 @@ Approval of the recommended DEC-14 unapplied-cash workflow policy.
 - detailed capability identifiers, UI, APIs, schema, workflow implementation,
   tests, dependencies, deployment, publishing, and implementation tasks.
 
-### What approving DEC-14 would lock in
+### What DEC-14 approval locks in
 
 - a unified workflow distinction between unknown bank evidence and known-party
   unapplied accounting payments;
@@ -606,7 +607,9 @@ refund workflow, payment-on-account scope, and migration details.
 
 ## 20. Decision readiness
 
-DEC-14 is ready for an explicit user decision. Until it is approved or amended:
+DEC-14 was explicitly approved on 2026-08-21. The approval is a
+product/accounting workflow-policy decision only. Until the applicable
+remaining decisions are approved or amended:
 
 - DEC-15 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
@@ -614,8 +617,7 @@ DEC-14 is ready for an explicit user decision. Until it is approved or amended:
   may be implemented; and
 - no implementation task is authorised.
 
-**DEC-01 through DEC-13:** **APPROVED**
-**DEC-14:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-14:** **APPROVED**
 **DEC-15 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**

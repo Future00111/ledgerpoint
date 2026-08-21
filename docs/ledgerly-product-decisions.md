@@ -432,20 +432,20 @@ not higher authority.
 
 ### DEC-14 — Unapplied Cash Workflow Policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting workflow policy only
 - **Decision review:** [DEC-14 Unapplied Cash Workflow
   Policy Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md).
-- **Current decision/direction:** Decide how users identify, review, manage,
+- **Approved policy:** Users identify, review, manage,
   and allocate unapplied customer and supplier cash without conflating bank
   evidence, accounting payment, allocation, or settlement.
-- **Recommendation:** Use a dedicated unapplied-cash workspace with contextual
+- **Approved workflow:** Use a dedicated unapplied-cash workspace with contextual
   customer, supplier, invoice, bill, payment, and reconciliation entry points;
   deterministic eligibility and suggestions; explicit user confirmation; and
   no silent automatic allocation at launch.
 - **Boundary:** DEC-13 accounting representation and DEC-12 settlement remain
   authoritative. DEC-15 retains refund policy, DEC-16 retains payment-on-
   account scope, and DEC-22 retains migration/cutover authority.
-- **Implementation limit:** This unresolved decision does not authorise code,
+- **Implementation limit:** This approved policy does not authorise code,
   schema, migration, UI, workflow, dependency, deployment, publishing, or an
   implementation task. BL-06 and BL-07 remain blocked.
 

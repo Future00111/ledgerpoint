@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–13 approved; DEC-14 through DEC-22 require
+**Register status:** Decisions 1–14 approved; DEC-15 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -517,16 +517,16 @@ to the accounting core.
   explicitly authorised task.
 - **Dependency:** DEC-04, DEC-09, DEC-10, DEC-11, and DEC-12.
 
-### DEC-14 — First-class unapplied cash
+### DEC-14 — Unapplied Cash Workflow Policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting workflow policy only
 - **Decision review:** [DEC-14 Unapplied Cash Workflow Policy
   Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md).
-- **Decision:** Decide the detailed user workflow for identifying, reviewing,
+- **Approved policy:** Define the detailed user workflow for identifying, reviewing,
   managing, and allocating unapplied customer and supplier cash.
 - **Options available:** (a) metadata flag only; (b) dedicated account/subledger
   state; or (c) immediate allocation.
-- **Replit's recommendation:** Use a dedicated unapplied-cash workspace with
+- **Approved workflow:** Use a dedicated unapplied-cash workspace with
   contextual entry points, deterministic suggestions, and explicit user
   confirmation. Do not silently auto-allocate at launch.
 - **Why it is recommended:** It maintains traceability and avoids assigning cash

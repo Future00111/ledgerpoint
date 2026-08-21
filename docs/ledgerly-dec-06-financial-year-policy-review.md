@@ -685,7 +685,8 @@ Until DEC-06 is approved or amended:
 **DEC-11:** **APPROVED — Configuration Versioning and Effective Dating Policy**
 **DEC-12:** **APPROVED — Payment, Allocation and Settlement Policy**
 **DEC-13:** **APPROVED — Overpayments, Unapplied Cash and Excess Payment Policy**
-**DEC-14 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-14:** **APPROVED — Unapplied Cash Workflow Policy**
+**DEC-15 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application code changed by this review:** **NO**  
 **Database or migrations changed by this review:** **NO**
