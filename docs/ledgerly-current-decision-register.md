@@ -520,20 +520,27 @@ to the accounting core.
 ### DEC-14 — First-class unapplied cash
 
 - **Status:** REQUIRES USER DECISION
-- **Decision:** Decide whether unapplied cash is a first-class payment/subledger
-  state and how it is subsequently allocated or refunded.
+- **Decision review:** [DEC-14 Unapplied Cash Workflow Policy
+  Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md).
+- **Decision:** Decide the detailed user workflow for identifying, reviewing,
+  managing, and allocating unapplied customer and supplier cash.
 - **Options available:** (a) metadata flag only; (b) dedicated account/subledger
   state; or (c) immediate allocation.
-- **Replit's recommendation:** First-class payment/subledger state; do not force
-  allocation when evidence is insufficient.
+- **Replit's recommendation:** Use a dedicated unapplied-cash workspace with
+  contextual entry points, deterministic suggestions, and explicit user
+  confirmation. Do not silently auto-allocate at launch.
 - **Why it is recommended:** It maintains traceability and avoids assigning cash
   to the wrong customer, supplier, or document.
-- **Accounting implications:** Cash posts once while allocation, refund, and
-  open-item effects remain distinct and reconcilable.
+- **Accounting implications:** Cash posts once while allocation, settlement,
+  customer-credit/supplier-prepayment effects, and bank evidence remain
+  distinct and reconcilable under DEC-12 and DEC-13.
 - **Data/schema implications:** Requires explicit remainder, allocation,
-  reversal, status, and journal relationships.
+  reversal, workflow status, suggestion, and journal relationships.
 - **Migration implications:** Unmatched historical bank matches need reviewed
   classification rather than arbitrary attachment.
+- **Boundary:** DEC-15 retains refunds and DEC-16 retains user-facing
+  payment-on-account scope. Source freshness and DEC-22 migration policy remain
+  separate.
 - **Backlog implications:** Gates BL-09, BL-14, BL-16, and BL-17.
 - **Dependency:** DEC-13 and DEC-10.
 

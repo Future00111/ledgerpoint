@@ -426,15 +426,18 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 13. Unapplied cash
 
 - **Status:** REQUIRES USER DECISION
-- **Decision needed:** Decide whether unapplied cash is a first-class open item
-  and which account treatment applies.
+- **Decision review:** [DEC-14 Unapplied Cash Workflow
+  Policy Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md).
+- **Decision needed:** Decide the detailed user workflow for unapplied cash
+  identification, review, matching, allocation, reallocation, and reporting.
 - **Options:**
   1. Hold only as a payment metadata flag.
   2. Hold in a dedicated unapplied-cash account/subledger.
   3. Immediately allocate to a selected invoice/bill.
-- **Recommendation:** Make unapplied cash a first-class payment state and
-  subledger item. Do not force allocation. Use configured customer-credit or
-  supplier-prepayment accounts, with explicit allocation and reversal actions.
+- **Recommendation:** Use a dedicated unapplied-cash workspace with contextual
+  entry points, deterministic suggestions, explicit user confirmation, and no
+  silent automatic allocation at launch. DEC-13 remains the accounting
+  representation authority.
 - **Accounting/data consequences:** Cash remains posted once, while allocation
   status and open-item statements remain independently traceable.
 - **Migration consequences:** Existing bank matches with no source allocation
@@ -442,8 +445,8 @@ Living Product Decisions Register until it has been explicitly accepted.
   documents.
 - **Dependencies:** Overpayments, payment allocations, refunds, chart
   mappings, reconciliation, BL-09, BL-14.
-- **Explicit product decision:** Approve first-class unapplied cash and the
-  launch account treatment.
+- **Decision boundary:** DEC-15 retains refund policy and DEC-16 retains
+  payment-on-account launch scope. Source freshness remains separate.
 
 ## 14. Refunds
 

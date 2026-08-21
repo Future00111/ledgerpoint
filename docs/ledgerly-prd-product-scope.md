@@ -141,9 +141,12 @@ be approved:
     records the approved excess-money and party-balance policy. DEC-14 and
     later applicable decisions remain unresolved.
  9. Source freshness remains a separate unresolved posting-safety dependency.
-10. Detailed unapplied-cash workflow, refunds, payment-on-account launch scope,
-    audit retention, deletion/anonymisation, export, backup/recovery, tenant
-    isolation, and legacy migration/cutover policy remain open.
+10. [DEC-14 Unapplied Cash Workflow Policy
+    Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md) records a
+    recommendation only; DEC-14 remains unresolved. Refunds, payment-on-account
+    launch scope, audit retention, deletion/anonymisation, export,
+    backup/recovery, tenant isolation, and legacy migration/cutover policy
+    remain open.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix
