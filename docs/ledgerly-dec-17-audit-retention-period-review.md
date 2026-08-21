@@ -8,7 +8,7 @@ security, privacy, and architecture review
 **Implementation authority:** None
 
 > This records an approved product/governance policy. It does not approve
-> DEC-19 through DEC-22, and it does not authorise an implementation task, code, schema,
+> DEC-20 through DEC-22, and it does not authorise an implementation task, code, schema,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
@@ -431,7 +431,7 @@ evidence**:
    become permission to rewrite or silently remove history.
 7. Keep retained records company-scoped and capability-controlled.
 8. Defer deletion, anonymisation, export, backup, tenant-isolation, and
-   migration execution rules to DEC-19 through DEC-22.
+   migration execution rules to DEC-20 through DEC-22.
 
 This policy is approved as a product/governance policy only.
 
@@ -493,7 +493,7 @@ DEC-17 was explicitly approved on 2026-08-21. The approval is a
 product/governance policy only. Until the applicable remaining decisions are
 approved or amended:
 
-- DEC-19 through DEC-22 remain untouched and unresolved;
+- DEC-20 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
 - no retention, deletion, anonymisation, archival, schema, migration, or
   accounting mechanism may be implemented; and
@@ -501,7 +501,8 @@ approved or amended:
 
 **DEC-01 through DEC-17:** **APPROVED**
 **DEC-18:** **APPROVED — Deletion and Anonymisation Policy**
-**DEC-19 through DEC-22:** **REQUIRE USER DECISION**
+**DEC-19:** **APPROVED — Export Policy**
+**DEC-20 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

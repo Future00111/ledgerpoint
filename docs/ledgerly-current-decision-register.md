@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–18 approved; DEC-19 through DEC-22 require
+**Register status:** Decisions 1–19 approved; DEC-20 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -595,7 +595,7 @@ to the accounting core.
   explicit classification would require additional intent and history fields.
 - **Migration implications:** Unmatched bank rows need approved classification;
   old paid totals cannot be assumed to represent on-account amounts.
-- **Boundary:** DEC-19 onward and DEC-22 migration policy remain unresolved.
+- **Boundary:** DEC-20 onward and DEC-22 migration policy remain unresolved.
   Source freshness remains separate.
 - **Backlog implications:** Gates BL-09, BL-14, and BL-16.
 - **Dependency:** DEC-13, DEC-14, and DEC-15.
@@ -625,7 +625,7 @@ to the accounting core.
   audit evidence remains visible rather than fabricated.
 - **Boundary:** DEC-18 remains responsible for deletion, anonymisation,
   archival, redaction, destruction, and subject-access-related handling.
-  DEC-19 through DEC-22 retain their own policy boundaries. Source freshness
+  DEC-20 through DEC-22 retain their own policy boundaries. Source freshness
   remains separate.
 - **Backlog implications:** Gates BL-18, BL-19, BL-21, BL-24, and BL-25.
 - **Dependency:** DEC-02, DEC-04, DEC-05, and DEC-18.
@@ -658,16 +658,21 @@ to the accounting core.
 
 ### DEC-19 — Export formats, scope, and permissions
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/data-export policy only
 - **Decision review:** [DEC-19 Export Policy
   Review](ledgerly-dec-19-export-policy-review.md).
-- **Decision:** Define accounting, audit, report, document, and data export
-  formats, scope, access authority, and versioning.
+- **Decision review:** [DEC-19 Export Policy
+  Review](ledgerly-dec-19-export-policy-review.md).
+- **Approved policy:** Support company-scoped PDF and CSV human-readable
+  reports; company-scoped CSV and versioned JSON for canonical accounting and
+  audit data; bounded operational CSV exports; specialised audit exports;
+  bounded document downloads/bundles; and interpretation-safe configuration
+  extracts.
+- Do not provide an unrestricted full-company database/archive export as a
+  default launch feature.
 - **Options available:** (a) CSV/PDF; (b) CSV plus machine-readable JSON; or
   (c) a full archive including documents and audit evidence.
-- **Replit's recommendation:** Company-scoped CSV plus versioned machine JSON for
-  canonical accounting/audit data, with human-readable reports separately.
-- **Why it is recommended:** It supports both operational use and durable
+- **Why it is approved:** It supports both operational use and durable
   system-to-system/accounting evidence without conflating report layouts with
   canonical data.
 - **Accounting implications:** Export totals must reconcile to posted journals
@@ -676,6 +681,8 @@ to the accounting core.
   interfaces and export events must be audited.
 - **Migration implications:** Legacy formats must be labelled as legacy and not
   treated as canonical output.
+- **Boundary:** DEC-20 retains backup/recovery, DEC-21 tenant isolation, and
+  DEC-22 migration/cutover. Source freshness remains separate.
 - **Backlog implications:** Gates BL-17, BL-18, BL-23, and BL-24.
 - **Dependency:** DEC-04, DEC-05, DEC-17, and DEC-18.
 

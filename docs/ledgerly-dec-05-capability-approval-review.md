@@ -543,7 +543,8 @@ use an unrecorded change.
 **DEC-16:** **APPROVED — Payment-on-Account Launch Scope**
 **DEC-17:** **APPROVED — Audit Retention Period**
 **DEC-18:** **APPROVED — Deletion and Anonymisation Policy**
-**DEC-19 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
+**DEC-19:** **APPROVED — Export Policy**
+**DEC-20 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
 **DEC-04:** **APPROVED — architecture only**
 **BL-06 / BL-07:** **BLOCKED**
 **Implementation task:** **NONE CREATED OR EXECUTED**

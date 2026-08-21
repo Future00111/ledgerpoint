@@ -690,7 +690,8 @@ Until DEC-06 is approved or amended:
 **DEC-16:** **APPROVED — Payment-on-Account Launch Scope**
 **DEC-17:** **APPROVED — Audit Retention Period**
 **DEC-18:** **APPROVED — Deletion and Anonymisation Policy**
-**DEC-19 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-19:** **APPROVED — Export Policy**
+**DEC-20 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application code changed by this review:** **NO**  
 **Database or migrations changed by this review:** **NO**

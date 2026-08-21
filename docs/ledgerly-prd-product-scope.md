@@ -135,7 +135,7 @@ be approved:
 7. [DEC-12 Payment, Allocation and Settlement Policy
    Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md)
    records the approved payment/evidence/allocation/settlement boundary.
-    DEC-19 and later applicable decisions remain unresolved.
+    DEC-20 and later applicable decisions remain unresolved.
  8. [DEC-13 Overpayments, Unapplied Cash and Excess Payment Policy
     Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md)
     records the approved excess-money and party-balance policy. DEC-16 and
@@ -152,19 +152,19 @@ be approved:
 12. [DEC-16 Payment-on-Account Launch Scope
     Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md) records
     an approved launch-scope policy: no separate user-facing
-    payment-on-account feature at launch. DEC-19 onward and migration/cutover
+    payment-on-account feature at launch. DEC-20 onward and migration/cutover
     policy remain open.
 13. [DEC-17 Audit Retention Period
     Review](ledgerly-dec-17-audit-retention-period-review.md) records a
-    approved class-based retention policy. DEC-19 through DEC-22 remain open
+    approved class-based retention policy. DEC-20 through DEC-22 remain open
     for their own policies.
 14. [DEC-18 Deletion, Anonymisation, Archival and Redaction Policy
     Review](ledgerly-dec-18-data-disposal-policy-review.md) records a
-    approved controlled, class-based disposal policy. DEC-19 through DEC-22
+    approved controlled, class-based disposal policy. DEC-20 through DEC-22
     remain open for their own policies.
 15. [DEC-19 Export Policy Review](ledgerly-dec-19-export-policy-review.md)
-    records a recommendation only; DEC-19 remains unresolved. DEC-20 through
-    DEC-22 remain open for their own policies.
+    records an approved bounded export policy. DEC-20 through DEC-22 remain
+    open for their own policies.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix

@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-18 APPROVED; DEC-19 through DEC-22
+**Decision status:** DEC-01 through DEC-19 APPROVED; DEC-20 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -361,7 +361,7 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 11. Invoice, bill, and VAT source freshness/version rules
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/data-export policy only
 - **Decision needed:** Decide what makes a source safe to post and what happens
   when it changes between approval, calculation, and posting.
 - **Options:**
@@ -500,7 +500,7 @@ Living Product Decisions Register until it has been explicitly accepted.
   classification.
 - **Dependencies:** Unapplied cash, overpayments, refunds, statements,
   bank/reconciliation, BL-09, BL-16.
-- **Decision boundary:** DEC-19 onward and DEC-22 migration policy remain open.
+- **Decision boundary:** DEC-20 onward and DEC-22 migration policy remain open.
   Source freshness remains separate.
 
 ## 16. Audit retention
@@ -560,13 +560,15 @@ Living Product Decisions Register until it has been explicitly accepted.
 - **Status:** REQUIRES USER DECISION
 - **Decision review:** [DEC-19 Export Policy
   Review](ledgerly-dec-19-export-policy-review.md).
-- **Decision needed:** Decide which accounting, audit, source, and document
-  exports are required and who may use them.
+- **Approved policy:** Support bounded company-scoped PDF/CSV reports,
+  company-scoped CSV and versioned JSON for canonical accounting/audit data,
+  bounded operational CSV, specialised audit exports, bounded document
+  downloads/bundles, and interpretation-safe configuration extracts.
 - **Options:**
   1. Human-readable CSV/PDF only.
   2. CSV plus machine-readable JSON.
   3. Full archive export including documents and audit evidence.
-- **Recommendation:** Support company-scoped CSV and machine-readable JSON for
+- **Controls:** Support company-scoped CSV and machine-readable JSON for
   chart, periods, journals, journal lines, payments, allocations, VAT
   evidence, and audit events. Add human-readable reports separately. Every
   export records actor, filters, date, and completion/failure; sensitive

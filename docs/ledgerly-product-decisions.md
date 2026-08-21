@@ -529,19 +529,20 @@ not higher authority.
 
 ### DEC-19 — Export Policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/data-export policy only
 - **Decision review:** [DEC-19 Export Policy
   Review](ledgerly-dec-19-export-policy-review.md).
-- **Current decision/direction:** Decide accounting, audit, report, document,
-  and data export formats, scope, access authority, and versioning.
-- **Recommendation:** Support company-scoped CSV plus versioned
+- **Approved policy:** Support company-scoped CSV plus versioned
   machine-readable JSON for canonical accounting/audit data, with
   human-readable PDF and CSV reports separately. Use bounded operational,
   document, configuration, and specialised audit exports—not an unbounded full
   company archive by default at launch.
+- **Controls:** Exports are authorised copies, never accounting authority.
+  They remain company-scoped, server-generated, capability-controlled,
+  auditable, finite, and subject to DEC-17 retention and DEC-18 disposal.
 - **Boundary:** DEC-20 retains backup/recovery, DEC-21 tenant isolation, and
   DEC-22 migration/cutover. Source freshness remains separate.
-- **Implementation limit:** This unresolved decision does not authorise code,
+- **Implementation limit:** This approved policy does not authorise code,
   schema, migration, UI, workflow, dependency, deployment, publishing, or an
   implementation task. BL-06 and BL-07 remain blocked.
 

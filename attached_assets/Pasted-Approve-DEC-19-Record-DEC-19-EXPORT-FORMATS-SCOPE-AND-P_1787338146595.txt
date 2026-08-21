@@ -1,0 +1,370 @@
+Approve DEC-19.
+
+Record:
+
+DEC-19 — EXPORT FORMATS, SCOPE, AND PERMISSIONS
+STATUS: APPROVED — product/data-export policy only
+
+Approve the bounded launch export model.
+
+1. HUMAN-READABLE REPORT EXPORTS
+
+Support:
+
+- PDF;
+- CSV;
+
+for appropriate:
+
+- financial reports;
+- VAT reports;
+- AR reports;
+- AP reports;
+- customer/supplier statements;
+- ledger reports.
+
+Exports must reflect the same canonical data and reporting rules used by Ledgerly.
+
+2. ACCOUNTING DATA EXPORTS
+
+Support:
+
+- company-scoped CSV;
+- versioned JSON;
+
+for canonical posted journals and their relevant relationships.
+
+JSON is a documented, versioned export contract.
+
+It must NOT be a raw database dump.
+
+3. OPERATIONAL DATA EXPORTS
+
+Support bounded CSV exports for authorised operational information including, where applicable:
+
+- customers;
+- suppliers;
+- documents;
+- payments;
+- allocations;
+- customer credits;
+- supplier prepayments;
+- refunds;
+- bank information;
+- reconciliation information.
+
+The exact export must respect the user's authority and the applicable export scope.
+
+4. AUDIT EXPORTS
+
+Support a versioned audit export containing:
+
+- versioned JSON;
+- human-readable manifest;
+- relevant accounting/audit evidence.
+
+Documents may be included only when separately authorised and appropriate.
+
+Audit exports must be sufficient to help explain consequential accounting activity without exposing unnecessary data.
+
+5. DOCUMENT EXPORTS
+
+Support:
+
+- individual document downloads;
+- bounded document bundles.
+
+Exported documents must preserve applicable:
+
+- retention state;
+- archival state;
+- redaction state;
+- anonymisation state.
+
+Exports must never recreate information that has legitimately been disposed of under DEC-18.
+
+6. CONFIGURATION EXPORTS
+
+Where necessary to understand historical accounting, provide versioned, interpretation-safe configuration extracts.
+
+These must explain relevant historical accounting meaning without exposing unnecessary internal implementation details.
+
+7. NO UNBOUNDED FULL-COMPANY ARCHIVE AT LAUNCH
+
+Do NOT provide an unrestricted full-company database/archive export as a default launch feature.
+
+Export scope must remain bounded, intentional and authorised.
+
+A future broader export can be considered through the Living Product Decisions process.
+
+8. EXPORT AUTHORITY
+
+Exports are authorised copies or representations of Ledgerly data.
+
+They are NOT accounting authority.
+
+An export must never:
+
+- create accounting;
+- mutate accounting;
+- modify VAT;
+- modify AR/AP;
+- modify settlement;
+- rewrite historical journals;
+- change accounting meaning.
+
+9. CANONICAL SOURCE
+
+All exports must derive from canonical Ledgerly data.
+
+Respect:
+
+- DEC-04 immutable canonical journals;
+- DEC-09 stable account identity/classification;
+- DEC-10 control mappings;
+- DEC-11 configuration versions;
+- DEC-12 payment/allocation/settlement;
+- DEC-13 customer credits/supplier prepayments;
+- DEC-14 unapplied-cash workflow;
+- DEC-15 refunds;
+- DEC-16 payment-on-account launch scope.
+
+10. COMPANY SCOPE
+
+Every export must be:
+
+- company-scoped;
+- server-generated;
+- capability-controlled;
+- auditable.
+
+Cross-company export must never be possible through ordinary export functionality.
+
+11. PERMISSIONS
+
+Use DEC-05 server-side capabilities.
+
+Differentiate appropriately between:
+
+- normal report exports;
+- accounting exports;
+- operational data exports;
+- audit exports;
+- document exports;
+- configuration exports.
+
+Higher-risk exports may require elevated authority or approval.
+
+Do not rely solely on frontend controls.
+
+12. PERSONAL DATA
+
+Exports must respect DEC-17 and DEC-18.
+
+Include only personal data necessary for the authorised export purpose.
+
+Where appropriate, minimise unnecessary personal information.
+
+Do not use export functionality to bypass anonymisation, deletion or other disposal requirements.
+
+13. DELETED / ANONYMISED DATA
+
+Exports must respect the current authoritative state.
+
+Do NOT recreate:
+
+- deleted data;
+- disposed data;
+- anonymised identities;
+- redacted information;
+
+merely because the information existed historically.
+
+14. RETENTION
+
+Exports must respect DEC-17 retention policy and DEC-18 disposal policy.
+
+Exporting data does not extend or bypass Ledgerly's retention obligations.
+
+Exported copies are separate representations and must not be treated as a mechanism for defeating disposal requirements.
+
+15. EXPORT AUDIT
+
+Record appropriate immutable export evidence including:
+
+- actor;
+- company;
+- export type;
+- scope;
+- filters;
+- date/time;
+- format;
+- success/failure;
+- access/download event where appropriate.
+
+Export audit evidence itself remains subject to DEC-17 and DEC-18.
+
+16. REPORT CONSISTENCY
+
+Exported reports must use the same authoritative data and reporting logic as Ledgerly's in-product reports.
+
+Respect:
+
+- reporting date;
+- posting date;
+- financial year;
+- accounting period;
+- account identity;
+- historical configuration.
+
+An export must not silently reinterpret historical accounting.
+
+17. FILTERING
+
+Where appropriate, support user-facing filters such as:
+
+- date range;
+- financial year;
+- accounting period;
+- account;
+- customer;
+- supplier;
+- document type;
+- transaction type.
+
+Filters affect the exported representation only.
+
+They must never alter canonical accounting.
+
+18. LARGE EXPORTS
+
+Large exports may be generated through a controlled background process where required.
+
+The user experience should remain simple.
+
+Where background generation is used, support appropriate:
+
+- progress;
+- completion notification;
+- expiry;
+- retry;
+- failure handling.
+
+Do not expose unnecessary technical implementation details.
+
+19. EXPORT FILE ACCESS
+
+Export files should be protected appropriately and should not remain accessible indefinitely.
+
+Where appropriate, use:
+
+- finite availability;
+- controlled access;
+- secure delivery;
+- expiry.
+
+Exact infrastructure and backup behaviour remains outside DEC-19 where owned by DEC-20.
+
+20. AUDIT / DOCUMENT BUNDLES
+
+Where an audit export includes supporting documents, ensure the bundle preserves the relevant relationship between:
+
+- canonical accounting;
+- source evidence;
+- approvals;
+- corrections;
+- reconciliation;
+- payments;
+- allocations;
+- refunds;
+- relevant configuration.
+
+Do not include unnecessary personal data.
+
+21. BACKUP BOUNDARY
+
+Exports are NOT backups.
+
+DEC-20 remains responsible for:
+
+- backup;
+- recovery;
+- restoration;
+- disaster recovery.
+
+Do not use exports as a substitute for the backup architecture.
+
+22. TENANT-ISOLATION BOUNDARY
+
+DEC-21 remains responsible for detailed tenant-isolation architecture.
+
+DEC-19 nevertheless requires strict company scoping for every export.
+
+23. MIGRATION BOUNDARY
+
+DEC-22 remains responsible for migration and cutover.
+
+Exports may support migration preparation or historical transfer where appropriate, but DEC-19 does not approve a specific migration/cutover strategy.
+
+Historical exports must never invent missing accounting facts.
+
+24. VERSIONING
+
+Machine-readable export formats, particularly JSON, must be versioned.
+
+Changes to the export contract must preserve clear interpretation of earlier export versions.
+
+Do not expose internal database IDs or implementation details merely because they exist.
+
+25. FUTURE FLEXIBILITY
+
+The approved policy must not unnecessarily prevent future:
+
+- additional formats;
+- accounting integrations;
+- migration formats;
+- external accountant workflows;
+- regulatory exports;
+- API-based portability;
+- additional markets.
+
+Any material expansion of export scope follows the Living Product Decisions process.
+
+IMPORTANT GOVERNANCE RULES:
+
+- DEC-01 through DEC-19 are now APPROVED.
+- DEC-20 through DEC-22 remain REQUIRES USER DECISION.
+- Do NOT approve DEC-20 or any later decision.
+- Keep BL-06 and BL-07 BLOCKED.
+- Do NOT create or execute an implementation task.
+- This is a product/data-export policy approval only.
+- It is NOT implementation authorisation.
+- Preserve the amendment path through the Living Product Decisions process.
+- Source freshness remains separately unresolved.
+
+Do NOT modify:
+
+- application code;
+- database schema;
+- migrations;
+- accounting logic;
+- UI;
+- workflows;
+- dependencies;
+- deployment;
+- publishing.
+
+Update only the relevant governance and decision documentation.
+
+FINAL VERIFICATION:
+
+1. DEC-01–DEC-19 are APPROVED.
+2. DEC-20–DEC-22 remain unresolved.
+3. BL-06 and BL-07 remain BLOCKED.
+4. No implementation task was created.
+5. No export implementation was made.
+6. No application/schema/migration/accounting logic/UI/workflow/dependency/deployment/publishing changes were made.
+7. No DEC-20 work was started.
+8. Source freshness remains separately unresolved.
+
+Stop after verification.

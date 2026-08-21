@@ -734,10 +734,10 @@ model. This historical DEC-04 approval record does not keep DEC-05 unresolved.
 | **DEC-04 status** | **APPROVED — architecture only** |
 | **Approved architecture** | Option A: adopt the existing review as the accounting-core foundation within the Technical Architecture, with targeted amendments |
 | **Actually locked by approval** | Canonical normalized append-only journals; atomic server-side double-entry posting; integer minor units; source-linked company-scoped idempotency; immutable corrections; separate payments/allocations/bank evidence; deterministic VAT adapter; journal-authoritative reporting; capability/company/audit boundaries; additive compatibility |
-| **Deliberately left open** | DEC-19 through DEC-22 policies, role-preset refinements, retention/RLS, migration cohort/cutover, API/schema names, providers, and implementation sequencing |
-| **Dependencies** | DEC-06, DEC-07, DEC-08, approved DEC-09, approved DEC-10, approved DEC-11, approved DEC-12, approved DEC-13, approved DEC-14, approved DEC-15, approved DEC-16, approved DEC-17, approved DEC-18, and DEC-19 through DEC-22 as applicable; BL-01–05, BL-06–10, BL-12–17, BL-19, BL-23–26 |
+| **Deliberately left open** | DEC-20 through DEC-22 policies, role-preset refinements, retention/RLS, migration cohort/cutover, API/schema names, providers, and implementation sequencing |
+| **Dependencies** | DEC-06, DEC-07, DEC-08, approved DEC-09, approved DEC-10, approved DEC-11, approved DEC-12, approved DEC-13, approved DEC-14, approved DEC-15, approved DEC-16, approved DEC-17, approved DEC-18, approved DEC-19, and DEC-20 through DEC-22 as applicable; BL-01–05, BL-06–10, BL-12–17, BL-19, BL-23–26 |
 | **Implementation consequence** | Architecture constrains future specifications; no implementation, migration, or task is authorised by this review |
-| **Next approvals required** | The applicable DEC-19 through DEC-22 decisions, then an approved implementation task |
+| **Next approvals required** | The applicable DEC-20 through DEC-22 decisions, then an approved implementation task |
 
 **DEC-04 status:** **APPROVED — architecture only**
 **DEC-05:** **APPROVED — separate capability-model decision**
@@ -754,6 +754,7 @@ model. This historical DEC-04 approval record does not keep DEC-05 unresolved.
 **DEC-16:** **APPROVED — separate Payment-on-Account Launch Scope**
 **DEC-17:** **APPROVED — Audit Retention Period**
 **DEC-18:** **APPROVED — Deletion and Anonymisation Policy**
-**DEC-19 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
+**DEC-19:** **APPROVED — Export Policy**
+**DEC-20 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application-path changes:** **NONE**

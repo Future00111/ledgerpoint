@@ -562,14 +562,14 @@ journals, VAT evidence, financial-year assignments, or source links.
 DEC-09 was explicitly approved on 2026-08-21 with the policy in section 16.
 
 DEC-10, DEC-11, DEC-12, and DEC-13 are approved in their separate policy
-reviews. DEC-14, DEC-15, DEC-16, DEC-17, and DEC-18 are approved and DEC-19 and all later decisions remain unresolved. Until the applicable remaining decisions
+reviews. DEC-14, DEC-15, DEC-16, DEC-17, DEC-18, and DEC-19 are approved and DEC-20 and all later decisions remain unresolved. Until the applicable remaining decisions
 are approved or amended:
 
 - no canonical chart/account policy, system-account protection, account
   lifecycle, control mapping, or account configuration versioning may be
   implemented;
 - BL-06 and BL-07 remain **BLOCKED**; and
- - DEC-19 and all later decisions remain untouched and unresolved.
+ - DEC-20 and all later decisions remain untouched and unresolved.
 
 **DEC-09:** **APPROVED — product/accounting policy only**
 **DEC-10:** **APPROVED — Control-Account Mapping Policy**
@@ -581,7 +581,8 @@ are approved or amended:
 **DEC-16:** **APPROVED — Payment-on-Account Launch Scope**
 **DEC-17:** **APPROVED — Audit Retention Period**
 **DEC-18:** **APPROVED — Deletion and Anonymisation Policy**
-**DEC-19 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-19:** **APPROVED — Export Policy**
+**DEC-20 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

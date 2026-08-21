@@ -39,54 +39,54 @@ Future specifications must preserve the DEC-04 architectural invariants:
 
 DEC-04, DEC-05, DEC-06, DEC-07, DEC-08, and DEC-09 are
 architecture/product/accounting-policy approvals only. They do not approve an
-implementation task or resolve any DEC-19 through DEC-22 policy.
+implementation task or resolve any DEC-20 through DEC-22 policy.
 
 The [DEC-10 Control-Account Mapping Policy Review](ledgerly-dec-10-control-account-mapping-policy-review.md)
 records an approved control-account policy only. It does not authorise
-implementation or resolve any DEC-19 through DEC-22 policy.
+implementation or resolve any DEC-20 through DEC-22 policy.
 
 The [DEC-11 Configuration Versioning and Effective Dating
 Review](ledgerly-dec-11-configuration-versioning-review.md) records an
 approved configuration-versioning policy only. It does not authorise
-implementation or resolve any DEC-19 through DEC-22 policy.
+implementation or resolve any DEC-20 through DEC-22 policy.
 
 The [DEC-12 Payment, Allocation and Settlement Policy
 Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md)
 records an approved payment/allocation/settlement policy only. It does not
-authorise implementation or resolve DEC-19 through DEC-22 policy.
+authorise implementation or resolve DEC-20 through DEC-22 policy.
 
 The [DEC-13 Overpayments, Unapplied Cash and Excess Payment Policy
 Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md) records
 an approved overpayment and party-balance policy only. It does not authorise
-implementation or resolve DEC-19 through DEC-22 policy.
+implementation or resolve DEC-20 through DEC-22 policy.
 
 The [DEC-14 Unapplied Cash Workflow Policy
 Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md) records an
 approved workflow policy only. It does not authorise
-implementation or resolve DEC-19 through DEC-22 policy.
+implementation or resolve DEC-20 through DEC-22 policy.
 
 The [DEC-15 Refund Policy Review](ledgerly-dec-15-refund-policy-review.md)
 records an approved refund policy only. It does not
-authorise implementation or resolve DEC-19 through DEC-22 policy.
+authorise implementation or resolve DEC-20 through DEC-22 policy.
 
 The [DEC-16 Payment-on-Account Launch Scope
 Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md) records a
 approved product/accounting launch-scope policy only. It does not authorise
-implementation or resolve DEC-19 through DEC-22 policy.
+implementation or resolve DEC-20 through DEC-22 policy.
 
 The [DEC-17 Audit Retention Period
 Review](ledgerly-dec-17-audit-retention-period-review.md) records a
 approved product/governance policy only. It does not authorise implementation
-or resolve DEC-19 through DEC-22 policy.
+or resolve DEC-20 through DEC-22 policy.
 
 The [DEC-18 Deletion, Anonymisation, Archival and Redaction Policy
 Review](ledgerly-dec-18-data-disposal-policy-review.md) records a
 approved product/governance/data-lifecycle policy only. It does not authorise
-implementation or resolve DEC-19 through DEC-22 policy.
+implementation or resolve DEC-20 through DEC-22 policy.
 
 The [DEC-19 Export Policy Review](ledgerly-dec-19-export-policy-review.md)
-records a recommendation only. DEC-19 remains unresolved and does not
-authorise implementation or resolve DEC-20 through DEC-22 policy.
+records an approved product/data-export policy only. It does not authorise
+implementation or resolve DEC-20 through DEC-22 policy.
 
 ## Architecture obligations derived from governance
 

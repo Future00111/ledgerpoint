@@ -2,14 +2,14 @@
 
 **Decision:** DEC-19 — Export formats, scope, and permissions
 **Scope:** Export formats, scope, and permissions
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — product/data-export policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, legal,
 privacy, security, and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-19 or DEC-20 through
-> DEC-22, and it does not authorise an implementation task, code, schema,
+> This records an approved product/data-export policy. It does not approve
+> DEC-20 through DEC-22, and it does not authorise an implementation task, code, schema,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
@@ -31,7 +31,7 @@ The registered recommendation is:
 > Company-scoped CSV plus versioned machine JSON for canonical accounting/audit
 > data, with human-readable reports separately.
 
-This review evaluates that recommendation without approving DEC-19.
+This review records that policy without authorising its implementation.
 
 ## 2. Purpose and export principles
 
@@ -613,9 +613,9 @@ retirement. Historical exports must:
 - **Compatibility:** Poor because formats evolve independently.
 - **Future flexibility:** Appears flexible but creates incompatible branches.
 
-## 17. RECOMMENDATION — NOT APPROVAL
+## 17. APPROVED POLICY
 
-Recommend **Option B: company-scoped CSV plus versioned machine-readable JSON
+Approve **Option B: company-scoped CSV plus versioned machine-readable JSON
 for canonical accounting and audit data, with human-readable reports
 separately**, using these launch boundaries:
 
@@ -642,7 +642,7 @@ separately**, using these launch boundaries:
     archive state, and known limitations in the export manifest.
 11. Do not recreate disposed data or use exports to mutate accounting.
 
-This recommendation is **not approval**.
+This policy is approved as a product/data-export policy only.
 
 ## 18. Decision boundaries
 
@@ -656,7 +656,7 @@ and supplier prepayments, unapplied cash, controlled refunds, no separate
 payment-on-account launch feature, class-based retention, and controlled
 class-based disposal with protected accounting.
 
-### Recommended
+### Approved policy
 
 Company-scoped CSV plus versioned machine-readable JSON for canonical
 accounting/audit data, with PDF and CSV human-readable reports separately,
@@ -665,8 +665,7 @@ high-risk scopes.
 
 ### Requires user decision
 
-Approval of the DEC-19 export formats, scope, access authority, and versioning
-policy.
+The bounded launch export model described in section 17.
 
 ### Deliberately left open
 
@@ -685,7 +684,7 @@ policy.
 - implementation details, schema, APIs, UI, tests, dependencies, deployment,
   and publishing.
 
-### What approving DEC-19 would lock in
+### What DEC-19 approval locks in
 
 - exports are copies/representations, never accounting authority;
 - company scope and server-side DEC-05 capability enforcement;
@@ -724,7 +723,9 @@ understand the underlying accounting or technical architecture.
 
 ## 20. Decision readiness
 
-DEC-19 is ready for an explicit user decision. Until it is approved or amended:
+DEC-19 was explicitly approved on 2026-08-21. The approval is a
+product/data-export policy only. Until the applicable remaining decisions are
+approved or amended:
 
 - DEC-20 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
@@ -733,8 +734,7 @@ DEC-19 is ready for an explicit user decision. Until it is approved or amended:
   and
 - no implementation task is authorised.
 
-**DEC-01 through DEC-18:** **APPROVED**
-**DEC-19:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-19:** **APPROVED**
 **DEC-20 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
