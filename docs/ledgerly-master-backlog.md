@@ -88,10 +88,15 @@ Every matrix feature is covered below. `A*` denotes an existing phase-scoped cap
 
 ## Scope-decision items
 
-The following must remain decisions rather than assumed backlog implementation:
+DEC-02 approves the initial UK/GBP accounting-core scope: authoritative core
+accounting, UK accounting and VAT preparation, invoices, bills, payments,
+banking, reconciliation, and reporting. It does not approve any backlog item or
+the decisions below. The following must remain decisions rather than assumed
+backlog implementation:
 
 1. Ledgerly versus Ledgerpoint product name (see the Living Product Decisions Register).
-2. Launch market, country/tax regime, and currency support.
+2. Additional market, country/tax-regime, and currency support beyond the
+   approved initial UK/GBP direction.
 3. Quotes/estimates.
 4. Purchase orders.
 5. Products/services/items.

@@ -4,8 +4,8 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decision 1 approved; remaining decisions require explicit
-approval  
+**Register status:** Decisions 1–2 approved; remaining decisions require
+explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
 ## How to use this register
@@ -47,31 +47,33 @@ to the accounting core.
 
 ### DEC-02 — Final launch PRD / Product Scope
 
-- **Status:** REQUIRES USER DECISION
-- **Decision:** Confirm the product scope that the accounting core is required
-  to support, including the launch market/currency direction and the initial
-  set of accounting sources and workflows.
-- **Options available:** (a) adopt the current provisional scope; (b) narrow
-  launch to authoritative core accounting, VAT preparation, invoices/bills,
-  payments, banking, reconciliation, and reporting; or (c) expand scope before
-  accounting-core work.
-- **Replit's recommendation:** Choose the narrow authoritative accounting
-  foundation, using the current UK/GBP direction provisionally, and keep
-  additional modules outside the first accounting-core build unless separately
-  approved.
-- **Why it is recommended:** It limits the canonical posting surface and avoids
-  building accounting contracts for unapproved capabilities.
-- **Accounting implications:** Only approved source types and tax treatments may
-  create accounting effects; unsupported sources must not create speculative
-  journals.
-- **Data/schema implications:** Source, posting, tax, and reporting contracts
-  can be scoped to an explicit capability set.
-- **Migration implications:** Scope determines which historical records are
-  eligible for canonical backfill and comparison.
-- **Backlog implications:** Gates BL-06, BL-07, BL-08, BL-09, BL-11, BL-15, and
-  BL-25.
-- **Dependency:** Product Principles (approved); this decision precedes the
-  detailed VAT and architecture choices.
+- **Status:** APPROVED
+- **Decision:** Ledgerly's initial product scope is authoritative core
+  accounting, UK accounting and VAT preparation, invoices, bills, payments,
+  banking, reconciliation, and reporting. The initial market/currency direction
+  is UK/GBP.
+- **Options available:** The approved initial-scope option is the focused
+  accounting foundation above. Additional markets, currencies, and capabilities
+  may be proposed later through the Product Decisions and governance process.
+- **Replit's recommendation:** Implement only the approved initial scope in the
+  first accounting-core work, while keeping the architecture extensible and
+  avoiding unnecessary UK/GBP hard-coding.
+- **Why it is recommended:** It gives the accounting foundation a clear,
+  deliberately bounded posting surface while preserving a safe path to future
+  markets, currencies, and capabilities.
+- **Accounting implications:** Only the approved initial source types and
+  accounting/tax treatments may create accounting effects. Additional sources
+  must not post until separately approved.
+- **Data/schema implications:** Currency, tax, source, posting, and reporting
+  contracts must support the initial UK/GBP scope without making UK/GBP an
+  irreversible structural assumption.
+- **Migration implications:** Initial migration and canonical backfill are
+  limited to the approved scope; future-market or future-capability records
+  require a later approved compatibility decision.
+- **Backlog implications:** Constrains BL-06, BL-07, BL-08, BL-09, BL-12,
+  BL-13, BL-14, BL-15, BL-17, and BL-25. It does not approve any of them.
+- **Dependency:** Product Principles and Decision 1 (approved). DEC-03 and
+  subsequent accounting-core decisions remain required.
 
 ### DEC-03 — VAT schemes, adjustments, and MTD/HMRC scope
 
@@ -527,7 +529,7 @@ to the accounting core.
 The logical approval order is:
 
 1. DEC-01 — Governance hierarchy (**APPROVED**).
-2. DEC-02 — Final launch PRD / Product Scope.
+2. DEC-02 — Final launch PRD / Product Scope (**APPROVED**).
 3. DEC-03 — VAT schemes and filing scope.
 4. DEC-04 — Accounting-core architecture adoption.
 5. DEC-05 — Capability and approval matrix.

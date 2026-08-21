@@ -49,6 +49,38 @@ not higher authority.
 
 ## Current decisions
 
+### DEC-02 — Final launch PRD / Product Scope
+
+- **Status:** APPROVED
+- **Current decision/direction:** Ledgerly's initial product scope is
+  authoritative core accounting, UK accounting and VAT preparation, invoices,
+  bills, payments, banking, reconciliation, and reporting. The initial
+  market/currency direction is UK/GBP.
+- **Reason:** The accounting foundation needs a deliberate and bounded launch
+  surface before canonical posting and configuration design can be approved.
+- **Impact:** Initial accounting-core work must support only the approved source
+  types and tax treatments. Additional product capabilities are not part of the
+  initial accounting-core implementation unless separately approved.
+- **Dependencies:** Decision 1, Product Principles, PRD/Product Scope; DEC-03
+  and all subsequent accounting-core decisions remain unresolved.
+- **What it affects:** Accounting sources, posting boundaries, VAT, payments,
+  banking, reconciliation, reporting, migration cohort, and affected backlog
+  dependencies.
+- **Revisit:** When an additional market, currency, capability, or changed
+  launch scope is explicitly proposed through the Living Product Decisions
+  process.
+- **Change authority:** Product owner/stakeholder through an explicit documented
+  decision. The amendment must identify consequences for existing
+  implementation, accounting data, database/schema, migrations, backwards
+  compatibility, dependent features, and Master Backlog items.
+- **Date recorded:** 2026-08-21
+- **Related backlog:** BL-06, BL-07, BL-08, BL-09, BL-12, BL-13, BL-14, BL-15,
+  BL-17, BL-25
+- **Related architecture:** The accounting foundation must avoid unnecessary
+  UK/GBP hard-coding so later markets, currencies, and capabilities do not
+  require a fundamental redesign. This decision does not approve DEC-03 or any
+  subsequent architecture decision.
+
 ### PD-01 — Product name
 
 - **Status:** OPEN
@@ -70,13 +102,14 @@ not higher authority.
 
 ### PD-02 — Launch market
 
-- **Status:** PROVISIONAL
-- **Current decision/direction:** Target UK small and medium-sized businesses.
-- **Reason:** The current accounting and VAT direction is UK-focused.
+- **Status:** APPROVED — component of DEC-02.
+- **Current decision/direction:** The initial launch market direction is UK
+  small and medium-sized businesses.
+- **Reason:** DEC-02 establishes the UK launch scope for the initial accounting
+  foundation.
 - **Impact:** UK terminology, tax assumptions, compliance scope, and launch
   workflows are the initial product baseline.
-- **Dependencies:** Product scope, applicable tax/regulatory requirements, and
-  launch definition.
+- **Dependencies:** DEC-02, applicable tax/regulatory requirements, and DEC-03.
 - **What it affects:** VAT, banking, reporting, currency, filing, copy, and
   onboarding.
 - **Revisit:** When launch strategy or supported jurisdictions change.
@@ -84,19 +117,20 @@ not higher authority.
   review required for affected tax or data changes.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-15, BL-25
-- **Related architecture:** Active Technical Architecture; launch-market details
-  remain **REQUIRES USER DECISION**.
+- **Related architecture:** Active Technical Architecture; future market
+  expansion remains subject to an explicit decision.
 
 ### PD-03 — Launch currency
 
-- **Status:** PROVISIONAL
-- **Current decision/direction:** GBP (£) is the launch currency. Avoid needless
-  architectural barriers to future multi-currency support. Do not implement
-  full multi-currency without separate approval.
-- **Reason:** UK launch focus with a need to preserve reasonable future options.
+- **Status:** APPROVED — component of DEC-02.
+- **Current decision/direction:** GBP (£) is the initial launch currency. Avoid
+  needless architectural barriers to future multi-currency support. Do not
+  implement full multi-currency without separate approval.
+- **Reason:** DEC-02 establishes the UK/GBP launch direction while requiring
+  reasonable future extensibility.
 - **Impact:** Monetary display, storage, validation, reports, and integrations
   use GBP initially.
-- **Dependencies:** Launch market and future multi-currency decision.
+- **Dependencies:** DEC-02 and a future multi-currency decision.
 - **What it affects:** Documents, payments, journals, VAT, banking, reports, and
   exports.
 - **Revisit:** Before entering a non-GBP market or adding foreign-currency
@@ -105,8 +139,8 @@ not higher authority.
   architecture review.
 - **Date recorded:** 2026-08-21
 - **Related backlog:** BL-04, BL-09, BL-15, BL-25
-- **Related architecture:** Active Technical Architecture; launch-currency
-  details remain **REQUIRES USER DECISION**.
+- **Related architecture:** Active Technical Architecture; future
+  multi-currency scope remains subject to an explicit decision.
 
 ### PD-04 — Quotes / estimates
 
@@ -200,18 +234,19 @@ not higher authority.
 ### PD-08 — VAT
 
 - **Status:** PROVISIONAL
-- **Current decision/direction:** UK VAT accounting is a core capability. The
-  VAT engine must remain deterministic, authoritative, and auditable, and must
-  ultimately cover the applicable UK requirements for the launch scope.
+- **Current decision/direction:** UK accounting and VAT preparation are in the
+  approved initial scope under DEC-02. The VAT engine must remain
+  deterministic, authoritative, and auditable. Supported schemes, adjustments,
+  exports, and MTD/HMRC filing remain unresolved under DEC-03.
 - **Reason:** VAT is a consequential accounting responsibility and cannot be
   delegated to opaque or silent automation.
 - **Impact:** VAT evidence, schemes, calculations, returns, locks, approvals,
   corrections, and reports must have traceable authority.
-- **Dependencies:** Launch market, supported schemes, canonical posting engine,
-  document source authority, and product scope.
+- **Dependencies:** DEC-02, DEC-03, canonical posting engine, document source
+  authority, and product scope.
 - **What it affects:** Invoices, bills, payments, reconciliation, VAT returns,
   reports, filing, AI, and audit.
-- **Revisit:** At launch-scope approval, when schemes change, or when regulatory
+- **Revisit:** When DEC-03 is decided, when schemes change, or when regulatory
   requirements change.
 - **Change authority:** Product owner/stakeholder with accounting and
   regulatory review; implementation cannot weaken deterministic authority.

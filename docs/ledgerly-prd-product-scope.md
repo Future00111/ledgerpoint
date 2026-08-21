@@ -3,7 +3,8 @@
 **Authority level:** 3 — beneath the Product Principles and above the Technical
 Architecture  
 **Status:** Living governance document established by Decision 1 on 2026-08-21  
-**Launch-scope status:** Not fully approved  
+**Launch-scope status:** Initial accounting-core scope approved by DEC-02;
+remaining scope decisions are explicit
 **Implementation authority:** None
 
 ## Purpose
@@ -49,6 +50,31 @@ governance:
 - Consequential accounting, AI, VAT, reconciliation, correction, and external
   communication actions must be auditable.
 
+## Approved initial launch scope — DEC-02
+
+Ledgerly's initial product scope is:
+
+- authoritative core accounting;
+- UK accounting and VAT preparation;
+- invoices;
+- bills;
+- payments;
+- banking;
+- reconciliation; and
+- reporting.
+
+The initial market/currency direction is **UK/GBP**. This is a launch-scope
+decision, not a permanent restriction. Additional markets, currencies, and
+capabilities may be added later only through the established Product Decisions
+and governance process.
+
+The accounting foundation must avoid unnecessarily hard-coding UK/GBP so later
+markets, currencies, and capabilities do not require a fundamental redesign.
+The final product name remains open. Quotes, purchase orders, products/items,
+live Open Banking, provider integrations, payroll, inventory, fixed assets,
+forecasting, and other additional capabilities are outside the initial
+accounting-core implementation unless separately approved.
+
 ## Intended capability areas
 
 The existing roadmap, feature matrix, and backlog identify the following
@@ -58,9 +84,9 @@ approve each one for launch or authorise implementation:
 | Capability area | Product intent supported by existing documentation | Current decision state |
 | --- | --- | --- |
 | Accounting foundation | Authoritative financial records, controlled corrections, periods, configuration, and reporting. | **REQUIRES USER DECISION** for the BL-06/BL-07 accounting-core design and policies. |
-| Sales and purchases | Invoices, bills, credit notes, payments, allocation, and related customer/supplier workflows. | Core direction exists; detailed lifecycle and launch scope remain **REQUIRES USER DECISION**. |
-| Banking and reconciliation | Manual/CSV bank evidence, controlled matching, categorisation, transfers, and reconciliation. | Existing product direction; live banking/feed scope is **REQUIRES USER DECISION**. |
-| VAT | Deterministic, auditable VAT evidence and return preparation. | UK VAT direction is provisional; supported schemes, adjustments, and MTD/HMRC scope are **REQUIRES USER DECISION**. |
+| Sales and purchases | Invoices, bills, payments, and related customer/supplier workflows are in the approved initial scope; credit-note and detailed allocation lifecycle remains **REQUIRES USER DECISION**. | DEC-02 approved; detailed lifecycle depends on later accounting decisions. |
+| Banking and reconciliation | Banking and reconciliation are in the approved initial scope. | DEC-02 approved; live banking/feed scope remains **REQUIRES USER DECISION**. |
+| VAT | UK accounting and VAT preparation are in the approved initial scope. | Supported schemes, adjustments, and MTD/HMRC filing scope remain **REQUIRES USER DECISION**. |
 | Reporting | Financial and management reporting that explains the business and is traceable to authoritative records. | Required direction; final report scope and journal authority depend on BL-06/BL-07. |
 | Documents and communications | Documents, extraction/review, approved sending, and durable audit trails. | Providers, inbound handling, retention, and launch scope are **REQUIRES USER DECISION**. |
 | Ask and AI Accountant | Search, explanation, safe assistance, recommendations, tasks, and contextual actions. | Assistant/approval boundary is established; action coverage and delivery sequencing remain **REQUIRES USER DECISION**. |
@@ -68,14 +94,10 @@ approve each one for launch or authorise implementation:
 
 ## Current product direction that is not final scope
 
-The following directions are recorded in the Living Product Decisions Register,
-but remain provisional, open, deferred, or future. They must not be treated as
-approved launch scope:
+The following directions remain provisional, open, deferred, or future. They
+must not be treated as part of the approved initial accounting-core scope:
 
 - Final product name: Ledgerly or Ledgerpoint.
-- UK small and medium-sized businesses as the launch market.
-- GBP as the launch currency, without full multi-currency until separately
-  approved.
 - Quotes, purchase orders, a shared contacts model, and reusable
   products/services/items.
 - The exact UK VAT scheme set and MTD/HMRC filing scope.
@@ -88,12 +110,13 @@ approved launch scope:
 
 ## Launch-scope decisions still required
 
-The following remain **REQUIRES USER DECISION** before they can constrain
-implementation:
+The following remain **REQUIRES USER DECISION** before their affected work can
+be approved:
 
 1. Final name and launch positioning.
-2. Supported countries, tax regimes, and currencies.
-3. The launch capability set and explicit exclusions.
+2. Additional supported countries, tax regimes, and currencies beyond the
+   initial UK/GBP direction.
+3. Additional product capabilities beyond the approved initial scope.
 4. Supported VAT schemes, adjustments, exports, and MTD/HMRC filing scope.
 5. The role/capability model for consequential accounting actions.
 6. The financial-year, period close/reopen, and year-end policy.

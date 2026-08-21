@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DECISION 1 APPROVED; REMAINING DECISIONS REQUIRE EXPLICIT REVIEW
+**Decision status:** DECISIONS 1–2 APPROVED; REMAINING DECISIONS REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
 
@@ -69,30 +69,28 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 2. PRD / Product Scope
 
-- **Status:** APPROVED — governance document established by Decision 1;
-  **REQUIRES USER DECISION** — final launch/product scope.
-- **Decision needed:** Confirm the launch scope around UK SMBs, GBP, VAT,
-  invoices, bills, payments, banking, reporting, quotes, purchase orders,
-  products/items, expenses, and filing.
-- **Options:**
-  1. Adopt the current provisional direction as the launch scope.
-  2. Narrow launch to authoritative core accounting, VAT preparation,
-     invoices/bills, payments, banking, reconciliation, and reporting.
-  3. Expand launch scope before accounting-core implementation.
-- **Recommendation:** Narrow implementation scope to the authoritative
-  accounting foundation and the already supported UK/GBP direction. Keep
-  quotes, purchase orders, full item catalogue, Open Banking, provider
-  integrations, payroll, inventory, fixed assets, and forecasting outside the
-  first accounting-core build unless separately approved.
-- **Accounting/data consequences:** The posting engine must support only
-  explicitly approved source types and tax treatments. Unsupported sources
-  must not create speculative journals.
-- **Migration consequences:** Scope changes can alter which existing records
-  are eligible for backfill or canonical posting.
-- **Dependencies:** Product Principles, launch market/currency decisions,
-  VAT/MTD scope, BL-25, BL-11, BL-15.
-- **Explicit product decision:** Approve the launch scope and confirm which
-  provisional product areas are in or out before implementation.
+- **Status:** APPROVED — DEC-02.
+- **Decision:** Ledgerly's initial product scope is authoritative core
+  accounting, UK accounting and VAT preparation, invoices, bills, payments,
+  banking, reconciliation, and reporting. The initial market/currency direction
+  is UK/GBP.
+- **Scope boundary:** This is a launch-scope decision, not a permanent
+  restriction. Additional markets, currencies, and capabilities may be added
+  later through the established Product Decisions and governance process.
+  Additional capabilities are not part of the initial accounting-core
+  implementation unless separately approved.
+- **Architecture constraint:** Avoid unnecessarily hard-coding UK/GBP so future
+  markets and currencies can be introduced without a fundamental redesign.
+- **Accounting/data consequences:** The posting engine must support the
+  approved initial source types and tax treatments. Unsupported additional
+  sources must not create speculative journals.
+- **Migration consequences:** Initial migration and canonical backfill are
+  limited to the approved scope; future-market or future-capability records
+  require later compatibility decisions.
+- **Dependencies:** Product Principles and Decision 1 (approved); DEC-03 and
+  subsequent accounting-core decisions remain unresolved.
+- **Explicit product decision:** DEC-02 is approved and may be amended only
+  through an explicit, documented Living Product Decisions update.
 
 ## 3. Technical Architecture
 
@@ -610,7 +608,7 @@ These constraints are not invitations to implement BL-06 or BL-07.
 
 Before implementation, Lee must explicitly approve or amend:
 
-1. The final launch PRD/Product Scope.
+1. DEC-03: VAT schemes, adjustments, exports, and MTD/HMRC filing scope.
 2. Adoption or amendment of the accounting-core architecture review.
 3. The capability matrix.
 4. Financial-year start and change policy.
@@ -665,7 +663,7 @@ explicitly approved:
 
 Implementation remains **BLOCKED** by:
 
-- unresolved launch PRD/Product Scope and accounting-core design adoption;
+- unresolved DEC-03 VAT scope and accounting-core design adoption;
 - unresolved capability matrix and elevated accounting permissions;
 - unresolved financial-year, period, and year-end policy;
 - unresolved chart template and control-account mappings;
@@ -682,6 +680,7 @@ Implementation remains **BLOCKED** by:
 
 **DECISION PACK:** READY FOR LEE'S REVIEW  
 **DECISION 1:** APPROVED
+**DECISION 2:** APPROVED
 **CURRENT DECISION REGISTER:** READY FOR LEE'S REVIEW
 **BL-06 / BL-07 IMPLEMENTATION:** BLOCKED  
 **APPLICATION CODE CHANGED:** NO  

@@ -5,12 +5,14 @@ description: Ledgerly has an approved governance hierarchy, but implementation a
 
 Decision 1 approved the living hierarchy of Manifesto → Product Principles →
 PRD/Product Scope → Technical Architecture → Feature Specifications/Master
-Backlog. It does not approve unresolved launch scope or accounting-core design
-choices, and it does not authorise implementation. Do not implement backlog
-items or publish Ledgerly until the user has reviewed and selected the next
-roadmap task. Treat the Living Product Decisions Register as the revisitable
-product-direction record below the Master Backlog; it never authorises
-implementation on its own. BL-06 and BL-07 additionally require the
+Backlog. DEC-02 approved the initial UK/GBP accounting scope: authoritative
+core accounting, VAT preparation, invoices, bills, payments, banking,
+reconciliation, and reporting. It does not approve the detailed VAT scope or
+accounting-core design choices, and it does not authorise implementation. Do
+not implement backlog items or publish Ledgerly until the user has reviewed and
+selected the next roadmap task. Treat the Living Product Decisions Register as
+the revisitable product-direction record below the Master Backlog; it never
+authorises implementation on its own. BL-06 and BL-07 additionally require the
 pre-implementation accounting-core decision pack to be explicitly resolved and
 approved before work begins.
 
