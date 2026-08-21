@@ -97,7 +97,8 @@ The following remain **REQUIRES USER DECISION** before BL-06 or BL-07 can be
 approved for implementation:
 
 1. The capability model for posting, reversal/correction, close/reopen, chart,
-   and configuration changes.
+   and configuration changes. See the [DEC-05 Capability and Approval Matrix
+   Review](ledgerly-dec-05-capability-approval-review.md).
 2. Financial-year, period generation, close/reopen, and year-end policy.
 3. Chart template, control-account mappings, and effective-dated configuration
    policy.

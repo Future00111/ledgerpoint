@@ -130,7 +130,9 @@ be approved:
 10. Legacy accounting-data compatibility, migration cohort, and cutover policy.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
-is the detailed decision record for items 5–10 as they affect BL-06 and BL-07.
+and the [DEC-05 Capability and Approval Matrix
+Review](ledgerly-dec-05-capability-approval-review.md) are the detailed
+decision records for item 5 and items 5–10 as they affect BL-06 and BL-07.
 
 ## Scope governance
 

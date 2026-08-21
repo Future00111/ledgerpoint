@@ -166,6 +166,8 @@ to the accounting core.
 ### DEC-05 — Accounting capability and approval matrix
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-05 Capability and Approval Matrix
+  Review](ledgerly-dec-05-capability-approval-review.md).
 - **Decision:** Approve who may view, draft, approve, post, reverse/correct,
   close/reopen periods, edit the chart, and change accounting configuration.
 - **Options available:** (a) broad role-based writes; (b) capability-based

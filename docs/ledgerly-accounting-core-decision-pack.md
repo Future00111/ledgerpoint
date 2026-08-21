@@ -126,6 +126,8 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 4. Owner / Admin / Accountant / Manager / Read-only capabilities
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-05 Capability and Approval Matrix
+  Review](ledgerly-dec-05-capability-approval-review.md).
 - **Decision needed:** Approve the capability matrix. Role names alone must
   not decide accounting authority.
 - **Options:**

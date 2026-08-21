@@ -175,6 +175,34 @@ not higher authority.
   migrations, UI, workflows, dependencies, deployment, publishing, or an
   implementation task. BL-06 and BL-07 remain blocked.
 
+### DEC-05 — Accounting capability and approval matrix
+
+- **Status:** REQUIRES USER DECISION
+- **Current decision/direction:** Decide the company-scoped server-side
+  capability and approval model for viewing, drafting, approving, posting,
+  reversing/correcting, closing/reopening periods, editing the chart, changing
+  accounting configuration, and persisting AI/accounting actions.
+- **Decision review:** [DEC-05 Capability and Approval Matrix
+  Review](ledgerly-dec-05-capability-approval-review.md).
+- **Options:** Broad role-based writes; server-side capabilities with
+  conservative Owner, Admin, Accountant, Manager, and Read-only presets; or
+  per-company custom permissions at launch.
+- **Recommendation:** Server-side capabilities with conservative role presets.
+  This is a recommendation only and is not approved.
+- **Constraints:** Read-only must have no mutation path; no role may edit a
+  posted journal; inactive members and cross-company actions must be rejected;
+  and AI persistence must use the matching write capability.
+- **Dependencies:** DEC-04 and the applicable DEC-06 through DEC-22 decisions.
+- **Impact:** The selected model will define the server-side permission,
+  approval, audit, migration, compatibility, reporting-access, and backlog
+  boundaries for consequential accounting actions.
+- **Change authority:** Product owner/stakeholder with accounting and security
+  review through the Living Product Decisions process. DEC-05 remains
+  **REQUIRES USER DECISION** until explicitly approved, amended, or rejected.
+- **Implementation limit:** No code, schema, migration, UI, workflow,
+  dependency, deployment, publishing, or implementation task is authorised by
+  this unresolved decision.
+
 ### PD-01 — Product name
 
 - **Status:** OPEN

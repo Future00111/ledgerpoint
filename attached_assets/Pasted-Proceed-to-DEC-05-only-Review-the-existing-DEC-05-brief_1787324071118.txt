@@ -1,0 +1,44 @@
+Proceed to DEC-05 only.
+
+Review the existing DEC-05 brief, current Decision Register, Product Decisions, PRD/Product Scope, Technical Architecture, DEC-01 through DEC-04 records, and any other governance documents explicitly referenced by DEC-05.
+
+Prepare a decision-only review for DEC-05.
+
+Rules:
+
+- Do NOT implement anything.
+- Do NOT modify application code, database schema, migrations, UI, workflows, dependencies, deployment, or publishing.
+- Do NOT approve DEC-05 or any later decision.
+- Do NOT start DEC-06 or any subsequent decision.
+- Keep BL-06 and BL-07 BLOCKED.
+- Preserve the existing governance hierarchy.
+- DEC-04 remains APPROVED — architecture only.
+- DEC-05 must remain REQUIRES USER DECISION until I explicitly approve or amend it.
+
+The review must:
+
+1. Identify exactly what DEC-05 is asking the user to decide.
+2. Identify decisions already established by DEC-01 through DEC-04 that constrain DEC-05.
+3. Identify all available options.
+4. Give a clearly labelled RECOMMENDATION, without treating it as approval.
+5. Explain the accounting, data/schema, migration, reporting, compatibility, security/permissions, and backlog consequences of each material option where applicable.
+6. Identify dependencies on DEC-06 onward.
+7. Identify anything that would conflict with existing approved governance.
+8. Preserve deliberate non-locks where the product should remain changeable later.
+9. State exactly what would become locked if DEC-05 were approved.
+10. State exactly what would remain changeable after approval.
+11. Define an amendment path so DEC-05 can be changed later through the Living Product Decisions process.
+12. Clearly state whether DEC-05 is ready for a user decision or whether further information is required.
+
+Create or update the appropriate DEC-05 review document and link it into the Decision Register and relevant governance documents.
+
+At the end, verify:
+
+- DEC-01 through DEC-04 retain their existing statuses.
+- DEC-05 is REQUIRES USER DECISION.
+- DEC-06 through DEC-22 remain REQUIRES USER DECISION.
+- BL-06 and BL-07 remain BLOCKED.
+- No implementation task was created or executed.
+- No application or implementation files were changed.
+
+Stop after the DEC-05 decision-only review is complete. Do not proceed to DEC-06.
