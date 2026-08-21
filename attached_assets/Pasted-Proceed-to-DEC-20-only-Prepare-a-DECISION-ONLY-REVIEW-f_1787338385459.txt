@@ -1,0 +1,560 @@
+Proceed to DEC-20 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-20 — BACKUP AND RECOVERY POLICY
+
+IMPORTANT:
+Read the Current Decision Register first and use the exact registered DEC-20 title and scope.
+Do not rename, merge, reinterpret, or broaden DEC-20.
+
+Review all existing governance and accounting documentation, including:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- Accounting Core Decision Pack
+- Master Backlog
+- DEC-01 through DEC-19
+- All DEC-01 through DEC-19 approval/review documents
+- DEC-17 Audit Retention Period
+- DEC-18 Deletion and Anonymisation Policy
+- DEC-19 Export Formats, Scope, and Permissions
+- Existing infrastructure, security, reliability, data-integrity and disaster-recovery documentation
+
+This is a DECISION-ONLY review.
+
+DO NOT implement anything.
+
+DO NOT modify:
+
+- application code
+- database schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing
+- infrastructure configuration.
+
+Do NOT approve DEC-20.
+Do NOT start DEC-21 or DEC-22.
+Keep BL-06 and BL-07 BLOCKED.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Determine Ledgerly's backup and recovery policy.
+
+The review must establish:
+
+- what is backed up;
+- how often backups occur;
+- what recovery objectives apply;
+- how restoration works;
+- how point-in-time recovery works;
+- how backups interact with accounting immutability;
+- how backups interact with retention and disposal;
+- how backups interact with exports;
+- how backup security works;
+- how company data remains isolated.
+
+Backups are a resilience mechanism.
+
+They are NOT:
+
+- an accounting authority;
+- a user-facing export;
+- a substitute for canonical accounting;
+- a mechanism for rewriting accounting history.
+
+==================================================
+1. BACKUP SCOPE
+==================================================
+
+Determine what must be backed up.
+
+Consider:
+
+- canonical accounting data;
+- journals;
+- invoices;
+- bills;
+- payments;
+- allocations;
+- customer credits;
+- supplier prepayments;
+- refunds;
+- customers;
+- suppliers;
+- bank/reconciliation data;
+- documents;
+- configuration;
+- audit records;
+- retention/disposal state;
+- company settings;
+- system configuration where required for recovery.
+
+Distinguish:
+
+AUTHORITATIVE DATA
+from
+DERIVED/CACHE/REBUILDABLE DATA.
+
+Do not require backups for data that can safely and deterministically be rebuilt unless there is a strong reason.
+
+==================================================
+2. BACKUP TYPES
+==================================================
+
+Evaluate:
+
+- full backups;
+- incremental backups;
+- differential backups;
+- database snapshots;
+- transaction-log/WAL backups;
+- point-in-time recovery;
+- document/object-storage backups.
+
+Recommend an appropriate combination.
+
+==================================================
+3. RECOVERY OBJECTIVES
+==================================================
+
+Determine appropriate:
+
+- RPO — Recovery Point Objective;
+- RTO — Recovery Time Objective.
+
+Consider different priorities for:
+
+- canonical accounting;
+- operational data;
+- documents;
+- non-critical derived data.
+
+Avoid promising unrealistic targets.
+
+==================================================
+4. POINT-IN-TIME RECOVERY
+==================================================
+
+Determine whether Ledgerly should support point-in-time recovery.
+
+Consider:
+
+- accidental deletion;
+- corruption;
+- infrastructure failure;
+- deployment failure;
+- data integrity incident.
+
+Important:
+
+Point-in-time recovery must NOT silently rewrite canonical accounting history.
+
+A restoration should be treated as recovery of an authorised historical system state, not a normal accounting correction mechanism.
+
+==================================================
+5. RESTORATION
+==================================================
+
+Determine:
+
+- who can initiate restoration;
+- whether approval is required;
+- whether restoration is full-company or scoped;
+- whether restoration overwrites live data;
+- whether restoration occurs into a separate recovery environment;
+- how recovered data is reconciled with current state;
+- how restoration is audited.
+
+Avoid dangerous silent overwrite of live accounting data.
+
+==================================================
+6. ACCOUNTING IMMUTABILITY
+==================================================
+
+Respect DEC-04.
+
+Backups must preserve:
+
+- immutable posted journals;
+- source links;
+- approvals;
+- corrections;
+- audit history.
+
+Recovery must not be used to:
+
+- delete posted journals;
+- rewrite history;
+- alter historical VAT;
+- change AR/AP history;
+- change financial-year assignment;
+- alter closed-period meaning.
+
+If a recovery event creates a discrepancy, define how it is handled without silently rewriting canonical history.
+
+==================================================
+7. RETENTION
+==================================================
+
+Respect DEC-17 and DEC-18.
+
+Determine how long backups are retained.
+
+Consider:
+
+- daily backups;
+- weekly backups;
+- monthly backups;
+- point-in-time recovery logs;
+- company closure;
+- legal holds;
+- retention expiry.
+
+Important:
+
+Do not automatically assume backup retention must equal production-data retention.
+
+Evaluate the appropriate relationship.
+
+==================================================
+8. DELETION / ANONYMISATION
+
+Respect DEC-18.
+
+Determine how production deletion/anonymisation interacts with backups.
+
+Consider:
+
+- backup immutability;
+- backup expiry;
+- restore scenarios;
+- legal holds;
+- personal data;
+- right-to-erasure requests.
+
+Do not use backups to permanently preserve data that should legitimately disappear.
+
+Do not require destructive modification of immutable backup media unless justified.
+
+==================================================
+9. SECURITY
+==================================================
+
+Determine backup security requirements.
+
+Consider:
+
+- encryption at rest;
+- encryption in transit;
+- access control;
+- key management;
+- separate credentials;
+- administrative separation;
+- immutable/WORM storage where appropriate;
+- backup integrity verification.
+
+Use DEC-05 principles where user-facing authority exists.
+
+==================================================
+10. TENANT ISOLATION
+==================================================
+
+DEC-21 owns detailed tenant-isolation policy.
+
+DEC-20 must nevertheless ensure backup and recovery cannot create cross-company data exposure.
+
+Consider:
+
+- company-scoped restoration;
+- whole-system restoration;
+- access controls;
+- encryption boundaries.
+
+Do not resolve DEC-21.
+
+==================================================
+11. EXPORTS
+==================================================
+
+Respect DEC-19.
+
+Clearly distinguish:
+
+EXPORT
+from
+BACKUP.
+
+Exports are user-facing copies/representations.
+
+Backups are resilience infrastructure.
+
+Do not use exports as the primary backup mechanism.
+
+Do not expose backups as ordinary exports.
+
+==================================================
+12. MIGRATION
+==================================================
+
+DEC-22 owns migration and cutover.
+
+Determine only:
+
+- how backups support migration safety;
+- pre-cutover snapshots;
+- rollback points;
+- preservation of legacy evidence.
+
+Do not resolve the migration strategy itself.
+
+==================================================
+13. DISASTER RECOVERY
+==================================================
+
+Determine appropriate recovery scenarios:
+
+- database corruption;
+- accidental destructive change;
+- infrastructure failure;
+- storage failure;
+- service-region failure;
+- security incident;
+- deployment failure.
+
+Determine which scenarios require:
+
+- backup restoration;
+- point-in-time recovery;
+- infrastructure rebuild;
+- other recovery mechanisms.
+
+==================================================
+14. BACKUP TESTING
+==================================================
+
+Determine how backups should be validated.
+
+Consider:
+
+- automated backup verification;
+- restore tests;
+- integrity checks;
+- recovery drills;
+- documented recovery procedures.
+
+A backup that cannot be restored is not an effective backup.
+
+==================================================
+15. FAILURE HANDLING
+==================================================
+
+Determine what happens when:
+
+- a backup fails;
+- verification fails;
+- storage becomes unavailable;
+- recovery fails;
+- point-in-time recovery is unavailable.
+
+Define alerting/escalation expectations.
+
+Do not create operational implementation tasks.
+
+==================================================
+16. AUDIT
+==================================================
+
+Define audit requirements for:
+
+- backup creation;
+- backup verification;
+- backup retention;
+- restoration;
+- recovery;
+- deletion/expiry of backups;
+- legal holds;
+- recovery testing.
+
+Audit history must itself be protected.
+
+==================================================
+17. PERMISSIONS
+==================================================
+
+Determine capabilities/authority for:
+
+- viewing backup status;
+- initiating recovery;
+- approving recovery;
+- performing restoration;
+- overriding normal recovery procedures.
+
+Use server-side enforcement.
+
+High-risk restoration should require elevated authority and appropriate separation of duties.
+
+==================================================
+18. REPORTING / USER EXPERIENCE
+==================================================
+
+Determine what normal users should see.
+
+Avoid exposing infrastructure complexity.
+
+Consider:
+
+- backup health;
+- recovery readiness;
+- incident notifications;
+- company-level recovery information.
+
+Developer/infrastructure details should remain outside normal customer experience.
+
+==================================================
+19. OPTIONS
+==================================================
+
+Present realistic options for:
+
+- backup frequency;
+- backup types;
+- point-in-time recovery;
+- RPO;
+- RTO;
+- retention;
+- restoration model;
+- storage strategy;
+- security;
+- recovery testing.
+
+For each material option explain:
+
+- accounting consequences;
+- data/schema consequences;
+- migration consequences;
+- reporting consequences;
+- security/privacy consequences;
+- operational consequences;
+- UX consequences;
+- compatibility consequences;
+- future flexibility.
+
+==================================================
+20. RECOMMENDATION
+==================================================
+
+Provide:
+
+RECOMMENDATION — NOT APPROVAL
+
+Recommend the backup/recovery model that best satisfies:
+
+- accounting integrity;
+- business continuity;
+- security;
+- realistic operational complexity;
+- DEC-04 immutable accounting;
+- DEC-17 retention;
+- DEC-18 disposal;
+- DEC-19 export distinction;
+- DEC-21 tenant isolation boundary;
+- DEC-22 migration safety.
+
+Do not convert the recommendation into approval.
+
+==================================================
+21. DECISION BOUNDARIES
+==================================================
+
+Clearly classify:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Explicitly identify:
+
+- what approving DEC-20 would lock in;
+- what remains changeable;
+- what belongs to DEC-21;
+- what belongs to DEC-22.
+
+Do not resolve later decisions prematurely.
+
+==================================================
+22. IMPORTANT PRINCIPLE
+==================================================
+
+Recovery is for restoring service/data availability.
+
+It is NOT an accounting correction mechanism.
+
+If an accounting error exists:
+
+- use the approved accounting correction/reversal process;
+- do not restore an old database state merely to erase the accounting error.
+
+==================================================
+23. FUTURE FLEXIBILITY
+==================================================
+
+Do not unnecessarily prevent future:
+
+- multi-region recovery;
+- improved RPO/RTO;
+- additional storage providers;
+- additional backup tiers;
+- regulatory requirements;
+- advanced disaster recovery;
+- additional markets.
+
+==================================================
+24. DOCUMENTATION
+==================================================
+
+Create:
+
+docs/ledgerly-dec-20-backup-and-recovery-policy-review.md
+
+Use the exact DEC-20 scope in the document title and body.
+
+Link it into the appropriate governance records, including:
+
+- Current Decision Register;
+- Living Product Decisions;
+- Accounting Core Decision Pack;
+- Technical Architecture;
+- PRD / Product Scope.
+
+Do not modify implementation files.
+
+==================================================
+25. FINAL VERIFICATION
+==================================================
+
+At the end verify:
+
+1. DEC-01 through DEC-19 retain their approved statuses.
+2. DEC-20 remains REQUIRES USER DECISION.
+3. DEC-21 and DEC-22 remain REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-21 work was started.
+8. No backup, recovery, infrastructure, schema, migration or deployment implementation was performed.
+9. Source freshness remains separately unresolved.
+
+Stop after the DEC-20 decision-only review is complete.

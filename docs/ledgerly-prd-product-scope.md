@@ -165,6 +165,10 @@ be approved:
 15. [DEC-19 Export Policy Review](ledgerly-dec-19-export-policy-review.md)
     records an approved bounded export policy. DEC-20 through DEC-22 remain
     open for their own policies.
+16. [DEC-20 Backup and Recovery Policy
+    Review](ledgerly-dec-20-backup-and-recovery-policy-review.md) records an
+    recommendation only. DEC-20 through DEC-22 remain open for their own
+    policies.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix

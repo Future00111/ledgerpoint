@@ -689,14 +689,16 @@ to the accounting core.
 ### DEC-20 — Backup and recovery objectives
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-20 Backup and Recovery Policy
+  Review](ledgerly-dec-20-backup-and-recovery-policy-review.md).
 - **Decision:** Set recovery point objective, recovery time objective, backup
   retention, restore-test frequency, and regional/operational recovery needs.
+- **Recommendation:** Use encrypted managed backups, point-in-time recovery
+  where available, documented backup retention, explicit tiered RPO/RTO,
+  isolated validated restoration, and tested recovery procedures.
 - **Options available:** (a) provider defaults; (b) managed daily backups or
   point-in-time recovery; or (c) managed backups plus tested restore and
   regional recovery.
-- **Replit's recommendation:** Encrypted managed backups, point-in-time
-  recovery where available, documented retention, explicit RPO/RTO, and tested
-  restores.
 - **Why it is recommended:** Recovery must preserve accounting ordering,
   immutability, source links, periods, and idempotency rather than merely
   restore database bytes.

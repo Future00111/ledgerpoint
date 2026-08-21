@@ -88,6 +88,11 @@ The [DEC-19 Export Policy Review](ledgerly-dec-19-export-policy-review.md)
 records an approved product/data-export policy only. It does not authorise
 implementation or resolve DEC-20 through DEC-22 policy.
 
+The [DEC-20 Backup and Recovery Policy
+Review](ledgerly-dec-20-backup-and-recovery-policy-review.md) records an
+recommendation only. DEC-20 remains unresolved and does not authorise
+implementation or resolve DEC-20 through DEC-22 policy.
+
 ## Architecture obligations derived from governance
 
 Any future technical design must uphold the following constraints:

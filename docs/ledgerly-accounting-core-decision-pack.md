@@ -585,13 +585,18 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 19. Backup and recovery policy
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-20 Backup and Recovery Policy
+  Review](ledgerly-dec-20-backup-and-recovery-policy-review.md).
 - **Decision needed:** Decide recovery point objective, recovery time objective,
   backup retention, restore testing, and company/customer visibility.
+- **Recommendation:** Use encrypted managed backups, point-in-time recovery
+  where available, documented backup retention, explicit tiered RPO/RTO,
+  isolated validated restoration, and tested recovery procedures.
 - **Options:**
   1. Provider-default backups.
   2. Managed daily backups with point-in-time recovery.
   3. Managed backups plus tested restore and regional recovery process.
-- **Recommendation:** Require managed backups, point-in-time recovery where
+- **Controls:** Require managed backups, point-in-time recovery where
   available, encrypted storage, documented retention, and scheduled restore
   tests before publishing. Define RPO/RTO by product risk rather than assuming
   platform defaults.
@@ -600,10 +605,10 @@ Living Product Decisions Register until it has been explicitly accepted.
   not replay postings twice.
 - **Migration consequences:** Take verified backups before each schema or
   company cutover; provide rollback checkpoints for adapters and projections.
-- **Dependencies:** Deployment/operations, database architecture, audit,
-  idempotency, BL-24.
 - **Explicit product decision:** Approve target RPO/RTO and restore-test
   requirements.
+- **Dependencies:** Deployment/operations, database architecture, audit,
+  idempotency, BL-24.
 
 ## 20. RLS / tenant-isolation policy
 
