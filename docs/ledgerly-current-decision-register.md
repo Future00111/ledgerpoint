@@ -547,21 +547,28 @@ to the accounting core.
 ### DEC-15 — Refund workflow and scope
 
 - **Status:** REQUIRES USER DECISION
-- **Decision:** Define eligible refund sources, linkage requirements, payment
-  reversal behavior, VAT effects, and approval controls.
+- **Decision review:** [DEC-15 Refund Policy
+  Review](ledgerly-dec-15-refund-policy-review.md).
+- **Decision:** Define eligible refund sources, accounting treatment, payment
+  reversal boundaries, VAT effects, approval controls, and launch scope.
 - **Options available:** (a) standalone refunds; (b) refunds require a linked
   credit note or return source; or (c) standalone refunds only against
   unapplied balances.
-- **Replit's recommendation:** Use a linked customer/supplier credit or return
-  source, with a separate controlled payment reversal.
+- **Replit's recommendation:** Use controlled customer refunds from available
+  customer credits and supplier refund receipts against available supplier
+  prepayments, with separate payment and allocation reversal mechanisms.
 - **Why it is recommended:** It preserves the reason and accounting lineage for
   money leaving or returning to the business.
-- **Accounting implications:** Determines direction, bank/cash effects,
-  allocation reversal, VAT treatment, correction, and audit.
+- **Accounting implications:** Customer refunds debit customer-credit liability
+  and credit bank/cash; supplier refund receipts debit bank/cash and credit
+  supplier-prepayment asset. Credit notes, payment reversals, and allocation
+  reversals remain separate canonical paths.
 - **Data/schema implications:** Requires refund sources, links to payments and
   reversals, approval state, and idempotency.
 - **Migration implications:** Existing bank rows linked to credits need
   validation before being treated as refunds.
+- **Boundary:** DEC-16 retains payment-on-account scope; DEC-22 retains
+  migration authority. Source freshness remains separate.
 - **Backlog implications:** Gates BL-10, BL-14, BL-16, and payment workflows.
 - **Dependency:** DEC-13, DEC-14, DEC-03, and DEC-12.
 

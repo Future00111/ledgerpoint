@@ -65,6 +65,10 @@ Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md) records an
 approved workflow policy only. It does not authorise
 implementation or resolve DEC-15 through DEC-22 policy.
 
+The [DEC-15 Refund Policy Review](ledgerly-dec-15-refund-policy-review.md)
+records a recommendation only. DEC-15 remains unresolved and does not
+authorise implementation or resolve DEC-16 through DEC-22 policy.
+
 ## Architecture obligations derived from governance
 
 Any future technical design must uphold the following constraints:

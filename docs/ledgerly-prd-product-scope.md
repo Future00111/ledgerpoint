@@ -143,7 +143,9 @@ be approved:
  9. Source freshness remains a separate unresolved posting-safety dependency.
 10. [DEC-14 Unapplied Cash Workflow Policy
     Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md) records a
-    approved workflow policy. Refunds, payment-on-account
+    approved workflow policy.
+11. [DEC-15 Refund Policy Review](ledgerly-dec-15-refund-policy-review.md)
+    records a recommendation only; DEC-15 remains unresolved. Payment-on-account
     launch scope, audit retention, deletion/anonymisation, export,
     backup/recovery, tenant isolation, and legacy migration/cutover policy
     remain open.

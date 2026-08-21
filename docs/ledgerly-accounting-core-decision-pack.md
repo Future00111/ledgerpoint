@@ -451,25 +451,28 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 14. Refunds
 
 - **Status:** REQUIRES USER DECISION
-- **Decision needed:** Decide customer and supplier refund workflows and
-  whether a refund requires a credit note or approved return source.
+- **Decision review:** [DEC-15 Refund Policy
+  Review](ledgerly-dec-15-refund-policy-review.md).
+- **Decision needed:** Decide customer and supplier refund workflows, approved
+  refundable sources, credit-note relationship, approval, failure, and
+  correction policy.
 - **Options:**
   1. Allow standalone refunds.
   2. Require a linked credit note/return source.
   3. Support standalone refunds only to an unapplied balance.
-- **Recommendation:** Require an explicit linked source for customer refunds
-  that reverse sales/VAT, normally a sales credit note; require an explicit
-  linked source for supplier refunds, normally a supplier credit note. A
-  payment reversal/refund must be a separate controlled payment posting, never
-  an edit to the original journal.
+- **Recommendation:** Permit controlled customer refunds only from available
+  customer credits and supplier refund receipts only against available supplier
+  prepayments. Use a credit note when the commercial/VAT correction requires
+  one, but do not invent one for a pure overpayment refund. Keep payment and
+  allocation reversals as separate controlled paths.
 - **Accounting/data consequences:** Refunds need direction, bank/cash account,
   date, amount, source, allocation reversal, tax treatment, and audit.
 - **Migration consequences:** Existing bank rows linked to credit notes need
   source validation before any canonical refund posting.
 - **Dependencies:** Credit notes, payments, VAT, bank/reconciliation,
   reversal service, BL-10, BL-14.
-- **Explicit product decision:** Approve whether standalone refund workflows
-  are allowed and which refund cases are launch scope.
+- **Decision boundary:** DEC-16 retains payment-on-account launch scope and
+  DEC-22 retains migration authority. Source freshness remains separate.
 
 ## 15. Payment-on-account
 

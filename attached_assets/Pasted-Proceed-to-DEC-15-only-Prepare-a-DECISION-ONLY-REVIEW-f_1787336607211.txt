@@ -1,0 +1,562 @@
+Proceed to DEC-15 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-15 — Refund Policy
+
+Review all existing governance and accounting documentation, including:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- Accounting Core Decision Pack
+- Master Backlog
+- DEC-01 through DEC-14
+- DEC-03 VAT policy
+- DEC-04 canonical accounting architecture
+- DEC-05 capability model
+- DEC-06 financial-year policy
+- DEC-07 accounting-period policy
+- DEC-08 year-end policy
+- DEC-09 Chart of Accounts policy
+- DEC-10 control-account mapping policy
+- DEC-11 configuration-versioning policy
+- DEC-12 payment/allocation/settlement policy
+- DEC-13 overpayments/unapplied-cash policy
+- DEC-14 unapplied-cash workflow policy
+- Existing invoice, credit-note, payment, banking, reconciliation and VAT documentation
+
+This is a DECISION-ONLY review.
+
+DO NOT implement anything.
+
+DO NOT modify:
+
+- application code
+- database schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Do NOT approve DEC-15.
+Do NOT start DEC-16 or any later decision.
+Keep BL-06 and BL-07 BLOCKED.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Determine Ledgerly's policy for refunds.
+
+The review must clearly distinguish:
+
+- refund;
+- payment reversal;
+- credit note;
+- customer credit;
+- supplier prepayment;
+- unapplied cash;
+- allocation reversal;
+- bank evidence.
+
+Determine the appropriate accounting and product treatment for refunds while preserving the DEC-04 canonical journal model.
+
+==================================================
+1. REFUND DEFINITION
+==================================================
+
+Define precisely what Ledgerly considers a refund.
+
+Distinguish refunds from:
+
+- reversing an incorrect payment;
+- reversing an allocation;
+- issuing a credit note;
+- leaving a customer credit;
+- returning a supplier prepayment;
+- correcting a bank reconciliation error.
+
+==================================================
+2. CUSTOMER REFUNDS
+==================================================
+
+Determine the policy for returning money to a customer.
+
+Consider:
+
+- refund of a settled invoice;
+- refund of a partially paid invoice;
+- refund of a customer credit;
+- refund of an overpayment;
+- refund following a credit note;
+- refund where no invoice exists;
+- refund of a payment-on-account balance if DEC-16 later approves it.
+
+Do not assume every scenario must be supported at launch.
+
+==================================================
+3. SUPPLIER REFUNDS
+==================================================
+
+Determine the policy for money returned by a supplier.
+
+Consider:
+
+- supplier refund against a bill;
+- supplier refund of an overpayment;
+- supplier refund of a supplier prepayment;
+- refund following a supplier credit note.
+
+Clearly distinguish supplier refunds from customer refunds.
+
+==================================================
+4. REFUND SOURCE
+==================================================
+
+Determine where the refund originates from.
+
+Examples:
+
+- bank/cash account;
+- customer credit balance;
+- supplier prepayment balance;
+- another approved accounting source.
+
+Do not allow a refund to create money that did not previously exist in the accounting model.
+
+==================================================
+5. ACCOUNTING TREATMENT
+==================================================
+
+Determine the canonical accounting treatment.
+
+For customer refunds, evaluate appropriate treatment such as:
+
+DR Customer Credit / relevant liability
+CR Bank/Cash
+
+For supplier refunds, evaluate appropriate treatment such as:
+
+DR Bank/Cash
+CR Supplier Prepayment / relevant asset
+
+Do not assume these examples are automatically correct in every circumstance.
+
+Explain the treatment for each supported scenario.
+
+==================================================
+6. REFUND VS CREDIT NOTE
+==================================================
+
+Define the relationship between:
+
+- credit note;
+- customer credit;
+- refund.
+
+Determine whether:
+
+- a credit note can create a customer credit;
+- a credit can be refunded;
+- a refund requires a credit note;
+- a refund can exist without a credit note.
+
+Respect DEC-03 and existing invoice/credit-note policy.
+
+==================================================
+7. REFUND VS PAYMENT REVERSAL
+==================================================
+
+Define the distinction between:
+
+- correcting an erroneous payment;
+- reversing a legitimate payment;
+- refunding a customer;
+- refunding a supplier.
+
+Do not allow a user to use refund functionality to conceal an accounting correction.
+
+==================================================
+8. REFUND APPROVAL
+==================================================
+
+Determine:
+
+- who can initiate a refund;
+- who can approve a refund;
+- whether separate approval is required;
+- whether thresholds should exist;
+- whether approval requirements vary by amount or risk.
+
+Use DEC-05 capability principles.
+
+Do not silently grant authority.
+
+==================================================
+9. REFUND WORKFLOW
+==================================================
+
+Define the user workflow.
+
+Consider:
+
+1. identify refundable balance;
+2. select refund amount;
+3. select source/account;
+4. validate;
+5. approve where required;
+6. create canonical accounting;
+7. record refund;
+8. reconcile resulting bank transaction.
+
+Determine whether refunds should be:
+
+- immediate;
+- scheduled;
+- pending;
+- completed;
+- failed.
+
+Avoid introducing unnecessary states.
+
+==================================================
+10. REFUND AMOUNT LIMITS
+==================================================
+
+Determine whether users can refund:
+
+- less than available credit;
+- exactly available credit;
+- more than available credit.
+
+If over-refunding is prohibited, define how the system prevents it.
+
+Do not allow negative customer credits or supplier prepayments merely to facilitate a refund.
+
+==================================================
+11. REFUND CANCELLATION / FAILURE
+==================================================
+
+Determine what happens when:
+
+- a refund is cancelled before posting;
+- a bank payment fails;
+- a refund is reversed;
+- a refund was created incorrectly.
+
+Ensure accounting history remains immutable.
+
+==================================================
+12. REFUND REVERSALS
+==================================================
+
+Determine how an incorrectly completed refund is corrected.
+
+Do not delete or rewrite the original refund journal.
+
+Use explicit canonical reversal/correction mechanisms.
+
+==================================================
+13. VAT
+==================================================
+
+DEC-03 remains the sole VAT authority.
+
+Determine how refunds interact with VAT only within the existing approved VAT model.
+
+Do not create new VAT rules.
+
+Do not create a second VAT engine.
+
+Clearly identify any VAT questions that belong outside DEC-15.
+
+==================================================
+14. CREDIT NOTES
+==================================================
+
+Explain how refunds interact with:
+
+- customer credit notes;
+- supplier credit notes.
+
+Do not redefine the entire credit-note policy if it belongs elsewhere.
+
+Identify dependencies.
+
+==================================================
+15. UNAPPLIED CASH / CUSTOMER CREDIT
+==================================================
+
+Respect DEC-13 and DEC-14.
+
+Determine the hand-off from:
+
+CUSTOMER CREDIT
+→ REFUND
+
+and:
+
+SUPPLIER PREPAYMENT
+→ REFUND
+
+without conflating refunds with allocation.
+
+==================================================
+16. PAYMENT-ON-ACCOUNT
+==================================================
+
+DEC-16 remains responsible for payment-on-account launch scope.
+
+Do not approve payment-on-account through DEC-15.
+
+Where relevant, identify how a future payment-on-account balance could interact with refunds.
+
+==================================================
+17. PERIOD CONTROLS
+==================================================
+
+Respect DEC-07.
+
+Refund accounting must:
+
+- use the correct posting date;
+- respect open/closed periods;
+- never bypass closed-period controls.
+
+==================================================
+18. CONFIGURATION
+==================================================
+
+Respect DEC-10 and DEC-11.
+
+Where refund accounting requires material account configuration:
+
+- resolve the applicable configuration version;
+- use approved mappings;
+- retain resolved account IDs on canonical postings.
+
+==================================================
+19. BANK RECONCILIATION
+==================================================
+
+Explain how a refund interacts with:
+
+- outgoing bank payment;
+- incoming supplier refund;
+- bank evidence;
+- reconciliation.
+
+Bank evidence must remain distinct from canonical accounting.
+
+Reconciliation must not create duplicate refund accounting.
+
+==================================================
+20. REPORTING
+==================================================
+
+Determine how refunds appear in:
+
+- customer statements;
+- supplier statements;
+- Balance Sheet;
+- Profit & Loss where relevant;
+- Trial Balance;
+- General Ledger;
+- AR/AP reporting;
+- cash/bank reporting.
+
+Reports must remain derived from canonical accounting data.
+
+==================================================
+21. AUDIT
+==================================================
+
+Define audit requirements for:
+
+- refund request;
+- approval;
+- posting;
+- bank reconciliation;
+- cancellation;
+- failure;
+- reversal;
+- correction.
+
+Audit history must remain immutable.
+
+==================================================
+22. PERMISSIONS
+==================================================
+
+Use DEC-05.
+
+Determine appropriate capabilities for:
+
+- initiate refund;
+- approve refund;
+- post refund;
+- reverse/correct refund.
+
+Consider whether separation of duties is appropriate for higher-risk refunds.
+
+==================================================
+23. MIGRATION
+==================================================
+
+Review migration treatment for historical:
+
+- refunds;
+- customer credits;
+- supplier prepayments;
+- refund relationships;
+- credit notes.
+
+Never invent historical refunds, dates, approvals or accounting relationships.
+
+Ambiguity becomes an explicit DEC-22 migration exception.
+
+==================================================
+24. OPTIONS
+==================================================
+
+Present realistic options for:
+
+- customer refunds;
+- supplier refunds;
+- refund source;
+- refund approval;
+- refund limits;
+- refund timing;
+- refund reversal;
+- refund launch scope.
+
+For each material option explain:
+
+- accounting consequences;
+- data/schema consequences;
+- migration consequences;
+- reporting consequences;
+- VAT consequences;
+- security/permission consequences;
+- operational consequences;
+- user-experience consequences;
+- compatibility consequences;
+- future flexibility.
+
+==================================================
+25. RECOMMENDATION
+==================================================
+
+Provide:
+
+RECOMMENDATION — NOT APPROVAL
+
+Recommend the approach that best satisfies:
+
+- DEC-04 canonical accounting;
+- DEC-05 capabilities;
+- DEC-07 period controls;
+- DEC-10 control mappings;
+- DEC-11 configuration versioning;
+- DEC-12 payment/allocation/settlement;
+- DEC-13 overpayments/customer credits/supplier prepayments;
+- DEC-14 unapplied-cash workflow;
+- accounting correctness;
+- auditability;
+- user clarity;
+- future flexibility.
+
+Do not convert the recommendation into approval.
+
+==================================================
+26. DECISION BOUNDARIES
+==================================================
+
+Clearly distinguish:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Explicitly identify:
+
+- what approving DEC-15 would lock in;
+- what remains changeable;
+- what belongs to DEC-16;
+- what belongs to DEC-17 onward;
+- what belongs to DEC-22 migration.
+
+Do not resolve later decisions prematurely.
+
+==================================================
+27. IMPORTANT ACCOUNTING PRINCIPLE
+==================================================
+
+A refund must represent a genuine movement of money or controlled accounting correction.
+
+Do not create a refund merely to change a screen balance.
+
+Do not use refund functionality to hide an accounting correction.
+
+Refunds must use the DEC-04 canonical journal model.
+
+Historical refunds must remain immutable.
+
+==================================================
+28. FUTURE FLEXIBILITY
+==================================================
+
+Do not unnecessarily prevent future:
+
+- payment-on-account refunds;
+- automated refund workflows;
+- additional payment methods;
+- currencies;
+- markets;
+- approval thresholds;
+- banking integrations.
+
+==================================================
+29. DOCUMENTATION
+==================================================
+
+Create or update:
+
+docs/ledgerly-dec-15-refund-policy-review.md
+
+Link it into:
+
+- Current Decision Register;
+- Living Product Decisions;
+- Accounting Core Decision Pack;
+- Technical Architecture;
+- PRD / Product Scope;
+
+where appropriate.
+
+Do not modify implementation files.
+
+==================================================
+30. FINAL VERIFICATION
+==================================================
+
+At the end verify:
+
+1. DEC-01 through DEC-14 retain their approved statuses.
+2. DEC-15 remains REQUIRES USER DECISION.
+3. DEC-16 through DEC-22 remain REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-16 work was started.
+8. No refund, schema, migration, accounting logic, UI, workflow, dependency, deployment or publishing work was implemented.
+
+Stop after the DEC-15 decision-only review is complete.
