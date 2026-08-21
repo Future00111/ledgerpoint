@@ -84,6 +84,10 @@ Review](ledgerly-dec-18-data-disposal-policy-review.md) records a
 approved product/governance/data-lifecycle policy only. It does not authorise
 implementation or resolve DEC-19 through DEC-22 policy.
 
+The [DEC-19 Export Policy Review](ledgerly-dec-19-export-policy-review.md)
+records a recommendation only. DEC-19 remains unresolved and does not
+authorise implementation or resolve DEC-20 through DEC-22 policy.
+
 ## Architecture obligations derived from governance
 
 Any future technical design must uphold the following constraints:

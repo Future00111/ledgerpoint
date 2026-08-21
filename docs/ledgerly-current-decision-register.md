@@ -659,6 +659,8 @@ to the accounting core.
 ### DEC-19 — Export formats, scope, and permissions
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-19 Export Policy
+  Review](ledgerly-dec-19-export-policy-review.md).
 - **Decision:** Define accounting, audit, report, document, and data export
   formats, scope, access authority, and versioning.
 - **Options available:** (a) CSV/PDF; (b) CSV plus machine-readable JSON; or

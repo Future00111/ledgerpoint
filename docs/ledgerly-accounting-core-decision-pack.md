@@ -558,6 +558,8 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 18. Export policy
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-19 Export Policy
+  Review](ledgerly-dec-19-export-policy-review.md).
 - **Decision needed:** Decide which accounting, audit, source, and document
   exports are required and who may use them.
 - **Options:**
@@ -575,8 +577,8 @@ Living Product Decisions Register until it has been explicitly accepted.
   legacy format rather than being presented as canonical journals.
 - **Dependencies:** Reporting contract, audit, permissions, documents,
   production operations, BL-17, BL-18, BL-24.
-- **Explicit product decision:** Approve minimum export formats, document
-  inclusion, and role access.
+- **Decision boundary:** DEC-20 retains backup/recovery, DEC-21 tenant
+  isolation, and DEC-22 migration policy. Source freshness remains separate.
 
 ## 19. Backup and recovery policy
 

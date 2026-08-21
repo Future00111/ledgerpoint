@@ -1,0 +1,548 @@
+Proceed to DEC-19 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-19 — EXPORT POLICY
+
+IMPORTANT:
+Read the Current Decision Register first and use the exact registered DEC-19 title and scope.
+Do not rename, merge, reinterpret, or broaden DEC-19.
+
+Review all existing governance and accounting documentation, including:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- Accounting Core Decision Pack
+- Master Backlog
+- DEC-01 through DEC-18
+- All DEC-01 through DEC-18 approval/review documents
+- DEC-17 Audit Retention Period
+- DEC-18 Deletion and Anonymisation Policy
+- Existing accounting, reporting, document, audit and data-governance documentation
+
+This is a DECISION-ONLY review.
+
+DO NOT implement anything.
+
+DO NOT modify:
+
+- application code
+- database schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Do NOT approve DEC-19.
+Do NOT start DEC-20 or any later decision.
+Keep BL-06 and BL-07 BLOCKED.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Determine Ledgerly's export policy.
+
+The review must establish what users can export, who can export it, how exports are generated, what formats are supported, what accounting/audit guarantees exports provide, and how export interacts with:
+
+- canonical accounting;
+- company scope;
+- permissions;
+- retention;
+- deletion/anonymisation;
+- backups;
+- migration;
+- privacy;
+- auditability.
+
+Exports must never alter canonical accounting data.
+
+==================================================
+1. EXACT EXPORT SCOPE
+==================================================
+
+Determine what Ledgerly should support exporting at launch.
+
+Consider:
+
+- accounting records;
+- journals;
+- general ledger;
+- trial balance;
+- Balance Sheet;
+- Profit & Loss;
+- VAT information;
+- AR;
+- AP;
+- customers;
+- suppliers;
+- invoices;
+- bills;
+- payments;
+- allocations;
+- customer credits;
+- supplier prepayments;
+- refunds;
+- bank/reconciliation information;
+- audit evidence;
+- source documents;
+- configuration;
+- company information.
+
+Clearly distinguish:
+
+- accounting exports;
+- operational exports;
+- audit exports;
+- document exports;
+- configuration exports.
+
+Do not assume every category must be exportable at launch.
+
+==================================================
+2. EXPORT PURPOSES
+==================================================
+
+Consider legitimate export purposes such as:
+
+- accountant review;
+- statutory/accounting records;
+- management reporting;
+- data portability;
+- audit;
+- migration;
+- external analysis;
+- business closure;
+- customer support.
+
+Determine which purposes should be explicitly supported.
+
+==================================================
+3. EXPORT FORMATS
+==================================================
+
+Evaluate appropriate formats, including where relevant:
+
+- CSV;
+- XLSX;
+- PDF;
+- JSON;
+- structured accounting formats;
+- ZIP/document bundles.
+
+Consider which formats are appropriate for:
+
+- human-readable reports;
+- machine-readable accounting data;
+- audit evidence;
+- documents.
+
+Do not expose internal database structures merely because JSON is technically convenient.
+
+==================================================
+4. CANONICAL ACCOUNTING
+==================================================
+
+Exports must derive from canonical accounting data.
+
+Respect:
+
+- DEC-04 immutable journals;
+- DEC-09 stable account identity/classification;
+- DEC-10 control mappings;
+- DEC-11 configuration versions;
+- DEC-12 payment/allocation/settlement;
+- DEC-13 customer credits/supplier prepayments;
+- DEC-14 unapplied-cash workflow;
+- DEC-15 refunds;
+- DEC-16 payment-on-account launch scope.
+
+An export must never:
+
+- create accounting;
+- modify accounting;
+- reinterpret historical journals;
+- silently recalculate historical accounting;
+- change VAT;
+- change AR/AP;
+- change settlement.
+
+==================================================
+5. REPORTING CONSISTENCY
+==================================================
+
+Determine how exported reports remain consistent with in-product reports.
+
+Consider:
+
+- reporting date;
+- posting date;
+- financial year;
+- accounting period;
+- closed periods;
+- configuration version;
+- historical account identity.
+
+Exports should reflect the same authoritative data used by Ledgerly's reports.
+
+==================================================
+6. AUDIT EXPORTS
+==================================================
+
+Determine whether Ledgerly should support an audit-oriented export containing enough evidence to explain consequential accounting activity.
+
+Consider:
+
+- journals;
+- source links;
+- approvals;
+- corrections;
+- VAT evidence;
+- reconciliation evidence;
+- payment/allocation history;
+- refunds;
+- relevant configuration versions;
+- audit trail.
+
+Do not export unnecessary personal data.
+
+==================================================
+7. SOURCE DOCUMENTS
+==================================================
+
+Determine whether users can export/download:
+
+- invoices;
+- bills;
+- receipts;
+- credit notes;
+- supporting documents;
+- other uploaded accounting evidence.
+
+Consider whether documents should be:
+
+- individual downloads;
+- bulk bundles;
+- included in audit exports.
+
+Respect DEC-17 and DEC-18.
+
+==================================================
+8. PERSONAL DATA
+==================================================
+
+Respect DEC-17 and DEC-18.
+
+Determine:
+
+- whether exports include personal data;
+- whether export scope can be minimised;
+- whether sensitive data should require elevated authority;
+- whether exports need warnings or confirmation;
+- whether export activity itself should be audited.
+
+Do not create a separate privacy policy through DEC-19.
+
+==================================================
+9. PERMISSIONS
+==================================================
+
+Use DEC-05.
+
+Determine capabilities for:
+
+- standard reporting exports;
+- accounting exports;
+- customer/supplier data exports;
+- audit exports;
+- document exports;
+- full company exports.
+
+Consider elevated authority for high-risk exports.
+
+Do not rely solely on frontend controls.
+
+==================================================
+10. COMPANY SCOPE / SECURITY
+==================================================
+
+All exports must be:
+
+- company-scoped;
+- server-side generated;
+- capability-controlled;
+- auditable.
+
+Prevent cross-company data leakage.
+
+Consider whether export files should have:
+
+- expiry;
+- access controls;
+- download restrictions;
+- secure delivery.
+
+==================================================
+11. EXPORT HISTORY / AUDIT
+
+Determine what should be recorded when an export occurs.
+
+Consider:
+
+- actor;
+- company;
+- export type;
+- scope;
+- filters;
+- date/time;
+- format;
+- success/failure;
+- download/access event where appropriate.
+
+Export audit records must be protected under DEC-17/18.
+
+==================================================
+12. LARGE EXPORTS
+==================================================
+
+Determine how large exports should work.
+
+Consider:
+
+- synchronous export;
+- background generation;
+- progress;
+- completion notification;
+- expiry;
+- retry;
+- failure handling.
+
+Avoid exposing technical complexity to normal users.
+
+==================================================
+13. FILTERING
+==================================================
+
+Determine appropriate user-facing filters such as:
+
+- date range;
+- financial year;
+- accounting period;
+- account;
+- customer;
+- supplier;
+- document type;
+- transaction type.
+
+Filters must never cause historical accounting to be reinterpreted.
+
+==================================================
+14. CONFIGURATION / HISTORY
+==================================================
+
+Where an export includes accounting configuration, determine how to represent:
+
+- historical account identity;
+- configuration version;
+- effective date;
+- resolved account IDs where appropriate.
+
+Do not expose raw internal IDs to ordinary users unless there is a legitimate technical export requirement.
+
+==================================================
+15. DELETED / ANONYMISED DATA
+==================================================
+
+Respect DEC-18.
+
+Determine how exports behave when:
+
+- data has been deleted;
+- personal data has been anonymised;
+- documents have been archived;
+- information is under legal hold.
+
+Do not recreate disposed data merely because it once existed.
+
+==================================================
+16. BACKUPS
+==================================================
+
+DEC-20 owns backup and recovery.
+
+DEC-19 should not define backup architecture.
+
+Only determine whether exports are a user-facing data-portability/reporting mechanism distinct from backups.
+
+==================================================
+17. TENANT ISOLATION
+==================================================
+
+DEC-21 owns detailed tenant isolation.
+
+DEC-19 must nevertheless require strict company scoping for every export.
+
+==================================================
+18. MIGRATION
+==================================================
+
+DEC-22 owns migration/cutover.
+
+Determine whether export should support:
+
+- migration preparation;
+- legacy system transition;
+- full historical export.
+
+Do not resolve DEC-22.
+
+Historical exports must reflect available evidence and must not invent missing accounting facts.
+
+==================================================
+19. OPTIONS
+==================================================
+
+Present realistic launch options for:
+
+- reporting exports only;
+- accounting/data exports;
+- full company export;
+- audit export;
+- document bundles;
+- machine-readable exports.
+
+For each material option explain:
+
+- accounting consequences;
+- data/schema consequences;
+- migration consequences;
+- reporting consequences;
+- privacy/security consequences;
+- audit consequences;
+- operational consequences;
+- UX consequences;
+- compatibility consequences;
+- future flexibility.
+
+==================================================
+20. RECOMMENDATION
+==================================================
+
+Provide:
+
+RECOMMENDATION — NOT APPROVAL
+
+Recommend the launch export model that best satisfies:
+
+- Ledgerly simplicity;
+- business-owner usability;
+- accountant usefulness;
+- accounting correctness;
+- data portability;
+- auditability;
+- security;
+- privacy;
+- DEC-04 canonical accounting;
+- DEC-05 capabilities;
+- DEC-17 retention;
+- DEC-18 disposal policy.
+
+Do not convert the recommendation into approval.
+
+==================================================
+21. DECISION BOUNDARIES
+==================================================
+
+Clearly classify:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Explicitly identify:
+
+- what approving DEC-19 would lock in;
+- what remains changeable;
+- what belongs to DEC-20;
+- what belongs to DEC-21;
+- what belongs to DEC-22.
+
+Do not resolve later decisions prematurely.
+
+==================================================
+22. IMPORTANT PRINCIPLE
+==================================================
+
+Export is a copy/representation of authorised data.
+
+Export must NEVER:
+
+- mutate accounting;
+- create accounting;
+- rewrite history;
+- bypass permissions;
+- bypass retention;
+- restore deleted data;
+- cross company boundaries.
+
+Ledgerly should make exporting information easy without making the user understand the underlying technical architecture.
+
+==================================================
+23. FUTURE FLEXIBILITY
+==================================================
+
+Do not unnecessarily prevent future:
+
+- additional formats;
+- accounting integrations;
+- migration formats;
+- external accountant workflows;
+- additional markets;
+- regulatory exports;
+- API-based data portability.
+
+==================================================
+24. DOCUMENTATION
+==================================================
+
+Create:
+
+docs/ledgerly-dec-19-export-policy-review.md
+
+Use the exact DEC-19 scope in the document title and body.
+
+Link it into the appropriate governance records, including:
+
+- Current Decision Register;
+- Living Product Decisions;
+- Accounting Core Decision Pack;
+- Technical Architecture;
+- PRD / Product Scope.
+
+Do not modify implementation files.
+
+==================================================
+25. FINAL VERIFICATION
+==================================================
+
+At the end verify:
+
+1. DEC-01 through DEC-18 retain their approved statuses.
+2. DEC-19 remains REQUIRES USER DECISION.
+3. DEC-20 through DEC-22 remain REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-20 work was started.
+8. No export implementation, schema, migration, accounting logic, UI, workflow, dependency, deployment or publishing work was performed.
+9. Source freshness remains separately unresolved.
+
+Stop after the DEC-19 decision-only review is complete.
