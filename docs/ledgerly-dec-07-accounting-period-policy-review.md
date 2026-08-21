@@ -1,15 +1,16 @@
 # DEC-07 Accounting-Period Policy Review
 
 **Decision:** DEC-07 — Accounting-period policy, creation, close, and reopen  
-**Status:** **REQUIRES USER DECISION**  
+**Status:** **APPROVED**
 **Review date:** 2026-08-21  
+**Decision recorded:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, security,
 and architecture review  
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-07, DEC-08, an
-> implementation task, code, schema, migration, UI, workflow, dependency,
-> deployment, or publishing work.
+> This records an approved product/accounting policy. It does not approve
+> DEC-08, an implementation task, code, schema, migration, UI, workflow,
+> dependency, deployment, or publishing work.
 
 ## 1. Purpose and decision question
 
@@ -58,10 +59,11 @@ or whether a year-end closing journal is created. Those remain DEC-08.
 - The existing product requirement includes accounting periods, open/closed
   status, controlled reopening, posting restrictions, and an audit trail.
 
-### REQUIRES USER DECISION
+### APPROVED DECISION
 
-The user must approve, amend, or reject the recommendation in section 13,
-including:
+DEC-07 records the approved monthly-period policy in section 16. Future
+amendments must use the Living Product Decisions process and must preserve the
+DEC-04 immutability and DEC-05 capability boundaries.
 
 - monthly, quarterly, annual-only, or configurable frequency;
 - automatic creation and future-period availability;
@@ -682,9 +684,10 @@ role grant. “Configurable” and “if assigned” require explicit capability
 definitions, active membership, company scope, and audit before implementation.
 No UI state or client-provided role may widen the server decision.
 
-## 16. RECOMMENDATION — NOT APPROVAL
+## 16. Recorded approval — DEC-07
 
-Recommend the following launch policy:
+Lee approved the recommended accounting-period policy with the following
+boundaries:
 
 1. Use contiguous monthly periods anchored to each approved DEC-06 financial
    year.
@@ -711,11 +714,12 @@ Recommend the following launch policy:
 10. Preserve historical uncertainty and never invent period closures, journal
     entries, or accounting facts during migration.
 
-This recommendation is **not approval**. DEC-07 remains unresolved.
+This approval does not decide year-end closing mechanics, retained earnings, or
+other DEC-08 treatment.
 
 ## 17. What approving DEC-07 would lock in
 
-Approval of the recommendation would lock in:
+DEC-07 locks in:
 
 1. monthly period frequency for the launch accounting core;
 2. contiguous periods anchored to DEC-06 financial-year boundaries;
@@ -729,7 +733,7 @@ Approval of the recommendation would lock in:
 9. rejection of normal closed-period posting; and
 10. period creation, close, reopen, rejection, and migration audit evidence.
 
-Approval would not authorise implementing any of these items.
+This approval does not authorise implementing any of these items.
 
 ## 18. What remains changeable after approval
 
@@ -779,8 +783,8 @@ The following must remain outside this decision:
 
 ## 21. Decision readiness
 
-DEC-07 is ready for explicit user decision. The recommendation is **not
-approval**.
+**DEC-07 approval is recorded.** It is a product/accounting-policy approval
+only and is not implementation authorisation.
 
 Until DEC-07 is approved or amended:
 
@@ -789,8 +793,8 @@ Until DEC-07 is approved or amended:
 - BL-06 and BL-07 remain **BLOCKED**; and
 - DEC-08 and all later decisions remain untouched and unresolved.
 
-**DEC-07:** **REQUIRES USER DECISION**  
-**DEC-08 onward:** **NOT STARTED; REQUIRES USER DECISION**  
+**DEC-07:** **APPROVED — product/accounting policy only**
+**DEC-08 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application code changed by this review:** **NO**  
 **Database or migrations changed by this review:** **NO**

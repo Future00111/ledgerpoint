@@ -531,7 +531,8 @@ use an unrecorded change.
 
 **DEC-05:** **APPROVED — Option B, architecture/product decision only**
 **DEC-06:** **APPROVED — financial-year policy only**
-**DEC-07 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
+**DEC-07:** **APPROVED — accounting-period policy only**
+**DEC-08 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
 **DEC-04:** **APPROVED — architecture only**
 **BL-06 / BL-07:** **BLOCKED**
 **Implementation task:** **NONE CREATED OR EXECUTED**

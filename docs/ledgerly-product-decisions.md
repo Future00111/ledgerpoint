@@ -146,18 +146,18 @@ not higher authority.
   journal-authoritative reporting with rebuildable projections; company-scoped
   server-side capability/audit boundaries; and additive, evidence-based
   compatibility and migration architecture.
-- **Deliberate non-locks:** DEC-05 and DEC-06 were separately approved as the
-  capability model and financial-year policy. DEC-07 through DEC-22 remain
-  unresolved. DEC-04 does not select periods, year-end, chart/control-account
-  defaults, configuration versioning, source-freshness, payment/refund
-  treatment, retention, deletion, export, backup/recovery, RLS, historical
-  migration cohort, cutover, or rollback policy.
+- **Deliberate non-locks:** DEC-05, DEC-06, and DEC-07 were separately approved
+  as the capability model, financial-year policy, and accounting-period policy.
+  DEC-08 through DEC-22 remain unresolved. DEC-04 does not select year-end,
+  chart/control-account defaults, configuration versioning, source-freshness,
+  payment/refund treatment, retention, deletion, export, backup/recovery, RLS,
+  historical migration cohort, cutover, or rollback policy.
 - **Reason:** The architecture supplies a safe, authoritative accounting
   foundation while preserving explicit product-owner decisions for policies
   that affect operations, compliance, access, and migration.
 - **Impact:** Future specifications must conform to this accounting authority;
   current implementation remains evidence, not an approved target.
-- **Dependencies:** DEC-02 and DEC-03. The applicable DEC-07 through DEC-22
+- **Dependencies:** DEC-02 and DEC-03. The applicable DEC-08 through DEC-22
   decisions remain required before implementation approval.
 - **What it affects:** Accounting sources, journals, payments, allocations,
   banking, VAT, reports, permissions, audit, compatibility, migration, and
@@ -238,8 +238,8 @@ not higher authority.
   accounting model. Financial-year configuration is consequential accounting
   configuration under DEC-05 active membership, company scope, server-side
   capability checks, privileged authority, and audit.
-- **Dependencies:** DEC-04 and DEC-05. DEC-07 period policy and DEC-08
-  year-end policy remain separate unresolved decisions.
+- **Dependencies:** DEC-04, DEC-05, and approved DEC-07 period policy. DEC-08
+  year-end policy remains a separate unresolved decision.
 - **Change authority:** Product owner/stakeholder with accounting, security,
   and architecture review through the Living Product Decisions process.
 - **Implementation limit:** DEC-06 does not authorise code, schema, migration,
@@ -248,22 +248,31 @@ not higher authority.
 
 ### DEC-07 — Accounting-period policy, creation, close, and reopen
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-07 Accounting-Period Policy
   Review](ledgerly-dec-07-accounting-period-policy-review.md).
-- **Current decision/direction:** Decide launch period frequency, period
-  identity and creation, open/closed lifecycle, posting-date enforcement,
-  close validation, reopen authority, and closed-period posting behavior.
-- **Recommendation:** Contiguous monthly periods anchored to the approved
-  DEC-06 financial years, automatically generated for known years, with only
-  `OPEN` and `CLOSED` states, server-side posting-date assignment, privileged
-  audited close/reopen, and no normal posting into closed periods.
-- **Boundary:** DEC-07 must not resolve year-end closing journals, retained
+- **Current decision/direction:** Use contiguous monthly periods anchored to
+  approved DEC-06 financial years. Generate known periods automatically,
+  including future periods before they become active for posting, and use only
+  `OPEN` and `CLOSED` states.
+- **Approved posting and close boundary:** Assign canonical postings
+  server-side from validated posting date; do not permit arbitrary client period
+  selection or silent reassignment. Closed periods block ordinary posting with
+  no direct bypass. Period creation, close, and reopen require DEC-05
+  capability, company scope, active membership, validation, authority, and
+  audit. Reopen requires elevated capability and a mandatory reason, with
+  separate approval where segregation of duties requires it.
+- **Approved warning and integrity boundary:** Drafts, unallocated payments,
+  unreconciled bank evidence, and ordinary VAT timetable differences are
+  visible close warnings, while accounting or VAT integrity failures can block
+  close. Period configuration cannot rewrite posted history, and migration must
+  not invent periods, close events, journals, dates, or accounting facts.
+- **Boundary:** DEC-07 does not resolve year-end closing journals, retained
   earnings, or other DEC-08 treatment. Periods remain distinct from VAT
-  periods, tax years, bank ranges, and calendar months.
-- **Implementation limit:** This review and unresolved decision do not authorise
-  code, schema, migration, UI, workflow, dependency, deployment, publishing,
-  or an implementation task. BL-06 and BL-07 remain blocked.
+  periods, tax years, bank ranges, calendar months, and financial-year identity.
+- **Implementation limit:** DEC-07 is an approved policy only. It does not
+  authorise code, schema, migration, UI, workflow, dependency, deployment,
+  publishing, or an implementation task. BL-06 and BL-07 remain blocked.
 
 ### PD-01 — Product name
 

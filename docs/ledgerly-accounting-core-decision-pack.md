@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-06 APPROVED; DEC-07 through DEC-22
+**Decision status:** DEC-01 through DEC-07 APPROVED; DEC-08 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -107,10 +107,11 @@ Living Product Decisions Register until it has been explicitly accepted.
   corrections, separate settlement/evidence concepts, the DEC-03 VAT adapter,
   journal-authoritative reporting, company-scoped capability/audit boundaries,
   and additive evidence-based compatibility and migration.
-- **Decision boundary:** DEC-05 and DEC-06 are separately approved as the
-  capability model and financial-year policy. DEC-07 through DEC-22 remain
-  unresolved. These approvals do not approve their policy choices, physical
-  schema, migration execution, API/UI changes, or an implementation task.
+- **Decision boundary:** DEC-05, DEC-06, and DEC-07 are separately approved as
+  the capability model, financial-year policy, and accounting-period policy.
+  DEC-08 through DEC-22 remain unresolved. These approvals do not approve
+  their policy choices, physical schema, migration execution, API/UI changes,
+  or an implementation task.
 - **Accounting/data consequences:** The architecture determines canonical
   journal, period, account, payment, allocation, source, audit, and reporting
   contracts. It must not permit browser-created journal lines or generic
@@ -216,20 +217,21 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 6. Accounting-period creation, closing, and reopening
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — DEC-07, product/accounting policy only
 - **Decision review:** [DEC-07 Accounting-Period Policy
   Review](ledgerly-dec-07-accounting-period-policy-review.md).
-- **Decision needed:** Decide period frequency, automatic creation, close
-  checks, and reopen controls.
-- **Options:**
-  1. Monthly periods generated from each financial year.
-  2. Quarterly periods only.
-  3. Company-configurable monthly/quarterly/custom periods.
-- **Recommendation:** Generate contiguous monthly periods from the approved
-  financial year, with no gaps or overlaps. Permit a privileged close action
-  after checks, reject normal posting into closed periods, and permit reopen
-  only with elevated capability, reason, fresh checks, and an audit event.
-  Custom period frequencies should wait unless launch scope requires them.
+- **Approved outcome:** Use contiguous monthly periods anchored to each
+  approved DEC-06 financial year. Generate all known periods automatically,
+  including future periods before they become active for posting. Use only
+  `OPEN` and `CLOSED` states.
+- **Approved posting and close outcome:** Assign periods server-side from the
+  validated posting date; reject ordinary posting into closed periods with no
+  direct bypass; and use privileged, validated, audited close and elevated,
+  reasoned, audited reopen controls under DEC-05.
+- **Approved warning outcome:** Drafts, unallocated payments, unreconciled
+  bank evidence, and ordinary VAT timetable differences are visible warnings,
+  not automatic close blockers. Genuine accounting or VAT integrity failures
+  remain capable of blocking close.
 - **Accounting/data consequences:** Posting date, period ID, close state,
   report boundaries, VAT evidence, and correction rules become explicit.
   Reopening changes period availability, not historical journal contents.
@@ -237,8 +239,9 @@ Living Product Decisions Register until it has been explicitly accepted.
   records in a closed historical range cannot be silently reposted.
 - **Dependencies:** Financial-year policy, permissions, audit, posting service,
   VAT periods, BL-06, BL-07.
-- **Explicit product decision:** Approve monthly periods, close prerequisites,
-  and who can reopen them.
+- **Implementation limit:** DEC-07 does not authorise code, schema, migration,
+  UI, workflow, dependency, deployment, publishing, or an implementation task.
+  BL-06 and BL-07 remain blocked.
 
 ## 7. Year-end treatment
 
@@ -637,25 +640,24 @@ These constraints are not invitations to implement BL-06 or BL-07.
 
 ## 23. Decisions requiring Lee's explicit approval
 
-DEC-03, DEC-04, DEC-05, and DEC-06 are approved. Before implementation, Lee
+DEC-03, DEC-04, DEC-05, DEC-06, and DEC-07 are approved. Before implementation, Lee
 must explicitly approve or amend:
 
-1. Monthly period generation and close/reopen rules.
-2. Year-end reporting-only versus explicit closing journal.
-3. Default UK chart template and account list.
-4. Mandatory control-account mappings.
-5. Effective-dated account/configuration versioning.
-6. Source revision/hash and VAT freshness semantics.
-7. Customer overpayment and supplier prepayment treatment.
-8. First-class unapplied cash.
-9. Refund requirements and launch scope.
-10. Customer/supplier payment-on-account scope.
-11. Audit retention periods.
-12. Deletion/anonymisation policy.
-13. Export formats, scope, and permissions.
-14. Backup RPO/RTO and restore-test requirements.
-15. Application scoping versus RLS policy.
-16. Historical migration cohort/cutover policy.
+1. Year-end reporting-only versus explicit closing journal.
+2. Default UK chart template and account list.
+3. Mandatory control-account mappings.
+4. Effective-dated account/configuration versioning.
+5. Source revision/hash and VAT freshness semantics.
+6. Customer overpayment and supplier prepayment treatment.
+7. First-class unapplied cash.
+8. Refund requirements and launch scope.
+9. Customer/supplier payment-on-account scope.
+10. Audit retention periods.
+11. Deletion/anonymisation policy.
+12. Export formats, scope, and permissions.
+13. Backup RPO/RTO and restore-test requirements.
+14. Application scoping versus RLS policy.
+15. Historical migration cohort/cutover policy.
 
 No item above should be marked approved merely because this pack recommends an
 option.
@@ -694,7 +696,7 @@ Implementation remains **BLOCKED** by:
 - unresolved accounting-core design adoption, subject to the approved DEC-03
   VAT constraints;
 - unresolved capability matrix and elevated accounting permissions;
-- unresolved period and year-end policy;
+- unresolved year-end policy;
 - unresolved chart template and control-account mappings;
 - unresolved source freshness/version contract;
 - unresolved overpayment, unapplied cash, refund, and payment-on-account
@@ -715,8 +717,9 @@ REQUIRE REVIEW
 **DECISION 4:** APPROVED — architecture only
 **DECISION 5:** APPROVED — Option B
 **DECISION 6:** APPROVED — financial-year policy
-**DECISION 7–22:** UNRESOLVED
-**CURRENT DECISION REGISTER:** DEC-04, DEC-05, AND DEC-06 APPROVALS RECORDED
+**DECISION 7:** APPROVED — accounting-period policy
+**DECISION 8–22:** UNRESOLVED
+**CURRENT DECISION REGISTER:** DEC-04, DEC-05, DEC-06, AND DEC-07 APPROVALS RECORDED
 **BL-06 / BL-07 IMPLEMENTATION:** BLOCKED  
 **APPLICATION CODE CHANGED:** NO  
 **DATABASE OR MIGRATIONS CHANGED:** NO  

@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–6 approved; DEC-07 through DEC-22 require
+**Register status:** Decisions 1–7 approved; DEC-08 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -198,7 +198,7 @@ to the accounting core.
 - **Backlog implications:** Defines the intended BL-02 role/capability
   contract and the permission boundary for BL-01, BL-03, BL-06, BL-07, BL-19,
   and BL-24. This does not approve any implementation item.
-- **Dependencies:** DEC-04, DEC-06, and applicable DEC-07 through DEC-22
+- **Dependencies:** DEC-04, DEC-06, and applicable DEC-08 through DEC-22
   decisions.
 - **Implementation limit:** DEC-05 does not authorise an implementation task,
   code, schema, migration, UI, workflow, dependency, deployment, or publishing.
@@ -243,8 +243,7 @@ to the accounting core.
   assignment; missing or ambiguous dates require review.
 - **Backlog implications:** Gates BL-07 and BL-17 and affects BL-06, BL-08,
   BL-13, and BL-15.
-- **Dependency:** DEC-04 and DEC-05; DEC-07 and DEC-08 remain separate
-  decisions.
+- **Dependency:** DEC-04 and DEC-05; DEC-08 remains a separate decision.
 - **Implementation limit:** DEC-06 is a product/accounting-policy approval
   only. It does not authorise code, schema, migration, UI, workflow,
   dependency, deployment, publishing, or an implementation task. BL-06 and
@@ -255,25 +254,47 @@ to the accounting core.
 
 ### DEC-07 — Period frequency, creation, close, and reopen
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-07 Accounting-Period Policy
   Review](ledgerly-dec-07-accounting-period-policy-review.md).
-- **Decision:** Define period frequency, generation, close conditions, normal
-  posting restrictions, reopening authority, and reopening conditions.
-- **Options available:** (a) monthly periods; (b) quarterly periods; or (c)
-  configurable monthly, quarterly, or custom periods.
-- **Replit's recommendation:** Contiguous monthly periods, privileged close,
-  closed-period rejection, and elevated, reasoned, audited reopening.
-- **Why it is recommended:** It provides predictable reporting and control
-  without allowing closed history to be changed casually.
+- **Decision:** Contiguous monthly accounting periods anchored to each
+  company's approved DEC-06 financial year.
+- **Approved creation and state:** Known periods are generated automatically,
+  including future periods before they become active for posting. The
+  authoritative lifecycle uses only `OPEN` and `CLOSED`.
+- **Approved posting boundary:** The server assigns a canonical posting to
+  exactly one period from the validated posting date. The client cannot choose
+  an arbitrary period, and the system cannot silently move a posting to another
+  period.
+- **Approved closed-period boundary:** Closed periods prevent ordinary posting
+  with no direct bypass. Corrections use controlled privileged reopening or an
+  appropriately approved adjustment in a later open period.
+- **Approved close/reopen boundary:** Period creation, close, and reopen use
+  DEC-05 active-membership, company-scope, server-side capability, authority,
+  validation, reason, approval where required, and audit controls. Drafts,
+  unallocated payments, unreconciled bank evidence, and ordinary VAT timetable
+  differences are visible warnings rather than automatic blockers; genuine
+  accounting or VAT integrity failures can block close.
+- **Approved integrity boundary:** Period configuration must never silently
+  rewrite or reclassify posted accounting history. Reporting remains based on
+  the DEC-04 canonical accounting model, and historical migration uses
+  evidence without inventing periods or accounting facts.
 - **Accounting implications:** Determines posting dates, correction/reversal
   behavior, VAT cutoffs, and period-based reports.
 - **Data/schema implications:** Requires fiscal years, periods, status,
   close/reopen actor, timestamps, reasons, and posting-period links.
-- **Migration implications:** Historical records must be assigned to periods;
-  existing closed-range data must not be silently reposted.
+- **Migration implications:** Historical records must be assigned to periods
+  using available evidence; ambiguous information remains an explicit
+  migration limitation.
 - **Backlog implications:** Gates BL-06, BL-07, BL-15, BL-17, and BL-24.
-- **Dependency:** DEC-05 and DEC-06.
+- **Dependency:** DEC-05 and DEC-06; DEC-08 remains separate.
+- **Implementation limit:** DEC-07 is a product/accounting-policy approval
+  only. It does not authorise code, schema, migration, UI, workflow,
+  dependency, deployment, publishing, or an implementation task. BL-06 and
+  BL-07 remain blocked.
+- **Amendment rule:** Future changes must use the Living Product Decisions
+  process and preserve DEC-04 immutability, DEC-05 capability, audit, and
+  historical-reporting boundaries.
 
 ### DEC-08 — Year-end treatment
 
