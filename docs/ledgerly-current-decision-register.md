@@ -714,6 +714,8 @@ to the accounting core.
 ### DEC-21 — Tenant isolation and RLS
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-21 Tenant Isolation Policy
+  Review](ledgerly-dec-21-tenant-isolation-policy-review.md).
 - **Decision:** Decide the required combination of server-side company scoping,
   permission enforcement, and database-level row-level security.
 - **Options available:** (a) application scoping only; (b) RLS for accounting

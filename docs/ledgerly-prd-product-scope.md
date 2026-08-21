@@ -169,6 +169,9 @@ be approved:
     Review](ledgerly-dec-20-backup-and-recovery-policy-review.md) records an
     approved product/operational resilience policy. DEC-21 and DEC-22 remain
     open for their own policies.
+17. [DEC-21 Tenant Isolation Policy
+    Review](ledgerly-dec-21-tenant-isolation-policy-review.md) records a
+    recommendation only. DEC-21 and DEC-22 remain open for their own policies.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix

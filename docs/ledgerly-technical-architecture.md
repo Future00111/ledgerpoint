@@ -93,6 +93,11 @@ Review](ledgerly-dec-20-backup-and-recovery-policy-review.md) records an
 approved product/operational resilience policy only. It does not authorise
 implementation or resolve DEC-21 through DEC-22 policy.
 
+The [DEC-21 Tenant Isolation Policy
+Review](ledgerly-dec-21-tenant-isolation-policy-review.md) records a
+recommendation only. DEC-21 remains unresolved and does not authorise
+implementation or resolve DEC-21 through DEC-22 policy.
+
 ## Architecture obligations derived from governance
 
 Any future technical design must uphold the following constraints:

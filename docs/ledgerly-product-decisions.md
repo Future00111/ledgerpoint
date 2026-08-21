@@ -564,6 +564,25 @@ not higher authority.
   schema, migration, UI, workflow, dependency, deployment, publishing, or an
   implementation task. BL-06 and BL-07 remain blocked.
 
+### DEC-21 — Tenant Isolation Policy
+
+- **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-21 Tenant Isolation Policy
+  Review](ledgerly-dec-21-tenant-isolation-policy-review.md).
+- **Current decision/direction:** Decide the required combination of
+  server-side company scoping, permission enforcement, and database-level
+  row-level security.
+- **Recommendation:** Require authenticated server-side company scoping and
+  DEC-05 capabilities for every company-owned access path. Evaluate tested RLS
+  as defence-in-depth, especially for high-risk accounting tables, rather than
+  assume universal RLS before worker, pooling, migration, recovery, and support
+  compatibility is proven.
+- **Boundary:** DEC-22 retains migration and cutover policy. Source freshness
+  remains separate.
+- **Implementation limit:** This unresolved decision does not authorise code,
+  schema, migration, UI, workflow, dependency, deployment, publishing, or an
+  implementation task. BL-06 and BL-07 remain blocked.
+
 ### PD-01 — Product name
 
 - **Status:** OPEN

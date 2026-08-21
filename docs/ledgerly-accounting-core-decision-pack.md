@@ -611,6 +611,8 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 20. RLS / tenant-isolation policy
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-21 Tenant Isolation Policy
+  Review](ledgerly-dec-21-tenant-isolation-policy-review.md).
 - **Decision needed:** Decide whether PostgreSQL RLS is required in addition to
   authentication, authorization, and server-side company scoping.
 - **Options:**
