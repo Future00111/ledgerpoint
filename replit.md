@@ -45,6 +45,8 @@ are complete.
 The [implementation-readiness review](docs/ledgerly-implementation-readiness-review.md)
 records that planning may begin separately, but implementation remains
 unauthorised.
+The [implementation brief](docs/ledgerly-implementation-brief.md) is planning
+only; it does not create executable tasks or authorise implementation.
 Do not choose roadmap scope or silently change a recorded decision autonomously.
 Before implementation, also review the Core Maxims, Design System, Definition
 of Done, Product Development Workflow, and Workspace Framework.

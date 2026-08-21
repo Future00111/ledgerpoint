@@ -14,6 +14,10 @@ The [Implementation Readiness Review](ledgerly-implementation-readiness-review.m
 records the post-governance readiness assessment. It does not authorise
 implementation or unblock BL-06/BL-07.
 
+The [Implementation Brief](ledgerly-implementation-brief.md) translates the
+approved decisions into planning requirements only. It does not authorise
+execution.
+
 The Ledgerly Manifesto remains the highest-level authority. This register does
 not authorise implementation by itself:
 

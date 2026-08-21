@@ -7,6 +7,9 @@
 **Source freshness / posting safety:** Separately unresolved  
 **Decision created by this review:** None
 
+**Implementation brief:** [Ledgerly Implementation
+Brief](ledgerly-implementation-brief.md)
+
 > This is an implementation-readiness assessment only. It does not implement
 > anything, create an implementation task, unblock BL-06 or BL-07, create
 > DEC-23, or authorise code, schema, migration, accounting logic, UI,

@@ -11,6 +11,9 @@ The [Implementation Readiness Review](ledgerly-implementation-readiness-review.m
 records the post-governance planning readiness assessment. It does not change
 product scope or authorise implementation.
 
+The [Implementation Brief](ledgerly-implementation-brief.md) records planning
+requirements without expanding the approved product scope.
+
 ## Purpose
 
 This document records Ledgerly's intended product outcome, capability boundaries,

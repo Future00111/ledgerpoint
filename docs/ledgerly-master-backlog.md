@@ -43,6 +43,10 @@ The [Implementation Readiness Review](ledgerly-implementation-readiness-review.m
 assesses those planning prerequisites. It does not unblock backlog items or
 authorise task execution.
 
+The [Implementation Brief](ledgerly-implementation-brief.md) contains a
+planning-only task inventory. It does not create executable backlog tasks or
+authorise BL-06/BL-07.
+
 ## Backlog
 
 | ID | Module | Feature | Current status | What needs to be built | Priority | Dependencies | Complexity | Acceptance criteria |

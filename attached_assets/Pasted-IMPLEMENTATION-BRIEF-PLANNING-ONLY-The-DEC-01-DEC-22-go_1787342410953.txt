@@ -1,0 +1,634 @@
+IMPLEMENTATION BRIEF — PLANNING ONLY
+
+The DEC-01–DEC-22 governance sequence is complete.
+
+All DEC-01 through DEC-22 decisions are APPROVED.
+
+The implementation-readiness review concluded:
+
+READY FOR IMPLEMENTATION PLANNING
+
+IMPORTANT:
+
+This does NOT authorise implementation.
+
+Do NOT write application code.
+Do NOT modify the database schema.
+Do NOT create migrations.
+Do NOT implement accounting logic.
+Do NOT modify UI/workflows.
+Do NOT modify infrastructure.
+Do NOT deploy.
+Do NOT publish.
+Do NOT execute migration or cutover.
+
+BL-06 and BL-07 remain BLOCKED until the appropriate implementation approvals are given.
+
+Do NOT create DEC-23.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Create a concrete implementation brief translating the approved DEC-01–DEC-22 governance into an executable technical plan.
+
+Create:
+
+docs/ledgerly-implementation-brief.md
+
+This document is planning only.
+
+It must clearly distinguish:
+
+APPROVED POLICY
+IMPLEMENTATION REQUIREMENT
+PROPOSED IMPLEMENTATION
+IMPLEMENTATION DETAIL
+REQUIRES EXPLICIT APPROVAL
+DELIBERATELY LEFT OPEN
+
+Do not silently convert policy into a technical implementation decision.
+
+==================================================
+1. GOVERNANCE BASELINE
+==================================================
+
+Use DEC-01 through DEC-22 as the governing baseline.
+
+For each major implementation area identify which approved decisions constrain it.
+
+Do not alter any approved decision.
+
+Do not create a new decision number.
+
+If a genuine policy conflict is discovered, document it rather than silently resolving it.
+
+==================================================
+2. SOURCE FRESHNESS / POSTING SAFETY
+==================================================
+
+This is the most important unresolved implementation dependency.
+
+Define a concrete proposed source-freshness/posting-safety contract covering:
+
+- source revision/version or snapshot identification;
+- evidence freshness;
+- stale-read detection;
+- approval-time revalidation;
+- conflict detection;
+- queued-action expiry;
+- queued-action retry behaviour;
+- concurrent modification handling;
+- idempotency;
+- atomic capability checks;
+- active membership validation;
+- company-scope validation;
+- period validation;
+- configuration-version validation;
+- mapping validation;
+- final posting validation;
+- audit evidence.
+
+The contract must prevent an AI or user action from relying on stale information when performing consequential accounting.
+
+AI recommendations may become stale.
+
+Therefore consequential persistence must revalidate the authoritative current state before posting.
+
+Clearly identify:
+
+- what is already governed by DEC-01–DEC-22;
+- what is an implementation requirement;
+- what remains an implementation design choice.
+
+Do NOT create DEC-23.
+
+==================================================
+3. BL-06 / BL-07
+==================================================
+
+Inspect the current Master Backlog definitions.
+
+Document:
+
+- exact purpose of BL-06;
+- exact purpose of BL-07;
+- current blocking conditions;
+- dependencies;
+- proposed implementation boundaries;
+- required approvals before either can be unblocked.
+
+Do not unblock them.
+
+Do not execute them.
+
+==================================================
+4. ACCOUNTING CORE
+==================================================
+
+Translate the approved accounting policies into implementation requirements.
+
+Cover:
+
+- immutable canonical journals;
+- balanced journal invariants;
+- journal posting;
+- corrections/reversals;
+- chart of accounts;
+- control-account mappings;
+- configuration versions;
+- financial years;
+- accounting periods;
+- reporting-only year-end.
+
+Identify the minimum accounting primitives that must exist before dependent features can be implemented.
+
+==================================================
+5. PAYMENTS / AR / AP
+==================================================
+
+Cover implementation requirements for:
+
+- customer payments;
+- supplier payments;
+- allocation;
+- settlement;
+- unapplied cash;
+- customer credits;
+- supplier prepayments;
+- refunds;
+- bank evidence;
+- reconciliation.
+
+Explicitly prevent duplicate accounting.
+
+Document the canonical journal effects required by the approved policies.
+
+==================================================
+6. VAT
+==================================================
+
+Respect DEC-03 as the sole VAT authority.
+
+Document:
+
+- VAT calculation dependency;
+- VAT posting dependency;
+- VAT period handling;
+- VAT reporting dependency;
+- VAT validation requirements.
+
+Do not create a second VAT engine.
+
+==================================================
+7. CONFIGURATION
+==================================================
+
+Cover:
+
+- company configuration;
+- chart of accounts;
+- control mappings;
+- configuration versions;
+- effective dates;
+- financial years;
+- periods.
+
+Explain how canonical posting resolves the applicable configuration.
+
+==================================================
+8. SECURITY / TENANT ISOLATION
+==================================================
+
+Translate DEC-05 and DEC-21 into implementation requirements.
+
+Cover:
+
+- authentication;
+- active company membership;
+- server-side capability checks;
+- company scope;
+- resource ownership;
+- background jobs;
+- exports;
+- documents;
+- AI context;
+- notifications;
+- support access;
+- recovery.
+
+For RLS:
+
+- identify which data classes are candidates for RLS;
+- identify compatibility questions;
+- identify what must be tested before adopting universal RLS.
+
+Do not implement RLS yet.
+
+==================================================
+9. DATA MODEL IMPACT
+==================================================
+
+Create a conceptual data-model impact assessment.
+
+Identify likely entities/relationships for:
+
+- companies;
+- memberships;
+- capabilities;
+- accounts;
+- configuration versions;
+- financial years;
+- accounting periods;
+- journals;
+- journal lines;
+- invoices;
+- bills;
+- payments;
+- allocations;
+- customer credits;
+- supplier prepayments;
+- refunds;
+- bank evidence;
+- reconciliation;
+- audit;
+- migration exceptions;
+- retention/disposal;
+- exports.
+
+Do not change the schema.
+
+Clearly mark:
+
+REQUIRED CONCEPT
+PROPOSED STRUCTURE
+IMPLEMENTATION DETAIL
+
+==================================================
+10. API / SERVICE BOUNDARIES
+==================================================
+
+Propose service/API boundaries required to enforce the policies.
+
+Consider:
+
+- posting;
+- allocation;
+- refunds;
+- configuration;
+- reporting;
+- exports;
+- documents;
+- audit;
+- migration;
+- recovery;
+- AI actions.
+
+Do not implement them.
+
+Avoid unnecessary microservice complexity.
+
+Prefer clear authoritative server-side boundaries.
+
+==================================================
+11. BACKGROUND JOBS
+==================================================
+
+Identify jobs required for:
+
+- reconciliation;
+- exports;
+- AI processing;
+- retention;
+- disposal;
+- notifications;
+- migration;
+- backup/recovery support.
+
+For each identify how company context and authority must be preserved.
+
+==================================================
+12. AUDIT
+==================================================
+
+Translate DEC-17/18 and the other approved decisions into audit requirements.
+
+Identify events requiring immutable audit evidence, including:
+
+- consequential accounting;
+- corrections;
+- allocation changes;
+- refunds;
+- configuration changes;
+- capability changes;
+- membership changes;
+- exports;
+- privileged operations;
+- migration;
+- recovery;
+- disposal;
+- security/isolation events;
+- AI-assisted consequential actions.
+
+==================================================
+13. EXPORTS
+==================================================
+
+Translate DEC-19 into implementation requirements.
+
+Cover:
+
+- PDF;
+- CSV;
+- versioned JSON;
+- audit packages;
+- document bundles;
+- configuration exports;
+- company scoping;
+- permissions;
+- retention/disposal state.
+
+Do not implement exports.
+
+==================================================
+14. BACKUP / RECOVERY
+==================================================
+
+Translate DEC-20 into implementation requirements.
+
+Cover:
+
+- protected data;
+- backup tiers;
+- recovery checkpoints;
+- restore validation;
+- RPO/RTO targets;
+- audit;
+- quarterly restore testing;
+- annual exercise where supported.
+
+Do not choose or deploy infrastructure unless separately approved.
+
+==================================================
+15. MIGRATION / CUTOVER
+==================================================
+
+Translate DEC-22 into an implementation plan.
+
+Cover:
+
+- source adapters;
+- provenance;
+- mapping contracts;
+- cohorts;
+- migration exceptions;
+- validation;
+- reconciliation;
+- dual-read comparison;
+- cutover;
+- legacy read-only authority;
+- rollback boundaries;
+- post-cutover monitoring.
+
+Do not migrate any data.
+
+==================================================
+16. AI
+==================================================
+
+Define implementation requirements for AI without implementing them.
+
+Cover:
+
+- company-scoped context;
+- retrieval;
+- stale context;
+- recommendation vs authority;
+- capability matching;
+- approval;
+- posting revalidation;
+- audit;
+- prompt/output retention;
+- AI action history.
+
+AI must never become accounting authority.
+
+==================================================
+17. TESTING STRATEGY
+==================================================
+
+Define the required testing layers:
+
+- unit;
+- accounting invariants;
+- integration;
+- API;
+- permissions;
+- tenant isolation;
+- RLS;
+- concurrency;
+- idempotency;
+- source freshness;
+- AI boundaries;
+- export;
+- migration;
+- recovery;
+- audit;
+- regression.
+
+Identify critical acceptance tests.
+
+Do not write the test suite yet.
+
+==================================================
+18. IMPLEMENTATION PHASES
+==================================================
+
+Propose a phased implementation plan.
+
+For each phase provide:
+
+- objective;
+- scope;
+- dependencies;
+- deliverables;
+- acceptance criteria;
+- risks;
+- required reviews;
+- explicit approval gate.
+
+Do not assume all phases can run simultaneously.
+
+A likely structure may include, but must not be limited to:
+
+Phase 0 — implementation foundation / source freshness
+Phase 1 — company/security/accounting primitives
+Phase 2 — journal/configuration/period core
+Phase 3 — AR/AP/payment/allocation
+Phase 4 — VAT/reporting
+Phase 5 — documents/audit/export
+Phase 6 — recovery/operational resilience
+Phase 7 — migration preparation
+Phase 8 — controlled migration/cutover
+
+Adjust this if the actual repository and dependencies indicate a better order.
+
+==================================================
+19. IMPLEMENTATION TASKS
+==================================================
+
+Create a proposed task inventory.
+
+For each proposed task include:
+
+- task ID;
+- purpose;
+- dependencies;
+- affected areas;
+- risk;
+- acceptance criteria;
+- required reviewer;
+- whether explicit user approval is required before execution.
+
+Do NOT create executable implementation tasks yet unless the existing governance explicitly permits planning-only task records.
+
+Clearly label all tasks:
+
+PLANNING ONLY — NOT APPROVED FOR EXECUTION
+
+==================================================
+20. APPROVAL GATES
+==================================================
+
+Define explicit gates for:
+
+- architecture;
+- schema;
+- accounting;
+- security;
+- RLS;
+- migration;
+- recovery;
+- deployment;
+- publishing.
+
+No gate should be treated as passed merely because DEC-01–DEC-22 are approved.
+
+Governance approval and implementation approval are separate.
+
+==================================================
+21. RISKS
+==================================================
+
+Create a risk register covering at least:
+
+- accounting corruption;
+- duplicate posting;
+- stale data;
+- concurrency;
+- incorrect mappings;
+- VAT errors;
+- AR/AP errors;
+- tenant leakage;
+- AI leakage;
+- export leakage;
+- migration discrepancies;
+- recovery failure;
+- audit gaps;
+- legacy authority conflicts.
+
+Rank risks appropriately.
+
+==================================================
+22. OPEN IMPLEMENTATION QUESTIONS
+==================================================
+
+Identify questions that must be answered before specific implementation tasks are approved.
+
+Do not turn ordinary engineering choices into unnecessary governance decisions.
+
+Distinguish:
+
+- engineering decision;
+- architecture decision;
+- security decision;
+- accounting decision;
+- product decision;
+- migration decision.
+
+==================================================
+23. WHAT REMAINS CHANGEABLE
+==================================================
+
+Explicitly preserve flexibility for:
+
+- exact schema;
+- API structure;
+- UI design;
+- internal service boundaries;
+- RLS implementation;
+- infrastructure technology;
+- backup technology;
+- migration adapter implementation;
+- worker implementation;
+- deployment architecture.
+
+Do not lock these prematurely.
+
+==================================================
+24. FINAL RECOMMENDATION
+==================================================
+
+Conclude with:
+
+IMPLEMENTATION PLANNING STATUS
+
+and one of:
+
+READY TO BEGIN IMPLEMENTATION PLANNING
+or
+NOT READY TO BEGIN IMPLEMENTATION PLANNING
+
+The project is currently authorised for PLANNING ONLY.
+
+Do not claim implementation is authorised.
+
+==================================================
+25. DOCUMENTATION
+==================================================
+
+Create/update only planning/governance documentation required for the implementation brief.
+
+Do NOT modify:
+
+- application code;
+- schema;
+- migrations;
+- accounting logic;
+- UI;
+- workflows;
+- dependencies;
+- infrastructure;
+- deployment;
+- publishing.
+
+==================================================
+26. FINAL VERIFICATION
+==================================================
+
+Confirm:
+
+1. DEC-01–DEC-22 remain APPROVED.
+2. No DEC-23 exists.
+3. BL-06 and BL-07 remain BLOCKED.
+4. Source-freshness/posting-safety contract is explicitly documented.
+5. Implementation tasks are planning-only.
+6. No implementation task was executed.
+7. No application/schema/migration/accounting/UI/workflow/dependency/infrastructure changes were made.
+8. No deployment occurred.
+9. No publishing occurred.
+10. No migration/cutover occurred.
+
+STOP after creating the implementation brief.
+
+Do not begin implementation.

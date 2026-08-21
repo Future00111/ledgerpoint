@@ -8,6 +8,8 @@
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
 **Readiness assessment:** [Implementation Readiness
 Review](ledgerly-implementation-readiness-review.md)
+**Implementation brief:** [Ledgerly Implementation
+Brief](ledgerly-implementation-brief.md)
 
 > This is a decision pack, not an implementation plan authorised for execution.
 > It does not approve code, schema changes, migrations, UI changes,

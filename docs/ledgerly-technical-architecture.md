@@ -10,6 +10,9 @@ The [Implementation Readiness Review](ledgerly-implementation-readiness-review.m
 assesses how DEC-01 through DEC-22 translate into separately authorised
 implementation planning. It does not authorise implementation.
 
+The [Implementation Brief](ledgerly-implementation-brief.md) is a planning
+translation of those constraints, not an approved technical design.
+
 ## Purpose
 
 This document defines the mandatory technical constraints and decision structure
