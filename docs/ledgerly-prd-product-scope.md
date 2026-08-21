@@ -7,6 +7,10 @@ Architecture
 remaining scope decisions are explicit
 **Implementation authority:** None
 
+The [Implementation Readiness Review](ledgerly-implementation-readiness-review.md)
+records the post-governance planning readiness assessment. It does not change
+product scope or authorise implementation.
+
 ## Purpose
 
 This document records Ledgerly's intended product outcome, capability boundaries,

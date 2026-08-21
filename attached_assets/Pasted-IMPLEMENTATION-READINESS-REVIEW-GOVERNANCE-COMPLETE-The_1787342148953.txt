@@ -1,0 +1,405 @@
+IMPLEMENTATION READINESS REVIEW — GOVERNANCE COMPLETE
+
+The DEC-01–DEC-22 governance sequence is now COMPLETE.
+
+All DEC-01 through DEC-22 decisions are APPROVED.
+
+Do NOT create DEC-23.
+
+Do NOT begin implementation.
+
+Do NOT modify application code, schema, migrations, accounting logic, UI, workflows, dependencies, infrastructure, deployment or publishing.
+
+BL-06 and BL-07 remain BLOCKED.
+
+The purpose of this task is to determine whether the project is actually ready to move from governance into separately approved implementation planning.
+
+==================================================
+1. READ THE COMPLETE GOVERNANCE SET
+==================================================
+
+Read and reconcile:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Current Decision Register
+- Living Product Decisions
+- Accounting Core Decision Pack
+- Master Backlog
+- DEC-01 through DEC-22
+- All DEC-01 through DEC-22 review and approval documents
+- BL-06
+- BL-07
+- Existing project/repository guidance
+- Existing implementation-readiness documentation
+
+Treat DEC-01 through DEC-22 as the current approved governance authority.
+
+==================================================
+2. GOVERNANCE CONSISTENCY REVIEW
+==================================================
+
+Check all 22 approved decisions for:
+
+- contradictions;
+- overlapping authority;
+- missing dependencies;
+- ambiguous terminology;
+- impossible requirements;
+- circular dependencies;
+- implementation assumptions accidentally presented as policy;
+- areas where a later decision unintentionally conflicts with an earlier decision.
+
+Do NOT change any approved decision.
+
+If a genuine conflict is discovered:
+
+- document it;
+- identify the affected decisions;
+- explain the conflict;
+- propose the appropriate amendment path.
+
+Do not silently resolve it.
+
+==================================================
+3. SOURCE FRESHNESS / POSTING SAFETY
+==================================================
+
+The project currently records:
+
+SOURCE FRESHNESS / POSTING SAFETY
+STATUS: SEPARATELY UNRESOLVED
+
+Determine exactly what this dependency means.
+
+Identify:
+
+- what problem it represents;
+- which accounting operations depend on it;
+- which existing decisions constrain it;
+- whether it is a technical implementation dependency, product decision, or both;
+- what must be established before consequential posting is safely implemented.
+
+Do NOT create DEC-23.
+
+Do NOT invent a new governance decision unless the existing amendment process genuinely requires one.
+
+Clearly distinguish:
+
+ALREADY DECIDED
+IMPLEMENTATION REQUIREMENT
+REMAINING GOVERNANCE GAP
+RECOMMENDATION
+
+==================================================
+4. BL-06 AND BL-07
+==================================================
+
+Inspect the Master Backlog and determine precisely:
+
+- what BL-06 covers;
+- what BL-07 covers;
+- why each remains blocked;
+- which approved decisions they depend upon;
+- what implementation-readiness evidence is required to unblock them;
+- whether their existing descriptions remain accurate after DEC-01–DEC-22.
+
+Do NOT unblock them.
+
+Do NOT create implementation tasks.
+
+Recommend the conditions required for unblocking.
+
+==================================================
+5. IMPLEMENTATION SURFACE
+==================================================
+
+Identify the implementation areas implied by the approved governance.
+
+Group them into areas such as:
+
+- accounting core;
+- journal model;
+- chart of accounts;
+- control-account mappings;
+- configuration versioning;
+- financial years;
+- accounting periods;
+- year-end reporting;
+- payments;
+- allocations;
+- customer credits;
+- supplier prepayments;
+- unapplied cash;
+- refunds;
+- audit/retention;
+- disposal;
+- exports;
+- backup/recovery;
+- tenant isolation/RLS;
+- migration/cutover;
+- AI;
+- supporting infrastructure.
+
+Do not implement any of them.
+
+==================================================
+6. DEPENDENCY GRAPH
+==================================================
+
+Create an implementation dependency order.
+
+Identify:
+
+- foundational work;
+- dependent work;
+- parallelisable work;
+- work blocked by source freshness;
+- work blocked by migration decisions;
+- work requiring security/tenant isolation first;
+- work requiring accounting primitives first.
+
+Do not assume the DEC numbering is automatically the implementation order.
+
+==================================================
+7. DATA / SCHEMA IMPACT
+==================================================
+
+Without modifying the schema, identify the conceptual data structures likely required by the approved policies.
+
+For example, consider whether the implementation will require concepts for:
+
+- companies;
+- memberships;
+- capabilities;
+- accounts;
+- configuration versions;
+- financial years;
+- accounting periods;
+- journals;
+- journal lines;
+- payments;
+- allocations;
+- customer credits;
+- supplier prepayments;
+- refunds;
+- bank evidence;
+- reconciliation;
+- migration exceptions;
+- audit records;
+- retention state;
+- disposal events;
+- exports;
+- recovery state.
+
+Do NOT design the final schema yet unless the existing Technical Architecture already authorises it.
+
+The purpose is implementation impact assessment only.
+
+==================================================
+8. ACCOUNTING SAFETY
+==================================================
+
+Identify all implementation points where incorrect behaviour could create:
+
+- duplicate accounting;
+- unbalanced journals;
+- altered history;
+- incorrect VAT;
+- incorrect AR/AP;
+- incorrect settlement;
+- incorrect financial-year assignment;
+- incorrect period assignment;
+- cross-company accounting;
+- incorrect configuration resolution.
+
+Identify the controls required to prevent these failures.
+
+==================================================
+9. SECURITY
+==================================================
+
+Map approved security requirements to implementation areas.
+
+Include:
+
+- server-side capability enforcement;
+- active membership;
+- company scope;
+- tenant isolation;
+- RLS boundary;
+- privileged operations;
+- audit;
+- export security;
+- AI context;
+- background jobs;
+- recovery;
+- migration.
+
+Do not implement anything.
+
+==================================================
+10. MIGRATION READINESS
+==================================================
+
+Assess what must exist before DEC-22 migration work can safely begin.
+
+Consider:
+
+- source adapters;
+- provenance;
+- mapping contracts;
+- migration exceptions;
+- validation;
+- reconciliation;
+- recovery checkpoints;
+- cutover controls;
+- legacy read-only authority.
+
+Identify prerequisites without implementing them.
+
+==================================================
+11. TESTING REQUIREMENTS
+==================================================
+
+Define the categories of testing required before implementation can be considered complete.
+
+Include where appropriate:
+
+- unit tests;
+- accounting invariants;
+- integration tests;
+- permission tests;
+- company-isolation tests;
+- RLS tests;
+- migration reconciliation tests;
+- export tests;
+- recovery tests;
+- audit tests;
+- AI boundary tests;
+- regression tests.
+
+Do not write the tests yet.
+
+==================================================
+12. IMPLEMENTATION PHASING
+==================================================
+
+Recommend a sensible implementation sequence.
+
+For each phase provide:
+
+- purpose;
+- scope;
+- dependencies;
+- key risks;
+- validation required;
+- whether it requires explicit implementation approval.
+
+Do NOT treat governance approval as implementation approval.
+
+==================================================
+13. IMPLEMENTATION TASK GOVERNANCE
+==================================================
+
+Determine how implementation tasks should be approved.
+
+No task should be executed merely because a DEC is approved.
+
+Identify:
+
+- what should become an implementation task;
+- what requires an implementation brief;
+- what requires architecture review;
+- what requires migration review;
+- what requires security review;
+- what requires accounting validation;
+- what requires explicit user approval before execution.
+
+==================================================
+14. WHAT REMAINS CHANGEABLE
+==================================================
+
+Explicitly identify things that remain deliberately changeable, including:
+
+- implementation technology;
+- exact schema design;
+- exact API design;
+- UI implementation;
+- internal service boundaries;
+- RLS implementation details;
+- infrastructure implementation;
+- backup vendor/technology;
+- export implementation;
+- migration adapter implementation.
+
+Do not mistake approved policy for a locked technical implementation.
+
+==================================================
+15. FINAL READINESS ASSESSMENT
+==================================================
+
+Provide one of:
+
+READY FOR IMPLEMENTATION PLANNING
+
+or
+
+NOT READY FOR IMPLEMENTATION PLANNING
+
+Do NOT say READY FOR IMPLEMENTATION unless all material governance dependencies are sufficiently understood.
+
+If NOT READY:
+
+identify exactly what remains outstanding.
+
+If READY:
+
+identify the conditions that must still be satisfied before actual implementation begins.
+
+==================================================
+16. OUTPUT
+==================================================
+
+Create:
+
+docs/ledgerly-implementation-readiness-review.md
+
+Link it from the appropriate governance/project documents.
+
+This is documentation only.
+
+Do not modify:
+
+- application code;
+- schema;
+- migrations;
+- accounting logic;
+- UI;
+- workflows;
+- dependencies;
+- infrastructure;
+- deployment;
+- publishing.
+
+==================================================
+17. FINAL VERIFICATION
+==================================================
+
+Confirm:
+
+1. DEC-01–DEC-22 remain APPROVED.
+2. No DEC-23 was created.
+3. BL-06 and BL-07 remain BLOCKED.
+4. Source freshness is explicitly addressed.
+5. No implementation task was executed.
+6. No application or implementation files were changed.
+7. No migration was executed.
+8. No deployment occurred.
+9. No publishing occurred.
+
+STOP after the implementation-readiness review.
+
+Do not begin implementation.

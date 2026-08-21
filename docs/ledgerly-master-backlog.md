@@ -39,6 +39,10 @@ Review](ledgerly-dec-22-migration-and-cutover-policy-review.md) records the
 approved migration/cutover policy only. BL-06 and BL-07 remain blocked pending
 separate implementation planning and the required implementation approvals.
 
+The [Implementation Readiness Review](ledgerly-implementation-readiness-review.md)
+assesses those planning prerequisites. It does not unblock backlog items or
+authorise task execution.
+
 ## Backlog
 
 | ID | Module | Feature | Current status | What needs to be built | Priority | Dependencies | Complexity | Acceptance criteria |

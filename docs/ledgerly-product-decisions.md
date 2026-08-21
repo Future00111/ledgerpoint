@@ -10,6 +10,10 @@ This register records the current product direction without treating every decis
 as permanent. A decision may be changed, deferred, or revisited, but the change
 must be explicitly recorded before implementation changes direction.
 
+The [Implementation Readiness Review](ledgerly-implementation-readiness-review.md)
+records the post-governance readiness assessment. It does not authorise
+implementation or unblock BL-06/BL-07.
+
 The Ledgerly Manifesto remains the highest-level authority. This register does
 not authorise implementation by itself:
 

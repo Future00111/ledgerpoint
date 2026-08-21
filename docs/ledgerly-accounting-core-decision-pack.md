@@ -3,10 +3,11 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-21 APPROVED; DEC-22
-REQUIRE EXPLICIT REVIEW
+**Decision status:** DEC-01 through DEC-22 APPROVED
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
+**Readiness assessment:** [Implementation Readiness
+Review](ledgerly-implementation-readiness-review.md)
 
 > This is a decision pack, not an implementation plan authorised for execution.
 > It does not approve code, schema changes, migrations, UI changes,

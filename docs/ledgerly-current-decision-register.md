@@ -3,7 +3,8 @@
 **Purpose:** Clean approval list for accounting-core implementation  
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
-Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
+Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog; [Implementation
+Readiness Review](ledgerly-implementation-readiness-review.md)
 **Register status:** Decisions 1–22 approved; DEC-22 is a migration/cutover
 policy approval only
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**

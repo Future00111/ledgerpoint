@@ -6,6 +6,10 @@ specifications and the Master Backlog
 **Accounting-core design status:** **APPROVED — DEC-04 architecture only**
 **Implementation authority:** None
 
+The [Implementation Readiness Review](ledgerly-implementation-readiness-review.md)
+assesses how DEC-01 through DEC-22 translate into separately authorised
+implementation planning. It does not authorise implementation.
+
 ## Purpose
 
 This document defines the mandatory technical constraints and decision structure
