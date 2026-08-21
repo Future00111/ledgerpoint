@@ -135,7 +135,7 @@ be approved:
 7. [DEC-12 Payment, Allocation and Settlement Policy
    Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md)
    records the approved payment/evidence/allocation/settlement boundary.
-    DEC-15 and later applicable decisions remain unresolved.
+    DEC-16 and later applicable decisions remain unresolved.
  8. [DEC-13 Overpayments, Unapplied Cash and Excess Payment Policy
     Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md)
     records the approved excess-money and party-balance policy. DEC-15 and
@@ -145,7 +145,7 @@ be approved:
     Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md) records a
     approved workflow policy.
 11. [DEC-15 Refund Policy Review](ledgerly-dec-15-refund-policy-review.md)
-    records a recommendation only; DEC-15 remains unresolved. Payment-on-account
+    records an approved refund policy. Payment-on-account
     launch scope, audit retention, deletion/anonymisation, export,
     backup/recovery, tenant isolation, and legacy migration/cutover policy
     remain open.

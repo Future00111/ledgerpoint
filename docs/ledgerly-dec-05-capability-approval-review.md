@@ -539,7 +539,8 @@ use an unrecorded change.
 **DEC-12:** **APPROVED — Payment, Allocation and Settlement Policy**
 **DEC-13:** **APPROVED — Overpayments, Unapplied Cash and Excess Payment Policy**
 **DEC-14:** **APPROVED — Unapplied Cash Workflow Policy**
-**DEC-15 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
+**DEC-15:** **APPROVED — Refund Policy**
+**DEC-16 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
 **DEC-04:** **APPROVED — architecture only**
 **BL-06 / BL-07:** **BLOCKED**
 **Implementation task:** **NONE CREATED OR EXECUTED**

@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-14 APPROVED; DEC-15 through DEC-22
+**Decision status:** DEC-01 through DEC-15 APPROVED; DEC-16 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -450,17 +450,17 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 14. Refunds
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-15 Refund Policy
   Review](ledgerly-dec-15-refund-policy-review.md).
-- **Decision needed:** Decide customer and supplier refund workflows, approved
+- **Approved policy:** Decide customer and supplier refund workflows, approved
   refundable sources, credit-note relationship, approval, failure, and
   correction policy.
 - **Options:**
   1. Allow standalone refunds.
   2. Require a linked credit note/return source.
   3. Support standalone refunds only to an unapplied balance.
-- **Recommendation:** Permit controlled customer refunds only from available
+- **Approved workflow:** Permit controlled customer refunds only from available
   customer credits and supplier refund receipts only against available supplier
   prepayments. Use a credit note when the commercial/VAT correction requires
   one, but do not invent one for a pure overpayment refund. Keep payment and

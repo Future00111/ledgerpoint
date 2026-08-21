@@ -1,14 +1,14 @@
 # DEC-15 Refund Policy Review
 
 **Decision:** DEC-15 — Refund Policy
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — product/accounting policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, security,
 and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-15 or DEC-16 through
-> DEC-22, and it does not authorise an implementation task, code, schema,
+> This records an approved product/accounting policy. It does not approve
+> DEC-16 through DEC-22, and it does not authorise an implementation task, code,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
@@ -552,9 +552,9 @@ legacy authority retirement.
 - **User experience/flexibility:** Convenient but conflicts with approval-first
   principles unless separately designed and approved.
 
-## 21. RECOMMENDATION — NOT APPROVAL
+## 21. APPROVED POLICY
 
-Recommend **Option C: controlled customer and supplier refunds from approved
+Approve **Option C: controlled customer and supplier refunds from approved
 party balances**, with:
 
 1. Customer refunds sourced only from an available customer-credit liability or
@@ -580,7 +580,7 @@ party balances**, with:
     DEC-10 mappings, and DEC-11 configuration context.
 12. No silent automatic refund execution at launch.
 
-This recommendation is **not approval**.
+This policy is approved as a product/accounting decision only.
 
 ## 22. Decision boundaries
 
@@ -614,7 +614,7 @@ customer refunds and supplier refund receipts.
 - detailed thresholds, provider integrations, capabilities, schema, APIs, UI,
   tests, dependencies, deployment, publishing, and implementation tasks.
 
-### What approving DEC-15 would lock in
+### What DEC-15 approval locks in
 
 - a refund is a genuine controlled money movement, not a screen adjustment;
 - customer and supplier refunds remain distinct workflows;
@@ -634,7 +634,9 @@ payment-on-account interaction, and migration details.
 
 ## 23. Decision readiness
 
-DEC-15 is ready for an explicit user decision. Until it is approved or amended:
+DEC-15 was explicitly approved on 2026-08-21. The approval is a
+product/accounting-policy decision only. Until the applicable remaining
+decisions are approved or amended:
 
 - DEC-16 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
@@ -642,8 +644,7 @@ DEC-15 is ready for an explicit user decision. Until it is approved or amended:
   implemented; and
 - no implementation task is authorised.
 
-**DEC-01 through DEC-14:** **APPROVED**
-**DEC-15:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-15:** **APPROVED**
 **DEC-16 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**

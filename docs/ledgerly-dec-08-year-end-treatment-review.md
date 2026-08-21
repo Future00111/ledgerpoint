@@ -683,7 +683,7 @@ journals or invent unsupported legacy year-end events.
 
 ## 18. Decisions that remain outside DEC-08
 
-DEC-15 onward must separately decide:
+DEC-16 onward must separately decide:
 
 - active control-account mappings, configuration versioning, and detailed
   retained-earnings treatment;
@@ -711,8 +711,8 @@ The approval does not authorise:
 - an implementation task.
 
 BL-06 and BL-07 remain **BLOCKED**. DEC-09, DEC-10, DEC-11, and DEC-12 are
-approved; DEC-13 and DEC-14 are approved and DEC-15 and all later decisions
-remain untouched and unresolved.
+approved; DEC-13, DEC-14, and DEC-15 are approved and DEC-16 and all later
+decisions remain untouched and unresolved.
 
 **DEC-08:** **APPROVED — product/accounting policy only**
 **DEC-09:** **APPROVED — Chart of Accounts and Default Account Policy**
@@ -721,7 +721,8 @@ remain untouched and unresolved.
 **DEC-12:** **APPROVED — Payment, Allocation and Settlement Policy**
 **DEC-13:** **APPROVED — Overpayments, Unapplied Cash and Excess Payment Policy**
 **DEC-14:** **APPROVED — Unapplied Cash Workflow Policy**
-**DEC-15 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-15:** **APPROVED — Refund Policy**
+**DEC-16 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

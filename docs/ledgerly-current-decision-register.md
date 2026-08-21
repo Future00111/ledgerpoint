@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–14 approved; DEC-15 through DEC-22 require
+**Register status:** Decisions 1–15 approved; DEC-16 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -546,18 +546,18 @@ to the accounting core.
 
 ### DEC-15 — Refund workflow and scope
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-15 Refund Policy
   Review](ledgerly-dec-15-refund-policy-review.md).
-- **Decision:** Define eligible refund sources, accounting treatment, payment
+- **Approved policy:** Define eligible refund sources, accounting treatment, payment
   reversal boundaries, VAT effects, approval controls, and launch scope.
 - **Options available:** (a) standalone refunds; (b) refunds require a linked
   credit note or return source; or (c) standalone refunds only against
   unapplied balances.
-- **Replit's recommendation:** Use controlled customer refunds from available
+- **Approved workflow:** Use controlled customer refunds from available
   customer credits and supplier refund receipts against available supplier
   prepayments, with separate payment and allocation reversal mechanisms.
-- **Why it is recommended:** It preserves the reason and accounting lineage for
+- **Why it is approved:** It preserves the reason and accounting lineage for
   money leaving or returning to the business.
 - **Accounting implications:** Customer refunds debit customer-credit liability
   and credit bank/cash; supplier refund receipts debit bank/cash and credit

@@ -45,8 +45,11 @@ customer-credit liability, supplier excess is a supplier-prepayment asset, and
 known-party payments may exist before allocation without negative documents.
 DEC-14 approves a dedicated unapplied-cash workspace with contextual entry
 points, deterministic eligibility, explicit user confirmation, AI suggestions
-only, and no silent automatic allocation at launch. DEC-15 through DEC-22
-remain unresolved, and BL-06/BL-07 remain blocked
+only, and no silent automatic allocation at launch. DEC-15 approves controlled
+customer refunds and supplier refund receipts only from approved refundable
+party balances, with explicit approval, amount limits, canonical cash journals,
+reconciliation, immutable correction, and no silent launch automation. DEC-16
+through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked
 pending the applicable decisions and an approved implementation task.
 Do not implement
 backlog items or publish Ledgerly until the user has reviewed and selected the

@@ -451,20 +451,20 @@ not higher authority.
 
 ### DEC-15 — Refund Policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-15 Refund Policy
   Review](ledgerly-dec-15-refund-policy-review.md).
-- **Current decision/direction:** Decide how controlled customer refunds and
+- **Approved policy:** Controlled customer refunds and
   supplier refund receipts use approved party balances without conflating them
   with payment reversals, allocation reversals, credit notes, or bank evidence.
-- **Recommendation:** Support refunds only from available customer-credit or
+- **Approved workflow:** Support refunds only from available customer-credit or
   supplier-prepayment balances; require explicit request, elevated approval,
   amount limits, canonical bank/cash journals, reconciliation, and immutable
   correction history. Do not enable silent automatic refund execution at launch.
 - **Boundary:** DEC-03 retains VAT authority, DEC-14 retains unapplied-cash
   workflow authority, DEC-16 retains payment-on-account scope, and DEC-22
   retains migration/cutover authority.
-- **Implementation limit:** This unresolved decision does not authorise code,
+- **Implementation limit:** This approved policy does not authorise code,
   schema, migration, UI, workflow, dependency, deployment, publishing, or an
   implementation task. BL-06 and BL-07 remain blocked.
 

@@ -1,0 +1,306 @@
+Approve DEC-15.
+
+Record:
+
+DEC-15 — REFUND POLICY
+STATUS: APPROVED — product/accounting policy only
+
+Approve the controlled refund model with the following boundaries:
+
+1. CUSTOMER REFUNDS
+
+Customer refunds may only be made from an available customer-credit liability or another explicitly approved refundable customer balance.
+
+A refund must never exceed the currently available refundable balance.
+
+Refund availability must be revalidated at approval and posting time.
+
+2. SUPPLIER REFUND RECEIPTS
+
+Supplier refund receipts may only be recognised against an available supplier-prepayment asset or another explicitly approved refundable supplier balance.
+
+A supplier refund receipt must not create an asset that did not previously exist.
+
+3. CREDIT NOTES
+
+Use a credit note where a commercial or VAT correction requires one.
+
+Do NOT create a credit note merely because a customer is receiving a pure overpayment refund.
+
+Credit notes and refunds remain distinct processes.
+
+DEC-03 remains the authoritative VAT policy.
+
+4. DISTINCT PROCESSES
+
+Keep the following distinct:
+
+- payment reversal;
+- allocation reversal;
+- credit note;
+- customer credit;
+- supplier prepayment;
+- refund;
+- bank evidence.
+
+Do not use refund functionality to conceal an accounting correction.
+
+5. CUSTOMER REFUND ACCOUNTING
+
+For a refund from an approved customer-credit liability, the canonical accounting treatment is:
+
+DR Customer Credit / Receipt-on-Account Liability
+CR Bank/Cash
+
+Use the appropriate approved account mappings and DEC-11 configuration version.
+
+6. SUPPLIER REFUND RECEIPT ACCOUNTING
+
+For a supplier refund against an approved supplier-prepayment asset:
+
+DR Bank/Cash
+CR Supplier Prepayment / Receivable Asset
+
+Use the appropriate approved account mappings and DEC-11 configuration version.
+
+7. REFUND LIMITS
+
+A refund must never exceed the currently available refundable balance.
+
+Revalidate the balance immediately before consequential approval/posting.
+
+Prevent negative customer-credit or supplier-prepayment balances caused by an invalid refund.
+
+8. REFUND WORKFLOW
+
+Use explicit controlled states for the refund lifecycle.
+
+At minimum support the necessary distinction between:
+
+- requested;
+- approved;
+- posted;
+- completed;
+- failed;
+- reversed/corrected.
+
+Do not introduce unnecessary states.
+
+A refund must not be treated as completed merely because a request exists.
+
+9. REFUND APPROVAL
+
+Refunds are consequential financial actions.
+
+Use the DEC-05 server-side capability model.
+
+Require elevated approval for consequential refunds.
+
+For higher-risk refunds, apply appropriate separation of duties.
+
+Do not assume every refund requires dual approval if the risk does not justify it.
+
+10. BANK RECONCILIATION
+
+A refund posting is canonical accounting.
+
+Bank evidence may subsequently be reconciled to the existing refund posting.
+
+Reconciliation must NEVER create duplicate refund accounting.
+
+Maintain the distinction between:
+
+BANK EVIDENCE
+and
+CANONICAL REFUND POSTING.
+
+11. VAT
+
+Pure overpayment refunds do not themselves create VAT.
+
+VAT effects remain governed by the approved DEC-03 document/credit-note treatment.
+
+Do not create a second VAT engine.
+
+Where a commercial/VAT correction requires a credit note, use the approved credit-note accounting/VAT process rather than treating the refund itself as the VAT event.
+
+12. PAYMENT REVERSAL
+
+A payment reversal is not automatically a refund.
+
+If an accounting payment was erroneous, use the appropriate canonical correction/reversal mechanism.
+
+Do not use a customer refund to conceal or correct an erroneous accounting payment.
+
+13. ALLOCATION REVERSAL
+
+Reversing an allocation is not automatically a refund.
+
+Allocation changes must follow DEC-12 and DEC-14 append-only allocation history.
+
+A resulting customer credit may subsequently become refundable under this DEC-15 policy if it is an approved refundable balance.
+
+14. REFUND CANCELLATION
+
+A refund request that has not yet created canonical accounting may be cancelled subject to appropriate authority.
+
+Once canonical accounting has been posted, do not delete the refund.
+
+Use controlled reversal/correction mechanisms.
+
+15. REFUND FAILURE
+
+If the external/bank refund fails after the accounting process has begun, do not silently delete the accounting history.
+
+The failure must be recorded and the accounting state corrected through an explicit controlled process.
+
+Do not mark a failed refund as completed.
+
+16. REFUND REVERSALS
+
+A completed refund that must be corrected must be corrected through an explicit canonical reversal/correction.
+
+Never:
+
+- delete the original refund;
+- rewrite the original journal;
+- silently restore the previous balance.
+
+Preserve immutable history.
+
+17. PERIOD CONTROLS
+
+Refund accounting must comply with DEC-07.
+
+Refund posting must use a valid posting date and open accounting period.
+
+Refunds must never bypass closed-period controls.
+
+Where correction requires a closed-period action, use the approved controlled correction/reopen mechanisms rather than rewriting history.
+
+18. CONFIGURATION
+
+Refund accounting must respect DEC-10 and DEC-11.
+
+Where material account configuration affects the refund:
+
+- resolve the applicable configuration version;
+- use the approved mapping;
+- record resolved account IDs on the canonical posting.
+
+19. REPORTING
+
+Refunds must remain correctly represented in:
+
+- customer statements;
+- supplier statements;
+- Balance Sheet;
+- Trial Balance;
+- General Ledger;
+- AR/AP reporting;
+- cash/bank reporting;
+- Profit & Loss where the underlying accounting genuinely affects it.
+
+Reports must derive from canonical accounting.
+
+20. AUDIT
+
+Refund activity must retain immutable audit evidence covering, where applicable:
+
+- requester;
+- approver;
+- company;
+- refund amount;
+- refundable source balance;
+- reason;
+- timestamps;
+- approval;
+- posting;
+- completion/failure;
+- reversal/correction;
+- bank reconciliation relationship.
+
+21. PAYMENT-ON-ACCOUNT BOUNDARY
+
+DEC-16 remains responsible for the user-facing payment-on-account launch scope.
+
+DEC-15 does NOT approve or reject payment-on-account.
+
+Where payment-on-account is subsequently approved, its refund interaction must remain consistent with DEC-15's refundable-balance principles.
+
+22. MIGRATION
+
+Historical refunds, customer credits, supplier prepayments and related accounting may only be migrated where supported by evidence.
+
+Never invent:
+
+- historical refunds;
+- refund dates;
+- refund approvals;
+- historical refundable balances;
+- refund relationships.
+
+Ambiguity becomes an explicit DEC-22 migration exception.
+
+23. NO SILENT AUTOMATION
+
+Do NOT enable silent automatic refund execution at launch.
+
+Future refund automation requires a separate approved policy and must remain consistent with the Ledgerly Manifesto:
+
+AI may assist and recommend.
+
+Rules determine accounting validity.
+
+Users remain in control of consequential financial actions.
+
+24. FUTURE FLEXIBILITY
+
+The approved model must not unnecessarily prevent future:
+
+- payment-on-account refunds;
+- additional refund methods;
+- automated refund workflows;
+- additional currencies;
+- additional markets;
+- additional banking integrations;
+- configurable approval thresholds.
+
+IMPORTANT GOVERNANCE RULES:
+
+- DEC-01 through DEC-15 are now APPROVED.
+- DEC-16 through DEC-22 remain REQUIRES USER DECISION.
+- Do NOT approve DEC-16 or any later decision.
+- Keep BL-06 and BL-07 BLOCKED.
+- Do NOT create or execute an implementation task.
+- This is a product/accounting-policy approval only.
+- It is NOT implementation authorisation.
+- Preserve the amendment path through the Living Product Decisions process.
+- Source freshness remains separately unresolved.
+
+Do NOT modify:
+
+- application code;
+- database schema;
+- migrations;
+- accounting logic;
+- UI;
+- workflows;
+- dependencies;
+- deployment;
+- publishing.
+
+Update only the relevant governance and decision documentation.
+
+FINAL VERIFICATION:
+
+1. DEC-01–DEC-15 are APPROVED.
+2. DEC-16–DEC-22 remain unresolved.
+3. BL-06 and BL-07 remain BLOCKED.
+4. No implementation task was created.
+5. No refund implementation was made.
+6. No application/schema/migration/accounting logic/UI/workflow/dependency/deployment/publishing changes were made.
+7. No DEC-16 work was started.
+8. Source freshness remains separately unresolved.
+
+Stop after verification.

@@ -8,7 +8,7 @@ and architecture review
 **Implementation authority:** None
 
 > This records an approved product/accounting policy. It does not approve
-> DEC-15 through DEC-22, and it does not authorise an implementation task, code,
+> DEC-16 through DEC-22, and it does not authorise an implementation task, code,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
@@ -615,7 +615,7 @@ DEC-13 was explicitly approved on 2026-08-21. The approval is a
 product/accounting-policy decision only. Until the applicable remaining
 decisions are approved or amended:
 
-- DEC-15 through DEC-22 remain untouched and unresolved;
+- DEC-16 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
 - no overpayment, unapplied-cash, payment-on-account, refund, write-off,
   schema, migration, or accounting mechanism may be implemented; and
@@ -623,7 +623,8 @@ decisions are approved or amended:
 
 **DEC-01 through DEC-13:** **APPROVED**
 **DEC-14:** **APPROVED — Unapplied Cash Workflow Policy**
-**DEC-15 through DEC-22:** **REQUIRE USER DECISION**
+**DEC-15:** **APPROVED — Refund Policy**
+**DEC-16 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**
