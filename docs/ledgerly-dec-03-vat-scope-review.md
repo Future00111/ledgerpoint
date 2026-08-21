@@ -642,8 +642,10 @@ implementation is approved:
   and VAT-related account candidates without creating VAT logic.
 - **DEC-10:** Approved control-account policy provides protected company-scoped
   Output VAT and Input VAT mappings without changing VAT authority.
-- **DEC-11:** Tax-code configuration and effective-dated rule versions remain
-  to be defined.
+- **DEC-11:** Approved configuration-versioning policy requires material VAT
+  configuration to be reproducible by posting date without creating a second
+  VAT engine. Detailed tax-code configuration remains governed by DEC-03 and
+  future implementation design.
 - **DEC-12–DEC-16:** payment, allocation, refunds, unapplied cash, and
   payment-on-account policy must not accidentally change invoice-basis VAT.
 - **DEC-17–DEC-21:** VAT evidence, exports, retention, recovery, tenant

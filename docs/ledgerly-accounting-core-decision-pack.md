@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-10 APPROVED; DEC-11 through DEC-22
+**Decision status:** DEC-01 through DEC-11 APPROVED; DEC-12 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -322,7 +322,8 @@ Living Product Decisions Register until it has been explicitly accepted.
 - **Accounting/data consequences:** A mapping change affects future postings
   only. Existing journals retain their original account IDs. Control-account
   changes require DEC-05 capability, validation, reason where required, and
-  audit. DEC-11 decides the complete configuration-versioning mechanism.
+  audit. DEC-11 establishes the complete configuration-versioning policy;
+  implementation remains separately blocked.
 - **Migration consequences:** Existing categories and account references need
   a reviewed mapping. Unmapped historical categories remain legacy or require
   explicit correction.
@@ -333,18 +334,21 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 10. Account configuration and versioning
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-11 Configuration Versioning and Effective Dating
   Review](ledgerly-dec-11-configuration-versioning-review.md).
-- **Decision needed:** Decide whether chart/default configuration is mutable,
-  versioned, or effective-dated.
+- **Approved decision:** Use immutable company-scoped effective-dated versions
+  for material accounting configuration, selected by validated canonical
+  posting date.
 - **Options:**
   1. Mutable current configuration.
   2. Immutable version snapshots with a current pointer.
   3. Effective-dated configuration versions.
-- **Recommendation:** Use immutable, effective-dated configuration versions.
-  A new version applies to future postings; each posting stores the version
-  used. Editing a configuration creates a new version and audit event.
+- **Approved boundaries:** A new material configuration creates a new version.
+  Effective ranges cannot overlap or contain an unexplained required gap.
+  Future-dated changes are normal; ordinary backdating over posted journals or
+  closed periods is prohibited. Each posting retains the version used and
+  resolved account IDs.
 - **Accounting/data consequences:** Reproducibility improves: a journal can
   explain which account/tax mapping was used. Retroactive remapping is
   prohibited without a correction workflow.
@@ -352,8 +356,8 @@ Living Product Decisions Register until it has been explicitly accepted.
   marker where no reliable version exists.
 - **Dependencies:** Chart, control mappings, VAT rules, periods, audit,
   BL-06/BL-07.
-- **Explicit product decision:** Approve effective-dated versioning and decide
-  whether users may edit account codes after an account is referenced.
+- **Implementation limit:** DEC-11 does not authorise code, schema, migration,
+  UI, workflow, dependency, deployment, publishing, or an implementation task.
 
 ## 11. Invoice, bill, and VAT source freshness/version rules
 

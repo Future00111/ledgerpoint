@@ -25,9 +25,10 @@ approves the BL-06/BL-07 accounting-core architecture foundation, DEC-05
 approves the capability model, DEC-06 approves the financial-year policy,
 DEC-07 approves the accounting-period policy, DEC-08 approves the
 reporting-only year-end policy, DEC-09 approves the Chart of Accounts and
-Default Account Policy, and DEC-10 approves the Control-Account Mapping Policy;
-all are architecture/product/accounting-policy decisions only. DEC-11 through
-DEC-22 remain unresolved, and BL-06/BL-07 remain blocked until
+Default Account Policy, DEC-10 approves the Control-Account Mapping Policy, and
+DEC-11 approves Configuration Versioning and Effective Dating; all are
+architecture/product/accounting-policy decisions only. DEC-12 through DEC-22
+remain unresolved, and BL-06/BL-07 remain blocked until
 the applicable decisions and an implementation task are explicitly approved.
 Do not choose roadmap scope or silently change a recorded decision autonomously.
 Before implementation, also review the Core Maxims, Design System, Definition

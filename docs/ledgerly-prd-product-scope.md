@@ -129,7 +129,8 @@ be approved:
    Control-Account Mapping Policy Review](ledgerly-dec-10-control-account-mapping-policy-review.md)
    establishes control-account policy. The [DEC-11 Configuration Versioning
    and Effective Dating Review](ledgerly-dec-11-configuration-versioning-review.md)
-   records a recommendation only; DEC-11 and later applicable decisions remain
+   records the approved configuration-versioning policy; DEC-12 and later
+   applicable decisions remain
    unresolved.
 7. Source freshness, overpayment, unapplied cash, refund, and
    payment-on-account treatment.

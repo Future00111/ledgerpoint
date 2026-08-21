@@ -33,9 +33,12 @@ names/codes, controlled lifecycle, no destructive deletion after use, no launch
 account merging, protected system-account candidates, and journal-authoritative
 reporting. DEC-10 approves protected company-scoped AR, AP, bank/cash, Output
 VAT, and Input VAT mappings, with prospective-only capability-gated changes and
-historical posting identity preserved. DEC-11 through DEC-22 remain unresolved,
-and BL-06/BL-07 remain blocked pending the applicable decisions and an approved
-implementation task. Do not implement
+historical posting identity preserved. DEC-11 approves immutable,
+company-scoped, effective-dated versions for material accounting configuration:
+posting-date selection, no ordinary backdating over history, resolved account
+IDs and version context retained on postings, and immutable audit. DEC-12
+through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked pending the
+applicable decisions and an approved implementation task. Do not implement
 backlog items or publish Ledgerly until the user has reviewed and selected the
 next roadmap task. Treat the Living Product Decisions Register as the
 revisitable product-direction record below the Master Backlog; it never

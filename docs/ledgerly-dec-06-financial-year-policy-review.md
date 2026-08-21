@@ -682,7 +682,8 @@ Until DEC-06 is approved or amended:
 **DEC-08:** **APPROVED — reporting-only year-end policy only**
 **DEC-09:** **APPROVED — Chart of Accounts and Default Account Policy**
 **DEC-10:** **APPROVED — Control-Account Mapping Policy**
-**DEC-11 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-11:** **APPROVED — Configuration Versioning and Effective Dating Policy**
+**DEC-12 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**  
 **Application code changed by this review:** **NO**  
 **Database or migrations changed by this review:** **NO**

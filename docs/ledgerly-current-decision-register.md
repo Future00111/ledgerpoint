@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–10 approved; DEC-11 through DEC-22 require
+**Register status:** Decisions 1–11 approved; DEC-12 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -422,17 +422,25 @@ to the accounting core.
 
 ### DEC-11 — Account and configuration versioning
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-11 Configuration Versioning and Effective Dating
   Review](ledgerly-dec-11-configuration-versioning-review.md).
-- **Decision:** Decide how chart, tax, control mappings, and posting
-  configuration change over time.
-- **Options available:** (a) mutable current configuration; (b) immutable
-  snapshots with a current pointer; or (c) effective-dated versions.
-- **Replit's recommendation:** Immutable effective-dated versions, with the
-  selected version recorded on each posting.
-- **Why it is recommended:** Historical accounting remains reproducible when
-  configuration changes later.
+- **Decision:** Use immutable, company-scoped, effective-dated versions for
+  material accounting configuration that can affect future canonical postings.
+  Resolve the applicable version from the validated canonical posting date and
+  preserve the version identity and resolved account IDs on each posting.
+- **Approved boundaries:** Effective ranges cannot overlap or contain an
+  unexplained gap where configuration is required. Future-dated changes are
+  the normal path; ordinary backdating over posted journals or closed periods
+  is prohibited. Cosmetic account name/code changes do not require a new
+  accounting version unless they change material accounting meaning.
+- **Approved history and authority boundary:** Later versions never rewrite
+  posted journals, historical VAT, AR/AP balances, financial-year assignment,
+  or reporting meaning. Material changes use DEC-05 capabilities, validation,
+  appropriate approval, reason, and immutable audit evidence.
+- **Deliberate non-lock:** DEC-11 does not decide payment edge cases, retention,
+  export, backup/recovery, RLS, migration/cutover, or other DEC-12 through
+  DEC-22 policies.
 - **Accounting implications:** Prevents retroactive remapping of posted
   entries; corrections use explicit replacement or reversal behavior.
 - **Data/schema implications:** Requires version records, effective dates,
@@ -441,6 +449,10 @@ to the accounting core.
   possible, or an explicit legacy/unknown marker.
 - **Backlog implications:** Gates BL-06, BL-07, BL-08, BL-13, BL-15, and BL-17.
 - **Dependency:** DEC-09 and DEC-10.
+- **Implementation limit:** DEC-11 is a product/accounting-policy approval
+  only. It does not authorise code, schema, migration, UI, workflow,
+  dependency, deployment, publishing, or an implementation task. BL-06 and
+  BL-07 remain blocked.
 
 ## Source and payment decisions
 

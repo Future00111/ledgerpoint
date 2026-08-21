@@ -354,7 +354,7 @@ not higher authority.
   resolved account identity and are never reinterpreted.
 - **Boundary:** DEC-03 remains the sole VAT authority. DEC-04 journals retain
   resolved stable account IDs; later mappings cannot reinterpret history.
-  DEC-11 decides the complete versioning/effective-dating mechanism, and
+  DEC-11 establishes the complete versioning/effective-dating policy, and
   DEC-12 through DEC-16 decide source freshness and payment/refund edge cases.
 - **Implementation limit:** This approved policy does not
   authorise code, schema, migration, UI, workflow, dependency, deployment,
@@ -362,24 +362,29 @@ not higher authority.
 
 ### DEC-11 — Configuration Versioning and Effective Dating
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting policy only
 - **Decision review:** [DEC-11 Configuration Versioning and Effective Dating
   Review](ledgerly-dec-11-configuration-versioning-review.md).
-- **Current decision/direction:** Decide which material accounting
-  configuration requires version context, how versions are identified and
-  selected by posting date, how future and exceptional changes are controlled,
-  and how posting-time configuration is retained.
-- **Recommendation:** Use immutable company-scoped effective-dated versions.
-  Select one approved version by canonical posting date, preserve resolved
-  account IDs and configuration context on every posting, prohibit ordinary
-  backdating over posted journals or closed periods, and keep cosmetic chart
-  changes outside accounting versioning.
+- **Current decision/direction:** Use immutable, company-scoped,
+  effective-dated versions for material accounting configuration. Select one
+  approved version by canonical posting date and preserve its identity and
+  resolved account IDs with every canonical posting.
+- **Approved boundaries:** Effective ranges cannot overlap or contain an
+  unexplained gap. Future-dated changes are the normal path. Ordinary
+  backdating over posted journals or closed periods is prohibited, while a
+  tightly controlled pre-posting correction may be allowed when no dependent
+  posting exists. Cosmetic account name/code changes remain outside accounting
+  versioning unless they change material accounting meaning.
+- **Approved history and authority boundary:** Later versions never rewrite
+  posted journals, historical VAT, AR/AP balances, financial-year assignment,
+  or reporting meaning. Material changes require DEC-05 capability,
+  validation, proportionate approval, reason, and immutable audit evidence.
 - **Boundary:** DEC-10's prospective-only mapping principle remains
   authoritative. DEC-03 VAT evidence, DEC-04 journals, DEC-06/DEC-07
   identities, DEC-08 year-end, and DEC-09 account identity remain unchanged.
   DEC-12 through DEC-16 retain payment-edge-case authority, and DEC-22 retains
   migration/cutover authority.
-- **Implementation limit:** This review and unresolved decision do not
+- **Implementation limit:** This approved policy does not
   authorise code, schema, migration, UI, workflow, dependency, deployment,
   publishing, or an implementation task. BL-06 and BL-07 remain blocked.
 

@@ -415,12 +415,13 @@ decisions are approved or amended:
 - no active control mappings, mapping-protection behavior, account-configuration
   versioning, posting-template implementation, or account remapping may be
   implemented;
-- DEC-11 and all later decisions remain untouched and unresolved;
+- DEC-12 and all later decisions remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**; and
 - no implementation task is authorised.
 
 **DEC-01 through DEC-10:** **APPROVED**
-**DEC-11 through DEC-22:** **REQUIRE USER DECISION**
+**DEC-11:** **APPROVED — Configuration Versioning and Effective Dating Policy**
+**DEC-12 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

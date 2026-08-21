@@ -1,15 +1,15 @@
 # DEC-11 Configuration Versioning and Effective Dating Review
 
 **Decision:** DEC-11 — Configuration Versioning and Effective Dating
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — product/accounting policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, security,
 and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-11, DEC-12, an
-> implementation task, code, schema, migration, UI, workflow, dependency,
-> deployment, or publishing work.
+> This records an approved product/accounting policy. It does not approve
+> DEC-12, an implementation task, code, schema, migration, UI, workflow,
+> dependency, deployment, or publishing work.
 
 ## 1. Purpose and decision question
 
@@ -458,9 +458,9 @@ resolved configuration context recorded on every posting.
   It is more deliberate to design, but avoids a later historical
   reconstruction project.
 
-## 14. RECOMMENDATION — NOT APPROVAL
+## 14. APPROVED POLICY
 
-Recommend **Option D: immutable, company-scoped, effective-dated
+Approve **Option D: immutable, company-scoped, effective-dated
 configuration versions**, with these policy boundaries:
 
 1. Version only material accounting configuration; keep cosmetic display
@@ -483,13 +483,13 @@ configuration versions**, with these policy boundaries:
 8. Leave payment edge cases to DEC-12 through DEC-16 and leave the physical
    versioning contract and implementation sequence outside this review.
 
-This recommendation best preserves immutable accounting, historical
+This approved policy preserves immutable accounting, historical
 reproducibility, VAT authority, company-specific chart flexibility, and
-auditable future change. It is **not approval**.
+auditable future change.
 
 ## 15. Decision boundaries
 
-### What approving DEC-11 would lock in
+### What DEC-11 approval locks in
 
 - the material-versus-cosmetic configuration boundary;
 - immutable company-scoped configuration identity;
@@ -524,7 +524,9 @@ auditable future change. It is **not approval**.
 
 ## 16. Decision readiness
 
-DEC-11 is ready for an explicit user decision. Until it is approved or amended:
+DEC-11 was explicitly approved on 2026-08-21. The approval is a
+product/accounting-policy decision only. Until the applicable remaining
+decisions are approved or amended:
 
 - no configuration-versioning or effective-dating mechanism may be
   implemented;
@@ -532,8 +534,7 @@ DEC-11 is ready for an explicit user decision. Until it is approved or amended:
 - BL-06 and BL-07 remain **BLOCKED**; and
 - no implementation task is authorised.
 
-**DEC-01 through DEC-10:** **APPROVED**
-**DEC-11:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-11:** **APPROVED**
 **DEC-12 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**

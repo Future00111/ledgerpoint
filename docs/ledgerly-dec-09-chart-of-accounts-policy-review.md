@@ -480,17 +480,17 @@ role.
 
 ### DEC-11 — Account configuration versioning
 
-DEC-11 must decide:
+DEC-11 approves:
 
-- whether chart and mapping configuration is mutable, immutable-versioned, or
-  effective-dated;
-- how a journal records the account/mapping/configuration context used at
-  posting;
-- future-only versus retroactive presentation changes; and
-- migration markers when historic configuration is unknown.
+- immutable, company-scoped, effective-dated configuration for material
+  posting behavior;
+- posting-time retention of configuration and resolved-account context;
+- future-only changes with no ordinary backdating over posted journals or
+  closed periods; and
+- evidence-based unknown markers where historic configuration cannot be proven.
 
 DEC-09 defines the safety need for stable identity and non-rewritten history,
-not the final configuration-version mechanism.
+while DEC-11 provides the approved configuration-versioning mechanism.
 
 ## 15. Approved DEC-09 policy
 
@@ -561,7 +561,7 @@ journals, VAT evidence, financial-year assignments, or source links.
 
 DEC-09 was explicitly approved on 2026-08-21 with the policy in section 16.
 
-DEC-10 is approved in its separate control-account mapping review. DEC-11 and
+DEC-10 and DEC-11 are approved in their separate policy reviews. DEC-12 and
 all later decisions remain unresolved. Until the applicable remaining decisions
 are approved or amended:
 
@@ -569,11 +569,12 @@ are approved or amended:
   lifecycle, control mapping, or account configuration versioning may be
   implemented;
 - BL-06 and BL-07 remain **BLOCKED**; and
-- DEC-11 and all later decisions remain untouched and unresolved.
+- DEC-12 and all later decisions remain untouched and unresolved.
 
 **DEC-09:** **APPROVED — product/accounting policy only**
 **DEC-10:** **APPROVED — Control-Account Mapping Policy**
-**DEC-11 onward:** **NOT STARTED; REQUIRES USER DECISION**
+**DEC-11:** **APPROVED — Configuration Versioning and Effective Dating Policy**
+**DEC-12 onward:** **NOT STARTED; REQUIRES USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**
