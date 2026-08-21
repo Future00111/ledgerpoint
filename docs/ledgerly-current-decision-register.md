@@ -633,6 +633,8 @@ to the accounting core.
 ### DEC-18 — Deletion and anonymisation policy
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-18 Deletion, Anonymisation, Archival and Redaction
+  Policy Review](ledgerly-dec-18-data-disposal-policy-review.md).
 - **Decision:** Define what may be physically deleted, anonymised, archived, or
   retained, especially for posted accounting and audit records.
 - **Options available:** (a) physical deletion; (b) no accounting/audit deletion

@@ -531,6 +531,8 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 17. Deletion policy
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-18 Deletion, Anonymisation, Archival and Redaction
+  Policy Review](ledgerly-dec-18-data-disposal-policy-review.md).
 - **Decision needed:** Decide what can be deleted, anonymised, archived, or
   only cancelled.
 - **Options:**
@@ -550,6 +552,9 @@ Living Product Decisions Register until it has been explicitly accepted.
   reversals, BL-10, BL-18, BL-24.
 - **Explicit product decision:** Approve the non-deletion rule and define
   eligible draft/personal-data deletion cases.
+- **Decision boundary:** DEC-19 retains export, DEC-20 backup/recovery,
+  DEC-21 tenant isolation, and DEC-22 migration policy. Source freshness
+  remains separate.
 
 ## 18. Export policy
 

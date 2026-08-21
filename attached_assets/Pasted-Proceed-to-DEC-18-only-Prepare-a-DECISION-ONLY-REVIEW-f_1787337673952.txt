@@ -1,0 +1,522 @@
+Proceed to DEC-18 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-18 — DELETION, ANONYMISATION, ARCHIVAL AND REDACTION POLICY
+
+IMPORTANT:
+Read the Current Decision Register first and use the exact registered DEC-18 title and scope.
+Do not rename, merge, reinterpret, or broaden DEC-18.
+
+Review all existing governance and accounting documentation, including:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- Accounting Core Decision Pack
+- Master Backlog
+- DEC-01 through DEC-17
+- All DEC-01 through DEC-17 approval/review documents
+- DEC-17 Audit Retention Period policy
+- Existing privacy/data/document/audit/accounting documentation
+
+This is a DECISION-ONLY review.
+
+DO NOT implement anything.
+
+DO NOT modify:
+
+- application code
+- database schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Do NOT approve DEC-18.
+Do NOT start DEC-19 or any later decision.
+Keep BL-06 and BL-07 BLOCKED.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Determine Ledgerpoint's policy for what happens to information once it reaches the end of its approved retention period under DEC-17.
+
+The review must clearly distinguish:
+
+- deletion;
+- anonymisation;
+- archival;
+- redaction;
+- retention;
+- legal hold;
+- accounting immutability;
+- personal-data minimisation.
+
+The solution must preserve the integrity and auditability of canonical accounting history.
+
+==================================================
+1. RETENTION VS DISPOSAL
+==================================================
+
+DEC-17 determines retention.
+
+DEC-18 determines what happens after the applicable retention requirement has expired.
+
+Do not alter DEC-17's approved retention policy.
+
+Define the relationship between:
+
+RETENTION PERIOD
+→ ELIGIBILITY
+→ REVIEW / HOLD CHECK
+→ DISPOSAL ACTION
+
+==================================================
+2. ACCOUNTING RECORDS
+==================================================
+
+Determine what can and cannot be deleted from:
+
+- posted journals;
+- source links;
+- approvals;
+- reversals;
+- corrections;
+- VAT evidence;
+- reconciliation evidence;
+- payment evidence;
+- allocation evidence;
+- customer-credit evidence;
+- supplier-prepayment evidence;
+- refund evidence.
+
+Accounting history must remain consistent with DEC-04 and DEC-17.
+
+Do not allow deletion to create unexplained accounting history.
+
+==================================================
+3. PERSONAL DATA
+==================================================
+
+Determine appropriate treatment of personal data once retention requirements expire.
+
+Evaluate:
+
+- deletion;
+- anonymisation;
+- minimisation;
+- pseudonymisation where appropriate;
+- retention where legally required.
+
+Do not assume personal data must remain indefinitely merely because an accounting record exists.
+
+==================================================
+4. DOCUMENTS
+==================================================
+
+Determine how documents should be handled after their retention period.
+
+Consider:
+
+- deletion;
+- archival;
+- redaction;
+- preservation where required;
+- links from accounting records.
+
+Do not break authoritative accounting traceability.
+
+==================================================
+5. AI DATA
+==================================================
+
+Respect DEC-17.
+
+Determine what happens to:
+
+- AI prompts;
+- AI outputs;
+- AI action evidence;
+- intermediate AI data.
+
+Retain only what is necessary to explain consequential actions for the approved period.
+
+Do not retain unnecessary AI data indefinitely.
+
+==================================================
+6. REDACTION
+==================================================
+
+Determine whether redaction should be supported.
+
+If yes, define:
+
+- what may be redacted;
+- what must never be redacted;
+- who may authorise it;
+- audit requirements;
+- interaction with accounting history;
+- interaction with exports and reports.
+
+Never use redaction to alter the meaning of a posted journal.
+
+==================================================
+7. ANONYMISATION
+==================================================
+
+Determine when anonymisation is appropriate.
+
+Consider:
+
+- personal data;
+- customer/supplier identities;
+- documents;
+- historical reporting.
+
+Anonymisation must not make canonical accounting impossible to interpret where accounting records must remain legally retained.
+
+==================================================
+8. ARCHIVAL
+==================================================
+
+Determine whether archival should be a distinct lifecycle state.
+
+If recommended, explain:
+
+- what archival means;
+- when it occurs;
+- whether archived records remain queryable;
+- whether archived data remains included in reports;
+- whether archived records remain auditable;
+- how restoration works.
+
+Do not confuse archival with deletion.
+
+==================================================
+9. LEGAL HOLDS
+==================================================
+
+Respect DEC-17.
+
+Determine how a legal hold prevents:
+
+- deletion;
+- anonymisation;
+- redaction;
+- destruction;
+
+where required.
+
+Define:
+
+- who can place a hold;
+- who can release it;
+- audit;
+- scope;
+- precedence over normal retention expiry.
+
+==================================================
+10. COMPANY CLOSURE
+==================================================
+
+Determine how disposal works when a company is closed.
+
+Company closure must not override required accounting retention.
+
+Consider:
+
+- inactive company;
+- closed company;
+- dissolved company;
+- retention after closure;
+- eventual disposal.
+
+Do not create a new financial/accounting state unless necessary.
+
+==================================================
+11. USER RIGHTS / DATA REQUESTS
+==================================================
+
+Determine how data deletion, anonymisation or access requests interact with legally required accounting retention.
+
+Where data must be retained:
+
+- preserve required accounting evidence;
+- minimise personal data where lawful;
+- use anonymisation/redaction where legally appropriate;
+- do not delete records merely because a user requests deletion if legal retention prevents it.
+
+Keep the policy within DEC-18's registered scope.
+
+==================================================
+12. ACCOUNTING TRACEABILITY
+==================================================
+
+A disposal action must never result in:
+
+- broken journal history;
+- unexplained balances;
+- altered historical reports;
+- changed VAT results;
+- changed AR/AP history;
+- rewritten approvals;
+- changed accounting meaning.
+
+If a source document is removed, determine what minimum accounting evidence must remain.
+
+==================================================
+13. AUDIT
+==================================================
+
+Define immutable audit requirements for:
+
+- deletion;
+- anonymisation;
+- archival;
+- redaction;
+- legal hold;
+- legal-hold release;
+- failed disposal;
+- restoration where archival is supported.
+
+Audit evidence must itself remain protected according to DEC-17.
+
+==================================================
+14. PERMISSIONS
+==================================================
+
+Use DEC-05.
+
+Determine which actions require:
+
+- normal capability;
+- elevated capability;
+- specialised authority;
+- approval.
+
+Do not rely solely on frontend controls.
+
+==================================================
+15. SECURITY / COMPANY SCOPE
+==================================================
+
+All disposal actions must remain:
+
+- company-scoped;
+- server-side;
+- capability-controlled;
+- auditable.
+
+A disposal process must never cross company boundaries.
+
+==================================================
+16. REPORTING
+==================================================
+
+Determine how deletion/anonymisation/archival affects:
+
+- Balance Sheet;
+- Profit & Loss;
+- Trial Balance;
+- General Ledger;
+- customer statements;
+- supplier statements;
+- aged receivables;
+- aged payables;
+- audit views.
+
+Historical accounting reports must not change merely because non-authoritative supporting information is disposed of.
+
+==================================================
+17. EXPORT
+==================================================
+
+DEC-19 owns export policy.
+
+DEC-18 should only determine what happens to retained/disposed information insofar as it affects export eligibility.
+
+Do not resolve DEC-19.
+
+==================================================
+18. BACKUP
+==================================================
+
+DEC-20 owns backup and recovery.
+
+DEC-18 should identify how disposal policy interacts with backups without resolving the complete backup architecture.
+
+Do not resolve DEC-20.
+
+==================================================
+19. TENANT ISOLATION
+==================================================
+
+DEC-21 owns detailed tenant-isolation policy.
+
+DEC-18 must nevertheless ensure disposal cannot cross company boundaries.
+
+Do not resolve DEC-21.
+
+==================================================
+20. MIGRATION
+==================================================
+
+DEC-22 owns migration/cutover policy.
+
+Determine only the DEC-18 implications for historical migration.
+
+Never invent:
+
+- historical deletion;
+- historical anonymisation;
+- historical archival;
+- historical redaction;
+- historical legal holds.
+
+Ambiguity must remain an explicit DEC-22 migration exception.
+
+==================================================
+21. OPTIONS
+==================================================
+
+Present realistic options for:
+
+- deletion;
+- anonymisation;
+- archival;
+- redaction;
+- legal holds;
+- company closure;
+- data requests.
+
+For each material option explain:
+
+- accounting consequences;
+- data/schema consequences;
+- migration consequences;
+- reporting consequences;
+- security/privacy consequences;
+- audit consequences;
+- operational consequences;
+- UX consequences;
+- compatibility consequences;
+- future flexibility.
+
+==================================================
+22. RECOMMENDATION
+==================================================
+
+Provide:
+
+RECOMMENDATION — NOT APPROVAL
+
+Recommend the approach that best satisfies:
+
+- DEC-04 immutable canonical accounting;
+- DEC-05 server-side capability control;
+- DEC-17 retention policy;
+- accounting traceability;
+- privacy/data minimisation;
+- security;
+- auditability;
+- simplicity;
+- future flexibility.
+
+Do not convert the recommendation into approval.
+
+==================================================
+23. DECISION BOUNDARIES
+==================================================
+
+Clearly classify:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Explicitly identify:
+
+- what approving DEC-18 would lock in;
+- what remains changeable;
+- what belongs to DEC-19;
+- what belongs to DEC-20;
+- what belongs to DEC-21;
+- what belongs to DEC-22.
+
+Do not resolve later decisions prematurely.
+
+==================================================
+24. IMPORTANT PRINCIPLE
+==================================================
+
+Data disposal must never become accounting mutation.
+
+Deletion, anonymisation, archival and redaction are lifecycle operations.
+
+They must never be used to:
+
+- rewrite journals;
+- alter balances;
+- change historical VAT;
+- conceal accounting corrections;
+- remove required audit evidence.
+
+==================================================
+25. FUTURE FLEXIBILITY
+==================================================
+
+Do not unnecessarily prevent future:
+
+- additional privacy requirements;
+- additional markets;
+- additional legal retention classes;
+- improved anonymisation;
+- archival storage;
+- regulatory changes.
+
+==================================================
+26. DOCUMENTATION
+==================================================
+
+Create:
+
+docs/ledgerly-dec-18-data-disposal-policy-review.md
+
+Use the exact DEC-18 scope in the document title and body.
+
+Link it into the appropriate governance records, including:
+
+- Current Decision Register;
+- Living Product Decisions;
+- Accounting Core Decision Pack;
+- Technical Architecture;
+- PRD / Product Scope.
+
+Do not modify implementation files.
+
+==================================================
+27. FINAL VERIFICATION
+==================================================
+
+At the end verify:
+
+1. DEC-01 through DEC-17 retain their approved statuses.
+2. DEC-18 remains REQUIRES USER DECISION.
+3. DEC-19 through DEC-22 remain REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-19 work was started.
+8. No deletion, anonymisation, archival, redaction, schema, migration or accounting implementation was performed.
+9. Source freshness remains separately unresolved.
+
+Stop after the DEC-18 decision-only review is complete.

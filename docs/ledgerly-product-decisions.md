@@ -506,6 +506,26 @@ not higher authority.
   schema, migration, UI, workflow, dependency, deployment, publishing, or an
   implementation task. BL-06 and BL-07 remain blocked.
 
+### DEC-18 — Deletion and Anonymisation Policy
+
+- **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-18 Deletion, Anonymisation, Archival and Redaction
+  Policy Review](ledgerly-dec-18-data-disposal-policy-review.md).
+- **Current decision/direction:** Decide what may be physically deleted,
+  anonymised, archived, or retained, especially for posted accounting and audit
+  records.
+- **Recommendation:** Use controlled, class-based disposal: never mutate or
+  dispose of canonical accounting and required audit evidence in a way that
+  changes meaning or breaks traceability; allow tightly governed deletion of
+  eligible drafts and non-authoritative data, and proportionate personal-data
+  minimisation, anonymisation, pseudonymisation, redaction, and archival.
+- **Boundary:** DEC-19 retains export policy, DEC-20 backup/recovery, DEC-21
+  tenant isolation, and DEC-22 migration/cutover. Source freshness remains
+  separate.
+- **Implementation limit:** This unresolved decision does not authorise code,
+  schema, migration, UI, workflow, dependency, deployment, publishing, or an
+  implementation task. BL-06 and BL-07 remain blocked.
+
 ### PD-01 — Product name
 
 - **Status:** OPEN

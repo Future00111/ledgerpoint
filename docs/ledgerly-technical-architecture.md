@@ -79,6 +79,11 @@ Review](ledgerly-dec-17-audit-retention-period-review.md) records a
 approved product/governance policy only. It does not authorise implementation
 or resolve DEC-18 through DEC-22 policy.
 
+The [DEC-18 Deletion, Anonymisation, Archival and Redaction Policy
+Review](ledgerly-dec-18-data-disposal-policy-review.md) records a
+recommendation only. DEC-18 remains unresolved and does not authorise
+implementation or resolve DEC-19 through DEC-22 policy.
+
 ## Architecture obligations derived from governance
 
 Any future technical design must uphold the following constraints:
