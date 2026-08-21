@@ -470,18 +470,20 @@ not higher authority.
 
 ### DEC-16 — Payment-on-Account Launch Scope
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting launch-scope policy only
 - **Decision review:** [DEC-16 Payment-on-Account Launch Scope
   Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md).
-- **Current decision/direction:** Decide whether Ledgerly should expose
-  user-facing payment-on-account for customers, suppliers, or both at launch.
-- **Recommendation:** Do not expose a separate payment-on-account feature at
-  launch. Use known-party payments, DEC-13 customer credits and supplier
-  prepayments, DEC-14 unapplied-cash workflow, and DEC-15 refunds. Preserve a
-  future user-facing classification over the same accounting model.
-- **Boundary:** This decision does not alter DEC-13, DEC-14, or DEC-15. DEC-17
-  onward and DEC-22 migration policy remain unresolved.
-- **Implementation limit:** This unresolved decision does not authorise code,
+- **Approved policy:** Ledgerly will not expose a separate payment-on-account
+  feature, workflow, navigation item, accounting object, or journal type at
+  launch. Users will use known-party payments, DEC-13 customer credits and
+  supplier prepayments, DEC-14 unapplied cash, explicit allocation, and DEC-15
+  controlled refunds.
+- **Approved product principle:** Do not introduce an additional user-facing
+  state merely because the underlying accounting concept exists. Keep launch
+  language simple, clear, understandable, accounting-correct, and consistent.
+- **Future boundary:** This does not permanently prohibit a future deliberate
+  payment-on-account classification over the existing accounting model.
+- **Implementation limit:** This approved policy does not authorise code,
   schema, migration, UI, workflow, dependency, deployment, publishing, or an
   implementation task. BL-06 and BL-07 remain blocked.
 

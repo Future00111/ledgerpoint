@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–15 approved; DEC-16 through DEC-22 require
+**Register status:** Decisions 1–16 approved; DEC-17 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -574,23 +574,23 @@ to the accounting core.
 
 ### DEC-16 — Payment-on-account scope
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting launch-scope policy only
 - **Decision review:** [DEC-16 Payment-on-Account Launch Scope
   Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md).
-- **Decision:** Decide whether user-facing customer and/or supplier
-  payment-on-account is supported at launch and how it differs from unapplied
-  cash.
+- **Decision review:** [DEC-16 Payment-on-Account Launch Scope
+  Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md).
+- **Approved policy:** Do not expose a separate user-facing payment-on-account
+  feature, workflow, navigation item, accounting object, or journal type at
+  launch. Use known-party payments, DEC-13 customer credits and supplier
+  prepayments, DEC-14 unapplied cash, explicit allocation, and DEC-15 refunds.
 - **Options available:** (a) reject payments without a source; (b) customer
   payment-on-account only; or (c) customer and supplier payment-on-account.
-- **Replit's recommendation:** Do not expose a separate user-facing
-  payment-on-account feature at launch; use DEC-13 customer-credit and
-  supplier-prepayment balances through the DEC-14 workflow.
-- **Why it is recommended:** It avoids an ambiguous extra label and preserves
+- **Why it is approved:** It avoids an ambiguous extra label and preserves
   accounting correctness, clear user language, and auditable allocation and
   refund decisions.
 - **Accounting implications:** Payment, allocation, open-item, refund, and
   statement balances remain separate.
-- **Data/schema implications:** The recommended launch scope reuses approved
+- **Data/schema implications:** The approved launch scope reuses approved
   payment, party-balance, allocation, refund, and audit concepts; a later
   explicit classification would require additional intent and history fields.
 - **Migration implications:** Unmatched bank rows need approved classification;

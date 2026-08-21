@@ -8,7 +8,7 @@ and architecture review
 **Implementation authority:** None
 
 > This records an approved product/accounting policy. It does not approve
-> DEC-16 through DEC-22, and it does not authorise an implementation task, code,
+> DEC-17 through DEC-22, and it does not authorise an implementation task, code,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
@@ -33,7 +33,7 @@ The review covers:
 DEC-15 does not decide:
 
 - user-facing payment-on-account launch scope, which remains DEC-16;
-- any later decision from DEC-16 through DEC-22;
+- any later decision from DEC-17 through DEC-22;
 - source-freshness/posting-safety policy;
 - the complete credit-note policy where that is owned by another decision;
 - implementation, schema, API, UI, workflow, or deployment details.
@@ -638,14 +638,15 @@ DEC-15 was explicitly approved on 2026-08-21. The approval is a
 product/accounting-policy decision only. Until the applicable remaining
 decisions are approved or amended:
 
-- DEC-16 through DEC-22 remain untouched and unresolved;
+- DEC-17 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
 - no refund workflow, UI, schema, migration, or accounting mechanism may be
   implemented; and
 - no implementation task is authorised.
 
 **DEC-01 through DEC-15:** **APPROVED**
-**DEC-16 through DEC-22:** **REQUIRE USER DECISION**
+**DEC-16:** **APPROVED — Payment-on-Account Launch Scope**
+**DEC-17 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

@@ -1,20 +1,21 @@
 # DEC-16 Payment-on-Account Launch Scope Review
 
 **Decision:** DEC-16 — Payment-on-Account Launch Scope
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — product/accounting launch-scope policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, security,
 and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-16 or DEC-17 through
-> DEC-22, and it does not authorise an implementation task, code, schema,
+> This records an approved product/accounting launch-scope policy. It does not
+> approve DEC-17 through DEC-22, and it does not authorise an implementation task,
+> code, schema,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
 ## 1. Purpose and scope
 
-DEC-16 must decide whether Ledgerly should expose **user-facing
+DEC-16 defines whether Ledgerly should expose **user-facing
 payment-on-account** at launch for customers, suppliers, or both.
 
 DEC-13 already approved the accounting representation for customer credits and
@@ -537,9 +538,9 @@ The safe extensibility rule is to add a user-facing intent/classification over
 the existing DEC-13/DEC-14 model, not to create parallel cash, credit,
 prepayment, allocation, or settlement accounting.
 
-## 18. Recommendation — not approval
+## 18. APPROVED POLICY
 
-Recommend **Option A: do not expose user-facing payment-on-account as a
+Approve **Option A: do not expose user-facing payment-on-account as a
 separate launch feature**.
 
 At launch, Ledgerly should satisfy the underlying business need through:
@@ -557,7 +558,7 @@ Preserve a future path for an explicit, symmetrical customer-and-supplier
 classification if later evidence shows that it is necessary for the initial
 market proposition.
 
-This recommendation is **not approval**.
+This policy is approved as a product/accounting launch-scope decision only.
 
 ## 19. Decision boundaries
 
@@ -589,7 +590,7 @@ is customer-only or customer-and-supplier.
 - exact labels, thresholds, capabilities, schema, APIs, UI, tests,
   dependencies, deployment, publishing, and implementation tasks.
 
-### What approving DEC-16 would lock in
+### What DEC-16 approval locks in
 
 - the selected customer/supplier launch scope;
 - the distinction between deliberate payment-on-account intent and unapplied
@@ -609,7 +610,9 @@ currencies, markets, and detailed implementation design.
 
 ## 20. Decision readiness
 
-DEC-16 is ready for an explicit user decision. Until it is approved or amended:
+DEC-16 was explicitly approved on 2026-08-21. The approval is a
+product/accounting launch-scope decision only. Until the applicable remaining
+decisions are approved or amended:
 
 - DEC-17 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
@@ -617,8 +620,7 @@ DEC-16 is ready for an explicit user decision. Until it is approved or amended:
   mechanism may be implemented; and
 - no implementation task is authorised.
 
-**DEC-01 through DEC-15:** **APPROVED**
-**DEC-16:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-16:** **APPROVED**
 **DEC-17 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**

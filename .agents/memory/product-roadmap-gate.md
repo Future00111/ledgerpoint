@@ -49,7 +49,10 @@ only, and no silent automatic allocation at launch. DEC-15 approves controlled
 customer refunds and supplier refund receipts only from approved refundable
 party balances, with explicit approval, amount limits, canonical cash journals,
 reconciliation, immutable correction, and no silent launch automation. DEC-16
-through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked
+approves no separate user-facing payment-on-account feature, workflow,
+navigation item, accounting object, or journal type at launch; it relies on the
+approved payment, credit/prepayment, unapplied-cash, allocation, and refund
+foundation. DEC-17 through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked
 pending the applicable decisions and an approved implementation task.
 Do not implement
 backlog items or publish Ledgerly until the user has reviewed and selected the

@@ -530,7 +530,7 @@ decisions are approved or amended:
 
 - no configuration-versioning or effective-dating mechanism may be
   implemented;
-- DEC-16 through DEC-22 remain untouched and unresolved;
+- DEC-17 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**; and
 - no implementation task is authorised.
 
@@ -539,7 +539,8 @@ decisions are approved or amended:
 **DEC-13:** **APPROVED — Overpayments, Unapplied Cash and Excess Payment Policy**
 **DEC-14:** **APPROVED — Unapplied Cash Workflow Policy**
 **DEC-15:** **APPROVED — Refund Policy**
-**DEC-16 through DEC-22:** **REQUIRE USER DECISION**
+**DEC-16:** **APPROVED — Payment-on-Account Launch Scope**
+**DEC-17 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

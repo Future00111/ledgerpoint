@@ -31,7 +31,8 @@ architecture/product/accounting-policy decisions only. DEC-12 approves the
 Payment, Allocation and Settlement Policy; all are policy decisions only.
 DEC-13 approves the Overpayments, Unapplied Cash and Excess Payment Policy;
 DEC-14 approves the Unapplied Cash Workflow Policy; DEC-15 approves the Refund
-Policy; DEC-16 through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked
+Policy; DEC-16 approves no separate payment-on-account feature at launch;
+DEC-17 through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked
 until
 the applicable decisions and an implementation task are explicitly approved.
 Do not choose roadmap scope or silently change a recorded decision autonomously.

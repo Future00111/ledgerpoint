@@ -540,7 +540,8 @@ use an unrecorded change.
 **DEC-13:** **APPROVED — Overpayments, Unapplied Cash and Excess Payment Policy**
 **DEC-14:** **APPROVED — Unapplied Cash Workflow Policy**
 **DEC-15:** **APPROVED — Refund Policy**
-**DEC-16 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
+**DEC-16:** **APPROVED — Payment-on-Account Launch Scope**
+**DEC-17 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
 **DEC-04:** **APPROVED — architecture only**
 **BL-06 / BL-07:** **BLOCKED**
 **Implementation task:** **NONE CREATED OR EXECUTED**

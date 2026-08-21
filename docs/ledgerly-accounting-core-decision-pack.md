@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-15 APPROVED; DEC-16 through DEC-22
+**Decision status:** DEC-01 through DEC-16 APPROVED; DEC-17 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -476,18 +476,22 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 15. Payment-on-account
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/accounting launch-scope policy only
 - **Decision review:** [DEC-16 Payment-on-Account Launch Scope
   Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md).
-- **Decision needed:** Decide whether user-facing payment-on-account launches
-  for customers, suppliers, or both.
+- **Decision review:** [DEC-16 Payment-on-Account Launch Scope
+  Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md).
+- **Approved policy:** Do not expose a separate user-facing payment-on-account
+  feature, workflow, navigation item, accounting object, or journal type at
+  launch. Use known-party payments, DEC-13 customer credits and supplier
+  prepayments, DEC-14 unapplied cash, explicit allocation, and DEC-15 refunds.
 - **Options:**
   1. Reject payments without an open source.
   2. Support customer payment-on-account.
   3. Support both customer and supplier payment-on-account.
-- **Recommendation:** Do not expose a separate user-facing payment-on-account
-  feature at launch. Use DEC-13 customer-credit and supplier-prepayment
-  balances through the DEC-14 workflow, with DEC-15 refund treatment.
+- **Product principle:** Do not introduce an additional user-facing state
+  merely because the underlying accounting concept exists. Keep launch
+  language simple, clear, understandable, accounting-correct, and consistent.
 - **Accounting/data consequences:** Payment posting and allocation remain
   distinct. Statements must expose on-account balances and avoid overstating
   settled invoices.
