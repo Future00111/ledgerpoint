@@ -100,7 +100,9 @@ DEC-05 is approved separately. The following remain **REQUIRES USER DECISION**
 before BL-06 or BL-07 can be approved for implementation:
 
 1. Chart template, control-account mappings, and effective-dated configuration
-   policy.
+   policy. The [DEC-09 Chart of Accounts and Default Account Policy
+   Review](ledgerly-dec-09-chart-of-accounts-policy-review.md) records the
+   chart recommendation but remains unresolved.
 2. Source revision/freshness rules, including VAT evidence.
 3. Overpayment, unapplied cash, refund, and payment-on-account treatment.
 4. Audit retention, deletion/anonymisation, and export policy.

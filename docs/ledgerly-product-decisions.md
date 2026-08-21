@@ -302,6 +302,27 @@ not higher authority.
   authorise code, schema, migration, UI, workflow, dependency, deployment,
   publishing, or an implementation task. BL-06 and BL-07 remain blocked.
 
+### DEC-09 — Chart of Accounts and Default Account Policy
+
+- **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-09 Chart of Accounts and Default Account Policy
+  Review](ledgerly-dec-09-chart-of-accounts-policy-review.md).
+- **Current decision/direction:** Decide the default UK small-business template,
+  account taxonomy, reporting classification, system/default/user account
+  treatment, customisation limits, lifecycle, deletion, and merge policy.
+- **Recommendation:** Use a versioned UK small-business template copied to each
+  company, with stable identity, explicit primary type/reporting classification,
+  readable company codes, protected system-account candidates, controlled
+  customisation, no destructive deletion after use, and no account merging at
+  launch.
+- **Boundary:** DEC-03 VAT, DEC-04 canonical journals, DEC-05 capabilities,
+  DEC-06/DEC-07 periods, and DEC-08 reporting-only year-end remain
+  authoritative. DEC-10 decides active control-account mappings, and DEC-11
+  decides configuration versioning.
+- **Implementation limit:** This review and unresolved decision do not
+  authorise code, schema, migration, UI, workflow, dependency, deployment,
+  publishing, or an implementation task. BL-06 and BL-07 remain blocked.
+
 ### PD-01 — Product name
 
 - **Status:** OPEN

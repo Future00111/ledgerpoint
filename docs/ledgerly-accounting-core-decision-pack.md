@@ -277,6 +277,8 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 8. Default UK small-business chart of accounts
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-09 Chart of Accounts and Default Account Policy
+  Review](ledgerly-dec-09-chart-of-accounts-policy-review.md).
 - **Decision needed:** Decide the initial chart template, account taxonomy,
   customisation limits, and versioning.
 - **Options:**

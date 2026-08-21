@@ -349,6 +349,8 @@ to the accounting core.
 ### DEC-09 — Default chart of accounts and template
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-09 Chart of Accounts and Default Account Policy
+  Review](ledgerly-dec-09-chart-of-accounts-policy-review.md).
 - **Decision:** Approve the default UK small-business chart, account types,
   subtypes, protected accounts, and company customization rules.
 - **Options available:** (a) minimal Ledgerly chart; (b) versioned UK template;

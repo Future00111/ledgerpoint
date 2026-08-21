@@ -123,6 +123,9 @@ be approved:
 5. Any amendment or specialised capability/approval rule beyond the approved
    DEC-05 model.
 6. The chart template, control-account mappings, and configuration versioning.
+   The [DEC-09 Chart of Accounts and Default Account Policy
+   Review](ledgerly-dec-09-chart-of-accounts-policy-review.md) records the
+   chart recommendation but remains unresolved.
 7. Source freshness, overpayment, unapplied cash, refund, and
    payment-on-account treatment.
 8. Audit retention, deletion/anonymisation, export, backup/recovery, and tenant
