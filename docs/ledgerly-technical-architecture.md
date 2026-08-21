@@ -100,7 +100,9 @@ DEC-05 is approved separately. The following remain **REQUIRES USER DECISION**
 before BL-06 or BL-07 can be approved for implementation:
 
 1. Period generation, close/reopen, and year-end policy. The financial-year
-   policy is approved through DEC-06. See
+   policy is approved through DEC-06. The [DEC-07 Accounting-Period Policy
+   Review](ledgerly-dec-07-accounting-period-policy-review.md) records the
+   period recommendation but remains unapproved. See
    the [DEC-06 Financial-Year Policy
    Review](ledgerly-dec-06-financial-year-policy-review.md) for the
    approved financial-year boundary.

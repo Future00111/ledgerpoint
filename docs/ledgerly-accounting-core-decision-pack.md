@@ -217,6 +217,8 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 6. Accounting-period creation, closing, and reopening
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-07 Accounting-Period Policy
+  Review](ledgerly-dec-07-accounting-period-policy-review.md).
 - **Decision needed:** Decide period frequency, automatic creation, close
   checks, and reopen controls.
 - **Options:**

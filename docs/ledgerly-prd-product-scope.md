@@ -123,7 +123,9 @@ be approved:
 5. Any amendment or specialised capability/approval rule beyond the approved
    DEC-05 model.
 6. The period close/reopen and year-end policy. The financial-year policy is
-   approved through DEC-06. The
+   approved through DEC-06. The [DEC-07 Accounting-Period Policy
+   Review](ledgerly-dec-07-accounting-period-policy-review.md) records the
+   period recommendation but remains unresolved. The
    [DEC-06 Financial-Year Policy
    Review](ledgerly-dec-06-financial-year-policy-review.md) records that
    approval.

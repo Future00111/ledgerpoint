@@ -1,0 +1,240 @@
+Proceed to DEC-07 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-07 — Accounting-period policy, creation, close and reopen
+
+Review the existing:
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- DEC-01 through DEC-06
+- Accounting Core Architecture Review
+- Accounting Core Decision Pack
+- Master Backlog
+- existing accounting-period/financial-period implementation, if any
+
+Do NOT implement anything.
+
+Do NOT modify:
+- application code
+- database schema
+- migrations
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Do NOT approve DEC-07.
+Do NOT start DEC-08 or any later decision.
+Keep BL-06 and BL-07 BLOCKED.
+
+The purpose of this review is to establish Ledgerpoint's accounting-period policy and controls before implementation.
+
+The review must cover:
+
+1. PERIOD FREQUENCY
+
+Evaluate the appropriate launch policy for:
+- monthly periods
+- quarterly periods
+- annual-only periods
+- configurable period frequency.
+
+Recommend the most appropriate approach for Ledgerpoint while considering UK small-business accounting.
+
+2. PERIOD IDENTITY
+
+Define how an accounting period is uniquely identified within a company and financial year.
+
+It must remain distinct from:
+- VAT periods
+- tax years
+- bank statement periods
+- calendar months where applicable.
+
+3. PERIOD CREATION
+
+Define:
+- when periods are created
+- whether they are automatically generated
+- whether future periods can exist before the current period closes
+- how periods relate to the approved DEC-06 financial-year structure.
+
+4. OPEN / CLOSED STATES
+
+Define the authoritative lifecycle of an accounting period.
+
+Consider states such as:
+- OPEN
+- CLOSED
+
+Do not introduce unnecessary statuses without justification.
+
+5. POSTING INTO PERIODS
+
+Define:
+- what determines the accounting period for a posting
+- whether posting date controls period assignment
+- what happens when a posting date falls outside an open period
+- how future-dated postings are handled
+- how historical postings are handled during migration.
+
+6. PERIOD CLOSE
+
+Define:
+- who can close a period
+- required permissions under DEC-05
+- whether close requires validation
+- whether unresolved drafts prevent close
+- whether unallocated payments prevent close
+- whether unreconciled bank transactions prevent close
+- whether VAT issues prevent close
+- whether close produces an audit record.
+
+Do not invent hard blockers without explaining why they are necessary.
+
+7. PERIOD REOPEN
+
+Define:
+- who may reopen a closed period
+- whether reopening requires elevated capability
+- whether a reason is mandatory
+- whether approval is required
+- whether reopening is temporary or persistent
+- what audit information is retained.
+
+8. POSTING TO CLOSED PERIODS
+
+Determine whether any posting can occur in a closed period.
+
+If exceptions are recommended, define:
+- who can use them
+- what capability is required
+- whether a reason is mandatory
+- how the audit trail works
+- whether the system should instead use a controlled adjustment in a later open period.
+
+9. PERIOD LOCKING
+
+Distinguish between:
+- UI disabling
+- application/server enforcement
+- accounting authority.
+
+The actual accounting restriction must be enforced server-side.
+
+10. YEAR BOUNDARIES
+
+Explain how DEC-07 interacts with:
+- DEC-06 financial-year boundaries
+- first/partial financial years
+- year transitions
+- DEC-08 year-end treatment.
+
+Do NOT resolve DEC-08.
+
+11. REPORTING
+
+Explain how period state affects:
+- Profit & Loss
+- Balance Sheet
+- Trial Balance
+- General Ledger
+- VAT reporting
+- comparative reporting.
+
+Reports must remain journal-authoritative under DEC-04.
+
+12. MIGRATION
+
+Explain how historical records with incomplete or ambiguous period information should be handled.
+
+Never invent historical accounting facts.
+
+13. AUDIT
+
+Define the audit requirements for:
+- period creation
+- close
+- reopen
+- posting attempts into closed periods
+- privileged exceptions.
+
+14. PERMISSIONS
+
+Map period actions to the DEC-05 capability architecture.
+
+Do not silently grant permissions.
+
+15. OPTIONS
+
+Present all realistic policy options.
+
+For each option explain:
+- accounting consequences
+- data/schema consequences
+- migration consequences
+- reporting consequences
+- security/permission consequences
+- operational consequences
+- compatibility consequences
+- future flexibility
+- what becomes difficult to change later.
+
+16. RECOMMENDATION
+
+Provide a clearly labelled:
+
+RECOMMENDATION — NOT APPROVAL
+
+Do not convert the recommendation into a decision.
+
+17. DECISION BOUNDARIES
+
+Clearly distinguish:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Explicitly identify:
+
+- what approving DEC-07 would lock in;
+- what remains changeable;
+- what must be decided by DEC-08;
+- what decisions should remain outside DEC-07.
+
+18. IMPORTANT ACCOUNTING PRINCIPLE
+
+Do not design the period system in a way that permits users to rewrite posted accounting history simply by changing period configuration.
+
+The DEC-04 immutability and audit principles remain authoritative.
+
+19. FUTURE FLEXIBILITY
+
+Do not unnecessarily prevent:
+- different financial-year starts already permitted by DEC-06
+- future markets
+- future currencies
+- future accounting/reporting requirements
+- future period policies.
+
+Create or update the appropriate DEC-07 decision-review document and link it into the existing governance documents.
+
+At the end verify:
+
+1. DEC-01 through DEC-06 retain their approved statuses.
+2. DEC-07 remains REQUIRES USER DECISION.
+3. DEC-08 through DEC-22 remain REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-08 work was started.
+
+Stop after the DEC-07 decision-only review is complete.

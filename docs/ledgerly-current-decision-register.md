@@ -256,6 +256,8 @@ to the accounting core.
 ### DEC-07 — Period frequency, creation, close, and reopen
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-07 Accounting-Period Policy
+  Review](ledgerly-dec-07-accounting-period-policy-review.md).
 - **Decision:** Define period frequency, generation, close conditions, normal
   posting restrictions, reopening authority, and reopening conditions.
 - **Options available:** (a) monthly periods; (b) quarterly periods; or (c)

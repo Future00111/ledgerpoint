@@ -246,6 +246,25 @@ not higher authority.
   UI, workflow, dependency, deployment, publishing, or an implementation task.
   BL-06 and BL-07 remain blocked.
 
+### DEC-07 — Accounting-period policy, creation, close, and reopen
+
+- **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-07 Accounting-Period Policy
+  Review](ledgerly-dec-07-accounting-period-policy-review.md).
+- **Current decision/direction:** Decide launch period frequency, period
+  identity and creation, open/closed lifecycle, posting-date enforcement,
+  close validation, reopen authority, and closed-period posting behavior.
+- **Recommendation:** Contiguous monthly periods anchored to the approved
+  DEC-06 financial years, automatically generated for known years, with only
+  `OPEN` and `CLOSED` states, server-side posting-date assignment, privileged
+  audited close/reopen, and no normal posting into closed periods.
+- **Boundary:** DEC-07 must not resolve year-end closing journals, retained
+  earnings, or other DEC-08 treatment. Periods remain distinct from VAT
+  periods, tax years, bank ranges, and calendar months.
+- **Implementation limit:** This review and unresolved decision do not authorise
+  code, schema, migration, UI, workflow, dependency, deployment, publishing,
+  or an implementation task. BL-06 and BL-07 remain blocked.
+
 ### PD-01 — Product name
 
 - **Status:** OPEN
