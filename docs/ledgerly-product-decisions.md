@@ -580,6 +580,24 @@ not higher authority.
   schema, migration, UI, workflow, dependency, deployment, publishing, or an
   implementation task. BL-06 and BL-07 remain blocked.
 
+### DEC-22 — Migration and Cutover Policy
+
+- **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-22 Migration and Cutover Policy
+  Review](ledgerly-dec-22-migration-and-cutover-policy-review.md).
+- **Current decision/direction:** Decide supported legacy shapes and sources,
+  migration cohorts, sequencing, validation, cutover, rollback, legacy-system
+  authority, and backward compatibility.
+- **Recommendation:** Use validated additive adapters, controlled cohorts,
+  bounded dual-read comparison, explicit migration exceptions, recovery
+  checkpoints, and reconciled cutover. Canonical posted journals become the
+  sole reporting authority after cutover.
+- **Boundary:** This is the final governance decision. Source freshness remains
+  separately unresolved.
+- **Implementation limit:** This unresolved decision does not authorise code,
+  schema, migration, UI, workflow, dependency, deployment, publishing, or an
+  implementation task. BL-06 and BL-07 remain blocked.
+
 ### PD-01 — Product name
 
 - **Status:** OPEN

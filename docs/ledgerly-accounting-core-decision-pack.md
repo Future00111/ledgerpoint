@@ -641,6 +641,8 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 - **Status:** ALREADY DECIDED in principle; REQUIRES USER DECISION on cutover
   policy
+- **Decision review:** [DEC-22 Migration and Cutover Policy
+  Review](ledgerly-dec-22-migration-and-cutover-policy-review.md).
 - **Decision needed:** Decide how and when current JSON journals, source
   totals, bank links, VAT snapshots, and Base44-shaped APIs transition.
 - **Options:**

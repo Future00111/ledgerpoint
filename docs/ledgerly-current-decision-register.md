@@ -743,6 +743,8 @@ to the accounting core.
 ### DEC-22 — Historical accounting-data compatibility and cutover
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-22 Migration and Cutover Policy
+  Review](ledgerly-dec-22-migration-and-cutover-policy-review.md).
 - **Decision:** Define supported legacy shapes and sources, migration cohort,
   sequencing, validation, cutover, rollback, and backwards-compatibility
   policy.

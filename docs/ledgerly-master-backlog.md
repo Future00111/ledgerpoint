@@ -34,6 +34,11 @@ recommend backlog work or identify conflicts, but must not select roadmap scope
 autonomously or silently change a recorded decision. An item requires an
 approved implementation task before code changes begin.
 
+The [DEC-22 Migration and Cutover Policy
+Review](ledgerly-dec-22-migration-and-cutover-policy-review.md) records the
+final governance recommendation only. DEC-22 remains unresolved, and BL-06 and
+BL-07 remain blocked pending its approval and an explicit implementation task.
+
 ## Backlog
 
 | ID | Module | Feature | Current status | What needs to be built | Priority | Dependencies | Complexity | Acceptance criteria |

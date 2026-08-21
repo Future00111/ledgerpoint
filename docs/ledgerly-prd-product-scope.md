@@ -173,6 +173,9 @@ be approved:
     Review](ledgerly-dec-21-tenant-isolation-policy-review.md) records a
     approved security/product architecture policy. DEC-22 remains open for its
     own policy.
+18. [DEC-22 Migration and Cutover Policy
+    Review](ledgerly-dec-22-migration-and-cutover-policy-review.md) records a
+    recommendation only. DEC-22 remains open until explicitly approved.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix

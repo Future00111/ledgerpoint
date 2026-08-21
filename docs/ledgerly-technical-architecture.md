@@ -98,6 +98,11 @@ Review](ledgerly-dec-21-tenant-isolation-policy-review.md) records a
 approved security/product architecture policy only. It does not authorise
 implementation or resolve DEC-22 policy.
 
+The [DEC-22 Migration and Cutover Policy
+Review](ledgerly-dec-22-migration-and-cutover-policy-review.md) records a
+recommendation only. DEC-22 remains unresolved and does not authorise
+implementation.
+
 ## Architecture obligations derived from governance
 
 Any future technical design must uphold the following constraints:
