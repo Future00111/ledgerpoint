@@ -154,6 +154,10 @@ be approved:
     an approved launch-scope policy: no separate user-facing
     payment-on-account feature at launch. DEC-17 onward and migration/cutover
     policy remain open.
+13. [DEC-17 Audit Retention Period
+    Review](ledgerly-dec-17-audit-retention-period-review.md) records a
+    recommendation only; DEC-17 remains unresolved. DEC-18 through DEC-22
+    remain open for their own policies.
 
 The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
 and the [DEC-05 Capability and Approval Matrix

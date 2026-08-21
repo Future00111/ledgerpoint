@@ -605,6 +605,8 @@ to the accounting core.
 ### DEC-17 — Audit retention period
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-17 Audit Retention Period
+  Review](ledgerly-dec-17-audit-retention-period-review.md).
 - **Decision:** Define retention duration and classification for posted journals,
   source links, approvals, reversals, VAT, reconciliation, AI actions,
   documents, and personal data.

@@ -506,6 +506,8 @@ Living Product Decisions Register until it has been explicitly accepted.
 ## 16. Audit retention
 
 - **Status:** REQUIRES USER DECISION
+- **Decision review:** [DEC-17 Audit Retention Period
+  Review](ledgerly-dec-17-audit-retention-period-review.md).
 - **Decision needed:** Decide how long journals, approvals, reversals,
   calculations, communications, and audit events are retained.
 - **Options:**
@@ -524,8 +526,9 @@ Living Product Decisions Register until it has been explicitly accepted.
   absence of old audit data must be visible rather than fabricated.
 - **Dependencies:** Legal/privacy review, deletion policy, export policy,
   documents, audit, BL-18, BL-24.
-- **Explicit product decision:** Approve the retention principles and provide
-  the required retention periods with appropriate legal review.
+- **Decision boundary:** DEC-18 retains deletion/anonymisation, DEC-19 export,
+  DEC-20 backup/recovery, DEC-21 tenant isolation, and DEC-22 migration policy.
+  Source freshness remains separate.
 
 ## 17. Deletion policy
 

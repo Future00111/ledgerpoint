@@ -74,6 +74,11 @@ Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md) records a
 approved product/accounting launch-scope policy only. It does not authorise
 implementation or resolve DEC-17 through DEC-22 policy.
 
+The [DEC-17 Audit Retention Period
+Review](ledgerly-dec-17-audit-retention-period-review.md) records a
+recommendation only. DEC-17 remains unresolved and does not authorise
+implementation or resolve DEC-18 through DEC-22 policy.
+
 ## Architecture obligations derived from governance
 
 Any future technical design must uphold the following constraints:
