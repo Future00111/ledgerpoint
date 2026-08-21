@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-17 APPROVED; DEC-18 through DEC-22
+**Decision status:** DEC-01 through DEC-18 APPROVED; DEC-19 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -500,7 +500,7 @@ Living Product Decisions Register until it has been explicitly accepted.
   classification.
 - **Dependencies:** Unapplied cash, overpayments, refunds, statements,
   bank/reconciliation, BL-09, BL-16.
-- **Decision boundary:** DEC-18 onward and DEC-22 migration policy remain open.
+- **Decision boundary:** DEC-19 onward and DEC-22 migration policy remain open.
   Source freshness remains separate.
 
 ## 16. Audit retention
@@ -530,16 +530,17 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 17. Deletion policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/governance/data-lifecycle policy only
 - **Decision review:** [DEC-18 Deletion, Anonymisation, Archival and Redaction
   Policy Review](ledgerly-dec-18-data-disposal-policy-review.md).
-- **Decision needed:** Decide what can be deleted, anonymised, archived, or
-  only cancelled.
+- **Approved policy:** Use controlled, class-based disposal after the applicable
+  DEC-17 retention requirement. Retention expiry creates eligibility only; it
+  does not automatically delete data.
 - **Options:**
   1. Physical deletion of all records on request.
   2. No deletion of accounting/audit records; redact eligible personal data.
   3. Archive everything while retaining operational access.
-- **Recommendation:** Never delete posted journals, journal lines, source
+- **Controls:** Never delete posted journals, journal lines, source
   relationships, reversals, payment allocations, or accounting audit events.
   Allow controlled deletion of unposted drafts only when permitted. Use
   anonymisation/redaction for eligible personal data without changing
@@ -550,8 +551,6 @@ Living Product Decisions Register until it has been explicitly accepted.
   migration must not remove evidence to make balances appear consistent.
 - **Dependencies:** Audit retention, privacy, legal holds, permissions,
   reversals, BL-10, BL-18, BL-24.
-- **Explicit product decision:** Approve the non-deletion rule and define
-  eligible draft/personal-data deletion cases.
 - **Decision boundary:** DEC-19 retains export, DEC-20 backup/recovery,
   DEC-21 tenant isolation, and DEC-22 migration policy. Source freshness
   remains separate.

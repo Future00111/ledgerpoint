@@ -2,14 +2,14 @@
 
 **Decision:** DEC-18 — Deletion and anonymisation policy
 **Scope:** Deletion, anonymisation, archival and redaction policy
-**Status:** **REQUIRES USER DECISION**
+**Status:** **APPROVED — product/governance/data-lifecycle policy only**
 **Review date:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting, legal,
 privacy, security, and architecture review
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-18 or DEC-19 through
-> DEC-22, and it does not authorise an implementation task, code, schema,
+> This records an approved product/governance/data-lifecycle policy. It does
+> not approve DEC-19 through DEC-22, and it does not authorise an implementation task, code, schema,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
 
@@ -31,12 +31,12 @@ The registered recommendation is to never delete posted accounting or audit
 evidence, while allowing controlled draft deletion and narrowly governed
 personal-data redaction.
 
-This review evaluates that recommendation and expands the lifecycle
-distinctions required by the supplied DEC-18 scope. It does not approve DEC-18.
+This review records that policy and expands the lifecycle distinctions required
+by the supplied DEC-18 scope.
 
 ## 2. Purpose and scope
 
-DEC-17 approved class-based retention. DEC-18 must decide what happens when a
+DEC-17 approved class-based retention. DEC-18 defines what happens when a
 record reaches the end of its applicable retention requirement, without
 changing the meaning or reconstructability of canonical accounting history.
 
@@ -563,9 +563,9 @@ legacy retirement. DEC-18 requires:
 - **Future flexibility:** Good for storage evolution but weak for
   minimisation and lawful disposal.
 
-## 20. RECOMMENDATION — NOT APPROVAL
+## 20. APPROVED POLICY
 
-Recommend **Option C: controlled class-based disposal with protected
+Approve **Option C: controlled class-based disposal with protected
 accounting**, with these policy rules:
 
 1. Apply the DEC-17 class and retention period before considering disposal.
@@ -591,7 +591,7 @@ accounting**, with these policy rules:
     preserve immutable audit evidence for actions and failures.
 12. Keep DEC-19, DEC-20, DEC-21, and DEC-22 within their registered boundaries.
 
-This recommendation is **not approval**.
+This policy is approved as a product/governance/data-lifecycle policy only.
 
 ## 21. Decision boundaries
 
@@ -603,18 +603,12 @@ settlement history, customer credits and supplier prepayments, controlled
 refunds, no separate payment-on-account launch feature, and class-based
 retention for company life plus the applicable legal/regulatory period.
 
-### Recommended
+### Approved policy
 
 Controlled, class-based disposal with no mutation of canonical accounting;
 separate treatment for personal data, documents, AI evidence, drafts, and
 duplicates; distinct archival; auditable legal holds; and explicit
 eligibility-to-action checks.
-
-### Requires user decision
-
-Approval of the DEC-18 deletion, anonymisation, archival, and redaction policy,
-including the permitted treatment of retained accounting evidence and
-personal-data requests.
 
 ### Deliberately left open
 
@@ -631,7 +625,7 @@ personal-data requests.
 - implementation details, schema, APIs, UI, tests, dependencies, deployment,
   and publishing.
 
-### What approving DEC-18 would lock in
+### What DEC-18 approval locks in
 
 - expiry is an eligibility event, not automatic disposal;
 - legal holds override ordinary disposal;
@@ -655,7 +649,9 @@ migration, and implementation design.
 
 ## 22. Decision readiness
 
-DEC-18 is ready for an explicit user decision. Until it is approved or amended:
+DEC-18 was explicitly approved on 2026-08-21. The approval is a
+product/governance/data-lifecycle policy only. Until the applicable remaining
+decisions are approved or amended:
 
 - DEC-19 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
@@ -663,8 +659,7 @@ DEC-18 is ready for an explicit user decision. Until it is approved or amended:
   accounting mechanism may be implemented; and
 - no implementation task is authorised.
 
-**DEC-01 through DEC-17:** **APPROVED**
-**DEC-18:** **REQUIRES USER DECISION**
+**DEC-01 through DEC-18:** **APPROVED**
 **DEC-19 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**

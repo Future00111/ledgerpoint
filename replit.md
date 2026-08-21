@@ -34,7 +34,8 @@ DEC-14 approves the Unapplied Cash Workflow Policy; DEC-15 approves the Refund
 Policy; DEC-16 approves no separate payment-on-account feature at launch; and
 DEC-17 approves class-based audit retention that preserves authoritative
 accounting evidence for company life plus the applicable legal/regulatory
-period. DEC-18 through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked
+period. DEC-18 approves controlled, class-based disposal without accounting
+mutation. DEC-19 through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked
 until
 the applicable decisions and an implementation task are explicitly approved.
 Do not choose roadmap scope or silently change a recorded decision autonomously.

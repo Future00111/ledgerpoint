@@ -1,0 +1,288 @@
+Approve DEC-18.
+
+Record:
+
+DEC-18 — DELETION AND ANONYMISATION POLICY
+STATUS: APPROVED — product/governance/data-lifecycle policy only
+
+Approve the controlled, class-based disposal model with protected accounting.
+
+1. DISPOSAL LIFECYCLE
+
+Use the following lifecycle:
+
+RETENTION PERIOD
+→ ELIGIBILITY
+→ REVIEW / LEGAL-HOLD CHECK
+→ AUTHORISED DISPOSAL ACTION
+
+Retention expiry creates eligibility only.
+
+It must NOT automatically trigger deletion.
+
+2. ACCOUNTING PROTECTION
+
+Never delete, anonymise, archive or redact a posted journal or required accounting/audit evidence in a way that:
+
+- changes its accounting meaning;
+- breaks reconstruction;
+- creates unexplained balances;
+- changes historical reporting;
+- changes VAT results;
+- alters AR/AP history;
+- removes required audit evidence.
+
+DEC-04 canonical accounting and DEC-17 retention remain authoritative.
+
+3. ELIGIBLE DELETION
+
+Controlled deletion may be permitted for eligible:
+
+- drafts;
+- duplicates;
+- temporary artefacts;
+- non-authoritative data.
+
+Only where there is no:
+
+- accounting dependency;
+- audit dependency;
+- legal hold;
+- migration dependency;
+- recovery dependency;
+- reporting dependency;
+- other required retention obligation.
+
+4. PERSONAL DATA
+
+Personal data should be minimised where lawful and appropriate.
+
+Where the retention requirement for the personal data has expired, use the appropriate mechanism:
+
+- deletion;
+- anonymisation;
+- pseudonymisation;
+- redaction;
+
+provided the retained accounting evidence remains intelligible and legally sufficient.
+
+Do not retain personal data indefinitely merely because an accounting record remains.
+
+5. AUTHORITATIVE SOURCE DOCUMENTS
+
+Authoritative accounting source documents remain protected evidence for the applicable DEC-17 retention period.
+
+Where appropriate, archival or redacted derivatives may exist, but they must not silently replace required authoritative evidence.
+
+Do not dispose of an authoritative source merely because a derivative exists.
+
+6. AI DATA
+
+Retain only the AI evidence required to explain consequential accounting actions for the applicable retention period.
+
+Unnecessary:
+
+- prompts;
+- intermediate material;
+- temporary AI outputs;
+
+may expire according to their appropriate retention class.
+
+Do not retain unnecessary AI data indefinitely.
+
+7. ARCHIVAL
+
+Treat archival as a distinct lifecycle state.
+
+Archival is NOT deletion.
+
+Archived information must remain:
+
+- identifiable;
+- appropriately protected;
+- auditable;
+- available where required.
+
+Archival must not change the meaning of canonical accounting records.
+
+8. REDACTION
+
+Redaction may be used where legally or operationally appropriate.
+
+Redaction must never alter the meaning of a posted journal or remove evidence required to reconstruct consequential accounting.
+
+Any consequential redaction must be controlled and auditable.
+
+9. ANONYMISATION
+
+Anonymisation may be used where lawful and appropriate, particularly for personal data.
+
+Anonymisation must not make required canonical accounting unintelligible.
+
+Where an accounting record must remain identifiable for legal/accounting purposes, preserve the minimum necessary identity/evidence required.
+
+10. LEGAL HOLDS
+
+Legal holds override normal disposal eligibility where required.
+
+A valid hold must prevent:
+
+- deletion;
+- anonymisation;
+- redaction;
+- destruction;
+- archival actions that would remove required access.
+
+Legal holds and releases must be auditable.
+
+11. COMPANY CLOSURE
+
+Company closure does not override DEC-17 retention requirements.
+
+Required accounting evidence remains protected after company closure for the applicable legal/regulatory period.
+
+Only after the relevant retention and hold requirements have been satisfied may eligible information proceed through the disposal lifecycle.
+
+12. DATA REQUESTS
+
+A data request must not automatically override legal/accounting retention.
+
+Where information must legally remain:
+
+- preserve required accounting evidence;
+- minimise personal data where lawful;
+- anonymise/redact where appropriate;
+- retain only what is necessary.
+
+Do not delete required accounting evidence simply because deletion has been requested.
+
+13. ACCOUNTING TRACEABILITY
+
+Disposal must never result in:
+
+- broken journal history;
+- unexplained balances;
+- changed historical reports;
+- changed VAT results;
+- rewritten approvals;
+- altered accounting meaning.
+
+If supporting information is disposed of, the remaining accounting record must retain sufficient authoritative evidence for the applicable requirement.
+
+14. AUDIT
+
+Maintain immutable audit evidence for consequential disposal activity, including where applicable:
+
+- deletion;
+- anonymisation;
+- archival;
+- redaction;
+- legal-hold creation;
+- legal-hold release;
+- failed disposal;
+- restoration of archived information.
+
+Audit evidence itself remains subject to DEC-17.
+
+15. PERMISSIONS
+
+Use DEC-05 server-side capabilities.
+
+Consequential disposal actions must not rely solely on frontend controls.
+
+Where appropriate, use elevated or specialised authority and approval.
+
+16. COMPANY SCOPE
+
+All disposal operations must remain:
+
+- company-scoped;
+- server-side;
+- capability-controlled;
+- auditable.
+
+A disposal operation must never cross company boundaries.
+
+17. REPORTING
+
+Disposal of non-authoritative supporting information must not alter canonical accounting reports.
+
+Balance Sheet, Profit & Loss, Trial Balance, General Ledger, customer statements, supplier statements, AR/AP and audit views must continue to derive from authoritative accounting data.
+
+18. EXPORT BOUNDARY
+
+DEC-19 remains responsible for export policy.
+
+DEC-18 does not determine export formats, scope, permissions or detailed export behaviour.
+
+19. BACKUP BOUNDARY
+
+DEC-20 remains responsible for backup and recovery.
+
+DEC-18 does not determine the complete backup architecture or recovery policy.
+
+20. TENANT-ISOLATION BOUNDARY
+
+DEC-21 remains responsible for detailed tenant-isolation policy.
+
+DEC-18 nevertheless requires disposal operations to remain company-scoped.
+
+21. MIGRATION
+
+Historical deletion, anonymisation, archival, redaction and legal-hold states must only be migrated where supported by evidence.
+
+Never invent historical lifecycle events.
+
+Ambiguity becomes an explicit DEC-22 migration exception.
+
+22. FUTURE FLEXIBILITY
+
+The approved policy should allow future changes to:
+
+- privacy requirements;
+- legal requirements;
+- regulatory retention classes;
+- anonymisation methods;
+- archival mechanisms;
+- market-specific requirements.
+
+Any material policy change must follow the Living Product Decisions process.
+
+IMPORTANT GOVERNANCE RULES:
+
+- DEC-01 through DEC-18 are now APPROVED.
+- DEC-19 through DEC-22 remain REQUIRES USER DECISION.
+- Do NOT approve DEC-19 or any later decision.
+- Keep BL-06 and BL-07 BLOCKED.
+- Do NOT create or execute an implementation task.
+- This is a product/governance/data-lifecycle policy approval only.
+- It is NOT implementation authorisation.
+- Preserve the amendment path through the Living Product Decisions process.
+- Source freshness remains separately unresolved.
+
+Do NOT modify:
+
+- application code;
+- database schema;
+- migrations;
+- accounting logic;
+- UI;
+- workflows;
+- dependencies;
+- deployment;
+- publishing.
+
+Update only the relevant governance and decision documentation.
+
+FINAL VERIFICATION:
+
+1. DEC-01–DEC-18 are APPROVED.
+2. DEC-19–DEC-22 remain unresolved.
+3. BL-06 and BL-07 remain BLOCKED.
+4. No implementation task was created.
+5. No deletion/anonymisation/archival/redaction implementation was made.
+6. No application/schema/migration/accounting logic/UI/workflow/dependency/deployment/publishing changes were made.
+7. No DEC-19 work was started.
+8. Source freshness remains separately unresolved.
+
+Stop after verification.

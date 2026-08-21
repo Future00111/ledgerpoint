@@ -4,7 +4,7 @@
 **Reviewed sources:** Ledgerly Manifesto; Product Principles; PRD / Product
 Scope; Technical Architecture; BL-06 / BL-07 Accounting Core Architecture
 Review; BL-06 / BL-07 Accounting Core Decision Pack; Master Backlog  
-**Register status:** Decisions 1–17 approved; DEC-18 through DEC-22 require
+**Register status:** Decisions 1–18 approved; DEC-19 through DEC-22 require
 explicit approval
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**
 
@@ -595,7 +595,7 @@ to the accounting core.
   explicit classification would require additional intent and history fields.
 - **Migration implications:** Unmatched bank rows need approved classification;
   old paid totals cannot be assumed to represent on-account amounts.
-- **Boundary:** DEC-18 onward and DEC-22 migration policy remain unresolved.
+- **Boundary:** DEC-19 onward and DEC-22 migration policy remain unresolved.
   Source freshness remains separate.
 - **Backlog implications:** Gates BL-09, BL-14, and BL-16.
 - **Dependency:** DEC-13, DEC-14, and DEC-15.
@@ -632,17 +632,17 @@ to the accounting core.
 
 ### DEC-18 — Deletion and anonymisation policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — product/governance/data-lifecycle policy only
 - **Decision review:** [DEC-18 Deletion, Anonymisation, Archival and Redaction
   Policy Review](ledgerly-dec-18-data-disposal-policy-review.md).
-- **Decision:** Define what may be physically deleted, anonymised, archived, or
-  retained, especially for posted accounting and audit records.
+- **Approved policy:** Use controlled, class-based disposal after the applicable
+  DEC-17 retention requirement. Expiry creates eligibility only; it never
+  automatically deletes data. Preserve canonical accounting and required audit
+  evidence, permit eligible non-authoritative disposal only after dependency and
+  hold checks, and apply proportionate personal-data treatment where lawful.
 - **Options available:** (a) physical deletion; (b) no accounting/audit deletion
   with controlled personal-data redaction; or (c) archive all records.
-- **Replit's recommendation:** Never delete posted accounting or audit evidence;
-  allow controlled draft deletion and narrowly governed personal-data
-  redaction.
-- **Why it is recommended:** Deletion must not become an alternative way to
+- **Why it is approved:** Deletion must not become an alternative way to
   correct history or make balances unreproducible.
 - **Accounting implications:** Corrections remain reversals, credit notes, or
   replacement entries; original evidence remains traceable.
@@ -650,6 +650,9 @@ to the accounting core.
   archive state, referential safety, and legal-hold handling.
 - **Migration implications:** Historical deletion gaps must be recorded as gaps,
   not concealed during migration.
+- **Boundary:** DEC-19 retains export policy, DEC-20 backup/recovery, DEC-21
+  tenant isolation, and DEC-22 migration/cutover. Source freshness remains
+  separate.
 - **Backlog implications:** Gates BL-10, BL-18, BL-19, BL-21, and BL-24.
 - **Dependency:** DEC-17 and DEC-05.
 

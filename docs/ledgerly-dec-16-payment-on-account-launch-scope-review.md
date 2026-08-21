@@ -8,7 +8,7 @@ and architecture review
 **Implementation authority:** None
 
 > This records an approved product/accounting launch-scope policy. It does not
-> approve DEC-18 through DEC-22, and it does not authorise an implementation task,
+> approve DEC-19 through DEC-22, and it does not authorise an implementation task,
 > code, schema,
 > migration, accounting logic, UI, workflow, dependency, deployment, or
 > publishing work.
@@ -38,7 +38,7 @@ DEC-16 does not decide:
 - the accounting representation already established by DEC-13;
 - the unapplied-cash workflow already established by DEC-14;
 - the refund policy already established by DEC-15;
-- later decisions from DEC-18 through DEC-22;
+- later decisions from DEC-19 through DEC-22;
 - source freshness/posting safety;
 - implementation, schema, API, UI, or deployment details.
 
@@ -582,7 +582,7 @@ is customer-only or customer-and-supplier.
 
 ### Deliberately left open
 
-- **DEC-18 onward:** later product, accounting, security, and operational
+- **DEC-19 onward:** later product, accounting, security, and operational
   decisions;
 - **DEC-22:** migration evidence, exceptions, cohort, cutover, rollback, and
   legacy authority retirement;
@@ -614,7 +614,7 @@ DEC-16 was explicitly approved on 2026-08-21. The approval is a
 product/accounting launch-scope decision only. Until the applicable remaining
 decisions are approved or amended:
 
-- DEC-18 through DEC-22 remain untouched and unresolved;
+- DEC-19 through DEC-22 remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**;
 - no payment-on-account feature, UI, schema, migration, or accounting
   mechanism may be implemented; and
@@ -622,7 +622,8 @@ decisions are approved or amended:
 
 **DEC-01 through DEC-16:** **APPROVED**
 **DEC-17:** **APPROVED — Audit Retention Period**
-**DEC-18 through DEC-22:** **REQUIRE USER DECISION**
+**DEC-18:** **APPROVED — Deletion and Anonymisation Policy**
+**DEC-19 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**

@@ -401,7 +401,7 @@ The explicit approval records:
 - overpayments, unapplied cash, refunds, and payment-on-account treatment
   (DEC-13 through DEC-16);
 - retention, deletion, export, backup/recovery, RLS, migration cohort,
-  cutover, rollback, and legacy authority retirement (DEC-18 through DEC-22);
+  cutover, rollback, and legacy authority retirement (DEC-19 through DEC-22);
 - new VAT schemes, tax treatments, markets, currencies, payment methods, or
   bank-feed providers; and
 - any implementation task.
@@ -415,7 +415,7 @@ decisions are approved or amended:
 - no active control mappings, mapping-protection behavior, account-configuration
   versioning, posting-template implementation, or account remapping may be
   implemented;
-- DEC-18 and all later decisions remain untouched and unresolved;
+- DEC-19 and all later decisions remain untouched and unresolved;
 - BL-06 and BL-07 remain **BLOCKED**; and
 - no implementation task is authorised.
 
@@ -427,7 +427,8 @@ decisions are approved or amended:
 **DEC-15:** **APPROVED — Refund Policy**
 **DEC-16:** **APPROVED — Payment-on-Account Launch Scope**
 **DEC-17:** **APPROVED — Audit Retention Period**
-**DEC-18 through DEC-22:** **REQUIRE USER DECISION**
+**DEC-18:** **APPROVED — Deletion and Anonymisation Policy**
+**DEC-19 through DEC-22:** **REQUIRE USER DECISION**
 **BL-06 / BL-07:** **BLOCKED**
 **Application code changed by this review:** **NO**
 **Database or migrations changed by this review:** **NO**
