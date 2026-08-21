@@ -146,18 +146,18 @@ not higher authority.
   journal-authoritative reporting with rebuildable projections; company-scoped
   server-side capability/audit boundaries; and additive, evidence-based
   compatibility and migration architecture.
-- **Deliberate non-locks:** DEC-05 was separately approved as the capability
-  model. DEC-06 through DEC-22 remain unresolved. DEC-04 does not select the
-  financial year, periods, year-end, chart/control-account defaults,
-  configuration versioning, source-freshness, payment/refund treatment,
-  retention, deletion, export, backup/recovery, RLS, historical migration
-  cohort, cutover, or rollback policy.
+- **Deliberate non-locks:** DEC-05 and DEC-06 were separately approved as the
+  capability model and financial-year policy. DEC-07 through DEC-22 remain
+  unresolved. DEC-04 does not select periods, year-end, chart/control-account
+  defaults, configuration versioning, source-freshness, payment/refund
+  treatment, retention, deletion, export, backup/recovery, RLS, historical
+  migration cohort, cutover, or rollback policy.
 - **Reason:** The architecture supplies a safe, authoritative accounting
   foundation while preserving explicit product-owner decisions for policies
   that affect operations, compliance, access, and migration.
 - **Impact:** Future specifications must conform to this accounting authority;
   current implementation remains evidence, not an approved target.
-- **Dependencies:** DEC-02 and DEC-03. The applicable DEC-06 through DEC-22
+- **Dependencies:** DEC-02 and DEC-03. The applicable DEC-07 through DEC-22
   decisions remain required before implementation approval.
 - **What it affects:** Accounting sources, journals, payments, allocations,
   banking, VAT, reports, permissions, audit, compatibility, migration, and
@@ -216,6 +216,35 @@ not higher authority.
   direction only. It does not authorise code, schema, migration, UI, workflow,
   dependency, deployment, publishing, or an implementation task. BL-06 and
   BL-07 remain blocked.
+
+### DEC-06 — Financial-year start and change policy
+
+- **Status:** APPROVED — product/accounting policy only
+- **Decision review:** [DEC-06 Financial-Year Policy
+  Review](ledgerly-dec-06-financial-year-policy-review.md).
+- **Current decision/direction:** New UK-focused companies default to 1 April
+  through 31 March. A company may select another valid recurring start during
+  setup or before its first canonical posted accounting record.
+- **Approved identity and history boundary:** Financial-year identity is
+  explicit and company-scoped, distinct from document dates, transaction dates,
+  VAT periods, tax years, and bank dates. First and partial first years are
+  supported. Historical financial-year assignment relies on available source
+  evidence and must not invent accounting facts.
+- **Approved change boundary:** After canonical posting exists, ordinary
+  company configuration cannot retrospectively change the start or silently
+  reclassify posted records. A future transition must be separately designed,
+  approved, privileged, and fully audited.
+- **Reporting and permission boundary:** Reports rely on the DEC-04 canonical
+  accounting model. Financial-year configuration is consequential accounting
+  configuration under DEC-05 active membership, company scope, server-side
+  capability checks, privileged authority, and audit.
+- **Dependencies:** DEC-04 and DEC-05. DEC-07 period policy and DEC-08
+  year-end policy remain separate unresolved decisions.
+- **Change authority:** Product owner/stakeholder with accounting, security,
+  and architecture review through the Living Product Decisions process.
+- **Implementation limit:** DEC-06 does not authorise code, schema, migration,
+  UI, workflow, dependency, deployment, publishing, or an implementation task.
+  BL-06 and BL-07 remain blocked.
 
 ### PD-01 — Product name
 

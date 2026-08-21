@@ -21,9 +21,10 @@ Living Product Decisions Register records explicit, revisitable product
 direction but does not authorise implementation. The product gap analysis and
 feature matrix are supporting evidence, not authority over this hierarchy.
 Existing code is evidence of current behaviour, not product authority. DEC-04
-approves the BL-06/BL-07 accounting-core architecture foundation and DEC-05
-approves the capability model, both as architecture/product decisions only.
-DEC-06 through DEC-22 remain unresolved, and BL-06/BL-07 remain blocked until
+approves the BL-06/BL-07 accounting-core architecture foundation, DEC-05
+approves the capability model, and DEC-06 approves the financial-year policy;
+all are architecture/product/accounting-policy decisions only. DEC-07 through
+DEC-22 remain unresolved, and BL-06/BL-07 remain blocked until
 the applicable decisions and an implementation task are explicitly approved.
 Do not choose roadmap scope or silently change a recorded decision autonomously.
 Before implementation, also review the Core Maxims, Design System, Definition

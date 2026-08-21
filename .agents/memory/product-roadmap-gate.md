@@ -18,12 +18,15 @@ schemes, specialist adjustments, and direct HMRC workflows remain future scope.
 DEC-04 is architecture approval only. DEC-05 approves Option B: server-side
 capabilities with conservative role presets, including active company scope,
 posted-journal immutability, AI capability inheritance, auditable actions, and
-conservative migration. DEC-06 through DEC-22 remain unresolved, and BL-06/BL-07
-remain blocked pending the applicable decisions and an approved implementation
-task. Do not implement backlog items or publish Ledgerly until the user has
-reviewed and selected the next roadmap task. Treat the Living Product Decisions
-Register as the revisitable product-direction record below the Master Backlog;
-it never authorises implementation on its own.
+conservative migration. DEC-06 approves the financial-year policy: 1 April to
+31 March is the UK default, company-specific starts are supported before
+posting, historical boundaries cannot be rebased through ordinary settings, and
+changes require privileged audit controls. DEC-07 through DEC-22 remain
+unresolved, and BL-06/BL-07 remain blocked pending the applicable decisions and
+an approved implementation task. Do not implement backlog items or publish
+Ledgerly until the user has reviewed and selected the next roadmap task. Treat
+the Living Product Decisions Register as the revisitable product-direction
+record below the Master Backlog; it never authorises implementation on its own.
 
 **Why:** The existing technical foundation and phase work do not demonstrate
 complete, end-to-end product workflows; the user explicitly requires

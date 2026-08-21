@@ -37,8 +37,9 @@ Future specifications must preserve the DEC-04 architectural invariants:
 - company-scoped server-side capability and audit boundaries; and
 - additive, evidence-based compatibility and migration.
 
-DEC-04 and DEC-05 are architecture/product approvals only. They do not approve
-an implementation task or resolve any DEC-06 through DEC-22 policy.
+DEC-04, DEC-05, and DEC-06 are architecture/product/accounting-policy approvals
+only. They do not approve an implementation task or resolve any DEC-07 through
+DEC-22 policy.
 
 ## Architecture obligations derived from governance
 
@@ -98,10 +99,11 @@ merely because it exists today.
 DEC-05 is approved separately. The following remain **REQUIRES USER DECISION**
 before BL-06 or BL-07 can be approved for implementation:
 
-1. Financial-year, period generation, close/reopen, and year-end policy. See
+1. Period generation, close/reopen, and year-end policy. The financial-year
+   policy is approved through DEC-06. See
    the [DEC-06 Financial-Year Policy
    Review](ledgerly-dec-06-financial-year-policy-review.md) for the
-   financial-year recommendation; it remains unapproved.
+   approved financial-year boundary.
 2. Chart template, control-account mappings, and effective-dated configuration
    policy.
 3. Source revision/freshness rules, including VAT evidence.

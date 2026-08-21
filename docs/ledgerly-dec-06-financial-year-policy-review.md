@@ -1,15 +1,16 @@
 # DEC-06 Financial-Year Policy Review
 
 **Decision:** DEC-06 — Financial-year start and change policy  
-**Status:** **REQUIRES USER DECISION**  
+**Status:** **APPROVED**
 **Review date:** 2026-08-21  
+**Decision recorded:** 2026-08-21
 **Decision authority:** Product owner/stakeholder, with accounting and
 architecture review  
 **Implementation authority:** None
 
-> This is a decision-only review. It does not approve DEC-06, DEC-07, DEC-08,
-> an implementation task, code, schema, migration, UI, workflow, dependency,
-> deployment, or publishing work.
+> This records an approved product/accounting policy. It does not approve
+> DEC-07, DEC-08, an implementation task, code, schema, migration, UI,
+> workflow, dependency, deployment, or publishing work.
 
 ## 1. Purpose and decision question
 
@@ -560,37 +561,44 @@ reproducibility and trust. It is not an acceptable launch policy.
 immutable financial-year identities would require versioned historical
 configuration and report reconstruction.
 
-## 13. RECOMMENDATION — NOT APPROVAL
+## 13. Recorded approval — DEC-06
 
-Adopt **Option B: company-configurable recurring financial-year start with a
-launch default and an after-posting freeze**.
+Lee approved the recommended **Option B: company-configurable recurring
+financial-year start with a launch default and an after-posting freeze**, with
+the following policy boundaries and clarifications:
 
-The recommended initial policy is:
+1. For new UK-focused companies, the product default is **1 April through
+   31 March**. This is a product default, not an immutable requirement.
+2. A company may choose another valid recurring financial-year start during
+   setup or before its first canonical posted accounting record. The
+   architecture must not hard-code 1 April as the only possible value.
+3. Financial-year identity is explicitly represented and company-scoped,
+   distinct from document dates, transaction dates, VAT periods, tax years, and
+   bank dates. Reporting must not infer it solely from a document date.
+4. Once canonical posted accounting records exist, ordinary company
+   configuration must not change the financial-year start retrospectively.
+   Existing posted records must not be silently reclassified. Any future
+   transition mechanism must be separately designed, approved, privileged, and
+   fully audited.
+5. The policy supports a first financial year, a partial first financial year
+   where applicable, normal recurring subsequent years, and year-boundary
+   transitions. The first year is not assumed to be a full 12 months.
+6. Historical financial years use available source evidence. The product must
+   never invent historical accounting data merely to populate financial-year
+   structures; incomplete or ambiguous history remains recorded as a
+   limitation.
+7. Financial-year identity must support accurate Profit & Loss, Balance Sheet,
+   Trial Balance, General Ledger, comparative reporting, and other accounting
+   reports. Reporting ultimately relies on the canonical accounting model
+   approved under DEC-04.
+8. Changing company financial-year configuration is consequential accounting
+   configuration and must respect DEC-05 active membership, company scope,
+   server-side capability checks, appropriate privileged authority, and audit.
+9. The policy must not unnecessarily prevent future different starts, markets,
+   currencies, or international accounting requirements.
 
-1. Default new companies to **1 April through 31 March**. This is a product
-   reporting default suitable for the initial UK small-business direction, not
-   a claim that every UK business or tax obligation uses that year.
-2. Allow a company to choose another valid recurring month/day during setup or
-   before its first canonical posted accounting record.
-3. Treat the company's approved boundary as independent from VAT-return cycles,
-   the UK tax year, invoice numbering, and document dates.
-4. Represent financial years with stable company-scoped identities and immutable
-   date boundaries. Preserve the configuration evidence used to create them.
-5. Require an explicit accounting commencement date when the first year is
-   partial or historical migration begins after the recurring boundary.
-6. Reject 29 February as a launch start date unless its non-leap-year behavior
-   is separately approved.
-7. After posted records exist, reject ordinary retroactive changes. Preserve
-   established financial-year identities and require a separately approved,
-   privileged transition policy before any future-effective change is allowed.
-8. Assign historical records by reliable authoritative posting date. Do not
-   invent dates, years, journals, balances, or closing entries.
-9. Require server-side DEC-05 capability checks, active membership, company
-   scope, reason/approval evidence where applicable, and an audit record for
-   financial-year configuration attempts and changes.
-
-This recommendation does not approve DEC-06. It also does not decide period
-generation/close/reopen under DEC-07 or year-end treatment under DEC-08.
+This approval does not decide period generation/close/reopen under DEC-07 or
+year-end treatment under DEC-08.
 
 ## 14. What approving DEC-06 would lock in
 
@@ -604,8 +612,7 @@ Approval of the recommendation would lock in:
 5. explicit handling of commencement and partial first years;
 6. date-based assignment of posted records with visible historical exceptions;
 7. rejection of ordinary post-transaction retroactive boundary changes;
-8. the recommended launch treatment of 29 February; and
-9. DEC-05 server-side authorization and audit for consequential configuration.
+8. DEC-05 server-side authorization and audit for consequential configuration.
 
 Approval would not authorise the implementation of any of these items.
 
@@ -660,8 +667,8 @@ creates a closing journal.
 
 ## 18. Decision readiness
 
-DEC-06 is ready for explicit user decision. The recommendation is **not
-approval**.
+**DEC-06 approval is recorded.** The approved policy is a product/accounting
+decision only and is not implementation authorisation.
 
 Until DEC-06 is approved or amended:
 
@@ -670,7 +677,7 @@ Until DEC-06 is approved or amended:
 - BL-06 and BL-07 remain **BLOCKED**; and
 - DEC-07 and all later decisions remain untouched and unresolved.
 
-**DEC-06:** **REQUIRES USER DECISION**  
+**DEC-06:** **APPROVED — product/accounting policy only**
 **DEC-07 onward:** **NOT STARTED; REQUIRES USER DECISION**  
 **BL-06 / BL-07:** **BLOCKED**  
 **Application code changed by this review:** **NO**  

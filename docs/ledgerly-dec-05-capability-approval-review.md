@@ -408,8 +408,9 @@ capabilities remain subject to later decisions and documented amendments.
 
 DEC-05 must remain compatible with, but must not resolve, the following:
 
-- **DEC-06:** Financial-year policy determines whether changing financial-year
-  settings is a privileged configuration action and who may perform it.
+- **DEC-06:** Approved financial-year policy determines that changing
+  financial-year configuration is consequential and requires the selected
+  privileged, audited capability boundary.
 - **DEC-07:** Period creation, close, and reopen determine the capabilities and
   approval conditions for period control.
 - **DEC-08:** Year-end treatment determines authority for any closing or
@@ -479,7 +480,6 @@ DEC-05 locks:
 
 DEC-05 does not resolve or lock:
 
-- financial-year start and change policy;
 - period frequency, close, or reopen policy beyond the capability boundary;
 - year-end treatment;
 - chart defaults, control-account mappings, or configuration versioning;
@@ -530,7 +530,8 @@ use an unrecorded change.
 ## 12. Decision-only status
 
 **DEC-05:** **APPROVED — Option B, architecture/product decision only**
-**DEC-06 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
+**DEC-06:** **APPROVED — financial-year policy only**
+**DEC-07 through DEC-22:** **REMAIN UNRESOLVED AND UNAPPROVED**
 **DEC-04:** **APPROVED — architecture only**
 **BL-06 / BL-07:** **BLOCKED**
 **Implementation task:** **NONE CREATED OR EXECUTED**

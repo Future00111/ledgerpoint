@@ -3,7 +3,7 @@
 **Scope:** Pre-implementation product, accounting, and architecture decisions  
 **Prepared:** 2026-08-21  
 **Applies to:** BL-06 Canonical Posting Engine; BL-07 Chart, Defaults, Periods and Accounting Configuration  
-**Decision status:** DEC-01 through DEC-05 APPROVED; DEC-06 through DEC-22
+**Decision status:** DEC-01 through DEC-06 APPROVED; DEC-07 through DEC-22
 REQUIRE EXPLICIT REVIEW
 **Implementation status:** BLOCKED
 **Current decision register:** [Ledgerly Current Decision Register](ledgerly-current-decision-register.md)
@@ -107,10 +107,10 @@ Living Product Decisions Register until it has been explicitly accepted.
   corrections, separate settlement/evidence concepts, the DEC-03 VAT adapter,
   journal-authoritative reporting, company-scoped capability/audit boundaries,
   and additive evidence-based compatibility and migration.
-- **Decision boundary:** DEC-05 is separately approved as the capability model.
-  DEC-06 through DEC-22 remain unresolved. These approvals do not approve their
-  policy choices, physical schema, migration execution, API/UI changes, or an
-  implementation task.
+- **Decision boundary:** DEC-05 and DEC-06 are separately approved as the
+  capability model and financial-year policy. DEC-07 through DEC-22 remain
+  unresolved. These approvals do not approve their policy choices, physical
+  schema, migration execution, API/UI changes, or an implementation task.
 - **Accounting/data consequences:** The architecture determines canonical
   journal, period, account, payment, allocation, source, audit, and reporting
   contracts. It must not permit browser-created journal lines or generic
@@ -190,19 +190,18 @@ Living Product Decisions Register until it has been explicitly accepted.
 
 ## 5. Financial-year policy
 
-- **Status:** REQUIRES USER DECISION
+- **Status:** APPROVED — DEC-06, product/accounting policy only
 - **Decision review:** [DEC-06 Financial-Year Policy
   Review](ledgerly-dec-06-financial-year-policy-review.md).
-- **Decision needed:** Decide how a company chooses its financial year and
-  whether it may change the start date after posting.
-- **Options:**
-  1. Fixed calendar year for every company.
-  2. Company-configurable start month/day with a launch default.
-  3. UK statutory/company-year import only.
-- **Recommendation:** Use a company-configurable financial-year start with a
-  simple launch default, while preserving the selected boundaries once
-  postings exist. Do not equate the financial year automatically with the tax
-  year or VAT return cycle.
+- **Approved outcome:** New UK-focused companies default to 1 April through
+  31 March, while a company may choose another valid recurring start during
+  setup or before its first canonical posted accounting record. Financial-year
+  identity is explicit and company-scoped, distinct from document dates,
+  transaction dates, VAT periods, tax years, and bank dates.
+- **Approved change boundary:** Ordinary company configuration cannot
+  retrospectively change the start after canonical posting exists or silently
+  reclassify posted records. A future transition requires separate design,
+  approval, privileged authority, and full audit.
 - **Accounting/data consequences:** Every period and journal must resolve to
   exactly one financial year. Changing the year boundary after posting must
   create an explicit migration/review path rather than rewrite history.
@@ -211,8 +210,9 @@ Living Product Decisions Register until it has been explicitly accepted.
   review, not automatic invention.
 - **Dependencies:** PD-02/PD-03, period model, posting date policy, reporting,
   BL-07, BL-17.
-- **Explicit product decision:** Confirm the launch default and whether the
-  financial-year start is changeable after the first posting.
+- **Implementation limit:** DEC-06 does not authorise code, schema, migration,
+  UI, workflow, dependency, deployment, publishing, or an implementation task.
+  BL-06 and BL-07 remain blocked.
 
 ## 6. Accounting-period creation, closing, and reopening
 
@@ -635,28 +635,25 @@ These constraints are not invitations to implement BL-06 or BL-07.
 
 ## 23. Decisions requiring Lee's explicit approval
 
-DEC-03 is approved as S1 + A + H1. Before implementation, Lee must explicitly
-approve or amend:
+DEC-03, DEC-04, DEC-05, and DEC-06 are approved. Before implementation, Lee
+must explicitly approve or amend:
 
-1. Adoption or amendment of the accounting-core architecture review.
-2. The capability matrix.
-3. Financial-year start and change policy.
-4. Monthly period generation and close/reopen rules.
-5. Year-end reporting-only versus explicit closing journal.
-6. Default UK chart template and account list.
-7. Mandatory control-account mappings.
-8. Effective-dated account/configuration versioning.
-9. Source revision/hash and VAT freshness semantics.
-10. Customer overpayment and supplier prepayment treatment.
-11. First-class unapplied cash.
-12. Refund requirements and launch scope.
-13. Customer/supplier payment-on-account scope.
-14. Audit retention periods.
-15. Deletion/anonymisation policy.
-16. Export formats, scope, and permissions.
-17. Backup RPO/RTO and restore-test requirements.
-18. Application scoping versus RLS policy.
-19. Historical migration cohort/cutover policy.
+1. Monthly period generation and close/reopen rules.
+2. Year-end reporting-only versus explicit closing journal.
+3. Default UK chart template and account list.
+4. Mandatory control-account mappings.
+5. Effective-dated account/configuration versioning.
+6. Source revision/hash and VAT freshness semantics.
+7. Customer overpayment and supplier prepayment treatment.
+8. First-class unapplied cash.
+9. Refund requirements and launch scope.
+10. Customer/supplier payment-on-account scope.
+11. Audit retention periods.
+12. Deletion/anonymisation policy.
+13. Export formats, scope, and permissions.
+14. Backup RPO/RTO and restore-test requirements.
+15. Application scoping versus RLS policy.
+16. Historical migration cohort/cutover policy.
 
 No item above should be marked approved merely because this pack recommends an
 option.
@@ -695,7 +692,7 @@ Implementation remains **BLOCKED** by:
 - unresolved accounting-core design adoption, subject to the approved DEC-03
   VAT constraints;
 - unresolved capability matrix and elevated accounting permissions;
-- unresolved financial-year, period, and year-end policy;
+- unresolved period and year-end policy;
 - unresolved chart template and control-account mappings;
 - unresolved source freshness/version contract;
 - unresolved overpayment, unapplied cash, refund, and payment-on-account
@@ -715,8 +712,9 @@ REQUIRE REVIEW
 **DECISION 3:** APPROVED — S1 + A + H1
 **DECISION 4:** APPROVED — architecture only
 **DECISION 5:** APPROVED — Option B
-**DECISION 6–22:** UNRESOLVED
-**CURRENT DECISION REGISTER:** DEC-04 APPROVAL RECORDED
+**DECISION 6:** APPROVED — financial-year policy
+**DECISION 7–22:** UNRESOLVED
+**CURRENT DECISION REGISTER:** DEC-04, DEC-05, AND DEC-06 APPROVALS RECORDED
 **BL-06 / BL-07 IMPLEMENTATION:** BLOCKED  
 **APPLICATION CODE CHANGED:** NO  
 **DATABASE OR MIGRATIONS CHANGED:** NO  
