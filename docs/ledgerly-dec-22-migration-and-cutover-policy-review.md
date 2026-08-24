@@ -13,6 +13,9 @@ security, privacy, reliability, tenant-isolation, and architecture review
 > accounting logic, UI, workflow, dependency, infrastructure configuration,
 > deployment, publishing, or migration execution.
 
+**Pilot planning package:** [Historical Accounting Migration Pilot
+Plan](ledgerly-historical-accounting-migration-pilot-plan.md)
+
 ## 1. Exact registered question
 
 The Current Decision Register defines DEC-22 as:

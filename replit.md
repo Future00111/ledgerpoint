@@ -53,6 +53,9 @@ planning design; its final governance ownership and implementation require
 separate approval.
 The [safety-rule ownership record](docs/ledgerly-safety-rule-ownership-record.md)
 is also planning-only and does not assign source freshness to DEC-12.
+The [historical accounting migration pilot
+plan](docs/ledgerly-historical-accounting-migration-pilot-plan.md) is
+planning-only; it does not authorise migration, cutover, or implementation.
 Do not choose roadmap scope or silently change a recorded decision autonomously.
 Before implementation, also review the Core Maxims, Design System, Definition
 of Done, Product Development Workflow, and Workspace Framework.

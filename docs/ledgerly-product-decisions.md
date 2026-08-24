@@ -28,6 +28,11 @@ Record](ledgerly-safety-rule-ownership-record.md) assigns proposed logical
 server-side owners without assigning source freshness to DEC-12 or creating a
 new governance decision.
 
+The [Historical Accounting Migration Pilot
+Plan](ledgerly-historical-accounting-migration-pilot-plan.md) applies DEC-22
+and the completed planning designs to a future controlled pilot only; it does
+not approve migration execution.
+
 The Ledgerly Manifesto remains the highest-level authority. This register does
 not authorise implementation by itself:
 

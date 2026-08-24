@@ -47,6 +47,11 @@ The [Implementation Brief](ledgerly-implementation-brief.md) contains a
 planning-only task inventory. It does not create executable backlog tasks or
 authorise BL-06/BL-07.
 
+The [Historical Accounting Migration Pilot
+Plan](ledgerly-historical-accounting-migration-pilot-plan.md) defines
+planning-only evidence, validation, recovery, and cutover gates for a future
+DEC-22 pilot. It does not authorise migration or unblock BL-06/BL-07.
+
 ## Backlog
 
 | ID | Module | Feature | Current status | What needs to be built | Priority | Dependencies | Complexity | Acceptance criteria |

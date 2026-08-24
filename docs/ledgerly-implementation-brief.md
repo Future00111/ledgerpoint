@@ -14,6 +14,8 @@ below requires explicit review before consequential posting is implemented
 Posting-Safety Contract](ledgerly-source-freshness-posting-safety-contract.md)
 **Safety-rule ownership record:** [Ledgerly Safety-Rule Ownership
 Record](ledgerly-safety-rule-ownership-record.md)
+**Migration pilot plan:** [Historical Accounting Migration Pilot
+Plan](ledgerly-historical-accounting-migration-pilot-plan.md)
 
 > This document translates approved governance into a concrete plan for
 > separately approved implementation work. It does not implement code, schema,
