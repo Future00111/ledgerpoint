@@ -103,8 +103,18 @@ dependency.
 
 **REQUIRES SEPARATE APPROVAL:** The product/accounting owner must decide where
 the final source-freshness policy is governed and whether an amendment to an
-existing decision is needed. This contract does not assume that DEC-12 owns
-source freshness, does not amend it, and does not create DEC-23.
+existing decision is needed. Before affected implementation is authorised, the
+owner must explicitly record:
+
+1. the existing decision that owns the cross-cutting source-freshness contract;
+2. whether a narrowly scoped DEC-12 boundary amendment is needed for
+   payment/allocation-specific application; and
+3. the resulting references in the decision register and affected
+   implementation briefs.
+
+This contract does not assume that DEC-12 owns source freshness, does not amend
+it, and does not create DEC-23. If an amendment is selected, it must clarify
+the boundary without silently changing DEC-12's approved accounting rules.
 
 ## 4. Core safety rule
 
@@ -200,6 +210,25 @@ The envelope should contain:
 - intended source/revision/effect identity;
 - queue creation/expiry/retry metadata where queued; and
 - a result reference once a command completes.
+
+### Envelope binding and lifecycle rules
+
+- The envelope must identify the exact source and intended effect; a broad
+  company or list query is not sufficient for consequential persistence.
+- The analysis snapshot is bound to the source revision and each material
+  configuration, mapping, period, VAT, balance, and authority context used to
+  produce it.
+- A command affecting multiple material sources carries an independently
+  comparable envelope for each source plus an overall command identity. A
+  single aggregate timestamp must not hide a stale source.
+- An envelope passed from draft to approval remains an immutable reference; it
+  must not be edited in place to make stale state appear current.
+
+The implementation design should model a reviewable state machine with
+equivalent states for captured, analysed, awaiting approval,
+approved-pending-revalidation, posted, rejected-stale, conflict, expired,
+retryable failure, terminal failure, and cancelled actions. State names remain
+changeable, but approval itself must never become posting authority.
 
 **ENGINEERING CHOICE THAT REMAINS CHANGEABLE:** Field names, hashes, token
 formats, data serialization, retention implementation, and whether an envelope
@@ -571,6 +600,13 @@ changed”, “your approval has expired”, “the accounting period is closed�
 “this payment has already been posted.” The response must not disclose another
 company’s resource, mapping, balance, or audit detail.
 
+The API, worker, and review surface should use stable outcome categories,
+including source stale, source uncomparable, evidence incomplete, context
+changed, authority revoked, idempotency already applied, idempotency-key
+conflict, period closed, accounting conflict, retryable failure, and terminal
+failure. Their transport/status-code representation remains implementation
+detail.
+
 ## 14. Audit evidence contract
 
 ### Required implementation behavior
@@ -607,6 +643,11 @@ accounting effect and preserves tenant isolation.
 **ENGINEERING CHOICE THAT REMAINS CHANGEABLE:** Audit storage layout, hash
 algorithm, redaction, encryption, event format, and retention implementation,
 subject to DEC-17/18/20/21.
+
+Operational signals must make it possible to detect increasing stale/conflict
+rates, repeated retries, idempotency collisions, queue expiry, dead letters,
+cross-company rejection, audit-write failures, and any approved non-atomic
+fallback. Metric names, vendors, and alert thresholds remain changeable.
 
 ## 15. Acceptance criteria
 
@@ -727,6 +768,25 @@ Before a bounded implementation task may execute, the project needs:
 
 No item above is passed merely because DEC-01 through DEC-22 are approved.
 
+### Required review record
+
+Acceptance must be recorded by the relevant human authority; this planning
+artifact does not manufacture signatures or approval. The review record must
+cover:
+
+| Reviewer | Required acceptance |
+|---|---|
+| Accounting authority | Source/evidence precedence, payment/allocation/refund/VAT treatment, periods, configuration, mappings, idempotency, reconciliation, and correction boundaries. |
+| Security/tenant reviewer | Authentication, membership/capability revocation, company isolation, worker/AI scope, audit, exports, support, and failure behavior. |
+| Architecture/data reviewer | Envelope lifecycle, source comparison, transaction/locking boundary, queue/retry behavior, idempotency, data contracts, and non-atomic race controls. |
+| Product owner | User-visible stale/conflict/expiry language, approval meaning, review/resolution flow, and operation scope. |
+| Migration and operations reviewers | Source snapshots, provenance, exceptions, checkpoints, recovery, queue expiry, dead-letter handling, observability, and replay prevention. |
+
+Reviewers must confirm that every consequential operation identifies an exact
+source and intended effect, detects material change, revalidates final state
+and authority server-side, handles stale/duplicate/expiry outcomes safely, and
+keeps implementation detail separate from policy approval.
+
 ## 19. Final verification
 
 - DEC-01 through DEC-22 remain APPROVED.
@@ -734,6 +794,10 @@ No item above is passed merely because DEC-01 through DEC-22 are approved.
 - BL-06 and BL-07 remain BLOCKED.
 - The proposed source-freshness/posting-safety contract is explicitly
   documented.
+- The owning-decision and potential DEC-12 amendment outcome remain explicit
+  governance determinations; this document does not decide them.
+- Human accounting, security, architecture, product, migration, and operations
+  acceptance must be recorded before any affected implementation is authorised.
 - Existing approved policy is distinguished from required implementation
   behavior, proposed technical design, changeable engineering choices, and
   separate approvals.
