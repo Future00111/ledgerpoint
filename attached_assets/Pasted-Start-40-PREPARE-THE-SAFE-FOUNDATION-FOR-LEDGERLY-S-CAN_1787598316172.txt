@@ -1,0 +1,112 @@
+Start #40 — PREPARE THE SAFE FOUNDATION FOR LEDGERLY'S CANONICAL ACCOUNTING.
+
+This task is now authorised as a PLANNING / TECHNICAL DESIGN task only.
+
+Do NOT implement code yet.
+
+Do NOT modify:
+- application code
+- database schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- infrastructure
+- deployment
+- publishing
+- migration/cutover
+
+The purpose is to turn the approved DEC-01–DEC-22 governance and the completed source-freshness/posting-safety design into a concrete, reviewable technical foundation for the canonical accounting system.
+
+Use these as authoritative planning inputs:
+
+- DEC-01–DEC-22
+- docs/ledgerly-implementation-brief.md
+- docs/ledgerly-source-freshness-posting-safety-contract.md
+- docs/ledgerly-safety-rule-ownership-record.md
+
+Cover:
+
+1. Canonical journal model
+2. Journal-line invariants
+3. Immutable posting model
+4. Correction/reversal model
+5. Chart of Accounts foundation
+6. DEC-10 control-account mappings
+7. DEC-11 configuration-version resolution
+8. DEC-06 financial years
+9. DEC-07 accounting periods
+10. DEC-08 reporting-only year-end
+11. DEC-03 VAT boundary
+12. DEC-05 capabilities
+13. DEC-21 company isolation
+14. Source-freshness/posting-safety boundary
+15. Idempotency and concurrency
+16. Audit evidence
+17. Required accounting primitives
+18. Conceptual data model
+19. Proposed API/service boundaries
+20. Required testing and accounting invariants
+
+For every proposed technical element clearly distinguish:
+
+- REQUIRED BY APPROVED POLICY
+- REQUIRED BY ACCOUNTING INVARIANT
+- PROPOSED TECHNICAL DESIGN
+- ENGINEERING CHOICE
+- NOT YET DECIDED
+
+Do not prematurely lock:
+
+- exact database schema;
+- exact API shape;
+- service architecture;
+- RLS implementation;
+- infrastructure;
+- worker technology;
+- UI;
+- deployment architecture.
+
+Pay particular attention to preventing:
+
+- unbalanced journals;
+- duplicate posting;
+- stale-source posting;
+- posting into invalid/closed periods;
+- use of stale configuration;
+- incorrect control-account mappings;
+- VAT divergence;
+- history rewriting;
+- cross-company accounting;
+- AI bypassing accounting authority;
+- partial accounting effects.
+
+The Canonical Posting Authority must remain the only proposed logical owner permitted to create canonical journals after all final checks pass.
+
+Do not create DEC-23.
+
+Do not unblock BL-06 or BL-07.
+
+Do not start #41.
+
+At the end provide:
+
+- proposed canonical accounting architecture;
+- conceptual entities and relationships;
+- accounting invariants;
+- posting lifecycle;
+- correction/reversal lifecycle;
+- configuration/period resolution;
+- security boundary;
+- source-freshness boundary;
+- idempotency/concurrency model;
+- audit requirements;
+- proposed implementation phases;
+- acceptance criteria;
+- risks;
+- exact points requiring approval before implementation.
+
+STOP after completing the planning/design work.
+
+No code changes.
