@@ -12,6 +12,8 @@ below requires explicit review before consequential posting is implemented
 
 **Detailed source-freshness contract:** [Ledgerly Source-Freshness and
 Posting-Safety Contract](ledgerly-source-freshness-posting-safety-contract.md)
+**Safety-rule ownership record:** [Ledgerly Safety-Rule Ownership
+Record](ledgerly-safety-rule-ownership-record.md)
 
 > This document translates approved governance into a concrete plan for
 > separately approved implementation work. It does not implement code, schema,

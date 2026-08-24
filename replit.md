@@ -51,6 +51,8 @@ The [source-freshness and posting-safety
 contract](docs/ledgerly-source-freshness-posting-safety-contract.md) is a
 planning design; its final governance ownership and implementation require
 separate approval.
+The [safety-rule ownership record](docs/ledgerly-safety-rule-ownership-record.md)
+is also planning-only and does not assign source freshness to DEC-12.
 Do not choose roadmap scope or silently change a recorded decision autonomously.
 Before implementation, also review the Core Maxims, Design System, Definition
 of Done, Product Development Workflow, and Workspace Framework.

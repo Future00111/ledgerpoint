@@ -9,6 +9,9 @@
 accounting persistence  
 **Prepared:** 2026-08-21
 
+**Ownership record:** [Safety-Rule Ownership
+Record](ledgerly-safety-rule-ownership-record.md)
+
 > This is a planning and design contract. It does not write application code,
 > modify schema or migrations, implement accounting logic, change UI/workflows,
 > modify infrastructure or dependencies, deploy, publish, migrate data, or

@@ -23,6 +23,11 @@ Contract](ledgerly-source-freshness-posting-safety-contract.md) defines the
 proposed final revalidation behavior without assigning a new decision or
 authorising implementation.
 
+The [Safety-Rule Ownership
+Record](ledgerly-safety-rule-ownership-record.md) assigns proposed logical
+server-side owners without assigning source freshness to DEC-12 or creating a
+new governance decision.
+
 The Ledgerly Manifesto remains the highest-level authority. This register does
 not authorise implementation by itself:
 

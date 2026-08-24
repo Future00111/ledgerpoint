@@ -11,6 +11,8 @@
 Brief](ledgerly-implementation-brief.md)
 **Source-freshness contract:** [Ledgerly Source-Freshness and Posting-Safety
 Contract](ledgerly-source-freshness-posting-safety-contract.md)
+**Safety-rule ownership record:** [Ledgerly Safety-Rule Ownership
+Record](ledgerly-safety-rule-ownership-record.md)
 
 > This is an implementation-readiness assessment only. It does not implement
 > anything, create an implementation task, unblock BL-06 or BL-07, create
