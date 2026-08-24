@@ -82,10 +82,20 @@ level safety contract derived from the approved DEC-01–DEC-22 policies that
 govern deterministic authority, source linkage, capabilities, periods,
 configuration, VAT, idempotency, audit, tenant isolation, and migration.
 
-**REQUIRES SEPARATE APPROVAL:** Final governance ownership or amendment
-placement for source freshness must be recorded through the appropriate
-governance path before consequential posting is implemented. This record does
-not assign it to DEC-12, create DEC-23, or invent a new decision number.
+**ACCEPTED CLARIFICATION:** Source freshness/posting safety is an
+implementation-level safety contract derived from DEC-01–DEC-22. Its technical
+ownership is defined by the logical ownership model in this record. It does not
+require a new DEC merely because it spans multiple approved decisions.
+
+DEC-12 remains exclusively the **Payment, Allocation and Settlement Policy**.
+No DEC-23 is required or being proposed, and no approved governance policy is
+being amended. Ordinary technical ownership, orchestration, service boundaries,
+and implementation details do not require a new governance decision.
+
+If later implementation discovers a genuine conflict with an approved
+DEC-01–DEC-22 policy, implementation must stop and raise that specific conflict
+for user/governance review. This clarification does not resolve a policy
+conflict silently.
 
 ### 2.2 Existing decision constraints
 

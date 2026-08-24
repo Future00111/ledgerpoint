@@ -65,7 +65,7 @@ This contract does not:
 - decide the full source-specific accounting treatment of each workflow;
 - approve a new VAT scheme, a new product scope, migration execution, or
   cutover;
-- assign a final governance owner for source freshness; or
+- create a new governance decision merely to assign technical ownership; or
 - create DEC-23.
 
 ## 3. Governance baseline and ownership boundary
@@ -104,20 +104,22 @@ Settlement Policy. Its approved review explicitly states that source freshness
 is not decided or reassigned there and remains a separate posting-safety
 dependency.
 
-**REQUIRES SEPARATE APPROVAL:** The product/accounting owner must decide where
-the final source-freshness policy is governed and whether an amendment to an
-existing decision is needed. Before affected implementation is authorised, the
-owner must explicitly record:
+**ACCEPTED CLARIFICATION:** Source freshness/posting safety is an
+implementation-level safety contract derived from DEC-01–DEC-22. Its technical
+ownership is defined by the logical ownership model in the related ownership
+record and this contract. It does not require a new DEC merely because it spans
+multiple approved decisions.
 
-1. the existing decision that owns the cross-cutting source-freshness contract;
-2. whether a narrowly scoped DEC-12 boundary amendment is needed for
-   payment/allocation-specific application; and
-3. the resulting references in the decision register and affected
-   implementation briefs.
+DEC-12 remains exclusively the **Payment, Allocation and Settlement Policy**.
+No DEC-23 is required or being proposed, and no approved governance policy is
+being amended. Ordinary technical ownership, orchestration, service
+boundaries, and implementation details do not require a new governance
+decision.
 
-This contract does not assume that DEC-12 owns source freshness, does not amend
-it, and does not create DEC-23. If an amendment is selected, it must clarify
-the boundary without silently changing DEC-12's approved accounting rules.
+If later implementation discovers a genuine conflict with an approved
+DEC-01–DEC-22 policy, implementation must stop and raise that specific conflict
+for user/governance review. This clarification does not resolve a policy
+conflict silently.
 
 ## 4. Core safety rule
 
@@ -752,8 +754,9 @@ behavior above.
 
 Before a bounded implementation task may execute, the project needs:
 
-1. explicit resolution of the governance ownership/amendment path for final
-   source-freshness policy;
+1. confirmation that this contract and its logical ownership model are accepted
+   for the selected implementation scope; no new DEC is required solely because
+   the contract is cross-cutting;
 2. accounting, product, security, architecture, migration, and operations
    review for the selected command scope;
 3. an approved source-specific accounting-effect and VAT treatment;
