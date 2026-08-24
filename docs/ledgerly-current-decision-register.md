@@ -9,7 +9,9 @@ Readiness Review](ledgerly-implementation-readiness-review.md)
 and Posting-Safety Contract](ledgerly-source-freshness-posting-safety-contract.md);
 [Safety-Rule Ownership Record](ledgerly-safety-rule-ownership-record.md);
 [Historical Accounting Migration Pilot
-Plan](ledgerly-historical-accounting-migration-pilot-plan.md)
+Plan](ledgerly-historical-accounting-migration-pilot-plan.md);
+[First Implementation Approval
+Package](ledgerly-first-implementation-approval-package.md)
 **Register status:** Decisions 1–22 approved; DEC-22 is a migration/cutover
 policy approval only
 **Implementation gate:** BL-06 and BL-07 remain **BLOCKED**

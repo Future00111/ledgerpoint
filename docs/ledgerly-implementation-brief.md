@@ -16,6 +16,8 @@ Posting-Safety Contract](ledgerly-source-freshness-posting-safety-contract.md)
 Record](ledgerly-safety-rule-ownership-record.md)
 **Migration pilot plan:** [Historical Accounting Migration Pilot
 Plan](ledgerly-historical-accounting-migration-pilot-plan.md)
+**First implementation approval package:** [Ledgerly First Implementation
+Approval Package](ledgerly-first-implementation-approval-package.md)
 
 > This document translates approved governance into a concrete plan for
 > separately approved implementation work. It does not implement code, schema,

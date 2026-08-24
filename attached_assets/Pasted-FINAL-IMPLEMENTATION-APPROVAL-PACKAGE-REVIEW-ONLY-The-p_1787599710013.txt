@@ -1,0 +1,273 @@
+FINAL IMPLEMENTATION APPROVAL PACKAGE — REVIEW ONLY
+
+The planning stage is now complete.
+
+The following are complete and remain planning/design only:
+
+- #39 — source-freshness/posting-safety contract
+- Safety-rule ownership model
+- #40 — canonical accounting foundation
+- #41 — historical accounting migration pilot plan
+
+DEC-01 through DEC-22 remain APPROVED.
+
+BL-06 and BL-07 remain BLOCKED.
+
+Do NOT implement anything.
+
+Do NOT modify:
+- application code
+- schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- infrastructure
+- deployment
+- publishing
+- migration/cutover
+
+Do NOT create DEC-23.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Produce one final implementation approval package that tells us exactly what must happen before the FIRST actual implementation task can be authorised.
+
+Create:
+
+docs/ledgerly-first-implementation-approval-package.md
+
+This is REVIEW ONLY.
+
+==================================================
+1. COMBINE #39, #40 AND #41
+==================================================
+
+Review the completed planning/design work from:
+
+#39 source-freshness/posting-safety
+Safety-rule ownership
+#40 canonical accounting foundation
+#41 historical migration pilot
+
+Check for:
+
+- contradictions;
+- missing dependencies;
+- duplicated responsibilities;
+- unsafe assumptions;
+- unresolved technical questions;
+- accidental policy changes;
+- premature technical lock-in.
+
+Do not silently resolve conflicts.
+
+==================================================
+2. BL-06 / BL-07
+==================================================
+
+State precisely:
+
+- what BL-06 requires;
+- what BL-07 requires;
+- why they remain blocked;
+- what exact evidence is needed to unblock each;
+- whether either should be split;
+- whether either is actually the correct first implementation area.
+
+Do NOT unblock them.
+
+==================================================
+3. FIRST IMPLEMENTATION TASK
+==================================================
+
+Recommend ONE and only ONE first implementation task.
+
+The task must be:
+
+- tightly scoped;
+- technically implementable;
+- independently testable;
+- low enough risk to be the first real build;
+- foundational for later accounting work;
+- consistent with DEC-01–DEC-22;
+- consistent with #39 and #40;
+- not migration;
+- not production deployment;
+- not a broad "build accounting" task.
+
+Provide:
+
+TASK NAME
+TASK ID
+PURPOSE
+SCOPE
+FILES/AREAS EXPECTED TO CHANGE
+DEPENDENCIES
+ACCOUNTING RISKS
+SECURITY RISKS
+ACCEPTANCE CRITERIA
+TESTS REQUIRED
+ROLLBACK/RECOVERY CONSIDERATIONS
+REQUIRED REVIEWERS
+REQUIRED APPROVALS
+
+Do NOT approve or execute the task.
+
+==================================================
+4. IMPLEMENTATION BOUNDARY
+==================================================
+
+Clearly state what the first task must NOT touch.
+
+For example:
+
+- migration;
+- historical data;
+- production data;
+- deployment;
+- publishing;
+- broad UI;
+- unrelated accounting workflows;
+- BL-06/BL-07 functionality unless explicitly included.
+
+==================================================
+5. SCHEMA
+==================================================
+
+Determine whether the first task actually requires a schema change.
+
+If yes:
+
+- explain exactly why;
+- identify the conceptual structures affected;
+- identify migration implications;
+- identify required schema review.
+
+If no:
+
+- explicitly state that the first task should avoid schema changes.
+
+Do not modify the schema.
+
+==================================================
+6. SOURCE FRESHNESS
+==================================================
+
+Confirm how the first task uses the already-approved planning/design from #39.
+
+Do not create another source-freshness task unless a genuine gap exists.
+
+==================================================
+7. ACCOUNTING SAFETY
+==================================================
+
+Identify the exact invariants the first implementation task must enforce.
+
+At minimum consider:
+
+- balanced journals;
+- immutable posted history;
+- no duplicate economic effect;
+- company scope;
+- capability;
+- period validity;
+- configuration version;
+- control-account mapping;
+- VAT authority;
+- audit evidence;
+- atomicity.
+
+==================================================
+8. TEST PLAN
+==================================================
+
+Define the minimum tests required before the first implementation task can be accepted.
+
+Include appropriate:
+
+- unit tests;
+- integration tests;
+- concurrency tests;
+- idempotency tests;
+- permission tests;
+- company-isolation tests;
+- accounting invariant tests;
+- failure/rollback tests.
+
+==================================================
+9. APPROVAL GATE
+==================================================
+
+Define exactly what approval is required before executing the recommended first task.
+
+Make clear:
+
+APPROVED GOVERNANCE ≠ IMPLEMENTATION AUTHORISATION
+
+The user must explicitly approve the implementation task.
+
+==================================================
+10. REMAINING PLANNING ITEMS
+==================================================
+
+List planning/design items that can safely remain open until later.
+
+Do not unnecessarily block the first task with downstream work such as:
+
+- migration;
+- exports;
+- backup implementation;
+- full UI;
+- full RLS rollout;
+- refunds;
+- reconciliation;
+- payment workflows;
+
+unless they are genuinely required by the first task.
+
+==================================================
+11. FINAL VERDICT
+==================================================
+
+Conclude with exactly one:
+
+READY FOR FIRST IMPLEMENTATION TASK APPROVAL
+
+or
+
+NOT READY FOR FIRST IMPLEMENTATION TASK APPROVAL
+
+If READY:
+
+Provide the single recommended first task.
+
+Do NOT approve it.
+
+Do NOT execute it.
+
+==================================================
+12. FINAL VERIFICATION
+==================================================
+
+Confirm:
+
+- DEC-01–DEC-22 remain APPROVED.
+- No DEC-23 exists.
+- BL-06 / BL-07 remain BLOCKED.
+- #39 remains planning/design only.
+- #40 remains planning/design only.
+- #41 remains planning/design only.
+- No application code changed.
+- No schema changed.
+- No migration occurred.
+- No accounting implementation occurred.
+- No deployment occurred.
+- No publishing occurred.
+
+STOP.
+
+Do not implement the recommended task.

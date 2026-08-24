@@ -15,6 +15,8 @@ Contract](ledgerly-source-freshness-posting-safety-contract.md)
 Record](ledgerly-safety-rule-ownership-record.md)
 **Migration pilot plan:** [Historical Accounting Migration Pilot
 Plan](ledgerly-historical-accounting-migration-pilot-plan.md)
+**First implementation approval package:** [Ledgerly First Implementation
+Approval Package](ledgerly-first-implementation-approval-package.md)
 
 > This is an implementation-readiness assessment only. It does not implement
 > anything, create an implementation task, unblock BL-06 or BL-07, create

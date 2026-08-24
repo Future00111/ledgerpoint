@@ -56,6 +56,10 @@ is also planning-only and does not assign source freshness to DEC-12.
 The [historical accounting migration pilot
 plan](docs/ledgerly-historical-accounting-migration-pilot-plan.md) is
 planning-only; it does not authorise migration, cutover, or implementation.
+The [first implementation approval
+package](docs/ledgerly-first-implementation-approval-package.md) recommends
+one future BL-01-FI task for explicit approval; it does not approve or execute
+that task.
 Do not choose roadmap scope or silently change a recorded decision autonomously.
 Before implementation, also review the Core Maxims, Design System, Definition
 of Done, Product Development Workflow, and Workspace Framework.
