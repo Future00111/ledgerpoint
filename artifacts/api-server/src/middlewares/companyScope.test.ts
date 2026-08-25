@@ -1,9 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   createCompanyJobContext,
   evaluateCompanyScope,
   requireCompanyJobContext,
+  resolveActiveMembership,
   resolveCompanyScope,
   type ActiveCompanyMembership,
 } from "./companyScope.js";
@@ -89,6 +92,105 @@ test("company scope rejects missing authentication or company context", () => {
   );
 });
 
+test("company scope rejects malformed context even when resource context exists", () => {
+  assert.deepEqual(
+    evaluateCompanyScope({
+      userId: "user-a",
+      requestedCompanyId: null,
+      resourceCompanyId: "company-a",
+      membership: membership(),
+    }),
+    { ok: false, reason: "invalid_company_context" },
+  );
+});
+
+test("company scope allows a matching requested and resource company", async () => {
+  const result = await resolveCompanyScope(
+    {
+      userId: "user-a",
+      requestedCompanyId: "company-a",
+      resourceCompanyId: "company-a",
+    },
+    async () => membership(),
+  );
+
+  assert.deepEqual(result, {
+    ok: true,
+    scope: { userId: "user-a", companyId: "company-a", role: "member" },
+  });
+});
+
+test("resource-backed scope allows a missing caller company context", async () => {
+  const result = await resolveCompanyScope(
+    { userId: "user-a", resourceCompanyId: "company-a" },
+    async () => membership(),
+  );
+
+  assert.deepEqual(result, {
+    ok: true,
+    scope: { userId: "user-a", companyId: "company-a", role: "member" },
+  });
+});
+
+test("malformed or conflicting resource scope fails before membership lookup", async () => {
+  let lookupCalls = 0;
+  const lookup = async () => {
+    lookupCalls += 1;
+    return membership();
+  };
+
+  const malformed = await resolveCompanyScope(
+    {
+      userId: "user-a",
+      requestedCompanyId: null,
+      resourceCompanyId: "company-a",
+    },
+    lookup,
+  );
+  const conflicting = await resolveCompanyScope(
+    {
+      userId: "user-a",
+      requestedCompanyId: "company-b",
+      resourceCompanyId: "company-a",
+    },
+    lookup,
+  );
+
+  assert.deepEqual(malformed, { ok: false, reason: "invalid_company_context" });
+  assert.deepEqual(conflicting, { ok: false, reason: "conflicting_company_context" });
+  assert.equal(lookupCalls, 0);
+});
+
+test("both protected resource-backed routes invoke the conflict-aware scope guard before analysis", () => {
+  const aiAccountant = readFileSync(join(process.cwd(), "src/routes/aiAccountant.ts"), "utf8");
+  const reconciliationHandler = aiAccountant.slice(
+    aiAccountant.indexOf('router.post("/reconciliation/analyse"'),
+    aiAccountant.indexOf('// ── GET /api/ai/reconciliation/results'),
+  );
+  assert.match(
+    reconciliationHandler,
+    /requireWriteScope\(userId, res, \{\s*requestedCompanyId: company_id,\s*resourceCompanyId: txn\.company_id,\s*\}\)/,
+  );
+  assert.ok(
+    reconciliationHandler.indexOf("if (!scope) return;") <
+      reconciliationHandler.indexOf("analyseTransactions"),
+  );
+
+  const functionsRoute = readFileSync(join(process.cwd(), "src/routes/functions.ts"), "utf8");
+  const suggestionsHandler = functionsRoute.slice(
+    functionsRoute.indexOf('case "suggestTransactionMatches"'),
+    functionsRoute.indexOf('// ── generateSalesInvoiceJournals'),
+  );
+  assert.match(
+    suggestionsHandler,
+    /requireCompanyScope\(res, \{\s*userId,\s*requestedCompanyId: argCompanyId,\s*resourceCompanyId: txn\.company_id,\s*\}\)/,
+  );
+  assert.ok(
+    suggestionsHandler.indexOf("if (!scope) return;") <
+      suggestionsHandler.indexOf("analyseTransactions"),
+  );
+});
+
 test("database lookup failures fail closed", async () => {
   const result = await resolveCompanyScope(
     { userId: "user-a", requestedCompanyId: "company-a" },
@@ -127,6 +229,21 @@ test("each authorization decision rechecks membership after revocation", async (
     reason: "inactive_or_missing_membership",
   });
   assert.equal(lookupCalls, 2);
+});
+
+test("duplicate active memberships with the same role resolve deterministically", () => {
+  const row = membership();
+  assert.deepEqual(resolveActiveMembership([row, { ...row }]), row);
+});
+
+test("duplicate active memberships with conflicting roles fail closed", () => {
+  assert.equal(
+    resolveActiveMembership([
+      membership({ role: "member" }),
+      membership({ role: "owner" }),
+    ]),
+    null,
+  );
 });
 
 test("scope resolution invokes only the membership lookup", async () => {

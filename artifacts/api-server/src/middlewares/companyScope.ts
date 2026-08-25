@@ -18,6 +18,7 @@ export interface CompanyScope {
 
 export type CompanyScopeFailure =
   | "missing_company_context"
+  | "invalid_company_context"
   | "conflicting_company_context"
   | "inactive_or_missing_membership"
   | "membership_scope_mismatch"
@@ -33,6 +34,25 @@ export type MembershipLookup = (
 ) => Promise<ActiveCompanyMembership | null>;
 
 /**
+ * Resolve active membership rows without allowing database row order to decide
+ * authorization. Duplicate rows are safe only when every authorization
+ * attribute agrees; conflicting rows fail closed.
+ */
+export function resolveActiveMembership(
+  memberships: ActiveCompanyMembership[],
+): ActiveCompanyMembership | null {
+  const [first] = memberships;
+  if (!first) return null;
+  const isConsistent = memberships.every((membership) =>
+    membership.company_id === first.company_id &&
+    membership.user_id === first.user_id &&
+    membership.role === first.role &&
+    membership.is_active === true
+  );
+  return isConsistent ? first : null;
+}
+
+/**
  * The only database-backed membership lookup used by request authorization.
  * Active status is part of the query, not a later best-effort check.
  */
@@ -40,7 +60,7 @@ export async function findActiveMembership(
   userId: string,
   companyId: string,
 ): Promise<ActiveCompanyMembership | null> {
-  const [membership] = await db
+  const memberships = await db
     .select({
       company_id: companyUsersTable.company_id,
       user_id: companyUsersTable.user_id,
@@ -54,10 +74,9 @@ export async function findActiveMembership(
         eq(companyUsersTable.company_id, companyId),
         eq(companyUsersTable.is_active, true),
       ),
-    )
-    .limit(1);
+    );
 
-  return membership ?? null;
+  return resolveActiveMembership(memberships);
 }
 
 export async function findActiveCompanyIds(userId: string): Promise<string[]> {
@@ -71,7 +90,20 @@ export async function findActiveCompanyIds(userId: string): Promise<string[]> {
       ),
     );
 
-  return memberships.map((membership) => membership.company_id);
+  return [...new Set(memberships.map((membership) => membership.company_id))];
+}
+
+type CompanyContextValue =
+  | { state: "missing"; value?: undefined }
+  | { state: "valid"; value: string }
+  | { state: "invalid"; value?: undefined };
+
+function parseCompanyContext(value: unknown): CompanyContextValue {
+  if (value === undefined) return { state: "missing" };
+  if (typeof value === "string" && value.length > 0) {
+    return { state: "valid", value };
+  }
+  return { state: "invalid" };
 }
 
 /**
@@ -85,23 +117,29 @@ export function evaluateCompanyScope(input: {
   membership: ActiveCompanyMembership | null;
 }): CompanyScopeDecision {
   const { userId, requestedCompanyId, resourceCompanyId, membership } = input;
-  const requested =
-    typeof requestedCompanyId === "string" && requestedCompanyId.length > 0
-      ? requestedCompanyId
-      : undefined;
-  const resource =
-    typeof resourceCompanyId === "string" && resourceCompanyId.length > 0
-      ? resourceCompanyId
-      : undefined;
+  const requested = parseCompanyContext(requestedCompanyId);
+  const resource = parseCompanyContext(resourceCompanyId);
 
-  if (!userId || (!requested && !resource)) {
+  if (requested.state === "invalid" || resource.state === "invalid") {
+    return { ok: false, reason: "invalid_company_context" };
+  }
+  if (!userId || (requested.state === "missing" && resource.state === "missing")) {
     return { ok: false, reason: "missing_company_context" };
   }
-  if (requested && resource && requested !== resource) {
+  if (
+    requested.state === "valid" &&
+    resource.state === "valid" &&
+    requested.value !== resource.value
+  ) {
     return { ok: false, reason: "conflicting_company_context" };
   }
 
-  const companyId = resource ?? requested;
+  const companyId =
+    resource.state === "valid"
+      ? resource.value
+      : requested.state === "valid"
+        ? requested.value
+        : undefined;
   if (!companyId) {
     return { ok: false, reason: "missing_company_context" };
   }
@@ -133,11 +171,24 @@ export async function resolveCompanyScope(
   },
   lookup: MembershipLookup = findActiveMembership,
 ): Promise<CompanyScopeDecision> {
+  const requested = parseCompanyContext(input.requestedCompanyId);
+  const resource = parseCompanyContext(input.resourceCompanyId);
+
+  if (requested.state === "invalid" || resource.state === "invalid") {
+    return { ok: false, reason: "invalid_company_context" };
+  }
+  if (
+    requested.state === "valid" &&
+    resource.state === "valid" &&
+    requested.value !== resource.value
+  ) {
+    return { ok: false, reason: "conflicting_company_context" };
+  }
   const companyId =
-    typeof input.resourceCompanyId === "string" && input.resourceCompanyId.length > 0
-      ? input.resourceCompanyId
-      : typeof input.requestedCompanyId === "string" && input.requestedCompanyId.length > 0
-        ? input.requestedCompanyId
+    resource.state === "valid"
+      ? resource.value
+      : requested.state === "valid"
+        ? requested.value
         : undefined;
 
   if (!input.userId || !companyId) {
@@ -167,7 +218,10 @@ export async function requireCompanyScope(
   const decision = await resolveCompanyScope(input);
   if (decision.ok) return decision.scope;
 
-  if (decision.reason === "missing_company_context") {
+  if (
+    decision.reason === "missing_company_context" ||
+    decision.reason === "invalid_company_context"
+  ) {
     res.status(400).json({ error: "A valid company context is required" });
   } else {
     res.status(403).json({ error: "Access denied" });

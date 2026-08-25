@@ -54,10 +54,6 @@ router.use(requireAuth);
 
 const WRITE_BLOCKED_ROLES = new Set(["read_only"]);
 
-/**
- * Fetch the caller's membership row for a specific company.
- * Returns the row (with role), or null if not a member.
- */
 async function getMembership(
   userId: string,
   companyId: string,
@@ -663,22 +659,30 @@ router.post("/:name", async (req: Request, res: Response) => {
             .where(eq(bankTransactionsTable.id, bank_transaction_id))
             .limit(1);
           if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
-          // Verify the caller is a member of the transaction's actual company.
-          const m = await getMembership(userId, txn.company_id);
-          if (!m) { res.status(403).json({ error: "Access denied" }); return; }
-          persistAnalysis = !WRITE_BLOCKED_ROLES.has(m.role ?? "");
+          // Resolve both caller and resource contexts through the shared guard.
+          // A contradictory company_id must never be silently ignored.
+          const scope = await requireCompanyScope(res, {
+            userId,
+            requestedCompanyId: argCompanyId,
+            resourceCompanyId: txn.company_id,
+          });
+          if (!scope) return;
+          persistAnalysis = !WRITE_BLOCKED_ROLES.has(scope.role ?? "");
           txnsToScore = [txn];
         } else if (argCompanyId) {
           // Bulk mode: verify membership then fetch all review-status transactions.
-          const m = await getMembership(userId, argCompanyId);
-          if (!m) { res.status(403).json({ error: "Access denied" }); return; }
-          persistAnalysis = !WRITE_BLOCKED_ROLES.has(m.role ?? "");
+          const scope = await requireCompanyScope(res, {
+            userId,
+            requestedCompanyId: argCompanyId,
+          });
+          if (!scope) return;
+          persistAnalysis = !WRITE_BLOCKED_ROLES.has(scope.role ?? "");
           txnsToScore = await db
             .select()
             .from(bankTransactionsTable)
             .where(
               and(
-                eq(bankTransactionsTable.company_id, argCompanyId),
+                eq(bankTransactionsTable.company_id, scope.companyId),
                 eq(bankTransactionsTable.status, "review"),
               ),
             );

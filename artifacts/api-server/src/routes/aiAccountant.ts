@@ -14,6 +14,7 @@ import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAu
 import {
   findActiveMembership,
   requireCompanyScope,
+  type CompanyScope,
 } from "../middlewares/companyScope";
 import {
   bankTransactionsTable,
@@ -88,16 +89,29 @@ async function assertMember(userId: string, companyId: string, res: Response): P
 }
 
 async function assertWriteAccess(userId: string, companyId: string, res: Response): Promise<boolean> {
+  return Boolean(await requireWriteScope(userId, res, {
+    requestedCompanyId: companyId,
+  }));
+}
+
+async function requireWriteScope(
+  userId: string,
+  res: Response,
+  context: {
+    requestedCompanyId?: unknown;
+    resourceCompanyId?: unknown;
+  },
+): Promise<CompanyScope | null> {
   const scope = await requireCompanyScope(res, {
     userId,
-    requestedCompanyId: companyId,
+    ...context,
   });
-  if (!scope) return false;
+  if (!scope) return null;
   if (WRITE_BLOCKED_ROLES.has(scope.role ?? "")) {
     res.status(403).json({ error: "Your role does not permit this operation" });
-    return false;
+    return null;
   }
-  return true;
+  return scope;
 }
 
 // ── POST /api/ai/reconciliation/analyse ──────────────────────────────────────
@@ -116,15 +130,22 @@ router.post("/reconciliation/analyse", async (req: Request, res: Response) => {
         .select().from(bankTransactionsTable)
         .where(eq(bankTransactionsTable.id, bank_transaction_id)).limit(1);
       if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
-      if (!(await assertWriteAccess(userId, txn.company_id, res))) return;
-      companyId = txn.company_id;
+      const scope = await requireWriteScope(userId, res, {
+        requestedCompanyId: company_id,
+        resourceCompanyId: txn.company_id,
+      });
+      if (!scope) return;
+      companyId = scope.companyId;
       txns = [txn];
     } else if (company_id) {
-      if (!(await assertWriteAccess(userId, company_id, res))) return;
-      companyId = company_id;
+      const scope = await requireWriteScope(userId, res, {
+        requestedCompanyId: company_id,
+      });
+      if (!scope) return;
+      companyId = scope.companyId;
       txns = await db
         .select().from(bankTransactionsTable)
-        .where(and(eq(bankTransactionsTable.company_id, company_id), eq(bankTransactionsTable.status, "review")));
+        .where(and(eq(bankTransactionsTable.company_id, scope.companyId), eq(bankTransactionsTable.status, "review")));
     } else {
       res.status(400).json({ error: "company_id or bank_transaction_id is required" });
       return;
