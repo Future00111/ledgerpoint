@@ -17,6 +17,10 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
+import {
+  findActiveCompanyIds,
+  findActiveMembership,
+} from "../middlewares/companyScope";
 import { genericEntityWriteError, isGenericEntityWriteBlocked } from "./entityWritePolicy";
 import {
   companiesTable,
@@ -127,21 +131,13 @@ function hasUnsafeReconciliationCreation(data: Record<string, unknown>): boolean
 
 /** Returns all company IDs the Clerk user is a member of. */
 async function getAuthorizedCompanyIds(userId: string): Promise<string[]> {
-  const memberships = await db
-    .select({ company_id: companyUsersTable.company_id })
-    .from(companyUsersTable)
-    .where(and(eq(companyUsersTable.user_id, userId), eq(companyUsersTable.is_active, true)));
-  return memberships.map((m) => m.company_id);
+  return findActiveCompanyIds(userId);
 }
 
 /** Returns the user's role in a specific company, or null if not a member. */
 async function getUserRole(userId: string, companyId: string): Promise<string | null> {
-  const [m] = await db
-    .select({ role: companyUsersTable.role })
-    .from(companyUsersTable)
-    .where(and(eq(companyUsersTable.user_id, userId), eq(companyUsersTable.company_id, companyId), eq(companyUsersTable.is_active, true)))
-    .limit(1);
-  return m?.role ?? null;
+  const membership = await findActiveMembership(userId, companyId);
+  return membership?.role ?? null;
 }
 
 // ---------------------------------------------------------------------------

@@ -17,6 +17,7 @@ import { companiesTable, companyUsersTable } from "@workspace/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { clerkClient } from "@clerk/express";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
+import { findActiveMembership } from "../middlewares/companyScope";
 
 const router = Router();
 router.use(requireAuth);
@@ -24,12 +25,7 @@ router.use(requireAuth);
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 async function getCallerMembership(companyId: string, userId: string) {
-  const [m] = await db
-    .select()
-    .from(companyUsersTable)
-    .where(and(eq(companyUsersTable.company_id, companyId), eq(companyUsersTable.user_id, userId)))
-    .limit(1);
-  return m ?? null;
+  return findActiveMembership(userId, companyId);
 }
 
 // ─── GET /api/companies ───────────────────────────────────────────────────────
@@ -39,7 +35,7 @@ router.get("/", async (req: Request, res: Response) => {
     const memberships = await db
       .select({ company_id: companyUsersTable.company_id, role: companyUsersTable.role })
       .from(companyUsersTable)
-      .where(eq(companyUsersTable.user_id, userId));
+      .where(and(eq(companyUsersTable.user_id, userId), eq(companyUsersTable.is_active, true)));
 
     if (memberships.length === 0) {
       res.json({ companies: [], roles: {} });

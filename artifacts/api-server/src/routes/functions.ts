@@ -14,6 +14,10 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
+import {
+  findActiveMembership,
+  requireCompanyScope,
+} from "../middlewares/companyScope";
 import { aiService, AIProviderError } from "../services/ai/index.js";
 import {
   companyUsersTable,
@@ -58,17 +62,7 @@ async function getMembership(
   userId: string,
   companyId: string,
 ): Promise<{ company_id: string; role: string | null; is_active: boolean | null } | null> {
-  const [m] = await db
-    .select({ company_id: companyUsersTable.company_id, role: companyUsersTable.role, is_active: companyUsersTable.is_active })
-    .from(companyUsersTable)
-    .where(
-      and(
-        eq(companyUsersTable.user_id, userId),
-        eq(companyUsersTable.company_id, companyId),
-      ),
-    )
-    .limit(1);
-  return m ?? null;
+  return findActiveMembership(userId, companyId);
 }
 
 /**
@@ -80,12 +74,14 @@ async function assertWriteAccess(
   companyId: string,
   res: Response,
 ): Promise<boolean> {
-  const m = await getMembership(userId, companyId);
-  if (!m || m.is_active === false) {
-    res.status(403).json({ error: "Access denied" });
+  const scope = await requireCompanyScope(res, {
+    userId,
+    requestedCompanyId: companyId,
+  });
+  if (!scope) {
     return false;
   }
-  if (WRITE_BLOCKED_ROLES.has(m.role ?? "")) {
+  if (WRITE_BLOCKED_ROLES.has(scope.role ?? "")) {
     res.status(403).json({ error: "Your role does not permit this operation" });
     return false;
   }
@@ -775,7 +771,10 @@ router.post("/:name", async (req: Request, res: Response) => {
         const memberships = await db
           .select({ company_id: companyUsersTable.company_id, role: companyUsersTable.role })
           .from(companyUsersTable)
-          .where(eq(companyUsersTable.user_id, userId));
+          .where(and(
+            eq(companyUsersTable.user_id, userId),
+            eq(companyUsersTable.is_active, true),
+          ));
         if (memberships.length === 0) { res.json({ data: [] }); return; }
         const companies = await db
           .select()

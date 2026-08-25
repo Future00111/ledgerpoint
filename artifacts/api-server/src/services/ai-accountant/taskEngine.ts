@@ -22,6 +22,10 @@ import { analyseTransactions } from "./analysis.js";
 import { runDetectors, type Detection } from "./detectors.js";
 import { buildCustomerFollowUpTasks } from "./collections.js";
 import { getVATOverview } from "./vat.js";
+import {
+  requireCompanyJobContext,
+  type CompanyJobContext,
+} from "../../middlewares/companyScope.js";
 
 export const AI_TASK_TYPES = [
   "reconciliation",
@@ -514,13 +518,23 @@ export async function syncAITasks(companyId: string, userId?: string): Promise<A
 }
 
 /** Analyse review transactions first, then synchronise the durable task queue. */
-export async function runAITaskAnalysis(companyId: string, userId?: string): Promise<AITaskSyncResult> {
+export async function runAITaskAnalysis(
+  companyId: string,
+  userId?: string,
+): Promise<AITaskSyncResult> {
   const reviewTransactions = await db
     .select()
     .from(bankTransactionsTable)
     .where(and(eq(bankTransactionsTable.company_id, companyId), eq(bankTransactionsTable.status, "review")));
   await analyseTransactions(companyId, reviewTransactions, { persist: true });
   return syncAITasks(companyId, userId);
+}
+
+/** Background analysis has no Clerk principal, so it must carry a checked system context. */
+export async function runBackgroundAITaskAnalysis(
+  context: CompanyJobContext,
+): Promise<AITaskSyncResult> {
+  return runAITaskAnalysis(requireCompanyJobContext(context));
 }
 
 export async function listAITasks(companyId: string, statuses?: AITaskStatus[]) {

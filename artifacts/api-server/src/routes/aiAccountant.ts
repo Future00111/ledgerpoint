@@ -12,7 +12,10 @@ import { Router, type Request, type Response, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
 import {
-  companyUsersTable,
+  findActiveMembership,
+  requireCompanyScope,
+} from "../middlewares/companyScope";
+import {
   bankTransactionsTable,
   chartOfAccountsTable,
   aiDecisionAuditsTable,
@@ -74,28 +77,23 @@ router.use(requireAuth);
 const WRITE_BLOCKED_ROLES = new Set(["read_only"]);
 
 async function getMembership(userId: string, companyId: string) {
-  const [m] = await db
-    .select({ company_id: companyUsersTable.company_id, role: companyUsersTable.role })
-    .from(companyUsersTable)
-    .where(and(
-      eq(companyUsersTable.user_id, userId),
-      eq(companyUsersTable.company_id, companyId),
-      eq(companyUsersTable.is_active, true),
-    ))
-    .limit(1);
-  return m ?? null;
+  return findActiveMembership(userId, companyId);
 }
 
 async function assertMember(userId: string, companyId: string, res: Response): Promise<boolean> {
-  const m = await getMembership(userId, companyId);
-  if (!m) { res.status(403).json({ error: "Access denied" }); return false; }
-  return true;
+  return Boolean(await requireCompanyScope(res, {
+    userId,
+    requestedCompanyId: companyId,
+  }));
 }
 
 async function assertWriteAccess(userId: string, companyId: string, res: Response): Promise<boolean> {
-  const m = await getMembership(userId, companyId);
-  if (!m) { res.status(403).json({ error: "Access denied" }); return false; }
-  if (WRITE_BLOCKED_ROLES.has(m.role ?? "")) {
+  const scope = await requireCompanyScope(res, {
+    userId,
+    requestedCompanyId: companyId,
+  });
+  if (!scope) return false;
+  if (WRITE_BLOCKED_ROLES.has(scope.role ?? "")) {
     res.status(403).json({ error: "Your role does not permit this operation" });
     return false;
   }

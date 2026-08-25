@@ -6,7 +6,11 @@
  * because the task engine uses company-scoped dedupe keys.
  */
 import { logger } from "../../lib/logger.js";
-import { listActiveCompanyIds, runAITaskAnalysis } from "./taskEngine.js";
+import {
+  listActiveCompanyIds,
+  runBackgroundAITaskAnalysis,
+} from "./taskEngine.js";
+import { createCompanyJobContext } from "../../middlewares/companyScope.js";
 
 const INTERVAL_MS = 15 * 60 * 1000;
 let interval: NodeJS.Timeout | undefined;
@@ -20,7 +24,11 @@ export async function runScheduledAITaskAnalysis(): Promise<void> {
   running = true;
   try {
     const companyIds = await listActiveCompanyIds();
-    const results = await Promise.allSettled(companyIds.map((companyId) => runAITaskAnalysis(companyId)));
+    const results = await Promise.allSettled(
+      companyIds.map((companyId) =>
+        runBackgroundAITaskAnalysis(createCompanyJobContext(companyId)),
+      ),
+    );
     const failed = results.filter((result) => result.status === "rejected");
     if (failed.length > 0) {
       logger.warn({ failed: failed.length, companies: companyIds.length }, "AI task scheduler completed with failures");

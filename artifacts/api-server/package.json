@@ -8,6 +8,7 @@
     "build": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:company-scope": "esbuild src/middlewares/companyScope.test.ts --bundle --platform=node --format=cjs --external:pg --external:pino --external:pino-http --external:pino-pretty --external:thread-stream --outfile=.company-scope.test.cjs && node --test .company-scope.test.cjs; status=$?; rm -f .company-scope.test.cjs; exit $status",
     "test:matcher": "esbuild src/services/ai-accountant/matcher.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-matcher-scenarios.mjs && node --test /tmp/ledgerly-matcher-scenarios.mjs",
     "test:collections": "esbuild src/services/ai-accountant/collectionsAnalysis.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-collections-scenarios.mjs && node --test /tmp/ledgerly-collections-scenarios.mjs",
     "test:vat": "esbuild src/services/ai-accountant/vat.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-vat-scenarios.mjs && node --test /tmp/ledgerly-vat-scenarios.mjs",

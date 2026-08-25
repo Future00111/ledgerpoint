@@ -1,0 +1,232 @@
+APPROVAL TO IMPLEMENT — BL-01-FI
+
+I explicitly approve implementation of:
+
+BL-01-FI — Complete server-side active-membership and company-scope enforcement
+
+This is the FIRST authorised implementation task.
+
+==================================================
+APPROVED SCOPE
+==================================================
+
+Implement only the scope defined in:
+
+docs/ledgerly-first-implementation-approval-package.md
+
+and the associated planning/design records for the Principal and Tenant Guard.
+
+The objective is to establish server-side enforcement of:
+
+- authenticated company context;
+- active company membership;
+- server-derived company scope;
+- company/resource ownership;
+- fail-closed behaviour when membership or company scope cannot be established;
+- correct propagation of company context into applicable background jobs;
+- protection against cross-company access.
+
+==================================================
+IMPORTANT BOUNDARY
+==================================================
+
+This approval is ONLY for BL-01-FI.
+
+Do NOT treat this approval as authorisation for:
+
+- BL-06;
+- BL-07;
+- canonical accounting implementation;
+- journal posting;
+- payments;
+- allocations;
+- VAT;
+- refunds;
+- migration;
+- cutover;
+- RLS rollout;
+- source-freshness implementation beyond what is strictly necessary for this task;
+- broad UI work;
+- deployment;
+- publishing.
+
+Do NOT start another implementation task automatically after completing BL-01-FI.
+
+Stop and report the result.
+
+==================================================
+SCHEMA / DATA
+==================================================
+
+Use the existing membership and company information where possible.
+
+Do NOT make schema changes unless the approved task scope explicitly requires one.
+
+If you discover that a schema change is genuinely required:
+
+STOP.
+
+Do not make the schema change.
+
+Report:
+
+- why it is required;
+- what structure is missing;
+- why the existing model cannot support the requirement;
+- what migration impact exists.
+
+That schema change will require separate approval.
+
+==================================================
+ACCOUNTING SAFETY
+==================================================
+
+This task must create NO accounting effects.
+
+It must not create or modify:
+
+- journals;
+- journal lines;
+- payments;
+- allocations;
+- VAT;
+- AR/AP balances;
+- refunds;
+- financial periods;
+- financial years;
+- accounting configuration;
+- control-account mappings.
+
+==================================================
+SECURITY REQUIREMENTS
+==================================================
+
+Enforcement must be server-side.
+
+Do not rely on:
+
+- frontend checks;
+- hidden UI elements;
+- client-provided company IDs;
+- arbitrary role strings;
+- client-side capability decisions.
+
+Company context must be derived and validated server-side.
+
+A user must not gain authority in Company A merely because they have authority in Company B.
+
+Inactive/revoked membership must fail closed.
+
+Cross-company resource access must fail closed.
+
+Where background jobs are involved, preserve and validate the originating company context.
+
+==================================================
+TESTING
+==================================================
+
+Implement the acceptance tests defined in the approved task package, including at minimum:
+
+- active member can access their authorised company context;
+- inactive/revoked member is denied;
+- user cannot access another company's resources;
+- company scope cannot be overridden by client input;
+- missing/invalid company context fails closed;
+- background jobs preserve company context;
+- cross-company job access fails;
+- authorised access does not create accounting side effects;
+- existing behaviour outside the task scope remains intact.
+
+Add appropriate regression tests.
+
+==================================================
+NO RLS ROLLOUT
+==================================================
+
+DEC-21 approves RLS as defence-in-depth but does not mandate universal RLS.
+
+Do not introduce universal RLS as part of this task.
+
+If the existing implementation package specifically identifies a narrowly scoped RLS change required for this task, stop and report it before making it.
+
+==================================================
+NO ARCHITECTURE DRIFT
+==================================================
+
+Keep the implementation aligned with the approved logical ownership model:
+
+Principal and Tenant Guard
+→ authentication
+→ active membership
+→ capability/company context
+→ resource ownership
+→ privileged/background-job scope
+
+Do not introduce unnecessary microservices or architectural complexity.
+
+Keep technical implementation details changeable where the planning documents deliberately left them open.
+
+==================================================
+AUDIT
+==================================================
+
+Only add audit behaviour if explicitly included in the approved BL-01-FI scope.
+
+Do not invent a new audit model as part of this task.
+
+==================================================
+COMPLETION CRITERIA
+==================================================
+
+Before declaring the task complete:
+
+1. Run the relevant test suite.
+2. Run the new security/company-isolation tests.
+3. Confirm no accounting side effects occurred.
+4. Confirm no schema/migration changes occurred unless separately approved.
+5. Confirm no cross-company access is possible through the implemented paths.
+6. Confirm fail-closed behaviour.
+7. Run formatting/lint/type checks where applicable.
+8. Run `git diff --check`.
+9. Review the complete diff.
+10. Confirm no files outside the approved scope were changed.
+
+==================================================
+STOP CONDITION
+==================================================
+
+If implementation reveals:
+
+- a conflict with DEC-01–DEC-22;
+- a required schema change;
+- a required migration;
+- an RLS architecture requirement;
+- a new governance requirement;
+- an accounting-policy ambiguity;
+- a security boundary that cannot safely be enforced within this task;
+
+STOP implementation and report the issue.
+
+Do not silently expand the scope.
+
+==================================================
+FINAL REPORT
+==================================================
+
+When complete, report:
+
+- what was implemented;
+- files changed;
+- tests added;
+- tests run and results;
+- security checks verified;
+- company-isolation checks verified;
+- schema/migration status;
+- accounting side-effect status;
+- deployment/publishing status;
+- any deviations from the approved scope;
+- recommended next task.
+
+Do NOT automatically start the next task.
+
+This approval applies ONLY to BL-01-FI.
