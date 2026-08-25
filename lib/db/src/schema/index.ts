@@ -10,6 +10,8 @@ import {
   timestamp,
   uuid,
   date,
+  check,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
@@ -322,6 +324,236 @@ export const journalEntriesTable = pgTable("journal_entries", {
 });
 export const insertJournalEntrySchema = createInsertSchema(journalEntriesTable).omit({ id: true, created_at: true, updated_at: true });
 export type JournalEntry = typeof journalEntriesTable.$inferSelect;
+
+// ─── Canonical Accounting Foundation ─────────────────────────────────────────
+// These tables are additive and deliberately separate from the legacy JSON
+// journal_entries table above. They are written only by the canonical posting
+// authority; generic CRUD does not expose them.
+
+export const accountingPostingEffectsTable = pgTable(
+  "accounting_posting_effects",
+  {
+    id: primaryId(),
+    company_id: uuid("company_id").notNull(),
+    source_type: text("source_type").notNull(),
+    source_id: text("source_id").notNull(),
+    posting_kind: text("posting_kind").notNull(),
+    economic_effect_id: text("economic_effect_id").notNull(),
+    idempotency_key: text("idempotency_key").notNull(),
+    command_fingerprint: text("command_fingerprint").notNull(),
+    source_revision: text("source_revision"),
+    source_evidence_hash: text("source_evidence_hash"),
+    status: text("status").notNull().default("pending"),
+    journal_id: uuid("journal_id"),
+    result: jsonb("result").$type<Record<string, unknown>>(),
+    created_by_type: text("created_by_type").notNull(),
+    created_by_id: text("created_by_id").notNull(),
+    created_at: createdAt(),
+    updated_at: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex("accounting_posting_effects_company_idempotency_idx").on(
+      t.company_id,
+      t.idempotency_key,
+    ),
+    uniqueIndex("accounting_posting_effects_company_effect_idx").on(
+      t.company_id,
+      t.economic_effect_id,
+    ),
+    index("accounting_posting_effects_company_source_idx").on(
+      t.company_id,
+      t.source_type,
+      t.source_id,
+    ),
+    check(
+      "accounting_posting_effects_status_check",
+      sql`${t.status} in ('pending', 'posted', 'uncertain')`,
+    ),
+  ],
+);
+export const insertAccountingPostingEffectSchema = createInsertSchema(accountingPostingEffectsTable).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+export type AccountingPostingEffect = typeof accountingPostingEffectsTable.$inferSelect;
+
+export const canonicalJournalEntriesTable = pgTable(
+  "canonical_journal_entries",
+  {
+    id: primaryId(),
+    company_id: uuid("company_id").notNull(),
+    posting_date: date("posting_date").notNull(),
+    financial_year_id: text("financial_year_id").notNull(),
+    accounting_period_id: text("accounting_period_id").notNull(),
+    configuration_version_id: text("configuration_version_id").notNull(),
+    currency_code: text("currency_code").notNull(),
+    description: text("description").notNull(),
+    reference: text("reference"),
+    source_type: text("source_type").notNull(),
+    source_id: text("source_id").notNull(),
+    source_revision: text("source_revision"),
+    source_evidence_hash: text("source_evidence_hash"),
+    posting_kind: text("posting_kind").notNull(),
+    economic_effect_id: text("economic_effect_id").notNull(),
+    status: text("status").notNull().default("posted"),
+    total_debit_minor: numeric("total_debit_minor", { precision: 20, scale: 0 }).notNull(),
+    total_credit_minor: numeric("total_credit_minor", { precision: 20, scale: 0 }).notNull(),
+    created_by_type: text("created_by_type").notNull(),
+    created_by_id: text("created_by_id").notNull(),
+    posted_at: timestamp("posted_at", { withTimezone: true }).defaultNow().notNull(),
+    created_at: createdAt(),
+    reversal_of_id: uuid("reversal_of_id"),
+    correction_reason: text("correction_reason"),
+  },
+  (t) => [
+    index("canonical_journal_entries_company_date_idx").on(t.company_id, t.posting_date),
+    index("canonical_journal_entries_company_period_idx").on(t.company_id, t.accounting_period_id),
+    index("canonical_journal_entries_company_source_idx").on(t.company_id, t.source_type, t.source_id),
+    index("canonical_journal_entries_company_status_idx").on(t.company_id, t.status),
+    check(
+      "canonical_journal_entries_status_check",
+      sql`${t.status} in ('posted', 'reversed')`,
+    ),
+    check(
+      "canonical_journal_entries_totals_check",
+      sql`${t.total_debit_minor} >= 0 and ${t.total_credit_minor} >= 0 and ${t.total_debit_minor} = ${t.total_credit_minor} and ${t.total_debit_minor} > 0`,
+    ),
+  ],
+);
+export const insertCanonicalJournalEntrySchema = createInsertSchema(canonicalJournalEntriesTable).omit({
+  id: true,
+  created_at: true,
+});
+export type CanonicalJournalEntry = typeof canonicalJournalEntriesTable.$inferSelect;
+
+export const canonicalJournalLinesTable = pgTable(
+  "canonical_journal_lines",
+  {
+    id: primaryId(),
+    journal_entry_id: uuid("journal_entry_id").notNull(),
+    company_id: uuid("company_id").notNull(),
+    line_number: integer("line_number").notNull(),
+    account_id: uuid("account_id").notNull(),
+    debit_minor: numeric("debit_minor", { precision: 20, scale: 0 }).notNull().default("0"),
+    credit_minor: numeric("credit_minor", { precision: 20, scale: 0 }).notNull().default("0"),
+    currency_code: text("currency_code").notNull(),
+    tax_code: text("tax_code"),
+    source_line_ref: text("source_line_ref"),
+    description: text("description"),
+    created_at: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("canonical_journal_lines_entry_number_idx").on(t.journal_entry_id, t.line_number),
+    index("canonical_journal_lines_company_account_idx").on(t.company_id, t.account_id),
+    check(
+      "canonical_journal_lines_amounts_check",
+      sql`${t.debit_minor} >= 0 and ${t.credit_minor} >= 0 and not (${t.debit_minor} > 0 and ${t.credit_minor} > 0)`,
+    ),
+    foreignKey({
+      columns: [t.journal_entry_id],
+      foreignColumns: [canonicalJournalEntriesTable.id],
+      name: "canonical_journal_lines_entry_fk",
+    }),
+    foreignKey({
+      columns: [t.account_id],
+      foreignColumns: [chartOfAccountsTable.id],
+      name: "canonical_journal_lines_account_fk",
+    }),
+  ],
+);
+export const insertCanonicalJournalLineSchema = createInsertSchema(canonicalJournalLinesTable).omit({
+  id: true,
+  created_at: true,
+});
+export type CanonicalJournalLine = typeof canonicalJournalLinesTable.$inferSelect;
+
+export const canonicalJournalRelationsTable = pgTable(
+  "canonical_journal_relations",
+  {
+    id: primaryId(),
+    company_id: uuid("company_id").notNull(),
+    original_journal_id: uuid("original_journal_id").notNull(),
+    related_journal_id: uuid("related_journal_id").notNull(),
+    relation_type: text("relation_type").notNull(),
+    reason: text("reason").notNull(),
+    actor_type: text("actor_type").notNull(),
+    actor_id: text("actor_id").notNull(),
+    idempotency_key: text("idempotency_key").notNull(),
+    created_at: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("canonical_journal_relations_company_effect_idx").on(
+      t.company_id,
+      t.related_journal_id,
+    ),
+    index("canonical_journal_relations_company_original_idx").on(
+      t.company_id,
+      t.original_journal_id,
+    ),
+    check(
+      "canonical_journal_relations_type_check",
+      sql`${t.relation_type} in ('reversal', 'correction')`,
+    ),
+    foreignKey({
+      columns: [t.original_journal_id],
+      foreignColumns: [canonicalJournalEntriesTable.id],
+      name: "canonical_journal_relations_original_fk",
+    }),
+    foreignKey({
+      columns: [t.related_journal_id],
+      foreignColumns: [canonicalJournalEntriesTable.id],
+      name: "canonical_journal_relations_related_fk",
+    }),
+  ],
+);
+export const insertCanonicalJournalRelationSchema = createInsertSchema(canonicalJournalRelationsTable).omit({
+  id: true,
+  created_at: true,
+});
+export type CanonicalJournalRelation = typeof canonicalJournalRelationsTable.$inferSelect;
+
+export const accountingAuditEventsTable = pgTable(
+  "accounting_audit_events",
+  {
+    id: primaryId(),
+    company_id: uuid("company_id").notNull(),
+    action: text("action").notNull(),
+    outcome: text("outcome").notNull(),
+    target_type: text("target_type").notNull(),
+    target_id: text("target_id"),
+    journal_id: uuid("journal_id"),
+    posting_effect_id: uuid("posting_effect_id"),
+    source_type: text("source_type"),
+    source_id: text("source_id"),
+    actor_type: text("actor_type").notNull(),
+    actor_id: text("actor_id").notNull(),
+    capability: text("capability"),
+    reason: text("reason"),
+    context: jsonb("context").$type<Record<string, unknown>>(),
+    created_at: createdAt(),
+  },
+  (t) => [
+    index("accounting_audit_events_company_created_idx").on(t.company_id, t.created_at),
+    index("accounting_audit_events_company_target_idx").on(t.company_id, t.target_type, t.target_id),
+    index("accounting_audit_events_company_journal_idx").on(t.company_id, t.journal_id),
+    foreignKey({
+      columns: [t.journal_id],
+      foreignColumns: [canonicalJournalEntriesTable.id],
+      name: "accounting_audit_events_journal_fk",
+    }),
+    foreignKey({
+      columns: [t.posting_effect_id],
+      foreignColumns: [accountingPostingEffectsTable.id],
+      name: "accounting_audit_events_effect_fk",
+    }),
+  ],
+);
+export const insertAccountingAuditEventSchema = createInsertSchema(accountingAuditEventsTable).omit({
+  id: true,
+  created_at: true,
+});
+export type AccountingAuditEvent = typeof accountingAuditEventsTable.$inferSelect;
 
 // ─── VATReturn ───────────────────────────────────────────────────────────────
 
