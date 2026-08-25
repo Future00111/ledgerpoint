@@ -1,0 +1,183 @@
+BL-01-FI — FINAL POST-REMEDIATION REVIEW
+
+The approved #43 remediation has now been implemented.
+
+Perform a final review only.
+
+DO NOT start #40.
+DO NOT implement any further task.
+DO NOT modify the implementation unless a critical defect is discovered. If a critical defect is discovered, STOP and report it rather than fixing it silently.
+
+Review the actual implementation and diff against the approved BL-01-FI scope and the previous failure findings.
+
+==================================================
+1. CONFLICTING COMPANY CONTEXT
+==================================================
+
+Verify both previously vulnerable paths:
+
+- POST /api/ai/reconciliation/analyse
+- suggestTransactionMatches
+
+Confirm that:
+
+Company A resource + Company A company_id
+→ allowed when otherwise authorised.
+
+Company A resource + Company B company_id
+→ rejected before analysis or persistence.
+
+Company A resource + malformed/null/empty company_id
+→ rejected.
+
+Company A resource + no company_id
+→ allowed only where the resource safely establishes authoritative company scope.
+
+Confirm the caller-supplied company context cannot silently override or replace authoritative resource ownership.
+
+==================================================
+2. DUPLICATE ACTIVE MEMBERSHIPS
+==================================================
+
+Verify:
+
+- identical active membership rows behave deterministically;
+- conflicting active membership roles fail closed;
+- authorization does not depend on arbitrary database row ordering;
+- no schema or migration was introduced.
+
+Confirm that no additional schema change is required for the approved remediation.
+
+==================================================
+3. ROUTE-WIRING REVIEW
+==================================================
+
+Inspect the actual handler code for both affected routes.
+
+Confirm that both routes genuinely pass the relevant caller context AND authoritative resource company context into the shared conflict-aware guard.
+
+Do not rely only on the unit tests.
+
+Confirm the authorization check occurs before:
+
+- analyseTransactions;
+- persistence;
+- accounting effects;
+- audit writes.
+
+==================================================
+4. SECURITY REVIEW
+==================================================
+
+Verify:
+
+- Company A cannot use Company B context to act on Company A resources.
+- Company A cannot access Company B resources.
+- revoked memberships fail closed;
+- missing membership fails closed;
+- lookup failures fail closed;
+- conflicting company contexts fail closed;
+- malformed company contexts fail closed;
+- background-job company context remains validated.
+
+==================================================
+5. SIDE-EFFECT REVIEW
+==================================================
+
+Confirm #43 introduced no:
+
+- journal posting;
+- payment;
+- allocation;
+- VAT;
+- AR/AP;
+- period;
+- financial-year;
+- configuration;
+- control-account;
+- migration;
+- RLS;
+- source-freshness implementation.
+
+Confirm rejected authorization paths cannot create accounting, analysis, or unintended audit persistence.
+
+==================================================
+6. TEST REVIEW
+==================================================
+
+Verify:
+
+- test:company-scope = 16/16;
+- test:phase6 = 7/7;
+- TypeScript check passes;
+- production build passes;
+- git diff --check passes;
+- API workflow runs;
+- /api/healthz passes.
+
+Assess whether the remaining absence of a database-backed authenticated HTTP Company A/B integration test is:
+
+A) acceptable for BL-01-FI completion, with a recommendation for later integration coverage;
+
+or
+
+B) a blocker requiring remediation.
+
+Do NOT create the integration test unless it is required to establish a critical acceptance criterion. If it is required, STOP and report that requirement rather than expanding scope.
+
+==================================================
+7. DIFF REVIEW
+==================================================
+
+Review the complete diff.
+
+Confirm changed files are limited to:
+
+- artifacts/api-server/src/middlewares/companyScope.ts
+- artifacts/api-server/src/middlewares/companyScope.test.ts
+- artifacts/api-server/src/routes/aiAccountant.ts
+- artifacts/api-server/src/routes/functions.ts
+
+Identify any unexpected changes.
+
+Do not revert unrelated pre-existing workspace changes.
+
+==================================================
+8. GOVERNANCE
+==================================================
+
+Confirm:
+
+- DEC-01–DEC-22 remain approved;
+- no DEC-23 exists;
+- source freshness remains implementation-level;
+- BL-06 and BL-07 remain blocked;
+- #40 remains planning/design only;
+- #41 remains planning/design only.
+
+==================================================
+FINAL VERDICT
+==================================================
+
+Give exactly one:
+
+PASS — BL-01-FI COMPLETE / READY FOR NEXT IMPLEMENTATION APPROVAL
+
+or
+
+FAIL — REMEDIATION REQUIRED
+
+If PASS:
+
+- summarise the verified security boundaries;
+- confirm the two original defects are resolved;
+- identify any non-blocking recommendations;
+- explicitly state that #40 has NOT been approved or started.
+
+If FAIL:
+
+- identify the exact defect;
+- explain the risk;
+- do not modify anything.
+
+STOP after this review.
