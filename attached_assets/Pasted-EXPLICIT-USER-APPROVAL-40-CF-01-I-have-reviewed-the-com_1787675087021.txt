@@ -1,0 +1,483 @@
+EXPLICIT USER APPROVAL — #40-CF-01
+
+I have reviewed the complete:
+
+docs/ledgerly-40-implementation-approval-package.md
+
+I explicitly approve implementation of:
+
+#40-CF-01 — Canonical Posting Foundation
+
+This approval is ONLY for the bounded implementation task defined in that package.
+
+The governance baseline remains:
+
+- DEC-01 through DEC-22: APPROVED
+- DEC-23: does not exist and must not be created
+- BL-01-FI: COMPLETE
+- BL-06 / BL-07: remain blocked except for the explicitly bounded foundation responsibilities permitted by #40-CF-01
+- #41: planning/design only
+- Source freshness: implementation-level safety contract
+
+==================================================
+IMPLEMENTATION AUTHORITY
+==================================================
+
+You are authorised to implement #40-CF-01 only.
+
+Use the complete approval package as the controlling scope document.
+
+The package's explicit scope, exclusions, invariants, security requirements, freshness requirements, transaction requirements, test plan, rollback rules and definition of done are authoritative for this task.
+
+Do not reinterpret approval of #40-CF-01 as approval of unrelated backlog work.
+
+==================================================
+APPROVED FOUNDATION
+==================================================
+
+Implement the minimum server-side canonical posting foundation:
+
+1. One consequential accounting command boundary.
+2. Normalized canonical journal header and journal-line model.
+3. Server-side double-entry and money invariants.
+4. Source/company/posting-context/economic-effect identity.
+5. Final source-freshness revalidation.
+6. Immutable posted journals.
+7. Additive linked corrections/reversals.
+8. Durable idempotency and concurrency protection.
+9. Atomic journal + source/effect + audit persistence.
+10. Required unit, integration, transaction, concurrency, authorization and
+    company-isolation evidence.
+
+Later accounting workflows must call this authority and must not bypass it.
+
+==================================================
+SCHEMA APPROVAL
+==================================================
+
+The package explicitly identifies additive canonical schema entities as required.
+
+Implement ONLY the schema required by #40-CF-01.
+
+Use an additive model alongside the legacy JSON journal model.
+
+Do NOT destructively replace, reinterpret, delete or migrate existing
+journal_entries records.
+
+Do NOT perform historical migration.
+
+Do NOT introduce unrelated schema changes.
+
+Physical table names, key types and exact implementation details should follow
+the approved package's engineering boundaries and preserve:
+
+- company-safe relationships;
+- immutable posted identity;
+- source/effect identity;
+- audit linkage;
+- idempotency;
+- required constraints and indexes.
+
+If implementation discovers that a schema change outside the approved #40-CF-01
+logical model is required:
+
+STOP and report it before making that change.
+
+==================================================
+BL-01-FI
+==================================================
+
+Reuse the completed BL-01-FI Principal and Tenant Guard.
+
+Do NOT create a parallel membership/company authorization mechanism.
+
+Every consequential command must establish:
+
+- authenticated actor or validated job principal;
+- one authoritative company;
+- active membership or approved system/job context;
+- operation-specific capability;
+- resource/company ownership.
+
+Malformed, conflicting, revoked, missing or ambiguous authorization context
+must fail closed.
+
+==================================================
+POSTING AUTHORITY
+==================================================
+
+Only the new canonical posting authority may create canonical journals.
+
+Do not permit canonical journal creation through:
+
+- generic CRUD;
+- browser state;
+- AI output;
+- imports;
+- queue payloads;
+- retries;
+- direct client journal-line creation.
+
+Server-side values are authoritative.
+
+Client/browser totals are never authoritative.
+
+==================================================
+ACCOUNTING INVARIANTS
+==================================================
+
+Enforce at minimum:
+
+- at least two journal lines;
+- total debit equals total credit;
+- positive total debit/credit;
+- integer non-negative minor units;
+- debit and credit cannot both be positive on one line;
+- valid active account;
+- account belongs to the correct company;
+- all lines belong to the same journal/company/currency;
+- valid posting date;
+- exactly one financial year;
+- valid accounting period;
+- closed periods reject ordinary posting;
+- valid configuration context;
+- valid source/effect identity;
+- no duplicate economic effect;
+- no partial canonical accounting effect.
+
+Posted journals and posted lines are immutable.
+
+==================================================
+SOURCE FRESHNESS
+==================================================
+
+Implement the existing source-freshness/posting-safety contract.
+
+Before canonical persistence, revalidate authoritative current state.
+
+Where available use:
+
+- source revision/event sequence/provider token;
+- otherwise the approved normalized evidence hash fallback.
+
+Revalidate:
+
+- source ownership;
+- source identity;
+- revision/evidence;
+- source status;
+- company context;
+- actor/job;
+- membership;
+- capability;
+- posting date;
+- financial year;
+- accounting period/state;
+- DEC-11 configuration version;
+- DEC-10 mapping/account eligibility;
+- VAT context where applicable;
+- economic-effect identity;
+- canonical journal invariants.
+
+Never post from an old browser/AI/queue/draft envelope.
+
+If freshness cannot be established, reject or route according to the approved contract.
+
+Do not assign source freshness to DEC-12.
+
+==================================================
+IDEMPOTENCY / CONCURRENCY
+==================================================
+
+Implement durable company-scoped economic-effect identity.
+
+Required behavior:
+
+- same identity + same meaning = original result;
+- same identity + different meaning = explicit conflict;
+- concurrent first attempts = one accounting effect;
+- retry = safe;
+- uncertain outcome = resolve using the same identity;
+- duplicate reversal/correction = safe duplicate handling;
+- never create a second identity merely because a request timed out.
+
+Do not claim that a timeout means "not posted".
+
+Provide safe result lookup or equivalent uncertain/pending handling.
+
+==================================================
+CORRECTIONS / REVERSALS
+==================================================
+
+Preserve original posted journals.
+
+Corrections/reversals must be additive, balanced and linked.
+
+Never edit or delete the original posted journal.
+
+Do not reopen periods or create year-end closing journals automatically.
+
+If the exact correction/reversal implementation requires a genuine policy
+decision rather than an engineering choice:
+
+STOP and report the conflict.
+
+Do not invent accounting policy.
+
+==================================================
+ATOMICITY / AUDIT
+==================================================
+
+Where the storage boundary permits, the following must commit atomically:
+
+- journal;
+- journal lines;
+- source/effect relationship;
+- economic-effect/idempotency result;
+- required successful audit evidence.
+
+If a mandatory validation fails, no accounting effect is permitted.
+
+If canonical persistence fails, no partial journal may remain.
+
+If required successful-post audit persistence fails, no successful accounting
+effect may remain.
+
+Rejected/stale/conflict/uncertain outcomes must not create accounting effects.
+
+==================================================
+BL-07 CONTEXT
+==================================================
+
+Do not silently turn #40 into the BL-07 product.
+
+The canonical posting foundation may consume approved existing context
+providers or implement only the minimum interfaces/test doubles required by
+#40-CF-01.
+
+If real authoritative period/configuration/mapping providers are unavailable,
+production posting must remain disabled.
+
+Do NOT fall back to:
+
+- browser values;
+- ambient configuration;
+- legacy JSON journal data.
+
+==================================================
+TEST-ONLY SOURCE ADAPTER
+==================================================
+
+You may create the controlled fixture/test adapter defined by the package.
+
+It exists only to prove the canonical posting kernel.
+
+It must NOT become a production accounting source.
+
+==================================================
+EXPLICIT EXCLUSIONS
+==================================================
+
+Do NOT implement:
+
+- invoice workflows;
+- bill workflows;
+- payments;
+- payment allocation;
+- settlement;
+- customer credits;
+- supplier prepayments;
+- refunds;
+- bank import;
+- bank reconciliation;
+- VAT-return workflows;
+- HMRC submission;
+- migration;
+- historical backfill;
+- cutover;
+- year-end closing;
+- retained-earnings journals;
+- full chart administration;
+- period management UI;
+- broad reporting;
+- broad frontend UI;
+- universal RLS;
+- new tenant-isolation architecture;
+- provider/queue/worker/scheduler selection;
+- backup/recovery implementation;
+- deployment;
+- publishing;
+- production rollout;
+- production data changes.
+
+Do not start #41.
+
+Do not start BL-06 or BL-07 as whole backlog items.
+
+Do not start another implementation task after #40-CF-01.
+
+==================================================
+RLS
+==================================================
+
+Do NOT implement universal RLS.
+
+DEC-21 allows RLS as defence-in-depth but the exact architecture remains open.
+
+If RLS becomes genuinely necessary for safe implementation:
+
+STOP and report why.
+
+==================================================
+TESTING REQUIREMENTS
+==================================================
+
+Before completion, prove at minimum:
+
+ACCOUNTING
+
+- balanced posting succeeds;
+- unbalanced posting fails;
+- zero journal fails;
+- invalid monetary values fail;
+- invalid account fails;
+- wrong-company account fails;
+- mixed company/currency fails.
+
+AUTHORIZATION
+
+- inactive membership fails;
+- revoked membership fails;
+- insufficient capability fails;
+- malformed context fails;
+- conflicting company context fails;
+- Company A cannot access/post using Company B resources.
+
+PERIOD / CONFIGURATION
+
+- invalid period fails;
+- closed period fails;
+- valid period succeeds;
+- configuration mismatch fails;
+- valid configuration resolves correctly.
+
+FRESHNESS
+
+- stale revision fails;
+- stale evidence hash fails;
+- missing/ambiguous source fails;
+- changed context between analysis and posting fails.
+
+IDEMPOTENCY
+
+- duplicate effect produces one journal;
+- same identity returns original result;
+- conflicting identity meaning fails;
+- concurrent requests cannot double-post;
+- uncertain outcome can be resolved without replay.
+
+IMMUTABILITY
+
+- posted journal cannot be edited;
+- posted journal cannot be deleted;
+- generic CRUD cannot mutate canonical history;
+- correction/reversal is additive and linked.
+
+ATOMICITY
+
+- failed validation produces no effect;
+- line-write failure produces no partial journal;
+- audit-write failure produces no successful accounting effect.
+
+AUDIT
+
+- successful journal has required evidence;
+- evidence includes company, actor/job, capability, source, context,
+  effect/idempotency identity and journal references.
+
+BACKGROUND
+
+- background posting requires explicit validated system/job/company context.
+
+Use authenticated Company A/B integration fixtures where protected API routes
+exist. Do not rely solely on a client-supplied company_id.
+
+==================================================
+VERIFICATION
+==================================================
+
+Before declaring the task complete, run:
+
+- all #40-CF-01 unit tests;
+- database/API integration tests;
+- transaction/failure-injection tests;
+- concurrency tests;
+- company-isolation tests;
+- TypeScript/type checks;
+- production build;
+- relevant runtime/API health checks;
+- git diff --check.
+
+Review the complete diff.
+
+Confirm changed files are within the approved scope.
+
+Confirm no unapproved schema changes.
+
+Confirm no migration.
+
+Confirm no deployment/publishing.
+
+Confirm no downstream task started.
+
+==================================================
+STOP CONDITIONS
+==================================================
+
+STOP immediately and report if you discover:
+
+- conflict with DEC-01–DEC-22;
+- requirement for a new governance decision;
+- requirement for a schema change outside the approved model;
+- migration requirement;
+- RLS requirement;
+- inability to guarantee atomicity;
+- inability to guarantee immutability;
+- inability to guarantee idempotency;
+- unresolved source-freshness gap;
+- inability to enforce company isolation;
+- missing authoritative period/configuration/mapping context;
+- correction behavior requiring new accounting policy;
+- any need to expand beyond #40-CF-01.
+
+Do not silently solve these by expanding scope.
+
+==================================================
+COMPLETION REPORT
+==================================================
+
+When finished, report ONLY the work performed for #40-CF-01.
+
+Include:
+
+1. Exact implementation performed.
+2. Files changed.
+3. Schema changes.
+4. Tests added.
+5. Tests run and results.
+6. Accounting invariant results.
+7. Security/company-isolation results.
+8. Freshness results.
+9. Period/configuration results.
+10. Idempotency/concurrency results.
+11. Immutability/correction results.
+12. Atomicity/audit results.
+13. TypeScript/build/runtime results.
+14. Migration status.
+15. Deployment/publishing status.
+16. Deviations or remaining risks.
+17. Which BL-06/BL-07 foundation responsibilities were actually delivered.
+
+Then STOP.
+
+No further implementation is authorised by this message.
