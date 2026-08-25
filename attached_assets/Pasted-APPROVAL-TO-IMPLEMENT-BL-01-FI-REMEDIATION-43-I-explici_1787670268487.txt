@@ -1,0 +1,178 @@
+APPROVAL TO IMPLEMENT — BL-01-FI REMEDIATION / #43
+
+I explicitly approve implementation of the proposed remediation task #43 ONLY.
+
+The purpose is to correct the defects identified by the BL-01-FI post-implementation review.
+
+Do not begin #40 or any other implementation task.
+
+==================================================
+DEFECT 1 — CONFLICTING COMPANY CONTEXT
+==================================================
+
+Fix the two identified protected paths:
+
+- POST /api/ai/reconciliation/analyse
+- suggestTransactionMatches in the functions route
+
+Where a request supplies both:
+
+- a caller-supplied company_id
+AND
+- a resource identifier whose authoritative company can be resolved
+
+the implementation MUST reject the request if the two company contexts differ.
+
+Required behaviour:
+
+Company A resource + Company A company_id
+→ allowed, subject to normal authorization.
+
+Company A resource + Company B company_id
+→ FAIL CLOSED.
+
+Company A resource + malformed/invalid company context
+→ FAIL CLOSED.
+
+Company A resource + missing company_id where resource ownership can safely establish company context
+→ follow the approved server-derived resource-scope behaviour.
+
+Do not silently replace a contradictory caller-supplied company_id with the resource's company.
+
+The resource's authoritative company may establish scope only when the supplied company context is absent or consistent.
+
+==================================================
+DEFECT 2 — DUPLICATE ACTIVE MEMBERSHIPS
+==================================================
+
+Address the identified nondeterministic authorization risk involving:
+
+company_users
+
+and:
+
+findActiveMembership(... limit(1))
+
+The implementation must ensure that authorization cannot depend on an arbitrary active membership row.
+
+Preferred approach:
+
+- determine whether duplicate active membership records are possible under the existing model;
+- ensure conflicting active membership states cannot result in nondeterministic authorization;
+- fail closed if multiple active memberships for the same company/user produce conflicting authorization state.
+
+Do NOT automatically introduce a schema constraint or migration.
+
+If a database uniqueness constraint is genuinely required:
+
+STOP before changing the schema and report:
+
+- why the application-level solution is insufficient;
+- the exact constraint required;
+- existing-data implications;
+- migration implications;
+- whether duplicate records currently exist.
+
+A schema/migration change requires separate approval.
+
+==================================================
+TEST REQUIREMENTS
+==================================================
+
+Add or update focused tests for:
+
+1. Company A resource + Company B company_id → rejected.
+2. Company A resource + Company A company_id → allowed when otherwise authorized.
+3. Resource-backed route + malformed company context → rejected.
+4. Resource-backed route + missing company context → correct server-derived behaviour.
+5. Duplicate active membership with consistent authorization → deterministic behaviour.
+6. Duplicate active memberships with conflicting roles/capabilities → fail closed.
+7. Company A cannot access Company B through either affected route.
+8. Authorization failure produces no accounting side effect.
+9. Authorization failure does not create an unintended audit/accounting write.
+10. Both identified live paths exercise the actual conflict check rather than only testing the shared guard in isolation.
+
+Run the existing:
+
+- test:company-scope
+- test:phase6
+
+and all newly affected tests.
+
+==================================================
+SCOPE BOUNDARY
+==================================================
+
+This remediation may modify only the implementation required to correct the identified BL-01-FI defects and their tests.
+
+Do NOT implement:
+
+- accounting;
+- journals;
+- payments;
+- allocations;
+- VAT;
+- AR/AP;
+- periods;
+- financial years;
+- configuration;
+- control-account mappings;
+- source-freshness implementation beyond what is strictly necessary for this authorization fix;
+- migration;
+- RLS rollout;
+- deployment;
+- publishing;
+- #40.
+
+==================================================
+STOP CONDITIONS
+==================================================
+
+STOP and report before proceeding if you discover:
+
+- a required schema change;
+- a required migration;
+- a conflict with DEC-01–DEC-22;
+- a new governance requirement;
+- an inability to enforce the security boundary safely within this task.
+
+Do not silently expand scope.
+
+==================================================
+COMPLETION VERIFICATION
+==================================================
+
+Before declaring #43 complete:
+
+- review the complete diff;
+- confirm only approved files/areas changed;
+- run all relevant tests;
+- run TypeScript/build checks;
+- run git diff --check;
+- confirm no schema or migration changes;
+- confirm no accounting effects;
+- confirm no deployment/publishing;
+- confirm no cross-company access through the affected routes;
+- confirm conflicting company contexts fail closed;
+- confirm duplicate/conflicting active memberships cannot produce nondeterministic authorization.
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report:
+
+- exact changes made;
+- tests added/changed;
+- test results;
+- security scenarios verified;
+- membership behaviour verified;
+- schema/migration status;
+- accounting-side-effect status;
+- build/type-check status;
+- diff status;
+- any remaining risks.
+
+Do NOT start another task after completing #43.
+
+STOP.
