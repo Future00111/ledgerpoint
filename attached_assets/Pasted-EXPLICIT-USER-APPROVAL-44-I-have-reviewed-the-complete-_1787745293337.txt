@@ -1,0 +1,471 @@
+EXPLICIT USER APPROVAL — #44
+
+I have reviewed the complete:
+
+docs/ledgerly-44-immutability-and-final-revalidation-approval-package.md
+
+I explicitly approve implementation of:
+
+#44 — Canonical Posting Safety Enforcement
+
+This approval is ONLY for the bounded #44 implementation described in that
+package.
+
+==================================================
+APPROVED ENGINEERING DESIGN
+==================================================
+
+I explicitly approve the three selected safety mechanisms:
+
+1. PERSISTENCE-LEVEL IMMUTABILITY
+
+Use:
+
+- dedicated NOLOGIN owner role:
+  ledgerly_canonical_owner;
+- API-role privilege separation;
+- ENABLE ALWAYS PostgreSQL triggers;
+- the exact protected canonical tables and transitions defined in the package.
+
+The API role must not own the canonical tables and must not be able to UPDATE,
+DELETE or TRUNCATE posted canonical accounting records.
+
+Corrections and reversals remain additive.
+
+Do not mutate original posted journals or lines.
+
+2. TRANSACTIONAL FINAL FRESHNESS
+
+Use one PostgreSQL transaction with deterministic:
+
+SELECT ... FOR UPDATE
+
+locking on every authoritative state required by the package.
+
+Locks must remain held through canonical commit.
+
+Use the exact approved lock order.
+
+There is no ordinary-read fallback and no conditional-write fallback.
+
+If a required provider cannot participate in the same transaction/lock
+contract:
+
+FAIL CLOSED.
+
+Production posting must remain disabled.
+
+3. CORRECTION / REVERSAL CONCURRENCY
+
+Use:
+
+- SELECT ... FOR UPDATE on the original journal;
+- existing company-scoped effect/idempotency uniqueness;
+- one partial unique reversal index per original journal;
+- unique correction/reversal identities.
+
+Enforce:
+
+- at most one reversal per original journal;
+- duplicate same-identity request returns the existing result;
+- different identity attempting a second reversal returns deterministic conflict;
+- distinct corrections serialize and proceed only if independently valid;
+- original journal remains immutable.
+
+==================================================
+APPROVED #44 DDL BOUNDARY
+==================================================
+
+You are authorised to introduce ONLY the bounded development DDL explicitly
+listed in the approved #44 package:
+
+- ledgerly_canonical_owner NOLOGIN role;
+- the four approved trigger functions;
+- ENABLE ALWAYS triggers on the specified canonical tables;
+- ownership transfers for the specified canonical tables;
+- required privilege revocations from API role and PUBLIC;
+- narrowly scoped canonical-service grants;
+- one partial unique reversal index;
+- one correction/reversal identity unique index;
+- narrowly scoped indexes required for the approved locked lookups.
+
+Do NOT introduce unrelated schema changes.
+
+Do NOT introduce:
+
+- historical migration;
+- legacy journal backfill;
+- authority transfer;
+- source product tables;
+- period product tables;
+- financial-year product tables;
+- configuration product tables;
+- mapping product tables;
+- RLS;
+- unrelated infrastructure.
+
+If additional DDL becomes necessary:
+
+STOP and report it before changing the schema.
+
+==================================================
+IMMUTABILITY REQUIREMENTS
+==================================================
+
+The persistence layer must enforce:
+
+canonical_journal_entries:
+- INSERT through the canonical path only;
+- UPDATE rejected;
+- DELETE rejected;
+- API TRUNCATE denied.
+
+canonical_journal_lines:
+- INSERT only as part of canonical journal creation;
+- UPDATE rejected;
+- DELETE rejected;
+- API TRUNCATE denied.
+
+canonical_journal_relations:
+- additive INSERT only;
+- UPDATE rejected;
+- DELETE rejected;
+- TRUNCATE denied.
+
+accounting_audit_events:
+- append-only INSERT;
+- UPDATE rejected;
+- DELETE rejected;
+- TRUNCATE denied.
+
+accounting_posting_effects:
+- INSERT permitted for new effect identity;
+- only approved pending → posted or pending → uncertain transition permitted;
+- immutable identity/company/source/effect fields;
+- all other updates rejected;
+- DELETE/TRUNCATE denied.
+
+Do not weaken these guarantees in application code.
+
+==================================================
+ROLE / PRIVILEGE SAFETY
+==================================================
+
+Verify the actual development PostgreSQL environment supports:
+
+- dedicated non-login ownership;
+- ownership transfer;
+- API-role privilege separation;
+- ENABLE ALWAYS triggers;
+- trigger ownership that the API role cannot disable.
+
+If the actual database environment cannot enforce this:
+
+STOP.
+
+Do NOT substitute application-only immutability.
+
+Do NOT claim #44 complete.
+
+Production posting must remain disabled.
+
+==================================================
+FRESHNESS / LOCK ORDER
+==================================================
+
+Use the approved deterministic lock order:
+
+1. company;
+2. source;
+3. active membership rows sorted by ID;
+4. account rows sorted by ID;
+5. DEC-10 mapping rows sorted by ID;
+6. DEC-11 configuration-version row;
+7. financial-year row;
+8. accounting-period row;
+9. original journal for correction/reversal.
+
+All relevant resolution, revalidation, posting, effect finalisation and audit
+writes must use the SAME transaction handle.
+
+Do not acquire these authoritative locks in caller-supplied order.
+
+Lock timeout or deadlock:
+
+- rollback;
+- return RETRY_REQUIRED;
+- create no partial accounting effect.
+
+==================================================
+FINAL REVALIDATION
+==================================================
+
+After locks are acquired and before canonical insert, revalidate the approved
+authoritative state, including:
+
+- source revision/evidence;
+- source/company ownership;
+- active membership;
+- role/capability;
+- account eligibility;
+- DEC-10 mappings;
+- DEC-11 configuration version;
+- financial year;
+- accounting period and period state;
+- economic-effect/idempotency identity.
+
+A mismatch must return the approved stale/conflict result and create no
+canonical accounting effect.
+
+==================================================
+MISSING AUTHORITATIVE PROVIDERS
+==================================================
+
+Do NOT invent missing BL-07 product domains.
+
+If authoritative:
+
+- period;
+- financial year;
+- DEC-10 mapping;
+- DEC-11 configuration;
+
+providers are not available with the required row-backed transactional lock
+contract, production posting remains disabled.
+
+Controlled test doubles may be used for the approved development test suite
+only.
+
+==================================================
+ATOMICITY
+==================================================
+
+The canonical transaction must atomically cover the approved sequence:
+
+- authority/context locks;
+- final validation;
+- effect identity;
+- canonical header;
+- canonical lines;
+- correction/reversal relation where applicable;
+- audit evidence;
+- effect finalisation.
+
+Any mandatory failure must roll back the complete transaction.
+
+No orphan header.
+No orphan line.
+No orphan relation.
+No falsely posted effect.
+No successful accounting effect without required audit evidence.
+
+==================================================
+ADVERSARIAL TEST MATRIX
+==================================================
+
+Implement and pass the complete mandatory adversarial matrix in the approved
+package.
+
+This includes all approved categories:
+
+IMMUTABILITY
+- direct header update;
+- direct line update;
+- header delete;
+- line delete;
+- status mutation;
+- company mutation;
+- ownership/provenance mutation;
+- alternate server mutation path;
+- mutation after correction;
+- mutation after reversal;
+- relation mutation;
+- audit mutation;
+- posting-effect identity mutation.
+
+FRESHNESS / AUTHORITY
+- source material change;
+- revision change;
+- evidence-hash change;
+- ownership change;
+- membership revocation;
+- role/capability change;
+- company change;
+- account deactivation;
+- account reassignment;
+- mapping change;
+- configuration change;
+- period closure;
+- period-bound change;
+- financial-year change;
+- missing provider;
+- lock timeout;
+- unchanged locked state.
+
+CORRECTION / REVERSAL
+- simultaneous same-identity reversals;
+- simultaneous different-identity reversals;
+- reversal retry;
+- simultaneous corrections;
+- correction retry;
+- distinct corrections;
+- uncertain reversal;
+- uncertain correction;
+- correction followed by reversal where policy permits;
+- mutation attempt during link creation.
+
+ATOMICITY
+- header failure;
+- line failure;
+- effect insert failure;
+- effect finalisation failure;
+- relation failure;
+- audit failure;
+- final freshness conflict;
+- authorization failure.
+
+AUTHORIZATION / ISOLATION
+- inactive membership;
+- revoked membership;
+- conflicting memberships;
+- malformed company context;
+- conflicting company context;
+- insufficient capability;
+- system/job scope;
+- Company A/B references;
+- Company A/B reads.
+
+COMMAND VALIDATION
+- invalid date;
+- zero total;
+- unbalanced journal;
+- mixed currency;
+- negative/fractional money;
+- fewer than two lines;
+- missing reversal reason;
+- missing correction identity.
+
+For each test verify the final database state, not just the returned error.
+
+==================================================
+PRODUCTION BOUNDARY
+==================================================
+
+This approval does NOT authorise:
+
+- production posting;
+- production schema changes;
+- deployment;
+- publishing;
+- historical migration;
+- cutover;
+- BL-06 as a whole;
+- BL-07;
+- #41 execution;
+- RLS;
+- invoice workflows;
+- bill workflows;
+- payment workflows;
+- allocation workflows;
+- refund workflows;
+- bank/reconciliation workflows;
+- VAT-return workflows;
+- period-management workflows;
+- year-end workflows.
+
+Production posting remains disabled.
+
+==================================================
+GOVERNANCE
+==================================================
+
+Preserve:
+
+- DEC-01 through DEC-22 approved;
+- no DEC-23;
+- DEC-12 remains Payment, Allocation and Settlement only;
+- source freshness remains implementation-level;
+- DEC-04 remains authoritative for immutability;
+- DEC-21 RLS remains defence-in-depth only;
+- BL-06 remains blocked;
+- BL-07 remains blocked;
+- #41 remains planning/design only.
+
+Do not amend governance during this implementation.
+
+==================================================
+STOP CONDITIONS
+==================================================
+
+STOP and report before expanding scope if:
+
+- the database cannot provide the selected privilege/ownership model;
+- ENABLE ALWAYS triggers cannot be enforced as designed;
+- the API role retains mutation authority over protected records;
+- a required provider cannot share the same transaction;
+- a required authoritative row cannot be locked;
+- the fixed lock order cannot safely be maintained;
+- the selected uniqueness rules conflict with approved correction policy;
+- additional schema/DDL is required;
+- RLS becomes necessary;
+- an approved DEC conflict is discovered;
+- production posting would need to be enabled to complete the task.
+
+Do not substitute weaker guarantees.
+
+==================================================
+DEFINITION OF DONE
+==================================================
+
+#44 is complete only when all definition-of-done requirements from the approved
+package are demonstrated, including:
+
+- persistence-level immutability;
+- API-role privilege separation;
+- direct database mutation resistance;
+- commit-safe freshness;
+- deterministic lock ordering;
+- correction/reversal serialization;
+- one reversal per original;
+- safe idempotent retries;
+- uncertain-result recovery;
+- complete atomicity;
+- adversarial failure injection;
+- Company A/B isolation;
+- all missing providers fail closed;
+- legacy JSON journal untouched;
+- no excluded workflow introduced;
+- no RLS/migration/deployment/publishing/production change;
+- type/build/schema/runtime/diff checks pass;
+- independent implementation review passes.
+
+==================================================
+FINAL REPORT
+==================================================
+
+When implementation is complete, report:
+
+1. Exact code changes.
+2. Exact DDL/schema changes.
+3. Actual database roles/ownership/grants created in development.
+4. Trigger functions/triggers installed.
+5. Privilege tests.
+6. Lock/freshness implementation.
+7. Correction/reversal concurrency implementation.
+8. Tests added.
+9. Full test results.
+10. Failure-injection results.
+11. Company-isolation results.
+12. Atomicity results.
+13. Type/build/schema/runtime results.
+14. Production-posting status.
+15. Migration/deployment/publishing status.
+16. Remaining risks or deviations.
+17. Whether #40-CF-01 is now clear of the two identified #44 safety blockers.
+
+Do NOT automatically mark #40-CF-01 complete unless its own remaining
+definition-of-done requirements are also independently reviewed.
+
+Do NOT start another task.
+
+STOP after the report.
