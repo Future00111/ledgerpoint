@@ -1,0 +1,342 @@
+PREPARE PLANNING/APPROVAL PACKAGE ONLY — DO NOT IMPLEMENT
+
+#44 remains incomplete following the final completion assessment.
+
+The smallest remaining boundary is:
+
+Transactional Authority Provider / Final Revalidation
+
+Create:
+
+docs/ledgerly-44-tr-01-transactional-authority-provider-approval-package.md
+
+Proposed scope name:
+
+#44-TR-01 — Transactional Authority Provider and Final Revalidation
+
+This is PLANNING / APPROVAL ONLY.
+
+Do not create or start an implementation task.
+Do not modify application code, schema, database state, roles, privileges,
+secrets, DATABASE_URL, workflows, infrastructure, deployment, publishing,
+production, or accounting data.
+
+The package must turn the already-approved #44 requirements into one concrete,
+implementation-ready design.
+
+1. AUTHORITATIVE TRANSACTION BOUNDARY
+
+Define the exact PostgreSQL transaction boundary used for every consequential
+canonical accounting command.
+
+Select and document:
+
+- transaction isolation level;
+- transaction start point;
+- final-revalidation point;
+- canonical write point;
+- audit write point;
+- commit point;
+- rollback behavior.
+
+The design must preserve the approved requirement that failed validation or
+failed audit persistence creates no partial accounting effect.
+
+2. ORDERED SELECT ... FOR UPDATE CONTRACT
+
+Define the exact authoritative records/resources that must be locked and the
+single deterministic lock order.
+
+Cover every #44-required authority, including where applicable:
+
+- company/resource ownership;
+- active membership and authorization authority;
+- source/evidence revision;
+- posting date context;
+- financial year;
+- accounting period and postable state;
+- DEC-11 configuration version;
+- DEC-10 mappings;
+- chart/account eligibility;
+- DEC-03 VAT authority/context;
+- current payment/allocation/credit/prepayment/refund/reconciliation state;
+- posting-effect/idempotency identity;
+- original journal for reversal/correction.
+
+For each authority specify:
+
+- authoritative table/record;
+- lookup key;
+- lock mode;
+- deterministic lock ordering position;
+- values revalidated after lock acquisition;
+- conflict/failure result;
+- whether absence itself is authoritative.
+
+Do not leave these as opaque provider reads.
+
+3. PROVIDER INTERFACE CONTRACT
+
+Replace/strengthen the current provider abstraction so a provider cannot claim
+authoritative freshness without participating in the canonical transaction.
+
+Define concrete interfaces/types requiring:
+
+- the active transaction handle;
+- company context;
+- command/source identity;
+- expected revision/version where applicable;
+- locked authoritative result;
+- validation outcome.
+
+Prevent an implementation from performing an ordinary unlocked read and
+returning it as authoritative final revalidation.
+
+Identify exactly which existing provider interfaces/call sites require change.
+
+4. SOURCE FRESHNESS
+
+Implement the design requirements derived from:
+
+docs/ledgerly-source-freshness-posting-safety-contract.md
+
+Define:
+
+- source revision/version/hash comparison;
+- expected-versus-current semantics;
+- missing revision behavior;
+- changed source behavior;
+- weak/insufficient evidence behavior;
+- queued command/recommendation freshness;
+- stale/conflict outcome;
+- retry behavior.
+
+Source freshness remains implementation-level.
+Do not assign it to DEC-12.
+Do not create DEC-23.
+
+5. MEMBERSHIP / COMPANY AUTHORITY
+
+Integrate BL-01-FI with final transactional revalidation.
+
+The package must determine how active membership/company authority is locked
+and rechecked through commit.
+
+A membership checked before the transaction is not sufficient by itself.
+
+Define behavior for:
+
+- membership revoked during posting;
+- conflicting duplicate memberships;
+- company/resource ownership changed during posting;
+- malformed/conflicting caller context;
+- background/system principal context.
+
+6. PERIOD / CONFIGURATION / MAPPING / ACCOUNT LOCKING
+
+Specify final lock/revalidation semantics for:
+
+- posting date;
+- financial year;
+- accounting period;
+- period open/closed state;
+- DEC-11 configuration version;
+- DEC-10 protected control mappings;
+- account existence;
+- account active/eligible state;
+- company ownership.
+
+The design must prevent these authorities changing after validation but before
+the accounting commit.
+
+7. ORIGINAL-JOURNAL SERIALIZATION
+
+Define the exact original-journal locking rule for reversal/correction.
+
+Include:
+
+- lock acquisition order;
+- concurrent reversal vs reversal;
+- correction vs correction;
+- correction vs reversal;
+- existing relation checks after lock;
+- SC-01 uniqueness as defence-in-depth;
+- deterministic loser/conflict result;
+- atomic rollback.
+
+Do not rely on the uniqueness index alone as the primary serialization model.
+
+8. IDEMPOTENCY / ECONOMIC EFFECT
+
+Define exact behavior for:
+
+- same command ID retry;
+- same economic effect with different command ID;
+- concurrent same-command requests;
+- concurrent equivalent economic effects;
+- pending effect;
+- posted effect;
+- uncertain effect;
+- failed transaction before commit;
+- successful commit where the caller does not receive the result.
+
+The design must guarantee no duplicate canonical economic effect.
+
+9. UNCERTAIN-RESULT RECOVERY
+
+Select a concrete recovery protocol for connection loss/timeout/unknown commit
+outcome.
+
+Define how a retry determines whether:
+
+- nothing committed;
+- the effect is pending;
+- the effect committed successfully;
+- the result is uncertain and requires controlled resolution.
+
+Do not permit blind replay.
+
+Specify authoritative lookup keys and allowed state transitions.
+
+10. DEADLOCK / LOCK CONTENTION POLICY
+
+Because ordered row locks are being introduced, define:
+
+- deterministic global lock order;
+- lock timeout behavior;
+- deadlock handling;
+- retry eligibility;
+- retry limits;
+- user-visible conflict/busy outcome;
+- audit evidence.
+
+Retries must never bypass final revalidation.
+
+11. ADVERSARIAL TEST MATRIX
+
+Require real database-backed tests proving races THROUGH COMMIT.
+
+At minimum include synchronized two-connection tests for:
+
+- membership revoked during command;
+- resource/company ownership change;
+- source revision change;
+- accounting period closure;
+- configuration-version change;
+- control-mapping change;
+- account deactivation/ineligibility;
+- concurrent same-command posting;
+- same economic effect/different command;
+- reversal vs reversal;
+- correction vs correction;
+- correction vs reversal;
+- timeout/unknown-result recovery;
+- audit-write failure;
+- line-write failure;
+- Company A/B reference isolation.
+
+Use the approved disposable-database infrastructure.
+
+Require explicit synchronization barriers/latches so concurrency is proven,
+not merely attempted.
+
+12. EXISTING SAFETY FOUNDATION
+
+Preserve and reuse:
+
+- BL-01-FI Principal and Tenant Guard;
+- #44-SC-01 relation economic-effect identity;
+- #44-RS-01 ledgerly_api / ledgerly_canonical_owner separation;
+- ENABLE ALWAYS immutability triggers;
+- disposable canonical integration database model.
+
+Do not weaken or replace those protections.
+
+13. EXACT IMPLEMENTATION IMPACT
+
+List the exact expected:
+
+- application/service files;
+- provider interfaces;
+- test files;
+- database/schema impact, if any;
+- migration impact, if any.
+
+Prefer no schema change if the existing authoritative records can support the
+approved locking/version contract.
+
+If a new revision/version column, constraint, table, trigger, role, privilege,
+or migration is actually required:
+
+DO NOT silently include it.
+
+Identify it as a separate approval requirement and return NOT READY if it is
+necessary to satisfy TR-01 safely.
+
+14. PRODUCTION BOUNDARY
+
+Development only.
+
+Do not authorize:
+
+- production posting;
+- deployment;
+- publishing;
+- production schema/data/roles/secrets;
+- RLS;
+- historical migration/cutover;
+- BL-06;
+- BL-07;
+- #41 execution.
+
+Production posting remains disabled.
+
+15. COMPLETION / UNBLOCKING RULE
+
+TR-01 completion must not automatically mark #44 or #40-CF-01 complete.
+
+After implementation, TR-01 requires independent post-implementation review.
+
+Only after that review may a new #44 completion assessment determine whether:
+
+PASS — #44 COMPLETE / #40-CF-01 MAY BE RECONSIDERED
+
+16. STOP CONDITIONS
+
+Include explicit stop conditions for:
+
+- missing authoritative record/version semantics;
+- inability to lock an authority through commit;
+- required schema not currently approved;
+- unavoidable privilege expansion;
+- need to weaken immutability;
+- ambiguous source authority;
+- non-deterministic lock ordering;
+- inability to test required races;
+- production/platform dependency;
+- governance conflict.
+
+17. GOVERNANCE
+
+Preserve:
+
+- DEC-01 through DEC-22 approved;
+- no DEC-23;
+- DEC-12 remains Payment, Allocation and Settlement Policy;
+- source freshness remains implementation-level;
+- BL-06/BL-07 blocked;
+- #40-CF-01 incomplete;
+- #44 incomplete;
+- production posting disabled.
+
+End with exactly one verdict:
+
+READY FOR #44-TR-01 IMPLEMENTATION APPROVAL
+
+or
+
+NOT READY — DESIGN GAP REMAINS
+
+Do not implement anything.
+
+STOP after producing and validating the package.
