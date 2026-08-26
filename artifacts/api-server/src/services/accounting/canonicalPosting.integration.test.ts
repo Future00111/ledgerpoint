@@ -114,9 +114,8 @@ class ConcurrencyBarrier {
 function dependencies(state: FixtureState): CanonicalPostingDependencies {
   return {
     sourceProvider: {
-      async getCurrent(command, transaction) {
-        if (state.barrier) await state.barrier.wait(transaction);
-        return {
+      async lockForPosting(command, transaction) {
+        const authority = {
           companyId: state.companyId,
           sourceType: command.sourceType,
           sourceId: command.sourceId,
@@ -125,11 +124,35 @@ function dependencies(state: FixtureState): CanonicalPostingDependencies {
           sourceRevision: state.revision,
           evidenceHash: `evidence-${state.revision}`,
         };
+        return {
+          authority,
+          recordKeys: [`fixture-source:${command.sourceId}`],
+          capturedToken: {
+            companyId: state.companyId,
+            revision: state.revision,
+            evidenceHash: `evidence-${state.revision}`,
+          },
+          lockMode: "FOR UPDATE" as const,
+          transactionBound: true as const,
+          validateCurrent() {
+            if (
+              state.companyId !== authority.companyId ||
+              state.revision !== authority.sourceRevision
+            ) {
+              return {
+                ok: false as const,
+                code: "source_stale" as const,
+                message: "Fixture source authority changed after locking",
+              };
+            }
+            return { ok: true as const };
+          },
+        };
       },
     },
     contextProvider: {
-      async resolve() {
-        return {
+      async lockForPosting(input) {
+        const authority = {
           companyId: state.companyId,
           financialYearId: "FY-2026",
           accountingPeriodId: "P-2026-04",
@@ -149,6 +172,41 @@ function dependencies(state: FixtureState): CanonicalPostingDependencies {
             ]),
           ),
         };
+        return {
+          authority,
+          recordKeys: [
+            `fixture-config:${state.configurationVersionId}`,
+            "fixture-financial-year:FY-2026",
+            "fixture-period:P-2026-04",
+          ],
+          capturedToken: {
+            companyId: state.companyId,
+            configurationVersionId: state.configurationVersionId,
+            periodStatus: state.periodStatus,
+          },
+          lockMode: "FOR UPDATE" as const,
+          transactionBound: true as const,
+          validateCurrent() {
+            if (
+              state.companyId !== input.companyId ||
+              state.configurationVersionId !== authority.configurationVersionId
+            ) {
+              return {
+                ok: false as const,
+                code: "stale_context" as const,
+                message: "Fixture accounting context changed after locking",
+              };
+            }
+            if (state.periodStatus !== "OPEN") {
+              return {
+                ok: false as const,
+                code: "period_closed" as const,
+                message: "Fixture accounting period closed after locking",
+              };
+            }
+            return { ok: true as const };
+          },
+        };
       },
     },
     lineBuilder: {
@@ -156,6 +214,13 @@ function dependencies(state: FixtureState): CanonicalPostingDependencies {
         return state.lines;
       },
     },
+    hooks: state.barrier
+      ? {
+          async afterTransactionStart(transaction) {
+            await state.barrier!.wait(transaction);
+          },
+        }
+      : undefined,
   };
 }
 
@@ -164,6 +229,7 @@ function command(input: {
   userId: string;
   effect: string;
   key: string;
+  accountIds: string[];
   revision?: string;
 }): CanonicalPostingCommand {
   const revision = input.revision ?? "rev-1";
@@ -177,6 +243,7 @@ function command(input: {
     postingKind: "fixture_posting",
     economicEffectId: input.effect,
     idempotencyKey: input.key,
+    accountIds: input.accountIds,
     postingDate: "2026-04-10",
     configurationVersionId: "config-v1",
     currencyCode: "GBP",
@@ -342,6 +409,7 @@ test("canonical posting persists a balanced immutable journal, audit, and retry-
     userId: owner,
     effect: `effect-${randomUUID()}`,
     key: `key-${randomUUID()}`,
+    accountIds: state.accountIds,
   });
 
   const posted = await postCanonicalJournal(firstCommand, dependencies(state));
@@ -384,7 +452,7 @@ test("canonical posting persists a balanced immutable journal, audit, and retry-
         },
         dependencies(state),
       ),
-    "duplicate_conflict",
+    "identity_conflict",
   );
 });
 
@@ -417,6 +485,7 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
           userId: ownerA,
           effect: `stale-${randomUUID()}`,
           key: `stale-${randomUUID()}`,
+          accountIds: base.accountIds,
         }),
         dependencies({ ...base, revision: "rev-2" }),
       ),
@@ -430,10 +499,11 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
           userId: ownerA,
           effect: `closed-${randomUUID()}`,
           key: `closed-${randomUUID()}`,
+          accountIds: base.accountIds,
         }),
         dependencies({ ...base, periodStatus: "CLOSED" }),
       ),
-    "context_invalid",
+    "period_closed",
   );
   await expectCode(
     () =>
@@ -443,6 +513,7 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
           userId: ownerA,
           effect: `account-${randomUUID()}`,
           key: `account-${randomUUID()}`,
+          accountIds: [accountB.id, creditA.id],
         }),
         dependencies({
           ...base,
@@ -464,6 +535,7 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
           userId: ownerA,
           effect: `scope-${randomUUID()}`,
           key: `scope-${randomUUID()}`,
+          accountIds: base.accountIds,
         }),
         dependencies(base),
       ),
@@ -500,6 +572,7 @@ test("canonical posting is atomic under audit failure, concurrent retries, and a
     userId: owner,
     effect: `failure-${randomUUID()}`,
     key: `failure-${randomUUID()}`,
+    accountIds: state.accountIds,
   });
   await assert.rejects(
     () =>
@@ -524,6 +597,7 @@ test("canonical posting is atomic under audit failure, concurrent retries, and a
     userId: owner,
     effect: `concurrent-${randomUUID()}`,
     key: `concurrent-${randomUUID()}`,
+    accountIds: state.accountIds,
   });
   const barrier = new ConcurrencyBarrier(2);
   const concurrent = await Promise.all(
@@ -632,6 +706,7 @@ test("SC-01 enforces company-scoped relation identity, uniqueness, and atomic ro
     userId: owner,
     effect: `sc-01-original-${randomUUID()}`,
     key: `sc-01-original-${randomUUID()}`,
+    accountIds: state.accountIds,
   });
   const original = await postCanonicalJournal(originalCommand, dependencies(state));
 
@@ -708,9 +783,9 @@ test("SC-01 enforces company-scoped relation identity, uniqueness, and atomic ro
     economicEffectId: `sc-01-reversal-second-${randomUUID()}`,
     idempotencyKey: `sc-01-reversal-second-${randomUUID()}`,
   };
-  await expectDatabaseCode(
+  await expectCode(
     () => reverseCanonicalJournal(secondReversalCommand, dependencies(state)),
-    "23505",
+    "identity_conflict",
   );
   const [secondReversalEffect] = await db
     .select()

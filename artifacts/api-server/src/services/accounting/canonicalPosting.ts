@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { db } from "@workspace/db";
 import {
   accountingAuditEventsTable,
@@ -7,18 +7,19 @@ import {
   canonicalJournalEntriesTable,
   canonicalJournalLinesTable,
   canonicalJournalRelationsTable,
+  chartOfAccountsTable,
   companyUsersTable,
+  companiesTable,
   type AccountingPostingEffect,
   type CanonicalJournalEntry,
   type CanonicalJournalLine,
 } from "@workspace/db/schema";
 import {
   resolveActiveMembership,
-  resolveCompanyScope,
   type ActiveCompanyMembership,
 } from "../../middlewares/companyScope.js";
 
-type DatabaseTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+export type DatabaseTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export type AccountingCapability =
   | "accounting.post"
@@ -89,6 +90,7 @@ export interface CanonicalPostingCommand {
   postingKind: string;
   economicEffectId: string;
   idempotencyKey: string;
+  accountIds?: readonly string[];
   postingDate: string;
   configurationVersionId?: string | null;
   currencyCode: string;
@@ -96,24 +98,54 @@ export interface CanonicalPostingCommand {
   reference?: string | null;
 }
 
+export type AuthorityToken = Readonly<
+  Record<string, string | boolean | null | undefined>
+>;
+
+export type AuthorityValidation =
+  | { ok: true }
+  | {
+      ok: false;
+      code: CanonicalPostingErrorCode;
+      message: string;
+    };
+
+export interface LockedAuthority<T> {
+  authority: T;
+  recordKeys: readonly string[];
+  capturedToken: AuthorityToken;
+  lockMode: "FOR UPDATE";
+  transactionBound: true;
+  validateCurrent(input: {
+    command: CanonicalPostingCommand;
+    companyId: string;
+    source?: CanonicalSourceSnapshot;
+    context?: PostingContext;
+  }): AuthorityValidation;
+}
+
+export interface TransactionalAuthorityProvider<Input, Locked> {
+  lockForPosting(
+    input: Input,
+    transaction: DatabaseTransaction,
+  ): Promise<LockedAuthority<Locked>>;
+}
+
 export interface CanonicalPostingDependencies {
-  sourceProvider: {
-    getCurrent(
-      command: CanonicalPostingCommand,
-      transaction: unknown,
-    ): Promise<CanonicalSourceSnapshot>;
-  };
-  contextProvider: {
-    resolve(
-      input: {
-        companyId: string;
-        postingDate: string;
-        source: CanonicalSourceSnapshot;
-        command: CanonicalPostingCommand;
-      },
-      transaction: unknown,
-    ): Promise<PostingContext>;
-  };
+  sourceProvider: TransactionalAuthorityProvider<
+    CanonicalPostingCommand,
+    CanonicalSourceSnapshot
+  >;
+  contextProvider: TransactionalAuthorityProvider<
+    {
+      companyId: string;
+      postingDate: string;
+      source: CanonicalSourceSnapshot;
+      command: CanonicalPostingCommand;
+      accountIds: readonly string[];
+    },
+    PostingContext
+  >;
   lineBuilder: {
     build(input: {
       command: CanonicalPostingCommand;
@@ -122,6 +154,7 @@ export interface CanonicalPostingDependencies {
     }): Promise<CanonicalLineDraft[]>;
   };
   hooks?: {
+    afterTransactionStart?: (transaction: DatabaseTransaction) => Promise<void>;
     afterJournalInsert?: (input: {
       journal: CanonicalJournalEntry;
       lines: CanonicalJournalLine[];
@@ -160,6 +193,7 @@ export class CanonicalPostingError extends Error {
   constructor(
     public readonly code: CanonicalPostingErrorCode,
     message: string,
+    public readonly retryable = false,
   ) {
     super(message);
     this.name = "CanonicalPostingError";
@@ -169,13 +203,25 @@ export class CanonicalPostingError extends Error {
 export type CanonicalPostingErrorCode =
   | "invalid_command"
   | "authorization_failed"
+  | "authorization_conflict"
+  | "company_scope_conflict"
   | "source_not_postable"
   | "source_stale"
   | "source_identity_missing"
+  | "retry_required"
+  | "stale_context"
+  | "period_closed"
   | "context_invalid"
   | "account_invalid"
   | "journal_invalid"
   | "duplicate_conflict"
+  | "identity_conflict"
+  | "missing_authority"
+  | "transaction_contract_invalid"
+  | "lock_timeout"
+  | "deadlock"
+  | "company_not_found"
+  | "account_not_found"
   | "journal_not_found"
   | "journal_immutable"
   | "correction_invalid";
@@ -187,6 +233,218 @@ const ROLE_CAPABILITIES: Record<string, readonly AccountingCapability[]> = {
 
 function fail(code: CanonicalPostingErrorCode, message: string): never {
   throw new CanonicalPostingError(code, message);
+}
+
+function failRetryable(code: CanonicalPostingErrorCode, message: string): never {
+  throw new CanonicalPostingError(code, message, true);
+}
+
+function databaseErrorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null) return undefined;
+  if ("code" in error && typeof (error as { code?: unknown }).code === "string") {
+    return (error as { code: string }).code;
+  }
+  return "cause" in error
+    ? databaseErrorCode((error as { cause?: unknown }).cause)
+    : undefined;
+}
+
+function mapDatabaseError(error: unknown): unknown {
+  const code = databaseErrorCode(error);
+  if (code === "55P03") {
+    return new CanonicalPostingError(
+      "lock_timeout",
+      "The accounting authority lock timed out; no posting was committed",
+      true,
+    );
+  }
+  if (code === "40P01") {
+    return new CanonicalPostingError(
+      "deadlock",
+      "The accounting authority lock encountered a deadlock; no posting was committed",
+      true,
+    );
+  }
+  if (code === "23505") {
+    return new CanonicalPostingError(
+      "identity_conflict",
+      "The accounting identity is already claimed by a conflicting command",
+    );
+  }
+  return error;
+}
+
+function assertLockedAuthority<T>(
+  authority: LockedAuthority<T>,
+  label: string,
+): T {
+  if (
+    !authority ||
+    authority.transactionBound !== true ||
+    authority.lockMode !== "FOR UPDATE" ||
+    !Array.isArray(authority.recordKeys) ||
+    authority.recordKeys.length === 0 ||
+    typeof authority.validateCurrent !== "function"
+  ) {
+    fail(
+      "transaction_contract_invalid",
+      `${label} did not return a transaction-bound FOR UPDATE authority`,
+    );
+  }
+  return authority.authority;
+}
+
+function validateLockedAuthority(
+  authority: LockedAuthority<unknown>,
+  input: {
+    command: CanonicalPostingCommand;
+    companyId: string;
+    source?: CanonicalSourceSnapshot;
+    context?: PostingContext;
+  },
+): void {
+  const validation = authority.validateCurrent(input);
+  if (!validation.ok) fail(validation.code, validation.message);
+}
+
+function requireResolvedCompanyId(value: unknown): string {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    failRetryable(
+      "missing_authority",
+      "A server-resolved company authority is required before source locking",
+    );
+  }
+  return value.trim();
+}
+
+async function setTransactionLockTimeout(
+  transaction: DatabaseTransaction,
+): Promise<void> {
+  await transaction.execute(sql`SET LOCAL lock_timeout = '2000ms'`);
+}
+
+async function lockCompany(
+  transaction: DatabaseTransaction,
+  companyId: string,
+): Promise<void> {
+  const rows = await transaction
+    .select({ id: companiesTable.id, status: companiesTable.status })
+    .from(companiesTable)
+    .where(eq(companiesTable.id, companyId))
+    .for("update");
+  if (rows.length !== 1) {
+    fail("company_not_found", "The authoritative company row was not found");
+  }
+  if (rows[0]?.status && rows[0].status !== "active") {
+    fail("company_scope_conflict", "The authoritative company is not active");
+  }
+}
+
+async function lockMembership(
+  transaction: DatabaseTransaction,
+  principal: AccountingPrincipal,
+  companyId: string,
+  capability: AccountingCapability,
+): Promise<ActiveCompanyMembership | null> {
+  if (principal.kind === "system") {
+    assertPrincipalCapability(principal, capability, companyId);
+    return null;
+  }
+  const rows = await transaction
+    .select({
+      id: companyUsersTable.id,
+      company_id: companyUsersTable.company_id,
+      user_id: companyUsersTable.user_id,
+      role: companyUsersTable.role,
+      is_active: companyUsersTable.is_active,
+    })
+    .from(companyUsersTable)
+    .where(
+      and(
+        eq(companyUsersTable.user_id, principal.userId),
+        eq(companyUsersTable.company_id, companyId),
+      ),
+    )
+    .orderBy(companyUsersTable.id)
+    .for("update");
+  const activeMemberships = rows
+    .filter((row) => row.is_active === true)
+    .map(({ company_id, user_id, role, is_active }) => ({
+      company_id,
+      user_id,
+      role,
+      is_active,
+    }));
+  const membership = resolveActiveMembership(
+    activeMemberships as ActiveCompanyMembership[],
+  );
+  if (!membership) {
+    fail(
+      rows.length === 0 ? "authorization_failed" : "authorization_conflict",
+      "The locked membership state does not authorise this operation",
+    );
+  }
+  if (!(ROLE_CAPABILITIES[membership.role ?? ""] ?? []).includes(capability)) {
+    fail("authorization_failed", "The principal lacks the required accounting capability");
+  }
+  return membership;
+}
+
+interface LockedAccountRow {
+  id: string;
+  company_id: string;
+  is_active: boolean | null;
+}
+
+async function lockAccountRows(
+  transaction: DatabaseTransaction,
+  companyId: string,
+  accountIds: readonly string[],
+): Promise<LockedAccountRow[]> {
+  const uniqueIds = [...new Set(accountIds)].sort();
+  if (uniqueIds.length === 0) {
+    failRetryable(
+      "missing_authority",
+      "Every canonical posting must declare its resolved account identities",
+    );
+  }
+  const rows = await transaction
+    .select({
+      id: chartOfAccountsTable.id,
+      company_id: chartOfAccountsTable.company_id,
+      is_active: chartOfAccountsTable.is_active,
+    })
+    .from(chartOfAccountsTable)
+    .where(
+      and(
+        eq(chartOfAccountsTable.company_id, companyId),
+        inArray(chartOfAccountsTable.id, uniqueIds),
+      ),
+    )
+    .orderBy(chartOfAccountsTable.id)
+    .for("update");
+  if (rows.length !== uniqueIds.length) {
+    fail("account_not_found", "An authoritative account row was not found");
+  }
+  return rows;
+}
+
+function validateLockedAccounts(
+  rows: readonly LockedAccountRow[],
+  context: PostingContext,
+): void {
+  for (const row of rows) {
+    const account = context.accounts[row.id];
+    if (
+      !account ||
+      account.companyId !== row.company_id ||
+      !row.is_active ||
+      !account.isActive ||
+      !account.isEligible
+    ) {
+      fail("stale_context", `Account ${row.id} changed before posting`);
+    }
+  }
 }
 
 function requireNonEmpty(value: unknown, label: string): string {
@@ -235,6 +493,9 @@ function compareSourceFreshness(
   }
   if (!snapshot.isPostable) {
     fail("source_not_postable", "The source is not currently eligible for posting");
+  }
+  if (command.sourceStatus && snapshot.status !== command.sourceStatus) {
+    fail("source_stale", "The source status changed before posting");
   }
   if (
     command.sourceRevision &&
@@ -293,7 +554,7 @@ function validateContext(
     fail("context_invalid", "The accounting configuration changed before posting");
   }
   if (context.periodStatus !== "OPEN") {
-    fail("context_invalid", "The accounting period is closed");
+    fail("period_closed", "The accounting period is closed");
   }
   if (context.currencyCode !== command.currencyCode) {
     fail("context_invalid", "Posting currency does not match the accounting context");
@@ -412,90 +673,32 @@ function assertPrincipalCapability(
   }
 }
 
-async function userScopeInTransaction(
-  transaction: DatabaseTransaction,
-  principal: AccountingPrincipal,
-  requestedCompanyId: unknown,
-  resourceCompanyId: string,
-  capability: AccountingCapability,
-): Promise<void> {
-  if (principal.kind === "system") {
-    assertPrincipalCapability(principal, capability, resourceCompanyId);
-    return;
-  }
-
-  const decision = await resolveCompanyScope(
-    {
-      userId: principal.userId,
-      requestedCompanyId: requestedCompanyId ?? principal.requestedCompanyId,
-      resourceCompanyId,
-    },
-    async (userId, companyId) => {
-      const memberships = await transaction
-        .select({
-          company_id: companyUsersTable.company_id,
-          user_id: companyUsersTable.user_id,
-          role: companyUsersTable.role,
-          is_active: companyUsersTable.is_active,
-        })
-        .from(companyUsersTable)
-        .where(
-          and(
-            eq(companyUsersTable.user_id, userId),
-            eq(companyUsersTable.company_id, companyId),
-            eq(companyUsersTable.is_active, true),
-          ),
-        );
-      return resolveActiveMembership(memberships as ActiveCompanyMembership[]);
-    },
-  );
-  if (!decision.ok) {
-    fail("authorization_failed", "The authenticated principal is not authorised for this company");
-  }
-}
-
-function assertUserRoleCapability(
-  principal: AccountingPrincipal,
-  membership: ActiveCompanyMembership | null,
-  capability: AccountingCapability,
-): void {
-  if (principal.kind === "system") {
-    assertPrincipalCapability(principal, capability, principal.companyId);
-    return;
-  }
-  if (!membership || !(ROLE_CAPABILITIES[membership.role ?? ""] ?? []).includes(capability)) {
-    fail("authorization_failed", "The principal lacks the required accounting capability");
-  }
-}
-
 async function findEffect(
   transaction: DatabaseTransaction,
   companyId: string,
   idempotencyKey: string,
   economicEffectId: string,
 ): Promise<AccountingPostingEffect | null> {
-  const [byKey] = await transaction
+  const rows = await transaction
     .select()
     .from(accountingPostingEffectsTable)
     .where(
       and(
         eq(accountingPostingEffectsTable.company_id, companyId),
-        eq(accountingPostingEffectsTable.idempotency_key, idempotencyKey),
+        or(
+          eq(accountingPostingEffectsTable.idempotency_key, idempotencyKey),
+          eq(accountingPostingEffectsTable.economic_effect_id, economicEffectId),
+        ),
       ),
     )
-    .limit(1);
-  const [byEffect] = await transaction
-    .select()
-    .from(accountingPostingEffectsTable)
-    .where(
-      and(
-        eq(accountingPostingEffectsTable.company_id, companyId),
-        eq(accountingPostingEffectsTable.economic_effect_id, economicEffectId),
-      ),
-    )
-    .limit(1);
+    .orderBy(accountingPostingEffectsTable.id)
+    .for("update");
+  const byKey = rows.find((row) => row.idempotency_key === idempotencyKey);
+  const byEffect = rows.find(
+    (row) => row.economic_effect_id === economicEffectId,
+  );
   if (byKey && byEffect && byKey.id !== byEffect.id) {
-    fail("duplicate_conflict", "Idempotency and economic-effect identities conflict");
+    fail("identity_conflict", "Idempotency and economic-effect identities conflict");
   }
   return byKey ?? byEffect ?? null;
 }
@@ -504,13 +707,25 @@ function resultFromEffect(
   effect: AccountingPostingEffect,
   status: "posted" | "duplicate" = "duplicate",
 ): CanonicalPostingResult {
+  if (effect.status === "pending") {
+    failRetryable(
+      "retry_required",
+      "The matching posting effect is pending controlled resolution",
+    );
+  }
+  if (effect.status === "uncertain") {
+    failRetryable(
+      "retry_required",
+      "The matching posting effect has an uncertain outcome and cannot be replayed",
+    );
+  }
   if (!effect.journal_id || !effect.result) {
-    fail("duplicate_conflict", "The existing effect has no completed canonical result");
+    fail("identity_conflict", "The existing effect has no completed canonical result");
   }
   const totalDebitMinor = String(effect.result.totalDebitMinor ?? "");
   const totalCreditMinor = String(effect.result.totalCreditMinor ?? "");
   if (!totalDebitMinor || !totalCreditMinor) {
-    fail("duplicate_conflict", "The existing effect result is incomplete");
+    fail("identity_conflict", "The existing effect result is incomplete");
   }
   return {
     status,
@@ -532,7 +747,7 @@ function assertRetryIdentity(
     effect.economic_effect_id !== command.economicEffectId ||
     effect.command_fingerprint !== fingerprint
   ) {
-    fail("duplicate_conflict", "The posting identity was reused for a different command");
+    fail("identity_conflict", "The posting identity was reused for a different command");
   }
 }
 
@@ -571,11 +786,14 @@ async function insertEffect(
     input.command.economicEffectId,
   );
   if (!existing) {
-    fail("duplicate_conflict", "The effect identity could not be resolved after a conflict");
+    fail("identity_conflict", "The effect identity could not be resolved after a conflict");
   }
   assertRetryIdentity(existing, input.command, input.fingerprint);
   if (existing.status !== "posted") {
-    fail("duplicate_conflict", "The effect is not in a retry-safe completed state");
+    failRetryable(
+      "retry_required",
+      "The existing effect requires controlled recovery before replay",
+    );
   }
   return existing;
 }
@@ -717,34 +935,28 @@ async function persistJournal(
   };
 }
 
-async function loadMembership(
-  transaction: DatabaseTransaction,
-  principal: AccountingPrincipal,
-  companyId: string,
-): Promise<ActiveCompanyMembership | null> {
-  if (principal.kind === "system") return null;
-  const rows = await transaction
-    .select({
-      company_id: companyUsersTable.company_id,
-      user_id: companyUsersTable.user_id,
-      role: companyUsersTable.role,
-      is_active: companyUsersTable.is_active,
-    })
-    .from(companyUsersTable)
-    .where(
-      and(
-        eq(companyUsersTable.company_id, companyId),
-        eq(companyUsersTable.user_id, principal.userId),
-        eq(companyUsersTable.is_active, true),
-      ),
-    );
-  return resolveActiveMembership(rows as ActiveCompanyMembership[]);
+async function runCanonicalTransaction<T>(
+  operation: (transaction: DatabaseTransaction) => Promise<T>,
+): Promise<T> {
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await db.transaction(async (transaction) => {
+        await setTransactionLockTimeout(transaction);
+        return operation(transaction);
+      });
+    } catch (error) {
+      const mapped = mapDatabaseError(error);
+      const retryableLockFailure =
+        mapped instanceof CanonicalPostingError &&
+        (mapped.code === "lock_timeout" || mapped.code === "deadlock");
+      if (!retryableLockFailure || attempt === 3) throw mapped;
+      await new Promise((resolve) => setTimeout(resolve, 25 * attempt));
+    }
+  }
+  failRetryable("retry_required", "The accounting command exhausted its retry budget");
 }
 
-export async function postCanonicalJournal(
-  command: CanonicalPostingCommand,
-  dependencies: CanonicalPostingDependencies,
-): Promise<CanonicalPostingResult> {
+function validateCommand(command: CanonicalPostingCommand): void {
   requireNonEmpty(command.sourceType, "sourceType");
   requireNonEmpty(command.sourceId, "sourceId");
   requireNonEmpty(command.postingKind, "postingKind");
@@ -753,106 +965,42 @@ export async function postCanonicalJournal(
   requireNonEmpty(command.currencyCode, "currencyCode");
   requireNonEmpty(command.description, "description");
   validateDate(command.postingDate);
-
-  return db.transaction(async (transaction) => {
-    const source = await dependencies.sourceProvider.getCurrent(command, transaction);
-    if (
-      source.sourceType !== command.sourceType ||
-      source.sourceId !== command.sourceId
-    ) {
-      fail("source_identity_missing", "The source provider returned a different source");
-    }
-    await userScopeInTransaction(
-      transaction,
-      command.principal,
-      command.requestedCompanyId,
-      source.companyId,
-      "accounting.post",
-    );
-    const membership = await loadMembership(transaction, command.principal, source.companyId);
-    assertUserRoleCapability(command.principal, membership, "accounting.post");
-    compareSourceFreshness(command, source);
-
-    const context = await dependencies.contextProvider.resolve(
-      { companyId: source.companyId, postingDate: command.postingDate, source, command },
-      transaction,
-    );
-    validateContext(command, source, context);
-    const drafts = await dependencies.lineBuilder.build({ command, source, context });
-    const validated = validateLines(drafts, command, context);
-    const fingerprint = commandFingerprint(command, validated.lines, context);
-    const existing = await findEffect(
-      transaction,
-      source.companyId,
-      command.idempotencyKey,
-      command.economicEffectId,
-    );
-    if (existing) {
-      assertRetryIdentity(existing, command, fingerprint);
-      return resultFromEffect(existing);
-    }
-
-    const effect = await insertEffect(transaction, {
-      companyId: source.companyId,
-      command,
-      fingerprint,
-      actor: actor(command.principal),
-    });
-    if (effect.status === "posted") return resultFromEffect(effect);
-
-    return persistJournal(transaction, {
-      companyId: source.companyId,
-      command,
-      source,
-      context,
-      lines: validated.lines,
-      totals: validated,
-      effect,
-      actor: actor(command.principal),
-      hooks: dependencies.hooks,
-    });
-  });
 }
 
-async function originalJournalContext(
-  transaction: DatabaseTransaction,
-  principal: AccountingPrincipal,
-  originalJournalId: string,
-  requestedCompanyId: unknown,
-  capability: AccountingCapability,
-): Promise<{
-  original: CanonicalJournalEntry;
-  originalLines: CanonicalJournalLine[];
-  membership: ActiveCompanyMembership | null;
-}> {
-  const [original] = await transaction
-    .select()
-    .from(canonicalJournalEntriesTable)
-    .where(eq(canonicalJournalEntriesTable.id, originalJournalId))
-    .limit(1);
-  if (!original) fail("journal_not_found", "The original canonical journal was not found");
-  await userScopeInTransaction(
-    transaction,
-    principal,
-    requestedCompanyId,
-    original.company_id,
-    capability,
-  );
-  const membership = await loadMembership(transaction, principal, original.company_id);
-  assertUserRoleCapability(principal, membership, capability);
-  const originalLines = await transaction
-    .select()
-    .from(canonicalJournalLinesTable)
-    .where(
-      and(
-        eq(canonicalJournalLinesTable.journal_entry_id, original.id),
-        eq(canonicalJournalLinesTable.company_id, original.company_id),
-      ),
+function commandAccountIds(command: CanonicalPostingCommand): string[] {
+  const accountIds = [...new Set(command.accountIds ?? [])].sort();
+  if (accountIds.length === 0) {
+    failRetryable(
+      "missing_authority",
+      "The command envelope does not contain resolved account identities",
     );
-  if (original.status !== "posted" || originalLines.length < 2) {
-    fail("correction_invalid", "Only a complete posted journal can be corrected");
   }
-  return { original, originalLines, membership };
+  return accountIds;
+}
+
+function assertLineAccountsLocked(
+  lines: readonly { accountId: string }[],
+  accountIds: readonly string[],
+): void {
+  const locked = new Set(accountIds);
+  if (lines.some((line) => !locked.has(line.accountId))) {
+    fail(
+      "stale_context",
+      "The line builder returned an account outside the locked command envelope",
+    );
+  }
+}
+
+function sourceFromOriginal(original: CanonicalJournalEntry): CanonicalSourceSnapshot {
+  return {
+    companyId: original.company_id,
+    sourceType: "canonical_journal",
+    sourceId: original.id,
+    status: "posted",
+    isPostable: true,
+    sourceRevision: original.source_revision ?? original.id,
+    evidenceHash: original.source_evidence_hash,
+  };
 }
 
 function reversalLines(lines: CanonicalJournalLine[]): CanonicalLineDraft[] {
@@ -867,41 +1015,75 @@ function reversalLines(lines: CanonicalJournalLine[]): CanonicalLineDraft[] {
   }));
 }
 
-async function postLinkedJournal(
+export async function postCanonicalJournal(
   command: CanonicalPostingCommand,
   dependencies: CanonicalPostingDependencies,
-  relation: { originalJournalId: string; relationType: "reversal" | "correction"; reason: string },
-  drafts: CanonicalLineDraft[],
 ): Promise<CanonicalPostingResult> {
-  return db.transaction(async (transaction) => {
-    const { original } = await originalJournalContext(
+  validateCommand(command);
+  const companyId = requireResolvedCompanyId(
+    command.requestedCompanyId ??
+      (command.principal.kind === "system"
+        ? command.principal.companyId
+        : command.principal.requestedCompanyId),
+  );
+  const accountIds = commandAccountIds(command);
+
+  return runCanonicalTransaction(async (transaction) => {
+    await dependencies.hooks?.afterTransactionStart?.(transaction);
+    await lockCompany(transaction, companyId);
+    const sourceAuthority = await dependencies.sourceProvider.lockForPosting(
+      command,
+      transaction,
+    );
+    const source = assertLockedAuthority(sourceAuthority, "Source provider");
+    if (
+      source.companyId !== companyId ||
+      source.sourceType !== command.sourceType ||
+      source.sourceId !== command.sourceId
+    ) {
+      fail(
+        source.companyId !== companyId
+          ? "company_scope_conflict"
+          : "source_identity_missing",
+        "The locked source identity does not match the command envelope",
+      );
+    }
+    compareSourceFreshness(command, source);
+    await lockMembership(
       transaction,
       command.principal,
-      relation.originalJournalId,
-      command.requestedCompanyId,
-      relation.relationType === "reversal"
-        ? "accounting.reverse"
-        : "accounting.correct",
+      companyId,
+      "accounting.post",
     );
-    const source: CanonicalSourceSnapshot = {
-      companyId: original.company_id,
-      sourceType: "canonical_journal",
-      sourceId: original.id,
-      status: "posted",
-      isPostable: true,
-      sourceRevision: original.source_revision ?? original.id,
-      evidenceHash: original.source_evidence_hash,
-    };
-    const context = await dependencies.contextProvider.resolve(
-      { companyId: original.company_id, postingDate: command.postingDate, source, command },
+    const lockedAccounts = await lockAccountRows(
+      transaction,
+      companyId,
+      accountIds,
+    );
+    const contextAuthority = await dependencies.contextProvider.lockForPosting(
+      {
+        companyId,
+        postingDate: command.postingDate,
+        source,
+        command,
+        accountIds,
+      },
       transaction,
     );
+    const context = assertLockedAuthority(contextAuthority, "Context provider");
     validateContext(command, source, context);
+    validateLockedAccounts(lockedAccounts, context);
+    const drafts = await dependencies.lineBuilder.build({ command, source, context });
     const validated = validateLines(drafts, command, context);
+    assertLineAccountsLocked(validated.lines, accountIds);
+
+    validateLockedAuthority(sourceAuthority, { command, companyId, source, context });
+    validateLockedAuthority(contextAuthority, { command, companyId, source, context });
+
     const fingerprint = commandFingerprint(command, validated.lines, context);
     const existing = await findEffect(
       transaction,
-      original.company_id,
+      companyId,
       command.idempotencyKey,
       command.economicEffectId,
     );
@@ -910,14 +1092,197 @@ async function postLinkedJournal(
       return resultFromEffect(existing);
     }
     const effect = await insertEffect(transaction, {
-      companyId: original.company_id,
+      companyId,
       command,
       fingerprint,
       actor: actor(command.principal),
     });
     if (effect.status === "posted") return resultFromEffect(effect);
     return persistJournal(transaction, {
-      companyId: original.company_id,
+      companyId,
+      command,
+      source,
+      context,
+      lines: validated.lines,
+      totals: validated,
+      effect,
+      actor: actor(command.principal),
+      hooks: dependencies.hooks,
+    });
+  });
+}
+
+async function postLinkedJournal(
+  command: CanonicalPostingCommand,
+  dependencies: Pick<
+    CanonicalPostingDependencies,
+    "contextProvider" | "lineBuilder" | "hooks"
+  >,
+  relation: {
+    originalJournalId: string;
+    relationType: "reversal" | "correction";
+    reason: string;
+  },
+  buildDrafts: (input: {
+    source: CanonicalSourceSnapshot;
+    context: PostingContext;
+    originalLines: CanonicalJournalLine[];
+  }) => Promise<CanonicalLineDraft[]> | CanonicalLineDraft[],
+): Promise<CanonicalPostingResult> {
+  validateCommand(command);
+  return runCanonicalTransaction(async (transaction) => {
+    await dependencies.hooks?.afterTransactionStart?.(transaction);
+    const [preliminaryOriginal] = await transaction
+      .select()
+      .from(canonicalJournalEntriesTable)
+      .where(eq(canonicalJournalEntriesTable.id, relation.originalJournalId))
+      .limit(1);
+    if (!preliminaryOriginal) {
+      fail("journal_not_found", "The original canonical journal was not found");
+    }
+    const preliminaryLines = await transaction
+      .select()
+      .from(canonicalJournalLinesTable)
+      .where(
+        and(
+          eq(
+            canonicalJournalLinesTable.journal_entry_id,
+            preliminaryOriginal.id,
+          ),
+          eq(
+            canonicalJournalLinesTable.company_id,
+            preliminaryOriginal.company_id,
+          ),
+        ),
+      )
+      .orderBy(canonicalJournalLinesTable.line_number);
+    const companyId = preliminaryOriginal.company_id;
+    const requested = requireResolvedCompanyId(
+      command.requestedCompanyId ??
+        (command.principal.kind === "system"
+          ? command.principal.companyId
+          : command.principal.requestedCompanyId),
+    );
+    if (requested !== companyId) {
+      fail("company_scope_conflict", "The requested company does not own the original journal");
+    }
+
+    await lockCompany(transaction, companyId);
+    await lockMembership(
+      transaction,
+      command.principal,
+      companyId,
+      relation.relationType === "reversal"
+        ? "accounting.reverse"
+        : "accounting.correct",
+    );
+    const accountIds = [...new Set(preliminaryLines.map((line) => line.account_id))].sort();
+    const lockedAccounts = await lockAccountRows(
+      transaction,
+      companyId,
+      accountIds,
+    );
+    command.accountIds = accountIds;
+    command.currencyCode = preliminaryOriginal.currency_code;
+    command.sourceRevision =
+      preliminaryOriginal.source_revision ?? preliminaryOriginal.id;
+    command.sourceEvidenceHash = preliminaryOriginal.source_evidence_hash;
+    const preliminarySource = sourceFromOriginal(preliminaryOriginal);
+    const contextAuthority = await dependencies.contextProvider.lockForPosting(
+      {
+        companyId,
+        postingDate: command.postingDate,
+        source: preliminarySource,
+        command,
+        accountIds,
+      },
+      transaction,
+    );
+    const context = assertLockedAuthority(contextAuthority, "Context provider");
+
+    const [original] = await transaction
+      .select()
+      .from(canonicalJournalEntriesTable)
+      .where(eq(canonicalJournalEntriesTable.id, relation.originalJournalId))
+      .for("update");
+    if (!original || original.company_id !== companyId) {
+      fail("company_scope_conflict", "The original journal company changed before locking");
+    }
+    const originalLines = await transaction
+      .select()
+      .from(canonicalJournalLinesTable)
+      .where(
+        and(
+          eq(canonicalJournalLinesTable.journal_entry_id, original.id),
+          eq(canonicalJournalLinesTable.company_id, companyId),
+        ),
+      )
+      .orderBy(canonicalJournalLinesTable.line_number);
+    if (original.status !== "posted" || originalLines.length < 2) {
+      fail("correction_invalid", "Only a complete posted journal can be corrected");
+    }
+    if (
+      originalLines.length !== preliminaryLines.length ||
+      originalLines.some(
+        (line, index) =>
+          line.id !== preliminaryLines[index]?.id ||
+          line.account_id !== preliminaryLines[index]?.account_id,
+      )
+    ) {
+      fail("correction_invalid", "The original journal changed before final locking");
+    }
+    const source = sourceFromOriginal(original);
+    command.currencyCode = original.currency_code;
+    command.sourceRevision = source.sourceRevision;
+    command.sourceEvidenceHash = source.evidenceHash;
+    validateContext(command, source, context);
+    validateLockedAccounts(lockedAccounts, context);
+    const drafts = await buildDrafts({ source, context, originalLines });
+    const validated = validateLines(drafts, command, context);
+    assertLineAccountsLocked(validated.lines, accountIds);
+    validateLockedAuthority(contextAuthority, {
+      command,
+      companyId,
+      source,
+      context,
+    });
+
+    const fingerprint = commandFingerprint(command, validated.lines, context);
+    const existing = await findEffect(
+      transaction,
+      companyId,
+      command.idempotencyKey,
+      command.economicEffectId,
+    );
+    if (existing) {
+      assertRetryIdentity(existing, command, fingerprint);
+      return resultFromEffect(existing);
+    }
+    if (relation.relationType === "reversal") {
+      const existingReversals = await transaction
+        .select({ id: canonicalJournalRelationsTable.id })
+        .from(canonicalJournalRelationsTable)
+        .where(
+          and(
+            eq(canonicalJournalRelationsTable.company_id, companyId),
+            eq(canonicalJournalRelationsTable.original_journal_id, original.id),
+            eq(canonicalJournalRelationsTable.relation_type, "reversal"),
+          ),
+        )
+        .orderBy(canonicalJournalRelationsTable.id);
+      if (existingReversals.length > 0) {
+        fail("identity_conflict", "The original journal already has a reversal");
+      }
+    }
+    const effect = await insertEffect(transaction, {
+      companyId,
+      command,
+      fingerprint,
+      actor: actor(command.principal),
+    });
+    if (effect.status === "posted") return resultFromEffect(effect);
+    return persistJournal(transaction, {
+      companyId,
       command,
       source,
       context,
@@ -936,182 +1301,109 @@ export async function reverseCanonicalJournal(
   dependencies: Pick<CanonicalPostingDependencies, "contextProvider" | "hooks">,
 ): Promise<CanonicalPostingResult> {
   const reason = requireNonEmpty(command.reason, "reason");
-  requireNonEmpty(command.originalJournalId, "originalJournalId");
-  const postingKind = command.postingKind ?? "journal_reversal";
-  const base: CanonicalPostingCommand = {
-    principal: command.principal,
-    requestedCompanyId: command.requestedCompanyId,
-    sourceType: "canonical_journal",
-    sourceId: command.originalJournalId,
-    sourceRevision: null,
-    sourceEvidenceHash: null,
-    sourceStatus: "posted",
-    postingKind,
-    economicEffectId: command.economicEffectId,
-    idempotencyKey: command.idempotencyKey,
-    postingDate: command.postingDate,
-    configurationVersionId: command.configurationVersionId,
-    currencyCode: "GBP",
-    description: `Reversal of ${command.originalJournalId}`,
-    reference: command.reference ?? null,
-  };
-  return db.transaction(async (transaction) => {
-    const { original, originalLines } = await originalJournalContext(
-      transaction,
-      command.principal,
-      command.originalJournalId,
-      command.requestedCompanyId,
-      "accounting.reverse",
-    );
-    base.currencyCode = original.currency_code;
-    const source: CanonicalSourceSnapshot = {
-      companyId: original.company_id,
-      sourceType: "canonical_journal",
-      sourceId: original.id,
-      status: "posted",
-      isPostable: true,
-      sourceRevision: original.source_revision ?? original.id,
-      evidenceHash: original.source_evidence_hash,
-    };
-    const context = await dependencies.contextProvider.resolve(
-      {
-        companyId: original.company_id,
-        postingDate: command.postingDate,
-        source,
-        command: base,
-      },
-      transaction,
-    );
-    validateContext(base, source, context);
-    const validated = validateLines(reversalLines(originalLines), base, context);
-    const fingerprint = commandFingerprint(base, validated.lines, context);
-    const existing = await findEffect(
-      transaction,
-      original.company_id,
-      command.idempotencyKey,
-      command.economicEffectId,
-    );
-    if (existing) {
-      assertRetryIdentity(existing, base, fingerprint);
-      return resultFromEffect(existing);
-    }
-    const effect = await insertEffect(transaction, {
-      companyId: original.company_id,
-      command: base,
-      fingerprint,
-      actor: actor(command.principal),
-    });
-    if (effect.status === "posted") return resultFromEffect(effect);
-    return persistJournal(transaction, {
-      companyId: original.company_id,
-      command: base,
-      source,
-      context,
-      lines: validated.lines,
-      totals: validated,
-      effect,
-      actor: actor(command.principal),
-      correction: {
-        originalJournalId: original.id,
-        relationType: "reversal",
-        reason,
-      },
-      hooks: dependencies.hooks,
-    });
-  });
-}
-
-export async function correctCanonicalJournal(
-  command: CanonicalCorrectionCommand,
-  dependencies: CanonicalPostingDependencies,
-): Promise<CanonicalPostingResult> {
-  const reason = requireNonEmpty(command.reason, "reason");
-  const originalJournalId = requireNonEmpty(command.originalJournalId, "originalJournalId");
-  const postingKind = command.postingKind ?? "journal_correction";
+  const originalJournalId = requireNonEmpty(
+    command.originalJournalId,
+    "originalJournalId",
+  );
   const sourceCommand: CanonicalPostingCommand = {
     principal: command.principal,
     requestedCompanyId: command.requestedCompanyId,
     sourceType: "canonical_journal",
     sourceId: originalJournalId,
-    sourceRevision: null,
-    sourceEvidenceHash: null,
     sourceStatus: "posted",
-    postingKind,
+    postingKind: command.postingKind ?? "journal_reversal",
     economicEffectId: command.economicEffectId,
     idempotencyKey: command.idempotencyKey,
     postingDate: command.postingDate,
     configurationVersionId: command.configurationVersionId,
     currencyCode: "GBP",
-    description: command.replacementDescription ?? `Correction of ${originalJournalId}`,
+    description: `Reversal of ${originalJournalId}`,
     reference: command.reference ?? null,
   };
-  return db.transaction(async (transaction) => {
-    const { original } = await originalJournalContext(
-      transaction,
-      command.principal,
-      originalJournalId,
-      command.requestedCompanyId,
-      "accounting.correct",
-    );
-    sourceCommand.currencyCode = original.currency_code;
-    const source: CanonicalSourceSnapshot = {
-      companyId: original.company_id,
-      sourceType: "canonical_journal",
-      sourceId: original.id,
-      status: "posted",
-      isPostable: true,
-      sourceRevision: original.source_revision ?? original.id,
-      evidenceHash: original.source_evidence_hash,
-    };
-    const context = await dependencies.contextProvider.resolve(
-      {
-        companyId: original.company_id,
-        postingDate: command.postingDate,
-        source,
+  return postLinkedJournal(
+    sourceCommand,
+    {
+      ...dependencies,
+      lineBuilder: {
+        async build() {
+          fail("correction_invalid", "The reversal line builder is internal");
+        },
+      },
+    },
+    { originalJournalId, relationType: "reversal", reason },
+    ({ originalLines }) => reversalLines(originalLines),
+  );
+}
+
+export async function correctCanonicalJournal(
+  command: CanonicalCorrectionCommand,
+  dependencies: Pick<
+    CanonicalPostingDependencies,
+    "contextProvider" | "lineBuilder" | "hooks"
+  >,
+): Promise<CanonicalPostingResult> {
+  const reason = requireNonEmpty(command.reason, "reason");
+  const originalJournalId = requireNonEmpty(
+    command.originalJournalId,
+    "originalJournalId",
+  );
+  const sourceCommand: CanonicalPostingCommand = {
+    principal: command.principal,
+    requestedCompanyId: command.requestedCompanyId,
+    sourceType: "canonical_journal",
+    sourceId: originalJournalId,
+    sourceStatus: "posted",
+    postingKind: command.postingKind ?? "journal_correction",
+    economicEffectId: command.economicEffectId,
+    idempotencyKey: command.idempotencyKey,
+    postingDate: command.postingDate,
+    configurationVersionId: command.configurationVersionId,
+    currencyCode: "GBP",
+    description:
+      command.replacementDescription ?? `Correction of ${originalJournalId}`,
+    reference: command.reference ?? null,
+  };
+  return postLinkedJournal(
+    sourceCommand,
+    dependencies,
+    { originalJournalId, relationType: "correction", reason },
+    ({ source, context }) =>
+      dependencies.lineBuilder.build({
         command: sourceCommand,
-      },
+        source,
+        context,
+      }),
+  );
+}
+
+export async function recoverCanonicalPostingOutcome(input: {
+  companyId: string;
+  idempotencyKey: string;
+  economicEffectId: string;
+  commandFingerprint: string;
+}): Promise<CanonicalPostingResult | null> {
+  const companyId = requireNonEmpty(input.companyId, "companyId");
+  const idempotencyKey = requireNonEmpty(input.idempotencyKey, "idempotencyKey");
+  const economicEffectId = requireNonEmpty(
+    input.economicEffectId,
+    "economicEffectId",
+  );
+  const fingerprint = requireNonEmpty(
+    input.commandFingerprint,
+    "commandFingerprint",
+  );
+  return runCanonicalTransaction(async (transaction) => {
+    await lockCompany(transaction, companyId);
+    const effect = await findEffect(
       transaction,
+      companyId,
+      idempotencyKey,
+      economicEffectId,
     );
-    validateContext(sourceCommand, source, context);
-    const drafts = await dependencies.lineBuilder.build({
-      command: sourceCommand,
-      source,
-      context,
-    });
-    const validated = validateLines(drafts, sourceCommand, context);
-    const fingerprint = commandFingerprint(sourceCommand, validated.lines, context);
-    const existing = await findEffect(
-      transaction,
-      original.company_id,
-      command.idempotencyKey,
-      command.economicEffectId,
-    );
-    if (existing) {
-      assertRetryIdentity(existing, sourceCommand, fingerprint);
-      return resultFromEffect(existing);
+    if (!effect) return null;
+    if (effect.command_fingerprint !== fingerprint) {
+      fail("identity_conflict", "The recovery identity has different command meaning");
     }
-    const effect = await insertEffect(transaction, {
-      companyId: original.company_id,
-      command: sourceCommand,
-      fingerprint,
-      actor: actor(command.principal),
-    });
-    if (effect.status === "posted") return resultFromEffect(effect);
-    return persistJournal(transaction, {
-      companyId: original.company_id,
-      command: sourceCommand,
-      source,
-      context,
-      lines: validated.lines,
-      totals: validated,
-      effect,
-      actor: actor(command.principal),
-      correction: {
-        originalJournalId: original.id,
-        relationType: "correction",
-        reason,
-      },
-      hooks: dependencies.hooks,
-    });
+    return resultFromEffect(effect);
   });
 }

@@ -1,0 +1,134 @@
+APPROVED — IMPLEMENT #44-TR-01 ONLY
+
+I approve implementation of:
+
+#44-TR-01 — Transactional Authority Provider and Final Revalidation
+
+using exactly the scope, design, safeguards, stop conditions, test requirements,
+and production boundaries defined in:
+
+docs/ledgerly-44-tr-01-transactional-authority-provider-approval-package.md
+
+This approval is DEVELOPMENT ONLY.
+
+Implementation must preserve:
+
+- BL-01-FI Principal and Tenant Guard;
+- #44-SC-01 economic-effect/relation identity;
+- #44-RS-01 ledgerly_api / ledgerly_canonical_owner separation;
+- all ENABLE ALWAYS canonical protections;
+- the approved disposable-database testing model;
+- DEC-01 through DEC-22;
+- DEC-12 exclusively as Payment, Allocation and Settlement Policy;
+- source freshness as an implementation-level safety contract;
+- no DEC-23;
+- BL-06 and BL-07 blocked;
+- #40-CF-01 incomplete;
+- #44 incomplete until independent post-implementation review;
+- production posting disabled.
+
+Implement the approved transaction-aware authority contract, including:
+
+- one authoritative PostgreSQL transaction;
+- deterministic ordered SELECT ... FOR UPDATE locking;
+- post-lock final revalidation;
+- transaction-bound provider interfaces;
+- source freshness comparison;
+- locked membership/company authority;
+- account/context authority;
+- original-journal correction/reversal serialization;
+- idempotency and economic-effect handling;
+- uncertain-result recovery;
+- deterministic lock-timeout/deadlock handling;
+- deterministic conflict/error outcomes;
+- atomic journal/effect/relation/audit persistence.
+
+Implement the required adversarial database-backed test matrix using the
+approved disposable-database infrastructure.
+
+Concurrency tests must use independent connections and explicit synchronization
+barriers so that races through the transaction/commit boundary are actually
+demonstrated.
+
+DO NOT:
+
+- enable production posting;
+- deploy or publish;
+- modify production;
+- unblock BL-06 or BL-07;
+- resume or mark #40-CF-01 complete;
+- mark #44 complete;
+- implement #41;
+- introduce RLS;
+- perform historical migration/cutover;
+- weaken RS-01 or SC-01;
+- broaden database privileges;
+- weaken or disable immutable protections;
+- invent missing accounting authorities;
+- substitute unrelated tables for missing authoritative domains.
+
+NO schema, migration, role, privilege, trigger, RLS or production configuration
+change is authorised by this approval.
+
+MANDATORY STOP CONDITION:
+
+If implementation discovers that safe TR-01 completion requires any new:
+
+- revision/version column;
+- authority/product table;
+- constraint;
+- unapproved index;
+- trigger;
+- role;
+- privilege;
+- migration;
+- external/platform authority;
+- or other schema/persistence change,
+
+STOP WITHOUT IMPLEMENTING THAT CHANGE and report the exact blocker for separate
+approval.
+
+Likewise stop if any required authority cannot participate in the same
+transaction and remain valid through commit.
+
+After implementation:
+
+1. Run the complete TR-01 adversarial acceptance matrix.
+2. Run the existing canonical disposable integration suite.
+3. Run BL-01-FI/company-scope regression tests.
+4. Run relevant accounting regression suites.
+5. Run TypeScript/typecheck and builds.
+6. Verify ledgerly_api remains the runtime role.
+7. Verify RS-01 ownership, ACL and ENABLE ALWAYS protections remain intact.
+8. Verify normal development heliumdb canonical/accounting data was not altered
+   by disposable tests.
+9. Verify API health.
+10. Run git diff --check.
+
+Provide a structured implementation report including:
+
+- exact files changed;
+- provider/interface changes;
+- final lock order;
+- authority providers actually implemented;
+- unsupported/fail-closed authorities;
+- concurrency/barrier test evidence;
+- uncertain-result recovery evidence;
+- complete test results;
+- database/runtime identity;
+- schema/role/privilege/trigger verification;
+- database row-state verification;
+- production-boundary confirmation;
+- any residual risks or unsupported authorities.
+
+DO NOT mark #44 complete.
+
+DO NOT resume #40-CF-01.
+
+End at:
+
+READY FOR #44-TR-01 INDEPENDENT POST-IMPLEMENTATION REVIEW
+
+or, if a stop condition is reached:
+
+BLOCKED — FURTHER APPROVAL REQUIRED
