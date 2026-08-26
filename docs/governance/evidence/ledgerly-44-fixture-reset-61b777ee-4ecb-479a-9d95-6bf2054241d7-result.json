@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "ledgerly-44-fixture-reset-result",
+  "executionId": "61b777ee-4ecb-479a-9d95-6bf2054241d7",
+  "environment": "development",
+  "database": "heliumdb",
+  "principal": "postgres",
+  "authorizationEvidence": {
+    "path": "docs/governance/evidence/ledgerly-44-fixture-reset-61b777ee-4ecb-479a-9d95-6bf2054241d7-authorisation.json",
+    "sha256": "9e1e14caeb899689e036f35989f2444fea689cd29690917457bb6977b34ec798",
+    "commit": "f09082a9617f2c8fee1eafaff9d09e736fd1fb6a"
+  },
+  "startedAt": "2026-08-26T15:16:23.511Z",
+  "committed": true,
+  "productionContacted": false,
+  "triggerStateBefore": [
+    {
+      "tgname": "ledgerly_accounting_audit_events_guard",
+      "tgenabled": "A"
+    },
+    {
+      "tgname": "ledgerly_accounting_posting_effects_guard",
+      "tgenabled": "A"
+    },
+    {
+      "tgname": "ledgerly_canonical_journal_entries_guard",
+      "tgenabled": "A"
+    },
+    {
+      "tgname": "ledgerly_canonical_journal_lines_guard",
+      "tgenabled": "A"
+    },
+    {
+      "tgname": "ledgerly_canonical_journal_relations_guard",
+      "tgenabled": "A"
+    }
+  ],
+  "triggerStateDuring": [
+    {
+      "tgname": "ledgerly_accounting_audit_events_guard",
+      "tgenabled": "D"
+    },
+    {
+      "tgname": "ledgerly_accounting_posting_effects_guard",
+      "tgenabled": "D"
+    },
+    {
+      "tgname": "ledgerly_canonical_journal_entries_guard",
+      "tgenabled": "D"
+    },
+    {
+      "tgname": "ledgerly_canonical_journal_lines_guard",
+      "tgenabled": "D"
+    },
+    {
+      "tgname": "ledgerly_canonical_journal_relations_guard",
+      "tgenabled": "D"
+    }
+  ],
+  "triggerStateAfter": [
+    {
+      "tgname": "ledgerly_accounting_audit_events_guard",
+      "tgenabled": "A"
+    },
+    {
+      "tgname": "ledgerly_accounting_posting_effects_guard",
+      "tgenabled": "A"
+    },
+    {
+      "tgname": "ledgerly_canonical_journal_entries_guard",
+      "tgenabled": "A"
+    },
+    {
+      "tgname": "ledgerly_canonical_journal_lines_guard",
+      "tgenabled": "A"
+    },
+    {
+      "tgname": "ledgerly_canonical_journal_relations_guard",
+      "tgenabled": "A"
+    }
+  ],
+  "deletionCounts": {
+    "accounting_audit_events": 8,
+    "canonical_journal_relations": 5,
+    "canonical_journal_lines": 16,
+    "accounting_posting_effects": 8,
+    "canonical_journal_entries": 8,
+    "workflow_activities": 6,
+    "company_users": 4,
+    "chart_of_accounts": 9,
+    "companies": 6
+  },
+  "unaffectedSnapshotsPreserved": true,
+  "error": null,
+  "completedAt": "2026-08-26T15:16:24.084Z",
+  "finalHeliumdbCounts": {
+    "effects": 0,
+    "journals": 0,
+    "lines": 0,
+    "relations": 0,
+    "audits": 0,
+    "legacy_journals": 0
+  },
+  "unaffectedSnapshots": {
+    "accounting_audit_events": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "canonical_journal_relations": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "canonical_journal_lines": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "accounting_posting_effects": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "canonical_journal_entries": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "workflow_activities": {
+      "count": 2652,
+      "sha256": "25cd0051a6f50448739a6002260e8948fde4cd822ea124f492ffa43082df7d5a"
+    },
+    "company_users": {
+      "count": 15,
+      "sha256": "143ae445a63cea9af012760f898ba7ee2a514c118fde5128a992e849054cf0c4"
+    },
+    "chart_of_accounts": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "companies": {
+      "count": 7,
+      "sha256": "04710fa63103a522644f01f73d12ba03d34ea2974375c2f1641c1621656cf4c9"
+    },
+    "journal_entries": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}
