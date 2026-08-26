@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledgerly.example/governance/evidence/ledgerly-44-ti-03-evidence.schema.json",
+  "title": "Ledgerly TI-03 non-secret qualification evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "result",
+    "failurePhase",
+    "ci",
+    "images",
+    "cleanup",
+    "isolation"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "result": { "enum": ["passed", "failed"] },
+    "failurePhase": { "type": ["string", "null"] },
+    "ci": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "repository", "workflow", "workflowRef", "runId", "runAttempt", "job", "sourceCommit"],
+      "properties": {
+        "provider": { "const": "github-actions" },
+        "repository": { "type": "string", "minLength": 1 },
+        "workflow": { "type": "string", "minLength": 1 },
+        "workflowRef": { "type": "string", "minLength": 1 },
+        "runId": { "type": "string", "minLength": 1 },
+        "runAttempt": { "type": "string", "minLength": 1 },
+        "job": { "type": "string", "minLength": 1 },
+        "sourceCommit": { "type": "string", "minLength": 1 }
+      }
+    },
+    "images": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["postgres", "node"],
+      "properties": {
+        "postgres": { "$ref": "#/$defs/pinnedImage" },
+        "node": { "$ref": "#/$defs/pinnedImage" },
+        "postgresServerVersion": { "type": "string", "minLength": 1 },
+        "nodeRuntimeVersion": { "type": "string", "minLength": 1 },
+        "pnpmVersion": { "type": "string", "minLength": 1 }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runUuid",
+        "databaseName",
+        "environment",
+        "targetClassification",
+        "creatorIdentity",
+        "runtimeIdentity",
+        "sourceCommit",
+        "sourceTreeSha256",
+        "nonceSha256"
+      ],
+      "properties": {
+        "runUuid": { "type": "string", "format": "uuid" },
+        "databaseName": { "type": "string", "pattern": "^ledgerly_canonical_test_[0-9a-f]{32}$" },
+        "environment": { "const": "external-ci-disposable-test" },
+        "targetClassification": { "const": "external-ci-postgresql-service-container" },
+        "creatorIdentity": { "const": "postgres" },
+        "runtimeIdentity": { "const": "ledgerly_api" },
+        "sourceCommit": { "type": "string", "minLength": 1 },
+        "sourceTreeSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "nonceSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "sourceDigests": { "$ref": "#/$defs/digestMap" }
+      }
+    },
+    "bootstrap": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["status", "roleSeparation", "ownership", "acl", "constraints", "indexes", "triggers", "emptyBaseline", "privateBinding"],
+      "properties": {
+        "status": { "enum": ["passed", "failed", "not-started"] },
+        "roleSeparation": { "type": "array" },
+        "ownership": { "type": "array" },
+        "acl": { "type": "object" },
+        "constraints": { "type": "array" },
+        "indexes": { "type": "array" },
+        "triggers": { "type": "array" },
+        "emptyBaseline": { "const": true },
+        "privateBinding": { "const": true }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["databaseName", "currentUser", "sessionUser", "identityVerified", "privateBindingVerified", "sourceDigestsVerified", "concurrencyEvidence"],
+      "properties": {
+        "databaseName": { "type": "string" },
+        "currentUser": { "const": "ledgerly_api" },
+        "sessionUser": { "const": "ledgerly_api" },
+        "identityVerified": { "const": true },
+        "privateBindingVerified": { "const": true },
+        "sourceDigestsVerified": { "const": true },
+        "concurrencyEvidence": { "type": "object" }
+      }
+    },
+    "negativeControls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "missingRunBinding",
+        "forgedRunDatabaseMismatch",
+        "malformedUri",
+        "targetChangingQuery",
+        "wrongHost",
+        "wrongPort",
+        "wrongDatabase",
+        "wrongRole",
+        "parentDatabaseUrl",
+        "replitMarker",
+        "inheritedPgOverride",
+        "unpinnedImage",
+        "untrustedEvent",
+        "unauthorizedWorkflow",
+        "cleanupBindingMismatch",
+        "evidenceCredentialPattern",
+        "roleEscalation",
+        "triggerDisable"
+      ],
+      "properties": {
+        "missingRunBinding": { "const": true },
+        "forgedRunDatabaseMismatch": { "const": true },
+        "malformedUri": { "const": true },
+        "targetChangingQuery": { "const": true },
+        "wrongHost": { "const": true },
+        "wrongPort": { "const": true },
+        "wrongDatabase": { "const": true },
+        "wrongRole": { "const": true },
+        "parentDatabaseUrl": { "const": true },
+        "replitMarker": { "const": true },
+        "inheritedPgOverride": { "const": true },
+        "unpinnedImage": { "const": true },
+        "untrustedEvent": { "const": true },
+        "unauthorizedWorkflow": { "const": true },
+        "cleanupBindingMismatch": { "const": true },
+        "evidenceCredentialPattern": { "const": true },
+        "roleEscalation": { "const": true },
+        "triggerDisable": { "const": true }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["logicalDrop", "databaseAbsent", "containerRemoved", "networkRemoved", "credentialMaterialRemoved"],
+      "properties": {
+        "logicalDrop": { "type": "boolean" },
+        "databaseAbsent": { "type": "boolean" },
+        "containerRemoved": { "type": "boolean" },
+        "networkRemoved": { "type": "boolean" },
+        "credentialMaterialRemoved": { "type": "boolean" }
+      }
+    },
+    "isolation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parentDatabaseUrlAbsent", "replitVariablesAbsent", "noPublishedPorts", "internalNetwork", "testContainerNoSocket", "testContainerNoExternalRoute", "heliumdbContacted", "productionContacted", "secretScanPassed"],
+      "properties": {
+        "parentDatabaseUrlAbsent": { "type": "boolean" },
+        "replitVariablesAbsent": { "type": "boolean" },
+        "noPublishedPorts": { "type": "boolean" },
+        "internalNetwork": { "type": "boolean" },
+        "testContainerNoSocket": { "type": "boolean" },
+        "testContainerNoExternalRoute": { "type": "boolean" },
+        "heliumdbContacted": { "const": false },
+        "productionContacted": { "const": false },
+        "secretScanPassed": { "const": true }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "result": { "const": "passed" } },
+        "required": ["result"]
+      },
+      "then": {
+        "required": ["binding", "bootstrap", "runtime", "negativeControls"],
+        "properties": {
+          "binding": {},
+          "bootstrap": {},
+          "runtime": {},
+          "negativeControls": {}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "pinnedImage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tag", "digest"],
+      "properties": {
+        "tag": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "digestMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[A-Za-z][A-Za-z0-9]+$": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    }
+  }
+}
