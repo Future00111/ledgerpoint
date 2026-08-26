@@ -10,3 +10,4 @@
 - [Batch approval freshness](batch-approval-freshness.md) — batch reconciliation must bind its accounting write to one locked, current analysis record.
 - [Product roadmap gate](product-roadmap-gate.md) — DEC-04 architecture, DEC-05 capability model, DEC-06 financial-year policy, DEC-07 period policy, and DEC-08 reporting-only year-end policy are approved; implementation remains paused pending later decisions and task approval.
 - [Source-freshness governance](source-freshness-governance.md) — freshness is a cross-cutting posting-safety gate, not silently part of the approved DEC-12 payment policy.
+- [Canonical test isolation](canonical-test-isolation.md) — immutable accounting tests need rollback isolation or a disposable DB; never restore DELETE solely for teardown.
