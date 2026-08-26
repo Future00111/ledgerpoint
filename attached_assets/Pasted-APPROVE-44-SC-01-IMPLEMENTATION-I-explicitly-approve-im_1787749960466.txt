@@ -1,0 +1,146 @@
+APPROVE #44-SC-01 IMPLEMENTATION
+
+I explicitly approve implementation of:
+
+#44-SC-01 — Canonical Relation Economic-Effect Identity
+
+Use ONLY the scope and design defined in:
+
+docs/ledgerly-44-sc-01-canonical-relation-economic-effect-identity-approval-package.md
+
+The proposed Replit task #45 may be used only as the implementation vehicle for
+this exact approved #44-SC-01 scope.
+
+#45 does not create additional authority or broader scope.
+
+IMPLEMENT ONLY:
+
+1. Reverify immediately before DDL that:
+   canonical_journal_relations row count = 0
+
+   If it is not exactly zero:
+   STOP.
+   Do not backfill or modify existing relation data.
+
+2. Reverify the existing non-partial unique index on:
+   accounting_posting_effects(company_id, economic_effect_id)
+
+   If it cannot safely support the approved composite foreign key:
+   STOP.
+   Do not substitute another referential design.
+
+3. Add:
+   canonical_journal_relations.economic_effect_id TEXT NOT NULL
+
+4. Add the approved company-scoped composite foreign key:
+
+   canonical_journal_relations(company_id, economic_effect_id)
+   →
+   accounting_posting_effects(company_id, economic_effect_id)
+
+   ON UPDATE RESTRICT
+   ON DELETE RESTRICT
+
+5. Add the approved partial unique index enforcing one reversal per original:
+
+   (company_id, original_journal_id)
+   WHERE relation_type = 'reversal'
+
+6. Add the approved relation identity unique index:
+
+   (company_id, original_journal_id, economic_effect_id, relation_type)
+
+7. Preserve unchanged:
+   - existing primary key;
+   - existing original_journal_id FK;
+   - existing related_journal_id FK;
+   - existing relation_type check;
+   - existing unique (company_id, related_journal_id) index;
+   - existing (company_id, original_journal_id) lookup index.
+
+8. Update the Drizzle canonical relation schema with the required
+   economic_effect_id field.
+
+9. Update ONLY the canonical correction/reversal relation writer so the value is
+   derived from the already-resolved authoritative posting effect.
+
+10. Do not add a caller-controlled relation economic_effect_id field.
+
+11. Keep all relation/effect/journal/line/audit writes within the existing
+    canonical transaction and preserve atomic rollback.
+
+12. Implement and run the complete mandatory SC-01 test matrix from the approved
+    package.
+
+13. Verify final database state after both successful and rejected cases.
+
+14. Run existing canonical posting, correction, reversal, Company A/B isolation,
+    schema validation, TypeScript/build and git diff checks required by the
+    package.
+
+MANDATORY STOP CONDITIONS:
+
+Stop rather than improvise if:
+
+- canonical_journal_relations is no longer empty before DDL;
+- historical backfill would be required;
+- the approved composite FK cannot use the verified referenced uniqueness;
+- caller-controlled identity becomes necessary;
+- a nullable compatibility path becomes necessary;
+- a broader service refactor is required;
+- existing canonical relation constraints/indexes would need to be removed or
+  repurposed;
+- unrelated schema/application changes become necessary;
+- roles, secrets, DATABASE_URL, RLS, workflows, deployment, publishing or
+  production changes become necessary;
+- any legacy or canonical accounting data would need to be rewritten.
+
+EXPLICITLY NOT AUTHORISED:
+
+- #44-RS-01 implementation;
+- database role creation or ownership transfer;
+- secret changes;
+- DATABASE_URL changes;
+- RLS;
+- historical migration/backfill;
+- legacy journal changes;
+- BL-06;
+- BL-07;
+- #41 execution;
+- production schema/data changes;
+- deployment;
+- publishing;
+- production posting.
+
+GOVERNANCE:
+
+DEC-01 through DEC-22 remain approved.
+Do not create DEC-23.
+#40-CF-01 remains incomplete.
+#44 remains incomplete.
+#44-RS-01 remains blocked until SC-01 implementation passes independent review.
+Production posting remains disabled.
+
+After implementation:
+
+STOP.
+
+Provide a structured completion report containing:
+
+- exact schema changes;
+- exact application files changed;
+- pre-DDL relation row count;
+- final constraints/indexes;
+- foreign-key verification;
+- identity-source verification;
+- complete test results;
+- transaction/rollback test results;
+- Company A/B isolation results;
+- legacy-data confirmation;
+- git diff summary;
+- confirmation that no roles/secrets/DATABASE_URL/RLS/workflows/deployment/
+  production state changed.
+
+Do NOT automatically begin #44-RS-01 or any other task after SC-01.
+
+SC-01 must undergo independent post-implementation review first.

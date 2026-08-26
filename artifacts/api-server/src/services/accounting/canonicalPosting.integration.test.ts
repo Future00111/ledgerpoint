@@ -152,6 +152,23 @@ async function expectCode(
   );
 }
 
+async function expectDatabaseCode(
+  action: () => Promise<unknown>,
+  code: string,
+) {
+  function findCode(error: unknown): string | undefined {
+    if (typeof error !== "object" || error === null) return undefined;
+    if ("code" in error && typeof (error as { code?: unknown }).code === "string") {
+      return (error as { code: string }).code;
+    }
+    return "cause" in error
+      ? findCode((error as { cause?: unknown }).cause)
+      : undefined;
+  }
+
+  await assert.rejects(action, (error: unknown) => findCode(error) === code);
+}
+
 test("canonical posting persists a balanced immutable journal, audit, and retry-safe effect", async (t) => {
   const company = await createCompany("happy-path");
   const owner = `canonical-owner-${randomUUID()}`;
@@ -398,6 +415,11 @@ test("canonical posting is atomic under audit failure, concurrent retries, and a
     );
   assert.equal(relations.length, 1);
   assert.equal(relations[0]?.relation_type, "reversal");
+  const [reversalEffect] = await db
+    .select()
+    .from(accountingPostingEffectsTable)
+    .where(eq(accountingPostingEffectsTable.id, reversal.effectId));
+  assert.equal(relations[0]?.economic_effect_id, reversalEffect?.economic_effect_id);
 
   const correction = await correctCanonicalJournal(
     {
@@ -424,6 +446,263 @@ test("canonical posting is atomic under audit failure, concurrent retries, and a
     );
   assert.equal(correctionRelations.length, 1);
   assert.equal(correctionRelations[0]?.relation_type, "correction");
+  const [correctionEffect] = await db
+    .select()
+    .from(accountingPostingEffectsTable)
+    .where(eq(accountingPostingEffectsTable.id, correction.effectId));
+  assert.equal(correctionRelations[0]?.economic_effect_id, correctionEffect?.economic_effect_id);
+});
+
+test("SC-01 enforces company-scoped relation identity, uniqueness, and atomic rollback", async (t) => {
+  const company = await createCompany("sc-01");
+  const otherCompany = await createCompany("sc-01-other");
+  const owner = `canonical-owner-${randomUUID()}`;
+  const debit = await addAccount(company.id, "SC-01 debit");
+  const credit = await addAccount(company.id, "SC-01 credit");
+  await addMembership(company.id, owner, "owner");
+  t.after(() => cleanCompanies([company.id, otherCompany.id]));
+
+  const state: FixtureState = {
+    companyId: company.id,
+    revision: "rev-1",
+    periodStatus: "OPEN",
+    configurationVersionId: "config-v1",
+    accountIds: [debit.id, credit.id],
+    lines: [
+      { accountId: debit.id, debitMinor: 500, creditMinor: 0 },
+      { accountId: credit.id, debitMinor: 0, creditMinor: 500 },
+    ],
+  };
+
+  const originalCommand = command({
+    companyId: company.id,
+    userId: owner,
+    effect: `sc-01-original-${randomUUID()}`,
+    key: `sc-01-original-${randomUUID()}`,
+  });
+  const original = await postCanonicalJournal(originalCommand, dependencies(state));
+
+  const reversalCommand = {
+    principal: { kind: "user" as const, userId: owner, requestedCompanyId: company.id },
+    requestedCompanyId: company.id,
+    originalJournalId: original.journalId,
+    reason: "SC-01 reversal",
+    postingDate: "2026-04-11",
+    economicEffectId: `sc-01-reversal-${randomUUID()}`,
+    idempotencyKey: `sc-01-reversal-${randomUUID()}`,
+    configurationVersionId: "config-v1",
+  };
+  const reversal = await reverseCanonicalJournal(reversalCommand, dependencies(state));
+  const reversalRetry = await reverseCanonicalJournal(reversalCommand, dependencies(state));
+  assert.equal(reversalRetry.journalId, reversal.journalId);
+  assert.equal(reversalRetry.effectId, reversal.effectId);
+
+  const correctionCommand = {
+    principal: { kind: "user" as const, userId: owner, requestedCompanyId: company.id },
+    requestedCompanyId: company.id,
+    originalJournalId: original.journalId,
+    reason: "SC-01 correction",
+    postingDate: "2026-04-12",
+    economicEffectId: `sc-01-correction-${randomUUID()}`,
+    idempotencyKey: `sc-01-correction-${randomUUID()}`,
+    configurationVersionId: "config-v1",
+    replacementDescription: "SC-01 corrected journal",
+  };
+  const correction = await correctCanonicalJournal(correctionCommand, dependencies(state));
+  const correctionRetry = await correctCanonicalJournal(correctionCommand, dependencies(state));
+  assert.equal(correctionRetry.journalId, correction.journalId);
+  assert.equal(correctionRetry.effectId, correction.effectId);
+
+  const [reversalRelation] = await db
+    .select()
+    .from(canonicalJournalRelationsTable)
+    .where(eq(canonicalJournalRelationsTable.related_journal_id, reversal.journalId));
+  const [correctionRelation] = await db
+    .select()
+    .from(canonicalJournalRelationsTable)
+    .where(eq(canonicalJournalRelationsTable.related_journal_id, correction.journalId));
+  const [reversalEffect] = await db
+    .select()
+    .from(accountingPostingEffectsTable)
+    .where(eq(accountingPostingEffectsTable.id, reversal.effectId));
+  const [correctionEffect] = await db
+    .select()
+    .from(accountingPostingEffectsTable)
+    .where(eq(accountingPostingEffectsTable.id, correction.effectId));
+  assert.equal(reversalRelation?.economic_effect_id, reversalEffect?.economic_effect_id);
+  assert.equal(correctionRelation?.economic_effect_id, correctionEffect?.economic_effect_id);
+
+  const callerOverride = Object.assign({}, correctionCommand, {
+    relationEconomicEffectId: "caller-controlled-override",
+  });
+  const overrideRetry = await correctCanonicalJournal(callerOverride, dependencies(state));
+  assert.equal(overrideRetry.journalId, correction.journalId);
+  assert.equal(correctionRelation?.economic_effect_id, correctionCommand.economicEffectId);
+  assert.notEqual(correctionRelation?.economic_effect_id, "caller-controlled-override");
+
+  const secondCorrection = await correctCanonicalJournal(
+    {
+      ...correctionCommand,
+      economicEffectId: `sc-01-correction-distinct-${randomUUID()}`,
+      idempotencyKey: `sc-01-correction-distinct-${randomUUID()}`,
+    },
+    dependencies(state),
+  );
+  assert.notEqual(secondCorrection.journalId, correction.journalId);
+
+  const secondReversalCommand = {
+    ...reversalCommand,
+    economicEffectId: `sc-01-reversal-second-${randomUUID()}`,
+    idempotencyKey: `sc-01-reversal-second-${randomUUID()}`,
+  };
+  await expectDatabaseCode(
+    () => reverseCanonicalJournal(secondReversalCommand, dependencies(state)),
+    "23505",
+  );
+  const [secondReversalEffect] = await db
+    .select()
+    .from(accountingPostingEffectsTable)
+    .where(eq(accountingPostingEffectsTable.economic_effect_id, secondReversalCommand.economicEffectId));
+  assert.equal(secondReversalEffect, undefined);
+
+  await expectDatabaseCode(
+    () =>
+      pool.query(
+        `INSERT INTO canonical_journal_relations
+          (company_id, original_journal_id, related_journal_id, relation_type, reason, actor_type, actor_id, idempotency_key)
+         VALUES ($1, $2, $3, 'correction', 'missing identity', 'user', $4, $5)`,
+        [company.id, original.journalId, original.journalId, owner, `missing-${randomUUID()}`],
+      ),
+    "23502",
+  );
+
+  await expectDatabaseCode(
+    () =>
+      pool.query(
+        `INSERT INTO canonical_journal_relations
+          (company_id, economic_effect_id, original_journal_id, related_journal_id, relation_type, reason, actor_type, actor_id, idempotency_key)
+         VALUES ($1, 'does-not-exist', $2, $3, 'correction', 'missing effect', 'user', $4, $5)`,
+        [company.id, original.journalId, original.journalId, owner, `missing-effect-${randomUUID()}`],
+      ),
+    "23503",
+  );
+
+  await expectDatabaseCode(
+    () =>
+      pool.query(
+        `INSERT INTO canonical_journal_relations
+          (company_id, economic_effect_id, original_journal_id, related_journal_id, relation_type, reason, actor_type, actor_id, idempotency_key)
+         VALUES ($1, $2, $3, $4, 'correction', 'company mismatch', 'user', $5, $6)`,
+        [
+          otherCompany.id,
+          reversalEffect!.economic_effect_id,
+          original.journalId,
+          original.journalId,
+          owner,
+          `company-mismatch-${randomUUID()}`,
+        ],
+      ),
+    "23503",
+  );
+
+  const atomicEffectIdentity = `sc-01-atomic-${randomUUID()}`;
+  const atomicJournalId = randomUUID();
+  const atomicLineIds = [randomUUID(), randomUUID()];
+  await expectDatabaseCode(
+    () => db.transaction(async (transaction) => {
+      await transaction.insert(accountingPostingEffectsTable).values({
+        company_id: company.id,
+        source_type: "sc-01",
+        source_id: atomicJournalId,
+        posting_kind: "sc-01",
+        economic_effect_id: atomicEffectIdentity,
+        idempotency_key: `sc-01-atomic-key-${randomUUID()}`,
+        command_fingerprint: "sc-01-atomic-fingerprint",
+        status: "pending",
+        created_by_type: "user",
+        created_by_id: owner,
+      });
+      await transaction.insert(canonicalJournalEntriesTable).values({
+        id: atomicJournalId,
+        company_id: company.id,
+        posting_date: "2026-04-13",
+        financial_year_id: "sc-01-fy",
+        accounting_period_id: "sc-01-period",
+        configuration_version_id: "sc-01-config",
+        currency_code: "GBP",
+        description: "SC-01 atomic rollback fixture",
+        source_type: "sc-01",
+        source_id: atomicJournalId,
+        posting_kind: "sc-01",
+        economic_effect_id: atomicEffectIdentity,
+        status: "posted",
+        total_debit_minor: "500",
+        total_credit_minor: "500",
+        created_by_type: "user",
+        created_by_id: owner,
+      });
+      await transaction.insert(canonicalJournalLinesTable).values([
+        {
+          id: atomicLineIds[0],
+          journal_entry_id: atomicJournalId,
+          company_id: company.id,
+          line_number: 1,
+          account_id: debit.id,
+          debit_minor: "500",
+          credit_minor: "0",
+          currency_code: "GBP",
+        },
+        {
+          id: atomicLineIds[1],
+          journal_entry_id: atomicJournalId,
+          company_id: company.id,
+          line_number: 2,
+          account_id: credit.id,
+          debit_minor: "0",
+          credit_minor: "500",
+          currency_code: "GBP",
+        },
+      ]);
+      await transaction.insert(canonicalJournalRelationsTable).values({
+        company_id: company.id,
+        economic_effect_id: "wrong-effect",
+        original_journal_id: original.journalId,
+        related_journal_id: atomicJournalId,
+        relation_type: "correction",
+        reason: "SC-01 forced rollback",
+        actor_type: "user",
+        actor_id: owner,
+        idempotency_key: `sc-01-atomic-relation-${randomUUID()}`,
+      });
+    }),
+    "23503",
+  );
+
+  const [rolledBackEffect] = await db
+    .select()
+    .from(accountingPostingEffectsTable)
+    .where(eq(accountingPostingEffectsTable.economic_effect_id, atomicEffectIdentity));
+  const [rolledBackJournal] = await db
+    .select()
+    .from(canonicalJournalEntriesTable)
+    .where(eq(canonicalJournalEntriesTable.id, atomicJournalId));
+  const rolledBackLines = await db
+    .select()
+    .from(canonicalJournalLinesTable)
+    .where(eq(canonicalJournalLinesTable.journal_entry_id, atomicJournalId));
+  const rolledBackRelations = await db
+    .select()
+    .from(canonicalJournalRelationsTable)
+    .where(eq(canonicalJournalRelationsTable.related_journal_id, atomicJournalId));
+  const rolledBackAudits = await db
+    .select()
+    .from(accountingAuditEventsTable)
+    .where(eq(accountingAuditEventsTable.journal_id, atomicJournalId));
+  assert.equal(rolledBackEffect, undefined);
+  assert.equal(rolledBackJournal, undefined);
+  assert.equal(rolledBackLines.length, 0);
+  assert.equal(rolledBackRelations.length, 0);
+  assert.equal(rolledBackAudits.length, 0);
 });
 
 test.after(async () => {

@@ -650,6 +650,7 @@ async function persistJournal(
   if (input.correction) {
     await transaction.insert(canonicalJournalRelationsTable).values({
       company_id: input.companyId,
+      economic_effect_id: input.effect.economic_effect_id,
       original_journal_id: input.correction.originalJournalId,
       related_journal_id: journal.id,
       relation_type: input.correction.relationType,

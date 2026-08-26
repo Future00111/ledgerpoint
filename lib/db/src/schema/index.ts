@@ -473,6 +473,7 @@ export const canonicalJournalRelationsTable = pgTable(
   {
     id: primaryId(),
     company_id: uuid("company_id").notNull(),
+    economic_effect_id: text("economic_effect_id").notNull(),
     original_journal_id: uuid("original_journal_id").notNull(),
     related_journal_id: uuid("related_journal_id").notNull(),
     relation_type: text("relation_type").notNull(),
@@ -486,6 +487,15 @@ export const canonicalJournalRelationsTable = pgTable(
     uniqueIndex("canonical_journal_relations_company_effect_idx").on(
       t.company_id,
       t.related_journal_id,
+    ),
+    uniqueIndex("canonical_journal_relations_one_reversal_per_original_idx")
+      .on(t.company_id, t.original_journal_id)
+      .where(sql`${t.relation_type} = 'reversal'`),
+    uniqueIndex("canonical_journal_relations_identity_idx").on(
+      t.company_id,
+      t.original_journal_id,
+      t.economic_effect_id,
+      t.relation_type,
     ),
     index("canonical_journal_relations_company_original_idx").on(
       t.company_id,
@@ -505,6 +515,14 @@ export const canonicalJournalRelationsTable = pgTable(
       foreignColumns: [canonicalJournalEntriesTable.id],
       name: "canonical_journal_relations_related_fk",
     }),
+    foreignKey({
+      columns: [t.company_id, t.economic_effect_id],
+      foreignColumns: [
+        accountingPostingEffectsTable.company_id,
+        accountingPostingEffectsTable.economic_effect_id,
+      ],
+      name: "canonical_journal_relations_effect_fk",
+    }).onUpdate("restrict").onDelete("restrict"),
   ],
 );
 export const insertCanonicalJournalRelationSchema = createInsertSchema(canonicalJournalRelationsTable).omit({
