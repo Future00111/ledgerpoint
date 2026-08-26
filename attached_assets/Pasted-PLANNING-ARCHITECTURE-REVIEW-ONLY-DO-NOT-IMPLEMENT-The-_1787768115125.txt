@@ -1,0 +1,272 @@
+PLANNING / ARCHITECTURE REVIEW ONLY — DO NOT IMPLEMENT
+
+The read-only investigation concluded:
+
+C. PREVIOUS ADMINISTRATION PATH CANNOT BE ESTABLISHED FROM AVAILABLE EVIDENCE
+
+The existing Replit-managed development database must remain unchanged and
+RS-01 must not be weakened.
+
+Create:
+
+docs/ledgerly-44-ti-02-external-disposable-postgresql-review.md
+
+PURPOSE
+
+Evaluate and select the narrowest secure way to provide an externally
+provisioned, development-test-only disposable PostgreSQL environment for the
+existing canonical integration and TR-01 adversarial tests.
+
+This is NOT a proposal to move Ledgerly's normal development or production
+database away from Replit.
+
+Normal development must remain:
+
+heliumdb
+runtime role: ledgerly_api
+
+Production must remain untouched.
+
+The external PostgreSQL environment would exist only as ephemeral test
+infrastructure.
+
+1. REQUIRED TEST CONTRACT
+
+The selected option must support the existing approved disposable-test model:
+
+- isolated PostgreSQL target;
+- PostgreSQL behavior sufficiently equivalent for the canonical safety tests;
+- administrative bootstrap outside the Ledgerly application/test plane;
+- direct test execution as restricted ledgerly_api;
+- ledgerly_canonical_owner ownership model;
+- SC-01 schema;
+- RS-01 protections;
+- ENABLE ALWAYS triggers;
+- transaction/concurrency testing with multiple independent connections;
+- SELECT ... FOR UPDATE behavior;
+- lock_timeout;
+- deadlock behavior;
+- constraints and indexes;
+- rollback testing;
+- uncertain-result testing;
+- exact per-run binding;
+- non-secret evidence;
+- deterministic cleanup/destruction.
+
+2. OPTIONS TO EVALUATE
+
+Evaluate at least:
+
+A. Ephemeral PostgreSQL container/database provided by an external CI or
+   isolated test runner.
+
+B. Temporary PostgreSQL database/branch supplied by a managed PostgreSQL
+   provider with API-controlled lifecycle.
+
+C. Dedicated non-production PostgreSQL test instance with a disposable
+   database-per-run model.
+
+D. Any supported Replit mechanism discovered during this review that provides
+   equivalent isolation without weakening RS-01.
+
+Do not select SQLite, mocks, an in-memory database, or another database engine
+for tests intended to prove PostgreSQL locking, trigger, privilege, constraint,
+or transaction semantics.
+
+3. SECURITY REQUIREMENTS
+
+The selected architecture must ensure:
+
+- no external administrative credential enters Ledgerly application runtime;
+- no admin credential reaches canonical test child processes;
+- ledgerly_api remains the test runtime identity;
+- no privilege escalation for the normal development ledgerly_api;
+- no production credentials;
+- no production connectivity;
+- heliumdb cannot be selected as the disposable target;
+- external test credentials are short-lived or narrowly scoped;
+- secrets are never committed or written to evidence;
+- cleanup cannot target arbitrary databases;
+- each run is UUID/nonce bound;
+- expired/stale runs fail closed.
+
+4. POSTGRESQL COMPATIBILITY
+
+Determine the PostgreSQL version and capabilities required to reproduce the
+relevant Replit development semantics.
+
+Explicitly assess compatibility for:
+
+- SELECT ... FOR UPDATE;
+- READ COMMITTED;
+- lock_timeout;
+- PostgreSQL error codes 55P03 and 40P01;
+- SECURITY DEFINER;
+- fixed search_path;
+- ENABLE ALWAYS triggers;
+- role ownership;
+- NOLOGIN owner;
+- NOINHERIT API login;
+- composite foreign keys;
+- partial unique indexes;
+- transaction rollback;
+- concurrent backend sessions.
+
+Identify any provider/platform behavior that would make the environment
+unsuitable for #44/TR-01 evidence.
+
+5. BOOTSTRAP
+
+Define how an ephemeral environment would receive:
+
+- authoritative Drizzle/application schema;
+- SC-01 changes;
+- RS-01 overlay;
+- ledgerly_api;
+- ledgerly_canonical_owner;
+- private run binding;
+- required test fixtures.
+
+The administrative bootstrap process must remain outside the test child.
+
+6. CONNECTION HANDOFF
+
+Define how the existing runner could securely receive:
+
+LEDGERLY_CANONICAL_TEST_DATABASE_URL
+
+plus the existing run-binding variables.
+
+Prefer retaining the existing runner contract.
+
+Do not change normal DATABASE_URL.
+
+Determine whether any small runner/orchestration change would be necessary and
+classify it explicitly as proposed, not approved.
+
+7. HELIUMDB PROTECTION
+
+Retain the existing before/after heliumdb manifest requirement.
+
+The external test environment must never require canonical fixtures to be
+written to heliumdb.
+
+The runner must continue to fail closed if the disposable target is absent,
+equal to heliumdb, malformed, or inconsistent with the run binding.
+
+8. NETWORK BOUNDARY
+
+Assess:
+
+- whether the Replit development workspace can securely connect outbound to
+  the selected PostgreSQL environment;
+- TLS requirements;
+- certificate verification;
+- IP/network restrictions if applicable;
+- secret delivery;
+- connection lifetime;
+- failure behavior.
+
+Do not make any connection during this planning review.
+
+9. PROVIDER / PLATFORM COMPARISON
+
+For each viable approach compare:
+
+- security;
+- PostgreSQL fidelity;
+- ephemeral lifecycle support;
+- administrative isolation;
+- concurrency support;
+- secret management;
+- auditability;
+- cleanup guarantees;
+- developer complexity;
+- cost;
+- vendor dependency;
+- suitability for CI later;
+- suitability for independent evidence.
+
+Recommend ONE preferred architecture and ONE fallback.
+
+Do not create an account or provision anything.
+
+10. EXISTING TR-01 CODE
+
+The current partial TR-01 implementation must remain untouched.
+
+Do not revert it.
+
+Do not resume it.
+
+The purpose of TI-02 is solely to establish whether safe infrastructure can be
+provided for its required database-backed validation.
+
+11. GOVERNANCE
+
+Preserve:
+
+- DEC-01 through DEC-22 approved;
+- no DEC-23;
+- DEC-12 remains Payment, Allocation and Settlement Policy;
+- source freshness remains implementation-level;
+- BL-06 and BL-07 blocked;
+- #40-CF-01 incomplete;
+- #44 incomplete;
+- #44-TR-01 partial/incomplete;
+- #44-SC-01 complete;
+- #44-RS-01 complete;
+- production posting disabled.
+
+12. PROHIBITIONS
+
+DO NOT:
+
+- change code;
+- change schema;
+- create migrations;
+- modify roles;
+- modify privileges;
+- modify triggers;
+- change secrets;
+- change DATABASE_URL;
+- create external accounts;
+- provision external infrastructure;
+- connect to external databases;
+- restart workflows;
+- deploy;
+- publish;
+- contact production;
+- mark TR-01 complete;
+- mark #44 complete;
+- resume #40-CF-01.
+
+13. STOP / READINESS CRITERIA
+
+Return NOT READY if no evaluated architecture can provide:
+
+- real PostgreSQL semantics;
+- secure admin/test separation;
+- restricted ledgerly_api runtime;
+- multiple independent connections;
+- exact run binding;
+- safe secret handoff;
+- deterministic cleanup;
+- heliumdb isolation;
+- no production dependency.
+
+Otherwise provide the exact proposed architecture, implementation boundary,
+required secrets/configuration, lifecycle, evidence model, risks, expected
+costs, and approval gates.
+
+End with exactly one:
+
+READY FOR EXTERNAL DISPOSABLE POSTGRESQL SELECTION
+
+or
+
+NOT READY — NO SAFE DISPOSABLE POSTGRESQL ARCHITECTURE IDENTIFIED
+
+STOP after the review.
+
+Do not implement anything.
