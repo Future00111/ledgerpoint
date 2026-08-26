@@ -15,7 +15,7 @@
     "test:phase5": "esbuild src/services/ai-accountant/phase5.scenarios.test.ts --bundle --platform=node --format=cjs --external:pg --external:pino --external:pino-http --external:pino-pretty --external:thread-stream --outfile=.phase5-scenarios.cjs && node --test .phase5-scenarios.cjs; status=$?; rm -f .phase5-scenarios.cjs; exit $status",
     "test:phase6": "esbuild src/services/ai-accountant/phase6.scenarios.test.ts --bundle --platform=node --format=cjs --external:pg --external:pino --external:pino-http --external:pino-pretty --external:thread-stream --outfile=.phase6-scenarios.cjs && node --test .phase6-scenarios.cjs; status=$?; rm -f .phase6-scenarios.cjs; exit $status",
     "test:vat:integration": "esbuild src/services/ai-accountant/vat.integration.test.ts --bundle --platform=node --format=cjs --external:pg --external:pino --external:pino-http --external:pino-pretty --external:thread-stream --outfile=.vat-integration-test.cjs && node --test .vat-integration-test.cjs; status=$?; rm -f .vat-integration-test.cjs; exit $status",
-    "test:canonical-posting": "esbuild src/services/accounting/canonicalPosting.integration.test.ts --bundle --platform=node --format=cjs --external:pg --external:pino --external:pino-http --external:pino-pretty --external:thread-stream --outfile=.canonical-posting.test.cjs && node --test .canonical-posting.test.cjs; status=$?; rm -f .canonical-posting.test.cjs; exit $status"
+    "test:canonical-posting": "node scripts/runCanonicalPostingDisposable.mjs"
   },
   "dependencies": {
     "@clerk/express": "^2.1.57",

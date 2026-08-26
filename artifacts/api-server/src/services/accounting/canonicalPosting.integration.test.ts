@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import test from "node:test";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db, pool } from "@workspace/db";
 import {
   accountingAuditEventsTable,
@@ -30,12 +30,92 @@ interface FixtureState {
   accountIds: string[];
   accountCompanies?: Record<string, string>;
   lines: Array<{ accountId: string; debitMinor: number; creditMinor: number }>;
+  barrier?: ConcurrencyBarrier;
+}
+
+interface ConcurrencyArrival {
+  backendPid: number;
+  transactionId: string;
+  arrivedAt: number;
+}
+
+class ConcurrencyBarrier {
+  private readonly arrivals: ConcurrencyArrival[] = [];
+  private readonly allArrived: Promise<void>;
+  private resolveAllArrived!: () => void;
+  private releasedAt: number | null = null;
+
+  constructor(
+    private readonly expected: number,
+    private readonly timeoutMs = 10_000,
+  ) {
+    this.allArrived = new Promise((resolve) => {
+      this.resolveAllArrived = resolve;
+    });
+  }
+
+  private async waitWithTimeout(): Promise<void> {
+    let timeout: NodeJS.Timeout | undefined;
+    try {
+      await Promise.race([
+        this.allArrived,
+        new Promise<never>((_, reject) => {
+          timeout = setTimeout(
+            () => reject(new Error(`concurrency barrier timed out after ${this.timeoutMs}ms`)),
+            this.timeoutMs,
+          );
+        }),
+      ]);
+    } finally {
+      if (timeout) clearTimeout(timeout);
+    }
+  }
+
+  async wait(transaction: unknown): Promise<void> {
+    const result = await (
+      transaction as {
+        execute(query: unknown): Promise<{
+          rows: Array<{ backendPid: number; transactionId: string }>;
+        }>;
+      }
+    ).execute(
+      sql`SELECT pg_backend_pid() AS "backendPid", txid_current()::text AS "transactionId"`,
+    );
+    const identity = result.rows[0];
+    assert.ok(identity);
+    this.arrivals.push({ ...identity, arrivedAt: Date.now() });
+    if (this.arrivals.length === this.expected) {
+      this.releasedAt = Date.now();
+      this.resolveAllArrived();
+    }
+    await this.waitWithTimeout();
+    assert.equal(this.arrivals.length, this.expected);
+  }
+
+  evidence(): {
+    expected: number;
+    arrivals: readonly ConcurrencyArrival[];
+    releasedAt: number | null;
+    overlapProven: boolean;
+  } {
+    return {
+      expected: this.expected,
+      arrivals: this.arrivals,
+      releasedAt: this.releasedAt,
+      overlapProven:
+        this.arrivals.length === this.expected &&
+        new Set(this.arrivals.map((arrival) => arrival.backendPid)).size === this.expected &&
+        this.releasedAt !== null &&
+        this.arrivals.every((arrival) => arrival.arrivedAt <= this.releasedAt!),
+    };
+  }
 }
 
 function dependencies(state: FixtureState): CanonicalPostingDependencies {
   return {
     sourceProvider: {
-      async getCurrent(command) {
+      async getCurrent(command, transaction) {
+        if (state.barrier) await state.barrier.wait(transaction);
         return {
           companyId: state.companyId,
           sourceType: command.sourceType,
@@ -132,17 +212,6 @@ async function addMembership(companyId: string, userId: string, role: string) {
   });
 }
 
-async function cleanCompanies(companyIds: string[]) {
-  await db.delete(accountingAuditEventsTable).where(inArray(accountingAuditEventsTable.company_id, companyIds));
-  await db.delete(canonicalJournalRelationsTable).where(inArray(canonicalJournalRelationsTable.company_id, companyIds));
-  await db.delete(canonicalJournalLinesTable).where(inArray(canonicalJournalLinesTable.company_id, companyIds));
-  await db.delete(accountingPostingEffectsTable).where(inArray(accountingPostingEffectsTable.company_id, companyIds));
-  await db.delete(canonicalJournalEntriesTable).where(inArray(canonicalJournalEntriesTable.company_id, companyIds));
-  await db.delete(chartOfAccountsTable).where(inArray(chartOfAccountsTable.company_id, companyIds));
-  await db.delete(companyUsersTable).where(inArray(companyUsersTable.company_id, companyIds));
-  await db.delete(companiesTable).where(inArray(companiesTable.id, companyIds));
-}
-
 async function expectCode(
   action: () => Promise<unknown>,
   code: CanonicalPostingError["code"],
@@ -169,13 +238,93 @@ async function expectDatabaseCode(
   await assert.rejects(action, (error: unknown) => findCode(error) === code);
 }
 
-test("canonical posting persists a balanced immutable journal, audit, and retry-safe effect", async (t) => {
+test("canonical integration suite is bound to an empty API-role disposable database", async () => {
+  const expectedDatabase = process.env.LEDGERLY_CANONICAL_TEST_DATABASE_NAME;
+  const runId = process.env.LEDGERLY_CANONICAL_TEST_RUN_ID;
+  assert.match(expectedDatabase ?? "", /^ledgerly_canonical_test_[0-9a-f]{32}$/);
+  assert.match(
+    runId ?? "",
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+  );
+  assert.equal(
+    process.env.LEDGERLY_CANONICAL_TEST_ENVIRONMENT,
+    "development-disposable-test",
+  );
+
+  const identity = await pool.query<{
+    databaseName: string;
+    currentUser: string;
+    sessionUser: string;
+  }>(
+    `SELECT
+       current_database() AS "databaseName",
+       current_user AS "currentUser",
+       session_user AS "sessionUser"`,
+  );
+  assert.equal(identity.rows[0]?.databaseName, expectedDatabase);
+  assert.equal(identity.rows[0]?.currentUser, "ledgerly_api");
+  assert.equal(identity.rows[0]?.sessionUser, "ledgerly_api");
+  assert.notEqual(identity.rows[0]?.databaseName, "heliumdb");
+
+  const counts = await pool.query<{
+    effects: string;
+    journals: string;
+    lines: string;
+    relations: string;
+    audits: string;
+    legacyJournals: string;
+  }>(
+    `SELECT
+       (SELECT count(*) FROM public.accounting_posting_effects)::text AS effects,
+       (SELECT count(*) FROM public.canonical_journal_entries)::text AS journals,
+       (SELECT count(*) FROM public.canonical_journal_lines)::text AS lines,
+       (SELECT count(*) FROM public.canonical_journal_relations)::text AS relations,
+       (SELECT count(*) FROM public.accounting_audit_events)::text AS audits,
+       (SELECT count(*) FROM public.journal_entries)::text AS "legacyJournals"`,
+  );
+  assert.deepEqual(counts.rows[0], {
+    effects: "0",
+    journals: "0",
+    lines: "0",
+    relations: "0",
+    audits: "0",
+    legacyJournals: "0",
+  });
+
+  const triggers = await pool.query<{ triggerName: string; enabled: string }>(
+    `SELECT t.tgname AS "triggerName", t.tgenabled AS enabled
+     FROM pg_trigger t
+     WHERE t.tgname = ANY($1::text[])
+     ORDER BY t.tgname`,
+    [[
+      "ledgerly_accounting_audit_events_guard",
+      "ledgerly_accounting_posting_effects_guard",
+      "ledgerly_canonical_journal_entries_guard",
+      "ledgerly_canonical_journal_lines_guard",
+      "ledgerly_canonical_journal_relations_guard",
+    ]],
+  );
+  assert.equal(triggers.rows.length, 5);
+  assert.ok(triggers.rows.every((trigger) => trigger.enabled === "A"));
+
+  console.log(
+    "LEDGERLY_DISPOSABLE_IDENTITY",
+    JSON.stringify({
+      runId,
+      databaseName: identity.rows[0]?.databaseName,
+      currentUser: identity.rows[0]?.currentUser,
+      triggerState: "ENABLE ALWAYS",
+      emptyCanonicalBaseline: true,
+    }),
+  );
+});
+
+test("canonical posting persists a balanced immutable journal, audit, and retry-safe effect", async () => {
   const company = await createCompany("happy-path");
   const owner = `canonical-owner-${randomUUID()}`;
   const debit = await addAccount(company.id, "Fixture debit");
   const credit = await addAccount(company.id, "Fixture credit");
   await addMembership(company.id, owner, "owner");
-  t.after(() => cleanCompanies([company.id]));
 
   const state: FixtureState = {
     companyId: company.id,
@@ -239,7 +388,7 @@ test("canonical posting persists a balanced immutable journal, audit, and retry-
   );
 });
 
-test("canonical posting fails closed for stale sources, closed periods, invalid accounts, and company mismatch", async (t) => {
+test("canonical posting fails closed for stale sources, closed periods, invalid accounts, and company mismatch", async () => {
   const companyA = await createCompany("failure-A");
   const companyB = await createCompany("failure-B");
   const ownerA = `canonical-owner-${randomUUID()}`;
@@ -247,7 +396,6 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
   const creditA = await addAccount(companyA.id, "Fixture credit A");
   const accountB = await addAccount(companyB.id, "Fixture other company account");
   await addMembership(companyA.id, ownerA, "owner");
-  t.after(() => cleanCompanies([companyA.id, companyB.id]));
 
   const base = {
     companyId: companyA.id,
@@ -329,13 +477,12 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
   assert.equal(journals.length, 0);
 });
 
-test("canonical posting is atomic under audit failure, concurrent retries, and additive reversal", async (t) => {
+test("canonical posting is atomic under audit failure, concurrent retries, and additive reversal", async () => {
   const company = await createCompany("atomicity");
   const owner = `canonical-owner-${randomUUID()}`;
   const debit = await addAccount(company.id, "Fixture debit");
   const credit = await addAccount(company.id, "Fixture credit");
   await addMembership(company.id, owner, "accountant");
-  t.after(() => cleanCompanies([company.id]));
 
   const state: FixtureState = {
     companyId: company.id,
@@ -378,9 +525,16 @@ test("canonical posting is atomic under audit failure, concurrent retries, and a
     effect: `concurrent-${randomUUID()}`,
     key: `concurrent-${randomUUID()}`,
   });
+  const barrier = new ConcurrencyBarrier(2);
   const concurrent = await Promise.all(
-    Array.from({ length: 6 }, () => postCanonicalJournal(concurrentCommand, dependencies(state))),
+    Array.from({ length: 2 }, () =>
+      postCanonicalJournal(concurrentCommand, dependencies({ ...state, barrier })),
+    ),
   );
+  const concurrencyEvidence = barrier.evidence();
+  assert.equal(concurrencyEvidence.overlapProven, true);
+  assert.equal(new Set(concurrencyEvidence.arrivals.map((arrival) => arrival.backendPid)).size, 2);
+  console.log("LEDGERLY_CONCURRENCY_EVIDENCE", JSON.stringify(concurrencyEvidence));
   assert.equal(new Set(concurrent.map((result) => result.journalId)).size, 1);
   assert.equal(concurrent.filter((result) => result.status === "posted").length, 1);
 
@@ -453,14 +607,13 @@ test("canonical posting is atomic under audit failure, concurrent retries, and a
   assert.equal(correctionRelations[0]?.economic_effect_id, correctionEffect?.economic_effect_id);
 });
 
-test("SC-01 enforces company-scoped relation identity, uniqueness, and atomic rollback", async (t) => {
+test("SC-01 enforces company-scoped relation identity, uniqueness, and atomic rollback", async () => {
   const company = await createCompany("sc-01");
   const otherCompany = await createCompany("sc-01-other");
   const owner = `canonical-owner-${randomUUID()}`;
   const debit = await addAccount(company.id, "SC-01 debit");
   const credit = await addAccount(company.id, "SC-01 credit");
   await addMembership(company.id, owner, "owner");
-  t.after(() => cleanCompanies([company.id, otherCompany.id]));
 
   const state: FixtureState = {
     companyId: company.id,
