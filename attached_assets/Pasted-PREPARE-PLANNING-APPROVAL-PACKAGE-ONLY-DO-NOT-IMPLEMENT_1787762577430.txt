@@ -1,0 +1,340 @@
+PREPARE PLANNING/APPROVAL PACKAGE ONLY — DO NOT IMPLEMENT
+
+#44-TR-01 reached a mandatory infrastructure stop condition during implementation.
+
+Do not modify or revert the existing partial TR-01 implementation.
+
+Create:
+
+docs/ledgerly-44-ti-01-disposable-test-administration-approval-package.md
+
+Proposed scope:
+
+#44-TI-01 — Disposable Canonical Test Database Administration
+
+PURPOSE
+
+Define the narrowest secure development-only mechanism that allows the already
+approved disposable canonical integration-test runner to:
+
+- provision a fresh ephemeral PostgreSQL database;
+- bind that database cryptographically/uniquely to one authorised test run;
+- bootstrap the approved schema and RS-01 protections;
+- provide ledgerly_api with a direct disposable-database connection;
+- execute TR-01 tests only as ledgerly_api;
+- verify no sessions remain;
+- verify normal development heliumdb was unchanged;
+- and destroy the disposable database after the run.
+
+This package is PLANNING / APPROVAL ONLY.
+
+Do not create databases.
+Do not create or modify roles.
+Do not change secrets.
+Do not change DATABASE_URL.
+Do not modify application/test code.
+Do not change schema, privileges, triggers, RLS or workflows.
+Do not restart anything.
+Do not deploy or publish.
+Do not contact production.
+
+1. CURRENT BLOCKER
+
+Record the verified current state:
+
+- normal development database = heliumdb;
+- normal API identity = ledgerly_api;
+- ledgerly_api is intentionally non-superuser/non-admin;
+- the disposable runner requires a separately authorised PostgreSQL
+  administrative channel;
+- LEDGERLY_CANONICAL_TEST_DATABASE_URL and the associated run-binding
+  environment are unavailable;
+- heliumdb must never be used as the disposable-test fallback;
+- TR-01 implementation is partial and blocked before database validation.
+
+Confirm that broadening ledgerly_api is prohibited.
+
+2. ADMINISTRATIVE CHANNEL
+
+Identify the exact supported development mechanism available in this Replit
+workspace for performing ephemeral PostgreSQL administration.
+
+Determine whether the existing managed/admin PostgreSQL capability can safely
+perform only the following bounded operations:
+
+- CREATE DATABASE;
+- connect/bootstrap the new disposable database;
+- verify database metadata;
+- terminate sessions belonging only to the bound disposable database when
+  required for cleanup;
+- DROP DATABASE.
+
+The package must clearly separate:
+
+ADMIN PLANE
+from
+TEST/APPLICATION PLANE.
+
+The canonical tests themselves must run only as ledgerly_api.
+
+Do not expose an admin password or connection string to application code,
+test child processes, source files, logs, evidence files, or chat.
+
+3. NO REUSABLE ADMINISTRATIVE BACKDOOR
+
+Select a mechanism that does NOT create:
+
+- an application-accessible postgres credential;
+- a reusable admin endpoint;
+- a generic database-management API;
+- an admin script callable by ledgerly_api;
+- an elevated membership for ledgerly_api;
+- a permanent superuser secret available to the application.
+
+If the only available implementation would require one of these, return
+NOT READY.
+
+4. RUN BINDING
+
+Define the exact per-run authorization/binding contract.
+
+At minimum bind:
+
+- UUID run ID;
+- disposable database name derived from that run ID;
+- development environment identity;
+- expected administrator/creator identity;
+- expected ledgerly_api runtime identity;
+- nonce;
+- source/schema digest;
+- RS-01 overlay digest;
+- test-command identity;
+- creation timestamp/expiry;
+- normal development database identity;
+- explicit prohibition on heliumdb and production/deployment targets.
+
+Define where this metadata is stored and how the test runner verifies it
+without receiving administrative credentials.
+
+Reuse the previously approved disposable-test run-binding model where
+possible rather than inventing a weaker replacement.
+
+5. CONNECTION DELIVERY
+
+Define how the disposable ledgerly_api connection is supplied securely as:
+
+LEDGERLY_CANONICAL_TEST_DATABASE_URL
+
+and how all associated run-binding values are supplied.
+
+Requirements:
+
+- ephemeral/per-run;
+- available only to the authorised test invocation;
+- not persisted in repository files;
+- not written to normal workspace configuration;
+- not substituted for normal DATABASE_URL;
+- removed from child environments where previously required by the approved
+  isolation design;
+- never printed in evidence/logs.
+
+The package must explain how ledgerly_api authenticates to the disposable
+database without exposing its password.
+
+6. DATABASE BOOTSTRAP
+
+Define the exact bootstrap sequence for the disposable database.
+
+It must reproduce the development canonical safety model required by the tests,
+including as applicable:
+
+- authoritative Drizzle schema;
+- approved SC-01 schema;
+- approved RS-01 SQL overlay;
+- ledgerly_canonical_owner ownership;
+- ledgerly_api runtime privileges;
+- ENABLE ALWAYS canonical protections;
+- required constraints/indexes;
+- private run-control metadata.
+
+Do not silently introduce a new schema object into the normal application
+database.
+
+If disposable bootstrap requires a new permanent production/development schema
+change, STOP and return NOT READY.
+
+7. NORMAL DEVELOPMENT DATABASE PROTECTION
+
+The package must preserve the existing requirement that heliumdb is not altered
+by disposable canonical tests.
+
+Define before/after verification sufficient to prove that:
+
+- canonical data did not change;
+- legacy journal data did not change;
+- relevant schema/trigger/role state did not change;
+- the disposable runner never connected to heliumdb as its target.
+
+Include target-equality and target-override rejection.
+
+8. CLEANUP
+
+Define cleanup for both success and failure.
+
+Required behavior:
+
+- close ledgerly_api test pools;
+- verify expected disposable sessions;
+- terminate only sessions attached to the exact bound disposable database if
+  required;
+- destroy only the exact UUID-bound disposable database;
+- verify it no longer exists;
+- preserve evidence of creation/run/result/destruction;
+- never use wildcard/broad database deletion logic.
+
+A failed test must not leave a reusable administrative capability behind.
+
+9. CRASH / ABANDONED RUN HANDLING
+
+Define how an abandoned disposable database may later be identified and removed
+safely.
+
+Cleanup authority must require exact run binding and must not allow arbitrary
+database names supplied by the caller.
+
+Include expiry/staleness semantics and evidence requirements.
+
+10. EVIDENCE
+
+Define non-secret evidence for:
+
+- authorization;
+- database creation;
+- run binding;
+- bootstrap;
+- runtime identity;
+- RS-01 protections;
+- test start/end;
+- heliumdb before/after verification;
+- session cleanup;
+- database destruction;
+- failure/abandonment.
+
+Evidence must contain hashes/identities where appropriate but no passwords or
+connection strings.
+
+11. TR-01 RESUMPTION
+
+TI-01 must not itself mark TR-01 complete.
+
+If TI-01 is later implemented and independently reviewed successfully, the
+existing partial TR-01 implementation may resume solely to:
+
+- execute and complete the approved adversarial matrix;
+- make test/application corrections that remain inside the already approved
+  TR-01 scope;
+- perform the required runtime/database verification;
+- produce the TR-01 implementation report.
+
+Do not automatically mark #44 or #40-CF-01 complete.
+
+12. EXPECTED IMPLEMENTATION IMPACT
+
+List the exact expected files/configuration/resources that TI-01 would require.
+
+Prefer orchestration/evidence changes outside normal application runtime.
+
+If implementation requires:
+
+- changing normal DATABASE_URL;
+- broadening ledgerly_api;
+- storing a postgres credential in application/workspace runtime;
+- changing production configuration;
+- introducing a generic admin service;
+- weakening RS-01;
+- modifying heliumdb schema/data merely to support test administration;
+
+return NOT READY.
+
+13. SECURITY REVIEW
+
+Explicitly threat-model:
+
+- credential leakage;
+- environment-variable inheritance;
+- command injection;
+- database-name injection;
+- connecting to heliumdb accidentally;
+- connecting to production accidentally;
+- forged run metadata;
+- stale/expired authorization;
+- cleanup of another run's database;
+- privilege escalation by ledgerly_api;
+- malicious test process attempting admin operations;
+- evidence containing secrets.
+
+14. PRODUCTION BOUNDARY
+
+Development only.
+
+No:
+
+- production database access;
+- production roles/secrets;
+- deployment;
+- publishing;
+- production posting;
+- RLS;
+- migration/cutover;
+- BL-06;
+- BL-07;
+- #41 execution.
+
+Production posting remains disabled.
+
+15. GOVERNANCE / CURRENT STATUS
+
+Preserve:
+
+- DEC-01 through DEC-22 approved;
+- no DEC-23;
+- DEC-12 remains Payment, Allocation and Settlement Policy;
+- source freshness remains implementation-level;
+- BL-06 and BL-07 blocked;
+- #40-CF-01 incomplete;
+- #44 incomplete;
+- #44-TR-01 partial/incomplete;
+- #44-SC-01 complete;
+- #44-RS-01 complete;
+- production posting disabled.
+
+16. STOP CONDITIONS
+
+Return NOT READY if:
+
+- no supported secure admin plane exists;
+- admin credentials must be exposed to the test/application process;
+- ledgerly_api must be elevated;
+- heliumdb must be used for destructive/integration fixtures;
+- production connectivity is required;
+- run binding cannot be enforced;
+- exact database cleanup cannot be guaranteed;
+- bootstrap cannot reproduce RS-01 protections;
+- required implementation exceeds the approved development-only boundary.
+
+17. DECISION
+
+End with exactly one verdict:
+
+READY FOR #44-TI-01 IMPLEMENTATION APPROVAL
+
+or
+
+NOT READY — SECURE DISPOSABLE TEST ADMINISTRATION GAP REMAINS
+
+STOP after creating and validating the planning package.
+
+Do not implement TI-01.
+Do not resume TR-01.
+Do not mark #44 complete.
+Do not resume #40-CF-01.
