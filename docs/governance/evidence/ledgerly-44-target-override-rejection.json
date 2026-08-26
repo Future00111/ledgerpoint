@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "ledgerly-44-disposable-target-negative-control",
+  "createdAt": "2026-08-26T15:28:32Z",
+  "runnerPath": "artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs",
+  "runnerSha256": "1e2c3b6473ce4d5ceaa9c411c496fca3fe3e41a3ac2efe4e3984d084c64768d2",
+  "testCase": {
+    "overrideQueryKey": "host",
+    "overrideQueryValue": "production.invalid",
+    "expectedResult": "reject before constructing any database client",
+    "exitCode": 1,
+    "matchedExpectedError": "forbidden connection target overrides: host",
+    "rejectedBeforeConnection": true
+  },
+  "allowedConnectionQueryKeys": [
+    "sslmode"
+  ],
+  "productionContacted": false,
+  "normalDevelopmentDatabaseContacted": false,
+  "disposableDatabaseCreated": false
+}

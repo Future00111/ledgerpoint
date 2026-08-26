@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "ledgerly-44-disposable-canonical-test",
+  "runId": "70ab957f-8125-4011-8373-75b903ac5313",
+  "databaseName": "ledgerly_canonical_test_70ab957f81254011837375b903ac5313",
+  "environment": "development-disposable-test",
+  "createdAt": "2026-08-26T15:28:18.609Z",
+  "droppedAt": "2026-08-26T15:28:25.405Z",
+  "runBinding": {
+    "nonceSha256": "aa3f1de6b54892bcbbdea069ce55fffbbac3ab9ab44d214eca77a465d7f84f40",
+    "applicationSchemaSha256": "67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564",
+    "drizzleConfigSha256": "57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258",
+    "securityOverlaySha256": "9919e6d1a6198dfd09ba9912e7f066cbedb81767c84db2e1628aed393e649bf9",
+    "testRunnerSha256": "1e2c3b6473ce4d5ceaa9c411c496fca3fe3e41a3ac2efe4e3984d084c64768d2",
+    "expectedTestCommand": "pnpm --filter @workspace/api-server run test:canonical-posting"
+  },
+  "bootstrap": {
+    "passes": [
+      {
+        "exitCode": 0,
+        "knownOrderingFailure": true,
+        "stdoutSha256": "1a9c68e17ed6b04850328da49a56a6e5f3928b0e3a68b70b87694c8adbecf807",
+        "stderrSha256": "e2b79e6c81ccb32f4eeaabba3f599207913d2dce75e36176b7db75ba3dbd62eb"
+      },
+      {
+        "exitCode": 0,
+        "knownOrderingFailure": false,
+        "stdoutSha256": "e8018a7b259e60edad5c8a367d86fdb1fee3fe543f5396c27b5e5aaedfd4d29b",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "knownOrderingPrerequisiteApplied": true,
+    "overlayApplied": true
+  },
+  "test": {
+    "exitCode": 0,
+    "identityEvidence": {
+      "runId": "70ab957f-8125-4011-8373-75b903ac5313",
+      "databaseName": "ledgerly_canonical_test_70ab957f81254011837375b903ac5313",
+      "currentUser": "ledgerly_api",
+      "triggerState": "ENABLE ALWAYS",
+      "emptyCanonicalBaseline": true
+    },
+    "concurrencyEvidence": {
+      "expected": 2,
+      "arrivals": [
+        {
+          "backendPid": 832,
+          "transactionId": "8378",
+          "arrivedAt": 1787758105025
+        },
+        {
+          "backendPid": 833,
+          "transactionId": "8379",
+          "arrivedAt": 1787758105034
+        }
+      ],
+      "releasedAt": 1787758105034,
+      "overlapProven": true
+    },
+    "runnerCompletionEvidence": {
+      "runId": "70ab957f-8125-4011-8373-75b903ac5313",
+      "databaseName": "ledgerly_canonical_test_70ab957f81254011837375b903ac5313",
+      "environment": "development-disposable-test",
+      "privateRunBindingVerified": true,
+      "developmentEndpointMatched": true,
+      "sourceDigests": {
+        "applicationSchema": "67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564",
+        "drizzleConfig": "57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258",
+        "securityOverlay": "9919e6d1a6198dfd09ba9912e7f066cbedb81767c84db2e1628aed393e649bf9"
+      },
+      "identityEvidence": {
+        "runId": "70ab957f-8125-4011-8373-75b903ac5313",
+        "databaseName": "ledgerly_canonical_test_70ab957f81254011837375b903ac5313",
+        "currentUser": "ledgerly_api",
+        "triggerState": "ENABLE ALWAYS",
+        "emptyCanonicalBaseline": true
+      },
+      "concurrencyEvidence": {
+        "expected": 2,
+        "arrivals": [
+          {
+            "backendPid": 832,
+            "transactionId": "8378",
+            "arrivedAt": 1787758105025
+          },
+          {
+            "backendPid": 833,
+            "transactionId": "8379",
+            "arrivedAt": 1787758105034
+          }
+        ],
+        "releasedAt": 1787758105034,
+        "overlapProven": true
+      },
+      "normalDevelopmentBefore": {
+        "accounting_posting_effects": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "canonical_journal_entries": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "canonical_journal_lines": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "canonical_journal_relations": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "accounting_audit_events": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "journal_entries": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "normalDevelopmentAfter": {
+        "accounting_posting_effects": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "canonical_journal_entries": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "canonical_journal_lines": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "canonical_journal_relations": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "accounting_audit_events": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "journal_entries": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "normalDevelopmentUnchanged": true,
+      "administrativeEnvironmentRemovedFromTestProcess": true
+    },
+    "stdoutSha256": "cea8b035801cc4fc6812038b9efc2a49cb9ee7a2e9e5828ee5657189286c0599",
+    "stderrSha256": "84acdbc5584038b4c639e4411c3f25c8459717ffff96d30f6b67aaae0c329972"
+  },
+  "cleanup": {
+    "bindingVerified": true,
+    "sessionsTerminated": 0,
+    "databaseDropped": true
+  },
+  "heliumdb": {
+    "before": {
+      "accounting_posting_effects": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_entries": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_lines": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_relations": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "accounting_audit_events": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "journal_entries": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "after": {
+      "accounting_posting_effects": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_entries": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_lines": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_relations": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "accounting_audit_events": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "journal_entries": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "unchanged": true,
+    "usedForCanonicalIntegrationTests": false
+  },
+  "productionContacted": false,
+  "error": null
+}
