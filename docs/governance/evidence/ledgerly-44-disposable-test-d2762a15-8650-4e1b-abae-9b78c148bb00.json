@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "ledgerly-44-disposable-canonical-test",
+  "runId": "d2762a15-8650-4e1b-abae-9b78c148bb00",
+  "databaseName": "ledgerly_canonical_test_d2762a1586504e1babae9b78c148bb00",
+  "environment": "development-disposable-test",
+  "creator": "postgres",
+  "createdAt": "2026-08-26T15:19:30.002Z",
+  "droppedAt": "2026-08-26T15:19:34.964Z",
+  "runBinding": {
+    "nonceSha256": "d4ee0fa2f355d12e48d7b99a8a45d185e1efbbcaa871d0e83c06cbebe7fea8e5",
+    "applicationSchemaSha256": "67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564",
+    "drizzleConfigSha256": "57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258",
+    "securityOverlaySha256": "ce270eab522122c1dd46d60571428cafacce692db02062fb048a52bd7a7f9884",
+    "expectedTestCommand": "pnpm --filter @workspace/api-server run test:canonical-posting"
+  },
+  "roleState": [
+    {
+      "rolname": "ledgerly_api",
+      "rolsuper": false,
+      "rolinherit": false,
+      "rolcreaterole": false,
+      "rolcreatedb": false,
+      "rolcanlogin": true
+    },
+    {
+      "rolname": "ledgerly_canonical_owner",
+      "rolsuper": false,
+      "rolinherit": false,
+      "rolcreaterole": false,
+      "rolcreatedb": false,
+      "rolcanlogin": false
+    }
+  ],
+  "bootstrap": {
+    "drizzleSchemaSource": "lib/db/src/schema/index.ts",
+    "drizzleConfig": "lib/db/drizzle.config.ts",
+    "securityOverlay": "scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql",
+    "passes": [
+      {
+        "exitCode": 0,
+        "stdoutSha256": "1a9c68e17ed6b04850328da49a56a6e5f3928b0e3a68b70b87694c8adbecf807",
+        "stderrSha256": "e2b79e6c81ccb32f4eeaabba3f599207913d2dce75e36176b7db75ba3dbd62eb",
+        "knownOrderingFailure": true
+      },
+      {
+        "exitCode": 0,
+        "stdoutSha256": "cb8394dfc7f574e9c39de344830a1f4d1b60c7ee75bcffab7d86f1adcb8a5ab8",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "knownOrderingFailure": false
+      }
+    ],
+    "knownOrderingPrerequisiteApplied": true,
+    "overlayApplied": true
+  },
+  "apiRoleVerification": {
+    "identity": {
+      "database": "ledgerly_canonical_test_d2762a1586504e1babae9b78c148bb00",
+      "current_user": "ledgerly_api",
+      "session_user": "ledgerly_api",
+      "ordinary_insert": true,
+      "effect_update": true,
+      "canonical_delete": false,
+      "control_usage": false
+    },
+    "triggers": [
+      {
+        "tgname": "ledgerly_accounting_audit_events_guard",
+        "tgenabled": "A"
+      },
+      {
+        "tgname": "ledgerly_accounting_posting_effects_guard",
+        "tgenabled": "A"
+      },
+      {
+        "tgname": "ledgerly_canonical_journal_entries_guard",
+        "tgenabled": "A"
+      },
+      {
+        "tgname": "ledgerly_canonical_journal_lines_guard",
+        "tgenabled": "A"
+      },
+      {
+        "tgname": "ledgerly_canonical_journal_relations_guard",
+        "tgenabled": "A"
+      }
+    ],
+    "emptyBaseline": {
+      "effects": 0,
+      "journals": 0,
+      "lines": 0,
+      "relations": 0,
+      "audits": 0,
+      "legacy": 0
+    }
+  },
+  "test": {
+    "exitCode": 0,
+    "identityEvidence": {
+      "runId": "d2762a15-8650-4e1b-abae-9b78c148bb00",
+      "databaseName": "ledgerly_canonical_test_d2762a1586504e1babae9b78c148bb00",
+      "currentUser": "ledgerly_api",
+      "triggerState": "ENABLE ALWAYS",
+      "emptyCanonicalBaseline": true
+    },
+    "concurrencyEvidence": {
+      "expected": 2,
+      "arrivals": [
+        {
+          "backendPid": 775,
+          "transactionId": "8134",
+          "arrivedAt": 1787757574690
+        },
+        {
+          "backendPid": 776,
+          "transactionId": "8135",
+          "arrivedAt": 1787757574698
+        }
+      ],
+      "releasedAt": 1787757574698,
+      "overlapProven": true
+    },
+    "stdoutSha256": "c442c5efa24f455cf86edd71b7280cbe036cdb8407d779cc828858b26c0749cb",
+    "stderrSha256": "a97f1ee2f2393d2f730ec9ae3ac0a7908e9c3c8dc681b24a3810358839b22bb3"
+  },
+  "cleanup": {
+    "bindingVerified": true,
+    "sessionsTerminated": 0,
+    "databaseDropped": true
+  },
+  "heliumdb": {
+    "before": {
+      "accounting_posting_effects": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_entries": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_lines": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_relations": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "accounting_audit_events": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "journal_entries": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "after": {
+      "accounting_posting_effects": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_entries": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_lines": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_relations": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "accounting_audit_events": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "journal_entries": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "unchanged": true,
+    "usedForCanonicalIntegrationTests": false
+  },
+  "productionContacted": false,
+  "error": null
+}
