@@ -1,0 +1,90 @@
+PREPARE A DECISION/APPROVAL PACKAGE ONLY — DO NOT IMPLEMENT
+
+Task #46 / #44-RS-01 has reached a valid safety gate.
+
+The development API is now successfully running as ledgerly_api and the
+approved RS-01 role separation/protection checks have passed. Do not weaken
+those protections.
+
+Prepare a narrowly scoped approval package for:
+
+1. CANONICAL INTEGRATION TEST ISOLATION
+
+Design the canonical integration tests so test cleanup never requires the
+ledgerly_api role to DELETE, UPDATE, TRUNCATE, disable triggers, assume the
+canonical owner, or otherwise bypass canonical immutability.
+
+Prefer transaction/rollback isolation if it can faithfully test the required
+canonical transactions and concurrency behavior.
+
+If transaction rollback cannot faithfully cover concurrency or multi-connection
+tests, specify the minimum approved disposable-test-database alternative.
+
+The package must determine:
+- exact test isolation mechanism;
+- how concurrent/multi-connection tests operate;
+- how committed canonical writes are prevented from contaminating the normal
+  development database;
+- required code/configuration changes;
+- privilege boundaries;
+- regression requirements;
+- stop conditions.
+
+2. EXISTING DEVELOPMENT FIXTURE DISPOSITION
+
+There are currently development-only committed fixtures left by the failed
+cleanup:
+
+- 8 accounting_posting_effects
+- 8 canonical_journal_entries
+- 16 canonical_journal_lines
+- 5 canonical_journal_relations
+- 8 accounting_audit_events
+- 6 test companies
+- legacy journal_entries remains 0
+
+Inspect and document their provenance and relationships read-only.
+
+Do not delete, update, anonymise, rewrite, reverse, correct, or otherwise
+dispose of them yet.
+
+Propose the safest explicit one-time disposition mechanism consistent with
+DEC-04, DEC-17, DEC-18, #40 and #44.
+
+Distinguish clearly between:
+- immutable canonical accounting semantics;
+- development test-fixture disposal;
+- ordinary application authority.
+
+Any cleanup mechanism must be exceptional, narrowly scoped, auditable,
+development-only, and unavailable to ledgerly_api.
+
+Do not treat fixture deletion as ordinary accounting correction unless the
+approved governance actually requires that treatment.
+
+BOUNDARIES
+
+- Do not restore canonical DELETE/UPDATE/TRUNCATE privileges.
+- Do not disable or weaken ENABLE ALWAYS triggers.
+- Do not give ledgerly_api ownership or elevated role membership.
+- Do not modify DATABASE_URL.
+- Do not touch production.
+- Production posting remains disabled.
+- Do not perform fixture cleanup.
+- Do not refactor tests yet.
+- Do not create schema/migration/application changes.
+- Do not deploy or publish.
+- Do not start another implementation task.
+- Preserve DEC-01 through DEC-22 and existing governance boundaries.
+- BL-06/BL-07 remain blocked.
+
+Also record the PORT-dependent mockup build issue as unrelated/non-blocking
+to this decision unless investigation proves otherwise.
+
+End with one verdict only:
+
+READY FOR TEST-ISOLATION / FIXTURE-DISPOSITION APPROVAL
+
+or
+
+NOT READY — DESIGN GAP REMAINS
