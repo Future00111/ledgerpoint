@@ -1,0 +1,48 @@
+name: Ledgerly canonical PostgreSQL qualification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ledgerly-canonical-postgresql
+  cancel-in-progress: false
+
+jobs:
+  canonical-postgresql:
+    if: github.ref == 'refs/heads/main' && github.ref_protected == true
+    name: Disposable canonical PostgreSQL qualification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment:
+      name: ledgerly-canonical
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Install pinned evidence validator
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.26.1 --activate
+          pnpm install --frozen-lockfile --ignore-scripts --filter workspace
+
+      - name: Run TI-03 qualification
+        env:
+          CI: true
+          DOCKER_BUILDKIT: "1"
+        run: node scripts/ci/run-ledgerly-canonical-postgresql.mjs
+
+      - name: Upload non-secret TI-03 evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ledgerly-ti-03-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            docs/governance/evidence/ledgerly-44-ti-03-*.json
+          if-no-files-found: error
+          retention-days: 30

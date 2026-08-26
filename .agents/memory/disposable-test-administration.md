@@ -16,3 +16,9 @@ falling back to `heliumdb` would violate canonical test isolation.
 environment are not available, let the guarded runner fail closed and report
 the blocker. Do not add a reusable admin script, broaden `ledgerly_api`, expose
 an admin credential, or run canonical integration tests against `heliumdb`.
+
+As observed on 2026-08-26, the Replit workspace Docker daemon cannot execute
+container-local health checks or `docker exec`; both fail with an OCI `setns`
+error even when PostgreSQL is ready. Qualify this boundary on the approved
+external GitHub runner rather than replacing local-socket administration with
+network administrator credentials.

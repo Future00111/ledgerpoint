@@ -308,6 +308,8 @@ async function expectDatabaseCode(
 test("canonical integration suite is bound to an empty API-role disposable database", async () => {
   const expectedDatabase = process.env.LEDGERLY_CANONICAL_TEST_DATABASE_NAME;
   const runId = process.env.LEDGERLY_CANONICAL_TEST_RUN_ID;
+  const externalCi = process.env.LEDGERLY_CANONICAL_TEST_TARGET_CLASS ===
+    "external-ci-postgresql-service-container";
   assert.match(expectedDatabase ?? "", /^ledgerly_canonical_test_[0-9a-f]{32}$/);
   assert.match(
     runId ?? "",
@@ -315,7 +317,7 @@ test("canonical integration suite is bound to an empty API-role disposable datab
   );
   assert.equal(
     process.env.LEDGERLY_CANONICAL_TEST_ENVIRONMENT,
-    "development-disposable-test",
+    externalCi ? "external-ci-disposable-test" : "development-disposable-test",
   );
 
   const identity = await pool.query<{
@@ -374,6 +376,35 @@ test("canonical integration suite is bound to an empty API-role disposable datab
   assert.equal(triggers.rows.length, 5);
   assert.ok(triggers.rows.every((trigger) => trigger.enabled === "A"));
 
+  if (externalCi) {
+    async function expectPrivilegeDenied(query: string): Promise<void> {
+      await assert.rejects(
+        () => pool.query(query),
+        (error: unknown) =>
+          typeof error === "object" &&
+          error !== null &&
+          "code" in error &&
+          (error as { code?: unknown }).code === "42501",
+      );
+    }
+
+    await expectPrivilegeDenied("CREATE ROLE ledgerly_negative_probe");
+    await expectPrivilegeDenied("SET ROLE postgres");
+    await expectPrivilegeDenied(
+      "ALTER TABLE public.canonical_journal_entries DISABLE TRIGGER ledgerly_canonical_journal_entries_guard",
+    );
+    await expectPrivilegeDenied("DROP TABLE public.canonical_journal_entries");
+    console.log(
+      "LEDGERLY_NEGATIVE_PRIVILEGE_EVIDENCE",
+      JSON.stringify({
+        roleEscalationDenied: true,
+        setRolePostgresDenied: true,
+        triggerDisableDenied: true,
+        canonicalDeleteDenied: true,
+      }),
+    );
+  }
+
   console.log(
     "LEDGERLY_DISPOSABLE_IDENTITY",
     JSON.stringify({
@@ -382,6 +413,7 @@ test("canonical integration suite is bound to an empty API-role disposable datab
       currentUser: identity.rows[0]?.currentUser,
       triggerState: "ENABLE ALWAYS",
       emptyCanonicalBaseline: true,
+      externalCi,
     }),
   );
 });

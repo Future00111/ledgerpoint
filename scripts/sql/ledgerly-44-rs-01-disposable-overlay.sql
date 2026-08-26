@@ -251,6 +251,70 @@ GRANT EXECUTE ON FUNCTION public.ledgerly_verify_disposable_run(
   uuid, text, text, text, text, text, text, text, text
 ) TO ledgerly_api;
 
+CREATE OR REPLACE FUNCTION public.ledgerly_verify_external_disposable_run(
+  p_run_uuid uuid,
+  p_binding jsonb,
+  p_run_binding_nonce text
+)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path TO 'pg_catalog', 'ledgerly_test_control'
+AS $function$
+  SELECT current_user = 'postgres'
+    AND session_user = 'ledgerly_api'
+    AND current_database() = p_binding->>'databaseName'
+    AND EXISTS (
+      SELECT 1
+      FROM ledgerly_test_control.run_identity r
+      WHERE r.run_uuid = p_run_uuid
+        AND r.expected_database_name = p_binding->>'databaseName'
+        AND r.environment = p_binding->>'environment'
+        AND r.target_classification = p_binding->>'targetClassification'
+        AND r.ci_provider = p_binding->>'ciProvider'
+        AND r.ci_repository = p_binding->>'ciRepository'
+        AND r.ci_workflow = p_binding->>'ciWorkflow'
+        AND r.ci_workflow_ref = p_binding->>'ciWorkflowRef'
+        AND r.ci_run_id = p_binding->>'ciRunId'
+        AND r.ci_run_attempt = p_binding->>'ciRunAttempt'
+        AND r.ci_job = p_binding->>'ciJob'
+        AND r.source_commit = p_binding->>'sourceCommit'
+        AND r.source_tree_sha256 = p_binding->>'sourceTreeSha256'
+        AND r.application_schema_sha256 = p_binding->>'applicationSchemaSha256'
+        AND r.drizzle_config_sha256 = p_binding->>'drizzleConfigSha256'
+        AND r.security_overlay_sha256 = p_binding->>'securityOverlaySha256'
+        AND r.run_control_sql_sha256 = p_binding->>'runControlSqlSha256'
+        AND r.coordinator_sha256 = p_binding->>'coordinatorSha256'
+        AND r.test_sources_sha256 = p_binding->>'testSourcesSha256'
+        AND r.lockfile_sha256 = p_binding->>'lockfileSha256'
+        AND r.workflow_sha256 = p_binding->>'workflowSha256'
+        AND r.orchestrator_sha256 = p_binding->>'orchestratorSha256'
+        AND r.expected_test_command = p_binding->>'expectedCommand'
+        AND r.creator_identity = p_binding->>'creatorIdentity'
+        AND r.expected_runtime_identity = p_binding->>'expectedRuntimeIdentity'
+        AND r.run_binding_nonce = p_run_binding_nonce
+        AND r.postgres_image_tag = p_binding->>'postgresImageTag'
+        AND r.postgres_image_digest = p_binding->>'postgresImageDigest'
+        AND r.node_image_tag = p_binding->>'nodeImageTag'
+        AND r.node_image_digest = p_binding->>'nodeImageDigest'
+        AND r.expires_at > now()
+        AND r.prohibits_heliumdb
+        AND r.prohibits_production
+    );
+$function$;
+
+ALTER FUNCTION public.ledgerly_verify_external_disposable_run(uuid, jsonb, text)
+  OWNER TO postgres;
+
+REVOKE ALL PRIVILEGES ON FUNCTION
+  public.ledgerly_verify_external_disposable_run(uuid, jsonb, text)
+FROM PUBLIC, ledgerly_api;
+
+GRANT EXECUTE ON FUNCTION
+  public.ledgerly_verify_external_disposable_run(uuid, jsonb, text)
+TO ledgerly_api;
+
 DROP TRIGGER IF EXISTS ledgerly_canonical_journal_entries_guard
   ON public.canonical_journal_entries;
 CREATE TRIGGER ledgerly_canonical_journal_entries_guard
