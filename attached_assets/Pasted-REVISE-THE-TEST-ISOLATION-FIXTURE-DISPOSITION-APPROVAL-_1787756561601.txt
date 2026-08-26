@@ -1,0 +1,215 @@
+REVISE THE TEST-ISOLATION / FIXTURE-DISPOSITION APPROVAL PACKAGE ONLY
+
+Do NOT implement anything.
+
+Do NOT refactor tests.
+Do NOT delete fixtures.
+Do NOT disable triggers.
+Do NOT create/drop databases.
+Do NOT change roles, secrets, DATABASE_URL, workflows, code, schema, or production.
+
+Revise:
+
+docs/ledgerly-44-test-isolation-and-development-fixture-disposition-approval-package.md
+
+to resolve these exact gaps.
+
+1. EXACT ROW-LEVEL FIXTURE MANIFEST
+
+Replace company-level deletion scope with an exact manifest.
+
+The package must enumerate the exact IDs of every retained synthetic fixture:
+
+- companies
+- memberships
+- chart/accounts used by the fixtures
+- posting effects
+- canonical journals
+- journal lines
+- journal relations
+- accounting audit events
+- any other directly related synthetic row
+
+The reset must:
+
+- verify every expected row still exists;
+- verify no unexpected dependent row exists;
+- verify immutable field snapshots/hashes where practical;
+- stop if anything differs;
+- delete only the exact approved row IDs.
+
+Do NOT use:
+DELETE WHERE company_id IN (...)
+
+as the disposal boundary.
+
+2. EXPLICIT ONE-TIME ADMINISTRATIVE EXCEPTION
+
+Resolve the trigger contradiction.
+
+Runtime/API rule remains:
+
+- ENABLE ALWAYS protections remain mandatory;
+- ledgerly_api can never disable them;
+- application code can never bypass them.
+
+Define a separate, one-time DEVELOPMENT ADMINISTRATIVE FIXTURE-RESET exception.
+
+That exception must specify:
+
+- exact administrative principal;
+- exact approved row manifest;
+- exact canonical tables;
+- exact trigger suspension mechanism if suspension is unavoidable;
+- exact order;
+- restoration in the same controlled operation;
+- verification that all five triggers are ENABLE ALWAYS afterwards;
+- failure behavior;
+- audit evidence;
+- no reusable generic cleanup authority.
+
+If trigger suspension is not actually required, choose the safer mechanism and say so.
+
+Do not leave the exception ambiguous.
+
+3. GOVERNANCE CLASSIFICATION OF FIXTURES
+
+Explicitly classify the retained rows as:
+
+- development-only;
+- synthetic;
+- non-business;
+- created solely by canonical integration tests;
+- not migrated customer/accounting evidence;
+- not production;
+- not authoritative business records.
+
+Explain why the one-time reset is compatible with:
+
+- DEC-04
+- DEC-17
+- DEC-18
+- #40
+- #44
+
+If that cannot be established from provenance, STOP and return NOT READY.
+
+4. DISPOSABLE DATABASE BOOTSTRAP
+
+Select the exact authoritative bootstrap mechanism for disposable canonical test databases.
+
+The disposable database must reproduce:
+
+- the five canonical tables;
+- SC-01 schema;
+- all constraints/indexes;
+- the four approved trigger functions;
+- trigger ownership;
+- five ENABLE ALWAYS triggers;
+- canonical owner role model;
+- ledgerly_api privilege model where relevant;
+- all required fixture/reference tables used by tests.
+
+Specify exactly which schema artifact/migration source is authoritative.
+
+Do not leave this as “apply the schema”.
+
+5. DISPOSABLE DATABASE RUN IDENTITY
+
+Define a strong immutable run identity, not just a database-name prefix.
+
+Each test database must have:
+
+- generated run UUID;
+- expected database name;
+- environment marker;
+- creation timestamp;
+- creator identity;
+- ownership/binding metadata.
+
+Administrative cleanup must verify the exact run identity before terminating sessions or dropping the database.
+
+A name match alone must never be enough.
+
+6. ADMINISTRATIVE PRIVILEGE BOUNDARY
+
+Define the exact administrative execution mechanism for:
+
+- creating disposable databases;
+- applying schema;
+- terminating only sessions belonging to the exact disposable database;
+- dropping only the exact disposable database.
+
+The administrative path must:
+
+- be unavailable to application routes;
+- be unavailable to ledgerly_api;
+- require explicit test-run context;
+- fail closed for heliumdb;
+- fail closed for production;
+- fail closed for an unknown database;
+- not expose reusable unrestricted database-admin capability.
+
+7. AUDIT EVIDENCE
+
+Select a concrete evidence location for the one-time fixture reset.
+
+It must be:
+
+- append-only or effectively write-once;
+- outside the canonical application database;
+- access controlled;
+- retained appropriately;
+- reviewable after execution.
+
+Record at minimum:
+
+- approval/task ID;
+- executor;
+- timestamp;
+- exact environment/database;
+- exact row manifest;
+- pre-reset verification;
+- trigger state before;
+- exceptional admin action;
+- rows affected;
+- trigger state after;
+- post-reset row counts;
+- success/failure;
+- rollback/restoration evidence.
+
+Do not use a mutable local note as the sole evidence.
+
+8. CONCURRENCY OVERLAP PROOF
+
+For concurrency tests, require an explicit barrier/latch or equivalent mechanism.
+
+The test must prove that:
+
+- at least two independent connections exist;
+- both transactions reach the contested operation;
+- both are held at a synchronization point;
+- the barrier releases them into the conflict concurrently;
+- results and final database state are asserted.
+
+Do not treat two Promise calls without synchronization as sufficient evidence.
+
+9. PORT ISSUE
+
+Keep the mockup PORT build issue classified as unrelated/non-blocking to this approval package.
+
+Do not broaden scope to fix it.
+
+10. FINAL VERDICT
+
+End with exactly one:
+
+READY FOR TEST-ISOLATION / FIXTURE-DISPOSITION APPROVAL
+
+or
+
+NOT READY — DESIGN GAP REMAINS
+
+Do not implement anything.
+
+STOP.
