@@ -1,0 +1,287 @@
+#44 — REVISE THE IMPLEMENTATION APPROVAL PACKAGE ONLY
+
+Do NOT implement #44.
+
+Do NOT change application code.
+Do NOT change the database schema.
+Do NOT run migrations.
+Do NOT deploy or publish.
+Do NOT start production posting.
+Do NOT create or start another implementation task.
+
+We need to resolve the design gaps identified in the previous #44 review before
+#44 can be approved.
+
+Update the #44 implementation approval package only.
+
+==================================================
+1. POSTED-JOURNAL IMMUTABILITY — SELECT ONE MECHANISM
+==================================================
+
+The package currently says database-level immutability is required but leaves
+the mechanism unresolved.
+
+Select ONE concrete mechanism.
+
+The mechanism must guarantee that once a canonical journal is posted:
+
+- the journal header cannot be edited;
+- journal lines cannot be edited;
+- the posted journal cannot be deleted;
+- posted status/company/ownership cannot be altered;
+- another future server-side code path cannot bypass the protection;
+- corrections and reversals remain additive and do not mutate the original.
+
+If you select database triggers, specify exactly:
+
+- which tables;
+- which operations are blocked;
+- which narrowly defined transitions are permitted;
+- what DDL is required;
+- what schema objects are added;
+- how the trigger interacts with corrections/reversals;
+- how it is tested.
+
+If you select another mechanism, provide the same level of detail.
+
+DO NOT leave this as "trigger or equivalent".
+
+The revised package must make ONE selection.
+
+==================================================
+2. TRANSACTIONAL FRESHNESS — SELECT ONE CONCRETE MECHANISM
+==================================================
+
+The current design says "lock or conditional version check".
+
+That is insufficient.
+
+Select the concrete mechanism Ledgerpoint will use to guarantee that the
+validated state remains valid through the canonical commit.
+
+For each relevant state:
+
+- source revision/evidence;
+- company ownership;
+- active membership/authorization;
+- account eligibility;
+- DEC-10 mapping;
+- DEC-11 configuration version;
+- financial year;
+- accounting period/state;
+
+define:
+
+- authoritative record;
+- version/revision/token;
+- exact read;
+- exact lock or conditional-write mechanism;
+- transaction boundary;
+- what concurrent change is prevented or detected;
+- exact conflict result.
+
+The design must prevent:
+
+READ → VALIDATE → CONCURRENT CHANGE → COMMIT
+
+from producing an unsafe posting.
+
+DO NOT leave multiple options.
+
+==================================================
+3. CORRECTION / REVERSAL CONCURRENCY
+==================================================
+
+Select the concrete mechanism for preventing duplicate or conflicting
+corrections/reversals.
+
+Define:
+
+- correction identity;
+- reversal identity;
+- uniqueness rule;
+- serialization/locking rule;
+- retry behavior;
+- uncertain transaction outcome behavior;
+- duplicate correction behavior;
+- duplicate reversal behavior.
+
+Two concurrent requests must not create two unintended correction/reversal
+effects.
+
+The original posted journal must remain immutable.
+
+DO NOT leave this as "lock, conditional validation, uniqueness constraint,
+or combination".
+
+Select the actual mechanism.
+
+==================================================
+4. EXACT SCHEMA / DDL BOUNDARY
+==================================================
+
+State exactly what database changes #44 is permitted to introduce.
+
+Separate:
+
+A. Existing #40 canonical schema.
+
+B. Exact #44 DDL/schema additions.
+
+C. Changes explicitly prohibited.
+
+The approved #44 schema boundary must be narrow.
+
+No historical migration.
+
+No legacy journal backfill.
+
+No data transformation.
+
+No RLS unless separately approved.
+
+No production database changes.
+
+If the selected immutability or concurrency mechanism requires a development
+schema change, state exactly what is permitted.
+
+==================================================
+5. ADVERSARIAL TEST MATRIX
+==================================================
+
+Make these mandatory #44 acceptance tests.
+
+IMMUTABILITY
+
+- direct UPDATE of posted journal;
+- direct UPDATE of posted line;
+- direct DELETE of posted journal;
+- direct DELETE of posted line;
+- attempted status mutation;
+- attempted company/ownership mutation;
+- mutation through another server-side path;
+- mutation after correction;
+- mutation after reversal.
+
+FRESHNESS
+
+- source changes immediately before commit;
+- source revision changes;
+- evidence hash changes;
+- membership revoked during posting;
+- company ownership changes;
+- account eligibility changes;
+- DEC-10 mapping changes;
+- DEC-11 configuration changes;
+- period closes during posting;
+- financial-year context changes where relevant.
+
+CORRECTION / REVERSAL
+
+- simultaneous corrections;
+- simultaneous reversals;
+- duplicate correction retry;
+- duplicate reversal retry;
+- uncertain correction result;
+- uncertain reversal result.
+
+ATOMICITY
+
+- journal-header failure;
+- journal-line failure;
+- effect/idempotency failure;
+- audit failure;
+- final freshness conflict;
+- authorization failure.
+
+AUTHORIZATION
+
+- inactive membership;
+- revoked membership;
+- conflicting membership roles;
+- malformed company context;
+- conflicting company context;
+- insufficient capability;
+- Company A / Company B isolation across canonical references.
+
+For every test specify:
+
+- setup;
+- concurrent event;
+- expected result;
+- accounting effect;
+- audit effect;
+- final database state.
+
+==================================================
+6. PRODUCTION SAFETY
+==================================================
+
+Explicitly confirm:
+
+- #40-CF-01 remains incomplete;
+- production posting remains disabled;
+- BL-06 remains blocked;
+- BL-07 remains blocked;
+- #41 remains planning only;
+- no migration is authorised;
+- no deployment is authorised;
+- no publishing is authorised;
+- no downstream accounting workflow is authorised.
+
+==================================================
+7. GOVERNANCE
+==================================================
+
+Preserve:
+
+- DEC-01–DEC-22 approved;
+- DEC-23 does not exist;
+- DEC-12 remains exclusively Payment, Allocation and Settlement Policy;
+- source freshness remains implementation-level;
+- DEC-04 immutability remains authoritative;
+- DEC-21 RLS remains defence-in-depth only.
+
+Do not create or amend a DEC.
+
+If a genuine conflict with an approved decision is discovered, STOP and
+identify the conflict.
+
+==================================================
+8. FINAL PACKAGE REQUIREMENTS
+==================================================
+
+The revised #44 package must contain:
+
+- exact task scope;
+- explicit exclusions;
+- current #40 stopping reason;
+- ONE selected immutability mechanism;
+- ONE selected transactional freshness mechanism;
+- ONE selected correction/reversal concurrency mechanism;
+- exact permitted schema/DDL changes;
+- transaction model;
+- idempotency model;
+- security/company-isolation implications;
+- RLS implications;
+- adversarial test matrix;
+- rollback strategy;
+- risks;
+- open questions;
+- approval gates;
+- definition of done.
+
+There must be no unresolved "A or B" engineering choices for the three core
+safety mechanisms above.
+
+End with exactly one:
+
+READY FOR #44 IMPLEMENTATION APPROVAL
+
+or
+
+NOT READY — DESIGN GAP REMAINS
+
+Do not implement anything.
+
+STOP after producing the revised approval package.
