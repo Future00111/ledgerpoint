@@ -124,6 +124,15 @@ function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
+function sanitizeDiagnosticOutput(value) {
+  return String(value)
+    .replace(/postgres(?:ql)?:\/\/[^\s'"]+/gi, "postgresql://[REDACTED]")
+    .replace(
+      /((?:password|passwd|token|secret|api[_-]?key)\s*[=:]\s*)[^\s,;]+/gi,
+      "$1[REDACTED]",
+    );
+}
+
 function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false } = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -153,11 +162,23 @@ function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false }
     child.on("close", (code, signal) => {
       if (timer) clearTimeout(timer);
       if (timedOut) return reject(new Error(`${command} timed out`));
-      if (signal) return reject(new Error(`${command} terminated by ${signal}`));
+      if (signal) {
+        const error = new Error(`${command} terminated by ${signal}`);
+        error.command = sanitizeDiagnosticOutput([command, ...args].join(" "));
+        error.exitCode = null;
+        error.signal = signal;
+        error.stdout = sanitizeDiagnosticOutput(stdout);
+        error.stderr = sanitizeDiagnosticOutput(stderr);
+        return reject(error);
+      }
       if (code !== 0) {
-        const detail = quiet ? "" : `: ${stderr.trim().slice(-500)}`;
+        const sanitizedStderr = sanitizeDiagnosticOutput(stderr);
+        const detail = quiet ? "" : `: ${sanitizedStderr.trim().slice(-500)}`;
         const error = new Error(`${command} exited with status ${code}${detail}`);
-        error.stderr = stderr;
+        error.command = sanitizeDiagnosticOutput([command, ...args].join(" "));
+        error.exitCode = code;
+        error.stdout = sanitizeDiagnosticOutput(stdout);
+        error.stderr = sanitizedStderr;
         return reject(error);
       }
       resolve({ stdout, stderr });
@@ -557,11 +578,14 @@ async function bootstrapDatabase(credentials, sourceDigests, ci) {
     const result = await docker(pushArgs, {
       env: schemaEnv,
       timeoutMs: 4 * 60 * 1000,
+      quiet: true,
     });
     pushOutput = `${result.stdout}\n${result.stderr}`;
   } catch (error) {
     pushFailed = true;
-    pushOutput = String(error);
+    pushOutput = sanitizeDiagnosticOutput(
+      [error.stdout, error.stderr].filter(Boolean).join("\n"),
+    );
   }
   if (pushFailed) {
     if (
