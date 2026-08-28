@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { readdir, readFile as readCapturedFile } from "node:fs/promises";
 import test from "node:test";
+import os from "node:os";
 import {
   appendDiagnosticTail as appendCoordinatorDiagnosticTail,
   bootstrapRetryClassificationInput,
@@ -232,6 +234,44 @@ test("streams successful child output before the child exits", async () => {
     result.closedAt - firstStdoutAt >= 200,
     "stdout was not forwarded while the child was still running",
   );
+});
+
+test("rejects readback failures and removes every temporary capture", async () => {
+  const temporaryDirectory = os.tmpdir();
+  const before = new Set(await readdir(temporaryDirectory));
+  const pending = runProcess(
+    process.execPath,
+    ["-e", "process.stdout.write('complete output')"],
+    {
+      readOutput: async (filePath, encoding) => {
+        if (filePath.endsWith("/stdout")) {
+          throw new Error("forced temporary readback failure");
+        }
+        return readCapturedFile(filePath, encoding);
+      },
+    },
+  );
+  const rejection = assert.rejects(pending, /forced temporary readback failure/);
+  let timeout;
+  try {
+    await Promise.race([
+      rejection,
+      new Promise((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error("runProcess remained pending after readback failure")),
+          1_000,
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
+  const after = await readdir(temporaryDirectory);
+  const leakedCaptureDirectories = after.filter(
+    (entry) =>
+      !before.has(entry) && entry.startsWith("ledgerly-canonical-process-"),
+  );
+  assert.deepEqual(leakedCaptureDirectories, []);
 });
 
 test("retains only the final 8192 characters from each failed stream", async () => {

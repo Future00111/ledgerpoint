@@ -159,7 +159,11 @@ function processFailure(message, stdout, stderr) {
   return error;
 }
 
-async function runProcess(command, args, { env, cwd, input, timeoutMs } = {}) {
+async function runProcess(
+  command,
+  args,
+  { env, cwd, input, timeoutMs, readOutput = readFile } = {},
+) {
   const captureDirectory = await mkdtemp(
     path.join(os.tmpdir(), "ledgerly-canonical-process-"),
   );
@@ -200,23 +204,29 @@ async function runProcess(command, args, { env, cwd, input, timeoutMs } = {}) {
         process.stderr.write(chunk);
       });
       child.on("error", reject);
-      child.on("close", async (code, signal) => {
+      child.on("close", (code, signal) => {
         if (timer) clearTimeout(timer);
-        await Promise.all([stdoutCapture, stderrCapture]);
-        if (captureFailure) {
-          reject(captureFailure);
-        } else if (timedOut) {
-          reject(processFailure(`${command} timed out`, stdout, stderr));
-        } else if (signal) {
-          reject(processFailure(`${command} terminated by ${signal}`, stdout, stderr));
-        } else if (code !== 0) {
-          reject(processFailure(`${command} exited with status ${code}`, stdout, stderr));
-        } else {
-          resolve({
-            stdout: await readFile(stdoutPath, "utf8"),
-            stderr: await readFile(stderrPath, "utf8"),
-          });
-        }
+        Promise.all([stdoutCapture, stderrCapture])
+          .then(() => {
+            if (captureFailure) {
+              throw captureFailure;
+            } else if (timedOut) {
+              reject(processFailure(`${command} timed out`, stdout, stderr));
+            } else if (signal) {
+              reject(processFailure(`${command} terminated by ${signal}`, stdout, stderr));
+            } else if (code !== 0) {
+              reject(processFailure(`${command} exited with status ${code}`, stdout, stderr));
+            } else {
+              return Promise.all([
+                readOutput(stdoutPath, "utf8"),
+                readOutput(stderrPath, "utf8"),
+              ]).then(([successfulStdout, successfulStderr]) => {
+                resolve({ stdout: successfulStdout, stderr: successfulStderr });
+              });
+            }
+            return undefined;
+          })
+          .catch(reject);
       });
       if (input !== undefined) {
         child.stdin.end(input);
