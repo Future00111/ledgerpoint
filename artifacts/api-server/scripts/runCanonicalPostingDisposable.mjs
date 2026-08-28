@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { rm } from "node:fs/promises";
+import { createWriteStream, readFileSync } from "node:fs";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
+import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { sanitizeBootstrapDiagnostic } from "../../../scripts/ci/run-ledgerly-canonical-postgresql.mjs";
@@ -158,50 +159,76 @@ function processFailure(message, stdout, stderr) {
   return error;
 }
 
-function runProcess(command, args, { env, cwd, input, timeoutMs } = {}) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
-      cwd,
-      env,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    let stdout = "";
-    let stderr = "";
-    let timedOut = false;
-    const timer = timeoutMs
-      ? setTimeout(() => {
-          timedOut = true;
-          child.kill("SIGTERM");
-          setTimeout(() => child.kill("SIGKILL"), 2_000).unref();
-        }, timeoutMs)
-      : undefined;
-    child.stdout.on("data", (chunk) => {
-      stdout = appendDiagnosticTail(stdout, chunk);
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr = appendDiagnosticTail(stderr, chunk);
-    });
-    child.on("error", reject);
-    child.on("close", (code, signal) => {
-      if (timer) clearTimeout(timer);
-      if (timedOut) {
-        reject(processFailure(`${command} timed out`, stdout, stderr));
-      } else if (signal) {
-        reject(processFailure(`${command} terminated by ${signal}`, stdout, stderr));
-      } else if (code !== 0) {
-        reject(processFailure(`${command} exited with status ${code}`, stdout, stderr));
+async function runProcess(command, args, { env, cwd, input, timeoutMs } = {}) {
+  const captureDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "ledgerly-canonical-process-"),
+  );
+  const stdoutPath = path.join(captureDirectory, "stdout");
+  const stderrPath = path.join(captureDirectory, "stderr");
+  const stdoutFile = createWriteStream(stdoutPath, { mode: 0o600 });
+  const stderrFile = createWriteStream(stderrPath, { mode: 0o600 });
+  try {
+    return await new Promise((resolve, reject) => {
+      const child = spawn(command, args, {
+        cwd,
+        env,
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+      let stdout = "";
+      let stderr = "";
+      let timedOut = false;
+      let captureFailure;
+      const timer = timeoutMs
+        ? setTimeout(() => {
+            timedOut = true;
+            child.kill("SIGTERM");
+            setTimeout(() => child.kill("SIGKILL"), 2_000).unref();
+          }, timeoutMs)
+        : undefined;
+      const stdoutCapture = pipeline(child.stdout, stdoutFile).catch((error) => {
+        captureFailure ??= error;
+      });
+      const stderrCapture = pipeline(child.stderr, stderrFile).catch((error) => {
+        captureFailure ??= error;
+      });
+      child.stdout.on("data", (chunk) => {
+        stdout = appendDiagnosticTail(stdout, chunk);
+        process.stdout.write(chunk);
+      });
+      child.stderr.on("data", (chunk) => {
+        stderr = appendDiagnosticTail(stderr, chunk);
+        process.stderr.write(chunk);
+      });
+      child.on("error", reject);
+      child.on("close", async (code, signal) => {
+        if (timer) clearTimeout(timer);
+        await Promise.all([stdoutCapture, stderrCapture]);
+        if (captureFailure) {
+          reject(captureFailure);
+        } else if (timedOut) {
+          reject(processFailure(`${command} timed out`, stdout, stderr));
+        } else if (signal) {
+          reject(processFailure(`${command} terminated by ${signal}`, stdout, stderr));
+        } else if (code !== 0) {
+          reject(processFailure(`${command} exited with status ${code}`, stdout, stderr));
+        } else {
+          resolve({
+            stdout: await readFile(stdoutPath, "utf8"),
+            stderr: await readFile(stderrPath, "utf8"),
+          });
+        }
+      });
+      if (input !== undefined) {
+        child.stdin.end(input);
       } else {
-        if (stdout) process.stdout.write(stdout);
-        if (stderr) process.stderr.write(stderr);
-        resolve({ stdout, stderr });
+        child.stdin.end();
       }
     });
-    if (input !== undefined) {
-      child.stdin.end(input);
-    } else {
-      child.stdin.end();
-    }
-  });
+  } finally {
+    stdoutFile.destroy();
+    stderrFile.destroy();
+    await rm(captureDirectory, { recursive: true, force: true });
+  }
 }
 
 async function verifyExternalBinding({

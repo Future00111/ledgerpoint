@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import test from "node:test";
 import {
   appendDiagnosticTail as appendCoordinatorDiagnosticTail,
@@ -172,6 +173,67 @@ test("keeps successful child-process output unchanged", async () => {
   });
 });
 
+test("preserves long successful stdout and completion markers outside the failure tail", async () => {
+  const marker = "LEDGERLY_CANONICAL_TEST_COMPLETION marker-at-the-start\n";
+  const expected = marker + "s".repeat(12_000);
+  const result = await runProcess(process.execPath, [
+    "-e",
+    `process.stdout.write(${JSON.stringify(expected)})`,
+  ]);
+  assert.equal(result.stdout, expected);
+  assert.match(result.stdout, /^LEDGERLY_CANONICAL_TEST_COMPLETION marker-at-the-start/);
+});
+
+test("preserves long successful stderr", async () => {
+  const expected = "e".repeat(12_000);
+  const result = await runProcess(process.execPath, [
+    "-e",
+    `process.stderr.write(${JSON.stringify(expected)})`,
+  ]);
+  assert.equal(result.stderr, expected);
+});
+
+test("streams successful child output before the child exits", async () => {
+  const runnerUrl = new URL(
+    "../../artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs",
+    import.meta.url,
+  ).href;
+  const nestedScript =
+    "process.stdout.write('stream-now'); setTimeout(() => process.exit(0), 400)";
+  const harnessScript =
+    `import { runProcess } from ${JSON.stringify(runnerUrl)};` +
+    `await runProcess(process.execPath, ['-e', ${JSON.stringify(nestedScript)}]);`;
+  const harness = spawn(
+    process.execPath,
+    ["--input-type=module", "-e", harnessScript],
+    { stdio: ["ignore", "pipe", "pipe"] },
+  );
+  let stdout = "";
+  let stderr = "";
+  let firstStdoutAt = null;
+  harness.stdout.on("data", (chunk) => {
+    firstStdoutAt ??= Date.now();
+    stdout += chunk;
+  });
+  harness.stderr.on("data", (chunk) => {
+    stderr += chunk;
+  });
+  const result = await new Promise((resolve, reject) => {
+    harness.on("error", reject);
+    harness.on("close", (code, signal) => {
+      resolve({ code, signal, closedAt: Date.now() });
+    });
+  });
+  assert.deepEqual({ code: result.code, signal: result.signal }, { code: 0, signal: null });
+  assert.equal(stdout, "stream-now");
+  assert.equal(stderr, "");
+  assert.notEqual(firstStdoutAt, null);
+  assert.ok(
+    result.closedAt - firstStdoutAt >= 200,
+    "stdout was not forwarded while the child was still running",
+  );
+});
+
 test("retains only the final 8192 characters from each failed stream", async () => {
   await assert.rejects(
     runProcess(process.execPath, [
@@ -301,6 +363,38 @@ test("redacts credential and token values including whitespace", () => {
   assert.doesNotThrow(() => sanitizeEvidence({ testDiagnostic: diagnostic }));
 });
 
+test("redacts multiline credential values without retaining the following line", () => {
+  const diagnostic = sanitizeBootstrapDiagnostic(
+    [
+      "password:",
+      "password-secret",
+      "password=",
+      "password-equals-secret",
+      "TOKEN=",
+      "token-secret",
+      "Authorization:",
+      "Bearer bearer-secret",
+      "DATABASE_PASSWORD:",
+      "database-password-secret",
+      "DATABASE_PASSWORD=",
+      "database-password-equals-secret",
+      "ordinary following line remains",
+    ].join("\n"),
+  );
+  for (const secret of [
+    "password-secret",
+    "password-equals-secret",
+    "token-secret",
+    "bearer-secret",
+    "database-password-secret",
+    "database-password-equals-secret",
+  ]) {
+    assert.equal(diagnostic.includes(secret), false, `secret leaked: ${secret}`);
+  }
+  assert.match(diagnostic, /ordinary following line remains/);
+  assert.doesNotThrow(() => sanitizeEvidence({ testDiagnostic: diagnostic }));
+});
+
 test("rejects unsanitized sensitive environment assignments in evidence", () => {
   for (const testDiagnostic of [
     "LEDGERLY_CANONICAL_TEST_RUN_NONCE: nonce-secret",
@@ -308,6 +402,10 @@ test("rejects unsanitized sensitive environment assignments in evidence", () => 
     '"LEDGERLY_CANONICAL_TEST_RUN_NONCE" : "quoted-secret"',
     "'PGPASSWORD'  :  'quoted-password'",
     '{\\"LEDGERLY_CANONICAL_TEST_RUN_NONCE\\" : \\"escaped-secret\\"}',
+    "password:\nmultiline-password",
+    "TOKEN=\nmultiline-token",
+    "Authorization:\nBearer multiline-authorization",
+    "DATABASE_PASSWORD:\nmultiline-database-password",
   ]) {
     assert.throws(
       () => sanitizeEvidence({ testDiagnostic }),

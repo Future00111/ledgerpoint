@@ -259,6 +259,18 @@ function sanitizeBootstrapDiagnostic(value) {
       "[REDACTED_URI]",
     )
     .replace(
+      /(?:^|[\s,{])(?:\\*["'])?(?:DATABASE_URL|PGPASSWORD|LEDGERLY_CANONICAL_TEST_[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET|KEY))(?:\\*["'])?[ \t]*[:=][ \t]*\r?\n[^\r\n]*/giu,
+      "[REDACTED_ENV]",
+    )
+    .replace(
+      /\bAuthorization(?:\s+header)?[ \t]*[:=][ \t]*\r?\n[^\r\n]*/giu,
+      "[REDACTED_AUTHORIZATION]",
+    )
+    .replace(
+      /["']?(?:password|passwd|pwd|secret|token|access_token|refresh_token|api[_-]?key|privateKey|cookie|authorization)["']?[ \t]*[:=][ \t]*\r?\n[^\r\n]*/giu,
+      "[REDACTED_SECRET]",
+    )
+    .replace(
       /(?:^|[\s,{])(?:\\*["'])?(?:DATABASE_URL|PGPASSWORD|LEDGERLY_CANONICAL_TEST_[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET|KEY))(?:\\*["'])?\s*[:=]\s*[^\r\n]*/giu,
       "[REDACTED_ENV]",
     )
@@ -266,6 +278,7 @@ function sanitizeBootstrapDiagnostic(value) {
       /\bAuthorization(?:\s+header)?\s*[:=]\s*[^\r\n]*/giu,
       "[REDACTED_AUTHORIZATION]",
     )
+    .replace(/\bBearer[ \t]+[^\r\n]*/giu, "[REDACTED_BEARER]")
     .replace(
       /["']?(?:password|passwd|pwd|secret|token|access_token|refresh_token|api[_-]?key|privateKey|cookie|authorization)["']?\s*[:=]\s*[^\r\n]*/giu,
       "[REDACTED_SECRET]",
@@ -1207,6 +1220,11 @@ function sanitizeEvidence(value) {
     /(?:DATABASE_URL|PGPASSWORD|LEDGERLY_CANONICAL_TEST_[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET|KEY))(?:\\*["'])?\s*[:=]/i.test(
       text,
     ) ||
+    /\b(?:password|passwd|pwd|secret|token|access_token|refresh_token|api[_-]?key|privateKey|cookie)(?:\\*["'])?\s*[:=]/i.test(
+      text,
+    ) ||
+    /\bAuthorization(?:\s+header)?\s*[:=]/i.test(text) ||
+    /\bBearer\s+/i.test(text) ||
     /BEGIN [A-Z ]*PRIVATE KEY/i.test(text) ||
     /(?:ghs_|github_pat_)/i.test(text) ||
     /replit\.(dev|app)/i.test(text)
