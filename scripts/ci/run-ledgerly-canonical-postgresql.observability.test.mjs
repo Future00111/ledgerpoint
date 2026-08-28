@@ -211,6 +211,10 @@ test("redacts credential and token values including whitespace", () => {
       "Authorization: Bearer bearer-secret",
       "PGPASSWORD=database password with spaces",
       "DATABASE_URL=postgres://user:password@example.invalid/db",
+      "LEDGERLY_CANONICAL_TEST_DATABASE_URL: postgres://ledgerly_api:colon-password@example.invalid/db",
+      '"LEDGERLY_CANONICAL_TEST_RUN_NONCE" : "quoted nonce secret"',
+      "'PGPASSWORD'  :  'quoted database password'",
+      '{\\"LEDGERLY_CANONICAL_TEST_RUN_NONCE\\" : \\"escaped nonce secret\\"}',
       "github token github_pat_secretvalue",
       "ghs_secretvalue",
       "-----BEGIN PRIVATE KEY-----",
@@ -226,6 +230,10 @@ test("redacts credential and token values including whitespace", () => {
     "multi word token value",
     "bearer-secret",
     "database password with spaces",
+    "colon-password",
+    "quoted nonce secret",
+    "quoted database password",
+    "escaped nonce secret",
     "github_pat_secretvalue",
     "ghs_secretvalue",
     "private-key-secret",
@@ -234,6 +242,21 @@ test("redacts credential and token values including whitespace", () => {
   }
   assert.match(diagnostic, /safe database error remains/);
   assert.doesNotThrow(() => sanitizeEvidence({ testDiagnostic: diagnostic }));
+});
+
+test("rejects unsanitized sensitive environment assignments in evidence", () => {
+  for (const testDiagnostic of [
+    "LEDGERLY_CANONICAL_TEST_RUN_NONCE: nonce-secret",
+    " LEDGERLY_CANONICAL_TEST_DATABASE_URL = postgres://ledgerly_api:password@example.invalid/db",
+    '"LEDGERLY_CANONICAL_TEST_RUN_NONCE" : "quoted-secret"',
+    "'PGPASSWORD'  :  'quoted-password'",
+    '{\\"LEDGERLY_CANONICAL_TEST_RUN_NONCE\\" : \\"escaped-secret\\"}',
+  ]) {
+    assert.throws(
+      () => sanitizeEvidence({ testDiagnostic }),
+      /Evidence secret scanner rejected the output/,
+    );
+  }
 });
 
 test("bounds the sanitized diagnostic to 2048 characters", () => {

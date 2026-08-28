@@ -210,7 +210,7 @@ function sanitizeBootstrapDiagnostic(value) {
       "[REDACTED_URI]",
     )
     .replace(
-      /(?:^|[\s,])(?:DATABASE_URL|PGPASSWORD|LEDGERLY_CANONICAL_TEST_[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET|KEY))\s*=\s*[^\r\n]*/gu,
+      /(?:^|[\s,{])(?:\\*["'])?(?:DATABASE_URL|PGPASSWORD|LEDGERLY_CANONICAL_TEST_[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET|KEY))(?:\\*["'])?\s*[:=]\s*[^\r\n]*/giu,
       "[REDACTED_ENV]",
     )
     .replace(
@@ -1135,6 +1135,9 @@ function sanitizeEvidence(value) {
   if (
     /postgres(?:ql)?:\/\//i.test(text) ||
     /"(?:password|token|cookie|privateKey|authorizationHeader)"\s*:/i.test(text) ||
+    /(?:DATABASE_URL|PGPASSWORD|LEDGERLY_CANONICAL_TEST_[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET|KEY))(?:\\*["'])?\s*[:=]/i.test(
+      text,
+    ) ||
     /BEGIN [A-Z ]*PRIVATE KEY/i.test(text) ||
     /(?:ghs_|github_pat_)/i.test(text) ||
     /replit\.(dev|app)/i.test(text)
