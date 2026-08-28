@@ -147,6 +147,10 @@ function boundedDiagnosticTail(value) {
     : value;
 }
 
+function appendDiagnosticTail(current, chunk) {
+  return boundedDiagnosticTail(`${current}${chunk}`);
+}
+
 function processFailure(message, stdout, stderr) {
   const error = new Error(message);
   error.stdout = boundedDiagnosticTail(stdout);
@@ -172,10 +176,10 @@ function runProcess(command, args, { env, cwd, input, timeoutMs } = {}) {
         }, timeoutMs)
       : undefined;
     child.stdout.on("data", (chunk) => {
-      stdout += chunk;
+      stdout = appendDiagnosticTail(stdout, chunk);
     });
     child.stderr.on("data", (chunk) => {
-      stderr += chunk;
+      stderr = appendDiagnosticTail(stderr, chunk);
     });
     child.on("error", reject);
     child.on("close", (code, signal) => {
@@ -750,4 +754,4 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   await execute();
 }
 
-export { boundedDiagnosticTail, runProcess };
+export { appendDiagnosticTail, boundedDiagnosticTail, runProcess };

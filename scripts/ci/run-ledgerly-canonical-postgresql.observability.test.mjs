@@ -1,15 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  appendDiagnosticTail as appendCoordinatorDiagnosticTail,
   bootstrapRetryClassificationInput,
   captureBootstrapDiagnostic,
   captureTestDiagnostic,
   isApprovedFkIndexOrderingError,
+  run,
+  runApprovedBootstrapRetry,
   sanitizeBootstrapDiagnostic,
   sanitizeEvidence,
   validateEvidenceContract,
 } from "./run-ledgerly-canonical-postgresql.mjs";
-import { runProcess } from "../../artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs";
+import {
+  appendDiagnosticTail as appendRunnerDiagnosticTail,
+  runProcess,
+} from "../../artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs";
 
 const digest = `sha256:${"a".repeat(64)}`;
 const ci = {
@@ -182,6 +188,57 @@ test("retains only the final 8192 characters from each failed stream", async () 
   );
 });
 
+test("bounds both rolling stream buffers while chunks are received", () => {
+  for (const appendTail of [
+    appendCoordinatorDiagnosticTail,
+    appendRunnerDiagnosticTail,
+  ]) {
+    let tail = "";
+    for (let index = 0; index < 256; index += 1) {
+      tail = appendTail(tail, `${index}:` + "x".repeat(16_384));
+      assert.ok(tail.length <= 8_192);
+    }
+    assert.equal(tail, "x".repeat(8_192));
+  }
+});
+
+test("preserves explicitly bounded successful coordinator output above 8192 characters", async () => {
+  const expected = "manifest-entry\n".repeat(2_200);
+  const result = await run(
+    process.execPath,
+    ["-e", `process.stdout.write(${JSON.stringify(expected)})`],
+    {
+      quiet: true,
+      captureMaxLength: 64 * 1024,
+      failOnCaptureLimit: true,
+    },
+  );
+  assert.equal(result.stdout, expected);
+  assert.equal(result.stderr, "");
+});
+
+test("fails closed when explicit successful-output capture exceeds its finite limit", async () => {
+  await assert.rejects(
+    run(
+      process.execPath,
+      ["-e", "process.stdout.write('x'.repeat(70000))"],
+      {
+        quiet: true,
+        captureMaxLength: 32 * 1024,
+        failOnCaptureLimit: true,
+      },
+    ),
+    (error) => {
+      assert.equal(
+        error.message,
+        `${process.execPath} exceeded its output capture limit`,
+      );
+      assert.equal(error.stdout.length, 8_192);
+      return true;
+    },
+  );
+});
+
 test("uses stdout, then the error message, then the test fallback", () => {
   const stdoutError = new Error("message diagnostic");
   stdoutError.stdout = "stdout diagnostic";
@@ -330,6 +387,30 @@ test("preserves the approved bounded FK/index retry classification", () => {
     isApprovedFkIndexOrderingError("accounting_posting_effects economic_effect_id"),
     false,
   );
+});
+
+test("keeps approved bootstrap retry failures quiet and sanitized", async () => {
+  let observedOptions;
+  await assert.rejects(
+    runApprovedBootstrapRetry([], { CI: "true" }, async (_args, options) => {
+      observedOptions = options;
+      const error = new Error("docker exited with status 1");
+      error.stderr =
+        "LEDGERLY_CANONICAL_TEST_DATABASE_URL: postgres://ledgerly_api:retry-secret@example.invalid/db";
+      throw error;
+    }),
+    (error) => {
+      assert.equal(error.message, "Drizzle bootstrap retry failed");
+      assert.equal(error.stderr, "[REDACTED_ENV]");
+      assert.equal(error.stderr.includes("retry-secret"), false);
+      return true;
+    },
+  );
+  assert.deepEqual(observedOptions, {
+    env: { CI: "true" },
+    timeoutMs: 4 * 60 * 1000,
+    quiet: true,
+  });
 });
 
 test("validates new and historical failed evidence", () => {

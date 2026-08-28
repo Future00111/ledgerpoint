@@ -22,6 +22,7 @@ const bootstrapDiagnosticMaxLength = 2_048;
 const bootstrapDiagnosticFallback = "bootstrap command failed";
 const testDiagnosticFallback = "test command failed";
 const diagnosticTailMaxLength = 8_192;
+const sourceManifestCaptureMaxLength = 1024 * 1024;
 const workflowPath = ".github/workflows/ledgerly-canonical-postgresql.yml";
 const approvedWorkflowName = "Ledgerly canonical PostgreSQL qualification";
 const sourceManifestPath = ".ci/ledgerly-canonical/source-manifest.json";
@@ -130,10 +131,18 @@ function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
-function boundedDiagnosticTail(value) {
-  return value.length > diagnosticTailMaxLength
-    ? value.slice(-diagnosticTailMaxLength)
+function boundedDiagnosticTail(value, maxLength = diagnosticTailMaxLength) {
+  return value.length > maxLength
+    ? value.slice(-maxLength)
     : value;
+}
+
+function appendDiagnosticTail(
+  current,
+  chunk,
+  maxLength = diagnosticTailMaxLength,
+) {
+  return boundedDiagnosticTail(`${current}${chunk}`, maxLength);
 }
 
 function attachProcessDiagnostics(error, stdout, stderr) {
@@ -142,7 +151,19 @@ function attachProcessDiagnostics(error, stdout, stderr) {
   return error;
 }
 
-function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false } = {}) {
+function run(
+  command,
+  args,
+  {
+    env,
+    cwd = root,
+    input,
+    timeoutMs,
+    quiet = false,
+    captureMaxLength = diagnosticTailMaxLength,
+    failOnCaptureLimit = false,
+  } = {},
+) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd,
@@ -152,6 +173,7 @@ function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false }
     let stdout = "";
     let stderr = "";
     let timedOut = false;
+    let captureLimitExceeded = false;
     const timer = timeoutMs
       ? setTimeout(() => {
           timedOut = true;
@@ -160,16 +182,43 @@ function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false }
         }, timeoutMs)
       : undefined;
     child.stdout.on("data", (chunk) => {
-      stdout += chunk;
+      if (
+        failOnCaptureLimit &&
+        !captureLimitExceeded &&
+        stdout.length + chunk.length > captureMaxLength
+      ) {
+        captureLimitExceeded = true;
+        child.kill("SIGTERM");
+        setTimeout(() => child.kill("SIGKILL"), 2_000).unref();
+      }
+      stdout = appendDiagnosticTail(stdout, chunk, captureMaxLength);
       if (!quiet) process.stdout.write(chunk);
     });
     child.stderr.on("data", (chunk) => {
-      stderr += chunk;
+      if (
+        failOnCaptureLimit &&
+        !captureLimitExceeded &&
+        stderr.length + chunk.length > captureMaxLength
+      ) {
+        captureLimitExceeded = true;
+        child.kill("SIGTERM");
+        setTimeout(() => child.kill("SIGKILL"), 2_000).unref();
+      }
+      stderr = appendDiagnosticTail(stderr, chunk, captureMaxLength);
       if (!quiet) process.stderr.write(chunk);
     });
     child.on("error", reject);
     child.on("close", (code, signal) => {
       if (timer) clearTimeout(timer);
+      if (captureLimitExceeded) {
+        return reject(
+          attachProcessDiagnostics(
+            new Error(`${command} exceeded its output capture limit`),
+            stdout,
+            stderr,
+          ),
+        );
+      }
       if (timedOut) {
         return reject(
           attachProcessDiagnostics(new Error(`${command} timed out`), stdout, stderr),
@@ -283,6 +332,22 @@ function isApprovedFkIndexOrderingError(pushOutput) {
   );
 }
 
+async function runApprovedBootstrapRetry(pushArgs, schemaEnv, runDocker = docker) {
+  try {
+    return await runDocker(pushArgs, {
+      env: schemaEnv,
+      timeoutMs: 4 * 60 * 1000,
+      quiet: true,
+    });
+  } catch (error) {
+    const diagnostic = captureBootstrapDiagnostic(error);
+    state.bootstrapDiagnostic = diagnostic;
+    const retryError = new Error("Drizzle bootstrap retry failed");
+    retryError.stderr = diagnostic;
+    throw retryError;
+  }
+}
+
 async function docker(args, options = {}) {
   return run("docker", args, options);
 }
@@ -357,7 +422,11 @@ async function createExecutionSourceManifest(ci) {
   const tracked = await run(
     "git",
     ["ls-files", "-z", "--", ...executionTreePathspecs],
-    { quiet: true },
+    {
+      quiet: true,
+      captureMaxLength: sourceManifestCaptureMaxLength,
+      failOnCaptureLimit: true,
+    },
   );
   const files = tracked.stdout.split("\0").filter(Boolean).sort();
   for (const requiredPath of [
@@ -691,7 +760,7 @@ async function bootstrapDatabase(credentials, sourceDigests, ci) {
       `CREATE UNIQUE INDEX IF NOT EXISTS accounting_posting_effects_company_effect_idx
        ON public.accounting_posting_effects (company_id, economic_effect_id);`,
     );
-    await docker(pushArgs, { env: schemaEnv, timeoutMs: 4 * 60 * 1000 });
+    await runApprovedBootstrapRetry(pushArgs, schemaEnv);
   }
 
   const overlay = await readFile(path.join(root, sourcePaths.securityOverlay), "utf8");
@@ -1444,10 +1513,13 @@ async function execute() {
 }
 
 export {
+  appendDiagnosticTail,
   bootstrapRetryClassificationInput,
   captureBootstrapDiagnostic,
   captureTestDiagnostic,
   isApprovedFkIndexOrderingError,
+  run,
+  runApprovedBootstrapRetry,
   sanitizeBootstrapDiagnostic,
   sanitizeEvidence,
   validateEvidenceContract,
