@@ -10,8 +10,6 @@
   },
   "private": true,
   "dependencies": {
-    "@base44/sdk": "^0.8.44",
-    "@base44/vite-plugin": "^1.0.32",
     "@replit/connectors-sdk": "^0.4.1",
     "ajv": "8.20.0"
   },
