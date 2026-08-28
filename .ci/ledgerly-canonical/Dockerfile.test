@@ -13,8 +13,12 @@ COPY docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json ./docs/gove
 COPY --chmod=0444 .ci/ledgerly-canonical/source-manifest.json ./.ci/ledgerly-canonical/source-manifest.json
 COPY tsconfig.base.json tsconfig.json ./
 
+ENV COREPACK_HOME=/opt/corepack
+
 RUN corepack enable \
+  && mkdir -p "$COREPACK_HOME" \
   && corepack prepare pnpm@10.26.1 --activate \
-  && pnpm install --frozen-lockfile
+  && pnpm install --frozen-lockfile \
+  && chmod -R a+rX "$COREPACK_HOME"
 
 USER node
