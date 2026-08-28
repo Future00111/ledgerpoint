@@ -18,6 +18,8 @@ const nodeTag = "node:24.13.0-bookworm-slim";
 const nodeDigest =
   "sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f";
 const expectedCommand = "pnpm --filter @workspace/api-server run test:canonical-posting";
+const bootstrapDiagnosticMaxLength = 2_048;
+const bootstrapDiagnosticFallback = "bootstrap command failed";
 const workflowPath = ".github/workflows/ledgerly-canonical-postgresql.yml";
 const approvedWorkflowName = "Ledgerly canonical PostgreSQL qualification";
 const sourceManifestPath = ".ci/ledgerly-canonical/source-manifest.json";
@@ -87,6 +89,7 @@ const state = {
   evidence: null,
   ci: null,
   runNonce: null,
+  bootstrapDiagnostic: null,
   observedIsolation: {
     noPublishedPorts: false,
     internalNetwork: false,
@@ -124,15 +127,6 @@ function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
-function sanitizeDiagnosticOutput(value) {
-  return String(value)
-    .replace(/postgres(?:ql)?:\/\/[^\s'"]+/gi, "postgresql://[REDACTED]")
-    .replace(
-      /((?:password|passwd|token|secret|api[_-]?key)\s*[=:]\s*)[^\s,;]+/gi,
-      "$1[REDACTED]",
-    );
-}
-
 function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false } = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -162,29 +156,88 @@ function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false }
     child.on("close", (code, signal) => {
       if (timer) clearTimeout(timer);
       if (timedOut) return reject(new Error(`${command} timed out`));
-      if (signal) {
-        const error = new Error(`${command} terminated by ${signal}`);
-        error.command = sanitizeDiagnosticOutput([command, ...args].join(" "));
-        error.exitCode = null;
-        error.signal = signal;
-        error.stdout = sanitizeDiagnosticOutput(stdout);
-        error.stderr = sanitizeDiagnosticOutput(stderr);
-        return reject(error);
-      }
+      if (signal) return reject(new Error(`${command} terminated by ${signal}`));
       if (code !== 0) {
-        const sanitizedStderr = sanitizeDiagnosticOutput(stderr);
-        const detail = quiet ? "" : `: ${sanitizedStderr.trim().slice(-500)}`;
+        const detail = quiet ? "" : `: ${stderr.trim().slice(-500)}`;
         const error = new Error(`${command} exited with status ${code}${detail}`);
-        error.command = sanitizeDiagnosticOutput([command, ...args].join(" "));
-        error.exitCode = code;
-        error.stdout = sanitizeDiagnosticOutput(stdout);
-        error.stderr = sanitizedStderr;
+        error.stderr = stderr;
         return reject(error);
       }
       resolve({ stdout, stderr });
     });
     child.stdin.end(input);
   });
+}
+
+function sanitizeBootstrapDiagnostic(value) {
+  let text = typeof value === "string" ? value : value == null ? "" : String(value);
+  text = text
+    .replace(/\r\n?/g, "\n")
+    .replace(/\u0000/g, "")
+    .replace(
+      /\bpostgres(?:ql)?:\/\/[^\s"'`<>]+/giu,
+      "[REDACTED_URI]",
+    )
+    .replace(
+      /(?:^|[\s,])(?:DATABASE_URL|PGPASSWORD|LEDGERLY_CANONICAL_TEST_[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET|KEY))\s*=\s*[^\r\n]*/gu,
+      "[REDACTED_ENV]",
+    )
+    .replace(
+      /\bAuthorization(?:\s+header)?\s*[:=]\s*[^\r\n]*/giu,
+      "[REDACTED_AUTHORIZATION]",
+    )
+    .replace(
+      /["']?(?:password|passwd|pwd|secret|token|access_token|refresh_token|api[_-]?key|privateKey|cookie|authorization)["']?\s*[:=]\s*[^\r\n]*/giu,
+      "[REDACTED_SECRET]",
+    )
+    .replace(
+      /[?&](?:password|passwd|pwd|token|secret|key|api[_-]?key|access[_-]?token|authorization)=[^&#\s]*/giu,
+      "[REDACTED_QUERY]",
+    )
+    .replace(
+      /\b(?:gh[psour]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)\b/gu,
+      "[REDACTED_GITHUB_TOKEN]",
+    )
+    .replace(
+      /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/gu,
+      "[REDACTED_PRIVATE_KEY]",
+    )
+    .replace(/\breplit\.(?:dev|app)\b[^\s]*/giu, "[REDACTED_REPLIT_TARGET]")
+    .replace(/[^\S\n]+/g, " ")
+    .trim();
+  if (!text) return null;
+  const truncationMarker = "\n...[truncated]";
+  if (text.length > bootstrapDiagnosticMaxLength) {
+    return (
+      text.slice(-(bootstrapDiagnosticMaxLength - truncationMarker.length)) +
+      truncationMarker
+    );
+  }
+  return text;
+}
+
+function captureBootstrapDiagnostic(error) {
+  const stderr =
+    error && typeof error.stderr === "string" ? error.stderr.trim() : "";
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return (
+    sanitizeBootstrapDiagnostic(stderr || message) ??
+    bootstrapDiagnosticFallback
+  );
+}
+
+function bootstrapRetryClassificationInput(error) {
+  const stderr =
+    error && typeof error.stderr === "string" ? error.stderr.trim() : "";
+  return `${String(error)}: ${stderr.slice(-500)}`;
+}
+
+function isApprovedFkIndexOrderingError(pushOutput) {
+  return (
+    pushOutput.includes("no unique constraint matching given keys for referenced table") &&
+    pushOutput.includes("accounting_posting_effects") &&
+    pushOutput.includes("economic_effect_id")
+  );
 }
 
 async function docker(args, options = {}) {
@@ -583,16 +636,11 @@ async function bootstrapDatabase(credentials, sourceDigests, ci) {
     pushOutput = `${result.stdout}\n${result.stderr}`;
   } catch (error) {
     pushFailed = true;
-    pushOutput = sanitizeDiagnosticOutput(
-      [error.stdout, error.stderr].filter(Boolean).join("\n"),
-    );
+    pushOutput = bootstrapRetryClassificationInput(error);
+    state.bootstrapDiagnostic = captureBootstrapDiagnostic(error);
   }
   if (pushFailed) {
-    if (
-      !pushOutput.includes("no unique constraint matching given keys for referenced table") ||
-      !pushOutput.includes("accounting_posting_effects") ||
-      !pushOutput.includes("economic_effect_id")
-    ) {
+    if (!isApprovedFkIndexOrderingError(pushOutput)) {
       throw new Error("Drizzle bootstrap failed outside the approved FK/index ordering case");
     }
     await adminSql(
@@ -1248,87 +1296,111 @@ async function main() {
   );
 }
 
-let failure;
-let failurePhase = null;
-try {
-  await main();
-} catch (error) {
-  failure = error;
-  failurePhase = state.phase;
-  console.error(`TI-03 failed during ${state.phase}: ${error instanceof Error ? error.message : String(error)}`);
-} finally {
+async function execute() {
+  let failure;
+  let failurePhase = null;
   try {
-    await cleanupDatabase();
-  } catch (cleanupError) {
-    if (!failure) {
-      failure = cleanupError;
-      failurePhase = "cleanup";
+    await main();
+  } catch (error) {
+    failure = error;
+    failurePhase = state.phase;
+    if (failurePhase === "bootstrap" && !state.bootstrapDiagnostic) {
+      state.bootstrapDiagnostic = captureBootstrapDiagnostic(error);
     }
-    console.error(`TI-03 cleanup failed: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`);
-  }
-  try {
-    await removeCredentialMaterial();
-  } catch (credentialCleanupError) {
-    if (!failure) {
-      failure = credentialCleanupError;
-      failurePhase = "credential-cleanup";
-    }
-    console.error(
-      `TI-03 credential cleanup failed: ${
-        credentialCleanupError instanceof Error
-          ? credentialCleanupError.message
-          : String(credentialCleanupError)
-      }`,
-    );
-  }
-  if (failure && state.ci) {
-    const failedEvidence = {
-      schemaVersion: 1,
-      result: "failed",
-      failurePhase,
-      ci: state.ci,
-      images: {
-        postgres: { tag: postgresTag, digest: postgresDigest },
-        node: { tag: nodeTag, digest: nodeDigest },
-      },
-      cleanup: {
-        logicalDrop: state.databaseAbsent,
-        databaseAbsent: state.databaseAbsent,
-        containerRemoved: state.containerRemoved,
-        networkRemoved: state.networkRemoved,
-        credentialMaterialRemoved: state.credentialMaterialRemoved,
-      },
-      isolation: {
-        parentDatabaseUrlAbsent: process.env.DATABASE_URL === undefined,
-        replitVariablesAbsent: !Object.keys(process.env).some((name) => name.startsWith("REPLIT_")),
-        noPublishedPorts: state.observedIsolation.noPublishedPorts,
-        internalNetwork: state.observedIsolation.internalNetwork,
-        testContainerNoSocket: state.observedIsolation.testContainerNoSocket,
-        testContainerNoExternalRoute: state.observedIsolation.testContainerNoExternalRoute,
-        heliumdbContacted: false,
-        productionContacted: false,
-        secretScanPassed: true,
-      },
-    };
+    console.error(`TI-03 failed during ${state.phase}: ${error instanceof Error ? error.message : String(error)}`);
+  } finally {
     try {
-      state.evidence = await writeEvidence(
-        failedEvidence,
-        `failed-${state.ci.runId}-${state.ci.runAttempt}`,
-      );
-      console.log(
-        "LEDGERLY_TI03_FAILURE_EVIDENCE",
-        JSON.stringify({
-          path: path.relative(root, state.evidence.file),
-          sha256: state.evidence.sha256,
-        }),
-      );
-    } catch (evidenceError) {
+      await cleanupDatabase();
+    } catch (cleanupError) {
+      if (!failure) {
+        failure = cleanupError;
+        failurePhase = "cleanup";
+      }
+      console.error(`TI-03 cleanup failed: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`);
+    }
+    try {
+      await removeCredentialMaterial();
+    } catch (credentialCleanupError) {
+      if (!failure) {
+        failure = credentialCleanupError;
+        failurePhase = "credential-cleanup";
+      }
       console.error(
-        `TI-03 failure evidence write failed: ${
-          evidenceError instanceof Error ? evidenceError.message : String(evidenceError)
+        `TI-03 credential cleanup failed: ${
+          credentialCleanupError instanceof Error
+            ? credentialCleanupError.message
+            : String(credentialCleanupError)
         }`,
       );
     }
+    if (failure && state.ci) {
+      const failedEvidence = {
+        schemaVersion: 1,
+        result: "failed",
+        failurePhase,
+        ci: state.ci,
+        ...(failurePhase === "bootstrap" && state.bootstrapDiagnostic
+          ? { bootstrapDiagnostic: state.bootstrapDiagnostic }
+          : {}),
+        images: {
+          postgres: { tag: postgresTag, digest: postgresDigest },
+          node: { tag: nodeTag, digest: nodeDigest },
+        },
+        cleanup: {
+          logicalDrop: state.databaseAbsent,
+          databaseAbsent: state.databaseAbsent,
+          containerRemoved: state.containerRemoved,
+          networkRemoved: state.networkRemoved,
+          credentialMaterialRemoved: state.credentialMaterialRemoved,
+        },
+        isolation: {
+          parentDatabaseUrlAbsent: process.env.DATABASE_URL === undefined,
+          replitVariablesAbsent: !Object.keys(process.env).some((name) => name.startsWith("REPLIT_")),
+          noPublishedPorts: state.observedIsolation.noPublishedPorts,
+          internalNetwork: state.observedIsolation.internalNetwork,
+          testContainerNoSocket: state.observedIsolation.testContainerNoSocket,
+          testContainerNoExternalRoute: state.observedIsolation.testContainerNoExternalRoute,
+          heliumdbContacted: false,
+          productionContacted: false,
+          secretScanPassed: true,
+        },
+      };
+      try {
+        state.evidence = await writeEvidence(
+          failedEvidence,
+          `failed-${state.ci.runId}-${state.ci.runAttempt}`,
+        );
+        console.log(
+          "LEDGERLY_TI03_FAILURE_EVIDENCE",
+          JSON.stringify({
+            path: path.relative(root, state.evidence.file),
+            sha256: state.evidence.sha256,
+          }),
+        );
+      } catch (evidenceError) {
+        console.error(
+          `TI-03 failure evidence write failed: ${
+            evidenceError instanceof Error ? evidenceError.message : String(evidenceError)
+          }`,
+        );
+      }
+    }
   }
+  if (failure) process.exitCode = 1;
 }
-if (failure) process.exitCode = 1;
+
+export {
+  bootstrapRetryClassificationInput,
+  captureBootstrapDiagnostic,
+  isApprovedFkIndexOrderingError,
+  sanitizeBootstrapDiagnostic,
+  sanitizeEvidence,
+  validateEvidenceContract,
+};
+
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  await execute();
+}
