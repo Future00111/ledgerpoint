@@ -20,6 +20,8 @@ const nodeDigest =
 const expectedCommand = "pnpm --filter @workspace/api-server run test:canonical-posting";
 const bootstrapDiagnosticMaxLength = 2_048;
 const bootstrapDiagnosticFallback = "bootstrap command failed";
+const testDiagnosticFallback = "test command failed";
+const diagnosticTailMaxLength = 8_192;
 const workflowPath = ".github/workflows/ledgerly-canonical-postgresql.yml";
 const approvedWorkflowName = "Ledgerly canonical PostgreSQL qualification";
 const sourceManifestPath = ".ci/ledgerly-canonical/source-manifest.json";
@@ -90,6 +92,7 @@ const state = {
   ci: null,
   runNonce: null,
   bootstrapDiagnostic: null,
+  testDiagnostic: null,
   observedIsolation: {
     noPublishedPorts: false,
     internalNetwork: false,
@@ -127,6 +130,18 @@ function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
+function boundedDiagnosticTail(value) {
+  return value.length > diagnosticTailMaxLength
+    ? value.slice(-diagnosticTailMaxLength)
+    : value;
+}
+
+function attachProcessDiagnostics(error, stdout, stderr) {
+  error.stdout = boundedDiagnosticTail(stdout);
+  error.stderr = boundedDiagnosticTail(stderr);
+  return error;
+}
+
 function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false } = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -155,13 +170,29 @@ function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false }
     child.on("error", reject);
     child.on("close", (code, signal) => {
       if (timer) clearTimeout(timer);
-      if (timedOut) return reject(new Error(`${command} timed out`));
-      if (signal) return reject(new Error(`${command} terminated by ${signal}`));
+      if (timedOut) {
+        return reject(
+          attachProcessDiagnostics(new Error(`${command} timed out`), stdout, stderr),
+        );
+      }
+      if (signal) {
+        return reject(
+          attachProcessDiagnostics(
+            new Error(`${command} terminated by ${signal}`),
+            stdout,
+            stderr,
+          ),
+        );
+      }
       if (code !== 0) {
         const detail = quiet ? "" : `: ${stderr.trim().slice(-500)}`;
-        const error = new Error(`${command} exited with status ${code}${detail}`);
-        error.stderr = stderr;
-        return reject(error);
+        return reject(
+          attachProcessDiagnostics(
+            new Error(`${command} exited with status ${code}${detail}`),
+            stdout,
+            stderr,
+          ),
+        );
       }
       resolve({ stdout, stderr });
     });
@@ -223,6 +254,18 @@ function captureBootstrapDiagnostic(error) {
   return (
     sanitizeBootstrapDiagnostic(stderr || message) ??
     bootstrapDiagnosticFallback
+  );
+}
+
+function captureTestDiagnostic(error) {
+  const stderr =
+    error && typeof error.stderr === "string" ? error.stderr.trim() : "";
+  const stdout =
+    error && typeof error.stdout === "string" ? error.stdout.trim() : "";
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return (
+    sanitizeBootstrapDiagnostic(stderr || stdout || message) ??
+    testDiagnosticFallback
   );
 }
 
@@ -969,8 +1012,10 @@ async function runTestContainer(credentials, sourceDigests, ci) {
       "run",
       "test:canonical-posting",
     ],
-    { env: testEnv, timeoutMs: 7 * 60 * 1000 },
+    { env: testEnv, timeoutMs: 7 * 60 * 1000, quiet: true },
   );
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
   const completionLine = result.stdout
     .split("\n")
     .find((line) => line.startsWith("LEDGERLY_CANONICAL_TEST_COMPLETION "));
@@ -1307,6 +1352,9 @@ async function execute() {
     if (failurePhase === "bootstrap" && !state.bootstrapDiagnostic) {
       state.bootstrapDiagnostic = captureBootstrapDiagnostic(error);
     }
+    if (failurePhase === "test" && !state.testDiagnostic) {
+      state.testDiagnostic = captureTestDiagnostic(error);
+    }
     console.error(`TI-03 failed during ${state.phase}: ${error instanceof Error ? error.message : String(error)}`);
   } finally {
     try {
@@ -1341,6 +1389,9 @@ async function execute() {
         ci: state.ci,
         ...(failurePhase === "bootstrap" && state.bootstrapDiagnostic
           ? { bootstrapDiagnostic: state.bootstrapDiagnostic }
+          : {}),
+        ...(failurePhase === "test" && state.testDiagnostic
+          ? { testDiagnostic: state.testDiagnostic }
           : {}),
         images: {
           postgres: { tag: postgresTag, digest: postgresDigest },
@@ -1392,6 +1443,7 @@ async function execute() {
 export {
   bootstrapRetryClassificationInput,
   captureBootstrapDiagnostic,
+  captureTestDiagnostic,
   isApprovedFkIndexOrderingError,
   sanitizeBootstrapDiagnostic,
   sanitizeEvidence,

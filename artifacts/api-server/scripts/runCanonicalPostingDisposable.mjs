@@ -6,11 +6,14 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
+import { sanitizeBootstrapDiagnostic } from "../../../scripts/ci/run-ledgerly-canonical-postgresql.mjs";
 
 const packageDirectory = fileURLToPath(new URL("..", import.meta.url));
 const workspaceDirectory = path.resolve(packageDirectory, "../..");
 const expectedCommand = "pnpm --filter @workspace/api-server run test:canonical-posting";
 const externalMode = process.env.LEDGERLY_CANONICAL_TEST_MODE === "external-ci";
+const processDiagnosticTailMaxLength = 8_192;
+const testDiagnosticFallback = "test command failed";
 
 function requireEnvironment(names) {
   for (const name of names) {
@@ -138,6 +141,19 @@ function extractMarker(output, marker) {
   return JSON.parse(line.slice(marker.length));
 }
 
+function boundedDiagnosticTail(value) {
+  return value.length > processDiagnosticTailMaxLength
+    ? value.slice(-processDiagnosticTailMaxLength)
+    : value;
+}
+
+function processFailure(message, stdout, stderr) {
+  const error = new Error(message);
+  error.stdout = boundedDiagnosticTail(stdout);
+  error.stderr = boundedDiagnosticTail(stderr);
+  return error;
+}
+
 function runProcess(command, args, { env, cwd, input, timeoutMs } = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -157,22 +173,22 @@ function runProcess(command, args, { env, cwd, input, timeoutMs } = {}) {
       : undefined;
     child.stdout.on("data", (chunk) => {
       stdout += chunk;
-      process.stdout.write(chunk);
     });
     child.stderr.on("data", (chunk) => {
       stderr += chunk;
-      process.stderr.write(chunk);
     });
     child.on("error", reject);
     child.on("close", (code, signal) => {
       if (timer) clearTimeout(timer);
       if (timedOut) {
-        reject(new Error(`${command} timed out`));
+        reject(processFailure(`${command} timed out`, stdout, stderr));
       } else if (signal) {
-        reject(new Error(`${command} terminated by ${signal}`));
+        reject(processFailure(`${command} terminated by ${signal}`, stdout, stderr));
       } else if (code !== 0) {
-        reject(new Error(`${command} exited with status ${code}`));
+        reject(processFailure(`${command} exited with status ${code}`, stdout, stderr));
       } else {
+        if (stdout) process.stdout.write(stdout);
+        if (stderr) process.stderr.write(stderr);
         resolve({ stdout, stderr });
       }
     });
@@ -709,8 +725,29 @@ async function runDevelopment() {
   );
 }
 
-if (externalMode) {
-  await runExternalCi();
-} else {
-  await runDevelopment();
+async function execute() {
+  try {
+    if (externalMode) {
+      await runExternalCi();
+    } else {
+      await runDevelopment();
+    }
+  } catch (error) {
+    const stderr =
+      error && typeof error.stderr === "string" ? error.stderr.trim() : "";
+    const stdout =
+      error && typeof error.stdout === "string" ? error.stdout.trim() : "";
+    const message = error instanceof Error ? error.message : String(error);
+    const diagnostic =
+      sanitizeBootstrapDiagnostic(stderr || stdout || message) ??
+      testDiagnosticFallback;
+    process.stderr.write(`${diagnostic}\n`);
+    process.exitCode = 1;
+  }
 }
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await execute();
+}
+
+export { boundedDiagnosticTail, runProcess };

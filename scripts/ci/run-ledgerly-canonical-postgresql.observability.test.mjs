@@ -3,11 +3,13 @@ import test from "node:test";
 import {
   bootstrapRetryClassificationInput,
   captureBootstrapDiagnostic,
+  captureTestDiagnostic,
   isApprovedFkIndexOrderingError,
   sanitizeBootstrapDiagnostic,
   sanitizeEvidence,
   validateEvidenceContract,
 } from "./run-ledgerly-canonical-postgresql.mjs";
+import { runProcess } from "../../artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs";
 
 const digest = `sha256:${"a".repeat(64)}`;
 const ci = {
@@ -138,6 +140,68 @@ test("retains an ordinary database error and prefers stderr", () => {
   assert.doesNotMatch(diagnostic, /message diagnostic/);
 });
 
+test("captures bounded child output and applies stderr-first test precedence", async () => {
+  await assert.rejects(
+    runProcess(process.execPath, [
+      "-e",
+      "process.stdout.write('stdout diagnostic'); process.stderr.write('stderr diagnostic'); process.exit(1)",
+    ]),
+    (error) => {
+      assert.equal(error.stdout, "stdout diagnostic");
+      assert.equal(error.stderr, "stderr diagnostic");
+      assert.equal(captureTestDiagnostic(error), "stderr diagnostic");
+      return true;
+    },
+  );
+});
+
+test("keeps successful child-process output unchanged", async () => {
+  const result = await runProcess(process.execPath, [
+    "-e",
+    "process.stdout.write('successful stdout'); process.stderr.write('successful stderr')",
+  ]);
+  assert.deepEqual(result, {
+    stdout: "successful stdout",
+    stderr: "successful stderr",
+  });
+});
+
+test("retains only the final 8192 characters from each failed stream", async () => {
+  await assert.rejects(
+    runProcess(process.execPath, [
+      "-e",
+      "process.stdout.write('o'.repeat(9000)); process.stderr.write('e'.repeat(9000)); process.exit(1)",
+    ]),
+    (error) => {
+      assert.equal(error.stdout.length, 8_192);
+      assert.equal(error.stderr.length, 8_192);
+      assert.equal(error.stdout, "o".repeat(8_192));
+      assert.equal(error.stderr, "e".repeat(8_192));
+      return true;
+    },
+  );
+});
+
+test("uses stdout, then the error message, then the test fallback", () => {
+  const stdoutError = new Error("message diagnostic");
+  stdoutError.stdout = "stdout diagnostic";
+  assert.equal(captureTestDiagnostic(stdoutError), "stdout diagnostic");
+  assert.equal(captureTestDiagnostic(new Error("message diagnostic")), "message diagnostic");
+  assert.equal(captureTestDiagnostic(undefined), "test command failed");
+});
+
+test("unknown child-process failures remain fail-closed", async () => {
+  await assert.rejects(
+    runProcess(process.execPath, ["-e", "process.exit(23)"]),
+    (error) => {
+      assert.equal(error.message, `${process.execPath} exited with status 23`);
+      assert.equal(error.stdout, "");
+      assert.equal(error.stderr, "");
+      return true;
+    },
+  );
+});
+
 test("redacts credential and token values including whitespace", () => {
   const diagnostic = sanitizeBootstrapDiagnostic(
     [
@@ -149,6 +213,9 @@ test("redacts credential and token values including whitespace", () => {
       "DATABASE_URL=postgres://user:password@example.invalid/db",
       "github token github_pat_secretvalue",
       "ghs_secretvalue",
+      "-----BEGIN PRIVATE KEY-----",
+      "private-key-secret",
+      "-----END PRIVATE KEY-----",
       "safe database error remains",
     ].join("\n"),
   );
@@ -161,11 +228,12 @@ test("redacts credential and token values including whitespace", () => {
     "database password with spaces",
     "github_pat_secretvalue",
     "ghs_secretvalue",
+    "private-key-secret",
   ]) {
     assert.equal(diagnostic.includes(secret), false, `secret leaked: ${secret}`);
   }
   assert.match(diagnostic, /safe database error remains/);
-  assert.doesNotThrow(() => sanitizeEvidence({ bootstrapDiagnostic: diagnostic }));
+  assert.doesNotThrow(() => sanitizeEvidence({ testDiagnostic: diagnostic }));
 });
 
 test("bounds the sanitized diagnostic to 2048 characters", () => {
@@ -175,6 +243,25 @@ test("bounds the sanitized diagnostic to 2048 characters", () => {
   assert.ok(diagnostic.length <= 2_048);
   assert.match(diagnostic, /\.\.\.\[truncated\]$/);
   assert.equal(diagnostic.includes("hidden secret"), false);
+});
+
+test("keeps the exact truncation marker within the 2048-character test bound", () => {
+  const diagnostic = captureTestDiagnostic({
+    stderr: "e".repeat(10_000),
+  });
+  assert.equal(diagnostic.length, 2_048);
+  assert.equal(diagnostic.endsWith("\n...[truncated]"), true);
+  assert.equal("\n...[truncated]".length, 15);
+});
+
+test("redacts a credential crossing the pre-boundary truncation point", () => {
+  const secret = "boundary-secret";
+  const diagnostic = captureTestDiagnostic({
+    stderr: `${"x".repeat(3_000)}\npassword: ${secret}${"y".repeat(2_018)}`,
+  });
+  assert.equal(diagnostic.length, 2_048);
+  assert.equal(diagnostic.includes(secret), false);
+  assert.equal(diagnostic.endsWith("\n...[truncated]"), true);
 });
 
 test("uses the message and generic fallback when stderr is unavailable", () => {
@@ -242,6 +329,27 @@ test("validates new and historical failed evidence", () => {
       }),
     ),
   );
+  assert.doesNotThrow(() =>
+    validateEvidenceContract(
+      failedEvidence({
+        failurePhase: "test",
+        testDiagnostic: "ERROR: canonical test failed",
+      }),
+    ),
+  );
+  assert.throws(() =>
+    validateEvidenceContract(
+      failedEvidence({ testDiagnostic: "wrong phase" }),
+    ),
+  );
+  assert.throws(() =>
+    validateEvidenceContract(
+      failedEvidence({
+        failurePhase: "test",
+        testDiagnostic: "x".repeat(2_049),
+      }),
+    ),
+  );
 });
 
 test("keeps successful evidence valid and excludes bootstrap diagnostics", () => {
@@ -250,6 +358,12 @@ test("keeps successful evidence valid and excludes bootstrap diagnostics", () =>
     validateEvidenceContract({
       ...passedEvidence(),
       bootstrapDiagnostic: "diagnostic",
+    }),
+  );
+  assert.throws(() =>
+    validateEvidenceContract({
+      ...passedEvidence(),
+      testDiagnostic: "diagnostic",
     }),
   );
 });
