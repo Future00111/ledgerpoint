@@ -162,15 +162,22 @@ function processFailure(message, stdout, stderr) {
 async function runProcess(
   command,
   args,
-  { env, cwd, input, timeoutMs, readOutput = readFile } = {},
+  {
+    env,
+    cwd,
+    input,
+    timeoutMs,
+    readOutput = readFile,
+    createCaptureStream = createWriteStream,
+  } = {},
 ) {
   const captureDirectory = await mkdtemp(
     path.join(os.tmpdir(), "ledgerly-canonical-process-"),
   );
   const stdoutPath = path.join(captureDirectory, "stdout");
   const stderrPath = path.join(captureDirectory, "stderr");
-  const stdoutFile = createWriteStream(stdoutPath, { mode: 0o600 });
-  const stderrFile = createWriteStream(stderrPath, { mode: 0o600 });
+  const stdoutFile = createCaptureStream(stdoutPath, { mode: 0o600 });
+  const stderrFile = createCaptureStream(stderrPath, { mode: 0o600 });
   try {
     return await new Promise((resolve, reject) => {
       const child = spawn(command, args, {
@@ -182,18 +189,86 @@ async function runProcess(
       let stderr = "";
       let timedOut = false;
       let captureFailure;
+      let captureFailureActive = false;
+      let captureTerminationStarted = false;
+      let settled = false;
+      let childClosed = false;
+      let timeoutKillTimer;
+      let resolveChildClosed;
+      const childClosedPromise = new Promise((resolveChild) => {
+        resolveChildClosed = resolveChild;
+      });
+      const clearTimers = () => {
+        if (timer) clearTimeout(timer);
+        if (timeoutKillTimer) clearTimeout(timeoutKillTimer);
+      };
+      const childIsRunning = () =>
+        child.exitCode === null && child.signalCode === null;
+      const terminateChild = (signal) => {
+        if (!childIsRunning()) return;
+        try {
+          child.kill(signal);
+        } catch {
+          // The child may exit between the state check and kill().
+        }
+      };
+      const rejectOnce = (error) => {
+        if (settled) return;
+        settled = true;
+        clearTimers();
+        reject(error);
+      };
+      const resolveOnce = (value) => {
+        if (settled) return;
+        settled = true;
+        clearTimers();
+        resolve(value);
+      };
+      const waitForChildClose = (maxWaitMs) => {
+        if (childClosed) return Promise.resolve(true);
+        return new Promise((resolveWait) => {
+          let finished = false;
+          const finish = (closed) => {
+            if (finished) return;
+            finished = true;
+            clearTimeout(waitTimer);
+            resolveWait(closed);
+          };
+          const waitTimer = setTimeout(() => finish(false), maxWaitMs);
+          waitTimer.unref();
+          childClosedPromise.then(() => finish(true));
+        });
+      };
+      const terminateAfterCaptureFailure = async (error) => {
+        terminateChild("SIGTERM");
+        const closedAfterTerm = await waitForChildClose(2_000);
+        if (!closedAfterTerm) {
+          terminateChild("SIGKILL");
+          await waitForChildClose(2_000);
+        }
+        rejectOnce(error);
+      };
+      const recordCaptureFailure = (error) => {
+        captureFailure ??= error;
+        if (settled || timedOut || captureTerminationStarted) return;
+        captureFailureActive = true;
+        captureTerminationStarted = true;
+        void terminateAfterCaptureFailure(captureFailure);
+      };
       const timer = timeoutMs
         ? setTimeout(() => {
+            if (settled || captureFailureActive) return;
             timedOut = true;
-            child.kill("SIGTERM");
-            setTimeout(() => child.kill("SIGKILL"), 2_000).unref();
+            terminateChild("SIGTERM");
+            timeoutKillTimer = setTimeout(() => terminateChild("SIGKILL"), 2_000);
+            timeoutKillTimer.unref();
           }, timeoutMs)
         : undefined;
       const stdoutCapture = pipeline(child.stdout, stdoutFile).catch((error) => {
-        captureFailure ??= error;
+        recordCaptureFailure(error);
       });
       const stderrCapture = pipeline(child.stderr, stderrFile).catch((error) => {
-        captureFailure ??= error;
+        recordCaptureFailure(error);
       });
       child.stdout.on("data", (chunk) => {
         stdout = appendDiagnosticTail(stdout, chunk);
@@ -203,30 +278,37 @@ async function runProcess(
         stderr = appendDiagnosticTail(stderr, chunk);
         process.stderr.write(chunk);
       });
-      child.on("error", reject);
+      child.on("error", (error) => {
+        if (captureFailureActive) return;
+        rejectOnce(error);
+      });
       child.on("close", (code, signal) => {
-        if (timer) clearTimeout(timer);
+        childClosed = true;
+        resolveChildClosed();
+        clearTimers();
         Promise.all([stdoutCapture, stderrCapture])
           .then(() => {
-            if (captureFailure) {
-              throw captureFailure;
+            if (settled || captureFailureActive) {
+              return undefined;
+            } else if (captureFailure) {
+              rejectOnce(captureFailure);
             } else if (timedOut) {
-              reject(processFailure(`${command} timed out`, stdout, stderr));
+              rejectOnce(processFailure(`${command} timed out`, stdout, stderr));
             } else if (signal) {
-              reject(processFailure(`${command} terminated by ${signal}`, stdout, stderr));
+              rejectOnce(processFailure(`${command} terminated by ${signal}`, stdout, stderr));
             } else if (code !== 0) {
-              reject(processFailure(`${command} exited with status ${code}`, stdout, stderr));
+              rejectOnce(processFailure(`${command} exited with status ${code}`, stdout, stderr));
             } else {
               return Promise.all([
                 readOutput(stdoutPath, "utf8"),
                 readOutput(stderrPath, "utf8"),
               ]).then(([successfulStdout, successfulStderr]) => {
-                resolve({ stdout: successfulStdout, stderr: successfulStderr });
+                resolveOnce({ stdout: successfulStdout, stderr: successfulStderr });
               });
             }
             return undefined;
           })
-          .catch(reject);
+          .catch(rejectOnce);
       });
       if (input !== undefined) {
         child.stdin.end(input);

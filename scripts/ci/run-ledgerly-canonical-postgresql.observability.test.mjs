@@ -1,8 +1,16 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { readdir, readFile as readCapturedFile } from "node:fs/promises";
+import { closeSync, createWriteStream, openSync } from "node:fs";
+import {
+  access,
+  readdir,
+  readFile as readCapturedFile,
+  unlink,
+} from "node:fs/promises";
 import test from "node:test";
 import os from "node:os";
+import path from "node:path";
+import { Writable } from "node:stream";
 import {
   appendDiagnosticTail as appendCoordinatorDiagnosticTail,
   bootstrapRetryClassificationInput,
@@ -272,6 +280,119 @@ test("rejects readback failures and removes every temporary capture", async () =
       !before.has(entry) && entry.startsWith("ledgerly-canonical-process-"),
   );
   assert.deepEqual(leakedCaptureDirectories, []);
+});
+
+function createForcedCaptureFailureStream(capturePaths, filePath, options) {
+  capturePaths.push(filePath);
+  if (filePath.endsWith("/stdout")) {
+    closeSync(openSync(filePath, "w", options.mode));
+    return new Writable({
+      write(_chunk, _encoding, callback) {
+        callback(new Error("forced stdout capture failure"));
+      },
+    });
+  }
+  return createWriteStream(filePath, options);
+}
+
+async function assertMissing(pathname) {
+  await assert.rejects(access(pathname), (error) => error?.code === "ENOENT");
+}
+
+test("settles and terminates a live child after stdout capture failure", async () => {
+  const markerPath = path.join(
+    os.tmpdir(),
+    `ledgerly-canonical-capture-failure-${process.pid}`,
+  );
+  const capturePaths = [];
+  const startedAt = Date.now();
+  const pending = runProcess(
+    process.execPath,
+    [
+      "-e",
+      [
+        "const { writeFileSync } = require('node:fs');",
+        `writeFileSync(${JSON.stringify(markerPath)}, String(process.pid));`,
+        "process.on('SIGTERM', () => {});",
+        "process.stdout.write('capture failure output');",
+        "setTimeout(() => process.exit(0), 20_000);",
+      ].join(""),
+    ],
+    {
+      createCaptureStream: (filePath, options) =>
+        createForcedCaptureFailureStream(capturePaths, filePath, options),
+    },
+  );
+  let childPid;
+  let rejectionTimer;
+  try {
+    await Promise.race([
+      assert.rejects(pending, (error) => {
+        assert.equal(error.message, "forced stdout capture failure");
+        assert.equal(error.stdout, undefined);
+        assert.equal(error.stderr, undefined);
+        return true;
+      }),
+      new Promise((_, reject) => {
+        rejectionTimer = setTimeout(
+          () => reject(new Error("runProcess remained pending after capture failure")),
+          5_000,
+        );
+      }),
+    ]);
+    assert.ok(
+      Date.now() - startedAt < 5_000,
+      "runProcess waited for the child's natural completion",
+    );
+    childPid = Number(await readCapturedFile(markerPath, "utf8"));
+    assert.throws(() => process.kill(childPid, 0), (error) => error?.code === "ESRCH");
+    assert.ok(capturePaths.some((filePath) => filePath.endsWith("/stdout")));
+    assert.ok(capturePaths.some((filePath) => filePath.endsWith("/stderr")));
+    for (const filePath of capturePaths) await assertMissing(filePath);
+    for (const directory of new Set(capturePaths.map((filePath) => path.dirname(filePath)))) {
+      await assertMissing(directory);
+    }
+  } finally {
+    clearTimeout(rejectionTimer);
+    if (childPid) {
+      try {
+        process.kill(childPid, "SIGKILL");
+      } catch {
+        // The child has already been terminated by runProcess.
+      }
+    }
+    await unlink(markerPath).catch(() => {});
+  }
+});
+
+test("preserves capture failure when child exit races with capture failure", async () => {
+  const capturePaths = [];
+  const pending = runProcess(
+    process.execPath,
+    [
+      "-e",
+      [
+        "process.stdout.write('race output');",
+        "process.exit(0);",
+      ].join(""),
+    ],
+    {
+      createCaptureStream: (filePath, options) =>
+        createForcedCaptureFailureStream(capturePaths, filePath, options),
+    },
+  );
+  try {
+    await assert.rejects(pending, (error) => {
+      assert.equal(error.message, "forced stdout capture failure");
+      return true;
+    });
+    for (const filePath of capturePaths) await assertMissing(filePath);
+    for (const directory of new Set(capturePaths.map((filePath) => path.dirname(filePath)))) {
+      await assertMissing(directory);
+    }
+  } finally {
+    // No marker is needed here; the live-child case verifies termination.
+  }
 });
 
 test("retains only the final 8192 characters from each failed stream", async () => {
