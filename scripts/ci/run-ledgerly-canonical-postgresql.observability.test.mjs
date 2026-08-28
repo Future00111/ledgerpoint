@@ -1,13 +1,32 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { spawn } from "node:child_process";
+import { closeSync, createWriteStream, openSync } from "node:fs";
 import {
+  access,
+  readdir,
+  readFile as readCapturedFile,
+  unlink,
+} from "node:fs/promises";
+import test from "node:test";
+import os from "node:os";
+import path from "node:path";
+import { Writable } from "node:stream";
+import {
+  appendDiagnosticTail as appendCoordinatorDiagnosticTail,
   bootstrapRetryClassificationInput,
   captureBootstrapDiagnostic,
+  captureTestDiagnostic,
   isApprovedFkIndexOrderingError,
+  run,
+  runApprovedBootstrapRetry,
   sanitizeBootstrapDiagnostic,
   sanitizeEvidence,
   validateEvidenceContract,
 } from "./run-ledgerly-canonical-postgresql.mjs";
+import {
+  appendDiagnosticTail as appendRunnerDiagnosticTail,
+  runProcess,
+} from "../../artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs";
 
 const digest = `sha256:${"a".repeat(64)}`;
 const ci = {
@@ -138,6 +157,331 @@ test("retains an ordinary database error and prefers stderr", () => {
   assert.doesNotMatch(diagnostic, /message diagnostic/);
 });
 
+test("captures bounded child output and applies stderr-first test precedence", async () => {
+  await assert.rejects(
+    runProcess(process.execPath, [
+      "-e",
+      "process.stdout.write('stdout diagnostic'); process.stderr.write('stderr diagnostic'); process.exit(1)",
+    ]),
+    (error) => {
+      assert.equal(error.stdout, "stdout diagnostic");
+      assert.equal(error.stderr, "stderr diagnostic");
+      assert.equal(captureTestDiagnostic(error), "stderr diagnostic");
+      return true;
+    },
+  );
+});
+
+test("keeps successful child-process output unchanged", async () => {
+  const result = await runProcess(process.execPath, [
+    "-e",
+    "process.stdout.write('successful stdout'); process.stderr.write('successful stderr')",
+  ]);
+  assert.deepEqual(result, {
+    stdout: "successful stdout",
+    stderr: "successful stderr",
+  });
+});
+
+test("preserves long successful stdout and completion markers outside the failure tail", async () => {
+  const marker = "LEDGERLY_CANONICAL_TEST_COMPLETION marker-at-the-start\n";
+  const expected = marker + "s".repeat(12_000);
+  const result = await runProcess(process.execPath, [
+    "-e",
+    `process.stdout.write(${JSON.stringify(expected)})`,
+  ]);
+  assert.equal(result.stdout, expected);
+  assert.match(result.stdout, /^LEDGERLY_CANONICAL_TEST_COMPLETION marker-at-the-start/);
+});
+
+test("preserves long successful stderr", async () => {
+  const expected = "e".repeat(12_000);
+  const result = await runProcess(process.execPath, [
+    "-e",
+    `process.stderr.write(${JSON.stringify(expected)})`,
+  ]);
+  assert.equal(result.stderr, expected);
+});
+
+test("streams successful child output before the child exits", async () => {
+  const runnerUrl = new URL(
+    "../../artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs",
+    import.meta.url,
+  ).href;
+  const nestedScript =
+    "process.stdout.write('stream-now'); setTimeout(() => process.exit(0), 400)";
+  const harnessScript =
+    `import { runProcess } from ${JSON.stringify(runnerUrl)};` +
+    `await runProcess(process.execPath, ['-e', ${JSON.stringify(nestedScript)}]);`;
+  const harness = spawn(
+    process.execPath,
+    ["--input-type=module", "-e", harnessScript],
+    { stdio: ["ignore", "pipe", "pipe"] },
+  );
+  let stdout = "";
+  let stderr = "";
+  let firstStdoutAt = null;
+  harness.stdout.on("data", (chunk) => {
+    firstStdoutAt ??= Date.now();
+    stdout += chunk;
+  });
+  harness.stderr.on("data", (chunk) => {
+    stderr += chunk;
+  });
+  const result = await new Promise((resolve, reject) => {
+    harness.on("error", reject);
+    harness.on("close", (code, signal) => {
+      resolve({ code, signal, closedAt: Date.now() });
+    });
+  });
+  assert.deepEqual({ code: result.code, signal: result.signal }, { code: 0, signal: null });
+  assert.equal(stdout, "stream-now");
+  assert.equal(stderr, "");
+  assert.notEqual(firstStdoutAt, null);
+  assert.ok(
+    result.closedAt - firstStdoutAt >= 200,
+    "stdout was not forwarded while the child was still running",
+  );
+});
+
+test("rejects readback failures and removes every temporary capture", async () => {
+  const temporaryDirectory = os.tmpdir();
+  const before = new Set(await readdir(temporaryDirectory));
+  const pending = runProcess(
+    process.execPath,
+    ["-e", "process.stdout.write('complete output')"],
+    {
+      readOutput: async (filePath, encoding) => {
+        if (filePath.endsWith("/stdout")) {
+          throw new Error("forced temporary readback failure");
+        }
+        return readCapturedFile(filePath, encoding);
+      },
+    },
+  );
+  const rejection = assert.rejects(pending, /forced temporary readback failure/);
+  let timeout;
+  try {
+    await Promise.race([
+      rejection,
+      new Promise((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error("runProcess remained pending after readback failure")),
+          1_000,
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
+  const after = await readdir(temporaryDirectory);
+  const leakedCaptureDirectories = after.filter(
+    (entry) =>
+      !before.has(entry) && entry.startsWith("ledgerly-canonical-process-"),
+  );
+  assert.deepEqual(leakedCaptureDirectories, []);
+});
+
+function createForcedCaptureFailureStream(capturePaths, filePath, options) {
+  capturePaths.push(filePath);
+  if (filePath.endsWith("/stdout")) {
+    closeSync(openSync(filePath, "w", options.mode));
+    return new Writable({
+      write(_chunk, _encoding, callback) {
+        callback(new Error("forced stdout capture failure"));
+      },
+    });
+  }
+  return createWriteStream(filePath, options);
+}
+
+async function assertMissing(pathname) {
+  await assert.rejects(access(pathname), (error) => error?.code === "ENOENT");
+}
+
+test("settles and terminates a live child after stdout capture failure", async () => {
+  const markerPath = path.join(
+    os.tmpdir(),
+    `ledgerly-canonical-capture-failure-${process.pid}`,
+  );
+  const capturePaths = [];
+  const startedAt = Date.now();
+  const pending = runProcess(
+    process.execPath,
+    [
+      "-e",
+      [
+        "const { writeFileSync } = require('node:fs');",
+        `writeFileSync(${JSON.stringify(markerPath)}, String(process.pid));`,
+        "process.on('SIGTERM', () => {});",
+        "process.stdout.write('capture failure output');",
+        "setTimeout(() => process.exit(0), 20_000);",
+      ].join(""),
+    ],
+    {
+      createCaptureStream: (filePath, options) =>
+        createForcedCaptureFailureStream(capturePaths, filePath, options),
+    },
+  );
+  let childPid;
+  let rejectionTimer;
+  try {
+    await Promise.race([
+      assert.rejects(pending, (error) => {
+        assert.equal(error.message, "forced stdout capture failure");
+        assert.equal(error.stdout, undefined);
+        assert.equal(error.stderr, undefined);
+        return true;
+      }),
+      new Promise((_, reject) => {
+        rejectionTimer = setTimeout(
+          () => reject(new Error("runProcess remained pending after capture failure")),
+          5_000,
+        );
+      }),
+    ]);
+    assert.ok(
+      Date.now() - startedAt < 5_000,
+      "runProcess waited for the child's natural completion",
+    );
+    childPid = Number(await readCapturedFile(markerPath, "utf8"));
+    assert.throws(() => process.kill(childPid, 0), (error) => error?.code === "ESRCH");
+    assert.ok(capturePaths.some((filePath) => filePath.endsWith("/stdout")));
+    assert.ok(capturePaths.some((filePath) => filePath.endsWith("/stderr")));
+    for (const filePath of capturePaths) await assertMissing(filePath);
+    for (const directory of new Set(capturePaths.map((filePath) => path.dirname(filePath)))) {
+      await assertMissing(directory);
+    }
+  } finally {
+    clearTimeout(rejectionTimer);
+    if (childPid) {
+      try {
+        process.kill(childPid, "SIGKILL");
+      } catch {
+        // The child has already been terminated by runProcess.
+      }
+    }
+    await unlink(markerPath).catch(() => {});
+  }
+});
+
+test("preserves capture failure when child exit races with capture failure", async () => {
+  const capturePaths = [];
+  const pending = runProcess(
+    process.execPath,
+    [
+      "-e",
+      [
+        "process.stdout.write('race output');",
+        "process.exit(0);",
+      ].join(""),
+    ],
+    {
+      createCaptureStream: (filePath, options) =>
+        createForcedCaptureFailureStream(capturePaths, filePath, options),
+    },
+  );
+  try {
+    await assert.rejects(pending, (error) => {
+      assert.equal(error.message, "forced stdout capture failure");
+      return true;
+    });
+    for (const filePath of capturePaths) await assertMissing(filePath);
+    for (const directory of new Set(capturePaths.map((filePath) => path.dirname(filePath)))) {
+      await assertMissing(directory);
+    }
+  } finally {
+    // No marker is needed here; the live-child case verifies termination.
+  }
+});
+
+test("retains only the final 8192 characters from each failed stream", async () => {
+  await assert.rejects(
+    runProcess(process.execPath, [
+      "-e",
+      "process.stdout.write('o'.repeat(9000)); process.stderr.write('e'.repeat(9000)); process.exit(1)",
+    ]),
+    (error) => {
+      assert.equal(error.stdout.length, 8_192);
+      assert.equal(error.stderr.length, 8_192);
+      assert.equal(error.stdout, "o".repeat(8_192));
+      assert.equal(error.stderr, "e".repeat(8_192));
+      return true;
+    },
+  );
+});
+
+test("bounds both rolling stream buffers while chunks are received", () => {
+  for (const appendTail of [
+    appendCoordinatorDiagnosticTail,
+    appendRunnerDiagnosticTail,
+  ]) {
+    let tail = "";
+    for (let index = 0; index < 256; index += 1) {
+      tail = appendTail(tail, `${index}:` + "x".repeat(16_384));
+      assert.ok(tail.length <= 8_192);
+    }
+    assert.equal(tail, "x".repeat(8_192));
+  }
+});
+
+test("preserves explicitly bounded successful coordinator output above 8192 characters", async () => {
+  const expected = "manifest-entry\n".repeat(2_200);
+  const result = await run(
+    process.execPath,
+    ["-e", `process.stdout.write(${JSON.stringify(expected)})`],
+    {
+      quiet: true,
+      captureMaxLength: 64 * 1024,
+      failOnCaptureLimit: true,
+    },
+  );
+  assert.equal(result.stdout, expected);
+  assert.equal(result.stderr, "");
+});
+
+test("fails closed when explicit successful-output capture exceeds its finite limit", async () => {
+  await assert.rejects(
+    run(
+      process.execPath,
+      ["-e", "process.stdout.write('x'.repeat(70000))"],
+      {
+        quiet: true,
+        captureMaxLength: 32 * 1024,
+        failOnCaptureLimit: true,
+      },
+    ),
+    (error) => {
+      assert.equal(
+        error.message,
+        `${process.execPath} exceeded its output capture limit`,
+      );
+      assert.equal(error.stdout.length, 8_192);
+      return true;
+    },
+  );
+});
+
+test("uses stdout, then the error message, then the test fallback", () => {
+  const stdoutError = new Error("message diagnostic");
+  stdoutError.stdout = "stdout diagnostic";
+  assert.equal(captureTestDiagnostic(stdoutError), "stdout diagnostic");
+  assert.equal(captureTestDiagnostic(new Error("message diagnostic")), "message diagnostic");
+  assert.equal(captureTestDiagnostic(undefined), "test command failed");
+});
+
+test("unknown child-process failures remain fail-closed", async () => {
+  await assert.rejects(
+    runProcess(process.execPath, ["-e", "process.exit(23)"]),
+    (error) => {
+      assert.equal(error.message, `${process.execPath} exited with status 23`);
+      assert.equal(error.stdout, "");
+      assert.equal(error.stderr, "");
+      return true;
+    },
+  );
+});
+
 test("redacts credential and token values including whitespace", () => {
   const diagnostic = sanitizeBootstrapDiagnostic(
     [
@@ -147,8 +491,15 @@ test("redacts credential and token values including whitespace", () => {
       "Authorization: Bearer bearer-secret",
       "PGPASSWORD=database password with spaces",
       "DATABASE_URL=postgres://user:password@example.invalid/db",
+      "LEDGERLY_CANONICAL_TEST_DATABASE_URL: postgres://ledgerly_api:colon-password@example.invalid/db",
+      '"LEDGERLY_CANONICAL_TEST_RUN_NONCE" : "quoted nonce secret"',
+      "'PGPASSWORD'  :  'quoted database password'",
+      '{\\"LEDGERLY_CANONICAL_TEST_RUN_NONCE\\" : \\"escaped nonce secret\\"}',
       "github token github_pat_secretvalue",
       "ghs_secretvalue",
+      "-----BEGIN PRIVATE KEY-----",
+      "private-key-secret",
+      "-----END PRIVATE KEY-----",
       "safe database error remains",
     ].join("\n"),
   );
@@ -159,13 +510,69 @@ test("redacts credential and token values including whitespace", () => {
     "multi word token value",
     "bearer-secret",
     "database password with spaces",
+    "colon-password",
+    "quoted nonce secret",
+    "quoted database password",
+    "escaped nonce secret",
     "github_pat_secretvalue",
     "ghs_secretvalue",
+    "private-key-secret",
   ]) {
     assert.equal(diagnostic.includes(secret), false, `secret leaked: ${secret}`);
   }
   assert.match(diagnostic, /safe database error remains/);
-  assert.doesNotThrow(() => sanitizeEvidence({ bootstrapDiagnostic: diagnostic }));
+  assert.doesNotThrow(() => sanitizeEvidence({ testDiagnostic: diagnostic }));
+});
+
+test("redacts multiline credential values without retaining the following line", () => {
+  const diagnostic = sanitizeBootstrapDiagnostic(
+    [
+      "password:",
+      "password-secret",
+      "password=",
+      "password-equals-secret",
+      "TOKEN=",
+      "token-secret",
+      "Authorization:",
+      "Bearer bearer-secret",
+      "DATABASE_PASSWORD:",
+      "database-password-secret",
+      "DATABASE_PASSWORD=",
+      "database-password-equals-secret",
+      "ordinary following line remains",
+    ].join("\n"),
+  );
+  for (const secret of [
+    "password-secret",
+    "password-equals-secret",
+    "token-secret",
+    "bearer-secret",
+    "database-password-secret",
+    "database-password-equals-secret",
+  ]) {
+    assert.equal(diagnostic.includes(secret), false, `secret leaked: ${secret}`);
+  }
+  assert.match(diagnostic, /ordinary following line remains/);
+  assert.doesNotThrow(() => sanitizeEvidence({ testDiagnostic: diagnostic }));
+});
+
+test("rejects unsanitized sensitive environment assignments in evidence", () => {
+  for (const testDiagnostic of [
+    "LEDGERLY_CANONICAL_TEST_RUN_NONCE: nonce-secret",
+    " LEDGERLY_CANONICAL_TEST_DATABASE_URL = postgres://ledgerly_api:password@example.invalid/db",
+    '"LEDGERLY_CANONICAL_TEST_RUN_NONCE" : "quoted-secret"',
+    "'PGPASSWORD'  :  'quoted-password'",
+    '{\\"LEDGERLY_CANONICAL_TEST_RUN_NONCE\\" : \\"escaped-secret\\"}',
+    "password:\nmultiline-password",
+    "TOKEN=\nmultiline-token",
+    "Authorization:\nBearer multiline-authorization",
+    "DATABASE_PASSWORD:\nmultiline-database-password",
+  ]) {
+    assert.throws(
+      () => sanitizeEvidence({ testDiagnostic }),
+      /Evidence secret scanner rejected the output/,
+    );
+  }
 });
 
 test("bounds the sanitized diagnostic to 2048 characters", () => {
@@ -175,6 +582,25 @@ test("bounds the sanitized diagnostic to 2048 characters", () => {
   assert.ok(diagnostic.length <= 2_048);
   assert.match(diagnostic, /\.\.\.\[truncated\]$/);
   assert.equal(diagnostic.includes("hidden secret"), false);
+});
+
+test("keeps the exact truncation marker within the 2048-character test bound", () => {
+  const diagnostic = captureTestDiagnostic({
+    stderr: "e".repeat(10_000),
+  });
+  assert.equal(diagnostic.length, 2_048);
+  assert.equal(diagnostic.endsWith("\n...[truncated]"), true);
+  assert.equal("\n...[truncated]".length, 15);
+});
+
+test("redacts a credential crossing the pre-boundary truncation point", () => {
+  const secret = "boundary-secret";
+  const diagnostic = captureTestDiagnostic({
+    stderr: `${"x".repeat(3_000)}\npassword: ${secret}${"y".repeat(2_018)}`,
+  });
+  assert.equal(diagnostic.length, 2_048);
+  assert.equal(diagnostic.includes(secret), false);
+  assert.equal(diagnostic.endsWith("\n...[truncated]"), true);
 });
 
 test("uses the message and generic fallback when stderr is unavailable", () => {
@@ -222,6 +648,30 @@ test("preserves the approved bounded FK/index retry classification", () => {
   );
 });
 
+test("keeps approved bootstrap retry failures quiet and sanitized", async () => {
+  let observedOptions;
+  await assert.rejects(
+    runApprovedBootstrapRetry([], { CI: "true" }, async (_args, options) => {
+      observedOptions = options;
+      const error = new Error("docker exited with status 1");
+      error.stderr =
+        "LEDGERLY_CANONICAL_TEST_DATABASE_URL: postgres://ledgerly_api:retry-secret@example.invalid/db";
+      throw error;
+    }),
+    (error) => {
+      assert.equal(error.message, "Drizzle bootstrap retry failed");
+      assert.equal(error.stderr, "[REDACTED_ENV]");
+      assert.equal(error.stderr.includes("retry-secret"), false);
+      return true;
+    },
+  );
+  assert.deepEqual(observedOptions, {
+    env: { CI: "true" },
+    timeoutMs: 4 * 60 * 1000,
+    quiet: true,
+  });
+});
+
 test("validates new and historical failed evidence", () => {
   assert.doesNotThrow(() => validateEvidenceContract(failedEvidence()));
   assert.doesNotThrow(() =>
@@ -242,6 +692,27 @@ test("validates new and historical failed evidence", () => {
       }),
     ),
   );
+  assert.doesNotThrow(() =>
+    validateEvidenceContract(
+      failedEvidence({
+        failurePhase: "test",
+        testDiagnostic: "ERROR: canonical test failed",
+      }),
+    ),
+  );
+  assert.throws(() =>
+    validateEvidenceContract(
+      failedEvidence({ testDiagnostic: "wrong phase" }),
+    ),
+  );
+  assert.throws(() =>
+    validateEvidenceContract(
+      failedEvidence({
+        failurePhase: "test",
+        testDiagnostic: "x".repeat(2_049),
+      }),
+    ),
+  );
 });
 
 test("keeps successful evidence valid and excludes bootstrap diagnostics", () => {
@@ -250,6 +721,12 @@ test("keeps successful evidence valid and excludes bootstrap diagnostics", () =>
     validateEvidenceContract({
       ...passedEvidence(),
       bootstrapDiagnostic: "diagnostic",
+    }),
+  );
+  assert.throws(() =>
+    validateEvidenceContract({
+      ...passedEvidence(),
+      testDiagnostic: "diagnostic",
     }),
   );
 });

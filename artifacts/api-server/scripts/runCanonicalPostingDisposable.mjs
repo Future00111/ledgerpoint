@@ -1,16 +1,20 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { rm } from "node:fs/promises";
+import { createWriteStream, readFileSync } from "node:fs";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
+import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
+import { sanitizeBootstrapDiagnostic } from "../../../scripts/ci/run-ledgerly-canonical-postgresql.mjs";
 
 const packageDirectory = fileURLToPath(new URL("..", import.meta.url));
 const workspaceDirectory = path.resolve(packageDirectory, "../..");
 const expectedCommand = "pnpm --filter @workspace/api-server run test:canonical-posting";
 const externalMode = process.env.LEDGERLY_CANONICAL_TEST_MODE === "external-ci";
+const processDiagnosticTailMaxLength = 8_192;
+const testDiagnosticFallback = "test command failed";
 
 function requireEnvironment(names) {
   for (const name of names) {
@@ -138,50 +142,185 @@ function extractMarker(output, marker) {
   return JSON.parse(line.slice(marker.length));
 }
 
-function runProcess(command, args, { env, cwd, input, timeoutMs } = {}) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
-      cwd,
-      env,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    let stdout = "";
-    let stderr = "";
-    let timedOut = false;
-    const timer = timeoutMs
-      ? setTimeout(() => {
-          timedOut = true;
-          child.kill("SIGTERM");
-          setTimeout(() => child.kill("SIGKILL"), 2_000).unref();
-        }, timeoutMs)
-      : undefined;
-    child.stdout.on("data", (chunk) => {
-      stdout += chunk;
-      process.stdout.write(chunk);
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk;
-      process.stderr.write(chunk);
-    });
-    child.on("error", reject);
-    child.on("close", (code, signal) => {
-      if (timer) clearTimeout(timer);
-      if (timedOut) {
-        reject(new Error(`${command} timed out`));
-      } else if (signal) {
-        reject(new Error(`${command} terminated by ${signal}`));
-      } else if (code !== 0) {
-        reject(new Error(`${command} exited with status ${code}`));
+function boundedDiagnosticTail(value) {
+  return value.length > processDiagnosticTailMaxLength
+    ? value.slice(-processDiagnosticTailMaxLength)
+    : value;
+}
+
+function appendDiagnosticTail(current, chunk) {
+  return boundedDiagnosticTail(`${current}${chunk}`);
+}
+
+function processFailure(message, stdout, stderr) {
+  const error = new Error(message);
+  error.stdout = boundedDiagnosticTail(stdout);
+  error.stderr = boundedDiagnosticTail(stderr);
+  return error;
+}
+
+async function runProcess(
+  command,
+  args,
+  {
+    env,
+    cwd,
+    input,
+    timeoutMs,
+    readOutput = readFile,
+    createCaptureStream = createWriteStream,
+  } = {},
+) {
+  const captureDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "ledgerly-canonical-process-"),
+  );
+  const stdoutPath = path.join(captureDirectory, "stdout");
+  const stderrPath = path.join(captureDirectory, "stderr");
+  const stdoutFile = createCaptureStream(stdoutPath, { mode: 0o600 });
+  const stderrFile = createCaptureStream(stderrPath, { mode: 0o600 });
+  try {
+    return await new Promise((resolve, reject) => {
+      const child = spawn(command, args, {
+        cwd,
+        env,
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+      let stdout = "";
+      let stderr = "";
+      let timedOut = false;
+      let captureFailure;
+      let captureFailureActive = false;
+      let captureTerminationStarted = false;
+      let settled = false;
+      let childClosed = false;
+      let timeoutKillTimer;
+      let resolveChildClosed;
+      const childClosedPromise = new Promise((resolveChild) => {
+        resolveChildClosed = resolveChild;
+      });
+      const clearTimers = () => {
+        if (timer) clearTimeout(timer);
+        if (timeoutKillTimer) clearTimeout(timeoutKillTimer);
+      };
+      const childIsRunning = () =>
+        child.exitCode === null && child.signalCode === null;
+      const terminateChild = (signal) => {
+        if (!childIsRunning()) return;
+        try {
+          child.kill(signal);
+        } catch {
+          // The child may exit between the state check and kill().
+        }
+      };
+      const rejectOnce = (error) => {
+        if (settled) return;
+        settled = true;
+        clearTimers();
+        reject(error);
+      };
+      const resolveOnce = (value) => {
+        if (settled) return;
+        settled = true;
+        clearTimers();
+        resolve(value);
+      };
+      const waitForChildClose = (maxWaitMs) => {
+        if (childClosed) return Promise.resolve(true);
+        return new Promise((resolveWait) => {
+          let finished = false;
+          const finish = (closed) => {
+            if (finished) return;
+            finished = true;
+            clearTimeout(waitTimer);
+            resolveWait(closed);
+          };
+          const waitTimer = setTimeout(() => finish(false), maxWaitMs);
+          waitTimer.unref();
+          childClosedPromise.then(() => finish(true));
+        });
+      };
+      const terminateAfterCaptureFailure = async (error) => {
+        terminateChild("SIGTERM");
+        const closedAfterTerm = await waitForChildClose(2_000);
+        if (!closedAfterTerm) {
+          terminateChild("SIGKILL");
+          await waitForChildClose(2_000);
+        }
+        rejectOnce(error);
+      };
+      const recordCaptureFailure = (error) => {
+        captureFailure ??= error;
+        if (settled || timedOut || captureTerminationStarted) return;
+        captureFailureActive = true;
+        captureTerminationStarted = true;
+        void terminateAfterCaptureFailure(captureFailure);
+      };
+      const timer = timeoutMs
+        ? setTimeout(() => {
+            if (settled || captureFailureActive) return;
+            timedOut = true;
+            terminateChild("SIGTERM");
+            timeoutKillTimer = setTimeout(() => terminateChild("SIGKILL"), 2_000);
+            timeoutKillTimer.unref();
+          }, timeoutMs)
+        : undefined;
+      const stdoutCapture = pipeline(child.stdout, stdoutFile).catch((error) => {
+        recordCaptureFailure(error);
+      });
+      const stderrCapture = pipeline(child.stderr, stderrFile).catch((error) => {
+        recordCaptureFailure(error);
+      });
+      child.stdout.on("data", (chunk) => {
+        stdout = appendDiagnosticTail(stdout, chunk);
+        process.stdout.write(chunk);
+      });
+      child.stderr.on("data", (chunk) => {
+        stderr = appendDiagnosticTail(stderr, chunk);
+        process.stderr.write(chunk);
+      });
+      child.on("error", (error) => {
+        if (captureFailureActive) return;
+        rejectOnce(error);
+      });
+      child.on("close", (code, signal) => {
+        childClosed = true;
+        resolveChildClosed();
+        clearTimers();
+        Promise.all([stdoutCapture, stderrCapture])
+          .then(() => {
+            if (settled || captureFailureActive) {
+              return undefined;
+            } else if (captureFailure) {
+              rejectOnce(captureFailure);
+            } else if (timedOut) {
+              rejectOnce(processFailure(`${command} timed out`, stdout, stderr));
+            } else if (signal) {
+              rejectOnce(processFailure(`${command} terminated by ${signal}`, stdout, stderr));
+            } else if (code !== 0) {
+              rejectOnce(processFailure(`${command} exited with status ${code}`, stdout, stderr));
+            } else {
+              return Promise.all([
+                readOutput(stdoutPath, "utf8"),
+                readOutput(stderrPath, "utf8"),
+              ]).then(([successfulStdout, successfulStderr]) => {
+                resolveOnce({ stdout: successfulStdout, stderr: successfulStderr });
+              });
+            }
+            return undefined;
+          })
+          .catch(rejectOnce);
+      });
+      if (input !== undefined) {
+        child.stdin.end(input);
       } else {
-        resolve({ stdout, stderr });
+        child.stdin.end();
       }
     });
-    if (input !== undefined) {
-      child.stdin.end(input);
-    } else {
-      child.stdin.end();
-    }
-  });
+  } finally {
+    stdoutFile.destroy();
+    stderrFile.destroy();
+    await rm(captureDirectory, { recursive: true, force: true });
+  }
 }
 
 async function verifyExternalBinding({
@@ -709,8 +848,29 @@ async function runDevelopment() {
   );
 }
 
-if (externalMode) {
-  await runExternalCi();
-} else {
-  await runDevelopment();
+async function execute() {
+  try {
+    if (externalMode) {
+      await runExternalCi();
+    } else {
+      await runDevelopment();
+    }
+  } catch (error) {
+    const stderr =
+      error && typeof error.stderr === "string" ? error.stderr.trim() : "";
+    const stdout =
+      error && typeof error.stdout === "string" ? error.stdout.trim() : "";
+    const message = error instanceof Error ? error.message : String(error);
+    const diagnostic =
+      sanitizeBootstrapDiagnostic(stderr || stdout || message) ??
+      testDiagnosticFallback;
+    process.stderr.write(`${diagnostic}\n`);
+    process.exitCode = 1;
+  }
 }
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await execute();
+}
+
+export { appendDiagnosticTail, boundedDiagnosticTail, runProcess };

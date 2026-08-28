@@ -20,6 +20,9 @@ const nodeDigest =
 const expectedCommand = "pnpm --filter @workspace/api-server run test:canonical-posting";
 const bootstrapDiagnosticMaxLength = 2_048;
 const bootstrapDiagnosticFallback = "bootstrap command failed";
+const testDiagnosticFallback = "test command failed";
+const diagnosticTailMaxLength = 8_192;
+const sourceManifestCaptureMaxLength = 1024 * 1024;
 const workflowPath = ".github/workflows/ledgerly-canonical-postgresql.yml";
 const approvedWorkflowName = "Ledgerly canonical PostgreSQL qualification";
 const sourceManifestPath = ".ci/ledgerly-canonical/source-manifest.json";
@@ -90,6 +93,7 @@ const state = {
   ci: null,
   runNonce: null,
   bootstrapDiagnostic: null,
+  testDiagnostic: null,
   observedIsolation: {
     noPublishedPorts: false,
     internalNetwork: false,
@@ -127,7 +131,39 @@ function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
-function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false } = {}) {
+function boundedDiagnosticTail(value, maxLength = diagnosticTailMaxLength) {
+  return value.length > maxLength
+    ? value.slice(-maxLength)
+    : value;
+}
+
+function appendDiagnosticTail(
+  current,
+  chunk,
+  maxLength = diagnosticTailMaxLength,
+) {
+  return boundedDiagnosticTail(`${current}${chunk}`, maxLength);
+}
+
+function attachProcessDiagnostics(error, stdout, stderr) {
+  error.stdout = boundedDiagnosticTail(stdout);
+  error.stderr = boundedDiagnosticTail(stderr);
+  return error;
+}
+
+function run(
+  command,
+  args,
+  {
+    env,
+    cwd = root,
+    input,
+    timeoutMs,
+    quiet = false,
+    captureMaxLength = diagnosticTailMaxLength,
+    failOnCaptureLimit = false,
+  } = {},
+) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd,
@@ -137,6 +173,7 @@ function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false }
     let stdout = "";
     let stderr = "";
     let timedOut = false;
+    let captureLimitExceeded = false;
     const timer = timeoutMs
       ? setTimeout(() => {
           timedOut = true;
@@ -145,23 +182,66 @@ function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false }
         }, timeoutMs)
       : undefined;
     child.stdout.on("data", (chunk) => {
-      stdout += chunk;
+      if (
+        failOnCaptureLimit &&
+        !captureLimitExceeded &&
+        stdout.length + chunk.length > captureMaxLength
+      ) {
+        captureLimitExceeded = true;
+        child.kill("SIGTERM");
+        setTimeout(() => child.kill("SIGKILL"), 2_000).unref();
+      }
+      stdout = appendDiagnosticTail(stdout, chunk, captureMaxLength);
       if (!quiet) process.stdout.write(chunk);
     });
     child.stderr.on("data", (chunk) => {
-      stderr += chunk;
+      if (
+        failOnCaptureLimit &&
+        !captureLimitExceeded &&
+        stderr.length + chunk.length > captureMaxLength
+      ) {
+        captureLimitExceeded = true;
+        child.kill("SIGTERM");
+        setTimeout(() => child.kill("SIGKILL"), 2_000).unref();
+      }
+      stderr = appendDiagnosticTail(stderr, chunk, captureMaxLength);
       if (!quiet) process.stderr.write(chunk);
     });
     child.on("error", reject);
     child.on("close", (code, signal) => {
       if (timer) clearTimeout(timer);
-      if (timedOut) return reject(new Error(`${command} timed out`));
-      if (signal) return reject(new Error(`${command} terminated by ${signal}`));
+      if (captureLimitExceeded) {
+        return reject(
+          attachProcessDiagnostics(
+            new Error(`${command} exceeded its output capture limit`),
+            stdout,
+            stderr,
+          ),
+        );
+      }
+      if (timedOut) {
+        return reject(
+          attachProcessDiagnostics(new Error(`${command} timed out`), stdout, stderr),
+        );
+      }
+      if (signal) {
+        return reject(
+          attachProcessDiagnostics(
+            new Error(`${command} terminated by ${signal}`),
+            stdout,
+            stderr,
+          ),
+        );
+      }
       if (code !== 0) {
         const detail = quiet ? "" : `: ${stderr.trim().slice(-500)}`;
-        const error = new Error(`${command} exited with status ${code}${detail}`);
-        error.stderr = stderr;
-        return reject(error);
+        return reject(
+          attachProcessDiagnostics(
+            new Error(`${command} exited with status ${code}${detail}`),
+            stdout,
+            stderr,
+          ),
+        );
       }
       resolve({ stdout, stderr });
     });
@@ -179,13 +259,26 @@ function sanitizeBootstrapDiagnostic(value) {
       "[REDACTED_URI]",
     )
     .replace(
-      /(?:^|[\s,])(?:DATABASE_URL|PGPASSWORD|LEDGERLY_CANONICAL_TEST_[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET|KEY))\s*=\s*[^\r\n]*/gu,
+      /(?:^|[\s,{])(?:\\*["'])?(?:DATABASE_URL|PGPASSWORD|LEDGERLY_CANONICAL_TEST_[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET|KEY))(?:\\*["'])?[ \t]*[:=][ \t]*\r?\n[^\r\n]*/giu,
+      "[REDACTED_ENV]",
+    )
+    .replace(
+      /\bAuthorization(?:\s+header)?[ \t]*[:=][ \t]*\r?\n[^\r\n]*/giu,
+      "[REDACTED_AUTHORIZATION]",
+    )
+    .replace(
+      /["']?(?:password|passwd|pwd|secret|token|access_token|refresh_token|api[_-]?key|privateKey|cookie|authorization)["']?[ \t]*[:=][ \t]*\r?\n[^\r\n]*/giu,
+      "[REDACTED_SECRET]",
+    )
+    .replace(
+      /(?:^|[\s,{])(?:\\*["'])?(?:DATABASE_URL|PGPASSWORD|LEDGERLY_CANONICAL_TEST_[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET|KEY))(?:\\*["'])?\s*[:=]\s*[^\r\n]*/giu,
       "[REDACTED_ENV]",
     )
     .replace(
       /\bAuthorization(?:\s+header)?\s*[:=]\s*[^\r\n]*/giu,
       "[REDACTED_AUTHORIZATION]",
     )
+    .replace(/\bBearer[ \t]+[^\r\n]*/giu, "[REDACTED_BEARER]")
     .replace(
       /["']?(?:password|passwd|pwd|secret|token|access_token|refresh_token|api[_-]?key|privateKey|cookie|authorization)["']?\s*[:=]\s*[^\r\n]*/giu,
       "[REDACTED_SECRET]",
@@ -226,6 +319,18 @@ function captureBootstrapDiagnostic(error) {
   );
 }
 
+function captureTestDiagnostic(error) {
+  const stderr =
+    error && typeof error.stderr === "string" ? error.stderr.trim() : "";
+  const stdout =
+    error && typeof error.stdout === "string" ? error.stdout.trim() : "";
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return (
+    sanitizeBootstrapDiagnostic(stderr || stdout || message) ??
+    testDiagnosticFallback
+  );
+}
+
 function bootstrapRetryClassificationInput(error) {
   const stderr =
     error && typeof error.stderr === "string" ? error.stderr.trim() : "";
@@ -238,6 +343,22 @@ function isApprovedFkIndexOrderingError(pushOutput) {
     pushOutput.includes("accounting_posting_effects") &&
     pushOutput.includes("economic_effect_id")
   );
+}
+
+async function runApprovedBootstrapRetry(pushArgs, schemaEnv, runDocker = docker) {
+  try {
+    return await runDocker(pushArgs, {
+      env: schemaEnv,
+      timeoutMs: 4 * 60 * 1000,
+      quiet: true,
+    });
+  } catch (error) {
+    const diagnostic = captureBootstrapDiagnostic(error);
+    state.bootstrapDiagnostic = diagnostic;
+    const retryError = new Error("Drizzle bootstrap retry failed");
+    retryError.stderr = diagnostic;
+    throw retryError;
+  }
 }
 
 async function docker(args, options = {}) {
@@ -314,7 +435,11 @@ async function createExecutionSourceManifest(ci) {
   const tracked = await run(
     "git",
     ["ls-files", "-z", "--", ...executionTreePathspecs],
-    { quiet: true },
+    {
+      quiet: true,
+      captureMaxLength: sourceManifestCaptureMaxLength,
+      failOnCaptureLimit: true,
+    },
   );
   const files = tracked.stdout.split("\0").filter(Boolean).sort();
   for (const requiredPath of [
@@ -648,7 +773,7 @@ async function bootstrapDatabase(credentials, sourceDigests, ci) {
       `CREATE UNIQUE INDEX IF NOT EXISTS accounting_posting_effects_company_effect_idx
        ON public.accounting_posting_effects (company_id, economic_effect_id);`,
     );
-    await docker(pushArgs, { env: schemaEnv, timeoutMs: 4 * 60 * 1000 });
+    await runApprovedBootstrapRetry(pushArgs, schemaEnv);
   }
 
   const overlay = await readFile(path.join(root, sourcePaths.securityOverlay), "utf8");
@@ -969,8 +1094,10 @@ async function runTestContainer(credentials, sourceDigests, ci) {
       "run",
       "test:canonical-posting",
     ],
-    { env: testEnv, timeoutMs: 7 * 60 * 1000 },
+    { env: testEnv, timeoutMs: 7 * 60 * 1000, quiet: true },
   );
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
   const completionLine = result.stdout
     .split("\n")
     .find((line) => line.startsWith("LEDGERLY_CANONICAL_TEST_COMPLETION "));
@@ -1090,6 +1217,14 @@ function sanitizeEvidence(value) {
   if (
     /postgres(?:ql)?:\/\//i.test(text) ||
     /"(?:password|token|cookie|privateKey|authorizationHeader)"\s*:/i.test(text) ||
+    /(?:DATABASE_URL|PGPASSWORD|LEDGERLY_CANONICAL_TEST_[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET|KEY))(?:\\*["'])?\s*[:=]/i.test(
+      text,
+    ) ||
+    /\b(?:password|passwd|pwd|secret|token|access_token|refresh_token|api[_-]?key|privateKey|cookie)(?:\\*["'])?\s*[:=]/i.test(
+      text,
+    ) ||
+    /\bAuthorization(?:\s+header)?\s*[:=]/i.test(text) ||
+    /\bBearer\s+/i.test(text) ||
     /BEGIN [A-Z ]*PRIVATE KEY/i.test(text) ||
     /(?:ghs_|github_pat_)/i.test(text) ||
     /replit\.(dev|app)/i.test(text)
@@ -1307,6 +1442,9 @@ async function execute() {
     if (failurePhase === "bootstrap" && !state.bootstrapDiagnostic) {
       state.bootstrapDiagnostic = captureBootstrapDiagnostic(error);
     }
+    if (failurePhase === "test" && !state.testDiagnostic) {
+      state.testDiagnostic = captureTestDiagnostic(error);
+    }
     console.error(`TI-03 failed during ${state.phase}: ${error instanceof Error ? error.message : String(error)}`);
   } finally {
     try {
@@ -1341,6 +1479,9 @@ async function execute() {
         ci: state.ci,
         ...(failurePhase === "bootstrap" && state.bootstrapDiagnostic
           ? { bootstrapDiagnostic: state.bootstrapDiagnostic }
+          : {}),
+        ...(failurePhase === "test" && state.testDiagnostic
+          ? { testDiagnostic: state.testDiagnostic }
           : {}),
         images: {
           postgres: { tag: postgresTag, digest: postgresDigest },
@@ -1390,9 +1531,13 @@ async function execute() {
 }
 
 export {
+  appendDiagnosticTail,
   bootstrapRetryClassificationInput,
   captureBootstrapDiagnostic,
+  captureTestDiagnostic,
   isApprovedFkIndexOrderingError,
+  run,
+  runApprovedBootstrapRetry,
   sanitizeBootstrapDiagnostic,
   sanitizeEvidence,
   validateEvidenceContract,
