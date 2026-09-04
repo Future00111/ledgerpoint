@@ -1,0 +1,637 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledgerly.example/governance/evidence/ledgerly-44-ti-03-corepack-ci-diagnostic.schema.json",
+  "title": "Ledgerly TI-03 Corepack CI diagnostic evidence",
+  "description": "Strict non-secret evidence for a diagnostic-only GitHub image and environment probe. This document is not TI-03 qualification evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "diagnosticType",
+    "qualificationBoundary",
+    "diagnosticStatus",
+    "classification",
+    "source",
+    "builtImage",
+    "probes",
+    "cleanup",
+    "security",
+    "artifact",
+    "failure"
+  ],
+  "properties": {
+    "diagnosticType": {
+      "const": "corepack-ci-diagnostic"
+    },
+    "qualificationBoundary": {
+      "const": "not-ti03-qualification"
+    },
+    "diagnosticStatus": {
+      "enum": [
+        "diagnostic-succeeded",
+        "diagnostic-failed"
+      ]
+    },
+    "classification": {
+      "enum": [
+        "image-config-mismatch",
+        "launched-image-mismatch",
+        "runtime-env-mutation",
+        "corepack-boundary-discrepancy",
+        "hardening-interaction",
+        "env-file-interaction",
+        "matching-runtime",
+        "incomplete-evidence"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceSha",
+        "workflow",
+        "workflowRef",
+        "ref",
+        "protected",
+        "runId",
+        "runAttempt",
+        "job"
+      ],
+      "properties": {
+        "sourceSha": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "workflow": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 160
+        },
+        "workflowRef": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 300
+        },
+        "ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 160
+        },
+        "protected": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "runId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9]+$"
+        },
+        "runAttempt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9]+$"
+        },
+        "job": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120
+        }
+      }
+    },
+    "builtImage": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "repoDigests",
+            "config"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "repoDigests": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "maxItems": 10
+            },
+            "config": {
+              "$ref": "#/$defs/imageConfig"
+            }
+          }
+        }
+      ]
+    },
+    "probes": {
+      "type": "array",
+      "maxItems": 2,
+      "items": {
+        "$ref": "#/$defs/probe"
+      }
+    },
+    "cleanup": {
+      "$ref": "#/$defs/cleanup"
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "environmentAllowlist",
+        "noArbitraryEnvironmentDump",
+        "noCredentials",
+        "noDockerSocket",
+        "networkDisabled",
+        "hardeningReproduced",
+        "noDatabaseTargets",
+        "secretScanPassed",
+        "artifactSizeBoundPassed"
+      ],
+      "properties": {
+        "environmentAllowlist": {
+          "type": "boolean"
+        },
+        "noArbitraryEnvironmentDump": {
+          "type": "boolean"
+        },
+        "noCredentials": {
+          "type": "boolean"
+        },
+        "noDockerSocket": {
+          "type": "boolean"
+        },
+        "networkDisabled": {
+          "type": "boolean"
+        },
+        "hardeningReproduced": {
+          "type": "boolean"
+        },
+        "noDatabaseTargets": {
+          "type": "boolean"
+        },
+        "secretScanPassed": {
+          "type": "boolean"
+        },
+        "artifactSizeBoundPassed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "jsonFileName",
+        "checksumFileName",
+        "sizeLimitBytes"
+      ],
+      "properties": {
+        "jsonFileName": {
+          "type": "string",
+          "pattern": "^ledgerly-44-ti-03-corepack-github-ci-diagnostic-[0-9]+-[0-9]+\\.json$"
+        },
+        "checksumFileName": {
+          "type": "string",
+          "pattern": "^ledgerly-44-ti-03-corepack-github-ci-diagnostic-[0-9]+-[0-9]+\\.json\\.sha256$"
+        },
+        "sizeLimitBytes": {
+          "const": 65536
+        }
+      }
+    },
+    "failure": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "phase",
+            "message"
+          ],
+          "properties": {
+            "phase": {
+              "enum": [
+                "preflight",
+                "manifest",
+                "build",
+                "image-inspect",
+                "probe",
+                "cleanup",
+                "artifact"
+              ]
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "allowlistedEnv": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "PATH",
+        "HOME",
+        "COREPACK_HOME",
+        "XDG_CACHE_HOME"
+      ],
+      "properties": {
+        "PATH": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 512
+        },
+        "HOME": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 160
+        },
+        "COREPACK_HOME": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 160
+        },
+        "XDG_CACHE_HOME": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 160
+        }
+      }
+    },
+    "imageConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "User",
+        "WorkingDir",
+        "Entrypoint",
+        "Cmd",
+        "Env"
+      ],
+      "properties": {
+        "User": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120
+        },
+        "WorkingDir": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 240
+        },
+        "Entrypoint": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "maxItems": 8
+        },
+        "Cmd": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "maxItems": 8
+        },
+        "Env": {
+          "$ref": "#/$defs/allowlistedEnv"
+        }
+      }
+    },
+    "probe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "imageId",
+        "runtime",
+        "packageManager",
+        "preparedCache",
+        "security",
+        "containerRemoved"
+      ],
+      "properties": {
+        "name": {
+          "enum": [
+            "normal",
+            "hardened-env-file"
+          ]
+        },
+        "imageId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "runtime": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "uid",
+            "gid",
+            "HOME",
+            "COREPACK_HOME",
+            "XDG_CACHE_HOME",
+            "PATH",
+            "pwd",
+            "pnpmCommand",
+            "pnpmShimTarget",
+            "corepackCommand",
+            "corepackImplementationTarget"
+          ],
+          "properties": {
+            "uid": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "gid": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "HOME": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 160
+            },
+            "COREPACK_HOME": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 160
+            },
+            "XDG_CACHE_HOME": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 160
+            },
+            "PATH": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 512
+            },
+            "pwd": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 240
+            },
+            "pnpmCommand": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 240
+            },
+            "pnpmShimTarget": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 240
+            },
+            "corepackCommand": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 240
+            },
+            "corepackImplementationTarget": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 240
+            }
+          }
+        },
+        "packageManager": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "exitStatus",
+            "version",
+            "expectedVersionMatch",
+            "userCacheBefore",
+            "userCacheAfter",
+            "fallbackAttempted",
+            "registryNetworkAttempted"
+          ],
+          "properties": {
+            "exitStatus": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "version": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 40
+            },
+            "expectedVersionMatch": {
+              "type": "boolean"
+            },
+            "userCacheBefore": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "userCacheAfter": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "fallbackAttempted": {
+              "type": "boolean"
+            },
+            "registryNetworkAttempted": {
+              "type": "boolean"
+            }
+          }
+        },
+        "preparedCache": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "optCorepackExists",
+            "optCorepackStat",
+            "preparedPnpm10126Present"
+          ],
+          "properties": {
+            "optCorepackExists": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "optCorepackStat": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 80
+            },
+            "preparedPnpm10126Present": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          }
+        },
+        "security": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "networkMode",
+            "readOnlyRoot",
+            "tmpfs",
+            "capDropAll",
+            "noNewPrivileges",
+            "pidsLimit",
+            "safeEnvFile",
+            "noDockerSocket"
+          ],
+          "properties": {
+            "networkMode": {
+              "const": "none"
+            },
+            "readOnlyRoot": {
+              "type": "boolean"
+            },
+            "tmpfs": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                null,
+                "/tmp:rw,noexec,nosuid,nodev"
+              ]
+            },
+            "capDropAll": {
+              "type": "boolean"
+            },
+            "noNewPrivileges": {
+              "type": "boolean"
+            },
+            "pidsLimit": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "safeEnvFile": {
+              "type": "boolean"
+            },
+            "noDockerSocket": {
+              "type": "boolean"
+            }
+          }
+        },
+        "containerRemoved": {
+          "type": "boolean"
+        }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "containersRemoved",
+        "networkRemoved",
+        "envFileRemoved",
+        "temporaryMaterialRemoved",
+        "imageRemoved"
+      ],
+      "properties": {
+        "containersRemoved": {
+          "type": "boolean"
+        },
+        "networkRemoved": {
+          "type": "boolean"
+        },
+        "envFileRemoved": {
+          "type": "boolean"
+        },
+        "temporaryMaterialRemoved": {
+          "type": "boolean"
+        },
+        "imageRemoved": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
