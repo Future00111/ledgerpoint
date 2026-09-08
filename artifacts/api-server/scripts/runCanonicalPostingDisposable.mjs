@@ -24,6 +24,31 @@ function requireEnvironment(names) {
   }
 }
 
+function externalCiChildEnvironment({
+  sourceEnvironment = process.env,
+  databaseUrl,
+  databaseName,
+  runId,
+  environment,
+  targetClass,
+}) {
+  if (sourceEnvironment.COREPACK_HOME !== "/opt/corepack") {
+    throw new Error(
+      "External-CI mode requires COREPACK_HOME to equal /opt/corepack",
+    );
+  }
+  return {
+    PATH: sourceEnvironment.PATH,
+    COREPACK_HOME: sourceEnvironment.COREPACK_HOME,
+    NODE_ENV: "test",
+    DATABASE_URL: databaseUrl,
+    LEDGERLY_CANONICAL_TEST_DATABASE_NAME: databaseName,
+    LEDGERLY_CANONICAL_TEST_RUN_ID: runId,
+    LEDGERLY_CANONICAL_TEST_ENVIRONMENT: environment,
+    LEDGERLY_CANONICAL_TEST_TARGET_CLASS: targetClass,
+  };
+}
+
 function sha256File(relativePath) {
   return createHash("sha256")
     .update(readFileSync(path.join(workspaceDirectory, relativePath)))
@@ -550,15 +575,13 @@ async function runExternalCi() {
     imageBinding,
   });
 
-  const childEnvironment = {
-    PATH: process.env.PATH,
-    NODE_ENV: "test",
-    DATABASE_URL: process.env.LEDGERLY_CANONICAL_TEST_DATABASE_URL,
-    LEDGERLY_CANONICAL_TEST_DATABASE_NAME: databaseName,
-    LEDGERLY_CANONICAL_TEST_RUN_ID: runId,
-    LEDGERLY_CANONICAL_TEST_ENVIRONMENT: environment,
-    LEDGERLY_CANONICAL_TEST_TARGET_CLASS: targetClass,
-  };
+  const childEnvironment = externalCiChildEnvironment({
+    databaseUrl: process.env.LEDGERLY_CANONICAL_TEST_DATABASE_URL,
+    databaseName,
+    runId,
+    environment,
+    targetClass,
+  });
   const output = path.join(os.tmpdir(), `ledgerly-canonical-posting-${runId}.cjs`);
   let testOutput;
   try {
@@ -873,4 +896,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   await execute();
 }
 
-export { appendDiagnosticTail, boundedDiagnosticTail, runProcess };
+export {
+  appendDiagnosticTail,
+  boundedDiagnosticTail,
+  externalCiChildEnvironment,
+  runProcess,
+};
