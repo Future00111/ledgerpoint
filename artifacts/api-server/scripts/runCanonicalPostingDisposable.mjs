@@ -40,6 +40,7 @@ function externalCiChildEnvironment({
   return {
     PATH: sourceEnvironment.PATH,
     COREPACK_HOME: sourceEnvironment.COREPACK_HOME,
+    NODE_PATH: path.join(packageDirectory, "node_modules"),
     NODE_ENV: "test",
     DATABASE_URL: databaseUrl,
     LEDGERLY_CANONICAL_TEST_DATABASE_NAME: databaseName,
