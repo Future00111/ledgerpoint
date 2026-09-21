@@ -1,0 +1,293 @@
+TR-01 — RESUME CANDIDATE C IMPLEMENTATION AFTER SCHEMA-V2 SCOPE AMENDMENT
+
+Current status:
+
+TR-01 SCHEMA-V2 COMPATIBILITY AMENDMENT:
+APPROVED
+
+Candidate implementation package:
+REFRESHED / INDEPENDENT REVIEW PASS
+
+Candidate C inventory:
+EXACTLY 8 AUTHORIZED PATHS
+
+No third executable file is authorized.
+
+Resume the previously approved TR-01 identity-recovery implementation
+against the CURRENT authoritative amended package.
+
+Do not rely on any superseded inventory.
+
+==================================================
+1. CONFIRM AUTHORITATIVE INVENTORY
+==================================================
+
+Before modifying anything:
+
+print the exact eight candidate C paths from the current approved package.
+
+Confirm:
+
+AUTHORIZED CANDIDATE PATH COUNT:
+8
+
+Confirm the two newly approved compatibility paths are included:
+
+- scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql
+- artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs
+
+Do not infer or add a ninth path.
+
+If the current package does not resolve to exactly eight candidate paths:
+
+STOP.
+
+Report:
+
+TR-01 CANDIDATE INVENTORY MISMATCH — REVIEW REQUIRED
+
+==================================================
+2. RECONCILE CURRENT WORKTREE
+==================================================
+
+Reconcile all current uncommitted partial implementation changes against
+the approved eight-path candidate inventory.
+
+Classify each change:
+
+KEEP — MATCHES APPROVED DESIGN
+
+MODIFY — REQUIRED TO MATCH APPROVED DESIGN
+
+DISCARD — OUTSIDE APPROVED DESIGN
+
+The uploaded approval/instruction attachment remains untracked and MUST
+NOT be included in candidate C.
+
+No unrelated file may enter C.
+
+==================================================
+3. IMPLEMENT SCHEMA-V2 COMPATIBILITY
+==================================================
+
+Complete the approved implementation across the authorized eight paths.
+
+For the two newly approved compatibility files, implement exactly the
+reviewed amendment:
+
+- remove legacy sourceCommit / source_commit qualification dependency;
+- use the approved eight schema-v2 identity fields;
+- preserve literal environment boolean parsing;
+- preserve JSON-type-safe SQL verification;
+- reject legacy identity evidence;
+- reject mixed identity evidence;
+- preserve exact C / S / A / B / G semantics.
+
+Do not change accounting or normal runtime semantics.
+
+==================================================
+4. NO ADDITIONAL SCOPE
+==================================================
+
+If any ninth executable/product/qualification file becomes necessary:
+
+STOP BEFORE MODIFYING IT.
+
+Report:
+
+TR-01 IDENTITY RECOVERY IMPLEMENTATION SCOPE EXPANSION REQUIRED
+— APPROVAL NEEDED
+
+Do not improvise.
+
+==================================================
+5. FRESH VALIDATION
+==================================================
+
+After implementation is complete, run the complete mandatory fresh
+validation from the current approved package.
+
+Historical results do not count.
+
+Run all required:
+
+- frozen dependency installation;
+- syntax checks;
+- API TypeScript typechecking;
+- relevant unit/pure tests;
+- SQL / runner / overlay parity checks;
+- evidence-schema-v2 compilation;
+- schema-v2 acceptance probes;
+- legacy evidence rejection probes;
+- mixed identity rejection probes;
+- boolean parsing probes;
+- JSON-type-safe SQL verification probes;
+- role / ACL / ownership / trigger / grant review;
+- workflow permissions / protected-ref checks;
+- pinned action/image/toolchain checks;
+- secret / credential scanning;
+- deterministic source manifest;
+- approved inventory reconciliation.
+
+Report every mandatory category as:
+
+PASS
+FAIL
+NOT PROVEN
+
+Any FAIL or NOT PROVEN is blocking.
+
+==================================================
+6. FRESH INDEPENDENT IMPLEMENTATION REVIEW
+==================================================
+
+After fresh validation passes, perform a fresh independent read-only
+implementation/security review BEFORE candidate commit creation.
+
+Reviewer must verify:
+
+- exactly eight candidate paths;
+- no unauthorized file;
+- schema-v2 identity semantics correct;
+- no legacy sourceCommit/source_commit dependency remains where prohibited;
+- all eight replacement identity fields align;
+- legacy/mixed evidence fails closed;
+- no accounting/runtime/security boundary drift;
+- current validation is fresh;
+- uploaded attachment excluded;
+- candidate tree is ready to become immutable C.
+
+If review fails:
+
+STOP.
+
+==================================================
+7. CREATE IMMUTABLE CANDIDATE C
+==================================================
+
+Only after all previous gates pass:
+
+create ONE bounded candidate implementation commit C.
+
+C must contain only the approved candidate implementation inventory.
+
+Record exact:
+
+C = <40-character SHA>
+
+After creating C:
+
+- do not amend;
+- do not rebase;
+- do not squash;
+- do not cherry-pick into a replacement commit;
+- do not rewrite C.
+
+Verify C's tree contains exactly the intended candidate changes.
+
+==================================================
+8. PUBLISH CANDIDATE BRANCH
+==================================================
+
+Attempt to publish exact C to:
+
+refs/heads/tr01/implementation-identity-candidate
+
+using the approved GitHub path.
+
+Do NOT reconstruct C through REST if doing so changes its SHA.
+
+Do NOT force push.
+
+If Git authentication or repository access prevents exact publication:
+
+STOP.
+
+Report:
+
+TR-01 CANDIDATE C CREATED — EXACT GITHUB PUBLICATION BLOCKED
+
+Include exact C SHA.
+
+Do not replace it with another commit.
+
+==================================================
+9. PROTECTION / ENVIRONMENT
+==================================================
+
+Only if exact C is successfully present on GitHub:
+
+configure and verify the approved candidate branch protections and
+protected environment exactly as specified in the package.
+
+Bind:
+
+LEDGERLY_APPROVED_CANDIDATE_SHA=C
+
+Verify all required reviewer, environment, ref, permissions, ancestry,
+and workflow_dispatch controls.
+
+Any mismatch:
+
+STOP.
+
+==================================================
+10. CANDIDATE QUALIFICATION
+==================================================
+
+Only after exact publication and all protection/environment checks pass:
+
+run the COMPLETE approved candidate PostgreSQL qualification.
+
+Use the exact candidate identity contract.
+
+Require all schema-v2 identity and evidence checks.
+
+Use approved disposable PostgreSQL only.
+
+No production.
+No HeliumDB.
+No customer data.
+
+Cleanup and exact resource-absence verification are mandatory.
+
+==================================================
+11. POST-QUALIFICATION REVIEW
+==================================================
+
+If candidate qualification passes:
+
+perform the required fresh independent evidence / implementation review.
+
+Confirm:
+
+C remains exact and immutable;
+qualification used C;
+schema-v2 evidence is valid;
+legacy/mixed evidence rejected;
+cleanup passed;
+production contact = 0;
+HeliumDB contact = 0;
+Phase A = NOT RUN.
+
+==================================================
+12. SUCCESS STOP POINT
+==================================================
+
+If every authorized gate passes:
+
+TR-01 CANDIDATE IMPLEMENTATION IDENTITY QUALIFIED
+— FINAL IDENTITY APPROVAL REQUIRED
+
+Then STOP.
+
+Do NOT:
+
+- designate C authoritative;
+- create G;
+- activate protected main;
+- run activated qualification;
+- run Phase A;
+- modify 48-B;
+- start Stage 3;
+- unpause #40-CF-01.
