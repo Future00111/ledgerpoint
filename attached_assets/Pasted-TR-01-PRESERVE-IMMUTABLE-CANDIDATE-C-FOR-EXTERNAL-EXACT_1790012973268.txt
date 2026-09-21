@@ -1,0 +1,142 @@
+TR-01 — PRESERVE IMMUTABLE CANDIDATE C FOR EXTERNAL EXACT-SHA PUBLICATION
+
+Candidate C has passed the authorised pre-candidate gates and exists locally:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+Exact publication through the workspace failed only because GitHub
+authentication is unavailable.
+
+Do NOT:
+
+- amend C;
+- rebase;
+- squash;
+- cherry-pick;
+- recreate C;
+- make another implementation commit;
+- use REST reconstruction;
+- run PostgreSQL qualification;
+- configure GitHub;
+- run Phase A.
+
+==================================================
+1. VERIFY C STILL EXISTS
+==================================================
+
+Verify:
+
+git object C exists
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+working tree state is unchanged from the reported stop point.
+
+If C is missing:
+
+STOP immediately.
+
+==================================================
+2. PRESERVE EXACT CANDIDATE REF
+==================================================
+
+Ensure the local ref:
+
+refs/heads/tr01/implementation-identity-candidate
+
+points EXACTLY to:
+
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+Creating or correcting this LOCAL REF is permitted because it does not
+alter the commit object or ancestry.
+
+Do not create another commit.
+
+==================================================
+3. CREATE COMPLETE GIT BUNDLE
+==================================================
+
+Create a complete Git bundle containing the exact candidate branch and
+all ancestry required to publish it from another Git-authenticated
+environment.
+
+Suggested output:
+
+exports/tr01-implementation-candidate-d292f3a.bundle
+
+The bundle must contain:
+
+refs/heads/tr01/implementation-identity-candidate
+
+at exact HEAD:
+
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+==================================================
+4. VERIFY BUNDLE
+==================================================
+
+Run Git bundle verification.
+
+Also verify in an isolated temporary Git repository that the bundle
+actually exposes the exact candidate branch and commit.
+
+Report:
+
+BUNDLE VERIFY:
+PASS / FAIL
+
+BUNDLE BRANCH:
+refs/heads/tr01/implementation-identity-candidate
+
+BUNDLE HEAD:
+<exact SHA>
+
+EXPECTED HEAD:
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+COMPLETE REQUIRED HISTORY:
+YES / NO
+
+BUNDLE SHA-256:
+<digest>
+
+==================================================
+5. RETAIN THE BUNDLE
+==================================================
+
+Do NOT delete the bundle after verification.
+
+Do NOT clean the exports path containing it.
+
+Keep it present until I explicitly confirm that it has been downloaded
+and the exact candidate has been published to GitHub.
+
+==================================================
+6. DOWNLOADABLE ATTACHMENT
+==================================================
+
+Present the verified .bundle file directly as a downloadable attachment
+in the Replit chat.
+
+Do not merely open it as a binary editor tab.
+
+Do not replace it with an HTML link.
+
+The user must be able to download the actual .bundle bytes.
+
+==================================================
+7. STOP
+==================================================
+
+After attaching the bundle, STOP.
+
+Do not attempt another GitHub push.
+
+Expected result:
+
+TR-01 CANDIDATE C PRESERVED IN VERIFIED GIT BUNDLE
+— EXTERNAL EXACT-SHA PUBLICATION REQUIRED

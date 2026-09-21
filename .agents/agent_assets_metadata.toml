@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "YRotYfEgYl3SpEpy2P-o1"
+uri = "file://exports/tr01-implementation-candidate-d292f3a.bundle"
+type = "unspecified"
+title = "TR-01 immutable candidate C Git bundle"
+description = "Verified complete Git bundle for refs/heads/tr01/implementation-identity-candidate at d292f3a64c6253e022b40de8cf055f3e722ff1ea. SHA-256: 99b1b1b5468f848b2350d3f8597dac7e5272e283451e2ef13fc91cda34341524"
+logical_id = "d269a933-587a-40e9-8678-e2a8688a4e3f"
+content_hash = "sha256:99b1b1b5468f848b2350d3f8597dac7e5272e283451e2ef13fc91cda34341524"
+size = 5784051
+mtime_ms = 1790013052667
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/d269a933-587a-40e9-8678-e2a8688a4e3f/9bd9a053-28c6-4e4e-bdc0-a05491cb0e12"
+storage_version_token = "1790013061403017"
+content_type = "application/octet-stream"
