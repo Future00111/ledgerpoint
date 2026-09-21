@@ -314,7 +314,7 @@ function buildCiIdentity(identity) {
   };
 }
 
-async function createExecutionSourceManifest(ci) {
+async function createExecutionSourceManifest(ci, workflowSourceSha256) {
   await rm(path.join(implementationRoot, sourceManifestPath), { force: true });
   if (ci.implementationSourceCommit !== (
     await run("git", ["rev-parse", "HEAD"], { quiet: true })
@@ -361,6 +361,7 @@ async function createExecutionSourceManifest(ci) {
     version: 2,
     identityMode: ci.identityMode,
     implementationSourceCommit: ci.implementationSourceCommit,
+    workflowSourceSha256,
     files,
     sourceTreeSha256,
   };
@@ -434,8 +435,8 @@ async function createCredentials(runId, databaseName, sourceDigests, ci) {
     ciRunAttempt: ci.runAttempt,
     ciJob: ci.job,
     identityMode: ci.identityMode,
-    sourceRef: ci.sourceRef,
-    refProtected: ci.refProtected,
+    ciSourceRef: ci.sourceRef,
+    ciRefProtected: ci.refProtected,
     workflowSourceCommit: ci.workflowSourceCommit,
     implementationSourceCommit: ci.implementationSourceCommit,
     ancestryVerified: ci.ancestryVerified,
@@ -628,8 +629,8 @@ async function bootstrapDatabase(credentials, sourceDigests, ci) {
       ${sqlString(credentials.binding.ciWorkflow)}, ${sqlString(credentials.binding.ciWorkflowRef)},
       ${sqlString(credentials.binding.ciRunId)},
       ${sqlString(credentials.binding.ciRunAttempt)}, ${sqlString(credentials.binding.ciJob)},
-      ${sqlString(credentials.binding.identityMode)}, ${sqlString(credentials.binding.sourceRef)},
-      ${credentials.binding.refProtected}, ${sqlString(credentials.binding.workflowSourceCommit)},
+      ${sqlString(credentials.binding.identityMode)}, ${sqlString(credentials.binding.ciSourceRef)},
+      ${credentials.binding.ciRefProtected}, ${sqlString(credentials.binding.workflowSourceCommit)},
       ${sqlString(credentials.binding.implementationSourceCommit)},
       ${credentials.binding.ancestryVerified}, ${credentials.binding.workflowCheckoutClean},
       ${credentials.binding.implementationCheckoutClean},
@@ -1212,6 +1213,9 @@ function validateEvidenceContract(evidence) {
       !Array.isArray(evidence.bootstrap?.triggers) ||
       evidence.binding?.workflowSourceCommit !== evidence.ci.workflowSourceCommit ||
       evidence.binding?.implementationSourceCommit !== evidence.ci.implementationSourceCommit ||
+      evidence.binding?.identityMode !== evidence.ci.identityMode ||
+      evidence.binding?.ciSourceRef !== evidence.ci.sourceRef ||
+      evidence.binding?.ciRefProtected !== evidence.ci.refProtected ||
       evidence.binding?.ancestryVerified !== true ||
       evidence.binding?.workflowCheckoutClean !== true ||
       evidence.binding?.implementationCheckoutClean !== true ||
@@ -1253,7 +1257,8 @@ async function main() {
   const identity = await verifyIdentityRoots(context.mode, context.implementationSha);
   const ci = buildCiIdentity({ ...context, ...identity });
   state.ci = ci;
-  const sourceManifest = await createExecutionSourceManifest(ci);
+  const workflowSourceSha256 = await sha256File(sourcePaths.workflow, workflowRoot);
+  const sourceManifest = await createExecutionSourceManifest(ci, workflowSourceSha256);
   try {
     await buildTestImage();
   } finally {
@@ -1274,7 +1279,7 @@ async function main() {
       implementationRoot,
     ),
     lockfile: await sha256File(sourcePaths.lockfile, implementationRoot),
-    workflow: await sha256File(sourcePaths.workflow, workflowRoot),
+    workflow: sourceManifest.workflowSourceSha256,
     orchestrator: await sha256File(sourcePaths.canonicalCoordinator, implementationRoot),
   };
   const credentials = await createCredentials(state.runId, state.databaseName, sourceDigests, ci);
@@ -1316,6 +1321,9 @@ async function main() {
       targetClassification: "external-ci-postgresql-service-container",
       creatorIdentity: "postgres",
       runtimeIdentity: "ledgerly_api",
+      identityMode: ci.identityMode,
+      ciSourceRef: ci.sourceRef,
+      ciRefProtected: ci.refProtected,
        workflowSourceCommit: ci.workflowSourceCommit,
        implementationSourceCommit: ci.implementationSourceCommit,
        ancestryVerified: ci.ancestryVerified,

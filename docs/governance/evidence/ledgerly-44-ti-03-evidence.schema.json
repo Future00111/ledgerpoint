@@ -82,6 +82,9 @@
         "targetClassification",
         "creatorIdentity",
         "runtimeIdentity",
+        "identityMode",
+        "ciSourceRef",
+        "ciRefProtected",
         "workflowSourceCommit",
         "implementationSourceCommit",
         "ancestryVerified",
@@ -97,6 +100,14 @@
         "targetClassification": { "const": "external-ci-postgresql-service-container" },
         "creatorIdentity": { "const": "postgres" },
         "runtimeIdentity": { "const": "ledgerly_api" },
+        "identityMode": { "enum": ["candidate", "activated"] },
+        "ciSourceRef": {
+          "enum": [
+            "refs/heads/tr01/implementation-identity-candidate",
+            "refs/heads/main"
+          ]
+        },
+        "ciRefProtected": { "const": true },
         "workflowSourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
         "implementationSourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
         "ancestryVerified": { "const": true },

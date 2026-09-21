@@ -51,14 +51,12 @@ const sourceFiles = {
 };
 const sourceManifestPath = ".ci/ledgerly-canonical/source-manifest.json";
 
-function verifiedExecutionSourceTreeDigest() {
-  const manifest = JSON.parse(
-    readFileSync(path.join(workspaceDirectory, sourceManifestPath), "utf8"),
-  );
+export function validateExecutionSourceManifest(manifest, calculateSourceTreeDigest) {
   if (
-    manifest?.version !== 1 ||
+    manifest?.version !== 2 ||
     !Array.isArray(manifest.files) ||
     !/^[0-9a-f]{64}$/.test(manifest.sourceTreeSha256) ||
+    !/^[0-9a-f]{64}$/.test(manifest.workflowSourceSha256) ||
     manifest.files.length === 0 ||
     manifest.files.some(
       (file) =>
@@ -71,11 +69,18 @@ function verifiedExecutionSourceTreeDigest() {
   ) {
     throw new Error("The execution source manifest is invalid");
   }
-  const calculated = sha256Files(manifest.files);
+  const calculated = calculateSourceTreeDigest(manifest.files);
   if (calculated !== manifest.sourceTreeSha256) {
     throw new Error("The execution source manifest digest does not match the image contents");
   }
-  return calculated;
+  return manifest;
+}
+
+function verifiedExecutionSourceManifest() {
+  return validateExecutionSourceManifest(
+    JSON.parse(readFileSync(path.join(workspaceDirectory, sourceManifestPath), "utf8")),
+    sha256Files,
+  );
 }
 
 function commonSourceDigests() {
@@ -87,18 +92,19 @@ function commonSourceDigests() {
 }
 
 function externalSourceDigests() {
+  const manifest = verifiedExecutionSourceManifest();
   const testSources = [
     sourceFiles.canonicalTests,
     sourceFiles.canonicalPosting,
   ];
   return {
     ...commonSourceDigests(),
-    sourceTree: verifiedExecutionSourceTreeDigest(),
+    sourceTree: manifest.sourceTreeSha256,
     runControlSql: sha256File(sourceFiles.runControlSql),
     coordinator: sha256File(sourceFiles.coordinator),
     testSources: sha256Files(testSources),
     lockfile: sha256File(sourceFiles.lockfile),
-    workflow: sha256File(sourceFiles.workflow),
+    workflow: manifest.workflowSourceSha256,
     orchestrator: sha256File(sourceFiles.coordinator),
   };
 }
@@ -126,6 +132,17 @@ function assertHash(value, label) {
   if (!/^[0-9a-f]{64}$/.test(value)) {
     throw new Error(`${label} is invalid`);
   }
+}
+
+export function parseLiteralTrue(value, name) {
+  if (value !== "true") {
+    throw new Error(`${name} must equal the literal string true`);
+  }
+  return true;
+}
+
+function requireLiteralTrue(name) {
+  return parseLiteralTrue(process.env[name], name);
 }
 
 function extractMarker(output, marker) {
@@ -242,7 +259,14 @@ async function verifyExternalBinding({
       ciRunId: ci.runId,
       ciRunAttempt: ci.runAttempt,
       ciJob: ci.job,
-      sourceCommit: ci.sourceCommit,
+      identityMode: ci.identityMode,
+      ciSourceRef: ci.ciSourceRef,
+      ciRefProtected: ci.ciRefProtected,
+      workflowSourceCommit: ci.workflowSourceCommit,
+      implementationSourceCommit: ci.implementationSourceCommit,
+      ancestryVerified: ci.ancestryVerified,
+      workflowCheckoutClean: ci.workflowCheckoutClean,
+      implementationCheckoutClean: ci.implementationCheckoutClean,
       sourceTreeSha256: sourceDigests.sourceTree,
       applicationSchemaSha256: sourceDigests.applicationSchema,
       drizzleConfigSha256: sourceDigests.drizzleConfig,
@@ -294,6 +318,9 @@ async function verifyNoLingeringTestSessions(databaseUrl) {
 }
 
 async function runExternalCi() {
+  if (Object.hasOwn(process.env, "LEDGERLY_CANONICAL_TEST_SOURCE_COMMIT")) {
+    throw new Error("Legacy source commit identity is not accepted");
+  }
   requireEnvironment([
     "LEDGERLY_CANONICAL_TEST_DATABASE_URL",
     "LEDGERLY_CANONICAL_TEST_DATABASE_NAME",
@@ -318,7 +345,14 @@ async function runExternalCi() {
     "LEDGERLY_CANONICAL_TEST_CI_RUN_ID",
     "LEDGERLY_CANONICAL_TEST_CI_RUN_ATTEMPT",
     "LEDGERLY_CANONICAL_TEST_CI_JOB",
-    "LEDGERLY_CANONICAL_TEST_SOURCE_COMMIT",
+    "LEDGERLY_CANONICAL_TEST_IDENTITY_MODE",
+    "LEDGERLY_CANONICAL_TEST_SOURCE_REF",
+    "LEDGERLY_CANONICAL_TEST_REF_PROTECTED",
+    "LEDGERLY_CANONICAL_TEST_WORKFLOW_SOURCE_COMMIT",
+    "LEDGERLY_CANONICAL_TEST_IMPLEMENTATION_SOURCE_COMMIT",
+    "LEDGERLY_CANONICAL_TEST_ANCESTRY_VERIFIED",
+    "LEDGERLY_CANONICAL_TEST_WORKFLOW_CHECKOUT_CLEAN",
+    "LEDGERLY_CANONICAL_TEST_IMPLEMENTATION_CHECKOUT_CLEAN",
     "LEDGERLY_CANONICAL_TEST_POSTGRES_IMAGE_TAG",
     "LEDGERLY_CANONICAL_TEST_POSTGRES_IMAGE_DIGEST",
     "LEDGERLY_CANONICAL_TEST_NODE_IMAGE_TAG",
@@ -391,8 +425,40 @@ async function runExternalCi() {
     runId: process.env.LEDGERLY_CANONICAL_TEST_CI_RUN_ID,
     runAttempt: process.env.LEDGERLY_CANONICAL_TEST_CI_RUN_ATTEMPT,
     job: process.env.LEDGERLY_CANONICAL_TEST_CI_JOB,
-    sourceCommit: process.env.LEDGERLY_CANONICAL_TEST_SOURCE_COMMIT,
+    identityMode: process.env.LEDGERLY_CANONICAL_TEST_IDENTITY_MODE,
+    ciSourceRef: process.env.LEDGERLY_CANONICAL_TEST_SOURCE_REF,
+    ciRefProtected: requireLiteralTrue("LEDGERLY_CANONICAL_TEST_REF_PROTECTED"),
+    workflowSourceCommit: process.env.LEDGERLY_CANONICAL_TEST_WORKFLOW_SOURCE_COMMIT,
+    implementationSourceCommit: process.env.LEDGERLY_CANONICAL_TEST_IMPLEMENTATION_SOURCE_COMMIT,
+    ancestryVerified: requireLiteralTrue("LEDGERLY_CANONICAL_TEST_ANCESTRY_VERIFIED"),
+    workflowCheckoutClean: requireLiteralTrue("LEDGERLY_CANONICAL_TEST_WORKFLOW_CHECKOUT_CLEAN"),
+    implementationCheckoutClean: requireLiteralTrue(
+      "LEDGERLY_CANONICAL_TEST_IMPLEMENTATION_CHECKOUT_CLEAN",
+    ),
   };
+  if (
+    !["candidate", "activated"].includes(ci.identityMode) ||
+    !["refs/heads/tr01/implementation-identity-candidate", "refs/heads/main"].includes(
+      ci.ciSourceRef,
+    ) ||
+    !/^[0-9a-f]{40}$/.test(ci.workflowSourceCommit) ||
+    !/^[0-9a-f]{40}$/.test(ci.implementationSourceCommit) ||
+    (ci.identityMode === "candidate" &&
+      (ci.ciSourceRef !== "refs/heads/tr01/implementation-identity-candidate" ||
+        ci.workflowSourceCommit !== ci.implementationSourceCommit)) ||
+    (ci.identityMode === "activated" && ci.ciSourceRef !== "refs/heads/main")
+  ) {
+    throw new Error("The external-CI identity binding is not exact");
+  }
+  const manifest = JSON.parse(
+    readFileSync(path.join(workspaceDirectory, sourceManifestPath), "utf8"),
+  );
+  if (
+    manifest.identityMode !== ci.identityMode ||
+    manifest.implementationSourceCommit !== ci.implementationSourceCommit
+  ) {
+    throw new Error("The execution source manifest identity does not match the private binding");
+  }
   const imageBinding = {
     postgresTag: process.env.LEDGERLY_CANONICAL_TEST_POSTGRES_IMAGE_TAG,
     postgresDigest: process.env.LEDGERLY_CANONICAL_TEST_POSTGRES_IMAGE_DIGEST,
@@ -709,8 +775,13 @@ async function runDevelopment() {
   );
 }
 
-if (externalMode) {
-  await runExternalCi();
-} else {
-  await runDevelopment();
+const invokedAsProgram =
+  process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (invokedAsProgram) {
+  if (externalMode) {
+    await runExternalCi();
+  } else {
+    await runDevelopment();
+  }
 }

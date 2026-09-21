@@ -269,6 +269,8 @@ AS $function$
       SELECT 1
       FROM ledgerly_test_control.run_identity r
       WHERE r.run_uuid = p_run_uuid
+        AND NOT (p_binding ? 'sourceCommit')
+        AND NOT (p_binding ? 'source_commit')
         AND r.expected_database_name = p_binding->>'databaseName'
         AND r.environment = p_binding->>'environment'
         AND r.target_classification = p_binding->>'targetClassification'
@@ -279,7 +281,18 @@ AS $function$
         AND r.ci_run_id = p_binding->>'ciRunId'
         AND r.ci_run_attempt = p_binding->>'ciRunAttempt'
         AND r.ci_job = p_binding->>'ciJob'
-        AND r.source_commit = p_binding->>'sourceCommit'
+        AND r.identity_mode = p_binding->>'identityMode'
+        AND r.ci_source_ref = p_binding->>'ciSourceRef'
+        AND r.ci_ref_protected IS TRUE
+        AND p_binding->'ciRefProtected' = 'true'::jsonb
+        AND r.workflow_source_commit = p_binding->>'workflowSourceCommit'
+        AND r.implementation_source_commit = p_binding->>'implementationSourceCommit'
+        AND r.ancestry_verified IS TRUE
+        AND p_binding->'ancestryVerified' = 'true'::jsonb
+        AND r.workflow_checkout_clean IS TRUE
+        AND p_binding->'workflowCheckoutClean' = 'true'::jsonb
+        AND r.implementation_checkout_clean IS TRUE
+        AND p_binding->'implementationCheckoutClean' = 'true'::jsonb
         AND r.source_tree_sha256 = p_binding->>'sourceTreeSha256'
         AND r.application_schema_sha256 = p_binding->>'applicationSchemaSha256'
         AND r.drizzle_config_sha256 = p_binding->>'drizzleConfigSha256'

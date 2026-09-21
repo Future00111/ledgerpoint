@@ -131,6 +131,8 @@ in the exact authorized files:
 - `.github/workflows/ledgerly-canonical-postgresql.yml`;
 - `scripts/ci/run-ledgerly-canonical-postgresql.mjs`;
 - `scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql`;
+- `scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql`;
+- `artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs`;
 - `docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json`;
 - `scripts/ci/run-ledgerly-canonical-postgresql.test.mjs`; and
 - this report.
