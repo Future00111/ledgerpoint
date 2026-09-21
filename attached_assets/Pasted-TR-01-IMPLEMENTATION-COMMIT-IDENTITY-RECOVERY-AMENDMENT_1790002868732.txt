@@ -1,0 +1,240 @@
+TR-01 — IMPLEMENTATION COMMIT IDENTITY RECOVERY AMENDMENT
+
+Recovery inspection is complete.
+
+Required former implementation identity:
+
+Branch:
+feat/ti03-option-e-redesign
+
+Former HEAD:
+b03627099616675924a88e9a30c7b5e6547c9166
+
+Confirmed recovery state:
+
+- former branch ref absent;
+- former commit object absent;
+- reflog reference absent;
+- original Git bundle absent;
+- GitHub copy absent;
+- no usable checkpoint exists from the period when the exact commit and
+  verified bundle existed;
+- available checkpoint history jumps from the current post-loss checkpoint
+  to checkpoints approximately 26 days old.
+
+Therefore:
+
+b03627099616675924a88e9a30c7b5e6547c9166
+
+must be treated as LOST / NON-RECOVERABLE.
+
+Do NOT attempt to fabricate or reproduce that SHA.
+
+This task is GOVERNANCE / IDENTITY RECOVERY DESIGN ONLY.
+
+Do NOT:
+
+- run Phase A;
+- push current history;
+- create a replacement implementation commit yet;
+- claim current files are byte-identical to the lost commit without proof;
+- rewrite historical governance records as though b036 still exists;
+- contact production or HeliumDB;
+- run TR-01 or 48-A qualification.
+
+==================================================
+1. PRESERVE HISTORICAL RECORD
+==================================================
+
+Preserve the historical record that:
+
+b03627099616675924a88e9a30c7b5e6547c9166
+
+was the previously validated local implementation commit.
+
+Mark its current status accurately as:
+
+HISTORICAL IMPLEMENTATION IDENTITY — OBJECT LOST / UNAVAILABLE
+
+Do not delete references to it from historical reports.
+
+==================================================
+2. ESTABLISH RECOVERY BASIS
+==================================================
+
+Inspect the current clean workspace and determine exactly what surviving
+evidence exists for the implementation previously associated with b036.
+
+Inventory:
+
+- current tracked files;
+- current Git HEAD;
+- implementation files present;
+- implementation reports;
+- static-validation records;
+- governance approvals;
+- package inventory;
+- test results;
+- file hashes/digests if previously recorded;
+- any evidence capable of comparing present implementation content with the
+  previously reviewed package.
+
+Do not infer equivalence where evidence is absent.
+
+==================================================
+3. DETERMINE REQUIRED REVALIDATION
+==================================================
+
+Because the original Git object is unavailable, define the minimum safe
+revalidation required before assigning a new authoritative implementation
+identity.
+
+At minimum consider:
+
+- approved implementation inventory comparison;
+- full diff against approved design/package;
+- static validation rerun;
+- type checking;
+- unit/pure tests;
+- SQL/migration static checks;
+- workflow static checks;
+- security/grant design comparison;
+- independent read-only implementation review.
+
+Do not reuse the old static-validation result as proof of a new commit.
+
+==================================================
+4. NEW IDENTITY MODEL
+==================================================
+
+Design a controlled replacement identity.
+
+The new commit must be explicitly recorded as:
+
+NEW AUTHORITATIVE IMPLEMENTATION IDENTITY
+
+not:
+
+RESTORED b036
+
+and not:
+
+EQUIVALENT SHA.
+
+The amendment must establish the relationship:
+
+former reviewed identity
+b036270...
+
+LOST
+
+-> surviving implementation state freshly revalidated
+
+-> new reviewed implementation commit SHA
+
+-> new protected GitHub ancestry binding.
+
+==================================================
+5. NO SILENT GOVERNANCE REWRITE
+==================================================
+
+Historical documents that reference b036 must remain truthful.
+
+Where current governance requires an executable identity, add an amendment
+that supersedes the unavailable implementation binding prospectively.
+
+Do not rewrite history to imply the new SHA existed during earlier reviews.
+
+==================================================
+6. APPROVAL PACKAGE IMPACT
+==================================================
+
+Identify all authoritative documents whose active identity binding must be
+amended, including applicable:
+
+- TR-01 implementation approval package;
+- protected GitHub baseline-generation amendment;
+- amendment approval record;
+- independent package review;
+- current decision register;
+- implementation report;
+- workflow identity contract.
+
+List exact files.
+
+No implementation changes under this task.
+
+==================================================
+7. NEW COMMIT CREATION PLAN
+==================================================
+
+If current implementation can be freshly verified against the approved
+package, propose the exact process:
+
+1. establish clean current implementation state;
+2. perform complete approved-scope diff/reconciliation;
+3. rerun local/static validation;
+4. perform fresh independent read-only implementation review;
+5. create one new bounded authoritative implementation commit;
+6. record its exact SHA;
+7. update prospective governance identity bindings;
+8. independently review the identity amendment;
+9. only then publish the new exact branch to GitHub.
+
+Do not create the commit during this design task.
+
+==================================================
+8. PROTECTED GITHUB CONSEQUENCE
+==================================================
+
+The previous exact-SHA publication requirement for b036 is no longer
+satisfiable.
+
+Design the amended protected-GitHub identity contract around the eventual
+new authoritative implementation SHA.
+
+All existing controls remain:
+
+- no rebase/squash after approval;
+- no force push;
+- exact SHA binding;
+- protected main review;
+- Phase A candidate-generation boundary;
+- Option B human adoption;
+- 48-B separation.
+
+==================================================
+9. INDEPENDENT REVIEW
+==================================================
+
+Prepare the non-executable identity-recovery amendment and perform a fresh
+independent review.
+
+Reviewer must answer:
+
+1. Is the loss of b036 documented truthfully?
+2. Is there any remaining authoritative recovery source?
+3. Is the proposed new identity explicitly prospective?
+4. Is sufficient fresh validation required?
+5. Are previous approval/design decisions preserved?
+6. Are historical records left truthful?
+7. Is the new GitHub binding unambiguous?
+8. Does this avoid pretending the new commit is the old commit?
+9. Does Phase A remain blocked until the new identity is approved and
+   published?
+10. Are production/HeliumDB/48-B/Stage 3 boundaries unchanged?
+
+==================================================
+10. RESULT
+==================================================
+
+If the recovery design is coherent:
+
+TR-01 IMPLEMENTATION IDENTITY RECOVERY AMENDMENT READY — EXPLICIT APPROVAL REQUIRED
+
+If surviving implementation state cannot be reliably reconciled against the
+approved package:
+
+TR-01 IMPLEMENTATION STATE RECONSTRUCTION REQUIRED — FURTHER REVIEW NEEDED
+
+Do not implement, commit, push, or run Phase A automatically.
