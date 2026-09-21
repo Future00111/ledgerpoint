@@ -1,10 +1,11 @@
 # Ledgerly #44-TR-01 implementation identity recovery — implementation approval package
 
 **Date:** 2026-09-21  
-**Status:** PLANNING / APPROVAL ONLY — NO IMPLEMENTATION AUTHORISED  
-**Dependency:** Approved identity-recovery amendment and approval record  
-**Decision requested:** Approval to implement this exact identity-recovery
-boundary
+**Status:** APPROVED IMPLEMENTATION PACKAGE — CANDIDATE CREATION AND
+QUALIFICATION NOT AUTHORISED  
+**Dependency:** Approved identity-recovery amendment, approval record, and
+schema-v2 compatibility scope amendment  
+**Decision:** Candidate implementation may resume within this exact boundary
 
 > This package is non-executable. It does not modify code, workflows, packages,
 > schema, databases, GitHub settings, branches, task state, production,
@@ -31,7 +32,13 @@ Candidate `C` may change only the following executable or contract files:
 - `scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql`;
 - `docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json`;
 - `docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-report.md`;
-- `scripts/ci/run-ledgerly-canonical-postgresql.test.mjs`.
+- `scripts/ci/run-ledgerly-canonical-postgresql.test.mjs`;
+- `scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql`; and
+- `artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs`.
+
+The last two paths were added by the independently reviewed and explicitly
+approved schema-v2 compatibility scope amendment. No third executable file is
+added by that approval.
 
 Reconciliation inputs that must not change merely to manufacture equivalence:
 
@@ -39,8 +46,6 @@ Reconciliation inputs that must not change merely to manufacture equivalence:
 - `.ci/ledgerly-canonical/Dockerfile.test`;
 - `package.json`;
 - `pnpm-lock.yaml`;
-- `scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql`;
-- `artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs`;
 - `artifacts/api-server/src/services/accounting/canonicalPosting.ts`; and
 - `artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts`.
 
@@ -372,8 +377,12 @@ Stop and return for approval if:
   Phase A is required; or
 - historical records would need to be rewritten.
 
-## 14. Requested decision
+## 14. Approved resumption boundary
 
-This package is ready for independent read-only review. It remains
-non-executable until the user gives a separate explicit implementation
-approval.
+The schema-v2 compatibility scope amendment is approved. Candidate
+implementation may resume within the exact eight-file candidate `C` inventory
+in section 2.
+
+This approval does not authorize candidate creation, GitHub configuration,
+publication, qualification, database access, or Phase A. If another executable
+file is required, implementation must stop for further scope approval.

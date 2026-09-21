@@ -59,6 +59,33 @@ package now defines:
 - post-merge verification of main tip, `G^1=B`, `G^2=A`, `C` ancestry, and
   `GITHUB_SHA=G`.
 
+### Schema-v2 compatibility scope approval follow-up review
+
+After explicit approval of the independently reviewed schema-v2 compatibility
+scope amendment, a fresh read-only package review confirmed:
+
+- the authoritative candidate `C` inventory contains exactly the original six
+  paths plus
+  `scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql` and
+  `artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs`;
+- those two paths are no longer listed as reconciliation inputs that must not
+  change;
+- no third executable, SQL, schema, workflow, runtime, package, governance, or
+  test path is authorized;
+- the existing focused test path remains the approved location for
+  identity-contract coverage;
+- legacy `sourceCommit` / `source_commit` must be removed without translation;
+- all eight schema-v2 identity fields, literal environment boolean parsing,
+  actual JSON boolean emission, type-sensitive JSONB comparison, and
+  legacy/mixed rejection remain mandatory;
+- accounting, normal runtime, roles, ACLs, ownership, triggers, production,
+  `heliumdb`, 48-B, Stage 3, #40-CF-01, and Phase A remain unchanged or
+  excluded; and
+- implementation may resume, but candidate creation, GitHub configuration,
+  publication, database access, and qualification remain unauthorized.
+
+No additional executable file is necessary. Security finding: none.
+
 ## Current verdict
 
 **PASS**
@@ -81,8 +108,10 @@ The final review confirmed:
 
 Security finding: none.
 
-**TR-01 IMPLEMENTATION IDENTITY RECOVERY AMENDMENT APPROVED — IMPLEMENTATION
-PACKAGE READY FOR EXPLICIT APPROVAL**
+**TR-01 SCHEMA-V2 COMPATIBILITY AMENDMENT APPROVED — CANDIDATE IMPLEMENTATION
+PACKAGE READY TO RESUME**
 
-No implementation, GitHub configuration, qualification, database access, or
-Phase A authority is granted by this record.
+Candidate implementation may resume only within the exact approved eight-file
+inventory. No candidate creation, GitHub configuration, publication,
+qualification, database access, or Phase A authority is granted by this
+record.

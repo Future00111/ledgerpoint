@@ -62,3 +62,14 @@ REQUIRED**
 
 No implementation, validation, commit, GitHub configuration, publication,
 PostgreSQL qualification, or Phase A authority is granted.
+
+## Approval disposition
+
+The amendment was explicitly approved on 2026-09-21 and incorporated into the
+authoritative candidate `C` implementation package. A subsequent fresh
+independent package review passed and found that no third executable file is
+required.
+
+Candidate implementation may resume within the exact approved eight-file
+inventory. Candidate creation, GitHub configuration, publication, database
+access, qualification, and Phase A remain unauthorized.

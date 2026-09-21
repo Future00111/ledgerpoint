@@ -1,7 +1,7 @@
 # Ledgerly #44-TR-01 schema-v2 compatibility scope amendment
 
 **Date:** 2026-09-21  
-**Status:** DESIGN / GOVERNANCE REVIEW ONLY — EXPLICIT APPROVAL REQUIRED  
+**Status:** APPROVED — INCORPORATED INTO CANDIDATE IMPLEMENTATION PACKAGE  
 **Parent package:** `docs/ledgerly-44-tr-01-implementation-identity-recovery-implementation-approval-package.md`  
 **Purpose:** Add exactly two files required to complete the already-approved
 schema-v2 qualification binding
@@ -275,7 +275,11 @@ Stop and request further approval if implementation requires:
   Phase A under this design-only amendment; or
 - acceptance of legacy or mixed evidence as schema-v2 success.
 
-## 8. Requested decision
+## 8. Approval decision
 
-This amendment is ready for fresh independent read-only review. It does not
-authorize implementation.
+This amendment was explicitly approved on 2026-09-21. Its exact two-file
+expansion is incorporated into the authoritative candidate `C` inventory.
+
+Candidate implementation may resume under the existing implementation
+approval. This amendment does not authorize candidate creation, GitHub
+configuration, publication, qualification, database access, or Phase A.
