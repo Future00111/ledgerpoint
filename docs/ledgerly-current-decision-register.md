@@ -803,3 +803,26 @@ posting-safety dependency.
 
 No application code, database schema, migrations, UI, workflows, dependencies,
 deployment, or publishing changes are authorised by this register.
+
+## TR-01 implementation identity recovery amendment — 2026-09-21
+
+- **Status:** APPROVED — design/governance only.
+- **Historical identity:** branch `feat/ti03-option-e-redesign`, commit
+  `b03627099616675924a88e9a30c7b5e6547c9166`.
+- **Historical status:**
+  **HISTORICAL IMPLEMENTATION IDENTITY — OBJECT LOST / UNAVAILABLE**.
+- **Prospective model:** immutable candidate implementation `C`, workflow
+  source `S`, and later governance activation commit `G`; candidate
+  qualification uses `S=C`, activated qualification uses `S=G` with
+  implementation `C`.
+- **Candidate ref:**
+  `refs/heads/tr01/implementation-identity-candidate`.
+- **Authority boundary:** this entry records governance approval only. It does
+  not authorize candidate creation, branch publication, workflow or
+  coordinator changes, GitHub environment changes, qualification, Phase A,
+  production or `heliumdb` access, 48-B, Stage 3, or #40-CF-01.
+- **Implementation package:**
+  `docs/ledgerly-44-tr-01-implementation-identity-recovery-implementation-approval-package.md`.
+
+DEC-01 through DEC-22, BL-06, BL-07, source-freshness governance, and all
+existing production and implementation gates remain unchanged.

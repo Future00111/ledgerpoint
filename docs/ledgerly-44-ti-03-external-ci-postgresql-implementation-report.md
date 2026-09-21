@@ -106,3 +106,19 @@ and report its emitted SHA-256 before TI-03 qualification can be approved.
 - No production/development database migration or RLS change was made.
 - No persistent external database or credential was created.
 - TR-01 was not resumed.
+
+## Prospective identity-recovery status — 2026-09-21
+
+The implementation identity formerly recorded as
+`b03627099616675924a88e9a30c7b5e6547c9166` is:
+
+**HISTORICAL IMPLEMENTATION IDENTITY — OBJECT LOST / UNAVAILABLE**
+
+The historical implementation and verification statements above remain
+unchanged. They do not qualify a future replacement commit.
+
+There is still no accepted TI-03 qualification evidence path or SHA-256. Any
+future candidate `C` must complete fresh protected-run qualification under the
+approved dual-identity recovery amendment. Passing candidate qualification does
+not make `C` authoritative without a separate final identity approval and
+activated protected-main qualification.

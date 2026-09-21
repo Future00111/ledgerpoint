@@ -680,3 +680,25 @@ This readiness is approval to review and, if separately approved, implement the
 development-only boundary described here. It is not implementation authority,
 does not create a task, and does not authorize production posting or any
 unapproved authority schema.
+
+## 19. Prospective implementation-identity recovery amendment — 2026-09-21
+
+The previously reviewed implementation identity
+`b03627099616675924a88e9a30c7b5e6547c9166` is now classified:
+
+**HISTORICAL IMPLEMENTATION IDENTITY — OBJECT LOST / UNAVAILABLE**
+
+This historical package remains unchanged as the approved TR-01 design. It does
+not prove that the current tree is equivalent to the lost commit.
+
+The prospective replacement process is governed by:
+
+- `docs/ledgerly-44-tr-01-implementation-identity-recovery-amendment.md`;
+- `docs/ledgerly-44-tr-01-implementation-identity-recovery-approval-record.md`;
+- `docs/ledgerly-44-protected-github-baseline-ancestry-contract.md`; and
+- `docs/ledgerly-44-tr-01-implementation-identity-recovery-implementation-approval-package.md`.
+
+No replacement becomes authoritative without complete fresh reconciliation,
+mandatory validation, external TI-03 qualification, independent review, and
+explicit final identity approval. Phase A and all existing implementation,
+production, `heliumdb`, 48-B, Stage 3, and #40-CF-01 gates remain unchanged.

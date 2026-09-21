@@ -1153,3 +1153,26 @@ It must not resume TR-01 in the same implementation instruction unless the user
 separately approves that later step after TI-03 review.
 
 READY FOR #44-TI-03 IMPLEMENTATION APPROVAL
+
+## 22. Prospective implementation-identity recovery amendment — 2026-09-21
+
+The former implementation commit
+`b03627099616675924a88e9a30c7b5e6547c9166` remains a historical reviewed
+identity whose object is lost and unavailable. No current file or historical
+validation result establishes equivalence to it.
+
+Future identity recovery must use the approved `C` / `S` / `G` model and exact
+candidate ref `refs/heads/tr01/implementation-identity-candidate`. Candidate
+qualification binds `S=C`; activated qualification binds workflow source
+`S=G` to separately checked-out implementation `C`.
+
+The protected runner must record distinct `workflowSourceCommit` and
+`implementationSourceCommit` fields and preserve every TI-03 role, database,
+network, image, evidence, negative-control, secret, and cleanup requirement in
+this package. The executable changes required for that model remain separately
+gated by:
+
+`docs/ledgerly-44-tr-01-implementation-identity-recovery-implementation-approval-package.md`
+
+This appendix grants no implementation, GitHub configuration, qualification,
+publication, production, or Phase A authority.
