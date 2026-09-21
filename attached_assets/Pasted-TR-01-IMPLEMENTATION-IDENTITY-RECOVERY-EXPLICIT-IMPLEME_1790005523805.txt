@@ -1,0 +1,499 @@
+TR-01 — IMPLEMENTATION IDENTITY RECOVERY
+EXPLICIT IMPLEMENTATION APPROVAL
+
+Current status:
+
+TR-01 IMPLEMENTATION IDENTITY RECOVERY AMENDMENT:
+APPROVED
+
+Identity-recovery implementation package:
+INDEPENDENTLY REVIEWED — PASS
+
+Result:
+TR-01 IMPLEMENTATION IDENTITY RECOVERY AMENDMENT APPROVED
+— IMPLEMENTATION PACKAGE READY FOR EXPLICIT APPROVAL
+
+This authorization permits implementation ONLY within the exact reviewed
+identity-recovery implementation approval package:
+
+docs/ledgerly-44-tr-01-implementation-identity-recovery-implementation-approval-package.md
+
+Do not introduce unreviewed identity, workflow, security, qualification,
+schema, runtime, or governance changes.
+
+==================================================
+1. AUTHORIZED OUTCOME
+==================================================
+
+The maximum successful outcome under THIS authorization is:
+
+TR-01 CANDIDATE IMPLEMENTATION IDENTITY QUALIFIED
+— FINAL IDENTITY APPROVAL REQUIRED
+
+Do NOT automatically:
+
+- designate C as authoritative;
+- create governance activation commit G;
+- merge activation to protected main;
+- run activated qualification;
+- start Phase A;
+- modify 48-B;
+- start Stage 3;
+- unpause #40-CF-01.
+
+==================================================
+2. HISTORICAL IDENTITY
+==================================================
+
+Preserve:
+
+b03627099616675924a88e9a30c7b5e6547c9166
+
+as:
+
+HISTORICAL IMPLEMENTATION IDENTITY — OBJECT LOST / UNAVAILABLE
+
+Do not:
+
+- recreate it;
+- fabricate it;
+- rewrite historical records;
+- imply the replacement identity is the lost commit.
+
+==================================================
+3. CURRENT TREE RECONCILIATION
+==================================================
+
+Before creating candidate C:
+
+perform the complete reviewed reconciliation of the current clean tree
+against the approved implementation inventory.
+
+Record every file as applicable:
+
+MATCHES APPROVED PACKAGE
+
+EXPECTED GOVERNANCE AMENDMENT
+
+UNEXPECTED DIVERGENCE
+
+BLOCKING GAP
+
+If any unexplained implementation divergence exists:
+
+STOP.
+
+Report:
+
+TR-01 IDENTITY RECOVERY RECONCILIATION FAILED
+— CORRECTION APPROVAL REQUIRED
+
+The uploaded approval instruction / attachment must remain untracked and
+must NOT be included in C.
+
+==================================================
+4. MANDATORY FRESH VALIDATION
+==================================================
+
+Perform every mandatory validation required by the reviewed package.
+
+Historical validation results may be used only as context.
+
+They do NOT count as current proof.
+
+Complete applicable:
+
+- frozen dependency installation;
+- JavaScript syntax validation;
+- API TypeScript typechecking;
+- relevant unit and pure tests;
+- SQL/run-control/overlay parity validation;
+- role/ACL/ownership/trigger/grant review;
+- workflow permission and protected-ref validation;
+- pinned action/image/runtime verification;
+- evidence schema v2 compilation;
+- legacy/mixed identity rejection probes;
+- credential/secret scanning;
+- deterministic source manifest generation;
+- complete implementation inventory reconciliation;
+- fresh independent implementation/security review.
+
+Any:
+
+FAILED
+
+or
+
+NOT PROVEN
+
+mandatory requirement is blocking.
+
+==================================================
+5. IMPLEMENT IDENTITY CONTRACT
+==================================================
+
+Implement exactly the approved C / S / A / B / G semantics.
+
+Preserve:
+
+C = candidate implementation source commit
+
+S = workflow source commit
+
+A / B = approved evidence / lifecycle identities exactly as defined in the
+package
+
+G = future governance activation commit
+
+Do not collapse or ambiguously reuse these identities.
+
+==================================================
+6. EVIDENCE SCHEMA VERSION 2
+==================================================
+
+Implement the approved evidence schema v2 exactly.
+
+Preserve the reviewed fields for distinct identity attribution, including
+the exact implementation/workflow identities defined by the package.
+
+Reject:
+
+- legacy ambiguous evidence;
+- mixed identity evidence;
+- missing mandatory identity fields;
+- identity values inconsistent with protected context.
+
+Do not silently translate old evidence into v2 success.
+
+==================================================
+7. EXECUTABLE IDENTITY-CONTRACT FILES
+==================================================
+
+Modify only the exact executable files authorized by the reviewed package,
+including as applicable:
+
+.github/workflows/ledgerly-canonical-postgresql.yml
+
+scripts/ci/run-ledgerly-canonical-postgresql.mjs
+
+and the exact evidence / qualification support files listed in the package.
+
+If another executable file is required:
+
+STOP.
+
+Report:
+
+TR-01 IDENTITY RECOVERY IMPLEMENTATION SCOPE EXPANSION REQUIRED
+— APPROVAL NEEDED
+
+==================================================
+8. CANDIDATE COMMIT C
+==================================================
+
+Only after all pre-commit validation and independent review requirements
+defined by the package pass:
+
+create one bounded immutable candidate implementation commit:
+
+C
+
+C must contain only the exact reviewed candidate implementation inventory.
+
+Do not include:
+
+- unrelated work;
+- temporary files;
+- uploaded instruction attachments;
+- local evidence not intended for version control;
+- future governance activation records not authorized for C.
+
+Record exact C SHA.
+
+After C is created:
+
+do not amend it;
+do not rebase it;
+do not squash it;
+do not cherry-pick it into a replacement identity.
+
+==================================================
+9. CANDIDATE BRANCH
+==================================================
+
+Publish exact C to:
+
+refs/heads/tr01/implementation-identity-candidate
+
+Establish the reviewed protection model exactly.
+
+Preserve:
+
+- review required;
+- two required reviewers;
+- force push disabled;
+- deletion disabled;
+- approved one-time audited bootstrap/creation mechanism only;
+- no later history rewriting;
+- qualification only through the approved protected workflow_dispatch path.
+
+After publication verify:
+
+REMOTE C = LOCAL C
+
+and exact ancestry is intact.
+
+==================================================
+10. GITHUB ENVIRONMENT
+==================================================
+
+Configure the exact reviewed protected environment.
+
+Bind:
+
+LEDGERLY_APPROVED_CANDIDATE_SHA=C
+
+Preserve:
+
+- exact reviewer requirements;
+- no unauthorized self-approval;
+- approved repository-admin controls;
+- approved branch/ref restrictions;
+- minimal workflow permissions;
+- no production/HeliumDB secrets;
+- no customer data;
+- no caller-controlled trusted identity inputs.
+
+==================================================
+11. CANDIDATE MODE IDENTITY CHECKS
+==================================================
+
+Before qualification, require all reviewed candidate-mode checks.
+
+At minimum:
+
+GITHUB_SHA = C
+
+workflow source S = C
+
+checked-out implementation HEAD = C
+
+candidate ref is the exact protected candidate branch
+
+LEDGERLY_APPROVED_CANDIDATE_SHA = C
+
+both repository/worktree states are clean
+
+identity fields match schema v2
+
+Any mismatch:
+
+FAIL CLOSED.
+
+==================================================
+12. FULL-HISTORY ANCESTRY
+==================================================
+
+Use the reviewed full-history ancestry verification.
+
+Do not rely on:
+
+- shallow ancestry assumptions;
+- branch-name equivalence;
+- abbreviated SHA comparison;
+- merge-base shortcuts that do not prove the required relationship.
+
+All required ancestry and identity checks must operate on sufficient Git
+history.
+
+==================================================
+13. CANDIDATE POSTGRESQL QUALIFICATION
+==================================================
+
+Run the complete mandatory TI-03 / candidate qualification exactly as
+defined in the reviewed package.
+
+Use only approved disposable PostgreSQL.
+
+Prove all required categories including:
+
+- database bootstrap;
+- database-backed canonical posting;
+- transaction concurrency overlap;
+- negative controls;
+- ledgerly_api runtime identity;
+- role separation;
+- ACL/ownership/trigger protections;
+- identity schema v2;
+- rejection of legacy/mixed evidence;
+- no production route;
+- no HeliumDB route;
+- bounded cleanup;
+- exact resource absence;
+- accepted non-secret evidence;
+- evidence SHA-256.
+
+Do not substitute targeted tests for the complete required qualification.
+
+==================================================
+14. FAILURE BEHAVIOR
+==================================================
+
+If any implementation, validation, branch, environment, identity, evidence,
+PostgreSQL, cleanup, or independent-review requirement fails:
+
+STOP.
+
+Do not create a replacement candidate automatically.
+
+Report the precise applicable status, for example:
+
+TR-01 CANDIDATE IMPLEMENTATION VALIDATION FAILED
+— CORRECTION APPROVAL REQUIRED
+
+or:
+
+TR-01 CANDIDATE QUALIFICATION FAILED
+— CORRECTION APPROVAL REQUIRED
+
+or:
+
+TR-01 IDENTITY RECOVERY IMPLEMENTATION SCOPE EXPANSION REQUIRED
+— APPROVAL NEEDED
+
+==================================================
+15. NO PHASE A
+==================================================
+
+Phase A remains prohibited.
+
+Do NOT run protected GitHub baseline generation merely because candidate
+qualification passes.
+
+The sequence remains:
+
+candidate C
+-> qualification
+-> evidence review
+-> FINAL IDENTITY APPROVAL
+-> governance activation G
+-> protected-main review
+-> activated qualification
+-> only then later Phase A authorization.
+
+==================================================
+16. POST-QUALIFICATION INDEPENDENT REVIEW
+==================================================
+
+After candidate qualification passes, perform a fresh independent
+read-only review.
+
+Reviewer must verify:
+
+- C matches the approved candidate inventory;
+- current-tree reconciliation was complete;
+- mandatory fresh validation passed;
+- evidence schema v2 is enforced;
+- legacy/mixed evidence is rejected;
+- candidate branch protection matches approval;
+- environment binding equals exact C;
+- no history rewrite occurred;
+- candidate PostgreSQL qualification passed;
+- cleanup and absence verification passed;
+- production contact = 0;
+- HeliumDB contact = 0;
+- b036 remains historical/lost;
+- C has NOT yet been designated authoritative;
+- G has NOT been created;
+- Phase A has NOT run.
+
+==================================================
+17. FINAL REPORT
+==================================================
+
+Report:
+
+CANDIDATE COMMIT C:
+<exact SHA>
+
+CANDIDATE BRANCH:
+refs/heads/tr01/implementation-identity-candidate
+
+REMOTE C MATCH:
+YES/NO
+
+BRANCH PROTECTION:
+PASS/FAIL
+
+ENVIRONMENT C BINDING:
+PASS/FAIL
+
+FRESH VALIDATION:
+PASS/FAIL
+
+INDEPENDENT REVIEW:
+PASS/FAIL
+
+POSTGRESQL CANDIDATE QUALIFICATION:
+PASS/FAIL
+
+EVIDENCE SCHEMA:
+v2
+
+EVIDENCE SHA-256:
+<value>
+
+CLEANUP:
+PASS/FAIL
+
+PRODUCTION CONTACT:
+0 expected
+
+HELIUMDB CONTACT:
+0 expected
+
+PHASE A:
+NOT RUN
+
+==================================================
+18. SUCCESS RESULT
+==================================================
+
+Only if all authorized implementation and candidate qualification gates
+pass:
+
+TR-01 CANDIDATE IMPLEMENTATION IDENTITY QUALIFIED
+— FINAL IDENTITY APPROVAL REQUIRED
+
+Then STOP.
+
+Do not designate C authoritative.
+Do not create G.
+Do not merge activation.
+Do not run activated qualification.
+Do not run Phase A.
+
+==================================================
+19. GOVERNANCE REMAINS
+==================================================
+
+TR-01:
+PARTIAL / INCOMPLETE
+
+Task #48:
+OPEN
+
+48-A:
+QUALIFIED
+
+48-B:
+OPEN / DEFERRED UNTIL PRE-PRODUCTION
+
+#40-CF-01:
+PAUSED / INCOMPLETE
+
+Stage 3:
+UNAUTHORIZED
+
+PRODUCTION RELEASE MUST NOT OCCUR WHILE APPLICABLE 48-B
+PRE-PRODUCTION REQUIREMENTS REMAIN OPEN.

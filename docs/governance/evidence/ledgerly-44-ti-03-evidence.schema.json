@@ -14,13 +14,29 @@
     "isolation"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "result": { "enum": ["passed", "failed"] },
     "failurePhase": { "type": ["string", "null"] },
     "ci": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["provider", "repository", "workflow", "workflowRef", "runId", "runAttempt", "job", "sourceCommit"],
+      "required": [
+        "provider",
+        "repository",
+        "workflow",
+        "workflowRef",
+        "runId",
+        "runAttempt",
+        "job",
+        "workflowSourceCommit",
+        "implementationSourceCommit",
+        "identityMode",
+        "sourceRef",
+        "refProtected",
+        "ancestryVerified",
+        "workflowCheckoutClean",
+        "implementationCheckoutClean"
+      ],
       "properties": {
         "provider": { "const": "github-actions" },
         "repository": { "type": "string", "minLength": 1 },
@@ -29,7 +45,19 @@
         "runId": { "type": "string", "minLength": 1 },
         "runAttempt": { "type": "string", "minLength": 1 },
         "job": { "type": "string", "minLength": 1 },
-        "sourceCommit": { "type": "string", "minLength": 1 }
+        "workflowSourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "implementationSourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "identityMode": { "enum": ["candidate", "activated"] },
+        "sourceRef": {
+          "enum": [
+            "refs/heads/tr01/implementation-identity-candidate",
+            "refs/heads/main"
+          ]
+        },
+        "refProtected": { "const": true },
+        "ancestryVerified": { "const": true },
+        "workflowCheckoutClean": { "const": true },
+        "implementationCheckoutClean": { "const": true }
       }
     },
     "images": {
@@ -54,7 +82,11 @@
         "targetClassification",
         "creatorIdentity",
         "runtimeIdentity",
-        "sourceCommit",
+        "workflowSourceCommit",
+        "implementationSourceCommit",
+        "ancestryVerified",
+        "workflowCheckoutClean",
+        "implementationCheckoutClean",
         "sourceTreeSha256",
         "nonceSha256"
       ],
@@ -65,7 +97,11 @@
         "targetClassification": { "const": "external-ci-postgresql-service-container" },
         "creatorIdentity": { "const": "postgres" },
         "runtimeIdentity": { "const": "ledgerly_api" },
-        "sourceCommit": { "type": "string", "minLength": 1 },
+        "workflowSourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "implementationSourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "ancestryVerified": { "const": true },
+        "workflowCheckoutClean": { "const": true },
+        "implementationCheckoutClean": { "const": true },
         "sourceTreeSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
         "nonceSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
         "sourceDigests": { "$ref": "#/$defs/digestMap" }
@@ -187,6 +223,56 @@
           "bootstrap": {},
           "runtime": {},
           "negativeControls": {}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ci": {
+            "type": "object",
+            "properties": { "identityMode": { "const": "candidate" } }
+          }
+        },
+        "required": ["ci"]
+      },
+      "then": {
+        "properties": {
+          "ci": {
+            "type": "object",
+            "properties": {
+              "sourceRef": { "const": "refs/heads/tr01/implementation-identity-candidate" },
+              "workflowRef": {
+                "type": "string",
+                "pattern": "/\\.github/workflows/ledgerly-canonical-postgresql\\.yml@refs/heads/tr01/implementation-identity-candidate$"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ci": {
+            "type": "object",
+            "properties": { "identityMode": { "const": "activated" } }
+          }
+        },
+        "required": ["ci"]
+      },
+      "then": {
+        "properties": {
+          "ci": {
+            "type": "object",
+            "properties": {
+              "sourceRef": { "const": "refs/heads/main" },
+              "workflowRef": {
+                "type": "string",
+                "pattern": "/\\.github/workflows/ledgerly-canonical-postgresql\\.yml@refs/heads/main$"
+              }
+            }
+          }
         }
       }
     }

@@ -122,3 +122,27 @@ future candidate `C` must complete fresh protected-run qualification under the
 approved dual-identity recovery amendment. Passing candidate qualification does
 not make `C` authoritative without a separate final identity approval and
 activated protected-main qualification.
+
+## Candidate identity-contract implementation — 2026-09-21
+
+The approved candidate implementation contract is now represented prospectively
+in the exact authorized files:
+
+- `.github/workflows/ledgerly-canonical-postgresql.yml`;
+- `scripts/ci/run-ledgerly-canonical-postgresql.mjs`;
+- `scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql`;
+- `docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json`;
+- `scripts/ci/run-ledgerly-canonical-postgresql.test.mjs`; and
+- this report.
+
+The contract implements evidence schema version 2, distinct
+`workflowSourceCommit` and `implementationSourceCommit` identities, candidate
+and activated workflow modes, full-history object/ancestry checks, dual source
+roots, and fresh-disposable-only run-control columns. Legacy `sourceCommit` /
+`source_commit` evidence is rejected.
+
+This is implementation state only. No candidate commit has been created or
+published, no protected GitHub qualification has run, and no qualification
+evidence is accepted. Candidate `C` remains non-authoritative and requires
+fresh local validation, independent review, exact immutable commit creation,
+protected candidate publication, and complete TI-03 qualification.

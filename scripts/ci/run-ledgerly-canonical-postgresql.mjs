@@ -6,6 +6,11 @@ import { spawn } from "node:child_process";
 import Ajv2020 from "ajv/dist/2020.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const workflowRoot = path.resolve(process.env.LEDGERLY_WORKFLOW_ROOT ?? root);
+const implementationRoot = root;
+const candidateRef = "refs/heads/tr01/implementation-identity-candidate";
+const mainRef = "refs/heads/main";
+const fullShaPattern = /^[0-9a-f]{40}$/;
 const postgresImage =
   "postgres:16.15-bookworm@sha256:bb3e1a57e5407e0a5280b4211980a5e537f4abd234a87014ac979849a78dd825";
 const postgresTag = "postgres:16.15-bookworm";
@@ -105,16 +110,16 @@ function sha256Buffer(value) {
   return createHash("sha256").update(value).digest("hex");
 }
 
-async function sha256File(relativePath) {
-  return sha256Buffer(await readFile(path.join(root, relativePath)));
+async function sha256File(relativePath, sourceRoot = implementationRoot) {
+  return sha256Buffer(await readFile(path.join(sourceRoot, relativePath)));
 }
 
-async function sha256Files(relativePaths) {
+async function sha256Files(relativePaths, sourceRoot = implementationRoot) {
   const hash = createHash("sha256");
   for (const relativePath of [...relativePaths].sort()) {
     hash.update(relativePath);
     hash.update("\0");
-    hash.update(await readFile(path.join(root, relativePath)));
+    hash.update(await readFile(path.join(sourceRoot, relativePath)));
     hash.update("\0");
   }
   return hash.digest("hex");
@@ -124,7 +129,7 @@ function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
-function run(command, args, { env, cwd = root, input, timeoutMs, quiet = false } = {}) {
+function run(command, args, { env, cwd = implementationRoot, input, timeoutMs, quiet = false } = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd,
@@ -176,22 +181,57 @@ function assertPinnedImage(image, label) {
   }
 }
 
+function assertFullSha(value, label) {
+  if (!fullShaPattern.test(value ?? "")) {
+    throw new Error(`${label} must be a lowercase full commit SHA`);
+  }
+  return value;
+}
+
+function identityMode(environment = process.env) {
+  const mode = environment.LEDGERLY_IDENTITY_MODE;
+  if (mode !== "candidate" && mode !== "activated") {
+    throw new Error("TI-03 requires an explicit candidate or activated identity mode");
+  }
+  return mode;
+}
+
 function assertTrustedWorkflowContext(environment = process.env) {
+  const mode = identityMode(environment);
   if (
     environment.GITHUB_ACTIONS !== "true" ||
     environment.GITHUB_EVENT_NAME !== "workflow_dispatch" ||
-    environment.GITHUB_REF !== "refs/heads/main" ||
     environment.GITHUB_REF_PROTECTED !== "true"
   ) {
-    throw new Error("TI-03 requires a protected main-branch workflow_dispatch run");
+    throw new Error("TI-03 requires a protected workflow_dispatch run");
   }
-  const expectedWorkflowRef = `${environment.GITHUB_REPOSITORY}/${workflowPath}@refs/heads/main`;
+  const sourceRef = environment.GITHUB_REF;
+  const expectedRef = mode === "candidate" ? candidateRef : mainRef;
+  if (sourceRef !== expectedRef) {
+    throw new Error(`TI-03 identity mode requires ${expectedRef}`);
+  }
+  const expectedWorkflowRef = `${environment.GITHUB_REPOSITORY}/${workflowPath}@${expectedRef}`;
   if (
     environment.GITHUB_WORKFLOW !== approvedWorkflowName ||
     environment.GITHUB_WORKFLOW_REF !== expectedWorkflowRef ||
     environment.GITHUB_JOB !== "canonical-postgresql"
   ) {
     throw new Error("TI-03 requires the exact approved workflow identity");
+  }
+  assertFullSha(environment.GITHUB_SHA, "GITHUB_SHA");
+  assertFullSha(
+    environment.LEDGERLY_APPROVED_CANDIDATE_SHA,
+    "LEDGERLY_APPROVED_CANDIDATE_SHA",
+  );
+  const implementationSha =
+    environment.LEDGERLY_IMPLEMENTATION_SOURCE_SHA ??
+    environment.LEDGERLY_APPROVED_CANDIDATE_SHA;
+  assertFullSha(implementationSha, "LEDGERLY_IMPLEMENTATION_SOURCE_SHA");
+  if (mode === "candidate" && implementationSha !== environment.GITHUB_SHA) {
+    throw new Error("Candidate mode requires workflow and implementation SHA equality");
+  }
+  if (mode === "activated" && implementationSha !== environment.LEDGERLY_APPROVED_CANDIDATE_SHA) {
+    throw new Error("Activated mode requires the protected candidate SHA");
   }
   if (environment.DATABASE_URL) {
     throw new Error("DATABASE_URL must be absent from the external CI parent environment");
@@ -206,9 +246,55 @@ function assertTrustedWorkflowContext(environment = process.env) {
   }
   assertPinnedImage(postgresImage, "PostgreSQL image");
   assertPinnedImage(nodeBaseImage, "Node image");
+  return { mode, sourceRef, implementationSha };
 }
 
-function buildCiIdentity() {
+async function verifyIdentityRoots(mode, implementationSha) {
+  const workflowSha = assertFullSha(process.env.GITHUB_SHA, "GITHUB_SHA");
+  const workflowHead = (
+    await run("git", ["rev-parse", "HEAD"], { cwd: workflowRoot, quiet: true })
+  ).stdout.trim();
+  const implementationHead = (
+    await run("git", ["rev-parse", "HEAD"], { cwd: implementationRoot, quiet: true })
+  ).stdout.trim();
+  if (workflowHead !== workflowSha) {
+    throw new Error("Workflow checkout HEAD does not match GITHUB_SHA");
+  }
+  if (implementationHead !== implementationSha) {
+    throw new Error("Implementation checkout HEAD does not match the approved candidate SHA");
+  }
+  for (const checkout of [workflowRoot, implementationRoot]) {
+    await run("git", ["diff", "--quiet"], { cwd: checkout, quiet: true });
+    await run("git", ["diff", "--cached", "--quiet"], { cwd: checkout, quiet: true });
+  }
+  await run("git", ["cat-file", "-e", `${workflowSha}^{commit}`], {
+    cwd: workflowRoot,
+    quiet: true,
+  });
+  await run("git", ["cat-file", "-e", `${implementationSha}^{commit}`], {
+    cwd: workflowRoot,
+    quiet: true,
+  });
+  if (mode === "candidate") {
+    if (workflowSha !== implementationSha) {
+      throw new Error("Candidate mode requires identical workflow and implementation commits");
+    }
+  } else {
+    await run("git", ["merge-base", "--is-ancestor", implementationSha, workflowSha], {
+      cwd: workflowRoot,
+      quiet: true,
+    });
+  }
+  return {
+    workflowSourceCommit: workflowSha,
+    implementationSourceCommit: implementationSha,
+    workflowCheckoutClean: true,
+    implementationCheckoutClean: true,
+    ancestryVerified: true,
+  };
+}
+
+function buildCiIdentity(identity) {
   return {
     provider: "github-actions",
     repository: required("GITHUB_REPOSITORY"),
@@ -217,22 +303,28 @@ function buildCiIdentity() {
     runId: required("GITHUB_RUN_ID"),
     runAttempt: required("GITHUB_RUN_ATTEMPT"),
     job: required("GITHUB_JOB"),
-    sourceCommit: required("GITHUB_SHA"),
+    workflowSourceCommit: identity.workflowSourceCommit,
+    implementationSourceCommit: identity.implementationSourceCommit,
+    identityMode: identity.mode,
+    sourceRef: identity.sourceRef,
+    refProtected: true,
+    ancestryVerified: identity.ancestryVerified,
+    workflowCheckoutClean: identity.workflowCheckoutClean,
+    implementationCheckoutClean: identity.implementationCheckoutClean,
   };
 }
 
 async function createExecutionSourceManifest(ci) {
-  await rm(path.join(root, sourceManifestPath), { force: true });
-  const head = await run("git", ["rev-parse", "HEAD"], { quiet: true });
-  if (head.stdout.trim() !== ci.sourceCommit) {
-    throw new Error("The checked-out commit does not match the authorized workflow commit");
+  await rm(path.join(implementationRoot, sourceManifestPath), { force: true });
+  if (ci.implementationSourceCommit !== (
+    await run("git", ["rev-parse", "HEAD"], { quiet: true })
+  ).stdout.trim()) {
+    throw new Error("The implementation checkout does not match the authorized candidate");
   }
-  await run("git", ["diff", "--quiet"], { quiet: true });
-  await run("git", ["diff", "--cached", "--quiet"], { quiet: true });
   const status = await run(
     "git",
     ["status", "--porcelain", "--untracked-files=all", "--", ...executionTreePathspecs],
-    { quiet: true },
+    { cwd: implementationRoot, quiet: true },
   );
   if (status.stdout.trim()) {
     throw new Error("The execution tree contains uncommitted or untracked files");
@@ -240,7 +332,7 @@ async function createExecutionSourceManifest(ci) {
   const tracked = await run(
     "git",
     ["ls-files", "-z", "--", ...executionTreePathspecs],
-    { quiet: true },
+    { cwd: implementationRoot, quiet: true },
   );
   const files = tracked.stdout.split("\0").filter(Boolean).sort();
   for (const requiredPath of [
@@ -264,10 +356,16 @@ async function createExecutionSourceManifest(ci) {
       throw new Error(`The execution source manifest is missing ${requiredPath}`);
     }
   }
-  const sourceTreeSha256 = await sha256Files(files);
-  const manifest = { version: 1, files, sourceTreeSha256 };
+  const sourceTreeSha256 = await sha256Files(files, implementationRoot);
+  const manifest = {
+    version: 2,
+    identityMode: ci.identityMode,
+    implementationSourceCommit: ci.implementationSourceCommit,
+    files,
+    sourceTreeSha256,
+  };
   await writeFile(
-    path.join(root, sourceManifestPath),
+    path.join(implementationRoot, sourceManifestPath),
     `${JSON.stringify(manifest)}\n`,
     { mode: 0o644 },
   );
@@ -282,10 +380,10 @@ async function buildTestImage() {
     "--platform",
     "linux/amd64",
     "--file",
-    ".ci/ledgerly-canonical/Dockerfile.test",
+    path.join(implementationRoot, ".ci/ledgerly-canonical/Dockerfile.test"),
     "--tag",
     testImage,
-    ".",
+    implementationRoot,
   ], { timeoutMs: 7 * 60 * 1000 });
   const imageInfo = await docker(["buildx", "imagetools", "inspect", nodeBaseImage], {
     quiet: true,
@@ -335,7 +433,14 @@ async function createCredentials(runId, databaseName, sourceDigests, ci) {
     ciRunId: ci.runId,
     ciRunAttempt: ci.runAttempt,
     ciJob: ci.job,
-    sourceCommit: ci.sourceCommit,
+    identityMode: ci.identityMode,
+    sourceRef: ci.sourceRef,
+    refProtected: ci.refProtected,
+    workflowSourceCommit: ci.workflowSourceCommit,
+    implementationSourceCommit: ci.implementationSourceCommit,
+    ancestryVerified: ci.ancestryVerified,
+    workflowCheckoutClean: ci.workflowCheckoutClean,
+    implementationCheckoutClean: ci.implementationCheckoutClean,
     sourceTreeSha256: sourceDigests.sourceTree,
     applicationSchemaSha256: sourceDigests.applicationSchema,
     drizzleConfigSha256: sourceDigests.drizzleConfig,
@@ -389,7 +494,14 @@ async function createCredentials(runId, databaseName, sourceDigests, ci) {
       `LEDGERLY_CANONICAL_TEST_CI_RUN_ID=${ci.runId}`,
       `LEDGERLY_CANONICAL_TEST_CI_RUN_ATTEMPT=${ci.runAttempt}`,
       `LEDGERLY_CANONICAL_TEST_CI_JOB=${ci.job}`,
-      `LEDGERLY_CANONICAL_TEST_SOURCE_COMMIT=${ci.sourceCommit}`,
+      `LEDGERLY_CANONICAL_TEST_IDENTITY_MODE=${ci.identityMode}`,
+      `LEDGERLY_CANONICAL_TEST_SOURCE_REF=${ci.sourceRef}`,
+      `LEDGERLY_CANONICAL_TEST_REF_PROTECTED=${ci.refProtected}`,
+      `LEDGERLY_CANONICAL_TEST_WORKFLOW_SOURCE_COMMIT=${ci.workflowSourceCommit}`,
+      `LEDGERLY_CANONICAL_TEST_IMPLEMENTATION_SOURCE_COMMIT=${ci.implementationSourceCommit}`,
+      `LEDGERLY_CANONICAL_TEST_ANCESTRY_VERIFIED=${ci.ancestryVerified}`,
+      `LEDGERLY_CANONICAL_TEST_WORKFLOW_CHECKOUT_CLEAN=${ci.workflowCheckoutClean}`,
+      `LEDGERLY_CANONICAL_TEST_IMPLEMENTATION_CHECKOUT_CLEAN=${ci.implementationCheckoutClean}`,
       `LEDGERLY_CANONICAL_TEST_POSTGRES_IMAGE_TAG=${postgresTag}`,
       `LEDGERLY_CANONICAL_TEST_POSTGRES_IMAGE_DIGEST=${postgresDigest}`,
       `LEDGERLY_CANONICAL_TEST_NODE_IMAGE_TAG=${nodeTag}`,
@@ -493,11 +605,16 @@ async function bootstrapDatabase(credentials, sourceDigests, ci) {
   );
   state.databaseCreated = true;
 
-  const runControlSql = await readFile(path.join(root, sourcePaths.runControlSql), "utf8");
+  const runControlSql = await readFile(
+    path.join(implementationRoot, sourcePaths.runControlSql),
+    "utf8",
+  );
   const insert = `INSERT INTO ledgerly_test_control.run_identity (
       run_uuid, expected_database_name, environment, target_classification,
       ci_provider, ci_repository, ci_workflow, ci_workflow_ref, ci_run_id, ci_run_attempt, ci_job,
-      source_commit, source_tree_sha256, application_schema_sha256, drizzle_config_sha256,
+      identity_mode, ci_source_ref, ci_ref_protected, workflow_source_commit,
+      implementation_source_commit, ancestry_verified, workflow_checkout_clean,
+      implementation_checkout_clean, source_tree_sha256, application_schema_sha256, drizzle_config_sha256,
       security_overlay_sha256, application_schema_digest, drizzle_config_digest,
       security_overlay_digest, run_control_sql_sha256, coordinator_sha256, test_sources_sha256,
       lockfile_sha256, workflow_sha256, orchestrator_sha256, expected_test_command,
@@ -511,7 +628,12 @@ async function bootstrapDatabase(credentials, sourceDigests, ci) {
       ${sqlString(credentials.binding.ciWorkflow)}, ${sqlString(credentials.binding.ciWorkflowRef)},
       ${sqlString(credentials.binding.ciRunId)},
       ${sqlString(credentials.binding.ciRunAttempt)}, ${sqlString(credentials.binding.ciJob)},
-      ${sqlString(credentials.binding.sourceCommit)}, ${sqlString(credentials.binding.sourceTreeSha256)},
+      ${sqlString(credentials.binding.identityMode)}, ${sqlString(credentials.binding.sourceRef)},
+      ${credentials.binding.refProtected}, ${sqlString(credentials.binding.workflowSourceCommit)},
+      ${sqlString(credentials.binding.implementationSourceCommit)},
+      ${credentials.binding.ancestryVerified}, ${credentials.binding.workflowCheckoutClean},
+      ${credentials.binding.implementationCheckoutClean},
+      ${sqlString(credentials.binding.sourceTreeSha256)},
       ${sqlString(credentials.binding.applicationSchemaSha256)}, ${sqlString(credentials.binding.drizzleConfigSha256)},
       ${sqlString(credentials.binding.securityOverlaySha256)},
       ${sqlString(credentials.binding.applicationSchemaSha256)},
@@ -579,7 +701,10 @@ async function bootstrapDatabase(credentials, sourceDigests, ci) {
     await docker(pushArgs, { env: schemaEnv, timeoutMs: 4 * 60 * 1000 });
   }
 
-  const overlay = await readFile(path.join(root, sourcePaths.securityOverlay), "utf8");
+  const overlay = await readFile(
+    path.join(implementationRoot, sourcePaths.securityOverlay),
+    "utf8",
+  );
   await adminSql(state.databaseName, overlay);
   const verification = await adminSql(
     state.databaseName,
@@ -1028,7 +1153,7 @@ function sanitizeEvidence(value) {
 }
 
 const evidenceSchema = JSON.parse(
-  await readFile(path.join(root, sourcePaths.evidenceSchema), "utf8"),
+  await readFile(path.join(implementationRoot, sourcePaths.evidenceSchema), "utf8"),
 );
 const evidenceAjv = new Ajv2020({
   strict: true,
@@ -1051,11 +1176,25 @@ function assertJsonSchemaEvidence(value) {
 
 function validateEvidenceContract(evidence) {
   assertJsonSchemaEvidence(evidence);
+  const mode = evidence?.ci?.identityMode;
+  const expectedRef = mode === "candidate" ? candidateRef : mainRef;
   if (
-    evidence?.schemaVersion !== 1 ||
+    evidence?.schemaVersion !== 2 ||
     !["passed", "failed"].includes(evidence.result) ||
+    !["candidate", "activated"].includes(mode) ||
     typeof evidence.ci?.workflowRef !== "string" ||
-    !evidence.ci.workflowRef.endsWith(`/${workflowPath}@refs/heads/main`) ||
+    evidence.ci.sourceRef !== expectedRef ||
+    evidence.ci.refProtected !== true ||
+    !evidence.ci.workflowRef.endsWith(`/${workflowPath}@${expectedRef}`) ||
+    !fullShaPattern.test(evidence.ci.workflowSourceCommit ?? "") ||
+    !fullShaPattern.test(evidence.ci.implementationSourceCommit ?? "") ||
+    evidence.ci.ancestryVerified !== true ||
+    evidence.ci.workflowCheckoutClean !== true ||
+    evidence.ci.implementationCheckoutClean !== true ||
+    (mode === "candidate" &&
+      evidence.ci.workflowSourceCommit !== evidence.ci.implementationSourceCommit) ||
+    (mode === "activated" &&
+      evidence.ci.implementationSourceCommit !== state.ci?.implementationSourceCommit) ||
     typeof evidence.images?.postgres?.digest !== "string" ||
     typeof evidence.images?.node?.digest !== "string" ||
     typeof evidence.cleanup !== "object" ||
@@ -1071,6 +1210,11 @@ function validateEvidenceContract(evidence) {
       !Array.isArray(evidence.bootstrap?.constraints) ||
       !Array.isArray(evidence.bootstrap?.indexes) ||
       !Array.isArray(evidence.bootstrap?.triggers) ||
+      evidence.binding?.workflowSourceCommit !== evidence.ci.workflowSourceCommit ||
+      evidence.binding?.implementationSourceCommit !== evidence.ci.implementationSourceCommit ||
+      evidence.binding?.ancestryVerified !== true ||
+      evidence.binding?.workflowCheckoutClean !== true ||
+      evidence.binding?.implementationCheckoutClean !== true ||
       evidence.runtime?.currentUser !== "ledgerly_api" ||
       evidence.runtime?.sessionUser !== "ledgerly_api" ||
       evidence.runtime?.privateBindingVerified !== true ||
@@ -1095,7 +1239,7 @@ function validateEvidenceContract(evidence) {
 }
 
 async function writeEvidence(evidence, fileIdentity = state.runId) {
-  const directory = path.join(root, "docs/governance/evidence");
+  const directory = path.join(implementationRoot, "docs/governance/evidence");
   await mkdir(directory, { recursive: true });
   const file = path.join(directory, `ledgerly-44-ti-03-${fileIdentity}.json`);
   validateEvidenceContract(evidence);
@@ -1105,29 +1249,33 @@ async function writeEvidence(evidence, fileIdentity = state.runId) {
 }
 
 async function main() {
-  assertTrustedWorkflowContext();
-  const ci = buildCiIdentity();
+  const context = assertTrustedWorkflowContext();
+  const identity = await verifyIdentityRoots(context.mode, context.implementationSha);
+  const ci = buildCiIdentity({ ...context, ...identity });
   state.ci = ci;
   const sourceManifest = await createExecutionSourceManifest(ci);
   try {
     await buildTestImage();
   } finally {
-    await rm(path.join(root, sourceManifestPath), { force: true });
+    await rm(path.join(implementationRoot, sourceManifestPath), { force: true });
   }
 
   state.runId = randomUUID();
   state.databaseName = `ledgerly_canonical_test_${state.runId.replaceAll("-", "").toLowerCase()}`;
   const sourceDigests = {
     sourceTree: sourceManifest.sourceTreeSha256,
-    applicationSchema: await sha256File(sourcePaths.applicationSchema),
-    drizzleConfig: await sha256File(sourcePaths.drizzleConfig),
-    securityOverlay: await sha256File(sourcePaths.securityOverlay),
-    runControlSql: await sha256File(sourcePaths.runControlSql),
-    coordinator: await sha256File(sourcePaths.coordinator),
-    testSources: await sha256Files([sourcePaths.canonicalTests, sourcePaths.canonicalPosting]),
-    lockfile: await sha256File(sourcePaths.lockfile),
-    workflow: await sha256File(sourcePaths.workflow),
-    orchestrator: await sha256File(sourcePaths.coordinator),
+    applicationSchema: await sha256File(sourcePaths.applicationSchema, implementationRoot),
+    drizzleConfig: await sha256File(sourcePaths.drizzleConfig, implementationRoot),
+    securityOverlay: await sha256File(sourcePaths.securityOverlay, implementationRoot),
+    runControlSql: await sha256File(sourcePaths.runControlSql, implementationRoot),
+    coordinator: await sha256File(sourcePaths.coordinator, implementationRoot),
+    testSources: await sha256Files(
+      [sourcePaths.canonicalTests, sourcePaths.canonicalPosting],
+      implementationRoot,
+    ),
+    lockfile: await sha256File(sourcePaths.lockfile, implementationRoot),
+    workflow: await sha256File(sourcePaths.workflow, workflowRoot),
+    orchestrator: await sha256File(sourcePaths.canonicalCoordinator, implementationRoot),
   };
   const credentials = await createCredentials(state.runId, state.databaseName, sourceDigests, ci);
   state.runNonce = credentials.nonce;
@@ -1150,7 +1298,7 @@ async function main() {
   await cleanupDatabase();
   await removeCredentialMaterial();
   const evidence = {
-    schemaVersion: 1,
+     schemaVersion: 2,
     result: "passed",
     failurePhase: null,
     ci,
@@ -1168,7 +1316,11 @@ async function main() {
       targetClassification: "external-ci-postgresql-service-container",
       creatorIdentity: "postgres",
       runtimeIdentity: "ledgerly_api",
-      sourceCommit: ci.sourceCommit,
+       workflowSourceCommit: ci.workflowSourceCommit,
+       implementationSourceCommit: ci.implementationSourceCommit,
+       ancestryVerified: ci.ancestryVerified,
+       workflowCheckoutClean: ci.workflowCheckoutClean,
+       implementationCheckoutClean: ci.implementationCheckoutClean,
       sourceTreeSha256: sourceDigests.sourceTree,
       nonceSha256: credentials.nonceSha256,
       sourceDigests,
@@ -1220,7 +1372,10 @@ async function main() {
   state.evidence = await writeEvidence(evidence);
   console.log(
     "LEDGERLY_TI03_EVIDENCE",
-    JSON.stringify({ path: path.relative(root, state.evidence.file), sha256: state.evidence.sha256 }),
+    JSON.stringify({
+      path: path.relative(implementationRoot, state.evidence.file),
+      sha256: state.evidence.sha256,
+    }),
   );
 }
 
@@ -1259,7 +1414,7 @@ try {
   }
   if (failure && state.ci) {
     const failedEvidence = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       result: "failed",
       failurePhase,
       ci: state.ci,
@@ -1294,7 +1449,7 @@ try {
       console.log(
         "LEDGERLY_TI03_FAILURE_EVIDENCE",
         JSON.stringify({
-          path: path.relative(root, state.evidence.file),
+          path: path.relative(implementationRoot, state.evidence.file),
           sha256: state.evidence.sha256,
         }),
       );

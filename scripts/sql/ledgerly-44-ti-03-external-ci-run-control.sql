@@ -16,7 +16,14 @@ CREATE TABLE IF NOT EXISTS ledgerly_test_control.run_identity (
   ci_run_id text NOT NULL,
   ci_run_attempt text NOT NULL,
   ci_job text NOT NULL,
-  source_commit text NOT NULL,
+  identity_mode text NOT NULL,
+  ci_source_ref text NOT NULL,
+  ci_ref_protected boolean NOT NULL,
+  workflow_source_commit text NOT NULL,
+  implementation_source_commit text NOT NULL,
+  ancestry_verified boolean NOT NULL,
+  workflow_checkout_clean boolean NOT NULL,
+  implementation_checkout_clean boolean NOT NULL,
   source_tree_sha256 text NOT NULL,
   application_schema_sha256 text NOT NULL,
   drizzle_config_sha256 text NOT NULL,
@@ -61,12 +68,35 @@ CREATE TABLE IF NOT EXISTS ledgerly_test_control.run_identity (
     AND orchestrator_sha256 ~ '^[0-9a-f]{64}$'
   ),
   CONSTRAINT run_identity_nonce CHECK (run_binding_nonce ~ '^[0-9a-f]{64}$'),
+  CONSTRAINT run_identity_commits CHECK (
+    workflow_source_commit ~ '^[0-9a-f]{40}$'
+    AND implementation_source_commit ~ '^[0-9a-f]{40}$'
+  ),
+  CONSTRAINT run_identity_mode CHECK (
+    identity_mode IN ('candidate', 'activated')
+    AND ci_ref_protected
+    AND ancestry_verified
+    AND workflow_checkout_clean
+    AND implementation_checkout_clean
+    AND (
+      (
+        identity_mode = 'candidate'
+        AND ci_source_ref = 'refs/heads/tr01/implementation-identity-candidate'
+        AND ci_workflow_ref ~ '/\.github/workflows/ledgerly-canonical-postgresql\.yml@refs/heads/tr01/implementation-identity-candidate$'
+        AND workflow_source_commit = implementation_source_commit
+      )
+      OR (
+        identity_mode = 'activated'
+        AND ci_source_ref = 'refs/heads/main'
+        AND ci_workflow_ref ~ '/\.github/workflows/ledgerly-canonical-postgresql\.yml@refs/heads/main$'
+      )
+    )
+  ),
   CONSTRAINT run_identity_time_window CHECK (expires_at > created_at),
   CONSTRAINT run_identity_exact_policy CHECK (
     environment = 'external-ci-disposable-test'
     AND target_classification = 'external-ci-postgresql-service-container'
     AND ci_provider = 'github-actions'
-    AND ci_workflow_ref ~ '/\.github/workflows/ledgerly-canonical-postgresql\.yml@refs/heads/main$'
     AND creator_identity = 'postgres'
     AND expected_runtime_identity = 'ledgerly_api'
     AND prohibits_heliumdb
