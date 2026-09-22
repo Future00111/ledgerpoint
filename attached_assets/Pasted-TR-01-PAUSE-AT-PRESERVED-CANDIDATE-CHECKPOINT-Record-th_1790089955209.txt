@@ -1,0 +1,112 @@
+TR-01 — PAUSE AT PRESERVED CANDIDATE CHECKPOINT
+
+Record the current TR-01 state as a deliberate development pause.
+
+Immutable candidate:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+Preserved bundles:
+
+exports/tr01-implementation-candidate-d292f3a.bundle
+
+exports/tr01-implementation-candidate-d292f3a-BACKUP.bundle
+
+Expected SHA-256 for both:
+
+99b1b1b5468f848b2350d3f8597dac7e5272e283451e2ef13fc91cda34341524
+
+Both bundles:
+VERIFIED
+
+Complete history:
+YES
+
+Candidate pre-validation:
+PASS
+
+Independent implementation/security review:
+PASS
+
+External exact-SHA publication:
+PENDING
+
+Candidate PostgreSQL qualification:
+NOT RUN
+
+Final identity approval:
+NOT RUN
+
+Governance activation G:
+NOT CREATED
+
+Phase A:
+NOT RUN
+
+48-B:
+OPEN / DEFERRED UNTIL PRE-PRODUCTION
+
+==================================================
+DEVELOPMENT PAUSE
+==================================================
+
+Record:
+
+TR-01 CANDIDATE C PRESERVED
+— QUALIFICATION / PUBLICATION DEFERRED
+
+This is NOT a TR-01 completion declaration.
+
+Do not mark C authoritative.
+
+Do not mark TR-01 complete.
+
+Do not run Phase A.
+
+Do not modify 48-B.
+
+==================================================
+ACCOUNTING CORE FREEZE
+==================================================
+
+Until TR-01 qualification resumes, treat the following architecture as
+frozen unless a separately approved change requires otherwise:
+
+- canonical journal posting;
+- double-entry persistence;
+- authority-provider architecture;
+- financial-year / period authorities;
+- configuration-version authorities;
+- canonical accounting mappings;
+- journal immutability;
+- transition-principal / protected-owner model;
+- migration-control / cutover architecture;
+- canonical posting database security.
+
+Normal product development may continue outside this frozen accounting-core
+boundary.
+
+==================================================
+RESUMPTION RECORD
+==================================================
+
+When TR-01 work resumes, begin from:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+and the two verified bundle copies above.
+
+Required next activity at resumption:
+
+external exact-SHA publication
+-> candidate protection/environment setup
+-> candidate PostgreSQL qualification
+-> final identity approval
+-> governance activation
+-> activated qualification
+
+Do not restart the earlier design process unnecessarily.
+
+No executable changes are required for this pause record.
