@@ -3,7 +3,7 @@ name: TR-01 preserved-candidate pause
 description: Deliberate pause boundary, frozen accounting-core scope, and required resumption sequence for TR-01.
 ---
 
-TR-01 remains deliberately gated with its immutable candidate preserved in two verified, complete-history Git bundles. Candidate pre-validation and independent implementation/security review passed, and exact-SHA publication subsequently succeeded. Environment/protection verification and candidate qualification have not been established; final identity approval, governance activation, activated qualification, and Phase A have not run. This is not completion, and the candidate is not authoritative.
+TR-01 remains deliberately gated with its immutable candidate preserved in two verified, complete-history Git bundles. Pre-candidate validation and package-level independent review passed, and exact-SHA publication subsequently succeeded; do not confuse that review with a fresh independent verdict on the exact published commit. Consult the latest approval record for that verdict and live configuration status. Candidate qualification, final identity approval, governance activation, activated qualification, and Phase A have not run. This is not completion, and the candidate is not authoritative.
 
 **Why:** Exact publication was initially blocked by workspace GitHub authentication, then completed with a temporary, non-persisted credential. Publication alone does not satisfy the remaining governance and qualification gates. The preserved candidate must not be reconstructed or replaced.
 

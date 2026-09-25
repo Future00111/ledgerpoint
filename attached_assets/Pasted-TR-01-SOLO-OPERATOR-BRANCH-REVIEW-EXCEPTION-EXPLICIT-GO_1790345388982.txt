@@ -1,0 +1,138 @@
+TR-01 — SOLO-OPERATOR BRANCH-REVIEW EXCEPTION
+EXPLICIT GOVERNANCE APPROVAL
+
+Current proposal:
+
+docs/ledgerly-44-tr-01-solo-operator-branch-review-exception-proposal.md
+
+Independent document review:
+
+PASS
+
+Approve this exception for DEVELOPMENT-ONLY candidate qualification.
+
+==================================================
+1. APPROVED EXCEPTION
+==================================================
+
+For candidate C development qualification only, replace the following PR
+review requirements:
+
+- two required approvals;
+- stale-review dismissal;
+- conversation-resolution requirement;
+
+with the approved recorded owner attestation.
+
+This exception applies only because the repository currently operates with
+a single active project operator.
+
+==================================================
+2. CONTROLS NOT WAIVED
+==================================================
+
+This approval does NOT waive:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+- immutable candidate identity;
+- exact protected candidate branch;
+- restrict updates;
+- restrict deletion;
+- block force pushes;
+- exact SHA binding;
+- workflow_dispatch only;
+- required validation/status checks;
+- fresh independent implementation/security review of exact C;
+- schema-v2 identity evidence;
+- disposable PostgreSQL qualification;
+- cleanup/resource-absence verification;
+- production prohibition;
+- HeliumDB prohibition.
+
+==================================================
+3. OWNER ATTESTATION
+==================================================
+
+The owner attestation must explicitly record before qualification:
+
+- exact C;
+- exact protected ref;
+- remote SHA match;
+- branch protection state;
+- required validation status;
+- independent review status;
+- environment SHA binding;
+- workflow identity;
+- no production/HeliumDB credentials;
+- explicit authorization to dispatch candidate qualification.
+
+Do not describe this as independent human PR approval.
+
+==================================================
+4. DEVELOPMENT-ONLY LIMIT
+==================================================
+
+This exception applies ONLY to development candidate qualification.
+
+It does NOT apply to:
+
+- production release;
+- production migration;
+- 48-B;
+- Stage 3;
+- future controls requiring independent human approval.
+
+==================================================
+5. LIVE CONFIGURATION
+==================================================
+
+After recording approval, configure only the GitHub controls required by
+the amended solo-operator development model.
+
+Then verify:
+
+CANDIDATE BRANCH:
+tr01/implementation-identity-candidate
+
+REMOTE C:
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+RESTRICT UPDATES:
+YES
+
+RESTRICT DELETIONS:
+YES
+
+BLOCK FORCE PUSHES:
+YES
+
+REQUIRED VALIDATION STATUS:
+PRESENT / PASS
+
+INDEPENDENT REVIEW OF C:
+PASS
+
+ENVIRONMENT:
+ledgerly-canonical
+
+LEDGERLY_APPROVED_CANDIDATE_SHA:
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+OWNER ATTESTATION REQUIRED:
+YES
+
+==================================================
+6. STOP POINT
+==================================================
+
+If the configuration is compliant:
+
+TR-01 SOLO-OPERATOR CANDIDATE CONTROLS CONFIGURED
+— OWNER PRE-DISPATCH ATTESTATION REQUIRED
+
+Then STOP.
+
+Do not dispatch qualification automatically.
+Do not run Phase A.
