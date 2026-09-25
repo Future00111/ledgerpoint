@@ -3,8 +3,9 @@
 **Date:** 2026-09-25
 **Source:** `attached_assets/Pasted-TR-01-SUCCESSOR-CANDIDATE-C2-EVIDENCE-CORRECTION-DESIGN_1790349096928.txt`
 **Reviewed design:** `docs/ledgerly-44-tr-01-successor-candidate-evidence-acceptance-correction-proposal.md`
-**Status:** EXACT SIX-FILE DESIGN / SCOPE APPROVED; LITERAL C2 REF NAME
-NOT YET APPROVED; IMPLEMENTATION AND ALL EXECUTION SEPARATELY GATED
+**Status:** EXACT SIX-FILE DESIGN / SCOPE AND LITERAL C2 REF NAME APPROVED;
+FRESH INDEPENDENT PACKAGE REVIEW PASSED; IMPLEMENTATION AND ALL EXECUTION
+SEPARATELY GATED
 
 The owner approved the design and exact six-file scope after the proposal
 received an independent read-only architecture/security **PASS on the
@@ -39,16 +40,15 @@ for a new design/scope decision; do not infer permission from this record.
 
 ## Approved prospective identity and evidence model
 
-The separate, exact candidate-ref **strategy** for the future C2 is
-approved. The proposal suggests
-`refs/heads/tr01/implementation-identity-successor-c2` as a
-**placeholder**, but the source approval does not literally name or
-approve that string. The owner must expressly approve an exact literal
-ref before the implementation package can fix identity guards or
-receive an implementation approval. This record does **not** create,
-publish, or protect any ref. C2's SHA will be determined only after
-independently reviewed implementation on a normal descendant of C.
-Do not derive C2
+The attached source approved the separate exact candidate-ref strategy
+but did not literally name a ref. After the first independent package
+review identified this gap, the owner **explicitly approved** the
+proposal's exact literal `refs/heads/tr01/implementation-identity-successor-c2`
+in a separate answer on 2026-09-25. This resolves the name decision;
+it does not create, publish, or protect any ref, and does not approve
+implementation or live configuration. C2's SHA will be determined only
+after independently reviewed implementation on a normal descendant of
+C. Do not derive C2
 from a history-clean audit snapshot, substitute a tag, use a wildcard ref,
 or move C's ref. Candidate execution requires protected S=C2; activated
 execution retains the later protected-main S and C2 ancestry model without
@@ -95,13 +95,20 @@ and Phase A remain outside this approval.
 
 ## Fresh independent package-review result
 
-**FAIL — exact literal C2 ref not explicitly approved.** The reviewer
+The first review **FAILED — exact literal C2 ref not explicitly approved.** The reviewer
 confirmed the six-file technical design, no accounting-runtime expansion,
 C preservation, digest-domain requirements, validation plan and later
 operational gates, but found that the source attachment approved a
-strategy rather than the proposal's placeholder string. Do not infer
-owner approval of that literal from this record. Obtain an explicit
-literal-ref decision, reconcile the implementation package and seek
-fresh independent read-only review before treating the package as
-ready for explicit implementation approval. No implementation,
-GitHub configuration or qualification is authorized.
+strategy rather than the proposal's placeholder string. The subsequent
+explicit owner answer above resolves **only that finding**, subject to
+fresh independent read-only review of the reconciled package.
+
+That fresh independent read-only re-review **PASSED**: exactly six
+implementation files, no accounting-runtime expansion, immutable C,
+prospective normally-descended C2 on the expressly approved literal
+ref, mandatory independently verified S/C2 digest provenance and
+rejection probes, valid v2 acceptance, and complete future validation
+requirements. It found no remaining design blocker. This is a
+document/package verdict, **not** an implementation or exact-C2
+review. No code change, GitHub configuration, qualification,
+production/HeliumDB contact or Phase A is authorized by it.

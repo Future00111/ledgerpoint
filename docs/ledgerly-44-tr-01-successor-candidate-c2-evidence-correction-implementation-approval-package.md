@@ -1,8 +1,8 @@
 # TR-01 C2 evidence correction — implementation approval package
 
 **Date:** 2026-09-25
-**Status:** NON-EXECUTABLE PACKAGE — INDEPENDENT PACKAGE REVIEW FAIL
-(LITERAL C2 REF NOT APPROVED); FURTHER DESIGN DECISION REQUIRED
+**Status:** INDEPENDENTLY REVIEWED NON-EXECUTABLE PACKAGE — READY FOR
+EXPLICIT IMPLEMENTATION APPROVAL; NOT YET AUTHORIZED TO IMPLEMENT
 **Design approval:** `docs/ledgerly-44-tr-01-successor-candidate-c2-evidence-correction-design-scope-approval-record.md`
 **Source proposal:** `docs/ledgerly-44-tr-01-successor-candidate-evidence-acceptance-correction-proposal.md`
 
@@ -28,11 +28,10 @@ qualification impact, and zero accounting-runtime impact.
      unknown and legacy map keys. Preserve the ability to emit failed
      preflight evidence without a completed binding; any supplied digest
      map must still have the exact shape.
-   - After explicit approval of the literal C2 ref, set all
-     candidate-only `ci.sourceRef`, `binding.ciSourceRef`,
-     `ci.workflowRef` and conditional-ref constraints to that single
-     exact approved ref. The proposed literal below is **not yet
-     authorized**.
+   - Set all candidate-only `ci.sourceRef`, `binding.ciSourceRef`,
+     `ci.workflowRef` and conditional-ref constraints to the single
+     exact ref now expressly approved by the owner:
+     `refs/heads/tr01/implementation-identity-successor-c2`.
      Preserve main/activated identity, version 2, additional-property
      rejection, and all non-digest evidence constraints.
 2. `scripts/ci/run-ledgerly-canonical-postgresql.mjs`
@@ -111,13 +110,15 @@ before touching it.
 
 ## 2. Identity, provenance and C/S/A/B/G compatibility
 
-The **proposed but unapproved prospective ref string** is
-`refs/heads/tr01/implementation-identity-successor-c2`. The source
-approval authorizes a new exact-ref strategy but does not name the
-literal ref. Obtain the owner's explicit literal-ref decision and
-fresh independent review of the reconciled package before any
-implementation approval. No C2 ref has been created, configured or
-published. Existing C and its ref remain preserved.
+The **approved prospective literal ref string** is
+`refs/heads/tr01/implementation-identity-successor-c2`. The initial
+source approval authorized a new exact-ref strategy but did not name
+the literal; after the first package review failed on that omission,
+the owner explicitly approved this exact literal on 2026-09-25. A
+fresh independent review of this reconciled package and a later
+explicit implementation approval remain required. No C2 ref has
+been created, configured or published. Existing C and its ref remain
+preserved.
 Candidate mode: protected exact workflow ref, `S=C2`, exact full
 `GITHUB_SHA=C2`, exact `LEDGERLY_APPROVED_CANDIDATE_SHA=C2`, clean S/C2
 checkouts, approved schema-v2 evidence and private run binding. Activated
@@ -173,8 +174,8 @@ or report qualification.
    reset, history replacement, tag substitute, or move of C's ref.
    Record full C2, its parent and exact per-file/tree digests outside
    the immutable commit; check the committed SHA against the review.
-2. Only after the literal C2 ref is approved and with separate GitHub
-   authorization, establish an exact-name ruleset for that approved ref
+2. Only with separate GitHub authorization, establish an exact-name
+   ruleset for the approved C2 ref
    **before** the ref exists: administrator coverage, update/deletion/
    non-fast-forward restrictions, no ordinary direct push, the
    specified identity-recovery validation-status gate, and no
@@ -232,11 +233,15 @@ The first independent read-only package review **FAILED** solely because
 the proposed ref string was presented as already approved when the
 attachment approved only the ref strategy. The six-file technical
 inventory, digest model, accounting-runtime boundary, and validation
-plan had no other blocking finding. This package remains non-executable
-and must be reconciled and re-reviewed after an explicit owner
-literal-ref decision. If a fresh independent **read-only review of the
-reconciled package** passes, the
-result is:
+plan had no other blocking finding. The owner subsequently approved
+the exact ref literal; this package was reconciled and received a
+fresh independent **read-only PASS**. The reviewer found exactly six
+files, no accounting-runtime expansion, C and its protected ref
+preserved, normally-descended C2 on the approved literal ref, mandatory
+S/C2 digest provenance and rejection probes, complete fresh
+validation, and no production/HeliumDB or Phase A permission. No
+unresolved implementation-design choice remains. The reviewed result
+is:
 
 **TR-01 SUCCESSOR CANDIDATE C2 CORRECTION APPROVED — IMPLEMENTATION
 PACKAGE READY FOR EXPLICIT APPROVAL.**
@@ -244,7 +249,7 @@ PACKAGE READY FOR EXPLICIT APPROVAL.**
 This says only that the design/scope and a non-executable implementation
 package are ready. It does not itself grant that later explicit
 implementation approval or any further operational authorization.
-While that literal-ref decision is absent, or if review identifies a
-seventh path or architectural expansion, report:
+If the ref approval is inconsistent or revoked, or review identifies
+a seventh path or architectural expansion, report:
 
 **TR-01 C2 CORRECTION PACKAGE BLOCKED — FURTHER DESIGN APPROVAL REQUIRED.**
