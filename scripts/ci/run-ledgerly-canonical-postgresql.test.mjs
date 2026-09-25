@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const candidateRef = "refs/heads/tr01/implementation-identity-candidate";
+const candidateRef = "refs/heads/tr01/implementation-identity-successor-c2";
 const mainRef = "refs/heads/main";
 const sha = "a".repeat(40);
 
@@ -120,6 +123,362 @@ bindingShape.binding = {
   nonceSha256: "c".repeat(64),
 };
 assert.equal(validate(bindingShape), true);
+const digestKeys = [
+  "sourceTree", "applicationSchema", "drizzleConfig", "securityOverlay",
+  "runControlSql", "coordinator", "testSources", "lockfile", "workflow",
+  "orchestrator",
+];
+const digest = (label) => createHash("sha256").update(label).digest("hex");
+const negativeControls = Object.fromEntries(
+  schema.properties.negativeControls.required.map((key) => [key, true]),
+);
+
+const fixtureDirectory = await mkdtemp(path.join(tmpdir(), "ledgerly-c2-acceptance-"));
+const implementationFixture = path.join(fixtureDirectory, "implementation");
+const workflowFixture = path.join(fixtureDirectory, "workflow");
+const fixtureFiles = [
+  ".dockerignore",
+  ".ci/ledgerly-canonical/Dockerfile.test",
+  ".github/workflows/ledgerly-canonical-postgresql.yml",
+  "artifacts/api-server/package.json",
+  "artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs",
+  "artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts",
+  "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
+  "lib/db/src/schema/index.ts",
+  "lib/db/drizzle.config.ts",
+  "scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql",
+  "scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql",
+  "scripts/ci/run-ledgerly-canonical-postgresql.mjs",
+  "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json",
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+];
+const git = (cwd, ...args) => execFileSync("git", ["-C", cwd, ...args], { encoding: "utf8" }).trim();
+await mkdir(implementationFixture, { recursive: true });
+for (const relativePath of fixtureFiles) {
+  const file = path.join(implementationFixture, relativePath);
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(
+    file,
+    relativePath === "scripts/ci/run-ledgerly-canonical-postgresql.mjs" ||
+      relativePath === "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json"
+      ? await read(relativePath)
+      : relativePath === "package.json"
+        ? '{"type":"module","private":true}\n'
+      : `C2 fixture ${relativePath}\n`,
+  );
+}
+git(implementationFixture, "init", "-q", "-b", "main");
+git(implementationFixture, "add", "--all");
+git(implementationFixture, "-c", "user.email=fixture@example.invalid", "-c", "user.name=Fixture",
+  "commit", "-qm", "C2 fixture");
+const fixtureC2 = git(implementationFixture, "rev-parse", "HEAD");
+git(implementationFixture, "worktree", "add", "--detach", workflowFixture, "HEAD");
+await writeFile(
+  path.join(workflowFixture, ".github/workflows/ledgerly-canonical-postgresql.yml"),
+  "distinct protected main S workflow fixture\n",
+);
+await writeFile(
+  path.join(workflowFixture, "scripts/ci/run-ledgerly-canonical-postgresql.mjs"),
+  "distinct protected main S coordinator fixture\n",
+);
+git(workflowFixture, "add", ".github/workflows/ledgerly-canonical-postgresql.yml",
+  "scripts/ci/run-ledgerly-canonical-postgresql.mjs");
+git(workflowFixture, "-c", "user.email=fixture@example.invalid", "-c", "user.name=Fixture",
+  "commit", "-qm", "activated S fixture");
+const fixtureS = git(workflowFixture, "rev-parse", "HEAD");
+await symlink(path.join(root, "node_modules"), path.join(implementationFixture, "node_modules"));
+
+async function manifestFor(mode, workflowSourceRoot) {
+  const files = git(implementationFixture, "ls-files", "-z").split("\0").filter(Boolean).sort();
+  const hash = createHash("sha256");
+  for (const file of files) {
+    hash.update(file);
+    hash.update("\0");
+    hash.update(await readFile(path.join(implementationFixture, file)));
+    hash.update("\0");
+  }
+  return {
+    version: 2,
+    identityMode: mode,
+    implementationSourceCommit: fixtureC2,
+    workflowSourceSha256: digest(
+      await readFile(
+        path.join(workflowSourceRoot, ".github/workflows/ledgerly-canonical-postgresql.yml"),
+      ),
+    ),
+    files,
+    sourceTreeSha256: hash.digest("hex"),
+  };
+}
+
+function fixtureEnvironment(mode) {
+  const sourceRef = mode === "candidate" ? candidateRef : mainRef;
+  return {
+    GITHUB_ACTIONS: "true",
+    GITHUB_EVENT_NAME: "workflow_dispatch",
+    GITHUB_REF_PROTECTED: "true",
+    GITHUB_REF: sourceRef,
+    GITHUB_SHA: mode === "candidate" ? fixtureC2 : fixtureS,
+    GITHUB_REPOSITORY: "example/repository",
+    GITHUB_WORKFLOW: "Ledgerly canonical PostgreSQL qualification",
+    GITHUB_WORKFLOW_REF: `example/repository/.github/workflows/ledgerly-canonical-postgresql.yml@${sourceRef}`,
+    GITHUB_JOB: "canonical-postgresql",
+    GITHUB_RUN_ID: "1",
+    GITHUB_RUN_ATTEMPT: "1",
+    LEDGERLY_IDENTITY_MODE: mode,
+    LEDGERLY_APPROVED_CANDIDATE_SHA: fixtureC2,
+    LEDGERLY_IMPLEMENTATION_SOURCE_SHA: fixtureC2,
+  };
+}
+
+function fixtureCi(environment) {
+  return {
+    ...failureEvidence().ci,
+    repository: environment.GITHUB_REPOSITORY,
+    workflow: environment.GITHUB_WORKFLOW,
+    workflowRef: environment.GITHUB_WORKFLOW_REF,
+    job: environment.GITHUB_JOB,
+    workflowSourceCommit: environment.GITHUB_SHA,
+    implementationSourceCommit: fixtureC2,
+    identityMode: environment.LEDGERLY_IDENTITY_MODE,
+    sourceRef: environment.GITHUB_REF,
+  };
+}
+
+const candidateEnvironment = fixtureEnvironment("candidate");
+const candidateManifest = await manifestFor("candidate", implementationFixture);
+const savedEnvironment = process.env;
+const fixtureModuleUrl = pathToFileURL(
+  path.join(implementationFixture, "scripts/ci/run-ledgerly-canonical-postgresql.mjs"),
+).href;
+process.env = {
+  PATH: savedEnvironment.PATH,
+  HOME: savedEnvironment.HOME,
+  ...candidateEnvironment,
+};
+const candidateModule = await import(`${fixtureModuleUrl}?candidate`);
+const validateEvidenceContract = candidateModule.validateEvidenceContract;
+const candidateTrusted = await candidateModule.buildTrustedEvidenceContext(
+  fixtureCi(candidateEnvironment), candidateManifest,
+);
+const expectedDigests = { ...candidateTrusted.sourceDigests };
+const activatedEnvironment = fixtureEnvironment("activated");
+const activatedManifest = await manifestFor("activated", workflowFixture);
+process.env = {
+  PATH: savedEnvironment.PATH,
+  HOME: savedEnvironment.HOME,
+  ...activatedEnvironment,
+  LEDGERLY_WORKFLOW_ROOT: workflowFixture,
+};
+const activatedModule = await import(`${fixtureModuleUrl}?activated`);
+const validateActivatedEvidence = activatedModule.validateEvidenceContract;
+const activatedTrusted = await activatedModule.buildTrustedEvidenceContext(
+  fixtureCi(activatedEnvironment), activatedManifest,
+);
+process.env = savedEnvironment;
+assert.doesNotThrow(() => validateEvidenceContract(activated));
+assert.notEqual(candidateTrusted.ci.workflowSourceCommit, activatedTrusted.ci.workflowSourceCommit);
+assert.notEqual(candidateTrusted.sourceDigests.workflow, activatedTrusted.sourceDigests.workflow);
+assert.equal(candidateTrusted.sourceDigests.sourceTree, activatedTrusted.sourceDigests.sourceTree);
+const sCoordinatorDigest = digest(await readFile(
+  path.join(workflowFixture, "scripts/ci/run-ledgerly-canonical-postgresql.mjs"),
+));
+assert.notEqual(sCoordinatorDigest, activatedTrusted.sourceDigests.coordinator);
+const sTreeHash = createHash("sha256");
+for (const file of activatedManifest.files) {
+  sTreeHash.update(file);
+  sTreeHash.update("\0");
+  sTreeHash.update(await readFile(path.join(workflowFixture, file)));
+  sTreeHash.update("\0");
+}
+const sTreeDigest = sTreeHash.digest("hex");
+assert.notEqual(sTreeDigest, activatedTrusted.sourceDigests.sourceTree);
+await assert.rejects(
+  // A source manifest cannot redefine the authenticated C2 tracked-file list.
+  (async () => {
+    process.env = { PATH: savedEnvironment.PATH, HOME: savedEnvironment.HOME, ...candidateEnvironment };
+    try {
+      return await candidateModule.buildTrustedEvidenceContext(
+        fixtureCi(candidateEnvironment), { ...candidateManifest, files: [] },
+      );
+    } finally {
+      process.env = savedEnvironment;
+    }
+  })(),
+  /manifest no longer matches/,
+);
+await assert.rejects(
+  // An activated context cannot substitute the candidate-mode S root.
+  (async () => {
+    process.env = {
+      PATH: savedEnvironment.PATH, HOME: savedEnvironment.HOME, ...activatedEnvironment,
+    };
+    try {
+      return await candidateModule.buildTrustedEvidenceContext(
+        fixtureCi(activatedEnvironment), activatedManifest,
+      );
+    } finally {
+      process.env = savedEnvironment;
+    }
+  })(),
+  /Workflow checkout HEAD does not match/,
+);
+
+function passedEvidence(ci = candidateTrusted.ci, sourceDigests = expectedDigests) {
+  return {
+    ...failureEvidence(),
+    result: "passed",
+    failurePhase: null,
+    ci: { ...ci },
+    binding: {
+      ...bindingShape.binding,
+      identityMode: ci.identityMode,
+      ciSourceRef: ci.sourceRef,
+      workflowSourceCommit: ci.workflowSourceCommit,
+      implementationSourceCommit: ci.implementationSourceCommit,
+      sourceTreeSha256: sourceDigests.sourceTree,
+      sourceDigests: { ...sourceDigests },
+    },
+    bootstrap: {
+      status: "passed", roleSeparation: [], ownership: [], acl: {},
+      constraints: [], indexes: [], triggers: [], emptyBaseline: true,
+      privateBinding: true,
+    },
+    runtime: {
+      databaseName: bindingShape.binding.databaseName,
+      currentUser: "ledgerly_api", sessionUser: "ledgerly_api",
+      identityVerified: true, privateBindingVerified: true,
+      sourceDigestsVerified: true, concurrencyEvidence: {},
+    },
+    negativeControls: { ...negativeControls },
+    cleanup: Object.fromEntries(
+      Object.keys(failureEvidence().cleanup).map((key) => [key, true]),
+    ),
+    isolation: {
+      ...failureEvidence().isolation,
+      noPublishedPorts: true, internalNetwork: true,
+      testContainerNoSocket: true, testContainerNoExternalRoute: true,
+    },
+  };
+}
+
+const candidatePassed = passedEvidence();
+assert.equal(validate(candidatePassed), true);
+assert.doesNotThrow(() => validateEvidenceContract(candidatePassed, candidateTrusted));
+assert.doesNotThrow(() => validateEvidenceContract(failureEvidence()));
+assert.throws(() => validateEvidenceContract(candidatePassed), /verified S\/C2 checkouts/);
+assert.throws(
+  () => validateEvidenceContract(candidatePassed, { ...candidateTrusted, manifestVerified: false }),
+  /verified S\/C2 checkouts/,
+);
+assert.throws(
+  () => validateEvidenceContract(candidatePassed, { ...candidateTrusted, rootsVerified: false }),
+  /verified S\/C2 checkouts/,
+);
+assert.throws(
+  () => validateEvidenceContract(candidatePassed, { ...candidateTrusted, sourceDigests: null }),
+  /verified S\/C2 checkouts/,
+);
+const forgedEvidence = structuredClone(candidatePassed);
+forgedEvidence.binding.sourceDigests = Object.fromEntries(
+  digestKeys.map((key) => [key, digest(`forged-${key}`)]),
+);
+forgedEvidence.binding.sourceTreeSha256 = forgedEvidence.binding.sourceDigests.sourceTree;
+assert.throws(
+  () => validateEvidenceContract(forgedEvidence, {
+    ...candidateTrusted,
+    sourceDigests: forgedEvidence.binding.sourceDigests,
+    sourceTreeSha256: forgedEvidence.binding.sourceTreeSha256,
+  }),
+  /verified S\/C2 checkouts/,
+);
+
+function rejectMutation(
+  name, mutate, base = candidatePassed, trusted = candidateTrusted,
+  accept = validateEvidenceContract,
+) {
+  const evidence = structuredClone(base);
+  mutate(evidence);
+  assert.throws(
+    () => accept(evidence, trusted),
+    /Evidence JSON Schema validation failed|TI-03 base contract|Passed evidence|Failed evidence/,
+    name,
+  );
+}
+
+rejectMutation("missing map", (value) => { delete value.binding.sourceDigests; });
+rejectMutation("empty map", (value) => { value.binding.sourceDigests = {}; });
+rejectMutation("partial map", (value) => { delete value.binding.sourceDigests.orchestrator; });
+rejectMutation("extra key", (value) => { value.binding.sourceDigests.legacy = digest("legacy"); });
+for (const invalid of ["", "1".repeat(63), "z".repeat(64), "A".repeat(64), null]) {
+  rejectMutation(`malformed digest ${String(invalid)}`, (value) => {
+    value.binding.sourceDigests.coordinator = invalid;
+  });
+}
+for (const key of digestKeys) {
+  rejectMutation(`single wrong ${key} digest`, (value) => {
+    value.binding.sourceDigests[key] = digest(`wrong-${key}`);
+  });
+}
+rejectMutation("swapped workflow/tree", (value) => {
+  [value.binding.sourceDigests.workflow, value.binding.sourceDigests.sourceTree] =
+    [value.binding.sourceDigests.sourceTree, value.binding.sourceDigests.workflow];
+  value.binding.sourceTreeSha256 = value.binding.sourceDigests.sourceTree;
+});
+rejectMutation("workflow attributed to implementation checkout", (value) => {
+  value.binding.sourceDigests.workflow = digest("trusted-C2-workflow");
+});
+rejectMutation("implementation attributed to workflow checkout", (value) => {
+  value.binding.sourceDigests.coordinator = digest("trusted-S-coordinator");
+});
+rejectMutation("tree digest not bound to implementation", (value) => {
+  value.binding.sourceTreeSha256 = digest("untrusted-tree");
+});
+for (const field of ["sourceCommit", "source_commit"]) {
+  rejectMutation(`legacy ci.${field}`, (value) => { value.ci[field] = sha; });
+  rejectMutation(`legacy binding.${field}`, (value) => { value.binding[field] = sha; });
+}
+rejectMutation("v1", (value) => { value.schemaVersion = 1; });
+rejectMutation("wrong candidate ref", (value) => {
+  value.ci.sourceRef = "refs/heads/tr01/implementation-identity-candidate";
+});
+rejectMutation("wrong workflow ref", (value) => {
+  value.ci.workflowRef = "example/repository/.github/workflows/other.yml@" + candidateRef;
+});
+rejectMutation("wrong candidate commit", (value) => {
+  value.ci.workflowSourceCommit = "b".repeat(40);
+  value.binding.workflowSourceCommit = value.ci.workflowSourceCommit;
+});
+rejectMutation("false ancestry", (value) => { value.ci.ancestryVerified = false; });
+rejectMutation("dirty workflow root", (value) => { value.ci.workflowCheckoutClean = false; });
+rejectMutation("dirty implementation root", (value) => {
+  value.ci.implementationCheckoutClean = false;
+});
+rejectMutation("self-consistent untrusted digest map", (value) => {
+  value.binding.sourceDigests = Object.fromEntries(
+    digestKeys.map((key) => [key, digest(`untrusted-${key}`)]),
+  );
+  value.binding.sourceTreeSha256 = value.binding.sourceDigests.sourceTree;
+});
+
+const activatedPassed = passedEvidence(activatedTrusted.ci, activatedTrusted.sourceDigests);
+assert.doesNotThrow(() => validateActivatedEvidence(activatedPassed, activatedTrusted));
+rejectMutation("activated workflow falsely attributed to C2", (value) => {
+  value.binding.sourceDigests.workflow = candidateTrusted.sourceDigests.workflow;
+}, activatedPassed, activatedTrusted, validateActivatedEvidence);
+rejectMutation("activated implementation falsely attributed to S", (value) => {
+  value.binding.sourceDigests.coordinator = sCoordinatorDigest;
+}, activatedPassed, activatedTrusted, validateActivatedEvidence);
+rejectMutation("activated implementation tree falsely attributed to S", (value) => {
+  value.binding.sourceDigests.sourceTree = sTreeDigest;
+  value.binding.sourceTreeSha256 = sTreeDigest;
+}, activatedPassed, activatedTrusted, validateActivatedEvidence);
+rejectMutation("activated wrong implementation commit", (value) => {
+  value.ci.implementationSourceCommit = "c".repeat(40);
+  value.binding.implementationSourceCommit = value.ci.implementationSourceCommit;
+}, activatedPassed, activatedTrusted, validateActivatedEvidence);
 for (const field of [
   "identityMode",
   "ciSourceRef",
@@ -210,6 +569,7 @@ for (const environmentName of [
   assert.match(disposableRunner, new RegExp(environmentName));
 }
 assert.match(disposableRunner, /must equal the literal string true/);
+assert.match(disposableRunner, /refs\/heads\/tr01\/implementation-identity-successor-c2/);
 assert.match(disposableRunner, /Object\.hasOwn\(process\.env, "LEDGERLY_CANONICAL_TEST_SOURCE_COMMIT"\)/);
 assert.doesNotMatch(disposableRunner, /sourceCommit:\s*ci\.sourceCommit/);
 const externalDigests = disposableRunner.slice(
@@ -258,7 +618,7 @@ for (const column of [
 assert.doesNotMatch(sql, /\bsource_commit\b/);
 assert.match(sql, /identity_mode = 'candidate'/);
 assert.match(sql, /identity_mode = 'activated'/);
-assert.match(sql, /refs\/heads\/tr01\/implementation-identity-candidate/);
+assert.match(sql, /refs\/heads\/tr01\/implementation-identity-successor-c2/);
 assert.match(sql, /refs\/heads\/main/);
 
 const workflow = await read(".github/workflows/ledgerly-canonical-postgresql.yml");
@@ -266,7 +626,9 @@ assert.match(workflow, /fetch-depth: 0/);
 assert.match(workflow, /path: candidate/);
 assert.match(workflow, /LEDGERLY_APPROVED_CANDIDATE_SHA/);
 assert.match(workflow, /LEDGERLY_IDENTITY_MODE/);
+assert.match(workflow, /refs\/heads\/tr01\/implementation-identity-successor-c2/);
 assert.match(workflow, /candidate\/scripts\/ci\/run-ledgerly-canonical-postgresql\.mjs/);
 assert.match(workflow, /\*\*\/docs\/governance\/evidence\/ledgerly-44-ti-03-\*\.json/);
 
-console.log("TR-01 identity-contract static tests passed");
+await rm(fixtureDirectory, { recursive: true, force: true });
+console.log("TR-01 identity and acceptance tests passed");

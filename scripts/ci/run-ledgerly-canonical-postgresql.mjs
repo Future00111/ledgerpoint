@@ -8,7 +8,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const workflowRoot = path.resolve(process.env.LEDGERLY_WORKFLOW_ROOT ?? root);
 const implementationRoot = root;
-const candidateRef = "refs/heads/tr01/implementation-identity-candidate";
+const candidateRef = "refs/heads/tr01/implementation-identity-successor-c2";
 const mainRef = "refs/heads/main";
 const fullShaPattern = /^[0-9a-f]{40}$/;
 const postgresImage =
@@ -73,6 +73,20 @@ const sourcePaths = {
   workflow: workflowPath,
   evidenceSchema: "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json",
 };
+const sourceDigestKeys = [
+  "sourceTree",
+  "applicationSchema",
+  "drizzleConfig",
+  "securityOverlay",
+  "runControlSql",
+  "coordinator",
+  "testSources",
+  "lockfile",
+  "workflow",
+  "orchestrator",
+];
+const digestPattern = /^[0-9a-f]{64}$/;
+const authenticatedEvidenceContexts = new WeakSet();
 
 const state = {
   phase: "preflight",
@@ -1175,7 +1189,75 @@ function assertJsonSchemaEvidence(value) {
   }
 }
 
-function validateEvidenceContract(evidence) {
+async function buildTrustedEvidenceContext(ci, manifest) {
+  const context = assertTrustedWorkflowContext();
+  const identity = await verifyIdentityRoots(context.mode, context.implementationSha);
+  const verifiedCi = buildCiIdentity({ ...context, ...identity });
+  if (!ci || Object.keys(verifiedCi).some((key) => ci[key] !== verifiedCi[key])) {
+    throw new Error("Evidence source identity changed after preflight");
+  }
+  if (
+    manifest?.version !== 2 ||
+    manifest.identityMode !== ci.identityMode ||
+    manifest.implementationSourceCommit !== ci.implementationSourceCommit ||
+    !Array.isArray(manifest.files) ||
+    !digestPattern.test(manifest.sourceTreeSha256 ?? "") ||
+    !digestPattern.test(manifest.workflowSourceSha256 ?? "")
+  ) {
+    throw new Error("Trusted implementation source manifest is unavailable or invalid");
+  }
+  const status = await run(
+    "git",
+    ["status", "--porcelain", "--untracked-files=all", "--", ...executionTreePathspecs],
+    { cwd: implementationRoot, quiet: true },
+  );
+  if (status.stdout.trim()) {
+    throw new Error("Implementation execution tree changed after manifest creation");
+  }
+  const tracked = await run(
+    "git",
+    ["ls-files", "-z", "--", ...executionTreePathspecs],
+    { cwd: implementationRoot, quiet: true },
+  );
+  const files = tracked.stdout.split("\0").filter(Boolean).sort();
+  if (JSON.stringify(manifest.files) !== JSON.stringify(files)) {
+    throw new Error("Implementation source manifest no longer matches the verified checkout");
+  }
+  const sourceTree = await sha256Files(files, implementationRoot);
+  const workflow = await sha256File(sourcePaths.workflow, workflowRoot);
+  if (
+    sourceTree !== manifest.sourceTreeSha256 ||
+    workflow !== manifest.workflowSourceSha256
+  ) {
+    throw new Error("Verified S/C2 checkout digests differ from the source manifest");
+  }
+  const sourceDigests = Object.freeze({
+    sourceTree,
+    applicationSchema: await sha256File(sourcePaths.applicationSchema, implementationRoot),
+    drizzleConfig: await sha256File(sourcePaths.drizzleConfig, implementationRoot),
+    securityOverlay: await sha256File(sourcePaths.securityOverlay, implementationRoot),
+    runControlSql: await sha256File(sourcePaths.runControlSql, implementationRoot),
+    coordinator: await sha256File(sourcePaths.coordinator, implementationRoot),
+    testSources: await sha256Files(
+      [sourcePaths.canonicalTests, sourcePaths.canonicalPosting],
+      implementationRoot,
+    ),
+    lockfile: await sha256File(sourcePaths.lockfile, implementationRoot),
+    workflow,
+    orchestrator: await sha256File(sourcePaths.canonicalCoordinator, implementationRoot),
+  });
+  const trusted = Object.freeze({
+    ci: Object.freeze({ ...verifiedCi }),
+    sourceDigests,
+    sourceTreeSha256: sourceTree,
+    rootsVerified: true,
+    manifestVerified: true,
+  });
+  authenticatedEvidenceContexts.add(trusted);
+  return trusted;
+}
+
+function validateEvidenceContract(evidence, trusted = null) {
   assertJsonSchemaEvidence(evidence);
   const mode = evidence?.ci?.identityMode;
   const expectedRef = mode === "candidate" ? candidateRef : mainRef;
@@ -1194,8 +1276,6 @@ function validateEvidenceContract(evidence) {
     evidence.ci.implementationCheckoutClean !== true ||
     (mode === "candidate" &&
       evidence.ci.workflowSourceCommit !== evidence.ci.implementationSourceCommit) ||
-    (mode === "activated" &&
-      evidence.ci.implementationSourceCommit !== state.ci?.implementationSourceCommit) ||
     typeof evidence.images?.postgres?.digest !== "string" ||
     typeof evidence.images?.node?.digest !== "string" ||
     typeof evidence.cleanup !== "object" ||
@@ -1204,6 +1284,26 @@ function validateEvidenceContract(evidence) {
     throw new Error("Evidence does not satisfy the TI-03 base contract");
   }
   if (evidence.result === "passed") {
+    if (
+      !trusted ||
+      !authenticatedEvidenceContexts.has(trusted) ||
+      trusted.rootsVerified !== true ||
+      trusted.manifestVerified !== true ||
+      !trusted.ci ||
+      !trusted.sourceDigests ||
+      Object.keys(trusted.sourceDigests).length !== sourceDigestKeys.length ||
+      !digestPattern.test(trusted.sourceTreeSha256 ?? "") ||
+      trusted.sourceDigests.sourceTree !== trusted.sourceTreeSha256 ||
+      Object.keys(trusted.ci).some((key) => evidence.ci[key] !== trusted.ci[key]) ||
+      sourceDigestKeys.some(
+        (key) =>
+          !digestPattern.test(trusted.sourceDigests[key] ?? "") ||
+          evidence.binding?.sourceDigests?.[key] !== trusted.sourceDigests[key],
+      ) ||
+      evidence.binding?.sourceTreeSha256 !== trusted.sourceTreeSha256
+    ) {
+      throw new Error("Passed evidence digests or identity differ from verified S/C2 checkouts");
+    }
     if (
       evidence.failurePhase !== null ||
       !Array.isArray(evidence.bootstrap?.roleSeparation) ||
@@ -1242,11 +1342,11 @@ function validateEvidenceContract(evidence) {
   }
 }
 
-async function writeEvidence(evidence, fileIdentity = state.runId) {
+async function writeEvidence(evidence, fileIdentity = state.runId, trusted = null) {
   const directory = path.join(implementationRoot, "docs/governance/evidence");
   await mkdir(directory, { recursive: true });
   const file = path.join(directory, `ledgerly-44-ti-03-${fileIdentity}.json`);
-  validateEvidenceContract(evidence);
+  validateEvidenceContract(evidence, trusted);
   const serialized = `${sanitizeEvidence(evidence)}\n`;
   await writeFile(file, serialized, { mode: 0o644 });
   return { file, sha256: sha256Buffer(serialized) };
@@ -1377,7 +1477,8 @@ async function main() {
       secretScanPassed: true,
     },
   };
-  state.evidence = await writeEvidence(evidence);
+  const trusted = await buildTrustedEvidenceContext(ci, sourceManifest);
+  state.evidence = await writeEvidence(evidence, state.runId, trusted);
   console.log(
     "LEDGERLY_TI03_EVIDENCE",
     JSON.stringify({
@@ -1387,6 +1488,9 @@ async function main() {
   );
 }
 
+export { buildTrustedEvidenceContext, validateEvidenceContract };
+
+async function runQualification() {
 let failure;
 let failurePhase = null;
 try {
@@ -1471,3 +1575,8 @@ try {
   }
 }
 if (failure) process.exitCode = 1;
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await runQualification();
+}

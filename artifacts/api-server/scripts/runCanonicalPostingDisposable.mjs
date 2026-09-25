@@ -438,13 +438,13 @@ async function runExternalCi() {
   };
   if (
     !["candidate", "activated"].includes(ci.identityMode) ||
-    !["refs/heads/tr01/implementation-identity-candidate", "refs/heads/main"].includes(
+    !["refs/heads/tr01/implementation-identity-successor-c2", "refs/heads/main"].includes(
       ci.ciSourceRef,
     ) ||
     !/^[0-9a-f]{40}$/.test(ci.workflowSourceCommit) ||
     !/^[0-9a-f]{40}$/.test(ci.implementationSourceCommit) ||
     (ci.identityMode === "candidate" &&
-      (ci.ciSourceRef !== "refs/heads/tr01/implementation-identity-candidate" ||
+      (ci.ciSourceRef !== "refs/heads/tr01/implementation-identity-successor-c2" ||
         ci.workflowSourceCommit !== ci.implementationSourceCommit)) ||
     (ci.identityMode === "activated" && ci.ciSourceRef !== "refs/heads/main")
   ) {

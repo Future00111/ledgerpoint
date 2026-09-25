@@ -50,7 +50,7 @@
         "identityMode": { "enum": ["candidate", "activated"] },
         "sourceRef": {
           "enum": [
-            "refs/heads/tr01/implementation-identity-candidate",
+            "refs/heads/tr01/implementation-identity-successor-c2",
             "refs/heads/main"
           ]
         },
@@ -103,7 +103,7 @@
         "identityMode": { "enum": ["candidate", "activated"] },
         "ciSourceRef": {
           "enum": [
-            "refs/heads/tr01/implementation-identity-candidate",
+            "refs/heads/tr01/implementation-identity-successor-c2",
             "refs/heads/main"
           ]
         },
@@ -230,7 +230,11 @@
       "then": {
         "required": ["binding", "bootstrap", "runtime", "negativeControls"],
         "properties": {
-          "binding": {},
+          "binding": {
+            "type": "object",
+            "required": ["sourceDigests"],
+            "properties": { "sourceDigests": {} }
+          },
           "bootstrap": {},
           "runtime": {},
           "negativeControls": {}
@@ -252,10 +256,10 @@
           "ci": {
             "type": "object",
             "properties": {
-              "sourceRef": { "const": "refs/heads/tr01/implementation-identity-candidate" },
+              "sourceRef": { "const": "refs/heads/tr01/implementation-identity-successor-c2" },
               "workflowRef": {
                 "type": "string",
-                "pattern": "/\\.github/workflows/ledgerly-canonical-postgresql\\.yml@refs/heads/tr01/implementation-identity-candidate$"
+                "pattern": "/\\.github/workflows/ledgerly-canonical-postgresql\\.yml@refs/heads/tr01/implementation-identity-successor-c2$"
               }
             }
           }
@@ -301,8 +305,29 @@
     "digestMap": {
       "type": "object",
       "additionalProperties": false,
-      "patternProperties": {
-        "^[A-Za-z][A-Za-z0-9]+$": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      "required": [
+        "sourceTree",
+        "applicationSchema",
+        "drizzleConfig",
+        "securityOverlay",
+        "runControlSql",
+        "coordinator",
+        "testSources",
+        "lockfile",
+        "workflow",
+        "orchestrator"
+      ],
+      "properties": {
+        "sourceTree": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "applicationSchema": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "drizzleConfig": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "securityOverlay": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "runControlSql": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "coordinator": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "testSources": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "lockfile": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "workflow": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "orchestrator": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
       }
     }
   }
