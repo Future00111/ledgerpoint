@@ -1,0 +1,219 @@
+TR-01 — SUCCESSOR CANDIDATE EVIDENCE-ACCEPTANCE CORRECTION
+DESIGN / SCOPE REVIEW ONLY
+
+Current immutable candidate:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+C MUST NOT be modified, amended, rebased, replaced, or force-pushed.
+
+Current blocker:
+
+Independent review of exact C found that accepted qualification evidence can:
+
+1. omit the required source-digest map; and
+2. fail to reject incorrect workflow-versus-implementation digest attribution.
+
+This is an evidence-acceptance / validation gap.
+
+There is NOT currently evidence that the qualification producer itself emits
+incorrect digests.
+
+Qualification remains blocked.
+
+==================================================
+1. OBJECTIVE
+==================================================
+
+Prepare the narrowest successor-candidate correction required so evidence
+acceptance fails closed.
+
+Do NOT implement during this task.
+
+The correction must ensure that schema-v2 accepted evidence:
+
+- requires the complete approved source-digest map;
+- rejects a missing source-digest map;
+- verifies workflow-source digest attribution against S;
+- verifies implementation/source-tree digest attribution against C2;
+- rejects workflow digest incorrectly attributed to implementation;
+- rejects implementation digest incorrectly attributed to workflow;
+- rejects mixed, swapped, partial, legacy, or ambiguous digest domains;
+- preserves all approved C/S/A/B/G identity semantics.
+
+==================================================
+2. PRESERVE C
+==================================================
+
+Record:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+Status:
+
+IMMUTABLE PREDECESSOR CANDIDATE — NOT QUALIFIED / NOT AUTHORITATIVE
+
+Do not modify C.
+
+Any executable correction must produce a NEW successor candidate:
+
+C2 = future SHA
+
+C2 must descend normally from C.
+
+No rebase, squash, amend, or history replacement.
+
+==================================================
+3. IDENTIFY EXACT DEFECT LOCATION
+==================================================
+
+Inspect read-only and identify exactly:
+
+- evidence schema component involved;
+- acceptance validator involved;
+- producer involved, if any;
+- fixtures/tests involved;
+- coordinator involved, if any.
+
+Separate:
+
+A. producer defect
+
+B. acceptance-validator defect
+
+C. schema defect
+
+D. test coverage gap
+
+Do not assume all layers require modification.
+
+==================================================
+4. MINIMUM FILE INVENTORY
+==================================================
+
+Propose the minimum exact file inventory necessary.
+
+For every proposed file state:
+
+PATH
+CHANGE REQUIRED
+WHY REQUIRED
+RUNTIME IMPACT
+QUALIFICATION IMPACT
+
+Expected accounting/runtime semantic impact:
+
+NONE
+
+If accounting posting/runtime logic must change:
+
+STOP.
+
+Report:
+
+TR-01 EVIDENCE CORRECTION EXPANDS INTO ACCOUNTING RUNTIME
+— DESIGN APPROVAL REQUIRED
+
+==================================================
+5. REQUIRED REJECTION PROBES
+==================================================
+
+Design mandatory fresh probes proving rejection of at least:
+
+- missing source-digest map;
+- empty source-digest map;
+- incomplete source-digest map;
+- wrong workflow digest;
+- wrong implementation digest;
+- swapped workflow/implementation digests;
+- workflow digest attributed to C2;
+- implementation digest attributed to S;
+- legacy sourceCommit-only evidence;
+- mixed schema-v1/schema-v2 evidence;
+- malformed digest values;
+- otherwise valid evidence with one incorrect attribution.
+
+Also prove valid schema-v2 evidence still passes.
+
+==================================================
+6. SUCCESSOR CANDIDATE PROCESS
+==================================================
+
+If the correction design is coherent, define this future sequence:
+
+1. approve correction scope;
+2. implement only approved files;
+3. run complete fresh validation;
+4. perform fresh independent implementation/security review;
+5. create immutable successor candidate C2 as descendant of C;
+6. publish exact C2;
+7. protect C2 branch/ref under the approved model;
+8. bind Environment SHA to C2;
+9. perform owner pre-dispatch attestation;
+10. run candidate PostgreSQL qualification against C2.
+
+C remains preserved historically.
+
+==================================================
+7. VALIDATION STATUS
+==================================================
+
+Do not treat the current absence of GitHub validation status as a product
+defect.
+
+The required validation status should be generated only after the corrected
+successor candidate and protected workflow path are ready.
+
+Qualification must remain blocked until then.
+
+==================================================
+8. SUGGESTED TASK BUTTON
+==================================================
+
+Do not execute the existing suggested task automatically.
+
+First determine whether:
+
+“Prevent invalid qualification evidence from being accepted”
+
+maps exactly to the independently reviewed correction scope.
+
+If it is broader or narrower than required, do not use it as execution
+authority.
+
+==================================================
+9. INDEPENDENT REVIEW
+==================================================
+
+Prepare a non-executable correction proposal and perform a fresh independent
+read-only architecture/security review.
+
+Reviewer must confirm:
+
+- C remains immutable;
+- correction is prospective through C2;
+- evidence cannot omit required digest provenance;
+- incorrect digest-domain attribution fails closed;
+- no accounting semantics change;
+- no production/HeliumDB change;
+- no Phase A;
+- minimum file scope is explicit;
+- fresh validation requirements are complete.
+
+==================================================
+10. RESULT
+==================================================
+
+If clean:
+
+TR-01 SUCCESSOR CANDIDATE EVIDENCE CORRECTION READY
+— EXPLICIT APPROVAL REQUIRED
+
+If broader architecture changes are needed:
+
+TR-01 EVIDENCE CORRECTION BLOCKED
+— FURTHER DESIGN APPROVAL REQUIRED
+
+Do not implement automatically.
