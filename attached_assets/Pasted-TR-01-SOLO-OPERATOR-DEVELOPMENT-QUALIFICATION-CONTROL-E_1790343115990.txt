@@ -1,0 +1,189 @@
+TR-01 — SOLO-OPERATOR DEVELOPMENT QUALIFICATION CONTROL
+EXPLICIT APPROVAL
+
+Current result:
+
+TR-01 SOLO-OPERATOR QUALIFICATION CONTROL READY
+— EXPLICIT APPROVAL REQUIRED
+
+Approved proposal:
+
+docs/ledgerly-44-tr-01-solo-operator-development-qualification-proposal.md
+
+Independent review:
+
+PASS
+
+Approve this proposal as a DEVELOPMENT-ONLY governance exception.
+
+==================================================
+1. APPROVED EXCEPTION
+==================================================
+
+For candidate DEVELOPMENT / DISPOSABLE POSTGRESQL qualification only:
+
+replace BOTH:
+
+- independent GitHub Environment approval;
+- separate second-human pre-dispatch review;
+
+with the approved recorded owner attestation.
+
+Do not claim GitHub provides independent human approval.
+
+==================================================
+2. OWNER ATTESTATION
+==================================================
+
+Before dispatch, require an explicit recorded owner attestation confirming:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+Candidate ref:
+refs/heads/tr01/implementation-identity-candidate
+
+and confirming:
+
+- candidate branch protection verified;
+- exact C still published remotely;
+- workflow identity verified;
+- workflow_dispatch only;
+- ledgerly-canonical environment configured;
+- LEDGERLY_APPROVED_CANDIDATE_SHA = C;
+- schema-v2 identity controls active;
+- no production credentials present;
+- no HeliumDB credentials present;
+- disposable PostgreSQL only;
+- qualification explicitly authorised;
+- Phase A remains prohibited.
+
+Record timestamp and attestation evidence.
+
+==================================================
+3. GITHUB ENVIRONMENT
+==================================================
+
+Configure:
+
+Environment:
+ledgerly-canonical
+
+Because the approved development exception replaces independent approval:
+
+- do not require an Environment reviewer for this candidate-development run;
+- Prevent self-review is not relied upon as a security control for this
+  solo-operator exception.
+
+Preserve exact Environment SHA binding:
+
+LEDGERLY_APPROVED_CANDIDATE_SHA =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+==================================================
+4. REF RESTRICTION
+==================================================
+
+Restrict the Environment / qualification path to:
+
+refs/heads/tr01/implementation-identity-candidate
+
+Preserve:
+
+- protected ref;
+- restrict updates;
+- restrict deletion;
+- block force pushes;
+- workflow_dispatch only;
+- GITHUB_REF_PROTECTED = true;
+- GITHUB_SHA = C.
+
+Do not broaden to arbitrary branches or main.
+
+==================================================
+5. PRESERVED CONTROLS
+==================================================
+
+This exception does NOT weaken:
+
+- immutable candidate identity;
+- exact-SHA verification;
+- schema-v2 evidence;
+- legacy/mixed evidence rejection;
+- branch protection;
+- workflow identity;
+- PostgreSQL qualification scope;
+- cleanup/resource-absence requirements;
+- production prohibition;
+- HeliumDB prohibition;
+- 48-B controls;
+- future production separation-of-duties requirements.
+
+==================================================
+6. PRODUCTION / PRE-PRODUCTION BOUNDARY
+==================================================
+
+Record explicitly:
+
+THIS SOLO-OPERATOR EXCEPTION APPLIES ONLY TO DEVELOPMENT QUALIFICATION.
+
+It does NOT authorize single-person approval for:
+
+- production release;
+- production database migration;
+- 48-B release assurance;
+- production secrets;
+- Stage 3;
+- any future control that explicitly requires independent human approval.
+
+==================================================
+7. LIVE CONFIGURATION
+==================================================
+
+After recording approval, configure the live GitHub Environment accordingly.
+
+Then perform read-only verification and report:
+
+ENVIRONMENT:
+ledgerly-canonical
+
+REQUIRED ENVIRONMENT REVIEWERS:
+0 expected under this development exception
+
+LEDGERLY_APPROVED_CANDIDATE_SHA:
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+DEPLOYMENT REF RESTRICTION:
+<exact value>
+
+CANDIDATE BRANCH PROTECTED:
+YES/NO
+
+REMOTE C:
+<exact SHA>
+
+WORKFLOW_DISPATCH ONLY:
+YES/NO
+
+PRODUCTION SECRETS PRESENT:
+NO expected
+
+HELIUMDB SECRETS PRESENT:
+NO expected
+
+OWNER ATTESTATION REQUIRED:
+YES
+
+==================================================
+8. STOP POINT
+==================================================
+
+If configuration is compliant:
+
+TR-01 SOLO-OPERATOR ENVIRONMENT CONFIGURED
+— OWNER PRE-DISPATCH ATTESTATION REQUIRED
+
+Then STOP.
+
+Do not dispatch qualification automatically.
+Do not run Phase A.
