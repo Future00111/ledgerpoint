@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "ledgerly-44-disposable-canonical-test",
+  "runId": "0a0a8313-d39c-4b29-8f6e-77c031dfaeb9",
+  "databaseName": "ledgerly_canonical_test_0a0a8313d39c4b298f6e77c031dfaeb9",
+  "environment": "development-disposable-test",
+  "creator": "postgres",
+  "createdAt": "2026-08-26T15:17:42.972Z",
+  "droppedAt": "2026-08-26T15:17:48.158Z",
+  "runBinding": {
+    "nonceSha256": "1d9ff5cfd1de94cdb75e8a9b87bcc6fd08b94d3002bf1d172263e5c63e76cf1f",
+    "applicationSchemaSha256": "67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564",
+    "drizzleConfigSha256": "57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258",
+    "securityOverlaySha256": "34e85c6a26d0b25c6dc8b524620e9c96ce607621481d58c99411023b8bbccda1",
+    "expectedTestCommand": "pnpm --filter @workspace/api-server run test:canonical-posting"
+  },
+  "roleState": [
+    {
+      "rolname": "ledgerly_api",
+      "rolsuper": false,
+      "rolinherit": false,
+      "rolcreaterole": false,
+      "rolcreatedb": false,
+      "rolcanlogin": true
+    },
+    {
+      "rolname": "ledgerly_canonical_owner",
+      "rolsuper": false,
+      "rolinherit": false,
+      "rolcreaterole": false,
+      "rolcreatedb": false,
+      "rolcanlogin": false
+    }
+  ],
+  "bootstrap": {
+    "drizzleSchemaSource": "lib/db/src/schema/index.ts",
+    "drizzleConfig": "lib/db/drizzle.config.ts",
+    "securityOverlay": "scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql",
+    "drizzleExitCode": 0,
+    "overlayApplied": true
+  },
+  "apiRoleVerification": {
+    "identity": {
+      "database": "ledgerly_canonical_test_0a0a8313d39c4b298f6e77c031dfaeb9",
+      "current_user": "ledgerly_api",
+      "session_user": "ledgerly_api",
+      "ordinary_insert": true,
+      "effect_update": true,
+      "canonical_delete": false,
+      "control_usage": false
+    },
+    "triggers": [
+      {
+        "tgname": "ledgerly_accounting_audit_events_guard",
+        "tgenabled": "A"
+      },
+      {
+        "tgname": "ledgerly_accounting_posting_effects_guard",
+        "tgenabled": "A"
+      },
+      {
+        "tgname": "ledgerly_canonical_journal_entries_guard",
+        "tgenabled": "A"
+      },
+      {
+        "tgname": "ledgerly_canonical_journal_lines_guard",
+        "tgenabled": "A"
+      },
+      {
+        "tgname": "ledgerly_canonical_journal_relations_guard",
+        "tgenabled": "A"
+      }
+    ],
+    "emptyBaseline": {
+      "effects": 0,
+      "journals": 0,
+      "lines": 0,
+      "relations": 0,
+      "audits": 0,
+      "legacy": 0
+    }
+  },
+  "test": {
+    "exitCode": 1,
+    "identityEvidence": null,
+    "concurrencyEvidence": null,
+    "stdoutSha256": "42dcf318f126d1c8fce6bea2713ae375ba643d872c68f38ab4cedcd22d7ad76e",
+    "stderrSha256": "8daeacef7fce22992391808ab00bfb09e0e5924da1267816974854d3732598ed"
+  },
+  "cleanup": {
+    "bindingVerified": true,
+    "sessionsTerminated": 0,
+    "databaseDropped": true
+  },
+  "heliumdb": {
+    "before": {
+      "accounting_posting_effects": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_entries": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_lines": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_relations": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "accounting_audit_events": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "journal_entries": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "after": {
+      "accounting_posting_effects": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_entries": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_lines": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "canonical_journal_relations": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "accounting_audit_events": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "journal_entries": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "unchanged": true,
+    "usedForCanonicalIntegrationTests": false
+  },
+  "productionContacted": false,
+  "error": "canonical tests failed 1"
+}

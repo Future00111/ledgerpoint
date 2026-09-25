@@ -1,0 +1,74 @@
+{
+  "name": "JournalEntry",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "reference": {
+      "type": "string",
+      "description": "Journal reference or document number"
+    },
+    "description": {
+      "type": "string"
+    },
+    "account_id": {
+      "type": "string",
+      "description": "Reference to ChartOfAccount"
+    },
+    "account_code": {
+      "type": "string"
+    },
+    "account_name": {
+      "type": "string"
+    },
+    "debit": {
+      "type": "number",
+      "default": 0,
+      "description": "Amount debited (must be zero or positive)"
+    },
+    "credit": {
+      "type": "number",
+      "default": 0,
+      "description": "Amount credited (must be zero or positive)"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "sales_invoice",
+        "purchase_bill",
+        "sales_credit_note",
+        "supplier_credit_note",
+        "bank_transaction",
+        "manual_journal"
+      ],
+      "description": "Type of source record"
+    },
+    "source_record_id": {
+      "type": "string",
+      "description": "ID of the originating record"
+    },
+    "source_reference": {
+      "type": "string",
+      "description": "Reference from source (e.g., invoice number)"
+    },
+    "is_system_generated": {
+      "type": "boolean",
+      "default": true,
+      "description": "True if generated automatically; false if manual"
+    }
+  },
+  "required": [
+    "company_id",
+    "date",
+    "reference",
+    "description",
+    "account_id",
+    "source_type"
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "name": "Company",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "registration_number": {
+      "type": "string",
+      "description": "Companies House registration number"
+    },
+    "vat_number": {
+      "type": "string",
+      "description": "VAT registration number"
+    },
+    "business_type": {
+      "type": "string",
+      "enum": [
+        "general_business",
+        "garage",
+        "construction",
+        "restaurant",
+        "retail",
+        "ecommerce",
+        "property",
+        "consultant",
+        "tradesperson",
+        "other"
+      ],
+      "default": "general_business"
+    },
+    "vat_registered": {
+      "type": "boolean",
+      "default": false
+    },
+    "vat_scheme": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "cash_accounting",
+        "flat_rate"
+      ],
+      "default": "standard"
+    },
+    "vat_frequency": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "quarterly",
+        "yearly"
+      ],
+      "default": "quarterly"
+    },
+    "financial_year_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Financial year end date"
+    },
+    "address_line_1": {
+      "type": "string"
+    },
+    "address_line_2": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "postcode": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

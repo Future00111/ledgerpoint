@@ -1,0 +1,219 @@
+# Ledgerly PRD / Product Scope
+
+**Authority level:** 3 — beneath the Product Principles and above the Technical
+Architecture  
+**Status:** Living governance document established by Decision 1 on 2026-08-21  
+**Launch-scope status:** Initial accounting-core scope approved by DEC-02;
+remaining scope decisions are explicit
+**Implementation authority:** None
+
+The [Implementation Readiness Review](ledgerly-implementation-readiness-review.md)
+records the post-governance planning readiness assessment. It does not change
+product scope or authorise implementation.
+
+The [Implementation Brief](ledgerly-implementation-brief.md) records planning
+requirements without expanding the approved product scope.
+
+## Purpose
+
+This document records Ledgerly's intended product outcome, capability boundaries,
+and scope decisions. It is based on the Manifesto, Product Principles, existing
+governance documents, the Living Product Decisions Register, the product gap
+analysis, and the Master Backlog.
+
+It deliberately does not turn current implementation, recommendations, or
+provisional directions into approved launch commitments. Every unresolved item is
+marked **REQUIRES USER DECISION**.
+
+## Product outcome
+
+Ledgerly is intended to make running a business easier by providing a calm,
+trustworthy accounting product that helps business owners understand, control,
+and grow their business with confidence.
+
+The product is accounting-first. It must provide accurate and auditable
+financial information, explain what matters, reduce routine effort, and retain
+user control over consequential actions. Ask is intended to provide a universal
+way to find, understand, and safely act on product capabilities.
+
+## Established product boundaries
+
+The following commitments are established by the Manifesto and recorded
+governance:
+
+- Accounting accuracy, traceability, and user trust take priority over feature
+  count or automation.
+- AI may assist, explain, recommend, classify, analyse, and prepare drafts. It
+  must not silently make consequential financial decisions or send consequential
+  external communications without the required control.
+- Rules precede AI for deterministic accounting outcomes.
+- Major product capabilities should explain what happened, why it matters, and
+  what the user can do next.
+- The product must use business language and must not expose technical internals
+  to customers.
+- Financial years and accounting periods are required product concepts, with
+  controlled reopening, posting restrictions, and an audit trail. The detailed
+  policy remains a technical and product decision.
+- Consequential accounting, AI, VAT, reconciliation, correction, and external
+  communication actions must be auditable.
+
+## Approved initial launch scope — DEC-02
+
+Ledgerly's initial product scope is:
+
+- authoritative core accounting;
+- UK accounting and VAT preparation;
+- invoices;
+- bills;
+- payments;
+- banking;
+- reconciliation; and
+- reporting.
+
+The initial market/currency direction is **UK/GBP**. This is a launch-scope
+decision, not a permanent restriction. Additional markets, currencies, and
+capabilities may be added later only through the established Product Decisions
+and governance process.
+
+The accounting foundation must avoid unnecessarily hard-coding UK/GBP so later
+markets, currencies, and capabilities do not require a fundamental redesign.
+The final product name remains open. Quotes, purchase orders, products/items,
+live Open Banking, provider integrations, payroll, inventory, fixed assets,
+forecasting, and other additional capabilities are outside the initial
+accounting-core implementation unless separately approved.
+
+## Intended capability areas
+
+The existing roadmap, feature matrix, and backlog identify the following
+capability areas as the product landscape. Their inclusion here does **not**
+approve each one for launch or authorise implementation:
+
+| Capability area | Product intent supported by existing documentation | Current decision state |
+| --- | --- | --- |
+| Accounting foundation | Authoritative financial records, controlled corrections, periods, configuration, and reporting. | DEC-04 architecture and DEC-05 capability model approved; remaining BL-06/BL-07 policies are **REQUIRES USER DECISION**. |
+| Sales and purchases | Invoices, bills, payments, and related customer/supplier workflows are in the approved initial scope; credit-note and detailed allocation lifecycle remains **REQUIRES USER DECISION**. | DEC-02 approved; detailed lifecycle depends on later accounting decisions. |
+| Banking and reconciliation | Banking and reconciliation are in the approved initial scope. | DEC-02 approved; live banking/feed scope remains **REQUIRES USER DECISION**. |
+| VAT | UK Standard VAT Scheme on invoice basis, controlled corrections, and supported VAT-return preparation/export are in the approved initial scope. | DEC-03 approved. Direct HMRC filing and all specialist schemes/treatments remain future scope. |
+| Reporting | Financial and management reporting that explains the business and is traceable to authoritative records. | Required direction; final report scope and journal authority depend on BL-06/BL-07. |
+| Documents and communications | Documents, extraction/review, approved sending, and durable audit trails. | Providers, inbound handling, retention, and launch scope are **REQUIRES USER DECISION**. |
+| Ask and AI Accountant | Search, explanation, safe assistance, recommendations, tasks, and contextual actions. | Assistant/approval boundary is established; action coverage and delivery sequencing remain **REQUIRES USER DECISION**. |
+| Workspaces and experience | Consistent business-object workspaces, responsive design, accessibility, and clear next actions. | Established quality direction; per-feature delivery remains subject to approved specifications. |
+
+## Current product direction that is not final scope
+
+The following directions remain provisional, open, deferred, or future. They
+must not be treated as part of the approved initial accounting-core scope:
+
+- Final product name: Ledgerly or Ledgerpoint.
+- Quotes, purchase orders, a shared contacts model, and reusable
+  products/services/items.
+- Additional VAT schemes, specialist adjustments, and MTD/HMRC filing beyond
+  the [approved DEC-03 scope](ledgerly-dec-03-vat-scope-review.md).
+- Live Open Banking requirements and provider.
+- Email, inbound-mail, document-storage, and OCR providers.
+- Payment-provider, advanced expenses, payroll, inventory, fixed-assets,
+  budgeting, and forecasting scope.
+- Notification delivery and escalation policy.
+- Retention, deletion/anonymisation, export, backup/recovery, and RLS policy.
+
+## Launch-scope decisions still required
+
+The following remain **REQUIRES USER DECISION** before their affected work can
+be approved:
+
+1. Final name and launch positioning.
+2. Additional supported countries, tax regimes, and currencies beyond the
+   initial UK/GBP direction.
+3. Additional product capabilities beyond the approved initial scope.
+4. Additional VAT schemes, specialist adjustments, or direct MTD/HMRC filing
+   beyond the approved DEC-03 scope.
+5. Any amendment or specialised capability/approval rule beyond the approved
+   DEC-05 model.
+6. Configuration versioning and the remaining accounting-core policies. The
+   [approved DEC-09
+   Chart of Accounts and Default Account Policy](ledgerly-dec-09-chart-of-accounts-policy-review.md)
+   establishes the chart template and account policy. The [approved DEC-10
+   Control-Account Mapping Policy Review](ledgerly-dec-10-control-account-mapping-policy-review.md)
+   establishes control-account policy. The [DEC-11 Configuration Versioning
+   and Effective Dating Review](ledgerly-dec-11-configuration-versioning-review.md)
+   records the approved configuration-versioning policy; DEC-13 and later
+   applicable decisions remain
+   unresolved.
+7. [DEC-12 Payment, Allocation and Settlement Policy
+   Review](ledgerly-dec-12-payment-allocation-settlement-policy-review.md)
+   records the approved payment/evidence/allocation/settlement boundary.
+    DEC-20 and later applicable decisions remain unresolved.
+ 8. [DEC-13 Overpayments, Unapplied Cash and Excess Payment Policy
+    Review](ledgerly-dec-13-overpayments-unapplied-cash-policy-review.md)
+    records the approved excess-money and party-balance policy. DEC-16 and
+    later applicable decisions remain unresolved.
+ 9. Source freshness remains a separate unresolved posting-safety dependency.
+10. [DEC-14 Unapplied Cash Workflow Policy
+    Review](ledgerly-dec-14-unapplied-cash-workflow-policy-review.md) records a
+    approved workflow policy.
+11. [DEC-15 Refund Policy Review](ledgerly-dec-15-refund-policy-review.md)
+    records an approved refund policy. Payment-on-account
+    launch scope, audit retention, deletion/anonymisation, export,
+    backup/recovery, tenant isolation, and legacy migration/cutover policy
+    retain their separately approved policies.
+12. [DEC-16 Payment-on-Account Launch Scope
+    Review](ledgerly-dec-16-payment-on-account-launch-scope-review.md) records
+    an approved launch-scope policy: no separate user-facing
+    payment-on-account feature at launch. DEC-17 through DEC-22 retain their
+    separately approved policies.
+13. [DEC-17 Audit Retention Period
+    Review](ledgerly-dec-17-audit-retention-period-review.md) records a
+    approved class-based retention policy. DEC-21 and DEC-22 retain their
+    separately approved policies.
+14. [DEC-18 Deletion, Anonymisation, Archival and Redaction Policy
+    Review](ledgerly-dec-18-data-disposal-policy-review.md) records a
+    approved controlled, class-based disposal policy. DEC-21 and DEC-22 retain
+    their separately approved policies.
+15. [DEC-19 Export Policy Review](ledgerly-dec-19-export-policy-review.md)
+    records an approved bounded export policy. DEC-21 and DEC-22 retain their
+    separately approved policies.
+16. [DEC-20 Backup and Recovery Policy
+    Review](ledgerly-dec-20-backup-and-recovery-policy-review.md) records an
+    approved product/operational resilience policy. DEC-21 and DEC-22 retain
+    their separately approved policies.
+17. [DEC-21 Tenant Isolation Policy
+    Review](ledgerly-dec-21-tenant-isolation-policy-review.md) records a
+    approved security/product architecture policy. DEC-22 retains its approved
+    migration/cutover policy.
+18. [DEC-22 Migration and Cutover Policy
+    Review](ledgerly-dec-22-migration-and-cutover-policy-review.md) records a
+    approved migration/cutover policy only; it does not authorise execution.
+
+The [pre-implementation decision pack](ledgerly-accounting-core-decision-pack.md)
+and the [DEC-05 Capability and Approval Matrix
+Review](ledgerly-dec-05-capability-approval-review.md) are the detailed
+decision records for the approved governance boundaries affecting BL-06 and
+BL-07.
+
+## Scope governance
+
+Feature specifications and Master Backlog items define individual work only
+within this document's boundaries. They cannot establish a missing product
+decision. Existing code and a feature's presence in the application are evidence
+of current state, not approval of its intended scope.
+
+No capability may be implemented solely because it appears in this document,
+the roadmap, feature matrix, or backlog. It still requires an approved
+implementation task and satisfaction of the higher governance documents.
+
+## Amendments
+
+This is a living document. Any scope amendment requires an explicit, documented
+decision that identifies consequences for:
+
+- existing implementation;
+- accounting data;
+- database/schema;
+- migrations;
+- backwards compatibility;
+- dependent features; and
+- Master Backlog items.
+
+The amendment record must update affected decisions, specifications, and backlog
+dependencies before implementation direction changes. It does not independently
+authorise application, schema, migration, UI, workflow, or deployment work.

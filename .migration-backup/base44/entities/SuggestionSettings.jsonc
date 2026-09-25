@@ -1,0 +1,29 @@
+{
+  "name": "SuggestionSettings",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "hybrid",
+        "rules_only",
+        "ai_only"
+      ],
+      "default": "hybrid",
+      "description": "hybrid = rules+history+AI; rules_only = no AI; ai_only = AI only"
+    },
+    "ai_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether AI suggestions are allowed"
+    }
+  },
+  "required": [
+    "company_id",
+    "mode"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "EmailAccount",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "email_address": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "gmail",
+        "outlook",
+        "other"
+      ],
+      "default": "gmail"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "connected",
+        "disconnected"
+      ],
+      "default": "connected"
+    },
+    "last_scan_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "company_id",
+    "email_address"
+  ]
+}

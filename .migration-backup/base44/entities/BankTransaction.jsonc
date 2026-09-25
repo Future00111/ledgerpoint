@@ -1,0 +1,120 @@
+{
+  "name": "BankTransaction",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string"
+    },
+    "bank_account_id": {
+      "type": "string",
+      "description": "Reference to BankAccount"
+    },
+    "bank_account_name": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "description": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "money_in": {
+      "type": "number",
+      "default": 0
+    },
+    "money_out": {
+      "type": "number",
+      "default": 0
+    },
+    "balance": {
+      "type": "number",
+      "default": 0
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "sales",
+        "parts",
+        "tools",
+        "utilities",
+        "rent",
+        "insurance",
+        "wages",
+        "fuel",
+        "office",
+        "professional_fees",
+        "bank_charges",
+        "other"
+      ],
+      "default": "other"
+    },
+    "vat_rate": {
+      "type": "string",
+      "default": "0"
+    },
+    "vat_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "matched_type": {
+      "type": "string",
+      "enum": [
+        "sales_invoice",
+        "purchase_bill",
+        "sales_credit_note",
+        "supplier_credit_note",
+        "ledger_account"
+      ]
+    },
+    "matched_record_id": {
+      "type": "string"
+    },
+    "matched_record_number": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "review",
+        "matched"
+      ],
+      "default": "review"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "income",
+        "expense",
+        "transfer"
+      ],
+      "default": "income"
+    },
+    "amount": {
+      "type": "number",
+      "default": 0
+    },
+    "linked_invoice_id": {
+      "type": "string"
+    },
+    "linked_bill_id": {
+      "type": "string"
+    },
+    "reconciled": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "bank_account_id",
+    "date",
+    "description"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "name": "ChartOfAccount",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "code": {
+      "type": "string",
+      "description": "Account code (e.g. 4000)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Account name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "income",
+        "cost_of_sales",
+        "expense",
+        "asset",
+        "liability",
+        "equity",
+        "vat"
+      ],
+      "description": "Account category"
+    },
+    "tax_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "VAT rate percentage for this account"
+    },
+    "description": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "company_id",
+    "code",
+    "name",
+    "type"
+  ]
+}

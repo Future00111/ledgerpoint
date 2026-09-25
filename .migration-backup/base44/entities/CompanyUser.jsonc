@@ -1,0 +1,46 @@
+{
+  "name": "CompanyUser",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Reference to User (empty until user accepts invite)"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "accountant",
+        "staff",
+        "read_only"
+      ],
+      "default": "staff"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "invited",
+        "removed"
+      ],
+      "default": "invited"
+    },
+    "invited_by": {
+      "type": "string",
+      "description": "User ID of who invited"
+    }
+  },
+  "required": [
+    "company_id",
+    "user_email",
+    "role"
+  ]
+}

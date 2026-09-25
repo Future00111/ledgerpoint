@@ -1,0 +1,78 @@
+{
+  "name": "WorkflowActivity",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "workflow_type": {
+      "type": "string",
+      "enum": [
+        "invoice",
+        "customer",
+        "collections"
+      ],
+      "default": "invoice",
+      "description": "Which workflow this event belongs to"
+    },
+    "entity_type": {
+      "type": "string",
+      "enum": [
+        "sales_invoice",
+        "customer",
+        "purchase_bill",
+        "supplier",
+        "bank_transaction"
+      ],
+      "description": "The type of record this workflow event belongs to"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of the related record"
+    },
+    "entity_name": {
+      "type": "string",
+      "description": "Display name (e.g. invoice number or customer name)"
+    },
+    "stage": {
+      "type": "string",
+      "description": "Workflow stage key at the time of the event"
+    },
+    "action": {
+      "type": "string",
+      "description": "Machine action key, e.g. invoice_created, invoice_approved, reminder_sent"
+    },
+    "action_label": {
+      "type": "string",
+      "description": "Human-readable action, e.g. Invoice approved"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User who triggered the event"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Display name of the user"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional structured context (amounts, days overdue, etc.)"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the event occurred"
+    }
+  },
+  "required": [
+    "company_id",
+    "entity_type",
+    "entity_id",
+    "action",
+    "event_date"
+  ]
+}

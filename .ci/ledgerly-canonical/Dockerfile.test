@@ -1,0 +1,20 @@
+FROM node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f
+
+WORKDIR /workspace
+
+COPY .dockerignore ./
+COPY .ci/ledgerly-canonical/Dockerfile.test ./.ci/ledgerly-canonical/Dockerfile.test
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY artifacts ./artifacts
+COPY lib ./lib
+COPY scripts ./scripts
+COPY .github ./.github
+COPY docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json ./docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json
+COPY --chmod=0444 .ci/ledgerly-canonical/source-manifest.json ./.ci/ledgerly-canonical/source-manifest.json
+COPY tsconfig.base.json tsconfig.json ./
+
+RUN corepack enable \
+  && corepack prepare pnpm@10.26.1 --activate \
+  && pnpm install --frozen-lockfile
+
+USER node

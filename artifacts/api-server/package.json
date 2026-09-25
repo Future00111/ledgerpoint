@@ -1,0 +1,45 @@
+{
+  "name": "@workspace/api-server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "export NODE_ENV=development && pnpm run build && pnpm run start",
+    "build": "node ./build.mjs",
+    "start": "node --enable-source-maps ./dist/index.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:company-scope": "esbuild src/middlewares/companyScope.test.ts --bundle --platform=node --format=cjs --external:pg --external:pino --external:pino-http --external:pino-pretty --external:thread-stream --outfile=.company-scope.test.cjs && node --test .company-scope.test.cjs; status=$?; rm -f .company-scope.test.cjs; exit $status",
+    "test:matcher": "esbuild src/services/ai-accountant/matcher.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-matcher-scenarios.mjs && node --test /tmp/ledgerly-matcher-scenarios.mjs",
+    "test:collections": "esbuild src/services/ai-accountant/collectionsAnalysis.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-collections-scenarios.mjs && node --test /tmp/ledgerly-collections-scenarios.mjs",
+    "test:vat": "esbuild src/services/ai-accountant/vat.scenarios.test.ts --bundle --platform=node --format=esm --outfile=/tmp/ledgerly-vat-scenarios.mjs && node --test /tmp/ledgerly-vat-scenarios.mjs",
+    "test:phase5": "esbuild src/services/ai-accountant/phase5.scenarios.test.ts --bundle --platform=node --format=cjs --external:pg --external:pino --external:pino-http --external:pino-pretty --external:thread-stream --outfile=.phase5-scenarios.cjs && node --test .phase5-scenarios.cjs; status=$?; rm -f .phase5-scenarios.cjs; exit $status",
+    "test:phase6": "esbuild src/services/ai-accountant/phase6.scenarios.test.ts --bundle --platform=node --format=cjs --external:pg --external:pino --external:pino-http --external:pino-pretty --external:thread-stream --outfile=.phase6-scenarios.cjs && node --test .phase6-scenarios.cjs; status=$?; rm -f .phase6-scenarios.cjs; exit $status",
+    "test:vat:integration": "esbuild src/services/ai-accountant/vat.integration.test.ts --bundle --platform=node --format=cjs --external:pg --external:pino --external:pino-http --external:pino-pretty --external:thread-stream --outfile=.vat-integration-test.cjs && node --test .vat-integration-test.cjs; status=$?; rm -f .vat-integration-test.cjs; exit $status",
+    "test:canonical-posting": "node scripts/runCanonicalPostingDisposable.mjs"
+  },
+  "dependencies": {
+    "@clerk/express": "^2.1.57",
+    "@clerk/shared": "^4.29.1",
+    "@workspace/api-zod": "workspace:*",
+    "@workspace/db": "workspace:*",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "drizzle-orm": "catalog:",
+    "express": "^5.2.1",
+    "http-proxy-middleware": "^4.2.0",
+    "openai": "^7.4.0",
+    "pg": "^8.22.0",
+    "pino": "^9.14.0",
+    "pino-http": "^10.5.0"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "catalog:",
+    "esbuild": "0.27.3",
+    "esbuild-plugin-pino": "^2.3.3",
+    "pino-pretty": "^13.1.3",
+    "thread-stream": "3.1.0"
+  }
+}

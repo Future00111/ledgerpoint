@@ -1,0 +1,144 @@
+{
+  "name": "PurchaseBill",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string"
+    },
+    "supplier_id": {
+      "type": "string"
+    },
+    "supplier_name": {
+      "type": "string"
+    },
+    "bill_number": {
+      "type": "string"
+    },
+    "bill_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "awaiting_review",
+        "approved",
+        "part_paid",
+        "paid",
+        "overdue",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "posted_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the bill was approved and posted"
+    },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "vat_rate": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Net amount (quantity * unit_price)"
+          },
+          "vat_amount": {
+            "type": "number"
+          },
+          "line_total": {
+            "type": "number",
+            "description": "Gross amount (amount + vat_amount)"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "parts",
+              "tools",
+              "utilities",
+              "rent",
+              "insurance",
+              "wages",
+              "fuel",
+              "office",
+              "professional_fees",
+              "other"
+            ],
+            "default": "other"
+          }
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number",
+      "default": 0
+    },
+    "vat_total": {
+      "type": "number",
+      "default": 0
+    },
+    "total": {
+      "type": "number",
+      "default": 0
+    },
+    "amount_paid": {
+      "type": "number",
+      "default": 0
+    },
+    "balance_due": {
+      "type": "number",
+      "default": 0
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "parts",
+        "tools",
+        "utilities",
+        "rent",
+        "insurance",
+        "wages",
+        "fuel",
+        "office",
+        "professional_fees",
+        "other"
+      ],
+      "default": "other"
+    },
+    "document_id": {
+      "type": "string",
+      "description": "Reference to the source Document"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "supplier_id",
+    "bill_number",
+    "bill_date",
+    "due_date"
+  ]
+}

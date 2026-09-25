@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "ledgerly-44-fixture-reset-supplement",
+  "executionId": "61b777ee-4ecb-479a-9d95-6bf2054241d7",
+  "createdAt": "2026-08-26T15:25:25Z",
+  "createdAfterExecution": true,
+  "purpose": "Supplement the content-addressed authorization and result records with the pre-mutation dependency sweep and exact atomic-lock controls that were executed but not serialized in the original result JSON.",
+  "sourceEvidence": {
+    "authorization": {
+      "path": "docs/governance/evidence/ledgerly-44-fixture-reset-61b777ee-4ecb-479a-9d95-6bf2054241d7-authorisation.json",
+      "sha256": "9e1e14caeb899689e036f35989f2444fea689cd29690917457bb6977b34ec798",
+      "commit": "f09082a9617f2c8fee1eafaff9d09e736fd1fb6a"
+    },
+    "result": {
+      "path": "docs/governance/evidence/ledgerly-44-fixture-reset-61b777ee-4ecb-479a-9d95-6bf2054241d7-result.json",
+      "sha256": "6bb5986457c2cf612776fcfe92896b3c7c324d3ed1af927bc741fffaf1235dc7",
+      "commit": "c522f15285c378cd9db17da84d043b775077ee6a"
+    }
+  },
+  "preMutationVerification": {
+    "performedBeforeMutation": true,
+    "database": "heliumdb",
+    "currentUser": "postgres",
+    "sessionUser": "postgres",
+    "manifestRowsVerifiedByIdAndSha256": 70,
+    "manifestCounts": {
+      "companies": 6,
+      "company_users": 4,
+      "chart_of_accounts": 9,
+      "workflow_activities": 6,
+      "accounting_posting_effects": 8,
+      "canonical_journal_entries": 8,
+      "canonical_journal_lines": 16,
+      "canonical_journal_relations": 5,
+      "accounting_audit_events": 8
+    },
+    "publicCompanyOwnedTableSweep": {
+      "accounting_audit_events": 8,
+      "accounting_posting_effects": 8,
+      "canonical_journal_entries": 8,
+      "canonical_journal_lines": 16,
+      "canonical_journal_relations": 5,
+      "chart_of_accounts": 9,
+      "company_users": 4,
+      "workflow_activities": 6,
+      "allOtherPublicCompanyIdTables": 0
+    },
+    "unexpectedForeignKeyDependents": 0,
+    "ledgerlyApiSessionsBeforeTransaction": 0,
+    "allFiveGuardTriggersEnabledAlways": true
+  },
+  "transactionControls": {
+    "singleTransaction": true,
+    "advisoryTransactionLockExpression": "pg_advisory_xact_lock(hashtextextended('ledgerly-44-fixture-reset-61b777ee-4ecb-479a-9d95-6bf2054241d7', 0))",
+    "tableLockMode": "ACCESS EXCLUSIVE",
+    "lockedTables": [
+      "public.accounting_audit_events",
+      "public.canonical_journal_relations",
+      "public.canonical_journal_lines",
+      "public.accounting_posting_effects",
+      "public.canonical_journal_entries",
+      "public.workflow_activities",
+      "public.company_users",
+      "public.chart_of_accounts",
+      "public.companies"
+    ],
+    "manifestReverifiedAfterLocks": true,
+    "deletionPredicates": "exact manifested id arrays only",
+    "companyIdDeletionPredicateUsed": false,
+    "foreignKeysDisabled": false,
+    "unrelatedTriggersDisabled": false,
+    "triggerRestorationBeforeCommit": "ENABLE ALWAYS",
+    "rollbackIncludedTriggerDdlOnAnyFailure": true
+  },
+  "unaffectedSnapshotEvidence": {
+    "location": "docs/governance/evidence/ledgerly-44-fixture-reset-61b777ee-4ecb-479a-9d95-6bf2054241d7-result.json#/unaffectedSnapshots",
+    "capturedInsideLockedTransactionBeforeDeletion": true,
+    "recomputedBeforeCommit": true,
+    "preserved": true
+  },
+  "postExecutionState": {
+    "allFiveGuardTriggersEnabledAlways": true,
+    "canonicalAndLegacyCountsZero": true,
+    "productionContacted": false,
+    "resetRepeatedForThisSupplement": false
+  }
+}
