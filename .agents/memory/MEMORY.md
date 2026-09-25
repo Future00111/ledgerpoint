@@ -16,3 +16,4 @@
 - [Qualification exception drafting](qualification-exception-drafting.md) — state which gates remain and make protection removal conditional on later approval.
 - [GitHub ruleset verification](github-ruleset-verification.md) — a protected-ref flag need not imply review or status rules; inspect effective rules and ruleset details.
 - [Evidence provenance trust](evidence-provenance-trust.md) — branded expected digests are insufficient if callers can choose the roots or environment that mint the brand.
+- [Ignored worktree durability](ignored-worktree-durability.md) — a checkpoint can retain a commit object but drop an ignored worktree’s .git link; pin important local commits with a ref.

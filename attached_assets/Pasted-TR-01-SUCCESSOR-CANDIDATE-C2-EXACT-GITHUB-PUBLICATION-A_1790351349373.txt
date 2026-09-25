@@ -1,0 +1,206 @@
+TR-01 — SUCCESSOR CANDIDATE C2
+EXACT GITHUB PUBLICATION APPROVAL
+
+Current immutable predecessor:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+Current successor candidate:
+
+C2 =
+3ab9edc28b4922ad82e68afb7b049d69514f91e1
+
+Committed tree:
+
+365303e152430560b828c88165dd8f4d03f2a4fc
+
+Approved successor ref:
+
+refs/heads/tr01/implementation-identity-successor-c2
+
+C2 is a direct normal descendant of C.
+
+Fresh validation:
+PASS
+
+Independent implementation/security review:
+PASS
+
+Exact-C2 post-commit verification:
+PASS
+
+Unauthorised changed paths:
+NONE
+
+Accounting-runtime changes:
+NONE
+
+This authorization permits EXACT PUBLICATION OF C2 ONLY.
+
+==================================================
+1. PRESERVE C AND C2
+==================================================
+
+Do NOT:
+
+- modify C;
+- move C's protected branch;
+- amend C2;
+- rebase C2;
+- squash C2;
+- cherry-pick C2 into another replacement commit;
+- recreate C2;
+- rewrite ancestry.
+
+C2 must remain exactly:
+
+3ab9edc28b4922ad82e68afb7b049d69514f91e1
+
+==================================================
+2. VERIFY LOCAL C2
+==================================================
+
+Before publication verify:
+
+- C2 object exists locally;
+- C2 tree equals:
+  365303e152430560b828c88165dd8f4d03f2a4fc
+- C2 is a descendant of:
+  d292f3a64c6253e022b40de8cf055f3e722ff1ea
+- exact successor ref is available locally or can be created locally
+  without creating a new commit;
+- current app branch does not need to be switched;
+- working state remains clean except approved local/untracked governance
+  material explicitly excluded from C2.
+
+If any identity check fails:
+
+STOP.
+
+Report:
+
+TR-01 C2 LOCAL IDENTITY VERIFICATION FAILED
+— PUBLICATION BLOCKED
+
+==================================================
+3. PUBLISH EXACT C2
+==================================================
+
+Publish the exact existing C2 object to:
+
+refs/heads/tr01/implementation-identity-successor-c2
+
+in:
+
+Future00111/ledgerpoint
+
+Use a normal non-force Git push.
+
+Do NOT:
+
+- force push;
+- use REST commit reconstruction;
+- create a replacement commit;
+- push C2 onto C's branch;
+- change main;
+- merge anything.
+
+If Git authentication is unavailable:
+
+STOP.
+
+Do not change history to work around authentication.
+
+Report:
+
+TR-01 C2 EXACT PUBLICATION BLOCKED
+— GITHUB AUTHENTICATION REQUIRED
+
+==================================================
+4. REMOTE IDENTITY VERIFICATION
+==================================================
+
+After publication verify remotely:
+
+REMOTE REF:
+
+refs/heads/tr01/implementation-identity-successor-c2
+
+REMOTE SHA:
+
+3ab9edc28b4922ad82e68afb7b049d69514f91e1
+
+Also verify:
+
+- remote C2 equals local C2;
+- C2 remains a descendant of C;
+- no force push occurred;
+- C's protected ref is unchanged;
+- main is unchanged.
+
+==================================================
+5. NO GITHUB PROTECTION CHANGE YET
+==================================================
+
+This approval does NOT authorize:
+
+- successor branch ruleset/protection changes;
+- Environment changes;
+- LEDGERLY_APPROVED_CANDIDATE_SHA update;
+- workflow dispatch;
+- PostgreSQL qualification;
+- governance activation;
+- Phase A.
+
+Publication only.
+
+==================================================
+6. REPORT
+==================================================
+
+Report:
+
+LOCAL C:
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+LOCAL C2:
+3ab9edc28b4922ad82e68afb7b049d69514f91e1
+
+REMOTE C2:
+<exact SHA>
+
+EXACT SHA MATCH:
+YES/NO
+
+C2 DESCENDS FROM C:
+YES/NO
+
+NORMAL PUSH:
+YES/NO
+
+FORCE PUSH:
+NO
+
+C REF UNCHANGED:
+YES/NO
+
+MAIN UNCHANGED:
+YES/NO
+
+PRODUCTION CONTACT:
+0
+
+HELIUMDB CONTACT:
+0
+
+==================================================
+7. SUCCESS STOP POINT
+==================================================
+
+If exact publication succeeds:
+
+TR-01 SUCCESSOR CANDIDATE C2 PUBLISHED
+— BRANCH PROTECTION / ENVIRONMENT REBINDING APPROVAL REQUIRED
+
+Then STOP.
