@@ -1,0 +1,169 @@
+TR-01 — GITHUB ENVIRONMENT CONFIGURATION APPROVAL
+
+Current status:
+
+TR-01 GITHUB ENVIRONMENT CONTROLS AVAILABLE
+— CONFIGURATION APPROVAL REQUIRED
+
+Environment:
+
+ledgerly-canonical
+
+Candidate:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+Candidate ref:
+
+refs/heads/tr01/implementation-identity-candidate
+
+Current issue:
+
+prevent_self_review = false
+
+This approval authorizes configuration of the existing GitHub Environment
+ONLY.
+
+Do NOT run qualification yet.
+Do NOT run Phase A.
+Do NOT modify workflow or accounting/runtime code.
+
+==================================================
+1. ENABLE SELF-REVIEW PROTECTION
+==================================================
+
+Set:
+
+prevent_self_review = true
+
+Verify the live Environment reports the setting as enabled.
+
+If GitHub cannot enforce this:
+
+STOP.
+
+Report:
+
+TR-01 ENVIRONMENT SELF-REVIEW PROTECTION UNAVAILABLE
+— CONFIGURATION BLOCKED
+
+==================================================
+2. REQUIRED REVIEWER
+==================================================
+
+Configure at least ONE independent required Environment reviewer.
+
+The reviewer must not be the same identity that initiates the qualification
+run where Prevent self-review would block approval.
+
+Do not falsely claim independent approval exists if only one usable account
+is available.
+
+If no independent eligible reviewer can be configured:
+
+STOP.
+
+Report:
+
+TR-01 INDEPENDENT ENVIRONMENT REVIEWER REQUIRED
+— CONFIGURATION BLOCKED
+
+==================================================
+3. CANDIDATE SHA BINDING
+==================================================
+
+Set the non-secret Environment variable:
+
+LEDGERLY_APPROVED_CANDIDATE_SHA
+
+to exactly:
+
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+Verify the stored value exactly matches C.
+
+Do not place this value in secrets unless the approved package explicitly
+requires that.
+
+==================================================
+4. BRANCH / REF RESTRICTION
+==================================================
+
+Restrict the Environment so candidate qualification is permitted only from:
+
+refs/heads/tr01/implementation-identity-candidate
+
+or the exact equivalent deployment-branch protection supported by the live
+GitHub Environment UI/API.
+
+Preserve:
+
+- protected candidate branch;
+- workflow_dispatch only;
+- exact C identity checks;
+- GITHUB_REF_PROTECTED=true;
+- no production or HeliumDB access.
+
+Do not broaden to main, all branches, or arbitrary refs.
+
+==================================================
+5. SECOND HUMAN REVIEW
+==================================================
+
+Preserve the approved corrected model:
+
+GitHub Environment:
+ONE independent required reviewer approval.
+
+If the governance package retains a second human review requirement:
+
+record it separately as the approved pre-dispatch governance/evidence gate.
+
+Do not describe GitHub as enforcing two Environment approvals.
+
+==================================================
+6. VERIFY LIVE CONFIGURATION
+==================================================
+
+After configuration, perform read-only verification and report:
+
+ENVIRONMENT:
+ledgerly-canonical
+
+PREVENT SELF REVIEW:
+TRUE/FALSE
+
+REQUIRED REVIEWER COUNT:
+<number>
+
+INDEPENDENT REVIEWER AVAILABLE:
+YES/NO
+
+DEPLOYMENT REF RESTRICTION:
+<exact value>
+
+LEDGERLY_APPROVED_CANDIDATE_SHA:
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+CANDIDATE BRANCH STILL PROTECTED:
+YES/NO
+
+PRODUCTION SECRETS PRESENT:
+NO expected
+
+HELIUMDB SECRETS PRESENT:
+NO expected
+
+==================================================
+7. STOP POINT
+==================================================
+
+If all controls are compliant:
+
+TR-01 CANDIDATE ENVIRONMENT CONFIGURED
+— PRE-DISPATCH REVIEW REQUIRED
+
+Then STOP.
+
+Do not dispatch qualification automatically.
