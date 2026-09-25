@@ -13,3 +13,4 @@
 - [Canonical test isolation](canonical-test-isolation.md) — immutable accounting tests need rollback isolation or a disposable DB; never restore DELETE solely for teardown.
 - [Disposable test administration](disposable-test-administration.md) — canonical disposable runs require an ephemeral postgres channel; normal managed SQL authenticates only as ledgerly_api.
 - [TR-01 preserved-candidate pause](tr01-preserved-candidate-pause.md) — immutable C is published; qualification remains gated and accounting core stays frozen.
+- [Qualification exception drafting](qualification-exception-drafting.md) — state which gates remain and make protection removal conditional on later approval.
