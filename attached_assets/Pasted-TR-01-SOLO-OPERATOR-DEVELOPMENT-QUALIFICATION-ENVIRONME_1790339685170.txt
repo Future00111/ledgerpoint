@@ -1,0 +1,83 @@
+TR-01 — SOLO-OPERATOR DEVELOPMENT QUALIFICATION
+ENVIRONMENT REVIEWER CORRECTION
+
+Current blocker:
+
+TR-01 INDEPENDENT ENVIRONMENT REVIEWER REQUIRED
+— CONFIGURATION BLOCKED
+
+Confirmed operating model:
+
+- repository currently has one active project operator/collaborator;
+- candidate C is already immutable and protected;
+- independent implementation/security review has already passed;
+- this is DEVELOPMENT / DISPOSABLE PostgreSQL qualification only;
+- production and HeliumDB remain prohibited.
+
+Prepare a narrow governance correction allowing candidate-development
+qualification to operate under a single-owner model without fabricating an
+independent GitHub Environment reviewer.
+
+Do NOT configure GitHub yet.
+Do NOT run qualification.
+Do NOT run Phase A.
+
+Preserve all substantive controls:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+Protected candidate ref:
+refs/heads/tr01/implementation-identity-candidate
+
+Required:
+
+- immutable/protected candidate branch;
+- restrict updates;
+- restrict deletion;
+- block force pushes;
+- workflow_dispatch only;
+- exact GITHUB_SHA = C;
+- GITHUB_REF_PROTECTED = true;
+- Environment:
+  ledgerly-canonical;
+- Environment variable:
+  LEDGERLY_APPROVED_CANDIDATE_SHA=C;
+- exact identity/evidence schema-v2 checks;
+- full candidate PostgreSQL qualification;
+- fail-closed cleanup;
+- production contact = 0;
+- HeliumDB contact = 0.
+
+Replace ONLY the independent Environment reviewer requirement with an
+explicit single-owner pre-dispatch governance attestation.
+
+The attestation must record before dispatch:
+
+- exact candidate C;
+- candidate branch protection verified;
+- Environment SHA binding verified;
+- current workflow identity verified;
+- no production/HeliumDB credentials present;
+- qualification authorization explicitly granted;
+- timestamp / evidence record.
+
+Do not claim GitHub provides independent human approval.
+
+Environment required-reviewer protection may be omitted for this
+development qualification because no independent operator exists.
+
+Prevent self-review is therefore not applicable to this single-operator
+development gate.
+
+This correction applies only to DEVELOPMENT candidate qualification.
+
+It must NOT weaken any future production / 48-B separation-of-duties
+requirements.
+
+Perform fresh independent read-only review.
+
+Expected clean result:
+
+TR-01 SOLO-OPERATOR QUALIFICATION CONTROL READY
+— EXPLICIT APPROVAL REQUIRED
