@@ -14,6 +14,6 @@
 - [Disposable test administration](disposable-test-administration.md) — canonical disposable runs require an ephemeral postgres channel; normal managed SQL authenticates only as ledgerly_api.
 - [TR-01 preserved-candidate pause](tr01-preserved-candidate-pause.md) — immutable C is published; qualification remains gated and accounting core stays frozen.
 - [Qualification exception drafting](qualification-exception-drafting.md) — state which gates remain and make protection removal conditional on later approval.
-- [GitHub ruleset verification](github-ruleset-verification.md) — a protected-ref flag need not imply review or status rules; inspect effective rules and ruleset details.
+- [GitHub ruleset verification](github-ruleset-verification.md) — check effective rules, not just protected flags; repository admin status does not prove connector ruleset-write access.
 - [Evidence provenance trust](evidence-provenance-trust.md) — branded expected digests are insufficient if callers can choose the roots or environment that mint the brand.
 - [Ignored worktree durability](ignored-worktree-durability.md) — a checkpoint can retain a commit object but drop an ignored worktree’s .git link; pin important local commits with a ref.
