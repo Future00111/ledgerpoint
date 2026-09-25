@@ -1,0 +1,232 @@
+TR-01 — SUCCESSOR CANDIDATE C2
+EVIDENCE-CORRECTION DESIGN / SCOPE APPROVAL
+
+Current result:
+
+TR-01 EVIDENCE CORRECTION BLOCKED
+— FURTHER DESIGN APPROVAL REQUIRED
+
+Reviewed proposal:
+
+docs/ledgerly-44-tr-01-successor-candidate-evidence-acceptance-correction-proposal.md
+
+Independent architecture/security review:
+
+PASS — PROPOSAL ONLY
+
+Current immutable predecessor:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+C remains:
+
+IMMUTABLE
+UNQUALIFIED
+NOT AUTHORITATIVE
+
+This approval covers DESIGN / SCOPE ONLY.
+
+Do NOT implement anything under this step.
+
+==================================================
+1. APPROVE EXACT SIX-FILE SCOPE
+==================================================
+
+Approve exactly the six-file correction inventory defined in the reviewed
+proposal.
+
+Before recording approval, print the exact six paths from the proposal.
+
+For each path state:
+
+PATH
+PURPOSE
+WHY REQUIRED
+EVIDENCE / QUALIFICATION IMPACT
+ACCOUNTING-RUNTIME IMPACT
+
+Expected accounting-runtime impact:
+
+NONE
+
+Do not substitute a later or broader file inventory.
+
+If the proposal does not resolve to exactly six required files:
+
+STOP.
+
+Report:
+
+TR-01 C2 CORRECTION SCOPE MISMATCH
+— REVIEW REQUIRED
+
+==================================================
+2. PRESERVE C
+==================================================
+
+Do not modify, amend, rebase, squash, move, repoint, or replace:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+Do not move C's protected branch to the future corrected candidate.
+
+C remains historical predecessor evidence.
+
+==================================================
+3. APPROVE SUCCESSOR MODEL
+==================================================
+
+Approve the reviewed prospective model:
+
+C
+-> approved six-file correction
+-> fresh validation
+-> fresh independent review
+-> new immutable successor candidate C2
+-> separate exact protected candidate ref / identity as defined by the
+   proposal
+-> candidate qualification against C2
+
+C2 must be a normal descendant of C.
+
+No history rewriting.
+
+==================================================
+4. EVIDENCE CORRECTION REQUIREMENTS
+==================================================
+
+Approve the reviewed requirement that accepted schema-v2 evidence must:
+
+- require the full approved source-digest map;
+- reject missing digest maps;
+- reject incomplete digest maps;
+- reject malformed digest values;
+- distinguish workflow-source and implementation-source digest domains;
+- verify workflow attribution against S;
+- verify implementation attribution against C2;
+- reject swapped or mixed attribution;
+- reject legacy sourceCommit-only evidence;
+- reject mixed schema-v1 / schema-v2 evidence;
+- fail closed on identity ambiguity.
+
+Valid schema-v2 evidence must continue to pass.
+
+==================================================
+5. PRODUCER BOUNDARY
+==================================================
+
+Record the current reviewed finding:
+
+PRODUCER DEFECT:
+NOT ESTABLISHED
+
+ACCOUNTING-RUNTIME DEFECT:
+NOT ESTABLISHED
+
+Known defect area:
+
+- evidence schema;
+- evidence acceptance validator;
+- qualification identity/ref compatibility required for C2.
+
+Do not broaden implementation into producer or accounting code unless later
+evidence proves it necessary.
+
+==================================================
+6. C2 REF / QUALIFICATION PATH
+==================================================
+
+Approve the exact reviewed solution for the hard-coded current candidate ref.
+
+Do not:
+
+- reuse C's immutable protected ref for C2;
+- move C's branch;
+- silently change existing historical identity bindings.
+
+The refreshed qualification path must bind explicitly and unambiguously to
+future C2.
+
+==================================================
+7. REQUIRED FRESH VALIDATION
+==================================================
+
+Future implementation must require fresh:
+
+- frozen dependency installation;
+- syntax checks;
+- TypeScript typechecking;
+- relevant unit/pure tests;
+- schema-v2 acceptance tests;
+- digest-map rejection probes;
+- swapped-attribution probes;
+- legacy/mixed evidence rejection;
+- workflow/coordinator/ref parity checks;
+- source-manifest checks;
+- secret/dataflow scan;
+- exact approved inventory reconciliation;
+- independent implementation/security review.
+
+Historical validation of C cannot substitute for C2 validation.
+
+==================================================
+8. REFRESH IMPLEMENTATION PACKAGE
+==================================================
+
+After recording this six-file design/scope approval:
+
+refresh the successor-candidate correction implementation approval package.
+
+It must contain:
+
+- exact six files;
+- exact implementation changes;
+- exact future C2 ref strategy;
+- exact schema-v2 validation semantics;
+- exact rejection probes;
+- exact candidate creation sequence;
+- exact GitHub publication/protection sequence;
+- exact environment SHA binding transition from C to C2;
+- exact qualification sequence;
+- exact stop conditions.
+
+Do NOT implement during this step.
+
+==================================================
+9. FRESH PACKAGE REVIEW
+==================================================
+
+Perform a fresh independent read-only review of the refreshed implementation
+package.
+
+Reviewer must confirm:
+
+- exactly six files;
+- no accounting-runtime expansion;
+- C remains immutable;
+- C2 is prospective;
+- source-digest map is mandatory;
+- attribution mismatches fail closed;
+- current protected C ref is preserved;
+- C2 qualification identity is unambiguous;
+- no production / HeliumDB change;
+- no Phase A;
+- implementation can proceed without unresolved design choices.
+
+==================================================
+10. RESULT
+==================================================
+
+If the refreshed package passes:
+
+TR-01 SUCCESSOR CANDIDATE C2 CORRECTION APPROVED
+— IMPLEMENTATION PACKAGE READY FOR EXPLICIT APPROVAL
+
+If another file or architecture expansion appears:
+
+TR-01 C2 CORRECTION PACKAGE BLOCKED
+— FURTHER DESIGN APPROVAL REQUIRED
+
+Do not implement automatically.
