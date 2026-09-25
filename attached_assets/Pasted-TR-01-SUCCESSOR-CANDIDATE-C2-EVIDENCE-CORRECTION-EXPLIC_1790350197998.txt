@@ -1,0 +1,306 @@
+TR-01 — SUCCESSOR CANDIDATE C2 EVIDENCE CORRECTION
+EXPLICIT IMPLEMENTATION APPROVAL
+
+Current status:
+
+TR-01 SUCCESSOR CANDIDATE C2 CORRECTION APPROVED
+— IMPLEMENTATION PACKAGE READY FOR EXPLICIT APPROVAL
+
+Approved implementation package:
+
+docs/ledgerly-44-tr-01-successor-candidate-c2-evidence-correction-implementation-approval-package.md
+
+Approved successor ref:
+
+refs/heads/tr01/implementation-identity-successor-c2
+
+Immutable predecessor:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+This authorization permits implementation ONLY within the exact reviewed
+six-file package.
+
+Do not introduce unreviewed scope.
+
+==================================================
+1. PRESERVE C
+==================================================
+
+C remains:
+
+IMMUTABLE
+UNQUALIFIED
+NOT AUTHORITATIVE
+
+Do NOT:
+
+- amend C;
+- rebase C;
+- squash history;
+- force-push;
+- move C's protected branch;
+- rewrite C's historical identity.
+
+C2 must be a normal descendant of C.
+
+==================================================
+2. CONFIRM EXACT SIX-FILE INVENTORY
+==================================================
+
+Before modifying anything:
+
+print the exact six approved implementation paths from the current package.
+
+For each show:
+
+PATH
+APPROVED PURPOSE
+EXPECTED CHANGE
+
+Confirm:
+
+AUTHORIZED FILE COUNT:
+6
+
+If the package does not resolve to exactly six files:
+
+STOP.
+
+Report:
+
+TR-01 C2 IMPLEMENTATION INVENTORY MISMATCH
+— REVIEW REQUIRED
+
+==================================================
+3. IMPLEMENT ONLY THE APPROVED CORRECTION
+==================================================
+
+Implement exactly the reviewed evidence-acceptance correction.
+
+Required outcome:
+
+- complete approved source-digest map is mandatory;
+- missing digest map is rejected;
+- incomplete digest map is rejected;
+- malformed digests are rejected;
+- workflow-source digest is attributed to S;
+- implementation/source-tree digest is attributed to C2;
+- swapped workflow / implementation attribution is rejected;
+- mixed identity attribution is rejected;
+- legacy sourceCommit-only evidence is rejected;
+- mixed schema-v1 / schema-v2 evidence is rejected;
+- identity ambiguity fails closed.
+
+Valid schema-v2 evidence must continue to pass.
+
+==================================================
+4. PRODUCER / ACCOUNTING BOUNDARY
+==================================================
+
+Preserve the reviewed finding:
+
+PRODUCER DEFECT:
+NOT ESTABLISHED
+
+ACCOUNTING-RUNTIME DEFECT:
+NOT ESTABLISHED
+
+Do not modify producer or accounting-runtime code unless it is one of the
+six exact approved paths and explicitly required by the reviewed package.
+
+If another file becomes necessary:
+
+STOP BEFORE MODIFYING IT.
+
+Report:
+
+TR-01 C2 IMPLEMENTATION SCOPE EXPANSION REQUIRED
+— APPROVAL NEEDED
+
+==================================================
+5. C2 REF SEMANTICS
+==================================================
+
+Implement qualification identity/ref compatibility for future:
+
+refs/heads/tr01/implementation-identity-successor-c2
+
+Do not reuse or repoint:
+
+refs/heads/tr01/implementation-identity-candidate
+
+Historical C identity remains unchanged.
+
+==================================================
+6. REQUIRED REJECTION PROBES
+==================================================
+
+Run the full approved probe matrix.
+
+At minimum prove rejection of:
+
+- missing source-digest map;
+- empty source-digest map;
+- incomplete source-digest map;
+- malformed digest;
+- incorrect workflow digest;
+- incorrect implementation digest;
+- swapped workflow/implementation digests;
+- workflow digest attributed to C2;
+- implementation digest attributed to S;
+- legacy sourceCommit-only evidence;
+- mixed schema-v1/schema-v2 evidence;
+- otherwise-valid evidence containing one incorrect digest attribution.
+
+Also prove:
+
+VALID SCHEMA-V2 EVIDENCE:
+PASS
+
+==================================================
+7. FRESH VALIDATION
+==================================================
+
+Run all mandatory validation fresh.
+
+Historical C validation does not substitute.
+
+Include applicable:
+
+- frozen dependency installation;
+- JavaScript syntax checks;
+- TypeScript typechecking;
+- relevant unit/pure tests;
+- schema-v2 acceptance tests;
+- rejection probes;
+- runner / coordinator / ref parity checks;
+- source-manifest checks;
+- secret / credential scan;
+- approved inventory reconciliation.
+
+Report each mandatory category:
+
+PASS
+FAIL
+NOT PROVEN
+
+Any FAIL or NOT PROVEN is blocking.
+
+==================================================
+8. FRESH INDEPENDENT IMPLEMENTATION REVIEW
+==================================================
+
+After validation passes and before creating C2:
+
+perform a fresh independent read-only architecture/security review.
+
+Reviewer must verify:
+
+- exactly six approved files changed;
+- C remains untouched;
+- evidence digest map is mandatory;
+- incorrect attribution fails closed;
+- legacy/mixed evidence fails closed;
+- valid schema-v2 evidence passes;
+- C2 ref semantics are unambiguous;
+- no accounting-runtime scope expansion;
+- no production / HeliumDB changes;
+- no Phase A;
+- tree is ready to become immutable C2.
+
+If review fails:
+
+STOP.
+
+==================================================
+9. CREATE IMMUTABLE C2
+==================================================
+
+Only after implementation, fresh validation, and independent review all
+pass:
+
+create ONE bounded successor candidate commit:
+
+C2 = <new 40-character SHA>
+
+C2 must:
+
+- descend normally from C;
+- contain only approved implementation changes;
+- contain no uploaded instruction attachment;
+- contain no unrelated work.
+
+After C2 is created:
+
+DO NOT:
+
+- amend C2;
+- rebase C2;
+- squash C2;
+- cherry-pick C2 into another replacement;
+- rewrite its ancestry.
+
+==================================================
+10. VERIFY C2 LOCALLY
+==================================================
+
+Report:
+
+C:
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+C2:
+<exact SHA>
+
+C2 DESCENDS FROM C:
+YES/NO
+
+CHANGED AUTHORIZED PATHS:
+<list>
+
+UNAUTHORIZED PATHS:
+NONE expected
+
+FRESH VALIDATION:
+PASS/FAIL
+
+INDEPENDENT REVIEW:
+PASS/FAIL
+
+ACCOUNTING-RUNTIME CHANGE:
+NO expected
+
+==================================================
+11. NO GITHUB OPERATION YET
+==================================================
+
+This authorization does NOT permit:
+
+- publishing C2 to GitHub;
+- creating or updating the C2 remote branch;
+- changing rulesets;
+- changing GitHub Environment configuration;
+- changing LEDGERLY_APPROVED_CANDIDATE_SHA;
+- workflow dispatch;
+- PostgreSQL qualification;
+- Phase A.
+
+Do not use the temporary GitHub token or any other credential.
+
+==================================================
+12. SUCCESS STOP POINT
+==================================================
+
+If all implementation gates pass:
+
+TR-01 SUCCESSOR CANDIDATE C2 CREATED
+— EXACT PUBLICATION APPROVAL REQUIRED
+
+Then STOP.
+
+If implementation exposes another defect or scope requirement:
+
+TR-01 C2 IMPLEMENTATION BLOCKED
+— CORRECTION / SCOPE APPROVAL REQUIRED
