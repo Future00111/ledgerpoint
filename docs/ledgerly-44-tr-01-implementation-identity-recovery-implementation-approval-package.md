@@ -275,10 +275,23 @@ Repository administration must:
 5. prevent workflow code from changing the value; and
 6. record the binding in non-secret evidence.
 
-At least two required environment reviewers must approve the qualification
-deployment. Administrators and automation must not have an unrecorded bypass.
+GitHub may list multiple required Environment reviewers, but one listed
+reviewer approval releases a deployment. For candidate qualification, require
+at least one approval by a listed reviewer other than the run initiator, with
+Prevent self-review enabled where supported. The second required human review
+is a separately recorded pre-dispatch governance/evidence gate over exact `C`,
+the protected candidate ref, the workflow, and the environment binding; it is
+not a second GitHub-enforced Environment approval. The pre-dispatch reviewer
+must be distinct from both the run initiator and the intended Environment
+approver. Administrators and automation must not have an unrecorded bypass.
+If native reviewer or self-review controls cannot be enforced, the separately
+proposed fallback is not authorized without further explicit approval.
 If GitHub cannot enforce or expose the required branch/environment state, the
-process stops rather than weakening the contract.
+process stops rather than weakening the contract. This reviewer-semantics
+correction is approved as design/governance only; it does not authorize
+environment configuration or qualification. See
+`docs/ledgerly-44-tr-01-github-environment-reviewer-correction-proposal.md`
+and the approval record.
 
 Changing the value requires a new candidate review and identity approval
 process.

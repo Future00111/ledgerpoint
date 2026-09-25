@@ -51,3 +51,33 @@ This approval does not authorize:
 
 Every executable or external action remains subject to separate explicit
 approval.
+
+## GitHub Environment reviewer semantics correction — subsequent approval
+
+The separately reviewed proposal
+`docs/ledgerly-44-tr-01-github-environment-reviewer-correction-proposal.md`
+is explicitly approved **as design/governance only** for candidate
+`d292f3a64c6253e022b40de8cf055f3e722ff1ea`. It corrects the
+implementation package §9: listing multiple required reviewers in
+`ledgerly-canonical` does not require multiple GitHub Environment approvals.
+One listed reviewer approval releases a waiting deployment; where supported,
+Prevent self-review must bar the initiator from providing that approval. The
+second required human review is a distinct recorded pre-dispatch governance
+gate, not a second native Environment approval.
+
+Exact protected candidate ref, `workflow_dispatch` only, exact `C` binding
+through `LEDGERLY_APPROVED_CANDIDATE_SHA`, identity validation, and all
+qualification restrictions remain unchanged. The proposal's fallback for
+unavailable native reviewer controls is **not approved**. Live feature
+availability may be inspected read-only, but this approval does not authorize
+GitHub configuration, workflow execution, qualification, production or
+HeliumDB access, or Phase A. Separate configuration approval is required.
+
+The subsequent read-only GitHub API response for the public repository's
+existing `ledgerly-canonical` Environment returned a required-reviewers
+protection rule with the `prevent_self_review` property present and currently
+`false`, plus a protected-branches deployment policy. This establishes native
+reviewer-rule availability in the live repository, but **not** compliance with
+the corrected self-review gate. Enabling the setting, checking reviewer
+identities, binding the exact Environment variable, and verifying the
+effective configuration still require separate configuration approval.

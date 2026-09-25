@@ -1,6 +1,6 @@
-# TR-01 GitHub Environment reviewer semantics — proposed correction
+# TR-01 GitHub Environment reviewer semantics — approved correction
 
-**Status:** DESIGN / GOVERNANCE PROPOSAL — EXPLICIT APPROVAL REQUIRED  
+**Status:** APPROVED — DESIGN / GOVERNANCE ONLY; CONFIGURATION NOT AUTHORIZED
 **Candidate C:** `d292f3a64c6253e022b40de8cf055f3e722ff1ea`  
 **Scope:** Reviewer and environment-availability semantics only. This proposal
 does not configure GitHub, authorize qualification, amend C, or change the
@@ -17,11 +17,11 @@ reviewer approval is sufficient to release a waiting deployment. The
 initiator from approving their own deployment. Listing two reviewers is not
 equivalent to requiring two approvals.
 
-This document proposes the smallest replacement for that statement. It has
-no force until separately approved; do not configure the environment or run
-qualification under a partially corrected contract.
+This correction was subsequently explicitly approved as design/governance only
+and is reflected in the implementation approval package §9. It does not
+authorize Environment configuration or qualification.
 
-## 2. Proposed candidate qualification gates
+## 2. Corrected candidate qualification gates
 
 1. Preserve the exact protected, immutable candidate branch
    `refs/heads/tr01/implementation-identity-candidate` at exact C. Retain
@@ -65,16 +65,16 @@ to contact production or HeliumDB, configure GitHub now, or run Phase A.
 
 ## 3. Availability and fallback decision
 
-Read-only public GitHub repository metadata currently reports
+At proposal drafting, read-only public GitHub repository metadata reported
 `Future00111/ledgerpoint` as **public**. GitHub documents required Environment
 reviewers, deployment-branch restrictions, and Environment variables for
 public repositories on current plans (legacy plans are an exception). The
 public account/repository API does **not** expose the owner's actual plan;
-availability for this repository is therefore **eligible by documented
-visibility, not proven in live settings**. Before configuration or dispatch,
-repository administration must verify the actual plan/feature availability
-and read back the effective settings. No Environment settings were inspected
-or changed by this proposal.
+availability for this repository was therefore **eligible by documented
+visibility, not yet proven in live settings**. The subsequent read-only
+Environment capability finding is recorded in the approval record. Before
+configuration or dispatch, repository administration must still read back
+the effective settings; this correction did not change them.
 
 If native required reviewers or Prevent self-review cannot be enforced,
 **do not claim a native approval or dispatch under the current contract**.
@@ -94,9 +94,10 @@ ordinary branch reviews.
 
 ## 4. Approval boundary and sources
 
-Explicit governance approval is required before replacing the conflicting
-sentence in the existing implementation approval package and before any
-GitHub Environment configuration or candidate qualification. C is still a
+Explicit governance approval was granted for replacing the conflicting
+sentence in the existing implementation approval package, but separate
+configuration approval remains required before any GitHub Environment
+changes or candidate qualification. C is still a
 candidate, not an authoritative implementation identity. Final identity
 approval, governance activation, activated qualification, and Phase A remain
 separate later gates.

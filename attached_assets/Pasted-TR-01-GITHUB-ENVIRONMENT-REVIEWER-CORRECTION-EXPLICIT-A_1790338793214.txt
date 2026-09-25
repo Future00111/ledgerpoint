@@ -1,0 +1,120 @@
+TR-01 — GITHUB ENVIRONMENT REVIEWER CORRECTION
+EXPLICIT APPROVAL
+
+Current result:
+
+TR-01 GITHUB ENVIRONMENT REVIEWER CORRECTION READY
+— EXPLICIT APPROVAL REQUIRED
+
+Approved proposal:
+
+docs/ledgerly-44-tr-01-github-environment-reviewer-correction-proposal.md
+
+Independent review:
+
+PASS
+
+Approve this correction as DESIGN / GOVERNANCE ONLY.
+
+==================================================
+1. APPROVED NATIVE GITHUB MODEL
+==================================================
+
+For GitHub Environment:
+
+ledgerly-canonical
+
+approve the corrected native reviewer semantics:
+
+- GitHub may list multiple required reviewers;
+- ONE listed reviewer approval is sufficient to release the deployment;
+- do not describe this as two GitHub-enforced approvals;
+- enable Prevent self-review where the live repository supports it;
+- require at least one independent Environment approval where supported.
+
+==================================================
+2. SECOND HUMAN REVIEW
+==================================================
+
+If two-human review remains required:
+
+the second review must be represented as a separate, recorded
+PRE-DISPATCH GOVERNANCE / EVIDENCE GATE.
+
+It must NOT be described as a second GitHub Environment-enforced approval.
+
+==================================================
+3. PRESERVE EXISTING IDENTITY CONTROLS
+==================================================
+
+Preserve:
+
+C =
+d292f3a64c6253e022b40de8cf055f3e722ff1ea
+
+Candidate ref:
+
+refs/heads/tr01/implementation-identity-candidate
+
+Requirements remain:
+
+- protected exact candidate ref;
+- workflow_dispatch only;
+- exact C binding;
+- Environment:
+  ledgerly-canonical;
+- Environment variable:
+  LEDGERLY_APPROVED_CANDIDATE_SHA=C;
+- GITHUB_SHA / ref / protection validation;
+- no production or HeliumDB access;
+- no Phase A.
+
+==================================================
+4. LIVE FEATURE AVAILABILITY CHECK
+==================================================
+
+The repository is public, but actual availability of required Environment
+reviewers and Prevent self-review in the live repository has not yet been
+verified.
+
+After recording this approval:
+
+inspect the live GitHub Environment configuration capability only.
+
+Do NOT run qualification yet.
+
+If the required native controls are available:
+
+report:
+
+TR-01 GITHUB ENVIRONMENT CONTROLS AVAILABLE
+— CONFIGURATION APPROVAL REQUIRED
+
+If native reviewer controls are unavailable:
+
+STOP.
+
+Do not silently weaken the model.
+
+Report:
+
+TR-01 GITHUB ENVIRONMENT NATIVE REVIEW CONTROLS UNAVAILABLE
+— FALLBACK APPROVAL REQUIRED
+
+The separately proposed fallback remains unapproved unless explicitly
+authorized later.
+
+==================================================
+5. NO EXECUTION
+==================================================
+
+This approval does NOT authorize:
+
+- qualification;
+- Phase A;
+- workflow execution;
+- accounting/runtime changes;
+- production or HeliumDB access;
+- fallback activation.
+
+Record the correction and perform only the live capability check.
