@@ -71,7 +71,7 @@ not on immutable C2:
 | `pnpm --filter @workspace/api-server run test:collections` | 3 passed | Pure overdue/paid invoice analysis |
 | `pnpm --filter @workspace/api-server run test:vat` | 25 passed | Pure VAT policy scenarios |
 | Inline `calculateReport` synthetic legacy journal fixture | passed | P&L net £100; trial balance debit=credit=£200; in-memory only |
-| Draft C2 identity-status tests | 14 passed | Mocked GitHub API/status contract, separately documented in `docs/ledgerly-44-tr-01-c2-status-readiness.md` |
+| Draft C2 identity-status tests | 15 passed | Mocked GitHub API/status contract, separately documented in `docs/ledgerly-44-tr-01-c2-status-readiness.md` |
 
 The report fixture supplied journal rows **directly** to a pure function; it
 did not derive them from a company/invoice/payment API or canonical posting.

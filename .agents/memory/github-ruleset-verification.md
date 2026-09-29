@@ -14,3 +14,15 @@ Repository `permissions.admin: true` in a GitHub read response does not establis
 **Why:** An active, healthy GitHub connection could read rules and report an admin repository role, yet a ruleset-creation request returned `403 Resource not accessible by integration`. GitHub's ruleset-write endpoint requires repository Administration write permission for the integration itself; account role and app installation permissions are distinct.
 
 **How to apply:** Treat that response as a permission block, verify read-only that no rule was created, and do not retry with a token or reauthorize solely on a generic 403. Check the connection's authorization context; only request reconnection if a matching OAuth permission can actually be granted.
+
+Repository metadata `permissions.push: true` also does not establish that a
+connected GitHub App can write Git Data objects for a review branch.
+
+**Why:** The same connected repository can report `push: true` while the
+first Git blob creation returns `403 Resource not accessible by integration`.
+Repository user role and installation-granted Contents write scope are
+different authorities.
+
+**How to apply:** On a permission-denied first write, stop; do not request
+expanded scopes by default or infer branch/PR creation. Save an exact local
+review patch against a verified base instead.

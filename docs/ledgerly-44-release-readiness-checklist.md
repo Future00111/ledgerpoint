@@ -15,8 +15,8 @@ publication, C2 authority designation or production approval. Source map:
 | Canonical posting service | **Partial** | Guarded accounting service exists (`services/accounting/canonicalPosting.ts`), but `postSalesInvoice` only updates status. No accepted protected C2 PostgreSQL run or full business E2E. |
 | Invoice → approval → payment → canonical ledger → report | **Blocked** | Invoice form catches a missing journal-generation function; approval does not call canonical posting; payment changes document balances only; reports read legacy journals (`InvoiceForm.jsx:152`, `routes/functions.ts:590-613,225-291`, `Reports.jsx:32-50`). |
 | C2 source and protective restrictions | **Partial** | Local exact C2 object verified; remote C2 absent. Active ruleset 24197692 protects against update/deletion/non-fast-forward but lacks required status check. |
-| C2 validation producer | **Planned/tested draft only** | Non-executing draft workflow/script and 14 mocked pure tests under `docs/governance/drafts/`; no installed workflow, actual C2 status, status-source pin or amended ruleset. |
-| Human and Environment gates | **Blocked** | C-only exceptions do not apply to C2. Existing one-reviewer Environment permits self-review and admin bypass; SHA variable unreadable through integration. Obtain the original independent review path or explicit new C2 governance approval—do not silently waive controls. |
+| C2 validation producer | **Planned/tested draft only** | Non-executing workflow/script and 15 mocked pure tests under `docs/governance/drafts/`. An exact four-file patch against remote main passed clean apply check; connector Git Data write returned 403, so no draft PR or remote branch exists. No installed workflow, actual C2 status, status-source pin or amended ruleset. |
+| Human and Environment gates | **Blocked** | C-only exceptions do not apply to C2. Connector returned 403 for Environment variables; separately the owner directly inspected GitHub UI on 2026-09-29 and reported no variables or secrets, reviewer Future00111, self-review prevention off, admin bypass on, protected-branches display main only. There is no observed SHA pin and C2 is not shown eligible. Obtain original independent review path or explicit new C2 governance approval—do not silently waive controls. |
 | Disposable PostgreSQL isolation | **Partial** | A throwaway no-network container supported `docker exec` today; this does not prove schema, DB/role isolation, source bindings, concurrent posting or cleanup. No DB-backed journey was run here. |
 | Protected candidate TI-03 qualification | **Blocked** | Requires exact remote C2, real enforced validation status, reviewed Environment/ref/SHA, fresh human attestation, separate dispatch approval and accepted schema-v2 evidence with SHA-256 and cleanup. No such evidence is available. |
 | Published Replit deployment | **Blocked/not published** | Deployment metadata lookup succeeded and returned `isDeployed: false`; no active production URL or successful current build. Other external deployments were not inspected. |
@@ -34,7 +34,7 @@ publication, C2 authority designation or production approval. Source map:
    absence; only then normal non-force publish exact C2 and read back its
    tip, rules, unchanged C/main and publisher result.
 3. **Human/Environment gate:** use the required distinct reviewers, secure
-   self-review/bypass policy and exact C2 Environment SHA/ref binding after
+    self-review/bypass policy and exact C2 Environment SHA/ref binding after
    separate approval; record a fresh owner pre-dispatch attestation. Do not
    apply C-only exceptions to C2.
 4. **Candidate qualification gate:** separately authorise the protected

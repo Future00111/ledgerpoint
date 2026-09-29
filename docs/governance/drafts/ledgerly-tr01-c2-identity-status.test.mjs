@@ -12,6 +12,12 @@ const env = {
   GITHUB_REF: "refs/heads/main",
   GITHUB_REF_PROTECTED: "true",
   GITHUB_WORKFLOW_REF: identity.workflowRef,
+  GITHUB_JOB: "identity",
+  GITHUB_RUN_ATTEMPT: "1",
+  GITHUB_WORKFLOW_SHA: "a".repeat(40),
+  GITHUB_SHA: "a".repeat(40),
+  TR01_APPROVED_WORKFLOW_SHA: "a".repeat(40),
+  TR01_VALIDATION_RESULT: "success",
 };
 const ref = {
   ref: identity.ref,
@@ -44,6 +50,15 @@ test("only protected main manual invocation is accepted", () => {
     ["GITHUB_REF", identity.ref],
     ["GITHUB_REF_PROTECTED", "false"],
     ["GITHUB_WORKFLOW_REF", "Future00111/ledgerpoint/.github/workflows/other.yml@refs/heads/main"],
+    ["GITHUB_JOB", "validate"],
+    ["GITHUB_RUN_ATTEMPT", "2"],
+    ["TR01_VALIDATION_RESULT", "skipped"],
+    ["TR01_VALIDATION_RESULT", "failure"],
+    ["TR01_APPROVED_WORKFLOW_SHA", ""],
+    ["TR01_APPROVED_WORKFLOW_SHA", "not-a-sha"],
+    ["TR01_APPROVED_WORKFLOW_SHA", "b".repeat(40)],
+    ["GITHUB_WORKFLOW_SHA", "b".repeat(40)],
+    ["GITHUB_SHA", "b".repeat(40)],
   ]) {
     assert.throws(() => assertTrustedInvocation({ ...env, [key]: value }));
   }
@@ -77,6 +92,7 @@ for (const [name, first, object, second] of [
   ["extra parent", ref, { ...commit, parents: [commit.parents[0], commit.parents[0]] }, ref],
   ["wrong tree", ref, { ...commit, tree: { sha: identity.parent } }, ref],
   ["ref changes mid-run", ref, commit, { ...ref, object: { sha: identity.parent } }],
+  ["ref changes type mid-run", ref, commit, { ...ref, object: { sha: identity.sha, type: "tag" } }],
 ]) {
   test(`${name} cannot publish success`, async () => {
     const { calls, request } = stub(first, object, second);
@@ -109,7 +125,15 @@ test("a wrong status API response is not accepted", async () => {
 });
 
 test("untrusted invocation performs no API calls", async () => {
-  const { calls, request } = stub();
-  await assert.rejects(validateAndPublishIdentity({ ...env, GITHUB_REF_PROTECTED: "false" }, request));
-  assert.equal(calls.length, 0);
+  for (const change of [
+    { GITHUB_REF_PROTECTED: "false" },
+    { TR01_VALIDATION_RESULT: "skipped" },
+    { TR01_APPROVED_WORKFLOW_SHA: "" },
+    { GITHUB_WORKFLOW_SHA: "b".repeat(40) },
+    { GITHUB_SHA: "b".repeat(40) },
+  ]) {
+    const { calls, request } = stub();
+    await assert.rejects(validateAndPublishIdentity({ ...env, ...change }, request));
+    assert.equal(calls.length, 0);
+  }
 });

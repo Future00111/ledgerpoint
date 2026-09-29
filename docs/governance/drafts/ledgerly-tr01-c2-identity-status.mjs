@@ -19,9 +19,15 @@ export function assertTrustedInvocation(env) {
     env.GITHUB_EVENT_NAME !== "workflow_dispatch" ||
     env.GITHUB_REF !== "refs/heads/main" ||
     env.GITHUB_REF_PROTECTED !== "true" ||
-    env.GITHUB_WORKFLOW_REF !== identity.workflowRef
+    env.GITHUB_WORKFLOW_REF !== identity.workflowRef ||
+    env.GITHUB_JOB !== "identity" ||
+    env.GITHUB_RUN_ATTEMPT !== "1" ||
+    env.TR01_VALIDATION_RESULT !== "success" ||
+    !/^[a-f0-9]{40}$/.test(env.TR01_APPROVED_WORKFLOW_SHA ?? "") ||
+    env.GITHUB_WORKFLOW_SHA !== env.TR01_APPROVED_WORKFLOW_SHA ||
+    env.GITHUB_SHA !== env.TR01_APPROVED_WORKFLOW_SHA
   ) {
-    throw new Error("Identity validation requires manual dispatch on protected main");
+    throw new Error("Identity validation requires approved workflow SHA, successful dependency and protected-main dispatch");
   }
 }
 
@@ -49,7 +55,11 @@ export async function validateAndPublishIdentity(env, request) {
   // Check the ref a second time so a changed tip cannot receive a success
   // based only on the first read. Ruleset update restrictions remain essential.
   const confirmed = await request("GET", branchPath);
-  if (confirmed?.ref !== identity.ref || confirmed?.object?.sha !== identity.sha) {
+  if (
+    confirmed?.ref !== identity.ref ||
+    confirmed?.object?.type !== "commit" ||
+    confirmed?.object?.sha !== identity.sha
+  ) {
     throw new Error("Successor ref changed during identity validation");
   }
   const posted = await request("POST", `/repos/${identity.repository}/statuses/${identity.sha}`, {

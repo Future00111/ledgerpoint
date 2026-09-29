@@ -28,11 +28,16 @@ and the `ledgerly-canonical` Environment are unchanged.
   second-human pre-dispatch review. C-only solo-operator exceptions do not
   extend to C2 (C2 design record, "Gates retained"). There is **no** C2
   exception or qualification authorisation in these records.
-- At the latest read, `ledgerly-canonical` still had one required reviewer,
-  `prevent_self_review: false`, `can_admins_bypass: true`, and protected-branches
-  deployment policy. The current Environment SHA variable could not be read
-  through the connector (HTTP 403); its value is **unknown**. None of these
-  settings was changed.
+- The GitHub connector returned HTTP 403 when asked to read Environment
+  variables; that response alone did not establish their contents. Separately,
+  on 2026-09-29 the owner directly inspected GitHub's
+  `/Future00111/ledgerpoint/settings/environments/20664477675/edit` UI and
+  reported **no Environment variables and no secrets**, reviewer
+  `Future00111`, self-review prevention **off**, admin bypass **on**, and the
+  protected-branches policy displaying **main only**. This is owner-reported
+  direct UI evidence, not a connector read-back. There is no configured
+  Environment SHA pin; C2 is not shown eligible under that branch policy.
+  None of these settings was changed here.
 
 ## Review-only, non-executing draft
 
@@ -46,6 +51,12 @@ installed in executable paths:
   `ledgerly-canonical` Environment reviewer gate and has narrowly scoped
   `contents: read` / `statuses: write`; the test job cannot publish a status.
   Neither job runs database-backed qualification or invokes C2's workflow.
+  The publisher job and script both require successful validation; the script
+  additionally requires GitHub's workflow and dispatch SHAs to equal a
+  separately approved SHA supplied at reviewer release. An empty or mismatched
+  effective pin fails closed; code cannot distinguish an Environment value
+  from an inherited repository/organisation value. No Environment pin exists
+  today.
 - `ledgerly-tr01-c2-identity-status.mjs` — fail-closed publisher: requires
   protected main manual execution from the exact reviewed workflow in the
   exact repository; fetches the exact
@@ -55,7 +66,8 @@ installed in executable paths:
   only by the future reviewed Actions job; no token was obtained here.
 - `ledgerly-tr01-c2-identity-status.test.mjs` — pure mocked-response tests for
   the correct SHA and rejection of missing/changed refs, parent/tree/commit
-  mismatches, untrusted invocations, API failure and a mismatched status
+  mismatches, untrusted invocations, unapproved source/dependency, API failure
+  and a mismatched status
   response. They make no network or
   database calls. The identity status means *C2 identity and non-DB checks
   passed*, **not** TI-03 PostgreSQL qualification or human approval.
@@ -75,6 +87,17 @@ destination paths, not changes to main or to C2. The workflow's own check
 will still target main; its explicit commit-status API call targets exact C2.
 The main workflow's exact source SHA and GitHub reviewer release must be
 recorded with the eventual status.
+
+For review, the exact four-file proposal against remote main
+`94cbb98f36a61d2cdb954745a2dff4a1fbfe754c` is saved as
+`docs/governance/drafts/ledgerly-tr01-c2-identity-status-review.patch`, with
+a proposed PR body in `ledgerly-tr01-c2-identity-status-proposed-pr.md`.
+`git apply --check` passed on a clean detached worktree at that base. A
+connector-backed draft PR was attempted, but its **first write**, Git Data
+`createBlob`, returned HTTP 403 `Resource not accessible by integration`.
+Despite repository metadata reporting `push: true`, **no remote branch or PR
+was created**; no new permissions were requested. This patch is not installed
+and has not been applied to main or C2.
 
 ## Exact ruleset amendment proposed for separate approval
 
@@ -112,11 +135,23 @@ source cannot be constrained and independently verified, stop for a security
 decision; a context name alone is not proof of provenance. The draft does
 not change GitHub permissions or rules.
 
+The proposed `TR01_C2_APPROVED_WORKFLOW_SHA` is a **future Environment
+variable**, not an existing setting. Set it to the independently reviewed
+exact main commit only after a separate authorised decision. GitHub's `vars`
+context can fall back to a repository or organisation variable when the
+Environment value is absent: the script **cannot prove variable provenance**.
+Verify the actual Environment-level value and exclude lower-precedence
+substitutes before dispatch. An approved SHA alone
+does not prove independent reviewer release; Environment variables remain
+mutable by authorised administrators. Preserve the human approval and
+status-source read-back gates.
+
 ## Dependency-ordered procedure; all live steps require separate approval
 
 1. Approve the protected-main validation code and its narrowly scoped
    `statuses: write` job, with independent review of the exact new main
-   workflow/script SHA. Preserve C/C2, existing candidate workflow and
+   workflow/script SHA. The draft PR itself does not approve its eventual
+   merge or pin. Preserve C/C2, existing candidate workflow and
    Environment reviewer gate. Do **not** grant write permission to a job
    executing C2 tests.
 2. Authorise the exact ruleset amendment above **before** C2 publication,
@@ -138,11 +173,12 @@ not change GitHub permissions or rules.
    branch approvals where applicable, stale-review dismissal and resolved
    conversations, a listed Environment reviewer other than initiator with
    self-review prevented, and a separate second-human pre-dispatch review
-   distinct from initiator and Environment approver. The current one-reviewer
-   Environment and administrator bypass settings need separately authorised
-   correction/verification; do not silently substitute C's exception.
-   Independently verify/set the Environment's exact C2 SHA and candidate-ref
-   restriction, record a fresh exact-C2 owner attestation, then seek separate
+    distinct from initiator and Environment approver. The displayed
+    one-reviewer, self-review, administrator bypass and main-only branch
+    settings need separately authorised correction/verification; do not
+    silently substitute C's exception. Independently configure and read back
+    the Environment's exact C2 SHA and C2-eligible branch policy for the
+    candidate run, record a fresh exact-C2 owner attestation, then seek separate
    candidate qualification authorisation.
 6. Only then run the unchanged C2 TI-03 workflow on its protected C2 ref
    with disposable PostgreSQL, accepted schema-v2 evidence, its SHA-256,
@@ -151,7 +187,8 @@ not change GitHub permissions or rules.
    main, production or Phase A.
 
 **Current blocker:** a trusted check producer is only a tested draft, the
-required rule is absent, remote C2 is absent, Environment identity cannot be
-read, and C2-specific human governance is unresolved. Publication and
+ required rule is absent, remote C2 is absent, the owner's UI inspection shows
+ no Environment SHA pin and a main-only branch policy, and C2-specific human
+ governance is unresolved. Publication and
 qualification were **not** performed. Older package statements that C2 is
 not created are stale; its *subsequent gates* remain mandatory.

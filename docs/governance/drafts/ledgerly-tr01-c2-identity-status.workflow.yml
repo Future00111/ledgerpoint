@@ -54,4 +54,6 @@ jobs:
       - name: Verify exact remote C2 and publish validation status
         env:
           GH_TOKEN: ${{ github.token }}
+          TR01_VALIDATION_RESULT: ${{ needs.validate.result }}
+          TR01_APPROVED_WORKFLOW_SHA: ${{ vars.TR01_C2_APPROVED_WORKFLOW_SHA }}
         run: node scripts/ci/ledgerly-tr01-c2-identity-status.mjs
