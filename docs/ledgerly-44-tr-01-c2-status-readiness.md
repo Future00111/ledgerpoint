@@ -1,8 +1,10 @@
 # TR-01 C2 identity-status preparation (draft, not applied)
 
-**Status:** blocked before publication and qualification; no remote write or runner dispatch
-was made by this preparation. Immutable C and C2, protected main, GitHub rules,
-and the `ledgerly-canonical` Environment are unchanged.
+**Status:** blocked before publication and qualification. Codex created
+[draft PR #10](https://github.com/Future00111/ledgerpoint/pull/10) in GitHub
+UI for review; it is **unmerged**. No workflow dispatch, C2 publication,
+main merge, permission/ruleset/Environment change or production operation
+was made by this preparation. Immutable C and C2 remain unchanged.
 
 ## Verified facts and authority
 
@@ -41,8 +43,9 @@ and the `ledgerly-canonical` Environment are unchanged.
 
 ## Review-only, non-executing draft
 
-The adjacent files under `docs/governance/drafts/` are deliberately **not**
-installed in executable paths:
+The adjacent local files under `docs/governance/drafts/` remain non-executing
+drafts. The corresponding four files now also exist on PR #10's separate
+review branch, **not on protected main or C2**:
 
 - `ledgerly-tr01-c2-identity-status.workflow.yml` — proposed new protected-main
   manual workflow. A read-only job checks out pinned C2 with no persisted
@@ -88,16 +91,23 @@ will still target main; its explicit commit-status API call targets exact C2.
 The main workflow's exact source SHA and GitHub reviewer release must be
 recorded with the eventual status.
 
-For review, the exact four-file proposal against remote main
+For review, the exact four-file fallback patch against remote main
 `94cbb98f36a61d2cdb954745a2dff4a1fbfe754c` is saved as
 `docs/governance/drafts/ledgerly-tr01-c2-identity-status-review.patch`, with
 a proposed PR body in `ledgerly-tr01-c2-identity-status-proposed-pr.md`.
 `git apply --check` passed on a clean detached worktree at that base. A
-connector-backed draft PR was attempted, but its **first write**, Git Data
+connector-backed draft PR attempt first failed at Git Data
 `createBlob`, returned HTTP 403 `Resource not accessible by integration`.
-Despite repository metadata reporting `push: true`, **no remote branch or PR
-was created**; no new permissions were requested. This patch is not installed
-and has not been applied to main or C2.
+No new permissions were requested. **Subsequently Codex created draft PR #10
+through GitHub UI** at branch `review/tr01-c2-identity-status`, head
+`a3e486b666c0a3a90a9a6907f45326a60430807f`. Read-only API verified it
+is open/unmerged with the expected base and four added files/348 additions/
+zero deletions, zero checks/statuses and zero deployments for the PR head.
+The remote added files match the local drafts in substance (terminal blank
+line differs). Nothing was merged or dispatched. The connector's earlier
+permission failure is historical, not evidence that the PR is absent.
+See `docs/governance/drafts/ledgerly-tr01-c2-qualification-operator-runbook.md`
+for separate source/C2 pins, C2 preflight limits and acceptance steps.
 
 ## Exact ruleset amendment proposed for separate approval
 

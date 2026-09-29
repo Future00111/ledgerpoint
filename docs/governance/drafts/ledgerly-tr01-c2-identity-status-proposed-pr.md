@@ -1,7 +1,10 @@
 # Proposed draft PR — TR-01 C2 identity status
 
-**Review artifact only; do not merge, dispatch or enable.** No GitHub branch
-or PR was created. On 2026-09-29, the existing connector reported repository
+**Review artifact only; do not merge, dispatch or enable.** The connector
+could not create the branch or PR; **Codex later created
+[draft PR #10](https://github.com/Future00111/ledgerpoint/pull/10) through
+GitHub UI** on `review/tr01-c2-identity-status` at
+`a3e486b666c0a3a90a9a6907f45326a60430807f`. On 2026-09-29 the connector reported repository
 `push: true`, but its first Git Data write (`createBlob`) returned HTTP 403
 `Resource not accessible by integration`. No expanded permission was requested
 and no further write was attempted.
@@ -12,8 +15,10 @@ and no further write was attempted.
   `docs/governance/drafts/ledgerly-tr01-c2-identity-status-review.patch`
   (SHA-256 `be91bc6d9c0efe7b2a1e763d91d292af1c8b75fc60d6d82f6eb86b7a136d5718`).
   Checked with `git apply --check` in a clean detached worktree at that base.
-- Proposed separate branch: `review/tr01-c2-identity-status-20260929`.
-- Proposed PR title: `[DRAFT] TR-01 C2 identity-status producer (review only)`.
+- Historical proposed branch name in this fallback document:
+  `review/tr01-c2-identity-status-20260929`; **actual PR #10 branch** is
+  `review/tr01-c2-identity-status`. This file is not an authoritative
+  readback of PR title/body.
 
 ## Proposed PR body
 
@@ -49,6 +54,6 @@ scripts/ci/ledgerly-tr01-c2-identity-status.test.mjs
 docs/governance/ledgerly-tr01-c2-identity-status-operations.md
 ```
 
-Patch generation and validation were local only. Applying it to any remote
-branch, creating a PR, merging, dispatching or changing controls each remains
-a separate action.
+Patch generation and validation were local only. A separate UI-created draft
+PR now exists; merging, dispatching or changing controls remain distinct
+unauthorised actions.
