@@ -1,5 +1,11 @@
 FROM node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f
 
+# The final node user cannot use root's default Corepack cache.
+# Keep the reviewed source manifests unchanged; never auto-pin package.json.
+ENV COREPACK_HOME=/opt/corepack \
+    COREPACK_DEFAULT_TO_LATEST=0 \
+    COREPACK_ENABLE_AUTO_PIN=0
+
 WORKDIR /workspace
 
 COPY .dockerignore ./
@@ -15,6 +21,13 @@ COPY tsconfig.base.json tsconfig.json ./
 
 RUN corepack enable \
   && corepack prepare pnpm@10.26.1 --activate \
-  && pnpm install --frozen-lockfile
+  && pnpm install --frozen-lockfile \
+  && chmod -R a+rX "$COREPACK_HOME"
 
+ENV COREPACK_ENABLE_NETWORK=0
 USER node
+
+# Fail the build before any database work if the actual runtime user cannot
+# resolve the pinned toolchain and bootstrap CLI without external access.
+RUN --network=none test "$(pnpm --version)" = "10.26.1" \
+  && pnpm --filter @workspace/db exec drizzle-kit --version
