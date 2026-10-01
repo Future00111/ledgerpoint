@@ -17,3 +17,4 @@
 - [GitHub ruleset verification](github-ruleset-verification.md) — check effective rules, not just protected flags; repository admin status does not prove connector ruleset-write access.
 - [Evidence provenance trust](evidence-provenance-trust.md) — branded expected digests are insufficient if callers can choose the roots or environment that mint the brand.
 - [Ignored worktree durability](ignored-worktree-durability.md) — a checkpoint can retain a commit object but drop an ignored worktree’s .git link; pin important local commits with a ref.
+- [Offline toolchains](offline-toolchain.md) — image-build activation does not prove final-user Corepack works offline; verify before private-network bootstrap.

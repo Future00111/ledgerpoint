@@ -2,6 +2,53 @@
 
 ## Current first-qualification authorisation and preflight (2026-10-01)
 
+**Local correction prepared, not published:** later owner instruction
+authorised concrete offline-toolchain review code from exact C2. Local
+`review/tr01-c2-offline-pnpm` at
+`e7f43c70e45c068971aeb241ce1b01a30bb01e37` has sole parent C2 and changes
+only the Dockerfile and a new offline regression test. The exported patch is
+`ledgerly-tr01-c2-offline-pnpm-review.patch`; clean-C2 application check passes.
+Shared readable cache, disabled runtime Corepack networking/latest lookup/
+auto-pinning and a final-user offline build check address the inspected
+root-cache versus node-HOME mismatch. Actual image build, all three offline
+regressions, old-image negative baseline and existing pure guard tests passed.
+The existing implementation report records commands/scope/results.
+No successor is published or authorised as an implementation identity;
+pins/protections, runtime isolation and immutable C2 remain unchanged.
+Do not reuse the old run authorisation to dispatch this review commit.
+
+**Latest outcome:** run `36882700987`, attempt 1, is completed **failure**,
+phase `bootstrap`, after normal owner release through Codex. The API approval
+history contains the exact owner-authorised comment, expressly not independent
+review or production approval. The initial UI HTTP 500 did not require a
+second approval; none was made. No rerun was dispatched.
+
+Corepack attempted `pnpm/latest` registry lookup inside the isolated bootstrap
+container and failed with `getaddrinfo EAI_AGAIN registry.npmjs.org`.
+The runner failed closed outside the one approved FK/index bootstrap exception.
+The image's build-time root activation is not proof that the final `node` user
+can invoke pinned pnpm offline; the root package has no `packageManager` field.
+No network relaxation or source repair was applied.
+
+Artifact `11172430934`, `ledgerly-ti-03-36882700987-1`, archive SHA-256
+`3acdf110a300c661922da32d38633fc2fc81a0c002c5322290e9593759f4cf09`,
+was downloaded and verified. It includes the exact C2 schema and failure JSON.
+The log emits `LEDGERLY_TI03_FAILURE_EVIDENCE`, not successful
+`LEDGERLY_TI03_EVIDENCE`; its path and SHA-256 match the preserved bytes at
+`docs/governance/evidence/ledgerly-44-ti-03-failed-36882700987-1.json`,
+SHA-256 `aa120080c81d43d34b4a7a2411b3e9ca61b311678de9f0758f60866cc11b79f2`.
+Strict schema-v2 validation, all expected CI fields and pinned images match.
+All five cleanup checks are true and no cleanup failure was emitted.
+
+This is **not accepted qualification evidence**: runtime source-digest
+bindings, roles/ACLs/triggers inventories, posting/concurrency and negative
+controls are absent; four observed isolation flags remain false/not reached.
+The flags do not prove an external route existed: their probes were not
+reached. Post-run refs, effective source rule, pins and allowlist are unchanged.
+Detailed outcome is in the existing TI-03 implementation report. Any offline
+toolchain correction needs a separate approved remediation/successor decision;
+immutable C2 remains untouched.
+
 This checkpoint supersedes the main-only eligibility hold below. The owner
 explicitly approved the exact main/C2 allowlist through Codex, who applied it
 via UI. Fresh bounded authenticated CLI readback at `2026-10-01T15:13:33Z`

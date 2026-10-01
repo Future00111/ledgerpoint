@@ -2,7 +2,7 @@
 
 **Status (2026-10-01):** exact C2 published; actual identity/non-DB validation
 status successful; trusted-source rule and candidate variable readback complete.
-First C2 qualification is **dispatched and waiting for owner Environment release**.
+First C2 qualification **failed during bootstrap; it is not accepted**.
 The exact main/C2 admission correction is verified. Earlier
 merge-only snapshots below are historical;
 unavailable independent C2 human reviewers are **no longer a blocker for
@@ -23,6 +23,43 @@ Immutable C/C2 remain unchanged; the latest authorised candidate-variable
 creation is recorded below. No qualification has been dispatched.
 
 ## Verified facts and authority
+
+**Local remediation review (2026-10-01):** under the later owner instruction,
+concrete review code is prepared on separate branch
+`review/tr01-c2-offline-pnpm`, commit
+`e7f43c70e45c068971aeb241ce1b01a30bb01e37`, sole parent exact C2.
+Only Dockerfile/offline regression test change. The actual corrected image
+build, three offline regressions, old-image negative baseline, existing pure
+guards and clean-C2 patch application passed. See the existing TI-03 report
+and `governance/drafts/ledgerly-tr01-c2-offline-pnpm-review.patch`.
+This is un-published review code, not qualified/authoritative identity.
+No pins, protections, coordinator/core, isolation controls or C2 source changed;
+no approval, dispatch or database operation occurred.
+
+**Completed qualification review (2026-10-01):** run `36882700987`, attempt 1,
+completed with `failure`. Approval history confirms Future00111's normal owner
+release through Codex with the explicit non-independent/non-production comment.
+No second approval, rerun or immutable-source change was made.
+
+The image build succeeded, but internal-network bootstrap invoked Corepack
+through `pnpm --filter @workspace/db run push`. Corepack attempted
+`https://registry.npmjs.org/pnpm/latest`, failed DNS with `EAI_AGAIN`, and the
+runner rejected the failure as outside the approved FK/index ordering case.
+Failure phase is `bootstrap`; posting/concurrency/negative controls and full
+roles/ACLs/triggers/isolation inventories were not reached.
+
+Downloaded artifact `11172430934` matches its GitHub archive digest. Its exact
+C2 schema and failure JSON were verified; strict schema-v2 validation passed,
+as did CI identity and pinned-image comparisons. The sole emitted marker is
+`LEDGERLY_TI03_FAILURE_EVIDENCE`, not a success marker. Preserved evidence:
+`docs/governance/evidence/ledgerly-44-ti-03-failed-36882700987-1.json`,
+SHA-256 `aa120080c81d43d34b4a7a2411b3e9ca61b311678de9f0758f60866cc11b79f2`.
+All five cleanup flags are true, with no cleanup error in the job log.
+Full runtime source-digest bindings are absent and four observed isolation
+flags remain false/not reached; this failure artifact cannot satisfy the
+passed qualification contract. Post-run C/C2/main, source-pinned effective
+rules, both pins and exact two-branch allowlist are unchanged.
+See the existing TI-03 implementation report for the detailed review.
 
 **First C2 qualification (2026-10-01):** the owner explicitly approved the
 exact main/C2 Environment allowlist through Codex, who applied it via UI.
@@ -365,10 +402,14 @@ status-source read-back gates.
    separate final implementation-identity approval; it does not activate
    main, production or Phase A.
 
-**Current gate:** first C2 qualification run `36882700987`, attempt 1, is waiting
-for Codex's normal owner Environment release after run inspection. Pre-dispatch
-eligibility is resolved and verified; no qualification evidence/result exists
-yet. Publication, successful identity run/status, effective integration `15368`,
+**Current blocker:** first C2 qualification run `36882700987`, attempt 1,
+failed at offline Corepack bootstrap after normal owner release. The preserved
+schema-v2 artifact is failure evidence only, not qualification. The concrete
+local repair is ready for review; a separately approved publication/successor
+and qualification decision is required. Do not edit immutable C2,
+open the private test network, bypass controls or rerun without authority.
+Pre-dispatch eligibility is resolved and verified.
+Publication, successful identity run/status, effective integration `15368`,
 both pins, source digests and exact Environment policy are readback complete,
 not qualification. The unavailable-reviewer
  blocker is resolved **only for C2 development candidate qualification**.

@@ -1,5 +1,119 @@
 # Ledgerly #44-TI-03 implementation report
 
+## Current C2 hosted qualification outcome — 2026-10-01
+
+### Local review correction prepared after the failure
+
+Under the later owner instruction, a concrete two-file correction was prepared
+on local branch `review/tr01-c2-offline-pnpm`, worktree
+`.local/tr01-c2-offline-pnpm-review`, commit
+`e7f43c70e45c068971aeb241ce1b01a30bb01e37`, sole parent exact C2
+`3ab9edc28b4922ad82e68afb7b049d69514f91e1`.
+The [review patch](governance/drafts/ledgerly-tr01-c2-offline-pnpm-review.patch)
+is directly against C2; forward `git apply --check` passed in a clean C2
+worktree. This is local review code, not a published or approved successor.
+
+Direct cached-image inspection confirmed `USER node`, `HOME=/home/node`,
+a Corepack pnpm shim, absent root `packageManager`, and root-only
+`/root/.cache/node/corepack` holding pnpm `10.26.1`; `/root` is mode 0700.
+The old image fails offline version resolution as node. The correction
+prepares Corepack at shared `/opt/corepack`, makes its files readable by the
+final user, disables latest lookup/auto-pinning and runtime Corepack network
+access, and adds a final-user `RUN --network=none` version/Drizzle-CLI check.
+No source manifest or lockfile is rewritten.
+
+Verification:
+
+- Actual corrected production Dockerfile built from the unchanged pinned Node
+  digest. Its final `node`-user, network-disabled check passed.
+- New offline regression suite: **3 passed, 0 skipped**. It exercises pinned
+  pnpm and the real bootstrap CLI under `--network none`, read-only filesystem,
+  dropped capabilities and no-new-privileges; missing cache fails closed.
+- Original root-cache image fails the corresponding offline negative baseline.
+- Existing pure C2 identity/acceptance guard suite passed with a clean process
+  environment and existing local test dependencies; no database test ran.
+- Review worktree is clean; patch whitespace and clean-base application pass.
+
+Only `.ci/ledgerly-canonical/Dockerfile.test` and
+`scripts/ci/ledgerly-offline-pnpm.test.mjs` differ. PostgreSQL/private-network
+controls, coordinator, canonical posting, identity guards, schema and cleanup
+code are unchanged. C and C2 refs and the preserved failure JSON remain exact.
+No remote publication, pin/protection change, approval, dispatch or database
+operation occurred. A separately approved successor/qualification sequence
+is still required; these local checks are not TI-03 qualification.
+
+**Not qualified.** [Run 36882700987](https://github.com/Future00111/ledgerpoint/actions/runs/36882700987),
+attempt 1, completed with **failure**, phase `bootstrap`, on exact immutable
+C2 `3ab9edc28b4922ad82e68afb7b049d69514f91e1`. API approval history verifies
+Future00111's normal owner release through Codex, with an explicit comment
+excluding independent review and production approval. No second approval or
+rerun occurred.
+
+### Precise failure
+
+Host validator installation and pinned test-image construction succeeded.
+The bootstrap container then invoked `pnpm --filter @workspace/db run push`
+on the private internal Docker network. Before Drizzle could run, Corepack's
+`Engine.getDefaultVersion` attempted a fetch of
+`https://registry.npmjs.org/pnpm/latest`, which failed DNS with
+`getaddrinfo EAI_AGAIN registry.npmjs.org`. The runner rejected this as
+`Drizzle bootstrap failed outside the approved FK/index ordering case`.
+It did not apply the narrowly allowed index workaround to this unrelated error.
+
+Reviewed C2 Docker configuration prepares/activates pnpm during image build
+and later switches to `USER node`; the root package lacks `packageManager`.
+The observed runtime registry lookup demonstrates that build-time activation
+did not provide a fully offline runtime invocation. A final-user pin/cache
+repair is the remediation direction, not permission to restore external
+network access. No repair or immutable-source modification was made.
+
+### Artifact and contract review
+
+- Artifact: `11172430934`, `ledgerly-ti-03-36882700987-1`.
+- Downloaded archive SHA-256 matches GitHub metadata:
+  `3acdf110a300c661922da32d38633fc2fc81a0c002c5322290e9593759f4cf09`.
+- Uploaded schema bytes match the exact C2 Git object; strict AJV Draft 2020-12
+  validation passes with `schemaVersion:2`, `result:failed`.
+- Preserved outside the immutable C2 checkout:
+  [failure JSON](governance/evidence/ledgerly-44-ti-03-failed-36882700987-1.json).
+- JSON SHA-256:
+  `aa120080c81d43d34b4a7a2411b3e9ca61b311678de9f0758f60866cc11b79f2`.
+  Both exact emitted path and hash match the actual archived JSON bytes.
+- Log marker is `LEDGERLY_TI03_FAILURE_EVIDENCE`; no successful
+  `LEDGERLY_TI03_EVIDENCE` was emitted.
+- Every CI field matches the authenticated run/source and approved candidate
+  context: repository/workflow/ref/job, run/attempt, candidate mode, exact
+  workflow/implementation commit, protected/clean/ancestry flags.
+- PostgreSQL and Node tag/digest pairs match approved immutable references.
+- The failed artifact contains no runtime `binding.sourceDigests`; preflight
+  source hashes cannot substitute for missing completed-run digest evidence.
+- Full bootstrap roles, memberships, ACLs, constraints/indexes/triggers,
+  posting results, concurrency overlap and required negative controls are
+  absent/not reached. No partial result is accepted.
+
+### Cleanup and isolation
+
+The failure JSON reports all five cleanup checks **true**: logical drop,
+database absence, PostgreSQL container removal, private network removal and
+credential-material removal. No cleanup error was emitted. The reviewed runner
+requires exact private database binding before DROP and checks absence/removal
+before recording those flags; this is failed-run cleanup evidence, not a
+successful full qualification.
+
+Parent database URL/Replit markers are absent, secret scanning passed, and
+production/Helium contact is reported false. `noPublishedPorts`,
+`internalNetwork`, `testContainerNoSocket` and `testContainerNoExternalRoute`
+remain false because their observed probes were not reached. Do not relabel
+these as passed or infer that an external route was observed.
+
+Bounded post-run readback confirms C, C2 and main unchanged, effective immutable
+rules/source integration `15368` intact, both exact pins and two-branch/no-tag
+allowlist unchanged. No workspace or production database operation occurred.
+Accepted qualification evidence remains **none**. Any repair, successor or
+new qualification run requires a separate authorised decision.
+
+## Original implementation report (historical)
+
 Date: 2026-08-26
 
 ## Status
