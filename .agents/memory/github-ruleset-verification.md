@@ -26,3 +26,14 @@ different authorities.
 **How to apply:** On a permission-denied first write, stop; do not request
 expanded scopes by default or infer branch/PR creation. Save an exact local
 review patch against a verified base instead.
+
+An Environment UI displaying only existing main under "protected branches
+only" is not an explicit main-only allowlist.
+
+**Why:** Read-only API evidence distinguished the dynamic protected-branch
+mode from selected branch policies while the candidate ref did not yet exist.
+The UI display alone could not establish candidate eligibility or denial.
+
+**How to apply:** Read the actual deployment branch policy; preserve the
+reviewer gate, verify candidate eligibility after authorised publication,
+and inventory shared workflow consumers before changing Environment controls.

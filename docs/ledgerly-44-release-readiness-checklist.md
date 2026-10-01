@@ -1,6 +1,7 @@
 # Ledgerly release-readiness checklist — evidence snapshot
 
-**2026-09-29. Verdict: NOT RELEASE-READY.** This is a review checklist, not
+**Updated 2026-10-01; earlier product evidence dated 2026-09-29.
+Verdict: NOT RELEASE-READY.** This is a review checklist, not
 publication, C2 authority designation or production approval. Source map:
 `docs/ledgerly-44-branch-and-runtime-map.md`; protected qualification:
 `docs/ledgerly-44-tr-01-c2-status-readiness.md`; synthetic-journey result:
@@ -16,9 +17,10 @@ publication, C2 authority designation or production approval. Source map:
 | Invoice → approval → payment → canonical ledger → report | **Blocked** | Invoice form catches a missing journal-generation function; approval does not call canonical posting; payment changes document balances only; reports read legacy journals (`InvoiceForm.jsx:152`, `routes/functions.ts:590-613,225-291`, `Reports.jsx:32-50`). |
 | C2 source and protective restrictions | **Partial** | Local exact C2 object verified; remote C2 absent. Active ruleset 24197692 protects against update/deletion/non-fast-forward but lacks required status check. |
 | C2 validation producer | **Draft PR, not installed** | [PR #10](https://github.com/Future00111/ledgerpoint/pull/10) is open/draft/unmerged at `a3e486b666c0a3a90a9a6907f45326a60430807f` against `94cbb98f36a61d2cdb954745a2dff4a1fbfe754c`; four additions/348 lines, zero checks/statuses or deployments on the PR head. Local 15 mocked pure tests passed; no workflow on main, actual C2 status, verified source pin or amended ruleset. The earlier connector 403 did not prevent later Codex UI creation. |
-| Human and Environment gates | **Blocked** | C-only exceptions do not apply to C2. Connector returned 403 for Environment variables; separately the owner directly inspected GitHub UI on 2026-09-29 and reported no variables or secrets, reviewer Future00111, self-review prevention off, admin bypass on, protected-branches display main only. There is no observed SHA pin and C2 is not shown eligible. Obtain original independent review path or explicit new C2 governance approval—do not silently waive controls. |
+| C2 human governance replacement | **Approved, bounded** | [Actual 2026-10-01 owner-only decision](governance/ledgerly-tr01-c2-owner-only-qualification-approval.md) replaces unavailable independent humans for C2 development candidate qualification only. Owner exact-commit confirmation and each concrete run approval remain required; none is fabricated. Not a C-only inheritance, production/main-control approval, PR #10 merge/status-write activation or specific dispatch. |
+| Environment configuration and release | **Pending configuration/readback** | 2026-10-01 API: required reviewer Future00111, self-review prevention off, admin bypass on, protected-branches-only mode (not an explicit main-only allowlist). Preserve normal owner reviewer release, do not remove it or use bypass. Current variable read is 403; 2026-09-29 UI reported none. C2 pin and post-publication eligibility remain unverified. Minimal before/after diff and conditional branch fallback are in the existing runbook. No settings applied. |
 | Disposable PostgreSQL isolation | **Partial** | A throwaway no-network container supported `docker exec` today; this does not prove schema, DB/role isolation, source bindings, concurrent posting or cleanup. No DB-backed journey was run here. |
-| Protected candidate TI-03 qualification | **Blocked** | Requires exact remote C2, real enforced validation status, reviewed Environment/ref/SHA, fresh human attestation, separate dispatch approval and accepted schema-v2 evidence with SHA-256 and cleanup. The immutable C2 runner requires `LEDGERLY_APPROVED_CANDIDATE_SHA` even in candidate mode; it is **not** the proposed status producer's main-workflow pin. Pure C2 tests passed without DB; hosted Corepack/install/typecheck and TI-03 remain unverified. See `docs/governance/drafts/ledgerly-tr01-c2-qualification-operator-runbook.md`. |
+| Protected candidate TI-03 qualification | **Blocked** | Requires exact remote C2, real enforced validation status, reviewed Environment/ref/SHA, recorded owner exact-C2 confirmation and specific run approval/release (not a fabricated signed attestation), and accepted schema-v2 evidence with SHA-256 and cleanup. The immutable C2 runner requires `LEDGERLY_APPROVED_CANDIDATE_SHA` even in candidate mode; it is **not** the proposed status producer's main-workflow pin. Pure C2 tests passed without DB; hosted Corepack/install/typecheck and TI-03 remain unverified. See `docs/governance/drafts/ledgerly-tr01-c2-qualification-operator-runbook.md`. |
 | Published Replit deployment | **Blocked/not published** | Deployment metadata lookup succeeded and returned `isDeployed: false`; no active production URL or successful current build. Other external deployments were not inspected. |
 | Authority, activated main and Phase A | **Planned/separately gated** | Candidate qualification alone cannot designate C2 authoritative; final identity approval, activated main governance and activated qualification remain distinct (`docs/ledgerly-44-tr-01-implementation-identity-recovery-implementation-approval-package.md:320-361`). |
 
@@ -33,10 +35,13 @@ publication, C2 authority designation or production approval. Source map:
    the reviewed status-rule sequence; recheck exact local C2 and remote
    absence; only then normal non-force publish exact C2 and read back its
    tip, rules, unchanged C/main and publisher result.
-3. **Human/Environment gate:** use the required distinct reviewers, secure
-    self-review/bypass policy and exact C2 Environment SHA/ref binding after
-   separate approval; record a fresh owner pre-dispatch attestation. Do not
-   apply C-only exceptions to C2.
+3. **C2 owner/Environment gate:** use the actual bounded C2 replacement,
+   not unavailable distinct reviewers or older C-only exceptions. Codex
+   reviews the runbook's exact before/after diff and obtains configuration
+   go-ahead; preserve normal owner release and unrelated main controls,
+   verify Environment-level C2 SHA/ref eligibility, and record owner
+   exact-C2 confirmation and approval of the concrete run. This is not a
+   signed attestation or main publisher activation.
 4. **Candidate qualification gate:** separately authorise the protected
    disposable PostgreSQL run; verify complete non-secret schema-v2 evidence,
    SHA-256, negative controls, privilege isolation and cleanup. Failed or
@@ -54,6 +59,10 @@ publication, C2 authority designation or production approval. Source map:
 
 The C2 implementation package's *future-tense local-creation text* and the
 older report of *unconditionally broken Docker exec* are stale observations.
-The requirements for a true required status, human review, Environment
-identity, disposable qualification, independent evidence and distinct final
-approval remain mandatory. No document or passing pure test overrides them.
+The true required status, Environment identity, disposable qualification,
+machine-checkable evidence and distinct final approval remain mandatory.
+For C2 development candidate qualification only, the recorded owner-only
+decision replaces unavailable independent human reviews; owner evidence
+review, exact-commit confirmation and each run approval remain required.
+Main/status-producer and production approval requirements are not waived.
+No passing pure test overrides the retained gates.

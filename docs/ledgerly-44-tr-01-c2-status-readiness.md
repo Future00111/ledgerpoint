@@ -1,6 +1,10 @@
 # TR-01 C2 identity-status preparation (draft, not applied)
 
-**Status:** blocked before publication and qualification. Codex created
+**Status (2026-10-01):** blocked before publication and qualification, but
+unavailable independent C2 human reviewers are **no longer a blocker for
+development candidate qualification** under the
+[actual owner-only approval](governance/ledgerly-tr01-c2-owner-only-qualification-approval.md).
+This does not approve main/status-producer activation or a specific run. Codex created
 [draft PR #10](https://github.com/Future00111/ledgerpoint/pull/10) in GitHub
 UI for review; it is **unmerged**. No workflow dispatch, C2 publication,
 main merge, permission/ruleset/Environment change or production operation
@@ -28,8 +32,12 @@ was made by this preparation. Immutable C and C2 remain unchanged.
   package §§8–10 requires two approving branch reviews (unless an approved
   replacement applies), a distinct listed Environment reviewer and a separate
   second-human pre-dispatch review. C-only solo-operator exceptions do not
-  extend to C2 (C2 design record, "Gates retained"). There is **no** C2
-  exception or qualification authorisation in these records.
+  extend to C2 (C2 design record, "Gates retained"). Those older records had
+  no C2 exception. The new **2026-10-01 actual C2-specific owner decision**
+  replaces unavailable independent human reviews for development candidate
+  qualification only; owner exact-commit confirmation and each concrete run
+  approval remain required. It supplies no independent review, signed run
+  attestation or specific dispatch approval.
 - The GitHub connector returned HTTP 403 when asked to read Environment
   variables; that response alone did not establish their contents. Separately,
   on 2026-09-29 the owner directly inspected GitHub's
@@ -38,8 +46,15 @@ was made by this preparation. Immutable C and C2 remain unchanged.
   `Future00111`, self-review prevention **off**, admin bypass **on**, and the
   protected-branches policy displaying **main only**. This is owner-reported
   direct UI evidence, not a connector read-back. There is no configured
-  Environment SHA pin; C2 is not shown eligible under that branch policy.
-  None of these settings was changed here.
+  Environment SHA pin in that historical UI evidence.
+  **2026-10-01 API correction:** Environment required reviewer Future00111,
+  self-review prevention off and admin bypass on were read back; branch mode
+  is `{protected_branches:true, custom_branch_policies:false}`, not an
+  explicit main-only list. Remote C2 is still absent, so C2 eligibility is
+  not yet demonstrated. Variable read remains 403; current values are
+  unknown, not confirmed absent. Exact C2 ruleset restrictions remain active
+  and unchanged. Main is protected at `94cbb98f36a61d2cdb954745a2dff4a1fbfe754c`;
+  full classic main protection read returned 403. None was changed here.
 
 ## Review-only, non-executing draft
 
@@ -58,8 +73,8 @@ review branch, **not on protected main or C2**:
   additionally requires GitHub's workflow and dispatch SHAs to equal a
   separately approved SHA supplied at reviewer release. An empty or mismatched
   effective pin fails closed; code cannot distinguish an Environment value
-  from an inherited repository/organisation value. No Environment pin exists
-  today.
+  from an inherited repository/organisation value. The 2026-09-29 owner UI
+  showed no pin; current values remain unreadable through this connector.
 - `ledgerly-tr01-c2-identity-status.mjs` — fail-closed publisher: requires
   protected main manual execution from the exact reviewed workflow in the
   exact repository; fetches the exact
@@ -146,7 +161,7 @@ decision; a context name alone is not proof of provenance. The draft does
 not change GitHub permissions or rules.
 
 The proposed `TR01_C2_APPROVED_WORKFLOW_SHA` is a **future Environment
-variable**, not an existing setting. Set it to the independently reviewed
+variable**, not a verified existing setting. Set it to the separately reviewed
 exact main commit only after a separate authorised decision. GitHub's `vars`
 context can fall back to a repository or organisation variable when the
 Environment value is absent: the script **cannot prove variable provenance**.
@@ -178,18 +193,15 @@ status-source read-back gates.
    and no unrecorded bypass. Inspect test logs and the **actual** C2 status.
    A green Actions job on main without the explicit C2 status is not enough.
    Complete/pin the required-check source and verify effective enforcement.
-5. Before any PostgreSQL qualification, obtain explicit C2 governance
-   decisions implementing the original human-review requirements: two fresh
-   branch approvals where applicable, stale-review dismissal and resolved
-   conversations, a listed Environment reviewer other than initiator with
-   self-review prevented, and a separate second-human pre-dispatch review
-    distinct from initiator and Environment approver. The displayed
-    one-reviewer, self-review, administrator bypass and main-only branch
-    settings need separately authorised correction/verification; do not
-    silently substitute C's exception. Independently configure and read back
-    the Environment's exact C2 SHA and C2-eligible branch policy for the
-    candidate run, record a fresh exact-C2 owner attestation, then seek separate
-   candidate qualification authorisation.
+5. For development candidate qualification, use the actual C2 owner-only
+   replacement instead of seeking unavailable independent humans. Retain
+   Future00111 as required Environment reviewer, self-review prevention off
+   and normal owner release; no bypassed release is acceptable evidence.
+   Review/authorise the runbook's minimal configuration diff, verify the
+   Environment-level exact C2 pin and branch eligibility, then record owner
+   exact-C2 confirmation and approval of the specific run. Do not fabricate
+   an attestation. Main/status-producer review/activation remains separate;
+   do not weaken shared main controls or inherit C-only exceptions.
 6. Only then run the unchanged C2 TI-03 workflow on its protected C2 ref
    with disposable PostgreSQL, accepted schema-v2 evidence, its SHA-256,
    negative controls and cleanup. Passing qualification still requires
@@ -197,8 +209,10 @@ status-source read-back gates.
    main, production or Phase A.
 
 **Current blocker:** a trusted check producer is only a tested draft, the
- required rule is absent, remote C2 is absent, the owner's UI inspection shows
- no Environment SHA pin and a main-only branch policy, and C2-specific human
- governance is unresolved. Publication and
+ required rule is absent, remote C2 is absent, current Environment pins are
+ unreadable through this connector, and C2 eligibility/status source and
+ individual owner run approval remain unverified. The unavailable-reviewer
+ blocker is resolved **only for C2 development candidate qualification**.
+ Publication and
 qualification were **not** performed. Older package statements that C2 is
 not created are stale; its *subsequent gates* remain mandatory.
