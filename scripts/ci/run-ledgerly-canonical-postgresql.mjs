@@ -8,7 +8,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const workflowRoot = path.resolve(process.env.LEDGERLY_WORKFLOW_ROOT ?? root);
 const implementationRoot = root;
-const candidateRef = "refs/heads/tr01/implementation-identity-successor-c2";
+const candidateRef = "refs/heads/tr01/implementation-identity-successor-c3";
 const mainRef = "refs/heads/main";
 const fullShaPattern = /^[0-9a-f]{40}$/;
 const postgresImage =
@@ -243,6 +243,10 @@ function assertTrustedWorkflowContext(environment = process.env) {
   assertFullSha(implementationSha, "LEDGERLY_IMPLEMENTATION_SOURCE_SHA");
   if (mode === "candidate" && implementationSha !== environment.GITHUB_SHA) {
     throw new Error("Candidate mode requires workflow and implementation SHA equality");
+  }
+  if (mode === "candidate" &&
+      environment.LEDGERLY_APPROVED_CANDIDATE_SHA !== environment.GITHUB_SHA) {
+    throw new Error("Candidate mode requires the exact approved candidate SHA");
   }
   if (mode === "activated" && implementationSha !== environment.LEDGERLY_APPROVED_CANDIDATE_SHA) {
     throw new Error("Activated mode requires the protected candidate SHA");
