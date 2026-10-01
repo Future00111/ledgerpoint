@@ -1,46 +1,44 @@
 # TR-01 C2 qualification — operator runbook (review draft)
 
-**Control diff not applied; no dispatch authorised.** Updated: 2026-10-01.
+**C2 control diff not applied; no dispatch authorised.** Updated: 2026-10-01.
 The [actual C2 owner-only approval](../ledgerly-tr01-c2-owner-only-qualification-approval.md)
 replaces unavailable independent humans for development candidate qualification
 only, not main/status-producer approval. Immutable C2 is
 `3ab9edc28b4922ad82e68afb7b049d69514f91e1` (tree
 `365303e152430560b828c88165dd8f4d03f2a4fc`, sole parent C
 `d292f3a64c6253e022b40de8cf055f3e722ff1ea`). PR
-[#10](https://github.com/Future00111/ledgerpoint/pull/10) is **draft,
-unmerged**, head `a3e486b666c0a3a90a9a6907f45326a60430807f`, base
-`94cbb98f36a61d2cdb954745a2dff4a1fbfe754c`. Read-only GitHub API
-showed four additions/348 lines, zero checks/statuses and zero deployments
-for that head in the earlier readback. PR head/draft state and remote C2
-absence were reconfirmed on 2026-10-01. These observations are not a passing
-status; the linked decision is actual bounded governance approval, not a run
-attestation.
+[#10](https://github.com/Future00111/ledgerpoint/pull/10) was marked ready
+and **merged normally without bypass on 2026-10-01**, shown merged/closed,
+at `87a4ff7d44be9bc21296e9623db16924488f76ae`, following user authorisation
+of merge and resulting source pin. Codex added/read back exact Environment
+variable `TR01_C2_APPROVED_WORKFLOW_SHA=87a4ff7d44be9bc21296e9623db16924488f76ae`
+in `ledgerly-canonical`. Reviewer, self-review and branch controls were
+unchanged. Source: owner's verified Codex GitHub UI report, not a new API
+lookup. No workflow dispatch, C2 publication or qualification occurred;
+merge/pin completion is not a passing status or run attestation.
 
-## Two distinct pins; neither is configured in the owner's UI evidence
+## Two distinct pins; source pin configured, candidate pin still outstanding
 
 | Purpose | Exact name and value | Where used |
 | --- | --- | --- |
-| Status producer **source** | `TR01_C2_APPROVED_WORKFLOW_SHA` = exact independently reviewed **merged main workflow commit**; unknown until approved merge, **not** PR head and **not** C2 | Proposed main workflow reads `vars.TR01_C2_APPROVED_WORKFLOW_SHA`, passes it as `TR01_APPROVED_WORKFLOW_SHA`; publisher compares to GitHub-provided `GITHUB_WORKFLOW_SHA` and `GITHUB_SHA`. |
+| Status producer **source** | `TR01_C2_APPROVED_WORKFLOW_SHA` = `87a4ff7d44be9bc21296e9623db16924488f76ae`; owner-authorised merged main commit and exact Environment UI readback, **not** PR head and **not** C2 | Merged main workflow reads `vars.TR01_C2_APPROVED_WORKFLOW_SHA`, passes it as `TR01_APPROVED_WORKFLOW_SHA`; publisher compares to GitHub-provided `GITHUB_WORKFLOW_SHA` and `GITHUB_SHA`. |
 | TI-03 **implementation candidate** | `LEDGERLY_APPROVED_CANDIDATE_SHA` = exact C2 `3ab9edc28b4922ad82e68afb7b049d69514f91e1` after separate approval/readback | Immutable C2 workflow reads `vars.LEDGERLY_APPROVED_CANDIDATE_SHA`; its runner demands a full SHA **even in candidate mode**. This must never be replaced by the status producer's main SHA. |
 
-Both are proposed **Environment-level variables** in `ledgerly-canonical`;
-the owner reported **no variables and no secrets** on 2026-09-29.
-The 2026-10-01 variable read still returned HTTP 403: current values are
-unknown, not verified absent. GitHub `vars` can inherit repo/org values:
+Both pins belong at **Environment level** in `ledgerly-canonical`.
+The 2026-09-29 empty-variable UI report and earlier 2026-10-01 connector 403
+are historical. The later Codex UI readback establishes the source pin only;
+the candidate pin is not recorded as configured. GitHub `vars` can inherit repo/org values:
 verify each Environment-level value and exclude inherited substitutes.
 Neither pin is a secret or evidence of reviewer approval by itself. Do not
 ask for values in chat; inspect approved non-secret configuration in GitHub.
 
 ## Dependency-ordered gates (stop at the first unmet gate)
 
-1. **Review source; no merge authorised here.** The separate main review
-   path must review exact PR #10 diff/source; owner verifies the exact C2
-   Git object under the bounded replacement. PR #10's check count is zero: its
-   diff and passing local tests are not protected-main CI. Obtain the
-   separately required protected-main merge approval and exact resulting
-   source SHA. No self-review, administrator bypass or C-only exception is
-   implied by a draft PR. Keep immutable C/C2 and main unchanged until
-   separately authorised.
+1. **Merge/source pin completed, not validation.** Record the authorised
+   normal merge/source-pin readback above; owner verifies exact C2 under
+   the bounded replacement. Before any separately authorised status run,
+   verify workflow/dispatch SHA equals the pinned merge commit. Local tests
+   and merge are not protected hosted validation or actual C2 status.
 2. **Agree protective sequencing.** Owner approves and verifies the
    exact-C2 ruleset addition before publication: retain update/deletion/
    non-fast-forward rules and empty bypass list; add required status
@@ -110,7 +108,7 @@ ask for values in chat; inspect approved non-secret configuration in GitHub.
 
 ## Non-DB preflight and unverified hosted-runner assumptions
 
-- PR #10 proposes `ubuntu-24.04`, then `corepack enable`,
+- The producer merged through PR #10 uses `ubuntu-24.04`, then `corepack enable`,
   `corepack prepare pnpm@10.26.1 --activate`, full
   `pnpm install --frozen-lockfile --ignore-scripts`, syntax checks,
   `pnpm run typecheck:libs`, `pnpm run typecheck`, and the pure C2
@@ -147,21 +145,21 @@ ask for values in chat; inspect approved non-secret configuration in GitHub.
 
 ## Smallest proposed control diff — Codex review/execution handoff
 
-**Read-only API snapshot: 2026-10-01; nothing applied.** GitHub returned
+**Earlier read-only API snapshot: 2026-10-01, before reported merge/pin.** GitHub returned
 Environment `ledgerly-canonical` ID `20664477675`, required reviewer
 `Future00111` (User ID `318002590`), `prevent_self_review: false`,
 `can_admins_bypass: true`, and
 `deployment_branch_policy: {protected_branches: true, custom_branch_policies: false}`.
 Thus the earlier UI display of main was **not an explicit main-only allowlist**.
 Custom-policy listing returned 404 under this mode; variables returned 403.
-Remote main is `94cbb98f36a61d2cdb954745a2dff4a1fbfe754c`, `protected: true`;
+Remote main was `94cbb98f36a61d2cdb954745a2dff4a1fbfe754c`, `protected: true`;
 effective main ruleset rules were empty and classic protection read returned
 403. Do not infer complete main protection or permission to change it.
 
 The remote main Git tree/blobs show canonical PostgreSQL qualification uses
 this Environment but **does not read `LEDGERLY_APPROVED_CANDIDATE_SHA`**.
-Corepack diagnostics uses a different Environment. PR #10's future identity
-publisher would also share `ledgerly-canonical`. Immutable C2 hardcodes that
+Corepack diagnostics uses a different Environment. PR #10's now-merged identity
+publisher also shares `ledgerly-canonical`. Immutable C2 hardcodes that
 Environment: a dedicated new Environment cannot be substituted without
 changing C2, which is forbidden. Re-inventory consumers before execution;
 if main has changed to consume the candidate pin/activated C2, stop and
@@ -174,7 +172,7 @@ obtain a separate main-impact decision rather than treating this as activation.
 | Admin bypass | `true` | **Unchanged for minimal shared diff; do not use bypass.** A global disable would affect all consumers and needs a separate decision; this is not an enforced non-bypass guarantee. Reject/record any bypassed run rather than accept it as normal owner release. |
 | Environment branch mode | Protected branches only | **Prefer unchanged**, verify C2 job eligibility after authorised exact publication. Ruleset protection and earlier UI display alone do not prove Environment eligibility. Conditional fallback below only after owner configuration approval. |
 | Environment candidate variable | Current read denied; 2026-09-29 owner UI said absent | Set/read back `LEDGERLY_APPROVED_CANDIDATE_SHA=3ab9edc28b4922ad82e68afb7b049d69514f91e1` at **Environment level** after approved configuration. Do not overwrite an unexpected existing value without resolving it. No repository/org pin, secrets or global token permissions added. |
-| Status workflow pin | Current read denied; proposed only | **Not part of candidate-only diff.** `TR01_C2_APPROVED_WORKFLOW_SHA` and publisher activation require separate protected-main/source approval. |
+| Status workflow pin | Earlier connector read denied; later authorised Codex UI readback complete | **Completed:** `TR01_C2_APPROVED_WORKFLOW_SHA=87a4ff7d44be9bc21296e9623db16924488f76ae` at Environment level. Preserve it; this does not approve dispatch or establish an actual C2 status. |
 | C2 ruleset `24197692` | Active; exact C2 ref; `deletion`, `non_fast_forward`, `update`; `bypass_actors: []` | Preserve all of these; add only the existing readiness report's `required_status_checks` rule for `tr01/c2-identity-validation`, strict policy, creation-only exemption. Verify/pin observed trusted publisher integration before TI-03. Do not invent an integration ID or status. |
 | C/main workflows, C ruleset, main protection | Existing configuration | **Unchanged.** No review waiver or approval of main merge/status writes follows from the C2 decision. |
 
@@ -212,9 +210,10 @@ References: [reviewer/self-review and branch modes](https://docs.github.com/en/a
 ## Remaining dependencies and next step
 
 Codex should review this diff and request the **specific configuration/publication
-go-ahead**, not additional independent C2 reviewers. PR #10 review/merge,
-main publisher `statuses: write`, its source pin and dispatch remain separate
-decisions; do not apply the C2 human exception to that main workflow. After
+go-ahead**, not additional independent C2 reviewers. PR #10 normal merge and
+resulting Environment source-pin readback are complete under separate owner
+authorisation; the status workflow's concrete dispatch/release remains
+separately gated. Do not apply the C2 human exception to that main workflow. After
 authorised protection/publication, obtain a real source-verified C2 status,
 verify Environment-level pin and C2 eligibility, then obtain owner exact-C2
 confirmation and approval of the **specific TI-03 run**. Record its real

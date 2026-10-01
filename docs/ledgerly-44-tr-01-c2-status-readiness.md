@@ -1,14 +1,20 @@
-# TR-01 C2 identity-status preparation (draft, not applied)
+# TR-01 C2 identity-status readiness — producer merged, qualification pending
 
 **Status (2026-10-01):** blocked before publication and qualification, but
 unavailable independent C2 human reviewers are **no longer a blocker for
 development candidate qualification** under the
 [actual owner-only approval](governance/ledgerly-tr01-c2-owner-only-qualification-approval.md).
-This does not approve main/status-producer activation or a specific run. Codex created
-[draft PR #10](https://github.com/Future00111/ledgerpoint/pull/10) in GitHub
-UI for review; it is **unmerged**. No workflow dispatch, C2 publication,
-main merge, permission/ruleset/Environment change or production operation
-was made by this preparation. Immutable C and C2 remain unchanged.
+Separately, the owner reports verified Codex GitHub UI progress: the user
+authorised [PR #10](https://github.com/Future00111/ledgerpoint/pull/10) merge
+and the resulting Environment source pin. PR #10 was marked ready and
+**merged normally, without bypass, on 2026-10-01**, then shown merged/closed,
+at merge commit `87a4ff7d44be9bc21296e9623db16924488f76ae`.
+Codex added and read back the exact Environment-level
+`TR01_C2_APPROVED_WORKFLOW_SHA=87a4ff7d44be9bc21296e9623db16924488f76ae`
+in `ledgerly-canonical`; reviewer, self-review and branch controls were
+unchanged. This is owner-reported verified UI evidence, not a fresh connector
+readback. No workflow dispatch, C2 publication or qualification occurred.
+This update is documentation-only; immutable C/C2 remain unchanged.
 
 ## Verified facts and authority
 
@@ -51,18 +57,21 @@ was made by this preparation. Immutable C and C2 remain unchanged.
   self-review prevention off and admin bypass on were read back; branch mode
   is `{protected_branches:true, custom_branch_policies:false}`, not an
   explicit main-only list. Remote C2 is still absent, so C2 eligibility is
-  not yet demonstrated. Variable read remains 403; current values are
-  unknown, not confirmed absent. Exact C2 ruleset restrictions remain active
-  and unchanged. Main is protected at `94cbb98f36a61d2cdb954745a2dff4a1fbfe754c`;
-  full classic main protection read returned 403. None was changed here.
+  not yet demonstrated. The earlier variable read returned 403; the later
+  Codex UI source-pin readback above supersedes the unknown source-pin state,
+  but does not establish `LEDGERLY_APPROVED_CANDIDATE_SHA`. Exact C2 ruleset
+  restrictions were active and unchanged at that readback. Main was protected
+  at pre-merge `94cbb98f36a61d2cdb954745a2dff4a1fbfe754c`; full classic
+  main protection read returned 403. The later reported merge is recorded
+  above; no fresh API lookup was performed for this documentation update.
 
-## Review-only, non-executing draft
+## Producer merged; local draft copies and historical checks
 
 The adjacent local files under `docs/governance/drafts/` remain non-executing
-drafts. The corresponding four files now also exist on PR #10's separate
-review branch, **not on protected main or C2**:
+draft copies. The corresponding producer changes were merged to main through
+PR #10 as reported above, **not to immutable C2**:
 
-- `ledgerly-tr01-c2-identity-status.workflow.yml` — proposed new protected-main
+- `ledgerly-tr01-c2-identity-status.workflow.yml` — merged protected-main
   manual workflow. A read-only job checks out pinned C2 with no persisted
   credentials and runs a frozen script-disabled install, syntax, TypeScript
   and focused pure C2 tests. A dependent publisher job uses the **existing**
@@ -74,7 +83,8 @@ review branch, **not on protected main or C2**:
   separately approved SHA supplied at reviewer release. An empty or mismatched
   effective pin fails closed; code cannot distinguish an Environment value
   from an inherited repository/organisation value. The 2026-09-29 owner UI
-  showed no pin; current values remain unreadable through this connector.
+  showed no pin; the later authorised Codex UI readback records the exact
+  merged source pin above. Candidate-pin readback remains outstanding.
 - `ledgerly-tr01-c2-identity-status.mjs` — fail-closed publisher: requires
   protected main manual execution from the exact reviewed workflow in the
   exact repository; fetches the exact
@@ -94,14 +104,15 @@ An independent draft review caught an incorrect assumption that GitHub's
 status-creation response echoes the target SHA. The draft now validates
 HTTP 201 plus returned state/context; the exact target SHA is fixed in the
 POST path and must be independently read back before qualification. That
-review confirmed the status-source pin and Environment reviewer controls
-remain **live blockers**, not defects solved by a passing mock test.
+review identified source-pin and Environment-release gates, not defects solved
+by a passing mock test. The source pin is now UI-readback complete; actual
+run approval/release and status-source verification remain outstanding.
 
-The proposed workflow must be independently reviewed and merged **to protected
-main**, with its publisher script installed at
+The owner-reported authorised PR #10 merge installs the producer **on main**,
+with its publisher script at
 `scripts/ci/ledgerly-tr01-c2-identity-status.mjs` and workflow at
-`.github/workflows/ledgerly-tr01-c2-identity-status.yml`. These are proposed
-destination paths, not changes to main or to C2. The workflow's own check
+`.github/workflows/ledgerly-tr01-c2-identity-status.yml`. No C2 source change
+is implied. The workflow's own check
 will still target main; its explicit commit-status API call targets exact C2.
 The main workflow's exact source SHA and GitHub reviewer release must be
 recorded with the eventual status.
@@ -116,11 +127,13 @@ connector-backed draft PR attempt first failed at Git Data
 No new permissions were requested. **Subsequently Codex created draft PR #10
 through GitHub UI** at branch `review/tr01-c2-identity-status`, head
 `a3e486b666c0a3a90a9a6907f45326a60430807f`. Read-only API verified it
-is open/unmerged with the expected base and four added files/348 additions/
+was then open/unmerged with the expected base and four added files/348 additions/
 zero deletions, zero checks/statuses and zero deployments for the PR head.
 The remote added files match the local drafts in substance (terminal blank
-line differs). Nothing was merged or dispatched. The connector's earlier
-permission failure is historical, not evidence that the PR is absent.
+line differs). Nothing was merged or dispatched in that earlier preparation.
+The subsequent authorised normal merge/source-pin UI readback is recorded
+above; no dispatch followed. The connector failure and earlier draft state
+are historical, not current merge blockers.
 See `docs/governance/drafts/ledgerly-tr01-c2-qualification-operator-runbook.md`
 for separate source/C2 pins, C2 preflight limits and acceptance steps.
 
@@ -160,9 +173,9 @@ source cannot be constrained and independently verified, stop for a security
 decision; a context name alone is not proof of provenance. The draft does
 not change GitHub permissions or rules.
 
-The proposed `TR01_C2_APPROVED_WORKFLOW_SHA` is a **future Environment
-variable**, not a verified existing setting. Set it to the separately reviewed
-exact main commit only after a separate authorised decision. GitHub's `vars`
+`TR01_C2_APPROVED_WORKFLOW_SHA` is now recorded by Codex UI readback as an
+**Environment-level variable** at the authorised merge commit
+`87a4ff7d44be9bc21296e9623db16924488f76ae`. GitHub's `vars`
 context can fall back to a repository or organisation variable when the
 Environment value is absent: the script **cannot prove variable provenance**.
 Verify the actual Environment-level value and exclude lower-precedence
@@ -173,12 +186,12 @@ status-source read-back gates.
 
 ## Dependency-ordered procedure; all live steps require separate approval
 
-1. Approve the protected-main validation code and its narrowly scoped
-   `statuses: write` job, with independent review of the exact new main
-   workflow/script SHA. The draft PR itself does not approve its eventual
-   merge or pin. Preserve C/C2, existing candidate workflow and
-   Environment reviewer gate. Do **not** grant write permission to a job
-   executing C2 tests.
+1. **Completed merge/source-pin prerequisite:** owner-authorised normal
+   PR #10 merge at `87a4ff7d44be9bc21296e9623db16924488f76ae` and exact
+   Environment source-pin readback. Before a separately authorised status
+   run, recheck workflow/dispatch SHA equality to this pin and preserve the
+   existing reviewer gate. No actual status, run approval/release or passing
+   hosted validation follows from merge alone.
 2. Authorise the exact ruleset amendment above **before** C2 publication,
    preserving all existing restrictions and no bypass. Verify effective
    conditions, status parameters and create-only exemption. Separately
@@ -200,7 +213,8 @@ status-source read-back gates.
    Review/authorise the runbook's minimal configuration diff, verify the
    Environment-level exact C2 pin and branch eligibility, then record owner
    exact-C2 confirmation and approval of the specific run. Do not fabricate
-   an attestation. Main/status-producer review/activation remains separate;
+   an attestation. The main producer merge/source pin is complete, but its
+   concrete dispatch and Environment release remain separately gated;
    do not weaken shared main controls or inherit C-only exceptions.
 6. Only then run the unchanged C2 TI-03 workflow on its protected C2 ref
    with disposable PostgreSQL, accepted schema-v2 evidence, its SHA-256,
@@ -208,10 +222,11 @@ status-source read-back gates.
    separate final implementation-identity approval; it does not activate
    main, production or Phase A.
 
-**Current blocker:** a trusted check producer is only a tested draft, the
- required rule is absent, remote C2 is absent, current Environment pins are
- unreadable through this connector, and C2 eligibility/status source and
- individual owner run approval remain unverified. The unavailable-reviewer
+**Current blockers:** the required C2 status rule is not recorded as applied,
+remote C2 remains unpublished, and no actual source-verified C2 validation
+status exists. Candidate Environment pin/eligibility and individual run
+approval/release remain outstanding. PR #10 merge and source-pin UI readback
+are complete, not qualification. The unavailable-reviewer
  blocker is resolved **only for C2 development candidate qualification**.
  Publication and
 qualification were **not** performed. Older package statements that C2 is
