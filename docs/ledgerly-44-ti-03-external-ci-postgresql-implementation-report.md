@@ -2,6 +2,15 @@
 
 ## Current C2 hosted qualification outcome — 2026-10-01
 
+The later owner-authorised next-step preparation is now concrete:
+[C3 preparation report](governance/drafts/ledgerly-tr01-c3-preparation-report.md),
+ordinary candidate draft PR #11 and separate protected-main producer draft
+PR #12. This changes no C2 outcome or authority: immutable C/C2, main and
+live controls remain exact, intended immutable C3 is unpublished, and no
+identity/qualification dispatch occurred. Development/disposable scope and
+the existing owner-review exception remain; no independent-human-review
+claim is made.
+
 ### Local review correction prepared after the failure
 
 Under the later owner instruction, a concrete two-file correction was prepared

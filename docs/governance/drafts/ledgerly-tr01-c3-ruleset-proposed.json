@@ -1,0 +1,27 @@
+{
+  "name": "Protect TR-01 implementation successor C3",
+  "target": "branch",
+  "enforcement": "active",
+  "bypass_actors": [],
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/tr01/implementation-identity-successor-c3"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {"type": "deletion"},
+    {"type": "non_fast_forward"},
+    {"type": "update"},
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "do_not_enforce_on_create": true,
+        "required_status_checks": [
+          {"context": "tr01/c3-identity-validation", "integration_id": 15368}
+        ],
+        "strict_required_status_checks_policy": true
+      }
+    }
+  ]
+}

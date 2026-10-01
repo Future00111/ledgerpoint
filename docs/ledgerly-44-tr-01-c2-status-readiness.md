@@ -24,6 +24,17 @@ creation is recorded below. No qualification has been dispatched.
 
 ## Verified facts and authority
 
+**Later authorised C3 preparation:** exact C3
+`1c26be19295902a38e1939b56ff99ae9a195d3de` is prepared from the reviewed
+offline correction, with separate producer review code and ordinary draft
+PRs only. See
+[concrete preparation report](governance/drafts/ledgerly-tr01-c3-preparation-report.md)
+and its exact identities, digests, tests and unapplied live configuration
+steps. Immutable C/C2, main, live pins/protections/Environment eligibility
+remain unchanged; intended immutable C3 is not published and no dispatch
+or qualification acceptance occurred. Scope is development/disposable
+PostgreSQL under the existing owner exception, not independent human review.
+
 **Local remediation review (2026-10-01):** under the later owner instruction,
 concrete review code is prepared on separate branch
 `review/tr01-c2-offline-pnpm`, commit

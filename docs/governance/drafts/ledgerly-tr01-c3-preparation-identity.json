@@ -1,0 +1,235 @@
+{
+  "version": 1,
+  "purpose": "C3 review preparation only",
+  "notQualificationEvidence": true,
+  "ownerScope": "Development/disposable PostgreSQL only; owner exception retained; no independent-human-review claim",
+  "candidate": {
+    "sha": "1c26be19295902a38e1939b56ff99ae9a195d3de",
+    "tree": "beb56d35539d81636b609602b3c57d167bc88888",
+    "soleParent": "e7f43c70e45c068971aeb241ce1b01a30bb01e37",
+    "C2Ancestor": "3ab9edc28b4922ad82e68afb7b049d69514f91e1",
+    "intendedImmutableRef": "refs/heads/tr01/implementation-identity-successor-c3",
+    "immutableRefPublished": false,
+    "ordinaryReview": {
+      "number": 11,
+      "url": "https://github.com/Future00111/ledgerpoint/pull/11",
+      "draft": true,
+      "headRef": "review/tr01-c3-candidate",
+      "headSha": "1c26be19295902a38e1939b56ff99ae9a195d3de",
+      "baseRef": "review/tr01-c2-offline-pnpm",
+      "baseSha": "e7f43c70e45c068971aeb241ce1b01a30bb01e37"
+    },
+    "worktree": ".local/tr01-c3-candidate-preparation",
+    "sixFileDiffFromReviewedFix": [
+      ".github/workflows/ledgerly-canonical-postgresql.yml",
+      "artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs",
+      "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json",
+      "scripts/ci/run-ledgerly-canonical-postgresql.mjs",
+      "scripts/ci/run-ledgerly-canonical-postgresql.test.mjs",
+      "scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql"
+    ],
+    "eightFileDiffFromC2": [
+      ".ci/ledgerly-canonical/Dockerfile.test",
+      ".github/workflows/ledgerly-canonical-postgresql.yml",
+      "artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs",
+      "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json",
+      "scripts/ci/ledgerly-offline-pnpm.test.mjs",
+      "scripts/ci/run-ledgerly-canonical-postgresql.mjs",
+      "scripts/ci/run-ledgerly-canonical-postgresql.test.mjs",
+      "scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql"
+    ]
+  },
+  "producerReview": {
+    "sha": "741b19155d5fb3dcdfce7705c72461d78f6e71c8",
+    "tree": "d71954f8e7048e261e6cc3d3119ad47a06b138ae",
+    "soleParent": "87a4ff7d44be9bc21296e9623db16924488f76ae",
+    "ordinaryReview": {
+      "number": 12,
+      "url": "https://github.com/Future00111/ledgerpoint/pull/12",
+      "draft": true,
+      "headRef": "review/tr01-c3-identity-status",
+      "headSha": "741b19155d5fb3dcdfce7705c72461d78f6e71c8",
+      "baseRef": "main",
+      "baseSha": "87a4ff7d44be9bc21296e9623db16924488f76ae"
+    },
+    "worktree": ".local/tr01-c3-identity-producer-review",
+    "files": [
+      ".github/workflows/ledgerly-tr01-c3-identity-status.yml",
+      "scripts/ci/ledgerly-tr01-c3-identity-status.mjs",
+      "scripts/ci/ledgerly-tr01-c3-identity-status.test.mjs"
+    ],
+    "context": "tr01/c3-identity-validation",
+    "futureEnvironmentSourcePin": "TR01_C3_APPROVED_WORKFLOW_SHA=actual future merged protected-main SHA (not yet knowable)",
+    "mergedToMain": false
+  },
+  "candidateSourceDigestsSha256": {
+    "sourceTree": "5608ea5b074b8c603e4fa0963dbb57dda5cfe30d9ee7079704f0c17d1cd7e16f",
+    "applicationSchema": "67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564",
+    "drizzleConfig": "57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258",
+    "securityOverlay": "5a75b48ea9a6eb702cd44c70694f791073a4bb76809b201253e116ed6c583b5a",
+    "runControlSql": "fe4dc937e66a2a4826e6e99e795e4ef79d4fe7c8d1a1abab07e819f570119607",
+    "coordinator": "0ea4da0074cf0e6a56c546c587fea2232660f3e39f067380847237cfbe33029b",
+    "lockfile": "3b8329fff64eab80ec5dfe8d875f80502789520faea4680d2fd0e7f0b4703f1b",
+    "workflow": "dc3e41c658401f41223e22b22cd81dcbdcfbab82a5957d5ca792db15d196936c",
+    "orchestrator": "43f82bab11a7c106e9926b1c3b3f35e357ba252f99f83fac07e06d03aa65de55",
+    "testSources": "c1dd57433679a43b642fe09a9affd23b32330ddf81bc7f39e68288b28c2df09d"
+  },
+  "candidateExecutionFileCount": 561,
+  "candidateChangedFilesSha256": {
+    ".ci/ledgerly-canonical/Dockerfile.test": "4b4ab724fdc9d14d864a3481bead51dd60eeddfa7baa86162c85e4a72c3d886f",
+    ".github/workflows/ledgerly-canonical-postgresql.yml": "dc3e41c658401f41223e22b22cd81dcbdcfbab82a5957d5ca792db15d196936c",
+    "artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs": "43f82bab11a7c106e9926b1c3b3f35e357ba252f99f83fac07e06d03aa65de55",
+    "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json": "8bb82e7f070f36c38c8dc698c040e51b4183ac60c5472a40c25f78f8fde74323",
+    "scripts/ci/ledgerly-offline-pnpm.test.mjs": "667a60948a4510dab36a8b8fb7166a69f387b1c50abb628003a0894decea8413",
+    "scripts/ci/run-ledgerly-canonical-postgresql.mjs": "0ea4da0074cf0e6a56c546c587fea2232660f3e39f067380847237cfbe33029b",
+    "scripts/ci/run-ledgerly-canonical-postgresql.test.mjs": "c889c2c2d6d28959cc9883e5f2442ce2bcff1c8c385d5c9b8113eb045fe15404",
+    "scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql": "fe4dc937e66a2a4826e6e99e795e4ef79d4fe7c8d1a1abab07e819f570119607"
+  },
+  "producerFilesSha256": {
+    ".github/workflows/ledgerly-tr01-c3-identity-status.yml": "d55d88488b63d3a12ba777855ba2cf8140f8a6968b7152d3125971e288d5c90c",
+    "scripts/ci/ledgerly-tr01-c3-identity-status.mjs": "97944563d6009cb1ac294110a42dd5cbcc250b36f7e3e77edeb2074e07b4086b",
+    "scripts/ci/ledgerly-tr01-c3-identity-status.test.mjs": "a7a655f8bb46832f0940295a319fc762707ffd17337cd3a900b578dfb1f1c574"
+  },
+  "patchSha256": {
+    "ledgerly-tr01-c3-vs-reviewed-fix.patch": "f409252a6dcb83366daeaf9ee20020172e3af507b0c4bb832c461367e0747cb4",
+    "ledgerly-tr01-c3-vs-c2.patch": "7e2546f06f865838a5d28c65470575a8503577f1487193bb547daa6a753b24fd",
+    "ledgerly-tr01-c3-producer-review.patch": "d89dbb740a388775520fea27d51f96fa5768021963de016f01823714f58dca55"
+  },
+  "proposedRulesSha256": "5242af99f9f96d09f7ee8600dbbfaf1e27d0f4b1383c2a8eda1474c68bb96ed0",
+  "previousFailure": {
+    "file": "docs/governance/evidence/ledgerly-44-ti-03-failed-36882700987-1.json",
+    "sha256": "aa120080c81d43d34b4a7a2411b3e9ca61b311678de9f0758f60866cc11b79f2",
+    "qualificationAccepted": false
+  },
+  "images": {
+    "nodeBase": "node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f",
+    "postgres": "postgres:16.15-bookworm@sha256:bb3e1a57e5407e0a5280b4211980a5e537f4abd234a87014ac979849a78dd825",
+    "localOfflineReviewImage": "ledgerly-c3-offline-review:1c26be1",
+    "localOfflineReviewImageId": "sha256:863f46fad7d2b1b4125bce7f5445eed29be7d92e8d9525b19593eb8893f3c4df"
+  },
+  "verification": {
+    "candidateIdentityAndAcceptanceGuardSuite": "passed",
+    "actualCandidateDockerfileBuild": "passed",
+    "offlineTests": {
+      "passed": 3,
+      "skipped": 0
+    },
+    "producerMockWorkflowFixtureTests": {
+      "passed": 25,
+      "skipped": 0
+    },
+    "disposableSqlIdentityPredicateTests": {
+      "acceptedC3": true,
+      "rejectedC2Alias": true,
+      "rejectedCandidateCommitMismatch": true,
+      "rejectedFalseProtectionAncestryAndBothCleanFlags": true,
+      "acceptedActivatedMain": true,
+      "transactionRollback": true,
+      "containerAndAnonymousVolumeAbsent": true
+    },
+    "fullHostedTypechecksAndPostgreSQLQualification": "not run; still gated",
+    "inlineWorkflowShellAndJavaScriptSyntax": "passed"
+  },
+  "finalLiveReadback": {
+    "main": "87a4ff7d44be9bc21296e9623db16924488f76ae",
+    "C": "d292f3a64c6253e022b40de8cf055f3e722ff1ea",
+    "C2": "3ab9edc28b4922ad82e68afb7b049d69514f91e1",
+    "immutableC3RefAbsent": true,
+    "Environment": {
+      "name": "ledgerly-canonical",
+      "branchPolicyMode": {
+        "protected_branches": false,
+        "custom_branch_policies": true
+      },
+      "policies": [
+        {
+          "name": "main",
+          "type": "branch"
+        },
+        {
+          "name": "tr01/implementation-identity-successor-c2",
+          "type": "branch"
+        }
+      ],
+      "pins": {
+        "LEDGERLY_APPROVED_CANDIDATE_SHA": "3ab9edc28b4922ad82e68afb7b049d69514f91e1",
+        "TR01_C2_APPROVED_WORKFLOW_SHA": "87a4ff7d44be9bc21296e9623db16924488f76ae"
+      },
+      "requiredReviewers": [
+        "Future00111"
+      ],
+      "preventSelfReview": false,
+      "canAdminsBypass": true
+    },
+    "rulesets": [
+      {
+        "id": 23995584,
+        "name": "Protect TR-01 implementation candidate C",
+        "enforcement": "active"
+      },
+      {
+        "id": 24197692,
+        "name": "Protect TR-01 implementation successor C2",
+        "enforcement": "active"
+      }
+    ],
+    "C2RulesConditions": {
+      "ref_name": {
+        "exclude": [],
+        "include": [
+          "refs/heads/tr01/implementation-identity-successor-c2"
+        ]
+      }
+    },
+    "C2EffectiveRules": [
+      {
+        "type": "deletion",
+        "parameters": null
+      },
+      {
+        "type": "non_fast_forward",
+        "parameters": null
+      },
+      {
+        "type": "update",
+        "parameters": null
+      },
+      {
+        "type": "required_status_checks",
+        "parameters": {
+          "strict_required_status_checks_policy": true,
+          "do_not_enforce_on_create": true,
+          "required_status_checks": [
+            {
+              "context": "tr01/c2-identity-validation",
+              "integration_id": 15368
+            }
+          ]
+        }
+      }
+    ],
+    "reviewRefs": {
+      "reviewFix": "e7f43c70e45c068971aeb241ce1b01a30bb01e37",
+      "reviewC3": "1c26be19295902a38e1939b56ff99ae9a195d3de",
+      "reviewProducer": "741b19155d5fb3dcdfce7705c72461d78f6e71c8"
+    }
+  },
+  "dispatchPerformed": false,
+  "identityStatusPublished": false,
+  "sqlSmokeArtifactsSha256": {
+    "ledgerly-tr01-c3-sql-smoke.sh": "5b7d1c6200c4b4cdc9d657ebbf36ec3b985101426ccdb33bdf1a4ce6d895e484",
+    "ledgerly-tr01-c3-sql-smoke-output.txt": "52d00c5ccca38de37de7f9558e6ff7207c09eacefc559b97fde03a11105d4540"
+  },
+  "liveConfigurationChangesPerformed": [],
+  "ordinaryReviewPublications": {
+    "branchRefs": [
+      "refs/heads/review/tr01-c2-offline-pnpm",
+      "refs/heads/review/tr01-c3-candidate",
+      "refs/heads/review/tr01-c3-identity-status"
+    ],
+    "draftPullRequests": [
+      11,
+      12
+    ]
+  }
+}

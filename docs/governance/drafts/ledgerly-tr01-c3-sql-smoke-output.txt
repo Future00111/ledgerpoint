@@ -1,0 +1,98 @@
+NON-QUALIFICATION disposable SQL constraint smoke; no GitHub calls or qualification evidence.
+C3 source: 1c26be19295902a38e1939b56ff99ae9a195d3de:scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql
+PASS: exact source read by local git show. SHA256: fe4dc937e66a2a4826e6e99e795e4ef79d4fe7c8d1a1abab07e819f570119607  /tmp/ledgerly-c3-sql-smoke/run-control.sql
+Docker daemon check: 27.5.1 27.5.1
+PASS image identity: sha256:5f71c21b69a7977b82247582e2e731ed76bdebaadb7dd7945ed76bcc9ed06632 ["postgres@sha256:bb3e1a57e5407e0a5280b4211980a5e537f4abd234a87014ac979849a78dd825"]
+Disposable container name: ledgerly-c3-sql-smoke-7c3b08630f91d44760901f01ef0f390b
+Starting exact pinned image with --network none, no published ports, and no explicit mounts.
+b374cfc987af8031d53db2bcadd01010517cb92b36eac2b29de862913b32181e
+PASS isolation: network_mode=none port_bindings={} host_binds=null mounts=volume:/var/lib/postgresql/data:cc29af8f532dc482463be7104bb17831d1bab4ecabae079c2d490931b318ad60
+PASS PostgreSQL initialized and ready inside isolated container.
+Disposable PostgreSQL bootstrap start.
+The files belonging to this database system will be owned by user "postgres".
+This user must also own the server process.
+
+The database cluster will be initialized with locale "en_US.utf8".
+The default database encoding has accordingly been set to "UTF8".
+The default text search configuration will be set to "english".
+
+Data page checksums are disabled.
+
+fixing permissions on existing directory /var/lib/postgresql/data ... ok
+creating subdirectories ... ok
+selecting dynamic shared memory implementation ... posix
+selecting default max_connections ... 100
+selecting default shared_buffers ... 128MB
+selecting default time zone ... Etc/UTC
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... ok
+syncing data to disk ... ok
+
+Success. You can now start the database server using:
+
+    pg_ctl -D /var/lib/postgresql/data -l logfile start
+
+PASS isolated PostgreSQL cluster initialized.
+waiting for server to start....2026-10-01 15:50:19.588 UTC [39] LOG:  starting PostgreSQL 16.15 (Debian 16.15-1.pgdg12+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit
+2026-10-01 15:50:19.588 UTC [39] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2026-10-01 15:50:19.592 UTC [39] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-01 15:50:19.597 UTC [42] LOG:  database system was shut down at 2026-10-01 15:50:17 UTC
+2026-10-01 15:50:19.612 UTC [39] LOG:  database system is ready to accept connections
+ done
+server started
+PASS PostgreSQL server started locally inside network-none container.
+Running exact C3 DDL and synthetic predicate cases.
+BEGIN
+CREATE ROLE
+CREATE ROLE
+CREATE SCHEMA
+CREATE TABLE
+ALTER SCHEMA
+ALTER TABLE
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+psql:/tmp/c3-smoke.sql:264: NOTICE:  PASS accepted C3 candidate row
+psql:/tmp/c3-smoke.sql:264: NOTICE:  PASS rejected coherent old C2 ref/workflow alias by run_identity_mode
+psql:/tmp/c3-smoke.sql:264: NOTICE:  PASS rejected mismatched candidate workflow/implementation commit SHA by run_identity_mode
+psql:/tmp/c3-smoke.sql:264: NOTICE:  PASS rejected false protected-ref flag by run_identity_mode
+psql:/tmp/c3-smoke.sql:264: NOTICE:  PASS rejected false ancestry flag by run_identity_mode
+psql:/tmp/c3-smoke.sql:264: NOTICE:  PASS rejected false workflow checkout-clean flag by run_identity_mode
+psql:/tmp/c3-smoke.sql:264: NOTICE:  PASS rejected false implementation checkout-clean flag by run_identity_mode
+psql:/tmp/c3-smoke.sql:264: NOTICE:  PASS accepted valid activated main row
+psql:/tmp/c3-smoke.sql:264: NOTICE:  PASS exactly two valid fixture rows were accepted before rollback
+DO
+ROLLBACK
+psql:/tmp/c3-smoke.sql:274: NOTICE:  PASS transaction rollback removed DDL and all synthetic rows
+DO
+psql:/tmp/c3-smoke.sql:283: NOTICE:  PASS rollback removed the two temporary NOLOGIN roles
+DO
+PASS SQL smoke completed.
+waiting for server to shut down....2026-10-01 15:50:20.753 UTC [39] LOG:  received fast shutdown request
+2026-10-01 15:50:20.755 UTC [39] LOG:  aborting any active transactions
+2026-10-01 15:50:20.756 UTC [39] LOG:  background worker "logical replication launcher" (PID 45) exited with exit code 1
+2026-10-01 15:50:20.757 UTC [40] LOG:  shutting down
+2026-10-01 15:50:20.761 UTC [40] LOG:  checkpoint starting: shutdown immediate
+2026-10-01 15:50:20.883 UTC [40] LOG:  checkpoint complete: wrote 74 buffers (0.5%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.004 s, sync=0.108 s, total=0.127 s; sync files=55, longest=0.006 s, average=0.002 s; distance=251 kB, estimate=251 kB; lsn=0/1528F00, redo lsn=0/1528F00
+2026-10-01 15:50:20.887 UTC [39] LOG:  database system is shut down
+ done
+server stopped
+PASS: all C3 run_identity SQL predicate assertions completed and transaction rolled back.
+NON-QUALIFICATION: SQL predicate verification only; not canonical posting, DB qualification, or identity status.
+Artifacts: /tmp/ledgerly-c3-sql-smoke/run-smoke.sh /tmp/ledgerly-c3-sql-smoke/predicate-tests.sql /tmp/ledgerly-c3-sql-smoke/run-control.sql /tmp/ledgerly-c3-sql-smoke/smoke.sql /tmp/ledgerly-c3-sql-smoke/container-result.txt
+Cleanup: removing only the labeled disposable container with docker rm -fv.
+ledgerly-c3-sql-smoke-7c3b08630f91d44760901f01ef0f390b
+PASS cleanup: no container named ledgerly-c3-sql-smoke-7c3b08630f91d44760901f01ef0f390b remains.
+PASS cleanup: associated anonymous volume cc29af8f532dc482463be7104bb17831d1bab4ecabae079c2d490931b318ad60 is absent.
+
+Additional setup/cleanup notes:
+- Only ledgerly_api and ledgerly_canonical_owner were created as NOLOGIN roles, because the exact DDL REVOKE statements require those role names; the transaction rollback check confirmed neither role persisted.
+- Independent final Docker audit found no ledgerly-c3-* test containers. All anonymous PostgreSQL data volumes from the smoke runs were removed; the only volumes still listed on the daemon have creation dates before this smoke and were untouched.
+- The exact C3 DDL has no JSON/JSONB column. The row fixtures were composed as synthetic JSONB for jsonb_populate_record; the table's digest, commit, time-window, context/policy, and identity-mode checks were evaluated as defined by that DDL.

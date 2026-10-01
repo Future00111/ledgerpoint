@@ -14,3 +14,15 @@ Disposable runners must validate the effective PostgreSQL destination, not only 
 **Why:** A name-prefixed database URL can still be redirected by parser-supported query parameters. Also, schema push into an empty database may partially create tables before failing when a foreign key is processed ahead of its referenced composite unique index.
 
 **How to apply:** Allowlist only non-target URI parameters, compare the full approved development endpoint, and verify a nonce-bound private run record. For empty-database bootstrap, fail closed on unknown errors; only apply a narrowly documented prerequisite index after the exact known ordering failure, then rerun the same schema push to convergence.
+
+Non-database toolchain smoke images must not mint a usable qualification
+manifest merely to satisfy the Dockerfile's required COPY path.
+
+**Why:** The offline CLI checks do not establish protected-run identity,
+private run binding, accounting behavior or cleanup. A superficially valid
+runtime manifest could make a review-only image appear authoritative.
+
+**How to apply:** Keep smoke fixtures explicitly build-only and intentionally
+invalid for the qualification protocol, and test rejection by the actual
+manifest guard. Do not "fix" the intentionally incompatible fixture version
+or upload smoke output using the qualification evidence naming pattern.
