@@ -1,6 +1,7 @@
 # TR-01 C2 identity-status readiness — producer merged, qualification pending
 
-**Status (2026-10-01):** blocked before publication and qualification, but
+**Status (2026-10-01):** exact C2 published; validation status/source pinning
+and qualification still pending. Earlier merge-only snapshots below are historical;
 unavailable independent C2 human reviewers are **no longer a blocker for
 development candidate qualification** under the
 [actual owner-only approval](governance/ledgerly-tr01-c2-owner-only-qualification-approval.md).
@@ -13,12 +14,52 @@ Codex added and read back the exact Environment-level
 `TR01_C2_APPROVED_WORKFLOW_SHA=87a4ff7d44be9bc21296e9623db16924488f76ae`
 in `ledgerly-canonical`; reviewer, self-review and branch controls were
 unchanged. This is owner-reported verified UI evidence, not a fresh connector
-readback. No workflow dispatch, C2 publication or qualification occurred.
+readback. No workflow dispatch, C2 publication or qualification occurred at
+that merge/source-pin stage; subsequent C2 publication is recorded below.
 This update is documentation-only; immutable C/C2 remain unchanged.
 
 ## Verified facts and authority
 
-**Publication preflight (2026-10-01, after reported UI ruleset save):**
+**Identity workflow run (2026-10-01):** preflight confirmed protected exact
+main, Environment source pin, exact remote C2, unchanged owner gate, no
+Environment secrets, and reviewed workflow/publisher source. Dispatched
+`ledgerly-tr01-c2-identity-status.yml` once on main, no inputs:
+[run 36875835097](https://github.com/Future00111/ledgerpoint/actions/runs/36875835097),
+attempt 1. `validate` passed; `identity` is waiting for Future00111's normal
+release of `ledgerly-canonical`. Agent did not release or bypass it.
+Actual C2 status/trusted issuer readback and source pinning remain pending;
+no qualification dispatch occurred.
+
+**Successful publication (2026-10-01):** verified authenticated account
+Future00111/repository Future00111/ledgerpoint and all preflight conditions,
+then made one normal non-force exact-C2 push using the existing `gh` helper
+for that command only. Exit 0, new branch; no persistent configuration,
+login, token extraction, access expansion or bypass. Authenticated readback:
+`refs/heads/tr01/implementation-identity-successor-c2` =
+`3ab9edc28b4922ad82e68afb7b049d69514f91e1`, exact tree
+`365303e152430560b828c88165dd8f4d03f2a4fc`, sole parent
+`d292f3a64c6253e022b40de8cf055f3e722ff1ea`; C/main unchanged.
+Ruleset/effective rules confirm active exact scope, empty bypass, immutable
+restrictions and required status with strict/create-exemption true. “Any source”
+remains bootstrap only: obtain actual validation status and observe/pin trusted
+issuer before qualification. No workflow dispatched.
+
+**Historical failed publication attempt (2026-10-01):** bounded public GitHub reads and
+the existing authenticated GitHub CLI now confirm exact local C2 identity,
+remote C2 absence, unchanged C and main, and active ruleset `24197692` with
+exact scope, empty bypass, all three immutable restrictions, required
+`tr01/c2-identity-validation`, strict policy and creation exemption enabled.
+The connector still times out after 30 seconds; direct HTTPS and CLI work.
+One normal non-force exact-C2 Git HTTPS push was attempted with a 30-second
+limit and failed immediately (exit 128): `fatal: unable to get password from user`.
+No authentication changes or retries were made. Post-attempt authenticated
+readback confirms remote C2 remains absent (404) and effective rules intact.
+Owner/Codex must repair the existing Git credential-helper connection before
+retrying publication; CLI authentication alone does not authenticate Git push.
+No workflows dispatched. The status source remains unpinned bootstrap only,
+not established provenance; trusted issuer observation/pinning still precedes qualification.
+
+**Historical superseded publication preflight (2026-10-01, before confirmed UI save):**
 local C2 SHA/tree/sole parent match the exact identities below; fresh GitHub
 ref reads confirm C unchanged at `d292f3a64c6253e022b40de8cf055f3e722ff1ea`,
 main at `87a4ff7d44be9bc21296e9623db16924488f76ae`, and remote C2 absent (404).
@@ -38,10 +79,10 @@ qualification, and an eventual “Any source” bootstrap is not provenance.
   `d292f3a64c6253e022b40de8cf055f3e722ff1ea`. Local object inspection
   showed six reviewed path changes. Remote C2 ref was absent at the read-only
   GitHub check.
-- Active exact-C2 GitHub ruleset 24197692 has update, deletion and
-  non-fast-forward rules with no bypass actors. Its effective rules **do not**
-  require a validation status; its lack of a `creation` rule does not prove
-  that a later, amended ruleset will permit an initial push.
+- At the earlier pre-publication readback, active exact-C2 ruleset 24197692
+  had update, deletion and non-fast-forward rules with no bypass actors but
+  no required status. The later amendment and successful protected creation
+  are now readback complete as recorded above.
 - The C2 commit contains only the manual, protected
   `.github/workflows/ledgerly-canonical-postgresql.yml`. It cannot be amended
   with a second workflow and must not be dispatched merely to manufacture a
@@ -237,12 +278,12 @@ status-source read-back gates.
    separate final implementation-identity approval; it does not activate
    main, production or Phase A.
 
-**Current blockers:** the required C2 status rule is not recorded as applied,
-remote C2 remains unpublished, and no actual source-verified C2 validation
-status exists. Candidate Environment pin/eligibility and individual run
+**Current blockers:** no actual source-verified C2 validation status exists;
+trusted publisher issuer still requires observation/pinning. Exact C2 publication
+and the required status rule are now readback complete. Candidate Environment
+pin/eligibility and individual run
 approval/release remain outstanding. PR #10 merge and source-pin UI readback
 are complete, not qualification. The unavailable-reviewer
  blocker is resolved **only for C2 development candidate qualification**.
- Publication and
-qualification were **not** performed. Older package statements that C2 is
+ Qualification was **not** performed. Older package statements that C2 is
 not created are stale; its *subsequent gates* remain mandatory.

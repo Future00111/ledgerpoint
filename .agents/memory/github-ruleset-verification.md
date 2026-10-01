@@ -37,3 +37,26 @@ The UI display alone could not establish candidate eligibility or denial.
 **How to apply:** Read the actual deployment branch policy; preserve the
 reviewer gate, verify candidate eligibility after authorised publication,
 and inventory shared workflow consumers before changing Environment controls.
+
+Successful authenticated GitHub CLI reads do not prove Git HTTPS push has a
+working credential-helper connection.
+
+**Why:** Existing CLI authentication permitted administration readback while
+a non-interactive normal Git push failed to obtain a password. The connector
+also timed out independently while direct public HTTPS reads succeeded.
+
+**How to apply:** Diagnose these transports separately without exposing
+credentials or expanding scopes. After any failed/timed-out push, read back
+the target ref before considering a retry; leave authentication repair to
+the owner unless explicitly authorised.
+
+When explicitly authorised to reuse the existing authenticated CLI for a
+single Git operation, a command-scoped empty credential helper followed by
+`!gh auth git-credential` avoids persistent Git configuration changes.
+
+**Why:** This reused the already-authorised account when the default Git
+helper could not supply a credential, without login or token extraction.
+
+**How to apply:** Verify non-secret account/repository metadata first; bound
+the command, never force/bypass, and read back the remote outcome. Do not use
+this pattern to expand authentication or permissions.
