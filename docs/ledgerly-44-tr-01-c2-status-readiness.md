@@ -18,6 +18,21 @@ This update is documentation-only; immutable C/C2 remain unchanged.
 
 ## Verified facts and authority
 
+**Publication preflight (2026-10-01, after reported UI ruleset save):**
+local C2 SHA/tree/sole parent match the exact identities below; fresh GitHub
+ref reads confirm C unchanged at `d292f3a64c6253e022b40de8cf055f3e722ff1ea`,
+main at `87a4ff7d44be9bc21296e9623db16924488f76ae`, and remote C2 absent (404).
+However, both ruleset `24197692` readback (including cache-bypassed confirmation)
+and effective C2 rules show only `deletion`, `non_fast_forward`, `update`.
+Active exact scope and empty bypass list are preserved, but the reported
+required-status rule, strict policy and creation-only exemption are **not
+observed**. API `updated_at` remains `2026-09-29T18:58:13.676+01:00`.
+Publication was **not attempted** because that pre-publication gate failed;
+this was not a Git credential/write denial. Codex must reconcile/save the
+intended rule and obtain matching effective-rule readback before publication.
+No workflow was dispatched; trusted issuer observation/pinning still precedes
+qualification, and an eventual “Any source” bootstrap is not provenance.
+
 - Exact C2: `3ab9edc28b4922ad82e68afb7b049d69514f91e1`, tree
   `365303e152430560b828c88165dd8f4d03f2a4fc`, direct parent C
   `d292f3a64c6253e022b40de8cf055f3e722ff1ea`. Local object inspection
