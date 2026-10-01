@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const candidateRef = "refs/heads/tr01/implementation-identity-successor-c2";
+const candidateRef = "refs/heads/tr01/implementation-identity-successor-c3";
 const mainRef = "refs/heads/main";
 const sha = "a".repeat(40);
 
@@ -263,6 +263,27 @@ const validateEvidenceContract = candidateModule.validateEvidenceContract;
 const candidateTrusted = await candidateModule.buildTrustedEvidenceContext(
   fixtureCi(candidateEnvironment), candidateManifest,
 );
+for (const [label, overrides, rejection] of [
+  ["old C2 ref", {
+    GITHUB_REF: "refs/heads/tr01/implementation-identity-successor-c2",
+  }, /identity mode requires/],
+  ["old C2 workflow alias", {
+    GITHUB_WORKFLOW_REF: "example/repository/.github/workflows/ledgerly-canonical-postgresql.yml@refs/heads/tr01/implementation-identity-successor-c2",
+  }, /exact approved workflow identity/],
+  ["stale C2 candidate pin", {
+    LEDGERLY_APPROVED_CANDIDATE_SHA: "3ab9edc28b4922ad82e68afb7b049d69514f91e1",
+  }, /exact approved candidate SHA/],
+]) {
+  process.env = { PATH: savedEnvironment.PATH, HOME: savedEnvironment.HOME,
+    ...candidateEnvironment, ...overrides };
+  await assert.rejects(
+    candidateModule.buildTrustedEvidenceContext(
+      fixtureCi(candidateEnvironment), candidateManifest,
+    ), rejection, label,
+  );
+}
+process.env = { PATH: savedEnvironment.PATH, HOME: savedEnvironment.HOME,
+  ...candidateEnvironment };
 const expectedDigests = { ...candidateTrusted.sourceDigests };
 const activatedEnvironment = fixtureEnvironment("activated");
 const activatedManifest = await manifestFor("activated", workflowFixture);
@@ -444,6 +465,12 @@ rejectMutation("v1", (value) => { value.schemaVersion = 1; });
 rejectMutation("wrong candidate ref", (value) => {
   value.ci.sourceRef = "refs/heads/tr01/implementation-identity-candidate";
 });
+rejectMutation("old C2 candidate evidence", (value) => {
+  value.ci.sourceRef = "refs/heads/tr01/implementation-identity-successor-c2";
+  value.ci.workflowRef = "example/repository/.github/workflows/ledgerly-canonical-postgresql.yml@" +
+    value.ci.sourceRef;
+  value.binding.ciSourceRef = value.ci.sourceRef;
+});
 rejectMutation("wrong workflow ref", (value) => {
   value.ci.workflowRef = "example/repository/.github/workflows/other.yml@" + candidateRef;
 });
@@ -569,7 +596,8 @@ for (const environmentName of [
   assert.match(disposableRunner, new RegExp(environmentName));
 }
 assert.match(disposableRunner, /must equal the literal string true/);
-assert.match(disposableRunner, /refs\/heads\/tr01\/implementation-identity-successor-c2/);
+assert.match(disposableRunner, /refs\/heads\/tr01\/implementation-identity-successor-c3/);
+assert.doesNotMatch(disposableRunner, /refs\/heads\/tr01\/implementation-identity-successor-c2/);
 assert.match(disposableRunner, /Object\.hasOwn\(process\.env, "LEDGERLY_CANONICAL_TEST_SOURCE_COMMIT"\)/);
 assert.doesNotMatch(disposableRunner, /sourceCommit:\s*ci\.sourceCommit/);
 const externalDigests = disposableRunner.slice(
@@ -618,7 +646,8 @@ for (const column of [
 assert.doesNotMatch(sql, /\bsource_commit\b/);
 assert.match(sql, /identity_mode = 'candidate'/);
 assert.match(sql, /identity_mode = 'activated'/);
-assert.match(sql, /refs\/heads\/tr01\/implementation-identity-successor-c2/);
+assert.match(sql, /refs\/heads\/tr01\/implementation-identity-successor-c3/);
+assert.doesNotMatch(sql, /refs\/heads\/tr01\/implementation-identity-successor-c2/);
 assert.match(sql, /refs\/heads\/main/);
 
 const workflow = await read(".github/workflows/ledgerly-canonical-postgresql.yml");
@@ -626,7 +655,8 @@ assert.match(workflow, /fetch-depth: 0/);
 assert.match(workflow, /path: candidate/);
 assert.match(workflow, /LEDGERLY_APPROVED_CANDIDATE_SHA/);
 assert.match(workflow, /LEDGERLY_IDENTITY_MODE/);
-assert.match(workflow, /refs\/heads\/tr01\/implementation-identity-successor-c2/);
+assert.match(workflow, /refs\/heads\/tr01\/implementation-identity-successor-c3/);
+assert.doesNotMatch(workflow, /refs\/heads\/tr01\/implementation-identity-successor-c2/);
 assert.match(workflow, /candidate\/scripts\/ci\/run-ledgerly-canonical-postgresql\.mjs/);
 assert.match(workflow, /\*\*\/docs\/governance\/evidence\/ledgerly-44-ti-03-\*\.json/);
 
