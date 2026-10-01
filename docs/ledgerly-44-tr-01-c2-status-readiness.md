@@ -1,8 +1,9 @@
 # TR-01 C2 identity-status readiness — producer merged, qualification pending
 
 **Status (2026-10-01):** exact C2 published; actual identity/non-DB validation
-status successful; trusted-source rule pinning and candidate qualification
-still pending. Earlier merge-only snapshots below are historical;
+status successful; trusted-source rule and candidate variable readback complete.
+Candidate qualification is **blocked by Environment eligibility**. Earlier
+merge-only snapshots below are historical;
 unavailable independent C2 human reviewers are **no longer a blocker for
 development candidate qualification** under the
 [actual owner-only approval](governance/ledgerly-tr01-c2-owner-only-qualification-approval.md).
@@ -17,7 +18,8 @@ in `ledgerly-canonical`; reviewer, self-review and branch controls were
 unchanged. This is owner-reported verified UI evidence, not a fresh connector
 readback. No workflow dispatch, C2 publication or qualification occurred at
 that merge/source-pin stage; subsequent C2 publication is recorded below.
-This update is documentation-only; immutable C/C2 remain unchanged.
+Immutable C/C2 remain unchanged; the latest authorised candidate-variable
+creation is recorded below. No qualification has been dispatched.
 
 ## Verified facts and authority
 
@@ -44,24 +46,47 @@ validate/identity jobs expose app `GitHub Actions`, slug `github-actions`,
 Actions token and binds dispatch/workflow SHAs to the approved source; this
 and approval/run/status timing support provenance, not bot-name matching alone.
 
-**Next source pin, not applied:** on ruleset `24197692`, change the existing
-required check entry to
-`{"context":"tr01/c2-identity-validation","integration_id":15368}` (UI source
-GitHub Actions), retaining strict/create exemption and all immutable controls.
-Read back the effective source-pinned rule and confirm GitHub associates the
-existing successful C2 status with that source. “Any source” is still not
-trusted enforcement; stop if GitHub cannot verify the association.
+**Trusted-source readback complete (2026-10-01):** effective ruleset `24197692`
+now contains `{"context":"tr01/c2-identity-validation","integration_id":15368}`,
+with strict/create exemption and immutable rules preserved. Actual C2 status
+`55368040359` remains successful and its API app avatar is
+`https://avatars.githubusercontent.com/in/15368?v=4`; the exact successful
+publisher job identifies app `15368`. Together with pinned source/run/release
+records, this corroborates association with GitHub Actions, not just the bot
+name. No issuer mismatch observed. The status endpoint does **not** expose
+an explicit integration-ID field or a required-check acceptance/evaluation
+record; do not invent either. Codex must resolve any stronger action-time
+source-association confirmation requirement before qualification.
 
-**Candidate preflight:** Environment `LEDGERLY_APPROVED_CANDIDATE_SHA` is absent
-(404), as are repository-level candidate/source fallback variables. Set/read
-back the Environment candidate pin to exact C2 under owner authority. C2 branch
-is exact and `protected:true`; Environment remains protected-branches-only,
-owner reviewer intact and secret count zero. Immutable candidate workflow
-allows protected exact C2, uses the candidate variable and has no `secrets`
-context reference. This is policy evidence, not an exercised C2 Environment
-admission; confirm eligible C2 in GitHub UI before any qualification dispatch.
-No qualification dispatched. Specific owner run approval/release, disposable
-schema-v2 evidence, SHA-256, negative controls and cleanup remain required.
+**Candidate variable completed (2026-10-01):** bounded authenticated CLI
+read found the Environment variable absent (404). Authorised creation succeeded
+(exit 0), followed by exact name/value readback in `ledgerly-canonical`:
+`LEDGERLY_APPROVED_CANDIDATE_SHA=3ab9edc28b4922ad82e68afb7b049d69514f91e1`.
+Source pin remains `87a4ff7d44be9bc21296e9623db16924488f76ae`; no repository
+fallback was created. Earlier same-turn secret-metadata checks found zero
+Environment and repository secrets; no secret values were requested. Immutable
+candidate workflow has no `secrets` context reference. Runtime absence of
+production/Helium credentials and isolation/cleanup are still contractual
+checks to be demonstrated by the guarded runner, not completed run evidence.
+
+**Explicit eligibility hold:** the owner reports fresh post-publication
+Environment UI inspection: protected-branches-only **“Applies to 1 branch”**,
+listing **main only**. C2 is not eligible. REST `protected:true` is ruleset
+protection, while its classic protection is disabled/404; neither overrides
+that live Environment admission evidence. No qualification dispatch or branch
+policy change was made. Minimal proposed correction is selected branch mode
+with exactly `main` and `tr01/implementation-identity-successor-c2`, no tags
+or wildcards, preserving reviewer/self-review/bypass and all branch controls.
+The existing runbook contains the exact payloads. Owner action-time confirmation
+of this Environment eligibility expansion is pending.
+
+The current owner instruction authorises the **first C2 development qualification**
+through Codex on exact published C2/ref/source, not independent review or
+production approval. The later instruction explicitly holds dispatch pending
+eligibility confirmation/correction. This is truthful instruction provenance,
+not a signed attestation or a fabricated run/release. Full qualification
+preflight, normal owner release, disposable schema-v2 evidence, SHA-256,
+negative controls and cleanup remain required.
 
 **Successful publication (2026-10-01):** verified authenticated account
 Future00111/repository Future00111/ledgerpoint and all preflight conditions,
@@ -311,14 +336,13 @@ status-source read-back gates.
    separate final implementation-identity approval; it does not activate
    main, production or Phase A.
 
-**Current blockers:** trusted publisher integration has been observed but the
-required rule still accepts Any source; pin/read back GitHub Actions integration
-`15368` and verify status association before qualification. Exact C2 publication,
-actual successful validation status and the bootstrap rule are readback complete.
-Candidate Environment
-pin/eligibility and individual run
-approval/release remain outstanding. PR #10 merge and source-pin UI readback
-are complete, not qualification. The unavailable-reviewer
+**Current blockers:** live Environment UI admits main only, not C2.
+Owner action-time confirmation of the exact main/C2 branch-policy correction
+is pending; resolve any stronger explicit status-source acceptance confirmation
+requirement as described above. Publication, successful identity run/status,
+effective integration `15368`, source pin and candidate Environment variable
+are readback complete, not qualification. No qualification run/release/evidence
+exists. The unavailable-reviewer
  blocker is resolved **only for C2 development candidate qualification**.
  Qualification was **not** performed. Older package statements that C2 is
 not created are stale; its *subsequent gates* remain mandatory.

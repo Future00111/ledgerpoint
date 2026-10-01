@@ -71,3 +71,15 @@ corresponding exact run's check records exposed the GitHub Actions app.
 history, status readback and observed app metadata. Pin the required check
 source and verify effective enforcement/status association; never treat an
 Any-source rule or matching bot name alone as trusted provenance.
+
+Ruleset-derived `protected:true` does not by itself establish Environment
+admission under protected-branches-only.
+
+**Why:** After candidate publication, REST reported the ruleset-protected
+branch as protected while classic protection was absent and fresh Environment
+UI explicitly admitted main only.
+
+**How to apply:** Treat fresh post-publication Environment eligibility
+evidence as controlling; stop rather than assume admission. Any exact
+selected-branch correction needs owner confirmation of the shared-Environment
+impact, preserving required owner review and unrelated main controls.

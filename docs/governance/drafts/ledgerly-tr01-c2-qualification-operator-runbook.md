@@ -1,6 +1,24 @@
 # TR-01 C2 qualification — operator runbook (review draft)
 
-**C2 control diff not applied; no dispatch authorised.** Updated: 2026-10-01.
+**Qualification held: Environment admits main only.** Updated: 2026-10-01.
+Current checkpoint supersedes historical pre-publication snapshots below:
+exact C2 is published; [run 36875835097](https://github.com/Future00111/ledgerpoint/actions/runs/36875835097)
+attempt 1 passed both validate/identity after normal owner release through
+Codex (not independent review or production approval). Exact main source pin
+is `87a4ff7d44be9bc21296e9623db16924488f76ae`. Effective C2 required check now
+pins GitHub Actions integration `15368`; actual successful status `55368040359`
+has matching `/in/15368` app avatar and the publisher check identifies that app.
+The status endpoint lacks an explicit integration field/required-check
+evaluation result; do not claim one was returned.
+Environment candidate variable was created through the authorised CLI and
+read back exactly as `3ab9edc28b4922ad82e68afb7b049d69514f91e1`.
+Owner's fresh post-publication UI says protected-only applies to **one branch,
+main only**. C2 is not eligible; branch-policy expansion confirmation is
+pending. No qualification dispatched or Environment release performed.
+The owner instructed first exact-C2 development qualification through Codex,
+then explicitly held dispatch pending this admission issue; no independent
+review or signed run attestation is claimed. The correction below is proposed,
+not applied.
 The [actual C2 owner-only approval](../ledgerly-tr01-c2-owner-only-qualification-approval.md)
 replaces unavailable independent humans for development candidate qualification
 only, not main/status-producer approval. Immutable C2 is
@@ -17,17 +35,17 @@ unchanged. Source: owner's verified Codex GitHub UI report, not a new API
 lookup. No workflow dispatch, C2 publication or qualification occurred;
 merge/pin completion is not a passing status or run attestation.
 
-## Two distinct pins; source pin configured, candidate pin still outstanding
+## Two distinct pins; both configured and read back
 
 | Purpose | Exact name and value | Where used |
 | --- | --- | --- |
 | Status producer **source** | `TR01_C2_APPROVED_WORKFLOW_SHA` = `87a4ff7d44be9bc21296e9623db16924488f76ae`; owner-authorised merged main commit and exact Environment UI readback, **not** PR head and **not** C2 | Merged main workflow reads `vars.TR01_C2_APPROVED_WORKFLOW_SHA`, passes it as `TR01_APPROVED_WORKFLOW_SHA`; publisher compares to GitHub-provided `GITHUB_WORKFLOW_SHA` and `GITHUB_SHA`. |
-| TI-03 **implementation candidate** | `LEDGERLY_APPROVED_CANDIDATE_SHA` = exact C2 `3ab9edc28b4922ad82e68afb7b049d69514f91e1` after separate approval/readback | Immutable C2 workflow reads `vars.LEDGERLY_APPROVED_CANDIDATE_SHA`; its runner demands a full SHA **even in candidate mode**. This must never be replaced by the status producer's main SHA. |
+| TI-03 **implementation candidate** | `LEDGERLY_APPROVED_CANDIDATE_SHA` = exact C2 `3ab9edc28b4922ad82e68afb7b049d69514f91e1`; authorised Environment-level creation and exact readback complete | Immutable C2 workflow reads `vars.LEDGERLY_APPROVED_CANDIDATE_SHA`; its runner demands a full SHA **even in candidate mode**. This must never be replaced by the status producer's main SHA. |
 
 Both pins belong at **Environment level** in `ledgerly-canonical`.
 The 2026-09-29 empty-variable UI report and earlier 2026-10-01 connector 403
-are historical. The later Codex UI readback establishes the source pin only;
-the candidate pin is not recorded as configured. GitHub `vars` can inherit repo/org values:
+are historical. The later source/candidate readbacks establish both Environment
+pins. GitHub `vars` can inherit repo/org values:
 verify each Environment-level value and exclude inherited substitutes.
 Neither pin is a secret or evidence of reviewer approval by itself. Do not
 ask for values in chat; inspect approved non-secret configuration in GitHub.
@@ -170,14 +188,14 @@ obtain a separate main-impact decision rather than treating this as activation.
 | Required Environment reviewer | `Future00111` | **Unchanged.** Owner releases each approved C2 job normally; never delete this gate. |
 | Prevent self-review | `false` | **Unchanged.** Owner-initiated owner release is supported; it is explicitly not independent review. Do not turn it on and create an impossible solo gate. |
 | Admin bypass | `true` | **Unchanged for minimal shared diff; do not use bypass.** A global disable would affect all consumers and needs a separate decision; this is not an enforced non-bypass guarantee. Reject/record any bypassed run rather than accept it as normal owner release. |
-| Environment branch mode | Protected branches only | **Prefer unchanged**, verify C2 job eligibility after authorised exact publication. Ruleset protection and earlier UI display alone do not prove Environment eligibility. Conditional fallback below only after owner configuration approval. |
-| Environment candidate variable | Current read denied; 2026-09-29 owner UI said absent | Set/read back `LEDGERLY_APPROVED_CANDIDATE_SHA=3ab9edc28b4922ad82e68afb7b049d69514f91e1` at **Environment level** after approved configuration. Do not overwrite an unexpected existing value without resolving it. No repository/org pin, secrets or global token permissions added. |
+| Environment branch mode | Protected branches only; **fresh post-publication UI lists main only**, C2 excluded | **Qualification blocked.** Proposed exact selected main/C2 correction below requires owner action-time confirmation; not applied. |
+| Environment candidate variable | Initially absent (404) | **Completed:** authorised creation/readback of `LEDGERLY_APPROVED_CANDIDATE_SHA=3ab9edc28b4922ad82e68afb7b049d69514f91e1` at Environment level. No repository/org pin, secrets or global token permissions added. |
 | Status workflow pin | Earlier connector read denied; later authorised Codex UI readback complete | **Completed:** `TR01_C2_APPROVED_WORKFLOW_SHA=87a4ff7d44be9bc21296e9623db16924488f76ae` at Environment level. Preserve it; this does not approve dispatch or establish an actual C2 status. |
-| C2 ruleset `24197692` | Active; exact C2 ref; `deletion`, `non_fast_forward`, `update`; `bypass_actors: []` | Preserve all of these; add only the existing readiness report's `required_status_checks` rule for `tr01/c2-identity-validation`, strict policy, creation-only exemption. Verify/pin observed trusted publisher integration before TI-03. Do not invent an integration ID or status. |
+| C2 ruleset `24197692` | Active exact scope, immutable restrictions and empty bypass; required status strict/create exemption true | **Source pin completed:** effective `tr01/c2-identity-validation` uses `integration_id:15368`; preserve all controls. Existing successful status/run app corroborate source; explicit evaluated-check acceptance is not exposed by the status endpoint. |
 | C/main workflows, C ruleset, main protection | Existing configuration | **Unchanged.** No review waiver or approval of main merge/status writes follows from the C2 decision. |
 
-**Conditional branch-policy fallback, not a default change:** if protected-only
-does not admit C2, propose the following exact selected-branch policy, retaining
+**Required admission correction, proposed only:** fresh live UI confirms
+protected-only does not admit C2. Propose the following exact selected-branch policy, retaining
 main admission and all reviewer/bypass settings. GitHub does not offer an
 Environment policy scoped to one workflow; this affects the shared Environment.
 Recheck current consumers/eligible refs first. If narrowing other protected
@@ -209,14 +227,16 @@ References: [reviewer/self-review and branch modes](https://docs.github.com/en/a
 
 ## Remaining dependencies and next step
 
-Codex should review this diff and request the **specific configuration/publication
-go-ahead**, not additional independent C2 reviewers. PR #10 normal merge and
-resulting Environment source-pin readback are complete under separate owner
-authorisation; the status workflow's concrete dispatch/release remains
-separately gated. Do not apply the C2 human exception to that main workflow. After
-authorised protection/publication, obtain a real source-verified C2 status,
-verify Environment-level pin and C2 eligibility, then obtain owner exact-C2
-confirmation and approval of the **specific TI-03 run**. Record its real
-normal Environment release and evidence afterwards. Hosted preflight,
-schema-v2 qualification, SHA-256, isolation and cleanup remain unproven.
-No signed attestation or run approval is supplied by this document.
+Codex must obtain owner action-time confirmation of the exact selected main/C2
+admission correction, preserve all unrelated controls, and read back actual C2
+eligibility before any dispatch. Publication, successful identity run/normal
+owner release, actual C2 status, effective integration `15368` and both
+Environment pins are complete. Resolve any stronger source-association
+acceptance requirement without inventing API evidence. Prior bounded metadata
+checks found zero Environment/repository secrets, but runtime credential
+absence, workflow/source digests, isolation, schema-v2 evidence, SHA-256,
+negative controls and cleanup still need the full approved contract preflight
+and guarded run. Current instruction authorises first exact-C2 development
+qualification through Codex conditionally; later instruction holds dispatch
+until admission is corrected/confirmed. No qualification run ID, signed
+attestation or Environment release is fabricated.
