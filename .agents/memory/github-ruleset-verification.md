@@ -60,3 +60,14 @@ helper could not supply a credential, without login or token extraction.
 **How to apply:** Verify non-secret account/repository metadata first; bound
 the command, never force/bypass, and read back the remote outcome. Do not use
 this pattern to expand authentication or permissions.
+
+Commit-status REST records may expose only a bot creator, not an app ID or
+run URL; a bot user ID is not a required-check integration ID.
+
+**Why:** An Actions-published status had neither source field while the
+corresponding exact run's check records exposed the GitHub Actions app.
+
+**How to apply:** Combine pinned workflow/token provenance, run and approval
+history, status readback and observed app metadata. Pin the required check
+source and verify effective enforcement/status association; never treat an
+Any-source rule or matching bot name alone as trusted provenance.

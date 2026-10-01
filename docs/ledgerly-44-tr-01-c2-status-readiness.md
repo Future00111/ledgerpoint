@@ -1,7 +1,8 @@
 # TR-01 C2 identity-status readiness — producer merged, qualification pending
 
-**Status (2026-10-01):** exact C2 published; validation status/source pinning
-and qualification still pending. Earlier merge-only snapshots below are historical;
+**Status (2026-10-01):** exact C2 published; actual identity/non-DB validation
+status successful; trusted-source rule pinning and candidate qualification
+still pending. Earlier merge-only snapshots below are historical;
 unavailable independent C2 human reviewers are **no longer a blocker for
 development candidate qualification** under the
 [actual owner-only approval](governance/ledgerly-tr01-c2-owner-only-qualification-approval.md).
@@ -25,10 +26,42 @@ main, Environment source pin, exact remote C2, unchanged owner gate, no
 Environment secrets, and reviewed workflow/publisher source. Dispatched
 `ledgerly-tr01-c2-identity-status.yml` once on main, no inputs:
 [run 36875835097](https://github.com/Future00111/ledgerpoint/actions/runs/36875835097),
-attempt 1. `validate` passed; `identity` is waiting for Future00111's normal
-release of `ledgerly-canonical`. Agent did not release or bypass it.
-Actual C2 status/trusted issuer readback and source pinning remain pending;
-no qualification dispatch occurred.
+attempt 1. Both `validate` and `identity` completed successfully. GitHub approval
+history records Future00111's normal required-reviewer approval of
+`ledgerly-canonical`, with the owner-authorised-through-Codex comment explicitly
+excluding independent review and production approval. Agent did not release
+or bypass it. Run event/ref/source remain `workflow_dispatch`, main,
+`87a4ff7d44be9bc21296e9623db16924488f76ae`; publisher logs confirm checkout
+and approved source pin at that SHA.
+
+Exact C2 status readback: ID `55368040359`, context
+`tr01/c2-identity-validation`, state `success`, created
+`2026-10-01T14:24:32Z`, description explicitly **not TI-03 qualification**,
+creator `github-actions[bot]` (bot user ID `41898282`). The status REST record
+has no run target URL or exposed app ID. Separate checks for this exact run's
+validate/identity jobs expose app `GitHub Actions`, slug `github-actions`,
+**integration ID `15368`**. Reviewed publisher code uses only the scoped
+Actions token and binds dispatch/workflow SHAs to the approved source; this
+and approval/run/status timing support provenance, not bot-name matching alone.
+
+**Next source pin, not applied:** on ruleset `24197692`, change the existing
+required check entry to
+`{"context":"tr01/c2-identity-validation","integration_id":15368}` (UI source
+GitHub Actions), retaining strict/create exemption and all immutable controls.
+Read back the effective source-pinned rule and confirm GitHub associates the
+existing successful C2 status with that source. “Any source” is still not
+trusted enforcement; stop if GitHub cannot verify the association.
+
+**Candidate preflight:** Environment `LEDGERLY_APPROVED_CANDIDATE_SHA` is absent
+(404), as are repository-level candidate/source fallback variables. Set/read
+back the Environment candidate pin to exact C2 under owner authority. C2 branch
+is exact and `protected:true`; Environment remains protected-branches-only,
+owner reviewer intact and secret count zero. Immutable candidate workflow
+allows protected exact C2, uses the candidate variable and has no `secrets`
+context reference. This is policy evidence, not an exercised C2 Environment
+admission; confirm eligible C2 in GitHub UI before any qualification dispatch.
+No qualification dispatched. Specific owner run approval/release, disposable
+schema-v2 evidence, SHA-256, negative controls and cleanup remain required.
 
 **Successful publication (2026-10-01):** verified authenticated account
 Future00111/repository Future00111/ledgerpoint and all preflight conditions,
@@ -278,9 +311,11 @@ status-source read-back gates.
    separate final implementation-identity approval; it does not activate
    main, production or Phase A.
 
-**Current blockers:** no actual source-verified C2 validation status exists;
-trusted publisher issuer still requires observation/pinning. Exact C2 publication
-and the required status rule are now readback complete. Candidate Environment
+**Current blockers:** trusted publisher integration has been observed but the
+required rule still accepts Any source; pin/read back GitHub Actions integration
+`15368` and verify status association before qualification. Exact C2 publication,
+actual successful validation status and the bootstrap rule are readback complete.
+Candidate Environment
 pin/eligibility and individual run
 approval/release remain outstanding. PR #10 merge and source-pin UI readback
 are complete, not qualification. The unavailable-reviewer
