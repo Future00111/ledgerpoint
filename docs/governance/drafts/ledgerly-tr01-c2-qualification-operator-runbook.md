@@ -1,6 +1,65 @@
 # TR-01 C2 qualification — operator runbook (review draft)
 
-**Qualification held: Environment admits main only.** Updated: 2026-10-01.
+## Current first-qualification authorisation and preflight (2026-10-01)
+
+This checkpoint supersedes the main-only eligibility hold below. The owner
+explicitly approved the exact main/C2 allowlist through Codex, who applied it
+via UI. Fresh bounded authenticated CLI readback at `2026-10-01T15:13:33Z`
+confirms selected branch mode with exactly `main` and
+`tr01/implementation-identity-successor-c2`, zero tags, unchanged required
+reviewer Future00111, self-review prevention off and admin bypass on (not used).
+Both Environment SHA pins are exact. Environment/repository secret counts
+are zero; variable metadata has no production/Helium database targets or
+credentials. No local/production database was contacted.
+
+The current owner instruction specifically authorises the **first C2
+development qualification** through Codex on
+`refs/heads/tr01/implementation-identity-successor-c2`, workflow and
+implementation SHA `3ab9edc28b4922ad82e68afb7b049d69514f91e1`,
+`ledgerly-canonical-postgresql.yml`, no inputs. This is instruction provenance,
+not independent review, production approval or a signed run attestation.
+Environment release remains reserved for Codex's normal owner review.
+
+Remote SHA/tree/sole parent and unchanged C/main were verified; exact remote
+workflow bytes match the immutable local Git object. Effective immutable
+rules preserve integration `15368` and the successful C2 identity status.
+Status app avatar and exact successful publisher app match `15368`; REST
+still does not expose a required-check acceptance/evaluation record.
+There are no prior workflow-dispatch qualification runs on C2.
+
+Precomputed SHA-256 digests use the immutable runner's path/NUL/bytes/NUL
+source hashing algorithm over its 560 execution files:
+
+| Contract binding | SHA-256 |
+| --- | --- |
+| workflow | `5fa45772f19a6533ba1ed00cb02a0af0618a54cf4678c0f0eae6d115b54355e9` |
+| sourceTree | `30b7424f29889734358cead26641fe726b95c79affaff8f1397c497b9d50e4b8` |
+| coordinator | `d749f359a774427b88f740459362d79840d38e7378c2c9b7cdf2135f4f5c9ab9` |
+| orchestrator | `785ee4f463711b9b5fab955480e65bad71184b09e19a9cdc11bea8810066aaa5` |
+| applicationSchema | `67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564` |
+| drizzleConfig | `57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258` |
+| securityOverlay | `5a75b48ea9a6eb702cd44c70694f791073a4bb76809b201253e116ed6c583b5a` |
+| runControlSql | `33c4988b9ab8f84a4adc5091d3e9b78acdbde00e15242464a89f2cab8ac657ea` |
+| lockfile | `3b8329fff64eab80ec5dfe8d875f80502789520faea4680d2fd0e7f0b4703f1b` |
+| testSources | `c1dd57433679a43b642fe09a9affd23b32330ddf81bc7f39e68288b28c2df09d` |
+
+The reviewed runner requires candidate workflow/implementation equality,
+protected manual identity, pinned PostgreSQL/Node images, absent inherited
+DATABASE_URL/Replit/PG overrides, private internal-network PostgreSQL, no
+published ports/external test route/socket, ephemeral credentials, the full
+negative-control set and all cleanup booleans true. Those are fail-closed
+runtime requirements, **not yet completed evidence**. Dispatch is authorised
+once; no Environment release by this agent is authorised.
+
+**Dispatched exactly once:** [run 36882700987](https://github.com/Future00111/ledgerpoint/actions/runs/36882700987),
+attempt 1, created `2026-10-01T15:14:31Z`, event `workflow_dispatch`,
+head/ref/source exact C2 above, no inputs. Command exit 0 and unique new
+run readback verified. Job `110438210024` is waiting for normal owner
+reviewer Future00111 in `ledgerly-canonical`; pending-deployment API confirms
+that gate. Agent did not release or bypass it. Qualification success,
+schema-v2 evidence and cleanup are **pending**, not implied by dispatch.
+
+**Historical hold, superseded above: Environment admitted main only.** Updated: 2026-10-01.
 Current checkpoint supersedes historical pre-publication snapshots below:
 exact C2 is published; [run 36875835097](https://github.com/Future00111/ledgerpoint/actions/runs/36875835097)
 attempt 1 passed both validate/identity after normal owner release through

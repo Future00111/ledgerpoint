@@ -2,7 +2,8 @@
 
 **Status (2026-10-01):** exact C2 published; actual identity/non-DB validation
 status successful; trusted-source rule and candidate variable readback complete.
-Candidate qualification is **blocked by Environment eligibility**. Earlier
+First C2 qualification is **dispatched and waiting for owner Environment release**.
+The exact main/C2 admission correction is verified. Earlier
 merge-only snapshots below are historical;
 unavailable independent C2 human reviewers are **no longer a blocker for
 development candidate qualification** under the
@@ -22,6 +23,33 @@ Immutable C/C2 remain unchanged; the latest authorised candidate-variable
 creation is recorded below. No qualification has been dispatched.
 
 ## Verified facts and authority
+
+**First C2 qualification (2026-10-01):** the owner explicitly approved the
+exact main/C2 Environment allowlist through Codex, who applied it via UI.
+Fresh bounded CLI readback confirms selected branch mode, exactly `main` and
+`tr01/implementation-identity-successor-c2`, zero tags and unchanged owner
+reviewer/self-review/admin-bypass settings. Both Environment SHA pins are
+exact; Environment/repository secret counts are zero and variable metadata
+contains no production/Helium targets or credentials.
+
+Current owner instruction specifically authorises first development C2
+qualification through Codex on exact C2 ref/source, no inputs, not independent
+review or production approval. Preflight verified immutable remote SHA,
+tree/sole parent, unchanged C/main, exact workflow bytes, source SHA-256
+digests (recorded in the existing operator runbook), trusted source rule
+`15368` and successful identity evidence. No workspace/production database
+was contacted; runtime absence/isolation/cleanup must still be proven by
+the guarded runner.
+
+Dispatched `.github/workflows/ledgerly-canonical-postgresql.yml` **exactly
+once**, no inputs, on `tr01/implementation-identity-successor-c2`:
+[run 36882700987](https://github.com/Future00111/ledgerpoint/actions/runs/36882700987),
+attempt 1, exact head/source `3ab9edc28b4922ad82e68afb7b049d69514f91e1`,
+created `2026-10-01T15:14:31Z`. Unique new run readback verified after command
+exit 0. Job `110438210024` and pending-deployment readback confirm waiting for
+required reviewer Future00111 in `ledgerly-canonical`. Agent did not release
+or bypass the gate. Qualification result, schema-v2 evidence and cleanup are
+pending; dispatch is not success, final identity approval or activation.
 
 **Identity workflow run (2026-10-01):** preflight confirmed protected exact
 main, Environment source pin, exact remote C2, unchanged owner gate, no
@@ -69,7 +97,8 @@ candidate workflow has no `secrets` context reference. Runtime absence of
 production/Helium credentials and isolation/cleanup are still contractual
 checks to be demonstrated by the guarded runner, not completed run evidence.
 
-**Explicit eligibility hold:** the owner reports fresh post-publication
+**Historical eligibility hold, resolved by the authorised correction above:**
+the owner reported fresh post-publication
 Environment UI inspection: protected-branches-only **“Applies to 1 branch”**,
 listing **main only**. C2 is not eligible. REST `protected:true` is ruleset
 protection, while its classic protection is disabled/404; neither overrides
@@ -80,7 +109,7 @@ or wildcards, preserving reviewer/self-review/bypass and all branch controls.
 The existing runbook contains the exact payloads. Owner action-time confirmation
 of this Environment eligibility expansion is pending.
 
-The current owner instruction authorises the **first C2 development qualification**
+The then-current owner instruction authorised the **first C2 development qualification**
 through Codex on exact published C2/ref/source, not independent review or
 production approval. The later instruction explicitly holds dispatch pending
 eligibility confirmation/correction. This is truthful instruction provenance,
@@ -336,13 +365,12 @@ status-source read-back gates.
    separate final implementation-identity approval; it does not activate
    main, production or Phase A.
 
-**Current blockers:** live Environment UI admits main only, not C2.
-Owner action-time confirmation of the exact main/C2 branch-policy correction
-is pending; resolve any stronger explicit status-source acceptance confirmation
-requirement as described above. Publication, successful identity run/status,
-effective integration `15368`, source pin and candidate Environment variable
-are readback complete, not qualification. No qualification run/release/evidence
-exists. The unavailable-reviewer
+**Current gate:** first C2 qualification run `36882700987`, attempt 1, is waiting
+for Codex's normal owner Environment release after run inspection. Pre-dispatch
+eligibility is resolved and verified; no qualification evidence/result exists
+yet. Publication, successful identity run/status, effective integration `15368`,
+both pins, source digests and exact Environment policy are readback complete,
+not qualification. The unavailable-reviewer
  blocker is resolved **only for C2 development candidate qualification**.
  Qualification was **not** performed. Older package statements that C2 is
 not created are stale; its *subsequent gates* remain mandatory.
