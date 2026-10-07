@@ -24,6 +24,13 @@ creation is recorded below. No qualification has been dispatched.
 
 ## Verified facts and authority
 
+**Latest action-time outcome:** C3 is now frozen/published and identity
+validation passed. Qualification candidate pin is C3, while admission remains
+main+C2 after an HTTP 422 update failure. The single qualification dispatch
+was rejected before job execution; no artifact or qualification success.
+Further writes/releases/retries stopped; see
+[execution/failure report](governance/drafts/ledgerly-tr01-c3-live-execution-report.md).
+
 **Later normal producer merge:** owner continuation through Codex authorised
 PR #12 ready/normal merge only. Actual main is now
 `65f3453c29f1eb1057bc66edc0cc7de508e87c2d`; see the

@@ -3,6 +3,27 @@ name: GitHub ruleset verification
 description: Interpreting protected branch status when GitHub uses repository rulesets rather than classic branch protection.
 ---
 
+Environment deployment branch-policy creation and update have different
+request shapes: do not send the creation-only `type` field in an update;
+retain the existing branch type and update its `name` only.
+
+**Why:** A controlled exact-branch replacement returned HTTP 422 because
+`type` was not a permitted update key, leaving the prior admission intact.
+
+**How to apply:** Validate operation-specific request fields and read back
+the exact two-policy allowlist; never broaden policy mode to avoid an error.
+
+Multi-command live-control batches must explicitly fail closed before any
+workflow dispatch if a preflight or preceding mutation fails.
+
+**Why:** A Python preflight exited nonzero, but a separately sequenced shell
+dispatch still ran because fail-fast handling was absent. The Environment
+gate blocked the job, consuming the single authorised dispatch.
+
+**How to apply:** Use fail-fast shell handling plus explicit success checks
+for required operations, persist partial-state readback on failure, and stop
+without automatic retries or deployment releases.
+
 For qualification governance, do not infer approved review or CI-status requirements merely from GitHub's `protected: true` branch flag. Check effective branch rules and inspect the exact matching ruleset's rules, conditions, bypass actors, and enforcement state.
 
 **Why:** A branch may show `protected: true` through a ruleset that enforces only update, deletion, and non-fast-forward restrictions. The classic branch protection endpoint may return 404 despite that active ruleset, while required review and validation-status rules remain absent.

@@ -1,5 +1,15 @@
 # C3 exact next actions — producer merged; live controls pending
 
+**Latest action-time execution:** C3 protections/publication and source pin
+are applied; identity validation passed with normal owner release. Candidate
+pin is now C3, but the admission update failed HTTP 422. A shell sequencing
+error dispatched the single qualification, which failed at the unchanged
+Environment gate with no job steps/artifact. All further writes/releases and
+retries are stopped. See
+[current execution/failure report](ledgerly-tr01-c3-live-execution-report.md).
+The earlier stage instructions below are historical, not current authority
+to resume after this failure.
+
 The owner's later continuation through Codex authorised normal ready/merge of
 exact producer PR #12. That stage is completed; actual main merge M is
 `65f3453c29f1eb1057bc66edc0cc7de508e87c2d`. See

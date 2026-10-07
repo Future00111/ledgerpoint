@@ -2,6 +2,13 @@
 
 ## Current C2 hosted qualification outcome — 2026-10-01
 
+**Latest C3 action-time outcome:** identity validation passed after frozen
+publication; the single qualification was denied by unchanged main+C2
+admission following an HTTP 422 policy-update failure and shell sequencing
+error. Candidate pin is C3; further live actions stopped. No job steps or
+schema2 qualification artifact were produced. See
+[execution/failure report](governance/drafts/ledgerly-tr01-c3-live-execution-report.md).
+
 **Later normal producer merge completed:** owner continuation through Codex
 authorised ready/normal merge of exact PR #12, producing main
 `65f3453c29f1eb1057bc66edc0cc7de508e87c2d`.

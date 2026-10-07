@@ -1,5 +1,10 @@
 # C3 producer merged normally; stop before live controls
 
+**Later action-time execution:** see
+[current execution/failure report](ledgerly-tr01-c3-live-execution-report.md).
+C3 is protected/published and identity validation passed; qualification is
+blocked after admission-update failure. This merge report remains historical.
+
 ## Completed authorised stage
 
 Owner continuation relayed through Codex authorised marking exact producer
