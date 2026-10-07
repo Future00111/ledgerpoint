@@ -2,6 +2,14 @@
 
 ## Current C2 hosted qualification outcome — 2026-10-01
 
+**Latest fresh C3 run:** approved name-only admission correction and complete
+preflight passed. Fresh normal-owner-released qualification failed during
+bootstrap: `forgedRunDatabaseMismatch runner probe did not reject`.
+Schema2 failure JSON/ZIP/log hashes, run/source/image bindings and all five
+reported cleanup flags verified; no successful qualification or full isolation
+claim, no retry or immutable edit. See
+[fresh-run report](governance/drafts/ledgerly-tr01-c3-fresh-qualification-report.md).
+
 **Latest C3 action-time outcome:** identity validation passed after frozen
 publication; the single qualification was denied by unchanged main+C2
 admission following an HTTP 422 policy-update failure and shell sequencing

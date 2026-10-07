@@ -15,6 +15,17 @@ Disposable runners must validate the effective PostgreSQL destination, not only 
 
 **How to apply:** Allowlist only non-target URI parameters, compare the full approved development endpoint, and verify a nonce-bound private run record. For empty-database bootstrap, fail closed on unknown errors; only apply a narrowly documented prerequisite index after the exact known ordering failure, then rerun the same schema push to convergence.
 
+Do not treat schema-push command completion alone as proof of a complete
+schema; inspect known SQL errors and verify catalog postconditions.
+
+**Why:** A protected disposable run logged PostgreSQL foreign-key uniqueness
+error 42830 from Drizzle and nevertheless continued to a later negative-binding
+probe. The probe then failed; neither schema completeness nor posting was proved.
+
+**How to apply:** In a separately approved successor, detect SQL-error output
+and verify required constraints/indexes before binding/posting controls. Do not
+silently widen the known prerequisite repair or alter a frozen candidate.
+
 Non-database toolchain smoke images must not mint a usable qualification
 manifest merely to satisfy the Dockerfile's required COPY path.
 

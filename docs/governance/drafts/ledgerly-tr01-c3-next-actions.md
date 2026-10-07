@@ -1,5 +1,13 @@
 # C3 exact next actions — producer merged; live controls pending
 
+**Latest approved correction/fresh run:** name-only policy update succeeded;
+admission is now exactly main+C3 with matching C3 pin. All preflights passed
+before one fresh normal-owner-released qualification. It failed in bootstrap
+because the forged-run database-mismatch probe did not reject. Schema2 failure
+artifact/hashes were verified and preserved; no retries or immutable edits.
+See [current fresh-run report](ledgerly-tr01-c3-fresh-qualification-report.md).
+Earlier admission-blocked and preparation stages below remain historical.
+
 **Latest action-time execution:** C3 protections/publication and source pin
 are applied; identity validation passed with normal owner release. Candidate
 pin is now C3, but the admission update failed HTTP 422. A shell sequencing

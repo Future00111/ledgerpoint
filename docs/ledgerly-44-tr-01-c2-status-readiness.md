@@ -24,6 +24,13 @@ creation is recorded below. No qualification has been dispatched.
 
 ## Verified facts and authority
 
+**Latest fresh qualification:** approved name-only correction succeeded,
+leaving exact main+C3 admission and C3 pin. One fully preflighted fresh run
+failed in bootstrap at the forged-run database-mismatch probe. Valid schema2
+failure evidence and all five reported cleanup flags were verified; posting,
+concurrency and full isolation are not accepted. No retry; see
+[fresh-run report](governance/drafts/ledgerly-tr01-c3-fresh-qualification-report.md).
+
 **Latest action-time outcome:** C3 is now frozen/published and identity
 validation passed. Qualification candidate pin is C3, while admission remains
 main+C2 after an HTTP 422 update failure. The single qualification dispatch
