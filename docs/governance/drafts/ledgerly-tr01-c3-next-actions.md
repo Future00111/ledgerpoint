@@ -1,10 +1,15 @@
-# C3 exact next actions — preparation only
+# C3 exact next actions — producer merged; live controls pending
 
-This package is concrete code for owner review, **not authorisation to perform
-the live actions below**. The owner authorised preparation through Codex,
-development/disposable PostgreSQL only, with ordinary review-branch publication
-and draft PRs allowed. The existing owner Environment-review exception remains;
-neither agent work nor a GitHub bot status is independent human review.
+The owner's later continuation through Codex authorised normal ready/merge of
+exact producer PR #12. That stage is completed; actual main merge M is
+`65f3453c29f1eb1057bc66edc0cc7de508e87c2d`. See
+[merge report](ledgerly-tr01-c3-producer-merge-report.md) and
+[merge identity/readback](ledgerly-tr01-c3-producer-merge-identity.json).
+**Stop before all remaining live security-sensitive actions:** source pins,
+admissions, protections and immutable publication need action-time confirmation
+through Codex. No dispatch or deployment approval is authorised at this stage.
+Development/disposable PostgreSQL only; the existing owner exception remains,
+with no independent-human-review claim.
 
 ## Frozen local identities
 
@@ -17,6 +22,7 @@ neither agent work nor a GitHub bot status is independent human review.
 | C3 Git tree | `beb56d35539d81636b609602b3c57d167bc88888` |
 | Intended immutable C3 ref, **not published** | `refs/heads/tr01/implementation-identity-successor-c3` |
 | Protected-main producer base inspected | `87a4ff7d44be9bc21296e9623db16924488f76ae` |
+| Actual normal producer merge / current main M | `65f3453c29f1eb1057bc66edc0cc7de508e87c2d` |
 | New status context | `tr01/c3-identity-validation` |
 
 C3 inherits the tested offline Dockerfile verbatim. Its six changes from the
@@ -36,10 +42,10 @@ gets Environment admission and `statuses: write`; that job checks its approved
 protected-main source SHA and exact remote C3 SHA/tree/single parent/ref twice.
 Its status explicitly says **NOT TI-03 qualification**.
 
-## Inspected live configuration — unchanged by this preparation
+## Live readback after authorised normal producer merge
 
 - Repository `Future00111/ledgerpoint`; authenticated CLI owner `Future00111`.
-- Protected main: `87a4ff7d44be9bc21296e9623db16924488f76ae`; admins enforced,
+- Protected main: `65f3453c29f1eb1057bc66edc0cc7de508e87c2d`; protection unchanged, admins enforced,
   force push/deletion prohibited, no required PR review/check fields.
 - Environment `ledgerly-canonical`: custom exact branch policies, only `main`
   and `tr01/implementation-identity-successor-c2`, no tag policies.
@@ -47,22 +53,23 @@ Its status explicitly says **NOT TI-03 qualification**.
   false and admin-bypass capability true. Use normal owner release, **not**
   bypass. These settings are not independent-human-review controls.
 - Environment variable `LEDGERLY_APPROVED_CANDIDATE_SHA` remains C2.
-- Environment variable `TR01_C2_APPROVED_WORKFLOW_SHA` remains inspected main.
+- Environment variable `TR01_C2_APPROVED_WORKFLOW_SHA` remains the old
+  `87a4ff7d44be9bc21296e9623db16924488f76ae`, not new main M.
 - Active C/C2 rulesets remain unchanged, no bypass actors. C2 requires
   `tr01/c2-identity-validation` from GitHub Actions app `15368`, strict status
   policy and create-only check exemption; updates/force updates/deletion blocked.
 - Remote intended C3 ref did not exist at inspection.
 
-## Later live preparation — separate exact owner approval required
+## Remaining live preparation — action-time confirmation required
 
-1. Review the **producer** draft PR and its exact final commit, then authorise
-   merging that three-file PR to protected main using the existing owner
-   exception. Do not merge the C3 candidate review PR into main or either
-   immutable source. A candidate PR is code inspection only.
-2. Record and verify the resulting main commit **M** and new producer/workflow
-   digests. Add Environment variable `TR01_C3_APPROVED_WORKFLOW_SHA=M`.
-   **M is not known until merge**; do not use C3, the review PR head, or the old
-   main SHA. Leave `TR01_C2_APPROVED_WORKFLOW_SHA` unchanged.
+1. **Completed:** exact producer PR #12 was marked ready and merged normally
+   without bypass. PR #11 stays draft and unmerged: candidate inspection only.
+2. **Ready, not applied:** actual main commit **M** and unchanged producer
+   digests are recorded. Freshly verify main still equals M, then add Environment
+   variable
+   `TR01_C3_APPROVED_WORKFLOW_SHA=65f3453c29f1eb1057bc66edc0cc7de508e87c2d`
+   only after confirmation. Do not use C3, the review PR head, or old main.
+   Leave `TR01_C2_APPROVED_WORKFLOW_SHA` unchanged.
 3. Create a *new*, active, exact-C3 ruleset from
    `ledgerly-tr01-c3-ruleset-proposed.json`. This mirrors C2 restrictions but
    names only C3 and requires `tr01/c3-identity-validation` from app `15368`.
@@ -88,7 +95,8 @@ timeout --kill-after=2s 30s git \
   1c26be19295902a38e1939b56ff99ae9a195d3de:refs/heads/tr01/implementation-identity-successor-c3
 ```
 
-No command above or below was executed by this preparation.
+Only the separately authorised ready/normal merge of producer PR #12 occurred.
+No live control, immutable-publication or dispatch command above/below occurred.
 
 ## Later validation/qualification — separately authorised, normal owner release
 

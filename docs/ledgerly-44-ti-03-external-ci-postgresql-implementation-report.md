@@ -2,6 +2,14 @@
 
 ## Current C2 hosted qualification outcome — 2026-10-01
 
+**Later normal producer merge completed:** owner continuation through Codex
+authorised ready/normal merge of exact PR #12, producing main
+`65f3453c29f1eb1057bc66edc0cc7de508e87c2d`.
+[Merge/readback report](governance/drafts/ledgerly-tr01-c3-producer-merge-report.md)
+records exact identities and ready-but-unapplied controls. This does not change
+the prior C2 failure or constitute C3 qualification: live controls, immutable
+C3 publication, dispatch and deployment approval remain blocked.
+
 The later owner-authorised next-step preparation is now concrete:
 [C3 preparation report](governance/drafts/ledgerly-tr01-c3-preparation-report.md),
 ordinary candidate draft PR #11 and separate protected-main producer draft

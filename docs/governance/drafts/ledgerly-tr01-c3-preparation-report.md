@@ -1,5 +1,12 @@
 # Concrete C3 preparation completed — not qualified
 
+**Later authorised stage:** producer PR #12 was marked ready and merged
+normally, without bypass, into actual main
+`65f3453c29f1eb1057bc66edc0cc7de508e87c2d`. See the
+[merge report](ledgerly-tr01-c3-producer-merge-report.md).
+The original preparation snapshot below remains historical. Live controls,
+immutable C3 publication, dispatch and qualification remain pending.
+
 ## Code and review artifacts
 
 - **C3:** `1c26be19295902a38e1939b56ff99ae9a195d3de`

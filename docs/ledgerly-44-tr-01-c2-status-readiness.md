@@ -24,6 +24,13 @@ creation is recorded below. No qualification has been dispatched.
 
 ## Verified facts and authority
 
+**Later normal producer merge:** owner continuation through Codex authorised
+PR #12 ready/normal merge only. Actual main is now
+`65f3453c29f1eb1057bc66edc0cc7de508e87c2d`; see the
+[merge/readback report](governance/drafts/ledgerly-tr01-c3-producer-merge-report.md).
+PR #11 stays draft/unmerged. Live controls, immutable C3 publication and
+dispatch remain pending action-time confirmation.
+
 **Later authorised C3 preparation:** exact C3
 `1c26be19295902a38e1939b56ff99ae9a195d3de` is prepared from the reviewed
 offline correction, with separate producer review code and ordinary draft
