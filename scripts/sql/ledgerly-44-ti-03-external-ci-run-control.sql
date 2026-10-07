@@ -81,8 +81,8 @@ CREATE TABLE IF NOT EXISTS ledgerly_test_control.run_identity (
     AND (
       (
         identity_mode = 'candidate'
-        AND ci_source_ref = 'refs/heads/tr01/implementation-identity-successor-c3'
-        AND ci_workflow_ref ~ '/\.github/workflows/ledgerly-canonical-postgresql\.yml@refs/heads/tr01/implementation-identity-successor-c3$'
+        AND ci_source_ref = 'refs/heads/tr01/implementation-identity-successor-c4'
+        AND ci_workflow_ref ~ '/\.github/workflows/ledgerly-canonical-postgresql\.yml@refs/heads/tr01/implementation-identity-successor-c4$'
         AND workflow_source_commit = implementation_source_commit
       )
       OR (

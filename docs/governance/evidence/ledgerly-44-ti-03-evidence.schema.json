@@ -50,7 +50,7 @@
         "identityMode": { "enum": ["candidate", "activated"] },
         "sourceRef": {
           "enum": [
-            "refs/heads/tr01/implementation-identity-successor-c3",
+            "refs/heads/tr01/implementation-identity-successor-c4",
             "refs/heads/main"
           ]
         },
@@ -103,7 +103,7 @@
         "identityMode": { "enum": ["candidate", "activated"] },
         "ciSourceRef": {
           "enum": [
-            "refs/heads/tr01/implementation-identity-successor-c3",
+            "refs/heads/tr01/implementation-identity-successor-c4",
             "refs/heads/main"
           ]
         },
@@ -256,10 +256,10 @@
           "ci": {
             "type": "object",
             "properties": {
-              "sourceRef": { "const": "refs/heads/tr01/implementation-identity-successor-c3" },
+              "sourceRef": { "const": "refs/heads/tr01/implementation-identity-successor-c4" },
               "workflowRef": {
                 "type": "string",
-                "pattern": "/\\.github/workflows/ledgerly-canonical-postgresql\\.yml@refs/heads/tr01/implementation-identity-successor-c3$"
+                "pattern": "/\\.github/workflows/ledgerly-canonical-postgresql\\.yml@refs/heads/tr01/implementation-identity-successor-c4$"
               }
             }
           }
