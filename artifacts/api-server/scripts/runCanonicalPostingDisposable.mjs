@@ -105,7 +105,7 @@ function externalSourceDigests() {
     testSources: sha256Files(testSources),
     lockfile: sha256File(sourceFiles.lockfile),
     workflow: manifest.workflowSourceSha256,
-    orchestrator: sha256File(sourceFiles.coordinator),
+    orchestrator: sha256File(sourceFiles.canonicalCoordinator),
   };
 }
 
