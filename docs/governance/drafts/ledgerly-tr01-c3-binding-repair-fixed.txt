@@ -1,0 +1,28 @@
+{"reviewOnly":true,"originalC3Executable":false,"runtimeOrchestratorSha256":"efea5a3ac6edf846f2a8d3ea48cdffdd390385467efca4ba237884786d71a96a"}
+{
+  "reviewOnly": true,
+  "results": [
+    {
+      "name": "source digest parity: runtime orchestrator is not coordinator",
+      "passed": true
+    },
+    {
+      "name": "valid private binding passes actual PostgreSQL verifier",
+      "passed": true
+    },
+    {
+      "name": "forged run UUID rejected by private database binding",
+      "passed": true
+    },
+    {
+      "name": "forged nonce rejected by private database binding",
+      "passed": true
+    },
+    {
+      "name": "actual runner forged probe reaches intended rejection, not digest failure",
+      "passed": true
+    }
+  ]
+}
+PASS binding-specific disposable review; NOT hosted/canonical qualification.
+{"reviewOnly":true,"cleanup":{"container":true,"network":true,"image":true,"fixture":true}}

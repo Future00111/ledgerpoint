@@ -1,0 +1,11 @@
+Preparing worktree (detached HEAD 5582db9)
+TR-01 identity and acceptance tests passed
+✔ .local/tr01-c3-binding-repair/scripts/ci/run-ledgerly-canonical-postgresql.test.mjs (3240.770213ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3253.769806

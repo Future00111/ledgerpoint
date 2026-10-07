@@ -1,5 +1,11 @@
 # Fresh C3 qualification — bootstrap failure, evidence verified; stopped
 
+**Reporting correction from repair diagnosis:** the original saved JSON
+reports `testContainerNoSocket=true` and `testContainerNoExternalRoute=true`.
+The statements below that those flags were false were a reporting error,
+not the artifact's contents. The original evidence bytes/hashes are unchanged.
+Qualification remains failed; no canonical posting acceptance is inferred.
+
 ## Approved correction and guarded dispatch
 
 Owner approved the name-only update of policy **61652697**, complete preflight,

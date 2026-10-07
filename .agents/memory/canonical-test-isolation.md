@@ -26,6 +26,17 @@ probe. The probe then failed; neither schema completeness nor posting was proved
 and verify required constraints/indexes before binding/posting controls. Do not
 silently widen the known prerequisite repair or alter a frozen candidate.
 
+Negative binding tests must prove the intended database rejection, not merely
+any nonzero exit. First establish that valid source digests reach the SQL guard.
+
+**Why:** A coordinator/runtime digest disagreement stopped the forged-binding
+probe before SQL, producing a misleading generic “did not reject” summary.
+Actual disposable PostgreSQL confirmed the identity predicate was sound.
+
+**How to apply:** Pair a valid binding with forged UUID/nonce tests on the real
+SQL verifier, and also drive the actual CLI to its specific rejection message.
+Keep these local synthetic fixtures separate from trusted qualification evidence.
+
 Non-database toolchain smoke images must not mint a usable qualification
 manifest merely to satisfy the Dockerfile's required COPY path.
 

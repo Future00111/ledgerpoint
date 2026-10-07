@@ -1,0 +1,33 @@
+{
+  "reviewOnly": true,
+  "branch": "repair/c3-database-binding-probe",
+  "published": false,
+  "commit": "9d50d4e86696fd18eb7f877c9edfaba710b3572e",
+  "tree": "981e2d60a31fdf09e4d9c7992bb4a27a0b60f514",
+  "soleParent": "1c26be19295902a38e1939b56ff99ae9a195d3de",
+  "changedFiles": [
+    "artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs",
+    "docs/governance/drafts/ledgerly-tr01-c3-binding-repair-report.md",
+    "scripts/ci/ledgerly-external-binding-regression.test.mjs"
+  ],
+  "productionChange": "One line: orchestrator digest hashes runtime orchestrator, not CI coordinator.",
+  "originalExecutableSha256": "43f82bab11a7c106e9926b1c3b3f35e357ba252f99f83fac07e06d03aa65de55",
+  "repairedExecutableSha256": "efea5a3ac6edf846f2a8d3ea48cdffdd390385467efca4ba237884786d71a96a",
+  "tests": {
+    "byteExactC3FailureReproduced": true,
+    "bindingRegressionsPassed": 5,
+    "existingValidatorSuitePassed": true,
+    "fullCanonicalQualification": false,
+    "productionOrHeliumAccess": false,
+    "hostedQualificationDispatches": 0
+  },
+  "preservedFilesSha256": {
+    "docs/governance/drafts/ledgerly-tr01-c3-binding-repair.patch": "e08f5f36c1e05a972df2da99402f510134a257f9cc3d9f3adde0e00ae4dbb143",
+    "docs/governance/drafts/ledgerly-tr01-c3-binding-repair-original.txt": "61b8c456b68dc1e30076cde828cf7d0aaedcba090715b30cb1543f8a39b8e3d6",
+    "docs/governance/drafts/ledgerly-tr01-c3-binding-repair-fixed.txt": "8cdf66855f2672f44ff00d8db21d511e13b0b3b8b65e91d2bdab000703913505",
+    "docs/governance/drafts/ledgerly-tr01-c3-binding-repair-validators.txt": "dd280beb04191932a60cf8d7d87e8d463d5acf8194457b9d076c1436f23840ca",
+    "docs/governance/drafts/ledgerly-tr01-c3-binding-repair-controls.json": "6b69a6b53e0255d5eff876e1c940a9295739b223ffe986db98a829e48f5b839f",
+    "docs/governance/drafts/ledgerly-tr01-c3-binding-repair-report.md": "41a0f093eea6e89904d25fa7d4ede5fcf99562c6e0ed150bb96d45a35a1e5ef2"
+  },
+  "remoteControlsPinsAdmissionAndFrozenRefsUnchanged": true
+}

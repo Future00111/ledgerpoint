@@ -1,0 +1,30 @@
+{"reviewOnly":true,"originalC3Executable":true,"runtimeOrchestratorSha256":"43f82bab11a7c106e9926b1c3b3f35e357ba252f99f83fac07e06d03aa65de55"}
+{
+  "reviewOnly": true,
+  "results": [
+    {
+      "name": "source digest parity: runtime orchestrator is not coordinator",
+      "passed": false,
+      "reason": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    applicationSchema: '67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564',\n    coordinator: '0ea4da0074cf0e6a56c546c587fea2232660f3e39f067380847237cfbe33029b',\n    drizzleConfig: '57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258',\n    lockfile: '3b8329fff64eab80ec5dfe8d875f80502789520faea4680d2fd0e7f0b4703f1b',\n+   orchestrator: '0ea4da0074cf0e6a56c546c587fea2232660f3e39f067380847237cfbe33029b',\n-   orchestrator: '43f82bab11a7c106e9926b1c3b3f35e357ba252f99f83fac07e06d03aa65de55',\n    runControlSql: 'fe4dc937e66a2a4826e6e99e795e4ef79d4fe7c8d1a1abab07e819f570119607',\n    securityOverlay: '5a75b48ea9a6eb702cd44c70694f791073a4bb76809b201253e116ed6c583b5a',\n    sourceTree: '5608ea5b074b8c603e4fa0963dbb57dda5cfe30d9ee7079704f0c17d1cd7e16f',\n    testSources: 'c1dd57433679a43b642fe09a9affd23b32330ddf81bc7f39e68288b28c2df09d',\n    workflow: 'dc3e41c658401f41223e22b22cd81dcbdcfbab82a5957d5ca792db15d196936c'\n"
+    },
+    {
+      "name": "valid private binding passes actual PostgreSQL verifier",
+      "passed": true
+    },
+    {
+      "name": "forged run UUID rejected by private database binding",
+      "passed": true
+    },
+    {
+      "name": "forged nonce rejected by private database binding",
+      "passed": true
+    },
+    {
+      "name": "actual runner forged probe reaches intended rejection, not digest failure",
+      "passed": false,
+      "reason": "The input did not match the regular expression /The private external-CI run binding did not verify/. Input:\n\n'file:///workspace/artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs:417\\n' +\n  '    throw new Error(\"External-CI source digests do not match the private run binding\");\\n' +\n  '          ^\\n' +\n  '\\n' +\n  'Error: External-CI source digests do not match the private run binding\\n' +\n  '    at runExternalCi (file:///workspace/artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs:417:11)\\n' +\n  '    at file:///workspace/artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs:783:11\\n' +\n  '    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\\n' +\n  '    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\\n' +\n  '    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\\n' +\n  '\\n' +\n  'Node.js v24.13.0\\n'\n"
+    }
+  ]
+}
+PASS reproduced original defect: real SQL rejects forged identity; runner stops prematurely on wrong digest.
+{"reviewOnly":true,"cleanup":{"container":true,"network":true,"image":true,"fixture":true}}
