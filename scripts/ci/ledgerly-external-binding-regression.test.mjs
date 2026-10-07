@@ -45,6 +45,15 @@ if (!process.argv.includes("--inside") && !process.argv.includes("--disposable-r
       /The private external-CI run binding did not verify/,
     );
   });
+  if (fixture.args.ci.ciSourceRef.endsWith("successor-c4")) {
+    await check("old C3 identity rejected by private database binding", async () => {
+      const oldRef = "refs/heads/tr01/implementation-identity-successor-c3";
+      await assert.rejects(verifyExternalBinding({ ...fixture.args, ci: {
+        ...fixture.args.ci, ciSourceRef: oldRef,
+        workflowRef: fixture.args.ci.workflowRef.replace("successor-c4", "successor-c3"),
+      } }), /The private external-CI run binding did not verify/);
+    });
+  }
   await check("forged nonce rejected by private database binding", async () => {
     await assert.rejects(
       verifyExternalBinding({ ...fixture.args, runNonce: randomBytes(32).toString("hex") }),
@@ -82,7 +91,7 @@ if (!process.argv.includes("--inside") && !process.argv.includes("--disposable-r
     assert.equal(r.status, 0, `Docker ${args[0]} failed (credential output suppressed)`);
     return r.stdout;
   }
-  const sourceRef = "refs/heads/tr01/implementation-identity-successor-c3";
+  const sourceRef = expectOriginal ? "refs/heads/tr01/implementation-identity-successor-c3" : "refs/heads/tr01/implementation-identity-successor-c4";
   // Deliberately synthetic identity: cannot satisfy trusted GitHub provenance.
   const commit = "a".repeat(40);
   const runId = randomUUID();
@@ -100,7 +109,16 @@ if (!process.argv.includes("--inside") && !process.argv.includes("--disposable-r
       { cwd: root, env: hostEnv, timeout: 15000 });
     assert.equal(original.status, 0);
     const runtimeBytes = expectOriginal ? original.stdout : readFileSync(path.join(root, runner));
-    const sourceBytes = (f) => f === runner ? runtimeBytes : readFileSync(path.join(root, f));
+    const originalCache = new Map();
+  const sourceBytes = (f) => {
+    if (!expectOriginal) return readFileSync(path.join(root, f));
+    if (!originalCache.has(f)) {
+      const result = spawnSync("git", ["show", `1c26be19295902a38e1939b56ff99ae9a195d3de:${f}`], { cwd: root, env: hostEnv, timeout: 15000 });
+      assert.equal(result.status, 0);
+      originalCache.set(f, result.stdout);
+    }
+    return originalCache.get(f);
+  };
     const files = ls.stdout.trim().split("\n").sort();
     const treeHash = createHash("sha256");
     for (const f of files) {
@@ -173,8 +191,8 @@ if (!process.argv.includes("--inside") && !process.argv.includes("--disposable-r
     for (const [k, v] of Object.entries(digests)) values[digestColumns[k] + "_sha256"] = v;
     for (const [k, v] of Object.entries(imageBinding)) values[k.replace(/[A-Z]/g, (c) => "_" + c.toLowerCase()).replace(/^(node|postgres)_/, "$1_image_")] = v;
     const literal = (x) => typeof x === "boolean" ? String(x) : "'" + x.replaceAll("'", "''") + "'";
-    const control = readFileSync(path.join(root, "scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql"), "utf8");
-    const overlay = readFileSync(path.join(root, "scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql"), "utf8");
+    const control = sourceBytes("scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql").toString("utf8");
+    const overlay = sourceBytes("scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql").toString("utf8");
     const verifier = overlay.slice(overlay.indexOf("CREATE OR REPLACE FUNCTION public.ledgerly_verify_external_disposable_run("),
       overlay.indexOf("\nDROP TRIGGER", overlay.indexOf("CREATE OR REPLACE FUNCTION public.ledgerly_verify_external_disposable_run(")));
     assert.match(verifier, /TO ledgerly_api;/);

@@ -16,7 +16,7 @@ jobs:
       github.event_name == 'workflow_dispatch' &&
       github.ref_protected == true &&
       (github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/tr01/implementation-identity-successor-c3')
+      github.ref == 'refs/heads/tr01/implementation-identity-successor-c4')
     name: Disposable canonical PostgreSQL qualification
     runs-on: ubuntu-24.04
     timeout-minutes: 20
