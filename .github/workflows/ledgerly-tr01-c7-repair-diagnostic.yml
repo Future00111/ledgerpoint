@@ -24,14 +24,14 @@ jobs:
       - name: Checkout exact ordinary C7 review candidate
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 50a286dcd6cfae1963540ee2d0aec9f445abccc5
+          ref: 787d76decfa345e3c1104231e08d5ab00bc90259
           path: .local/c7-candidate
           fetch-depth: 0
           persist-credentials: false
       - name: Checkout separate C7 producer review source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 264110aa0db844a7582819756dce06ceb8c75d34
+          ref: 8536414f7ce990e44a0797e1805a26edc14f91f5
           path: .local/c7-producer
           fetch-depth: 0
           persist-credentials: false

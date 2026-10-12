@@ -11,7 +11,7 @@ const candidate = path.resolve(".local/c7-candidate");
 const producer = path.resolve(".local/c7-producer");
 const output = path.resolve("generated-artifacts/c7-repair-diagnostic");
 const oldImage = "ledgerly-c6-canonical-reproduction:99f5d97";
-const newImage = "ledgerly-c7-canonical-review:50a286d";
+const newImage = "ledgerly-c7-canonical-review:787d76d";
 const postgres = "postgres:16.15-bookworm@sha256:bb3e1a57e5407e0a5280b4211980a5e537f4abd234a87014ac979849a78dd825";
 const host = { PATH: process.env.PATH, HOME: process.env.HOME,
   COREPACK_ENABLE_AUTO_PIN: "0", COREPACK_DEFAULT_TO_LATEST: "0" };
@@ -105,8 +105,8 @@ try {
   record.parentCredentialExclusion = true;
   for (const kind of ["containers", "networks", "images"]) assert.deepEqual(residual(kind), []);
   const c6Source = verifySource(original, "99f5d97b96f7065d08f3ac09627cceea0398ebcc", "97adb531740e91c1084993a7a27d55138ec93888", "bae76f712fa16cdd1a51cc1c1375adee0241fc7c", "c6");
-  const c7Source = verifySource(candidate, "50a286dcd6cfae1963540ee2d0aec9f445abccc5", "a0b44185958bf36e4285b601a43a13777a3b0a2e", "cddffd97e57ed7cbc6153f8ff74c5ed9d1d4bf67", "c7");
-  const producerSource = verifySource(producer, "264110aa0db844a7582819756dce06ceb8c75d34", "3d2b7e871fce3c21c28eaa63db3579540877c837", "fdb4e2af7168e52dafde04d003f498ed76489206", "producer");
+  const c7Source = verifySource(candidate, "787d76decfa345e3c1104231e08d5ab00bc90259", "aa0360267a0d1987626ae9650238d66f04f667b9", "c795945c4a5d4815804a86b9d5f2bdc77573d38f", "c7");
+  const producerSource = verifySource(producer, "8536414f7ce990e44a0797e1805a26edc14f91f5", "9bb16c595e5dde3c425b9ee6d1189ac09410d38b", "fdb4e2af7168e52dafde04d003f498ed76489206", "producer");
   run("corepack", ["enable"]);
   run("corepack", ["prepare", "pnpm@10.26.1", "--activate"], { timeout: 90000, log: "pinned-toolchain.log" });
   for (const [label, directory] of [["candidate",candidate],["producer",producer],["original",original]])
