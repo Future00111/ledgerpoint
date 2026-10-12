@@ -479,6 +479,8 @@ async function runExternalCi() {
 
   const childEnvironment = {
     PATH: process.env.PATH,
+    // The /tmp CommonJS bundle resolves externals from this pinned image package.
+    NODE_PATH: path.join(packageDirectory, "node_modules"),
     // Child processes must use the image's prepared, read-only pinned cache.
     // Do not inherit arbitrary parent settings or fall back to online latest.
     COREPACK_HOME: "/opt/corepack",
