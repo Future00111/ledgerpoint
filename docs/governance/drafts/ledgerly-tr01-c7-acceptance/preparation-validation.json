@@ -10,5 +10,13 @@
   "activationAorGCreated": false,
   "independentReviewClaimed": false,
   "limit": "No workflow executed, dependencies installed, or Replit tests rerun. Exact-A validation remains future separately gated work.",
-  "whitespace": "passed for documentation; valid blank unified-patch context markers separately checked"
+  "whitespace": "passed for documentation; valid blank unified-patch context markers separately checked",
+  "logArchiveReconciliation": {
+    "rawArchiveHashesAndMembers": "passed",
+    "bothSharedLogsByteIdentical": "passed",
+    "allSevenNormalizedStepSequencesCoverWholeCombinedLog": "passed",
+    "originalEvidenceSchemaAndHashesUnchanged": "passed",
+    "credentialMaterialPatternScan": "no matches",
+    "reviewerConfirmation": "pending"
+  }
 }

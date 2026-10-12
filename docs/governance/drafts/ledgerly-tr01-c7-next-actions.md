@@ -4,6 +4,11 @@
 GitHub backup are complete. Review the [final acceptance proposal](ledgerly-tr01-c7-final-acceptance-proposal.md)
 and [activation proposal](ledgerly-tr01-c7-protected-main-activation-proposal.md).
 Neither records final approval or authorizes execution.
+The Replit AI review's ZIP-checksum finding is now documented with both retained
+archives and content-level proof. Review the
+[log reconciliation](ledgerly-tr01-c7-log-archive-reconciliation.md) against the
+updated PR head before clearing that provenance finding. No human approval or
+unconditional acceptance is inferred.
 
 1. Complete fresh independent exact-C7 implementation/security review and the
    separate final identity decision. Exact evidence/hashes are retained in

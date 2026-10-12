@@ -74,6 +74,24 @@ tests plus the acceptance test file, with no failures/skips. The earlier
 read-only diagnostic is supplementary review evidence, not qualification or
 a C6 retry.
 
+## Log-archive provenance reconciliation
+
+The recorded `bbf0b248…` hash correctly identifies the retained original
+nine-member ZIP. Fresh run and attempt-1 exports both hash to `f61c2abb…`
+and contain two members. Their combined job log and system log are byte-exact
+matches to the originals. All seven original per-step message sequences are
+present contiguously in the combined log after removing BOM/timestamp prefixes;
+no message content, ANSI or ordering was discarded. The combined log still
+confirms 6 tests, 6 passes, 0 failures and 0 skips.
+
+Both archive variants, member hashes and comparison proof are now retained.
+See [reconciliation](ledgerly-tr01-c7-log-archive-reconciliation.md) and
+[machine-readable proof](ledgerly-tr01-c7-acceptance/log-archive-reconciliation.json).
+The differing archive hash is an export-layout difference, not evidence of
+changed accounting results. No claim is made about GitHub's internal reason.
+Final acceptance/reviewer/activation gates remain open; this correction grants
+no approval and does not alter qualification artifact/evidence/schema bytes.
+
 ## Reconciliation and review
 
 C7 fixes sanitized child module/toolchain resolution, incorrect rejection
