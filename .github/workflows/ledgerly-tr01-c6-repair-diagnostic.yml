@@ -1,0 +1,49 @@
+name: TR-01 C6 external module repair diagnostic only
+on:
+  push:
+    branches: [review/tr01-c6-repair-diagnostic]
+permissions:
+  contents: read
+jobs:
+  diagnostic:
+    if: github.repository == 'Future00111/ledgerpoint' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout ordinary diagnostic code without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Checkout exact frozen C5 reproduction source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 3a5c6e1318b49edcdc7f0f918d3a01813f960e71
+          path: .local/c5-original
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Checkout exact ordinary C6 review candidate
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 12df9aa93deb9814c3d4b1d8ab3cd5d3cb2d9258
+          path: .local/c6-candidate
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Checkout separate C6 producer review source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 98f8e52d6b845ec4dd0820612e49e90fb2dce974
+          path: .local/c6-producer
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Reproduce pg failure and verify isolated C6 repair and binding cases
+        env:
+          DOCKER_BUILDKIT: "1"
+        run: node scripts/ci/ledgerly-tr01-c6-repair-diagnostic.mjs
+      - name: Preserve diagnostic evidence on success or failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tr01-c6-repair-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: generated-artifacts/c6-repair-diagnostic/
+          if-no-files-found: error
+          retention-days: 30
