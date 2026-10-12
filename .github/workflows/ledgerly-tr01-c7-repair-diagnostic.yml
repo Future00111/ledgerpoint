@@ -1,0 +1,49 @@
+name: TR-01 C7 canonical repair diagnostic only
+on:
+  push:
+    branches: [review/tr01-c7-repair-diagnostic]
+permissions:
+  contents: read
+jobs:
+  diagnostic:
+    if: github.repository == 'Future00111/ledgerpoint' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout ordinary diagnostic code without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Checkout exact frozen C6 reproduction source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 99f5d97b96f7065d08f3ac09627cceea0398ebcc
+          path: .local/c6-original
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Checkout exact ordinary C7 review candidate
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 50a286dcd6cfae1963540ee2d0aec9f445abccc5
+          path: .local/c7-candidate
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Checkout separate C7 producer review source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 264110aa0db844a7582819756dce06ceb8c75d34
+          path: .local/c7-producer
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Reproduce C6 failures and verify isolated C7 canonical repair
+        env:
+          DOCKER_BUILDKIT: "1"
+        run: node scripts/ci/ledgerly-tr01-c7-repair-diagnostic.mjs
+      - name: Preserve diagnostic evidence on success or failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tr01-c7-repair-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: generated-artifacts/c7-repair-diagnostic/
+          if-no-files-found: error
+          retention-days: 30
