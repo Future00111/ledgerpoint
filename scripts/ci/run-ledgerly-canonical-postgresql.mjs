@@ -8,7 +8,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const workflowRoot = path.resolve(process.env.LEDGERLY_WORKFLOW_ROOT ?? root);
 const implementationRoot = root;
-const candidateRef = "refs/heads/tr01/implementation-identity-successor-c6";
+const candidateRef = "refs/heads/tr01/implementation-identity-successor-c7";
 const mainRef = "refs/heads/main";
 const fullShaPattern = /^[0-9a-f]{40}$/;
 const postgresImage =
@@ -1242,6 +1242,10 @@ function assertJsonSchemaEvidence(value) {
 }
 
 async function buildTrustedEvidenceContext(ci, manifest) {
+  if (manifest?.version !== 2 || Object.hasOwn(manifest, "reviewOnly") ||
+      Object.hasOwn(manifest, "notQualificationEvidence") || Object.hasOwn(manifest, "fixturePurpose")) {
+    throw new Error("Trusted implementation source manifest is unavailable or invalid");
+  }
   const context = assertTrustedWorkflowContext();
   const identity = await verifyIdentityRoots(context.mode, context.implementationSha);
   const verifiedCi = buildCiIdentity({ ...context, ...identity });
@@ -1249,7 +1253,6 @@ async function buildTrustedEvidenceContext(ci, manifest) {
     throw new Error("Evidence source identity changed after preflight");
   }
   if (
-    manifest?.version !== 2 ||
     manifest.identityMode !== ci.identityMode ||
     manifest.implementationSourceCommit !== ci.implementationSourceCommit ||
     !Array.isArray(manifest.files) ||

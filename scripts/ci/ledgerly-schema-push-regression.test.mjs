@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { pushSchemaToConvergence } from "./run-ledgerly-canonical-postgresql.mjs";
+import { buildTrustedEvidenceContext, pushSchemaToConvergence } from "./run-ledgerly-canonical-postgresql.mjs";
 
 const known = `error: there is no unique constraint matching given keys for referenced table "accounting_posting_effects"\nseverity: 'ERROR',\ncode: '42830',`;
 const clean = { stdout: "Schema converged", stderr: "" };
@@ -71,3 +71,10 @@ test("a failed prerequisite stops before the second push", async () => {
   await assert.rejects(pushSchemaToConvergence(f.push, f.index), /index creation failed/);
   assert.deepEqual(f.calls, ["push", "index"]);
 });
+
+for (const marker of ["reviewOnly", "notQualificationEvidence", "fixturePurpose"]) {
+  test(`a version-2 ${marker} fixture cannot become trusted qualification evidence`, async () => {
+    await assert.rejects(buildTrustedEvidenceContext({}, { version: 2, [marker]: true }),
+      /Trusted implementation source manifest is unavailable or invalid/);
+  });
+}
