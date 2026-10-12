@@ -1,0 +1,140 @@
+Proceed to DEC-06 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-06 — Financial-year policy
+
+Review the existing:
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- DEC-01 through DEC-05
+- Accounting Core Architecture Review
+- Accounting Core Decision Pack
+- Master Backlog
+- any existing financial-year/accounting-period implementation
+
+Do NOT implement anything.
+
+Do NOT modify:
+- application code
+- database schema
+- migrations
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Do NOT approve DEC-06.
+Do NOT start DEC-07 or any later decision.
+Keep BL-06 and BL-07 BLOCKED.
+
+The purpose of this review is to establish exactly what financial-year policy Ledgerly should use before the accounting-core implementation begins.
+
+The review must cover:
+
+1. Financial-year start date
+   - What should the default UK small-business financial year be?
+   - Should companies be able to choose a different year start?
+   - What happens when a company changes its financial year?
+
+2. Financial-year identity
+   Define how a financial year is identified independently from ordinary transaction/document dates.
+
+3. Company configuration
+   Determine which financial-year settings belong to the company and which are system defaults.
+
+4. Historical years
+   Define how historical financial years are represented.
+   Do not invent historical accounting data.
+
+5. Existing data compatibility
+   Review how the current Ledgerpoint data and legacy records would map to financial years.
+
+6. Changes after transactions exist
+   Determine what happens if a company attempts to change its financial-year start after accounting records already exist.
+
+7. Boundary conditions
+   Consider:
+   - first financial year
+   - partial first year
+   - year transitions
+   - leap years
+   - transactions on boundary dates
+   - historical migration.
+
+8. Interaction with accounting periods
+   Explain what DEC-06 must establish for DEC-07 without resolving DEC-07.
+
+9. Interaction with year-end
+   Explain what DEC-06 establishes for DEC-08 without resolving DEC-08.
+
+10. Reporting
+    Explain how financial-year identity affects:
+    - Profit & Loss
+    - Balance Sheet
+    - Trial Balance
+    - General Ledger
+    - VAT reporting where relevant
+    - comparative reporting.
+
+11. Audit and permissions
+    Identify which financial-year changes should be privileged, auditable, and subject to the DEC-05 capability model.
+
+12. Future flexibility
+    Ensure the decision does not unnecessarily prevent:
+    - different financial-year starts
+    - future international markets
+    - future multi-currency support
+    - future changes in product policy.
+
+13. Options
+    Present all realistic policy options.
+
+14. Recommendation
+    Give a clearly labelled RECOMMENDATION.
+
+Do NOT treat the recommendation as approval.
+
+For each material option explain:
+
+- accounting consequences
+- data/schema consequences
+- migration consequences
+- reporting consequences
+- security/permission consequences
+- compatibility consequences
+- future flexibility
+- what would become difficult to change later.
+
+Clearly distinguish:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+The review must explicitly identify:
+
+- what approving DEC-06 would lock in;
+- what would remain changeable;
+- what must instead be decided by DEC-07;
+- what must instead be decided by DEC-08.
+
+Create or update the appropriate DEC-06 decision-review document and link it into the existing governance documents.
+
+At the end verify:
+
+1. DEC-01 through DEC-05 retain their approved statuses.
+2. DEC-06 remains REQUIRES USER DECISION.
+3. DEC-07 through DEC-22 remain REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-07 work was started.
+
+Stop after the DEC-06 decision-only review is complete.

@@ -1,0 +1,56 @@
+{
+  "name": "AccountLearning",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "party_type": {
+      "type": "string",
+      "enum": [
+        "supplier",
+        "customer"
+      ]
+    },
+    "party_id": {
+      "type": "string",
+      "description": "Reference to Supplier or Customer"
+    },
+    "party_name": {
+      "type": "string"
+    },
+    "preferred_account_id": {
+      "type": "string",
+      "description": "Reference to ChartOfAccount"
+    },
+    "preferred_account_code": {
+      "type": "string"
+    },
+    "preferred_account_name": {
+      "type": "string"
+    },
+    "preferred_vat_rate": {
+      "type": "number",
+      "description": "Most-used VAT rate for this party"
+    },
+    "preferred_payment_terms": {
+      "type": "number",
+      "description": "Most-used payment terms (days) for this party"
+    },
+    "last_used_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "times_used": {
+      "type": "number",
+      "default": 1,
+      "description": "How many times this account was chosen for this party"
+    }
+  },
+  "required": [
+    "company_id",
+    "party_type",
+    "party_id"
+  ]
+}

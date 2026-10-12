@@ -1,0 +1,1102 @@
+LEDGERPOINT — PHASE 6
+AUTOMATED BANK-TO-BOOKS ACCOUNTING WORKFLOW
+
+IMPORTANT:
+Phase 5 — AI Accountant: Intelligent Transaction & Bookkeeping Engine has now been completed.
+
+Do NOT redesign or rebuild the Phase 5 AI Accountant.
+
+Do NOT create another AI engine.
+
+Do NOT create a second reconciliation system.
+
+This phase must build on the existing Ledgerpoint architecture and connect the existing:
+
+- Banking
+- Bank transaction import
+- Reconciliation
+- Invoice matching
+- Bills
+- VAT Assistant
+- AI Accountant
+- AI review queue
+- AI provider service
+- audit trail
+- company/tenant security
+- permissions
+
+The purpose of Phase 6 is to turn these components into a coherent automated bank-to-books workflow.
+
+==================================================
+1. PRODUCT OBJECTIVE
+==================================================
+
+When a bank statement or bank transaction is pulled into Ledgerpoint, the user should NOT have to manually analyse every transaction.
+
+Ledgerpoint should automatically:
+
+1. Import the transaction.
+2. Analyse the transaction.
+3. Find matching invoices/bills.
+4. Identify possible multiple matches.
+5. Identify partial payments.
+6. Identify unexplained amounts.
+7. Identify possible duplicates.
+8. Suggest categorisation where no invoice/bill exists.
+9. determine applicable VAT treatment through the existing deterministic VAT engine.
+10. calculate confidence.
+11. decide whether the item is:
+    - Ready
+    - Review Required
+    - No Match
+    - Partial Match
+    - Possible Duplicate
+    - VAT Review
+12. Prepare the appropriate action.
+13. Present the user with a clean approval/review queue.
+
+The user's job should increasingly become:
+
+"Review what Ledgerpoint could not confidently resolve."
+
+rather than:
+
+"Manually reconcile every bank transaction."
+
+==================================================
+2. IMPORTANT ACCOUNTING SAFETY RULE
+==================================================
+
+Automation does NOT mean uncontrolled automatic posting.
+
+Ledgerpoint may automatically:
+
+- analyse
+- match
+- rank
+- classify
+- prepare
+- calculate
+- explain
+
+But it must respect existing approval rules before permanently changing accounting records.
+
+High-confidence items should be presented as:
+
+READY TO APPROVE
+
+rather than silently posting them unless an existing company setting explicitly permits automatic reconciliation.
+
+Do not introduce autonomous accounting posting without a clear existing approval mechanism.
+
+==================================================
+3. BANK IMPORT PIPELINE
+==================================================
+
+Find the existing bank statement/transaction import flow.
+
+Extend it rather than replacing it.
+
+The workflow should become:
+
+BANK IMPORT
+    ↓
+TRANSACTION NORMALISATION
+    ↓
+DUPLICATE CHECK
+    ↓
+DETERMINISTIC MATCHING
+    ↓
+AI ANALYSIS IF REQUIRED
+    ↓
+VAT ANALYSIS
+    ↓
+CONFIDENCE CALCULATION
+    ↓
+DECISION STATE
+    ↓
+RECONCILIATION / REVIEW QUEUE
+    ↓
+USER APPROVAL WHERE REQUIRED
+    ↓
+ACCOUNTING RECORD UPDATE
+    ↓
+AUDIT TRAIL
+
+This should happen automatically after import.
+
+==================================================
+4. BATCH ANALYSIS
+==================================================
+
+When a statement containing multiple transactions is imported, Ledgerpoint should analyse the entire batch.
+
+Example:
+
+Statement imported:
+24 transactions
+
+Ledgerpoint should display something like:
+
+BANK STATEMENT ANALYSIS COMPLETE
+
+24 transactions analysed
+
+18 Ready
+3 Review required
+2 No match
+1 Possible duplicate
+
+Potential invoice value:
+£18,420
+
+Unexplained receipts:
+£2,750
+
+Total requiring attention:
+6
+
+Do not hard-code any numbers.
+
+All values must come from actual company data.
+
+==================================================
+5. BATCH PROGRESS
+==================================================
+
+During analysis, show useful progress.
+
+Example:
+
+Analysing bank statement...
+
+24 / 24 transactions analysed
+
+Then:
+
+Analysis complete.
+
+Avoid leaving the user wondering whether Ledgerpoint is still processing.
+
+If processing is asynchronous, use the existing backend/job architecture if available.
+
+Do not block the browser unnecessarily.
+
+==================================================
+6. AUTOMATIC MATCHING
+==================================================
+
+Use the Phase 5 matching engine.
+
+For every transaction:
+
+Find candidate invoices/bills.
+
+Use deterministic signals first:
+
+- exact amount
+- reference
+- invoice number
+- customer/supplier
+- date
+- due date
+- description
+- historical relationships
+
+Use AI semantic reasoning only where useful.
+
+Do not call the LLM for obvious exact matches unnecessarily.
+
+==================================================
+7. HIGH-CONFIDENCE MATCHES
+==================================================
+
+Example:
+
+Bank transaction:
+
++£1,276
+BACS NORTHGATE CONSULTING
+INV-0014
+
+Invoice:
+
+INV-0014
+Northgate Consulting
+£1,276
+
+Result:
+
+READY
+
+AI confidence:
+100%
+
+Evidence:
+
+✓ Exact amount
+✓ Customer name
+✓ Invoice reference
+✓ Date within acceptable range
+
+Action:
+
+Approve Match
+
+The user should be able to approve without navigating away.
+
+==================================================
+8. MULTIPLE MATCHES
+==================================================
+
+Example:
+
+Bank receipt:
+£8,000
+
+Possible invoices:
+
+INV-001 £2,000
+INV-002 £3,000
+INV-003 £3,000
+
+Ledgerpoint should recognise:
+
+£2,000 + £3,000 + £3,000 = £8,000
+
+Display:
+
+MULTI-INVOICE MATCH
+
+3 invoices
+£8,000 total
+
+Confidence:
+High
+
+Action:
+
+Approve Match
+
+==================================================
+9. PARTIAL PAYMENT
+==================================================
+
+Example:
+
+Invoice:
+£5,000
+
+Bank receipt:
+£2,000
+
+Display:
+
+PARTIAL PAYMENT
+
+Invoice:
+INV-1234
+
+Invoice value:
+£5,000
+
+Payment:
+£2,000
+
+Remaining:
+£3,000
+
+Do not mark invoice paid.
+
+Allow future bank transactions to be matched against the remaining balance.
+
+==================================================
+10. UNEXPLAINED RECEIPTS
+==================================================
+
+This is one of the most important Ledgerpoint features.
+
+Example:
+
+Bank receipt:
+£10,000
+
+Potential invoices:
+
+£4,000
+£3,500
+
+Potential matched value:
+£7,500
+
+Unexplained:
+£2,500
+
+Display prominently:
+
+£2,500 UNEXPLAINED
+
+Potential invoices:
+2
+
+Potential invoice value:
+£7,500
+
+Possible reasons:
+
+- missing invoice
+- payment on account
+- other income
+- transfer
+- timing difference
+- customer overpayment
+
+IMPORTANT:
+
+Never say:
+
+"£2,500 missing revenue"
+
+as a confirmed fact.
+
+Say:
+
+"£2,500 currently unexplained"
+
+or:
+
+"£2,500 remains unmatched."
+
+If the accounting evidence later establishes that an invoice is missing, the system may say so with appropriate evidence.
+
+==================================================
+11. UNMATCHED PAYMENTS
+==================================================
+
+For an outgoing transaction with no invoice/bill match:
+
+Example:
+
+-£1,250
+SUPPLIER XYZ
+
+Ledgerpoint should attempt:
+
+- supplier matching
+- historical categorisation
+- nominal account suggestion
+- VAT treatment
+
+Example:
+
+Suggested category:
+Vehicle Repairs
+
+Confidence:
+87%
+
+Reason:
+
+"Similar transactions from this supplier have previously been categorised as Vehicle Repairs."
+
+Actions:
+
+Approve
+Change category
+Review
+
+Never invent an account code.
+
+==================================================
+12. RECURRING TRANSACTIONS
+==================================================
+
+Detect recurring transactions.
+
+Examples:
+
+- software subscriptions
+- rent
+- insurance
+- telephone
+- utilities
+- regular supplier payments
+
+After sufficient approved history, display:
+
+RECURRING TRANSACTION
+
+Supplier:
+Adobe
+
+Typical amount:
+£54.99
+
+Previous approved category:
+Software subscriptions
+
+Historical confidence:
+98%
+
+Use history as supporting evidence.
+
+Do not allow historical behaviour to override current accounting rules.
+
+==================================================
+13. POSSIBLE DUPLICATES
+==================================================
+
+Detect potential duplicate transactions during import and reconciliation.
+
+Example:
+
+Two identical transactions:
+
+£1,276
+Northgate Consulting
+16 Aug
+
+Display:
+
+POSSIBLE DUPLICATE
+
+This transaction appears similar to another bank transaction.
+
+Show the related transaction.
+
+Do not delete anything automatically.
+
+Require user review.
+
+==================================================
+14. TRANSFERS
+==================================================
+
+Identify likely transfers between company bank accounts.
+
+Example:
+
+Bank Account A:
+-£5,000
+
+Bank Account B:
++£5,000
+
+Ledgerpoint should identify:
+
+POSSIBLE INTERNAL TRANSFER
+
+If the existing Ledgerpoint transfer functionality supports safe confirmation, present it as a transfer recommendation.
+
+Do not treat internal transfers as revenue or expense.
+
+Do not create duplicate income/expense entries.
+
+==================================================
+15. VAT INTEGRATION
+==================================================
+
+Continue using the Phase 4 deterministic VAT engine.
+
+Do not create another VAT calculation engine.
+
+For each transaction where VAT treatment is relevant:
+
+Request the authoritative VAT treatment from the existing VAT service.
+
+If sufficient evidence exists:
+
+VAT treatment ready.
+
+If insufficient evidence:
+
+VAT REVIEW REQUIRED.
+
+Never allow the LLM to become the authoritative VAT calculator.
+
+==================================================
+16. DECISION ENGINE
+==================================================
+
+Create a central decision classification for the analysed transaction.
+
+Possible outcomes:
+
+READY
+REVIEW_REQUIRED
+NO_MATCH
+PARTIAL_MATCH
+MULTI_MATCH
+POSSIBLE_DUPLICATE
+TRANSFER
+VAT_REVIEW
+
+The decision should be based on evidence.
+
+Example:
+
+Exact invoice match:
+READY
+
+Invoice partially paid:
+PARTIAL_MATCH
+
+Two invoices exactly make up payment:
+MULTI_MATCH
+
+No candidate:
+NO_MATCH
+
+Possible duplicate:
+POSSIBLE_DUPLICATE
+
+Uncertain VAT:
+VAT_REVIEW
+
+==================================================
+17. APPROVAL BATCHES
+==================================================
+
+Allow the user to process multiple high-confidence transactions efficiently.
+
+Example:
+
+READY TO APPROVE
+
+18 transactions
+
+Total:
+£24,580
+
+User should be able to:
+
+Review all
+Approve selected
+Approve all high-confidence items
+
+However, "Approve all" must only apply to items that meet the configured high-confidence and accounting safety rules.
+
+Do not allow a batch approval to accidentally include:
+
+- review items
+- possible duplicates
+- uncertain VAT
+- unresolved transactions
+- conflicting matches
+
+==================================================
+18. REVIEW QUEUE
+==================================================
+
+The review queue should prioritise exceptions.
+
+Example:
+
+TODAY'S ACCOUNTING REVIEW
+
+High priority
+3
+
+Medium priority
+5
+
+Low priority
+2
+
+High priority examples:
+
+£18,000 unexplained receipt
+Possible duplicate £12,500
+VAT review £9,000 transaction
+
+The queue should be sorted intelligently.
+
+==================================================
+19. EXCEPTION-FIRST DASHBOARD
+==================================================
+
+Extend the existing AI Accountant dashboard.
+
+Show:
+
+BANK AUTOMATION
+
+Transactions imported today:
+24
+
+Automatically analysed:
+24
+
+Ready:
+18
+
+Review required:
+3
+
+No match:
+2
+
+Possible duplicates:
+1
+
+Unexplained receipts:
+£2,750
+
+Potential invoice value:
+£7,500
+
+Do not use fake data.
+
+==================================================
+20. RECONCILIATION PAGE
+==================================================
+
+Improve the existing reconciliation page rather than replacing it.
+
+At the top of the page, show a summary:
+
+24 transactions
+
+18 ready
+3 review
+2 no match
+1 duplicate
+
+Allow filters:
+
+All
+Ready
+Review
+No Match
+Duplicates
+VAT Review
+
+The existing transaction-by-transaction interface must remain available.
+
+==================================================
+21. TRANSACTION CARD
+==================================================
+
+For a high-confidence match:
+
+--------------------------------
+AI CONFIDENCE 100%
+
++£1,276
+BACS NORTHGATE CONSULTING
+
+Invoice INV-0014
+Northgate Consulting
+£1,276
+
+✓ Exact amount
+✓ Customer match
+✓ Reference found
+✓ Date match
+
+[Approve Match]
+[Find Another]
+[Review]
+--------------------------------
+
+For an unexplained receipt:
+
+--------------------------------
+REVIEW REQUIRED
+
++£10,000
+CUSTOMER PAYMENT
+
+Potential invoices:
+2
+
+Potential value:
+£7,500
+
+Unexplained:
+£2,500
+
+Possible reasons:
+Missing invoice
+Payment on account
+Other income
+
+[Review]
+[Find & Match]
+[Categorise]
+--------------------------------
+
+==================================================
+22. USER EXPERIENCE
+==================================================
+
+The interface should communicate:
+
+"What has Ledgerpoint already done?"
+
+and:
+
+"What do I actually need to do?"
+
+Avoid making the user read large amounts of AI text.
+
+Use:
+
+- clear status
+- confidence
+- amount
+- evidence
+- action
+- exception
+
+The interface should feel like an accountant has already prepared the work.
+
+==================================================
+23. AUTOMATIC DAILY WORKFLOW
+==================================================
+
+Where the existing bank connection/import architecture supports it, analysis should happen automatically whenever new transactions arrive.
+
+If Ledgerpoint currently uses manual statement imports, ensure the same analysis pipeline automatically runs immediately after import.
+
+Do not require:
+
+Import
+→ manually click Analyse
+→ manually click Find Match
+→ manually click AI
+
+Instead:
+
+Import
+→ automatic analysis
+→ ready/review queue.
+
+==================================================
+24. AI FAILURE
+==================================================
+
+If the AI provider is unavailable:
+
+Do not fail the entire bank import.
+
+Continue with deterministic processing.
+
+For example:
+
+Exact invoice match:
+Still identified.
+
+Semantic categorisation:
+May become:
+
+AI unavailable — manual review required.
+
+The accounting application must remain usable.
+
+==================================================
+25. AUDIT TRAIL
+==================================================
+
+Record:
+
+- imported transaction
+- analysis timestamp
+- matching candidates
+- confidence
+- recommendation
+- user approval
+- final reconciliation
+- accounting changes
+- exceptions
+- re-analysis
+
+Do not allow audit records to be silently overwritten.
+
+==================================================
+26. RE-ANALYSIS
+==================================================
+
+Provide:
+
+RE-RUN ANALYSIS
+
+when appropriate.
+
+If the user adds an invoice after the bank transaction was originally analysed:
+
+Ledgerpoint should be able to re-run the transaction.
+
+Example:
+
+Yesterday:
+£5,000 receipt
+No match
+
+Today:
+INV-456 £5,000 created
+
+Re-run analysis:
+
+Exact match found.
+
+The old analysis must remain auditable.
+
+The new analysis becomes the current recommendation.
+
+==================================================
+27. CHANGED EVIDENCE
+==================================================
+
+If source evidence changes:
+
+- invoice amount changes
+- invoice cancelled
+- bill deleted
+- payment already allocated
+- transaction changes
+
+The existing recommendation must be re-evaluated.
+
+Do not continue displaying an obsolete "100% confidence" recommendation.
+
+==================================================
+28. COMPANY SETTINGS
+==================================================
+
+If appropriate within the existing architecture, add company-level settings for:
+
+Automatic transaction analysis:
+ON/OFF
+
+Automatic high-confidence reconciliation:
+ON/OFF
+
+High-confidence threshold:
+default 95%
+
+Allow batch approval:
+ON/OFF
+
+These settings must be company scoped.
+
+Do not create settings that bypass accounting safety.
+
+If automatic reconciliation is not yet appropriate architecturally, implement the setting but default it OFF.
+
+==================================================
+29. SECURITY
+==================================================
+
+All operations must remain:
+
+authenticated
+company scoped
+permission checked
+server validated
+
+Never trust browser-supplied:
+
+- company ID
+- transaction amount
+- confidence
+- invoice ID
+- account ID
+- VAT amount
+- reconciliation state
+
+Fetch authoritative data server-side.
+
+Do not allow read-only users to approve accounting actions.
+
+Do not allow one company to see another company's transactions, invoices, bills, recommendations or AI learning.
+
+==================================================
+30. PERFORMANCE / COST
+==================================================
+
+Minimise AI API usage.
+
+Do NOT send every bank transaction to the LLM.
+
+Use:
+
+1. deterministic matching
+2. historical matching
+3. rule-based classification
+4. AI only when semantic interpretation is actually needed
+
+Cache safe analysis where appropriate.
+
+The goal is:
+
+FAST
+CHEAP
+DETERMINISTIC WHERE POSSIBLE
+AI WHERE IT ADDS VALUE
+
+==================================================
+31. TEST SCENARIOS
+==================================================
+
+Create automated tests for:
+
+1. Exact invoice match
+2. Exact bill match
+3. Partial payment
+4. Multiple invoices
+5. Multiple bills
+6. Unexplained receipt
+7. Unmatched expense
+8. Duplicate transaction
+9. Internal transfer
+10. Recurring transaction
+11. VAT review
+12. AI unavailable
+13. Re-analysis after new invoice
+14. Changed invoice amount
+15. Cross-company access attempt
+16. Read-only approval attempt
+17. Batch approval
+18. Mixed ready/review batch
+19. Historical categorisation
+20. Overpayment
+21. Underpayment
+
+==================================================
+32. BROWSER TEST
+==================================================
+
+Using the authenticated development application, verify:
+
+1. Import bank statement.
+2. Confirm automatic analysis begins.
+3. Confirm analysis completes.
+4. Confirm summary counts are correct.
+5. Open a high-confidence transaction.
+6. Confirm evidence is displayed.
+7. Approve the match.
+8. Confirm transaction becomes reconciled.
+9. Confirm invoice payment status updates correctly.
+10. Test partial payment.
+11. Test multiple invoice match.
+12. Test unexplained receipt.
+13. Confirm unmatched amount is calculated correctly.
+14. Test review queue.
+15. Test duplicate warning.
+16. Test categorisation.
+17. Test VAT integration.
+18. Confirm audit trail.
+19. Confirm permissions.
+20. Confirm existing VAT functionality remains intact.
+
+==================================================
+33. REGRESSION REQUIREMENTS
+==================================================
+
+Before marking this phase complete:
+
+Run:
+
+- TypeScript checks
+- lint
+- unit tests
+- API tests
+- database tests
+- reconciliation tests
+- invoice tests
+- bill tests
+- VAT tests
+- AI Accountant tests
+- security tests
+- production build
+
+All existing tests must continue passing.
+
+Do not hide or weaken existing tests.
+
+==================================================
+34. FINAL PRODUCT CHECK
+==================================================
+
+Before completion, ask the following:
+
+"If a business owner imported a bank statement containing 50 transactions, would Ledgerpoint do most of the accounting preparation automatically and leave the owner mainly with exceptions?"
+
+The answer should be YES.
+
+The ideal workflow is:
+
+BANK STATEMENT
+↓
+50 TRANSACTIONS
+↓
+50 AUTOMATICALLY ANALYSED
+↓
+38 HIGH-CONFIDENCE
+↓
+7 REVIEW
+↓
+3 UNMATCHED
+↓
+USER REVIEWS THE 10 EXCEPTIONS
+↓
+APPROVES THE 38 READY ITEMS
+↓
+BANK + INVOICES + BILLS + VAT + ACCOUNTING RECORDS RECONCILED
+↓
+AUDIT TRAIL COMPLETE
+
+==================================================
+35. DO NOT DO
+==================================================
+
+Do NOT:
+
+- create a second AI Accountant
+- create a second reconciliation engine
+- create a second VAT engine
+- replace existing banking functionality
+- replace existing invoice functionality
+- bypass approval controls
+- automatically delete accounting data
+- automatically invent invoices
+- automatically declare revenue missing without evidence
+- allow the LLM to calculate authoritative VAT
+- allow AI output to override deterministic accounting rules
+- weaken authentication
+- weaken company isolation
+- remove existing tests
+- create mock data disguised as real accounting data
+
+==================================================
+36. COMPLETION REPORT
+==================================================
+
+When finished, provide:
+
+1. Files created
+2. Files changed
+3. Database changes
+4. APIs/services changed
+5. Bank import integration
+6. Automatic analysis workflow
+7. Reconciliation integration
+8. Invoice/bill matching
+9. Exception detection
+10. Batch approval
+11. Dashboard changes
+12. VAT integration
+13. Audit trail
+14. Security controls
+15. Tests added
+16. Tests passed
+17. Browser workflows tested
+18. Any limitations
+19. Any future recommendations
+
+Do not mark complete merely because the build passes.
+
+Actually test the end-to-end workflow.
+
+Create a checkpoint after all implementation and verification is complete.

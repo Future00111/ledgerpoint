@@ -1,0 +1,50 @@
+{
+  "repair": {
+    "url": "https://github.com/Future00111/ledgerpoint/pull/16",
+    "head": "repair/c4-nested-offline-pnpm",
+    "sha": "6e8255949c3da130561f781614785f692796b621",
+    "base": "tr01/implementation-identity-successor-c4",
+    "draft": true,
+    "merged": false,
+    "readback": {
+      "number": 16,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "headSha": "6e8255949c3da130561f781614785f692796b621",
+      "baseSha": "273f714c876260636346b7fbcc588224e9795141"
+    }
+  },
+  "candidate": {
+    "url": "https://github.com/Future00111/ledgerpoint/pull/17",
+    "head": "review/tr01-c5-offline-successor",
+    "sha": "3a5c6e1318b49edcdc7f0f918d3a01813f960e71",
+    "base": "tr01/implementation-identity-successor-c4",
+    "draft": true,
+    "merged": false,
+    "readback": {
+      "number": 17,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "headSha": "3a5c6e1318b49edcdc7f0f918d3a01813f960e71",
+      "baseSha": "273f714c876260636346b7fbcc588224e9795141"
+    }
+  },
+  "producer": {
+    "url": "https://github.com/Future00111/ledgerpoint/pull/18",
+    "head": "review/tr01-c5-identity-producer",
+    "sha": "4f0fbd7a4ff75fbc4fadd57bc7ab2a7a38dc7f0b",
+    "base": "main",
+    "draft": true,
+    "merged": false,
+    "readback": {
+      "number": 18,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "headSha": "4f0fbd7a4ff75fbc4fadd57bc7ab2a7a38dc7f0b",
+      "baseSha": "af028bb647fbbdb81509539969b21a859e708f34"
+    }
+  }
+}

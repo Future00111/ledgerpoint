@@ -1,0 +1,63 @@
+{
+  "name": "AISuggestion",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "categorization",
+        "reconciliation",
+        "anomaly",
+        "vat_optimization",
+        "duplicate",
+        "forecasting"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "The entity the suggestion relates to (e.g. BankTransaction)"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of the related record"
+    },
+    "confidence": {
+      "type": "number",
+      "description": "0-100 confidence score",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "rejected",
+        "dismissed"
+      ],
+      "default": "pending"
+    },
+    "suggested_data": {
+      "type": "object",
+      "description": "Flexible payload with the suggested values"
+    },
+    "resolved_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "company_id",
+    "type",
+    "title"
+  ]
+}

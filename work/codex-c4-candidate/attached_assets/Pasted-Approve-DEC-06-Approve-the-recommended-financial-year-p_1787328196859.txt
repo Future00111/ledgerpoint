@@ -1,0 +1,148 @@
+Approve DEC-06.
+
+Approve the recommended financial-year policy with the following amendments/clarifications:
+
+DEC-06 — FINANCIAL-YEAR POLICY
+
+STATUS: APPROVED
+
+1. DEFAULT FINANCIAL YEAR
+
+For new UK-focused companies, Ledgerpoint's default financial year is:
+
+1 April → 31 March
+
+This is a product default, not an immutable requirement.
+
+2. COMPANY-CONFIGURABLE START
+
+A company may select another valid recurring financial-year start during company setup or before its first canonical posted accounting record.
+
+The architecture must support company-specific financial-year starts without hard-coding 1 April as the only possible value.
+
+3. FINANCIAL-YEAR IDENTITY
+
+Financial-year identity must be explicitly represented and company-scoped.
+
+It must remain distinct from:
+
+- document dates
+- transaction dates
+- VAT periods
+- tax years
+- bank dates.
+
+Do not infer financial-year identity solely from a document date at reporting time.
+
+4. POSTED-RECORD BOUNDARY
+
+Once canonical posted accounting records exist, the ordinary company configuration must NOT allow the financial-year start to be changed retrospectively.
+
+Do not silently reclassify existing posted accounting records into different financial years.
+
+Any future financial-year transition/change mechanism must be separately designed, approved, privileged and fully audited.
+
+5. FIRST FINANCIAL YEAR
+
+Support:
+
+- first financial year
+- partial first financial year where applicable
+- normal recurring subsequent years
+- year-boundary transitions.
+
+Do not assume the first financial year must always be a full 12 months.
+
+6. HISTORICAL DATA
+
+Historical financial years must be represented using available source evidence.
+
+Ledgerpoint must NEVER invent historical accounting data merely to populate financial-year structures.
+
+Where historical data is incomplete or ambiguous, record the limitation rather than manufacture accounting facts.
+
+7. REPORTING
+
+Financial-year identity must support accurate:
+
+- Profit & Loss
+- Balance Sheet
+- Trial Balance
+- General Ledger
+- comparative reporting
+
+and other accounting reports.
+
+Reporting must ultimately rely on the canonical accounting model approved under DEC-04.
+
+8. PERMISSIONS AND AUDIT
+
+Changing the company's financial-year configuration is a consequential accounting configuration action.
+
+It must therefore respect DEC-05:
+
+- active company membership
+- company scope
+- server-side capability checks
+- appropriate privileged authority
+- audit trail.
+
+9. FUTURE FLEXIBILITY
+
+Do not unnecessarily prevent future support for:
+
+- different financial-year starts
+- additional markets
+- additional currencies
+- future international accounting requirements.
+
+DEC-06 establishes the initial UK product policy; it does not permanently restrict future product evolution.
+
+10. DEC-07 / DEC-08 BOUNDARY
+
+DEC-06 does NOT decide:
+
+- accounting-period frequency
+- period creation rules
+- period closing
+- period reopening
+- detailed period controls
+- year-end closing mechanics
+- year-end journal treatment
+- retained earnings mechanics.
+
+Those remain for DEC-07 and DEC-08 respectively.
+
+IMPORTANT GOVERNANCE RULES:
+
+- DEC-01 through DEC-05 remain unchanged.
+- DEC-06 is now APPROVED.
+- DEC-07 through DEC-22 remain REQUIRES USER DECISION.
+- Do not approve DEC-07 or any later decision.
+- Keep BL-06 and BL-07 BLOCKED.
+- Preserve the amendment path through the Living Product Decisions process.
+- This is a product/accounting-policy approval only.
+- It is NOT implementation authorisation.
+
+Do NOT modify:
+- application code
+- database schema
+- migrations
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Update only the relevant governance and decision documents.
+
+After recording the decision, verify:
+
+1. DEC-01–DEC-06 are approved.
+2. DEC-07–DEC-22 remain unresolved.
+3. BL-06 and BL-07 remain blocked.
+4. No implementation task was created.
+5. No application or implementation changes were made.
+6. No DEC-07 work was started.
+
+Stop after verification.

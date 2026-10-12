@@ -1,0 +1,219 @@
+Approve DEC-07.
+
+Approve the recommended accounting-period policy with the following decision:
+
+DEC-07 — ACCOUNTING-PERIOD POLICY
+
+STATUS: APPROVED
+
+1. PERIOD FREQUENCY
+
+Ledgerpoint will use contiguous MONTHLY accounting periods.
+
+Periods are anchored to each company's DEC-06 financial year.
+
+The monthly period structure must work correctly for:
+- 1 April–31 March financial years;
+- alternative valid financial-year starts permitted by DEC-06;
+- first/partial financial years;
+- normal recurring financial years.
+
+2. PERIOD GENERATION
+
+All known periods for a financial year should be generated automatically.
+
+Future periods may exist before they become active for posting.
+
+Do not require users to manually create every accounting period.
+
+3. PERIOD STATES
+
+The authoritative accounting-period lifecycle will use only:
+
+OPEN
+CLOSED
+
+Do not introduce additional accounting-period states unless a future, explicitly approved decision requires them.
+
+4. PERIOD ASSIGNMENT
+
+The accounting period for a canonical posting is determined server-side from the validated POSTING DATE.
+
+Do not allow the browser/client to choose an arbitrary accounting period.
+
+Do not silently move a transaction into another period if its posting date does not belong to an appropriate open period.
+
+5. CLOSED PERIODS
+
+A closed period must prevent ordinary accounting postings.
+
+There must be no direct posting bypass around a closed period.
+
+If a correction genuinely belongs to a closed period, the supported mechanisms are:
+
+- controlled privileged reopening; or
+- an appropriately approved adjustment in a later open period.
+
+The exact accounting treatment remains subject to the relevant accounting rules and later decisions.
+
+6. PERIOD CLOSE
+
+Closing a period is a consequential accounting action.
+
+It must use the DEC-05 capability model and require:
+
+- active company membership;
+- company scope;
+- server-side capability enforcement;
+- validation;
+- appropriate authority;
+- audit evidence.
+
+The system should perform close validation before allowing the period to close.
+
+7. CLOSE WARNINGS VS BLOCKERS
+
+The following should normally be VISIBLE WARNINGS rather than automatic close blockers:
+
+- draft transactions;
+- unallocated payments;
+- unreconciled bank evidence;
+- ordinary VAT timetable differences.
+
+However, genuine accounting or VAT integrity failures must remain capable of blocking close.
+
+Do not invent additional mandatory blockers without an explicit product/accounting decision.
+
+Warnings should clearly explain:
+- what is outstanding;
+- why it matters;
+- what action could resolve it.
+
+8. PERIOD REOPEN
+
+Reopening a closed period is a highly consequential accounting action.
+
+It must require:
+
+- elevated capability;
+- active company membership;
+- company scope;
+- server-side enforcement;
+- mandatory reason;
+- audit trail.
+
+Where segregation of duties requires it, reopening should require separate approval.
+
+Do not allow a normal role to bypass the reopen capability simply because it can otherwise post accounting entries.
+
+9. NO HISTORY REWRITING
+
+Changing period configuration must never silently rewrite or reclassify posted accounting history.
+
+The DEC-04 principles remain authoritative:
+
+- posted journals are immutable;
+- source linkage is retained;
+- corrections/reversals are explicit;
+- audit history is preserved.
+
+10. PERIOD / OTHER CALENDAR DISTINCTION
+
+Accounting periods must remain distinct from:
+
+- VAT periods;
+- tax years;
+- bank statement periods;
+- calendar months as a general date concept;
+- financial-year identity.
+
+A calendar month may coincide with an accounting period, but the accounting-period identity remains a company-specific accounting construct.
+
+11. REPORTING
+
+Period state and identity must support authoritative:
+
+- Profit & Loss;
+- Balance Sheet;
+- Trial Balance;
+- General Ledger;
+- comparative reporting;
+- period-based accounting analysis.
+
+Reports must continue to derive from the DEC-04 canonical accounting model.
+
+12. MIGRATION
+
+Historical period assignment must use available evidence.
+
+Ledgerpoint must NEVER invent:
+
+- historical periods;
+- historical close events;
+- historical journals;
+- accounting dates;
+- accounting facts.
+
+Where historical period information is incomplete or ambiguous, preserve that limitation and handle it explicitly through the later migration decision.
+
+13. DEC-05 INTEGRATION
+
+Period creation, close and reopen must use the approved DEC-05 capability architecture.
+
+Do not hard-code authority based solely on role names.
+
+Server-side capability checks remain authoritative.
+
+14. DEC-06 / DEC-08 BOUNDARY
+
+DEC-07 depends on the financial-year structure approved by DEC-06.
+
+DEC-07 does NOT approve or resolve DEC-08.
+
+DEC-08 remains responsible for year-end mechanics, including any year-end closing treatment and retained-earnings behaviour.
+
+15. FUTURE FLEXIBILITY
+
+The period architecture must not unnecessarily prevent:
+
+- alternative financial-year starts already permitted by DEC-06;
+- future markets;
+- future currencies;
+- future accounting/reporting requirements;
+- future amendments to period policy.
+
+Any future change must follow the Living Product Decisions process.
+
+IMPORTANT GOVERNANCE RULES:
+
+- DEC-01 through DEC-06 remain unchanged.
+- DEC-07 is now APPROVED.
+- DEC-08 through DEC-22 remain REQUIRES USER DECISION.
+- Do not approve DEC-08 or any later decision.
+- Keep BL-06 and BL-07 BLOCKED.
+- Preserve the amendment path.
+- This is a product/accounting-policy approval only.
+- It is NOT implementation authorisation.
+
+Do NOT modify:
+- application code;
+- database schema;
+- migrations;
+- UI;
+- workflows;
+- dependencies;
+- deployment;
+- publishing.
+
+Update only the relevant governance and decision documentation.
+
+After recording the decision, verify:
+
+1. DEC-01–DEC-07 are APPROVED.
+2. DEC-08–DEC-22 remain unresolved.
+3. BL-06 and BL-07 remain BLOCKED.
+4. No implementation task was created.
+5. No application or implementation changes were made.
+6. No DEC-08 work was started.
+
+Stop after verification.

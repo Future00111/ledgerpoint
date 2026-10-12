@@ -1,0 +1,151 @@
+{
+  "preparedAt": "2026-10-12T13:41:17.202883+00:00",
+  "repository": "Future00111/ledgerpoint",
+  "reviewOnly": true,
+  "qualificationSuccess": false,
+  "hostedDispatches": 0,
+  "bindingRegression": "BLOCKED: local isolated Docker bridge timeout; shared namespace OCI mount permission denied; never treated as acceptance",
+  "commits": {
+    "repair": {
+      "sha": "6e8255949c3da130561f781614785f692796b621",
+      "tree": "16effb7c9d69f5f964300664fecb356ab20a4846",
+      "soleParent": "273f714c876260636346b7fbcc588224e9795141",
+      "diffBase": "273f714c876260636346b7fbcc588224e9795141",
+      "fileSha256": {
+        "artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs": "a89b12f019dfc96dfd086e9ddbd691bd4eac24ac8bc9bcd1c2738d1ea31a749d",
+        "scripts/ci/ledgerly-nested-offline-review.mjs": "5561be328fdbb2cb75957ea939fe7f9955d1e5556e3eff6d467b9db46a87e395",
+        "scripts/ci/ledgerly-offline-pnpm.test.mjs": "0063b86c1a1ee64c5a41e9588060bbcf62365389de9e943dbd3d29789ac64bff"
+      }
+    },
+    "candidate": {
+      "sha": "3a5c6e1318b49edcdc7f0f918d3a01813f960e71",
+      "tree": "3f2e22ccceb70ea50034b41af352a125b63cf127",
+      "soleParent": "6e8255949c3da130561f781614785f692796b621",
+      "diffBase": "273f714c876260636346b7fbcc588224e9795141",
+      "fileSha256": {
+        ".github/workflows/ledgerly-canonical-postgresql.yml": "a45d33faf751c25f2f5fcdbeb1c0a72b5e1175f69d964105c4c87d049259c714",
+        "artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs": "33584355b775f38f6057b4245377d170c1fa978aab517ee214758836217253a8",
+        "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json": "16ac1e2860da15dc7a333078b3a27e2c908739da2de45e31e0845dd834cc707e",
+        "scripts/ci/ledgerly-external-binding-regression.test.mjs": "f8c1f07701dbda7f41583784c7ee409aab503fccd3adde39fd2125391f847b48",
+        "scripts/ci/ledgerly-nested-offline-review.mjs": "5561be328fdbb2cb75957ea939fe7f9955d1e5556e3eff6d467b9db46a87e395",
+        "scripts/ci/ledgerly-offline-pnpm.test.mjs": "0063b86c1a1ee64c5a41e9588060bbcf62365389de9e943dbd3d29789ac64bff",
+        "scripts/ci/run-ledgerly-canonical-postgresql.mjs": "5193dde56e33bb533e16c501c15cde60512815ba958b1a738051d2f9b500f2cc",
+        "scripts/ci/run-ledgerly-canonical-postgresql.test.mjs": "3275f2cd44cc990e69dce1d159a5187ae86849cabb8578c4abeabfc91a5eaa52",
+        "scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql": "3ecf45d1507e89d28a776145f5fb118a57076698190dd1a4ee313ad44a7eaac7"
+      }
+    },
+    "producer": {
+      "sha": "4f0fbd7a4ff75fbc4fadd57bc7ab2a7a38dc7f0b",
+      "tree": "fc88f3e99bc78d39f808a86fd1412c883bdb6e74",
+      "soleParent": "af028bb647fbbdb81509539969b21a859e708f34",
+      "diffBase": "af028bb647fbbdb81509539969b21a859e708f34",
+      "fileSha256": {
+        ".github/workflows/ledgerly-tr01-c5-identity-status.yml": "72c3e1d332020a2d33ffc0691098fa6a60b257c8d90b7e73b87a2d83fe27a17d",
+        "scripts/ci/ledgerly-tr01-c5-identity-status.mjs": "b4d9f61ad637cf7fc45542f9f93fc0bab11ae847196c4b45f4f467ac77b0fc10",
+        "scripts/ci/ledgerly-tr01-c5-identity-status.test.mjs": "d4fcdc99e08a9313a3d85bafe853f861e38014b9e6201aa93eb91046fd68e221"
+      }
+    }
+  },
+  "files": {
+    "docs/governance/drafts/ledgerly-tr01-c5/c4-exact-reproduction.log": "77066b69cdaac2037640752301a39dac90673328b686e4d3df52603030520c68",
+    "docs/governance/drafts/ledgerly-tr01-c5/repair-offline-tests.log": "d1b7a422f86bf66c7b51e1cc3515edb4430542980120d9ee1512040319e79ee3",
+    "docs/governance/drafts/ledgerly-tr01-c5/candidate-docker-build.log": "07aaea51747fe4fbc20917d2499020acd34abc5acd40ba0676efdbdc4b99c0b7",
+    "docs/governance/drafts/ledgerly-tr01-c5/candidate-offline-tests.log": "891b233d3043408aaeda83550b6375f3419f404d7217783b5e924d3bdc4acd6b",
+    "docs/governance/drafts/ledgerly-tr01-c5/candidate-identity-acceptance.log": "442fe7bb0436c4a4c7a7593373be1e188d137629de54e2e82083ba74fcfa509e",
+    "docs/governance/drafts/ledgerly-tr01-c5/candidate-types.log": "301bb983707bd732880a3756af94beb94869a7de6ab1c9f6fa787a7889103927",
+    "docs/governance/drafts/ledgerly-tr01-c5/producer-types.log": "cae82b27661eac87b26405b218d0b955d371ff3cb249344121d89340d48cc5e3",
+    "docs/governance/drafts/ledgerly-tr01-c5/producer-tests.log": "5ffeac0f9ed2652e46353edfc9f4266df30ae1b5064ad2d61142c1cd3ae5ec5e",
+    "docs/governance/drafts/ledgerly-tr01-c5/binding-bridge-failure.log": "691632ebe308be01ee31612c7834722dcbcaf7642f54e2461b53aa79fdb02f82",
+    "docs/governance/drafts/ledgerly-tr01-c5/binding-shared-namespace-failure.log": "73208806708bdbf85415c4ff11f240af1b5fd20c6c2c83784d89d797a294a949",
+    "docs/governance/drafts/ledgerly-tr01-c5/binding-shared-runtime-diagnostic.log": "b8af2fb2bacc88dc6cf13532561e0fe9b7e48121cf7e575427c419fa59116611",
+    "docs/governance/drafts/ledgerly-tr01-c5/controls-before.json": "d463f1b082a59497dcf71697e02618ec83dedf6509ce1025e01e23c12547fb87",
+    "docs/governance/drafts/ledgerly-tr01-c5/repair.patch": "48e55af79bce6964800c960da403eca396fbbebf5ec760752bb07be201e778ee",
+    "docs/governance/drafts/ledgerly-tr01-c5/repair.format-patch": "5b5b18d78726a734f0ec79f74ab10dbb4d68c362e959d32d3c9bb32bdee6af89",
+    "docs/governance/drafts/ledgerly-tr01-c5/candidate.patch": "83866e0ea1119845e8fc3c1d11a1fc6501b787a5394de17480fac84abd25d026",
+    "docs/governance/drafts/ledgerly-tr01-c5/candidate.format-patch": "b9d11ce24687018211df530161bbddac11da0830c2ed178c5bb8d575c20e917d",
+    "docs/governance/drafts/ledgerly-tr01-c5/producer.patch": "9ad580a03b77d5f80f2f13cfbf07444cd644d12b7d27c5fc1c3a7406f2374d3f",
+    "docs/governance/drafts/ledgerly-tr01-c5/producer.format-patch": "2d41e3a481cd0a31549b13757ac599d9a0fbe31f984c82a2e087fad860bc21a5",
+    "docs/governance/drafts/ledgerly-tr01-c5/controls-after.json": "c6dd9dc81d2bad7babbcb2f76f8853e2d264f4c9bb25047e71f4a4f148e55ffa",
+    "docs/governance/drafts/ledgerly-tr01-c5-review-publication.json": "eb3fd90f290482d3cb4d0ee5d6b692898c690b976a41d48ba106d9497299f5d7",
+    "docs/governance/drafts/ledgerly-tr01-c5-preparation-report.md": "294604a375a38038addc0e1817c53accfffcf52b32a343ccbf52be1a58fd8520",
+    "docs/governance/drafts/ledgerly-tr01-c5-next-actions.md": "a3b6ee6f71f76f145f31a1e11054ce246d0879417361f012ebd17112bc1e2074",
+    "docs/governance/drafts/ledgerly-tr01-c5-ruleset-proposed.json": "5e2cca5bc5ba5574421e8f1af3f5e4df0acdb463848bfd443395bd96cd5c98f8"
+  },
+  "liveControlMutationsPerformed": false,
+  "ordinaryDraftReviewPublicationPerformed": true,
+  "frozenAndLiveControlsExactlyUnchanged": true,
+  "reviewPublication": {
+    "repair": {
+      "url": "https://github.com/Future00111/ledgerpoint/pull/16",
+      "head": "repair/c4-nested-offline-pnpm",
+      "sha": "6e8255949c3da130561f781614785f692796b621",
+      "base": "tr01/implementation-identity-successor-c4",
+      "draft": true,
+      "merged": false,
+      "readback": {
+        "number": 16,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "headSha": "6e8255949c3da130561f781614785f692796b621",
+        "baseSha": "273f714c876260636346b7fbcc588224e9795141"
+      }
+    },
+    "candidate": {
+      "url": "https://github.com/Future00111/ledgerpoint/pull/17",
+      "head": "review/tr01-c5-offline-successor",
+      "sha": "3a5c6e1318b49edcdc7f0f918d3a01813f960e71",
+      "base": "tr01/implementation-identity-successor-c4",
+      "draft": true,
+      "merged": false,
+      "readback": {
+        "number": 17,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "headSha": "3a5c6e1318b49edcdc7f0f918d3a01813f960e71",
+        "baseSha": "273f714c876260636346b7fbcc588224e9795141"
+      }
+    },
+    "producer": {
+      "url": "https://github.com/Future00111/ledgerpoint/pull/18",
+      "head": "review/tr01-c5-identity-producer",
+      "sha": "4f0fbd7a4ff75fbc4fadd57bc7ab2a7a38dc7f0b",
+      "base": "main",
+      "draft": true,
+      "merged": false,
+      "readback": {
+        "number": 18,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "headSha": "4f0fbd7a4ff75fbc4fadd57bc7ab2a7a38dc7f0b",
+        "baseSha": "af028bb647fbbdb81509539969b21a859e708f34"
+      }
+    }
+  },
+  "bindingCleanupVerified": {
+    "containers": true,
+    "internalNetworks": true,
+    "derivedReviewImages": true,
+    "temporaryFixtureAndCredentialFiles": true
+  },
+  "localReviewImageId": "sha256:c2bed5e9ede13b01f24c8125ef8a239c3f538aced7ebd2592e3054aed716d2a8",
+  "testResults": {
+    "offline": {
+      "pass": 6,
+      "fail": 0,
+      "skip": 0
+    },
+    "producer": {
+      "pass": 27,
+      "fail": 0,
+      "skip": 0
+    },
+    "identityAcceptance": "PASS",
+    "candidateTypes": "PASS",
+    "producerTypes": "PASS",
+    "disposableBinding": "BLOCKED",
+    "fullQualification": "NOT_RUN"
+  }
+}

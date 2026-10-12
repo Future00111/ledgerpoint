@@ -1,0 +1,49 @@
+name: Ledgerly Corepack CI diagnostic only
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ledgerly-corepack-ci-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  corepack-diagnostic:
+    if: github.ref == 'refs/heads/main' && github.ref_protected == true
+    name: Corepack image and environment diagnostic
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment:
+      name: ledgerly-corepack-diagnostic
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Install pinned diagnostic validator
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.26.1 --activate
+          pnpm install --frozen-lockfile --ignore-scripts --filter workspace
+
+      - name: Run Corepack image and environment diagnostic
+        env:
+          CI: true
+          GITHUB_ACTIONS: true
+        run: node scripts/ci/run-ledgerly-corepack-ci-diagnostic.mjs
+
+      - name: Upload non-secret Corepack diagnostic
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ledgerly-ti-03-corepack-ci-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/ledgerly-44-ti-03-corepack-github-ci-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}.json
+            ${{ runner.temp }}/ledgerly-44-ti-03-corepack-github-ci-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}.json.sha256
+          if-no-files-found: error
+          retention-days: 30

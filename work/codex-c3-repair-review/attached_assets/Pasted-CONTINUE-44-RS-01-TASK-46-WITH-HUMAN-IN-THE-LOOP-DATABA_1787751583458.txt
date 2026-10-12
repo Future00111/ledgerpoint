@@ -1,0 +1,68 @@
+CONTINUE #44-RS-01 / TASK #46 WITH HUMAN-IN-THE-LOOP DATABASE_URL STEP
+
+The read-only investigation has confirmed:
+
+- Replit DOES support a development DATABASE_URL override through the user-facing
+  Secrets pane.
+- The agent cannot set DATABASE_URL programmatically because it is runtime-managed.
+- The application already reads process.env.DATABASE_URL.
+- No application code change is required.
+
+Continue only within the already-approved #44-RS-01 development scope.
+
+Proceed in this order:
+
+1. Create the approved development roles:
+   - ledgerly_api
+   - ledgerly_canonical_owner
+
+2. Use the already-supplied secure LEDGERLY_API_PASSWORD secret for the
+   ledgerly_api credential.
+
+3. Apply the approved development-only role attributes, ownership, grants,
+   revocations, trigger functions/triggers, and privilege boundaries.
+
+4. DO NOT change DATABASE_URL yourself.
+
+5. Once the roles and database-side protection are ready, STOP and provide me
+   with the NON-SECRET connection details needed to construct the development
+   DATABASE_URL:
+
+   - host
+   - port
+   - database name
+   - username (expected: ledgerly_api)
+   - required SSL/connection options
+
+   Do NOT print or expose the password.
+
+6. Tell me exactly where in the Replit UI I should add/update the Secret named:
+
+   DATABASE_URL
+
+7. Wait for me to confirm that I have updated the secret manually.
+
+8. Only after my confirmation:
+   - restart the development API workflow;
+   - verify current_user/session_user;
+   - verify ledgerly_api is non-superuser;
+   - run the approved privilege/escalation/mutation-resistance tests;
+   - run BL-01-FI and #40/#44 regression tests;
+   - run build/type/health checks.
+
+Do not use postgres + SET ROLE.
+
+Do not expose any database credential.
+
+Do not broaden privileges.
+
+Do not touch production.
+
+Production posting remains disabled.
+
+If any approved RS-01 stop condition is encountered, STOP and report it.
+
+Do not start another task.
+
+STOP after providing the non-secret connection details and UI instruction,
+and wait for my confirmation before restarting the API.

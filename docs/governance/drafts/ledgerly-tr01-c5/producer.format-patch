@@ -1,0 +1,663 @@
+From 4f0fbd7a4ff75fbc4fadd57bc7ab2a7a38dc7f0b Mon Sep 17 00:00:00 2001
+From: Future00111 <lee@crautomotivegroup.com>
+Date: Mon, 12 Oct 2026 13:33:33 +0000
+Subject: [PATCH] Prepare separate protected-main producer for exact C5
+ validation identity
+
+---
+ .../ledgerly-tr01-c5-identity-status.yml      | 166 ++++++++
+ .../ci/ledgerly-tr01-c5-identity-status.mjs   | 101 +++++
+ .../ledgerly-tr01-c5-identity-status.test.mjs | 358 ++++++++++++++++++
+ 3 files changed, 625 insertions(+)
+ create mode 100644 .github/workflows/ledgerly-tr01-c5-identity-status.yml
+ create mode 100644 scripts/ci/ledgerly-tr01-c5-identity-status.mjs
+ create mode 100644 scripts/ci/ledgerly-tr01-c5-identity-status.test.mjs
+
+diff --git a/.github/workflows/ledgerly-tr01-c5-identity-status.yml b/.github/workflows/ledgerly-tr01-c5-identity-status.yml
+new file mode 100644
+index 0000000..8da5061
+--- /dev/null
++++ b/.github/workflows/ledgerly-tr01-c5-identity-status.yml
+@@ -0,0 +1,166 @@
++name: TR-01 C5 identity validation
++
++on:
++  workflow_dispatch:
++
++permissions: {}
++
++jobs:
++  validate:
++    if: >-
++      github.repository == 'Future00111/ledgerpoint' &&
++      github.ref == 'refs/heads/main' &&
++      github.ref_protected == true
++    runs-on: ubuntu-24.04
++    timeout-minutes: 15
++    permissions:
++      contents: read
++    steps:
++      - name: Checkout exact immutable C5 without persisted credentials
++        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
++        with:
++          ref: 3a5c6e1318b49edcdc7f0f918d3a01813f960e71
++          persist-credentials: false
++          fetch-depth: 0
++      - name: Checkout same-event protected-main producer tests
++        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
++        with:
++          ref: ${{ github.sha }}
++          path: .local/tr01-c5-producer
++          persist-credentials: false
++          fetch-depth: 1
++      - name: Validate C5 and run upstream non-database checks
++        env:
++          DOCKER_BUILDKIT: "1"
++          COREPACK_ENABLE_AUTO_PIN: "0"
++          COREPACK_DEFAULT_TO_LATEST: "0"
++        run: |
++          test "$(git rev-parse HEAD)" = "3a5c6e1318b49edcdc7f0f918d3a01813f960e71"
++          test "$(git rev-parse HEAD^{tree})" = "3f2e22ccceb70ea50034b41af352a125b63cf127"
++          test "$(git rev-parse HEAD^)" = "6e8255949c3da130561f781614785f692796b621"
++          test "$(git rev-list --parents -n 1 HEAD | wc -w)" -eq 2
++          git diff --quiet
++          git diff --cached --quiet
++          source_pathspecs=(
++            ".dockerignore"
++            ".ci/ledgerly-canonical/Dockerfile.test"
++            ".github"
++            "artifacts"
++            "lib"
++            "scripts"
++            "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json"
++            "package.json"
++            "pnpm-lock.yaml"
++            "pnpm-workspace.yaml"
++            "tsconfig.base.json"
++            "tsconfig.json"
++          )
++          test -z "$(git status --porcelain --untracked-files=all -- "${source_pathspecs[@]}")"
++          corepack enable
++          corepack prepare pnpm@10.26.1 --activate
++          pnpm install --frozen-lockfile --ignore-scripts
++          LEDGERLY_C5_VALIDATION_ROOT="$GITHUB_WORKSPACE" node --test .local/tr01-c5-producer/scripts/ci/ledgerly-tr01-c5-identity-status.test.mjs
++          node --check scripts/ci/run-ledgerly-canonical-postgresql.mjs
++          node --check artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs
++          pnpm run typecheck:libs
++          pnpm run typecheck
++          node --test scripts/ci/run-ledgerly-canonical-postgresql.test.mjs
++          git diff --quiet
++          git diff --cached --quiet
++          test -z "$(git status --porcelain --untracked-files=all -- "${source_pathspecs[@]}")"
++          node --input-type=module <<'NODE'
++          import { createHash } from "node:crypto";
++          import { readFile, writeFile } from "node:fs/promises";
++          import { execFileSync } from "node:child_process";
++
++          const expectedCommit = "3a5c6e1318b49edcdc7f0f918d3a01813f960e71";
++          const qualificationWorkflow = ".github/workflows/ledgerly-canonical-postgresql.yml";
++          const pathspecs = [
++            ".dockerignore",
++            ".ci/ledgerly-canonical/Dockerfile.test",
++            ".github",
++            "artifacts",
++            "lib",
++            "scripts",
++            "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json",
++            "package.json",
++            "pnpm-lock.yaml",
++            "pnpm-workspace.yaml",
++            "tsconfig.base.json",
++            "tsconfig.json",
++          ];
++          const head = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
++          if (head !== expectedCommit) throw new Error("Offline smoke fixture requires the exact C5 checkout");
++          const files = execFileSync("git", ["ls-files", "-z", "--", ...pathspecs], { encoding: "utf8" })
++            .split("\0").filter(Boolean).sort();
++          for (const required of [
++            ".dockerignore",
++            ".ci/ledgerly-canonical/Dockerfile.test",
++            qualificationWorkflow,
++            "package.json",
++            "pnpm-lock.yaml",
++            "pnpm-workspace.yaml",
++          ]) {
++            if (!files.includes(required)) throw new Error(`Tracked C5 source is missing ${required}`);
++          }
++          const hashes = {};
++          const treeHash = createHash("sha256");
++          for (const file of files) {
++            const bytes = await readFile(file);
++            hashes[file] = createHash("sha256").update(bytes).digest("hex");
++            treeHash.update(file);
++            treeHash.update("\0");
++            treeHash.update(bytes);
++            treeHash.update("\0");
++          }
++          const fixture = {
++            fixturePurpose: "offline-build-only",
++            notQualificationEvidence: true,
++            sourceCommit: head,
++            version: 1,
++            files,
++            fileSha256: hashes,
++            sourceTreeSha256: treeHash.digest("hex"),
++            qualificationWorkflow,
++            qualificationWorkflowSha256: hashes[qualificationWorkflow],
++          };
++          await writeFile(
++            ".ci/ledgerly-canonical/source-manifest.json",
++            `${JSON.stringify(fixture)}\n`,
++            { mode: 0o644 },
++          );
++          NODE
++          image="ledgerly-tr01-c5-offline-pnpm-smoke:local"
++          docker build \
++            --file .ci/ledgerly-canonical/Dockerfile.test \
++            --tag "$image" \
++            .
++          LEDGERLY_OFFLINE_PNPM_TEST_IMAGE="$image" \
++            node --test scripts/ci/ledgerly-offline-pnpm.test.mjs
++
++  identity:
++    needs: validate
++    if: >-
++      github.repository == 'Future00111/ledgerpoint' &&
++      github.ref == 'refs/heads/main' &&
++      github.ref_protected == true &&
++      needs.validate.result == 'success'
++    runs-on: ubuntu-24.04
++    timeout-minutes: 5
++    environment:
++      name: ledgerly-canonical
++    permissions:
++      contents: read
++      statuses: write
++    steps:
++      - name: Checkout protected-main validation code
++        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
++        with:
++          ref: ${{ github.sha }}
++          persist-credentials: false
++      - name: Verify exact remote C5 and publish validation status
++        env:
++          GH_TOKEN: ${{ github.token }}
++          TR01_VALIDATION_RESULT: ${{ needs.validate.result }}
++          TR01_C5_APPROVED_WORKFLOW_SHA: ${{ vars.TR01_C5_APPROVED_WORKFLOW_SHA }}
++        run: node scripts/ci/ledgerly-tr01-c5-identity-status.mjs
+\ No newline at end of file
+diff --git a/scripts/ci/ledgerly-tr01-c5-identity-status.mjs b/scripts/ci/ledgerly-tr01-c5-identity-status.mjs
+new file mode 100644
+index 0000000..e055abd
+--- /dev/null
++++ b/scripts/ci/ledgerly-tr01-c5-identity-status.mjs
+@@ -0,0 +1,101 @@
++// C5 identity validation only; this is not PostgreSQL or accounting qualification.
++import { resolve } from "node:path";
++import { fileURLToPath } from "node:url";
++
++export const identity = Object.freeze({
++  repository: "Future00111/ledgerpoint",
++  workflowRef: "Future00111/ledgerpoint/.github/workflows/ledgerly-tr01-c5-identity-status.yml@refs/heads/main",
++  ref: "refs/heads/tr01/implementation-identity-successor-c5",
++  sha: "3a5c6e1318b49edcdc7f0f918d3a01813f960e71",
++  parent: "6e8255949c3da130561f781614785f692796b621",
++  tree: "3f2e22ccceb70ea50034b41af352a125b63cf127",
++  context: "tr01/c5-identity-validation",
++});
++
++export function assertTrustedInvocation(env) {
++  if (
++    env.GITHUB_REPOSITORY !== identity.repository ||
++    env.GITHUB_EVENT_NAME !== "workflow_dispatch" ||
++    env.GITHUB_REF !== "refs/heads/main" ||
++    env.GITHUB_REF_PROTECTED !== "true" ||
++    env.GITHUB_WORKFLOW_REF !== identity.workflowRef ||
++    env.GITHUB_JOB !== "identity" ||
++    env.GITHUB_RUN_ATTEMPT !== "1" ||
++    env.TR01_VALIDATION_RESULT !== "success" ||
++    !/^[a-f0-9]{40}$/.test(env.TR01_C5_APPROVED_WORKFLOW_SHA ?? "") ||
++    env.GITHUB_WORKFLOW_SHA !== env.TR01_C5_APPROVED_WORKFLOW_SHA ||
++    env.GITHUB_SHA !== env.TR01_C5_APPROVED_WORKFLOW_SHA
++  ) {
++    throw new Error("Identity validation requires the approved C5 workflow SHA, successful dependency, and protected-main dispatch");
++  }
++}
++
++export async function validateAndPublishIdentity(env, request) {
++  assertTrustedInvocation(env);
++  const branchPath = `/repos/${identity.repository}/git/ref/heads/${identity.ref.slice("refs/heads/".length)}`;
++  const commitPath = `/repos/${identity.repository}/git/commits/${identity.sha}`;
++  const branch = await request("GET", branchPath);
++  if (
++    branch?.ref !== identity.ref ||
++    branch?.object?.type !== "commit" ||
++    branch?.object?.sha !== identity.sha
++  ) {
++    throw new Error("Protected successor ref does not point to the pinned C5 identity");
++  }
++  const commit = await request("GET", commitPath);
++  if (
++    commit?.sha !== identity.sha ||
++    commit?.tree?.sha !== identity.tree ||
++    commit?.parents?.length !== 1 ||
++    commit.parents[0]?.sha !== identity.parent
++  ) {
++    throw new Error("C5 commit parent or tree differs from the pinned review-package identity");
++  }
++  // Check the ref again so a changed tip cannot receive success based only on
++  // the first read. Ruleset update restrictions remain essential.
++  const confirmed = await request("GET", branchPath);
++  if (
++    confirmed?.ref !== identity.ref ||
++    confirmed?.object?.type !== "commit" ||
++    confirmed?.object?.sha !== identity.sha
++  ) {
++    throw new Error("Successor ref changed during identity validation");
++  }
++  const posted = await request("POST", `/repos/${identity.repository}/statuses/${identity.sha}`, {
++    state: "success",
++    context: identity.context,
++    description: "C5 identity and non-DB checks; pinned review-package identity; NOT TI-03 qualification",
++  });
++  if (
++    posted?.state !== "success" ||
++    posted?.context !== identity.context
++  ) {
++    throw new Error("GitHub did not confirm the C5 validation status response");
++  }
++}
++
++async function githubRequest(method, path, body) {
++  const token = process.env.GH_TOKEN;
++  if (!token) throw new Error("GitHub Actions token unavailable");
++  const response = await fetch(`https://api.github.com${path}`, {
++    method,
++    headers: {
++      Authorization: `Bearer ${token}`,
++      Accept: "application/vnd.github+json",
++      "X-GitHub-Api-Version": "2022-11-28",
++      ...(body ? { "Content-Type": "application/json" } : {}),
++    },
++    ...(body ? { body: JSON.stringify(body) } : {}),
++  });
++  if (!response.ok || (method === "POST" && response.status !== 201)) {
++    throw new Error(`GitHub ${method} ${path} failed (HTTP ${response.status})`);
++  }
++  return response.json();
++}
++
++if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
++  validateAndPublishIdentity(process.env, githubRequest).catch((error) => {
++    console.error(error.message);
++    process.exitCode = 1;
++  });
++}
+\ No newline at end of file
+diff --git a/scripts/ci/ledgerly-tr01-c5-identity-status.test.mjs b/scripts/ci/ledgerly-tr01-c5-identity-status.test.mjs
+new file mode 100644
+index 0000000..98c2728
+--- /dev/null
++++ b/scripts/ci/ledgerly-tr01-c5-identity-status.test.mjs
+@@ -0,0 +1,358 @@
++import assert from "node:assert/strict";
++import { execFileSync } from "node:child_process";
++import { readFile } from "node:fs/promises";
++import { resolve } from "node:path";
++import { test } from "node:test";
++import { fileURLToPath, pathToFileURL } from "node:url";
++import {
++  assertTrustedInvocation,
++  identity,
++  validateAndPublishIdentity,
++} from "./ledgerly-tr01-c5-identity-status.mjs";
++
++const workflowPath = fileURLToPath(
++  new URL("../../.github/workflows/ledgerly-tr01-c5-identity-status.yml", import.meta.url),
++);
++const workflowSource = await readFile(workflowPath, "utf8");
++const validationRoot = process.env.LEDGERLY_C5_VALIDATION_ROOT;
++
++const env = {
++  GITHUB_REPOSITORY: identity.repository,
++  GITHUB_EVENT_NAME: "workflow_dispatch",
++  GITHUB_REF: "refs/heads/main",
++  GITHUB_REF_PROTECTED: "true",
++  GITHUB_WORKFLOW_REF: identity.workflowRef,
++  GITHUB_JOB: "identity",
++  GITHUB_RUN_ATTEMPT: "1",
++  GITHUB_WORKFLOW_SHA: "a".repeat(40),
++  GITHUB_SHA: "a".repeat(40),
++  TR01_C5_APPROVED_WORKFLOW_SHA: "a".repeat(40),
++  TR01_VALIDATION_RESULT: "success",
++};
++const ref = {
++  ref: identity.ref,
++  object: { sha: identity.sha, type: "commit" },
++};
++const commit = {
++  sha: identity.sha,
++  tree: { sha: identity.tree },
++  parents: [{ sha: identity.parent }],
++};
++
++function stub(first = ref, object = commit, second = first, status = {
++  context: identity.context,
++  state: "success",
++}) {
++  const calls = [];
++  // Create-a-commit-status does not echo the target SHA.
++  const values = [first, object, second, status];
++  return {
++    calls,
++    request: async (...args) => {
++      calls.push(args);
++      return values[calls.length - 1];
++    },
++  };
++}
++
++test("the status producer is pinned to the exact C5 review-package identity", () => {
++  assert.deepEqual(identity, {
++    repository: "Future00111/ledgerpoint",
++    workflowRef: "Future00111/ledgerpoint/.github/workflows/ledgerly-tr01-c5-identity-status.yml@refs/heads/main",
++    ref: "refs/heads/tr01/implementation-identity-successor-c5",
++    sha: "3a5c6e1318b49edcdc7f0f918d3a01813f960e71",
++    parent: "6e8255949c3da130561f781614785f692796b621",
++    tree: "3f2e22ccceb70ea50034b41af352a125b63cf127",
++    context: "tr01/c5-identity-validation",
++  });
++});
++
++test("only the approved protected-main manual invocation is trusted", () => {
++  for (const [key, value] of [
++    ["GITHUB_REPOSITORY", "attacker/fork"],
++    ["GITHUB_EVENT_NAME", "pull_request"],
++    ["GITHUB_REF", identity.ref],
++    ["GITHUB_REF_PROTECTED", "false"],
++    ["GITHUB_WORKFLOW_REF", "Future00111/ledgerpoint/.github/workflows/ledgerly-tr01-c2-identity-status.yml@refs/heads/main"],
++    ["GITHUB_WORKFLOW_REF", "Future00111/ledgerpoint/.github/workflows/other.yml@refs/heads/main"],
++    ["GITHUB_JOB", "validate"],
++    ["GITHUB_RUN_ATTEMPT", "2"],
++    ["TR01_VALIDATION_RESULT", "skipped"],
++    ["TR01_VALIDATION_RESULT", "failure"],
++    ["TR01_C5_APPROVED_WORKFLOW_SHA", ""],
++    ["TR01_C5_APPROVED_WORKFLOW_SHA", "not-a-sha"],
++    ["TR01_C5_APPROVED_WORKFLOW_SHA", "b".repeat(40)],
++    ["GITHUB_WORKFLOW_SHA", "b".repeat(40)],
++    ["GITHUB_SHA", "b".repeat(40)],
++  ]) {
++    assert.throws(() => assertTrustedInvocation({ ...env, [key]: value }));
++  }
++  assert.throws(
++    () => assertTrustedInvocation({ ...env, TR01_C2_APPROVED_WORKFLOW_SHA: "a".repeat(40), TR01_C5_APPROVED_WORKFLOW_SHA: undefined }),
++  );
++});
++
++test("valid pinned C5 identity posts only the named success on the exact SHA", async () => {
++  const { calls, request } = stub();
++  await validateAndPublishIdentity(env, request);
++  assert.equal(calls.length, 4);
++  assert.deepEqual(calls.slice(0, 3).map(([method]) => method), ["GET", "GET", "GET"]);
++  assert.deepEqual(calls[3], [
++    "POST",
++    `/repos/${identity.repository}/statuses/${identity.sha}`,
++    {
++      state: "success",
++      context: "tr01/c5-identity-validation",
++      description: "C5 identity and non-DB checks; pinned review-package identity; NOT TI-03 qualification",
++    },
++  ]);
++});
++
++for (const [name, first, object, second] of [
++  ["missing branch", null, commit, ref],
++  ["C2 successor ref", { ...ref, ref: "refs/heads/tr01/implementation-identity-successor-c2" }, commit, ref],
++  ["wrong branch tip including C2 SHA", { ...ref, object: { sha: "3ab9edc28b4922ad82e68afb7b049d69514f91e1", type: "commit" } }, commit, ref],
++  ["noncommit tip", { ...ref, object: { sha: identity.sha, type: "tag" } }, commit, ref],
++  ["wrong commit SHA including C2 SHA", ref, { ...commit, sha: "3ab9edc28b4922ad82e68afb7b049d69514f91e1" }, ref],
++  ["wrong parent including C2 parent", ref, { ...commit, parents: [{ sha: "d292f3a64c6253e022b40de8cf055f3e722ff1ea" }] }, ref],
++  ["extra parent", ref, { ...commit, parents: [commit.parents[0], commit.parents[0]] }, ref],
++  ["wrong tree including C2 tree", ref, { ...commit, tree: { sha: "365303e152430560b828c88165dd8f4d03f2a4fc" } }, ref],
++  ["ref changes during validation", ref, commit, { ...ref, object: { sha: "3ab9edc28b4922ad82e68afb7b049d69514f91e1", type: "commit" } }],
++  ["ref changes type during validation", ref, commit, { ...ref, object: { sha: identity.sha, type: "tag" } }],
++]) {
++  test(`${name} cannot publish success`, async () => {
++    const { calls, request } = stub(first, object, second);
++    await assert.rejects(validateAndPublishIdentity(env, request));
++    assert.ok(calls.every(([method]) => method === "GET"));
++    assert.equal(calls.some(([method]) => method === "POST"), false);
++  });
++}
++
++test("an upstream API failure cannot publish success", async () => {
++  const calls = [];
++  await assert.rejects(
++    validateAndPublishIdentity(env, async (method) => {
++      calls.push(method);
++      throw new Error("HTTP 403");
++    }),
++  );
++  assert.deepEqual(calls, ["GET"]);
++});
++
++for (const [name, status] of [
++  ["C2 identity context", { context: "tr01/c2-identity-validation", state: "success" }],
++  ["unauthorized context", { context: "other/status", state: "success" }],
++  ["failure state", { context: identity.context, state: "failure" }],
++  ["missing status fields", {}],
++]) {
++  test(`a ${name} status response is rejected`, async () => {
++    const { calls, request } = stub(ref, commit, ref, status);
++    await assert.rejects(validateAndPublishIdentity(env, request), /did not confirm/);
++    assert.equal(calls.filter(([method]) => method === "POST").length, 1);
++  });
++}
++
++test("untrusted invocation makes no API calls", async () => {
++  for (const change of [
++    { GITHUB_REF_PROTECTED: "false" },
++    { GITHUB_WORKFLOW_REF: "Future00111/ledgerpoint/.github/workflows/ledgerly-tr01-c2-identity-status.yml@refs/heads/main" },
++    { TR01_VALIDATION_RESULT: "skipped" },
++    { TR01_C5_APPROVED_WORKFLOW_SHA: "" },
++    { GITHUB_WORKFLOW_SHA: "b".repeat(40) },
++    { GITHUB_SHA: "b".repeat(40) },
++  ]) {
++    const { calls, request } = stub();
++    await assert.rejects(validateAndPublishIdentity({ ...env, ...change }, request));
++    assert.equal(calls.length, 0);
++  }
++});
++
++test("workflow is manual-only and limits validation to protected main", () => {
++  const triggers = workflowSource.match(/^on:\n([\s\S]*?)(?=^permissions:)/m)?.[1];
++  const validateJob = workflowSource.match(/^  validate:\n([\s\S]*?)(?=^  identity:)/m)?.[1];
++  assert.ok(triggers);
++  assert.match(triggers, /^\s+workflow_dispatch:\s*$/m);
++  assert.doesNotMatch(triggers, /^\s+(?:push|pull_request|schedule|workflow_call):/m);
++  assert.ok(validateJob);
++  assert.match(validateJob, /github\.repository == 'Future00111\/ledgerpoint'/);
++  assert.match(validateJob, /github\.ref == 'refs\/heads\/main'/);
++  assert.match(validateJob, /github\.ref_protected == true/);
++});
++
++test("workflow separates read-only validation from the protected status writer", () => {
++  const validateJob = workflowSource.match(/^  validate:\n([\s\S]*?)(?=^  identity:)/m)?.[1];
++  const identityJob = workflowSource.match(/^  identity:\n([\s\S]*)$/m)?.[1];
++  assert.ok(validateJob);
++  assert.ok(identityJob);
++  assert.match(validateJob, /permissions:\n\s+contents: read/);
++  assert.doesNotMatch(validateJob, /statuses:\s*write/);
++  assert.match(identityJob, /needs: validate/);
++  assert.match(identityJob, /needs\.validate\.result == 'success'/);
++  assert.match(identityJob, /github\.repository == 'Future00111\/ledgerpoint'/);
++  assert.match(identityJob, /github\.ref == 'refs\/heads\/main'/);
++  assert.match(identityJob, /github\.ref_protected == true/);
++  assert.match(identityJob, /environment:\n\s+name: ledgerly-canonical/);
++  assert.match(identityJob, /permissions:\n\s+contents: read\n\s+statuses: write/);
++});
++
++test("workflow pins immutable C5 and both checkout paths disable credential persistence", () => {
++  const identityJob = workflowSource.match(/^  identity:\n([\s\S]*)$/m)?.[1];
++  assert.match(workflowSource, /ref: 3a5c6e1318b49edcdc7f0f918d3a01813f960e71/);
++  assert.match(workflowSource, /git rev-parse HEAD\^\{tree\}.*3f2e22ccceb70ea50034b41af352a125b63cf127/);
++  assert.match(workflowSource, /git rev-parse HEAD\^.*6e8255949c3da130561f781614785f692796b621/);
++  assert.match(workflowSource, /git rev-list --parents -n 1 HEAD \| wc -w.*-eq 2/);
++  assert.match(workflowSource, /persist-credentials: false/);
++  assert.match(workflowSource, /ref: \$\{\{ github\.sha \}\}/);
++  assert.ok(identityJob);
++  assert.match(identityJob, /persist-credentials: false/);
++  assert.match(identityJob, /TR01_C5_APPROVED_WORKFLOW_SHA: \$\{\{ vars\.TR01_C5_APPROVED_WORKFLOW_SHA \}\}/);
++  assert.doesNotMatch(workflowSource, /TR01_C2_APPROVED_WORKFLOW_SHA/);
++});
++
++test("workflow runs pinned-source non-DB checks and an offline-build-only Docker smoke", () => {
++  const fixture = workflowSource.match(/const fixture = \{([\s\S]*?)\n\s+\};/)?.[1];
++  assert.match(workflowSource, /node --check scripts\/ci\/run-ledgerly-canonical-postgresql\.mjs/);
++  assert.match(workflowSource, /pnpm run typecheck:libs/);
++  assert.match(workflowSource, /pnpm run typecheck/);
++  assert.match(workflowSource, /pnpm install --frozen-lockfile --ignore-scripts/);
++  assert.match(workflowSource, /DOCKER_BUILDKIT: "1"/);
++  assert.match(workflowSource, /--file \.ci\/ledgerly-canonical\/Dockerfile\.test/);
++  assert.match(workflowSource, /--tag "\$image"/);
++  assert.match(workflowSource, /ledgerly-tr01-c5-offline-pnpm-smoke:local/);
++  assert.match(workflowSource, /LEDGERLY_OFFLINE_PNPM_TEST_IMAGE="\$image"\s+\\\s*node --test scripts\/ci\/ledgerly-offline-pnpm\.test\.mjs/);
++  assert.match(workflowSource, /"\.dockerignore"[\s\S]*"\.github"[\s\S]*"scripts"[\s\S]*"pnpm-lock\.yaml"/);
++  assert.ok(fixture);
++  assert.match(fixture, /fixturePurpose: "offline-build-only"/);
++  assert.match(fixture, /notQualificationEvidence: true/);
++  assert.match(fixture, /version: 1/);
++  assert.match(fixture, /qualificationWorkflowSha256: hashes\[qualificationWorkflow\]/);
++  assert.doesNotMatch(fixture, /\b(?:schemaVersion|result|ci)\s*:/);
++});
++
++test("workflow wires this contract suite against same-event protected-main code after C5 install", () => {
++  const producerCheckout = workflowSource.match(
++    /- name: Checkout same-event protected-main producer tests\n([\s\S]*?)(?=\n      - name: Validate C5)/,
++  )?.[1];
++  assert.ok(producerCheckout);
++  assert.match(producerCheckout, /uses: actions\/checkout@11bd71901bbe5b1630ceea73d27597364c9af683/);
++  assert.match(producerCheckout, /ref: \$\{\{ github\.sha \}\}/);
++  assert.match(producerCheckout, /path: \.local\/tr01-c5-producer/);
++  assert.match(producerCheckout, /persist-credentials: false/);
++  assert.match(workflowSource, /pnpm install --frozen-lockfile --ignore-scripts[\s\S]*?LEDGERLY_C5_VALIDATION_ROOT="\$GITHUB_WORKSPACE" node --test \.local\/tr01-c5-producer\/scripts\/ci\/ledgerly-tr01-c5-identity-status\.test\.mjs/);
++});
++
++test("offline-build-only source fixture is rejected by actual C5 validation before hashing or qualification", {
++  skip: !validationRoot,
++}, async () => {
++  const root = resolve(validationRoot);
++  const modulePath = resolve(root, "scripts/ci/run-ledgerly-canonical-postgresql.mjs");
++  const expectedSha = "3a5c6e1318b49edcdc7f0f918d3a01813f960e71";
++  assert.equal(execFileSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" }).trim(), expectedSha);
++  const c5Source = await readFile(modulePath, "utf8");
++  const fixtureGuardOffset = c5Source.indexOf("manifest?.version !== 2");
++  const sourceHashOffset = c5Source.indexOf("const sourceTree = await sha256Files");
++  const databaseStartOffset = c5Source.indexOf("await startPostgres(credentials.postgresPassword)");
++  assert.ok(fixtureGuardOffset >= 0);
++  assert.ok(sourceHashOffset > fixtureGuardOffset);
++  assert.ok(databaseStartOffset > sourceHashOffset);
++
++  const { buildTrustedEvidenceContext } = await import(pathToFileURL(modulePath).href);
++  const branch = "refs/heads/tr01/implementation-identity-successor-c5";
++  const environment = {
++    GITHUB_ACTIONS: "true",
++    GITHUB_EVENT_NAME: "workflow_dispatch",
++    GITHUB_REF: branch,
++    GITHUB_REF_PROTECTED: "true",
++    GITHUB_REPOSITORY: identity.repository,
++    GITHUB_WORKFLOW: "Ledgerly canonical PostgreSQL qualification",
++    GITHUB_WORKFLOW_REF: `${identity.repository}/.github/workflows/ledgerly-canonical-postgresql.yml@${branch}`,
++    GITHUB_JOB: "canonical-postgresql",
++    GITHUB_SHA: expectedSha,
++    GITHUB_RUN_ID: "offline-fixture-regression",
++    GITHUB_RUN_ATTEMPT: "1",
++    LEDGERLY_IDENTITY_MODE: "candidate",
++    LEDGERLY_APPROVED_CANDIDATE_SHA: expectedSha,
++    LEDGERLY_IMPLEMENTATION_SOURCE_SHA: expectedSha,
++    LEDGERLY_WORKFLOW_ROOT: root,
++  };
++  const previousEnvironment = new Map(
++    Object.keys(environment).map((key) => [key, process.env[key]]),
++  );
++  Object.assign(process.env, environment);
++  const ci = {
++    provider: "github-actions",
++    repository: identity.repository,
++    workflow: "Ledgerly canonical PostgreSQL qualification",
++    workflowRef: environment.GITHUB_WORKFLOW_REF,
++    runId: environment.GITHUB_RUN_ID,
++    runAttempt: "1",
++    job: "canonical-postgresql",
++    workflowSourceCommit: expectedSha,
++    implementationSourceCommit: expectedSha,
++    identityMode: "candidate",
++    sourceRef: branch,
++    refProtected: true,
++    ancestryVerified: true,
++    workflowCheckoutClean: true,
++    implementationCheckoutClean: true,
++  };
++  const offlineBuildFixture = {
++    version: 1,
++    fixturePurpose: "offline-build-only",
++    notQualificationEvidence: true,
++    sourceCommit: expectedSha,
++    files: [],
++    sourceTreeSha256: "0".repeat(64),
++  };
++  try {
++    await assert.rejects(
++      buildTrustedEvidenceContext(ci, offlineBuildFixture),
++      /Trusted implementation source manifest is unavailable or invalid/,
++    );
++  } finally {
++    for (const [key, value] of previousEnvironment) {
++      if (value === undefined) delete process.env[key];
++      else process.env[key] = value;
++    }
++  }
++});
++
++test("old C3 invocation and remote identity cannot publish C5 success", async () => {
++  for (const overrides of [
++    { GITHUB_WORKFLOW_REF: "Future00111/ledgerpoint/.github/workflows/ledgerly-tr01-c3-identity-status.yml@refs/heads/main" },
++    { TR01_C5_APPROVED_WORKFLOW_SHA: undefined, TR01_C3_APPROVED_WORKFLOW_SHA: "a".repeat(40) },
++  ]) {
++    const { calls, request } = stub();
++    await assert.rejects(validateAndPublishIdentity({ ...env, ...overrides }, request));
++    assert.equal(calls.length, 0);
++  }
++  for (const [first, object] of [
++    [{ ...ref, ref: "refs/heads/tr01/implementation-identity-successor-c3" }, commit],
++    [{ ...ref, object: { sha: "1c26be19295902a38e1939b56ff99ae9a195d3de", type: "commit" } }, commit],
++    [ref, { ...commit, sha: "1c26be19295902a38e1939b56ff99ae9a195d3de" }],
++  ]) {
++    const { calls, request } = stub(first, object, ref);
++    await assert.rejects(validateAndPublishIdentity(env, request));
++    assert.equal(calls.some(([method]) => method === "POST"), false);
++  }
++});
++
++test("old C4 invocation and remote identity cannot publish C5 success", async () => {
++  for (const overrides of [
++    { GITHUB_WORKFLOW_REF: "Future00111/ledgerpoint/.github/workflows/ledgerly-tr01-c4-identity-status.yml@refs/heads/main" },
++    { TR01_C5_APPROVED_WORKFLOW_SHA: undefined, TR01_C4_APPROVED_WORKFLOW_SHA: "a".repeat(40) },
++  ]) {
++    const { calls, request } = stub();
++    await assert.rejects(validateAndPublishIdentity({ ...env, ...overrides }, request));
++    assert.equal(calls.length, 0);
++  }
++  for (const [first, object] of [
++    [{ ...ref, ref: "refs/heads/tr01/implementation-identity-successor-c4" }, commit],
++    [{ ...ref, object: { sha: "273f714c876260636346b7fbcc588224e9795141", type: "commit" } }, commit],
++    [ref, { ...commit, sha: "273f714c876260636346b7fbcc588224e9795141" }],
++  ]) {
++    const { calls, request } = stub(first, object);
++    await assert.rejects(validateAndPublishIdentity(env, request));
++    assert.ok(calls.length <= 2);
++  }
++});
+-- 
+2.54.0
+

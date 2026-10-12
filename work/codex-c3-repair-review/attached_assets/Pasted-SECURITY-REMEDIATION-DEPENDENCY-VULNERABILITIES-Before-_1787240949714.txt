@@ -1,0 +1,169 @@
+SECURITY REMEDIATION — DEPENDENCY VULNERABILITIES
+
+Before Ledgerpoint is published, perform a controlled security remediation of the dependency vulnerabilities identified by the Replit security scanner.
+
+The current security scan reports 17 active HIGH severity vulnerabilities, including dependencies such as:
+
+- brace-expansion v1.1.12
+- minimatch v3.1.2
+- rollup v4.57.1
+- flatted v3.3.3
+- socket.io-parser v4.2.5
+- picomatch v2.3.1
+- picomatch v4.0.3
+- vite v6.4.1
+- postcss v8.5.6
+- lodash v4.17.23
+
+IMPORTANT:
+
+This is a SECURITY/DEPENDENCY task only.
+
+Do NOT redesign Ledgerpoint.
+Do NOT change the accounting model.
+Do NOT change VAT calculation behaviour.
+Do NOT change reconciliation behaviour.
+Do NOT change invoice matching logic.
+Do NOT change collections logic.
+Do NOT change bank transaction logic.
+Do NOT change permissions or authentication unless a dependency upgrade specifically requires a compatibility adjustment.
+Do NOT remove existing security controls.
+Do NOT replace working libraries with unrelated alternatives simply to silence the scanner.
+
+OBJECTIVES
+
+1. Inspect the complete dependency tree.
+
+2. Run the appropriate package-manager security audit and identify:
+   - direct dependencies
+   - transitive dependencies
+   - vulnerable versions
+   - fixed versions
+   - whether each vulnerability is actually reachable in the production application
+   - whether the vulnerability affects development tooling only or production runtime code.
+
+3. For every vulnerable dependency, determine the safest available remediation:
+   - upgrade to the latest compatible patched version where possible
+   - use a safe package-manager resolution/override where the vulnerability is transitive
+   - only use a major-version upgrade where necessary and verify compatibility
+   - do not downgrade packages to avoid the scanner.
+
+4. Pay particular attention to:
+   - Vite
+   - Rollup
+   - minimatch
+   - brace-expansion
+   - flatted
+   - socket.io-parser
+   - picomatch
+   - postcss
+   - lodash
+
+5. Inspect package-lock/package.json and the full dependency graph before changing versions.
+
+6. Do not blindly run a "fix everything" operation if it would introduce unrelated major upgrades or break the application.
+
+7. Apply the smallest safe set of dependency changes necessary to remove the vulnerabilities.
+
+8. After upgrading dependencies:
+   - run API typecheck
+   - run frontend typecheck
+   - run production build
+   - run the complete existing regression suite
+   - run reconciliation tests
+   - run matcher/invoice matching tests
+   - run collections tests
+   - run VAT tests
+   - run authenticated HTTP/API tests
+   - run authenticated browser/UI validation.
+
+9. Specifically verify that these existing capabilities still work:
+
+   BANK RECONCILIATION
+   - bank transactions load correctly
+   - invoice matching still works
+   - exact matches still work
+   - partial matches still work
+   - unmatched transactions still work
+   - approval still works
+   - duplicate protection remains intact.
+
+   AI ACCOUNTANT
+   - AI service still loads correctly
+   - askAI still works
+   - AI provider abstraction remains intact
+   - API keys remain server-side
+   - no secrets are exposed to the browser.
+
+   VAT
+   - VAT calculations remain deterministic
+   - VAT approval locks remain enforced server-side
+   - locked returns cannot be modified through generic CRUD
+   - existing VAT scenarios continue to pass.
+
+   AUTHENTICATION / AUTHORISATION
+   - Clerk authentication still works
+   - company/tenant isolation remains intact
+   - read-only users remain read-only
+   - company-scoped API protection remains intact.
+
+10. Re-run the security scanner after remediation.
+
+11. Do not mark a vulnerability as "dismissed" simply because it is inconvenient.
+
+12. If a vulnerability cannot safely be fixed because it comes from a transitive dependency or an incompatible package version, report:
+   - package
+   - vulnerability
+   - dependency path
+   - available fixed version
+   - why it cannot currently be upgraded
+   - whether it affects production runtime
+   - recommended next action.
+
+13. If a vulnerability is development-only and cannot affect the production runtime, clearly identify it as such rather than making unnecessary application changes.
+
+14. Preserve the current database schema and existing data.
+
+15. Do not create migrations unless genuinely required by the dependency upgrade. If a migration is required, stop and explain it before applying it.
+
+16. Create a checkpoint before making changes.
+
+17. Make the changes in a focused security remediation task so they can be reviewed independently.
+
+18. After all changes, provide a concise final report containing:
+
+SECURITY RESULT
+- vulnerabilities before
+- vulnerabilities after
+- HIGH severity remaining
+- MEDIUM severity remaining
+- LOW severity remaining
+
+DEPENDENCY CHANGES
+- package
+- old version
+- new version
+- reason
+
+APPLICATION VERIFICATION
+- API build
+- frontend build
+- regression tests
+- reconciliation tests
+- matcher tests
+- VAT tests
+- collections tests
+- authenticated browser test
+
+SECURITY VERIFICATION
+- secrets still server-side
+- authentication intact
+- authorisation intact
+- company isolation intact
+- VAT locks intact
+
+IMPORTANT:
+If the security scanner reports zero remaining HIGH vulnerabilities and all application/regression tests pass, mark this task complete.
+
+Do not publish the application as part of this task.
+Do not move on to a new feature.

@@ -1,0 +1,344 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "ledgerly-44-fixture-reset-authorisation",
+  "executionId": "61b777ee-4ecb-479a-9d95-6bf2054241d7",
+  "environment": "development",
+  "database": "heliumdb",
+  "principal": "postgres",
+  "approvedOperation": "exact-70-row-one-time-fixture-disposition",
+  "approvalSource": {
+    "path": "docs/ledgerly-44-test-isolation-and-development-fixture-disposition-approval-package.md",
+    "sha256": "4aa1ad0dbb6adfc17f5626a5053a13d29cfde7feb65b0eb60eba21e69531e31e"
+  },
+  "observedIdentity": {
+    "database": "heliumdb",
+    "current_user": "postgres",
+    "session_user": "postgres",
+    "observed_at": "2026-08-26T15:15:42.819Z"
+  },
+  "triggerStateBefore": [
+    {
+      "tgname": "ledgerly_accounting_audit_events_guard",
+      "tgenabled": "A"
+    },
+    {
+      "tgname": "ledgerly_accounting_posting_effects_guard",
+      "tgenabled": "A"
+    },
+    {
+      "tgname": "ledgerly_canonical_journal_entries_guard",
+      "tgenabled": "A"
+    },
+    {
+      "tgname": "ledgerly_canonical_journal_lines_guard",
+      "tgenabled": "A"
+    },
+    {
+      "tgname": "ledgerly_canonical_journal_relations_guard",
+      "tgenabled": "A"
+    }
+  ],
+  "manifest": {
+    "companies": [
+      {
+        "id": "33d1466a-a116-4bb7-bc82-a44fb38259c3",
+        "sha256": "49c447589b73cf7821aa02a3a6299ba35e5268ca6e31a0be4ee6bd15fbf5131a"
+      },
+      {
+        "id": "59f25ad4-c123-4db2-b50f-8c2f7360e3ea",
+        "sha256": "f0c9b926df0c7bc8775ebc25cd0c61358f7090d7e0f3fa4db029e034f57b4e11"
+      },
+      {
+        "id": "74ee2198-2196-40fc-8eb3-2aa038f48358",
+        "sha256": "a2e32ee642274933dba479a3fbaf130769e8198f7a0cc4e6d64a16df9cfa7178"
+      },
+      {
+        "id": "7ac6faa1-b623-45d5-b8c2-e8d995dbc5da",
+        "sha256": "967357cba49bfb45dd864fd11319b2e1b9fbef9f24aa8100f627131fe56c9443"
+      },
+      {
+        "id": "8944dfd1-4a76-41d3-be5f-1c9267c1f0c3",
+        "sha256": "d742714381b0d2e33a1d2d5074dbb6558b5ae75e010fa4964a043d81d7d5bbab"
+      },
+      {
+        "id": "bcb3569f-703f-46e8-b554-f0447c2d78df",
+        "sha256": "2da12a14de8b8bdbc579e486b2ae5f3de7489aefd4cf9b630714cc1a2e791796"
+      }
+    ],
+    "company_users": [
+      {
+        "id": "482ad404-a6c1-4cbe-87b7-251f0c60455c",
+        "sha256": "c751e9afa7e1a2e9d80c2e575a39c0159ade36d9252c3c9a0e9a34e582a286c8"
+      },
+      {
+        "id": "62701379-ff84-4b4f-b1aa-112794272e11",
+        "sha256": "5c5762fbbc44f9eec07b519c9a624bb48d8e554bd441be40326d5679f0dcf08d"
+      },
+      {
+        "id": "b100ad18-fbc1-4bd2-8245-fe8c1834e457",
+        "sha256": "838da6326b0fb86259e53288a2035904e9d7e489b60f6d21b30e5f3782261ae5"
+      },
+      {
+        "id": "df3484d7-19bc-4707-bf82-ac0aed39c17d",
+        "sha256": "d9c0eec57476290a444d0e985bbfb616bd5c6cb0077f9ea2e2cda60431cb8dd1"
+      }
+    ],
+    "chart_of_accounts": [
+      {
+        "id": "0a52732b-f2a9-4b2c-a88b-2fb1469c297b",
+        "sha256": "0396463a15c7865ecdb6538787fdc2eb1b4af8a2bd1c7bd57ab59f9069b31336"
+      },
+      {
+        "id": "0b68665a-9f34-47be-b93c-b2c59619151c",
+        "sha256": "281c473a3afae251fdf9680147cd1e0b74139bb281799d0739db8035c19aacf1"
+      },
+      {
+        "id": "3d8fd152-aa40-4217-9520-53e9093feaf9",
+        "sha256": "c0b26b51807980122b8cb4bd709af192d6e83bc85c00cdc294a98b7ca72f0c84"
+      },
+      {
+        "id": "3ed069a5-1cbb-46c2-813f-8a86248d45eb",
+        "sha256": "ed438454aa0ed5b14d8f7c72599e4d75a8c399c108e32101b50b0b0dc0d31f17"
+      },
+      {
+        "id": "4c68a3d2-1b3e-4c15-b01d-02c188778524",
+        "sha256": "42d92b4691f87f0be029996d2d34be8c258d58dc9a3836125fe22895bf19882f"
+      },
+      {
+        "id": "70574587-7f55-465e-bf3d-8578ec2c5543",
+        "sha256": "a2f03fa7b9b70c539029be0055bd77fd3fa6895afde333a40846c3f347454060"
+      },
+      {
+        "id": "a48dd79e-1e74-48f7-9c1c-57af4d37eb52",
+        "sha256": "05c34a3b466c4483e3907ba986e89030430a1a6421ea3e2b021afbd30e8332d9"
+      },
+      {
+        "id": "b91d4a2a-8a35-4114-bc5f-39fad7fb9a3d",
+        "sha256": "215f69b870756a7fb8b9da978fb2b2fbaa6c67a395382a30b225cb06369bd36b"
+      },
+      {
+        "id": "c681f473-e649-43e6-9209-4b88edc21cc9",
+        "sha256": "67aa0892524f3d9a2cd8b48c645288496b180fd8a5a3a8207c1900892e1a9f1f"
+      }
+    ],
+    "workflow_activities": [
+      {
+        "id": "02e76830-74d0-4d5d-abe2-3d3657adc515",
+        "sha256": "1db6928dd345fa219a5326b0291945bd38ec5cbdada701032f1ff57ff87451ec"
+      },
+      {
+        "id": "47c38407-cf8f-443b-a68a-962344febf2b",
+        "sha256": "6d79b2081c71951ad0956e6a27958a4f8394f9c325fa8a3d98ad140ed442d08e"
+      },
+      {
+        "id": "548f2696-19cd-47cf-b6b2-f9cf5c0c760f",
+        "sha256": "3f8c7f0ead3d960ddac46637c0758c0966b35d08c280225c3d5035b51ba782d1"
+      },
+      {
+        "id": "649ab708-69c4-4e30-a95c-de3512627bd2",
+        "sha256": "9766980f6ec4ee4af4b669b201c1d790bacf1a8f25651b426c926763dcfe4dde"
+      },
+      {
+        "id": "c8c30ab7-3d07-4765-b5e2-7cb179218eb1",
+        "sha256": "4eb4d820d3607c57bab6bad0e0df3935005a5f172f88e570c4c49f34960c050c"
+      },
+      {
+        "id": "eb4a7b03-f53e-441c-af7f-5e0b683d0967",
+        "sha256": "fd5b9ced5137be5f49db9f30488128b3e88cc3351042f34e346dd280cca8803b"
+      }
+    ],
+    "accounting_posting_effects": [
+      {
+        "id": "2b07281f-aecf-4d46-97dc-c3e7e2ab21e5",
+        "sha256": "80de902155299057621ecea703f1049bf5ebd6cc7ae614960727e74b86670898"
+      },
+      {
+        "id": "3df3c0d2-b84b-47b1-aff7-498fcd0f0bee",
+        "sha256": "660177981792fb15440bc78b5b636376da6e4017779f42af7591959eaa02e926"
+      },
+      {
+        "id": "759c661d-170f-41a5-a5e0-327e27d69236",
+        "sha256": "52108442ee888e6ac37fb747ec2bf3fb393ff52acafee77eca0b940bfdaff97b"
+      },
+      {
+        "id": "88dd2d7f-b868-4c5c-8d5e-92d15ee000e2",
+        "sha256": "639d5102a980023f6208b9a1d4c2165dbf24424614dba9dc8fdd0bbcaa2482a6"
+      },
+      {
+        "id": "9d31b3e6-557c-41a9-bf67-38611e8d3c1b",
+        "sha256": "401dca1a4603cc6d93f7325cd53f3e56739d8964d29ef8dbe0e078d00da334c5"
+      },
+      {
+        "id": "a1845b4d-38e6-4791-859a-2121f7b4b1e4",
+        "sha256": "55bc0ac028a9b180f8a18b642c8fc720e7e949a64e609bab7713c0a0dba9cda5"
+      },
+      {
+        "id": "b3021e41-d35a-49db-a496-c9c0ee61c7fb",
+        "sha256": "906074cfa5dea24fdcf89dbc34aa309c1b41f2c58c07a5e7501b60412484d5c2"
+      },
+      {
+        "id": "f74d4f48-b447-42fc-9a51-95e939e815f0",
+        "sha256": "56d6b1eea6a9e214d8a7379257ac20d3a58eb14c6fcdc37648d55d73cba587a0"
+      }
+    ],
+    "canonical_journal_entries": [
+      {
+        "id": "18fc4700-9ab5-4529-b24f-419956c32b2d",
+        "sha256": "b9b54bd396fd9aed40a693d4cd0e63a10e2f90314aac416183c3f5b47d20c959"
+      },
+      {
+        "id": "569fc54b-7e5d-4f19-bde7-bc9649d8cdb5",
+        "sha256": "7383e049d4b29932da3786fbe0d686b4c9c12f4706b26501e05b1a44469b9684"
+      },
+      {
+        "id": "62d10e95-3096-4549-bfc4-3df179dc05f0",
+        "sha256": "33282a566fcd4eabb111eda97a7ffee76a958cb971dfa7991dfdf0a08d56da80"
+      },
+      {
+        "id": "728557d8-053c-4ab8-adc0-8b79c7d014c3",
+        "sha256": "484854c45041b08a9ffc38f5fa895c1666856adaf28a2aa1b1c1b50f6433c9c9"
+      },
+      {
+        "id": "8c60c3de-7767-40c6-a577-fbbba2d4469b",
+        "sha256": "55d1d331f0daad230fccf76027e2b5a0c2c73697caa0481573c53015ab620204"
+      },
+      {
+        "id": "c3ac57c1-459b-4314-9fca-33aba8ad1a85",
+        "sha256": "b4df643ab75cf23d7942e2bca26fc951d543694151b21fbd2fe0f6fdf4099460"
+      },
+      {
+        "id": "ea74845a-54a7-4f72-9759-d58e8a058f1e",
+        "sha256": "0a264399362c62c80f7644872b70058691aa9fdb85f64e5baa6833a9d3e3ee55"
+      },
+      {
+        "id": "ee0b276b-c59d-4830-ab18-939766a56905",
+        "sha256": "5c1921e076eb6b40e35d88850777628cde3309d5ff7506195b0967def2b5ace7"
+      }
+    ],
+    "canonical_journal_lines": [
+      {
+        "id": "13ba4be3-6d21-481b-9515-4d1ce64e26f0",
+        "sha256": "89154f25e33c38bdaa62254d8d0090a6de15edc78c76e0c1d1616ae5fe7d20e1"
+      },
+      {
+        "id": "14bbb0a9-e0c3-46f8-839d-365088ee84c5",
+        "sha256": "908c41f6d5120faaf571317950c48f12dad554cbc40e2d4b60700bf15c5c48c9"
+      },
+      {
+        "id": "16ee8ddb-4a0d-4cde-bc46-56c11e8775b6",
+        "sha256": "bdeb8ee5af8eb93cab2921d4363c601e28142169f920b4624eb5bbd7353a9945"
+      },
+      {
+        "id": "187c299f-3114-4b18-8973-cbe14df80cf7",
+        "sha256": "374a6bfe48a8df4036ccc4cd909d7b76d7354e8f190e7b31d95ab8ab9b4e84fa"
+      },
+      {
+        "id": "315a9356-6ad9-4d59-8885-65b4378ad9b5",
+        "sha256": "721fb2bf2507c91df94fc400b6f0091c601f470e0229e67db37d068235db0f54"
+      },
+      {
+        "id": "3ef5c622-c6a9-4fce-bb32-039e20754d28",
+        "sha256": "7aaf8e30defb812edfc250539e0d258a9196d8c406ccb6d85ec8bf4ae3ab23b5"
+      },
+      {
+        "id": "4341e206-4c37-4fe4-9871-b50bb7353e4a",
+        "sha256": "c6bdf167b85a9f1111580ef1bbf7b656a6be33847be177f3717a6db41d131222"
+      },
+      {
+        "id": "47e11527-0c66-436a-9dc7-82e4dd35c452",
+        "sha256": "121769d9eca13f6a88e4eae1e25951e3402f9607693a941bae20886a4f8ada6e"
+      },
+      {
+        "id": "7fdb63ad-d615-4119-8732-a028082db72e",
+        "sha256": "c2272b0d2bb6cf11aca4496c7c08f708a34d9d7162cb005429bd4c0e08440676"
+      },
+      {
+        "id": "81e299b1-10ef-4e85-ad87-5b12051cbfe7",
+        "sha256": "9263425d1bb9522f954badb2e3b779b172962618f4f08dcb8d75f3e36a264fa2"
+      },
+      {
+        "id": "969e434c-a24b-497f-a332-14a5d32b6364",
+        "sha256": "97f064421bc895099f70d3ff327fd44f089cb1e25c752e66b5024c37660c16fc"
+      },
+      {
+        "id": "a8551afb-4a47-401e-a2b3-0e21b50398ee",
+        "sha256": "c12ee6cc9a9c43d40ad22c8a90b3fa973d5913b5ff626ae7038a5c55c2b901d7"
+      },
+      {
+        "id": "a9dd170b-438c-4fb0-b224-8c835affd3f6",
+        "sha256": "daa6acd6e28aacff219d6e85ad2bbb14c89f98171fa73cda107975878d2f4994"
+      },
+      {
+        "id": "d55b5121-7826-4bf9-927e-cde76a57c96c",
+        "sha256": "29d26fa6684487bf66c43cbe2d2255971ed08b5001423c423dbafb5ff21cde89"
+      },
+      {
+        "id": "d6b072ed-2a65-4387-aa6b-6d6610549f2b",
+        "sha256": "c3303c1c29c8ec2455b8701d6b97ddc8bf2b05b8b80339190e9ab162749c203e"
+      },
+      {
+        "id": "e8b033ec-192e-4b0f-9c06-f1688d0ba620",
+        "sha256": "80b53577084eb5168141223d963050f1bc2f2c2fd6ad81a729c765c5b0a49032"
+      }
+    ],
+    "canonical_journal_relations": [
+      {
+        "id": "0020f939-26d6-4ec3-a2ff-5423ce360c92",
+        "sha256": "734ca47330b47a6d48a72c2d592005ed420d0cce5b8382565c57b4df89c4f8ff"
+      },
+      {
+        "id": "565faf13-e333-4b34-9d42-bfb6fa9cf90e",
+        "sha256": "4d53377abd2bafff0ac369ee2667a2c0b6453d00c3ebad71b7a1f03f983df8f5"
+      },
+      {
+        "id": "5926e425-acaf-425c-9222-b99012322a86",
+        "sha256": "5523e0a2384173c58859068ba9202f3d99bba5557981a84613a9bb33af105acf"
+      },
+      {
+        "id": "801ffde1-9088-42b4-a81e-0e5d8fa29eb5",
+        "sha256": "aa6b25d591130a0f5952fff545974ac58cea27c5a55874bc243f22da88ad3cd2"
+      },
+      {
+        "id": "e099ba48-312f-41f2-84e6-822a6dd9dde0",
+        "sha256": "aaa5f5f35dc25bf3f14857e4994882c8e5bb7ae11e3e4eb6b0704009aa983035"
+      }
+    ],
+    "accounting_audit_events": [
+      {
+        "id": "28dc305b-cbd5-41d7-84de-8b1abb933af4",
+        "sha256": "d1f282e688448592222d0c81941d23eff5ee10a462b83152d23cfc8f6199e887"
+      },
+      {
+        "id": "3cc91be6-003b-4bba-a42e-fee020a4002a",
+        "sha256": "51f5f60aa17f868f90b378a7b44547a6961d29fe3e86183a8067ea946029d7f4"
+      },
+      {
+        "id": "595aba89-cf57-4eb1-801a-df0f2624a4e8",
+        "sha256": "08452082ba5ae012ac6b059938d89eb1c071323424030444a03fe3df34b5fa21"
+      },
+      {
+        "id": "6745056a-ef50-4b0c-9de1-f1e6d6736f57",
+        "sha256": "d7eeb4e11293678d780d84e286d71359f1475c680c00b7b1a2efc6b168345237"
+      },
+      {
+        "id": "73adc49c-bbb2-4060-8788-eb51d0d6f02d",
+        "sha256": "d2e9a91f83ad0511775970421e8b21b363dd0a98e01954b1d96633f35a300117"
+      },
+      {
+        "id": "8143b469-04fe-44d0-8807-2854b80b3cdb",
+        "sha256": "b9b2e05c6f62b0b01997c5907ace4927b523f5887f1afa7165274c15bdb9fd12"
+      },
+      {
+        "id": "9b0bcd5c-f32b-4467-91b0-847496af4bdb",
+        "sha256": "335c2a857407b516b397822ec5076de5b888b51ccc21a1faffa71272b1873d46"
+      },
+      {
+        "id": "9e93b7bb-2ffc-498c-9bc8-5786614644f8",
+        "sha256": "992f13fc5358ca497a34414f82535e5f0f0707ba1ce000989819f9ac8dee01f7"
+      }
+    ]
+  },
+  "manifestRowCount": 70,
+  "deletionPredicatePolicy": "exact-row-ids-only; company_id predicates forbidden",
+  "productionContacted": false
+}

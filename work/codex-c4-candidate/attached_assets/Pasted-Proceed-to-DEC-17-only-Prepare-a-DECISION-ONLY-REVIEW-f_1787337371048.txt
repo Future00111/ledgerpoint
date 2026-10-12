@@ -1,0 +1,167 @@
+Proceed to DEC-17 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-17 — [USE THE EXACT CURRENT DEC-17 DECISION TITLE AND SCOPE FROM THE GOVERNANCE REGISTERS]
+
+IMPORTANT:
+Before starting, read the Current Decision Register and identify the exact current DEC-17 title, scope, and intended decision boundary.
+
+Do NOT invent, rename, merge, or reinterpret DEC-17.
+
+Review all existing governance and accounting documentation, including:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- Accounting Core Decision Pack
+- Master Backlog
+- DEC-01 through DEC-16
+- All existing DEC-01 through DEC-16 approval/review documents
+- Any existing documentation specifically identifying dependencies for DEC-17
+
+This is a DECISION-ONLY review.
+
+DO NOT implement anything.
+
+DO NOT modify:
+
+- application code
+- database schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Do NOT approve DEC-17.
+Do NOT start DEC-18 or any later decision.
+Keep BL-06 and BL-07 BLOCKED.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Determine the correct product/accounting/technical policy for DEC-17 based on its exact registered scope.
+
+The review must:
+
+1. Establish the exact decision question.
+2. Identify all constraints created by DEC-01 through DEC-16.
+3. Identify any dependencies on DEC-18 through DEC-22.
+4. Present realistic alternatives.
+5. Evaluate accounting consequences.
+6. Evaluate data/schema consequences.
+7. Evaluate migration consequences.
+8. Evaluate reporting consequences.
+9. Evaluate security/capability consequences.
+10. Evaluate operational consequences.
+11. Evaluate UX consequences.
+12. Evaluate compatibility consequences.
+13. Evaluate future flexibility.
+14. Identify what would become locked if DEC-17 were approved.
+15. Identify what must deliberately remain changeable.
+
+==================================================
+GOVERNANCE PRINCIPLES
+==================================================
+
+The review must preserve all approved decisions.
+
+In particular, do not contradict:
+
+- DEC-04 immutable canonical accounting;
+- DEC-05 server-side capability enforcement;
+- DEC-06 financial-year policy;
+- DEC-07 accounting-period controls;
+- DEC-08 reporting-only year-end policy;
+- DEC-09 Chart of Accounts policy;
+- DEC-10 control-account mappings;
+- DEC-11 configuration versioning/effective dating;
+- DEC-12 payment/allocation/settlement;
+- DEC-13 customer credits and supplier prepayments;
+- DEC-14 unapplied-cash workflow;
+- DEC-15 refund policy;
+- DEC-16 decision not to expose Payment-on-Account as a separate launch feature.
+
+Do not reopen an already-approved decision merely because DEC-17 interacts with it.
+
+If DEC-17 exposes a genuine conflict with an earlier decision, document the conflict rather than silently changing the earlier decision.
+
+==================================================
+DECISION BOUNDARIES
+==================================================
+
+Clearly classify every major point as:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Do not resolve:
+
+- DEC-18;
+- DEC-19;
+- DEC-20;
+- DEC-21;
+- DEC-22;
+
+unless absolutely necessary to define a DEC-17 boundary.
+
+If another decision owns a particular issue, explicitly leave it for that decision.
+
+==================================================
+RECOMMENDATION
+==================================================
+
+Provide:
+
+RECOMMENDATION — NOT APPROVAL
+
+The recommendation must be based on the actual DEC-17 scope found in the governance register.
+
+Do not convert the recommendation into an approval.
+
+==================================================
+DOCUMENTATION
+==================================================
+
+Create:
+
+docs/ledgerly-dec-17-[appropriate-scope-name]-review.md
+
+Use the actual registered DEC-17 scope to determine the filename.
+
+Link the review into the appropriate governance records, including where applicable:
+
+- Current Decision Register;
+- Living Product Decisions;
+- Accounting Core Decision Pack;
+- Technical Architecture;
+- PRD / Product Scope.
+
+Do not modify implementation files.
+
+==================================================
+FINAL VERIFICATION
+==================================================
+
+At the end verify:
+
+1. DEC-01 through DEC-16 retain their approved statuses.
+2. DEC-17 remains REQUIRES USER DECISION.
+3. DEC-18 through DEC-22 remain REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-18 work was started.
+8. No implementation of the DEC-17 subject matter was performed.
+9. Source freshness remains separately unresolved unless DEC-17 explicitly governs it.
+
+Stop after the DEC-17 decision-only review is complete.

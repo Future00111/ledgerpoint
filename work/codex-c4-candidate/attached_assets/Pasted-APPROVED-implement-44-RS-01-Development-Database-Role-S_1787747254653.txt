@@ -1,0 +1,72 @@
+APPROVED — implement #44-RS-01 Development Database Role Separation exactly as defined in:
+
+docs/ledgerly-44-rs-01-development-database-role-separation-approval-package.md
+
+This approval covers the complete development-only scope and all ten approval gates in Section 15.
+
+You are authorised to:
+
+- Create the dedicated `ledgerly_api` LOGIN role with exactly the approved non-superuser attributes.
+- Create the dedicated `ledgerly_canonical_owner` NOLOGIN role with exactly the approved owner attributes.
+- Apply only the explicit minimum development database/schema/table/function privileges and revocations defined in the package.
+- Transfer ownership only of the five approved canonical tables to `ledgerly_canonical_owner`.
+- Create/install the four already-approved #44 immutability trigger functions/triggers where required by the package and make them ENABLE ALWAYS, with `ledgerly_canonical_owner` as the approved function owner.
+- Apply only the narrowly approved #44 development DDL necessary for this role-separation and immutability boundary.
+- Securely override the development `DATABASE_URL` so the actual API connects directly as `ledgerly_api`.
+- Restart only the development API workflow as required to activate and verify the new connection.
+- Run the complete runtime, privilege, escalation, ownership, mutation-resistance, application-regression, BL-01-FI and #40/#44 verification matrix required by the approval package.
+
+Important requirements:
+
+1. Follow the implementation sequence and stop conditions in the approval package exactly.
+2. Do not expose, print, log, commit, document or return the `ledgerly_api` password or any database credential.
+3. The running API must authenticate directly as `ledgerly_api`. Do not use `postgres` + SET ROLE.
+4. `ledgerly_api` must remain NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, NOBYPASSRLS and NOINHERIT.
+5. `ledgerly_api` must not be a member of `ledgerly_canonical_owner`, `postgres`, or any administrative/ownership role.
+6. `ledgerly_api` must not own the database, schema, canonical tables or #44 trigger functions.
+7. Do not broaden privileges to make a failing application path work. If an unapproved privilege is required, STOP and report it.
+8. Do not weaken, disable or bypass the canonical immutability protections to make tests pass.
+9. Preserve all existing canonical and legacy accounting data.
+10. Production posting must remain disabled.
+
+The following remain explicitly NOT authorised:
+
+- production role or credential changes;
+- production DATABASE_URL or secret changes;
+- production DDL/schema changes;
+- deployment or publishing;
+- production posting;
+- historical migration/backfill/cutover;
+- RLS implementation;
+- BL-06 or BL-07 implementation;
+- #41 execution;
+- unrelated application/schema/infrastructure changes;
+- new accounting/product workflows.
+
+If any mandatory stop condition in the approval package is encountered, STOP immediately without broadening scope and report the exact blocker.
+
+When implementation is complete, do not simply report success.
+
+Return a structured completion report showing:
+
+- actual API `current_user` and `session_user` (names only, no credentials);
+- verified role attributes;
+- canonical table owners;
+- #44 trigger-function owners and ENABLE ALWAYS trigger state;
+- relevant effective privilege/ACL results;
+- negative escalation-test results;
+- direct canonical UPDATE/DELETE/TRUNCATE resistance results;
+- posting-effect transition test results;
+- confirmation canonical row/data integrity was preserved;
+- API health result;
+- BL-01-FI test results;
+- #40/#44 test results;
+- application regression/build/type-check results;
+- git diff / changed-file and changed-database-object summary;
+- confirmation no production state changed;
+- confirmation production posting remains disabled;
+- any residual risks or failed checks.
+
+Do not start another implementation task after #44-RS-01.
+
+Stop after the implementation and verification report so the result can undergo independent post-implementation review.

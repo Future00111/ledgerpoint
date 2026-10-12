@@ -1,0 +1,270 @@
+Approve DEC-11.
+
+Record:
+
+DEC-11 — CONFIGURATION VERSIONING AND EFFECTIVE DATING
+STATUS: APPROVED
+
+Approve the recommended immutable, company-scoped, effective-dated configuration model with the following policy:
+
+1. MATERIAL CONFIGURATION ONLY
+
+Only material accounting configuration that can affect canonical accounting postings must be versioned.
+
+Do NOT version every ordinary company setting.
+
+Configuration versioning must be reserved for accounting configuration where a change could affect how future postings are generated.
+
+2. IMMUTABLE CONFIGURATION VERSIONS
+
+Accounting configuration versions are:
+
+- company-scoped;
+- immutable once effective;
+- explicitly identifiable;
+- auditable.
+
+A new material accounting configuration must create a new version rather than mutate an existing historical version.
+
+3. EFFECTIVE DATING
+
+Material accounting configuration is effective-dated.
+
+The applicable configuration version for a canonical posting is determined from the validated canonical POSTING DATE.
+
+The system must distinguish between:
+
+- when a configuration change was created;
+- when it becomes effective for accounting.
+
+4. EFFECTIVE-RANGE INTEGRITY
+
+Configuration versions must not have:
+
+- overlapping effective ranges;
+- unexplained gaps where a valid configuration is required.
+
+The system must validate effective-range integrity server-side.
+
+5. FUTURE-DATED CHANGES
+
+Future-dated configuration changes are the normal supported mechanism for changing material accounting configuration.
+
+A company may prepare an approved configuration change to become effective at a future date, subject to the applicable capability and approval controls.
+
+6. POSTING RESOLUTION
+
+When a canonical posting is created, Ledgerpoint must resolve the applicable accounting configuration using the validated posting date.
+
+The resulting canonical posting must retain:
+
+- the configuration version used;
+- the resolved account IDs.
+
+The posted journal must therefore remain independently reproducible even if the company's configuration changes later.
+
+7. HISTORICAL IMMUTABILITY
+
+A later configuration version must NEVER:
+
+- rewrite posted journals;
+- reassign historical account IDs;
+- change historical VAT results;
+- change historical AR/AP balances;
+- change historical financial-year assignment;
+- alter historical reporting meaning.
+
+Historical accounting remains authoritative through the DEC-04 canonical journal.
+
+8. RESOLVED ACCOUNT IDs
+
+Recording the resolved account IDs on the canonical posting is authoritative for the resulting accounting entry.
+
+The configuration version provides the historical configuration context that explains how those account selections were determined.
+
+Do not rely on looking up the current configuration to reconstruct historical accounting.
+
+9. BACKDATING
+
+Ordinary backdating of material accounting configuration is prohibited where it would affect existing posted journals or closed periods.
+
+Do not permit a user to retroactively change the configuration that explains existing accounting history.
+
+A tightly controlled pre-posting correction may be allowed where:
+
+- no dependent canonical posting exists;
+- no closed-period history would be affected;
+- appropriate capability is present;
+- validation succeeds;
+- the change is fully audited.
+
+Do not allow this mechanism to rewrite posted accounting.
+
+10. COSMETIC ACCOUNT CHANGES
+
+Purely cosmetic changes such as:
+
+- account display name;
+- account display code;
+
+do not require a new accounting configuration version unless the change also changes material accounting meaning.
+
+Account names and codes are not accounting logic.
+
+11. CONFIGURATION VS PERIODS
+
+Configuration state must remain separate from accounting-period state.
+
+Do not introduce configuration states that duplicate:
+
+- OPEN;
+- CLOSED;
+
+or otherwise confuse configuration lifecycle with accounting-period lifecycle.
+
+12. PERMISSIONS AND APPROVAL
+
+Material configuration changes must use the approved DEC-05 capability architecture.
+
+Where a future configuration change presents sufficient accounting risk, separate approval may be required.
+
+Do not assume every configuration change requires dual approval.
+
+13. AUDIT
+
+Every material configuration change must retain appropriate audit evidence including, where applicable:
+
+- company;
+- actor;
+- capability;
+- old configuration;
+- new configuration;
+- effective date;
+- reason;
+- creation timestamp;
+- approval information;
+- resulting configuration version.
+
+Audit history must itself remain immutable.
+
+14. VAT
+
+DEC-03 remains the sole VAT authority.
+
+Configuration versioning must not create a second VAT engine.
+
+VAT-related accounting configuration must remain reproducible using the approved VAT model and the configuration context used for the canonical posting.
+
+15. AR / AP / BANK
+
+The versioning model applies to material configuration affecting:
+
+- AR;
+- AP;
+- bank/cash;
+- VAT;
+- invoice posting;
+- bill posting;
+- payment posting;
+
+where those settings materially affect canonical accounting.
+
+Payment edge cases and refund policies remain governed by DEC-12 through DEC-16.
+
+16. CHART OF ACCOUNTS
+
+DEC-09 remains authoritative for Chart of Accounts policy.
+
+Account lifecycle changes that are purely administrative/cosmetic do not automatically require accounting configuration versions.
+
+Material changes that affect future posting behaviour must use the approved configuration-versioning model.
+
+17. REPORTING
+
+Historical reports must use the canonical journal and the resolved account identities recorded at posting time.
+
+They must NOT recalculate historical accounting using the company's current configuration.
+
+Current and future accounting uses the applicable active configuration.
+
+Comparative reporting must remain historically stable.
+
+18. MIGRATION
+
+Historical configuration versions may only be created where supported by evidence.
+
+Ledgerpoint must NEVER invent:
+
+- historical configuration versions;
+- historical effective dates;
+- historical mappings;
+- historical approvals;
+- historical configuration states.
+
+Unknown historical configuration must be represented as an explicit migration exception for DEC-22.
+
+19. FUTURE FLEXIBILITY
+
+The architecture must support future:
+
+- accounting configuration;
+- markets;
+- currencies;
+- VAT/accounting requirements;
+- payment workflows.
+
+Future changes must follow the Living Product Decisions process.
+
+20. DECISION BOUNDARIES
+
+DEC-11 does NOT resolve:
+
+- payment edge cases;
+- overpayments;
+- unapplied cash;
+- refunds;
+- payment-on-account;
+- detailed retention/deletion;
+- export policy;
+- backup/recovery;
+- RLS/tenant isolation;
+- migration/cutover.
+
+Those remain separate decisions.
+
+IMPORTANT GOVERNANCE RULES:
+
+- DEC-01 through DEC-11 are now APPROVED.
+- DEC-12 through DEC-22 remain REQUIRES USER DECISION.
+- Do NOT approve DEC-12 or any later decision.
+- Keep BL-06 and BL-07 BLOCKED.
+- Do NOT create or execute an implementation task.
+- This is a product/accounting architecture-policy approval only.
+- It is NOT implementation authorisation.
+- Preserve the amendment path through the Living Product Decisions process.
+
+Do NOT modify:
+
+- application code;
+- database schema;
+- migrations;
+- accounting logic;
+- UI;
+- workflows;
+- dependencies;
+- deployment;
+- publishing.
+
+Update only the relevant governance and decision documentation.
+
+FINAL VERIFICATION:
+
+1. DEC-01–DEC-11 are APPROVED.
+2. DEC-12–DEC-22 remain unresolved.
+3. BL-06 and BL-07 remain BLOCKED.
+4. No implementation task was created.
+5. No application/schema/migration/accounting implementation changed.
+6. No DEC-12 work was started.
+7. No configuration-versioning mechanism was implemented.
+
+Stop after verification.

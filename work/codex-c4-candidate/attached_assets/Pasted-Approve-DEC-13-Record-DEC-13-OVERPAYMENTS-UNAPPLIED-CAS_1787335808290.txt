@@ -1,0 +1,226 @@
+Approve DEC-13.
+
+Record:
+
+DEC-13 — OVERPAYMENTS, UNAPPLIED CASH AND EXCESS PAYMENT POLICY
+STATUS: APPROVED
+
+Approve the recommended first-class party-credit/prepayment model with the following boundaries:
+
+1. NO LOSS OR CAP OF EXCESS MONEY
+
+Ledgerpoint must never discard, cap, or silently absorb excess payment amounts.
+
+Any genuine excess must remain represented and traceable.
+
+2. CUSTOMER EXCESS
+
+A customer payment exceeding the amount that can currently be allocated must be represented as a:
+
+CUSTOMER CREDIT / RECEIPT-ON-ACCOUNT LIABILITY
+
+Do not make an invoice or customer AR balance silently become negative merely because a customer has paid too much.
+
+3. SUPPLIER EXCESS
+
+A supplier payment exceeding the amount that can currently be allocated must be represented as a:
+
+SUPPLIER PREPAYMENT / RECEIVABLE ASSET
+
+Do not make a supplier bill or AP balance silently become negative merely because the business has paid too much.
+
+4. KNOWN-PARTY PAYMENT WITHOUT DOCUMENT
+
+Ledgerpoint may record a known-party accounting payment before a specific invoice or bill has been identified.
+
+Do not invent a fake invoice or bill merely to provide somewhere to allocate the payment.
+
+5. BANK EVIDENCE
+
+Unmatched bank evidence remains distinct from a known-party accounting payment.
+
+A bank-feed transaction awaiting reconciliation must not automatically become a party credit/prepayment simply because it has not yet been allocated.
+
+6. ALLOCATION LIMIT
+
+Allocation must not exceed:
+
+- the remaining eligible payment amount; or
+- the eligible document open amount.
+
+Do not allow allocation logic to create negative invoice or bill balances.
+
+7. CUSTOMER CREDIT ALLOCATION
+
+When an existing customer credit is later allocated to an eligible customer invoice, the accounting treatment must use a controlled canonical reclassification:
+
+DR Customer Credit / Receipt-on-Account Liability
+CR Accounts Receivable
+
+The original cash receipt/payment accounting must NOT be reposted merely because the credit is later allocated.
+
+8. SUPPLIER PREPAYMENT ALLOCATION
+
+When a supplier prepayment is later allocated to an eligible supplier bill, the accounting treatment must use a controlled canonical reclassification:
+
+DR Accounts Payable
+CR Supplier Prepayment / Receivable Asset
+
+The original cash payment accounting must NOT be reposted merely because the prepayment is later allocated.
+
+9. DIRECT PAYMENT REALLOCATION
+
+Where a payment has already been posted and its allocation changes between eligible documents:
+
+- preserve append-only allocation history;
+- do not repost the original cash/AR/AP entry merely because the allocation changed;
+- use the appropriate controlled allocation/reclassification mechanism where accounting treatment genuinely changes.
+
+10. AR / AP PRESENTATION
+
+Customer credits must remain distinct from ordinary aged receivables.
+
+Supplier prepayments must remain distinct from ordinary aged payables.
+
+Do not allow party-credit/prepayment balances to distort:
+
+- aged receivables;
+- aged payables;
+- invoice balances;
+- bill balances.
+
+11. SETTLEMENT
+
+DEC-12 remains authoritative for settlement.
+
+Settlement status must continue to be derived from authoritative payment, allocation, open-item and accounting data.
+
+Customer credits and supplier prepayments must not be treated as ordinary unpaid invoices/bills.
+
+12. VAT
+
+DEC-03 remains the sole VAT authority.
+
+Overpayments, customer credits and supplier prepayments must not create a second VAT engine.
+
+VAT treatment remains document-driven under the approved DEC-03 policy unless a later approved decision explicitly changes that scope.
+
+13. PERIOD CONTROLS
+
+All canonical reclassification/accounting entries remain subject to DEC-07 accounting-period controls.
+
+Do not allow credit/prepayment allocation or reclassification to bypass closed-period restrictions.
+
+14. CONFIGURATION
+
+Where a canonical reclassification requires material account configuration:
+
+- resolve the applicable DEC-11 configuration version;
+- use the approved DEC-10 control mappings;
+- retain the resolved account identities on the canonical posting.
+
+15. PERMISSIONS
+
+Creation, allocation, reallocation and clearing of material customer-credit or supplier-prepayment balances must use the DEC-05 server-side capability model.
+
+Do not rely on frontend permissions or arbitrary role strings.
+
+16. AUDIT
+
+Maintain immutable audit history for:
+
+- excess payment identification;
+- customer-credit creation;
+- supplier-prepayment creation;
+- allocation;
+- reallocation;
+- credit/prepayment application;
+- adjustments;
+- clearing actions.
+
+17. MIGRATION
+
+Historical excess payments, customer credits, supplier prepayments and allocations may only be migrated where supported by evidence.
+
+Never invent:
+
+- historical excess;
+- historical credit balances;
+- historical prepayments;
+- historical allocations;
+- historical dates;
+- historical accounting treatment.
+
+Ambiguous historical information becomes an explicit DEC-22 migration exception.
+
+18. DEC-14 / DEC-15 / DEC-16 BOUNDARY
+
+DEC-13 establishes the underlying accounting representation.
+
+It does NOT approve the detailed policies for:
+
+- first-class unapplied-cash workflow;
+- refund workflow;
+- refund source;
+- refund VAT treatment;
+- refund approval;
+- payment-on-account user-facing launch scope.
+
+Those remain for DEC-14, DEC-15 and DEC-16 respectively.
+
+19. SOURCE FRESHNESS
+
+The separately identified source-freshness/posting-safety dependency remains unresolved.
+
+Do NOT absorb it into DEC-13.
+
+20. FUTURE FLEXIBILITY
+
+The architecture should support future:
+
+- customer credit workflows;
+- supplier prepayment workflows;
+- refunds;
+- payment-on-account;
+- automated allocation;
+- additional currencies;
+- additional markets;
+- additional payment methods.
+
+IMPORTANT GOVERNANCE RULES:
+
+- DEC-01 through DEC-13 are now APPROVED.
+- DEC-14 through DEC-22 remain REQUIRES USER DECISION.
+- Do NOT approve DEC-14 or any later decision.
+- Keep BL-06 and BL-07 BLOCKED.
+- Do NOT create or execute an implementation task.
+- This is a product/accounting-policy approval only.
+- It is NOT implementation authorisation.
+- Preserve the amendment path through the Living Product Decisions process.
+
+Do NOT modify:
+
+- application code;
+- database schema;
+- migrations;
+- accounting logic;
+- UI;
+- workflows;
+- dependencies;
+- deployment;
+- publishing.
+
+Update only the relevant governance and decision documentation.
+
+FINAL VERIFICATION:
+
+1. DEC-01–DEC-13 are APPROVED.
+2. DEC-14–DEC-22 remain unresolved.
+3. BL-06 and BL-07 remain BLOCKED.
+4. No implementation task was created.
+5. No overpayment/unapplied-cash/payment-on-account/refund implementation was made.
+6. No application/schema/migration/accounting logic/UI/workflow/dependency/deployment/publishing changes were made.
+7. No DEC-14 work was started.
+8. The source-freshness dependency remains separately unresolved.
+
+Stop after verification.

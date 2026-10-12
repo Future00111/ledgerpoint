@@ -1,0 +1,1363 @@
+LEDGERPOINT — PHASE 5
+BUILD THE AI ACCOUNTANT: INTELLIGENT TRANSACTION & BOOKKEEPING ENGINE
+
+IMPORTANT:
+This is a major product phase for Ledgerpoint.
+
+Do NOT create a superficial demo, mock-only UI, or disconnected prototype.
+
+Build this into the existing Ledgerpoint application and existing architecture.
+
+Before changing code:
+1. Inspect the existing Ledgerpoint codebase.
+2. Inspect the existing database schema and existing accounting entities.
+3. Inspect the existing Banking/Reconciliation functionality.
+4. Inspect the existing Invoice and Bill functionality.
+5. Inspect the existing VAT Assistant from Phase 4 / task #32.
+6. Inspect the existing AI service/provider abstraction.
+7. Inspect the existing AI Accountant dashboard/task/review functionality.
+8. Inspect authentication, company/tenant scoping and permissions.
+9. Inspect existing audit logging.
+10. Inspect existing tests and regression scenarios.
+
+Reuse existing architecture wherever possible.
+
+Do not duplicate existing services or create competing versions of existing functionality.
+
+The objective is to turn the existing AI Accountant into a genuine accounting decision-support and bookkeeping engine that works across bank transactions, invoices, bills, VAT and reconciliation.
+
+==================================================
+1. CORE PRINCIPLE
+==================================================
+
+Ledgerpoint's AI Accountant must behave like an intelligent accounting assistant, not an unrestricted autonomous bookkeeper.
+
+It should:
+
+- analyse transactions
+- identify likely accounting treatment
+- find matching invoices and bills
+- suggest nominal/account codes
+- determine likely VAT treatment using the existing deterministic VAT engine
+- identify anomalies
+- identify missing documents
+- identify duplicate transactions
+- calculate confidence
+- explain recommendations
+- route uncertain items to human review
+- learn from user decisions
+- maintain an audit trail
+
+However:
+
+THE AI MUST NEVER SILENTLY ALTER OR POST ACCOUNTING DATA WHEN THE CONFIDENCE OR ACCOUNTING RULES DO NOT SUPPORT IT.
+
+Deterministic accounting rules must take precedence over generative AI.
+
+The AI may explain, rank, classify and recommend.
+
+The deterministic accounting engine must calculate authoritative accounting/VAT values.
+
+User approval remains the final authority for actions that require approval.
+
+==================================================
+2. DO NOT BREAK EXISTING FEATURES
+==================================================
+
+The following existing functionality must continue working:
+
+- Banking
+- Bank transactions
+- Reconciliation
+- Invoice matching
+- Invoice creation
+- Bills
+- VAT Assistant
+- VAT calculations
+- VAT review
+- VAT approval and locking
+- AI Accountant dashboard
+- AI chat / Ask Ledgerly
+- authentication
+- company/tenant isolation
+- user permissions
+- audit trail
+- existing workflows
+
+Do not rewrite working modules unnecessarily.
+
+Integrate with them.
+
+Run existing tests before and after changes.
+
+If an existing service already performs a required function, call that service rather than recreating it.
+
+==================================================
+3. AI ACCOUNTANT ARCHITECTURE
+==================================================
+
+Create or extend a central AI Accountant service.
+
+Conceptually:
+
+Bank Transaction
+        ↓
+Transaction Analysis
+        ↓
+Candidate Detection
+        ↓
+Accounting Rules
+        ↓
+AI Reasoning / Ranking
+        ↓
+Confidence Score
+        ↓
+Decision
+        ↓
+--------------------------------
+| Auto-ready                  |
+| Needs review                |
+| No reliable match           |
+--------------------------------
+        ↓
+Accounting action / review task
+        ↓
+Audit trail
+
+The AI Accountant should not directly manipulate the database from the browser.
+
+All important accounting decisions must pass through authenticated server-side APIs.
+
+All operations must be company/tenant scoped.
+
+==================================================
+4. TRANSACTION ANALYSIS
+==================================================
+
+For every imported bank transaction, analyse:
+
+- transaction ID
+- company
+- bank account
+- date
+- amount
+- debit/credit direction
+- description
+- reference
+- counterparty
+- existing categorisation
+- linked invoice
+- linked bill
+- previous decisions
+- VAT information where available
+- duplicate indicators
+- historical transaction patterns
+
+Normalise descriptions before matching.
+
+For example:
+
+"STRIPE PAYOUT 12345"
+"STRIPE PAYOUT REF 12345"
+"STRIPE 12345 PAYOUT"
+
+should be recognised as potentially related.
+
+Do not rely solely on exact text matching.
+
+==================================================
+5. INVOICE MATCHING
+==================================================
+
+For incoming money, identify possible sales invoices.
+
+For outgoing money, identify possible purchase bills.
+
+Candidate matching should consider:
+
+1. Exact amount
+2. Near amount
+3. Customer/supplier name
+4. Description
+5. Invoice number/reference
+6. Bank reference
+7. Transaction date
+8. Invoice date
+9. Due date
+10. Historical relationship between the bank account and counterparty
+11. Previously approved matching behaviour
+
+Give each candidate a confidence score.
+
+Example:
+
+100%:
+- exact amount
+- invoice reference found
+- customer name matches
+- reasonable date
+
+95%:
+- exact amount
+- customer matches
+- date matches
+- no invoice reference
+
+75%:
+- amount matches
+- customer likely matches
+- date reasonably close
+
+Below configured confidence threshold:
+- do not recommend automatic approval
+- send to review
+
+==================================================
+6. RECONCILIATION INTEGRATION
+==================================================
+
+This is a critical requirement.
+
+Integrate the AI Accountant with the existing Reconciliation page.
+
+When a bank statement/transaction is imported:
+
+Ledgerpoint should automatically analyse it against available accounting records.
+
+For example:
+
+BANK TRANSACTION:
++£1,276
+BACS NORTHGATE CONSULTING
+
+AVAILABLE:
+INV-0014
+Northgate Consulting
+£1,276
+
+AI RESULT:
+
+Exact amount match ✓
+Customer match ✓
+Reference match ✓
+Date within acceptable range ✓
+
+AI CONFIDENCE:
+100%
+
+STATUS:
+Ready to reconcile
+
+The existing reconciliation UI should then show the recommendation.
+
+The user should be able to approve the match.
+
+Once approved:
+
+- bank transaction becomes reconciled
+- invoice becomes marked as paid where appropriate
+- payment relationship is recorded
+- accounting records are updated correctly
+- VAT records remain consistent
+- audit entry is created
+
+Do not create a second reconciliation system.
+
+Use the existing reconciliation engine and extend it.
+
+==================================================
+7. MISSING REVENUE / MISSING INVOICE DETECTION
+==================================================
+
+This is a major Ledgerpoint feature.
+
+When a bank receipt does not fully reconcile against available invoices, calculate:
+
+- bank receipt amount
+- matched invoice amount
+- unmatched amount
+- potential invoice value
+- number of potential invoices
+- confidence of each potential invoice
+
+Example:
+
+Bank receipt:
+£10,000
+
+Potential invoices:
+INV-1001 £4,000
+INV-1002 £3,500
+
+Matched/potential:
+£7,500
+
+Unmatched:
+£2,500
+
+Ledgerpoint should clearly communicate:
+
+"£2,500 of this receipt is currently unexplained."
+
+Then show:
+
+Potential invoices:
+2
+
+Potential invoice value:
+£7,500
+
+Unexplained amount:
+£2,500
+
+Do NOT describe the £2,500 as definitely missing revenue.
+
+Use careful terminology such as:
+
+"Unmatched amount"
+"Unexplained receipt"
+"Potential missing invoice"
+
+because the money could represent:
+- a loan
+- transfer
+- capital introduced
+- refund
+- other income
+- payment on account
+- multiple invoices
+- timing difference
+
+The AI should explain possible reasons.
+
+==================================================
+8. PARTIAL PAYMENTS
+==================================================
+
+Support partial payments.
+
+Example:
+
+Invoice:
+£5,000
+
+Bank payment:
+£2,000
+
+AI should identify:
+
+Partial payment detected.
+
+Remaining invoice balance:
+£3,000
+
+Do not mark the invoice fully paid.
+
+Support multiple payments against the same invoice.
+
+Example:
+
+£2,000
+£1,500
+£1,500
+
+Total:
+£5,000
+
+Then mark invoice paid.
+
+Prevent duplicate payment allocation.
+
+==================================================
+9. MULTIPLE INVOICES AGAINST ONE PAYMENT
+==================================================
+
+Support one bank transaction paying multiple invoices.
+
+Example:
+
+Bank:
+£8,000
+
+Invoices:
+
+INV-001 £2,000
+INV-002 £3,000
+INV-003 £3,000
+
+Total:
+£8,000
+
+The AI should propose:
+
+"3 invoices appear to make up this payment."
+
+Show:
+
+Total bank amount
+Total invoice amount
+Difference
+Individual invoices
+Confidence
+
+Allow the user to approve the combined match.
+
+==================================================
+10. OVERPAYMENTS AND UNDERPAYMENTS
+==================================================
+
+Detect:
+
+- overpayment
+- underpayment
+- short payment
+- bank fees
+- discounts
+- rounding differences
+
+Example:
+
+Invoice:
+£1,000
+
+Bank receipt:
+£980
+
+Potential explanation:
+
+£20 short payment.
+
+Do not automatically write off the £20.
+
+Instead suggest:
+
+"£20 difference detected. Review whether this is a bank fee, discount, short payment or other adjustment."
+
+==================================================
+11. DUPLICATE DETECTION
+==================================================
+
+Detect likely duplicates.
+
+Consider:
+
+- same amount
+- same date
+- same counterparty
+- same reference
+- same invoice
+- similar descriptions
+- repeated bank imports
+
+Example:
+
+Two transactions:
+
+£1,276
+Northgate Consulting
+16 Aug
+
+£1,276
+Northgate Consulting
+16 Aug
+
+Show:
+
+"Possible duplicate transaction."
+
+Do not automatically delete or alter anything.
+
+Route to review.
+
+==================================================
+12. NOMINAL / ACCOUNT CODE SUGGESTIONS
+==================================================
+
+The AI Accountant should suggest the appropriate nominal/account category for transactions that cannot be matched.
+
+Use:
+
+- transaction description
+- counterparty
+- historical approved categorisations
+- existing chart of accounts
+- VAT treatment
+- transaction type
+
+Example:
+
+"Amazon Business Purchase £216"
+
+Potential suggestion:
+
+Office / Computer / Business Supplies
+
+Show:
+
+Suggested account
+Confidence
+Reason
+
+Example:
+
+"Recurring Adobe £54.99"
+
+Suggested account:
+Software subscriptions
+
+The AI must never invent account codes.
+
+Only suggest codes that actually exist in the company's chart of accounts.
+
+==================================================
+13. LEARNING FROM USER DECISIONS
+==================================================
+
+Ledgerpoint should learn from approved accounting decisions.
+
+If the user repeatedly categorises:
+
+"Amazon Business"
+→
+"Office supplies"
+
+then future Amazon Business transactions should receive a higher confidence recommendation.
+
+Store learning at company/tenant level.
+
+Do not allow one company's learning to affect another company.
+
+Maintain auditability.
+
+The AI should be able to explain:
+
+"This suggestion is based partly on 14 previously approved transactions with the same supplier."
+
+Do not use learning to override deterministic VAT/accounting rules.
+
+==================================================
+14. VAT INTEGRATION
+==================================================
+
+Use the existing Phase 4 VAT Assistant and deterministic VAT engine.
+
+Do NOT create a second VAT calculation engine.
+
+The AI Accountant should request VAT treatment from the existing VAT service.
+
+For example:
+
+Transaction:
+£120
+
+Potential treatment:
+20% VAT
+
+The deterministic VAT engine calculates the actual VAT.
+
+The AI can explain:
+
+"Based on the transaction classification, this appears to be standard-rated."
+
+If VAT treatment is uncertain:
+
+STATUS:
+VAT review required.
+
+Do not invent VAT rates.
+
+Do not silently calculate VAT using the LLM.
+
+==================================================
+15. CONFIDENCE SYSTEM
+==================================================
+
+Create a consistent confidence model.
+
+At minimum:
+
+95–100:
+High confidence
+
+80–94:
+Strong suggestion
+
+60–79:
+Needs review
+
+Below 60:
+No reliable recommendation
+
+However, confidence must not be based solely on the LLM.
+
+Build confidence from deterministic signals such as:
+
+- exact amount
+- reference match
+- name match
+- date proximity
+- historical match
+- invoice status
+- duplicate risk
+- accounting rule compatibility
+
+The AI may assist with semantic interpretation.
+
+==================================================
+16. DECISION STATES
+==================================================
+
+Use explicit states.
+
+Examples:
+
+UNANALYSED
+ANALYSING
+READY
+REVIEW_REQUIRED
+NO_MATCH
+PARTIAL_MATCH
+MULTI_MATCH
+POSSIBLE_DUPLICATE
+VAT_REVIEW
+APPROVED
+RECONCILED
+REJECTED
+
+Do not rely on vague boolean flags.
+
+Make state transitions explicit and auditable.
+
+==================================================
+17. AI ACCOUNTANT REVIEW QUEUE
+==================================================
+
+Integrate with the existing AI Accountant Review area.
+
+The dashboard should show:
+
+Ready:
+24
+
+Review:
+6
+
+No match:
+3
+
+Potential duplicates:
+2
+
+VAT review:
+1
+
+Missing/unexplained:
+£4,250
+
+Do not hard-code these values.
+
+They must come from real company data.
+
+Allow filtering by:
+
+- bank account
+- date
+- amount
+- confidence
+- transaction type
+- issue type
+- counterparty
+- status
+
+==================================================
+18. PRIORITY / RISK SCORING
+==================================================
+
+Not every transaction should have equal priority.
+
+Create a review priority.
+
+High priority:
+
+- large unexplained transaction
+- possible duplicate
+- unusual transaction
+- VAT uncertainty
+- large unmatched receipt
+- suspicious accounting pattern
+- payment that cannot be explained
+
+Low priority:
+
+- small ordinary transaction
+- familiar supplier
+- recurring transaction with high confidence
+
+The AI Accountant dashboard should surface the most important items first.
+
+==================================================
+19. AI EXPLANATIONS
+==================================================
+
+Every recommendation should be explainable.
+
+Example:
+
+"Recommended match: INV-0014"
+
+Reason:
+
+- Exact amount match: £1,276
+- Customer name matches
+- Invoice reference found in bank description
+- Transaction is 2 days after invoice date
+- No competing invoice matches
+
+Confidence:
+100%
+
+Keep explanations concise.
+
+Do not expose chain-of-thought or hidden reasoning.
+
+Only provide accounting evidence and decision factors.
+
+==================================================
+20. HUMAN APPROVAL
+==================================================
+
+High-confidence recommendations can be presented as "Ready".
+
+But actions that affect accounting records must still follow the application's approval rules.
+
+Do not automatically post risky or ambiguous transactions.
+
+Buttons should include appropriate actions such as:
+
+Approve
+Approve Match
+Find Another
+Categorise
+Split
+Ignore
+Mark as Transfer
+Review
+Reject
+
+Use existing UI patterns where possible.
+
+==================================================
+21. AUDIT TRAIL
+==================================================
+
+Every AI decision must record:
+
+- company
+- user where applicable
+- transaction
+- recommendation
+- confidence
+- evidence/signals
+- previous state
+- new state
+- timestamp
+- model/provider used
+- whether AI or deterministic logic made the decision
+- user decision
+- final accounting action
+
+Example:
+
+AI recommendation:
+Match INV-0014
+
+Confidence:
+100%
+
+User:
+Admin
+
+Decision:
+Approved
+
+Timestamp:
+...
+
+Do not store sensitive prompts unnecessarily.
+
+==================================================
+22. AI PROVIDER ARCHITECTURE
+==================================================
+
+Use the existing central AI provider abstraction already implemented in Ledgerpoint.
+
+Do not directly import the OpenAI SDK throughout the application.
+
+The existing AI service should remain the central gateway.
+
+Keep provider-specific code isolated.
+
+The AI Accountant should work through the existing AI service.
+
+If AI is unavailable:
+
+The deterministic reconciliation engine must still work.
+
+AI failure must not stop normal accounting operations.
+
+==================================================
+23. SECURITY
+==================================================
+
+All AI Accountant operations must be:
+
+- authenticated
+- company scoped
+- permission checked
+- server-side validated
+
+Never trust:
+
+- company ID from the browser
+- account ID from the browser
+- transaction ID from the browser
+- invoice ID from the browser
+- confidence value from the browser
+- accounting amount from the browser
+
+Fetch authoritative records server-side.
+
+Prevent cross-company data access.
+
+Prevent users from modifying audit history.
+
+Respect existing read-only roles.
+
+==================================================
+24. DATABASE
+==================================================
+
+Inspect the existing schema before creating tables.
+
+Only add tables/fields where necessary.
+
+Possible entities may include:
+
+ai_transaction_analysis
+ai_match_candidate
+ai_accounting_recommendation
+ai_review_item
+ai_learning_signal
+ai_decision_audit
+
+But do NOT blindly create these names if equivalent entities already exist.
+
+Prefer extending existing models.
+
+All new records must be company scoped.
+
+Add appropriate indexes.
+
+Avoid storing duplicate transaction data unnecessarily.
+
+==================================================
+25. API DESIGN
+==================================================
+
+Create clean server-side endpoints/services for:
+
+Analyse transaction
+
+Get transaction recommendations
+
+Get match candidates
+
+Get AI review queue
+
+Approve recommendation
+
+Reject recommendation
+
+Re-run analysis
+
+Apply categorisation
+
+Approve reconciliation
+
+Get explanation/evidence
+
+Detect duplicates
+
+Get missing/unmatched analysis
+
+Record user learning decision
+
+Use existing API conventions.
+
+Validate every request.
+
+Return typed responses.
+
+==================================================
+26. RECONCILIATION AUTOMATION
+==================================================
+
+When new bank transactions arrive:
+
+Automatically analyse them.
+
+Do not require the user to manually click "Analyse" for every transaction.
+
+However:
+
+Do not automatically post accounting entries merely because analysis completed.
+
+The flow should be:
+
+Imported
+→ Analysed
+→ Recommendation generated
+→ Ready / Review Required / No Match
+→ User approval where required
+→ Accounting action
+→ Reconciled
+→ Audit record
+
+==================================================
+27. EXAMPLE SCENARIOS TO IMPLEMENT
+==================================================
+
+Create deterministic tests for at least these scenarios:
+
+TEST 1:
+Exact invoice match
+
+Bank:
++£1,276
+
+Invoice:
+£1,276
+
+Expected:
+High confidence match.
+
+TEST 2:
+Exact match with reference
+
+Bank:
++£1,276
+Description includes INV-0014
+
+Expected:
+Very high confidence.
+
+TEST 3:
+Partial payment
+
+Invoice:
+£5,000
+
+Bank:
+£2,000
+
+Expected:
+Partial payment.
+
+Invoice remains £3,000 outstanding.
+
+TEST 4:
+Multiple invoices
+
+Bank:
+£8,000
+
+Invoices:
+£2,000
+£3,000
+£3,000
+
+Expected:
+Multi-invoice match.
+
+TEST 5:
+Unexplained receipt
+
+Bank:
+£10,000
+
+Potential invoices:
+£7,500
+
+Expected:
+£2,500 unexplained.
+
+Do not call this definitely missing revenue.
+
+TEST 6:
+Overpayment
+
+Invoice:
+£1,000
+
+Bank:
+£1,050
+
+Expected:
+£50 overpayment review.
+
+TEST 7:
+Underpayment
+
+Invoice:
+£1,000
+
+Bank:
+£980
+
+Expected:
+£20 difference review.
+
+TEST 8:
+Duplicate
+
+Two identical bank transactions.
+
+Expected:
+Possible duplicate warning.
+
+TEST 9:
+Categorisation
+
+Amazon Business transaction.
+
+Expected:
+Suggestion based on existing chart of accounts and historical decisions.
+
+TEST 10:
+VAT uncertainty
+
+Transaction with insufficient evidence.
+
+Expected:
+VAT review required.
+
+TEST 11:
+Cross-company security
+
+Transaction from company A requested using company B context.
+
+Expected:
+Access denied.
+
+TEST 12:
+AI unavailable
+
+Disable/fail AI provider.
+
+Expected:
+Deterministic reconciliation still works.
+
+==================================================
+28. UI REQUIREMENTS
+==================================================
+
+Keep the existing Ledgerpoint visual language.
+
+Do not redesign the entire application.
+
+Improve existing areas where required.
+
+The Reconciliation screen should make AI recommendations obvious but not overwhelming.
+
+Use:
+
+- confidence badges
+- clear recommendation cards
+- evidence indicators
+- unmatched amount warnings
+- review status
+- concise explanations
+
+Example:
+
+AI CONFIDENCE 100%
+
+Invoice INV-0014
+Northgate Consulting
+£1,276
+
+✓ Exact amount match
+✓ Customer name match
+✓ Reference found
+✓ Date within 5 days
+
+[Approve Match]
+
+For an unmatched transaction:
+
+AI REVIEW REQUIRED
+
+Bank receipt:
+£10,000
+
+Potential invoices:
+2
+Potential value:
+£7,500
+
+Unexplained:
+£2,500
+
+Possible reasons:
+- missing invoice
+- payment on account
+- other income
+- transfer incorrectly classified
+
+[Review]
+
+==================================================
+29. DASHBOARD
+==================================================
+
+Extend the existing AI Accountant dashboard.
+
+Show useful real metrics.
+
+Example:
+
+AI ACCOUNTANT
+
+Ready
+24
+
+Review
+6
+
+No match
+3
+
+Possible duplicates
+2
+
+VAT review
+1
+
+Unexplained receipts
+£4,250
+
+Potential invoice value
+£12,750
+
+Do not invent metrics.
+
+Everything must be calculated from the company's actual data.
+
+==================================================
+30. "ASK LEDGERLY" INTEGRATION
+==================================================
+
+Extend the existing Ask Ledgerly functionality so it can answer questions using the AI Accountant data.
+
+Examples:
+
+"Why hasn't this £10,000 receipt been reconciled?"
+
+Expected answer should identify:
+
+- amount
+- possible invoice matches
+- matched amount
+- unexplained amount
+- reasons for review
+
+Another:
+
+"Which bank transactions need my attention?"
+
+Return prioritised review items.
+
+Another:
+
+"How much revenue is currently unexplained?"
+
+Return the calculated figure based on current company data.
+
+Do not allow the conversational AI to invent accounting figures.
+
+Retrieve figures from authoritative services/database.
+
+==================================================
+31. NO FALSE ACCOUNTING CERTAINTY
+==================================================
+
+This is extremely important.
+
+The AI must distinguish between:
+
+FACT
+RECOMMENDATION
+POSSIBILITY
+REQUIRES REVIEW
+
+Example:
+
+GOOD:
+
+"£2,500 remains unmatched."
+
+"Two invoices totalling £7,500 are potential matches."
+
+"Possible reasons include a missing invoice or payment on account."
+
+BAD:
+
+"£2,500 of revenue is definitely missing."
+
+unless the accounting data actually proves this.
+
+Never present a guess as a fact.
+
+==================================================
+32. PERFORMANCE
+==================================================
+
+Do not call the LLM unnecessarily.
+
+Use deterministic matching first.
+
+Only use AI where semantic reasoning adds value.
+
+For example:
+
+1. Exact amount/reference matching
+2. Deterministic candidate filtering
+3. Historical matching
+4. AI semantic ranking/explanation only when required
+
+This will reduce API costs and improve performance.
+
+Cache safe reusable analysis where appropriate.
+
+==================================================
+33. TESTING
+==================================================
+
+Before completion:
+
+- run TypeScript checks
+- run lint if configured
+- run unit tests
+- run API tests
+- run reconciliation tests
+- run VAT tests
+- run AI Accountant tests
+- run security tests
+- run production build
+
+Existing tests must continue passing.
+
+Add regression tests for the scenarios above.
+
+Do not mark the task complete merely because the build succeeds.
+
+Actually exercise the new workflows.
+
+==================================================
+34. BROWSER VALIDATION
+==================================================
+
+Use the authenticated development application.
+
+Verify:
+
+1. Dashboard loads.
+2. AI Accountant loads.
+3. Reconciliation loads.
+4. Bank transaction can be analysed.
+5. Exact invoice match appears correctly.
+6. Confidence displays correctly.
+7. Approve Match works.
+8. Partial payment works.
+9. Multiple invoice matching works.
+10. Unexplained amount appears correctly.
+11. Review queue works.
+12. VAT integration still works.
+13. Audit trail is recorded.
+14. Existing navigation still works.
+
+If authentication is required, use the existing development authentication flow.
+
+Do not weaken authentication to make testing easier.
+
+==================================================
+35. IMPORTANT BOUNDARY
+==================================================
+
+Do not implement:
+
+- automatic bank transfers
+- automatic payments
+- automatic deletion of transactions
+- automatic deletion of invoices
+- automatic VAT return submission
+- automatic HMRC filing
+- autonomous financial decisions
+- anything that bypasses existing approval controls
+
+This phase is an AI ACCOUNTING ASSISTANT and BOOKKEEPING DECISION ENGINE.
+
+It recommends and assists.
+
+It does not become an uncontrolled autonomous accountant.
+
+==================================================
+36. DELIVERABLE
+==================================================
+
+At the end, provide a concise implementation report containing:
+
+1. Files created
+2. Files changed
+3. Database changes
+4. APIs added/changed
+5. AI Accountant capabilities added
+6. Reconciliation integration
+7. Invoice/bill matching
+8. Missing/unexplained amount detection
+9. Categorisation
+10. VAT integration
+11. Confidence system
+12. Audit trail
+13. Security controls
+14. Tests added
+15. Tests passed
+16. Browser workflows verified
+17. Any known limitations
+
+Do not stop after planning.
+
+Implement the complete phase.
+
+If you encounter an architectural ambiguity, inspect the existing code and choose the solution that best preserves the existing Ledgerpoint architecture.
+
+Do not repeatedly ask me for confirmation about implementation details that can be determined from the existing codebase.
+
+Make the changes, test them, fix failures, and only then report completion.
+
+IMPORTANT FINAL REQUIREMENT:
+
+Before marking this task complete, perform a final regression review specifically checking that:
+
+- existing reconciliation still works
+- invoice matching still works
+- VAT Assistant still works
+- VAT locking still works
+- AI Accountant still works
+- company isolation still works
+- read-only permissions still work
+- existing audit trails still work
+- AI failure does not break deterministic accounting
+- no browser-side operation can bypass server-side accounting controls
+
+Create a checkpoint after the implementation and successful verification.

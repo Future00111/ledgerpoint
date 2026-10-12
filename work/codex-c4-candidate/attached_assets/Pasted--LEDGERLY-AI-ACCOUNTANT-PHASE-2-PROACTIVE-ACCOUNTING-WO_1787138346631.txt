@@ -1,0 +1,336 @@
+# LEDGERLY AI ACCOUNTANT - PHASE 2
+# PROACTIVE ACCOUNTING WORKFLOWS
+
+OBJECTIVE:
+
+Transform Ledgerly from an AI reconciliation tool into a proactive AI Accountant that continuously monitors the ledger, identifies issues and prepares accounting actions for approval.
+
+IMPORTANT:
+
+The AI must NEVER automatically:
+
+- Post transactions
+- Create journals
+- Submit VAT returns
+- Delete transactions
+- Modify historical data
+- Make accounting decisions without user approval
+
+The AI may ONLY:
+
+- Analyse
+- Recommend
+- Explain
+- Prepare actions
+- Create a review queue
+
+All actions must be approved by the user.
+
+--------------------------------------------------
+
+CREATE A NEW SIDEBAR MENU ITEM:
+
+AI ACCOUNTANT
+
+Create the following sections:
+
+- Inbox
+- Tasks
+- Insights
+- Reviews
+- Recommendations
+
+--------------------------------------------------
+
+CREATE AN AI ACCOUNTANT DASHBOARD
+
+Create a dashboard showing:
+
+AI ACCOUNTANT
+
+--------------------------------------------------
+
+Transactions requiring review: 5
+
+Overdue invoices: 3
+
+Uncategorised transactions: 4
+
+Duplicate payments detected: 2
+
+Potential missing revenue: £700
+
+VAT issues detected: 1
+
+--------------------------------------------------
+
+Clicking any item should take the user directly to the relevant workflow.
+
+--------------------------------------------------
+
+CREATE AN AI INBOX
+
+Create a prioritised task list.
+
+Example:
+
+HIGH PRIORITY
+
+⚠ £700 of missing revenue detected
+
+⚠ 3 invoices are overdue
+
+⚠ Possible duplicate payment detected
+
+--------------------------------------------------
+
+MEDIUM PRIORITY
+
+⚠ 4 transactions require categorisation
+
+⚠ VAT treatment should be reviewed
+
+--------------------------------------------------
+
+LOW PRIORITY
+
+ℹ Software subscriptions increased
+
+ℹ Electricity costs increased
+
+--------------------------------------------------
+
+CREATE AN AI TASK ENGINE
+
+Create the following AI-generated tasks:
+
+REVENUE TASKS
+
+- Missing invoices
+- Unmatched customer payments
+- Unallocated receipts
+
+--------------------------------------------------
+
+EXPENSE TASKS
+
+- Missing supplier bills
+- Uncategorised expenses
+- Duplicate payments
+
+--------------------------------------------------
+
+VAT TASKS
+
+- Transactions without VAT
+- Transactions with unusual VAT rates
+- Transactions requiring VAT review
+
+--------------------------------------------------
+
+DEBTOR TASKS
+
+- Overdue invoices
+- Customers exceeding credit terms
+- Customers with unusual payment behaviour
+
+--------------------------------------------------
+
+CREDITOR TASKS
+
+- Overdue supplier bills
+- Duplicate supplier invoices
+- Unpaid supplier balances
+
+--------------------------------------------------
+
+CREATE AN AI RECOMMENDATION ENGINE
+
+For every issue detected, generate:
+
+Problem
+
+Recommended action
+
+Confidence score
+
+Explanation
+
+--------------------------------------------------
+
+Example:
+
+Problem:
+
+£700 of revenue is missing.
+
+Recommended action:
+
+Review outstanding invoices.
+
+Confidence:
+
+92%
+
+Explanation:
+
+Three invoices partially match the imported bank transaction.
+
+--------------------------------------------------
+
+Example:
+
+Problem:
+
+Possible duplicate payment.
+
+Recommended action:
+
+Review supplier payment.
+
+Confidence:
+
+88%
+
+Explanation:
+
+Two payments for the same amount were made to the same supplier within three days.
+
+--------------------------------------------------
+
+CREATE AN AI INSIGHTS PANEL
+
+Generate accounting insights automatically.
+
+Examples:
+
+Revenue increased 18% this month.
+
+Expenses increased 12%.
+
+Gross margin fell 3%.
+
+Five invoices are overdue.
+
+Software subscriptions increased £140.
+
+Fuel costs increased £350.
+
+Cash reserves will cover approximately four months of operating costs.
+
+--------------------------------------------------
+
+CREATE AN AI REVIEW PAGE
+
+Create the following sections:
+
+Revenue Review
+
+Expense Review
+
+VAT Review
+
+Customer Review
+
+Supplier Review
+
+Cash Flow Review
+
+--------------------------------------------------
+
+ADD AN 'EXPLAIN THIS' FEATURE
+
+Every transaction should have a new action:
+
+Explain this
+
+When clicked, Ledgerly should explain:
+
+Why the transaction was matched.
+
+Why it was categorised.
+
+Why a recommendation was generated.
+
+Which data points were used.
+
+Example:
+
+EXPLAIN THIS TRANSACTION
+
+Matched because:
+
+✓ Customer name matched.
+
+✓ Invoice number found.
+
+✓ Amount matched.
+
+✓ Date within seven days.
+
+Confidence:
+
+97%
+
+--------------------------------------------------
+
+CREATE AN AI ACTIVITY TIMELINE
+
+Display:
+
+10:15 - Bank statement imported.
+
+10:16 - 4 invoices matched.
+
+10:17 - £700 of missing revenue detected.
+
+10:18 - AI generated recommendations.
+
+10:19 - Awaiting approval.
+
+--------------------------------------------------
+
+CREATE DATABASE TABLES ONLY IF NECESSARY.
+
+Possible tables:
+
+ai_tasks
+
+ai_recommendations
+
+ai_insights
+
+ai_reviews
+
+Reuse existing database models whenever possible.
+
+--------------------------------------------------
+
+REUSE THE EXISTING:
+
+- AI services
+- OpenAI integration
+- Reconciliation engine
+- Banking services
+- Invoice services
+- Customer services
+- Database models
+- Authentication
+
+DO NOT DUPLICATE EXISTING CODE.
+
+--------------------------------------------------
+
+BEFORE IMPLEMENTATION:
+
+1. Inspect the current codebase.
+
+2. Identify all reusable services.
+
+3. Explain what already exists.
+
+4. Explain what new components will be created.
+
+5. Minimise architectural changes.
+
+6. Implement all features in a single pass to minimise token usage.

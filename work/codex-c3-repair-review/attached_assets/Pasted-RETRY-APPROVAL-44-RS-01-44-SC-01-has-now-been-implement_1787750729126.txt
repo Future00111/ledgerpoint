@@ -1,0 +1,100 @@
+RETRY APPROVAL — #44-RS-01
+
+#44-SC-01 has now been implemented and independently reviewed with:
+
+PASS — #44-SC-01 COMPLETE / #44-RS-01 MAY BE RECONSIDERED
+
+I explicitly re-authorise implementation of:
+
+#44-RS-01 — Development Database Role Separation
+
+Use ONLY the already-approved scope in:
+
+docs/ledgerly-44-rs-01-development-database-role-separation-approval-package.md
+
+Before making any role, ownership, privilege, secret, or connection change,
+verify the SC-01 schema is present exactly as approved:
+
+- canonical_journal_relations.economic_effect_id TEXT NOT NULL
+- composite FK:
+  (company_id, economic_effect_id)
+  → accounting_posting_effects(company_id, economic_effect_id)
+  ON UPDATE RESTRICT
+  ON DELETE RESTRICT
+- one-reversal-per-original partial unique index exists
+- correction/reversal identity unique index exists
+- existing related-journal unique index remains
+- existing original-journal lookup index remains
+- canonical_journal_relations row count remains 0 before role/trigger work
+
+If any of those checks fail:
+
+STOP.
+
+Do not proceed with RS-01.
+
+If they pass, continue with the already-approved RS-01 implementation.
+
+Authorised RS-01 development work includes only:
+
+- create ledgerly_api as the approved dedicated non-superuser LOGIN role;
+- create ledgerly_canonical_owner as the approved NOLOGIN owner role;
+- apply the exact approved grants/revocations;
+- transfer ownership only of the approved five canonical tables;
+- install the already-approved #44 trigger functions/triggers as defined;
+- ensure ledgerly_canonical_owner owns the approved trigger functions;
+- securely switch the DEVELOPMENT API DATABASE_URL to ledgerly_api;
+- restart only the development API;
+- run the full runtime identity, privilege, escalation, mutation-resistance,
+  regression and health verification matrix.
+
+The running API must authenticate DIRECTLY as ledgerly_api.
+
+Do NOT use postgres + SET ROLE.
+
+Do NOT expose any database password.
+
+Do NOT broaden privileges if the application fails.
+
+If ledgerly_api requires any privilege outside the approved RS-01 package:
+
+STOP and report it.
+
+Do NOT weaken immutability to restore functionality.
+
+Production posting remains disabled.
+
+NOT authorised:
+
+- production roles or credentials;
+- production DATABASE_URL changes;
+- production schema;
+- production deployment/publishing;
+- RLS;
+- migration/backfill;
+- BL-06;
+- BL-07;
+- #41 execution;
+- unrelated application/schema changes;
+- new accounting workflows.
+
+When complete, STOP and provide:
+
+- actual current_user/session_user;
+- verified ledgerly_api role attributes;
+- canonical table ownership;
+- trigger function ownership;
+- trigger ENABLE ALWAYS state;
+- privilege and ACL results;
+- negative escalation results;
+- mutation resistance results;
+- permitted application behavior results;
+- BL-01-FI test results;
+- #40/#44 test results;
+- type/build/health results;
+- changed database objects;
+- secret/configuration status without exposing credentials;
+- confirmation production state did not change;
+- confirmation production posting remains disabled.
+
+Do not start another task.

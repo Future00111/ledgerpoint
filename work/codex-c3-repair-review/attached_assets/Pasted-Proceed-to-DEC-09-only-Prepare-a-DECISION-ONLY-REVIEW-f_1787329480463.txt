@@ -1,0 +1,453 @@
+Proceed to DEC-09 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-09 — Chart of Accounts and Default Account Policy
+
+Review the existing:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- DEC-01 through DEC-08
+- Accounting Core Architecture Review
+- Accounting Core Decision Pack
+- DEC-03 VAT policy
+- DEC-04 accounting-core architecture
+- DEC-05 capability model
+- DEC-06 financial-year policy
+- DEC-07 accounting-period policy
+- DEC-08 year-end policy
+- Master Backlog
+- any existing chart-of-accounts implementation
+- any existing nominal/account mappings
+- existing invoice, bill, VAT, payment and reporting account mappings
+
+Do NOT implement anything.
+
+Do NOT modify:
+
+- application code
+- database schema
+- migrations
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Do NOT approve DEC-09.
+Do NOT start DEC-10 or any later decision.
+Keep BL-06 and BL-07 BLOCKED.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Determine the appropriate Chart of Accounts policy for Ledgerpoint.
+
+The goal is to establish a useful UK small-business default chart while ensuring that the canonical accounting engine remains safe, auditable and configurable.
+
+==================================================
+1. DEFAULT CHART
+==================================================
+
+Evaluate the appropriate default Chart of Accounts for a UK-focused small-business accounting product.
+
+Determine:
+
+- account numbering approach;
+- account names;
+- account types;
+- account categories;
+- reporting classifications;
+- parent/child hierarchy where appropriate.
+
+The chart should be practical rather than unnecessarily large.
+
+Avoid copying a traditional accounting chart simply because it is familiar.
+
+The chart must support the approved Ledgerpoint product scope.
+
+==================================================
+2. REQUIRED ACCOUNT TYPES
+==================================================
+
+Evaluate the required account classifications, including:
+
+- Assets
+- Liabilities
+- Equity
+- Revenue/Income
+- Cost of Sales
+- Expenses
+
+Also determine the appropriate treatment/category for:
+
+- Bank/Cash
+- Accounts Receivable
+- Accounts Payable
+- VAT/tax
+- retained results/equity presentation
+- other required control accounts.
+
+==================================================
+3. ACCOUNT CODES
+==================================================
+
+Recommend a numbering convention.
+
+Consider:
+
+- readability;
+- reporting;
+- expansion;
+- custom accounts;
+- future markets;
+- future currencies;
+- migration compatibility.
+
+Do not unnecessarily hard-code account numbers if doing so would prevent future evolution.
+
+==================================================
+4. CONTROL ACCOUNTS
+==================================================
+
+Identify accounts that must be treated as controlled/system accounts.
+
+At minimum assess:
+
+- Accounts Receivable
+- Accounts Payable
+- Bank/Cash
+- VAT Output
+- VAT Input
+- VAT Control/Settlement where appropriate
+- Revenue
+- Cost of Sales
+- Expenses
+- Equity/retained results where relevant.
+
+Explain which accounts:
+
+- users may edit;
+- users may rename;
+- users may deactivate;
+- users must not delete;
+- users must not manually post to;
+- require elevated capability.
+
+Do NOT resolve DEC-10's full control-account mapping policy.
+
+Clearly identify what belongs in DEC-10.
+
+==================================================
+5. USER CUSTOMISATION
+==================================================
+
+Determine what companies should be able to customise.
+
+Consider:
+
+- create account;
+- rename account;
+- change reporting category;
+- change account code;
+- deactivate account;
+- archive account;
+- merge accounts;
+- delete accounts.
+
+Define safe restrictions.
+
+The accounting engine must never allow customisation that breaks:
+
+- double-entry;
+- VAT;
+- AR;
+- AP;
+- bank accounting;
+- reporting;
+- period/year-end integrity.
+
+==================================================
+6. SYSTEM / DEFAULT ACCOUNTS
+
+Define how Ledgerpoint distinguishes:
+
+- system accounts;
+- default accounts;
+- user-created accounts;
+- inactive accounts;
+- historical accounts.
+
+Determine whether system accounts can be overridden and under what conditions.
+
+==================================================
+7. REPORTING CLASSIFICATION
+
+Ensure every account can map appropriately into:
+
+- Profit & Loss;
+- Balance Sheet;
+- Trial Balance;
+- General Ledger;
+- VAT reporting where applicable.
+
+The reporting classification must not depend on fragile frontend assumptions.
+
+==================================================
+8. INVOICE / BILL / PAYMENT MAPPINGS
+
+Review how the default chart should support mappings for:
+
+SALES INVOICES:
+- AR
+- revenue
+- output VAT
+
+SUPPLIER BILLS:
+- AP
+- expense/asset
+- input VAT
+
+CUSTOMER PAYMENTS:
+- bank/cash
+- AR
+
+SUPPLIER PAYMENTS:
+- AP
+- bank/cash
+
+CREDIT NOTES:
+- corresponding reversal/reduction accounts
+
+Do not implement these mappings.
+
+Identify dependencies with DEC-10.
+
+==================================================
+9. VAT
+
+DEC-03 remains the sole VAT authority.
+
+Determine how VAT-related accounts should exist within the chart without creating a second VAT engine.
+
+Do not expand VAT scope beyond DEC-03.
+
+==================================================
+10. YEAR-END
+
+Respect DEC-08.
+
+Do not create automatic year-end closing or retained-earnings journals.
+
+Determine how equity/retained-results accounts should be represented for reporting without conflicting with the approved reporting-only year-end policy.
+
+==================================================
+11. ACCOUNT LIFECYCLE
+
+Define recommended lifecycle states/behaviour for accounts.
+
+Consider:
+
+- active;
+- inactive;
+- historical;
+- system.
+
+Avoid unnecessary complexity.
+
+Determine what happens if an account is no longer used.
+
+Never allow historical accounting records to lose their account reference simply because an account becomes inactive.
+
+==================================================
+12. ACCOUNT DELETION
+
+Determine whether accounts can ever be physically deleted.
+
+Pay particular attention to accounts referenced by:
+
+- posted journals;
+- VAT records;
+- invoices;
+- bills;
+- payments;
+- reports.
+
+Do not allow deletion to corrupt historical accounting.
+
+==================================================
+13. ACCOUNT MERGING
+
+Determine whether account merging should be supported.
+
+If recommended, explain how it can be performed without rewriting historical journals.
+
+If not recommended for launch, explicitly identify it as future scope.
+
+==================================================
+14. MULTI-CURRENCY / FUTURE MARKETS
+
+DEC-02 established UK/GBP launch direction but deliberately avoided permanent hard-coding.
+
+The chart architecture should not unnecessarily prevent future:
+
+- currencies;
+- markets;
+- tax systems;
+- reporting requirements.
+
+Do not implement internationalisation.
+
+==================================================
+15. PERMISSIONS
+
+Map account-management actions to DEC-05.
+
+Determine which actions should require elevated capabilities.
+
+Do not silently grant permissions.
+
+==================================================
+16. MIGRATION
+
+Review how the existing Ledgerpoint chart/accounts should map into the proposed model.
+
+Historical migration must be evidence-based.
+
+Never invent account mappings where evidence does not exist.
+
+Identify ambiguous mappings as migration exceptions.
+
+==================================================
+17. OPTIONS
+
+Present realistic options for:
+
+- default chart size;
+- numbering system;
+- system-account treatment;
+- user customisation;
+- account deletion;
+- account merging;
+- reporting classification.
+
+For each material option explain:
+
+- accounting consequences;
+- data/schema consequences;
+- migration consequences;
+- reporting consequences;
+- security/permission consequences;
+- compatibility consequences;
+- future flexibility;
+- what becomes difficult to change later.
+
+==================================================
+18. RECOMMENDATION
+
+Provide:
+
+RECOMMENDATION — NOT APPROVAL
+
+Recommend the approach that best fits:
+
+- UK small businesses;
+- simple user experience;
+- strong accounting integrity;
+- DEC-04 canonical accounting;
+- DEC-05 capability controls;
+- DEC-08 reporting-only year-end;
+- future extensibility.
+
+Do not convert the recommendation into an approval.
+
+==================================================
+19. DECISION BOUNDARIES
+==================================================
+
+Clearly distinguish:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Explicitly identify:
+
+- what approving DEC-09 would lock in;
+- what remains changeable;
+- what belongs to DEC-10;
+- what belongs to DEC-11;
+- any decisions that should remain outside DEC-09.
+
+==================================================
+20. IMPORTANT ACCOUNTING PRINCIPLE
+==================================================
+
+The Chart of Accounts is part of the accounting foundation.
+
+However, the chart must NOT become an uncontrolled mechanism for changing accounting logic.
+
+A user changing the name or code of an account must not change the accounting meaning of historical posted journals.
+
+Do not use account names as accounting logic.
+
+Use stable identifiers and explicit account classifications/mappings.
+
+==================================================
+21. FUTURE FLEXIBILITY
+==================================================
+
+The architecture must allow the Chart of Accounts to evolve through controlled amendments.
+
+Do not permanently lock:
+
+- account names;
+- account codes;
+- optional reporting categories;
+- future account types
+
+unless there is a genuine accounting reason.
+
+System/control-account safety boundaries must remain protected.
+
+==================================================
+22. DOCUMENTATION
+==================================================
+
+Create or update the appropriate DEC-09 decision-review document.
+
+Link it into:
+
+- Current Decision Register;
+- Living Product Decisions;
+- Accounting Core Decision Pack;
+- Technical Architecture;
+- PRD / Product Scope;
+
+where appropriate.
+
+Do not modify implementation files.
+
+==================================================
+23. FINAL VERIFICATION
+==================================================
+
+At the end verify:
+
+1. DEC-01 through DEC-08 retain their approved statuses.
+2. DEC-09 remains REQUIRES USER DECISION.
+3. DEC-10 through DEC-22 remain REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-10 work was started.
+8. No chart/account schema or accounting logic was implemented.
+
+Stop after the DEC-09 decision-only review is complete.

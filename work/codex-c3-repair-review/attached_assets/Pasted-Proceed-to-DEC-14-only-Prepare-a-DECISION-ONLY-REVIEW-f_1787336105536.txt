@@ -1,0 +1,551 @@
+Proceed to DEC-14 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-14 — Unapplied Cash Workflow Policy
+
+Review all existing governance and accounting documentation, including:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- Accounting Core Decision Pack
+- Master Backlog
+- DEC-01 through DEC-13
+- DEC-03 VAT policy
+- DEC-04 canonical accounting architecture
+- DEC-05 capability model
+- DEC-06 financial-year policy
+- DEC-07 accounting-period policy
+- DEC-08 year-end policy
+- DEC-09 Chart of Accounts policy
+- DEC-10 control-account mapping policy
+- DEC-11 configuration-versioning policy
+- DEC-12 payment/allocation/settlement policy
+- DEC-13 overpayment/unapplied-cash policy
+- Existing invoice, bill, payment, banking, reconciliation and VAT documentation
+
+This is a DECISION-ONLY review.
+
+DO NOT implement anything.
+
+DO NOT modify:
+
+- application code
+- database schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Do NOT approve DEC-14.
+Do NOT start DEC-15 or any later decision.
+Keep BL-06 and BL-07 BLOCKED.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Determine Ledgerly's detailed USER WORKFLOW for handling unapplied cash.
+
+DEC-13 has already established the accounting representation:
+
+- customer excess/customer credit is a liability;
+- supplier excess/supplier prepayment is an asset;
+- known-party payments may exist before document allocation;
+- bank evidence remains separate;
+- allocation must not exceed eligible amounts.
+
+DEC-14 must now determine how users identify, review, manage and allocate these balances.
+
+Do NOT use DEC-14 to resolve:
+
+- refund policy;
+- refund source;
+- refund VAT;
+- refund approval;
+- payment-on-account launch scope.
+
+Those remain for DEC-15 and DEC-16.
+
+==================================================
+1. DEFINITION OF UNAPPLIED CASH
+==================================================
+
+Define precisely what Ledgerly means by:
+
+- unapplied customer payment;
+- unapplied supplier payment;
+- unallocated payment remainder;
+- customer credit;
+- supplier prepayment;
+- bank evidence awaiting reconciliation.
+
+Ensure these are not conflated.
+
+==================================================
+2. WORKFLOW ENTRY POINTS
+==================================================
+
+Determine how users encounter unapplied cash.
+
+Consider:
+
+- payment creation;
+- bank reconciliation;
+- customer account;
+- supplier account;
+- invoice/bill screens;
+- dedicated unapplied-cash workspace;
+- notifications;
+- Ask.
+
+Recommend the most appropriate launch experience.
+
+==================================================
+3. KNOWN PARTY VS UNKNOWN PARTY
+==================================================
+
+Define the workflow for:
+
+KNOWN PARTY + KNOWN PAYMENT
+
+KNOWN PARTY + PAYMENT BUT NO DOCUMENT
+
+UNKNOWN PARTY + BANK EVIDENCE
+
+UNKNOWN PARTY + ACCOUNTING PAYMENT
+
+Determine when an accounting payment can be created and when evidence must remain unresolved.
+
+Do not silently turn unknown bank evidence into accounting.
+
+==================================================
+4. CUSTOMER WORKFLOW
+==================================================
+
+Define the workflow when a customer payment cannot yet be allocated.
+
+Consider:
+
+- payment received;
+- customer identified;
+- no invoice identified;
+- partial allocation;
+- remaining credit;
+- later invoice creation;
+- later allocation.
+
+Explain what the user sees and what actions are available.
+
+==================================================
+5. SUPPLIER WORKFLOW
+==================================================
+
+Define the equivalent workflow for supplier payments.
+
+Consider:
+
+- supplier identified;
+- no bill identified;
+- partial allocation;
+- remaining prepayment;
+- later bill creation;
+- later allocation.
+
+==================================================
+6. ALLOCATION WORKFLOW
+==================================================
+
+Determine how a user allocates unapplied money.
+
+Consider:
+
+- selecting one document;
+- selecting multiple documents;
+- partial allocation;
+- allocation amount;
+- remaining balance;
+- validation;
+- confirmation;
+- audit.
+
+Allocation must respect DEC-12 limits.
+
+==================================================
+7. REALLOCATION / UNALLOCATION
+==================================================
+
+Determine how users:
+
+- remove an allocation;
+- move an allocation;
+- partially reallocate;
+- return an amount to unapplied status.
+
+Preserve append-only history.
+
+Do not allow silent accounting mutation.
+
+==================================================
+8. SEARCH AND MATCHING
+==================================================
+
+Determine whether Ledgerly should suggest matching documents.
+
+Consider matching signals such as:
+
+- customer/supplier;
+- amount;
+- reference;
+- invoice/bill number;
+- date;
+- bank reference.
+
+If AI or automated matching is considered:
+
+- rules must remain authoritative;
+- AI may recommend;
+- users remain in control;
+- consequential accounting actions require appropriate capability.
+
+Respect the Ledgerly Manifesto.
+
+==================================================
+9. AUTO-ALLOCATION
+==================================================
+
+Evaluate:
+
+- manual allocation;
+- suggested allocation;
+- automatic allocation.
+
+If automatic allocation is recommended, define:
+
+- confidence threshold;
+- deterministic rules;
+- user visibility;
+- audit;
+- reversal;
+- safeguards.
+
+Do not silently automate financial decisions.
+
+==================================================
+10. PARTIAL PAYMENTS
+==================================================
+
+Define how the workflow handles:
+
+- partial invoice payment;
+- partial bill payment;
+- multiple payments;
+- payment remainder;
+- document remainder.
+
+Settlement remains derived under DEC-12.
+
+==================================================
+11. CUSTOMER CREDIT / SUPPLIER PREPAYMENT
+
+Define how the user sees:
+
+- customer credit balance;
+- supplier prepayment balance.
+
+Do not present them as ordinary aged receivables/payables.
+
+Ensure users understand:
+
+- what the balance represents;
+- why it exists;
+- what they can do next.
+
+==================================================
+12. REPORTING AND STATEMENTS
+==================================================
+
+Determine how unapplied/customer-credit/supplier-prepayment amounts appear in:
+
+- customer statements;
+- supplier statements;
+- customer balance;
+- supplier balance;
+- aged receivables;
+- aged payables;
+- Balance Sheet;
+- Trial Balance;
+- General Ledger.
+
+Do not create contradictory balances between screens.
+
+==================================================
+13. PERIOD CONTROLS
+==================================================
+
+Respect DEC-07.
+
+Determine how:
+
+- payment posting;
+- allocation;
+- unallocation;
+- reallocation
+
+interact with open and closed periods.
+
+Do not allow workflow actions to bypass accounting-period controls.
+
+==================================================
+14. ACCOUNTING EFFECTS
+==================================================
+
+Respect DEC-13.
+
+Determine when the workflow creates:
+
+- the original payment journal;
+- customer-credit liability reclassification;
+- supplier-prepayment asset reclassification.
+
+Do not create duplicate cash/AR/AP postings.
+
+==================================================
+15. CONFIGURATION
+==================================================
+
+Respect DEC-10 and DEC-11.
+
+Where an accounting reclassification requires material account configuration:
+
+- identify the applicable mapping;
+- use the correct configuration version;
+- preserve resolved account IDs on canonical postings.
+
+==================================================
+16. PERMISSIONS
+==================================================
+
+Use DEC-05.
+
+Determine which actions require:
+
+- normal capability;
+- elevated capability;
+- approval.
+
+Consider:
+
+- allocate;
+- unallocate;
+- reallocate;
+- clear;
+- adjust.
+
+Do not silently grant permissions.
+
+==================================================
+17. AUDIT
+==================================================
+
+Define audit requirements for:
+
+- payment identification;
+- allocation;
+- reallocation;
+- unallocation;
+- customer-credit creation;
+- supplier-prepayment creation;
+- clearing/adjustment.
+
+Audit history must be immutable.
+
+==================================================
+18. REFUNDS
+==================================================
+
+DEC-15 remains responsible for refund policy.
+
+DEC-14 must NOT decide:
+
+- whether refunds are supported;
+- refund source;
+- refund approval;
+- refund VAT;
+- refund launch scope.
+
+Define only the hand-off between an unapplied/customer-credit balance and a future refund workflow.
+
+==================================================
+19. PAYMENT-ON-ACCOUNT
+==================================================
+
+DEC-16 remains responsible for user-facing payment-on-account scope.
+
+DEC-14 must NOT approve or reject payment-on-account as a product feature.
+
+Define only the structural relationship between unapplied cash and any future payment-on-account workflow.
+
+==================================================
+20. VAT
+==================================================
+
+DEC-03 remains the sole VAT authority.
+
+Do not create new VAT rules through the unapplied-cash workflow.
+
+==================================================
+21. OPTIONS
+==================================================
+
+Present realistic workflow options for:
+
+- dedicated unapplied-cash workspace;
+- customer/supplier account workflow;
+- bank reconciliation workflow;
+- manual allocation;
+- suggested matching;
+- automatic allocation.
+
+For each material option explain:
+
+- accounting consequences;
+- data/schema consequences;
+- migration consequences;
+- reporting consequences;
+- VAT consequences;
+- security/permission consequences;
+- operational consequences;
+- compatibility consequences;
+- user-experience consequences;
+- future flexibility.
+
+==================================================
+22. RECOMMENDATION
+==================================================
+
+Provide:
+
+RECOMMENDATION — NOT APPROVAL
+
+Recommend the workflow that best satisfies:
+
+- DEC-12 payment/allocation/settlement;
+- DEC-13 overpayment/unapplied-cash accounting;
+- DEC-04 canonical accounting;
+- DEC-05 capabilities;
+- Ledgerly's AI-assistant principles;
+- clarity for business owners;
+- accountant usability;
+- auditability;
+- future flexibility.
+
+Do not convert the recommendation into approval.
+
+==================================================
+23. DECISION BOUNDARIES
+==================================================
+
+Clearly distinguish:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Explicitly identify:
+
+- what approving DEC-14 would lock in;
+- what remains changeable;
+- what belongs to DEC-15;
+- what belongs to DEC-16;
+- what belongs to DEC-22 migration.
+
+==================================================
+24. IMPORTANT LEDGERLY PRINCIPLE
+==================================================
+
+Ledgerly should help users resolve unapplied cash rather than simply displaying a confusing accounting state.
+
+However:
+
+AI may recommend.
+
+Rules determine accounting validity.
+
+Users remain in control of consequential financial actions.
+
+No automatic financial action should occur silently.
+
+==================================================
+25. MIGRATION
+==================================================
+
+Historical unapplied cash, customer credits and supplier prepayments must only be migrated where supported by evidence.
+
+Never invent:
+
+- historical allocations;
+- historical customer credits;
+- historical supplier prepayments;
+- historical workflow actions.
+
+Ambiguity becomes a DEC-22 migration exception.
+
+==================================================
+26. FUTURE FLEXIBILITY
+==================================================
+
+Do not unnecessarily prevent future:
+
+- automated matching;
+- payment-on-account;
+- refunds;
+- additional payment methods;
+- currencies;
+- markets;
+- AI-assisted workflows.
+
+==================================================
+27. DOCUMENTATION
+==================================================
+
+Create or update:
+
+docs/ledgerly-dec-14-unapplied-cash-workflow-policy-review.md
+
+Link it into:
+
+- Current Decision Register;
+- Living Product Decisions;
+- Accounting Core Decision Pack;
+- Technical Architecture;
+- PRD / Product Scope;
+
+where appropriate.
+
+Do not modify implementation files.
+
+==================================================
+28. FINAL VERIFICATION
+==================================================
+
+At the end verify:
+
+1. DEC-01 through DEC-13 retain their approved statuses.
+2. DEC-14 remains REQUIRES USER DECISION.
+3. DEC-15 through DEC-22 remain REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-15 work was started.
+8. No unapplied-cash workflow, UI, schema, migration or accounting logic was implemented.
+
+Stop after the DEC-14 decision-only review is complete.

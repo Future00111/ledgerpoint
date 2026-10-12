@@ -1,0 +1,121 @@
+TR-01 — EXACT GIT OBJECT RECOVERY FROM PRIOR CHECKPOINT
+
+Current condition:
+
+Required branch:
+feat/ti03-option-e-redesign
+
+Required exact HEAD:
+b03627099616675924a88e9a30c7b5e6547c9166
+
+Current workspace inspection shows:
+
+- branch missing;
+- commit object missing;
+- no matching local or remote refs;
+- working tree clean;
+- exact-history bundle cannot currently be recreated.
+
+Earlier in this same workspace, Git successfully verified a complete bundle
+for the exact branch and HEAD above, and a Replit checkpoint existed around
+that time.
+
+This task is RECOVERY / INSPECTION ONLY.
+
+Do NOT:
+
+- recreate the commit;
+- create a replacement commit;
+- amend/rebase/squash/cherry-pick;
+- reconstruct history through REST;
+- push anything;
+- modify governance;
+- run Phase A;
+- run qualification;
+- modify accounting/schema/runtime code.
+
+==================================================
+1. INSPECT PRIOR CHECKPOINTS
+==================================================
+
+Identify the Replit checkpoint/version immediately after the successful
+bundle verification for:
+
+feat/ti03-option-e-redesign
+HEAD b03627099616675924a88e9a30c7b5e6547c9166
+
+Determine whether that checkpoint contains either:
+
+A. the original bundle file;
+
+and/or
+
+B. the Git object store containing commit
+b03627099616675924a88e9a30c7b5e6547c9166.
+
+Do not restore anything yet.
+
+==================================================
+2. VERIFY RECOVERY CAPABILITY
+==================================================
+
+Report:
+
+CHECKPOINT FOUND: YES/NO
+
+CHECKPOINT APPROXIMATE TIME
+
+ORIGINAL .BUNDLE PRESENT: YES/NO/UNKNOWN
+
+.git OBJECT STORE PRESERVED: YES/NO/UNKNOWN
+
+EXACT COMMIT b036270... RECOVERABLE: YES/NO/UNKNOWN
+
+CURRENT WORKSPACE WOULD BE OVERWRITTEN BY RESTORE: YES/NO
+
+==================================================
+3. SAFE RECOVERY PLAN
+==================================================
+
+If the checkpoint contains the original bundle:
+
+recommend recovery of that exact file without recreating it.
+
+If the checkpoint contains the Git object store but not the bundle:
+
+recommend restoring/copying the exact Git objects and then generating a
+new bundle from the recovered exact commit.
+
+If checkpoint restoration would overwrite the present workspace:
+
+STOP and describe the safest method to preserve the current workspace
+before any restore.
+
+Do not execute the restore automatically.
+
+==================================================
+4. NO SYNTHETIC RECOVERY
+==================================================
+
+Do not claim the exact commit can be recovered merely from:
+
+- current file contents;
+- the known SHA;
+- screenshots;
+- previous manifest text;
+- a newly created commit.
+
+The original Git object/ancestry or original verified bundle must actually
+be recovered.
+
+==================================================
+5. RESULT
+==================================================
+
+If recoverable:
+
+TR-01 EXACT GIT HISTORY RECOVERY AVAILABLE — RESTORE APPROVAL REQUIRED
+
+If neither checkpoint nor another authoritative copy contains the object:
+
+TR-01 EXACT GIT HISTORY LOST — GOVERNANCE IDENTITY AMENDMENT REQUIRED

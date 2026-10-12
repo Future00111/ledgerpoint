@@ -1,0 +1,561 @@
+PHASE 4C – AI CUSTOMER COLLECTIONS & PAYMENT CHASING
+
+Build the next component of the Ledgerly AI Accountant.
+
+OBJECTIVE:
+
+Ledgerly should automatically identify overdue customer invoices, assess the likelihood of payment, prioritise which customers need attention, and prepare appropriate payment-chasing actions.
+
+The AI must act like an accounts receivable accountant.
+
+IMPORTANT:
+
+Do not replace the existing invoicing, customer, banking or AI systems.
+
+Extend the existing architecture.
+
+Reuse existing database models, services, components and AI infrastructure.
+
+Do not duplicate existing functionality.
+
+Do not automatically send customer communications without explicit user approval.
+
+--------------------------------------------------
+1. OVERDUE INVOICE ANALYSIS
+--------------------------------------------------
+
+Analyse all outstanding customer invoices.
+
+For each invoice determine:
+
+- Invoice number
+- Customer
+- Invoice date
+- Due date
+- Invoice amount
+- Amount paid
+- Remaining balance
+- Days overdue
+- Previous payment behaviour
+- Customer payment history
+- Number of previous overdue invoices
+- Average payment delay
+- Current customer balance
+
+--------------------------------------------------
+2. CREATE AI COLLECTION TASKS
+--------------------------------------------------
+
+Create AI Accountant tasks for invoices requiring attention.
+
+Task type:
+
+customer_follow_up
+
+Examples:
+
+"Invoice INV-1042 is 18 days overdue."
+
+"£4,850 remains outstanding."
+
+"Customer normally pays within 7 days but this invoice is now 18 days overdue."
+
+Priority:
+
+critical
+high
+medium
+low
+
+--------------------------------------------------
+3. CUSTOMER PAYMENT RISK
+--------------------------------------------------
+
+Calculate a payment-risk score.
+
+Consider:
+
+- Days overdue
+- Amount outstanding
+- Historical payment behaviour
+- Previous late payments
+- Number of overdue invoices
+- Customer payment frequency
+- Recent payment activity
+
+Display:
+
+LOW RISK
+
+MEDIUM RISK
+
+HIGH RISK
+
+Do not imply that the customer will definitely fail to pay.
+
+This is an AI assessment, not a credit decision.
+
+--------------------------------------------------
+4. CUSTOMER COLLECTION SUMMARY
+--------------------------------------------------
+
+Create a customer-level collection view.
+
+Example:
+
+ABC Construction
+
+Outstanding:
+
+£14,250
+
+Overdue:
+
+£9,850
+
+Invoices overdue:
+
+3
+
+Average historical payment delay:
+
+8 days
+
+Current oldest invoice:
+
+42 days overdue
+
+AI assessment:
+
+"Payment behaviour has deteriorated compared with the customer's normal pattern."
+
+Recommended action:
+
+"Send a payment reminder."
+
+--------------------------------------------------
+5. COLLECTION PRIORITY
+--------------------------------------------------
+
+Rank overdue invoices based on:
+
+- Amount
+- Days overdue
+- Customer risk
+- Historical payment behaviour
+- Number of outstanding invoices
+
+Example:
+
+TODAY'S COLLECTION PRIORITIES
+
+1. ABC Construction
+£12,500
+42 days overdue
+HIGH PRIORITY
+
+2. Northgate Consulting
+£4,850
+18 days overdue
+MEDIUM PRIORITY
+
+3. Cedar & Co
+£1,275
+7 days overdue
+LOW PRIORITY
+
+--------------------------------------------------
+6. AI ACCOUNTANT DASHBOARD
+--------------------------------------------------
+
+Add:
+
+CUSTOMER COLLECTIONS
+
+Example:
+
+£24,850 overdue
+
+8 invoices
+
+5 customers
+
+2 high priority
+
+Add a button:
+
+[Review Collections]
+
+--------------------------------------------------
+7. COLLECTION WORKSPACE
+--------------------------------------------------
+
+Create:
+
+/sales/collections
+
+or reuse the existing collections route if one already exists.
+
+The page should contain:
+
+Collection summary
+
+Total outstanding
+
+Total overdue
+
+Number of overdue invoices
+
+High-priority customers
+
+Collection activity
+
+Overdue invoice list
+
+--------------------------------------------------
+8. INVOICE DETAIL
+--------------------------------------------------
+
+When opening an overdue invoice display:
+
+Customer
+
+Invoice
+
+Original amount
+
+Paid
+
+Outstanding
+
+Invoice date
+
+Due date
+
+Days overdue
+
+Payment history
+
+Previous reminders
+
+AI assessment
+
+Recommended action
+
+--------------------------------------------------
+9. AI PAYMENT REMINDER GENERATOR
+--------------------------------------------------
+
+Add:
+
+[Draft Reminder]
+
+The AI should generate a professional payment reminder using the actual invoice information.
+
+Example:
+
+Subject:
+
+Payment reminder – Invoice INV-1042
+
+Message:
+
+"Hi ABC Construction,
+
+I hope you're well.
+
+Just a quick reminder that invoice INV-1042 for £4,850 was due on 2 August and currently remains outstanding.
+
+Could you please let us know when we can expect payment?
+
+If payment has already been made, please disregard this message.
+
+Kind regards,
+[Company Name]"
+
+Do not invent:
+
+- Payment dates
+- Customer contacts
+- Bank details
+- Invoice information
+
+Use real Ledgerly data.
+
+--------------------------------------------------
+10. REMINDER TONE
+--------------------------------------------------
+
+Allow the user to select:
+
+Friendly
+
+Professional
+
+Firm
+
+Final reminder
+
+The AI must adjust wording appropriately.
+
+--------------------------------------------------
+11. APPROVAL BEFORE SENDING
+--------------------------------------------------
+
+NEVER automatically send a customer reminder.
+
+Workflow:
+
+[Draft Reminder]
+
+↓
+
+AI generates message
+
+↓
+
+User reviews message
+
+↓
+
+[Edit]
+
+[Approve & Send]
+
+[Cancel]
+
+--------------------------------------------------
+12. COLLECTION HISTORY
+--------------------------------------------------
+
+Record:
+
+- Reminder generated
+- Reminder sent
+- Date
+- User
+- Invoice
+- Customer
+- Communication type
+- Message
+
+Display communication history against the invoice.
+
+--------------------------------------------------
+13. PAYMENT RECEIVED AFTER REMINDER
+--------------------------------------------------
+
+If the customer pays:
+
+Automatically detect the payment through the existing banking/reconciliation system.
+
+Update:
+
+Invoice status
+
+Customer balance
+
+Collection task
+
+Collection dashboard
+
+Communication history
+
+If the invoice becomes fully paid:
+
+Mark the collection task:
+
+COMPLETED
+
+Display:
+
+"£4,850 payment received. Invoice INV-1042 is now fully paid."
+
+--------------------------------------------------
+14. PARTIAL PAYMENT
+--------------------------------------------------
+
+If a customer pays only part of the invoice:
+
+Example:
+
+Invoice:
+
+£10,000
+
+Payment:
+
+£6,000
+
+Remaining:
+
+£4,000
+
+Update the collection task.
+
+Explain:
+
+"£6,000 has been received. £4,000 remains outstanding."
+
+Do not send a new reminder automatically.
+
+Require user approval.
+
+--------------------------------------------------
+15. AI COLLECTION INSIGHTS
+--------------------------------------------------
+
+Generate useful insights such as:
+
+"Your overdue customer debt has increased by £6,250 this month."
+
+"ABC Construction accounts for 38% of your overdue debt."
+
+"Average customer payment time has increased from 12 days to 18 days."
+
+"Three customers have invoices more than 30 days overdue."
+
+These insights must be calculated from actual Ledgerly data.
+
+Never invent statistics.
+
+--------------------------------------------------
+16. ASK LEDGERLY INTEGRATION
+--------------------------------------------------
+
+The AI Accountant must understand questions such as:
+
+"Who owes me money?"
+
+"Which customers are overdue?"
+
+"Who is my biggest debtor?"
+
+"Who is paying later than usual?"
+
+"How much money is overdue?"
+
+"Which invoices should I chase today?"
+
+"Draft a reminder for ABC Construction."
+
+"How long does ABC Construction normally take to pay?"
+
+"Has ABC Construction paid since my last reminder?"
+
+Answers must use live accounting data.
+
+--------------------------------------------------
+17. AI EXPLANATIONS
+--------------------------------------------------
+
+Every recommendation must explain why it was made.
+
+Example:
+
+"ABC Construction has been prioritised because:
+
+• £12,500 remains outstanding.
+• The oldest invoice is 42 days overdue.
+• The customer has previously paid late.
+• The outstanding balance represents 31% of your total overdue debt."
+
+--------------------------------------------------
+18. SAFETY
+
+The AI may:
+
+✓ Identify overdue invoices
+✓ Prioritise collections
+✓ Analyse payment behaviour
+✓ Draft reminders
+✓ Recommend actions
+✓ Generate collection insights
+
+The AI must NOT:
+
+✗ Automatically send emails
+✗ Automatically call customers
+✗ Change invoice amounts
+✗ Change invoice due dates
+✗ Write off debt
+✗ Create credit notes automatically
+✗ Alter accounting records without approval
+
+--------------------------------------------------
+19. PERFORMANCE
+
+Use deterministic database queries for:
+
+- Outstanding balances
+- Days overdue
+- Payment history
+- Customer balances
+- Invoice status
+
+Use OpenAI only for:
+
+- Explanations
+- Risk interpretation
+- Recommendations
+- Message generation
+- Natural-language responses
+
+Do not send large accounting datasets unnecessarily to OpenAI.
+
+Minimise token usage and API costs.
+
+--------------------------------------------------
+20. TEST DATA
+
+Create tests for:
+
+1. Invoice paid on time
+2. Invoice 7 days overdue
+3. Invoice 30 days overdue
+4. Invoice 60+ days overdue
+5. Customer with multiple overdue invoices
+6. Partial payment
+7. Full payment after reminder
+8. Customer with historically late payments
+9. Customer with historically reliable payments
+10. Multiple customers with different collection priorities
+11. Reminder generation
+12. Reminder approval workflow
+13. Payment received after reminder
+14. Customer balance updating
+
+--------------------------------------------------
+21. EXISTING DESIGN
+
+Use the existing Ledgerly design language.
+
+Use existing:
+
+- Cards
+- Buttons
+- Status indicators
+- AI confidence indicators
+- Tables
+- Notifications
+- Dashboard widgets
+
+Do not redesign unrelated pages.
+
+Keep the interface clean and professional.
+
+--------------------------------------------------
+22. FINAL VALIDATION
+
+After implementation:
+
+- Run type checking.
+- Run existing tests.
+- Run all new collection tests.
+- Verify no existing reconciliation functionality is broken.
+- Verify customer balances remain accurate.
+- Verify invoice balances remain accurate.
+- Verify no communication can be sent without explicit approval.
+- Verify AI responses use real database data.
+- Verify OpenAI is not called unnecessarily.
+- Verify all changes are contained within the new collections functionality.

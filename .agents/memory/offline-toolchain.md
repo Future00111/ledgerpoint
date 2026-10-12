@@ -1,6 +1,6 @@
 ---
 name: Offline qualification toolchains
-description: Build-time Corepack activation must be verified for the final runtime user before isolating the test network.
+description: Verify offline resolution for the final user and the actual sanitized nested invocation, not just top-level image commands.
 ---
 
 Build-time package-manager activation does not prove that the final
@@ -17,3 +17,16 @@ filesystem before database bootstrap. Verify a missing cache fails closed
 rather than selecting/downloading a replacement.
 Keep toolchain preparation outside the isolated database phase; do not open
 the database/test network to solve package-manager resolution.
+
+Every sanitized child-process boundary is a separate toolchain-environment
+boundary; success in the top-level image environment is insufficient.
+
+**Why:** A later qualification passed the image's final-user offline smoke,
+then its real nested pnpm invocation attempted latest-version resolution
+because the launcher discarded the prepared-cache/offline settings.
+
+**How to apply:** Exercise the actual launcher's sanitized environment and
+process executor with the real compilation/test command. Include missing-cache
+rejection in that same nested path, not only a parallel top-level smoke. Keep
+toolchain settings explicitly allowlisted; do not inherit arbitrary parent
+credentials to repair resolution.

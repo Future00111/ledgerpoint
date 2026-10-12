@@ -1,0 +1,62 @@
+Implement the FULL Phase 4 AI VAT Assistant specification now.
+
+Do NOT create another implementation plan first.
+
+Proceed directly with the implementation, but follow these rules:
+
+1. First inspect the existing LedgerPoint codebase and architecture.
+2. Reuse existing models, services, components and AI infrastructure wherever possible.
+3. Do not rebuild existing functionality.
+4. Do not create duplicate database models where an existing model can be extended.
+5. Use deterministic accounting logic for all VAT calculations.
+6. Use AI only for explanations, anomaly interpretation, recommendations and natural-language questions.
+7. Do not enable live HMRC submission in this phase.
+8. Do not silently modify accounting records.
+9. All material accounting/VAT changes must require explicit user approval.
+10. Preserve all existing LedgerPoint functionality.
+
+Implement the specification in production-quality code.
+
+Work through the feature systematically:
+
+- VAT configuration
+- VAT tax rules
+- VAT calculation engine
+- VAT transaction classification
+- VAT review/exceptions
+- VAT return calculation
+- VAT return boxes
+- VAT drill-down
+- VAT approval workflow
+- VAT audit trail
+- VAT registration monitoring
+- VAT forecasting
+- VAT health/risk score
+- AI VAT explanations
+- Ask Ledgerly VAT questions
+- Dashboard VAT widget
+- Notifications
+- Test data
+- Automated tests
+
+Before making changes, inspect the existing code and determine the correct integration points.
+
+Do not ask me to approve each individual implementation step.
+
+Make the changes yourself.
+
+Run type checking, tests and relevant application checks after implementation.
+
+If you encounter an architectural conflict with the existing LedgerPoint implementation, stop and explain the specific conflict rather than replacing existing functionality.
+
+At the end, provide:
+
+- Files created
+- Files modified
+- Database/schema changes
+- Features implemented
+- Tests performed
+- Any remaining limitations
+- Any decisions that require my input
+
+Do not implement anything outside the Phase 4 specification.

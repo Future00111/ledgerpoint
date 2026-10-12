@@ -1,0 +1,115 @@
+READ-ONLY INVESTIGATION ONLY — DO NOT IMPLEMENT OR CHANGE ANYTHING
+
+We need to resolve the infrastructure blocker identified by:
+
+docs/ledgerly-44-ti-01-disposable-test-administration-approval-package.md
+
+Do not modify the partial #44-TR-01 implementation.
+Do not create a task.
+Do not create/drop a database.
+Do not change roles, privileges, secrets, DATABASE_URL, workflows, schema,
+application code, deployment, publishing, or production.
+
+INVESTIGATE THE PREVIOUS SUCCESSFUL DISPOSABLE DATABASE ADMINISTRATION PATH.
+
+We previously completed successful disposable canonical-test runs, including:
+
+Final successful run:
+70ab957f-8125-4011-8373-75b903ac5313
+
+Evidence:
+docs/governance/evidence/
+ledgerly-44-disposable-test-70ab957f-8125-4011-8373-75b903ac5313.json
+
+The implementation report stated that:
+
+- an administered UUID-bound disposable PostgreSQL database was created;
+- the schema and RS-01 protections were established;
+- tests connected as ledgerly_api;
+- two independent backend connections were used;
+- heliumdb remained unchanged;
+- the disposable database was destroyed;
+- no disposable databases remained afterward.
+
+Determine, from repository history, evidence, logs, project memory,
+documentation and available platform metadata:
+
+1. Exactly what administrative mechanism created that disposable database.
+
+2. Exactly what PostgreSQL identity performed CREATE DATABASE.
+
+3. Exactly how the administrative connection/channel was obtained.
+
+4. Whether that channel was:
+   - Replit-managed;
+   - a temporary/manual privileged operation;
+   - an internal agent/platform database capability;
+   - a workspace secret;
+   - a shell/database connection;
+   - or something else.
+
+5. How the disposable database was destroyed and which identity performed
+   DROP DATABASE / session termination.
+
+6. Whether any administrator credential was ever exposed to:
+   - application code;
+   - test code;
+   - workspace secrets;
+   - child-process environment;
+   - repository files;
+   - logs;
+   - evidence.
+
+7. Whether the mechanism used for that successful run still exists and is
+   available in the current workspace.
+
+8. If it no longer exists, identify precisely what capability changed or is
+   unavailable now.
+
+9. Determine whether the previous administrative mechanism already satisfies
+   the TI-01 separation requirement:
+
+   ADMIN PLANE
+   separately authorised privileged database lifecycle operation
+
+   versus
+
+   TEST PLANE
+   ledgerly_api only.
+
+10. Determine whether the existing successful disposable-run evidence can
+    establish a supported path for resuming TR-01 without weakening RS-01.
+
+11. Separately inspect current Replit-supported database capabilities and
+    determine whether there is now any supported project/editor/platform
+    operation for provisioning an isolated development PostgreSQL database
+    without exposing postgres credentials to application/test runtime.
+
+IMPORTANT:
+
+Do not assume that because the normal managed SQL channel currently runs as
+ledgerly_api that the earlier administrative channel did not exist.
+
+Likewise, do not assume the earlier mechanism remains supported merely because
+it worked previously.
+
+Distinguish clearly between:
+
+- VERIFIED FROM REPOSITORY/EVIDENCE
+- VERIFIED CURRENT PLATFORM CAPABILITY
+- INFERENCE
+- UNKNOWN
+
+Return a read-only investigation report.
+
+End with exactly one of:
+
+A. PREVIOUS SECURE ADMINISTRATION PATH IDENTIFIED AND STILL AVAILABLE
+
+B. PREVIOUS ADMINISTRATION PATH IDENTIFIED BUT NO LONGER AVAILABLE
+
+C. PREVIOUS ADMINISTRATION PATH CANNOT BE ESTABLISHED FROM AVAILABLE EVIDENCE
+
+D. SUPPORTED ALTERNATIVE ADMINISTRATION PATH IDENTIFIED
+
+Do not implement anything after reaching the conclusion.

@@ -1,0 +1,125 @@
+import React, { useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import WorkspaceShell from './WorkspaceShell';
+import WorkspaceSkeleton from './WorkspaceSkeleton';
+import { renderCard } from './workspaceCardRegistry';
+import WidgetErrorBoundary from './WidgetErrorBoundary';
+import { cn } from '@/lib/utils';
+
+// Wrap a single card in its own error boundary so one failing widget never
+// takes down the whole workspace. Falls back to "Unable to load this widget."
+const SafeCard = ({ card }) => (
+  <WidgetErrorBoundary name={card?.kind}>
+    {renderCard(card)}
+  </WidgetErrorBoundary>
+);
+
+// Static class maps so Tailwind keeps the literal strings (no dynamic names).
+const COLS = { 1: 'lg:grid-cols-1', 2: 'lg:grid-cols-2', 3: 'lg:grid-cols-3' };
+const SPAN = { full: 'lg:col-span-3', 2: 'lg:col-span-2', 1: 'lg:col-span-1' };
+
+// =============================================================================
+// The Ledgerly Workspace Engine
+// =============================================================================
+// One configurable engine renders every Workspace. A Workspace is declared as a
+// config object — header, summaryStats, tabs (each a list of cards), a right-
+// hand context panel and an Ask context. The engine renders the shared shell
+// and pulls the correct cards from the registry. Only the data and the
+// available actions differ between Workspaces; the layout, interaction model
+// and components stay identical.
+//
+// tab card config:  { kind, span?, ...cardProps }
+//   span: 1 | 2 | 'full'   (column span within the tab grid)
+// tab config:       { label, value?, columns?, cards: [card config] }
+// contextPanel:     [card config]  (stacked in the right panel)
+// =============================================================================
+export default function WorkspaceEngine({
+  type,            // 'customer' | 'supplier' | 'invoice' | ... (analytics + theming)
+  open,
+  onOpenChange,
+  loading = false,
+  header,
+  executiveSummary,
+  summaryStats = [],
+  tabs = [],
+  contextPanel = [],
+  ask,
+  primaryActions,
+  arrival,
+  layout = 'tabs',
+  leftCards = [],
+  rightCards = [],
+}) {
+  useEffect(() => {
+    if (open && type) {
+      base44.analytics?.track?.({ eventName: 'workspace_opened', properties: { workspace_type: type } });
+    }
+  }, [open, type]);
+
+  // Single-scroll two-column layout (no tabs): ordered left working column and
+  // a sticky right context column. Used by the redesigned customer profile.
+  if (layout === 'columns') {
+    const leftNodes = (leftCards || []).map((c, i) => (
+      <div key={i}><SafeCard card={c} /></div>
+    ));
+    const rightNodes = (rightCards || []).map((c, i) => (
+      <div key={i}><SafeCard card={c} /></div>
+    ));
+    return (
+      <WorkspaceShell
+        open={open}
+        onOpenChange={onOpenChange}
+        header={header}
+        loading={loading}
+        ask={ask}
+        arrival={arrival}
+        layout="columns"
+        leftCards={leftNodes}
+        rightCards={rightNodes}
+      />
+    );
+  }
+
+  const tabsConfig = tabs.map((t) => {
+    const value = t.value || t.label.toLowerCase().replace(/\s+/g, '-');
+    const content = loading ? (
+      <WorkspaceSkeleton lines={6} />
+    ) : (
+      <div className={cn('grid gap-4 items-start', COLS[t.columns] || COLS[3])}>
+        {(t.cards || []).map((c, i) => (
+          <div key={i} className={cn('min-w-0', SPAN[c.span] || SPAN[1])}>
+            <SafeCard card={c} />
+          </div>
+        ))}
+      </div>
+    );
+    return { value, label: t.label, icon: t.icon, content };
+  });
+
+  const panel = contextPanel.length ? (
+    <>
+      {contextPanel.map((c, i) => (
+        <React.Fragment key={i}><SafeCard card={c} /></React.Fragment>
+      ))}
+    </>
+  ) : null;
+
+  const executiveSummaryNode = executiveSummary ? <SafeCard card={executiveSummary} /> : null;
+  const primaryActionsNode = primaryActions ? <SafeCard card={primaryActions} /> : null;
+
+  return (
+    <WorkspaceShell
+      open={open}
+      onOpenChange={onOpenChange}
+      header={header}
+      executiveSummary={executiveSummaryNode}
+      primaryActions={primaryActionsNode}
+      summaryStats={summaryStats}
+      tabs={tabsConfig}
+      loading={loading}
+      ask={ask}
+      arrival={arrival}
+      contextPanel={panel}
+    />
+  );
+}

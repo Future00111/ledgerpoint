@@ -1,0 +1,210 @@
+FINAL PRODUCTION READINESS AUDIT — DO NOT PUBLISH
+
+Ledgerpoint has now completed the Phase 5/Phase 6 implementation work and the dependency/security remediation.
+
+The latest verification confirms:
+- Workspace typecheck passes
+- API build passes
+- Ledgerpoint production build passes
+- VAT scenarios pass
+- VAT/authenticated HTTP integration passes
+- Matcher scenarios pass
+- Phase 5 reconciliation scenarios pass
+- Phase 6 automation/reconciliation scenarios pass
+- Collections scenarios pass
+- Authenticated browser security test passes
+- Final dependency/security scans pass
+- Quill is no longer present in the active dependency tree
+- No critical/high/low dependency findings remain
+- The remaining historical/unused migration findings are not part of the running application
+- API and web workflows are running cleanly
+- No publishing action has been taken
+
+Before publishing, perform ONE FINAL READ-ONLY PRODUCTION READINESS AUDIT of the active Ledgerpoint application.
+
+Do NOT add new features.
+Do NOT redesign existing screens.
+Do NOT change accounting, VAT, reconciliation, collections, AI Accountant, permissions, authentication or database behaviour unless you discover a genuine release-blocking defect.
+
+Audit the active application for:
+
+1. AUTHENTICATION
+- Clerk authentication is enforced on protected accounting areas.
+- Unauthenticated users cannot access company financial data.
+- Session handling is correct.
+- Sign-in/sign-out behaviour is correct.
+
+2. COMPANY / TENANT ISOLATION
+- Every company-scoped query is properly scoped.
+- Company A cannot read, modify or infer Company B's data.
+- IDs supplied by the browser cannot bypass company scoping.
+- API endpoints independently enforce company membership.
+
+3. PERMISSIONS
+Verify every relevant role:
+- owner/admin
+- accountant/manager
+- read-only user
+
+Read-only users must not be able to mutate:
+- invoices
+- bills
+- bank transactions
+- reconciliation
+- VAT returns
+- collections
+- company settings
+- AI automation settings
+- accounting configuration
+
+4. FINANCIAL DATA INTEGRITY
+Confirm that:
+- monetary values use safe precision/integer handling where appropriate
+- calculations are deterministic
+- browser values cannot bypass server-side calculations
+- accounting records cannot be modified through generic/unprotected endpoints
+- audit records remain intact.
+
+5. VAT
+Confirm:
+- VAT calculations remain server-side
+- approved/locked returns cannot be modified through generic CRUD
+- revisions use the controlled revision flow
+- derived VAT boxes cannot receive arbitrary manual values
+- review decisions are preserved
+- source evidence remains traceable.
+
+6. RECONCILIATION
+Confirm:
+- reconciliation calculations are server-side
+- approval/locking cannot be bypassed
+- transactions remain company-scoped
+- duplicate processing is prevented where required
+- approved records cannot silently change.
+
+7. AI ACCOUNTANT
+Confirm:
+- AI suggestions cannot directly mutate accounting data without the intended approval/control boundary
+- AI-generated classifications are distinguishable from confirmed user decisions
+- automation controls are respected
+- AI actions remain company-scoped
+- failures do not silently create or alter financial records.
+
+8. COLLECTIONS
+Confirm:
+- collection workflows are company-scoped
+- permissions are enforced
+- approved/locked data cannot be changed through generic endpoints.
+
+9. API SECURITY
+Audit all important mutation endpoints for:
+- authentication
+- authorization
+- company scoping
+- input validation
+- protected locked records
+- unsafe generic update paths.
+
+10. SECRETS
+Verify:
+- no API keys/secrets are exposed to the browser
+- no credentials appear in source code
+- no secrets are present in client bundles
+- environment variables are used correctly.
+
+11. DATABASE
+Verify:
+- schema is consistent with the active application
+- migrations are applied correctly
+- no dangerous destructive migration is pending
+- production data is not modified by test setup
+- uniqueness/integrity constraints required by the application are enforced.
+
+12. DEPENDENCIES
+Run the final active dependency audit and confirm:
+- no critical vulnerabilities
+- no high vulnerabilities
+- no exploitable moderate vulnerability affecting active code
+- obsolete backup/migration dependency trees are not included in production.
+
+13. UI / BROWSER
+Run an authenticated browser smoke test covering:
+- sign in
+- company activation
+- dashboard
+- reconciliation
+- VAT
+- AI Accountant
+- collections
+- company settings
+- navigation
+- sign out
+
+Check for:
+- console errors
+- failed API calls
+- broken routes
+- blank screens
+- visible stack traces
+- accidental exposure of internal data.
+
+14. PRODUCTION CONFIGURATION
+Check that:
+- production environment variables are present where required
+- development/test settings are not accidentally enabled
+- debug logging is not exposing sensitive information
+- production build is the actual active build
+- database/API configuration points to the intended production services.
+
+15. RELEASE-BLOCKING ISSUES
+Classify every finding as:
+CRITICAL
+HIGH
+MEDIUM
+LOW
+INFORMATIONAL
+
+Only classify something as a release blocker if it can materially compromise:
+- financial data integrity
+- company/tenant isolation
+- authentication
+- authorization
+- confidential data
+- accounting/VAT correctness
+- production stability.
+
+Do NOT fix anything automatically yet.
+
+FINAL REPORT
+
+Return exactly:
+
+PRODUCTION READINESS:
+RELEASE BLOCKERS:
+CRITICAL:
+HIGH:
+MEDIUM:
+LOW:
+INFORMATIONAL:
+
+AUTHENTICATION:
+TENANT ISOLATION:
+PERMISSIONS:
+FINANCIAL INTEGRITY:
+VAT:
+RECONCILIATION:
+AI ACCOUNTANT:
+COLLECTIONS:
+API SECURITY:
+SECRETS:
+DATABASE:
+DEPENDENCIES:
+BROWSER:
+PRODUCTION CONFIGURATION:
+
+FINAL RECOMMENDATION:
+READY TO PUBLISH / NOT READY TO PUBLISH
+
+If READY TO PUBLISH, stop and wait for my explicit instruction before publishing.
+
+DO NOT PUBLISH THE APPLICATION.

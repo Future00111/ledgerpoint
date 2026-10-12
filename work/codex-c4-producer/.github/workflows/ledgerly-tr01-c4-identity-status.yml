@@ -1,0 +1,166 @@
+name: TR-01 C4 identity validation
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate:
+    if: >-
+      github.repository == 'Future00111/ledgerpoint' &&
+      github.ref == 'refs/heads/main' &&
+      github.ref_protected == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact immutable C4 without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 273f714c876260636346b7fbcc588224e9795141
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Checkout same-event protected-main producer tests
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          path: .local/tr01-c4-producer
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Validate C4 and run upstream non-database checks
+        env:
+          DOCKER_BUILDKIT: "1"
+          COREPACK_ENABLE_AUTO_PIN: "0"
+          COREPACK_DEFAULT_TO_LATEST: "0"
+        run: |
+          test "$(git rev-parse HEAD)" = "273f714c876260636346b7fbcc588224e9795141"
+          test "$(git rev-parse HEAD^{tree})" = "168f81192d1fea635cd3c038e6be3a709ab11a82"
+          test "$(git rev-parse HEAD^)" = "9d50d4e86696fd18eb7f877c9edfaba710b3572e"
+          test "$(git rev-list --parents -n 1 HEAD | wc -w)" -eq 2
+          git diff --quiet
+          git diff --cached --quiet
+          source_pathspecs=(
+            ".dockerignore"
+            ".ci/ledgerly-canonical/Dockerfile.test"
+            ".github"
+            "artifacts"
+            "lib"
+            "scripts"
+            "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json"
+            "package.json"
+            "pnpm-lock.yaml"
+            "pnpm-workspace.yaml"
+            "tsconfig.base.json"
+            "tsconfig.json"
+          )
+          test -z "$(git status --porcelain --untracked-files=all -- "${source_pathspecs[@]}")"
+          corepack enable
+          corepack prepare pnpm@10.26.1 --activate
+          pnpm install --frozen-lockfile --ignore-scripts
+          LEDGERLY_C4_VALIDATION_ROOT="$GITHUB_WORKSPACE" node --test .local/tr01-c4-producer/scripts/ci/ledgerly-tr01-c4-identity-status.test.mjs
+          node --check scripts/ci/run-ledgerly-canonical-postgresql.mjs
+          node --check artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs
+          pnpm run typecheck:libs
+          pnpm run typecheck
+          node --test scripts/ci/run-ledgerly-canonical-postgresql.test.mjs
+          git diff --quiet
+          git diff --cached --quiet
+          test -z "$(git status --porcelain --untracked-files=all -- "${source_pathspecs[@]}")"
+          node --input-type=module <<'NODE'
+          import { createHash } from "node:crypto";
+          import { readFile, writeFile } from "node:fs/promises";
+          import { execFileSync } from "node:child_process";
+
+          const expectedCommit = "273f714c876260636346b7fbcc588224e9795141";
+          const qualificationWorkflow = ".github/workflows/ledgerly-canonical-postgresql.yml";
+          const pathspecs = [
+            ".dockerignore",
+            ".ci/ledgerly-canonical/Dockerfile.test",
+            ".github",
+            "artifacts",
+            "lib",
+            "scripts",
+            "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json",
+            "package.json",
+            "pnpm-lock.yaml",
+            "pnpm-workspace.yaml",
+            "tsconfig.base.json",
+            "tsconfig.json",
+          ];
+          const head = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+          if (head !== expectedCommit) throw new Error("Offline smoke fixture requires the exact C4 checkout");
+          const files = execFileSync("git", ["ls-files", "-z", "--", ...pathspecs], { encoding: "utf8" })
+            .split("\0").filter(Boolean).sort();
+          for (const required of [
+            ".dockerignore",
+            ".ci/ledgerly-canonical/Dockerfile.test",
+            qualificationWorkflow,
+            "package.json",
+            "pnpm-lock.yaml",
+            "pnpm-workspace.yaml",
+          ]) {
+            if (!files.includes(required)) throw new Error(`Tracked C4 source is missing ${required}`);
+          }
+          const hashes = {};
+          const treeHash = createHash("sha256");
+          for (const file of files) {
+            const bytes = await readFile(file);
+            hashes[file] = createHash("sha256").update(bytes).digest("hex");
+            treeHash.update(file);
+            treeHash.update("\0");
+            treeHash.update(bytes);
+            treeHash.update("\0");
+          }
+          const fixture = {
+            fixturePurpose: "offline-build-only",
+            notQualificationEvidence: true,
+            sourceCommit: head,
+            version: 1,
+            files,
+            fileSha256: hashes,
+            sourceTreeSha256: treeHash.digest("hex"),
+            qualificationWorkflow,
+            qualificationWorkflowSha256: hashes[qualificationWorkflow],
+          };
+          await writeFile(
+            ".ci/ledgerly-canonical/source-manifest.json",
+            `${JSON.stringify(fixture)}\n`,
+            { mode: 0o644 },
+          );
+          NODE
+          image="ledgerly-tr01-c4-offline-pnpm-smoke:local"
+          docker build \
+            --file .ci/ledgerly-canonical/Dockerfile.test \
+            --tag "$image" \
+            .
+          LEDGERLY_OFFLINE_PNPM_TEST_IMAGE="$image" \
+            node --test scripts/ci/ledgerly-offline-pnpm.test.mjs
+
+  identity:
+    needs: validate
+    if: >-
+      github.repository == 'Future00111/ledgerpoint' &&
+      github.ref == 'refs/heads/main' &&
+      github.ref_protected == true &&
+      needs.validate.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment:
+      name: ledgerly-canonical
+    permissions:
+      contents: read
+      statuses: write
+    steps:
+      - name: Checkout protected-main validation code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify exact remote C4 and publish validation status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TR01_VALIDATION_RESULT: ${{ needs.validate.result }}
+          TR01_C4_APPROVED_WORKFLOW_SHA: ${{ vars.TR01_C4_APPROVED_WORKFLOW_SHA }}
+        run: node scripts/ci/ledgerly-tr01-c4-identity-status.mjs

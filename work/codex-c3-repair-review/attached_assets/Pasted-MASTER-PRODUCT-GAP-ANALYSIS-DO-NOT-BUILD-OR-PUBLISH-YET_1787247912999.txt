@@ -1,0 +1,230 @@
+MASTER PRODUCT GAP ANALYSIS — DO NOT BUILD OR PUBLISH YET
+
+Stop all release/publishing preparation for now.
+
+I do NOT consider Ledgerpoint ready for release.
+
+We need to step back and establish the complete product roadmap before doing any more implementation.
+
+Your previous work has established a strong technical foundation, including authentication, company scoping, VAT, reconciliation, collections, AI Accountant foundations, security controls, dependency remediation and automated testing.
+
+However, passing tests does NOT mean the complete Ledgerpoint product is finished.
+
+I now want a comprehensive PRODUCT GAP ANALYSIS.
+
+IMPORTANT:
+
+Do not implement anything.
+Do not publish anything.
+Do not make speculative changes.
+
+First inspect the entire current Ledgerpoint codebase, database schema, routes, UI, API endpoints, existing product/phase specifications, and any project documentation available in the workspace.
+
+Compare what currently exists against the intended Ledgerpoint product.
+
+I want you to determine what is:
+
+A. FULLY IMPLEMENTED
+B. PARTIALLY IMPLEMENTED
+C. UI EXISTS BUT BACKEND/WORKFLOW IS INCOMPLETE
+D. BACKEND EXISTS BUT UI/USER WORKFLOW IS INCOMPLETE
+E. PLACEHOLDER/MOCK/DEMO FUNCTIONALITY
+F. COMPLETELY MISSING
+
+AUDIT THE WHOLE PRODUCT
+
+Include at minimum:
+
+1. Authentication & onboarding
+2. Company management
+3. Users, teams and permissions
+4. Dashboard
+5. Customers
+6. Suppliers
+7. Contacts
+8. Sales invoices
+9. Credit notes
+10. Quotes/estimates if specified
+11. Purchase bills
+12. Purchase orders if specified
+13. Products/services/items
+14. Bank accounts
+15. Bank transaction importing
+16. Bank transaction management
+17. Transaction categorisation
+18. Bank reconciliation
+19. Transfers
+20. Recurring transactions
+21. Chart of accounts
+22. Accounting configuration
+23. VAT configuration
+24. VAT calculations
+25. VAT returns
+26. VAT review/approval/locking
+27. VAT evidence and drill-downs
+28. Collections
+29. Payments
+30. Customer balances
+31. Supplier balances
+32. Accounts receivable
+33. Accounts payable
+34. Journals
+35. Adjustments
+36. Periods / financial years
+37. Accounting reports
+38. Management reports
+39. Profit & Loss
+40. Balance Sheet
+41. Trial Balance
+42. General Ledger
+43. VAT reports
+44. Aged debtors
+45. Aged creditors
+46. Cash/bank reporting
+47. Search
+48. Filters
+49. Exports
+50. Document generation
+51. AI Accountant
+52. AI task queue
+53. AI explanations
+54. AI approvals
+55. AI automation
+56. Collections automation
+57. Bank automation
+58. Reconciliation automation
+59. Recurring transaction automation
+60. Notifications
+61. Tasks
+62. Audit trail
+63. Activity history
+64. Company settings
+65. User settings
+66. Import/export
+67. Error handling
+68. Empty states
+69. Loading states
+70. Responsive/mobile experience
+
+Do not assume an item is required merely because it appears in this list. Compare against the actual Ledgerpoint specifications and product vision in the workspace.
+
+For EVERY feature, report:
+
+FEATURE:
+STATUS:
+CURRENT IMPLEMENTATION:
+USER WORKFLOW:
+BACKEND:
+DATABASE:
+UI:
+AUTOMATION:
+TEST COVERAGE:
+WHAT IS MISSING:
+DEPENDENCIES:
+PRIORITY:
+
+Then identify the major PRODUCT MODULES and give each a completion percentage.
+
+For example:
+
+Dashboard — 70%
+Banking — 45%
+Reconciliation — 80%
+VAT — 85%
+AI Accountant — 50%
+
+These percentages must be based on actual inspection, not guesses.
+
+MOST IMPORTANTLY:
+
+Separate TECHNICAL COMPLETENESS from PRODUCT COMPLETENESS.
+
+A feature is NOT considered complete simply because:
+- an API exists
+- a database table exists
+- a route exists
+- a component renders
+- a test exists
+
+Consider it complete only when a real Ledgerpoint user can successfully complete the intended end-to-end workflow.
+
+Identify all workflows that currently stop halfway.
+
+For example:
+
+CREATE → SAVE → VIEW → EDIT → APPROVE → POST → REPORT
+
+If only CREATE → SAVE → VIEW works, mark the workflow PARTIAL.
+
+Also identify areas where the UI gives the impression that functionality exists when it is actually:
+- placeholder
+- mocked
+- incomplete
+- disconnected from the backend
+- missing persistence
+- missing validation
+- missing permissions
+- missing downstream accounting effects.
+
+PRODUCT PRIORITIES
+
+After the audit, create a recommended development roadmap:
+
+PHASE A — Critical foundation
+PHASE B — Core accounting functionality
+PHASE C — Banking/reconciliation
+PHASE D — Sales/purchases/payments
+PHASE E — VAT
+PHASE F — Reporting
+PHASE G — AI Accountant
+PHASE H — Automation
+PHASE I — UX/product polish
+PHASE J — Production readiness
+
+Reorder these if the actual codebase/specification indicates a better sequence.
+
+For each phase provide:
+- features
+- dependencies
+- estimated relative complexity: Small / Medium / Large
+- what must be completed before the next phase
+- testing required.
+
+Then produce a MASTER BACKLOG containing every identified missing or incomplete feature.
+
+Each backlog item should have:
+
+ID
+MODULE
+FEATURE
+CURRENT STATUS
+WHAT NEEDS TO BE BUILT
+PRIORITY
+DEPENDENCIES
+COMPLEXITY
+ACCEPTANCE CRITERIA
+
+Do NOT implement any backlog items yet.
+
+FINAL OUTPUT:
+
+1. CURRENT PRODUCT COMPLETION SUMMARY
+2. MODULE-BY-MODULE COMPLETION
+3. FULLY COMPLETE FEATURES
+4. PARTIALLY COMPLETE FEATURES
+5. MISSING FEATURES
+6. PLACEHOLDER/MOCK FEATURES
+7. BROKEN/INCOMPLETE END-TO-END WORKFLOWS
+8. MASTER DEVELOPMENT ROADMAP
+9. MASTER BACKLOG
+10. RECOMMENDED NEXT BUILD TASK
+
+The final recommendation should answer:
+
+"Based on the actual current Ledgerpoint codebase and specifications, what is the single most valuable next development task we should implement?"
+
+STOP AFTER PRODUCING THE ANALYSIS.
+
+DO NOT PUBLISH.
+DO NOT IMPLEMENT THE BACKLOG.
+DO NOT MODIFY THE APPLICATION.

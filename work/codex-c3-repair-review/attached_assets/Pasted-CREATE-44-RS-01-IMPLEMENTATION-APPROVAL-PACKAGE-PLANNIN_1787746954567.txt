@@ -1,0 +1,397 @@
+CREATE #44-RS-01 IMPLEMENTATION APPROVAL PACKAGE — PLANNING ONLY
+
+The read-only investigation is complete and has confirmed:
+
+- the development API currently connects as postgres;
+- postgres is SUPERUSER;
+- canonical tables are owned by postgres;
+- the running API can currently UPDATE, DELETE and TRUNCATE canonical records;
+- the app reads DATABASE_URL and does not hardcode the database role;
+- development role separation is technically possible;
+- production support for custom database roles remains unverified.
+
+Do NOT implement anything yet.
+
+Do NOT create roles.
+Do NOT change DATABASE_URL.
+Do NOT change Replit Secrets.
+Do NOT apply DDL.
+Do NOT restart workflows.
+Do NOT modify application code.
+Do NOT deploy or publish.
+
+Create:
+
+docs/ledgerly-44-rs-01-development-database-role-separation-approval-package.md
+
+This is a planning/approval document only.
+
+==================================================
+TASK
+==================================================
+
+Proposed implementation sub-task:
+
+#44-RS-01 — Development Database Role Separation
+
+Purpose:
+
+Make the Ledgerly development API run as a dedicated non-superuser database
+principal so the already-approved #44 persistence-level immutability controls
+can actually be enforced.
+
+This is a technical sub-task of #44.
+
+It is NOT a new governance decision.
+
+Do NOT create DEC-23.
+
+==================================================
+CURRENT STATE
+==================================================
+
+Record the verified current state:
+
+- API DATABASE_URL username = postgres
+- current_user = postgres
+- session_user = postgres
+- postgres is SUPERUSER
+- canonical tables are owned by postgres
+- API connection can UPDATE canonical records
+- API connection can DELETE canonical records
+- API connection can TRUNCATE canonical records
+- app uses process.env.DATABASE_URL
+- no application code change is currently required to switch database login
+- production custom-role support is not yet established
+
+==================================================
+SELECTED DEVELOPMENT ROLE MODEL
+==================================================
+
+The approval package must select this concrete model:
+
+1. ADMINISTRATIVE DATABASE PRINCIPAL
+
+Used only for controlled administrative operations such as:
+
+- CREATE ROLE
+- ALTER ROLE
+- ownership transfer
+- schema DDL
+- privilege management
+
+It must NOT be used by the running API.
+
+2. ledgerly_canonical_owner
+
+Attributes:
+
+- NOLOGIN
+- NON-SUPERUSER
+- owns the protected canonical accounting tables
+- owns approved immutability trigger functions
+- cannot be used as the API runtime identity
+
+3. ledgerly_api
+
+Attributes:
+
+- LOGIN
+- NON-SUPERUSER
+- NOCREATEROLE
+- NOCREATEDB
+- NOREPLICATION
+- no BYPASSRLS privilege
+- must not own canonical tables
+- must not be able to SET ROLE to ledgerly_canonical_owner
+- must not be granted membership in ledgerly_canonical_owner
+- must not be able to alter or disable canonical protection
+
+==================================================
+EXACT PRIVILEGE DESIGN
+==================================================
+
+Define the exact minimum privileges ledgerly_api requires.
+
+Review the current application and identify the privileges it genuinely needs.
+
+At minimum classify:
+
+- CONNECT on database
+- USAGE on schema
+- SELECT
+- INSERT
+- UPDATE
+- DELETE
+- sequence USAGE/SELECT
+- function EXECUTE
+
+Separate:
+
+A. ordinary application tables;
+B. canonical accounting tables;
+C. accounting posting effects;
+D. canonical audit/relations;
+E. migration/schema administration.
+
+For canonical protected tables, preserve the #44 rules.
+
+ledgerly_api must not receive broad UPDATE/DELETE/TRUNCATE authority on immutable
+canonical records.
+
+Do NOT give ledgerly_api ownership-level privileges.
+
+Do NOT grant ALL PRIVILEGES as a shortcut.
+
+==================================================
+ROLE MEMBERSHIP / ESCALATION
+==================================================
+
+Explicitly prove the proposed grants do NOT allow ledgerly_api to:
+
+- become superuser;
+- create roles;
+- create databases;
+- assume postgres;
+- assume ledgerly_canonical_owner;
+- grant itself additional privileges;
+- alter table ownership;
+- alter trigger functions;
+- disable triggers;
+- bypass the approved immutability controls.
+
+If PostgreSQL default/public privileges could permit escalation, identify and
+remove them in the proposed plan.
+
+==================================================
+DATABASE_URL / SECRET PLAN
+==================================================
+
+Define exactly how the development API will switch from postgres to ledgerly_api.
+
+The plan must use Replit's secure secret/environment mechanism.
+
+Requirements:
+
+- generate a strong credential;
+- never write the password into source code;
+- never commit the password;
+- never print the password in logs;
+- never include the password in documentation;
+- never expose the password in the implementation completion report.
+
+Define:
+
+- which secret/environment value changes;
+- whether DATABASE_URL overrides the runtime-managed value;
+- expected restart behavior;
+- how rollback to the prior development connection would work if verification
+  fails.
+
+Do NOT change the secret yet.
+
+==================================================
+CANONICAL OWNER TRANSFER
+==================================================
+
+Define the exact development ownership transfer required for the five canonical
+tables:
+
+- accounting_posting_effects
+- canonical_journal_entries
+- canonical_journal_lines
+- canonical_journal_relations
+- accounting_audit_events
+
+State which objects ledgerly_canonical_owner will own.
+
+Also include the #44 trigger functions when created.
+
+Do NOT transfer ownership during this planning task.
+
+==================================================
+EXACT IMPLEMENTATION SEQUENCE
+==================================================
+
+Provide the exact implementation order proposed for #44-RS-01.
+
+For example:
+
+1. capture current database/role state;
+2. create ledgerly_api;
+3. create ledgerly_canonical_owner;
+4. verify role attributes;
+5. configure grants/revocations;
+6. transfer canonical ownership;
+7. create/verify required role boundaries;
+8. securely update development DATABASE_URL;
+9. restart API;
+10. verify runtime current_user;
+11. run privilege/escalation tests;
+12. run application regression tests.
+
+Adjust the sequence if the actual database requires a safer order.
+
+==================================================
+ROLLBACK PLAN
+==================================================
+
+Define rollback if the new API role causes application failure.
+
+Rollback must:
+
+- remain development-only;
+- preserve all canonical data;
+- not weaken accounting history;
+- restore API connectivity safely;
+- not expose credentials.
+
+Explain whether role/ownership changes should be reverted or whether the API
+connection should temporarily revert while #44 remains disabled.
+
+==================================================
+MANDATORY VERIFICATION MATRIX
+==================================================
+
+After future implementation, require tests proving the API's ACTUAL runtime
+connection satisfies:
+
+IDENTITY
+
+- current_user = ledgerly_api
+- session_user = ledgerly_api where expected
+- rolsuper = false
+- rolcreaterole = false
+- rolcreatedb = false
+- rolreplication = false
+- rolbypassrls = false
+
+OWNERSHIP
+
+- ledgerly_api does not own the canonical tables
+- ledgerly_canonical_owner owns the approved protected objects
+- ledgerly_api is not a member of ledgerly_canonical_owner
+
+PRIVILEGE ESCALATION
+
+- ledgerly_api cannot SET ROLE to ledgerly_canonical_owner
+- ledgerly_api cannot alter ownership
+- ledgerly_api cannot create/grant roles
+- ledgerly_api cannot alter trigger functions
+- ledgerly_api cannot disable approved triggers
+
+CANONICAL MUTATION
+
+- direct UPDATE of canonical journal header denied
+- direct UPDATE of canonical journal line denied
+- DELETE denied
+- TRUNCATE denied
+- relation/audit mutation denied
+- prohibited posting-effect transitions denied
+
+REQUIRED APPLICATION BEHAVIOUR
+
+- permitted SELECT/INSERT paths still work
+- required posting-effect finalisation works
+- API starts successfully
+- /api/healthz passes
+- BL-01-FI tests pass
+- existing application tests pass
+- #40/#44 development tests can connect using ledgerly_api
+
+==================================================
+APPLICATION IMPACT
+==================================================
+
+Confirm whether application code changes are required.
+
+Current expectation:
+
+APPLICATION CODE CHANGE = NONE
+
+because the app already consumes DATABASE_URL.
+
+If inspection finds that code changes ARE required:
+
+mark them as a separate approval dependency.
+
+Do not silently add them to #44-RS-01.
+
+==================================================
+PRODUCTION BOUNDARY
+==================================================
+
+#44-RS-01 is DEVELOPMENT ONLY.
+
+It does not approve:
+
+- production role creation;
+- production secrets;
+- production schema changes;
+- Publish configuration;
+- deployment;
+- production posting.
+
+Record a separate future production-readiness requirement to verify Replit's
+supported production database model for:
+
+- custom non-superuser login role;
+- NOLOGIN table owner;
+- privilege persistence;
+- production connection-string override;
+- role persistence through Publish.
+
+Until that is proven:
+
+PRODUCTION POSTING REMAINS DISABLED.
+
+==================================================
+STOP CONDITIONS
+==================================================
+
+Future implementation must stop if:
+
+- DATABASE_URL cannot safely be overridden for development;
+- ledgerly_api cannot run as a true non-superuser;
+- ledgerly_api must own canonical tables;
+- ledgerly_api must receive superuser-equivalent permissions;
+- ledgerly_api must be able to assume the canonical owner;
+- application functionality requires broad canonical UPDATE/DELETE privileges;
+- role separation requires application/schema changes outside this approved
+  package;
+- Replit's environment prevents secure secret handling.
+
+Do not weaken the #44 immutability model to work around these conditions.
+
+==================================================
+GOVERNANCE / STATUS
+==================================================
+
+Confirm:
+
+- DEC-01 through DEC-22 remain approved
+- DEC-23 does not exist
+- BL-01-FI remains complete
+- #40-CF-01 remains incomplete
+- #44 remains incomplete
+- #44-RS-01 remains proposed only
+- BL-06 remains blocked
+- BL-07 remains blocked
+- #41 remains planning-only
+- production posting remains disabled
+
+==================================================
+FINAL VERDICT
+==================================================
+
+End with exactly one:
+
+READY FOR #44-RS-01 IMPLEMENTATION APPROVAL
+
+or
+
+NOT READY — ROLE-SEPARATION GAP REMAINS
+
+Do not implement anything.
+
+STOP after creating the approval package.

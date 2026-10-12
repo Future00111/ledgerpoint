@@ -1,0 +1,397 @@
+{
+  "main": {
+    "ref": "refs/heads/main",
+    "node_id": "REF_kwDOT7mVmq9yZWZzL2hlYWRzL21haW4",
+    "url": "https://api.github.com/repos/Future00111/ledgerpoint/git/refs/heads/main",
+    "object": {
+      "sha": "af028bb647fbbdb81509539969b21a859e708f34",
+      "type": "commit",
+      "url": "https://api.github.com/repos/Future00111/ledgerpoint/git/commits/af028bb647fbbdb81509539969b21a859e708f34"
+    }
+  },
+  "environment": {
+    "id": 20664477675,
+    "node_id": "EN_kwDOT7mVms8AAAAEz7Ln6w",
+    "name": "ledgerly-canonical",
+    "url": "https://api.github.com/repos/Future00111/ledgerpoint/environments/ledgerly-canonical",
+    "html_url": "https://github.com/Future00111/ledgerpoint/deployments/activity_log?environments_filter=ledgerly-canonical",
+    "created_at": "2026-08-26T19:23:06Z",
+    "updated_at": "2026-08-26T19:23:06Z",
+    "can_admins_bypass": true,
+    "protection_rules": [
+      {
+        "id": 63788940,
+        "node_id": "GA_kwDOT7mVms4DzVeM",
+        "type": "required_reviewers",
+        "prevent_self_review": false,
+        "reviewers": [
+          {
+            "type": "User",
+            "reviewer": {
+              "login": "Future00111",
+              "id": 318002590,
+              "node_id": "U_kgDOEvRVng",
+              "avatar_url": "https://avatars.githubusercontent.com/u/318002590?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/Future00111",
+              "html_url": "https://github.com/Future00111",
+              "followers_url": "https://api.github.com/users/Future00111/followers",
+              "following_url": "https://api.github.com/users/Future00111/following{/other_user}",
+              "gists_url": "https://api.github.com/users/Future00111/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/Future00111/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/Future00111/subscriptions",
+              "organizations_url": "https://api.github.com/users/Future00111/orgs",
+              "repos_url": "https://api.github.com/users/Future00111/repos",
+              "events_url": "https://api.github.com/users/Future00111/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/Future00111/received_events",
+              "type": "User",
+              "user_view_type": "public",
+              "site_admin": false
+            }
+          }
+        ]
+      },
+      {
+        "id": 67342203,
+        "node_id": "GA_kwDOT7mVms4EA497",
+        "type": "branch_policy"
+      }
+    ],
+    "deployment_branch_policy": {
+      "protected_branches": false,
+      "custom_branch_policies": true
+    }
+  },
+  "variables": {
+    "variables": [
+      {
+        "name": "LEDGERLY_APPROVED_CANDIDATE_SHA",
+        "value": "273f714c876260636346b7fbcc588224e9795141",
+        "created_at": "2026-10-01T14:33:53Z",
+        "updated_at": "2026-10-07T19:52:33Z"
+      },
+      {
+        "name": "TR01_C2_APPROVED_WORKFLOW_SHA",
+        "value": "87a4ff7d44be9bc21296e9623db16924488f76ae",
+        "created_at": "2026-10-01T13:13:11Z",
+        "updated_at": "2026-10-01T13:13:11Z"
+      },
+      {
+        "name": "TR01_C3_APPROVED_WORKFLOW_SHA",
+        "value": "65f3453c29f1eb1057bc66edc0cc7de508e87c2d",
+        "created_at": "2026-10-07T16:27:40Z",
+        "updated_at": "2026-10-07T16:27:40Z"
+      },
+      {
+        "name": "TR01_C4_APPROVED_WORKFLOW_SHA",
+        "value": "af028bb647fbbdb81509539969b21a859e708f34",
+        "created_at": "2026-10-07T19:48:49Z",
+        "updated_at": "2026-10-07T19:48:49Z"
+      }
+    ],
+    "total_count": 4
+  },
+  "policies": {
+    "total_count": 2,
+    "branch_policies": [
+      {
+        "id": 61652671,
+        "node_id": "MDE2OkdhdGVCcmFuY2hQb2xpY3k2MTY1MjY3MQ==",
+        "name": "main",
+        "type": "branch"
+      },
+      {
+        "id": 61652697,
+        "node_id": "MDE2OkdhdGVCcmFuY2hQb2xpY3k2MTY1MjY5Nw==",
+        "name": "tr01/implementation-identity-successor-c4",
+        "type": "branch"
+      }
+    ]
+  },
+  "rulesets": [
+    {
+      "id": 23995584,
+      "name": "Protect TR-01 implementation candidate C",
+      "target": "branch",
+      "source_type": "Repository",
+      "source": "Future00111/ledgerpoint",
+      "enforcement": "active",
+      "node_id": "RRS_lACqUmVwb3NpdG9yec5PuZWazgFuJMA",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/Future00111/ledgerpoint/rulesets/23995584"
+        },
+        "html": {
+          "href": "https://github.com/Future00111/ledgerpoint/rules/23995584"
+        }
+      },
+      "created_at": "2026-09-25T13:10:41.530+01:00",
+      "updated_at": "2026-09-25T13:10:41.579+01:00"
+    },
+    {
+      "id": 24197692,
+      "name": "Protect TR-01 implementation successor C2",
+      "target": "branch",
+      "source_type": "Repository",
+      "source": "Future00111/ledgerpoint",
+      "enforcement": "active",
+      "node_id": "RRS_lACqUmVwb3NpdG9yec5PuZWazgFxOjw",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/Future00111/ledgerpoint/rulesets/24197692"
+        },
+        "html": {
+          "href": "https://github.com/Future00111/ledgerpoint/rules/24197692"
+        }
+      },
+      "created_at": "2026-09-29T18:58:13.643+01:00",
+      "updated_at": "2026-10-01T15:27:27.439+01:00"
+    },
+    {
+      "id": 24663898,
+      "name": "Protect TR-01 implementation successor C3",
+      "target": "branch",
+      "source_type": "Repository",
+      "source": "Future00111/ledgerpoint",
+      "enforcement": "active",
+      "node_id": "RRS_lACqUmVwb3NpdG9yec5PuZWazgF4V1o",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/Future00111/ledgerpoint/rulesets/24663898"
+        },
+        "html": {
+          "href": "https://github.com/Future00111/ledgerpoint/rules/24663898"
+        }
+      },
+      "created_at": "2026-10-07T17:27:40.742+01:00",
+      "updated_at": "2026-10-07T17:27:40.863+01:00"
+    },
+    {
+      "id": 24674872,
+      "name": "Protect TR-01 implementation successor C4",
+      "target": "branch",
+      "source_type": "Repository",
+      "source": "Future00111/ledgerpoint",
+      "enforcement": "active",
+      "node_id": "RRS_lACqUmVwb3NpdG9yec5PuZWazgF4gjg",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/Future00111/ledgerpoint/rulesets/24674872"
+        },
+        "html": {
+          "href": "https://github.com/Future00111/ledgerpoint/rules/24674872"
+        }
+      },
+      "created_at": "2026-10-07T20:48:42.961+01:00",
+      "updated_at": "2026-10-07T20:48:43.052+01:00"
+    }
+  ],
+  "mainProtection": {
+    "url": "https://api.github.com/repos/Future00111/ledgerpoint/branches/main/protection",
+    "required_signatures": {
+      "url": "https://api.github.com/repos/Future00111/ledgerpoint/branches/main/protection/required_signatures",
+      "enabled": false
+    },
+    "enforce_admins": {
+      "url": "https://api.github.com/repos/Future00111/ledgerpoint/branches/main/protection/enforce_admins",
+      "enabled": true
+    },
+    "required_linear_history": {
+      "enabled": false
+    },
+    "allow_force_pushes": {
+      "enabled": false
+    },
+    "allow_deletions": {
+      "enabled": false
+    },
+    "block_creations": {
+      "enabled": false
+    },
+    "required_conversation_resolution": {
+      "enabled": false
+    },
+    "lock_branch": {
+      "enabled": false
+    },
+    "allow_fork_syncing": {
+      "enabled": false
+    }
+  },
+  "repositorySecrets": {
+    "total_count": 0,
+    "secrets": []
+  },
+  "environmentSecrets": {
+    "total_count": 0,
+    "secrets": []
+  },
+  "candidate": {
+    "ref": "refs/heads/tr01/implementation-identity-candidate",
+    "node_id": "REF_kwDOT7mVmtoAMXJlZnMvaGVhZHMvdHIwMS9pbXBsZW1lbnRhdGlvbi1pZGVudGl0eS1jYW5kaWRhdGU",
+    "url": "https://api.github.com/repos/Future00111/ledgerpoint/git/refs/heads/tr01/implementation-identity-candidate",
+    "object": {
+      "sha": "d292f3a64c6253e022b40de8cf055f3e722ff1ea",
+      "type": "commit",
+      "url": "https://api.github.com/repos/Future00111/ledgerpoint/git/commits/d292f3a64c6253e022b40de8cf055f3e722ff1ea"
+    }
+  },
+  "effective-candidate": [
+    {
+      "type": "deletion",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 23995584
+    },
+    {
+      "type": "non_fast_forward",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 23995584
+    },
+    {
+      "type": "update",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 23995584
+    }
+  ],
+  "successor-c2": {
+    "ref": "refs/heads/tr01/implementation-identity-successor-c2",
+    "node_id": "REF_kwDOT7mVmtoANHJlZnMvaGVhZHMvdHIwMS9pbXBsZW1lbnRhdGlvbi1pZGVudGl0eS1zdWNjZXNzb3ItYzI",
+    "url": "https://api.github.com/repos/Future00111/ledgerpoint/git/refs/heads/tr01/implementation-identity-successor-c2",
+    "object": {
+      "sha": "3ab9edc28b4922ad82e68afb7b049d69514f91e1",
+      "type": "commit",
+      "url": "https://api.github.com/repos/Future00111/ledgerpoint/git/commits/3ab9edc28b4922ad82e68afb7b049d69514f91e1"
+    }
+  },
+  "effective-successor-c2": [
+    {
+      "type": "deletion",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 24197692
+    },
+    {
+      "type": "non_fast_forward",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 24197692
+    },
+    {
+      "type": "update",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 24197692
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "do_not_enforce_on_create": true,
+        "required_status_checks": [
+          {
+            "context": "tr01/c2-identity-validation",
+            "integration_id": 15368
+          }
+        ]
+      },
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 24197692
+    }
+  ],
+  "successor-c3": {
+    "ref": "refs/heads/tr01/implementation-identity-successor-c3",
+    "node_id": "REF_kwDOT7mVmtoANHJlZnMvaGVhZHMvdHIwMS9pbXBsZW1lbnRhdGlvbi1pZGVudGl0eS1zdWNjZXNzb3ItYzM",
+    "url": "https://api.github.com/repos/Future00111/ledgerpoint/git/refs/heads/tr01/implementation-identity-successor-c3",
+    "object": {
+      "sha": "1c26be19295902a38e1939b56ff99ae9a195d3de",
+      "type": "commit",
+      "url": "https://api.github.com/repos/Future00111/ledgerpoint/git/commits/1c26be19295902a38e1939b56ff99ae9a195d3de"
+    }
+  },
+  "effective-successor-c3": [
+    {
+      "type": "deletion",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 24663898
+    },
+    {
+      "type": "non_fast_forward",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 24663898
+    },
+    {
+      "type": "update",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 24663898
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "do_not_enforce_on_create": true,
+        "required_status_checks": [
+          {
+            "context": "tr01/c3-identity-validation",
+            "integration_id": 15368
+          }
+        ]
+      },
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 24663898
+    }
+  ],
+  "successor-c4": {
+    "ref": "refs/heads/tr01/implementation-identity-successor-c4",
+    "node_id": "REF_kwDOT7mVmtoANHJlZnMvaGVhZHMvdHIwMS9pbXBsZW1lbnRhdGlvbi1pZGVudGl0eS1zdWNjZXNzb3ItYzQ",
+    "url": "https://api.github.com/repos/Future00111/ledgerpoint/git/refs/heads/tr01/implementation-identity-successor-c4",
+    "object": {
+      "sha": "273f714c876260636346b7fbcc588224e9795141",
+      "type": "commit",
+      "url": "https://api.github.com/repos/Future00111/ledgerpoint/git/commits/273f714c876260636346b7fbcc588224e9795141"
+    }
+  },
+  "effective-successor-c4": [
+    {
+      "type": "deletion",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 24674872
+    },
+    {
+      "type": "non_fast_forward",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 24674872
+    },
+    {
+      "type": "update",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 24674872
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "do_not_enforce_on_create": true,
+        "required_status_checks": [
+          {
+            "context": "tr01/c4-identity-validation",
+            "integration_id": 15368
+          }
+        ]
+      },
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Future00111/ledgerpoint",
+      "ruleset_id": 24674872
+    }
+  ]
+}

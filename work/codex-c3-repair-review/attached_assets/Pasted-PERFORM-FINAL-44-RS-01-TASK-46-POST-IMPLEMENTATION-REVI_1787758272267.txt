@@ -1,0 +1,107 @@
+PERFORM FINAL #44-RS-01 / TASK #46 POST-IMPLEMENTATION REVIEW ONLY
+
+Do not implement, modify, clean up, migrate, deploy, publish, or start another task.
+
+Review the complete #44-RS-01 / Task #46 implementation against its approved
+package and all subsequently approved remediation packages.
+
+Treat the completed test-isolation and development fixture-disposition
+remediation as evidence, but independently determine whether #46 as a whole
+now satisfies its original definition of done.
+
+Verify at minimum:
+
+1. RUNTIME ROLE SEPARATION
+- development API actually connects as ledgerly_api;
+- current_user and session_user are ledgerly_api;
+- ledgerly_api is non-superuser and NOINHERIT;
+- it has no administrative or owner-role memberships;
+- no privilege-escalation path exists within the approved scope.
+
+2. CANONICAL OWNERSHIP AND IMMUTABILITY
+- ledgerly_canonical_owner remains NOLOGIN;
+- it owns all five protected canonical tables;
+- all approved trigger functions exist with the required security properties;
+- all five protection triggers remain ENABLE ALWAYS;
+- ledgerly_api cannot UPDATE, DELETE, TRUNCATE, disable protections, assume
+  ownership, or otherwise bypass canonical immutability;
+- approved posting-effect state transitions remain possible only through the
+  controlled path.
+
+3. DATABASE PRIVILEGE BOUNDARY
+- ordinary application privileges remain sufficient;
+- canonical privileges are exactly bounded;
+- PUBLIC/database/schema privileges remain as approved;
+- no temporary privilege used during remediation remains;
+- no reusable administrative fixture-reset capability is exposed to the API.
+
+4. SC-01 INTEGRITY
+- economic_effect_id relation identity remains enforced;
+- composite company-scoped FK remains exact with RESTRICT actions;
+- approved uniqueness constraints/indexes remain;
+- correction/reversal writer still derives identity from the authoritative
+  posting effect;
+- no caller-controlled override exists.
+
+5. TEST ISOLATION
+- canonical integration tests cannot fall back to heliumdb;
+- administered disposable database binding remains mandatory;
+- target-override protections remain;
+- concurrency tests use independent connections and explicit synchronization;
+- normal development heliumdb remains unchanged by canonical integration runs;
+- disposable databases are removed after successful controlled cleanup;
+- no disposable database currently remains.
+
+6. DEVELOPMENT DATA STATE
+- canonical accounting tables contain zero retained test rows;
+- legacy journal_entries remains unchanged/zero as expected;
+- no unexpected synthetic fixture residue remains from the remediation.
+
+7. REGRESSION EVIDENCE
+Independently verify the relevant passing suites, including:
+- BL-01-FI/company-scope;
+- canonical integration;
+- RS-01 privilege/mutation/transition checks;
+- relevant accounting regressions;
+- workspace typecheck;
+- API production build;
+- development API health.
+
+Do not fail #46 merely because the unrelated mockup PORT issue remains,
+provided it is still demonstrably unrelated to the approved RS-01 scope.
+
+8. EVIDENCE AND GOVERNANCE
+- verify the referenced reset and disposable-test evidence/digests where
+  possible;
+- confirm DEC-01 through DEC-22 remain unchanged;
+- no DEC-23 exists;
+- BL-06 and BL-07 remain blocked;
+- production posting remains disabled;
+- production was not modified;
+- no RLS, historical migration, deployment, publishing, or cutover was
+  introduced.
+
+9. ORIGINAL #46 DEFINITION OF DONE
+Compare the final combined implementation directly with the original
+#44-RS-01 approval package.
+
+Identify any requirement that is:
+- satisfied;
+- only partially satisfied;
+- unverified; or
+- contradicted.
+
+Do not infer completion merely from prior PASS reports.
+
+Return one final verdict only:
+
+PASS — #44-RS-01 / TASK #46 COMPLETE
+
+or
+
+FAIL — #44-RS-01 / TASK #46 REMEDIATION REQUIRED
+
+If PASS, do not start #44, #40-CF-01, BL-06, BL-07, or any other task.
+Stop for the next explicit implementation approval.
+
+If FAIL, identify the exact remaining blocker and do not modify anything.

@@ -1,0 +1,62 @@
+APPROVED — IMPLEMENT #44-TI-03 ONLY
+
+Implement #44-TI-03 — External CI Disposable PostgreSQL Harness exactly within the scope and stop conditions defined in:
+
+docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-approval-package.md
+
+This approval authorizes only the TI-03 external CI harness and its required qualification/negative-control work.
+
+Use the selected architecture: a trusted GitHub-hosted Linux CI job with a fresh, pinned PostgreSQL 16 service container for each authorised run.
+
+Preserve the three-plane trust separation defined in the package:
+
+CI admin/bootstrap plane;
+unprivileged ledgerly_api test plane;
+normal Replit development/heliumdb plane, which must remain completely outside the external CI environment.
+
+Implement only the files and bounded adaptations identified by the TI-03 package. Do not broaden the scope.
+
+Mandatory security boundaries
+
+Do not provide GitHub CI with any Replit development or production database credential, endpoint, secret, or data.
+Do not connect to, inspect, snapshot, or modify heliumdb.
+Do not contact production.
+Do not use a long-lived PostgreSQL administrator credential.
+Generate PostgreSQL credentials uniquely for each CI run.
+The canonical test process must connect only as ledgerly_api.
+The test container must receive no Docker socket, CI control token, administrator credential, Replit credential, production credential, or external network access.
+PostgreSQL and Node images must be pinned to reviewed immutable digests.
+Do not weaken RS-01 ownership, ACL, trigger, role, or privilege protections.
+Do not invent accounting authority or product schema to make tests pass.
+
+Implement the external-CI mode of the existing canonical disposable runner fail-closed, including the exact target validation, environment scrubbing, run binding, private verification, source-digest checks and no-fallback behaviour specified by the package.
+
+Run the complete TI-03 qualification matrix and required negative controls. Produce only the approved non-secret evidence and verify cleanup on successful, failed, timeout, and bootstrap-failure paths where required by the package.
+
+Do not resume TR-01 as part of this instruction.
+
+Successful TI-03 implementation does not complete TR-01, #44, or #40-CF-01.
+
+Do not change normal Replit workflow configuration, normal DATABASE_URL, heliumdb, production configuration/database/secrets, application routes, accounting product schema, RLS, BL-06, BL-07, #40-CF-01, or #41.
+
+Stop immediately and report BLOCKED / FURTHER APPROVAL REQUIRED if any package stop condition is encountered rather than weakening or reinterpreting an approved control.
+
+At completion, provide a structured implementation report covering:
+
+exact files changed;
+workflow/event/permission restrictions;
+exact PostgreSQL and Node image tags and immutable digests;
+role/ownership/ACL/trigger verification;
+CI/test/admin-plane isolation;
+confirmation that no Replit or production credential was available;
+canonical suite results;
+all TI-03 negative-control results;
+backend PID/concurrency evidence;
+cleanup/destruction verification;
+secret-scanning result;
+evidence artifact path and SHA-256;
+confirmation that heliumdb and production were never contacted;
+confirmation that TR-01 remains paused;
+any remaining risks or failed checks.
+
+Stop after TI-03 implementation, qualification and reporting and request independent post-implementation review.

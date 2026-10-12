@@ -1,0 +1,206 @@
+FEATURE REQUEST: AI AUTO-RECONCILIATION (REVENUE MATCHING)
+
+I want to add an AI-assisted revenue reconciliation workflow to the Banking > Reconciliation module.
+
+IMPORTANT:
+
+- Do not replace the existing reconciliation engine.
+- Do not remove any existing functionality.
+- Do not change the database schema unless absolutely necessary.
+- Extend the existing reconciliation logic.
+
+WORKFLOW:
+
+STEP 1: A bank statement or bank feed transaction is imported.
+
+Example:
+
+Bank transaction:
++£28,408
+
+Reference:
+STRIPE PAYOUT
+
+Date:
+27/02/2026
+
+--------------------------------------------------
+
+STEP 2: Automatically search for all unreconciled sales invoices.
+
+Use the following matching criteria:
+
+- Exact amount match.
+- Customer name.
+- Invoice reference number.
+- Invoice date.
+- Historical customer matches.
+- Payment provider references (Stripe, PayPal, BACS, card payments, etc.).
+- Similar amounts.
+- Multiple invoice combinations.
+
+--------------------------------------------------
+
+STEP 3: Calculate the matched invoice total.
+
+Example:
+
+Outstanding invoices:
+
+INV-1001 £8,907
+INV-1002 £7,114
+INV-1003 £12,387
+
+Invoice total:
+
+£28,408
+
+--------------------------------------------------
+
+STEP 4: If the invoice total equals the bank transaction amount:
+
+Automatically mark the transaction as:
+
+READY FOR APPROVAL
+
+Display:
+
+✓ Bank transaction £28,408
+
+✓ Matched invoices £28,408
+
+✓ Revenue fully reconciled
+
+✓ Confidence score
+
+Display an "Approve" button.
+
+--------------------------------------------------
+
+STEP 5: If the amounts do not match:
+
+Calculate and display:
+
+Revenue still to identify:
+
+£12,387
+
+--------------------------------------------------
+
+STEP 6: Search for potential invoices that could explain the missing revenue.
+
+Example:
+
+Potential invoices:
+
+80% match
+
+INV-1004 £10,500
+
+60% match
+
+INV-1005 £1,887
+
+--------------------------------------------------
+
+STEP 7: Add an AI Reconciliation Summary card.
+
+Display:
+
+AI RECONCILIATION SUMMARY
+
+Bank transaction amount:
+£28,408
+
+Invoices matched:
+£16,021
+
+Revenue still missing:
+£12,387
+
+Potential invoices found:
+2
+
+Overall confidence:
+80%
+
+--------------------------------------------------
+
+STEP 8: Add a traffic-light status indicator.
+
+GREEN:
+
+100% reconciled.
+
+Display:
+
+✓ Ready for approval.
+
+AMBER:
+
+Partial reconciliation.
+
+Display:
+
+⚠ Review required.
+
+RED:
+
+No matches found.
+
+Display:
+
+✗ Investigation required.
+
+--------------------------------------------------
+
+STEP 9: Support one-to-many invoice matching.
+
+Example:
+
+One bank transaction:
+
+£28,408
+
+Can be matched against:
+
+Invoice 1:
+£8,907
+
+Invoice 2:
+£7,114
+
+Invoice 3:
+£12,387
+
+--------------------------------------------------
+
+STEP 10: Use intelligent matching.
+
+Do not rely only on invoice numbers.
+
+The matching engine should also use:
+
+- Customer names.
+- Historical payment patterns.
+- Payment references.
+- Date ranges.
+- Previous reconciliations.
+- Similar transaction amounts.
+
+--------------------------------------------------
+
+Before making any changes:
+
+1. Identify the files controlling reconciliation.
+2. Identify the database tables used for:
+   - Bank transactions.
+   - Invoices.
+   - Customers.
+   - Reconciliations.
+3. Explain how the current matching engine works.
+4. Explain what needs to be added.
+5. Then implement the feature.
+
+Do not rebuild the application from scratch.
+Reuse all existing LedgerPoint components, services, database models, and authentication.

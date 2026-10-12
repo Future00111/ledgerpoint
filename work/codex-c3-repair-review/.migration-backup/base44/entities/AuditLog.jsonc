@@ -1,0 +1,56 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Reference to User"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "create",
+        "update",
+        "delete",
+        "login",
+        "logout",
+        "view",
+        "export"
+      ]
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "The entity that was acted upon"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "old_values": {
+      "type": "object"
+    },
+    "new_values": {
+      "type": "object"
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "company_id",
+    "action"
+  ]
+}

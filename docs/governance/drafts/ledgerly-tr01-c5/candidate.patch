@@ -1,0 +1,383 @@
+diff --git a/.github/workflows/ledgerly-canonical-postgresql.yml b/.github/workflows/ledgerly-canonical-postgresql.yml
+index 2e9562b..0e6dcfe 100644
+--- a/.github/workflows/ledgerly-canonical-postgresql.yml
++++ b/.github/workflows/ledgerly-canonical-postgresql.yml
+@@ -16,7 +16,7 @@ jobs:
+       github.event_name == 'workflow_dispatch' &&
+       github.ref_protected == true &&
+       (github.ref == 'refs/heads/main' ||
+-      github.ref == 'refs/heads/tr01/implementation-identity-successor-c4')
++      github.ref == 'refs/heads/tr01/implementation-identity-successor-c5')
+     name: Disposable canonical PostgreSQL qualification
+     runs-on: ubuntu-24.04
+     timeout-minutes: 20
+diff --git a/artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs b/artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs
+index f41dcd0..ac30460 100644
+--- a/artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs
++++ b/artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs
+@@ -438,13 +438,13 @@ async function runExternalCi() {
+   };
+   if (
+     !["candidate", "activated"].includes(ci.identityMode) ||
+-    !["refs/heads/tr01/implementation-identity-successor-c4", "refs/heads/main"].includes(
++    !["refs/heads/tr01/implementation-identity-successor-c5", "refs/heads/main"].includes(
+       ci.ciSourceRef,
+     ) ||
+     !/^[0-9a-f]{40}$/.test(ci.workflowSourceCommit) ||
+     !/^[0-9a-f]{40}$/.test(ci.implementationSourceCommit) ||
+     (ci.identityMode === "candidate" &&
+-      (ci.ciSourceRef !== "refs/heads/tr01/implementation-identity-successor-c4" ||
++      (ci.ciSourceRef !== "refs/heads/tr01/implementation-identity-successor-c5" ||
+         ci.workflowSourceCommit !== ci.implementationSourceCommit)) ||
+     (ci.identityMode === "activated" && ci.ciSourceRef !== "refs/heads/main")
+   ) {
+@@ -479,6 +479,12 @@ async function runExternalCi() {
+ 
+   const childEnvironment = {
+     PATH: process.env.PATH,
++    // Child processes must use the image's prepared, read-only pinned cache.
++    // Do not inherit arbitrary parent settings or fall back to online latest.
++    COREPACK_HOME: "/opt/corepack",
++    COREPACK_DEFAULT_TO_LATEST: "0",
++    COREPACK_ENABLE_AUTO_PIN: "0",
++    COREPACK_ENABLE_NETWORK: "0",
+     NODE_ENV: "test",
+     DATABASE_URL: process.env.LEDGERLY_CANONICAL_TEST_DATABASE_URL,
+     LEDGERLY_CANONICAL_TEST_DATABASE_NAME: databaseName,
+diff --git a/docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json b/docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json
+index b2d3d2a..6d3b86e 100644
+--- a/docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json
++++ b/docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json
+@@ -50,7 +50,7 @@
+         "identityMode": { "enum": ["candidate", "activated"] },
+         "sourceRef": {
+           "enum": [
+-            "refs/heads/tr01/implementation-identity-successor-c4",
++            "refs/heads/tr01/implementation-identity-successor-c5",
+             "refs/heads/main"
+           ]
+         },
+@@ -103,7 +103,7 @@
+         "identityMode": { "enum": ["candidate", "activated"] },
+         "ciSourceRef": {
+           "enum": [
+-            "refs/heads/tr01/implementation-identity-successor-c4",
++            "refs/heads/tr01/implementation-identity-successor-c5",
+             "refs/heads/main"
+           ]
+         },
+@@ -256,10 +256,10 @@
+           "ci": {
+             "type": "object",
+             "properties": {
+-              "sourceRef": { "const": "refs/heads/tr01/implementation-identity-successor-c4" },
++              "sourceRef": { "const": "refs/heads/tr01/implementation-identity-successor-c5" },
+               "workflowRef": {
+                 "type": "string",
+-                "pattern": "/\\.github/workflows/ledgerly-canonical-postgresql\\.yml@refs/heads/tr01/implementation-identity-successor-c4$"
++                "pattern": "/\\.github/workflows/ledgerly-canonical-postgresql\\.yml@refs/heads/tr01/implementation-identity-successor-c5$"
+               }
+             }
+           }
+diff --git a/scripts/ci/ledgerly-external-binding-regression.test.mjs b/scripts/ci/ledgerly-external-binding-regression.test.mjs
+index 70c69af..9bcd27a 100644
+--- a/scripts/ci/ledgerly-external-binding-regression.test.mjs
++++ b/scripts/ci/ledgerly-external-binding-regression.test.mjs
+@@ -45,12 +45,12 @@ if (!process.argv.includes("--inside") && !process.argv.includes("--disposable-r
+       /The private external-CI run binding did not verify/,
+     );
+   });
+-  if (fixture.args.ci.ciSourceRef.endsWith("successor-c4")) {
+-    await check("old C3 identity rejected by private database binding", async () => {
+-      const oldRef = "refs/heads/tr01/implementation-identity-successor-c3";
++  if (fixture.args.ci.ciSourceRef.endsWith("successor-c5")) {
++    await check("old C4 identity rejected by private database binding", async () => {
++      const oldRef = "refs/heads/tr01/implementation-identity-successor-c4";
+       await assert.rejects(verifyExternalBinding({ ...fixture.args, ci: {
+         ...fixture.args.ci, ciSourceRef: oldRef,
+-        workflowRef: fixture.args.ci.workflowRef.replace("successor-c4", "successor-c3"),
++        workflowRef: fixture.args.ci.workflowRef.replace("successor-c5", "successor-c4"),
+       } }), /The private external-CI run binding did not verify/);
+     });
+   }
+@@ -91,7 +91,7 @@ if (!process.argv.includes("--inside") && !process.argv.includes("--disposable-r
+     assert.equal(r.status, 0, `Docker ${args[0]} failed (credential output suppressed)`);
+     return r.stdout;
+   }
+-  const sourceRef = expectOriginal ? "refs/heads/tr01/implementation-identity-successor-c3" : "refs/heads/tr01/implementation-identity-successor-c4";
++  const sourceRef = expectOriginal ? "refs/heads/tr01/implementation-identity-successor-c3" : "refs/heads/tr01/implementation-identity-successor-c5";
+   // Deliberately synthetic identity: cannot satisfy trusted GitHub provenance.
+   const commit = "a".repeat(40);
+   const runId = randomUUID();
+diff --git a/scripts/ci/ledgerly-nested-offline-review.mjs b/scripts/ci/ledgerly-nested-offline-review.mjs
+new file mode 100644
+index 0000000..4790cb8
+--- /dev/null
++++ b/scripts/ci/ledgerly-nested-offline-review.mjs
+@@ -0,0 +1,93 @@
++// NON-QUALIFICATION fixture: compile real canonical tests but never open a DB.
++// Run from stdin in the actual production/review image; writes only to /tmp.
++import assert from "node:assert/strict";
++import { readFile, writeFile, mkdtemp, rm } from "node:fs/promises";
++import { tmpdir } from "node:os";
++import path from "node:path";
++import { pathToFileURL } from "node:url";
++
++assert.ok(process.argv.includes("--inside"), "Disposable image --inside required");
++const original = process.argv.includes("--expect-c4");
++const missing = process.argv.includes("--missing-cache");
++const root = "/workspace";
++const api = path.join(root, "artifacts/api-server");
++const source = await readFile(path.join(api, "scripts/runCanonicalPostingDisposable.mjs"), "utf8");
++// Extract the exact existing external-CI child allowlist, not a parallel mock.
++const block = source.match(/const childEnvironment = (\{[\s\S]*?\n  \});/);
++assert.ok(block, "Actual external-CI child environment must be found");
++Object.assign(process.env, {
++  LEDGERLY_CANONICAL_TEST_DATABASE_URL: "postgresql://ledgerly_api:synthetic-only@ledgerly-postgres:5432/ledgerly_canonical_test_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa?sslmode=disable",
++  DATABASE_URL: "synthetic-parent-must-not-be-inherited",
++  GITHUB_TOKEN: "synthetic-credential-exclusion-marker",
++  OPENAI_API_KEY: "synthetic-credential-exclusion-marker",
++  REPLIT_DEV_DOMAIN: "synthetic-exclusion-marker",
++  PGHOST: "synthetic-exclusion-marker",
++});
++const env = new Function("process", "databaseName", "runId", "environment", "targetClass",
++  `return ${block[1]}`)(process, "ledgerly_canonical_test_" + "a".repeat(32),
++  "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "external-ci-disposable-test",
++  "external-ci-postgresql-service-container");
++assert.equal(env.NODE_ENV, "test");
++assert.equal(env.DATABASE_URL, process.env.LEDGERLY_CANONICAL_TEST_DATABASE_URL);
++for (const key of ["GITHUB_TOKEN", "OPENAI_API_KEY", "REPLIT_DEV_DOMAIN", "PGHOST", "HOME"])
++  assert.equal(env[key], undefined, `Credential/target exclusion: ${key}`);
++if (!original) {
++  assert.equal(env.COREPACK_HOME, "/opt/corepack");
++  for (const key of ["COREPACK_DEFAULT_TO_LATEST", "COREPACK_ENABLE_AUTO_PIN", "COREPACK_ENABLE_NETWORK"])
++    assert.equal(env[key], "0");
++}
++const temp = await mkdtemp(path.join(tmpdir(), "ledgerly-nested-offline-"));
++try {
++  // Test-only import seam; production source and its CLI remain untouched.
++  const module = path.join(temp, "runtime-access.mjs");
++  await writeFile(module, source.replace('import pg from "pg";',
++    `import pg from ${JSON.stringify(pathToFileURL(path.join(api, "node_modules/pg/lib/index.js")).href)};`) +
++    "\nexport { runProcess };\n");
++  const { runProcess } = await import(pathToFileURL(module).href);
++  const before = await readFile(path.join(root, "package.json"));
++  const output = path.join(temp, "actual-canonical-tests.cjs");
++  try {
++    // Same real source, flags, cwd, executor and sanitized environment as C4.
++    await runProcess("pnpm", ["exec", "esbuild",
++      "src/services/accounting/canonicalPosting.integration.test.ts",
++      "--bundle", "--platform=node", "--format=cjs",
++      "--external:pg", "--external:pino", "--external:pino-http",
++      "--external:pino-pretty", "--external:thread-stream", `--outfile=${output}`],
++      { cwd: api, env, timeoutMs: 45000 });
++    assert.equal(original || missing, false, "Original/missing-cache invocation must fail closed");
++  } catch (error) {
++    if (!original && !missing) throw error;
++    assert.match(error.message, /pnpm exited with status/);
++    console.log(original ? "EXPECTED_C4_NESTED_FAILURE" : "EXPECTED_MISSING_CACHE_FAILURE");
++    console.log(JSON.stringify({ reviewOnly: true, environmentKeys: Object.keys(env).sort(),
++      credentialsExcluded: true, databaseAccessed: false }));
++    process.exitCode = 0;
++  }
++  if (!original && !missing) {
++    const fixture = path.join(temp, "nested-test.cjs");
++    await writeFile(fixture, `
++const test = require("node:test"), assert = require("node:assert/strict");
++const {spawnSync} = require("node:child_process");
++test("real nested pinned pnpm/test invocation under sanitized environment", () => {
++  assert.equal(process.getuid(), 1000);
++  assert.equal(process.env.COREPACK_HOME, "/opt/corepack");
++  assert.equal(process.env.COREPACK_ENABLE_NETWORK, "0");
++  assert.equal(process.env.GITHUB_TOKEN, undefined);
++  assert.equal(process.env.REPLIT_DEV_DOMAIN, undefined);
++  const version = spawnSync("pnpm", ["--version"], {encoding:"utf8",timeout:15000});
++  assert.equal(version.status,0,version.stderr); assert.equal(version.stdout.trim(),"10.26.1");
++  const cli = spawnSync("pnpm", ["exec","drizzle-kit","--version"],
++    {cwd:"/workspace/lib/db",encoding:"utf8",timeout:15000});
++  assert.equal(cli.status,0,cli.stderr); assert.match(cli.stdout,/drizzle-kit/);
++});
++`);
++    await runProcess("node", ["--test", fixture], { cwd: api, env, timeoutMs: 45000 });
++    assert.deepEqual(await readFile(path.join(root, "package.json")), before);
++    console.log("NESTED_OFFLINE_PASS");
++    console.log(JSON.stringify({ reviewOnly: true, credentialsExcluded: true,
++      canonicalSourceCompiled: true, nestedNodeTestPassed: true, databaseAccessed: false }));
++  }
++} finally {
++  await rm(temp, { recursive: true, force: true });
++  console.log("NESTED_FIXTURE_CLEANUP_PASS");
++}
+diff --git a/scripts/ci/ledgerly-offline-pnpm.test.mjs b/scripts/ci/ledgerly-offline-pnpm.test.mjs
+index fcbab5f..b0f4b5a 100644
+--- a/scripts/ci/ledgerly-offline-pnpm.test.mjs
++++ b/scripts/ci/ledgerly-offline-pnpm.test.mjs
+@@ -9,6 +9,9 @@ const dockerfile = await readFile(
+   "utf8",
+ );
+ const image = process.env.LEDGERLY_OFFLINE_PNPM_TEST_IMAGE;
++const nestedFixture = await readFile(
++  fileURLToPath(new URL("./ledgerly-nested-offline-review.mjs", import.meta.url)), "utf8",
++);
+ 
+ test("the production image pins a shared cache and tests the final user offline", () => {
+   assert.match(dockerfile, /COREPACK_HOME=\/opt\/corepack/);
+@@ -21,16 +24,17 @@ test("the production image pins a shared cache and tests the final user offline"
+   assert.match(dockerfile, /pnpm --filter @workspace\/db exec drizzle-kit --version/);
+ });
+ 
+-function offlineContainer(command, extraArgs = []) {
++function offlineContainer(command, extraArgs = [], input) {
+   return spawnSync("docker", [
+     "run", "--rm", "--pull=never",
++    ...(input === undefined ? [] : ["-i"]),
+     "--network", "none", "--read-only",
+     "--cap-drop", "ALL",
+     "--security-opt", "no-new-privileges",
+-    "--tmpfs", "/tmp:rw,nosuid,nodev",
++    "--tmpfs", "/tmp:rw,noexec,nosuid,nodev",
+     ...extraArgs,
+     "--entrypoint", "/bin/sh", image, "-ec", command,
+-  ], { encoding: "utf8", timeout: 30_000 });
++  ], { encoding: "utf8", timeout: 75_000, input });
+ }
+ 
+ test("pinned pnpm and the bootstrap CLI work as node on a read-only, offline image",
+@@ -58,4 +62,39 @@ test("an empty runtime cache fails closed rather than fetching a replacement",
+     assert.ifError(result.error);
+     assert.notEqual(result.status, 0);
+     assert.match(result.stderr, /[Nn]etwork access disabled/);
++  });
++
++test("actual sanitized child compiles canonical source and runs nested pnpm/node tests offline",
++  { skip: !image }, () => {
++    const result = offlineContainer(
++      'test "$(id -u)" = 1000; node --input-type=module - --inside', [], nestedFixture);
++    assert.ifError(result.error);
++    assert.equal(result.status, 0, result.stderr || result.stdout);
++    assert.match(result.stdout, /NESTED_OFFLINE_PASS/);
++    assert.match(result.stdout, /NESTED_FIXTURE_CLEANUP_PASS/);
++    assert.doesNotMatch(result.stderr, /pnpm\/latest|EAI_AGAIN/);
++  });
++
++test("actual sanitized nested invocation with missing cache fails without registry access",
++  { skip: !image }, () => {
++    const result = offlineContainer('node --input-type=module - --inside --missing-cache',
++      ["--tmpfs", "/opt/corepack:rw,noexec,nosuid,nodev,mode=1777"], nestedFixture);
++    assert.ifError(result.error);
++    assert.equal(result.status, 0, result.stderr || result.stdout);
++    assert.match(result.stdout, /EXPECTED_MISSING_CACHE_FAILURE/);
++    assert.match(result.stdout, /NESTED_FIXTURE_CLEANUP_PASS/);
++    assert.match(result.stderr, /[Nn]etwork access disabled/);
++    assert.doesNotMatch(result.stderr, /pnpm\/latest|EAI_AGAIN/);
++  });
++
++test("a missing read-only cache also rejects the real nested invocation locally",
++  { skip: !image }, () => {
++    const result = offlineContainer('node --input-type=module - --inside --missing-cache',
++      ["--tmpfs", "/opt/corepack:ro,noexec,nosuid,nodev"], nestedFixture);
++    assert.ifError(result.error);
++    assert.equal(result.status, 0, result.stderr || result.stdout);
++    assert.match(result.stdout, /EXPECTED_MISSING_CACHE_FAILURE/);
++    assert.match(result.stdout, /NESTED_FIXTURE_CLEANUP_PASS/);
++    assert.match(result.stderr, /ENOENT|EROFS|EACCES/);
++    assert.doesNotMatch(result.stderr, /pnpm\/latest|EAI_AGAIN/);
+   });
+\ No newline at end of file
+diff --git a/scripts/ci/run-ledgerly-canonical-postgresql.mjs b/scripts/ci/run-ledgerly-canonical-postgresql.mjs
+index db19024..5fe6627 100644
+--- a/scripts/ci/run-ledgerly-canonical-postgresql.mjs
++++ b/scripts/ci/run-ledgerly-canonical-postgresql.mjs
+@@ -8,7 +8,7 @@ import Ajv2020 from "ajv/dist/2020.js";
+ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+ const workflowRoot = path.resolve(process.env.LEDGERLY_WORKFLOW_ROOT ?? root);
+ const implementationRoot = root;
+-const candidateRef = "refs/heads/tr01/implementation-identity-successor-c4";
++const candidateRef = "refs/heads/tr01/implementation-identity-successor-c5";
+ const mainRef = "refs/heads/main";
+ const fullShaPattern = /^[0-9a-f]{40}$/;
+ const postgresImage =
+diff --git a/scripts/ci/run-ledgerly-canonical-postgresql.test.mjs b/scripts/ci/run-ledgerly-canonical-postgresql.test.mjs
+index 5c9efbf..687f649 100644
+--- a/scripts/ci/run-ledgerly-canonical-postgresql.test.mjs
++++ b/scripts/ci/run-ledgerly-canonical-postgresql.test.mjs
+@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
+ import Ajv2020 from "ajv/dist/2020.js";
+ 
+ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+-const candidateRef = "refs/heads/tr01/implementation-identity-successor-c4";
++const candidateRef = "refs/heads/tr01/implementation-identity-successor-c5";
+ const mainRef = "refs/heads/main";
+ const sha = "a".repeat(40);
+ 
+@@ -264,6 +264,15 @@ const candidateTrusted = await candidateModule.buildTrustedEvidenceContext(
+   fixtureCi(candidateEnvironment), candidateManifest,
+ );
+ for (const [label, overrides, rejection] of [
++    ["old C4 ref", {
++      GITHUB_REF: "refs/heads/tr01/implementation-identity-successor-c4",
++    }, /identity mode requires/],
++    ["old C4 workflow alias", {
++      GITHUB_WORKFLOW_REF: "example/repository/.github/workflows/ledgerly-canonical-postgresql.yml@refs/heads/tr01/implementation-identity-successor-c4",
++    }, /exact approved workflow identity/],
++    ["stale C4 candidate pin", {
++      LEDGERLY_APPROVED_CANDIDATE_SHA: "273f714c876260636346b7fbcc588224e9795141",
++    }, /exact approved candidate SHA/],
+       ["old C3 ref", {
+       GITHUB_REF: "refs/heads/tr01/implementation-identity-successor-c3",
+     }, /identity mode requires/],
+@@ -473,6 +482,12 @@ for (const field of ["sourceCommit", "source_commit"]) {
+ rejectMutation("v1", (value) => { value.schemaVersion = 1; });
+ rejectMutation("wrong candidate ref", (value) => {
+   value.ci.sourceRef = "refs/heads/tr01/implementation-identity-candidate";
++});
++rejectMutation("old coherent C4 candidate evidence", (value) => {
++  const oldRef = "refs/heads/tr01/implementation-identity-successor-c4";
++  value.ci.sourceRef = oldRef;
++  value.binding.ciSourceRef = oldRef;
++  value.ci.workflowRef = value.ci.workflowRef.replace(candidateRef, oldRef);
+ });
+   rejectMutation("old C3 candidate evidence", (value) => {
+     value.ci.sourceRef = "refs/heads/tr01/implementation-identity-successor-c3";
+@@ -610,7 +625,7 @@ for (const environmentName of [
+   assert.match(disposableRunner, new RegExp(environmentName));
+ }
+ assert.match(disposableRunner, /must equal the literal string true/);
+-assert.match(disposableRunner, /refs\/heads\/tr01\/implementation-identity-successor-c4/);
++assert.match(disposableRunner, /refs\/heads\/tr01\/implementation-identity-successor-c5/);
+ assert.doesNotMatch(disposableRunner, /refs\/heads\/tr01\/implementation-identity-successor-c2/);
+ assert.match(disposableRunner, /Object\.hasOwn\(process\.env, "LEDGERLY_CANONICAL_TEST_SOURCE_COMMIT"\)/);
+ assert.doesNotMatch(disposableRunner, /sourceCommit:\s*ci\.sourceCommit/);
+@@ -660,7 +675,7 @@ for (const column of [
+ assert.doesNotMatch(sql, /\bsource_commit\b/);
+ assert.match(sql, /identity_mode = 'candidate'/);
+ assert.match(sql, /identity_mode = 'activated'/);
+-assert.match(sql, /refs\/heads\/tr01\/implementation-identity-successor-c4/);
++assert.match(sql, /refs\/heads\/tr01\/implementation-identity-successor-c5/);
+ assert.doesNotMatch(sql, /refs\/heads\/tr01\/implementation-identity-successor-c2/);
+ assert.match(sql, /refs\/heads\/main/);
+ 
+@@ -669,7 +684,7 @@ assert.match(workflow, /fetch-depth: 0/);
+ assert.match(workflow, /path: candidate/);
+ assert.match(workflow, /LEDGERLY_APPROVED_CANDIDATE_SHA/);
+ assert.match(workflow, /LEDGERLY_IDENTITY_MODE/);
+-assert.match(workflow, /refs\/heads\/tr01\/implementation-identity-successor-c4/);
++assert.match(workflow, /refs\/heads\/tr01\/implementation-identity-successor-c5/);
+ assert.doesNotMatch(workflow, /refs\/heads\/tr01\/implementation-identity-successor-c2/);
+ assert.match(workflow, /candidate\/scripts\/ci\/run-ledgerly-canonical-postgresql\.mjs/);
+ assert.match(workflow, /\*\*\/docs\/governance\/evidence\/ledgerly-44-ti-03-\*\.json/);
+diff --git a/scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql b/scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql
+index 6bf984e..66dc14a 100644
+--- a/scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql
++++ b/scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql
+@@ -81,8 +81,8 @@ CREATE TABLE IF NOT EXISTS ledgerly_test_control.run_identity (
+     AND (
+       (
+         identity_mode = 'candidate'
+-        AND ci_source_ref = 'refs/heads/tr01/implementation-identity-successor-c4'
+-        AND ci_workflow_ref ~ '/\.github/workflows/ledgerly-canonical-postgresql\.yml@refs/heads/tr01/implementation-identity-successor-c4$'
++        AND ci_source_ref = 'refs/heads/tr01/implementation-identity-successor-c5'
++        AND ci_workflow_ref ~ '/\.github/workflows/ledgerly-canonical-postgresql\.yml@refs/heads/tr01/implementation-identity-successor-c5$'
+         AND workflow_source_commit = implementation_source_commit
+       )
+       OR (

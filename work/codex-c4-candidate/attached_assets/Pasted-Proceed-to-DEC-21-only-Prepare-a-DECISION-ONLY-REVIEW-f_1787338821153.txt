@@ -1,0 +1,550 @@
+Proceed to DEC-21 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-21 — TENANT ISOLATION POLICY
+
+IMPORTANT:
+Read the Current Decision Register first and use the exact registered DEC-21 title and scope.
+Do not rename, merge, reinterpret, or broaden DEC-21.
+
+Review all existing governance and accounting documentation, including:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- Accounting Core Decision Pack
+- Master Backlog
+- DEC-01 through DEC-20
+- All DEC-01 through DEC-20 approval/review documents
+- DEC-05 capability/security policy
+- DEC-17 retention policy
+- DEC-18 deletion/anonymisation policy
+- DEC-19 export policy
+- DEC-20 backup/recovery policy
+- Existing security, data-access, company-scoping and architecture documentation
+
+This is a DECISION-ONLY review.
+
+DO NOT implement anything.
+
+DO NOT modify:
+
+- application code
+- database schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- infrastructure configuration
+- deployment
+- publishing.
+
+Do NOT approve DEC-21.
+Do NOT start DEC-22.
+Keep BL-06 and BL-07 BLOCKED.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Determine Ledgerly's tenant/company isolation policy.
+
+The review must establish how Ledgerly guarantees that one company's:
+
+- accounting;
+- customers;
+- suppliers;
+- documents;
+- payments;
+- bank information;
+- configuration;
+- audit records;
+- exports;
+- backups/recovery;
+- AI context;
+
+cannot improperly become visible to or affect another company.
+
+The policy must distinguish:
+
+- company scope;
+- user membership;
+- capability/authority;
+- authentication;
+- authorisation;
+- database/data isolation;
+- service-layer enforcement;
+- background jobs;
+- AI context;
+- exports;
+- backups;
+- support/admin access.
+
+Do not turn this into an implementation task.
+
+==================================================
+1. COMPANY BOUNDARY
+==================================================
+
+Define the authoritative company/tenant boundary.
+
+Determine:
+
+- what constitutes a company;
+- whether all accounting data belongs to exactly one company;
+- whether users may belong to multiple companies;
+- how active company membership affects access;
+- how company context is established;
+- whether records may ever legitimately span companies.
+
+Respect DEC-05.
+
+Company scope must be explicit.
+
+==================================================
+2. AUTHORISATION
+==================================================
+
+Respect DEC-05 server-side capabilities.
+
+Determine how tenant isolation interacts with:
+
+- user identity;
+- active membership;
+- role/capability;
+- company scope;
+- resource ownership.
+
+A user having authority in Company A must not imply authority in Company B.
+
+Do not rely on client-side company selection.
+
+==================================================
+3. DATA MODEL PRINCIPLE
+==================================================
+
+Determine the policy expectation for company ownership of data.
+
+Consider whether authoritative company-owned records should have explicit company identity and whether cross-company references are permitted.
+
+Do not prescribe an implementation schema unless required to express the policy.
+
+==================================================
+4. ACCOUNTING
+==================================================
+
+Respect DEC-04.
+
+Determine how isolation applies to:
+
+- journals;
+- accounts;
+- AR/AP;
+- VAT;
+- periods;
+- financial years;
+- payments;
+- allocations;
+- customer credits;
+- supplier prepayments;
+- refunds;
+- reconciliation.
+
+A transaction belonging to one company must never affect another company's accounting.
+
+==================================================
+5. CONFIGURATION
+==================================================
+
+Respect DEC-06, DEC-09, DEC-10 and DEC-11.
+
+Determine how isolation applies to:
+
+- financial-year configuration;
+- accounting periods;
+- chart of accounts;
+- control mappings;
+- configuration versions;
+- company settings.
+
+Configuration must never leak across company boundaries.
+
+==================================================
+6. DOCUMENTS
+==================================================
+
+Determine how company isolation applies to:
+
+- invoices;
+- bills;
+- receipts;
+- credit notes;
+- uploaded documents;
+- source evidence;
+- document downloads;
+- document bundles.
+
+A document belonging to Company A must not be retrievable through Company B.
+
+==================================================
+7. BANKING / RECONCILIATION
+==================================================
+
+Respect DEC-12 through DEC-15.
+
+Determine isolation requirements for:
+
+- bank evidence;
+- bank accounts;
+- payments;
+- allocations;
+- unapplied cash;
+- customer credits;
+- supplier prepayments;
+- refunds;
+- reconciliation.
+
+Bank evidence must never become visible to the wrong company.
+
+==================================================
+8. AUDIT / RETENTION / DISPOSAL
+==================================================
+
+Respect DEC-17 and DEC-18.
+
+Determine isolation requirements for:
+
+- audit history;
+- retention policies;
+- legal holds;
+- deletion;
+- anonymisation;
+- archival;
+- redaction;
+- disposal records.
+
+A company must never be able to access another company's audit or disposal history.
+
+==================================================
+9. EXPORTS
+==================================================
+
+Respect DEC-19.
+
+Every export must remain company-scoped.
+
+Determine how isolation applies to:
+
+- report exports;
+- accounting exports;
+- operational exports;
+- audit packages;
+- document bundles;
+- configuration exports.
+
+A filter or export request must never be able to escape company scope.
+
+==================================================
+10. BACKUPS / RECOVERY
+==================================================
+
+Respect DEC-20.
+
+Determine isolation expectations for:
+
+- backup storage;
+- restoration;
+- recovery environments;
+- point-in-time recovery;
+- recovery testing.
+
+Recovery must not expose Company A data to Company B.
+
+Do not resolve backup architecture beyond DEC-20's approved boundaries.
+
+==================================================
+11. AI
+==================================================
+
+Determine tenant-isolation requirements for AI.
+
+AI must never use Company A information to answer a Company B request unless there is an explicitly approved legitimate cross-company context.
+
+Consider:
+
+- prompts;
+- uploaded documents;
+- accounting context;
+- retrieved records;
+- memory/context;
+- AI-generated suggestions;
+- AI action history.
+
+AI must remain company-scoped.
+
+Do not assume external AI providers or architecture unless documented elsewhere.
+
+==================================================
+12. BACKGROUND JOBS / AUTOMATION
+==================================================
+
+Determine policy requirements for:
+
+- scheduled jobs;
+- asynchronous processing;
+- notifications;
+- reconciliation jobs;
+- export generation;
+- AI processing;
+- retention jobs;
+- disposal jobs;
+- backup/recovery operations.
+
+A background process must preserve the originating company scope.
+
+Do not prescribe implementation details unnecessarily.
+
+==================================================
+13. SUPPORT / ADMIN ACCESS
+==================================================
+
+Determine whether privileged support or operational access may cross company boundaries.
+
+Consider:
+
+- support access;
+- incident response;
+- debugging;
+- maintenance;
+- recovery;
+- audit investigation.
+
+If cross-company administrative access is ever necessary, determine appropriate:
+
+- explicit authority;
+- reason;
+- scope;
+- audit;
+- time limitation;
+- approval.
+
+Do not create an unrestricted superuser model.
+
+==================================================
+14. SECURITY PRINCIPLE
+==================================================
+
+Establish defence in depth.
+
+Do not rely on a single UI or database filter.
+
+Company isolation should be enforced through appropriate server-side controls across the relevant layers.
+
+Do not turn this statement into a detailed implementation plan.
+
+==================================================
+15. FAILURE MODES
+==================================================
+
+Consider risks such as:
+
+- incorrect company context;
+- stale company selection;
+- missing company ownership;
+- authorisation bugs;
+- background-job context loss;
+- export leakage;
+- document URL leakage;
+- AI retrieval leakage;
+- cache leakage;
+- logging leakage;
+- notification leakage;
+- support-access leakage;
+- recovery leakage.
+
+Determine policy expectations for preventing and detecting these failures.
+
+==================================================
+16. AUDITABILITY
+==================================================
+
+Determine what company-isolation-related events require audit evidence.
+
+Consider:
+
+- privileged access;
+- cross-company administrative access;
+- company membership changes;
+- capability changes;
+- recovery access;
+- export access;
+- sensitive document access;
+- security incidents.
+
+Audit evidence must itself remain appropriately company-scoped and protected.
+
+==================================================
+17. DATA PORTABILITY / MEMBERSHIP
+==================================================
+
+Consider:
+
+- users belonging to multiple companies;
+- switching active company;
+- company closure;
+- user removal;
+- membership revocation;
+- export rights after membership ends.
+
+Do not resolve unrelated lifecycle policies.
+
+==================================================
+18. MIGRATION
+==================================================
+
+DEC-22 owns migration/cutover.
+
+Determine only the isolation requirements migration must satisfy.
+
+Migration must never merge companies accidentally or invent cross-company relationships.
+
+Do not resolve DEC-22.
+
+==================================================
+19. OPTIONS
+==================================================
+
+Present realistic policy options, such as:
+
+- logical company isolation;
+- stronger physical isolation;
+- hybrid isolation.
+
+Evaluate each for:
+
+- accounting integrity;
+- security;
+- data leakage risk;
+- operational complexity;
+- scalability;
+- cost;
+- UX;
+- migration;
+- backups;
+- exports;
+- AI;
+- future flexibility.
+
+Do not choose an implementation architecture prematurely if the decision scope is policy-level.
+
+==================================================
+20. RECOMMENDATION
+==================================================
+
+Provide:
+
+RECOMMENDATION — NOT APPROVAL
+
+Recommend the tenant-isolation model that best satisfies:
+
+- strict company boundaries;
+- DEC-05 server-side authorisation;
+- accounting integrity;
+- security;
+- scalability;
+- simplicity;
+- future flexibility;
+- DEC-17/18 data lifecycle;
+- DEC-19 exports;
+- DEC-20 backup/recovery.
+
+Do not convert the recommendation into approval.
+
+==================================================
+21. DECISION BOUNDARIES
+==================================================
+
+Clearly classify:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Explicitly identify:
+
+- what approving DEC-21 would lock in;
+- what remains changeable;
+- what belongs to DEC-22.
+
+Do not resolve DEC-22 prematurely.
+
+==================================================
+22. IMPORTANT PRINCIPLE
+==================================================
+
+Company isolation is a fundamental trust boundary.
+
+No feature, AI assistant, export, background process, support function or recovery mechanism may bypass it merely for convenience.
+
+Company A and Company B must be treated as separate accounting/security domains.
+
+==================================================
+23. FUTURE FLEXIBILITY
+==================================================
+
+Do not unnecessarily prevent future:
+
+- additional companies per user;
+- larger organisations;
+- group structures;
+- multi-company reporting;
+- consolidation;
+- intercompany accounting;
+- stronger physical isolation;
+- regional data residency.
+
+If these are not launch features, explicitly leave them open rather than designing them prematurely.
+
+==================================================
+24. DOCUMENTATION
+==================================================
+
+Create:
+
+docs/ledgerly-dec-21-tenant-isolation-policy-review.md
+
+Use the exact DEC-21 scope in the document title and body.
+
+Link it into the appropriate governance records, including:
+
+- Current Decision Register;
+- Living Product Decisions;
+- Accounting Core Decision Pack;
+- Technical Architecture;
+- PRD / Product Scope.
+
+Do not modify implementation files.
+
+==================================================
+25. FINAL VERIFICATION
+==================================================
+
+At the end verify:
+
+1. DEC-01 through DEC-20 retain their approved statuses.
+2. DEC-21 remains REQUIRES USER DECISION.
+3. DEC-22 remains REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-22 work was started.
+8. No tenant-isolation implementation, schema, migration, accounting, UI, workflow, dependency, infrastructure, deployment or publishing work was performed.
+9. Source freshness remains separately unresolved.
+
+Stop after the DEC-21 decision-only review is complete.

@@ -1,0 +1,135 @@
+PERFORM FINAL #44 COMPLETION ASSESSMENT — REVIEW ONLY
+
+#44-SC-01 is complete.
+#44-RS-01 / Task #46 is complete.
+
+Do not implement anything.
+Do not create or start another task.
+Do not modify code, schema, database state, roles, secrets, workflows,
+configuration, evidence, deployment, publishing, or production.
+
+Review the ORIGINAL approved #44 package:
+
+docs/ledgerly-44-immutability-and-final-revalidation-approval-package.md
+
+against the complete current development implementation and all approved
+#44 follow-up/remediation work.
+
+Determine whether #44 as a whole now satisfies its approved definition of done.
+
+Assess independently:
+
+1. PERSISTENCE-LEVEL IMMUTABILITY
+- posted canonical journal headers and lines;
+- protected journal status/company/ownership identity;
+- canonical relations;
+- approved posting-effect transitions;
+- direct UPDATE/DELETE/TRUNCATE resistance;
+- trigger/owner/API-role enforcement.
+
+2. FINAL AUTHORITATIVE REVALIDATION
+Determine whether the implementation now actually guarantees, through the
+commit boundary, authoritative validation of:
+- active membership;
+- company/resource ownership;
+- source revision/freshness;
+- posting date;
+- financial year;
+- accounting period and postable state;
+- DEC-11 configuration version;
+- DEC-10 mappings;
+- account eligibility;
+- DEC-03 VAT context where applicable;
+- current domain state where applicable;
+- idempotency/economic-effect identity.
+
+Do not treat an ordinary provider read as sufficient if the approved #44
+contract requires transaction-wide locking or an equivalent approved
+conditional-version guarantee.
+
+3. TRANSACTIONAL FRESHNESS
+Verify whether the authoritative provider contract selected by #44 has
+actually been implemented.
+
+Determine:
+- which records are locked;
+- lock mode;
+- lock ordering;
+- when validation occurs;
+- whether relevant state can change between validation and commit;
+- whether retries preserve correctness;
+- whether every required provider uses the authoritative mechanism.
+
+4. CORRECTION / REVERSAL CONCURRENCY
+Verify:
+- original-journal serialization;
+- one-reversal enforcement;
+- correction identity;
+- concurrent correction/reversal behavior;
+- duplicate economic-effect prevention;
+- atomic rollback of losing/conflicting operations.
+
+5. UNCERTAIN OUTCOME / IDEMPOTENCY
+Verify:
+- same command retry;
+- same economic effect under different command identity;
+- timeout/unknown-result recovery;
+- pending/posted/uncertain effect behavior;
+- no duplicate canonical accounting effect after retry or recovery.
+
+6. ADVERSARIAL TEST MATRIX
+Compare the implemented tests directly with the mandatory #44 matrix.
+
+Identify every required scenario as:
+- PASSING;
+- PARTIALLY COVERED;
+- NOT IMPLEMENTED;
+- NOT APPLICABLE.
+
+Include source/membership/period/config/account races through commit,
+correction/reversal concurrency, invalid-command validation, uncertain-result
+recovery, Company A/B isolation, rollback failures and direct persistence
+mutation resistance.
+
+7. SOURCE-FRESHNESS CONTRACT
+Compare the current implementation against:
+
+docs/ledgerly-source-freshness-posting-safety-contract.md
+
+Determine whether the implementation satisfies the portions required by #44
+or whether source-freshness/final-revalidation implementation remains
+outstanding.
+
+Do not create DEC-23.
+Do not reinterpret DEC-12 as source-freshness authority.
+
+8. #40-CF-01 BLOCKER
+State explicitly whether completion of the current #44 implementation is now
+sufficient to remove the #44 safety blocker from #40-CF-01.
+
+Do NOT unblock BL-06 or BL-07.
+
+9. GOVERNANCE / PRODUCTION
+Confirm:
+- DEC-01 through DEC-22 remain approved;
+- no DEC-23 exists;
+- production posting remains disabled;
+- production has not been modified;
+- no deployment/publishing/cutover authority has been granted.
+
+Return exactly one final verdict:
+
+PASS — #44 COMPLETE / #40-CF-01 MAY BE RECONSIDERED
+
+or
+
+FAIL — #44 REMAINS INCOMPLETE / FURTHER APPROVAL REQUIRED
+
+If FAIL:
+identify the smallest remaining implementation boundary required to complete
+#44, but DO NOT create a task or implement it.
+
+If PASS:
+do not start #40-CF-01 or any other implementation.
+
+STOP after the assessment.

@@ -1,0 +1,167 @@
+BL-01-FI — POST-IMPLEMENTATION REVIEW
+
+BL-01-FI has been implemented and the reported tests have passed.
+
+Before any further implementation is authorised, perform a focused post-implementation review of BL-01-FI.
+
+Do NOT start another implementation task.
+
+Do NOT modify code unless a critical defect is discovered that makes the implemented task unsafe. If a defect is discovered, STOP and report it rather than silently expanding scope.
+
+Do NOT start #40 implementation.
+
+==================================================
+REVIEW AGAINST APPROVED SCOPE
+==================================================
+
+Review the actual implementation and diff against:
+
+- docs/ledgerly-first-implementation-approval-package.md
+- docs/ledgerly-safety-rule-ownership-record.md
+- docs/ledgerly-source-freshness-posting-safety-contract.md
+- DEC-01 through DEC-22
+- the explicit BL-01-FI approval instruction
+
+Confirm whether the implementation matches the approved scope.
+
+==================================================
+SECURITY REVIEW
+==================================================
+
+Verify:
+
+- active membership is checked server-side;
+- revoked membership fails closed;
+- company scope cannot be supplied by an untrusted client and override server-derived scope;
+- conflicting company contexts fail closed;
+- missing company context fails closed;
+- resource ownership is enforced;
+- lookup failures fail closed where applicable;
+- background jobs preserve validated company context;
+- AI/background routes cannot bypass the Principal and Tenant Guard;
+- Company A authority cannot access Company B resources.
+
+Identify any route or server-side function that appears to bypass the guard.
+
+==================================================
+ACCOUNTING SAFETY
+==================================================
+
+Confirm that BL-01-FI has NOT introduced:
+
+- journal creation;
+- journal modification;
+- payment posting;
+- allocation effects;
+- VAT effects;
+- AR/AP changes;
+- period changes;
+- financial-year changes;
+- configuration changes;
+- control-account mapping changes.
+
+Confirm that no accounting authority was accidentally introduced.
+
+==================================================
+TEST COVERAGE
+==================================================
+
+Review the existing:
+
+- test:company-scope — 9/9
+- test:phase6 — 7/7
+
+Determine whether the tests adequately cover the approved BL-01-FI scope.
+
+Identify any important missing test cases.
+
+Do NOT add new tests unless a critical defect or missing acceptance criterion requires it; report recommendations instead.
+
+==================================================
+DIFF / FILE REVIEW
+==================================================
+
+Review the complete diff.
+
+Identify:
+
+- files changed;
+- whether every changed file is within scope;
+- unrelated changes;
+- pre-existing changes;
+- unexpected dependency changes;
+- configuration changes;
+- generated files;
+- accidental schema changes.
+
+Pay particular attention to the previously existing `.replit` change adding `python-base-3.13`.
+
+Do not revert unrelated pre-existing changes.
+
+==================================================
+BUILD / RUNTIME
+==================================================
+
+Confirm:
+
+- TypeScript check passed;
+- production build passed;
+- API health check passed;
+- relevant API workflow is running;
+- no new runtime errors were introduced.
+
+==================================================
+ARCHITECTURE REVIEW
+==================================================
+
+Confirm the implementation remains consistent with the logical ownership model:
+
+Principal and Tenant Guard
+→ authentication
+→ active membership
+→ company context
+→ resource ownership
+→ privileged/background-job scope
+
+Confirm that no unnecessary architecture or service boundary was introduced.
+
+==================================================
+DECISION BOUNDARY
+==================================================
+
+Confirm:
+
+- DEC-01–DEC-22 remain APPROVED;
+- no DEC-23 exists;
+- source freshness remains an implementation-level contract;
+- BL-06 and BL-07 remain BLOCKED;
+- #40 remains planning/design only;
+- #41 remains planning/design only.
+
+==================================================
+FINAL VERDICT
+==================================================
+
+Give exactly one:
+
+PASS — READY FOR NEXT IMPLEMENTATION APPROVAL
+
+or
+
+FAIL — REMEDIATION REQUIRED
+
+If PASS:
+
+- state what was verified;
+- state any non-blocking recommendations;
+- identify the logical next implementation task, but do NOT start it.
+
+If FAIL:
+
+- identify the defect;
+- explain the risk;
+- do not modify the implementation.
+
+STOP after the review.
+
+No further implementation.

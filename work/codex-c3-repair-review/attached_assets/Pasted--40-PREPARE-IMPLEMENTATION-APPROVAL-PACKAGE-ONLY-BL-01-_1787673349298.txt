@@ -1,0 +1,281 @@
+#40 — PREPARE IMPLEMENTATION APPROVAL PACKAGE ONLY
+
+BL-01-FI has now passed its final post-remediation review:
+
+PASS — BL-01-FI COMPLETE / READY FOR NEXT IMPLEMENTATION APPROVAL
+
+Prepare the implementation approval package for #40.
+
+IMPORTANT:
+
+This is PLANNING / REVIEW ONLY.
+
+Do NOT implement #40.
+Do NOT modify application code.
+Do NOT modify schema.
+Do NOT create migrations.
+Do NOT modify accounting logic.
+Do NOT deploy or publish.
+Do NOT start BL-06 or BL-07.
+Do NOT start #41.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Convert the existing #40 canonical accounting foundation design into a single, narrowly scoped first accounting implementation task suitable for explicit user approval.
+
+Use the existing planning/design records as the authoritative basis, particularly:
+
+- docs/ledgerly-implementation-brief.md
+- docs/ledgerly-first-implementation-approval-package.md
+- docs/ledgerly-safety-rule-ownership-record.md
+- docs/ledgerly-source-freshness-posting-safety-contract.md
+- the #40 planning/design deliverable
+- DEC-01 through DEC-22 approved policies
+- the BL-01-FI implementation and review results
+
+Do not invent new policy.
+
+==================================================
+IMPORTANT ACCOUNTING BOUNDARY
+==================================================
+
+The proposed task must establish only the minimum safe canonical accounting foundation required for the first accounting implementation slice.
+
+Clearly distinguish:
+
+1. Approved governance policy
+2. Accounting invariants
+3. Required implementation behaviour
+4. Proposed engineering design
+5. Engineering choices still requiring approval
+6. Deliberately deferred functionality
+
+Do not silently convert a proposed design into an approved architecture.
+
+==================================================
+PROPOSED TASK SCOPE
+==================================================
+
+Determine the narrowest safe first accounting slice covering the canonical posting foundation.
+
+Consider, as applicable:
+
+- canonical journal representation;
+- journal lines;
+- balanced double-entry invariant;
+- immutable posted journal model;
+- canonical posting boundary;
+- correction/reversal boundary;
+- company scope;
+- active membership/capability enforcement;
+- posting date;
+- financial year;
+- accounting period;
+- DEC-11 configuration version;
+- DEC-10 account/control-account resolution;
+- idempotency/economic-effect identity;
+- source-freshness final revalidation;
+- atomic canonical write;
+- audit evidence.
+
+Do NOT automatically include:
+
+- full invoice workflows;
+- bills;
+- payments;
+- allocation;
+- refunds;
+- VAT workflows;
+- bank reconciliation;
+- migration;
+- year-end workflows;
+- RLS rollout;
+- broad UI;
+- deployment;
+- publishing.
+
+Those should remain separate unless the existing approved planning records prove that a minimal dependency is unavoidable.
+
+==================================================
+SCHEMA
+==================================================
+
+Explicitly identify:
+
+- whether schema changes are required;
+- which tables/entities are required;
+- which fields are required;
+- which constraints/invariants are required;
+- whether any existing schema can be reused.
+
+Do not create or modify the schema.
+
+If schema changes are required, describe them only as proposed changes requiring separate approval.
+
+==================================================
+CANONICAL POSTING SAFETY
+==================================================
+
+The proposed implementation must respect the existing source-freshness contract.
+
+Before a consequential canonical posting, the design must account for:
+
+- company scope;
+- active membership;
+- DEC-05 capability;
+- source identity/revision where applicable;
+- posting date;
+- financial year;
+- accounting period;
+- DEC-11 configuration version;
+- DEC-10 mappings/account eligibility;
+- idempotency;
+- canonical accounting invariants;
+- atomic persistence;
+- audit evidence.
+
+Do not implement these yet.
+
+Explain exactly which of them are required by the first task and which can remain deferred.
+
+==================================================
+IMMUTABILITY
+==================================================
+
+Define the proposed behaviour for:
+
+- posted journal immutability;
+- balanced journal enforcement;
+- correction;
+- reversal;
+- duplicate posting;
+- failed posting;
+- retry;
+- uncertain transaction outcome.
+
+Do not invent a new accounting policy.
+
+Use DEC-04 as the governing policy boundary.
+
+==================================================
+SECURITY
+==================================================
+
+The proposed task must build on the completed BL-01-FI Principal and Tenant Guard.
+
+Do not duplicate or bypass that mechanism.
+
+Identify exactly how canonical posting would rely on:
+
+- authenticated identity;
+- active membership;
+- company scope;
+- DEC-05 capability;
+- resource ownership.
+
+==================================================
+TEST PLAN
+==================================================
+
+Provide a concrete acceptance test plan covering at least:
+
+- balanced journal accepted;
+- unbalanced journal rejected;
+- zero/invalid journal rejected;
+- invalid account rejected;
+- wrong-company account rejected;
+- inactive membership rejected;
+- insufficient capability rejected;
+- invalid/closed period rejected;
+- configuration mismatch rejected;
+- duplicate economic effect rejected safely;
+- retry does not duplicate accounting;
+- posted journal cannot be edited/deleted;
+- correction/reversal follows the approved immutable model;
+- failed transaction produces no partial accounting effect;
+- audit evidence accompanies successful posting;
+- company isolation is preserved.
+
+Distinguish unit, integration, and transaction-level tests.
+
+==================================================
+BL-06 / BL-07
+==================================================
+
+Explicitly confirm that the proposed #40 implementation slice does NOT unblock or implement BL-06 or BL-07 unless their exact prerequisites are separately satisfied and approved.
+
+==================================================
+RLS
+==================================================
+
+Do not introduce universal RLS.
+
+DEC-21 allows RLS as defence-in-depth but leaves the exact implementation architecture open.
+
+If the proposed #40 task requires RLS, identify it as a separate approval dependency rather than implementing it.
+
+==================================================
+MIGRATION
+==================================================
+
+Do not migrate existing accounting data.
+
+Historical migration remains governed by #41 and DEC-22.
+
+==================================================
+DELIVERABLE
+==================================================
+
+Create/update a planning document for the #40 implementation approval package.
+
+It must contain:
+
+- proposed task name and identifier;
+- exact scope;
+- explicit exclusions;
+- dependencies;
+- files/areas expected to change;
+- proposed schema impact;
+- accounting invariants;
+- security requirements;
+- source-freshness requirements;
+- transaction/idempotency requirements;
+- audit requirements;
+- test plan;
+- rollback strategy;
+- risks;
+- open questions;
+- approval gates;
+- definition of done.
+
+==================================================
+FINAL GOVERNANCE CHECK
+==================================================
+
+Confirm:
+
+- DEC-01–DEC-22 remain approved;
+- no DEC-23 exists;
+- BL-01-FI is complete;
+- #40 remains unimplemented;
+- #41 remains planning/design only;
+- BL-06 and BL-07 remain blocked;
+- no schema, accounting, migration, UI, workflow, dependency, infrastructure, deployment or publishing changes were made.
+
+==================================================
+FINAL OUTPUT
+==================================================
+
+Give a clear verdict:
+
+READY FOR #40 IMPLEMENTATION APPROVAL
+
+or
+
+NOT READY — PLANNING GAP REMAINS
+
+Do not implement anything.
+
+STOP after producing the approval package.

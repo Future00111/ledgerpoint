@@ -1,5 +1,7 @@
 # C3 exact next actions — producer merged; live controls pending
 
+**Latest C4 preparation:** the digest repair is published as PR #13; tested C4 candidate PR #14 and separate protected-main producer PR #15 are published for review. Live controls remain main+C3 with the C3 pin. See [C4 exact next actions](ledgerly-tr01-c4-next-actions.md) and [C4 preparation report](ledgerly-tr01-c4-preparation-report.md). No C4 immutable publication, main merge, pin/admission change or workflow dispatch has occurred. Earlier C3 stage instructions below are historical.
+
 **Latest approved correction/fresh run:** name-only policy update succeeded;
 admission is now exactly main+C3 with matching C3 pin. All preflights passed
 before one fresh normal-owner-released qualification. It failed in bootstrap

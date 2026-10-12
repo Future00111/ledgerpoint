@@ -1,0 +1,742 @@
+Proceed to DEC-22 only.
+
+This is the FINAL GOVERNANCE DECISION REVIEW.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-22 — MIGRATION AND CUTOVER POLICY
+
+IMPORTANT:
+Read the Current Decision Register first and use the exact registered DEC-22 title and scope.
+Do not rename, merge, reinterpret, or broaden DEC-22.
+
+This review must consider ALL approved decisions DEC-01 through DEC-21.
+
+Review all existing governance and accounting documentation, including:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- Accounting Core Decision Pack
+- Master Backlog
+- DEC-01 through DEC-21
+- All DEC-01 through DEC-21 approval/review documents
+- Existing migration, data, accounting, security, retention, export, backup and tenant-isolation documentation.
+
+This is a DECISION-ONLY review.
+
+DO NOT implement anything.
+
+DO NOT modify:
+
+- application code
+- database schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- infrastructure configuration
+- deployment
+- publishing.
+
+Do NOT approve DEC-22.
+
+Keep BL-06 and BL-07 BLOCKED.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Determine Ledgerly's policy for migrating existing/historical accounting and related company data into the governed Ledgerly model and safely cutting over to the new accounting authority.
+
+The review must establish:
+
+- migration scope;
+- migration authority;
+- source-of-truth rules;
+- evidence requirements;
+- historical accounting treatment;
+- mapping strategy;
+- exception handling;
+- validation;
+- reconciliation;
+- cutover;
+- rollback;
+- legacy-system authority;
+- auditability;
+- security;
+- tenant isolation;
+- retention;
+- export;
+- backup/recovery;
+- post-cutover controls.
+
+The migration policy must never invent accounting facts.
+
+==================================================
+1. MIGRATION PRINCIPLE
+==================================================
+
+Migration is a controlled transformation of existing evidence into Ledgerly's governed accounting model.
+
+It is NOT permission to rewrite history.
+
+The migration process must preserve the meaning of historical accounting wherever evidence permits.
+
+Where evidence is insufficient:
+
+- do not invent values;
+- do not invent dates;
+- do not invent journals;
+- do not invent approvals;
+- do not invent VAT treatment;
+- do not invent configuration;
+- do not invent financial-year assignments;
+- do not invent period closures;
+- do not invent allocations;
+- do not invent refunds;
+- do not invent retention events;
+- do not invent legal holds;
+- do not invent deletion/anonymisation events.
+
+Represent uncertainty explicitly.
+
+==================================================
+2. SOURCE AUTHORITY
+==================================================
+
+Determine what constitutes the authoritative source during migration.
+
+Consider:
+
+- legacy accounting system;
+- source documents;
+- bank evidence;
+- VAT records;
+- invoices;
+- bills;
+- payments;
+- reconciliation evidence;
+- audit records;
+- configuration records.
+
+Determine precedence where multiple sources disagree.
+
+Do not assume one source is automatically authoritative without evidence.
+
+==================================================
+3. MIGRATION SCOPE
+==================================================
+
+Determine what should be migrated.
+
+Consider:
+
+- companies;
+- users/memberships where relevant;
+- chart of accounts;
+- account balances;
+- journals;
+- invoices;
+- bills;
+- credit notes;
+- customers;
+- suppliers;
+- payments;
+- allocations;
+- customer credits;
+- supplier prepayments;
+- refunds;
+- bank accounts;
+- bank/reconciliation evidence;
+- VAT records;
+- financial years;
+- accounting periods;
+- configuration;
+- audit history;
+- documents;
+- retention/disposal state.
+
+Clearly distinguish:
+
+MUST MIGRATE
+SHOULD MIGRATE
+MAY MIGRATE
+DO NOT MIGRATE
+MIGRATION EXCEPTION
+
+Do not assume everything should be migrated.
+
+==================================================
+4. HISTORICAL ACCOUNTING
+==================================================
+
+Respect DEC-04, DEC-06, DEC-07, DEC-08, DEC-09, DEC-10 and DEC-11.
+
+Determine how historical accounting is represented.
+
+Historical migration must preserve:
+
+- journal meaning;
+- account identity;
+- financial-year assignment;
+- accounting-period assignment;
+- VAT meaning;
+- configuration meaning;
+- AR/AP meaning.
+
+Where historical configuration is unknown, preserve the uncertainty rather than inventing a configuration version.
+
+==================================================
+5. CHART OF ACCOUNTS MAPPING
+==================================================
+
+Respect DEC-09.
+
+Determine how legacy accounts map to Ledgerly accounts.
+
+Consider:
+
+- one-to-one mapping;
+- many-to-one mapping;
+- unmappable accounts;
+- inactive accounts;
+- historical accounts;
+- system/control accounts.
+
+Mapping must preserve accounting meaning.
+
+Do not use account names or numeric codes as the sole authority.
+
+==================================================
+6. CONTROL ACCOUNT MAPPING
+==================================================
+
+Respect DEC-10.
+
+Determine how legacy:
+
+- AR;
+- AP;
+- bank/cash;
+- Output VAT;
+- Input VAT;
+- VAT settlement where applicable;
+
+map into Ledgerly's protected control-account roles.
+
+Do not silently force incompatible legacy balances into the wrong control account.
+
+==================================================
+7. CONFIGURATION VERSIONING
+==================================================
+
+Respect DEC-11.
+
+Determine how historical configuration versions are represented.
+
+Where historical effective dates or account mappings are known:
+
+- preserve them.
+
+Where unknown:
+
+- create an explicit migration exception;
+- do not invent configuration history.
+
+==================================================
+8. FINANCIAL YEARS AND PERIODS
+==================================================
+
+Respect:
+
+- DEC-06 financial-year policy;
+- DEC-07 accounting-period policy;
+- DEC-08 reporting-only year-end.
+
+Determine how historical records are assigned to:
+
+- financial years;
+- accounting periods.
+
+Use available evidence.
+
+Do not invent:
+
+- financial-year boundaries;
+- period closures;
+- reopen events;
+- year-end completion events.
+
+==================================================
+9. VAT
+==================================================
+
+DEC-03 remains the sole VAT authority.
+
+Determine how historical VAT information is migrated without creating a second VAT engine.
+
+Consider:
+
+- VAT evidence;
+- VAT periods;
+- VAT transactions;
+- VAT returns;
+- VAT settlement;
+- historical VAT configuration.
+
+Do not invent historical VAT treatment.
+
+==================================================
+10. PAYMENTS / ALLOCATIONS / CREDITS / PREPAYMENTS
+==================================================
+
+Respect DEC-12 through DEC-16.
+
+Determine how to migrate:
+
+- payments;
+- payment evidence;
+- allocations;
+- unapplied cash;
+- customer credits;
+- supplier prepayments;
+- refunds.
+
+Preserve distinctions between:
+
+- bank evidence;
+- accounting payment;
+- allocation;
+- settlement;
+- customer credit;
+- supplier prepayment;
+- refund.
+
+Do not invent allocations where evidence does not support them.
+
+Ambiguity must become a migration exception.
+
+==================================================
+11. DOCUMENTS AND SOURCE EVIDENCE
+==================================================
+
+Respect DEC-17 and DEC-18.
+
+Determine how historical:
+
+- invoices;
+- bills;
+- receipts;
+- credit notes;
+- supporting documents;
+- source evidence;
+
+are migrated.
+
+Preserve authoritative evidence where required.
+
+Do not recreate documents that did not exist in the source.
+
+Do not invent historical disposal events.
+
+==================================================
+12. RETENTION / DISPOSAL HISTORY
+==================================================
+
+Respect DEC-17 and DEC-18.
+
+Determine how to migrate known historical:
+
+- retention classifications;
+- deletion events;
+- anonymisation;
+- archival;
+- redaction;
+- legal holds.
+
+Where evidence is absent:
+
+- do not invent historical lifecycle events;
+- create an explicit migration exception.
+
+==================================================
+13. EXPORT
+==================================================
+
+Respect DEC-19.
+
+Determine how migration may use exports as source material.
+
+Exports remain representations, not accounting authority.
+
+Do not treat a Ledgerly export as automatically authoritative over the underlying source system.
+
+==================================================
+14. BACKUP / RECOVERY
+==================================================
+
+Respect DEC-20.
+
+Determine migration safety requirements including:
+
+- pre-migration backup;
+- pre-cutover snapshot;
+- recovery point;
+- rollback point;
+- recovery testing.
+
+Do not resolve the underlying backup architecture again.
+
+==================================================
+15. TENANT ISOLATION
+==================================================
+
+Respect DEC-21.
+
+Migration must preserve company boundaries.
+
+Determine how to prevent:
+
+- company merging;
+- cross-company record assignment;
+- cross-company documents;
+- cross-company users;
+- cross-company accounting;
+- cross-company AI context.
+
+No migration shortcut may bypass tenant isolation.
+
+==================================================
+16. AI
+==================================================
+
+Determine the appropriate role of AI in migration.
+
+AI may potentially assist with:
+
+- classification;
+- mapping suggestions;
+- anomaly detection;
+- document interpretation;
+- exception explanation.
+
+AI must NOT:
+
+- invent missing accounting facts;
+- silently determine authoritative accounting;
+- bypass deterministic migration rules;
+- approve consequential migration decisions without the required human authority.
+
+Any AI-assisted migration action must remain auditable.
+
+==================================================
+17. VALIDATION
+==================================================
+
+Define mandatory validation before cutover.
+
+Consider:
+
+- trial balance agreement;
+- balance-sheet agreement;
+- P&L agreement;
+- AR agreement;
+- AP agreement;
+- bank balance agreement;
+- VAT agreement;
+- customer/supplier balances;
+- payment/allocation agreement;
+- document counts;
+- journal counts;
+- control-account agreement;
+- financial-year/period agreement;
+- company counts;
+- configuration validation.
+
+Determine acceptable tolerances.
+
+Do not allow unexplained accounting differences to be silently accepted.
+
+==================================================
+18. RECONCILIATION
+==================================================
+
+Migration must include reconciliation against authoritative source evidence.
+
+Determine how to handle:
+
+- exact matches;
+- expected presentation differences;
+- rounding;
+- timing differences;
+- unsupported legacy features;
+- missing evidence;
+- genuine discrepancies.
+
+Every unresolved material difference must become an explicit migration exception.
+
+==================================================
+19. MIGRATION EXCEPTIONS
+==================================================
+
+Create a formal migration-exception concept.
+
+Exceptions should capture, as appropriate:
+
+- company;
+- source record;
+- issue;
+- missing evidence;
+- proposed treatment;
+- decision;
+- authority;
+- reason;
+- timestamp;
+- resolution;
+- residual uncertainty.
+
+Exceptions must be auditable.
+
+Do not hide migration uncertainty inside ordinary accounting records.
+
+==================================================
+20. CUTOVER
+==================================================
+
+Determine how Ledgerly becomes the authoritative accounting system.
+
+Consider:
+
+- migration freeze;
+- source-system freeze;
+- final extraction;
+- final validation;
+- final reconciliation;
+- approval;
+- Ledgerly activation;
+- legacy-system status.
+
+Do not allow two systems to silently act as competing accounting authorities after cutover.
+
+==================================================
+21. LEGACY SYSTEM AUTHORITY
+==================================================
+
+Determine what happens to the legacy system after cutover.
+
+Possible states may include:
+
+- read-only historical authority;
+- retained evidence source;
+- archived system;
+- decommissioned system after approved retention.
+
+Do not destroy legacy authority prematurely.
+
+DEC-22 must define the controlled transition.
+
+==================================================
+22. ROLLBACK
+==================================================
+
+Determine rollback policy.
+
+Consider:
+
+- pre-cutover rollback;
+- failed migration;
+- failed validation;
+- failed cutover;
+- post-cutover discovery of material discrepancy.
+
+Rollback must not be used casually to rewrite accounting history after Ledgerly becomes authoritative.
+
+Define when rollback is possible and when controlled accounting corrections are required instead.
+
+==================================================
+23. POST-CUTOVER
+==================================================
+
+Determine controls after cutover.
+
+Consider:
+
+- reconciliation period;
+- enhanced monitoring;
+- migration exception resolution;
+- legacy-system read-only access;
+- audit review;
+- user confirmation;
+- accounting sign-off.
+
+==================================================
+24. SECURITY
+==================================================
+
+Migration is a high-risk operation.
+
+Determine requirements for:
+
+- least privilege;
+- elevated capability;
+- approval;
+- separation of duties;
+- encrypted transfer;
+- temporary credentials;
+- audit;
+- source-data protection.
+
+==================================================
+25. OPTIONS
+==================================================
+
+Evaluate realistic migration strategies such as:
+
+A. Full historical migration
+B. Opening-balances + selected supporting history
+C. Phased migration
+D. Hybrid migration based on evidence and materiality
+
+For each evaluate:
+
+- accounting completeness;
+- complexity;
+- risk;
+- auditability;
+- migration time;
+- user experience;
+- reporting continuity;
+- reconciliation;
+- rollback;
+- legacy dependency;
+- future flexibility.
+
+==================================================
+26. RECOMMENDATION
+==================================================
+
+Provide:
+
+RECOMMENDATION — NOT APPROVAL
+
+Recommend the migration/cutover model that best satisfies ALL approved decisions DEC-01 through DEC-21.
+
+The recommendation must prioritise:
+
+- accounting correctness;
+- evidence preservation;
+- reconciliation;
+- explicit uncertainty;
+- security;
+- tenant isolation;
+- safe cutover;
+- controlled rollback;
+- minimal disruption;
+- future flexibility.
+
+Do not convert the recommendation into approval.
+
+==================================================
+27. DECISION BOUNDARIES
+==================================================
+
+Clearly classify:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Explicitly identify:
+
+- what approving DEC-22 would lock in;
+- what remains changeable;
+- what must be decided during implementation;
+- what should remain an implementation detail.
+
+DEC-22 is the final governance decision.
+
+Do not invent DEC-23.
+
+==================================================
+28. IMPORTANT PRINCIPLE
+==================================================
+
+Migration must never invent accounting history.
+
+Where evidence exists:
+
+PRESERVE IT.
+
+Where evidence is incomplete:
+
+IDENTIFY THE GAP.
+
+Where evidence conflicts:
+
+RECONCILE IT.
+
+Where uncertainty remains:
+
+RECORD THE EXCEPTION.
+
+Never silently manufacture certainty.
+
+==================================================
+29. IMPLEMENTATION BOUNDARY
+==================================================
+
+This is a governance decision only.
+
+Approval of DEC-22 must NOT automatically authorise migration execution.
+
+After DEC-22 approval:
+
+- governance is complete;
+- implementation planning must begin separately;
+- implementation tasks must be explicitly approved;
+- architecture must be validated against all approved decisions;
+- migration must be designed and tested before execution.
+
+==================================================
+30. DOCUMENTATION
+==================================================
+
+Create:
+
+docs/ledgerly-dec-22-migration-and-cutover-policy-review.md
+
+Use the exact DEC-22 scope in the document title and body.
+
+Link it into:
+
+- Current Decision Register;
+- Living Product Decisions;
+- Accounting Core Decision Pack;
+- Technical Architecture;
+- PRD / Product Scope;
+- Master Backlog.
+
+Do not modify implementation files.
+
+==================================================
+31. FINAL VERIFICATION
+==================================================
+
+At the end verify:
+
+1. DEC-01 through DEC-21 retain their approved statuses.
+2. DEC-22 remains REQUIRES USER DECISION.
+3. BL-06 and BL-07 remain BLOCKED.
+4. No implementation task was created.
+5. No migration or cutover implementation was performed.
+6. No application, schema, accounting, UI, workflow, dependency, infrastructure, deployment or publishing files were changed.
+7. No new DEC-23 decision was created.
+8. Source freshness remains separately unresolved unless DEC-22 explicitly governs it.
+
+Stop after the DEC-22 decision-only review is complete.

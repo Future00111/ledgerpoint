@@ -25,3 +25,16 @@ role/isolation envelope nor an accepted protected qualification run.
 Require the complete approved runner controls and evidence; never replace
 container-local administration with network administrator credentials or
 claim qualification from a simple exec probe.
+
+A ready disposable PostgreSQL container does not prove that the isolated
+test client can reach it, and shared-namespace creation may independently
+fail in the local runtime.
+
+**Why:** A local fixture reached readiness while peer TCP connections stalled;
+an isolated shared-namespace alternative was denied by OCI mount-namespace
+permissions. Neither result reached database identity verification.
+
+**How to apply:** Preserve infrastructure-failure evidence and verify cleanup.
+Report binding checks as blocked, not passed or schema-defective. Do not open
+external/host networking or relax container privileges to manufacture success;
+verify the exact candidate later in a supported disposable environment.

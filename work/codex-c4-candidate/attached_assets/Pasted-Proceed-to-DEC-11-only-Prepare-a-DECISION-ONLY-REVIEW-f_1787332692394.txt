@@ -1,0 +1,441 @@
+Proceed to DEC-11 only.
+
+Prepare a DECISION-ONLY REVIEW for:
+
+DEC-11 — Configuration Versioning and Effective Dating
+
+Review all existing governance and accounting documentation, including:
+
+- Ledgerly Manifesto
+- Product Principles
+- PRD / Product Scope
+- Technical Architecture
+- Living Product Decisions Register
+- Current Decision Register
+- Accounting Core Decision Pack
+- Master Backlog
+- DEC-01 through DEC-10
+- DEC-04 canonical accounting architecture
+- DEC-05 capability model
+- DEC-06 financial-year policy
+- DEC-07 accounting-period policy
+- DEC-08 year-end policy
+- DEC-09 Chart of Accounts policy
+- DEC-10 control-account mapping policy
+- Existing invoice, bill, payment, banking, reconciliation and VAT documentation
+
+This is a DECISION-ONLY review.
+
+DO NOT implement anything.
+
+DO NOT modify:
+
+- application code
+- database schema
+- migrations
+- accounting logic
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing.
+
+Do NOT approve DEC-11.
+Do NOT start DEC-12 or any later decision.
+Keep BL-06 and BL-07 BLOCKED.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Determine how Ledgerpoint should version accounting configuration so that:
+
+- future configuration changes are supported;
+- historical accounting remains immutable;
+- postings always use the correct configuration;
+- reports remain historically accurate;
+- configuration changes are auditable;
+- migration remains evidence-based.
+
+The design must specifically support the prospective-only mapping principle approved in DEC-10.
+
+==================================================
+1. CONFIGURATION SCOPE
+==================================================
+
+Identify which accounting configuration should be versioned/effective-dated.
+
+At minimum evaluate:
+
+- control-account mappings;
+- bank/cash mappings;
+- VAT account mappings;
+- invoice posting configuration;
+- bill posting configuration;
+- payment posting configuration;
+- reporting classifications;
+- Chart of Accounts configuration;
+- other accounting configuration that materially affects posting.
+
+Do not automatically version everything.
+
+Identify what genuinely requires versioning and what can remain ordinary company configuration.
+
+==================================================
+2. VERSION MODEL
+==================================================
+
+Evaluate realistic approaches, including:
+
+- effective-dated configuration records;
+- immutable configuration versions;
+- append-only configuration history;
+- current configuration plus historical snapshots;
+- another appropriate model.
+
+Recommend the approach that best fits DEC-04 and DEC-10.
+
+Explain:
+
+- how versions are identified;
+- how a current version is determined;
+- how a historical version is retrieved;
+- how configuration changes become effective.
+
+==================================================
+3. EFFECTIVE DATES
+==================================================
+
+Determine how configuration changes become effective.
+
+Consider:
+
+- effective date;
+- posting date;
+- transaction/document date;
+- accounting period;
+- financial year;
+- creation timestamp.
+
+The system must clearly distinguish:
+
+WHEN A CONFIGURATION CHANGE WAS CREATED
+
+from
+
+WHEN IT BECAME EFFECTIVE FOR ACCOUNTING POSTINGS.
+
+Do not allow ambiguous date behaviour.
+
+==================================================
+4. POSTING RESOLUTION
+==================================================
+
+Determine how the canonical posting engine selects configuration.
+
+For every posting, explain how Ledgerpoint determines:
+
+- which configuration applies;
+- which version was active;
+- how the version is recorded;
+- how the posting remains reproducible later.
+
+A posted journal must retain enough source/configuration context to explain why the accounts were selected at the time of posting.
+
+==================================================
+5. HISTORICAL IMMUTABILITY
+==================================================
+
+Configuration changes must NEVER:
+
+- rewrite posted journals;
+- reinterpret historical postings;
+- move historical balances;
+- alter historical VAT results;
+- change historical AR/AP balances;
+- silently change historical reports.
+
+A later configuration version must not change the accounting meaning of an existing journal.
+
+==================================================
+6. BACKDATED CHANGES
+==================================================
+
+Determine whether users can create a configuration change with a past effective date.
+
+Evaluate the consequences carefully.
+
+If backdating is allowed, define:
+
+- who can do it;
+- required capability;
+- validation;
+- whether closed periods are protected;
+- whether open-period postings can be affected;
+- audit requirements;
+- whether existing posted journals remain untouched.
+
+If backdating is not allowed, explain why.
+
+==================================================
+7. FUTURE-DATED CHANGES
+==================================================
+
+Determine whether users can schedule a configuration change for a future effective date.
+
+If supported, define:
+
+- creation;
+- approval;
+- activation;
+- cancellation;
+- audit trail;
+- interaction with periods and financial years.
+
+==================================================
+8. CONFIGURATION CHANGE WORKFLOW
+==================================================
+
+Define the lifecycle for a material configuration change.
+
+Consider:
+
+- draft;
+- proposed;
+- approved;
+- active;
+- superseded;
+- cancelled.
+
+Do not introduce unnecessary states.
+
+Clearly distinguish configuration state from accounting-period state.
+
+==================================================
+9. APPROVALS
+==================================================
+
+Determine whether material accounting configuration changes require:
+
+- preparation;
+- approval;
+- separate approval;
+- elevated capability.
+
+Use DEC-05.
+
+Do not assume every configuration change needs a second person.
+
+Recommend appropriate segregation of duties where risk justifies it.
+
+==================================================
+10. AUDIT
+==================================================
+
+Define the audit requirements for:
+
+- who created the change;
+- who approved it;
+- what changed;
+- old value;
+- new value;
+- effective date;
+- reason;
+- company;
+- timestamp;
+- resulting configuration version.
+
+Audit records must remain immutable.
+
+==================================================
+11. REPORTING
+==================================================
+
+Determine how reports should behave when configuration has changed.
+
+Historical reports must use the accounting meaning recorded by the canonical journal.
+
+Do not recalculate historical accounting using the company's current configuration.
+
+Current/future reports should use applicable active configuration.
+
+Explain how comparative reporting remains stable.
+
+==================================================
+12. VAT
+==================================================
+
+DEC-03 remains the VAT authority.
+
+Determine how configuration versioning interacts with VAT account mappings without creating a second VAT engine.
+
+VAT history must remain reproducible.
+
+==================================================
+13. AR / AP / BANK
+==================================================
+
+Explain how versioning applies to:
+
+- AR mappings;
+- AP mappings;
+- bank/cash mappings;
+- payment mappings;
+- invoice mappings;
+- bill mappings.
+
+Do not resolve DEC-12 through DEC-16 payment edge cases unless required to define configuration behaviour.
+
+==================================================
+14. CHART OF ACCOUNTS
+==================================================
+
+Explain how configuration versioning interacts with DEC-09.
+
+Consider:
+
+- account activation/deactivation;
+- reporting classification changes;
+- control-account changes;
+- account code changes;
+- account name changes.
+
+Do not allow cosmetic changes to create unnecessary accounting versions.
+
+Do not allow meaningful accounting changes to bypass versioning.
+
+==================================================
+15. MIGRATION
+==================================================
+
+Determine how historical configuration can be migrated.
+
+Historical configuration versions must only be created where supported by evidence.
+
+Never invent:
+
+- historical mappings;
+- historical effective dates;
+- historical approvals;
+- historical configuration states.
+
+Where evidence is missing, record the limitation for DEC-22.
+
+==================================================
+16. OPTIONS
+==================================================
+
+Present realistic options for configuration versioning.
+
+For each option explain:
+
+- accounting consequences;
+- data/schema consequences;
+- migration consequences;
+- reporting consequences;
+- audit/security consequences;
+- operational consequences;
+- compatibility consequences;
+- future flexibility;
+- what becomes difficult to change later.
+
+==================================================
+17. RECOMMENDATION
+==================================================
+
+Provide:
+
+RECOMMENDATION — NOT APPROVAL
+
+Recommend the approach that best satisfies:
+
+- DEC-04 immutable canonical accounting;
+- DEC-05 capability controls;
+- DEC-09 chart policy;
+- DEC-10 prospective-only control-account changes;
+- historical reproducibility;
+- auditability;
+- usability;
+- future flexibility.
+
+Do not convert the recommendation into an approval.
+
+==================================================
+18. DECISION BOUNDARIES
+==================================================
+
+Clearly distinguish:
+
+ALREADY DECIDED
+RECOMMENDED
+REQUIRES USER DECISION
+DELIBERATELY LEFT OPEN
+
+Explicitly identify:
+
+- what approving DEC-11 would lock in;
+- what remains changeable;
+- what belongs to DEC-12 through DEC-16;
+- what belongs to DEC-22 migration/cutover;
+- what should remain outside DEC-11.
+
+==================================================
+19. IMPORTANT PRINCIPLE
+==================================================
+
+Configuration history is not a substitute for accounting history.
+
+The canonical journal remains authoritative.
+
+Configuration versions explain how a posting was generated; they must never be used to rewrite or reinterpret an already-posted journal.
+
+==================================================
+20. FUTURE FLEXIBILITY
+==================================================
+
+The architecture should allow future:
+
+- accounting configuration;
+- additional markets;
+- additional currencies;
+- additional VAT/accounting requirements;
+- additional workflows.
+
+Do not permanently lock configuration mechanisms that can safely evolve.
+
+==================================================
+21. DOCUMENTATION
+==================================================
+
+Create or update:
+
+docs/ledgerly-dec-11-configuration-versioning-review.md
+
+Link it into:
+
+- Current Decision Register;
+- Living Product Decisions;
+- Accounting Core Decision Pack;
+- Technical Architecture;
+- PRD / Product Scope;
+
+where appropriate.
+
+Do not modify implementation files.
+
+==================================================
+22. FINAL VERIFICATION
+==================================================
+
+At the end verify:
+
+1. DEC-01 through DEC-10 retain their approved statuses.
+2. DEC-11 remains REQUIRES USER DECISION.
+3. DEC-12 through DEC-22 remain REQUIRES USER DECISION.
+4. BL-06 and BL-07 remain BLOCKED.
+5. No implementation task was created.
+6. No application or implementation files were changed.
+7. No DEC-12 work was started.
+8. No configuration-versioning mechanism was implemented.
+
+Stop after the DEC-11 decision-only review is complete.

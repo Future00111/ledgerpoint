@@ -1,0 +1,78 @@
+{
+  "name": "AccountSuggestionLog",
+  "type": "object",
+  "properties": {
+    "company_id": {
+      "type": "string",
+      "description": "Reference to Company"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "purchase_bill",
+        "sales_invoice",
+        "sales_credit_note",
+        "supplier_credit_note",
+        "bank_transaction",
+        "manual_journal",
+        "document_extraction"
+      ]
+    },
+    "source_record_id": {
+      "type": "string"
+    },
+    "party_type": {
+      "type": "string",
+      "enum": [
+        "supplier",
+        "customer"
+      ]
+    },
+    "party_id": {
+      "type": "string"
+    },
+    "party_name": {
+      "type": "string"
+    },
+    "suggested_account_code": {
+      "type": "string"
+    },
+    "suggested_account_name": {
+      "type": "string"
+    },
+    "final_account_code": {
+      "type": "string"
+    },
+    "final_account_name": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "number",
+      "default": 0
+    },
+    "reason": {
+      "type": "string"
+    },
+    "suggestion_source": {
+      "type": "string",
+      "enum": [
+        "user_rule",
+        "party_history",
+        "supplier_default",
+        "business_type",
+        "ai",
+        "none"
+      ],
+      "default": "none"
+    },
+    "accepted": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if the final account matched the suggested account"
+    }
+  },
+  "required": [
+    "company_id",
+    "source_type"
+  ]
+}

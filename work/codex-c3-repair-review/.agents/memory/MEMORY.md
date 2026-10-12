@@ -1,0 +1,14 @@
+- [Ledgerly migration architecture](ledgerly-migration.md) — Base44→Replit porting decisions: Clerk auth, generic CRUD API, Drizzle+Postgres, entity proxy shim.
+- [API server build quirks](api-server-build.md) — esbuild external list must include "pg" or pg fails at runtime; use @workspace/db for the drizzle instance, not a custom db.ts.
+- [TS project references staleness](ts-project-references.md) — new lib/db schema exports need `tsc -b lib/db` before dependent typechecks see them.
+- [Reconciliation write boundary](reconciliation-write-boundary.md) — bank matching, money, links, and account references must use protected reconciliation routes, not generic CRUD.
+- [AI task write permissions](ai-task-write-permissions.md) — any manual analysis or review action that persists task state requires a company write role.
+- [VAT Assistant calculation boundary](vat-assistant-boundaries.md) — only standard-scheme, invoice-basis VAT is calculated until distinct scheme rules exist.
+- [Reconciliation VAT evidence](reconciliation-vat-evidence.md) — matched invoices and bills are the VAT authority; bank-feed rates are advisory and never drive return boxes.
+- [VAT return locking](vat-return-locking.md) — conditional row locks and audit writes must commit together for concurrent review actions.
+- [API HTTP test bundling](api-http-test-bundling.md) — Express integration tests need CommonJS output with Pino runtime packages externalized.
+- [Batch approval freshness](batch-approval-freshness.md) — batch reconciliation must bind its accounting write to one locked, current analysis record.
+- [Product roadmap gate](product-roadmap-gate.md) — DEC-04 architecture, DEC-05 capability model, DEC-06 financial-year policy, DEC-07 period policy, and DEC-08 reporting-only year-end policy are approved; implementation remains paused pending later decisions and task approval.
+- [Source-freshness governance](source-freshness-governance.md) — freshness is a cross-cutting posting-safety gate, not silently part of the approved DEC-12 payment policy.
+- [Canonical test isolation](canonical-test-isolation.md) — immutable accounting tests need rollback isolation or a disposable DB; never restore DELETE solely for teardown.
+- [Disposable test administration](disposable-test-administration.md) — canonical disposable runs require an ephemeral postgres channel; normal managed SQL authenticates only as ledgerly_api.

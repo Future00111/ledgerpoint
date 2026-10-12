@@ -1,0 +1,27 @@
+APPROVED — implement the test-isolation and development fixture-disposition package exactly as documented in docs/ledgerly-44-test-isolation-and-development-fixture-disposition-approval-package.md.
+
+This approval is limited to that package only. Preserve all stated stop conditions and boundaries. Do not broaden application or database privileges, do not weaken the permanent RS-01 protections, do not touch production, do not enable production posting, and do not start another task.
+
+Perform the exact manifest-verified one-time development fixture disposition and the approved disposable-database canonical test isolation work only. Require all preconditions, hashes/digests, environment/database identity checks, administrative boundaries, trigger restoration verification, audit evidence, concurrency synchronization, regression tests, and post-operation verification specified by the package.
+
+If the fixture manifest, SHA-256 snapshots, database identity, trigger state, role state, run binding, or any other approved precondition differs from the package, STOP BEFORE MUTATION.
+
+After implementation, provide a structured completion report covering:
+
+exact files changed;
+exact database/admin operations performed;
+fixture-manifest verification and exact disposition counts;
+trigger state before, during and after the exceptional reset;
+confirmation all five permanent protections are restored as ENABLE ALWAYS;
+evidence-record locations/digests;
+disposable-database creation/isolation/destruction verification;
+proof normal development heliumdb was not used for canonical integration tests;
+synchronized concurrency-test results;
+canonical integration results;
+BL-01-FI and RS-01 regression results;
+typecheck/build/API health results;
+final heliumdb canonical and legacy row counts;
+runtime database identity and effective privileges;
+confirmation production was untouched and production posting remains disabled.
+
+Do not mark #44-RS-01 / task #46 complete merely because this remediation succeeds. Stop after verification so the combined RS-01 result can receive independent post-implementation review.

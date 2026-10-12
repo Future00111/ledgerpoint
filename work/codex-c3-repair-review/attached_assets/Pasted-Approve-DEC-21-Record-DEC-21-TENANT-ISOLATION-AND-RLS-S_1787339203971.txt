@@ -1,0 +1,354 @@
+Approve DEC-21.
+
+Record:
+
+DEC-21 — TENANT ISOLATION AND RLS
+STATUS: APPROVED — security/product architecture policy only
+
+Approve the mandatory layered company-isolation policy.
+
+1. FUNDAMENTAL COMPANY BOUNDARY
+
+Every company-owned operation must be explicitly scoped to the relevant company.
+
+This applies to:
+
+- reads;
+- writes;
+- reports;
+- exports;
+- background jobs;
+- documents;
+- AI operations;
+- notifications;
+- audit operations;
+- recovery operations;
+- support tooling.
+
+Company scope must be enforced server-side.
+
+2. MEMBERSHIP + CAPABILITY
+
+Every consequential company operation requires both:
+
+- active company membership;
+- applicable DEC-05 capability/authority.
+
+Authority in Company A must never grant authority in Company B.
+
+Client-side company selection must never be treated as sufficient authorisation.
+
+3. COMPANY OWNERSHIP
+
+Authoritative company-owned records must have explicit company ownership or an equivalently enforceable company boundary.
+
+Ordinary cross-company references are prohibited.
+
+Do not invent cross-company relationships simply for convenience.
+
+4. ACCOUNTING ISOLATION
+
+Company isolation applies to all accounting concepts, including:
+
+- journals;
+- accounts;
+- AR/AP;
+- VAT;
+- financial years;
+- accounting periods;
+- payments;
+- allocations;
+- customer credits;
+- supplier prepayments;
+- refunds;
+- reconciliation;
+- configuration.
+
+A transaction belonging to Company A must never affect Company B's accounting.
+
+5. CONFIGURATION ISOLATION
+
+Company-specific configuration remains company-scoped, including:
+
+- financial-year configuration;
+- accounting periods;
+- chart of accounts;
+- control-account mappings;
+- configuration versions;
+- company settings.
+
+A configuration belonging to one company must never silently influence another company's accounting.
+
+6. DOCUMENT ISOLATION
+
+Documents and source evidence must remain company-scoped, including:
+
+- invoices;
+- bills;
+- receipts;
+- credit notes;
+- uploaded documents;
+- supporting evidence;
+- document downloads;
+- document bundles.
+
+Company A must never be able to retrieve Company B's documents through normal product functionality.
+
+7. BANKING AND RECONCILIATION ISOLATION
+
+Company isolation applies to:
+
+- bank evidence;
+- bank accounts;
+- payments;
+- allocations;
+- unapplied cash;
+- customer credits;
+- supplier prepayments;
+- refunds;
+- reconciliation.
+
+Banking evidence must never become visible to the wrong company.
+
+8. AUDIT / RETENTION / DISPOSAL
+
+Audit and lifecycle records remain company-scoped.
+
+This includes:
+
+- audit history;
+- retention information;
+- legal holds;
+- deletion;
+- anonymisation;
+- archival;
+- redaction;
+- disposal events.
+
+A company must never access another company's audit or lifecycle history.
+
+9. EXPORT ISOLATION
+
+DEC-19 exports must always remain company-scoped.
+
+This applies to:
+
+- report exports;
+- accounting exports;
+- operational exports;
+- audit packages;
+- document bundles;
+- configuration exports.
+
+Filters must never be capable of escaping company scope.
+
+10. BACKUP / RECOVERY ISOLATION
+
+DEC-20 backup and recovery processes must preserve company boundaries.
+
+Recovery must never expose Company A data to Company B.
+
+Where recovery environments are used, company scope must remain enforceable.
+
+11. AI ISOLATION
+
+AI must remain company-scoped.
+
+AI must never use Company A information to answer a Company B request unless a separately approved legitimate cross-company context exists.
+
+This applies to:
+
+- prompts;
+- uploaded documents;
+- retrieved accounting records;
+- context;
+- memory;
+- generated suggestions;
+- AI action history.
+
+AI must not become an accidental cross-company data path.
+
+12. BACKGROUND JOBS
+
+Asynchronous and scheduled processing must preserve originating company scope.
+
+This includes:
+
+- scheduled jobs;
+- reconciliation;
+- exports;
+- AI processing;
+- notifications;
+- retention jobs;
+- disposal jobs;
+- other company-specific automation.
+
+Loss of company context in a background process must be treated as a security/integrity failure.
+
+13. SUPPORT / ADMIN ACCESS
+
+Do not create an unrestricted superuser model.
+
+If exceptional cross-company operational access is ever required, it must be:
+
+- explicitly authorised;
+- narrowly scoped;
+- time-limited;
+- reasoned;
+- audited;
+- subject to appropriate approval.
+
+Break-glass access must not become ordinary product authority.
+
+14. DEFENCE IN DEPTH
+
+Company isolation must not depend on a single UI check or a single filtering mechanism.
+
+Use layered server-side controls across relevant system boundaries.
+
+Database-level RLS is approved as a defence-in-depth mechanism, particularly for high-risk accounting data.
+
+However:
+
+DO NOT assume universal RLS is mandatory for every table or workflow until compatibility with:
+
+- workers;
+- connection pooling;
+- migrations;
+- support operations;
+- recovery;
+- other relevant infrastructure;
+
+has been validated.
+
+This policy deliberately leaves the exact RLS implementation architecture open.
+
+15. FAILURE HANDLING
+
+Treat any confirmed company-isolation failure as both:
+
+- a security incident;
+- an accounting-integrity incident,
+
+where accounting data is affected.
+
+Isolation failures must be detectable, auditable and subject to appropriate incident handling.
+
+16. AUDITABILITY
+
+Maintain appropriate immutable evidence for company-boundary-sensitive events, including:
+
+- company membership changes;
+- capability changes;
+- privileged access;
+- exceptional cross-company access;
+- recovery access;
+- sensitive export access;
+- sensitive document access;
+- material isolation/security incidents.
+
+Audit evidence itself must remain appropriately company-scoped and protected.
+
+17. MULTI-COMPANY USERS
+
+A user may belong to multiple companies where supported.
+
+However:
+
+membership in multiple companies does NOT merge their authority.
+
+The active company context must always be explicit for company-scoped operations.
+
+Switching companies must establish a new authorised company context.
+
+18. COMPANY CLOSURE
+
+Company closure does not remove the isolation boundary.
+
+Closed companies remain separate accounting/security domains for as long as their records exist under DEC-17/18.
+
+19. MIGRATION BOUNDARY
+
+DEC-22 remains responsible for migration and cutover policy.
+
+Migration must preserve company boundaries.
+
+It must never:
+
+- merge companies accidentally;
+- assign records to the wrong company;
+- invent cross-company relationships.
+
+Do not use DEC-21 to resolve DEC-22 migration strategy.
+
+20. FUTURE FLEXIBILITY
+
+The approved policy does not prohibit future:
+
+- multi-company reporting;
+- consolidation;
+- group structures;
+- intercompany accounting;
+- stronger physical isolation;
+- regional data residency;
+- larger organisational structures.
+
+These are outside launch scope unless separately approved.
+
+21. IMPLEMENTATION BOUNDARY
+
+This is a policy/architecture approval.
+
+It does NOT authorise implementation of:
+
+- RLS;
+- schema changes;
+- database changes;
+- migrations;
+- middleware;
+- service-layer changes;
+- UI changes;
+- infrastructure changes;
+- deployment changes.
+
+The exact implementation must be designed and approved through the appropriate implementation process after all required governance decisions are complete.
+
+IMPORTANT GOVERNANCE RULES:
+
+- DEC-01 through DEC-21 are now APPROVED.
+- DEC-22 remains REQUIRES USER DECISION.
+- Do NOT approve DEC-22.
+- Keep BL-06 and BL-07 BLOCKED.
+- Do NOT create or execute an implementation task.
+- This is a security/product architecture policy approval only.
+- It is NOT implementation authorisation.
+- Preserve the amendment path through the Living Product Decisions process.
+- Source freshness remains separately unresolved.
+
+Do NOT modify:
+
+- application code;
+- database schema;
+- migrations;
+- accounting logic;
+- UI;
+- workflows;
+- dependencies;
+- infrastructure configuration;
+- deployment;
+- publishing.
+
+Update only the relevant governance and decision documentation.
+
+FINAL VERIFICATION:
+
+1. DEC-01–DEC-21 are APPROVED.
+2. DEC-22 remains unresolved.
+3. BL-06 and BL-07 remain BLOCKED.
+4. No implementation task was created.
+5. No tenant-isolation/RLS implementation was made.
+6. No application/schema/migration/accounting logic/UI/workflow/dependency/infrastructure/deployment/publishing changes were made.
+7. No DEC-22 work was started.
+8. Source freshness remains separately unresolved.
+
+Stop after verification.

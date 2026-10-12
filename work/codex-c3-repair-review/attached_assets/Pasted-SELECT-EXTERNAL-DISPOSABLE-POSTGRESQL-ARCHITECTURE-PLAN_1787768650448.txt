@@ -1,0 +1,370 @@
+SELECT EXTERNAL DISPOSABLE POSTGRESQL ARCHITECTURE — PLANNING ONLY
+
+I select the preferred architecture from:
+
+docs/ledgerly-44-ti-02-external-disposable-postgresql-review.md
+
+Selected architecture:
+
+EXTERNAL LINUX CI JOB WITH A FRESH, PINNED POSTGRESQL 16 SERVICE CONTAINER
+PER AUTHORISED TEST RUN.
+
+The managed PostgreSQL branch/project model remains the fallback only.
+
+This selection does NOT authorise implementation.
+
+Create:
+
+docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-approval-package.md
+
+Proposed scope:
+
+#44-TI-03 — External CI Disposable PostgreSQL Harness
+
+PLANNING / APPROVAL ONLY.
+
+Do not implement anything.
+Do not resume TR-01.
+Do not create external infrastructure or accounts.
+
+The package must convert the selected architecture into an exact,
+implementation-ready development/test design.
+
+1. CI PLATFORM BOUNDARY
+
+Determine the narrowest suitable external Linux CI execution model.
+
+Prefer existing repository-integrated CI capability if one already exists.
+
+Do not create or configure a provider during this planning task.
+
+Specify:
+
+- Linux runner requirements;
+- pinned PostgreSQL 16 image/version;
+- service-container lifecycle;
+- network boundary;
+- repository checkout requirements;
+- Node/package/runtime requirements;
+- timeout/resource requirements;
+- concurrency behavior.
+
+If a specific CI provider must be selected, identify the proposed provider
+and why, but do not create/configure it yet.
+
+2. TRUST-PLANE SEPARATION
+
+Define three explicit planes:
+
+A. CI ADMIN/BOOTSTRAP PLANE
+- controls the PostgreSQL service container;
+- performs database/role/schema bootstrap;
+- may use the container-local postgres administrator;
+- never exposes admin credentials to Ledgerly application/test child
+  processes.
+
+B. TEST PLANE
+- connects only as ledgerly_api;
+- runs canonical/TR-01 tests;
+- cannot create databases/roles;
+- cannot weaken RS-01 protections.
+
+C. NORMAL REPLIT DEVELOPMENT PLANE
+- remains heliumdb;
+- remains ledgerly_api;
+- is never the canonical test target.
+
+3. POSTGRESQL PINNING
+
+Select an exact PostgreSQL 16 image/version policy.
+
+Do not use an unbounded `latest` tag.
+
+Define:
+
+- major/minor pinning policy;
+- image digest policy if appropriate;
+- upgrade review procedure;
+- compatibility evidence required before changing PostgreSQL version.
+
+4. BOOTSTRAP CONTRACT
+
+Define the exact bootstrap sequence from an empty PostgreSQL service.
+
+It must reproduce the required Ledgerly test state using authoritative
+repository sources.
+
+Include:
+
+- creation/configuration of ledgerly_api;
+- creation of ledgerly_canonical_owner NOLOGIN role;
+- required database/schema privileges;
+- authoritative Drizzle/application schema;
+- SC-01 schema requirements;
+- RS-01 SQL overlay;
+- ownership transfer;
+- ENABLE ALWAYS protections;
+- required constraints/indexes;
+- private run-control metadata;
+- final bootstrap verification.
+
+Identify the exact repository files/scripts that are authoritative.
+
+Do not duplicate schema definitions unnecessarily.
+
+5. CREDENTIAL MODEL
+
+The PostgreSQL service exists only for the CI job.
+
+Define how:
+
+- a random per-run ledgerly_api password is generated;
+- the admin password remains confined to bootstrap;
+- the ledgerly_api URL is constructed;
+- LEDGERLY_CANONICAL_TEST_DATABASE_URL is supplied;
+- credentials are masked from logs;
+- child environments receive only what they require;
+- credentials cease to exist when the job/container ends.
+
+No long-lived PostgreSQL administrator secret should be required.
+
+6. RUN BINDING
+
+Preserve or strengthen the existing approved binding model.
+
+Bind at minimum:
+
+- UUID run ID;
+- nonce;
+- CI run/job identity;
+- environment = test;
+- database name;
+- expected creator/bootstrap identity;
+- expected ledgerly_api identity;
+- source digest;
+- schema digest;
+- RS-01 overlay digest;
+- command identity;
+- creation timestamp;
+- expiry;
+- explicit external-CI target classification.
+
+Define how the runner verifies the binding before fixtures are inserted.
+
+7. RUNNER ADAPTATION
+
+Review the existing:
+
+artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs
+
+Specify the minimum changes, if any, required for external CI.
+
+Preserve:
+
+- no fallback to heliumdb;
+- malformed-target rejection;
+- target override rejection;
+- restricted child environment;
+- ledgerly_api identity verification;
+- no admin environment in the canonical test process.
+
+If the existing runner can be reused unchanged, say so explicitly.
+
+8. HELIUMDB ISOLATION
+
+Because the tests now run externally, determine whether connecting to
+heliumdb merely to calculate before/after manifests is still necessary or
+desirable.
+
+Prefer a design where the external CI job has NO heliumdb credential and
+NO network dependency on the Replit development database.
+
+If heliumdb is not reachable from CI, define equivalent evidence proving:
+
+- the disposable target is external/test-only;
+- DATABASE_URL/heliumdb was never supplied;
+- no Replit database credential existed in the CI environment;
+- canonical tests could not have contacted heliumdb.
+
+Do not weaken target-safety validation.
+
+9. TR-01 ADVERSARIAL MATRIX
+
+Define how the external harness will execute every outstanding TR-01
+database-backed test, including synchronized independent connections for:
+
+- membership revocation race;
+- company/resource ownership race;
+- source revision race;
+- accounting-period closure race;
+- configuration-version race;
+- control-mapping race;
+- account eligibility race;
+- same command concurrency;
+- same economic effect/different command;
+- reversal vs reversal;
+- correction vs correction;
+- correction vs reversal;
+- lock timeout/deadlock behavior;
+- audit-write failure;
+- line-write failure;
+- uncertain/unknown commit outcome;
+- Company A/B isolation.
+
+Where the current product schema lacks an approved authoritative domain,
+preserve fail-closed behavior.
+
+Do not invent product authority tables merely to make a test pass.
+
+10. EVIDENCE MODEL
+
+Define machine-readable non-secret evidence for each CI run.
+
+Include:
+
+- CI run identity;
+- PostgreSQL version/image identity;
+- bootstrap result;
+- role state;
+- ownership/ACL state;
+- trigger state;
+- run binding;
+- test results;
+- independent backend PIDs/barrier evidence;
+- runtime identity;
+- schema/source digests;
+- cleanup/container termination outcome;
+- secret-redaction confirmation.
+
+Determine what evidence should be committed to the repository versus retained
+as CI artifacts.
+
+Avoid committing noisy or secret-bearing logs.
+
+11. FAILURE / CLEANUP
+
+Define behavior for:
+
+- bootstrap failure;
+- test failure;
+- timeout;
+- runner crash;
+- CI cancellation;
+- PostgreSQL crash.
+
+Because the entire service is ephemeral, container/job destruction should be
+the ultimate cleanup boundary.
+
+No abandoned database should survive outside the CI job.
+
+12. REPOSITORY / WORKFLOW IMPACT
+
+List exactly what implementation is expected to change.
+
+Potential areas may include:
+
+- CI workflow file;
+- disposable runner;
+- bootstrap/orchestration script;
+- test configuration;
+- evidence tooling/documentation.
+
+Do not change normal Replit workflow configuration.
+
+Do not change normal DATABASE_URL.
+
+Do not change heliumdb.
+
+13. SECURITY THREAT MODEL
+
+Explicitly cover:
+
+- CI secret leakage;
+- log leakage;
+- malicious pull request/external contribution execution;
+- workflow modification;
+- dependency/script injection;
+- admin credential inheritance;
+- database URL leakage;
+- command injection;
+- forged run binding;
+- test escaping to another network target;
+- accidental Replit/production credential availability;
+- artifact/evidence leakage.
+
+Define controls appropriate to the selected CI platform.
+
+14. COST / EXECUTION POLICY
+
+Define:
+
+- when this heavyweight suite runs;
+- whether it runs on every commit, protected branch, manual approval, or
+  selected pull requests;
+- concurrency limits;
+- expected runtime;
+- expected CI cost;
+- retention of artifacts.
+
+Prefer a model that provides strong evidence without unnecessary cost.
+
+15. TR-01 RESUMPTION
+
+TI-03 implementation must be independently reviewed before TR-01 resumes.
+
+A successful TI-03 implementation does not itself complete TR-01.
+
+After TI-03 passes independent review, TR-01 may resume only for:
+
+- completing/fixing the already approved TR-01 implementation;
+- executing the adversarial matrix;
+- producing the TR-01 implementation report.
+
+TR-01 must then receive its own independent post-implementation review.
+
+16. GOVERNANCE / BOUNDARIES
+
+Preserve:
+
+- DEC-01 through DEC-22 approved;
+- no DEC-23;
+- DEC-12 unchanged;
+- source freshness implementation-level;
+- BL-06/BL-07 blocked;
+- #40-CF-01 incomplete;
+- #44 incomplete;
+- #44-TR-01 partial/incomplete;
+- SC-01 complete;
+- RS-01 complete;
+- production posting disabled.
+
+No production deployment/publishing/migration/cutover/RLS is authorised.
+
+17. STOP CONDITIONS
+
+Return NOT READY if safe implementation would require:
+
+- exposing Replit development credentials to external CI;
+- exposing production credentials;
+- long-lived PostgreSQL admin credentials;
+- weakening ledgerly_api;
+- weakening RS-01 protections;
+- replacing PostgreSQL with a different database engine;
+- introducing unapproved accounting/schema authority;
+- giving untrusted PR code access to protected secrets;
+- modifying heliumdb;
+- production connectivity.
+
+18. FINAL VERDICT
+
+End with exactly:
+
+READY FOR #44-TI-03 IMPLEMENTATION APPROVAL
+
+or
+
+NOT READY — EXTERNAL CI HARNESS DESIGN GAP REMAINS
+
+Do not implement anything.
+
+STOP after creating and validating the package.

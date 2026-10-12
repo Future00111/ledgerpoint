@@ -1,0 +1,5 @@
+Adds a separate protected-main producer for exact C4 273f714c876260636346b7fbcc588224e9795141 (tree 168f81192d1fea635cd3c038e6be3a709ab11a82, single parent 9d50d4e86696fd18eb7f877c9edfaba710b3572e). Successful read-only checks gate the normal-owner-Environment-protected status writer. It pins TR01_C4_APPROVED_WORKFLOW_SHA and posts only tr01/c4-identity-validation after two exact remote-ref reads. Existing C2/C3 producers and main qualification entry point are retained.
+
+Diff from exact main 65f3453c29f1eb1057bc66edc0cc7de508e87c2d: three new files only. Validation: 26/26 producer contract/source-fixture tests passed with exact C4 source and a sanitized CI-like environment; candidate typechecks, identity tests, pinned Docker build and 3/3 offline checks passed. Old C3 workflow/pin/ref/SHA cannot publish C4 success.
+
+Identity validation is not TI-03 qualification. No Environment pin/admission/protection changes, bypass, immutable candidate publication or workflow dispatch are included in this PR.

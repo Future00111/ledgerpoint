@@ -1,0 +1,94 @@
+Proceed with DEC-04 as a DECISION-ONLY REVIEW.
+
+Review the existing accounting-core architecture review, decision pack, current decision register, PRD/Product Scope, Master Backlog, and relevant governance documents.
+
+DEC-04 is:
+
+ACCOUNTING-CORE ARCHITECTURE ADOPTION
+
+I want a complete decision pack for DEC-04 before I approve anything.
+
+Do NOT implement anything.
+
+Do NOT modify:
+- application code
+- database schema
+- migrations
+- UI
+- workflows
+- dependencies
+- deployment
+- publishing
+
+The review must explicitly distinguish:
+
+1. ALREADY DECIDED
+2. RECOMMENDED
+3. REQUIRES USER DECISION
+
+Review and document the proposed accounting-core architecture, including at minimum:
+
+- normalized append-only journal headers and journal lines
+- canonical posting transactions
+- server-side double-entry balance enforcement
+- integer minor-unit money amounts
+- source-linked posting
+- company-scoped idempotency
+- immutable posted journals
+- reversal/correction flows
+- payments
+- payment allocations
+- bank evidence
+- financial years
+- accounting periods
+- period close/reopen
+- chart of accounts
+- control-account mappings
+- configuration versioning
+- deterministic VAT integration
+- authoritative journal-based reporting
+- capability-based permissions
+- compatibility with existing Base44-shaped/legacy data
+
+For each major architectural choice, provide:
+
+- the available options
+- the recommended option
+- rationale
+- accounting implications
+- data/schema implications
+- migration implications
+- reporting implications
+- compatibility implications
+- security/audit implications
+- backlog dependencies
+- risks
+- what would become difficult to change later
+
+Pay particular attention to whether adopting the proposed accounting core would unnecessarily lock us into decisions that should remain changeable later.
+
+We want a strong accounting foundation, but we do NOT want to prematurely lock product decisions that can reasonably remain configurable or amendable.
+
+The review must identify any decisions that should remain separate from DEC-04, including financial-year policy, period policy, chart defaults, permissions, migration/cutover policy, retention/RLS policy, and other DEC-04+ decisions where appropriate.
+
+DEC-04 must remain REQUIRES USER DECISION until I explicitly approve it.
+
+Do not treat your recommendation as approval.
+
+Do not approve DEC-05 or any subsequent decision.
+
+Do not unblock BL-06 or BL-07.
+
+Create/update documentation only as necessary for the DEC-04 decision pack and link it into the existing Living Product Decisions governance.
+
+At the end, provide:
+
+- DEC-04 status
+- recommended architecture
+- decisions that DEC-04 would actually lock in
+- decisions deliberately left open for later
+- dependencies on DEC-05 onward
+- implementation consequences
+- exact next approval required from me
+
+Verify that no application-path changes were made.

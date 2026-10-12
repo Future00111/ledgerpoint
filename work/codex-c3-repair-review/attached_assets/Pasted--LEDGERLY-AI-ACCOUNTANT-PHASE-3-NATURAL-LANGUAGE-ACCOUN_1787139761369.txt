@@ -1,0 +1,451 @@
+# LEDGERLY AI ACCOUNTANT - PHASE 3
+# NATURAL LANGUAGE ACCOUNTING ENGINE
+
+OBJECTIVE:
+
+Transform Ledgerly from an AI recommendation engine into a conversational accounting assistant that understands natural language and can answer questions using live accounting data.
+
+Ledgerly should become an accountant that users can talk to in plain English.
+
+IMPORTANT:
+
+Ledgerly must answer questions using REAL LedgerPoint data.
+
+Do not generate generic AI responses.
+
+Always query the application's database before generating a response.
+
+The AI must explain its reasoning.
+
+The AI must never invent accounting data.
+
+--------------------------------------------------
+
+CREATE A NEW MODULE:
+
+src/services/ai-accountant/chat/
+
+Create:
+
+chat.ts
+
+prompts.ts
+
+context.ts
+
+query-builder.ts
+
+response-builder.ts
+
+intent-parser.ts
+
+permissions.ts
+
+--------------------------------------------------
+
+CREATE AN AI COMMAND CENTRE
+
+Add a new page:
+
+AI Accountant
+
+Create a persistent chat panel.
+
+The chat should remain accessible from every page.
+
+Allow:
+
+- Sidebar access
+- Floating action button
+- Command palette
+- Dashboard widget
+
+--------------------------------------------------
+
+CREATE AN INTENT ENGINE
+
+Before sending a request to OpenAI:
+
+Determine the user's intent.
+
+Supported intents:
+
+- Profit analysis
+
+- Invoice analysis
+
+- Customer analysis
+
+- Supplier analysis
+
+- Reconciliation
+
+- VAT
+
+- Cash flow
+
+- Expenses
+
+- Revenue
+
+- Reporting
+
+- Forecasting
+
+- Transaction explanations
+
+--------------------------------------------------
+
+SUPPORTED QUESTIONS:
+
+PROFIT
+
+Why is my profit lower this month?
+
+Why has gross profit decreased?
+
+Compare profit with last month.
+
+Explain my profit margin.
+
+--------------------------------------------------
+
+REVENUE
+
+How much revenue have I generated this month?
+
+Compare revenue with last month.
+
+Show my highest-value customers.
+
+Which customers generate the most revenue?
+
+--------------------------------------------------
+
+INVOICES
+
+Which invoices are overdue?
+
+Show all unpaid invoices.
+
+Which invoices are due this week?
+
+Show invoices older than 30 days.
+
+--------------------------------------------------
+
+CUSTOMERS
+
+Which customers owe me money?
+
+Which customers are paying late?
+
+Who are my top 10 customers?
+
+Show customers with overdue balances.
+
+--------------------------------------------------
+
+SUPPLIERS
+
+Which suppliers do I spend the most with?
+
+Show supplier spending this month.
+
+Compare supplier spending with last month.
+
+--------------------------------------------------
+
+EXPENSES
+
+Which expenses increased this month?
+
+Compare expenses with last month.
+
+Which expense categories changed?
+
+Show all fuel expenses.
+
+Show all software subscriptions.
+
+--------------------------------------------------
+
+VAT
+
+How much VAT do I owe?
+
+When is my next VAT payment due?
+
+Show transactions with missing VAT.
+
+Review transactions with unusual VAT rates.
+
+--------------------------------------------------
+
+RECONCILIATION
+
+Which transactions are still unreconciled?
+
+Explain this reconciliation.
+
+Why was this invoice matched?
+
+Show transactions awaiting approval.
+
+--------------------------------------------------
+
+REPORTING
+
+Generate a profit and loss report.
+
+Generate a cash flow report.
+
+Generate a debtor report.
+
+Generate a creditor report.
+
+--------------------------------------------------
+
+CREATE AN 'EXPLAIN WHY' ENGINE
+
+Every AI answer must include:
+
+- Answer
+
+- Explanation
+
+- Supporting evidence
+
+- Confidence
+
+--------------------------------------------------
+
+Example:
+
+Question:
+
+Why is my profit lower this month?
+
+--------------------------------------------------
+
+Answer:
+
+Profit decreased by £12,420.
+
+--------------------------------------------------
+
+Explanation:
+
+Labour costs increased by £4,800.
+
+Parts purchases increased by £3,100.
+
+Sales revenue decreased by £4,520.
+
+--------------------------------------------------
+
+Supporting evidence:
+
+Labour costs:
+
+July £12,500
+
+August £17,300
+
+Parts purchases:
+
+July £7,200
+
+August £10,300
+
+--------------------------------------------------
+
+Confidence:
+
+97%
+
+--------------------------------------------------
+
+CREATE DATABASE CONTEXT BUILDERS
+
+Allow the AI to access:
+
+Customers
+
+Invoices
+
+Bills
+
+Bank transactions
+
+Suppliers
+
+Nominal accounts
+
+Reconciliations
+
+VAT
+
+Profit and loss
+
+Cash flow
+
+Dashboard metrics
+
+--------------------------------------------------
+
+CREATE A SMART QUERY ENGINE
+
+Translate:
+
+'Which customers owe me money?'
+
+Into:
+
+Outstanding customer balances.
+
+--------------------------------------------------
+
+Translate:
+
+'How much VAT do I owe?'
+
+Into:
+
+VAT liability calculation.
+
+--------------------------------------------------
+
+Translate:
+
+'Why did profit fall?'
+
+Into:
+
+Profit comparison analysis.
+
+--------------------------------------------------
+
+CREATE A COMMAND PALETTE
+
+Keyboard shortcut:
+
+Ctrl + K
+
+or
+
+Cmd + K
+
+Allow commands such as:
+
+Show overdue invoices.
+
+Show VAT due.
+
+Generate a P&L report.
+
+Explain this transaction.
+
+Show unreconciled transactions.
+
+Show duplicate payments.
+
+--------------------------------------------------
+
+CREATE SUGGESTED QUESTIONS
+
+Display examples:
+
+Ask Ledgerly:
+
+Why has my profit fallen?
+
+Which customers owe me money?
+
+How much VAT do I owe?
+
+Show my overdue invoices.
+
+Explain this transaction.
+
+--------------------------------------------------
+
+CREATE A CONVERSATION HISTORY
+
+Store:
+
+Question
+
+Answer
+
+Timestamp
+
+User
+
+--------------------------------------------------
+
+CREATE AN AI MEMORY SYSTEM
+
+Remember:
+
+Recently viewed customers.
+
+Recently viewed invoices.
+
+Recently generated reports.
+
+Recent AI conversations.
+
+Recent reconciliation activity.
+
+--------------------------------------------------
+
+AI SAFETY RULES
+
+Ledgerly may:
+
+✓ Analyse
+
+✓ Explain
+
+✓ Recommend
+
+✓ Generate reports
+
+✓ Summarise
+
+✓ Identify trends
+
+--------------------------------------------------
+
+Ledgerly may NEVER:
+
+✗ Post transactions
+
+✗ Delete transactions
+
+✗ Submit VAT returns
+
+✗ Create journals automatically
+
+✗ Modify accounting records without approval
+
+--------------------------------------------------
+
+BEFORE IMPLEMENTATION:
+
+1. Inspect the existing AI service.
+
+2. Reuse all existing OpenAI services.
+
+3. Reuse all existing accounting services.
+
+4. Reuse all existing database models.
+
+5. Avoid duplicate code.
+
+6. Minimise API calls.
+
+7. Optimise for token efficiency.
+
+8. Implement everything in a single pass.

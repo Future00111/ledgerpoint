@@ -1,0 +1,443 @@
+Complete planning/design task #41:
+
+PLAN A SAFE PILOT FOR HISTORICAL ACCOUNTING MIGRATION
+
+This is a PLANNING/DESIGN task only.
+
+DO NOT implement anything.
+DO NOT change application code.
+DO NOT change database/schema files.
+DO NOT create migrations.
+DO NOT migrate any data.
+DO NOT change UI, workflows, APIs, workers, dependencies, infrastructure, deployment, publishing, or cutover behaviour.
+DO NOT create or execute an implementation task.
+DO NOT create DEC-23.
+
+The purpose of #41 is to produce the final planning/design package for a safe historical accounting-data migration pilot, using the already-approved DEC-01 through DEC-22 governance and the completed #39 and #40 planning/design work.
+
+Before doing anything, read and use the existing governance and planning documents, especially:
+
+- docs/ledgerly-current-decision-register.md
+- docs/ledgerly-product-decisions.md
+- docs/ledgerly-accounting-core-decision-pack.md
+- docs/ledgerly-technical-architecture.md
+- docs/ledgerly-prd-product-scope.md
+- docs/ledgerly-master-backlog.md
+- docs/ledgerly-implementation-readiness-review.md
+- docs/ledgerly-implementation-brief.md
+- docs/ledgerly-source-freshness-posting-safety-contract.md
+- docs/ledgerly-safety-rule-ownership-record.md
+- the existing #39 planning/design records
+- the existing #40 canonical accounting foundation planning/design records
+- docs/ledgerly-dec-22-migration-and-cutover-policy-review.md
+- all relevant DEC-01–DEC-22 reviews where needed
+
+Treat the approved governance decisions as authoritative.
+
+# OBJECTIVE
+
+Produce a planning/design package for a SAFE HISTORICAL ACCOUNTING MIGRATION PILOT.
+
+The design must explain how Ledgerly could eventually migrate historical accounting data from a supported legacy source into the canonical Ledgerly accounting model without inventing accounting facts, silently changing history, creating duplicate accounting authority, or compromising tenant isolation.
+
+The pilot must remain planning-only.
+
+# REQUIRED GOVERNANCE BOUNDARY
+
+DEC-01 through DEC-22 are already approved.
+
+Do not reopen, reinterpret, amend, or replace any approved decision.
+
+In particular:
+
+- DEC-03 remains the sole VAT authority.
+- DEC-04 preserves immutable canonical accounting history and controlled corrections/reversals.
+- DEC-05 governs capabilities and consequential authority.
+- DEC-06 governs financial years.
+- DEC-07 governs accounting periods.
+- DEC-08 governs reporting-only year-end at launch.
+- DEC-09 governs the Chart of Accounts foundation.
+- DEC-10 governs protected control-account mappings.
+- DEC-11 governs material configuration versioning/effective dating.
+- DEC-12 governs payment, allocation, and settlement policy.
+- DEC-13 governs overpayments, unapplied cash and excess payments.
+- DEC-14 governs the Unapplied Cash workflow.
+- DEC-15 governs refunds.
+- DEC-16 excludes a separate user-facing payment-on-account feature at launch.
+- DEC-17 governs retention.
+- DEC-18 governs deletion/anonymisation/disposal.
+- DEC-19 governs exports.
+- DEC-20 governs backup/recovery.
+- DEC-21 governs tenant isolation and RLS as defence-in-depth.
+- DEC-22 governs historical accounting-data compatibility and cutover.
+
+Source freshness/posting safety remains the implementation-level contract already documented. It must not be reassigned to DEC-12 and must not result in creation of DEC-23.
+
+# MIGRATION MODEL TO PLAN
+
+Use the approved DEC-22 direction:
+
+VALIDATED ADDITIVE ADAPTERS + CONTROLLED COHORT/SOURCE CUTOVER
+
+The plan should cover:
+
+1. Source discovery and evidence preservation
+2. Supported source identification
+3. Source/data-shape assessment
+4. Migration cohort definition
+5. Provenance preservation
+6. Company ownership validation
+7. Historical uncertainty handling
+8. Mapping contracts
+9. Additive adapter design
+10. Transformation rules
+11. Validation and reconciliation
+12. Exception handling
+13. Recovery checkpoints
+14. Pilot execution criteria
+15. Cutover criteria
+16. Rollback boundaries
+17. Post-cutover validation
+18. Legacy-source read-only/comparison handling
+19. Legacy authority retirement conditions
+20. Evidence retention
+
+# CRITICAL ACCOUNTING REQUIREMENTS
+
+The plan must explicitly address how historical data maps into the canonical accounting foundation designed in #40.
+
+Cover at minimum:
+
+- canonical journals
+- journal lines
+- balanced double-entry invariants
+- immutable posted history
+- source references
+- provenance
+- original source identifiers
+- posting dates
+- financial-year assignment
+- accounting-period assignment
+- Chart of Accounts mapping
+- DEC-10 control-account mapping
+- DEC-11 configuration-version handling
+- VAT treatment under DEC-03
+- AR/AP history
+- payments
+- allocations
+- customer credits
+- supplier prepayments
+- refunds
+- bank evidence
+- reconciliation evidence
+- documents
+- audit evidence
+- retention/disposal state
+- tenant/company ownership
+
+Do not invent historical facts where the source does not provide sufficient evidence.
+
+Unknown, ambiguous, conflicting or incomplete historical information must become explicit, auditable migration exceptions.
+
+# IMPORTANT: NO FAKE ACCOUNTING
+
+The design must explicitly prohibit:
+
+- invented journals
+- invented dates
+- invented VAT treatment
+- invented account mappings presented as historical fact
+- invented allocations
+- invented payments
+- invented refunds
+- invented period closures
+- invented financial-year assignments
+- invented configuration history
+- invented approvals
+- invented audit events
+- silently guessed source provenance
+
+Where evidence is insufficient, define an exception state and explain how that exception prevents unsafe canonicalisation.
+
+# SOURCE AND PROVENANCE
+
+Define a proposed migration provenance model covering:
+
+- source system
+- source company/tenant
+- source record identifier
+- source revision/version where available
+- source extraction/snapshot identity
+- extraction timestamp
+- transformation/adapter version
+- mapping version
+- migration cohort
+- validation status
+- exception status
+- canonical record relationship
+
+Preserve enough information to explain where every migrated canonical accounting fact came from.
+
+# VALIDATION AND RECONCILIATION
+
+Design a multi-stage validation model.
+
+At minimum include:
+
+A. Source-level validation
+- completeness
+- duplicate detection
+- referential integrity
+- source consistency
+- extraction integrity
+
+B. Transformation validation
+- mapping completeness
+- type/classification validity
+- date validity
+- VAT treatment
+- account mapping
+- configuration-version resolution
+
+C. Accounting validation
+- journal balance
+- debit/credit invariants
+- AR/AP balances
+- bank/cash balances
+- VAT balances
+- customer/supplier balances
+- payment/allocation relationships
+- financial-year totals
+- period totals
+- trial balance or equivalent
+
+D. Reporting validation
+- historical reports
+- ledger reports
+- VAT reporting
+- AR/AP reports
+- statements
+- period/year boundaries
+
+E. Post-cutover validation
+- canonical Ledgerly authority confirmed
+- no duplicate accounting authority
+- source/canonical comparison
+- exception review
+- tenant-scope validation
+- audit evidence validation
+
+# PILOT DESIGN
+
+Define a conservative pilot.
+
+The plan should recommend:
+
+- a small, representative cohort
+- preferably a non-critical or controlled company/data set where appropriate
+- explicit source snapshot
+- isolated migration/recovery environment
+- pre-migration backup/recovery checkpoint
+- dry-run/validation before canonical persistence
+- reconciliation before approval
+- explicit migration approval gate
+- controlled canonical cutover
+- post-cutover validation
+- rollback criteria
+
+Do not actually execute any of these.
+
+# DUAL-READ / LEGACY AUTHORITY
+
+DEC-22 permits bounded dual-read comparison for validation only.
+
+Define:
+
+- what is compared;
+- for how long;
+- what constitutes acceptable agreement;
+- what happens when values differ;
+- who investigates exceptions;
+- how the canonical Ledgerly source of truth is established after cutover;
+- why dual authority must not become permanent.
+
+Legacy systems may remain read-only evidence/comparison sources where required, but they must not remain a second accounting authority after validated cutover.
+
+# ROLLBACK
+
+Be very precise here.
+
+Separate:
+
+- migration rollback before canonical cutover;
+- recovery from failed migration;
+- post-cutover accounting correction.
+
+Do not propose casual deletion or rewriting of canonical accounting history.
+
+After canonical cutover, accounting discrepancies must follow DEC-04 correction/reversal mechanisms rather than rewriting history.
+
+# SECURITY / TENANT ISOLATION
+
+The migration design must explicitly preserve DEC-21.
+
+Cover:
+
+- company-scoped migration jobs
+- source-company ownership
+- destination-company ownership
+- background-job company context
+- cross-company reference prevention
+- support/break-glass access
+- audit of privileged migration actions
+- recovery environment isolation
+- document isolation
+- AI isolation if AI is used
+- RLS feasibility as defence-in-depth
+
+No unrestricted superuser migration model.
+
+# AI
+
+AI may assist with:
+
+- classification suggestions
+- mapping suggestions
+- exception explanation
+- anomaly detection
+
+AI must NOT:
+
+- invent accounting facts
+- silently resolve ambiguity
+- approve migration
+- create authoritative migration decisions
+- bypass deterministic validation
+- bypass DEC-05 capability checks
+- become the migration authority
+
+# DEC-20 RECOVERY
+
+Migration planning must include:
+
+- recovery checkpoint before migration
+- isolated restore testing where applicable
+- integrity validation
+- recovery evidence
+- explicit recovery authority
+- rollback decision criteria
+- no silent overwrite of live accounting
+
+# DEC-17 / DEC-18 RETENTION AND DISPOSAL
+
+Migration must preserve applicable retention and disposal state.
+
+It must not:
+
+- recreate data that was legitimately disposed of;
+- bypass legal holds;
+- use migration as a way to circumvent DEC-18;
+- lose required accounting/audit evidence.
+
+# DEC-19 EXPORTS
+
+If exports are used as migration inputs, distinguish:
+
+- user-facing export
+- migration extraction
+- source snapshot
+- canonical migration input
+
+Do not treat a normal Ledgerly export as a backup or accounting authority.
+
+# REQUIRED OUTPUT
+
+Create or update planning documents only.
+
+Prefer creating a dedicated document:
+
+docs/ledgerly-historical-accounting-migration-pilot-plan.md
+
+Link it from the appropriate governance/planning records.
+
+The document should contain:
+
+1. Executive summary
+2. Planning-only status
+3. Governance constraints
+4. Migration objectives
+5. Supported source assumptions
+6. Source/provenance model
+7. Migration cohort strategy
+8. Additive adapter architecture
+9. Mapping strategy
+10. Canonical accounting transformation
+11. VAT handling
+12. AR/AP/payment/allocation/credit/prepayment/refund handling
+13. Financial year and period handling
+14. Configuration-version handling
+15. Validation and reconciliation framework
+16. Migration exception model
+17. Pilot design
+18. Approval gates
+19. Cutover procedure
+20. Rollback/recovery boundaries
+21. Post-cutover validation
+22. Legacy read-only/comparison strategy
+23. Tenant/security/RLS considerations
+24. AI boundaries
+25. Audit/provenance requirements
+26. Retention/disposal requirements
+27. Risks and mitigations
+28. Open questions
+29. Implementation prerequisites
+30. Explicit list of what is NOT authorised
+
+# APPROVAL GATES
+
+Define separate future approval gates for:
+
+- migration implementation
+- schema changes
+- adapter implementation
+- actual data extraction
+- actual data transformation
+- actual migration execution
+- cutover
+- deployment/publishing
+- RLS adoption where applicable
+
+None of these approvals exist yet.
+
+# BL-06 / BL-07
+
+Do not unblock BL-06 or BL-07 merely because #41 is completed.
+
+Record exactly what evidence would eventually be required to unblock them.
+
+# FINAL VERIFICATION REQUIRED
+
+At the end, verify:
+
+- DEC-01 through DEC-22 remain approved.
+- BL-06 and BL-07 remain BLOCKED.
+- No DEC-23 exists.
+- #39 remains planning/design only.
+- #40 remains planning/design only.
+- #41 is planning/design only.
+- No implementation task was created or executed.
+- No application code changed.
+- No schema changed.
+- No migration ran.
+- No accounting logic changed.
+- No UI/workflow/dependency/infrastructure changes occurred.
+- No deployment or publishing occurred.
+- No data was migrated.
+- No cutover occurred.
+- Formatting checks pass.
+
+If you discover a genuine conflict with an approved DEC-01–DEC-22 policy, STOP and record the conflict clearly rather than silently resolving it.
+
+Do not create a new governance decision merely because the migration design spans multiple approved decisions.
+
+The desired outcome is a complete, reviewable, implementation-ready migration pilot design — NOT an implementation.

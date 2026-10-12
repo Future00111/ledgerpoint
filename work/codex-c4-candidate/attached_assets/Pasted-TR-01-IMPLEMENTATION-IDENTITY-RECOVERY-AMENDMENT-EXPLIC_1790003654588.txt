@@ -1,0 +1,276 @@
+TR-01 — IMPLEMENTATION IDENTITY RECOVERY AMENDMENT
+EXPLICIT DESIGN / GOVERNANCE APPROVAL
+
+Current reviewed result:
+
+TR-01 IMPLEMENTATION IDENTITY RECOVERY AMENDMENT READY
+— EXPLICIT APPROVAL REQUIRED
+
+Approve exactly the independently reviewed recovery amendment represented by:
+
+docs/ledgerly-44-tr-01-implementation-identity-recovery-amendment.md
+
+The former implementation identity remains:
+
+Branch:
+feat/ti03-option-e-redesign
+
+Former commit:
+b03627099616675924a88e9a30c7b5e6547c9166
+
+Status:
+
+HISTORICAL IMPLEMENTATION IDENTITY — OBJECT LOST / UNAVAILABLE
+
+Do not attempt to recreate, reproduce, fabricate, or assign this SHA to any
+replacement commit.
+
+==================================================
+1. APPROVAL SCOPE
+==================================================
+
+This approval covers DESIGN / GOVERNANCE ONLY.
+
+It approves the reviewed prospective identity-recovery model.
+
+It does NOT authorize:
+
+- creation of candidate commit C;
+- branch publication;
+- workflow implementation;
+- coordinator modification;
+- GitHub environment configuration;
+- qualification;
+- Phase A;
+- production or HeliumDB access;
+- 48-B implementation;
+- Stage 3;
+- #40-CF-01 changes.
+
+==================================================
+2. HISTORICAL IDENTITY
+==================================================
+
+Preserve b03627099616675924a88e9a30c7b5e6547c9166 as:
+
+HISTORICAL IMPLEMENTATION IDENTITY — OBJECT LOST / UNAVAILABLE
+
+Historical references to it must remain truthful and unchanged.
+
+Do not rewrite historical approval or evidence documents to imply a
+replacement SHA existed at the time.
+
+==================================================
+3. CURRENT IMPLEMENTATION STATE
+==================================================
+
+Record that the current tree / current HEAD is NOT automatically equivalent
+to the lost b036 implementation identity.
+
+Any future authoritative replacement requires complete fresh
+reconciliation and validation.
+
+Old static-validation claims are historical context only.
+
+==================================================
+4. APPROVE THE PROSPECTIVE DUAL-IDENTITY MODEL
+==================================================
+
+Approve the reviewed distinction:
+
+C = immutable candidate implementation commit
+
+S = workflow source commit
+
+and after governance activation:
+
+G = governance activation commit
+
+with:
+
+S = G
+
+while the qualified implementation remains:
+
+C
+
+Neither C nor G is a restoration of b036270....
+
+==================================================
+5. APPROVE THE CANDIDATE BRANCH CONTRACT
+==================================================
+
+Approve the exact candidate ref:
+
+refs/heads/tr01/implementation-identity-candidate
+
+Preserve the reviewed requirements:
+
+- protected branch;
+- review required;
+- force push prohibited;
+- deletion prohibited;
+- no rebase/squash/amend/cherry-pick after review;
+- qualification only via protected workflow_dispatch.
+
+==================================================
+6. MANDATORY FRESH REVALIDATION
+==================================================
+
+Approve the requirement that every mandatory validation item in the
+recovery amendment must be completed fresh before C can become
+authoritative.
+
+No unavailable or failed check may be treated as passing.
+
+Historical results must not substitute.
+
+Phase A remains prohibited.
+
+==================================================
+7. CANDIDATE QUALIFICATION CONTRACT
+==================================================
+
+Approve the reviewed candidate qualification model in principle:
+
+- complete inventory reconciliation;
+- fresh static validation;
+- fresh independent implementation/security review;
+- creation of one immutable candidate commit C;
+- exact publication of C to the protected candidate branch;
+- exact protected environment binding:
+  LEDGERLY_APPROVED_CANDIDATE_SHA=C;
+- exact commit/ref/environment identity verification;
+- complete TI-03 qualification.
+
+Passing candidate qualification does NOT automatically make C
+authoritative.
+
+==================================================
+8. GOVERNANCE ACTIVATION MODEL
+==================================================
+
+Approve the reviewed prospective activation model:
+
+Only after:
+
+- successful candidate qualification;
+- evidence review;
+- explicit final identity approval;
+
+may C be designated:
+
+NEW AUTHORITATIVE IMPLEMENTATION IDENTITY
+
+Then governance activation commit G may be created as a descendant of C
+and promoted through protected-main review.
+
+The permitted G change inventory remains limited to the explicitly reviewed
+governance records and approved workflow file.
+
+==================================================
+9. ACTIVATED WORKFLOW CONTRACT
+==================================================
+
+Approve the reviewed two-checkout identity model in principle:
+
+- workflow/source checkout S at root;
+- exact implementation checkout C under candidate/;
+- coordinator executed from candidate/;
+- workflow digest attributed to S;
+- implementation/source-tree digests attributed to C;
+- distinct:
+  workflowSourceCommit=S
+  implementationSourceCommit=C.
+
+Do not overload the historical sourceCommit field ambiguously.
+
+Implementation of these semantics remains separately gated.
+
+==================================================
+10. GOVERNANCE RECORDS
+==================================================
+
+Approve the reviewed future governance-record inventory.
+
+New authoritative records:
+
+- docs/ledgerly-44-tr-01-implementation-identity-recovery-amendment.md
+- docs/ledgerly-44-tr-01-implementation-identity-recovery-approval-record.md
+- docs/ledgerly-44-tr-01-implementation-identity-recovery-independent-review.md
+- docs/ledgerly-44-protected-github-baseline-ancestry-contract.md
+
+Existing records requiring append-only prospective amendment:
+
+- docs/ledgerly-44-tr-01-transactional-authority-provider-approval-package.md
+- docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-approval-package.md
+- docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-report.md
+- docs/ledgerly-current-decision-register.md
+
+Executable identity-contract files remain separately gated:
+
+- .github/workflows/ledgerly-canonical-postgresql.yml
+- scripts/ci/run-ledgerly-canonical-postgresql.mjs
+
+==================================================
+11. NEXT PACKAGE
+==================================================
+
+After recording this approval:
+
+prepare a NON-EXECUTABLE implementation approval package for the identity
+recovery.
+
+It must specify exactly:
+
+- files to change;
+- current-tree reconciliation procedure;
+- mandatory validation commands/categories;
+- candidate commit creation procedure;
+- protected candidate branch controls;
+- GitHub environment controls;
+- workflow changes;
+- coordinator dual-identity changes;
+- evidence fields;
+- candidate qualification;
+- final identity-approval gate;
+- governance activation procedure;
+- activated qualification;
+- stop conditions.
+
+Do not implement anything during this step.
+
+==================================================
+12. INDEPENDENT PACKAGE REVIEW
+==================================================
+
+Perform a fresh independent read-only review of that implementation package.
+
+Reviewer must confirm:
+
+- b036 remains historical/lost;
+- replacement identity is prospective;
+- fresh validation is complete in scope;
+- candidate and workflow identities are unambiguous;
+- no historical record rewriting;
+- branch/environment protection is sufficient;
+- Phase A remains blocked;
+- production/HeliumDB remain excluded;
+- 48-B remains unchanged;
+- implementation can proceed without unresolved identity-design choices.
+
+==================================================
+13. RESULT
+==================================================
+
+If clean:
+
+TR-01 IMPLEMENTATION IDENTITY RECOVERY AMENDMENT APPROVED
+— IMPLEMENTATION PACKAGE READY FOR EXPLICIT APPROVAL
+
+If unresolved issues remain:
+
+TR-01 IDENTITY RECOVERY IMPLEMENTATION PACKAGE BLOCKED
+— FURTHER DESIGN APPROVAL REQUIRED
+
+Do not implement automatically.

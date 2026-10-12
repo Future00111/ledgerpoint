@@ -1,0 +1,100 @@
+FINAL QUILL SECURITY ASSESSMENT
+
+The dependency remediation is complete and the remaining security scanner result is now limited to:
+
+quill v1.3.7 — MODERATE
+CVE-2021-3163 / GHSA-4943-9vgg-gr5r
+
+There is currently no patched Quill 1.x release, so do NOT blindly replace or downgrade packages and do NOT use a forced audit fix.
+
+Before publishing Ledgerpoint, perform a focused security assessment of the actual Quill usage in the active Ledgerpoint application.
+
+OBJECTIVES
+
+1. Locate every active use of Quill/react-quill in the Ledgerpoint codebase.
+
+2. Determine exactly:
+   - where users can enter Quill content
+   - what type of content is accepted
+   - whether HTML strings are stored
+   - whether Delta data is stored
+   - whether editor output is rendered elsewhere
+   - whether stored editor content can be viewed by another user/company
+   - whether any editor content is rendered using dangerouslySetInnerHTML or equivalent
+   - whether content is displayed in emails, PDFs, reports, dashboards, notes, invoices, or other generated documents.
+
+3. Establish whether the CVE-2021-3163 attack scenario is actually reachable in Ledgerpoint.
+
+4. Treat all user-supplied rich text as untrusted input.
+
+5. Verify that Quill content cannot execute arbitrary JavaScript when:
+   - entered into the editor
+   - saved
+   - reloaded
+   - displayed to another authenticated user
+   - displayed in another company/tenant
+   - included in generated documents
+   - included in email content
+   - viewed through the authenticated browser.
+
+6. If Ledgerpoint currently stores HTML from Quill, add or verify server-side sanitisation before persisted HTML is rendered anywhere.
+
+7. Prefer storing Quill Delta/document data where practical rather than trusting raw HTML.
+
+8. If HTML must be rendered, use an established sanitisation mechanism and explicitly allow only the formats Ledgerpoint actually requires.
+
+9. Do NOT introduce a broad HTML sanitiser that changes existing accounting data or application behaviour unnecessarily.
+
+10. Verify company/tenant isolation:
+    - Company A must never be able to cause executable content to appear in Company B's workspace.
+    - Rich-text content must remain scoped to its owning company/user/document.
+
+11. Test common XSS payload classes against the actual Ledgerpoint rendering paths, including:
+    - event-handler attributes
+    - javascript: URLs
+    - SVG payloads
+    - iframe/object/embed payloads
+    - image attributes
+    - malformed HTML intended to bypass sanitisation.
+
+12. Do not rely solely on Quill's client-side behaviour for security.
+
+13. Confirm the server-side boundary is safe even if a malicious user bypasses the browser and sends crafted HTML directly to the API.
+
+14. Do NOT replace Quill as part of this task unless the current implementation cannot be made safe with a focused mitigation.
+
+15. Do NOT change VAT, reconciliation, collections, accounting logic, authentication or database schema unless absolutely necessary for this security mitigation.
+
+16. Run after any changes:
+    - API typecheck
+    - frontend typecheck
+    - production build
+    - full regression suite
+    - VAT tests
+    - reconciliation tests
+    - collections tests
+    - authenticated HTTP/API tests
+    - authenticated browser smoke test
+    - security scanner.
+
+FINAL REPORT
+
+Report:
+
+QUILL VERSION:
+CVE:
+ACTUAL LEDGERPOINT EXPOSURE:
+ATTACK PATH:
+SERVER-SIDE MITIGATION:
+CLIENT-SIDE MITIGATION:
+TENANT ISOLATION VERIFIED:
+XSS TESTS:
+SECURITY SCAN:
+REGRESSION TESTS:
+RECOMMENDATION:
+
+If the vulnerability is not reachable because all stored/rendered content is safely sanitised and the relevant rendering paths are protected, document that clearly.
+
+If there is a genuine exploitable path, fix that path before considering Ledgerpoint ready for publication.
+
+Do not publish the application as part of this task.

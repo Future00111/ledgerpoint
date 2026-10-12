@@ -1,0 +1,200 @@
+Approve DEC-16.
+
+Record:
+
+DEC-16 — PAYMENT-ON-ACCOUNT LAUNCH SCOPE
+STATUS: APPROVED — product/accounting launch-scope policy only
+
+Approve the recommendation that Ledgerly will NOT expose a separate user-facing Payment-on-Account feature at launch.
+
+1. LAUNCH SCOPE
+
+Do not create a separate Payment-on-Account feature, workflow, navigation item, accounting object, or journal type at launch.
+
+Users should instead use the existing approved foundation:
+
+- known-party accounting payments;
+- DEC-14 Unapplied Cash workspace;
+- DEC-13 customer-credit liabilities;
+- DEC-13 supplier-prepayment assets;
+- explicit allocation;
+- append-only reallocation history;
+- DEC-15 controlled refunds.
+
+2. PRODUCT PRINCIPLE
+
+Do not introduce an additional user-facing state merely because the underlying accounting concept exists.
+
+The launch experience should remain:
+
+- simple;
+- clear;
+- understandable;
+- accounting-correct;
+- consistent.
+
+Avoid unnecessary product terminology and duplicate workflows.
+
+3. CUSTOMER PAYMENTS
+
+A known-party customer payment may exist before an invoice is identified.
+
+Where the amount remains unapplied, use the approved DEC-13 customer-credit representation and DEC-14 workflow.
+
+Do not label this as a separate Payment-on-Account product feature at launch.
+
+4. SUPPLIER PAYMENTS
+
+A known-party supplier payment may exist before a bill is identified.
+
+Where the amount remains unapplied, use the approved DEC-13 supplier-prepayment representation and DEC-14 workflow.
+
+Do not label this as a separate Payment-on-Account product feature at launch.
+
+5. NO DUPLICATE ACCOUNTING
+
+Do not create:
+
+- a separate payment-on-account journal type;
+- duplicate cash accounting;
+- duplicate allocation accounting;
+- duplicate settlement accounting;
+- duplicate refund accounting.
+
+The existing DEC-12 and DEC-13 accounting model remains authoritative.
+
+6. ALLOCATION
+
+Allocation continues to follow DEC-12 and DEC-14.
+
+Users may later allocate eligible customer credits or supplier prepayments to appropriate invoices/bills.
+
+Allocation must not repost the original cash/payment accounting merely because the allocation occurs.
+
+7. REFUNDS
+
+Refunds continue to follow DEC-15.
+
+A customer-credit liability or supplier-prepayment asset may become refundable where the approved DEC-15 conditions are satisfied.
+
+Do not create a separate Payment-on-Account refund mechanism.
+
+8. USER EXPERIENCE
+
+Do not expose accounting implementation details to ordinary users.
+
+Use clear business language explaining:
+
+- money received/paid;
+- amount not yet allocated;
+- customer credit;
+- supplier prepayment;
+- available actions.
+
+Do not require users to understand accounting terminology simply to resolve an unapplied balance.
+
+9. REPORTING
+
+Customer credits remain separate from aged receivables.
+
+Supplier prepayments remain separate from aged payables.
+
+Do not introduce a separate Payment-on-Account reporting category at launch unless required by an already approved accounting/reporting policy.
+
+10. VAT
+
+DEC-03 remains the sole VAT authority.
+
+The absence of a user-facing Payment-on-Account feature must not create a new VAT mechanism.
+
+Do not infer VAT treatment merely from user-facing labels.
+
+11. BANK RECONCILIATION
+
+Maintain the approved distinction between:
+
+BANK EVIDENCE
+→ ACCOUNTING PAYMENT
+→ UNAPPLIED/CREDIT/PREPAYMENT
+→ ALLOCATION
+→ REFUND
+
+Reconciliation must not create duplicate accounting.
+
+12. PERMISSIONS
+
+Use DEC-05 for all consequential actions.
+
+Do not create separate Payment-on-Account permissions at launch because the feature itself is not exposed.
+
+13. AUDIT
+
+All underlying payment, credit, prepayment, allocation and refund activity continues to use the audit requirements already established by DEC-12 through DEC-15.
+
+Do not create a separate audit model for Payment-on-Account.
+
+14. FUTURE EXTENSIBILITY
+
+This decision does NOT permanently prohibit Payment-on-Account.
+
+The architecture must remain capable of supporting a future deliberate Payment-on-Account classification using the existing accounting model.
+
+If later introduced:
+
+- it should initially be a user-facing classification/workflow;
+- it should NOT automatically become a separate accounting object;
+- it should NOT create a separate journal model;
+- customer and supplier treatment should be evaluated symmetrically;
+- it requires a new approved product decision before implementation.
+
+15. MIGRATION
+
+Do not invent historical Payment-on-Account states.
+
+Historical advance payments, deposits, credits or prepayments must be migrated according to the evidence available and the applicable approved policies.
+
+Ambiguity remains subject to DEC-22.
+
+16. SOURCE FRESHNESS
+
+The separately identified source-freshness/posting-safety dependency remains unresolved.
+
+DEC-16 does not resolve or absorb it.
+
+IMPORTANT GOVERNANCE RULES:
+
+- DEC-01 through DEC-16 are now APPROVED.
+- DEC-17 through DEC-22 remain REQUIRES USER DECISION.
+- Do NOT approve DEC-17 or any later decision.
+- Keep BL-06 and BL-07 BLOCKED.
+- Do NOT create or execute an implementation task.
+- This is a product/accounting launch-scope approval only.
+- It is NOT implementation authorisation.
+- Preserve the amendment path through the Living Product Decisions process.
+
+Do NOT modify:
+
+- application code;
+- database schema;
+- migrations;
+- accounting logic;
+- UI;
+- workflows;
+- dependencies;
+- deployment;
+- publishing.
+
+Update only the relevant governance and decision documentation.
+
+FINAL VERIFICATION:
+
+1. DEC-01–DEC-16 are APPROVED.
+2. DEC-17–DEC-22 remain unresolved.
+3. BL-06 and BL-07 remain BLOCKED.
+4. No implementation task was created.
+5. No Payment-on-Account implementation was made.
+6. No application/schema/migration/accounting logic/UI/workflow/dependency/deployment/publishing changes were made.
+7. No DEC-17 work was started.
+8. Source freshness remains separately unresolved.
+
+Stop after verification.

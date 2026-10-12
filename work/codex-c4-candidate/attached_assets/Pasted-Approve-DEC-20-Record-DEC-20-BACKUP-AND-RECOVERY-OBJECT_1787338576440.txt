@@ -1,0 +1,305 @@
+Approve DEC-20.
+
+Record:
+
+DEC-20 — BACKUP AND RECOVERY OBJECTIVES
+STATUS: APPROVED — product/operational resilience policy only
+
+Approve the managed, encrypted and tested backup/recovery model with the following boundaries.
+
+1. BACKUP SCOPE
+
+Protect, as appropriate:
+
+- canonical accounting;
+- operational accounting records;
+- authoritative documents;
+- configuration;
+- audit records;
+- retention/disposal state;
+- other data required to reconstruct an authorised service state.
+
+Distinguish authoritative data from rebuildable derived data.
+
+Do not require permanent backup retention for data that can safely and deterministically be rebuilt unless another approved requirement applies.
+
+2. BACKUP MODEL
+
+Use a managed backup model incorporating, where supported and operationally appropriate:
+
+- managed database snapshots;
+- incremental/differential protection;
+- transaction-log/WAL protection;
+- point-in-time recovery;
+- appropriate document/object-storage protection.
+
+The exact implementation remains an engineering decision within the approved policy boundaries.
+
+3. EXPORT DISTINCTION
+
+Backups are NOT DEC-19 exports.
+
+Exports are user-facing authorised copies/representations.
+
+Backups are resilience infrastructure.
+
+Do not expose backups as ordinary exports or use exports as the primary backup mechanism.
+
+4. RECOVERY MODEL
+
+Restore into an isolated recovery environment by default.
+
+Never silently overwrite live accounting data.
+
+Before promotion or restoration into a live service state, validate as appropriate:
+
+- canonical journals;
+- source links;
+- accounting integrity;
+- idempotency;
+- accounting periods;
+- financial-year assignments;
+- configuration;
+- VAT;
+- payment/allocation/settlement;
+- documents;
+- audit history;
+- retention/disposal state;
+- company scope.
+
+5. ACCOUNTING IMMUTABILITY
+
+Recovery must preserve DEC-04.
+
+Do NOT use backup restoration to:
+
+- erase accounting errors;
+- rewrite posted journals;
+- alter historical VAT;
+- change AR/AP history;
+- alter financial-year assignment;
+- bypass closed periods;
+- remove audit history.
+
+An accounting correction must use the approved accounting correction/reversal mechanisms.
+
+Recovery is a resilience mechanism, not an accounting correction mechanism.
+
+6. POINT-IN-TIME RECOVERY
+
+Support point-in-time recovery where operationally available and appropriate.
+
+Point-in-time recovery must represent restoration to an authorised historical system state.
+
+It must not silently become a mechanism for rewriting canonical accounting history.
+
+7. RECOVERY TARGETS
+
+Adopt the following as TARGET OBJECTIVES, subject to operational validation:
+
+| Data tier | Target RPO | Target RTO |
+|---|---:|---:|
+| Canonical accounting and controls | ≤ 1 hour | ≤ 4 hours |
+| Operational accounting records | ≤ 4 hours | ≤ 8 hours |
+| Authoritative documents | ≤ 24 hours | ≤ 24 hours, or the stricter related accounting target |
+| Rebuildable derived data | Best effort | ≤ 24 hours |
+
+These are policy targets, not guaranteed service-level commitments.
+
+They must be validated against the actual infrastructure and operating model before implementation.
+
+8. BACKUP RETENTION
+
+Backup retention must be designed consistently with DEC-17 and DEC-18 while remaining distinct from production-data retention.
+
+Do not automatically assume backup retention must equal production retention.
+
+Backup expiry must be controlled, auditable and compatible with applicable legal holds and recovery requirements.
+
+9. DELETION / ANONYMISATION
+
+Respect DEC-18.
+
+Do not use backups to permanently preserve production information that should legitimately disappear.
+
+At the same time, do not require destructive modification of immutable backup media merely to imitate production deletion where an approved lifecycle/expiry mechanism is more appropriate.
+
+The detailed interaction between production disposal and backup lifecycle must remain consistent with DEC-18 and operationally validated.
+
+10. SECURITY
+
+Backups must use appropriate:
+
+- encryption at rest;
+- encryption in transit;
+- separate credentials;
+- access controls;
+- key management;
+- integrity verification;
+- administrative separation;
+- immutable/WORM protection where appropriate.
+
+11. COMPANY SCOPE / ISOLATION
+
+Recovery must never expose one company's data to another company.
+
+Company scope must be enforced server-side.
+
+Detailed tenant-isolation architecture remains DEC-21.
+
+12. RECOVERY AUTHORITY
+
+Recovery is a high-risk operation.
+
+Use controlled server-side authority.
+
+Where appropriate require:
+
+- elevated capability;
+- explicit authorisation;
+- approval;
+- separation of duties.
+
+Do not rely solely on frontend controls.
+
+13. RESTORATION
+
+Default to isolated recovery.
+
+Do not silently overwrite live accounting.
+
+Where a recovery must affect a live service state, require explicit controlled promotion/restoration authority and validation.
+
+Record the recovery event immutably.
+
+14. BACKUP VERIFICATION
+
+Backups must be automatically checked where practical.
+
+A backup that cannot be reliably restored is not considered an effective recovery control.
+
+15. RESTORE TESTING
+
+Perform representative restore tests at least quarterly.
+
+Where supported, perform a whole-service or regional recovery exercise at least annually.
+
+Record the results and any material failures.
+
+These are operational policy expectations and should be validated against the final infrastructure.
+
+16. FAILURE HANDLING
+
+Backup/recovery failures must be detectable and escalated appropriately.
+
+This includes:
+
+- backup failure;
+- integrity-verification failure;
+- storage failure;
+- recovery failure;
+- unavailable point-in-time recovery;
+- failed restore test.
+
+Do not silently treat an unhealthy backup state as healthy.
+
+17. AUDIT
+
+Maintain immutable audit evidence for:
+
+- backup creation;
+- backup verification;
+- backup retention/expiry;
+- recovery initiation;
+- recovery approval;
+- restoration;
+- promotion;
+- recovery testing;
+- legal holds where relevant;
+- material recovery failures.
+
+18. USER EXPERIENCE
+
+Normal users should see only appropriate business-level information such as:
+
+- backup/recovery health where relevant;
+- recovery readiness;
+- material incidents affecting their company.
+
+Do not expose unnecessary infrastructure implementation details.
+
+Developer/infrastructure diagnostics remain outside the normal customer experience.
+
+19. MIGRATION
+
+DEC-22 remains responsible for migration/cutover policy.
+
+DEC-20 may provide recovery safeguards such as:
+
+- pre-cutover snapshots;
+- rollback points;
+- recovery copies;
+- preservation of legacy evidence.
+
+Do not use DEC-20 to decide the migration strategy itself.
+
+20. TENANT ISOLATION
+
+DEC-21 remains responsible for the detailed tenant-isolation policy.
+
+DEC-20 nevertheless requires recovery mechanisms to preserve strict company isolation.
+
+21. FUTURE FLEXIBILITY
+
+The policy must allow future improvements such as:
+
+- multi-region recovery;
+- improved RPO/RTO;
+- additional backup tiers;
+- additional storage providers;
+- regulatory requirements;
+- advanced disaster recovery;
+- additional markets.
+
+Material policy changes follow the Living Product Decisions process.
+
+IMPORTANT GOVERNANCE RULES:
+
+- DEC-01 through DEC-20 are now APPROVED.
+- DEC-21 and DEC-22 remain REQUIRES USER DECISION.
+- Do NOT approve DEC-21 or DEC-22.
+- Keep BL-06 and BL-07 BLOCKED.
+- Do NOT create or execute an implementation task.
+- This is a product/operational resilience policy approval only.
+- It is NOT implementation or infrastructure deployment authorisation.
+- Preserve the amendment path through the Living Product Decisions process.
+- Source freshness remains separately unresolved.
+
+Do NOT modify:
+
+- application code;
+- database schema;
+- migrations;
+- accounting logic;
+- UI;
+- workflows;
+- dependencies;
+- infrastructure configuration;
+- deployment;
+- publishing.
+
+Update only the relevant governance and decision documentation.
+
+FINAL VERIFICATION:
+
+1. DEC-01–DEC-20 are APPROVED.
+2. DEC-21–DEC-22 remain unresolved.
+3. BL-06 and BL-07 remain BLOCKED.
+4. No implementation task was created.
+5. No backup/recovery implementation was made.
+6. No application/schema/migration/accounting logic/UI/workflow/dependency/infrastructure/deployment/publishing changes were made.
+7. No DEC-21 work was started.
+8. RPO/RTO values remain policy targets subject to operational validation.
+9. Source freshness remains separately unresolved.
+
+Stop after verification.

@@ -1,0 +1,11 @@
+{
+  "candidateSha": "273f714c876260636346b7fbcc588224e9795141",
+  "producerSha": "f03abf3fc7c481ed50ecfb30fc5275b8f2013849",
+  "urls": {
+    "candidate": "https://github.com/Future00111/ledgerpoint/pull/14",
+    "producer": "https://github.com/Future00111/ledgerpoint/pull/15"
+  },
+  "immutablePublished": false,
+  "liveControlsChanged": false,
+  "qualificationDispatched": false
+}

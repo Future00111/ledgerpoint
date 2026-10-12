@@ -1,0 +1,517 @@
+# PROJECT: LEDGERLY AI ACCOUNTANT (PHASE 1)
+
+## OBJECTIVE
+
+Transform Ledgerly from an AI chatbot into an embedded AI Accountant that actively assists users throughout the accounting workflow.
+
+The AI should not simply answer questions.
+
+It should:
+
+- Analyse transactions
+- Reconcile bank statements
+- Identify missing revenue
+- Suggest invoice matches
+- Categorise transactions
+- Detect anomalies
+- Identify bookkeeping issues
+- Generate accounting insights
+- Prepare actions for user approval
+
+IMPORTANT:
+
+The AI must NEVER automatically post transactions, create journals, delete records, or submit VAT returns.
+
+All AI actions must require user approval.
+
+---
+
+# ARCHITECTURE
+
+Create a new AI Accountant service.
+
+Create the following folder:
+
+src/services/ai-accountant/
+
+Create the following files:
+
+src/services/ai-accountant/index.ts
+
+src/services/ai-accountant/types.ts
+
+src/services/ai-accountant/reconciliation.ts
+
+src/services/ai-accountant/bookkeeping.ts
+
+src/services/ai-accountant/advisor.ts
+
+src/services/ai-accountant/insights.ts
+
+Use the existing AI infrastructure already implemented inside:
+
+src/services/ai/
+
+Do NOT duplicate the existing OpenAI integration.
+
+Reuse the existing:
+
+- aiService
+- askAI
+- testAI
+- provider architecture
+- AI_PROVIDER environment variable
+
+---
+
+# PHASE 1 FEATURE: INTELLIGENT RECONCILIATION
+
+When a bank statement is imported, reconciliation should start automatically.
+
+For every imported bank transaction:
+
+1. Search for all unpaid invoices.
+
+2. Compare:
+
+- Transaction amount
+- Customer name
+- Reference number
+- Invoice amount
+- Transaction date
+- Payment date
+
+3. Generate a confidence score.
+
+---
+
+# MATCHING LOGIC
+
+Use the following scoring system:
+
+## Exact amount match
+
++50 points
+
+## Customer name match
+
++20 points
+
+## Invoice number found in reference
+
++20 points
+
+## Date within 7 days
+
++10 points
+
+Maximum score:
+
+100 points
+
+---
+
+# SCENARIO 1: EXACT MATCH
+
+Bank transaction:
+
+£6,000 received
+
+Invoice:
+
+INV-0006
+
+£6,000
+
+Result:
+
+Status:
+
+"Ready for approval"
+
+Display:
+
+✓ Invoice matched
+
+✓ Amount matched
+
+✓ Date matched
+
+AI confidence:
+
+100%
+
+Show:
+
+Approve Match
+
+---
+
+# SCENARIO 2: MULTIPLE INVOICE MATCH
+
+Bank transaction:
+
+£6,000 received
+
+Outstanding invoices:
+
+INV-0001 £2,000
+
+INV-0002 £1,500
+
+INV-0003 £1,800
+
+Total invoice value:
+
+£5,300
+
+Difference:
+
+£700
+
+Result:
+
+Invoices found:
+
+✓ INV-0001 £2,000
+
+✓ INV-0002 £1,500
+
+✓ INV-0003 £1,800
+
+Missing revenue:
+
+£700
+
+AI confidence:
+
+92%
+
+Possible explanations:
+
+- Missing invoice
+- Deposit received
+- Part payment
+- Advance payment
+
+Show:
+
+Approve Match
+
+Find Another
+
+Categorise
+
+Split
+
+---
+
+# SCENARIO 3: OVERPAYMENT
+
+Bank transaction:
+
+£6,000 received
+
+Invoice:
+
+£5,500
+
+Difference:
+
+£500
+
+Result:
+
+Possible overpayment detected.
+
+Suggest:
+
+- Customer credit
+- Deposit
+- Advance payment
+
+---
+
+# SCENARIO 4: NO MATCH FOUND
+
+If no invoice can be found:
+
+Display:
+
+"No matching invoices found."
+
+Suggest:
+
+- Create invoice
+- Create journal
+- Categorise as other income
+
+---
+
+# UI IMPROVEMENTS
+
+Replace:
+
+SMART MATCH 10%
+
+With:
+
+AI CONFIDENCE 92%
+
+---
+
+# ADD A NEW RECONCILIATION CARD
+
+Display:
+
+--------------------------------------------------
+
+Invoices found:
+
+✓ INV-0001 £2,000
+
+✓ INV-0002 £1,500
+
+✓ INV-0003 £1,800
+
+--------------------------------------------------
+
+Missing revenue:
+
+£700
+
+--------------------------------------------------
+
+Possible explanations:
+
+• Missing invoice
+
+• Deposit
+
+• Part payment
+
+--------------------------------------------------
+
+AI confidence:
+
+92%
+
+--------------------------------------------------
+
+---
+
+# FIND ALL POSSIBLE INVOICE COMBINATIONS
+
+Do not stop after finding one invoice.
+
+Use a combination search algorithm.
+
+Example:
+
+Transaction:
+
+£10,000
+
+Outstanding invoices:
+
+£6,000
+
+£2,500
+
+£1,500
+
+£4,000
+
+AI should discover:
+
+£6,000 + £2,500 + £1,500 = £10,000
+
+Display all possible combinations ranked by confidence.
+
+---
+
+# ADD A NEW DATABASE TABLE
+
+Create:
+
+ai_reconciliation_results
+
+Suggested columns:
+
+id
+
+transaction_id
+
+invoice_ids
+
+confidence_score
+
+matched_amount
+
+missing_amount
+
+status
+
+explanation
+
+created_at
+
+---
+
+# CREATE API ENDPOINTS
+
+POST /api/ai/reconciliation/analyse
+
+GET /api/ai/reconciliation/:transactionId
+
+POST /api/ai/reconciliation/approve
+
+---
+
+# CREATE A RECONCILIATION SERVICE
+
+The service should expose:
+
+analyseTransaction()
+
+findMatchingInvoices()
+
+calculateConfidence()
+
+findInvoiceCombinations()
+
+detectOverpayment()
+
+generateRecommendation()
+
+---
+
+# CREATE AN AI ACCOUNTANT DASHBOARD WIDGET
+
+Create a new dashboard widget:
+
+AI Accountant Review
+
+Display:
+
+--------------------------------------------------
+
+5 unreconciled transactions
+
+3 overdue invoices
+
+2 duplicate payments detected
+
+£700 missing revenue identified
+
+4 transactions need categorisation
+
+--------------------------------------------------
+
+---
+
+# ADD AN AI CATEGORISE FEATURE
+
+Examples:
+
+AMAZON BUSINESS PURCHASE
+
+↓
+
+Office Supplies
+
+85% confidence
+
+---
+
+SHELL UK
+
+↓
+
+Fuel Expense
+
+97% confidence
+
+---
+
+ADOBE
+
+↓
+
+Software Subscription
+
+98% confidence
+
+---
+
+# ADD AN AI INSIGHTS PANEL
+
+Display:
+
+Revenue increased 18% this month.
+
+Office expenses increased 24%.
+
+5 invoices are overdue.
+
+Gross profit margin fell by 3%.
+
+Software subscriptions increased by £140.
+
+---
+
+# AI ACCOUNTANT RULES
+
+The AI must NEVER:
+
+❌ Post transactions
+
+❌ Create journals automatically
+
+❌ Create invoices automatically
+
+❌ Delete records
+
+❌ Submit VAT returns
+
+❌ Modify historical transactions
+
+The AI may ONLY:
+
+✅ Analyse
+
+✅ Suggest
+
+✅ Explain
+
+✅ Recommend
+
+✅ Prepare actions
+
+The user must always approve the final action.
+
+---
+
+# IMPORTANT
+
+Before writing any code:
+
+1. Examine the existing codebase.
+
+2. Reuse all existing AI services.
+
+3. Reuse all existing reconciliation components.
+
+4. Identify existing banking services.
+
+5. Identify existing invoice services.
+
+6. Identify existing database models.
+
+7. Follow the current Ledgerly design system.
+
+8. Do not duplicate existing code.
+
+9. Minimise changes to the current architecture.
+
+10. Implement everything in a single pass wherever possible to minimise token usage.
