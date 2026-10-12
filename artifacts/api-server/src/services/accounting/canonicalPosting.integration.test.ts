@@ -1026,6 +1026,8 @@ test("owner journal locks serialize transactions without API mutation privileges
     "DELETE FROM public.canonical_journal_entries WHERE id=$1",
   ]) await expectDatabaseCode(() => pool.query(query, [journal.journalId]), "42501");
   await expectDatabaseCode(() => pool.query("TRUNCATE public.canonical_journal_entries"), "42501");
+  await expectDatabaseCode(() => pool.query(
+    "CREATE TEMP TABLE canonical_journal_entries (id uuid, company_id uuid)"), "42501");
   assert.deepEqual((await pool.query("SELECT row_to_json(j) AS journal FROM public.canonical_journal_entries j WHERE id=$1",
     [journal.journalId])).rows[0]?.journal, before);
 
@@ -1036,11 +1038,8 @@ test("owner journal locks serialize transactions without API mutation privileges
       (await second.query("SELECT pg_backend_pid() AS pid")).rows[0].pid];
     assert.equal(new Set(backendPids).size, 2);
     await first.query("BEGIN");
-    await first.query("CREATE TEMP TABLE canonical_journal_entries (id uuid, company_id uuid) ON COMMIT DROP");
-    const shadowId = randomUUID();
-    await first.query("INSERT INTO pg_temp.canonical_journal_entries VALUES ($1,$2)", [shadowId, company.id]);
     await first.query("SET LOCAL search_path = pg_temp, public");
-    assert.equal((await first.query(lockSql, [company.id, shadowId])).rows[0]?.locked, false);
+    assert.equal((await first.query(lockSql, [company.id, randomUUID()])).rows[0]?.locked, false);
     assert.equal((await first.query(lockSql, [company.id, journal.journalId])).rows[0]?.locked, true);
     await second.query("BEGIN");
     await second.query("SET LOCAL lock_timeout = '150ms'");
