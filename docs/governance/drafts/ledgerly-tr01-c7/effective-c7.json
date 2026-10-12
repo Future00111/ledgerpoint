@@ -1,0 +1,36 @@
+[
+  {
+    "type": "deletion",
+    "ruleset_source_type": "Repository",
+    "ruleset_source": "Future00111/ledgerpoint",
+    "ruleset_id": 24941779
+  },
+  {
+    "type": "non_fast_forward",
+    "ruleset_source_type": "Repository",
+    "ruleset_source": "Future00111/ledgerpoint",
+    "ruleset_id": 24941779
+  },
+  {
+    "type": "update",
+    "ruleset_source_type": "Repository",
+    "ruleset_source": "Future00111/ledgerpoint",
+    "ruleset_id": 24941779
+  },
+  {
+    "type": "required_status_checks",
+    "parameters": {
+      "strict_required_status_checks_policy": true,
+      "do_not_enforce_on_create": true,
+      "required_status_checks": [
+        {
+          "context": "tr01/c7-identity-validation",
+          "integration_id": 15368
+        }
+      ]
+    },
+    "ruleset_source_type": "Repository",
+    "ruleset_source": "Future00111/ledgerpoint",
+    "ruleset_id": 24941779
+  }
+]

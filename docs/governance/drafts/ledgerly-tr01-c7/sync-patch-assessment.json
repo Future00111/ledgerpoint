@@ -1,0 +1,56 @@
+{
+  "assessmentOnly": true,
+  "patchesNotApplied": true,
+  "runtimePathCount": 14,
+  "runtimePaths": [
+    ".ci/ledgerly-canonical/Dockerfile.test",
+    ".github/workflows/ledgerly-canonical-postgresql.yml",
+    "artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs",
+    "artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts",
+    "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
+    "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json",
+    "scripts/ci/ledgerly-external-binding-regression.test.mjs",
+    "scripts/ci/ledgerly-nested-offline-review.mjs",
+    "scripts/ci/ledgerly-offline-pnpm.test.mjs",
+    "scripts/ci/ledgerly-schema-push-regression.test.mjs",
+    "scripts/ci/run-ledgerly-canonical-postgresql.mjs",
+    "scripts/ci/run-ledgerly-canonical-postgresql.test.mjs",
+    "scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql",
+    "scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql"
+  ],
+  "runtimeSource": "787d76decfa345e3c1104231e08d5ab00bc90259",
+  "producerSource": "0da401737f35d68b9404982baad7405fe997636a",
+  "producerFiles": [
+    {
+      "path": ".github/workflows/ledgerly-tr01-c7-identity-status.yml",
+      "inMain": true,
+      "mainSha256": "cddd33da87d3a21bdc29436d225b863850da44aa241df5381d858f307759c2d7",
+      "workspaceExists": false,
+      "workspaceMatchesMain": false
+    },
+    {
+      "path": "scripts/ci/ledgerly-tr01-c7-identity-status.mjs",
+      "inMain": true,
+      "mainSha256": "00f2db5314a8551572f5ecd3b576d2112af95244f5178e83aa1673e639b13ba3",
+      "workspaceExists": false,
+      "workspaceMatchesMain": false
+    },
+    {
+      "path": "scripts/ci/ledgerly-tr01-c7-identity-status.test.mjs",
+      "inMain": true,
+      "mainSha256": "85a2846584fe423b2ee03b96a3b0c3bc8ab9c36dacfc8aec60818769550b0bcd",
+      "workspaceExists": false,
+      "workspaceMatchesMain": false
+    }
+  ],
+  "incomingProducerPaths": [
+    ".github/workflows/ledgerly-tr01-c7-identity-status.yml",
+    "scripts/ci/ledgerly-tr01-c7-identity-status.mjs",
+    "scripts/ci/ledgerly-tr01-c7-identity-status.test.mjs"
+  ],
+  "candidateSourceHasNoLocalSourceChangesSinceCommonAncestor": true,
+  "runtimePatchApplyCheckPassed": true,
+  "producerPatchApplyCheckPassed": true,
+  "historicalReportsExcluded": true,
+  "generatedEvidenceDirectory": "generated-artifacts/ledgerly-c7-verification"
+}

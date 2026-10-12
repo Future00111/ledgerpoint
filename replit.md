@@ -4,6 +4,19 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Ledgerly governance
 
+### Current development qualification and workspace status
+
+Exact frozen C7 `787d76decfa345e3c1104231e08d5ab00bc90259` passed GitHub
+development qualification, run `38284785813` attempt 1: 6 accounting tests,
+18 negative controls and all five cleanup checks. Evidence and source digests
+were independently verified. Main contains the separate producer at
+`0da401737f35d68b9404982baad7405fe997636a`; qualified runtime fixes remain on C7.
+This workspace has **not** imported those runtime/producer changes.
+See [verification and synchronization assessment](docs/governance/drafts/ledgerly-tr01-c7-verification-report.md)
+and [current next actions](docs/governance/drafts/ledgerly-tr01-c7-next-actions.md).
+Preserve frozen candidates and local work. This is development qualification
+only, not production readiness, governance activation or Phase A authorization.
+
 For Ledgerly product and implementation decisions, use the active governance documents under `artifacts/ledgerly/src/docs/` and the planning records under `docs/`.
 
 Authority order:

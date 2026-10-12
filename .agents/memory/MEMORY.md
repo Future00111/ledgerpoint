@@ -12,7 +12,7 @@
 - [Source-freshness governance](source-freshness-governance.md) — freshness is a cross-cutting posting-safety gate, not silently part of the approved DEC-12 payment policy.
 - [Canonical test isolation](canonical-test-isolation.md) — immutable accounting tests need rollback isolation or a disposable DB; never restore DELETE solely for teardown.
 - [Disposable test administration](disposable-test-administration.md) — canonical disposable runs require an ephemeral postgres channel; normal managed SQL authenticates only as ledgerly_api.
-- [TR-01 preserved-candidate pause](tr01-preserved-candidate-pause.md) — immutable C is published; qualification remains gated and accounting core stays frozen.
+- [TR-01 preserved-candidate pause](tr01-preserved-candidate-pause.md) — preserve frozen candidates; development qualification does not authorize activation or Phase A.
 - [Qualification exception drafting](qualification-exception-drafting.md) — state which gates remain and make protection removal conditional on later approval.
 - [GitHub ruleset verification](github-ruleset-verification.md) — check effective rules, not just protected flags; repository admin status does not prove connector ruleset-write access.
 - [Evidence provenance trust](evidence-provenance-trust.md) — branded expected digests are insufficient if callers can choose the roots or environment that mint the brand.

@@ -2,6 +2,12 @@
 
 Producer PR #15 merged; C4 protected and published; identity passed; Environment switched to exact C4. Fresh qualification 37677799309 attempt 1 failed at nested pnpm offline resolution. Cleanup verified. No retry performed. See [full live report](ledgerly-tr01-c4-live-execution-report.md).
 
+Latest status: exact C7 development qualification has now been independently
+verified from GitHub evidence. See the
+[C7 verification report](ledgerly-tr01-c7-verification-report.md) and
+[current next actions](ledgerly-tr01-c7-next-actions.md). The following C4/C5
+sequence is historical; do not repeat its dispatch or live-configuration steps.
+
 The C5 repair/preparation stage subsequently cleared binding replay on a
 supported isolated diagnostic runner and normally merged only the separate
 producer, recording actual M5. See the

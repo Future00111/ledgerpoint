@@ -1,0 +1,17 @@
+{
+  "total_count": 2,
+  "branch_policies": [
+    {
+      "id": 61652671,
+      "node_id": "MDE2OkdhdGVCcmFuY2hQb2xpY3k2MTY1MjY3MQ==",
+      "name": "main",
+      "type": "branch"
+    },
+    {
+      "id": 61652697,
+      "node_id": "MDE2OkdhdGVCcmFuY2hQb2xpY3k2MTY1MjY5Nw==",
+      "name": "tr01/implementation-identity-successor-c7",
+      "type": "branch"
+    }
+  ]
+}
