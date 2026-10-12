@@ -180,6 +180,13 @@ try {
       rmSync(path.join("/tmp", dir), { recursive: true, force: true });
     for (const directory of [original, candidate, producer]) {
       rmSync(path.join(directory, ".ci/ledgerly-canonical/source-manifest.json"), { force: true });
+      // Main's older ignore file does not ignore TypeScript's incremental
+      // caches. Remove only these generated, untracked typecheck outputs.
+      for (const file of ["artifacts/api-server/.tsbuildinfo", "lib/api-client-react/tsconfig.tsbuildinfo",
+        "lib/api-zod/tsconfig.tsbuildinfo", "lib/db/tsconfig.tsbuildinfo", "scripts/tsconfig.tsbuildinfo"]) {
+        if (run("git", ["ls-files", "--", file], { cwd: directory }) === "")
+          rmSync(path.join(directory, file), { force: true });
+      }
       assert.equal(run("git", ["status", "--porcelain", "--untracked-files=all"], { cwd: directory }), "");
     }
     record.finalCleanup = {
