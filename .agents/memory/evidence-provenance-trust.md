@@ -21,3 +21,16 @@ without exposing a production injection seam, run the same validator
 code inside isolated local fixture checkouts; separately assert that
 unbranded or aliased evidence maps cannot be accepted. A digest value
 alone cannot prove physical origin when two roles use identical bytes.
+
+Retain the original downloaded archive when a review package claims its
+byte-exact checksum; a later successful download is not a substitute for
+verifying that historical archive identity.
+
+**Why:** A package's qualification artifact and retained JSON/schema matched,
+but its separately recorded logs-archive checksum did not match fresh run or
+attempt-specific downloads, and the original log archive was absent.
+
+**How to apply:** Track artifact, individual evidence/schema and log-archive
+provenance separately. Preserve both expected and observed hashes on mismatch,
+do not assume either corruption or harmless repackaging, and reconcile the
+origin without rewriting frozen evidence or inferring an accounting failure.
