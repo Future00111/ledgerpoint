@@ -24,14 +24,14 @@ jobs:
       - name: Checkout exact ordinary C6 review candidate
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 12df9aa93deb9814c3d4b1d8ab3cd5d3cb2d9258
+          ref: 99f5d97b96f7065d08f3ac09627cceea0398ebcc
           path: .local/c6-candidate
           fetch-depth: 0
           persist-credentials: false
       - name: Checkout separate C6 producer review source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 98f8e52d6b845ec4dd0820612e49e90fb2dce974
+          ref: 7822dd42d18f65f60968b375ae3c458dc8adcfcf
           path: .local/c6-producer
           fetch-depth: 0
           persist-credentials: false

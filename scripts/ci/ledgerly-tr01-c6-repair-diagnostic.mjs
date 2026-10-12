@@ -11,7 +11,7 @@ const candidate = path.resolve(".local/c6-candidate");
 const producer = path.resolve(".local/c6-producer");
 const output = path.resolve("generated-artifacts/c6-repair-diagnostic");
 const oldImage = "ledgerly-c5-module-reproduction:3a5c6e1";
-const newImage = "ledgerly-c6-module-review:12df9aa";
+const newImage = "ledgerly-c6-module-review:99f5d97";
 const postgres = "postgres:16.15-bookworm@sha256:bb3e1a57e5407e0a5280b4211980a5e537f4abd234a87014ac979849a78dd825";
 const host = { PATH: process.env.PATH, HOME: process.env.HOME,
   COREPACK_ENABLE_AUTO_PIN: "0", COREPACK_DEFAULT_TO_LATEST: "0" };
@@ -106,10 +106,10 @@ try {
   for (const kind of ["containers", "networks", "images"]) assert.deepEqual(residual(kind), []);
   const old = verifySource(original, "3a5c6e1318b49edcdc7f0f918d3a01813f960e71",
     "3f2e22ccceb70ea50034b41af352a125b63cf127", "6e8255949c3da130561f781614785f692796b621", "c5");
-  const fresh = verifySource(candidate, "12df9aa93deb9814c3d4b1d8ab3cd5d3cb2d9258",
-    "f74c079e63cc3600398dcfa97a57a506287455b5", "39d598341c085ad8ff058f2db4663fc5fee9eaea", "c6");
-  verifySource(producer, "98f8e52d6b845ec4dd0820612e49e90fb2dce974",
-    "eb069529a80ee8cec03b9b2e8fe4ae52b0d053f8", "82e122115b99a6c206b5bd07743331398cae6bbe", "producer");
+  const fresh = verifySource(candidate, "99f5d97b96f7065d08f3ac09627cceea0398ebcc",
+    "97adb531740e91c1084993a7a27d55138ec93888", "bae76f712fa16cdd1a51cc1c1375adee0241fc7c", "c6");
+  verifySource(producer, "7822dd42d18f65f60968b375ae3c458dc8adcfcf",
+    "a387e02e83f18acb3e71322444259ff7703be3b8", "82e122115b99a6c206b5bd07743331398cae6bbe", "producer");
   for (const file of ["scripts/ci/run-ledgerly-canonical-postgresql.mjs",
     "artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs",
     "scripts/ci/ledgerly-nested-offline-review.mjs", "scripts/ci/ledgerly-offline-pnpm.test.mjs",
