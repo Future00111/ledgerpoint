@@ -438,13 +438,13 @@ async function runExternalCi() {
   };
   if (
     !["candidate", "activated"].includes(ci.identityMode) ||
-    !["refs/heads/tr01/implementation-identity-successor-c6", "refs/heads/main"].includes(
+    !["refs/heads/tr01/implementation-identity-successor-c7", "refs/heads/main"].includes(
       ci.ciSourceRef,
     ) ||
     !/^[0-9a-f]{40}$/.test(ci.workflowSourceCommit) ||
     !/^[0-9a-f]{40}$/.test(ci.implementationSourceCommit) ||
     (ci.identityMode === "candidate" &&
-      (ci.ciSourceRef !== "refs/heads/tr01/implementation-identity-successor-c6" ||
+      (ci.ciSourceRef !== "refs/heads/tr01/implementation-identity-successor-c7" ||
         ci.workflowSourceCommit !== ci.implementationSourceCommit)) ||
     (ci.identityMode === "activated" && ci.ciSourceRef !== "refs/heads/main")
   ) {
@@ -531,6 +531,7 @@ async function runExternalCi() {
     testOutput.stdout,
     "LEDGERLY_NEGATIVE_PRIVILEGE_EVIDENCE ",
   );
+  const journalLockEvidence = extractMarker(testOutput.stdout, "LEDGERLY_JOURNAL_LOCK_EVIDENCE ");
   if (!concurrencyEvidence.overlapProven) {
     throw new Error("The concurrency barrier did not prove overlapping transactions");
   }
@@ -546,6 +547,7 @@ async function runExternalCi() {
       identityEvidence,
       concurrencyEvidence,
       negativePrivilegeEvidence,
+      journalLockEvidence,
       externalCiIsolation: {
         parentDatabaseUrlAbsent: true,
         replitVariablesAbsent: true,

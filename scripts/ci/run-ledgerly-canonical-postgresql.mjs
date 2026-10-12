@@ -8,7 +8,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const workflowRoot = path.resolve(process.env.LEDGERLY_WORKFLOW_ROOT ?? root);
 const implementationRoot = root;
-const candidateRef = "refs/heads/tr01/implementation-identity-successor-c6";
+const candidateRef = "refs/heads/tr01/implementation-identity-successor-c7";
 const mainRef = "refs/heads/main";
 const fullShaPattern = /^[0-9a-f]{40}$/;
 const postgresImage =
@@ -176,6 +176,7 @@ function run(command, args, { env, cwd = implementationRoot, input, timeoutMs, q
       if (code !== 0) {
         const detail = quiet ? "" : `: ${stderr.trim().slice(-500)}`;
         const error = new Error(`${command} exited with status ${code}${detail}`);
+        error.stdout = stdout;
         error.stderr = stderr;
         return reject(error);
       }
@@ -187,6 +188,41 @@ function run(command, args, { env, cwd = implementationRoot, input, timeoutMs, q
 
 async function docker(args, options = {}) {
   return run("docker", args, options);
+}
+
+// Drizzle can print a PostgreSQL error and still exit zero. Inspect both
+// streams, recover only the known FK/index ordering case, then require a
+// clean second push before ownership or runtime permissions are applied.
+export async function pushSchemaToConvergence(push, ensurePrerequisiteIndex) {
+  const attempt = async () => {
+    let failed = false;
+    let output;
+    try {
+      const result = await push();
+      output = `${result.stdout ?? ""}\n${result.stderr ?? ""}`;
+    } catch (error) {
+      failed = true;
+      output = typeof error.stdout === "string" || typeof error.stderr === "string"
+        ? `${error.stdout ?? ""}\n${error.stderr ?? ""}` : String(error);
+    }
+    output = output.replace(/\x1b\[[0-9;]*[A-Za-z]/g, "");
+    const headers = [...output.matchAll(/^\s*(?:error|fatal|panic):\s*(.+)$/gmi)]
+      .map((match) => match[1].trim());
+    const reported = headers.length > 0 || /severity:\s*['"](?:ERROR|FATAL|PANIC)['"]/i.test(output);
+    const codes = [...output.matchAll(/\bcode:\s*['"]([0-9A-Z]{5})['"]/g)].map((match) => match[1]);
+    const severities = [...output.matchAll(/severity:\s*['"]([A-Z]+)['"]/g)].map((match) => match[1]);
+    const ordering = headers.length > 0 && headers.every((header) =>
+      /^there is no unique constraint matching given keys for referenced table "accounting_posting_effects"$/.test(header)) &&
+      codes.every((code) => code === "42830") && severities.every((severity) => severity === "ERROR");
+    return { failed: failed || reported, ordering };
+  };
+  const first = await attempt();
+  if (!first.failed) return { recoveredOrdering: false, pushes: 1 };
+  if (!first.ordering) throw new Error("Drizzle bootstrap failed outside the approved FK/index ordering case");
+  await ensurePrerequisiteIndex();
+  const second = await attempt();
+  if (second.failed) throw new Error("Drizzle bootstrap did not converge after the approved prerequisite index");
+  return { recoveredOrdering: true, pushes: 2 };
 }
 
 function assertPinnedImage(image, label) {
@@ -692,33 +728,14 @@ async function bootstrapDatabase(credentials, sourceDigests, ci) {
     "run",
     "push",
   ];
-  let pushFailed = false;
-  let pushOutput = "";
-  try {
-    const result = await docker(pushArgs, {
-      env: schemaEnv,
-      timeoutMs: 4 * 60 * 1000,
-    });
-    pushOutput = `${result.stdout}\n${result.stderr}`;
-  } catch (error) {
-    pushFailed = true;
-    pushOutput = String(error);
-  }
-  if (pushFailed) {
-    if (
-      !pushOutput.includes("no unique constraint matching given keys for referenced table") ||
-      !pushOutput.includes("accounting_posting_effects") ||
-      !pushOutput.includes("economic_effect_id")
-    ) {
-      throw new Error("Drizzle bootstrap failed outside the approved FK/index ordering case");
-    }
-    await adminSql(
+  const schemaPush = await pushSchemaToConvergence(
+    () => docker(pushArgs, { env: schemaEnv, timeoutMs: 4 * 60 * 1000 }),
+    () => adminSql(
       state.databaseName,
       `CREATE UNIQUE INDEX IF NOT EXISTS accounting_posting_effects_company_effect_idx
        ON public.accounting_posting_effects (company_id, economic_effect_id);`,
-    );
-    await docker(pushArgs, { env: schemaEnv, timeoutMs: 4 * 60 * 1000 });
-  }
+    ),
+  );
 
   const overlay = await readFile(
     path.join(implementationRoot, sourcePaths.securityOverlay),
@@ -744,6 +761,16 @@ async function bootstrapDatabase(credentials, sourceDigests, ci) {
         JOIN pg_roles role ON role.oid = m.roleid
         WHERE member.rolname IN ('ledgerly_api', 'ledgerly_canonical_owner')),
        'schemaAcl', (SELECT nspacl::text FROM pg_namespace WHERE nspname = 'ledgerly_test_control'),
+       'journalLock', (SELECT json_build_object(
+         'owner', pg_get_userbyid(p.proowner), 'securityDefiner', p.prosecdef,
+         'volatile', p.provolatile = 'v', 'searchPath', p.proconfig,
+         'apiExecute', has_function_privilege('ledgerly_api', p.oid, 'EXECUTE'),
+         'publicExecute', EXISTS (SELECT 1 FROM aclexplode(COALESCE(p.proacl, acldefault('f', p.proowner))) a
+           WHERE a.grantee = 0 AND a.privilege_type = 'EXECUTE'),
+         'apiUpdate', has_any_column_privilege('ledgerly_api', 'public.canonical_journal_entries', 'UPDATE'),
+         'apiDelete', has_table_privilege('ledgerly_api', 'public.canonical_journal_entries', 'DELETE'),
+         'apiTruncate', has_table_privilege('ledgerly_api', 'public.canonical_journal_entries', 'TRUNCATE')
+       ) FROM pg_proc p WHERE p.oid = to_regprocedure('public.ledgerly_lock_canonical_journal(uuid,uuid)')),
        'protectedOwners', (SELECT json_agg(json_build_object(
          'table', c.relname, 'owner', pg_get_userbyid(c.relowner), 'acl', c.relacl::text
        ) ORDER BY c.relname) FROM pg_class c
@@ -785,6 +812,16 @@ async function bootstrapDatabase(credentials, sourceDigests, ci) {
           'public.canonical_journal_relations'::regclass,
           'public.accounting_audit_events'::regclass
         )),
+       'relationForeignKeys', (SELECT json_agg(json_build_object(
+         'name', conname, 'validated', convalidated
+       ) ORDER BY conname) FROM pg_constraint
+        WHERE connamespace = 'public'::regnamespace AND contype = 'f'
+          AND conname IN (
+            'canonical_journal_lines_entry_fk', 'canonical_journal_lines_account_fk',
+            'canonical_journal_relations_original_fk', 'canonical_journal_relations_related_fk',
+            'canonical_journal_relations_effect_fk', 'accounting_audit_events_journal_fk',
+            'accounting_audit_events_effect_fk'
+          )),
        'indexes', (SELECT json_agg(indexrelid::regclass::text ORDER BY indexrelid::regclass::text)
         FROM pg_index WHERE indrelid = 'public.accounting_posting_effects'::regclass),
        'emptyBaseline', (SELECT bool_and(row_count = 0) FROM (VALUES
@@ -810,7 +847,18 @@ async function bootstrapDatabase(credentials, sourceDigests, ci) {
   ) {
     throw new Error("TI-03 administrative bootstrap verification failed");
   }
-  return { ...bootstrap, adminIdentity: identity };
+  if (bootstrap.relationForeignKeys?.length !== 7 ||
+      bootstrap.relationForeignKeys.some((constraint) => constraint.validated !== true)) {
+    throw new Error("TI-03 schema push did not install all validated company-scoped foreign keys");
+  }
+  const lock = bootstrap.journalLock;
+  if (lock?.owner !== "ledgerly_canonical_owner" || lock.securityDefiner !== true ||
+      lock.volatile !== true || lock.apiExecute !== true || lock.publicExecute !== false ||
+      lock.apiUpdate !== false || lock.apiDelete !== false || lock.apiTruncate !== false ||
+      lock.searchPath?.length !== 1 || !/^search_path=pg_catalog,\s*pg_temp$/.test(lock.searchPath[0])) {
+    throw new Error("TI-03 journal row-lock ownership or least-privilege boundary is invalid");
+  }
+  return { ...bootstrap, adminIdentity: identity, schemaPush };
 }
 
 async function runNegativeControls() {
@@ -1194,6 +1242,10 @@ function assertJsonSchemaEvidence(value) {
 }
 
 async function buildTrustedEvidenceContext(ci, manifest) {
+  if (manifest?.version !== 2 || Object.hasOwn(manifest, "reviewOnly") ||
+      Object.hasOwn(manifest, "notQualificationEvidence") || Object.hasOwn(manifest, "fixturePurpose")) {
+    throw new Error("Trusted implementation source manifest is unavailable or invalid");
+  }
   const context = assertTrustedWorkflowContext();
   const identity = await verifyIdentityRoots(context.mode, context.implementationSha);
   const verifiedCi = buildCiIdentity({ ...context, ...identity });
@@ -1201,7 +1253,6 @@ async function buildTrustedEvidenceContext(ci, manifest) {
     throw new Error("Evidence source identity changed after preflight");
   }
   if (
-    manifest?.version !== 2 ||
     manifest.identityMode !== ci.identityMode ||
     manifest.implementationSourceCommit !== ci.implementationSourceCommit ||
     !Array.isArray(manifest.files) ||
@@ -1404,6 +1455,14 @@ async function main() {
   }
   negativeControls.roleEscalation = true;
   negativeControls.triggerDisable = true;
+  const journalLockEvidence = completion.journalLockEvidence;
+  if (journalLockEvidence?.functionOwner !== "ledgerly_canonical_owner" ||
+      journalLockEvidence.callerHasUpdate !== false || journalLockEvidence.scopedLookupsRejected !== true ||
+      journalLockEvidence.directMutationDenied !== true || journalLockEvidence.temporaryShadowRejected !== true ||
+      journalLockEvidence.transactionalRowLockProven !== true || journalLockEvidence.backendPids?.length !== 2 ||
+      new Set(journalLockEvidence.backendPids).size !== 2) {
+    throw new Error("Owner-mediated journal row-lock evidence was incomplete");
+  }
   await cleanupDatabase();
   await removeCredentialMaterial();
   const evidence = {
@@ -1449,6 +1508,9 @@ async function main() {
       privateBinding: bootstrap.privateRunRows === 1,
       functions: bootstrap.functions,
       memberships: bootstrap.memberships,
+      schemaPush: bootstrap.schemaPush,
+      relationForeignKeys: bootstrap.relationForeignKeys,
+      journalLock: bootstrap.journalLock,
     },
     runtime: {
       databaseName: completion.databaseName,
@@ -1460,6 +1522,7 @@ async function main() {
       concurrencyEvidence: completion.concurrencyEvidence,
       testIdentity: completion.identityEvidence,
       negativePrivilegeEvidence: completion.negativePrivilegeEvidence,
+      journalLockEvidence,
     },
     negativeControls,
     cleanup: {
