@@ -1,0 +1,114 @@
+{
+  "reviewType": "AI only, not human approval",
+  "reviewedPrHead": "ecfd853daed4b51344f751e9d3afb4136d202719",
+  "priorReviewCommit": "9496b2f2c40b64e1dc7a46fa604ae566c5d2c8ba",
+  "originalAndFreshArchives": {
+    "original": {
+      "sha256": "bbf0b248bde5938492a5189fd1d12d9383ab11866a2835262c38d5812c557f06",
+      "bytes": 25797,
+      "members": 9
+    },
+    "fresh": {
+      "sha256": "f61c2abb73f30412af4918ab82f36c2f3a7abc804c6ebe6a0d0b344db5656b52",
+      "bytes": 11928,
+      "members": 2
+    }
+  },
+  "allMemberSizesHashesAndZipIntegrityVerified": true,
+  "sharedRawLogMembersByteExact": 2,
+  "freshArchiveMatchesBothPriorAuthenticatedDownloads": true,
+  "normalizedStepCoverage": [
+    {
+      "member": "Disposable canonical PostgreSQL qualification/12_Post Checkout reviewed source.txt",
+      "combinedStartLine": 441,
+      "lines": 10,
+      "normalizedSha256": "0f60a0b1042dd05b37e422830c4b0781f4e716d6029ebd671edb91c52d9652e6"
+    },
+    {
+      "member": "Disposable canonical PostgreSQL qualification/13_Complete job.txt",
+      "combinedStartLine": 451,
+      "lines": 2,
+      "normalizedSha256": "9ecbfd68dceb8178e6e940608416ec552b1b3661df0339f83f459ea0b07048a3"
+    },
+    {
+      "member": "Disposable canonical PostgreSQL qualification/1_Set up job.txt",
+      "combinedStartLine": 1,
+      "lines": 33,
+      "normalizedSha256": "bdb62930d4acae5a20721bdcdb29883226d78d0fd5340eb33392428f16ed780a"
+    },
+    {
+      "member": "Disposable canonical PostgreSQL qualification/2_Checkout reviewed source.txt",
+      "combinedStartLine": 34,
+      "lines": 137,
+      "normalizedSha256": "6b9353cc1ec1991c174ab1112154998cfcf080d6a83beb8dbfb3d4d075e2a594"
+    },
+    {
+      "member": "Disposable canonical PostgreSQL qualification/4_Install pinned evidence validator.txt",
+      "combinedStartLine": 171,
+      "lines": 12,
+      "normalizedSha256": "7062dec384a1bc0ee3b5a41c18ff0f3f6b71552301db26e4bbd8cf2b92b13b75"
+    },
+    {
+      "member": "Disposable canonical PostgreSQL qualification/5_Run TI-03 qualification.txt",
+      "combinedStartLine": 183,
+      "lines": 233,
+      "normalizedSha256": "071fc245210f00ef8483448ef5be91edf77f07fbe7ace464a4f8ae1f2ea10fcc"
+    },
+    {
+      "member": "Disposable canonical PostgreSQL qualification/6_Upload non-secret TI-03 evidence.txt",
+      "combinedStartLine": 416,
+      "lines": 25,
+      "normalizedSha256": "daa67439c6e63372250eba581bbd03b524c36d320fde3862bafbe008448ee7b9"
+    }
+  ],
+  "combinedLogLines": 452,
+  "accountingCounts": {
+    "tests": [
+      6
+    ],
+    "pass": [
+      6
+    ],
+    "fail": [
+      0
+    ],
+    "skipped": [
+      0
+    ]
+  },
+  "qualificationEvidenceSchemaAndPrototypeUnchanged": true,
+  "credentialMaterialPatternScan": "no matches; not a comprehensive secret audit",
+  "changedPrPaths": [
+    "docs/governance/drafts/ledgerly-tr01-c7-acceptance/evidence-index.json",
+    "docs/governance/drafts/ledgerly-tr01-c7-acceptance/log-archive-reconciliation.json",
+    "docs/governance/drafts/ledgerly-tr01-c7-acceptance/logs/fresh-qualification-logs.zip",
+    "docs/governance/drafts/ledgerly-tr01-c7-acceptance/logs/original-qualification-logs.zip",
+    "docs/governance/drafts/ledgerly-tr01-c7-acceptance/preparation-validation.json",
+    "docs/governance/drafts/ledgerly-tr01-c7-final-acceptance-proposal.md",
+    "docs/governance/drafts/ledgerly-tr01-c7-log-archive-reconciliation.md",
+    "docs/governance/drafts/ledgerly-tr01-c7-next-actions.md"
+  ],
+  "exactImportedPrFileSha256": {
+    "docs/governance/drafts/ledgerly-tr01-c7-acceptance/evidence-index.json": "f3b8928e5c8b893601eb2fd5b469c1340a32a2d1f8889f3573331a6c949e1849",
+    "docs/governance/drafts/ledgerly-tr01-c7-acceptance/log-archive-reconciliation.json": "aa45510b58bbd4314ffbfaaa01525812fee8078031847ecaa1dc79c24b532b04",
+    "docs/governance/drafts/ledgerly-tr01-c7-acceptance/logs/fresh-qualification-logs.zip": "f61c2abb73f30412af4918ab82f36c2f3a7abc804c6ebe6a0d0b344db5656b52",
+    "docs/governance/drafts/ledgerly-tr01-c7-acceptance/logs/original-qualification-logs.zip": "bbf0b248bde5938492a5189fd1d12d9383ab11866a2835262c38d5812c557f06",
+    "docs/governance/drafts/ledgerly-tr01-c7-acceptance/preparation-validation.json": "f5f1b0d373663e8f383139a480195cd76e399e5de0dcece0250c6f7f3724458d",
+    "docs/governance/drafts/ledgerly-tr01-c7-final-acceptance-proposal.md": "049ce7adb02cbe633549f1b1e10b19d4f534c8f08180001f02e0e51cf1588876",
+    "docs/governance/drafts/ledgerly-tr01-c7-log-archive-reconciliation.md": "33071b972e68263626b5dd6f6c596b75b8329c779a498a2a32181768b6e7a600",
+    "docs/governance/drafts/ledgerly-tr01-c7-next-actions.md": "31da5f411f4e720b4cb775b4bc14e16186f7f8e3100b3b6fcaac49de09104d11"
+  },
+  "finding": "P25-E1 resolved by retained original archive, exact raw shared log equality and full normalized step coverage",
+  "remainingApprovalGatesPending": true,
+  "gitHubInternalExportReasonNotEstablished": true,
+  "newQualificationRun": false,
+  "mergePerformed": false,
+  "deploymentPerformed": false,
+  "findingId": "P25-E1",
+  "findingStatus": "RESOLVED",
+  "originalReviewPreserved": true,
+  "independentHumanApproval": false,
+  "finalIdentityDesignationGranted": false,
+  "activationApproved": false,
+  "qualificationAppliesOnlyTo": "787d76decfa345e3c1104231e08d5ab00bc90259"
+}

@@ -38,7 +38,12 @@
     "logsArchiveSha256": "bbf0b248bde5938492a5189fd1d12d9383ab11866a2835262c38d5812c557f06",
     "originalEvidencePath": "docs/governance/evidence/ledgerly-44-ti-03-e91f7ef1-4da2-4c08-b16b-5028c429f296.json",
     "retainedEvidencePath": "qualification-evidence.json",
-    "retainedSchemaPath": "qualification-evidence.schema.json"
+    "retainedSchemaPath": "qualification-evidence.schema.json",
+    "retainedOriginalLogsArchivePath": "logs/original-qualification-logs.zip",
+    "freshLogsArchiveSha256": "f61c2abb73f30412af4918ab82f36c2f3a7abc804c6ebe6a0d0b344db5656b52",
+    "retainedFreshLogsArchivePath": "logs/fresh-qualification-logs.zip",
+    "logArchiveReconciliation": "log-archive-reconciliation.json",
+    "logsArchiveSha256Scope": "SHA-256 of retained original nine-member download; not expected to equal every later GitHub ZIP export"
   },
   "results": {
     "accountingTests": {

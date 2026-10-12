@@ -34,3 +34,8 @@ attempt-specific downloads, and the original log archive was absent.
 provenance separately. Preserve both expected and observed hashes on mismatch,
 do not assume either corruption or harmless repackaging, and reconcile the
 origin without rewriting frozen evidence or inferring an accounting failure.
+If the original archive is subsequently supplied, verify its historical
+checksum, shared raw members and any explicitly normalized payload comparison;
+preserve the earlier finding as history and supersede only its disposition.
+Resolving archive provenance does not satisfy independent review or activation
+approval gates.
