@@ -11,6 +11,7 @@ const parent = "6e8255949c3da130561f781614785f692796b621";
 const source = path.resolve(process.argv[2]);
 const output = path.resolve("generated-artifacts/c5-binding-diagnostic");
 const image = "ledgerly-c5-binding-diagnostic:3a5c6e1";
+const postgres = "postgres:16.15-bookworm@sha256:bb3e1a57e5407e0a5280b4211980a5e537f4abd234a87014ac979849a78dd825";
 const env = { PATH: process.env.PATH, HOME: process.env.HOME };
 const sha = (bytes) => createHash("sha256").update(bytes).digest("hex");
 mkdirSync(output, { recursive: true });
@@ -98,6 +99,13 @@ try {
     "--tmpfs", "/tmp:rw,noexec,nosuid,nodev", image,
     "node", "--input-type=module", "-"], { input: imageCheck, log: "image-source-verification.log" });
   record.imageSourceVerified = true;
+  // Exact C5 deliberately uses --pull=never during the isolated DB phase.
+  // Prepare that pinned dependency before isolation on the fresh hosted VM.
+  run("docker", ["pull", postgres], { timeout: 90000, log: "postgres-image-preparation.log" });
+  record.postgresImageDigests = JSON.parse(run("docker", ["image", "inspect", postgres,
+    "--format", "{{json .RepoDigests}}"]));
+  assert.ok(record.postgresImageDigests.some((d) => d.endsWith(
+    "@sha256:bb3e1a57e5407e0a5280b4211980a5e537f4abd234a87014ac979849a78dd825")));
   const raw = run("node", ["scripts/ci/ledgerly-external-binding-regression.test.mjs",
     "--disposable-review", "--base-image", image], { timeout: 240000, log: "binding.log" });
   const result = JSON.parse(raw.match(/^\{\n[\s\S]*?^\}/m)?.[0] ?? "null");
@@ -125,6 +133,7 @@ try {
     for (const n of record.residualBeforeCleanup.networks) run("docker", ["network", "rm", n]);
     for (const i of record.residualBeforeCleanup.images) run("docker", ["image", "rm", i]);
     run("docker", ["image", "rm", image]);
+    if (record.postgresImageDigests) run("docker", ["image", "rm", postgres]);
     const dirs = readdirSync("/tmp").filter((n) => n.startsWith("ledgerly-binding-review-"));
     for (const dir of dirs) rmSync(path.join("/tmp", dir), { recursive: true, force: true });
     rmSync(path.join(source, ".ci/ledgerly-canonical/source-manifest.json"), { force: true });
@@ -134,6 +143,7 @@ try {
       derivedImages: list("images").length === 0,
       temporaryFixturesAndCredentials: !readdirSync("/tmp").some((n) => n.startsWith("ledgerly-binding-review-")),
       reviewImage: run("docker", ["images", "-q", image]) === "",
+      preparedPostgresImage: !record.postgresImageDigests || run("docker", ["images", "-q", postgres]) === "",
     };
     assert.ok(Object.values(record.finalCleanup).every(Boolean));
     assert.equal(run("git", ["status", "--porcelain", "--untracked-files=all"]), "");
