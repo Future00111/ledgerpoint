@@ -1,3 +1,12 @@
+## Superseding C7 status — 2026-10-12
+
+This C5 pending-action snapshot is historical and must not be replayed.
+Exact C7 qualification passed; the selective integration was committed and
+backed up. See [current next actions](ledgerly-tr01-c7-next-actions.md) and
+[acceptance proposal](ledgerly-tr01-c7-final-acceptance-proposal.md).
+The current instruction covers preparation only, not final identity approval,
+activation, control changes, another qualification or Phase A.
+
 # Current C5 next actions — binding passed, producer M5 recorded; live changes paused
 
 Authoritative completed outcome:

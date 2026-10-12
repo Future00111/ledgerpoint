@@ -1,0 +1,129 @@
+{
+  "status": "proposal only; no activation A or G created",
+  "mainBase": "0da401737f35d68b9404982baad7405fe997636a",
+  "candidate": "787d76decfa345e3c1104231e08d5ab00bc90259",
+  "integration": "085b7e0491d9adbbebcc7e8db384c575bcfa2aca",
+  "ancestry": {
+    "C7AncestorOfMain": false,
+    "C7AncestorOfIntegration": false,
+    "mainAncestorOfIntegration": false,
+    "commonAncestorMainAndC7": "b1eb9b22732cfefa79308a621198d8ce850a7c1c"
+  },
+  "C7VersusMain": {
+    "differentPaths": 1113,
+    "approvedInventoryPathsThatDiffer": [
+      ".github/workflows/ledgerly-canonical-postgresql.yml",
+      "docs/ledgerly-44-protected-github-baseline-ancestry-contract.md",
+      "docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-approval-package.md",
+      "docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-report.md",
+      "docs/ledgerly-44-tr-01-implementation-identity-recovery-amendment.md",
+      "docs/ledgerly-44-tr-01-implementation-identity-recovery-approval-record.md",
+      "docs/ledgerly-44-tr-01-implementation-identity-recovery-implementation-approval-package.md",
+      "docs/ledgerly-44-tr-01-implementation-identity-recovery-independent-review.md",
+      "docs/ledgerly-44-tr-01-transactional-authority-provider-approval-package.md",
+      "docs/ledgerly-current-decision-register.md"
+    ],
+    "outsideApprovedInventoryCount": 1103
+  },
+  "activationInventory": [
+    ".github/workflows/ledgerly-canonical-postgresql.yml",
+    "docs/ledgerly-44-tr-01-implementation-identity-recovery-amendment.md",
+    "docs/ledgerly-44-tr-01-implementation-identity-recovery-approval-record.md",
+    "docs/ledgerly-44-tr-01-implementation-identity-recovery-independent-review.md",
+    "docs/ledgerly-44-protected-github-baseline-ancestry-contract.md",
+    "docs/ledgerly-44-tr-01-implementation-identity-recovery-implementation-approval-package.md",
+    "docs/ledgerly-44-tr-01-transactional-authority-provider-approval-package.md",
+    "docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-approval-package.md",
+    "docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-report.md",
+    "docs/ledgerly-current-decision-register.md"
+  ],
+  "requiredTreeRule": "For every path outside activationInventory, A and reviewed G merge result must retain the exact main-base B blob and mode; absent paths remain absent. Runtime inputs execute from detached exact C7, not root G.",
+  "mergeSettings": {
+    "current": {
+      "allow_merge_commit": true,
+      "allow_squash_merge": true,
+      "allow_rebase_merge": true
+    },
+    "proposedAfterSeparateApproval": {
+      "allow_merge_commit": true,
+      "allow_squash_merge": false,
+      "allow_rebase_merge": false
+    }
+  },
+  "mainPullRequestReview": {
+    "currentRequiredApprovingReviewCount": 0,
+    "currentConversationResolution": false,
+    "proposedAfterSeparateApproval": {
+      "required_approving_review_count": 2,
+      "dismiss_stale_reviews": true,
+      "required_conversation_resolution": true,
+      "enforce_admins": true
+    }
+  },
+  "eligibleCurrentCollaborators": [
+    {
+      "login": "Future00111",
+      "type": "User"
+    }
+  ],
+  "environment": {
+    "name": "ledgerly-canonical",
+    "id": 20664477675,
+    "currentReviewer": "Future00111",
+    "currentPreventSelfReview": false,
+    "currentCandidatePin": "787d76decfa345e3c1104231e08d5ab00bc90259",
+    "admittedBranches": [
+      "main",
+      "tr01/implementation-identity-successor-c7"
+    ],
+    "proposedPinChange": null,
+    "activatedReviewPolicy": "requires separate resolution/approval; development owner exception does not authorize activated qualification"
+  },
+  "hostDependencyInputs": [
+    {
+      "path": "package.json",
+      "main": {
+        "blob": "7741c59de677b304c131e642d6f4c875ffc47c76",
+        "sha256": "95754747ac83618f266e36369038b5d66c5fcab50b970fb69b16179bab8c1af3"
+      },
+      "C7": {
+        "blob": "48414cc94bc1ddb34453b313686cb01926730665",
+        "sha256": "0d4368f69e61ebb0bf546e6e99c434d72ce6b0cf9b4cc7c39331214362349e96"
+      }
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "main": {
+        "blob": "0b871b49d8d8a10383c7707f0551addb3735a3a5",
+        "sha256": "3b8329fff64eab80ec5dfe8d875f80502789520faea4680d2fd0e7f0b4703f1b"
+      },
+      "C7": {
+        "blob": "0b871b49d8d8a10383c7707f0551addb3735a3a5",
+        "sha256": "3b8329fff64eab80ec5dfe8d875f80502789520faea4680d2fd0e7f0b4703f1b"
+      }
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "main": {
+        "blob": "5ef38e164ddaa55ab7b5655584ae7879c410bed6",
+        "sha256": "eec338c6be89704ee9518334ef8fd570a62dc931bbfdda6034db278bac0e7f45"
+      },
+      "C7": {
+        "blob": "5ef38e164ddaa55ab7b5655584ae7879c410bed6",
+        "sha256": "eec338c6be89704ee9518334ef8fd570a62dc931bbfdda6034db278bac0e7f45"
+      }
+    }
+  ],
+  "hostAjvVersion": "8.20.0",
+  "openGates": [
+    "fresh independent exact-C7 implementation/security review",
+    "separate final authoritative-identity approval",
+    "two fresh approvals of exact A against exact B or separately approved governance amendment",
+    "merge-commit-only repository setting and enforceable two-review protection approval/configuration",
+    "activated-run reviewer policy and specific execution approval",
+    "reviewed A/G tree and ancestry proof",
+    "full activated qualification and result review"
+  ],
+  "workflowPrototype": "proposed-activated-workflow.yml.txt",
+  "prototypeInstalledAsWorkflow": false
+}

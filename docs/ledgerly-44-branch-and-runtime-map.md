@@ -1,4 +1,27 @@
-# Ledgerly branch and runtime evidence map
+# Ledgerly branch/runtime map — current qualification and backup
+
+**2026-10-12 read-only source/control snapshot.** Current status supersedes
+pending C2/C5 operational statements. The older runtime/deployment observations
+are preserved below with their original date, not claimed as fresh tests.
+
+| Surface | Exact current identity | Meaning |
+| --- | --- | --- |
+| Qualified C7 | 787d76decfa345e3c1104231e08d5ab00bc90259 | Protected candidate; final designation pending |
+| Protected main B | 0da401737f35d68b9404982baad7405fe997636a | C7 producer source; older main qualification workflow; not C7 runtime |
+| Replit integration / GitHub backup I | 085b7e0491d9adbbebcc7e8db384c575bcfa2aca | Preserved composite, 17 byte-exact imports; not separately qualified |
+| Candidate qualification | 38284785813 attempt 1 | Passed with S=C7 and implementation C7 |
+| Activation A / G | Not created | Need C7 and B ancestry, constrained diff, approvals and ordinary merge |
+
+C7 is not an ancestor of B or I; B is not an ancestor of I. B/C7 differ on
+1,113 paths. A future main activation must retain B outside ten approved paths
+and execute the detached C7 implementation. Review the
+[activation proposal](governance/drafts/ledgerly-tr01-c7-protected-main-activation-proposal.md)
+and [exact evidence index](governance/drafts/ledgerly-tr01-c7-acceptance/evidence-index.json).
+No frozen source, main or live control was changed by this update.
+
+## Historical 2026-09-29 map — preserved
+
+### Ledgerly branch and runtime evidence map
 
 **Snapshot:** 2026-09-29, read-only Git/artifact inspection and Replit
 deployment-metadata lookup. No production endpoint or database was contacted.
