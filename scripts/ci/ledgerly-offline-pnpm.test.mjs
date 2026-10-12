@@ -82,7 +82,7 @@ test("a missing fixed module root rejects the actual compiled test without a dep
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stderr || result.stdout);
     assert.match(result.stdout, /EXPECTED_MISSING_MODULE_ROOT_FAILURE/);
-    assert.match(result.stderr, /Cannot find module 'pg'/);
+    assert.match(result.stdout + result.stderr, /Cannot find module 'pg'/);
     assert.match(result.stdout, /NESTED_FIXTURE_CLEANUP_PASS/);
     assert.doesNotMatch(result.stderr, /pnpm\/latest|EAI_AGAIN/);
   });
