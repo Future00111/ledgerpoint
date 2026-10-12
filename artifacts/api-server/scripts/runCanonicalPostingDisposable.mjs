@@ -479,6 +479,12 @@ async function runExternalCi() {
 
   const childEnvironment = {
     PATH: process.env.PATH,
+    // Child processes must use the image's prepared, read-only pinned cache.
+    // Do not inherit arbitrary parent settings or fall back to online latest.
+    COREPACK_HOME: "/opt/corepack",
+    COREPACK_DEFAULT_TO_LATEST: "0",
+    COREPACK_ENABLE_AUTO_PIN: "0",
+    COREPACK_ENABLE_NETWORK: "0",
     NODE_ENV: "test",
     DATABASE_URL: process.env.LEDGERLY_CANONICAL_TEST_DATABASE_URL,
     LEDGERLY_CANONICAL_TEST_DATABASE_NAME: databaseName,
