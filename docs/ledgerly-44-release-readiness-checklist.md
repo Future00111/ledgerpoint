@@ -1,4 +1,29 @@
-# Ledgerly release-readiness checklist — evidence snapshot
+# Ledgerly release readiness — current C7 evidence and remaining gates
+
+**2026-10-12: NOT RELEASE-READY.** The earlier C2 checklist is preserved below
+as historical evidence. Its pending C2 steps are superseded, not instructions
+for a new run. Current [acceptance](governance/drafts/ledgerly-tr01-c7-final-acceptance-proposal.md)
+and [activation](governance/drafts/ledgerly-tr01-c7-protected-main-activation-proposal.md)
+proposals record the remaining decisions without granting them.
+
+| Area | Current verified/reported state | Remaining gate |
+| --- | --- | --- |
+| Candidate TI-03 | Exact C7 qualification 38284785813 attempt 1 passed; 6 accounting, 18 negative controls, concurrency, five cleanup results; schema/source/run/image hashes independently verified | Fresh final exact-C7 review and separate authoritative-identity approval |
+| Replit sync and GitHub backup | I=085b7e0491d9adbbebcc7e8db384c575bcfa2aca backed up; 17 imports byte-exact; Replit reports typecheck and 56 non-DB tests passed | Composite I is not qualified C7 or activation A |
+| Protected-main activation | Main B=0da401737f35d68b9404982baad7405fe997636a; C7 is not its ancestor | Approved ten-path A/B tree, two exact-A/B approvals, merge-only configuration, normal merge G and parent/ancestry proof |
+| Review/control feasibility | One collaborator; main has no required PR approval count; squash/rebase enabled; Environment owner-only reviewer/self-review false | Resolve/approve activated review policy and separate control changes; development exception does not transfer |
+| Activated qualification | No G or activated C7 run exists | Separate run approval, S=G/C=C7 bindings, full TI-03 checks/cleanup and independent result review |
+| Product business journey | Last static audit found approval/payment/reporting disconnected from canonical accounting; not revalidated end-to-end here | Separate integration design/approval and isolated authenticated synthetic journey |
+| Deployment / migration parity | Signed-out development preview reported working; no current deployment metadata or authenticated acceptance collected here | Separate deployment/build/user-journey and remaining migration-stub verification |
+| Phase A / production | Not authorized by candidate success or this package | Complete retained activation/governance gates and separate task/release approval |
+
+Immediate work is review of the prepared C7 acceptance/activation proposals.
+No C2/C5 replay, whole-tree main merge, new qualification or deployment is
+requested. DEC-01–22 and BL-06/BL-07 policy/implementation boundaries remain.
+
+## Historical 2026-10-01 checklist — preserved
+
+### Ledgerly release-readiness checklist — evidence snapshot
 
 **Updated 2026-10-01; earlier product evidence dated 2026-09-29.
 Verdict: NOT RELEASE-READY.** This is a review checklist, not

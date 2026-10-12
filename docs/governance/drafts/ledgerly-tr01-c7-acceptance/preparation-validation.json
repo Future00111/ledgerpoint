@@ -1,0 +1,22 @@
+{
+  "utc": "2026-10-12T19:50:07.263920+00:00",
+  "originalQualificationEvidenceSchemaAndHashes": "passed",
+  "jsonRecordsParsed": true,
+  "inertWorkflowYamlAndStaticIdentityControls": "passed",
+  "patchApplicabilityToExactB": "passed with isolated temporary index",
+  "newLocalProposalLinks": "passed",
+  "docsOnlyScopeAndUnchangedExecutableSources": "passed",
+  "newQualificationRun": false,
+  "activationAorGCreated": false,
+  "independentReviewClaimed": false,
+  "limit": "No workflow executed, dependencies installed, or Replit tests rerun. Exact-A validation remains future separately gated work.",
+  "whitespace": "passed for documentation; valid blank unified-patch context markers separately checked",
+  "logArchiveReconciliation": {
+    "rawArchiveHashesAndMembers": "passed",
+    "bothSharedLogsByteIdentical": "passed",
+    "allSevenNormalizedStepSequencesCoverWholeCombinedLog": "passed",
+    "originalEvidenceSchemaAndHashesUnchanged": "passed",
+    "credentialMaterialPatternScan": "no matches",
+    "reviewerConfirmation": "pending"
+  }
+}

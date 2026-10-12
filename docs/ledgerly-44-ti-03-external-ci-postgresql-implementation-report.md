@@ -1,3 +1,15 @@
+## Current evidence note — 2026-10-12
+
+The historical local qualification block and no-evidence statements below
+remain dated history. Exact C7 candidate qualification run 38284785813 attempt
+1 passed, with evidence SHA-256
+`bd6df83ad8c0512db825b7afbc0cb29314c9e04ce1fc13bfe10e368d69a3332b`.
+The [C7 acceptance proposal](governance/drafts/ledgerly-tr01-c7-final-acceptance-proposal.md)
+retains original evidence/schema bytes and independent technical verification.
+Final governance acceptance/authoritative designation remains pending, and no
+activated-main qualification or production approval is implied. This note does
+not amend frozen C7 or replace its original report bytes.
+
 # Ledgerly #44-TI-03 implementation report
 
 ## Current C2 hosted qualification outcome — 2026-10-01

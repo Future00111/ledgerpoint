@@ -22,6 +22,12 @@ and [current next actions](docs/governance/drafts/ledgerly-tr01-c7-next-actions.
 Preserve frozen candidates and local work. This is development qualification
 only, not production readiness, governance activation or Phase A authorization.
 
+A documentation-only [C7 final acceptance proposal](docs/governance/drafts/ledgerly-tr01-c7-final-acceptance-proposal.md)
+and [main activation proposal](docs/governance/drafts/ledgerly-tr01-c7-protected-main-activation-proposal.md)
+are prepared on an ordinary review branch. Final designation and activation
+remain unapproved. Current two-review/merge-method gaps require separate
+resolution; do not treat the development owner exception as activation approval.
+
 For Ledgerly product and implementation decisions, use the active governance documents under `artifacts/ledgerly/src/docs/` and the planning records under `docs/`.
 
 Authority order:

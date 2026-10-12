@@ -1,0 +1,186 @@
+{
+  "status": "Archive-identity discrepancy reconciled by retained bytes and content comparison; independent review still required",
+  "runId": 38284785813,
+  "attempt": 1,
+  "candidate": "787d76decfa345e3c1104231e08d5ab00bc90259",
+  "observedUtc": "2026-10-12T20:15:32.928654+00:00",
+  "originalArchiveRecordedHashIsCorrect": true,
+  "archives": [
+    {
+      "label": "original",
+      "path": "logs/original-qualification-logs.zip",
+      "bytes": 25797,
+      "sha256": "bbf0b248bde5938492a5189fd1d12d9383ab11866a2835262c38d5812c557f06",
+      "members": {
+        "0_Disposable canonical PostgreSQL qualification.txt": {
+          "bytes": 40983,
+          "sha256": "c8c6b2641a89a0172c120492e733cfcf3a7db50f403635a39704b343c2cd4e1b"
+        },
+        "Disposable canonical PostgreSQL qualification/system.txt": {
+          "bytes": 1166,
+          "sha256": "7b798e9b9a04546b0dda3b2d6f4aa3013ec4cdf97f579a342a514c497046e6d5"
+        },
+        "Disposable canonical PostgreSQL qualification/1_Set up job.txt": {
+          "bytes": 2147,
+          "sha256": "83d2b7706e6a4d55c721cbf615b2e98c6e47502d8bbd3e1a483ed08984eeba35"
+        },
+        "Disposable canonical PostgreSQL qualification/2_Checkout reviewed source.txt": {
+          "bytes": 12798,
+          "sha256": "a07d5c148bdf46517d892f5b8baa0970b664fe5aa51a400d65652cdcdf94e32c"
+        },
+        "Disposable canonical PostgreSQL qualification/4_Install pinned evidence validator.txt": {
+          "bytes": 878,
+          "sha256": "6f2c4a18a06d8d6d6854464df34740b7fc286be17dd42b0a12394277c4215235"
+        },
+        "Disposable canonical PostgreSQL qualification/5_Run TI-03 qualification.txt": {
+          "bytes": 21325,
+          "sha256": "d7ad4e08936fba18d79ed018bf81aed303d995d884f69648cd5f3a352a16117c"
+        },
+        "Disposable canonical PostgreSQL qualification/6_Upload non-secret TI-03 evidence.txt": {
+          "bytes": 2133,
+          "sha256": "351122b79833e8a92bb75e610c635342ef54a0583c89512406db13ae693a6314"
+        },
+        "Disposable canonical PostgreSQL qualification/12_Post Checkout reviewed source.txt": {
+          "bytes": 1268,
+          "sha256": "de7aef7e4a04f12525bfeec731201102c11cc50704cac07b04a0cb2d55fb3fb3"
+        },
+        "Disposable canonical PostgreSQL qualification/13_Complete job.txt": {
+          "bytes": 452,
+          "sha256": "c57314962227647647061f670b03db3c602287613bcff40308189fc17ff33ce0"
+        }
+      }
+    },
+    {
+      "label": "fresh",
+      "path": "logs/fresh-qualification-logs.zip",
+      "bytes": 11928,
+      "sha256": "f61c2abb73f30412af4918ab82f36c2f3a7abc804c6ebe6a0d0b344db5656b52",
+      "members": {
+        "0_Disposable canonical PostgreSQL qualification.txt": {
+          "bytes": 40983,
+          "sha256": "c8c6b2641a89a0172c120492e733cfcf3a7db50f403635a39704b343c2cd4e1b"
+        },
+        "Disposable canonical PostgreSQL qualification/system.txt": {
+          "bytes": 1166,
+          "sha256": "7b798e9b9a04546b0dda3b2d6f4aa3013ec4cdf97f579a342a514c497046e6d5"
+        }
+      }
+    }
+  ],
+  "freshDownloadReceipts": [
+    {
+      "endpoint": "repos/Future00111/ledgerpoint/actions/runs/38284785813/logs",
+      "downloadedUtc": "2026-10-12T20:12:13.762193+00:00",
+      "bytes": 11928,
+      "sha256": "f61c2abb73f30412af4918ab82f36c2f3a7abc804c6ebe6a0d0b344db5656b52"
+    },
+    {
+      "endpoint": "repos/Future00111/ledgerpoint/actions/runs/38284785813/attempts/1/logs",
+      "downloadedUtc": "2026-10-12T20:12:14.505042+00:00",
+      "bytes": 11928,
+      "sha256": "f61c2abb73f30412af4918ab82f36c2f3a7abc804c6ebe6a0d0b344db5656b52"
+    }
+  ],
+  "sharedMemberCount": 2,
+  "sharedMembersByteIdentical": true,
+  "sharedMembers": {
+    "0_Disposable canonical PostgreSQL qualification.txt": {
+      "bytes": 40983,
+      "sha256": "c8c6b2641a89a0172c120492e733cfcf3a7db50f403635a39704b343c2cd4e1b"
+    },
+    "Disposable canonical PostgreSQL qualification/system.txt": {
+      "bytes": 1166,
+      "sha256": "7b798e9b9a04546b0dda3b2d6f4aa3013ec4cdf97f579a342a514c497046e6d5"
+    }
+  },
+  "originalAdditionalStepMemberCount": 7,
+  "freshArchivesOmitAdditionalStepFiles": true,
+  "stepPayloadProof": {
+    "normalization": "UTF-8 BOM removed; each ISO8601 UTC timestamp prefix removed; messages, ANSI and ordering retained; LF-separated lines with final LF",
+    "stepProof": [
+      {
+        "file": "Disposable canonical PostgreSQL qualification/12_Post Checkout reviewed source.txt",
+        "timestampNormalizedExactContiguousMatch": true,
+        "combinedStartLines": [
+          441
+        ],
+        "payloadLines": 10,
+        "normalizedPayloadSha256": "0f60a0b1042dd05b37e422830c4b0781f4e716d6029ebd671edb91c52d9652e6"
+      },
+      {
+        "file": "Disposable canonical PostgreSQL qualification/13_Complete job.txt",
+        "timestampNormalizedExactContiguousMatch": true,
+        "combinedStartLines": [
+          451
+        ],
+        "payloadLines": 2,
+        "normalizedPayloadSha256": "9ecbfd68dceb8178e6e940608416ec552b1b3661df0339f83f459ea0b07048a3"
+      },
+      {
+        "file": "Disposable canonical PostgreSQL qualification/1_Set up job.txt",
+        "timestampNormalizedExactContiguousMatch": true,
+        "combinedStartLines": [
+          1
+        ],
+        "payloadLines": 33,
+        "normalizedPayloadSha256": "bdb62930d4acae5a20721bdcdb29883226d78d0fd5340eb33392428f16ed780a"
+      },
+      {
+        "file": "Disposable canonical PostgreSQL qualification/2_Checkout reviewed source.txt",
+        "timestampNormalizedExactContiguousMatch": true,
+        "combinedStartLines": [
+          34
+        ],
+        "payloadLines": 137,
+        "normalizedPayloadSha256": "6b9353cc1ec1991c174ab1112154998cfcf080d6a83beb8dbfb3d4d075e2a594"
+      },
+      {
+        "file": "Disposable canonical PostgreSQL qualification/4_Install pinned evidence validator.txt",
+        "timestampNormalizedExactContiguousMatch": true,
+        "combinedStartLines": [
+          171
+        ],
+        "payloadLines": 12,
+        "normalizedPayloadSha256": "7062dec384a1bc0ee3b5a41c18ff0f3f6b71552301db26e4bbd8cf2b92b13b75"
+      },
+      {
+        "file": "Disposable canonical PostgreSQL qualification/5_Run TI-03 qualification.txt",
+        "timestampNormalizedExactContiguousMatch": true,
+        "combinedStartLines": [
+          183
+        ],
+        "payloadLines": 233,
+        "normalizedPayloadSha256": "071fc245210f00ef8483448ef5be91edf77f07fbe7ace464a4f8ae1f2ea10fcc"
+      },
+      {
+        "file": "Disposable canonical PostgreSQL qualification/6_Upload non-secret TI-03 evidence.txt",
+        "timestampNormalizedExactContiguousMatch": true,
+        "combinedStartLines": [
+          416
+        ],
+        "payloadLines": 25,
+        "normalizedPayloadSha256": "daa67439c6e63372250eba581bbd03b524c36d320fde3862bafbe008448ee7b9"
+      }
+    ],
+    "accountingCounts": {
+      "tests": [
+        6
+      ],
+      "pass": [
+        6
+      ],
+      "fail": [
+        0
+      ],
+      "skipped": [
+        0
+      ]
+    }
+  },
+  "observedExplanation": "The fresh exports omit seven per-step files that the original includes. The complete combined job log and system log are byte-identical; all seven timestamp-normalized step message sequences occur as exact contiguous ranges covering the combined log. No internal GitHub reason for changed export layout is asserted.",
+  "qualificationArtifactHashChanged": false,
+  "evidenceOrSchemaChanged": false,
+  "newQualificationRun": false,
+  "controlChanges": false,
+  "unconditionalAcceptanceGranted": false
+}

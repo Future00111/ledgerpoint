@@ -826,3 +826,14 @@ deployment, or publishing changes are authorised by this register.
 
 DEC-01 through DEC-22, BL-06, BL-07, source-freshness governance, and all
 existing production and implementation gates remain unchanged.
+
+## C7 evidence and activation preparation — 2026-10-12
+
+Exact C7 `787d76decfa345e3c1104231e08d5ab00bc90259` passed candidate-mode
+TI-03 run 38284785813 attempt 1. Workspace integration I and its GitHub backup
+are complete. The [final acceptance proposal](governance/drafts/ledgerly-tr01-c7-final-acceptance-proposal.md)
+and [activation proposal](governance/drafts/ledgerly-tr01-c7-protected-main-activation-proposal.md)
+are prepared for review only. No final authoritative designation, review-policy
+amendment, main activation or activated qualification is approved/recorded.
+DEC-01–22, BL-06/BL-07, source-freshness and Phase A/release boundaries remain
+unchanged. This entry is evidence status, not a new product decision.

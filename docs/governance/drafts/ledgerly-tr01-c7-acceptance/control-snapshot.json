@@ -1,0 +1,123 @@
+{
+  "observedUtc": "2026-10-12T19:41:11.590926+00:00",
+  "main": "0da401737f35d68b9404982baad7405fe997636a",
+  "frozenRefs": {
+    "C5": "3a5c6e1318b49edcdc7f0f918d3a01813f960e71",
+    "C6": "99f5d97b96f7065d08f3ac09627cceea0398ebcc",
+    "C7": "787d76decfa345e3c1104231e08d5ab00bc90259"
+  },
+  "variables": {
+    "LEDGERLY_APPROVED_CANDIDATE_SHA": "787d76decfa345e3c1104231e08d5ab00bc90259",
+    "TR01_C2_APPROVED_WORKFLOW_SHA": "87a4ff7d44be9bc21296e9623db16924488f76ae",
+    "TR01_C3_APPROVED_WORKFLOW_SHA": "65f3453c29f1eb1057bc66edc0cc7de508e87c2d",
+    "TR01_C4_APPROVED_WORKFLOW_SHA": "af028bb647fbbdb81509539969b21a859e708f34",
+    "TR01_C5_APPROVED_WORKFLOW_SHA": "82e122115b99a6c206b5bd07743331398cae6bbe",
+    "TR01_C6_APPROVED_WORKFLOW_SHA": "fdb4e2af7168e52dafde04d003f498ed76489206",
+    "TR01_C7_APPROVED_WORKFLOW_SHA": "0da401737f35d68b9404982baad7405fe997636a"
+  },
+  "admission": {
+    "total_count": 2,
+    "branch_policies": [
+      {
+        "id": 61652671,
+        "node_id": "MDE2OkdhdGVCcmFuY2hQb2xpY3k2MTY1MjY3MQ==",
+        "name": "main",
+        "type": "branch"
+      },
+      {
+        "id": 61652697,
+        "node_id": "MDE2OkdhdGVCcmFuY2hQb2xpY3k2MTY1MjY5Nw==",
+        "name": "tr01/implementation-identity-successor-c7",
+        "type": "branch"
+      }
+    ]
+  },
+  "environmentReviewerRule": [
+    {
+      "id": 63788940,
+      "node_id": "GA_kwDOT7mVms4DzVeM",
+      "type": "required_reviewers",
+      "prevent_self_review": false,
+      "reviewers": [
+        {
+          "type": "User",
+          "reviewer": {
+            "login": "Future00111",
+            "id": 318002590,
+            "node_id": "U_kgDOEvRVng",
+            "avatar_url": "https://avatars.githubusercontent.com/u/318002590?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/Future00111",
+            "html_url": "https://github.com/Future00111",
+            "followers_url": "https://api.github.com/users/Future00111/followers",
+            "following_url": "https://api.github.com/users/Future00111/following{/other_user}",
+            "gists_url": "https://api.github.com/users/Future00111/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/Future00111/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/Future00111/subscriptions",
+            "organizations_url": "https://api.github.com/users/Future00111/orgs",
+            "repos_url": "https://api.github.com/users/Future00111/repos",
+            "events_url": "https://api.github.com/users/Future00111/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/Future00111/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 67342203,
+      "node_id": "GA_kwDOT7mVms4EA497",
+      "type": "branch_policy"
+    }
+  ],
+  "mainProtection": {
+    "url": "https://api.github.com/repos/Future00111/ledgerpoint/branches/main/protection",
+    "required_signatures": {
+      "url": "https://api.github.com/repos/Future00111/ledgerpoint/branches/main/protection/required_signatures",
+      "enabled": false
+    },
+    "enforce_admins": {
+      "url": "https://api.github.com/repos/Future00111/ledgerpoint/branches/main/protection/enforce_admins",
+      "enabled": true
+    },
+    "required_linear_history": {
+      "enabled": false
+    },
+    "allow_force_pushes": {
+      "enabled": false
+    },
+    "allow_deletions": {
+      "enabled": false
+    },
+    "block_creations": {
+      "enabled": false
+    },
+    "required_conversation_resolution": {
+      "enabled": false
+    },
+    "lock_branch": {
+      "enabled": false
+    },
+    "allow_fork_syncing": {
+      "enabled": false
+    }
+  },
+  "mainEffectiveRules": [],
+  "mergeSettings": {
+    "allow_merge_commit": true,
+    "allow_squash_merge": true,
+    "allow_rebase_merge": true
+  },
+  "rulesetIds": [
+    23995584,
+    24197692,
+    24663898,
+    24674872,
+    24935496,
+    24939211,
+    24941779
+  ],
+  "repositorySecretNames": [],
+  "environmentSecretNames": []
+}

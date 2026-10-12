@@ -1,3 +1,12 @@
+## Current status note — 2026-10-12
+
+The following C2 snapshot is historical. C7 development qualification and
+workspace/GitHub backup are now verified; do not replay pending C2 steps.
+See [current C7 next actions](governance/drafts/ledgerly-tr01-c7-next-actions.md)
+and [final acceptance proposal](governance/drafts/ledgerly-tr01-c7-final-acceptance-proposal.md).
+Final designation, activation, activated qualification and Phase A remain
+separate, uncompleted gates.
+
 # TR-01 C2 identity-status readiness — producer merged, qualification pending
 
 **Status (2026-10-01):** exact C2 published; actual identity/non-DB validation

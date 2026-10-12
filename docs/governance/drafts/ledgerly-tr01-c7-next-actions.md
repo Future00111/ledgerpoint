@@ -1,49 +1,46 @@
-# Current next actions — local C7 workspace integration completed
+# Current C7 next actions — acceptance and activation proposal prepared
 
-The owner-authorized selective sync has completed on
-`integration/tr01-c7-workspace` from the preserved current workspace HEAD.
-All seventeen source imports are byte-exact, full typechecks passed, and all
-56 non-database regressions passed without skips. See the
-[integration record](ledgerly-tr01-c7-workspace-integration.md).
-The following sync sequence is preserved as historical preparation, not a
-request to reapply patches or repeat checks.
+**2026-10-12:** candidate qualification, workspace integration and ordinary
+GitHub backup are complete. Review the [final acceptance proposal](ledgerly-tr01-c7-final-acceptance-proposal.md)
+and [activation proposal](ledgerly-tr01-c7-protected-main-activation-proposal.md).
+Neither records final approval or authorizes execution.
+The Replit AI review's ZIP-checksum finding is now documented with both retained
+archives and content-level proof. Review the
+[log reconciliation](ledgerly-tr01-c7-log-archive-reconciliation.md) against the
+updated PR head before clearing that provenance finding. No human approval or
+unconditional acceptance is inferred.
 
-Exact C7 development qualification is verified; do **not** repeat the earlier
-C5 protection/publication/dispatch sequence or rerun qualification.
-See [verification report](ledgerly-tr01-c7-verification-report.md).
+1. Complete fresh independent exact-C7 implementation/security review and the
+   separate final identity decision. Exact evidence/hashes are retained in
+   [the evidence index](ledgerly-tr01-c7-acceptance/evidence-index.json).
+2. Resolve activation review policy: two fresh A/B approvals are required;
+   one collaborator is available, main has no required PR approvals, and
+   squash/rebase remain enabled. Supply required reviewers or obtain a
+   separately reviewed governance amendment; do not inherit the development
+   owner-only exception as activation authority.
+3. After approval, prepare exact A from fresh B with both C7/B ancestors and
+   a ten-path-only diff, retaining B elsewhere. The integration backup is
+   not A and must not be merged wholesale.
+4. Under separate configuration/merge/run approvals, enforce reviewed
+   controls, merge ordinarily to G, verify parents/ancestry/tree, then
+   qualify activated S=G with implementation C7 and review the result.
 
-## Historical workspace sync preparation
+No new qualification, activation, migration, production/Helium access,
+deployment or Phase A is requested by this preparation stage. Historical
+C2/C5 pending action sequences are superseded and must not be replayed.
 
-1. Preserve the current workspace, including these new status notes, as a
-   checkpoint/local backup ref. Inventory ignored review worktrees and generated
-   evidence separately: a clean Git status does not cover ignored files.
-   Save raw evidence outside this workspace before relocating it.
-2. Create a **new local integration branch** from that checkpoint, not from
-   remote main or a frozen candidate. Verify worktree root and `.git` linkage
-   before edits; an ignored worktree may silently resolve to the parent repo.
-3. Freshly verify exact C7
-   `787d76decfa345e3c1104231e08d5ab00bc90259` and exact main producer
-   `0da401737f35d68b9404982baad7405fe997636a`. Review and selectively apply:
-   - `generated-artifacts/ledgerly-c7-verification/workspace-to-c7-runtime.patch`
-     (14 exact candidate source/test/schema files).
-   - `generated-artifacts/ledgerly-c7-verification/workspace-to-main-c7-producer.patch`
-     (three producer files absent from the initial workspace).
-   The current patches passed applicability checks but remain **unapplied**.
-4. Review the final diff for only intended imports plus retained status notes.
-   Preserve local package/config/app changes, historical C4 report, attachments,
-   original evidence and all old candidate/producer controls.
-5. Run scoped offline, schema-push, binding/identity/acceptance regressions and
-   applicable typechecks on the integration branch. Use synthetic disposable
-   PostgreSQL only if needed and verify cleanup. No hosted qualification or
-   production database access is authorized by this sync assessment.
-6. Record integration SHA/tree/file hashes and unresolved differences. Do not
-   label composite workspace code as byte-exact qualified C7. Do not push,
-   merge, publish a successor or change live pins/admission/protections without
-   the appropriate separate authorization.
+## Completed records
 
-## What is not a next action here
+- C7 `787d76decfa345e3c1104231e08d5ab00bc90259`, protected immutable ref.
+- Qualification `38284785813`, attempt 1: 6 accounting tests, 18 negative
+  controls, concurrency and all five cleanup checks passed.
+- Integration `085b7e0491d9adbbebcc7e8db384c575bcfa2aca`, ordinary branch
+  `integration/tr01-c7-workspace`, pushed and independently read back.
+- All 17 imports independently byte-verified. Replit reports typecheck and
+  56 non-database tests passed; ignored raw logs were not retrieved here.
+  The integration is not separately qualified.
+- Main `0da401737f35d68b9404982baad7405fe997636a`, frozen refs, protections,
+  historical pins and Environment admission/reviewer remain unchanged.
 
-No new qualification dispatch, candidate alteration, production deployment,
-Helium access, activated qualification, governance activation or Phase A.
-Existing frozen candidates stay unchanged. Normal owner review remains distinct
-from independent-human approval.
+See [integration record](ledgerly-tr01-c7-workspace-integration.md) and
+[candidate verification](ledgerly-tr01-c7-verification-report.md).

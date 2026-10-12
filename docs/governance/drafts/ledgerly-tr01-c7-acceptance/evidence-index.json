@@ -1,0 +1,132 @@
+{
+  "status": "proposal; technical evidence verified; final identity approval pending",
+  "candidate": {
+    "sha": "787d76decfa345e3c1104231e08d5ab00bc90259",
+    "tree": "aa0360267a0d1987626ae9650238d66f04f667b9",
+    "soleParent": "c795945c4a5d4815804a86b9d5f2bdc77573d38f",
+    "ref": "refs/heads/tr01/implementation-identity-successor-c7"
+  },
+  "mainBase": "0da401737f35d68b9404982baad7405fe997636a",
+  "integration": {
+    "sha": "085b7e0491d9adbbebcc7e8db384c575bcfa2aca",
+    "tree": "62fb0075bbc79f804fbcb80dc87a8a83a4601a04",
+    "parent": "07551a8e340f9de54b84340adf6185f0a08de9e7",
+    "byteExactImports": 17,
+    "separatelyQualified": false
+  },
+  "identityRun": {
+    "id": 38283941466,
+    "attempt": 1,
+    "url": "https://github.com/Future00111/ledgerpoint/actions/runs/38283941466",
+    "conclusion": "success",
+    "source": "0da401737f35d68b9404982baad7405fe997636a"
+  },
+  "qualification": {
+    "id": 38284785813,
+    "attempt": 1,
+    "artifactId": 11762063960,
+    "url": "https://github.com/Future00111/ledgerpoint/actions/runs/38284785813",
+    "conclusion": "success",
+    "mode": "candidate",
+    "workflowSource": "787d76decfa345e3c1104231e08d5ab00bc90259",
+    "implementationSource": "787d76decfa345e3c1104231e08d5ab00bc90259",
+    "completedAtUtc": "2026-10-12T17:44:39.338908+00:00",
+    "runUuid": "e91f7ef1-4da2-4c08-b16b-5028c429f296",
+    "archiveSha256": "a21a4f0de4938876e5b17457d91a16f177d037af4e5ffcbb258194ccb60f83de",
+    "evidenceSha256": "bd6df83ad8c0512db825b7afbc0cb29314c9e04ce1fc13bfe10e368d69a3332b",
+    "schemaSha256": "6ba3d5f595f81e81db238b843c16b667e775384952855482ce9a978775d6ca0f",
+    "logsArchiveSha256": "bbf0b248bde5938492a5189fd1d12d9383ab11866a2835262c38d5812c557f06",
+    "originalEvidencePath": "docs/governance/evidence/ledgerly-44-ti-03-e91f7ef1-4da2-4c08-b16b-5028c429f296.json",
+    "retainedEvidencePath": "qualification-evidence.json",
+    "retainedSchemaPath": "qualification-evidence.schema.json",
+    "retainedOriginalLogsArchivePath": "logs/original-qualification-logs.zip",
+    "freshLogsArchiveSha256": "f61c2abb73f30412af4918ab82f36c2f3a7abc804c6ebe6a0d0b344db5656b52",
+    "retainedFreshLogsArchivePath": "logs/fresh-qualification-logs.zip",
+    "logArchiveReconciliation": "log-archive-reconciliation.json",
+    "logsArchiveSha256Scope": "SHA-256 of retained original nine-member download; not expected to equal every later GitHub ZIP export"
+  },
+  "results": {
+    "accountingTests": {
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    "negativeControlsPassed": 18,
+    "concurrency": {
+      "expected": 2,
+      "arrivals": [
+        {
+          "backendPid": 171,
+          "transactionId": "891",
+          "arrivedAt": 1791826408694
+        },
+        {
+          "backendPid": 172,
+          "transactionId": "892",
+          "arrivedAt": 1791826408698
+        }
+      ],
+      "releasedAt": 1791826408698,
+      "overlapProven": true
+    },
+    "cleanup": {
+      "logicalDrop": true,
+      "databaseAbsent": true,
+      "containerRemoved": true,
+      "networkRemoved": true,
+      "credentialMaterialRemoved": true
+    },
+    "journalLock": {
+      "functionOwner": "ledgerly_canonical_owner",
+      "callerHasUpdate": false,
+      "scopedLookupsRejected": true,
+      "directMutationDenied": true,
+      "temporaryShadowRejected": true,
+      "transactionalRowLockProven": true,
+      "backendPids": [
+        178,
+        179
+      ]
+    },
+    "schemaBootstrapPushes": 2,
+    "validatedForeignKeys": 7
+  },
+  "sourceDigests": {
+    "sourceTree": "fcd81d162cbfc406853bdd13c853cd49f81fd814622a7f90116724e668eb82d1",
+    "applicationSchema": "67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564",
+    "drizzleConfig": "57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258",
+    "securityOverlay": "779d76aa3ab065d5bb1f5a08c9ea807cf4bc3166d0fdc1b59c21c81140404081",
+    "runControlSql": "cf7c294738f2400e5ce5ab7abcb1cc111bd8100a62386d075306ced6395bf00b",
+    "coordinator": "224275124927ffabc03a0720acb67bd4b2d3e99db8183d1c2eca4283e7440427",
+    "testSources": "2573b8b7be50acaadc68be89c6de53dbdb9279132455dac99fa02206bca916ac",
+    "lockfile": "3b8329fff64eab80ec5dfe8d875f80502789520faea4680d2fd0e7f0b4703f1b",
+    "workflow": "583716a5cd5edc2feb99d17146f3adb1915431d091a602d5ca5fc935864af734",
+    "orchestrator": "3699a2ad28b5d2e3e652529c2d26bec8b7c84b7ff658fa8a08b4ae6f456ef54b"
+  },
+  "executionDomain": {
+    "files": 564,
+    "sha256": "fcd81d162cbfc406853bdd13c853cd49f81fd814622a7f90116724e668eb82d1"
+  },
+  "integrationChecks": {
+    "replitReportedTests": 56,
+    "failures": 0,
+    "skips": 0,
+    "rawLogsIndependentlyRetrieved": false,
+    "importedFileBytesIndependentlyVerified": true
+  },
+  "reviews": {
+    "ownerExceptionUsedForDevelopment": true,
+    "independentHumanApprovalClaimed": false,
+    "freshIndependentExactC7ReviewForFinalDesignation": "pending",
+    "separateFinalIdentityApproval": "pending",
+    "activationReviews": "pending"
+  },
+  "prohibitions": {
+    "noNewQualificationRun": true,
+    "noMainOrFrozenRefChange": true,
+    "noGovernanceActivation": true,
+    "noPhaseA": true,
+    "noProductionOrHeliumAccess": true
+  }
+}
