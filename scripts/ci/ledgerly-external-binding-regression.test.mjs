@@ -45,12 +45,12 @@ if (!process.argv.includes("--inside") && !process.argv.includes("--disposable-r
       /The private external-CI run binding did not verify/,
     );
   });
-  if (fixture.args.ci.ciSourceRef.endsWith("successor-c5")) {
-    await check("old C4 identity rejected by private database binding", async () => {
-      const oldRef = "refs/heads/tr01/implementation-identity-successor-c4";
+  if (fixture.args.ci.ciSourceRef.endsWith("successor-c6")) {
+    for (const previous of ["c5", "c4"]) await check(`old ${previous.toUpperCase()} identity rejected by private database binding`, async () => {
+      const oldRef = `refs/heads/tr01/implementation-identity-successor-${previous}`;
       await assert.rejects(verifyExternalBinding({ ...fixture.args, ci: {
         ...fixture.args.ci, ciSourceRef: oldRef,
-        workflowRef: fixture.args.ci.workflowRef.replace("successor-c5", "successor-c4"),
+        workflowRef: fixture.args.ci.workflowRef.replace("successor-c6", `successor-${previous}`),
       } }), /The private external-CI run binding did not verify/);
     });
   }
@@ -91,7 +91,7 @@ if (!process.argv.includes("--inside") && !process.argv.includes("--disposable-r
     assert.equal(r.status, 0, `Docker ${args[0]} failed (credential output suppressed)`);
     return r.stdout;
   }
-  const sourceRef = expectOriginal ? "refs/heads/tr01/implementation-identity-successor-c3" : "refs/heads/tr01/implementation-identity-successor-c5";
+  const sourceRef = expectOriginal ? "refs/heads/tr01/implementation-identity-successor-c3" : "refs/heads/tr01/implementation-identity-successor-c6";
   // Deliberately synthetic identity: cannot satisfy trusted GitHub provenance.
   const commit = "a".repeat(40);
   const runId = randomUUID();
