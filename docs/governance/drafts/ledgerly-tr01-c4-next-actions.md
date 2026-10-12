@@ -2,12 +2,13 @@
 
 Producer PR #15 merged; C4 protected and published; identity passed; Environment switched to exact C4. Fresh qualification 37677799309 attempt 1 failed at nested pnpm offline resolution. Cleanup verified. No retry performed. See [full live report](ledgerly-tr01-c4-live-execution-report.md).
 
-The next repair/preparation stage produced exact C5 and separate producer draft
-review artifacts. The nested offline repair passes its local checks, but
-disposable database binding replay is blocked by the local isolated-container
-runtime. See [C5 preparation](ledgerly-tr01-c5-preparation-report.md) and
-[current next actions](ledgerly-tr01-c5-next-actions.md). C4 remains frozen and
-live pins/admission/protection remain unchanged; no retry or live C5 step ran.
+The C5 repair/preparation stage subsequently cleared binding replay on a
+supported isolated diagnostic runner and normally merged only the separate
+producer, recording actual M5. See the
+[current C5 execution outcome](ledgerly-tr01-c5-authorized-execution-report.md)
+and [current live next actions](ledgerly-tr01-c5-live-next-actions.md). C4 remains
+frozen; live pins/admission/protection remain unchanged. No C4 retry or live
+C5 protection/publication/identity/qualification step ran.
 
 The original prepared sequence below is preserved as historical evidence.
 

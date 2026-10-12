@@ -1,0 +1,9 @@
+# Automated scoped PR16/17/18 review
+
+**PASS — no merge-blocking defect found in the scoped PR16/17/18 review packages.** The saved patch hashes match the identity manifest, and `git show` confirms the repair, candidate, and producer commits have the recorded trees and sole parents. This is an automated technical review under the owner’s solo-operator exception, not independent-human approval.
+
+PR16 adds only four fixed Corepack settings to the existing canonical child-environment allowlist; it does not inherit parent credentials. The review fixture exercises canonical-source compilation and nested pinned tools in an offline, read-only image, plus writable/read-only missing-cache failure paths, without database access. PR17 consistently changes the candidate workflow, runner, evidence schema, SQL binding, and regression assertions to C5, including coherent old-C4 rejection. PR18 follows the C4 producer pattern: manual protected-main dispatch and approved workflow-source SHA, immutable C5 checkout with tree/sole-parent checks, separate read-only validation and environment-gated status writer, the C5-only status context, and non-persisted checkout credentials.
+
+**Security:** No serious violation observed in this scope. **Qualification caveat:** The manifest records disposable binding as blocked and full qualification as not run; the offline fixture and identity status are explicitly not PostgreSQL qualification. The separate C5 binding diagnostic must not be inferred to have passed.
+
+**Next actions:** (1) Keep these as scoped review findings, not approval or authorization to merge. (2) Resolve the separately running binding diagnostic and obtain protected-run qualification evidence before claiming C5 qualification. (3) Verify the intended approved-workflow SHA and protected controls through the owner’s normal operational process; this review did not inspect or change live settings.

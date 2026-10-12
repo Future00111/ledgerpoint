@@ -30,3 +30,15 @@ process executor with the real compilation/test command. Include missing-cache
 rejection in that same nested path, not only a parallel top-level smoke. Keep
 toolchain settings explicitly allowlisted; do not inherit arbitrary parent
 credentials to repair resolution.
+
+Fresh-runner diagnostics must explicitly prepare every digest-pinned image
+dependency before the isolated phase, not assume a developer's warm cache.
+
+**Why:** A supported hosted replay verified candidate/image bytes but never
+started its database fixture because the fixture's intentional pull-never
+policy found no cached PostgreSQL image. The local warm cache had hidden this
+precondition.
+
+**How to apply:** Prepare and verify pinned dependency images outside the
+private database network, retain pull-never inside isolation, and distinguish
+preparation failure from database binding or accounting failure.

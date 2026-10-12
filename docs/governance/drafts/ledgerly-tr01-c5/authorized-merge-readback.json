@@ -1,0 +1,24 @@
+{
+  "producerPr": "https://github.com/Future00111/ledgerpoint/pull/18",
+  "producerHead": "4f0fbd7a4ff75fbc4fadd57bc7ab2a7a38dc7f0b",
+  "previousMain": "af028bb647fbbdb81509539969b21a859e708f34",
+  "actualM5": "82e122115b99a6c206b5bd07743331398cae6bbe",
+  "mergeTree": "fc88f3e99bc78d39f808a86fd1412c883bdb6e74",
+  "mergeParents": [
+    "af028bb647fbbdb81509539969b21a859e708f34",
+    "4f0fbd7a4ff75fbc4fadd57bc7ab2a7a38dc7f0b"
+  ],
+  "normalMergeNoBypass": true,
+  "bindingDiagnosticRun": 38263226226,
+  "bindingPassed": true,
+  "qualificationSuccess": false,
+  "liveEnvironmentPinAdmissionProtectionUnchanged": true,
+  "immutableC5Published": false,
+  "identityDispatched": false,
+  "qualificationDispatched": false,
+  "independentHumanReviewClaim": false,
+  "unmergedInspectionPrs": [
+    16,
+    17
+  ]
+}

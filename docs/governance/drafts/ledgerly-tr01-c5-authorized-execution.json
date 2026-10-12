@@ -1,0 +1,99 @@
+{
+  "scope": "owner-authorized C5 isolated binding diagnostic, scoped review, normal separate-producer merge; live controls paused",
+  "candidate": {
+    "sha": "3a5c6e1318b49edcdc7f0f918d3a01813f960e71",
+    "tree": "3f2e22ccceb70ea50034b41af352a125b63cf127",
+    "soleParent": "6e8255949c3da130561f781614785f692796b621",
+    "diffBase": "273f714c876260636346b7fbcc588224e9795141",
+    "fileSha256": {
+      ".github/workflows/ledgerly-canonical-postgresql.yml": "a45d33faf751c25f2f5fcdbeb1c0a72b5e1175f69d964105c4c87d049259c714",
+      "artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs": "33584355b775f38f6057b4245377d170c1fa978aab517ee214758836217253a8",
+      "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json": "16ac1e2860da15dc7a333078b3a27e2c908739da2de45e31e0845dd834cc707e",
+      "scripts/ci/ledgerly-external-binding-regression.test.mjs": "f8c1f07701dbda7f41583784c7ee409aab503fccd3adde39fd2125391f847b48",
+      "scripts/ci/ledgerly-nested-offline-review.mjs": "5561be328fdbb2cb75957ea939fe7f9955d1e5556e3eff6d467b9db46a87e395",
+      "scripts/ci/ledgerly-offline-pnpm.test.mjs": "0063b86c1a1ee64c5a41e9588060bbcf62365389de9e943dbd3d29789ac64bff",
+      "scripts/ci/run-ledgerly-canonical-postgresql.mjs": "5193dde56e33bb533e16c501c15cde60512815ba958b1a738051d2f9b500f2cc",
+      "scripts/ci/run-ledgerly-canonical-postgresql.test.mjs": "3275f2cd44cc990e69dce1d159a5187ae86849cabb8578c4abeabfc91a5eaa52",
+      "scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql": "3ecf45d1507e89d28a776145f5fb118a57076698190dd1a4ee313ad44a7eaac7"
+    }
+  },
+  "producer": {
+    "sha": "4f0fbd7a4ff75fbc4fadd57bc7ab2a7a38dc7f0b",
+    "tree": "fc88f3e99bc78d39f808a86fd1412c883bdb6e74",
+    "soleParent": "af028bb647fbbdb81509539969b21a859e708f34",
+    "diffBase": "af028bb647fbbdb81509539969b21a859e708f34",
+    "fileSha256": {
+      ".github/workflows/ledgerly-tr01-c5-identity-status.yml": "72c3e1d332020a2d33ffc0691098fa6a60b257c8d90b7e73b87a2d83fe27a17d",
+      "scripts/ci/ledgerly-tr01-c5-identity-status.mjs": "b4d9f61ad637cf7fc45542f9f93fc0bab11ae847196c4b45f4f467ac77b0fc10",
+      "scripts/ci/ledgerly-tr01-c5-identity-status.test.mjs": "d4fcdc99e08a9313a3d85bafe853f861e38014b9e6201aa93eb91046fd68e221"
+    }
+  },
+  "merge": {
+    "producerPr": "https://github.com/Future00111/ledgerpoint/pull/18",
+    "producerHead": "4f0fbd7a4ff75fbc4fadd57bc7ab2a7a38dc7f0b",
+    "previousMain": "af028bb647fbbdb81509539969b21a859e708f34",
+    "actualM5": "82e122115b99a6c206b5bd07743331398cae6bbe",
+    "mergeTree": "fc88f3e99bc78d39f808a86fd1412c883bdb6e74",
+    "mergeParents": [
+      "af028bb647fbbdb81509539969b21a859e708f34",
+      "4f0fbd7a4ff75fbc4fadd57bc7ab2a7a38dc7f0b"
+    ],
+    "normalMergeNoBypass": true,
+    "bindingDiagnosticRun": 38263226226,
+    "bindingPassed": true,
+    "qualificationSuccess": false,
+    "liveEnvironmentPinAdmissionProtectionUnchanged": true,
+    "immutableC5Published": false,
+    "identityDispatched": false,
+    "qualificationDispatched": false,
+    "independentHumanReviewClaim": false,
+    "unmergedInspectionPrs": [
+      16,
+      17
+    ]
+  },
+  "successfulBindingRun": {
+    "id": 38263226226,
+    "attempt": 1,
+    "url": "https://github.com/Future00111/ledgerpoint/actions/runs/38263226226",
+    "workflowSha": "905337ccb9aaa89faa3b257e6b3e5695d13be393",
+    "artifactSha256": "8fff04ad61512f5db2ce55d463b626069f7732692c4909f36365745739e8608b",
+    "passedCases": 6,
+    "qualificationSuccess": false
+  },
+  "failedDiagnosticPreparationRunPreserved": 38262785180,
+  "historicalPreparationManifestSha256": "a033d5d3bc34b6bdacd6dde028f2be0aba3ac14010523b3561ca007bab8882b3",
+  "filesSha256": {
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-automated-pr-review.md": "80944aedee32f0fe651300dbf8e35091381762ff0094cbc8587bc2bce9319bb6",
+    "docs/governance/drafts/ledgerly-tr01-c5/producer-normal-merge-preflight.json": "bf4d8749c9c5e3a1b8d7377ba5ff2fe2158463b0f3f74dfcfd07965bf915fd33",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-merge-readback.json": "ffea2d5bfbb2871c0268310a8b68982f3144bb9f1a4ba4a4240973fa251732c4",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-controls-before.json": "c6dd9dc81d2bad7babbcb2f76f8853e2d264f4c9bb25047e71f4a4f148e55ffa",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-controls-after.json": "7453089ddd03619bf61a8389490860dd2ee1d13875ae5c69796c5141dd6548e9",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38262785180/run.log": "319bcdc29f07686784e2800de57fbd6729bd4fb3da46de9b65016479cebc6e4c",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38262785180/artifact.zip": "d5fda320268646e36cdeb76883652a004e1c2f61f7e2525017504afb804a0fe1",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38263226226/run.log": "abd3d4f2c06c3773ad08985dd177abe0dec8782e546d5f250fb2c0fee6754f96",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38263226226/github-artifacts.json": "160a549d1dfeab8d065c092a56c721c503fd948f297bebcd34595c4a67b55b98",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38263226226/artifact.zip": "8fff04ad61512f5db2ce55d463b626069f7732692c4909f36365745739e8608b",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38263226226/artifact/tr01-c5-binding-diagnostic-38263226226-1/binding.log": "cc52ef6ddead87cd69a35f3e830828a7ffe1683bc0a4c36c2fd2396b1106fff1",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38263226226/artifact/tr01-c5-binding-diagnostic-38263226226-1/docker-build.log": "532d36a87ac35177368f604cf84979457e1845003c6954e1ab30ae18df64e3d8",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38263226226/artifact/tr01-c5-binding-diagnostic-38263226226-1/image-source-verification.log": "a9d330b79a0537e53986ed7083d4fe59a08cc1e3b40dba706a8a734877f14209",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38263226226/artifact/tr01-c5-binding-diagnostic-38263226226-1/postgres-image-preparation.log": "e081a113434b08223eb9afb68fca1f28d8ee6be33e20966eb230e64fb1ca86fa",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38263226226/artifact/tr01-c5-binding-diagnostic-38263226226-1/result.json": "8b37a987cd5de1c47b80c79e265038c981f174a4a4e8e9ed84c2a176de88c5f8",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38262785180/artifact/tr01-c5-binding-diagnostic-38262785180-1/binding.log": "0696158728f8b22437bdc0aa6ee9a5b07da72f05dcfac16eb20eb124bbe2f018",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38262785180/artifact/tr01-c5-binding-diagnostic-38262785180-1/image-source-verification.log": "a9d330b79a0537e53986ed7083d4fe59a08cc1e3b40dba706a8a734877f14209",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38262785180/artifact/tr01-c5-binding-diagnostic-38262785180-1/docker-build.log": "80ffa87efce4d3bcb75bf0c8140ad8495f69326bb224902b21c5b428aedafdf5",
+    "docs/governance/drafts/ledgerly-tr01-c5/authorized-binding-run-38262785180/artifact/tr01-c5-binding-diagnostic-38262785180-1/result.json": "464aea1c0a6fad82e5e77980ca9c18fd3b40421feeb90f36a571f6a67e13aae1",
+    "docs/governance/drafts/ledgerly-tr01-c5-authorized-execution-report.md": "958c769ad220aeb57b6b54bf3b23dd891709cdd6b497181cff53a37f8900e47f",
+    "docs/governance/drafts/ledgerly-tr01-c5-live-next-actions.md": "b051cb6e0fd17b53efb157f3700e4885cd6eff4f4715f348261e287ee4a8381f",
+    "docs/governance/drafts/ledgerly-tr01-c5-ruleset-proposed.json": "5e2cca5bc5ba5574421e8f1af3f5e4df0acdb463848bfd443395bd96cd5c98f8"
+  },
+  "pausedBeforeLiveSecuritySensitiveChanges": true,
+  "proposedWorkflowSourcePin": "82e122115b99a6c206b5bd07743331398cae6bbe",
+  "proposedCandidatePin": "3a5c6e1318b49edcdc7f0f918d3a01813f960e71",
+  "policyNameOnlyReplacement": {
+    "id": 61652697,
+    "from": "tr01/implementation-identity-successor-c4",
+    "to": "tr01/implementation-identity-successor-c5",
+    "preserveMainPolicy": 61652671
+  }
+}
