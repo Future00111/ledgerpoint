@@ -495,6 +495,7 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
   const debitA = await addAccount(companyA.id, "Fixture debit A");
   const creditA = await addAccount(companyA.id, "Fixture credit A");
   const accountB = await addAccount(companyB.id, "Fixture other company account");
+  const creditB = await addAccount(companyB.id, "Fixture other company credit");
   await addMembership(companyA.id, ownerA, "owner");
 
   const base = {
@@ -583,6 +584,17 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
         }),
         dependencies(base),
       ),
+    "company_scope_conflict",
+  );
+  await expectCode(
+    () => postCanonicalJournal(
+      command({ companyId: companyB.id, userId: ownerA,
+        effect: `unauthorized-${randomUUID()}`, key: `unauthorized-${randomUUID()}`,
+        accountIds: [accountB.id, creditB.id] }),
+      dependencies({ ...base, companyId: companyB.id, accountIds: [accountB.id, creditB.id],
+        lines: [{ accountId: accountB.id, debitMinor: 100, creditMinor: 0 },
+          { accountId: creditB.id, debitMinor: 0, creditMinor: 100 }] }),
+    ),
     "authorization_failed",
   );
 
@@ -597,6 +609,11 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
     .where(eq(accountingAuditEventsTable.company_id, companyA.id));
   assert.equal(rejectedEffects.length, 0);
   assert.equal(rejectedAudits.length, 0);
+  const otherCompanyWrites = await pool.query(`SELECT
+    (SELECT count(*)::int FROM accounting_posting_effects WHERE company_id=$1) AS effects,
+    (SELECT count(*)::int FROM canonical_journal_entries WHERE company_id=$1) AS journals,
+    (SELECT count(*)::int FROM accounting_audit_events WHERE company_id=$1) AS audits`, [companyB.id]);
+  assert.deepEqual(otherCompanyWrites.rows[0], { effects: 0, journals: 0, audits: 0 });
 });
 
 test("canonical posting is atomic under audit failure, concurrent retries, and additive reversal", async () => {
