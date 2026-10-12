@@ -531,6 +531,7 @@ async function runExternalCi() {
     testOutput.stdout,
     "LEDGERLY_NEGATIVE_PRIVILEGE_EVIDENCE ",
   );
+  const journalLockEvidence = extractMarker(testOutput.stdout, "LEDGERLY_JOURNAL_LOCK_EVIDENCE ");
   if (!concurrencyEvidence.overlapProven) {
     throw new Error("The concurrency barrier did not prove overlapping transactions");
   }
@@ -546,6 +547,7 @@ async function runExternalCi() {
       identityEvidence,
       concurrencyEvidence,
       negativePrivilegeEvidence,
+      journalLockEvidence,
       externalCiIsolation: {
         parentDatabaseUrlAbsent: true,
         replitVariablesAbsent: true,
