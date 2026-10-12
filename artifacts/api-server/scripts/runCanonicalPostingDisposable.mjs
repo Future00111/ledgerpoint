@@ -438,13 +438,13 @@ async function runExternalCi() {
   };
   if (
     !["candidate", "activated"].includes(ci.identityMode) ||
-    !["refs/heads/tr01/implementation-identity-successor-c4", "refs/heads/main"].includes(
+    !["refs/heads/tr01/implementation-identity-successor-c5", "refs/heads/main"].includes(
       ci.ciSourceRef,
     ) ||
     !/^[0-9a-f]{40}$/.test(ci.workflowSourceCommit) ||
     !/^[0-9a-f]{40}$/.test(ci.implementationSourceCommit) ||
     (ci.identityMode === "candidate" &&
-      (ci.ciSourceRef !== "refs/heads/tr01/implementation-identity-successor-c4" ||
+      (ci.ciSourceRef !== "refs/heads/tr01/implementation-identity-successor-c5" ||
         ci.workflowSourceCommit !== ci.implementationSourceCommit)) ||
     (ci.identityMode === "activated" && ci.ciSourceRef !== "refs/heads/main")
   ) {
@@ -479,6 +479,12 @@ async function runExternalCi() {
 
   const childEnvironment = {
     PATH: process.env.PATH,
+    // Child processes must use the image's prepared, read-only pinned cache.
+    // Do not inherit arbitrary parent settings or fall back to online latest.
+    COREPACK_HOME: "/opt/corepack",
+    COREPACK_DEFAULT_TO_LATEST: "0",
+    COREPACK_ENABLE_AUTO_PIN: "0",
+    COREPACK_ENABLE_NETWORK: "0",
     NODE_ENV: "test",
     DATABASE_URL: process.env.LEDGERLY_CANONICAL_TEST_DATABASE_URL,
     LEDGERLY_CANONICAL_TEST_DATABASE_NAME: databaseName,
