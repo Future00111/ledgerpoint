@@ -1,10 +1,18 @@
-# Current next actions — C7 qualified in development; workspace sync pending
+# Current next actions — local C7 workspace integration completed
+
+The owner-authorized selective sync has completed on
+`integration/tr01-c7-workspace` from the preserved current workspace HEAD.
+All seventeen source imports are byte-exact, full typechecks passed, and all
+56 non-database regressions passed without skips. See the
+[integration record](ledgerly-tr01-c7-workspace-integration.md).
+The following sync sequence is preserved as historical preparation, not a
+request to reapply patches or repeat checks.
 
 Exact C7 development qualification is verified; do **not** repeat the earlier
 C5 protection/publication/dispatch sequence or rerun qualification.
 See [verification report](ledgerly-tr01-c7-verification-report.md).
 
-## Ready for a separately authorized workspace sync
+## Historical workspace sync preparation
 
 1. Preserve the current workspace, including these new status notes, as a
    checkpoint/local backup ref. Inventory ignored review worktrees and generated

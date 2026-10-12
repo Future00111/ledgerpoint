@@ -11,7 +11,12 @@ development qualification, run `38284785813` attempt 1: 6 accounting tests,
 18 negative controls and all five cleanup checks. Evidence and source digests
 were independently verified. Main contains the separate producer at
 `0da401737f35d68b9404982baad7405fe997636a`; qualified runtime fixes remain on C7.
-This workspace has **not** imported those runtime/producer changes.
+The runtime/producer changes have now been selectively imported on local branch
+`integration/tr01-c7-workspace`, preserving the current workspace history.
+All 17 imported files match their exact sources; full workspace typechecks and
+56 non-database regressions passed. This is a composite workspace integration,
+**not** automatic qualification of its new commit.
+See [workspace integration record](docs/governance/drafts/ledgerly-tr01-c7-workspace-integration.md).
 See [verification and synchronization assessment](docs/governance/drafts/ledgerly-tr01-c7-verification-report.md)
 and [current next actions](docs/governance/drafts/ledgerly-tr01-c7-next-actions.md).
 Preserve frozen candidates and local work. This is development qualification

@@ -1,5 +1,12 @@
 # Current TR-01 status — exact C7 development qualification verified
 
+Workspace update: the owner subsequently authorized and completed the selective
+local integration. See the
+[workspace integration record](ledgerly-tr01-c7-workspace-integration.md).
+The synchronization assessment below is preserved as the pre-import record;
+its unapplied-patch status no longer describes the current workspace.
+Exact C7's qualification does not qualify the new integration commit.
+
 This report supersedes the C5 pending-live-action status. Historical C3/C4/C5
 reports and manifests remain evidence of their earlier stages, not instructions
 to rerun those stages. No new hosted run or live control change was made during

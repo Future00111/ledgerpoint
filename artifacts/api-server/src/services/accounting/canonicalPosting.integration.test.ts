@@ -495,6 +495,7 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
   const debitA = await addAccount(companyA.id, "Fixture debit A");
   const creditA = await addAccount(companyA.id, "Fixture credit A");
   const accountB = await addAccount(companyB.id, "Fixture other company account");
+  const creditB = await addAccount(companyB.id, "Fixture other company credit");
   await addMembership(companyA.id, ownerA, "owner");
 
   const base = {
@@ -557,7 +558,19 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
           ],
         }),
       ),
-    "account_invalid",
+    // Authoritative lookup is company-scoped: foreign and missing identities
+    // both fail before the provider can supply an account from another company.
+    "account_not_found",
+  );
+  const missingAccountId = randomUUID();
+  await expectCode(
+    () => postCanonicalJournal(
+      command({ companyId: companyA.id, userId: ownerA,
+        effect: `missing-account-${randomUUID()}`, key: `missing-account-${randomUUID()}`,
+        accountIds: [missingAccountId, creditA.id] }),
+      dependencies({ ...base, accountIds: [missingAccountId, creditA.id] }),
+    ),
+    "account_not_found",
   );
   await expectCode(
     () =>
@@ -571,6 +584,17 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
         }),
         dependencies(base),
       ),
+    "company_scope_conflict",
+  );
+  await expectCode(
+    () => postCanonicalJournal(
+      command({ companyId: companyB.id, userId: ownerA,
+        effect: `unauthorized-${randomUUID()}`, key: `unauthorized-${randomUUID()}`,
+        accountIds: [accountB.id, creditB.id] }),
+      dependencies({ ...base, companyId: companyB.id, accountIds: [accountB.id, creditB.id],
+        lines: [{ accountId: accountB.id, debitMinor: 100, creditMinor: 0 },
+          { accountId: creditB.id, debitMinor: 0, creditMinor: 100 }] }),
+    ),
     "authorization_failed",
   );
 
@@ -579,6 +603,17 @@ test("canonical posting fails closed for stale sources, closed periods, invalid 
     .from(canonicalJournalEntriesTable)
     .where(eq(canonicalJournalEntriesTable.company_id, companyA.id));
   assert.equal(journals.length, 0);
+  const rejectedEffects = await db.select().from(accountingPostingEffectsTable)
+    .where(eq(accountingPostingEffectsTable.company_id, companyA.id));
+  const rejectedAudits = await db.select().from(accountingAuditEventsTable)
+    .where(eq(accountingAuditEventsTable.company_id, companyA.id));
+  assert.equal(rejectedEffects.length, 0);
+  assert.equal(rejectedAudits.length, 0);
+  const otherCompanyWrites = await pool.query(`SELECT
+    (SELECT count(*)::int FROM accounting_posting_effects WHERE company_id=$1) AS effects,
+    (SELECT count(*)::int FROM canonical_journal_entries WHERE company_id=$1) AS journals,
+    (SELECT count(*)::int FROM accounting_audit_events WHERE company_id=$1) AS audits`, [companyB.id]);
+  assert.deepEqual(otherCompanyWrites.rows[0], { effects: 0, journals: 0, audits: 0 });
 });
 
 test("canonical posting is atomic under audit failure, concurrent retries, and additive reversal", async () => {
@@ -963,6 +998,84 @@ test("SC-01 enforces company-scoped relation identity, uniqueness, and atomic ro
   assert.equal(rolledBackLines.length, 0);
   assert.equal(rolledBackRelations.length, 0);
   assert.equal(rolledBackAudits.length, 0);
+});
+
+test("owner journal locks serialize transactions without API mutation privileges", async () => {
+  const company = await createCompany("journal-lock");
+  const otherCompany = await createCompany("journal-lock-other");
+  const owner = `canonical-owner-${randomUUID()}`;
+  const debit = await addAccount(company.id, "Lock debit");
+  const credit = await addAccount(company.id, "Lock credit");
+  await addMembership(company.id, owner, "owner");
+  const state: FixtureState = {
+    companyId: company.id, revision: "rev-1", periodStatus: "OPEN",
+    configurationVersionId: "config-v1", accountIds: [debit.id, credit.id],
+    lines: [{ accountId: debit.id, debitMinor: 500, creditMinor: 0 },
+      { accountId: credit.id, debitMinor: 0, creditMinor: 500 }],
+  };
+  const journal = await postCanonicalJournal(command({ companyId: company.id, userId: owner,
+    effect: `lock-effect-${randomUUID()}`, key: `lock-key-${randomUUID()}`,
+    accountIds: state.accountIds }), dependencies(state));
+  const lockSql = "SELECT public.ledgerly_lock_canonical_journal($1::uuid, $2::uuid) AS locked";
+  const boundary = await pool.query(`SELECT
+    pg_get_userbyid(p.proowner) AS owner, p.prosecdef, p.provolatile, p.proconfig,
+    has_function_privilege(current_user, p.oid, 'EXECUTE') AS can_execute,
+    EXISTS (SELECT 1 FROM aclexplode(COALESCE(p.proacl, acldefault('f', p.proowner))) a
+      WHERE a.grantee = 0 AND a.privilege_type = 'EXECUTE') AS public_execute,
+    has_any_column_privilege(current_user, 'public.canonical_journal_entries', 'UPDATE') AS can_update,
+    has_table_privilege(current_user, 'public.canonical_journal_entries', 'DELETE') AS can_delete,
+    has_table_privilege(current_user, 'public.canonical_journal_entries', 'TRUNCATE') AS can_truncate
+    FROM pg_proc p WHERE p.oid = to_regprocedure('public.ledgerly_lock_canonical_journal(uuid,uuid)')`);
+  assert.equal(boundary.rows[0]?.owner, "ledgerly_canonical_owner");
+  assert.equal(boundary.rows[0]?.prosecdef, true);
+  assert.equal(boundary.rows[0]?.provolatile, "v");
+  assert.match(boundary.rows[0]?.proconfig[0], /^search_path=pg_catalog,\s*pg_temp$/);
+  assert.equal(boundary.rows[0]?.can_execute, true);
+  for (const field of ["public_execute", "can_update", "can_delete", "can_truncate"])
+    assert.equal(boundary.rows[0]?.[field], false, field);
+  assert.equal((await pool.query(lockSql, [otherCompany.id, journal.journalId])).rows[0]?.locked, false);
+  assert.equal((await pool.query(lockSql, [company.id, randomUUID()])).rows[0]?.locked, false);
+
+  const before = (await pool.query("SELECT row_to_json(j) AS journal FROM public.canonical_journal_entries j WHERE id=$1",
+    [journal.journalId])).rows[0]?.journal;
+  for (const query of [
+    "UPDATE public.canonical_journal_entries SET description=description WHERE id=$1",
+    "DELETE FROM public.canonical_journal_entries WHERE id=$1",
+  ]) await expectDatabaseCode(() => pool.query(query, [journal.journalId]), "42501");
+  await expectDatabaseCode(() => pool.query("TRUNCATE public.canonical_journal_entries"), "42501");
+  await expectDatabaseCode(() => pool.query(
+    "CREATE TEMP TABLE canonical_journal_entries (id uuid, company_id uuid)"), "42501");
+  assert.deepEqual((await pool.query("SELECT row_to_json(j) AS journal FROM public.canonical_journal_entries j WHERE id=$1",
+    [journal.journalId])).rows[0]?.journal, before);
+
+  const [first, second] = await Promise.all([pool.connect(), pool.connect()]);
+  let backendPids: number[] = [];
+  try {
+    backendPids = [(await first.query("SELECT pg_backend_pid() AS pid")).rows[0].pid,
+      (await second.query("SELECT pg_backend_pid() AS pid")).rows[0].pid];
+    assert.equal(new Set(backendPids).size, 2);
+    await first.query("BEGIN");
+    await first.query("SET LOCAL search_path = pg_temp, public");
+    assert.equal((await first.query(lockSql, [company.id, randomUUID()])).rows[0]?.locked, false);
+    assert.equal((await first.query(lockSql, [company.id, journal.journalId])).rows[0]?.locked, true);
+    await second.query("BEGIN");
+    await second.query("SET LOCAL lock_timeout = '150ms'");
+    await expectDatabaseCode(() => second.query(lockSql, [company.id, journal.journalId]), "55P03");
+    await second.query("ROLLBACK");
+    await first.query("ROLLBACK");
+    await second.query("BEGIN");
+    await second.query("SET LOCAL lock_timeout = '1000ms'");
+    assert.equal((await second.query(lockSql, [company.id, journal.journalId])).rows[0]?.locked, true);
+  } finally {
+    const rollbacks = await Promise.allSettled([first.query("ROLLBACK"), second.query("ROLLBACK")]);
+    first.release(); second.release();
+    assert.ok(rollbacks.every((result) => result.status === "fulfilled"));
+  }
+  console.log("LEDGERLY_JOURNAL_LOCK_EVIDENCE", JSON.stringify({
+    functionOwner: "ledgerly_canonical_owner", callerHasUpdate: false,
+    scopedLookupsRejected: true, directMutationDenied: true,
+    temporaryShadowRejected: true, transactionalRowLockProven: true, backendPids,
+  }));
 });
 
 test.after(async () => {

@@ -1,0 +1,42 @@
+{
+  "fullWorkspaceTypecheck": "passed (composite libraries + API server + Ledgerly + mockup sandbox + scripts)",
+  "nonDatabaseRegressions": {
+    "tests": 56,
+    "pass": 56,
+    "fail": 0,
+    "skipped": 0,
+    "suites": [
+      "identity/evidence acceptance",
+      "schema-convergence mocked executor",
+      "six offline toolchain/real sanitized nested invocation/cache-fail-closed cases",
+      "C7 producer and review-fixture rejection contract"
+    ]
+  },
+  "all17SourceFilesByteExact": true,
+  "frozenRefsAndGitHubControlsUnchanged": true,
+  "migrationsRun": false,
+  "qualificationDispatched": false,
+  "deploymentPerformed": false,
+  "phaseA": false,
+  "qualificationTransferredToIntegration": false,
+  "cleanup": {
+    "offlineTestContainersAbsent": true,
+    "temporaryImageRemoved": true,
+    "temporaryBuildCopyRemoved": true,
+    "detachedCandidateWorktreeRemoved": true
+  },
+  "rawLogSha256": {
+    "generated-artifacts/ledgerly-c7-integration/typecheck.log": "8ba74241cec518daa8664c77ac553ee35a1956283a3ab1ce81e44184aee08cec",
+    "generated-artifacts/ledgerly-c7-integration/non-db-regressions.log": "4a65da0bc83ac86086ad0d15bd0ba07e6c300b4bba4c0819ee8842be0e933474",
+    "generated-artifacts/ledgerly-c7-integration/offline-build.log": "f707e6e2cb71ead0ef76a26a4f887d785403296b296706dca54082f043f89483",
+    "generated-artifacts/ledgerly-c7-integration/non-db-regressions-full.log": "2d3302617d0cfe69795598c8409bf02339ff524a05d7191a133b138a4ce9b57d"
+  },
+  "databaseUsedByIntegrationChecks": false,
+  "developmentApiBuildAndStartup": "passed after one ordinary workflow restart",
+  "signedOutPreview": "rendered successfully; no authenticated journey or accounting operation exercised",
+  "developmentApiStartupLogSha256": "2ac64186d060c0bc3d224568ad720e1b13a6ed45ee78a74498428efecab9df38",
+  "controlSnapshotSha256": {
+    "controls-before.json": "617c382edfd23f9e2e69d04d00a011ed58025c6e63f035de93034717b179ef4a",
+    "controls-after.json": "617c382edfd23f9e2e69d04d00a011ed58025c6e63f035de93034717b179ef4a"
+  }
+}

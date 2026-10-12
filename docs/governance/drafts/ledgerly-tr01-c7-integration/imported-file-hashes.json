@@ -1,0 +1,92 @@
+{
+  "base": "07551a8e340f9de54b84340adf6185f0a08de9e7",
+  "branch": "integration/tr01-c7-workspace",
+  "files": [
+    {
+      "path": ".ci/ledgerly-canonical/Dockerfile.test",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "4b4ab724fdc9d14d864a3481bead51dd60eeddfa7baa86162c85e4a72c3d886f"
+    },
+    {
+      "path": ".github/workflows/ledgerly-canonical-postgresql.yml",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "583716a5cd5edc2feb99d17146f3adb1915431d091a602d5ca5fc935864af734"
+    },
+    {
+      "path": "artifacts/api-server/scripts/runCanonicalPostingDisposable.mjs",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "3699a2ad28b5d2e3e652529c2d26bec8b7c84b7ff658fa8a08b4ae6f456ef54b"
+    },
+    {
+      "path": "artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "561e6693f9f51c84d7890196993804cfa6eeee1f044f9116aec227e76e133506"
+    },
+    {
+      "path": "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "042dbc50e4c64efd88aec5e75fbab48cd9621cba68919629269d2076af26702f"
+    },
+    {
+      "path": "docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "6ba3d5f595f81e81db238b843c16b667e775384952855482ce9a978775d6ca0f"
+    },
+    {
+      "path": "scripts/ci/ledgerly-external-binding-regression.test.mjs",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "4a4d07434167b457c9ee959bed8404cffb4562bf04ce1982b2220d85d477f85a"
+    },
+    {
+      "path": "scripts/ci/ledgerly-nested-offline-review.mjs",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "517045b63d8c135732088c63cc944e6ce2c41bddedf9efb44b9adfd7092b00ab"
+    },
+    {
+      "path": "scripts/ci/ledgerly-offline-pnpm.test.mjs",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "1b782c2955e34720bb518e23d3b3b20c185e79bb5388bb2b8211c801e430c87a"
+    },
+    {
+      "path": "scripts/ci/ledgerly-schema-push-regression.test.mjs",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "46952ae215a01c640baec7148b4741e5ebbfc402ceac6082373fcbad35d35b36"
+    },
+    {
+      "path": "scripts/ci/run-ledgerly-canonical-postgresql.mjs",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "224275124927ffabc03a0720acb67bd4b2d3e99db8183d1c2eca4283e7440427"
+    },
+    {
+      "path": "scripts/ci/run-ledgerly-canonical-postgresql.test.mjs",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "69ea13a0a89215cdf52d074c77d905cb18982cbd009e279b920fe11526e7e20b"
+    },
+    {
+      "path": "scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "779d76aa3ab065d5bb1f5a08c9ea807cf4bc3166d0fdc1b59c21c81140404081"
+    },
+    {
+      "path": "scripts/sql/ledgerly-44-ti-03-external-ci-run-control.sql",
+      "sourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "cf7c294738f2400e5ce5ab7abcb1cc111bd8100a62386d075306ced6395bf00b"
+    },
+    {
+      "path": ".github/workflows/ledgerly-tr01-c7-identity-status.yml",
+      "sourceCommit": "0da401737f35d68b9404982baad7405fe997636a",
+      "sha256": "cddd33da87d3a21bdc29436d225b863850da44aa241df5381d858f307759c2d7"
+    },
+    {
+      "path": "scripts/ci/ledgerly-tr01-c7-identity-status.mjs",
+      "sourceCommit": "0da401737f35d68b9404982baad7405fe997636a",
+      "sha256": "00f2db5314a8551572f5ecd3b576d2112af95244f5178e83aa1673e639b13ba3"
+    },
+    {
+      "path": "scripts/ci/ledgerly-tr01-c7-identity-status.test.mjs",
+      "sourceCommit": "0da401737f35d68b9404982baad7405fe997636a",
+      "sha256": "85a2846584fe423b2ee03b96a3b0c3bc8ab9c36dacfc8aec60818769550b0bcd"
+    }
+  ],
+  "qualificationTransferred": false
+}

@@ -24,3 +24,15 @@ that boundary. Workspace synchronization must preserve local changes and
 distinguish a composite integration tree from a byte-exact qualified candidate.
 Consult the latest approval record before live configuration; remaining
 governance, activation and production gates require separate authorization.
+
+For synchronization across divergent workspace/main/candidate histories,
+anchor an integration branch in the current workspace history and selectively
+import reviewed source paths rather than replacing the workspace wholesale.
+
+**Why:** The owner approved exact runtime/producer imports while requiring all
+existing Replit work and historical evidence to remain preserved. Main and the
+qualified runtime branch need not represent the same complete project layout.
+
+**How to apply:** Reassess the current divergence, preserve a base ref and
+ignored evidence separately, verify imported bytes against their exact sources,
+and give the composite integration its own identity and local validation record.
