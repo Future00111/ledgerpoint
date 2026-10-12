@@ -1,0 +1,33 @@
+name: TR-01 exact C5 disposable binding diagnostic only
+on:
+  push:
+    branches: [review/tr01-c5-binding-diagnostic]
+permissions:
+  contents: read
+jobs:
+  diagnostic:
+    if: github.repository == 'Future00111/ledgerpoint' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout ordinary diagnostic code, no persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Checkout byte-exact C5 separately, including ancestor objects
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 3a5c6e1318b49edcdc7f0f918d3a01813f960e71
+          path: .local/c5-snapshot
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify source and image; run unchanged six-case disposable binding regression
+        run: node scripts/ci/ledgerly-tr01-c5-binding-diagnostic.mjs .local/c5-snapshot
+      - name: Preserve raw diagnostic evidence on success or failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tr01-c5-binding-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: generated-artifacts/c5-binding-diagnostic/
+          if-no-files-found: error
+          retention-days: 30
