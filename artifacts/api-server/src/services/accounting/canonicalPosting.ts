@@ -1200,11 +1200,24 @@ async function postLinkedJournal(
     );
     const context = assertLockedAuthority(contextAuthority, "Context provider");
 
+    // The owner function holds the required row lock in this transaction;
+    // the API role keeps SELECT/INSERT-only access to immutable journals.
+    const originalLock = await transaction.execute<{ locked: boolean }>(sql`
+      SELECT public.ledgerly_lock_canonical_journal(
+        ${companyId}::uuid, ${relation.originalJournalId}::uuid
+      ) AS locked
+    `);
+    if (originalLock.rows[0]?.locked !== true) {
+      fail("company_scope_conflict", "The original journal was not found in the locked company");
+    }
     const [original] = await transaction
       .select()
       .from(canonicalJournalEntriesTable)
-      .where(eq(canonicalJournalEntriesTable.id, relation.originalJournalId))
-      .for("update");
+      .where(and(
+        eq(canonicalJournalEntriesTable.id, relation.originalJournalId),
+        eq(canonicalJournalEntriesTable.company_id, companyId),
+      ))
+      .limit(1);
     if (!original || original.company_id !== companyId) {
       fail("company_scope_conflict", "The original journal company changed before locking");
     }

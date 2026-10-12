@@ -62,6 +62,36 @@ GRANT SELECT, INSERT
     public.accounting_audit_events
   TO ledgerly_api;
 
+-- PostgreSQL requires UPDATE privilege for SELECT FOR UPDATE. Keep that
+-- privilege with the non-login owner and expose only a company-scoped lock.
+CREATE OR REPLACE FUNCTION public.ledgerly_lock_canonical_journal(
+  p_company_id uuid,
+  p_journal_id uuid
+)
+RETURNS boolean
+LANGUAGE plpgsql
+VOLATILE
+SECURITY DEFINER
+SET search_path TO 'pg_catalog', 'pg_temp'
+AS $function$
+BEGIN
+  PERFORM 1
+  FROM public.canonical_journal_entries j
+  WHERE j.company_id = p_company_id AND j.id = p_journal_id
+  FOR UPDATE;
+  RETURN FOUND;
+END;
+$function$;
+
+ALTER FUNCTION public.ledgerly_lock_canonical_journal(uuid, uuid)
+  OWNER TO ledgerly_canonical_owner;
+REVOKE ALL PRIVILEGES ON FUNCTION
+  public.ledgerly_lock_canonical_journal(uuid, uuid)
+FROM PUBLIC, ledgerly_api;
+GRANT EXECUTE ON FUNCTION
+  public.ledgerly_lock_canonical_journal(uuid, uuid)
+TO ledgerly_api;
+
 CREATE OR REPLACE FUNCTION public.ledgerly_canonical_append_only_guard()
 RETURNS trigger
 LANGUAGE plpgsql
