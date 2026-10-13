@@ -1,0 +1,32 @@
+{
+  "startedAtUtc": "2026-10-13T17:26:09.004045+00:00",
+  "completedAtUtc": "2026-10-13T17:26:16.565912+00:00",
+  "readOnly": true,
+  "checks": {
+    "repository": true,
+    "mainProtection": true,
+    "mainRules": true,
+    "mainRef": true,
+    "pr": true,
+    "environment": true,
+    "admission": true,
+    "environmentVariables": true,
+    "repositoryVariables": true,
+    "frozenRefs": true,
+    "rulesets": true,
+    "collaborators": true,
+    "repositorySecretNames": true,
+    "environmentSecretNames": true,
+    "effectiveFrozenRules": true,
+    "actingOwner": true,
+    "activationTree": true,
+    "activationParents": true,
+    "nativeCompleteMainPolicy": true,
+    "nativeCurrentPolicyAndZeroBypass": true
+  },
+  "allPassed": true,
+  "noLiveAcceptanceClaim": true,
+  "liveMutations": 0,
+  "G4": "INCOMPLETE",
+  "G5toG7": "PENDING"
+}

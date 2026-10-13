@@ -1,0 +1,37 @@
+{
+  "data": {
+    "repository": {
+      "owner": {
+        "__typename": "User",
+        "login": "Future00111"
+      },
+      "branchProtectionRules": {
+        "totalCount": 1,
+        "pageInfo": {
+          "hasNextPage": false
+        },
+        "nodes": [
+          {
+            "id": "BPR_kwDOT7mVms4E6Id6",
+            "pattern": "main",
+            "isAdminEnforced": true,
+            "requiresApprovingReviews": true,
+            "requiredApprovingReviewCount": 0,
+            "dismissesStaleReviews": true,
+            "requiresCodeOwnerReviews": false,
+            "requireLastPushApproval": false,
+            "requiresConversationResolution": true,
+            "restrictsPushes": false,
+            "restrictsReviewDismissals": false,
+            "bypassPullRequestAllowances": {
+              "totalCount": 0,
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

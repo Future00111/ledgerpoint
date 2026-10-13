@@ -1,0 +1,33 @@
+{
+  "verifiedAtUtc": "2026-10-13T17:26:26.883268+00:00",
+  "checks": {
+    "repositorySettingsAndOwnerUnchanged": true,
+    "mainRulesUnchanged": true,
+    "mainRefUnchanged": true,
+    "environmentUnchanged": true,
+    "admissionUnchanged": true,
+    "environmentVariablesUnchanged": true,
+    "repositoryVariablesUnchanged": true,
+    "frozenRefsUnchanged": true,
+    "rulesetsUnchanged": true,
+    "detailedRulesetsUnchanged": true,
+    "effectiveFrozenRulesUnchanged": true,
+    "activationCommitUnchanged": true,
+    "prExactUnchanged": true,
+    "actingOwner": true,
+    "collaboratorInventoryUnchanged": true,
+    "repositorySecretNamesUnchanged": true,
+    "environmentSecretNamesUnchanged": true,
+    "restMandatoryPrCountZero": true,
+    "restAdminConversationEnforced": true,
+    "allOtherMainProtectionUnchanged": true,
+    "nativeRuleInventoryCompleteUnchanged": true,
+    "nativeMandatoryPrAdminConversationAndZeroBypass": true
+  },
+  "allPassed": true,
+  "uiInspection": "PENDING_FOR_CODEX; native API is not actual browser verification",
+  "G4": "API_APPLIED_AND_VERIFIED_UI_PENDING",
+  "G5toG7": "PENDING",
+  "closureAttempted": false,
+  "mutationsAttempted": 1
+}

@@ -121,10 +121,14 @@ repository owner types.
 **Why:** A personal-repository protection PUT containing an empty PR-bypass
 users/teams/apps block and `restrictions:null` was rejected with HTTP 422
 for organization-only user/team restrictions. The response did not identify
-the exact property; no unauthorized write probes were made to isolate it.
+the exact property. A later separately approved body omitting only that
+optional empty block was accepted and independently read back; the count-two
+closure body was not applied. No unauthorized write probes were made.
 
 **How to apply:** Treat owner-type compatibility as a separate provider gate,
 not something JSON consistency proves. After a failed approved PUT, stop,
 retain successfully strengthened partial settings and obtain review of new
 exact payload bytes, including the closure payload; never silently retry a
-modified body or claim its empty lists were harmless.
+modified body or claim its empty lists were harmless. Require native zero
+bypass-allowance count with complete pagination: an omitted REST field alone
+is not proof. API acceptance is not authenticated browser inspection.

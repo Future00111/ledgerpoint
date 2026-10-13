@@ -1,0 +1,7 @@
+{
+  "method": "PUT",
+  "endpoint": "/repos/Future00111/ledgerpoint/branches/main/protection",
+  "bodySha256": "d96d829a3df69c397b032fe1a1eb308d9f98fada72efcb8495a9e17c18b354e6",
+  "startedAtUtc": "2026-10-13T17:26:18.094809+00:00",
+  "state": "ATTEMPT_CONSUMED_NO_RETRY"
+}
