@@ -28,3 +28,17 @@ mtime_ms = 1790013052667
 storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/9081d907-69b4-4d07-934d-bed6b4508e56/35214479-864a-451c-a754-3a61bf8e6de9"
 storage_version_token = "1790089228788497"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "6Cdl5Vx_V1KfTaMq7TnrF"
+uri = "file://docs/governance/drafts/ledgerly-tr01-c7-single-owner-designation-activation-exception-proposal.md"
+type = "text"
+title = "Proposed C7 single-owner development exception"
+description = "For review only—not approved. Names five human-review replacements, risks, retained safeguards and seven separate decision/action gates. No live configuration, merge or qualification authority."
+logical_id = "5ffc00d5-d944-4284-9ea3-64e5f130adea"
+content_hash = "sha256:ca8857b94eb5894c385805d372832d8df7cc364c88216eadb4683ea108ebf186"
+size = 15326
+mtime_ms = 1791887055750
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/5ffc00d5-d944-4284-9ea3-64e5f130adea/367b56e8-df0d-4211-9b15-12b41e0ddd47"
+storage_version_token = "1791887103332638"
+content_type = "text/markdown"
