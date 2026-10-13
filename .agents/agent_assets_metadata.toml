@@ -112,3 +112,17 @@ mtime_ms = 1791902890812
 storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/6ecc1608-ec87-450a-8d0f-f358f6feddfd/0f37787b-26f7-43bd-924f-4c8ef923c381"
 storage_version_token = "1791902919608128"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "9IXj-k7OUSq_D2eoGswBN"
+uri = "file://generated-artifacts/ledgerly-c7-g4-corrected-review/ledgerly-c7-g4-corrected-revised-review.zip"
+type = "unspecified"
+title = "Revised G4 review package — unapplied"
+description = "Exact payload hashes, retained HTTP 422 provenance, 10 passing offline tests, fresh GitHub REST/native receipts, verification requirements and two-review closure plan. G4 incomplete; no live writes."
+logical_id = "09b85d29-eb99-4c66-8b87-b42fe60ca31a"
+content_hash = "sha256:090b51fd4ad655001db0fa4b725610c1af2b9b326431b446d67e7999c71a79d7"
+size = 159906
+mtime_ms = 1791910054916
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/09b85d29-eb99-4c66-8b87-b42fe60ca31a/347dfafc-22a7-4037-aa78-23529e5cb957"
+storage_version_token = "1791910062813503"
+content_type = "application/octet-stream"
