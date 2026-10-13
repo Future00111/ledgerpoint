@@ -126,3 +126,17 @@ mtime_ms = 1791910054916
 storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/09b85d29-eb99-4c66-8b87-b42fe60ca31a/347dfafc-22a7-4037-aa78-23529e5cb957"
 storage_version_token = "1791910062813503"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "EwSOo2QZ8N0T8aeauWuoN"
+uri = "file://generated-artifacts/ledgerly-c7-g4-corrected-application/ledgerly-c7-g4-corrected-application-evidence.zip"
+type = "unspecified"
+title = "Corrected G4 application — HTTP 200, UI pending"
+description = "Owner authorization, single exact PUT response, fresh preflight and 22 passing independent REST/native preservation checks, exact window/future closure payloads and Codex UI handoff. No PATCH replay, closure, merge, dispatch or push."
+logical_id = "83e17291-eba8-4bb4-913d-3bac73a64da1"
+content_hash = "sha256:2c7e65ae84ba81ef6342827fa0d1232810a77f5657ab1bb293a7f2e76c68b84a"
+size = 191183
+mtime_ms = 1791912479576
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/83e17291-eba8-4bb4-913d-3bac73a64da1/b8f9fb1f-b3b3-472e-9fd3-7a13bbbc2f50"
+storage_version_token = "1791912488177710"
+content_type = "application/octet-stream"
