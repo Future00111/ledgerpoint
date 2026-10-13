@@ -21,3 +21,4 @@
 - [GitHub Git credential paths](github-git-credential-paths.md) — successful CLI reads do not prove default push authentication; use command-local credentials without changing approvals.
 - [Asset presentation history](asset-presentation-history.md) — Library metadata may advance local HEAD; bind owner approval to the named revision and unchanged document bytes.
 - [Review tooling isolation](review-tooling-isolation.md) — nested tools need their own workspace boundary; prove the minimal host install before supplying broader harness dependencies.
+- [Evidence observation clocks](evidence-observation-clocks.md) — use a real UTC recording clock; replay-stable callback time does not establish fresh or atomic observations.

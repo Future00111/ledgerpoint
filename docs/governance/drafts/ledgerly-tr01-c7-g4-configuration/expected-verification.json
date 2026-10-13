@@ -1,0 +1,187 @@
+{
+  "status": "EXPECTED_ONLY_NOT_APPLIED",
+  "apiReadbacks": [
+    {
+      "endpoint": "/repos/Future00111/ledgerpoint",
+      "expected": {
+        "allow_merge_commit": true,
+        "allow_squash_merge": false,
+        "allow_rebase_merge": false,
+        "allow_auto_merge": false
+      },
+      "otherSettingsUnchanged": true
+    },
+    {
+      "endpoint": "/repos/Future00111/ledgerpoint/branches/main/protection",
+      "expected": {
+        "required_pull_request_reviews": {
+          "dismiss_stale_reviews": true,
+          "require_code_owner_reviews": false,
+          "required_approving_review_count": 0,
+          "require_last_push_approval": false,
+          "bypass_pull_request_allowances": {
+            "users": [],
+            "teams": [],
+            "apps": []
+          }
+        },
+        "enforce_admins": {
+          "enabled": true
+        },
+        "required_conversation_resolution": {
+          "enabled": true
+        },
+        "required_status_checks": null,
+        "required_linear_history": {
+          "enabled": false
+        },
+        "allow_force_pushes": {
+          "enabled": false
+        },
+        "allow_deletions": {
+          "enabled": false
+        },
+        "required_signatures": {
+          "enabled": false
+        },
+        "lock_branch": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "endpoint": "/repos/Future00111/ledgerpoint/environments/ledgerly-canonical",
+      "expected": {
+        "id": 20664477675,
+        "node_id": "EN_kwDOT7mVms8AAAAEz7Ln6w",
+        "name": "ledgerly-canonical",
+        "can_admins_bypass": true,
+        "deployment_branch_policy": {
+          "protected_branches": false,
+          "custom_branch_policies": true
+        },
+        "protection_rules": [
+          {
+            "id": 63788940,
+            "type": "required_reviewers",
+            "prevent_self_review": false,
+            "reviewers": [
+              {
+                "type": "User",
+                "id": 318002590,
+                "login": "Future00111"
+              }
+            ]
+          },
+          {
+            "id": 67342203,
+            "node_id": "GA_kwDOT7mVms4EA497",
+            "type": "branch_policy"
+          }
+        ]
+      },
+      "unchanged": true
+    },
+    {
+      "endpoint": "/repos/Future00111/ledgerpoint/environments/ledgerly-canonical/deployment-branch-policies",
+      "expected": {
+        "total_count": 2,
+        "branch_policies": [
+          {
+            "id": 61652671,
+            "node_id": "MDE2OkdhdGVCcmFuY2hQb2xpY3k2MTY1MjY3MQ==",
+            "name": "main",
+            "type": "branch"
+          },
+          {
+            "id": 61652697,
+            "node_id": "MDE2OkdhdGVCcmFuY2hQb2xpY3k2MTY1MjY5Nw==",
+            "name": "tr01/implementation-identity-successor-c7",
+            "type": "branch"
+          }
+        ]
+      },
+      "unchanged": true
+    },
+    {
+      "endpoint": "/repos/Future00111/ledgerpoint/environments/ledgerly-canonical/variables",
+      "expected": {
+        "variables": [
+          {
+            "name": "LEDGERLY_APPROVED_CANDIDATE_SHA",
+            "value": "787d76decfa345e3c1104231e08d5ab00bc90259",
+            "created_at": "2026-10-01T14:33:53Z",
+            "updated_at": "2026-10-12T17:30:09Z"
+          },
+          {
+            "name": "TR01_C2_APPROVED_WORKFLOW_SHA",
+            "value": "87a4ff7d44be9bc21296e9623db16924488f76ae",
+            "created_at": "2026-10-01T13:13:11Z",
+            "updated_at": "2026-10-01T13:13:11Z"
+          },
+          {
+            "name": "TR01_C3_APPROVED_WORKFLOW_SHA",
+            "value": "65f3453c29f1eb1057bc66edc0cc7de508e87c2d",
+            "created_at": "2026-10-07T16:27:40Z",
+            "updated_at": "2026-10-07T16:27:40Z"
+          },
+          {
+            "name": "TR01_C4_APPROVED_WORKFLOW_SHA",
+            "value": "af028bb647fbbdb81509539969b21a859e708f34",
+            "created_at": "2026-10-07T19:48:49Z",
+            "updated_at": "2026-10-07T19:48:49Z"
+          },
+          {
+            "name": "TR01_C5_APPROVED_WORKFLOW_SHA",
+            "value": "82e122115b99a6c206b5bd07743331398cae6bbe",
+            "created_at": "2026-10-12T15:09:46Z",
+            "updated_at": "2026-10-12T15:09:46Z"
+          },
+          {
+            "name": "TR01_C6_APPROVED_WORKFLOW_SHA",
+            "value": "fdb4e2af7168e52dafde04d003f498ed76489206",
+            "created_at": "2026-10-12T16:21:49Z",
+            "updated_at": "2026-10-12T16:21:49Z"
+          },
+          {
+            "name": "TR01_C7_APPROVED_WORKFLOW_SHA",
+            "value": "0da401737f35d68b9404982baad7405fe997636a",
+            "created_at": "2026-10-12T17:22:45Z",
+            "updated_at": "2026-10-12T17:22:45Z"
+          }
+        ],
+        "total_count": 7
+      },
+      "unchanged": true
+    }
+  ],
+  "mandatoryUiReadback": [
+    "Require a pull request before merging enabled; zero required approving reviews",
+    "Enforce rules for administrators",
+    "No PR bypass actors",
+    "Require conversation resolution"
+  ],
+  "extraFreshPreconditions": [
+    "A/B and full main protection/repository/Environment/admission/pins/frozen controls equal captured settings before application",
+    "No newly eligible independent reviewer; if introduced, reconsider G1 exception",
+    "No other main writes permitted in setup/window",
+    "No live write until exact G4 approval; no automatic rollback or retry"
+  ],
+  "closure": {
+    "required_approving_review_count": 2,
+    "allOtherWindowProtectionFieldsUnchanged": true,
+    "mergeOnlyRetained": true,
+    "environmentPinsAndFrozenProtectionsUnchanged": true,
+    "ownerAuthoredPrsFailClosedWithExistingCollaboratorSet": true,
+    "doNotOverwriteNewlyAddedRequiredChecks": true
+  },
+  "notProvenByReadback": [
+    "Exact-PR-only restriction",
+    "Single-use merge or run",
+    "Owner attestation contents",
+    "Independent-human approval",
+    "Removal of Environment native administrator bypass",
+    "Qualification of A/G"
+  ],
+  "anyMismatch": "STOP; retain redacted receipts and obtain a new explicit decision. No bypass, direct main push, synthetic status or retry."
+}

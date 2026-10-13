@@ -1,0 +1,95 @@
+{
+  "status": "RECONCILED_HISTORICAL_C7_COVERAGE_NOT_NEW_ACTIVATED_QUALIFICATION",
+  "candidate": {
+    "sha": "787d76decfa345e3c1104231e08d5ab00bc90259",
+    "tree": "aa0360267a0d1987626ae9650238d66f04f667b9",
+    "parent": "c795945c4a5d4815804a86b9d5f2bdc77573d38f"
+  },
+  "historical": {
+    "run": 38283941466,
+    "attempt": 1,
+    "job": 114927672255,
+    "sourceWorkflowCommit": "0da401737f35d68b9404982baad7405fe997636a",
+    "runUrl": "https://github.com/Future00111/ledgerpoint/actions/runs/38283941466",
+    "jobUrl": "https://github.com/Future00111/ledgerpoint/actions/runs/38283941466/job/114927672255",
+    "pass": 7,
+    "fail": 0,
+    "skipped": 0,
+    "rawLog": {
+      "bytes": 70617,
+      "sha256": "b7dc437a65f9572174d5e077e908401cb4c52a13f9d103ef9db46ed3ba7bfe4c",
+      "workspacePath": "generated-artifacts/ledgerly-c7-g4-package/identity-validate-job.log",
+      "downloadablePackageMember": "historical/identity-validate-job.log"
+    },
+    "excerpt": {
+      "file": "c7-identity-offline-suite.log",
+      "sha256": "59002e8d3b132aca59ac4a01ed56e3acae35ab8410533eeb3000feb9c99a45be"
+    }
+  },
+  "local": {
+    "pass": 1,
+    "skipped": 6,
+    "receipt": "g3-offline-local.log",
+    "sha256": "cd94ba87cbf0cb3e0fddc18a2d38801de8c432cdf8c5249e12260a46baef5c5d",
+    "unchangedSkipResults": true
+  },
+  "cases": [
+    {
+      "test": 2,
+      "name": "pinned pnpm and the bootstrap CLI work as node on a read-only, offline image",
+      "localResult": "SKIP",
+      "historicalResult": "PASS"
+    },
+    {
+      "test": 3,
+      "name": "an empty runtime cache fails closed rather than fetching a replacement",
+      "localResult": "SKIP",
+      "historicalResult": "PASS"
+    },
+    {
+      "test": 4,
+      "name": "actual sanitized child compiles canonical source and runs nested pnpm/node tests offline",
+      "localResult": "SKIP",
+      "historicalResult": "PASS"
+    },
+    {
+      "test": 5,
+      "name": "a missing fixed module root rejects the actual compiled test without a dependency fallback",
+      "localResult": "SKIP",
+      "historicalResult": "PASS"
+    },
+    {
+      "test": 6,
+      "name": "actual sanitized nested invocation with missing cache fails without registry access",
+      "localResult": "SKIP",
+      "historicalResult": "PASS"
+    },
+    {
+      "test": 7,
+      "name": "a missing read-only cache also rejects the real nested invocation locally",
+      "localResult": "SKIP",
+      "historicalResult": "PASS"
+    }
+  ],
+  "sourceHashes": {
+    "scripts/ci/ledgerly-offline-pnpm.test.mjs": {
+      "commit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "1b782c2955e34720bb518e23d3b3b20c185e79bb5388bb2b8211c801e430c87a"
+    },
+    ".ci/ledgerly-canonical/Dockerfile.test": {
+      "commit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "4b4ab724fdc9d14d864a3481bead51dd60eeddfa7baa86162c85e4a72c3d886f"
+    },
+    ".dockerignore": {
+      "commit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "sha256": "9b4918cbb06a240ec19d41906fbaae069d0d7a1fb5ff33eb6bdfbcd53e7bce7d"
+    },
+    ".github/workflows/ledgerly-tr01-c7-identity-status.yml": {
+      "commit": "0da401737f35d68b9404982baad7405fe997636a",
+      "sha256": "cddd33da87d3a21bdc29436d225b863850da44aa241df5381d858f307759c2d7"
+    }
+  },
+  "noNewRun": true,
+  "doesNotQualifyAOrG": true,
+  "sameImageInstanceAcrossRunsNotClaimed": true
+}

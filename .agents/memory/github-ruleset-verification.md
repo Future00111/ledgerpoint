@@ -104,3 +104,13 @@ UI explicitly admitted main only.
 evidence as controlling; stop rather than assume admission. Any exact
 selected-branch correction needs owner confirmation of the shared-Environment
 impact, preserving required owner review and unrelated main controls.
+
+Do not assume every Environment GET field is writable through public APIs.
+
+**Why:** Environment readback exposed `can_admins_bypass`, but the checked
+public REST update schema and live GraphQL update input did not expose a
+corresponding write field. An invented body property could be silently ignored.
+
+**How to apply:** Recheck current write schemas before proposing an API change.
+If unsupported, explicitly retain the capability/risk rather than claim it
+disabled; any supported owner-UI change needs separate approval and readback.

@@ -1,0 +1,22 @@
+{
+  "checkedForPreparationOnly": true,
+  "branchProtection": {
+    "url": "https://docs.github.com/en/rest/branches/branch-protection?apiVersion=2022-11-28",
+    "excerpt": "required_approving_review_count: Use a number between 1 and 6 or 0 to not require reviewers.",
+    "personalRepositoryConstraint": "This user-owned repository does not support org-only push/dismissal restrictions; dismissal_restrictions is omitted."
+  },
+  "environment": {
+    "url": "https://docs.github.com/en/rest/deployments/environments?apiVersion=2022-11-28",
+    "publicPutBodyFields": [
+      "wait_timer",
+      "prevent_self_review",
+      "reviewers",
+      "deployment_branch_policy"
+    ],
+    "can_admins_bypass": "GET reports true. Not a documented PUT field; live GraphQL UpdateEnvironmentInput also exposes no admin-bypass field. No speculative write is proposed. Existing capability remains, use is forbidden. Environment unchanged."
+  },
+  "protectedBranches": {
+    "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
+    "requirement": "Read back non-null required_pull_request_reviews with count zero and verify UI Require a pull request before merging enabled, Require approvals disabled, administrator enforcement enabled and empty bypass allowances. Do not infer enforcement from protected:true, empty main effective rules or CLEAN alone."
+  }
+}

@@ -1,0 +1,51 @@
+2026-10-12T17:25:01.8936115Z # Subtest: the production image pins a shared cache and tests the final user offline
+2026-10-12T17:25:01.8940107Z ok 1 - the production image pins a shared cache and tests the final user offline
+2026-10-12T17:25:01.8940571Z   ---
+2026-10-12T17:25:01.8940766Z   duration_ms: 0.576665
+2026-10-12T17:25:01.8940959Z   type: 'test'
+2026-10-12T17:25:01.8941206Z   ...
+2026-10-12T17:25:01.8941727Z # Subtest: pinned pnpm and the bootstrap CLI work as node on a read-only, offline image
+2026-10-12T17:25:01.8944267Z ok 2 - pinned pnpm and the bootstrap CLI work as node on a read-only, offline image
+2026-10-12T17:25:01.8944648Z   ---
+2026-10-12T17:25:01.8944844Z   duration_ms: 726.247801
+2026-10-12T17:25:01.8945069Z   type: 'test'
+2026-10-12T17:25:01.8945247Z   ...
+2026-10-12T17:25:01.8945594Z # Subtest: an empty runtime cache fails closed rather than fetching a replacement
+2026-10-12T17:25:01.8947361Z ok 3 - an empty runtime cache fails closed rather than fetching a replacement
+2026-10-12T17:25:01.8947710Z   ---
+2026-10-12T17:25:01.8947878Z   duration_ms: 153.418439
+2026-10-12T17:25:01.8948087Z   type: 'test'
+2026-10-12T17:25:01.8948261Z   ...
+2026-10-12T17:25:01.8948695Z # Subtest: actual sanitized child compiles canonical source and runs nested pnpm/node tests offline
+2026-10-12T17:25:01.8949319Z ok 4 - actual sanitized child compiles canonical source and runs nested pnpm/node tests offline
+2026-10-12T17:25:01.8949866Z   ---
+2026-10-12T17:25:01.8950077Z   duration_ms: 1130.880079
+2026-10-12T17:25:01.8950313Z   type: 'test'
+2026-10-12T17:25:01.8950502Z   ...
+2026-10-12T17:25:01.8951491Z # Subtest: a missing fixed module root rejects the actual compiled test without a dependency fallback
+2026-10-12T17:25:01.8952147Z ok 5 - a missing fixed module root rejects the actual compiled test without a dependency fallback
+2026-10-12T17:25:01.8952585Z   ---
+2026-10-12T17:25:01.8952767Z   duration_ms: 523.310984
+2026-10-12T17:25:01.8952983Z   type: 'test'
+2026-10-12T17:25:01.8953166Z   ...
+2026-10-12T17:25:01.8953509Z # Subtest: actual sanitized nested invocation with missing cache fails without registry access
+2026-10-12T17:25:01.8954112Z ok 6 - actual sanitized nested invocation with missing cache fails without registry access
+2026-10-12T17:25:01.8954552Z   ---
+2026-10-12T17:25:01.8954742Z   duration_ms: 199.179769
+2026-10-12T17:25:01.8954961Z   type: 'test'
+2026-10-12T17:25:01.8955137Z   ...
+2026-10-12T17:25:01.8955447Z # Subtest: a missing read-only cache also rejects the real nested invocation locally
+2026-10-12T17:25:01.8955984Z ok 7 - a missing read-only cache also rejects the real nested invocation locally
+2026-10-12T17:25:01.8956397Z   ---
+2026-10-12T17:25:01.8956573Z   duration_ms: 224.797932
+2026-10-12T17:25:01.8956769Z   type: 'test'
+2026-10-12T17:25:01.8956945Z   ...
+2026-10-12T17:25:01.9016097Z 1..7
+2026-10-12T17:25:01.9016301Z # tests 7
+2026-10-12T17:25:01.9016485Z # suites 0
+2026-10-12T17:25:01.9016651Z # pass 7
+2026-10-12T17:25:01.9016815Z # fail 0
+2026-10-12T17:25:01.9016972Z # cancelled 0
+2026-10-12T17:25:01.9017151Z # skipped 0
+2026-10-12T17:25:01.9017314Z # todo 0
+2026-10-12T17:25:01.9017487Z # duration_ms 3001.18451

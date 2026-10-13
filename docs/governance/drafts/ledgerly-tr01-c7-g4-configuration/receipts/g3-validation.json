@@ -1,0 +1,109 @@
+{
+  "A": "ead19106aaad76d604e8595337b5ab2fddda68d0",
+  "tree": "bf7c91fac7fe09d8458a327dd79464ea1a3973ad",
+  "parents": [
+    "0da401737f35d68b9404982baad7405fe997636a",
+    "787d76decfa345e3c1104231e08d5ab00bc90259"
+  ],
+  "B": "0da401737f35d68b9404982baad7405fe997636a",
+  "C7": "787d76decfa345e3c1104231e08d5ab00bc90259",
+  "changedPaths": {
+    ".github/workflows/ledgerly-canonical-postgresql.yml": {
+      "gitBlob": "34dd8922906355ed1159effbcfec1b190f1b0071",
+      "mode": "100644",
+      "sha256": "ad06da35f4269fbbf46e1fd4ccabf6082d309963e39b577e17ac948c546afc20"
+    },
+    "docs/ledgerly-44-protected-github-baseline-ancestry-contract.md": {
+      "gitBlob": "be08d4dc2bba23d366ec4850084315ff8fb6ba95",
+      "mode": "100644",
+      "sha256": "146b475ebacdc708329b2bda00cab2f6ff96747410133106d385e124d244e70a"
+    },
+    "docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-approval-package.md": {
+      "gitBlob": "202e8c07d1c4f93e7caf65db80c837b452642289",
+      "mode": "100644",
+      "sha256": "dcac7424d264a98fd6404d9077e53929ff30a4da9d812bad07d43174d7e3cc24"
+    },
+    "docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-report.md": {
+      "gitBlob": "a5b69fb0424845628880821b921cd6d94acbdddf",
+      "mode": "100644",
+      "sha256": "d5658ea04c15eb394676cb907eaef743e4e9ce5a6c32d20e8be767db49271e10"
+    },
+    "docs/ledgerly-44-tr-01-implementation-identity-recovery-amendment.md": {
+      "gitBlob": "bcf5ffe7c432834d671dfd694c5f04ab8a8c7935",
+      "mode": "100644",
+      "sha256": "c80f69a970a1eca60892e8812a6cc7525fbfb623a99bd724cdaead9e9a638be1"
+    },
+    "docs/ledgerly-44-tr-01-implementation-identity-recovery-approval-record.md": {
+      "gitBlob": "242e2156b9096fac64d172d6f3827bd565396b4c",
+      "mode": "100644",
+      "sha256": "406b1b5e0ab19f898a6a5e2419a4ed8d08246a72e15f65f2edc71cec343b3582"
+    },
+    "docs/ledgerly-44-tr-01-implementation-identity-recovery-implementation-approval-package.md": {
+      "gitBlob": "89e15046ee29bc158f510cc2cb486add962193d7",
+      "mode": "100644",
+      "sha256": "b45f53be13f99315cbd3beeac73ea718362437c4c4e32001d31912eb98f9575e"
+    },
+    "docs/ledgerly-44-tr-01-implementation-identity-recovery-independent-review.md": {
+      "gitBlob": "8aec4832f5173e0dca8acc8d23111be78ef75176",
+      "mode": "100644",
+      "sha256": "6a7cd908bcbdd7c8b6783d916ec6680a61103da6f2763fe69dfa6b7dd7712f8a"
+    },
+    "docs/ledgerly-44-tr-01-transactional-authority-provider-approval-package.md": {
+      "gitBlob": "226f169d50b839e9669a6766c92533c57b3b75e9",
+      "mode": "100644",
+      "sha256": "464d035b209ed77d278a581d7bcaa2ccea1490764546a8a98703f4022d966683"
+    },
+    "docs/ledgerly-current-decision-register.md": {
+      "gitBlob": "86b8e9b6f8083f802b4859af3925608372cdbc21",
+      "mode": "100644",
+      "sha256": "1f2d6fc43c4e0a4d1e05a0328d8b552575f33eee1aac0621112c9d206f02cf54"
+    }
+  },
+  "outsideInventoryBExactIncludingAbsence": true,
+  "bothAncestors": true,
+  "workflowPrototypeOnlyDifference": "terminating LF",
+  "sourceFixture": {
+    "fixtureOnly": true,
+    "notQualificationEvidence": true,
+    "workflowSource": "ead19106aaad76d604e8595337b5ab2fddda68d0",
+    "implementationSource": "787d76decfa345e3c1104231e08d5ab00bc90259",
+    "positiveActualSourceContext": true,
+    "negativeCases": [
+      "workflow digest attributed to C7",
+      "false implementation tree digest",
+      "implementation SHA alias",
+      "wrong activated ref",
+      "C7 absent from B ancestry"
+    ],
+    "sourceFiles": 564,
+    "sourceTreeSha256": "fcd81d162cbfc406853bdd13c853cd49f81fd814622a7f90116724e668eb82d1",
+    "workflowSha256": "ad06da35f4269fbbf46e1fd4ccabf6082d309963e39b577e17ac948c546afc20",
+    "allNonWorkflowDigestsMatchQualifiedC7": true,
+    "noDatabaseOrDockerExecution": true
+  },
+  "hostInstall": "pnpm10.26.1 frozen ignore-scripts filter workspace; AJV8.20.0 actual candidate fallback verified",
+  "hostPlatform": "Replit NixOS Node24.13.0; local Corepack shims installed in isolated writable directory, not global /nix/store",
+  "typecheckApplicability": "No TypeScript/application/package/SQL sources changed; Node syntax/module load and workflow parsing validated",
+  "checks": {
+    "yamlSafety": "PASS",
+    "bindingRegression": "PASS",
+    "schemaConvergenceRegression": "PASS (mocked, no schema push)",
+    "identityAcceptance": "PASS with matching C7 API dependencies supplied for harness only",
+    "producerContract": "29 cases passed (28 suite plus targeted previously skipped actual-C7 case)",
+    "offlineContract": "1 static passed; 6 image-dependent cases skipped, no Docker image supplied",
+    "actualSourceFixture": "1 positive and 5 negative cases passed"
+  },
+  "newQualificationRun": false,
+  "databaseDockerOrMigrationWork": false,
+  "G4toG7": "PENDING",
+  "draftPr": {
+    "baseRefOid": "0da401737f35d68b9404982baad7405fe997636a",
+    "headRefOid": "ead19106aaad76d604e8595337b5ab2fddda68d0",
+    "isDraft": true,
+    "number": 26,
+    "state": "OPEN",
+    "url": "https://github.com/Future00111/ledgerpoint/pull/26"
+  },
+  "remoteA": "ead19106aaad76d604e8595337b5ab2fddda68d0",
+  "mainFrozenEnvironmentRulesetsProtectionUnchanged": true
+}

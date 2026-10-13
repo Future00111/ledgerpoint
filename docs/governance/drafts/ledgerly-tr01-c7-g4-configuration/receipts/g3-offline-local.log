@@ -1,0 +1,15 @@
+✔ the production image pins a shared cache and tests the final user offline (0.856057ms)
+﹣ pinned pnpm and the bootstrap CLI work as node on a read-only, offline image (0.118364ms) # SKIP
+﹣ an empty runtime cache fails closed rather than fetching a replacement (0.0766ms) # SKIP
+﹣ actual sanitized child compiles canonical source and runs nested pnpm/node tests offline (0.175149ms) # SKIP
+﹣ a missing fixed module root rejects the actual compiled test without a dependency fallback (0.114393ms) # SKIP
+﹣ actual sanitized nested invocation with missing cache fails without registry access (0.066523ms) # SKIP
+﹣ a missing read-only cache also rejects the real nested invocation locally (0.092564ms) # SKIP
+ℹ tests 7
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 6
+ℹ todo 0
+ℹ duration_ms 11.738638

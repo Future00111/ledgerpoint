@@ -1,0 +1,15 @@
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+.                                        |   +8 +
+
+   ╭───────────────────────────────────────────────╮
+   │                                               │
+   │     Update available! 10.26.1 → 12.11.2.      │
+   │     Changelog: https://pnpm.io/v/12.11.2      │
+   │   To update, run: corepack use pnpm@12.11.2   │
+   │                                               │
+   ╰───────────────────────────────────────────────╯
+
+Progress: resolved 8, reused 0, downloaded 8, added 6
+Progress: resolved 8, reused 0, downloaded 8, added 8, done
+Done in 2.3s using pnpm v10.26.1

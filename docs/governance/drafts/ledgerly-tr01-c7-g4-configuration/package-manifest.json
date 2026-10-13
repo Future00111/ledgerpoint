@@ -1,0 +1,28 @@
+{
+  "status": "PROPOSED_NOT_APPROVED",
+  "A": "ead19106aaad76d604e8595337b5ab2fddda68d0",
+  "B": "0da401737f35d68b9404982baad7405fe997636a",
+  "C7": "787d76decfa345e3c1104231e08d5ab00bc90259",
+  "algorithm": "sha256",
+  "files": {
+    "historical/identity-validate-job.log": "b7dc437a65f9572174d5e077e908401cb4c52a13f9d103ef9db46ed3ba7bfe4c",
+    "ledgerly-tr01-c7-g4-configuration-package.md": "7d33782a6f122d7043492f0a1da224891b8cd4a847f1b1c46ec755b304e0c300",
+    "ledgerly-tr01-c7-g4-configuration/actions-and-verification.json": "f17ff97b40d0626a12016ab9a7bd842fe2983e5c4a3e96026a130ce94829577c",
+    "ledgerly-tr01-c7-g4-configuration/api-semantics.json": "e7f884efa5c803749941bf8d08687083896c3ba32dbc40844348cbdf071e649e",
+    "ledgerly-tr01-c7-g4-configuration/closure-main-protection.json": "76cf123a7a8eac3225251239e48500f0b870e480f428513f4755b3b524402618",
+    "ledgerly-tr01-c7-g4-configuration/current-settings.json": "bde049c30df428c21764d8c4418ffc26f9a5ca2a5f9d27395ce1ccd6cc8abcee",
+    "ledgerly-tr01-c7-g4-configuration/expected-verification.json": "2c20ddad6b4952ddcf95a49f3d7b625d8290e92cfe908ee2c65143a10026657d",
+    "ledgerly-tr01-c7-g4-configuration/frozen-invariants-summary.json": "9c660aae8dfb7157e1a8dd672866392b5066561aedc4d16a568454ccd7ae26be",
+    "ledgerly-tr01-c7-g4-configuration/prior-main-protection-reference.json": "fdc5ad95c1f09896754b0debb00592a9556bd40fdc8fc8a7db71c3b7d77e3beb",
+    "ledgerly-tr01-c7-g4-configuration/receipts/c7-identity-offline-suite.log": "59002e8d3b132aca59ac4a01ed56e3acae35ab8410533eeb3000feb9c99a45be",
+    "ledgerly-tr01-c7-g4-configuration/receipts/final-readback.json": "0e588378c8c82e28ed0cf377451e3cb91603a29c14cbfc169243249f72c437fa",
+    "ledgerly-tr01-c7-g4-configuration/receipts/g3-actual-source-fixture.json": "71d95f0863b982b26ac27a00e69518d9a5413311f91e40c2a85e0d00775fbec6",
+    "ledgerly-tr01-c7-g4-configuration/receipts/g3-host-install.log": "b88aaa52fe895af2734e951d0a681a2380254ae316e9b2b6b9df41b6d2712635",
+    "ledgerly-tr01-c7-g4-configuration/receipts/g3-offline-local.log": "cd94ba87cbf0cb3e0fddc18a2d38801de8c432cdf8c5249e12260a46baef5c5d",
+    "ledgerly-tr01-c7-g4-configuration/receipts/g3-validation.json": "f0c597d27717091faae4718695a89c65d596084e06b0a88b13be05ac0dc88300",
+    "ledgerly-tr01-c7-g4-configuration/receipts/offline-skip-reconciliation.json": "3aa3b45a796b3395be17cd2be995766206d0b93e8cca99b66450824e2fbb4426",
+    "ledgerly-tr01-c7-g4-configuration/receipts/package-consistency-check.json": "4a9451d3fdcbda145300283cc659363128f1f69b103bae92a9a711687682c068",
+    "ledgerly-tr01-c7-g4-configuration/window-main-protection.json": "602ec1a83e6bbea44c1e2145e4e3f87d466f33b80934d1c2e772ad9e44d809d0",
+    "ledgerly-tr01-c7-g4-configuration/window-repository-settings.json": "cb9439c8ce8ffa30a13e2e1560f6d8ff91b88ce4724538871dc480bae6e6ab30"
+  }
+}

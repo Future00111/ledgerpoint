@@ -1,0 +1,19 @@
+{
+  "fixtureOnly": true,
+  "notQualificationEvidence": true,
+  "workflowSource": "ead19106aaad76d604e8595337b5ab2fddda68d0",
+  "implementationSource": "787d76decfa345e3c1104231e08d5ab00bc90259",
+  "positiveActualSourceContext": true,
+  "negativeCases": [
+    "workflow digest attributed to C7",
+    "false implementation tree digest",
+    "implementation SHA alias",
+    "wrong activated ref",
+    "C7 absent from B ancestry"
+  ],
+  "sourceFiles": 564,
+  "sourceTreeSha256": "fcd81d162cbfc406853bdd13c853cd49f81fd814622a7f90116724e668eb82d1",
+  "workflowSha256": "ad06da35f4269fbbf46e1fd4ccabf6082d309963e39b577e17ac948c546afc20",
+  "allNonWorkflowDigestsMatchQualifiedC7": true,
+  "noDatabaseOrDockerExecution": true
+}

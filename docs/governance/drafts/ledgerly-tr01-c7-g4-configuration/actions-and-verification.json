@@ -1,0 +1,76 @@
+{
+  "status": "PROPOSED_NOT_APPROVED",
+  "G4toG7": "PENDING",
+  "applicationPerformed": false,
+  "target": {
+    "pr": 26,
+    "A": "ead19106aaad76d604e8595337b5ab2fddda68d0",
+    "B": "0da401737f35d68b9404982baad7405fe997636a",
+    "C7": "787d76decfa345e3c1104231e08d5ab00bc90259",
+    "expectedMergeTree": "bf7c91fac7fe09d8458a327dd79464ea1a3973ad"
+  },
+  "headers": {
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  },
+  "configurationSequence": [
+    {
+      "order": 1,
+      "method": "PATCH",
+      "endpoint": "/repos/Future00111/ledgerpoint",
+      "bodyFile": "window-repository-settings.json",
+      "expectedHttpStatus": 200,
+      "notes": "Merge commits only; no auto-merge. Verify before next operation; no merge during configuration."
+    },
+    {
+      "order": 2,
+      "method": "PUT",
+      "endpoint": "/repos/Future00111/ledgerpoint/branches/main/protection",
+      "bodyFile": "window-main-protection.json",
+      "expectedHttpStatus": 200,
+      "notes": "Mandatory PR path with count 0, admin enforcement, no PR bypass, conversation resolution. Verify before any later G5 action."
+    }
+  ],
+  "closurePlan": {
+    "method": "PUT",
+    "endpoint": "/repos/Future00111/ledgerpoint/branches/main/protection",
+    "bodyFile": "closure-main-protection.json",
+    "expectedHttpStatus": 200,
+    "trigger": "Completion, failure, revocation or expiry",
+    "authority": "Only if owner separately approves this exact configuration/closure plan; no approval yet",
+    "notes": "Restore two native approving reviews and retain strengthened PR/admin/conversation/merge safeguards. Existing single collaborator cannot satisfy this: future own PRs remain fail-closed until eligible independent reviewers are separately approved. Environment and pins unchanged. No automatic run retry."
+  },
+  "historicalBaselineReference": {
+    "bodyFile": "prior-main-protection-reference.json",
+    "notAuthorizedForApplication": true,
+    "notes": "Null PR policy is the observed historical baseline, not the ordinary restoration target. Applying it would remove strengthened safeguards and needs a new explicit decision."
+  },
+  "notInConfigurationPlan": [
+    "Environment writes",
+    "candidate/producer variable writes",
+    "admission/ruleset/ref writes",
+    "PR ready/merge",
+    "status fabrication",
+    "workflow dispatch",
+    "deployment approval/bypass",
+    "migration/production/Phase A"
+  ],
+  "manualControls": [
+    "Exact authenticated-owner G5 A/B/tree attestation",
+    "No other main writes during window",
+    "At most one separately approved G6 activated dispatch at actual G",
+    "Normal required-owner Environment release only, never admin bypass",
+    "No author/AI counted as independent-human review"
+  ],
+  "futureMergeReferenceOnly": {
+    "gate": "G5_PENDING_NOT_AUTHORIZED",
+    "method": "PUT",
+    "endpoint": "/repos/Future00111/ledgerpoint/pulls/26/merge",
+    "body": {
+      "sha": "ead19106aaad76d604e8595337b5ab2fddda68d0",
+      "merge_method": "merge"
+    },
+    "notes": "Not a G4 action. Owner must separately authorize readiness/ordinary merge. API atomically matches head only, not base; recheck B immediately before, quiesce other main writes, and verify G parents/tree afterward."
+  },
+  "currentControlsEqualG3Snapshot": true
+}

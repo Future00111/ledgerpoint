@@ -1,0 +1,19 @@
+{
+  "observedAtUtc": "2026-10-13T14:10:24Z",
+  "readOnly": true,
+  "applicationPerformed": false,
+  "checks": {
+    "main": "UNCHANGED",
+    "pr": "UNCHANGED",
+    "protection": "UNCHANGED",
+    "repository": "UNCHANGED",
+    "environment": "UNCHANGED",
+    "admission": "UNCHANGED",
+    "variables": "UNCHANGED",
+    "rulesets": "UNCHANGED",
+    "frozen": "UNCHANGED"
+  },
+  "A": "ead19106aaad76d604e8595337b5ab2fddda68d0",
+  "B": "0da401737f35d68b9404982baad7405fe997636a",
+  "G4toG7": "PENDING"
+}

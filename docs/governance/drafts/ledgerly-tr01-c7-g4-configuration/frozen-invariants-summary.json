@@ -1,0 +1,86 @@
+{
+  "frozen": [
+    {
+      "ref": "refs/heads/tr01/implementation-identity-candidate",
+      "sha": "d292f3a64c6253e022b40de8cf055f3e722ff1ea",
+      "ruleTypes": [
+        "deletion",
+        "non_fast_forward",
+        "update"
+      ]
+    },
+    {
+      "ref": "refs/heads/tr01/implementation-identity-successor-c2",
+      "sha": "3ab9edc28b4922ad82e68afb7b049d69514f91e1",
+      "ruleTypes": [
+        "deletion",
+        "non_fast_forward",
+        "update",
+        "required_status_checks"
+      ]
+    },
+    {
+      "ref": "refs/heads/tr01/implementation-identity-successor-c3",
+      "sha": "1c26be19295902a38e1939b56ff99ae9a195d3de",
+      "ruleTypes": [
+        "deletion",
+        "non_fast_forward",
+        "update",
+        "required_status_checks"
+      ]
+    },
+    {
+      "ref": "refs/heads/tr01/implementation-identity-successor-c4",
+      "sha": "273f714c876260636346b7fbcc588224e9795141",
+      "ruleTypes": [
+        "deletion",
+        "non_fast_forward",
+        "update",
+        "required_status_checks"
+      ]
+    },
+    {
+      "ref": "refs/heads/tr01/implementation-identity-successor-c5",
+      "sha": "3a5c6e1318b49edcdc7f0f918d3a01813f960e71",
+      "ruleTypes": [
+        "deletion",
+        "non_fast_forward",
+        "update",
+        "required_status_checks"
+      ]
+    },
+    {
+      "ref": "refs/heads/tr01/implementation-identity-successor-c6",
+      "sha": "99f5d97b96f7065d08f3ac09627cceea0398ebcc",
+      "ruleTypes": [
+        "deletion",
+        "non_fast_forward",
+        "update",
+        "required_status_checks"
+      ]
+    },
+    {
+      "ref": "refs/heads/tr01/implementation-identity-successor-c7",
+      "sha": "787d76decfa345e3c1104231e08d5ab00bc90259",
+      "ruleTypes": [
+        "deletion",
+        "non_fast_forward",
+        "update",
+        "required_status_checks"
+      ]
+    }
+  ],
+  "rulesetIds": [
+    23995584,
+    24197692,
+    24663898,
+    24674872,
+    24935496,
+    24939211,
+    24941779
+  ],
+  "active": true,
+  "noBypass": true,
+  "noWritesProposed": true,
+  "legacyCNote": "Original C has update/deletion/non-fast-forward blocks only. C2-C7 additionally have strict identity status bound to GitHub Actions 15368 with initial-create exemption. Preserve exactly; do not invent a legacy-C status rule."
+}
