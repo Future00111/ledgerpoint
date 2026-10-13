@@ -56,3 +56,31 @@ mtime_ms = 1791890816909
 storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/d8a8dabc-7c6e-4cfa-b0ff-0069c36842b5/4e33be9d-f554-4f10-8790-96aec6789aec"
 storage_version_token = "1791891042051988"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "Pq5TZtEz2bJGcwYaWKJby"
+uri = "file://docs/governance/drafts/ledgerly-tr01-c7-g4-configuration-package.md"
+type = "text"
+title = "Proposed G4 configuration package — PR #26"
+description = "Current/proposed controls, exact API payloads, ordinary-PR enforcement, retained risks and closure plan. G4–G7 pending; nothing applied."
+logical_id = "03f8bb28-1387-4f6c-abd5-3eba9971d3f8"
+content_hash = "sha256:7d33782a6f122d7043492f0a1da224891b8cd4a847f1b1c46ec755b304e0c300"
+size = 17299
+mtime_ms = 1791900299997
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/03f8bb28-1387-4f6c-abd5-3eba9971d3f8/776b363b-d80d-40ab-9a8c-fa7482c13fe8"
+storage_version_token = "1791900952664824"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "8ZyspNF8_sWFMNf5ifnrj"
+uri = "file://generated-artifacts/ledgerly-c7-g4-package/ledgerly-c7-g4-configuration-review.zip"
+type = "unspecified"
+title = "Complete G4 review package and validation receipts"
+description = "Exact JSON payloads and snapshots, byte-exact G3 receipts, reconciled six skipped tests, original C7 identity job log, manifest hashes and review revision 747d8d1757974425e663a58d22181d48348c6287. No live actions."
+logical_id = "7f63a5ee-74f0-437a-99ba-c93c7b8c5d5b"
+content_hash = "sha256:b7d0c84cbcf8f73a43691ae242ec84f494b97757b4c37b59fa55e1a0a6eeccaa"
+size = 42914
+mtime_ms = 1791900921697
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/7f63a5ee-74f0-437a-99ba-c93c7b8c5d5b/4efc7775-04d7-4633-8d26-b6e4469c116e"
+storage_version_token = "1791900953450239"
+content_type = "application/octet-stream"
