@@ -1,4 +1,40 @@
-# Current C7 next actions — acceptance and activation proposal prepared
+# Current C7 status and next actions
+
+## Current status — 2026-10-13
+
+**G4 VERIFIED COMPLETE; G5–G7 PENDING.**
+
+The owner reports Codex completed the actual authenticated, read-only Chrome
+handoff at **2026-10-13T17:30:39.765Z**, with independent REST/native and
+preservation checks. See the dated
+[Codex AI UI-verification addendum](../ledgerly-tr01-c7-g4-codex-ui-verification-addendum.md)
+for exact checkbox observations, attribution and evidence limits.
+This is Codex AI verification, not Replit browser inspection or independent
+human review.
+
+The preserved Replit application commit
+`fcad7a07e115aa556f1d2037c759b8580f9124ff` and its UI-pending report remain
+historical evidence, unchanged. The later addendum closes that pending handoff
+without rewriting the earlier execution record.
+
+Bound identities remain A `ead19106aaad76d604e8595337b5ab2fddda68d0`,
+B/main `0da401737f35d68b9404982baad7405fe997636a`, and
+C7 `787d76decfa345e3c1104231e08d5ab00bc90259`.
+PR #26 remains draft/unmerged per Codex's reported checks. Merge-only settings,
+mandatory count-zero PR policy, administrator enforcement, stale dismissal,
+conversation resolution, zero native bypass actors, all pins, frozen controls
+and the Environment gate are recorded as verified/preserved.
+
+**Current next action:** await separate G5 authorization. No readiness change
+or merge follows automatically from G4 completion. G6/G7 run/release actions
+also remain pending. The approved future two-approval closure plan retains its
+recorded conditions; this status recording does not trigger it.
+
+This turn is documentation/status recording only: no live requests, closure,
+push, readiness change, merge, dispatch or release. No migration, deployment,
+production/Helium access or Phase A.
+
+## Historical preparation status — 2026-10-12 (retained, not current instructions)
 
 **2026-10-12:** candidate qualification, workspace integration and ordinary
 GitHub backup are complete. Review the [final acceptance proposal](ledgerly-tr01-c7-final-acceptance-proposal.md)
