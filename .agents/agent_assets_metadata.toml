@@ -42,3 +42,17 @@ mtime_ms = 1791887055750
 storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/5ffc00d5-d944-4284-9ea3-64e5f130adea/367b56e8-df0d-4211-9b15-12b41e0ddd47"
 storage_version_token = "1791887103332638"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "QcmfgsI0wWZSCBYDjBjwi"
+uri = "file://docs/governance/drafts/ledgerly-tr01-c7-activation-preparation-report.md"
+type = "text"
+title = "C7 G2 designation and G3 preparation report"
+description = "Draft PR #26 and exact A/B/C7 identities, ten-path tree proof and local validation results. G4–G7 remain pending; no merge or activated qualification."
+logical_id = "d8a8dabc-7c6e-4cfa-b0ff-0069c36842b5"
+content_hash = "sha256:a697bda4afc373310ea0f5a7bbb37b3d72335677caeeab3bad64a160a01cd6cb"
+size = 6829
+mtime_ms = 1791890816909
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/d8a8dabc-7c6e-4cfa-b0ff-0069c36842b5/4e33be9d-f554-4f10-8790-96aec6789aec"
+storage_version_token = "1791891042051988"
+content_type = "text/markdown"
