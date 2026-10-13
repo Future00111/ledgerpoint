@@ -1,0 +1,16 @@
+{
+  "httpStatus": 422,
+  "body": {
+    "message": "Validation Failed",
+    "errors": [
+      "Only organization repositories can have users and team restrictions"
+    ],
+    "documentation_url": "https://docs.github.com/rest/branches/branch-protection#update-branch-protection",
+    "status": "422"
+  },
+  "method": "PUT",
+  "endpoint": "/repos/Future00111/ledgerpoint/branches/main/protection",
+  "retried": false,
+  "closureApplied": false,
+  "diagnosis": "User-owned repository rejected organization-only user/team restriction semantics; exact offending field not identified by provider."
+}

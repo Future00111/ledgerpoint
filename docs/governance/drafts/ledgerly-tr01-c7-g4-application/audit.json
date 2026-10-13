@@ -1,0 +1,33 @@
+{
+  "approvedZipSha256": "b7d0c84cbcf8f73a43691ae242ec84f494b97757b4c37b59fa55e1a0a6eeccaa",
+  "G5toG7": "PENDING",
+  "operations": [
+    {
+      "method": "PATCH",
+      "endpoint": "repos/Future00111/ledgerpoint",
+      "bodyFile": "window-repository-settings.json",
+      "bodySha256": "cb9439c8ce8ffa30a13e2e1560f6d8ff91b88ce4724538871dc480bae6e6ab30",
+      "startedAtUtc": "2026-10-13T14:39:11.238421+00:00",
+      "result": "SUCCESS_READBACK_VERIFIED",
+      "completedAtUtc": "2026-10-13T14:39:12.996605+00:00"
+    },
+    {
+      "method": "PUT",
+      "endpoint": "repos/Future00111/ledgerpoint/branches/main/protection",
+      "bodyFile": "window-main-protection.json",
+      "bodySha256": "602ec1a83e6bbea44c1e2145e4e3f87d466f33b80934d1c2e772ad9e44d809d0",
+      "startedAtUtc": "2026-10-13T14:39:15.581353+00:00",
+      "result": "STARTED_OUTCOME_NOT_YET_KNOWN"
+    }
+  ],
+  "actor": {
+    "login": "Future00111",
+    "id": 318002590
+  },
+  "preflightStartedAtUtc": "2026-10-13T14:38:52.976318+00:00",
+  "preflight": "PASS: all captured sources, controls, pins, frozen effective rules and reviewer inventories exact",
+  "preflightCompletedAtUtc": "2026-10-13T14:39:09.880469+00:00",
+  "status": "STOPPED_NO_RETRY_OR_FURTHER_WRITE",
+  "failure": "PUT repos/Future00111/ledgerpoint/branches/main/protection: gh: Validation Failed (HTTP 422) {\"message\":\"Validation Failed\",\"errors\":[\"Only organization repositories can have users and team restrictions\"],\"documentation_url\":\"https://docs.github.com/rest/branches/branch-protection#update-branch-protection\",\"status\":\"422\"}",
+  "finishedAtUtc": "2026-10-13T14:39:16.266278+00:00"
+}

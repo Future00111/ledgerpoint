@@ -1,0 +1,12 @@
+{
+  "settings": {
+    "allow_merge_commit": true,
+    "allow_squash_merge": false,
+    "allow_rebase_merge": false,
+    "allow_auto_merge": false,
+    "delete_branch_on_merge": false,
+    "allow_update_branch": false
+  },
+  "source": "Successful PATCH then separate authenticated API GET",
+  "noMergeOrDispatch": true
+}

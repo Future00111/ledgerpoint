@@ -114,3 +114,17 @@ corresponding write field. An invented body property could be silently ignored.
 **How to apply:** Recheck current write schemas before proposing an API change.
 If unsupported, explicitly retain the capability/risk rather than claim it
 disabled; any supported owner-UI change needs separate approval and readback.
+
+Empty optional restriction lists are not necessarily portable across
+repository owner types.
+
+**Why:** A personal-repository protection PUT containing an empty PR-bypass
+users/teams/apps block and `restrictions:null` was rejected with HTTP 422
+for organization-only user/team restrictions. The response did not identify
+the exact property; no unauthorized write probes were made to isolate it.
+
+**How to apply:** Treat owner-type compatibility as a separate provider gate,
+not something JSON consistency proves. After a failed approved PUT, stop,
+retain successfully strengthened partial settings and obtain review of new
+exact payload bytes, including the closure payload; never silently retry a
+modified body or claim its empty lists were harmless.

@@ -1,0 +1,26 @@
+{
+  "totalCount": 1,
+  "pageInfo": {
+    "hasNextPage": false
+  },
+  "nodes": [
+    {
+      "id": "BPR_kwDOT7mVms4E6Id6",
+      "databaseId": 82347898,
+      "pattern": "main",
+      "requiresApprovingReviews": false,
+      "requiredApprovingReviewCount": null,
+      "dismissesStaleReviews": false,
+      "requiresCodeOwnerReviews": false,
+      "requireLastPushApproval": false,
+      "isAdminEnforced": true,
+      "requiresConversationResolution": false,
+      "bypassPullRequestAllowances": {
+        "totalCount": 0,
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    }
+  ]
+}
