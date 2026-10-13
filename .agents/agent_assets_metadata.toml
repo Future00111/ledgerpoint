@@ -84,3 +84,31 @@ mtime_ms = 1791900921697
 storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/7f63a5ee-74f0-437a-99ba-c93c7b8c5d5b/4efc7775-04d7-4633-8d26-b6e4469c116e"
 storage_version_token = "1791900953450239"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "arQppw2VsJPlu1j_dsJFs"
+uri = "file://docs/governance/drafts/ledgerly-tr01-c7-g4-application-report.md"
+type = "text"
+title = "G4 application stopped — HTTP 422"
+description = "Repository merge-only settings applied. Main protection PUT rejected; no retry. Pins, frozen protections and Environment unchanged; G5–G7 pending."
+logical_id = "6c2c9a52-15da-4021-888a-8deb9fd173a0"
+content_hash = "sha256:69492b44b14303f9bcde827728f3dfcd6958f1155e3a4a6fd33fa19704aa36da"
+size = 5739
+mtime_ms = 1791902644168
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/6c2c9a52-15da-4021-888a-8deb9fd173a0/458201cf-0fe3-40c6-b680-55345dbd98f4"
+storage_version_token = "1791902918779177"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "7otT3srYuStFJdvbym3eC"
+uri = "file://generated-artifacts/ledgerly-c7-g4-package/ledgerly-c7-g4-application-failure-evidence.zip"
+type = "unspecified"
+title = "G4 approval and failure evidence"
+description = "Exact approved request bytes, approval record, HTTP 422, before/after API readbacks and 18 verified member hashes. Local record commit ab5963aaf4c107aa2b089f7c97a7826c1731d518."
+logical_id = "6ecc1608-ec87-450a-8d0f-f358f6feddfd"
+content_hash = "sha256:d378f8f433c7feef04ad3963ed191d88d555015fca73f190fb7537792097dd71"
+size = 27858
+mtime_ms = 1791902890812
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/6ecc1608-ec87-450a-8d0f-f358f6feddfd/0f37787b-26f7-43bd-924f-4c8ef923c381"
+storage_version_token = "1791902919608128"
+content_type = "application/octet-stream"
