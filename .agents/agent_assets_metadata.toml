@@ -168,3 +168,17 @@ mtime_ms = 1791991017120
 storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/0db8624b-4d83-41df-8357-48873c1acf81/682504a1-6248-4690-a3f5-4c61efd6a289"
 storage_version_token = "1791991023534755"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "eQ-FgQMRjfITnOuvJ675J"
+uri = "file://generated-artifacts/ledgerly-c7-g6-preparation/ledgerly-c7-g6-review-attestation-package.zip"
+type = "unspecified"
+title = "G6 exact-G review and attestation package"
+description = "Preparation only: source/control receipts, exact proposed dispatch bytes, owner attestation, human Environment-release instructions, fixture logs and evidence/cleanup checklist. G6/G7 remain pending."
+logical_id = "e2c580fa-64a5-4616-b6da-05d4eb3a77ac"
+content_hash = "sha256:abc887917108ca081242710f7882d63d8e4c45ed250553d46bdb3d359961a8e9"
+size = 127823
+mtime_ms = 1792002742190
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/e2c580fa-64a5-4616-b6da-05d4eb3a77ac/3f7b9c67-5fd7-475c-9ded-c2df67a4914e"
+storage_version_token = "1792002752360146"
+content_type = "application/octet-stream"
