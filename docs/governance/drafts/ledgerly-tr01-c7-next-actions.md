@@ -1,6 +1,42 @@
 # Current C7 status and next actions
 
-## Current status — 2026-10-13
+## Current status — 2026-10-14
+
+**G5 COMPLETE; G6/G7 PENDING. G1–G4 records and limits remain preserved.**
+
+The owner approved exact PR26's reviewed G5 scope through Codex (“yes merge”).
+Fresh action-time checks passed. Only PR26 was normally marked ready, followed
+by one exact-head-guarded ordinary merge without bypass.
+See the [owner approval](../ledgerly-tr01-c7-g5-owner-merge-approval.md) and
+[G5 merge report](ledgerly-tr01-c7-g5-ordinary-merge-report.md).
+
+Actual G/main is `706dc6a31f85733ba0c251f40b2c09f5a9312269`, ordered parents
+[B `0da401737f35d68b9404982baad7405fe997636a`,
+A `ead19106aaad76d604e8595337b5ab2fddda68d0`], tree
+`bf7c91fac7fe09d8458a327dd79464ea1a3973ad` exactly A.
+Ten permitted paths and every other B blob/mode/absence are preserved.
+Frozen candidates, pins, G4 window, zero native bypass actors, merge-only
+settings and normal Environment controls remain unchanged.
+
+The initial postmerge checker incorrectly expected PR base.sha to advance
+to G; GitHub retained B. That stopped checker and its raw receipts are
+preserved. Separate read-only reconciliation confirmed main=G, exact topology/
+tree and controls, with no action retry or live correction.
+
+This is AI execution under the single-owner exception, not independent-human
+review, CI success or activated qualification. Historical exact-C7 qualification
+does not qualify G. G3's six skipped tests remain skipped.
+
+**Current next action:** await separate G6 exact-G/C7 preflight and run/normal
+owner Environment-release authorization. G7 acceptance and conditionally
+approved two-approval closure are not triggered by this merge. No dispatch,
+release, closure, push, deployment, migration, production/Helium access or
+Phase A occurred; no follow-up implementation is authorized.
+
+The earlier status below and historical approval/application records remain
+unchanged as dated evidence, not current instructions.
+
+## Historical G4-complete status — 2026-10-13
 
 **G4 VERIFIED COMPLETE; G5–G7 PENDING.**
 

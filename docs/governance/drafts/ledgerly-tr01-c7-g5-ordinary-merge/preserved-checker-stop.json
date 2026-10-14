@@ -1,0 +1,5 @@
+{
+  "phase": "postmerge",
+  "failure": "Control/identity drift: ['exactDraftUnmergedPR']",
+  "atUtc": "2026-10-14T15:13:38.570299+00:00"
+}

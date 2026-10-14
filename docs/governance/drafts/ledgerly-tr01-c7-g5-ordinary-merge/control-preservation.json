@@ -1,0 +1,26 @@
+{
+  "comparison": "Offline comparison of retained pre/post live receipts",
+  "checks": {
+    "mainProtection": true,
+    "mainRules": true,
+    "environment": true,
+    "admission": true,
+    "environmentVariables": true,
+    "repositoryVariables": true,
+    "repositorySecretNames": true,
+    "environmentSecretNames": true,
+    "frozenRefs": true,
+    "rulesets": true,
+    "detailedRulesets": true,
+    "effectiveFrozenRules": true,
+    "collaborators": true,
+    "candidateCommit": true,
+    "activationCommit": true,
+    "baseCommit": true,
+    "repositoryPolicySettings": true
+  },
+  "allPassed": true,
+  "beforeSha256": "68bc6bb256107e05e1ae8dd917eeb8543e6e7cea66cbd67778acafba88c0113f",
+  "afterSha256": "a4a5ef444f8c0efdaf8bfc6bc629568f53bdeff92df97a1047a13d5e30f14448",
+  "noAdditionalLiveRequests": true
+}

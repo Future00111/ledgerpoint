@@ -15,6 +15,7 @@
 - [TR-01 preserved-candidate pause](tr01-preserved-candidate-pause.md) — preserve frozen candidates; development qualification does not authorize activation or Phase A.
 - [Qualification exception drafting](qualification-exception-drafting.md) — state which gates remain and make protection removal conditional on later approval.
 - [GitHub ruleset verification](github-ruleset-verification.md) — check effective rules, not just protected flags; repository admin status does not prove connector ruleset-write access.
+- [GitHub merge readback](github-merge-readback.md) — merged PR base SHA can retain reviewed B; independently read main and actual G topology.
 - [Evidence provenance trust](evidence-provenance-trust.md) — branded expected digests are insufficient if callers can choose the roots or environment that mint the brand.
 - [Ignored worktree durability](ignored-worktree-durability.md) — a checkpoint can retain a commit object but drop an ignored worktree’s .git link; pin important local commits with a ref.
 - [Offline toolchains](offline-toolchain.md) — verify final-user and actual sanitized nested pnpm resolution; top-level image smoke alone misses child-environment failures.

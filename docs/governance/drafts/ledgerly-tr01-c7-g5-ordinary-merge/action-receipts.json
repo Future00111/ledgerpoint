@@ -1,0 +1,64 @@
+{
+  "ready": {
+    "attempt": {
+      "startedAtUtc": "2026-10-14T15:12:58.246811+00:00",
+      "command": [
+        "gh",
+        "pr",
+        "ready",
+        "26",
+        "--repo",
+        "Future00111/ledgerpoint"
+      ],
+      "maxAttempts": 1
+    },
+    "response": {
+      "completedAtUtc": "2026-10-14T15:13:00.449698+00:00",
+      "command": [
+        "gh",
+        "pr",
+        "ready",
+        "26",
+        "--repo",
+        "Future00111/ledgerpoint"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\u2713 Pull request Future00111/ledgerpoint#26 is marked as \"ready for review\"\n"
+    }
+  },
+  "merge": {
+    "attempt": {
+      "startedAtUtc": "2026-10-14T15:13:22.216286+00:00",
+      "command": [
+        "gh",
+        "pr",
+        "merge",
+        "26",
+        "--repo",
+        "Future00111/ledgerpoint",
+        "--merge",
+        "--match-head-commit",
+        "ead19106aaad76d604e8595337b5ab2fddda68d0"
+      ],
+      "maxAttempts": 1
+    },
+    "response": {
+      "completedAtUtc": "2026-10-14T15:13:27.337216+00:00",
+      "command": [
+        "gh",
+        "pr",
+        "merge",
+        "26",
+        "--repo",
+        "Future00111/ledgerpoint",
+        "--merge",
+        "--match-head-commit",
+        "ead19106aaad76d604e8595337b5ab2fddda68d0"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

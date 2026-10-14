@@ -1,0 +1,98 @@
+{
+  "A": "ead19106aaad76d604e8595337b5ab2fddda68d0",
+  "B": "0da401737f35d68b9404982baad7405fe997636a",
+  "C7": "787d76decfa345e3c1104231e08d5ab00bc90259",
+  "ATree": "bf7c91fac7fe09d8458a327dd79464ea1a3973ad",
+  "BTree": "9bb16c595e5dde3c425b9ee6d1189ac09410d38b",
+  "C7Tree": "aa0360267a0d1987626ae9650238d66f04f667b9",
+  "orderedParents": [
+    "0da401737f35d68b9404982baad7405fe997636a",
+    "787d76decfa345e3c1104231e08d5ab00bc90259"
+  ],
+  "changedPaths": {
+    ".github/workflows/ledgerly-canonical-postgresql.yml": {
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "34dd8922906355ed1159effbcfec1b190f1b0071",
+      "sha256": "ad06da35f4269fbbf46e1fd4ccabf6082d309963e39b577e17ac948c546afc20",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "gitBlob": "9ad6cf9711fc6c340f29c8551f40d4b85309f826"
+      }
+    },
+    "docs/ledgerly-44-protected-github-baseline-ancestry-contract.md": {
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "be08d4dc2bba23d366ec4850084315ff8fb6ba95",
+      "sha256": "146b475ebacdc708329b2bda00cab2f6ff96747410133106d385e124d244e70a",
+      "base": null
+    },
+    "docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-approval-package.md": {
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "202e8c07d1c4f93e7caf65db80c837b452642289",
+      "sha256": "dcac7424d264a98fd6404d9077e53929ff30a4da9d812bad07d43174d7e3cc24",
+      "base": null
+    },
+    "docs/ledgerly-44-ti-03-external-ci-postgresql-implementation-report.md": {
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "a5b69fb0424845628880821b921cd6d94acbdddf",
+      "sha256": "d5658ea04c15eb394676cb907eaef743e4e9ce5a6c32d20e8be767db49271e10",
+      "base": null
+    },
+    "docs/ledgerly-44-tr-01-implementation-identity-recovery-amendment.md": {
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "bcf5ffe7c432834d671dfd694c5f04ab8a8c7935",
+      "sha256": "c80f69a970a1eca60892e8812a6cc7525fbfb623a99bd724cdaead9e9a638be1",
+      "base": null
+    },
+    "docs/ledgerly-44-tr-01-implementation-identity-recovery-approval-record.md": {
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "242e2156b9096fac64d172d6f3827bd565396b4c",
+      "sha256": "406b1b5e0ab19f898a6a5e2419a4ed8d08246a72e15f65f2edc71cec343b3582",
+      "base": null
+    },
+    "docs/ledgerly-44-tr-01-implementation-identity-recovery-implementation-approval-package.md": {
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "89e15046ee29bc158f510cc2cb486add962193d7",
+      "sha256": "b45f53be13f99315cbd3beeac73ea718362437c4c4e32001d31912eb98f9575e",
+      "base": null
+    },
+    "docs/ledgerly-44-tr-01-implementation-identity-recovery-independent-review.md": {
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "8aec4832f5173e0dca8acc8d23111be78ef75176",
+      "sha256": "6a7cd908bcbdd7c8b6783d916ec6680a61103da6f2763fe69dfa6b7dd7712f8a",
+      "base": null
+    },
+    "docs/ledgerly-44-tr-01-transactional-authority-provider-approval-package.md": {
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "226f169d50b839e9669a6766c92533c57b3b75e9",
+      "sha256": "464d035b209ed77d278a581d7bcaa2ccea1490764546a8a98703f4022d966683",
+      "base": null
+    },
+    "docs/ledgerly-current-decision-register.md": {
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "86b8e9b6f8083f802b4859af3925608372cdbc21",
+      "sha256": "1f2d6fc43c4e0a4d1e05a0328d8b552575f33eee1aac0621112c9d206f02cf54",
+      "base": null
+    }
+  },
+  "outsideUnionPathCount": 518,
+  "allOutsideBEntriesAndAbsenceExact": true,
+  "expectedG": {
+    "sha": "UNKNOWN_UNTIL_SEPARATE_AUTHORIZED_MERGE",
+    "orderedParents": [
+      "0da401737f35d68b9404982baad7405fe997636a",
+      "ead19106aaad76d604e8595337b5ab2fddda68d0"
+    ],
+    "tree": "bf7c91fac7fe09d8458a327dd79464ea1a3973ad"
+  }
+}
