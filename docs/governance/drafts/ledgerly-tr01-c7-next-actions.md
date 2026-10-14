@@ -23,6 +23,14 @@ to G; GitHub retained B. That stopped checker and its raw receipts are
 preserved. Separate read-only reconciliation confirmed main=G, exact topology/
 tree and controls, with no action retry or live correction.
 
+The owner additionally reports Codex's separate read-only postmerge
+verification at **2026-10-14T15:13:47Z**: exact G/parents/tree, GitHub-compare
+C7 ancestry, full tree/inventory preservation, 31 retained control groups,
+complete native zero-bypass policy and no activation/G-main runs.
+See the [Codex AI addendum](../ledgerly-tr01-c7-g5-codex-postmerge-verification-addendum.md).
+This is attributed AI verification, not independent-human review or
+qualification of G; no further GitHub requests were made to record it.
+
 This is AI execution under the single-owner exception, not independent-human
 review, CI success or activated qualification. Historical exact-C7 qualification
 does not qualify G. G3's six skipped tests remain skipped.
