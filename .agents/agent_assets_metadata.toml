@@ -140,3 +140,17 @@ mtime_ms = 1791912479576
 storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/83e17291-eba8-4bb4-913d-3bac73a64da1/b8f9fb1f-b3b3-472e-9fd3-7a13bbbc2f50"
 storage_version_token = "1791912488177710"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "avPUUgt33cVVAk5C2bFZy"
+uri = "file://generated-artifacts/ledgerpoint-launch-plan/ledgerpoint-launch-g5-w03-preparation-review.zip"
+type = "unspecified"
+title = "Launch preparation — G5 owner review and W03 proposal"
+description = "Unchanged checksum-bound workbook, draft launch record, exact A/B/tree and ten-path proof, fresh read-only GitHub receipts, scoped W03 ticket and source inventory. Preparation only; G5–G7 pending."
+logical_id = "ca56218a-fe00-474a-a634-c6b99fee2d4f"
+content_hash = "sha256:ec0b4d9ac00ac9151f2a9b5a84b1349b37b1f2bf15574069f6b0b131bc3e3135"
+size = 97924
+mtime_ms = 1791988939445
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/ca56218a-fe00-474a-a634-c6b99fee2d4f/757bf4e4-3d2c-49b6-9668-3fd6bc35a102"
+storage_version_token = "1791988959037149"
+content_type = "application/octet-stream"
