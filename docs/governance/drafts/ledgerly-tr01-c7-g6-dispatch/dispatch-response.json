@@ -1,0 +1,8 @@
+{
+  "requestStartedAtUtc": "2026-10-14T19:07:56.806135+00:00",
+  "responseAtUtc": "2026-10-14T19:07:58.611191+00:00",
+  "exit": 0,
+  "stdout": "HTTP/2.0 204 No Content\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Expose-Headers: ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset, Warning\r\nContent-Security-Policy: default-src 'none'\r\nDate: Wed, 14 Oct 2026 19:07:58 GMT\r\nDeprecation: Tue, 10 Mar 2026 00:00:00 GMT\r\nLink: <https://docs.github.com/en/rest/about-the-rest-api/api-versions>; rel=\"deprecation\"; type=\"text/html\"\r\nReferrer-Policy: origin-when-cross-origin, strict-origin-when-cross-origin\r\nServer: github.com\r\nStrict-Transport-Security: max-age=31536000; includeSubdomains; preload\r\nSunset: Fri, 10 Mar 2028 00:00:00 GMT\r\nVary: Accept-Encoding, Accept, X-Requested-With\r\nX-Accepted-Oauth-Scopes: \r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: deny\r\nX-Github-Api-Version-Selected: 2022-11-28\r\nX-Github-Edge-Region: fra\r\nX-Github-Media-Type: github.v3; format=json\r\nX-Github-Request-Id: D3EA:3F8732:3078308:486D4C7:6ACFD30D\r\nX-Oauth-Client-Id: 178c6fc778ccc68e1d6a\r\nX-Oauth-Scopes: gist, read:org, repo, workflow\r\nX-Ratelimit-Limit: 5000\r\nX-Ratelimit-Remaining: 4955\r\nX-Ratelimit-Reset: 1792005721\r\nX-Ratelimit-Resource: core\r\nX-Ratelimit-Used: 45\r\nX-Xss-Protection: 0\r\n\r\n",
+  "stderr": "",
+  "requestCount": 1
+}

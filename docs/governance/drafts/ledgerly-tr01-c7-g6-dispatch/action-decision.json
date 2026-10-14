@@ -1,0 +1,33 @@
+{
+  "recordedAtUtc": "2026-10-14T19:07:56.093787+00:00",
+  "approvalCommit": "ea73d7a",
+  "approvedPreparationCommit": "d02cbdc66768bd2218f0066a79cc7b99fc367251",
+  "approvalSha256": "3820d98613177acb2622e0f2388d62b1e79108774cfa05f966075c3c36bbc4d0",
+  "freshReceiptSha256": {
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/g5-fresh-controls.json": "f63976017fd59c81d57dfe5b758860ad9882b2c2407b85b91006a2b97374b84e",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/g5-native-policy-pages.json": "47cc031f957b26eee16a4eacb4741c06037348056e428550c2cd5f567a5232b0",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/g5-pr-review-checks.json": "879debf9e14a87ad37dd6896e8f75bd60bf447ce2bcf6c2f61cacbed85bbb657",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/g5-tree-inventory.json": "886939ea7ab902a6d1d107ee2f51193e5b382cf7ae50c1f1e7d8fc5790c1f5c3",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/g5-verification-result.json": "ee0072962fffc05607db99366b4d564abbc21413d7032e810f9700f2ae5553c7",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/remote-g-commit.json": "2eec4d266f228e961e57f5204fa20a61f04006c948ef4b7b64819964975fac13",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/remote-g-tree.json": "7f64e0a9eae8f102ee502408e614588fda5e00e06d49cf67850a9337411ebf0c",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/exact-G-workflow.yml.txt": "ad06da35f4269fbbf46e1fd4ccabf6082d309963e39b577e17ac948c546afc20",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/workflow-metadata.json": "ce797c265f2a1ad517060efddb526cdba1b2c2c630e64b0d792c0697c98951bb",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/canonical-workflow-run-pages.json": "c5d3cb2b5d0701d2070b7fafa0e48badc2b1212138becc45abe8f569ea6ab47b",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/all-exact-G-run-pages.json": "79b483111885e5d55e4a3f9138c2f581e04fb83da5f74a54381bd9b813699729",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/existing-record-hashes.json": "34e2dfdcbed826ce75c1aee94b46541cd264b3ed18a2fe5e3e5fd1f9930f5b60",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/complete-rest-pagination.json": "939813129183e2665f86a2b48879be333f0f286736cfcbe22a0ff4dce1ae8ad2",
+    "generated-artifacts/ledgerly-c7-g6-authorized-dispatch/preflight/preflight-result.json": "3a79735760d9006b55c77db1eb14635b0453d61fa9cff8f9a0d24a792f68fe6e"
+  },
+  "method": "POST",
+  "target": "repos/Future00111/ledgerpoint/actions/workflows/343787048/dispatches",
+  "bodySha256": "455eddddcfdd09a482991d88045379bf46c72f839eb6640decc52657470b3f74",
+  "G": "706dc6a31f85733ba0c251f40b2c09f5a9312269",
+  "actor": {
+    "login": "Future00111",
+    "id": 318002590
+  },
+  "maxDispatches": 1,
+  "humanEnvironmentReleaseAuthorizedToAgent": false,
+  "G7": "PENDING"
+}

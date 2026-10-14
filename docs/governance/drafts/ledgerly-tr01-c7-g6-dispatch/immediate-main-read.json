@@ -1,0 +1,6 @@
+{
+  "atUtc": "2026-10-14T19:07:56.802593+00:00",
+  "exit": 0,
+  "stdout": "{\"ref\":\"refs/heads/main\",\"node_id\":\"REF_kwDOT7mVmq9yZWZzL2hlYWRzL21haW4\",\"url\":\"https://api.github.com/repos/Future00111/ledgerpoint/git/refs/heads/main\",\"object\":{\"sha\":\"706dc6a31f85733ba0c251f40b2c09f5a9312269\",\"type\":\"commit\",\"url\":\"https://api.github.com/repos/Future00111/ledgerpoint/git/commits/706dc6a31f85733ba0c251f40b2c09f5a9312269\"}}",
+  "stderr": ""
+}

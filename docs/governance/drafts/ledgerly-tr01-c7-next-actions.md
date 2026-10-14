@@ -2,7 +2,19 @@
 
 ## Current status — 2026-10-14
 
-**G5 COMPLETE; G6/G7 PENDING. G1–G4 records and limits remain preserved.**
+**G5 COMPLETE; G6 ONE DISPATCH CONSUMED, WAITING FOR HUMAN ENVIRONMENT REVIEW;
+G7 PENDING. G1–G4 records and limits remain preserved.**
+
+The owner approved G6 through Codex (“i approve G6”). Full fresh 49/49
+preflight checks passed; one exact POST returned HTTP 204.
+Actual [run 38621069723](https://github.com/Future00111/ledgerpoint/actions/runs/38621069723),
+attempt 1, exact G/main, is waiting at `ledgerly-canonical` for required
+owner Future00111. Actual job ID `116048423733`. **The agent stopped:
+no Environment release or qualification result.** See the
+[G6 dispatch report](ledgerly-tr01-c7-g6-dispatch-report.md).
+Current next action is the owner's personal normal review of that actual
+run, not another dispatch. G7 and closure remain pending; historical
+preparation-only wording below remains historical, not current authority.
 
 The owner approved exact PR26's reviewed G5 scope through Codex (“yes merge”).
 Fresh action-time checks passed. Only PR26 was normally marked ready, followed
