@@ -1,0 +1,12 @@
+{
+  "workspaceSourceHead": "7bea71feb97e6d58753907f3a67cb76c9718389d",
+  "scope": "STATIC_SOURCE_INSPECTION_ONLY_NO_IMPLEMENTATION_OR_TEST_EXECUTION",
+  "files": {
+    "artifacts/api-server/src/routes/companies.ts": "bdd8c7268b73e4ccdd50fa15e4883b34c856e070a7346b2b3d5e4dae52b2e1be",
+    "artifacts/api-server/src/routes/entities.ts": "61737ad514891de8c3431ab8c247930f8faa4fb3ddb07a1c509e17015f75efaf",
+    "artifacts/api-server/src/middlewares/companyScope.ts": "cb08c20533ca541d47ba5f52a4084e0e088a220bd693b3ff585b1d7813bcb361",
+    "artifacts/api-server/src/services/accounting/canonicalPosting.ts": "042dbc50e4c64efd88aec5e75fbab48cd9621cba68919629269d2076af26702f",
+    "lib/db/src/schema/index.ts": "67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564",
+    "artifacts/ledgerly/src/api/base44Client.js": "9b34b37c30906755ebd9bb8423cf6d04e9a0ee865803b37a710a9b0e40a3406c"
+  }
+}

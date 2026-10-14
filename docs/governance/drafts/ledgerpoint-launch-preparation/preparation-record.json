@@ -1,0 +1,19 @@
+{
+  "recordedAtUtc": "2026-10-14T14:41:23.942388+00:00",
+  "status": "DRAFT_PROPOSED_OWNERS_SCOPE_CAPACITY_NOT_APPROVED",
+  "workbookSha256": "09f97f20b91fc6a62fb9e6fa2c3ad2330ef0054b6a76cda6476e06d99f4062e8",
+  "preservedCopy": "generated-artifacts/ledgerpoint-launch-plan/ledgerpoint-launch-plan.original.xlsx",
+  "sourceWorkbookUnchanged": true,
+  "forecastFocusedDaysPerWeek": 5,
+  "forecastNotLaunchPromise": true,
+  "G4": "VERIFIED_COMPLETE_PRIOR_RECORD_PLUS_FRESH_API_CONTROLS",
+  "G5toG7": "PENDING",
+  "liveWrites": 0,
+  "G1ExactApprovedProposalVerified": true,
+  "C7TreeSoleParentVerified": true,
+  "documents": [
+    "docs/governance/drafts/ledgerpoint-launch-plan.md",
+    "docs/governance/drafts/ledgerly-tr01-c7-g5-owner-review-proposal.md",
+    "docs/governance/drafts/ledgerpoint-w03-implementation-ticket-proposal.md"
+  ]
+}
