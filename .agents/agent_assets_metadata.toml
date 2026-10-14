@@ -154,3 +154,17 @@ mtime_ms = 1791988939445
 storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/ca56218a-fe00-474a-a634-c6b99fee2d4f/757bf4e4-3d2c-49b6-9668-3fd6bc35a102"
 storage_version_token = "1791988959037149"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "tuMm8uz3_gViHfXhkNe7W"
+uri = "file://generated-artifacts/ledgerly-c7-g5-authorized-merge/ledgerly-c7-g5-ordinary-merge-evidence.zip"
+type = "unspecified"
+title = "G5 ordinary-merge evidence"
+description = "Owner relay, one ready/merge attempt, raw readbacks, preserved checker failure, reconciled topology/control verification and SHA-256 manifest. G6/G7 remain pending."
+logical_id = "0db8624b-4d83-41df-8357-48873c1acf81"
+content_hash = "sha256:15c86eaa6c2900a00103de002d46f6933c93091a1189ba492078b21b7a98a7a3"
+size = 175479
+mtime_ms = 1791991017120
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/0db8624b-4d83-41df-8357-48873c1acf81/682504a1-6248-4690-a3f5-4c61efd6a289"
+storage_version_token = "1791991023534755"
+content_type = "application/octet-stream"
