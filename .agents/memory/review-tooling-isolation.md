@@ -25,3 +25,14 @@ in that harness is not evidence that the minimal coordinator install is wrong.
 extra links. Supply broader fixture dependencies separately, matching the
 immutable API manifest/lockfile; disclose that setup and do not change the
 workflow dependency contract just to satisfy the harness.
+
+Machine-check test outcomes using an explicitly selected structured reporter
+or retained exit codes plus a version-tolerant summary parser, not assumptions
+about the default terminal reporter.
+
+**Why:** Node 24 emitted Unicode default-reporter counters for a successful
+suite; a wrapper expecting TAP `# pass` text failed after the real tests passed.
+
+**How to apply:** Keep original command/log/exit receipts and skipped counts.
+Reconcile a reporting-only failure offline without repeating tests or
+misclassifying the suite as failed or the skips as passes.

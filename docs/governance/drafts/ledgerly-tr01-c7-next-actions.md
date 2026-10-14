@@ -41,6 +41,15 @@ approved two-approval closure are not triggered by this merge. No dispatch,
 release, closure, push, deployment, migration, production/Helium access or
 Phase A occurred; no follow-up implementation is authorized.
 
+G6 preparation is now available in the
+[exact-G review/attestation package](ledgerly-tr01-c7-g6-review-attestation-package.md),
+[proposed dispatch/owner attestation](ledgerly-tr01-c7-g6-proposed-dispatch-and-attestation.md)
+and [evidence/cleanup checklist](ledgerly-tr01-c7-g6-evidence-cleanup-checklist.md).
+Fresh read-only checks and exact-G host/source fixtures passed with their
+retained local harness incidents; six image-dependent cases remain skipped.
+The owner's “next task” request authorizes preparation only. **G6/G7 remain
+pending**; no dispatch or automated Environment release follows from this package.
+
 The earlier status below and historical approval/application records remain
 unchanged as dated evidence, not current instructions.
 

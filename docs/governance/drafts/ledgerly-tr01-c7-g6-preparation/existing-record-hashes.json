@@ -1,0 +1,19 @@
+{
+  "docs/governance/ledgerly-tr01-c7-single-owner-g1-approval.md": "810f6cf5f8824605e2e6c7a55619c58865e4eda6a4bb98fa75b4a1dab97012ca",
+  "docs/governance/ledgerly-tr01-c7-development-designation-approval.md": "01228cc15f9311ba73bfcb027f406ca4076d277ef5184bbbb8fcad65c34c3389",
+  "docs/governance/drafts/ledgerly-tr01-c7-activation-preparation-report.md": "a697bda4afc373310ea0f5a7bbb37b3d72335677caeeab3bad64a160a01cd6cb",
+  "docs/governance/ledgerly-tr01-c7-g4-configuration-approval.md": "30d00df674efbcc89f53271fbb05580431444ad4d4aacd7c3e7e8ba567978750",
+  "docs/governance/drafts/ledgerly-tr01-c7-g4-application-report.md": "69492b44b14303f9bcde827728f3dfcd6958f1155e3a4a6fd33fa19704aa36da",
+  "docs/governance/ledgerly-tr01-c7-g4-corrected-configuration-approval.md": "6a2b4a4ac7fe0f815a1b72d1ab102203628cdcadf32a582c2afde771e881012a",
+  "docs/governance/drafts/ledgerly-tr01-c7-g4-corrected-application-report.md": "e2a6408383b2c98bb313ece489344a12bffce6616b9e8b3102ae1562341af271",
+  "docs/governance/ledgerly-tr01-c7-g4-codex-ui-verification-addendum.md": "0c6642232abd52a563538b87dcd1bc018da57e0a61402a85238db0490ac3f389",
+  "docs/governance/ledgerly-tr01-c7-g5-owner-merge-approval.md": "62ee58c9c33d1ead9c09c5be806e840109cac5a87d0078b930620051106169ce",
+  "docs/governance/drafts/ledgerly-tr01-c7-g5-ordinary-merge-report.md": "85624cf27af8e7108722e39fc0db8a9be76d5628129c27526b0f32a3802f39ab",
+  "docs/governance/ledgerly-tr01-c7-g5-codex-postmerge-verification-addendum.md": "eac8cc865583c4749a89dfdaf89e00ecefb57380ffff65e5918d31e606e588c9",
+  "generated-artifacts/ledgerly-c7-g5-authorized-merge/postmerge/stop.json": "71bfc2e5e39ff35e3bd855e92fd738d624e2fabe36e488f70577fd1737ac260b",
+  "generated-artifacts/ledgerly-c7-g5-authorized-merge/postmerge-reconciliation/verification.json": "1a27c48f01dcbea31e4c86fc1d547f2fa635b7d2063303873a676e9f5fce48db",
+  "generated-artifacts/ledgerly-c7-g5-authorized-merge/ready-attempt.json": "813051541ba0ce8e44938285570c2947152aaf080921415f54d0ef8c324247a8",
+  "generated-artifacts/ledgerly-c7-g5-authorized-merge/ready-response.json": "d7ecf51428b46af9f39289cc05b2db7dd1e0921e12f4f3132a7f2fea85638f4d",
+  "generated-artifacts/ledgerly-c7-g5-authorized-merge/merge-attempt.json": "7dc46ff039c6374f6422b3cad315ebdd0239241ba1c5872aabf869bf3f44014d",
+  "generated-artifacts/ledgerly-c7-g5-authorized-merge/merge-response.json": "4040b2fa4f40e96c78816f1a9f242ceb241e192e168b72fd51fe6ab9f35848f6"
+}

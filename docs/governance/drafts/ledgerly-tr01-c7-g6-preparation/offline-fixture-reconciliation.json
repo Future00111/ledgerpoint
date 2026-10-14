@@ -1,0 +1,40 @@
+{
+  "recordedAtUtc": "2026-10-14T18:31:44.693520+00:00",
+  "scope": "OFFLINE_RECONCILIATION_OF_ALREADY_COMPLETED_COMMANDS",
+  "allActualCommandsPassed": true,
+  "actualContextAcceptance": true,
+  "simulatedEvidenceAcceptance": true,
+  "rejectionCasesPassed": 10,
+  "offlineSuite": {
+    "tests": 7,
+    "pass": 1,
+    "fail": 0,
+    "skipped": 6,
+    "cancelled": 0
+  },
+  "testRerunsForReconciliation": 0,
+  "liveRequestsForReconciliation": 0,
+  "sourceStatus": {
+    "G": {
+      "trackedSourceUnchanged": true
+    },
+    "C7": {
+      "trackedSourceUnchanged": true
+    },
+    "B": {
+      "trackedSourceUnchanged": true
+    }
+  },
+  "incidentsPreserved": {
+    "gitIndexGuard": "Original fixture interrupted by local Replit guard; unfinished fixture resumed, install not repeated.",
+    "reporterAssumption": "Wrapper expected '# pass' TAP; Node emitted Unicode default reporter. Exit-0 logs parsed offline without rerunning tests.",
+    "originalStop": "completed-fixture-stop.json"
+  },
+  "fixtureOnly": true,
+  "notQualificationEvidence": true,
+  "databaseAccess": false,
+  "dockerExecution": false,
+  "dispatches": 0,
+  "G6": "PENDING",
+  "G7": "PENDING"
+}
