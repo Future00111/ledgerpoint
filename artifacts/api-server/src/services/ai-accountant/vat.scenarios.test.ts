@@ -51,5 +51,5 @@ test("VAT scenario: derived boxes cannot be manual adjustments", () => {
 test("VAT scenario: generic entity writes cannot bypass the VAT workflow", () => {
   assert.equal(isGenericEntityWriteBlocked("VATReturn"), true);
   assert.match(genericEntityWriteError("VATReturn"), /cannot be changed through generic entity routes/);
-  assert.equal(isGenericEntityWriteBlocked("SalesInvoice"), false);
+  assert.equal(isGenericEntityWriteBlocked("SalesInvoice"), true);
 });

@@ -21,7 +21,7 @@ import {
   findActiveCompanyIds,
   findActiveMembership,
 } from "../middlewares/companyScope";
-import { genericEntityWriteError, isGenericEntityWriteBlocked } from "./entityWritePolicy";
+import { genericEntityWriteError, isGenericEntityWriteBlocked, genericEntityWriteBoundary } from "./entityWritePolicy";
 import {
   companiesTable,
   companyUsersTable,
@@ -147,7 +147,7 @@ async function getUserRole(userId: string, companyId: string): Promise<string | 
 const router = Router();
 
 // Validate entity name + authenticate
-router.use("/:entity", requireAuth, (req: Request, res: Response, next) => {
+router.use("/:entity", requireAuth, genericEntityWriteBoundary, (req: Request, res: Response, next) => {
   const entityName = req.params["entity"] as string;
   if (!ENTITY_MAP[entityName]) {
     res.status(404).json({ error: `Unknown entity: ${entityName}` });

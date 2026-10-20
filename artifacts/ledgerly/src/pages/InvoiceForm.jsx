@@ -1,282 +1,127 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useCompany } from '@/lib/useCompany';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
+import { base44 } from '@/api/base44Client';
+import { invoiceDrafts, displayPence } from '@/api/invoiceDrafts.mjs';
+import { useCompany } from '@/lib/useCompany';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import InvoiceLineItems from '@/components/invoices/InvoiceLineItems';
-import { ArrowLeft } from 'lucide-react';
-import { calculatePaymentStatus } from '@/lib/paymentStatus';
 
-const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
-const numericValue = (value) => Number(value) || 0;
-
+const line = () => ({ description: '', quantity: '1', unit_price: '0', tax_code: '' });
+const initial = () => ({
+  customer_id: '', invoice_number: '', issue_date: new Date().toISOString().slice(0, 10),
+  due_date: new Date().toISOString().slice(0, 10), payment_terms: 30,
+  reference: '', notes: '', line_items: [line()],
+});
 export default function InvoiceForm() {
-  const { activeCompany } = useCompany();
+  const { activeCompany, roles } = useCompany();
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
+  const [search] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isEdit = id && id !== 'new';
-  const bankTransactionId = searchParams.get('bank_transaction_id');
-
+  const editId = id && id !== 'new' ? id : undefined;
+  const [form, setForm] = useState(initial);
   const [customers, setCustomers] = useState([]);
+  const [revision, setRevision] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [posting, setPosting] = useState(false);
-  const [loading, setLoading] = useState(!!isEdit);
-  const [receiptContext, setReceiptContext] = useState(null);
-
-  const [form, setForm] = useState({
-    customer_id: '', invoice_number: '', issue_date: new Date().toISOString().split('T')[0],
-    due_date: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
-    payment_terms: 30, status: 'draft', notes: '', reference: '', amount_paid: 0,
-    line_items: [{ description: '', quantity: 1, unit_price: 0, vat_rate: '20', amount: 0, vat_amount: 0, line_total: 0 }]
-  });
+  const [error, setError] = useState('');
+  const [hold, setHold] = useState(false);
+  const [money, setMoney] = useState(null);
+  const generation = useRef(0);
+  const allowed = ['owner', 'admin', 'accountant'].includes(roles[activeCompany?.id]);
 
   useEffect(() => {
-    if (activeCompany) {
-      loadCustomers();
-      if (isEdit) loadInvoice();
-      else {
-        suggestInvoiceNumber();
-        if (bankTransactionId) loadReceiptContext(bankTransactionId);
-      }
-    }
-  }, [activeCompany, id, bankTransactionId]);
-
-  const loadReceiptContext = async (transactionId) => {
-    try {
-      const transaction = await base44.entities.BankTransaction.get(transactionId);
-      if (!transaction || transaction.company_id !== activeCompany.id || Number(transaction.money_in || 0) <= 0) return;
-      setReceiptContext(transaction);
-      // Keep contextual details available to the reviewer, but do not create a
-      // financial allocation, infer VAT, or mark the receipt as paid.
-      setForm(prev => ({
-        ...prev,
-        reference: prev.reference || transaction.reference || '',
-        notes: prev.notes || `Source receipt for review: ${transaction.date || 'undated'} — ${transaction.description || 'Bank receipt'}`,
-      }));
-    } catch (error) {
-      console.warn('Could not load source bank receipt:', error);
-    }
-  };
-
-  const suggestInvoiceNumber = async () => {
-    try {
-      const list = await base44.entities.SalesInvoice.filter({ company_id: activeCompany.id });
-      let maxNum = 0;
-      list.forEach(inv => {
-        const match = inv.invoice_number?.match(/INV-(\d+)/i);
-        if (match) {
-          const n = parseInt(match[1], 10);
-          if (n > maxNum) maxNum = n;
+    const current = ++generation.current;
+    const controller = new AbortController();
+    setForm(initial()); setRevision(null); setCustomers([]); setMoney(null);
+    setError(''); setHold(false); setSaving(false); setLoading(true);
+    if (!activeCompany) return () => controller.abort();
+    (async () => {
+      try {
+        const list = await base44.entities.Customer.filter({ company_id: activeCompany.id });
+        const draft = editId ? await invoiceDrafts.get(activeCompany.id, editId, controller.signal) : null;
+        if (generation.current !== current || controller.signal.aborted) return;
+        setCustomers(list);
+        if (draft) { setForm(draft.source); setRevision(draft.revision); setMoney(draft.money ?? null); }
+      } catch (e) {
+        if (generation.current === current && !controller.signal.aborted) {
+          setError(e.message); setHold(true);
         }
-      });
-      const next = `INV-${String(maxNum + 1).padStart(4, '0')}`;
-      setForm(prev => ({ ...prev, invoice_number: next }));
-    } catch (e) { console.error(e); }
-  };
+      } finally { if (generation.current === current && !controller.signal.aborted) setLoading(false); }
+    })();
+    return () => { controller.abort(); generation.current++; };
+  }, [activeCompany?.id, editId]);
 
-  const loadCustomers = async () => {
+  const change = (key, value) => setForm(f => ({ ...f, [key]: value }));
+  const updateLine = (index, key, value) => setForm(f => ({ ...f,
+    line_items: f.line_items.map((l, i) => i === index ? { ...l, [key]: value } : l) }));
+  const save = async (event) => {
+    event.preventDefault();
+    if (!activeCompany || !allowed || hold || saving || loading) return;
+    const current = generation.current;
+    setSaving(true); setError('');
     try {
-      const list = await base44.entities.Customer.filter({ company_id: activeCompany.id });
-      setCustomers(list);
-    } catch (e) { console.error(e); }
-  };
-
-  const loadInvoice = async () => {
-    try {
-      const inv = await base44.entities.SalesInvoice.get(id);
-      setForm({
-        customer_id: inv.customer_id || '', invoice_number: inv.invoice_number || '',
-        issue_date: inv.issue_date || '', due_date: inv.due_date || '',
-        payment_terms: inv.payment_terms ?? 30, status: inv.status || 'draft',
-        notes: inv.notes || '', reference: inv.reference || '', amount_paid: inv.amount_paid || 0,
-        line_items: inv.line_items?.length ? inv.line_items : [{ description: '', quantity: 1, unit_price: 0, vat_rate: '20', amount: 0, vat_amount: 0, line_total: 0 }]
-      });
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  };
-
-   const subtotal = form.line_items.reduce((s, l) => s + numericValue(l.amount), 0);
-   const vatTotal = form.line_items.reduce((s, l) => s + numericValue(l.vat_amount), 0);
-  const total = subtotal + vatTotal;
-  const balanceDue = total - (parseFloat(form.amount_paid) || 0);
-
-  const handlePaymentTermsChange = (v) => {
-    const days = Number(v);
-    const issue = new Date(form.issue_date);
-    issue.setDate(issue.getDate() + days);
-    setForm({ ...form, payment_terms: days, due_date: issue.toISOString().split('T')[0] });
-  };
-
-  const handleSave = async () => {
-    if (!form.customer_id || !form.invoice_number) {
-      toast({ title: 'Please fill in customer and invoice number', variant: 'destructive' });
-      return;
-    }
-    // Validate unique invoice number within company
-    const existing = await base44.entities.SalesInvoice.filter({ company_id: activeCompany.id, invoice_number: form.invoice_number });
-    const duplicate = existing.find(inv => inv.id !== id);
-    if (duplicate) {
-      toast({ title: 'This invoice number already exists for this company.', variant: 'destructive' });
-      return;
-    }
-    setSaving(true);
-    const customer = customers.find(c => c.id === form.customer_id);
-    const amountPaid = parseFloat(form.amount_paid) || 0;
-    const calculatedStatus = calculatePaymentStatus(form.status, amountPaid, total, form.due_date);
-    const data = {
-      ...form, company_id: activeCompany.id,
-      customer_name: customer?.name || '',
-      amount_paid: amountPaid,
-      status: calculatedStatus,
-      subtotal, vat_total: vatTotal, total, balance_due: balanceDue
-    };
-    try {
-      let savedId;
-      if (isEdit) {
-        await base44.entities.SalesInvoice.update(id, data);
-        savedId = id;
-        toast({ title: 'Invoice updated' });
-      } else {
-        const created = await base44.entities.SalesInvoice.create(data);
-        savedId = created.id;
-        toast({ title: 'Invoice created' });
-      }
-      try { await base44.functions.invoke('generateSalesInvoiceJournals', { invoice_id: savedId }); } catch (je) { console.warn('Journal generation failed:', je); }
+      const saved = await invoiceDrafts.save(activeCompany.id, form, editId, revision);
+      if (generation.current !== current) return;
+      setRevision(saved.revision); setMoney(saved.money);
+      toast({ title: 'Draft invoice saved', description: `Server total ${displayPence(saved.money.gross_pence)}. No posting or payment was created.` });
+      // List remount refetches, and edit reload uses this protected source/revision.
       navigate('/invoices');
-    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
-    finally { setSaving(false); }
+    } catch (e) {
+      if (generation.current !== current) return;
+      setError(`${e.message}${e.code ? ` (${e.code})` : ''}`);
+      // Do not silently replay after a conflict, provider hold or uncertain commit.
+      if (!e.status || e.status >= 500 || [409, 403].includes(e.status)) setHold(true);
+    } finally { if (generation.current === current) setSaving(false); }
   };
-
-  if (loading) return <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/invoices')}><ArrowLeft className="w-4 h-4" /></Button>
-        <h1 className="text-2xl font-semibold tracking-tight">{isEdit ? 'Edit Invoice' : 'New Invoice'}</h1>
-      </div>
-      {receiptContext && !isEdit && (
-        <div className="rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
-          <p className="font-semibold">Creating from a bank receipt for review</p>
-          <p className="mt-1 text-indigo-800">
-            {receiptContext.date || 'Undated'} · {receiptContext.description || receiptContext.reference || 'Bank receipt'} · {gbp.format(Number(receiptContext.money_in || 0))}
-          </p>
-          <p className="mt-1 text-xs text-indigo-700">Choose the customer and invoice details carefully. Saving an invoice does not reconcile this receipt or record a payment.</p>
-        </div>
-      )}
-
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label>Customer *</Label>
-              <Select value={form.customer_id} onValueChange={v => setForm({...form, customer_id: v})}>
-                <SelectTrigger><SelectValue placeholder="Select customer" /></SelectTrigger>
-                <SelectContent>
-                  {customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Invoice Number *</Label>
-              <Input value={form.invoice_number} onChange={e => setForm({...form, invoice_number: e.target.value})} placeholder="INV-001" />
-            </div>
-            <div>
-              <Label>Invoice Date</Label>
-              <Input type="date" value={form.issue_date} onChange={e => setForm({...form, issue_date: e.target.value})} />
-            </div>
-            <div>
-              <Label>Payment Terms</Label>
-              <Select value={String(form.payment_terms)} onValueChange={handlePaymentTermsChange}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7">7 days</SelectItem>
-                  <SelectItem value="14">14 days</SelectItem>
-                  <SelectItem value="30">30 days</SelectItem>
-                  <SelectItem value="60">60 days</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Due Date</Label>
-              <Input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} />
-            </div>
-            <div>
-              <Label>Status</Label>
-              <Select value={form.status} onValueChange={v => setForm({...form, status: v})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="sent">Sent</SelectItem>
-                  <SelectItem value="part_paid">Part Paid</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="overdue">Overdue</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Reference</Label>
-              <Input value={form.reference} onChange={e => setForm({...form, reference: e.target.value})} placeholder="PO number, etc." />
-            </div>
-            <div>
-              <Label>Amount Paid (£)</Label>
-              <Input type="number" min="0" step="0.01" value={form.amount_paid} onChange={e => setForm({...form, amount_paid: e.target.value})} />
-            </div>
-          </div>
-
-          <div>
-            <Label className="mb-3 block">Line Items</Label>
-            <InvoiceLineItems lineItems={form.line_items} onChange={items => setForm({...form, line_items: items})} />
-          </div>
-
-          <div className="flex justify-end">
-            <div className="w-64 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{gbp.format(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">VAT Total</span><span>{gbp.format(vatTotal)}</span></div>
-              <div className="flex justify-between font-semibold text-base border-t pt-2"><span>Total</span><span>{gbp.format(total)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Amount Paid</span><span>{gbp.format(parseFloat(form.amount_paid) || 0)}</span></div>
-              <div className="flex justify-between font-semibold text-primary border-t pt-2"><span>Balance Due</span><span>{gbp.format(balanceDue)}</span></div>
-            </div>
-          </div>
-
-          <div>
-            <Label>Notes</Label>
-            <Textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} rows={3} placeholder="Payment terms, additional info..." />
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-end gap-3">
-         <Button variant="outline" onClick={() => navigate('/invoices')}>Cancel</Button>
-         {isEdit && form.status === 'draft' && (
-           <Button onClick={async () => {
-             setPosting(true);
-             try {
-               const response = await base44.functions.invoke('postSalesInvoice', { invoice_id: id, company_id: activeCompany.id });
-               toast({ title: 'Invoice posted successfully' });
-               loadInvoice();
-             } catch (e) {
-               const errorMsg = e.response?.data?.error || e.message || 'Failed to post invoice';
-               toast({ title: 'Error posting invoice', description: errorMsg, variant: 'destructive' });
-             } finally {
-               setPosting(false);
-             }
-           }} disabled={posting} variant="outline" className="gap-2">
-             {posting ? 'Posting...' : 'Approve & Post'}
-           </Button>
-         )}
-         <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Invoice'}</Button>
-       </div>
+  const disabled = !allowed || hold || saving || loading;
+  if (!activeCompany) return <p>Select a company to prepare an invoice draft.</p>;
+  return <form onSubmit={save} className="max-w-4xl mx-auto space-y-6">
+    <div className="flex items-center justify-between">
+      <h1 className="text-2xl font-semibold">{editId ? 'Edit draft invoice' : 'New draft invoice'}</h1>
+      <Button type="button" variant="outline" onClick={() => navigate('/invoices')}>Back to invoices</Button>
     </div>
-  );
+    <p className="rounded-lg border bg-amber-50 p-4 text-sm text-amber-950">
+      Development draft contract: saving is held until approved VAT and lifecycle providers and reviewed storage are connected.
+      Precision/rounding fixtures await accounting acceptance. Saving never issues, posts, pays or reconciles an invoice.
+    </p>
+    {search.get('bank_transaction_id') && <p className="text-sm">Bank receipt context does not establish VAT eligibility or record a payment.</p>}
+    {!allowed && <p role="alert">Your current role cannot save invoice drafts. Managers need an approved scope; no Manager write grant is enabled.</p>}
+    {error && <div role="alert" className="rounded border border-red-300 p-4 text-red-900">
+      {error}{hold && <><p>Saving is held. Reloading will discard unsaved changes; do not automatically resubmit an uncertain save.</p>
+        <Button type="button" variant="outline" onClick={() => window.location.reload()}>Reload and discard unsaved changes</Button></>}
+    </div>}
+    {loading && <p>Loading current company draft context…</p>}
+    <fieldset disabled={disabled} className="space-y-6">
+      <Card><CardContent className="pt-6 space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div><Label htmlFor="customer">Customer</Label><select id="customer" required value={form.customer_id}
+            className="w-full border rounded p-2" onChange={e => change('customer_id', e.target.value)}>
+            <option value="">Select customer</option>{customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select></div>
+          <div><Label htmlFor="number">Invoice number</Label><Input id="number" required maxLength={64} value={form.invoice_number} onChange={e => change('invoice_number', e.target.value)} /></div>
+          <div><Label htmlFor="issue">Invoice date</Label><Input id="issue" required type="date" value={form.issue_date} onChange={e => change('issue_date', e.target.value)} /></div>
+          <div><Label htmlFor="due">Due date</Label><Input id="due" required type="date" value={form.due_date} onChange={e => change('due_date', e.target.value)} /></div>
+          <div><Label htmlFor="terms">Payment terms (days)</Label><Input id="terms" required type="number" min={0} max={365} step={1} value={form.payment_terms} onChange={e => change('payment_terms', Number(e.target.value))} /></div>
+          <div><Label htmlFor="reference">Reference</Label><Input id="reference" maxLength={200} value={form.reference} onChange={e => change('reference', e.target.value)} /></div>
+        </div>
+        <p className="text-sm text-muted-foreground">GBP, VAT-exclusive source prices. Enter an approved company tax code, not a guessed rate. Totals are calculated by the server.</p>
+        {form.line_items.map((l, i) => <div key={i} className="grid gap-3 border rounded p-3 sm:grid-cols-2">
+          {[['description', 'Description'], ['quantity', 'Quantity (up to 4 decimals)'], ['unit_price', 'Unit price GBP (up to 4 decimals)'], ['tax_code', 'Approved tax code']].map(([key, title]) =>
+            <div key={key}><Label htmlFor={`line-${i}-${key}`}>{title}</Label><Input id={`line-${i}-${key}`} required
+              inputMode={['quantity', 'unit_price'].includes(key) ? 'decimal' : 'text'} value={l[key]}
+              onChange={e => updateLine(i, key, e.target.value)} /></div>)}
+          <Button type="button" variant="outline" disabled={form.line_items.length === 1} onClick={() => change('line_items', form.line_items.filter((_, j) => j !== i))}>Remove line</Button>
+        </div>)}
+        <Button type="button" variant="outline" disabled={form.line_items.length >= 200} onClick={() => change('line_items', [...form.line_items, line()])}>Add line</Button>
+        <div><Label htmlFor="notes">Notes</Label><Textarea id="notes" maxLength={4000} value={form.notes} onChange={e => change('notes', e.target.value)} /></div>
+      </CardContent></Card>
+      {money && <p>Last server-calculated draft total: {displayPence(money.gross_pence)} (GBP).</p>}
+      <Button type="submit">{saving ? 'Saving draft…' : 'Save draft invoice'}</Button>
+    </fieldset>
+  </form>;
 }

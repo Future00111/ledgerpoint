@@ -1,3 +1,4 @@
+import { assertInvoiceSettlementReady } from "../financialDrafts/settlementBoundary";
 /**
  * AI Accountant — atomic approval of reconciliation matches.
  *
@@ -138,6 +139,7 @@ export async function applyReconciliationApproval(
         throw new Error("A matched record cannot be paid beyond its outstanding balance");
       }
       const deltaPence = requestedPence;
+      assertInvoiceSettlementReady(r.record_type, rec.status);
       if (deltaPence <= 0) throw new Error("Matched records exceed the bank transaction amount");
 
       const paidPence = Math.round(Number(rec.amount_paid ?? 0) * 100) + deltaPence;

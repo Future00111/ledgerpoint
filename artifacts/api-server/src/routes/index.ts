@@ -5,12 +5,14 @@ import entitiesRouter from "./entities";
 import companiesRouter from "./companies";
 import functionsRouter from "./functions";
 import aiAccountantRouter from "./aiAccountant";
+import financialDraftsRouter from "./financialDrafts";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(meRouter);
 router.use("/companies", companiesRouter);
+router.use("/companies/:companyId/financial-drafts/invoices", financialDraftsRouter);
 router.use("/entities", entitiesRouter);
 router.use("/functions", functionsRouter);
 router.use("/ai", aiAccountantRouter);

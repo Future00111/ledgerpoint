@@ -95,6 +95,10 @@ router.post("/:name", async (req: Request, res: Response) => {
   const { userId } = req as AuthenticatedRequest;
   const funcName = req.params["name"] as string;
   const args = req.body as Record<string, unknown>;
+  if (funcName === "generateDemoData") {
+    res.status(403).json({ error: "Demo invoice generation is held during protected draft workflow development" });
+    return;
+  }
 
   if (UNIMPLEMENTED_AI_FUNCTIONS.has(funcName)) {
     res.status(503).json({
@@ -229,6 +233,10 @@ router.post("/:name", async (req: Request, res: Response) => {
           record_id: string;
           amount_paid_delta: number;
         };
+        if (entity_type === "sales_invoice") {
+          res.status(403).json({ error: "Invoice settlement requires the protected payment workflow" });
+          return;
+        }
         const table =
           entity_type === "sales_invoice" ? salesInvoicesTable :
           entity_type === "purchase_bill" ? purchaseBillsTable : null;
@@ -589,27 +597,9 @@ router.post("/:name", async (req: Request, res: Response) => {
 
       // ── postSalesInvoice ─────────────────────────────────────────────────
       case "postSalesInvoice": {
-        const { invoice_id } = args as { invoice_id: string };
-        if (!invoice_id) { res.status(400).json({ error: "invoice_id is required" }); return; }
-
-        // Step 1: load the invoice to get its ACTUAL company_id (never trust client-supplied one)
-        const [invoice] = await db
-          .select({ company_id: salesInvoicesTable.company_id })
-          .from(salesInvoicesTable)
-          .where(eq(salesInvoicesTable.id, invoice_id))
-          .limit(1);
-        if (!invoice) { res.status(404).json({ error: "Invoice not found" }); return; }
-
-        // Step 2: verify write access for the invoice's actual company
-        if (!(await assertWriteAccess(userId, invoice.company_id, res))) return;
-
-        await db
-          .update(salesInvoicesTable)
-          .set({ status: "posted", updated_at: new Date() })
-          .where(eq(salesInvoicesTable.id, invoice_id));
-
-        res.json({ success: true });
-        break;
+        // The legacy implementation only flipped a status; it is not canonical posting.
+        res.status(403).json({ error: "Invoice posting requires approved canonical source/context providers" });
+        return;
       }
 
       // ── postPurchaseBill ─────────────────────────────────────────────────
@@ -948,6 +938,10 @@ router.post("/:name", async (req: Request, res: Response) => {
       // membership before any deletion can occur.
       case "resetDemoData": {
         const { company_id, target } = args as { company_id?: string; target?: string };
+        if (target === "documents" || target === "everything") {
+          res.status(403).json({ error: "Invoice reset is held; protected draft/audit evidence must be preserved" });
+          return;
+        }
         const allowedTargets = new Set(["transactions", "customers", "suppliers", "documents", "everything"]);
         if (process.env.NODE_ENV === "production") {
           res.status(403).json({ error: "Development data reset is unavailable in production" });

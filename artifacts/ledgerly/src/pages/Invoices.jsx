@@ -355,7 +355,7 @@ export default function Invoices() {
                             to={`/invoices/${inv.id}`}
                             className="text-xs text-primary hover:underline font-medium"
                           >
-                            Edit
+                            Review draft edit
                           </Link>
                           {(inv.status === 'sent' || inv.status === 'part_paid' || overdue) && (
                             <button

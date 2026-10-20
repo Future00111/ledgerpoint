@@ -11,6 +11,7 @@ import {
 } from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { verifyDraftBody, draftParserErrors } from "./services/financialDrafts/jsonBoundary";
 
 export interface ApiAppOptions {
   /**
@@ -91,7 +92,8 @@ app.use((req, res, next) => {
 });
 
 app.use(cookieParser());
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "10mb", verify: verifyDraftBody }));
+app.use(draftParserErrors);
 app.use(express.urlencoded({ extended: true }));
 
 // Resolve publishable key from request host (supports custom domains)
