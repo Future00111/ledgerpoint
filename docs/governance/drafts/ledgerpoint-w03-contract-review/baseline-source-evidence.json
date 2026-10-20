@@ -1,0 +1,250 @@
+{
+  "recordedAtUtc": "2026-10-20T19:19:20.082596+00:00",
+  "baselineHead": "f968280e99efe34573ce80c339540f89a622d0c0",
+  "baselineTree": "cbf389b303d95364e22813cd671a6d77cd5a3870",
+  "recordsBranch": "records-planning/w03-contract-review",
+  "initialStatusPorcelain": "?? attached_assets/Pasted-Prepare-and-save-a-detailed-W03-contract-review-package_1792523846689.txt\n?? docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance-proposal.md\n?? docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/",
+  "files": {
+    "artifacts/api-server/src/routes/companies.ts": {
+      "sha256": "bdd8c7268b73e4ccdd50fa15e4883b34c856e070a7346b2b3d5e4dae52b2e1be",
+      "bytes": 12201
+    },
+    "artifacts/api-server/src/routes/entities.ts": {
+      "sha256": "61737ad514891de8c3431ab8c247930f8faa4fb3ddb07a1c509e17015f75efaf",
+      "bytes": 20312
+    },
+    "artifacts/api-server/src/middlewares/companyScope.ts": {
+      "sha256": "cb08c20533ca541d47ba5f52a4084e0e088a220bd693b3ff585b1d7813bcb361",
+      "bytes": 7528
+    },
+    "artifacts/api-server/src/services/accounting/canonicalPosting.ts": {
+      "sha256": "042dbc50e4c64efd88aec5e75fbab48cd9621cba68919629269d2076af26702f",
+      "bytes": 44724
+    },
+    "artifacts/api-server/src/services/ai-accountant/vat.ts": {
+      "sha256": "c18183628ba77945c7cb0959f8fd54ade8b09861bd64864331ab868c3301549d",
+      "bytes": 34556
+    },
+    "artifacts/api-server/src/services/ai-accountant/vatMath.ts": {
+      "sha256": "68cad1362e449753a98024b596ad129321fb502a0c9601d1710cda544c16c216",
+      "bytes": 690
+    },
+    "lib/db/src/schema/index.ts": {
+      "sha256": "67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564",
+      "bytes": 56065
+    },
+    "artifacts/ledgerly/src/api/base44Client.js": {
+      "sha256": "9b34b37c30906755ebd9bb8423cf6d04e9a0ee865803b37a710a9b0e40a3406c",
+      "bytes": 2884
+    },
+    "artifacts/ledgerly/src/api/entities.js": {
+      "sha256": "a3ccb242311db9968985325699e3f68f854bfd9b953fbaf484355da0a58dc66e",
+      "bytes": 5014
+    },
+    "artifacts/ledgerly/src/pages/InvoiceForm.jsx": {
+      "sha256": "347f7ac3a4f4b84f3f43e3752f6ce415cff4196e4ae3ef5bee32393c062d3337",
+      "bytes": 13630
+    },
+    "artifacts/ledgerly/src/pages/BillForm.jsx": {
+      "sha256": "9c00fbbd6aa54845604c9f731a2a0dc529d35c8c3ade1d3785b18119f52ad45f",
+      "bytes": 11260
+    },
+    "artifacts/ledgerly/src/components/invoices/InvoiceLineItems.jsx": {
+      "sha256": "e2c66297813811c8ffa7d911af053068bd028175e72d1e0883ab7eb85a566154",
+      "bytes": 4020
+    },
+    "artifacts/ledgerly/src/components/bills/BillLineItems.jsx": {
+      "sha256": "25607ba94f102970f120d259c544c636689136b44d2a9d8926d7073fb1803fbc",
+      "bytes": 4874
+    },
+    "docs/ledgerly-current-decision-register.md": {
+      "sha256": "341d2eaca64b8c6ac1248c447282d2e3c5da4f3e6fdc5d930ee23e25448ffdef",
+      "bytes": 50167
+    },
+    "docs/ledgerly-dec-03-vat-scope-review.md": {
+      "sha256": "ac6626345a8662007e33be4bfd8fedb98af6d9313f8f864ed00ac814a13fa1b7",
+      "bytes": 30047
+    },
+    "docs/ledgerly-dec-05-capability-approval-review.md": {
+      "sha256": "4d958075a023099880c856e76e303b2c97fd94726fcc45e7981aca9193c37e5f",
+      "bytes": 24842
+    },
+    "docs/ledgerly-accounting-core-architecture-review.md": {
+      "sha256": "9ede24b9dd9813d9345a3b798d6c6af3ee5a2dd9541f2ec05a837d2a8970bedc",
+      "bytes": 46837
+    },
+    "docs/ledgerly-40-implementation-approval-package.md": {
+      "sha256": "684be4aae12b7c7f6eaab14484c91a7f93fe1f780930682fdab355214f878a70",
+      "bytes": 45379
+    },
+    "docs/ledgerly-safety-rule-ownership-record.md": {
+      "sha256": "fed693dc5f80a8925b47abb5af87582e34ccd34f5e5dc904918eab36ecdf6a41",
+      "bytes": 27890
+    },
+    "docs/governance/drafts/ledgerpoint-launch-plan.md": {
+      "sha256": "7842479c288efbd08a49bc4e5df3b733f2ff3a20ab44a6e154f92c6134243d41",
+      "bytes": 6480
+    },
+    "docs/governance/drafts/ledgerpoint-w03-implementation-ticket-proposal.md": {
+      "sha256": "96f0d736960f63f00b0f618c9148563df13d40dac83ef5eebdaa543b827b3679",
+      "bytes": 11896
+    },
+    "generated-artifacts/ledgerpoint-launch-plan/ledgerpoint-launch-plan.original.xlsx": {
+      "sha256": "09f97f20b91fc6a62fb9e6fa2c3ad2330ef0054b6a76cda6476e06d99f4062e8",
+      "bytes": 49738
+    },
+    "attached_assets/Pasted-Prepare-and-save-a-detailed-W03-contract-review-package_1792523846689.txt": {
+      "sha256": "097961703be8954c58460b93ee5eaba1308f567682a1b93ad2dee2d20fe92111",
+      "bytes": 2152
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/README.md": {
+      "sha256": "f4041a32b231837439b2b0b263bf1a891303e0ca8c70e292591affb4a9030bbd",
+      "bytes": 2382
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/acceptance-record-manifest.json": {
+      "sha256": "ff56773181b46a5b620ae5061269311c07033e0dc45a0e004f0786de56010022",
+      "bytes": 637
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/archive-and-marker-verification.json": {
+      "sha256": "157a6e0eff6ed58a4383cb229e86d39068a2d458ee52c4a8df343fafc598b6aa",
+      "bytes": 4063
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/artifacts.json": {
+      "sha256": "cfad315630834f88d6ac999a27e3b4f7dec545f0a0791dfd4f268482bba30e90",
+      "bytes": 732
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/inventory.json": {
+      "sha256": "034d67373e77e4b944917973071873a1b44279485cae479a47f0175f11feba59",
+      "bytes": 394
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/jobs.json": {
+      "sha256": "2d5a1317b1761599158e2e5c57deca4a498fac00688f46d43b130aba8eebdd5e",
+      "bytes": 2513
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/live-c7.json": {
+      "sha256": "8694d8a4d12ffde5abc3acdfaf8eb087441c66160ddf20dd58bd5aa6c427666c",
+      "bytes": 470
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/live-environment.json": {
+      "sha256": "10de9d611bad8d689d70f7a7b2d323000c75232efbc1e78c9aa0e332e1b1f495",
+      "bytes": 1681
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/live-main.json": {
+      "sha256": "483c52b0cb9aef4d87ebef8bb466a7278cf9d376edc2385fb23eb77171398ced",
+      "bytes": 344
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/live-variables.json": {
+      "sha256": "cf3d27f0038663959ebcef4c59bd303e603de8b8adfc4e704bf3e5459fff10a4",
+      "bytes": 1181
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/logs/0_Disposable canonical PostgreSQL qualification.txt": {
+      "sha256": "be880e7f1d0b6fd2ca24b646b835474e1a9ea40f7e611c453a6c1a8a59f02f22",
+      "bytes": 49977
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/logs/Disposable canonical PostgreSQL qualification/11_Post Checkout approved implementation source.txt": {
+      "sha256": "b9747061d237691aca936eaabefc99f58a23173ed1176931cd10f4d43ae0f3af",
+      "bytes": 1278
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/logs/Disposable canonical PostgreSQL qualification/12_Post Checkout reviewed source.txt": {
+      "sha256": "a2cbb5d7242956363cc70fc6b8ca2c5bdd697c0c698229adebd740d08f27fbf1",
+      "bytes": 1268
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/logs/Disposable canonical PostgreSQL qualification/13_Complete job.txt": {
+      "sha256": "87caac8287178dc2272855c6fb1f61c9e702d55b55fb90ec254dc93ec4b8f4bb",
+      "bytes": 452
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/logs/Disposable canonical PostgreSQL qualification/1_Set up job.txt": {
+      "sha256": "6232ab1f82ed06ff89e9d7122b4345e018e3f936a9179540a4ba96b995787579",
+      "bytes": 2139
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/logs/Disposable canonical PostgreSQL qualification/2_Checkout reviewed source.txt": {
+      "sha256": "81e9732c14d7374bb885adb427eb0404d574ba8214ce4f271f09ef35aca5357e",
+      "bytes": 13469
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/logs/Disposable canonical PostgreSQL qualification/3_Checkout approved implementation source.txt": {
+      "sha256": "31ca196ab9a7099f8f30b684337d67853dc6d6c8aa25ab7f74557f5818438274",
+      "bytes": 7600
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/logs/Disposable canonical PostgreSQL qualification/4_Install pinned evidence validator.txt": {
+      "sha256": "d0f962faf83833d35d9e5cffb5d1ee31b689fe926cc5a132f90ebdfc5418331b",
+      "bytes": 878
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/logs/Disposable canonical PostgreSQL qualification/5_Run TI-03 qualification.txt": {
+      "sha256": "e16192581febd78d2d77ff7162aa90a030c6b5806cf2f5ef3407ef52186103db",
+      "bytes": 20777
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/logs/Disposable canonical PostgreSQL qualification/6_Upload non-secret TI-03 evidence.txt": {
+      "sha256": "5a1cb26d03276181cf43f37936cd119db0198c8dfce76eefd1ed1b7357a5e2bd",
+      "bytes": 2140
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/logs/Disposable canonical PostgreSQL qualification/system.txt": {
+      "sha256": "447f1998751cdf4a6625d5c784fb11696605590ed31e58055bbf3dc889787660",
+      "bytes": 456
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/logs-inventory.json": {
+      "sha256": "6c21f02c6fabfc2119af676ac676cebf15f50a5b6e94ff62c5005c777fe45109",
+      "bytes": 2438
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/members/ledgerly-44-ti-03-283124e1-47d4-4754-ae97-e0f59c2f579e.json": {
+      "sha256": "1ed8e4b18f0a3809230ba0715eef9f10640e36ba1101f4a2f8dce57998a73c1a",
+      "bytes": 9058
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/members/ledgerly-44-ti-03-evidence.schema.json": {
+      "sha256": "6ba3d5f595f81e81db238b843c16b667e775384952855482ce9a978775d6ca0f",
+      "bytes": 11753
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/offline-verification-result.json": {
+      "sha256": "8a3433d3a3cb45556c5161d7dd8cb34320139bd1fa887d5f0257b54c6b5ea0f8",
+      "bytes": 7258
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/offline-verification.log": {
+      "sha256": "129bd0b4e810d9e7c43a0bc984bcbee59c529d3d48ed92924b463abda1b1f212",
+      "bytes": 91
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/original-artifact.zip": {
+      "sha256": "41ccf0941649ffd35e9e1e5e5d588e46f3a2b3579af943fffe2f720e7fdd048f",
+      "bytes": 5290
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/original-logs.zip": {
+      "sha256": "d72c9e314446911beb8005f62226693a320e514d5a5aee4f4f36473eb32aa0de",
+      "bytes": 30069
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/owner-acceptance.json": {
+      "sha256": "d873fccfea3f69ed8a19edc95dabc3cecc73fd8f33159a69bbf1f5098f3729c8",
+      "bytes": 1677
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/owner-acceptance.md": {
+      "sha256": "c550500905ee4837a1366ab7fd455be0d3021839a81551eca3be227af0877d77",
+      "bytes": 1582
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/proposal-before-owner-acceptance.md": {
+      "sha256": "81d855101afd04293d0ed58ed36a38f6996a87d47acb5371b7dac48e8b57085f",
+      "bytes": 13082
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/retained-files-manifest.json": {
+      "sha256": "3cc3aeaa89dd50571fff88b9830af33b81448988de2ef384d2ccb99111b825ee",
+      "bytes": 5195
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/reviews.json": {
+      "sha256": "8e60755138adc9daa254079e294789b813cf0ebf90c0cf844357c4469958e4d5",
+      "bytes": 1418
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/run.json": {
+      "sha256": "5d74ac089b3456aa819d18acc3fc8c6a54e8354775edfe68d68473976bfd26c9",
+      "bytes": 12658
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/source-digests.json": {
+      "sha256": "defffe4703e0bc4cb9b0fbad519feee28874949f7be2e4d9435d024f8a53611f",
+      "bytes": 861
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance/verify-original-evidence.mjs": {
+      "sha256": "16694760ff9bffaefe12f231240ce52669c11ceb9fbdcb152f245ea4c495cd54",
+      "bytes": 11643
+    },
+    "docs/governance/drafts/ledgerly-tr01-c7-g7-acceptance-proposal.md": {
+      "sha256": "900a8fcc6162c0bf731e853c321be2e9395c5ae53ce081c7f50ff7b964acfaa8",
+      "bytes": 13357
+    }
+  },
+  "evidenceScope": "Offline current workspace inspection and recorded owner acceptance, no live G7 replay"
+}

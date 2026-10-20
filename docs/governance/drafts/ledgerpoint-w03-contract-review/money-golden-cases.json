@@ -1,0 +1,38 @@
+{
+  "status": "PROPOSED_NOT_ACCOUNTING_APPROVAL",
+  "contract": "w03.money.v1",
+  "currency": "GBP",
+  "maximumPence": "999999999999",
+  "valid": [
+    {"id":"ordinary","lines":[{"q":"1","p":"10.00","rate":20}],"expectedLines":[["1000","200","1200"]],"expected":["1000","200","1200"]},
+    {"id":"net-half-up","lines":[{"q":"1","p":"0.0050","rate":20}],"expectedLines":[["1","0","1"]],"expected":["1","0","1"]},
+    {"id":"vat-half-up","lines":[{"q":"1","p":"0.10","rate":5}],"expectedLines":[["10","1","11"]],"expected":["10","1","11"]},
+    {"id":"fractional","lines":[{"q":"1.2345","p":"2.3456","rate":20}],"expectedLines":[["290","58","348"]],"expected":["290","58","348"]},
+    {"id":"tiny","lines":[{"q":"0.0001","p":"0.0001","rate":20}],"expectedLines":[["0","0","0"]],"expected":["0","0","0"]},
+    {"id":"zero-price","lines":[{"q":"2","p":"0","rate":20}],"expectedLines":[["0","0","0"]],"expected":["0","0","0"]},
+    {"id":"eligible-zero","lines":[{"q":"2","p":"12.3456","rate":0}],"expectedLines":[["2469","0","2469"]],"expected":["2469","0","2469"]},
+    {"id":"storage-max","lines":[{"q":"100","p":"99999999.9999","rate":0}],"expectedLines":[["999999999999","0","999999999999"]],"expected":["999999999999","0","999999999999"]},
+    {"id":"sum-rounded-lines","lines":[{"q":"1","p":"0.03","rate":20},{"q":"1","p":"0.03","rate":20},{"q":"1","p":"0.03","rate":20}],"expectedLines":[["3","1","4"],["3","1","4"],["3","1","4"]],"expected":["9","3","12"]},
+    {"id":"net-before-vat","lines":[{"q":"1","p":"0.025","rate":20}],"expectedLines":[["3","1","4"]],"expected":["3","1","4"]},
+    {"id":"mixed-rates","lines":[{"q":"1","p":"10","rate":20},{"q":"1","p":"0.10","rate":5},{"q":"1","p":"1","rate":0}],"expectedLines":[["1000","200","1200"],["10","1","11"],["100","0","100"]],"expected":["1110","201","1311"]}
+  ],
+  "invalid": [
+    {"id":"json-number","lines":[{"q":1,"p":"10","rate":20}],"expectedError":"DECIMAL_REQUIRED"},
+    {"id":"exponent","lines":[{"q":"1","p":"1e2","rate":20}],"expectedError":"DECIMAL_INVALID"},
+    {"id":"spaces","lines":[{"q":"1","p":" 1","rate":20}],"expectedError":"DECIMAL_INVALID"},
+    {"id":"plus","lines":[{"q":"1","p":"+1","rate":20}],"expectedError":"DECIMAL_INVALID"},
+    {"id":"leading-zero","lines":[{"q":"01","p":"1","rate":20}],"expectedError":"DECIMAL_INVALID"},
+    {"id":"too-precise","lines":[{"q":"1","p":"0.00001","rate":20}],"expectedError":"DECIMAL_INVALID"},
+    {"id":"quantity-zero","lines":[{"q":"0","p":"1","rate":20}],"expectedError":"QUANTITY_RANGE"},
+    {"id":"negative-price","lines":[{"q":"1","p":"-1","rate":20}],"expectedError":"DECIMAL_INVALID"},
+    {"id":"quantity-limit","lines":[{"q":"1000000","p":"1","rate":20}],"expectedError":"QUANTITY_RANGE"},
+    {"id":"price-limit","lines":[{"q":"1","p":"100000000","rate":20}],"expectedError":"UNIT_PRICE_RANGE"},
+    {"id":"gross-overflow","lines":[{"q":"100","p":"99999999.9999","rate":20}],"expectedError":"MONEY_LIMIT"},
+    {"id":"net-overflow","lines":[{"q":"999999.9999","p":"99999999.9999","rate":0}],"expectedError":"MONEY_LIMIT"},
+    {"id":"aggregate-overflow","lines":[{"q":"100","p":"99999999.9999","rate":0},{"q":"1","p":"0.01","rate":0}],"expectedError":"MONEY_LIMIT"},
+    {"id":"unknown-rate","lines":[{"q":"1","p":"1","rate":17}],"expectedError":"TAX_TREATMENT_UNSUPPORTED"},
+    {"id":"missing-lines","lines":[],"expectedError":"LINES_RANGE"},
+    {"id":"discount-not-defined","lines":[{"q":"1","p":"1","rate":20,"discount":"10"}],"expectedError":"UNKNOWN_FIELD"}
+  ],
+  "limits": "Arithmetic fixtures only. Rates do not prove tax eligibility; no runtime or VAT authority is implemented."
+}

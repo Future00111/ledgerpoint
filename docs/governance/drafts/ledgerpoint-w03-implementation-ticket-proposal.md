@@ -1,5 +1,24 @@
 # W03 — roles, write contracts and server-money authority
 
+## Contract preparation addendum — 2026-10-20
+
+Detailed [W03 contract/review package](ledgerpoint-w03-contract-review-package.md)
+is saved for review, with exact baseline/source evidence, role/member rules,
+draft request/response/error/bulk contracts, worked money cases, transaction/
+revocation design, client compatibility gaps and unit/HTTP/concurrency tests.
+**Direction/preparation only; implementation remains unapproved.**
+Lee is acceptance owner; security reviewer TBD; W01 capacity/reviewer
+availability is unconfirmed.
+
+G7 is now **ACCEPTED**, as recorded in
+[the preserved owner acceptance](ledgerly-tr01-c7-g7-acceptance/owner-acceptance.md).
+Do not replay G7. The older G5–G7-pending/workspace-inspection text below
+remains the original proposal history; the new package uses current baseline
+`f968280e99efe34573ce80c339540f89a622d0c0` plus exact dirty-record hashes.
+No additional closure, production, Phase A or implementation authority is
+inferred. Monetary rounding/tax details and physical grant/audit/revision
+storage remain review decisions, not approved accounting policy.
+
 **SCOPED IMPLEMENTATION-TICKET PROPOSAL ONLY — NOT APPROVED OR STARTED.**
 No runtime/schema/workflow change, migration, production access or Phase A.
 Proposed build owners Replit + Codex; proposed acceptance owners Lee + security
