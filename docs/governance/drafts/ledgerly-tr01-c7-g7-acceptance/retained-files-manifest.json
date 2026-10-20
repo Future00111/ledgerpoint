@@ -1,0 +1,157 @@
+[
+  {
+    "path": "README.md",
+    "bytes": 2382,
+    "sha256": "f4041a32b231837439b2b0b263bf1a891303e0ca8c70e292591affb4a9030bbd"
+  },
+  {
+    "path": "archive-and-marker-verification.json",
+    "bytes": 4063,
+    "sha256": "157a6e0eff6ed58a4383cb229e86d39068a2d458ee52c4a8df343fafc598b6aa"
+  },
+  {
+    "path": "artifacts.json",
+    "bytes": 732,
+    "sha256": "cfad315630834f88d6ac999a27e3b4f7dec545f0a0791dfd4f268482bba30e90"
+  },
+  {
+    "path": "inventory.json",
+    "bytes": 394,
+    "sha256": "034d67373e77e4b944917973071873a1b44279485cae479a47f0175f11feba59"
+  },
+  {
+    "path": "jobs.json",
+    "bytes": 2513,
+    "sha256": "2d5a1317b1761599158e2e5c57deca4a498fac00688f46d43b130aba8eebdd5e"
+  },
+  {
+    "path": "live-c7.json",
+    "bytes": 470,
+    "sha256": "8694d8a4d12ffde5abc3acdfaf8eb087441c66160ddf20dd58bd5aa6c427666c"
+  },
+  {
+    "path": "live-environment.json",
+    "bytes": 1681,
+    "sha256": "10de9d611bad8d689d70f7a7b2d323000c75232efbc1e78c9aa0e332e1b1f495"
+  },
+  {
+    "path": "live-main.json",
+    "bytes": 344,
+    "sha256": "483c52b0cb9aef4d87ebef8bb466a7278cf9d376edc2385fb23eb77171398ced"
+  },
+  {
+    "path": "live-variables.json",
+    "bytes": 1181,
+    "sha256": "cf3d27f0038663959ebcef4c59bd303e603de8b8adfc4e704bf3e5459fff10a4"
+  },
+  {
+    "path": "logs/0_Disposable canonical PostgreSQL qualification.txt",
+    "bytes": 49977,
+    "sha256": "be880e7f1d0b6fd2ca24b646b835474e1a9ea40f7e611c453a6c1a8a59f02f22"
+  },
+  {
+    "path": "logs/Disposable canonical PostgreSQL qualification/11_Post Checkout approved implementation source.txt",
+    "bytes": 1278,
+    "sha256": "b9747061d237691aca936eaabefc99f58a23173ed1176931cd10f4d43ae0f3af"
+  },
+  {
+    "path": "logs/Disposable canonical PostgreSQL qualification/12_Post Checkout reviewed source.txt",
+    "bytes": 1268,
+    "sha256": "a2cbb5d7242956363cc70fc6b8ca2c5bdd697c0c698229adebd740d08f27fbf1"
+  },
+  {
+    "path": "logs/Disposable canonical PostgreSQL qualification/13_Complete job.txt",
+    "bytes": 452,
+    "sha256": "87caac8287178dc2272855c6fb1f61c9e702d55b55fb90ec254dc93ec4b8f4bb"
+  },
+  {
+    "path": "logs/Disposable canonical PostgreSQL qualification/1_Set up job.txt",
+    "bytes": 2139,
+    "sha256": "6232ab1f82ed06ff89e9d7122b4345e018e3f936a9179540a4ba96b995787579"
+  },
+  {
+    "path": "logs/Disposable canonical PostgreSQL qualification/2_Checkout reviewed source.txt",
+    "bytes": 13469,
+    "sha256": "81e9732c14d7374bb885adb427eb0404d574ba8214ce4f271f09ef35aca5357e"
+  },
+  {
+    "path": "logs/Disposable canonical PostgreSQL qualification/3_Checkout approved implementation source.txt",
+    "bytes": 7600,
+    "sha256": "31ca196ab9a7099f8f30b684337d67853dc6d6c8aa25ab7f74557f5818438274"
+  },
+  {
+    "path": "logs/Disposable canonical PostgreSQL qualification/4_Install pinned evidence validator.txt",
+    "bytes": 878,
+    "sha256": "d0f962faf83833d35d9e5cffb5d1ee31b689fe926cc5a132f90ebdfc5418331b"
+  },
+  {
+    "path": "logs/Disposable canonical PostgreSQL qualification/5_Run TI-03 qualification.txt",
+    "bytes": 20777,
+    "sha256": "e16192581febd78d2d77ff7162aa90a030c6b5806cf2f5ef3407ef52186103db"
+  },
+  {
+    "path": "logs/Disposable canonical PostgreSQL qualification/6_Upload non-secret TI-03 evidence.txt",
+    "bytes": 2140,
+    "sha256": "5a1cb26d03276181cf43f37936cd119db0198c8dfce76eefd1ed1b7357a5e2bd"
+  },
+  {
+    "path": "logs/Disposable canonical PostgreSQL qualification/system.txt",
+    "bytes": 456,
+    "sha256": "447f1998751cdf4a6625d5c784fb11696605590ed31e58055bbf3dc889787660"
+  },
+  {
+    "path": "logs-inventory.json",
+    "bytes": 2438,
+    "sha256": "6c21f02c6fabfc2119af676ac676cebf15f50a5b6e94ff62c5005c777fe45109"
+  },
+  {
+    "path": "members/ledgerly-44-ti-03-283124e1-47d4-4754-ae97-e0f59c2f579e.json",
+    "bytes": 9058,
+    "sha256": "1ed8e4b18f0a3809230ba0715eef9f10640e36ba1101f4a2f8dce57998a73c1a"
+  },
+  {
+    "path": "members/ledgerly-44-ti-03-evidence.schema.json",
+    "bytes": 11753,
+    "sha256": "6ba3d5f595f81e81db238b843c16b667e775384952855482ce9a978775d6ca0f"
+  },
+  {
+    "path": "offline-verification-result.json",
+    "bytes": 7258,
+    "sha256": "8a3433d3a3cb45556c5161d7dd8cb34320139bd1fa887d5f0257b54c6b5ea0f8"
+  },
+  {
+    "path": "offline-verification.log",
+    "bytes": 91,
+    "sha256": "129bd0b4e810d9e7c43a0bc984bcbee59c529d3d48ed92924b463abda1b1f212"
+  },
+  {
+    "path": "original-artifact.zip",
+    "bytes": 5290,
+    "sha256": "41ccf0941649ffd35e9e1e5e5d588e46f3a2b3579af943fffe2f720e7fdd048f"
+  },
+  {
+    "path": "original-logs.zip",
+    "bytes": 30069,
+    "sha256": "d72c9e314446911beb8005f62226693a320e514d5a5aee4f4f36473eb32aa0de"
+  },
+  {
+    "path": "reviews.json",
+    "bytes": 1418,
+    "sha256": "8e60755138adc9daa254079e294789b813cf0ebf90c0cf844357c4469958e4d5"
+  },
+  {
+    "path": "run.json",
+    "bytes": 12658,
+    "sha256": "5d74ac089b3456aa819d18acc3fc8c6a54e8354775edfe68d68473976bfd26c9"
+  },
+  {
+    "path": "source-digests.json",
+    "bytes": 861,
+    "sha256": "defffe4703e0bc4cb9b0fbad519feee28874949f7be2e4d9435d024f8a53611f"
+  },
+  {
+    "path": "verify-original-evidence.mjs",
+    "bytes": 11643,
+    "sha256": "16694760ff9bffaefe12f231240ce52669c11ceb9fbdcb152f245ea4c495cd54"
+  }
+]

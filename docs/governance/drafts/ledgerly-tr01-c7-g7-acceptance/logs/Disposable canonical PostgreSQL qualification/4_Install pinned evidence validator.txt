@@ -1,0 +1,12 @@
+﻿2026-10-20T18:21:06.0199097Z ##[group]Run corepack enable
+2026-10-20T18:21:06.0200378Z [36;1mcorepack enable[0m
+2026-10-20T18:21:06.0202026Z [36;1mcorepack prepare pnpm@10.26.1 --activate[0m
+2026-10-20T18:21:06.0203991Z [36;1mpnpm install --frozen-lockfile --ignore-scripts --filter workspace[0m
+2026-10-20T18:21:06.0402248Z shell: /usr/bin/bash -e {0}
+2026-10-20T18:21:06.0403418Z ##[endgroup]
+2026-10-20T18:21:06.3642523Z Preparing pnpm@10.26.1 for immediate activation...
+2026-10-20T18:21:07.8543028Z Lockfile is up to date, resolution step is skipped
+2026-10-20T18:21:07.8797630Z Progress: resolved 1, reused 0, downloaded 0, added 0
+2026-10-20T18:21:07.8852075Z .                                        |   +8 +
+2026-10-20T18:21:08.1912785Z Progress: resolved 8, reused 0, downloaded 8, added 8, done
+2026-10-20T18:21:08.2384517Z Done in 869ms using pnpm v10.26.1

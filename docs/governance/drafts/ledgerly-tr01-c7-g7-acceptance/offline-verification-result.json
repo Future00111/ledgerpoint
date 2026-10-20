@@ -1,0 +1,185 @@
+{
+  "kind": "offline-verification-of-original-run",
+  "verifiedAt": "2026-10-20T18:43:25.938Z",
+  "allPassed": true,
+  "checks": [
+    "GitHub run and job identity",
+    "Original artifact digest equals GitHub metadata",
+    "Frozen G and C7 checkouts",
+    "Pinned AJV validator",
+    "Artifact schema is exact frozen C7 schema",
+    "Uploaded schema matches source byte for byte",
+    "Execution tree independently recomputed",
+    "Strict AJV2020 and branded source-bound acceptance",
+    "All ten source digests recomputed",
+    "All 18 named negative controls",
+    "All five named cleanup checks",
+    "Six accounting test names and zero fail/skip/cancel/todo",
+    "Concurrency log matches evidence and proves distinct overlapping transactions",
+    "Journal lock log and scoped privilege checks",
+    "Negative privilege log matches evidence",
+    "Fresh UUID, database and API identity",
+    "Role separation, ownership, ALWAYS triggers, FK validation and lock ACL",
+    "Isolation and credential scan",
+    "Final evidence hash in retained log"
+  ],
+  "runId": "38621069723",
+  "runAttempt": "1",
+  "workflowSource": "706dc6a31f85733ba0c251f40b2c09f5a9312269",
+  "implementationSource": "787d76decfa345e3c1104231e08d5ab00bc90259",
+  "artifactSha256": "41ccf0941649ffd35e9e1e5e5d588e46f3a2b3579af943fffe2f720e7fdd048f",
+  "evidenceSha256": "1ed8e4b18f0a3809230ba0715eef9f10640e36ba1101f4a2f8dce57998a73c1a",
+  "schemaSha256": "6ba3d5f595f81e81db238b843c16b667e775384952855482ce9a978775d6ca0f",
+  "logsZipSha256": "d72c9e314446911beb8005f62226693a320e514d5a5aee4f4f36473eb32aa0de",
+  "sourceFiles": 564,
+  "sourceDigests": {
+    "sourceTree": "fcd81d162cbfc406853bdd13c853cd49f81fd814622a7f90116724e668eb82d1",
+    "applicationSchema": "67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564",
+    "drizzleConfig": "57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258",
+    "securityOverlay": "779d76aa3ab065d5bb1f5a08c9ea807cf4bc3166d0fdc1b59c21c81140404081",
+    "runControlSql": "cf7c294738f2400e5ce5ab7abcb1cc111bd8100a62386d075306ced6395bf00b",
+    "coordinator": "224275124927ffabc03a0720acb67bd4b2d3e99db8183d1c2eca4283e7440427",
+    "testSources": "2573b8b7be50acaadc68be89c6de53dbdb9279132455dac99fa02206bca916ac",
+    "lockfile": "3b8329fff64eab80ec5dfe8d875f80502789520faea4680d2fd0e7f0b4703f1b",
+    "workflow": "ad06da35f4269fbbf46e1fd4ccabf6082d309963e39b577e17ac948c546afc20",
+    "orchestrator": "3699a2ad28b5d2e3e652529c2d26bec8b7c84b7ff658fa8a08b4ae6f456ef54b"
+  },
+  "accountingTests": [
+    "canonical integration suite is bound to an empty API-role disposable database",
+    "canonical posting persists a balanced immutable journal, audit, and retry-safe effect",
+    "canonical posting fails closed for stale sources, closed periods, invalid accounts, and company mismatch",
+    "canonical posting is atomic under audit failure, concurrent retries, and additive reversal",
+    "SC-01 enforces company-scoped relation identity, uniqueness, and atomic rollback",
+    "owner journal locks serialize transactions without API mutation privileges"
+  ],
+  "negativeControls": {
+    "missingRunBinding": true,
+    "forgedRunDatabaseMismatch": true,
+    "malformedUri": true,
+    "targetChangingQuery": true,
+    "wrongHost": true,
+    "wrongPort": true,
+    "wrongDatabase": true,
+    "wrongRole": true,
+    "parentDatabaseUrl": true,
+    "replitMarker": true,
+    "inheritedPgOverride": true,
+    "unpinnedImage": true,
+    "untrustedEvent": true,
+    "unauthorizedWorkflow": true,
+    "cleanupBindingMismatch": true,
+    "evidenceCredentialPattern": true,
+    "roleEscalation": true,
+    "triggerDisable": true
+  },
+  "cleanup": {
+    "logicalDrop": true,
+    "databaseAbsent": true,
+    "containerRemoved": true,
+    "networkRemoved": true,
+    "credentialMaterialRemoved": true
+  },
+  "concurrency": {
+    "expected": 2,
+    "arrivals": [
+      {
+        "backendPid": 179,
+        "transactionId": "891",
+        "arrivedAt": 1792520516844
+      },
+      {
+        "backendPid": 180,
+        "transactionId": "892",
+        "arrivedAt": 1792520516850
+      }
+    ],
+    "releasedAt": 1792520516850,
+    "overlapProven": true
+  },
+  "journalLock": {
+    "functionOwner": "ledgerly_canonical_owner",
+    "callerHasUpdate": false,
+    "scopedLookupsRejected": true,
+    "directMutationDenied": true,
+    "temporaryShadowRejected": true,
+    "transactionalRowLockProven": true,
+    "backendPids": [
+      186,
+      187
+    ]
+  },
+  "completion": {
+    "runId": "283124e1-47d4-4754-ae97-e0f59c2f579e",
+    "databaseName": "ledgerly_canonical_test_283124e147d44754ae97e0f59c2f579e",
+    "environment": "external-ci-disposable-test",
+    "targetClass": "external-ci-postgresql-service-container",
+    "privateRunBindingVerified": true,
+    "sourceDigests": {
+      "applicationSchema": "67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564",
+      "drizzleConfig": "57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258",
+      "securityOverlay": "779d76aa3ab065d5bb1f5a08c9ea807cf4bc3166d0fdc1b59c21c81140404081",
+      "sourceTree": "fcd81d162cbfc406853bdd13c853cd49f81fd814622a7f90116724e668eb82d1",
+      "runControlSql": "cf7c294738f2400e5ce5ab7abcb1cc111bd8100a62386d075306ced6395bf00b",
+      "coordinator": "224275124927ffabc03a0720acb67bd4b2d3e99db8183d1c2eca4283e7440427",
+      "testSources": "2573b8b7be50acaadc68be89c6de53dbdb9279132455dac99fa02206bca916ac",
+      "lockfile": "3b8329fff64eab80ec5dfe8d875f80502789520faea4680d2fd0e7f0b4703f1b",
+      "workflow": "ad06da35f4269fbbf46e1fd4ccabf6082d309963e39b577e17ac948c546afc20",
+      "orchestrator": "3699a2ad28b5d2e3e652529c2d26bec8b7c84b7ff658fa8a08b4ae6f456ef54b"
+    },
+    "identityEvidence": {
+      "runId": "283124e1-47d4-4754-ae97-e0f59c2f579e",
+      "databaseName": "ledgerly_canonical_test_283124e147d44754ae97e0f59c2f579e",
+      "currentUser": "ledgerly_api",
+      "triggerState": "ENABLE ALWAYS",
+      "emptyCanonicalBaseline": true,
+      "externalCi": true
+    },
+    "concurrencyEvidence": {
+      "expected": 2,
+      "arrivals": [
+        {
+          "backendPid": 179,
+          "transactionId": "891",
+          "arrivedAt": 1792520516844
+        },
+        {
+          "backendPid": 180,
+          "transactionId": "892",
+          "arrivedAt": 1792520516850
+        }
+      ],
+      "releasedAt": 1792520516850,
+      "overlapProven": true
+    },
+    "negativePrivilegeEvidence": {
+      "roleEscalationDenied": true,
+      "setRolePostgresDenied": true,
+      "triggerDisableDenied": true,
+      "canonicalDeleteDenied": true
+    },
+    "journalLockEvidence": {
+      "functionOwner": "ledgerly_canonical_owner",
+      "callerHasUpdate": false,
+      "scopedLookupsRejected": true,
+      "directMutationDenied": true,
+      "temporaryShadowRejected": true,
+      "transactionalRowLockProven": true,
+      "backendPids": [
+        186,
+        187
+      ]
+    },
+    "externalCiIsolation": {
+      "parentDatabaseUrlAbsent": true,
+      "replitVariablesAbsent": true,
+      "developmentEndpointMatched": false
+    }
+  },
+  "bootstrapRecovery": {
+    "recoveredOrdering": true,
+    "pushes": 2
+  },
+  "noQualificationRerun": true,
+  "noDatabaseOrDockerAccess": true,
+  "ownerAcceptance": "PENDING"
+}

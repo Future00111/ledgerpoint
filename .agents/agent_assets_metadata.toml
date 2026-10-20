@@ -182,3 +182,17 @@ mtime_ms = 1792002742190
 storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/e2c580fa-64a5-4616-b6da-05d4eb3a77ac/3f7b9c67-5fd7-475c-9ded-c2df67a4914e"
 storage_version_token = "1792002752360146"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "jihREDTNJfOOZOvJRlEK-"
+uri = "file://generated-artifacts/w03-contract-review/ledgerpoint-w03-contract-review-package.zip"
+type = "unspecified"
+title = "W03 contract review package"
+description = "Proposed role, membership, draft API, money, bulk and transaction contracts; compatibility analysis, acceptance-test plan and verified offline evidence. Documentation only; no implementation authority. Record commit d6a9b7087a3d237b2f3dbc520cd34ab2625ba292."
+logical_id = "fc595f24-775f-4fef-9b7b-8c45e1a44bab"
+content_hash = "sha256:90ed7202e347b6b0827dd3130d885c226c6fcf28c26f21eb1fb71e60ffbb0a2d"
+size = 39659
+mtime_ms = 1792524369123
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:1bf8d7e8-b30d-4d5f-96a2-f6f08de5ca30/fc595f24-775f-4fef-9b7b-8c45e1a44bab/3cdde15a-8c06-4e3c-a808-e67ec35df074"
+storage_version_token = "1792524384939374"
+content_type = "application/octet-stream"

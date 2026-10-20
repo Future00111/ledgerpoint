@@ -1,0 +1,37 @@
+{
+  "gate": "G7",
+  "status": "ACCEPTED",
+  "scope": "Activated disposable-CI accounting qualification for the exact verified G/C7 pair",
+  "runId": "38621069723",
+  "runAttempt": 1,
+  "workflowSourceCommit": "706dc6a31f85733ba0c251f40b2c09f5a9312269",
+  "implementationSourceCommit": "787d76decfa345e3c1104231e08d5ab00bc90259",
+  "authorization": {
+    "source": "Direct user instruction in ChatGPT after review results and acceptance proposal were presented",
+    "verbatim": "can you sign of G7",
+    "recordedBy": "Codex acting on the user's explicit instruction",
+    "recordedAtUtc": "2026-10-20T19:02:25.181504+00:00",
+    "recordedAtEuropeLondon": "2026-10-20T20:02:25.181504+01:00"
+  },
+  "technicalResult": {
+    "accountingPassed": 6,
+    "accountingFailed": 0,
+    "accountingSkipped": 0,
+    "concurrentRetryOverlap": "PASS",
+    "journalLockSerialization": "PASS",
+    "negativeControlsPassed": 18,
+    "cleanupChecksPassed": 5,
+    "sourceBoundValidation": "PASS"
+  },
+  "artifactSha256": "41ccf0941649ffd35e9e1e5e5d588e46f3a2b3579af943fffe2f720e7fdd048f",
+  "evidenceSha256": "1ed8e4b18f0a3809230ba0715eef9f10640e36ba1101f4a2f8dce57998a73c1a",
+  "proposalBeforeAcceptanceSha256": "81d855101afd04293d0ed58ed36a38f6996a87d47acb5371b7dac48e8b57085f",
+  "limitationsAcknowledgedByContext": [
+    "Narrow bootstrap ordering recovery completed within attempt 1",
+    "Cleanup and quiet negative-control results are source-bound recorded attestations; separate raw cleanup/per-probe transcripts are not retained"
+  ],
+  "qualificationStage": "COMPLETE",
+  "productionAuthorization": false,
+  "phaseAAuthorization": false,
+  "githubEnvironmentApprovalChanged": false
+}

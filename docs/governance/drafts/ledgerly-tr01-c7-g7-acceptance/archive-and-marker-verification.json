@@ -1,0 +1,101 @@
+{
+  "verifiedAt": "2026-10-20T18:46:43.222225+00:00",
+  "allPassed": true,
+  "checks": [
+    "ZIP names unique and safe; no symlink members; CRC valid",
+    "Exactly two expected artifact members",
+    "Evidence and schema have no duplicate JSON keys",
+    "Completion marker agrees with test identity, concurrency, journal locks and privilege evidence",
+    "Completion marker confirms external CI isolation"
+  ],
+  "archives": {
+    "original-artifact.zip": {
+      "sha256": "41ccf0941649ffd35e9e1e5e5d588e46f3a2b3579af943fffe2f720e7fdd048f",
+      "members": [
+        {
+          "name": "ledgerly-44-ti-03-283124e1-47d4-4754-ae97-e0f59c2f579e.json",
+          "bytes": 9058,
+          "crc32": 3173602247,
+          "sha256": "1ed8e4b18f0a3809230ba0715eef9f10640e36ba1101f4a2f8dce57998a73c1a"
+        },
+        {
+          "name": "ledgerly-44-ti-03-evidence.schema.json",
+          "bytes": 11753,
+          "crc32": 2583696037,
+          "sha256": "6ba3d5f595f81e81db238b843c16b667e775384952855482ce9a978775d6ca0f"
+        }
+      ]
+    },
+    "original-logs.zip": {
+      "sha256": "d72c9e314446911beb8005f62226693a320e514d5a5aee4f4f36473eb32aa0de",
+      "members": [
+        {
+          "name": "0_Disposable canonical PostgreSQL qualification.txt",
+          "bytes": 49977,
+          "crc32": 3361705770,
+          "sha256": "be880e7f1d0b6fd2ca24b646b835474e1a9ea40f7e611c453a6c1a8a59f02f22"
+        },
+        {
+          "name": "Disposable canonical PostgreSQL qualification/system.txt",
+          "bytes": 456,
+          "crc32": 699178284,
+          "sha256": "447f1998751cdf4a6625d5c784fb11696605590ed31e58055bbf3dc889787660"
+        },
+        {
+          "name": "Disposable canonical PostgreSQL qualification/1_Set up job.txt",
+          "bytes": 2139,
+          "crc32": 2621058764,
+          "sha256": "6232ab1f82ed06ff89e9d7122b4345e018e3f936a9179540a4ba96b995787579"
+        },
+        {
+          "name": "Disposable canonical PostgreSQL qualification/2_Checkout reviewed source.txt",
+          "bytes": 13469,
+          "crc32": 532498774,
+          "sha256": "81e9732c14d7374bb885adb427eb0404d574ba8214ce4f271f09ef35aca5357e"
+        },
+        {
+          "name": "Disposable canonical PostgreSQL qualification/3_Checkout approved implementation source.txt",
+          "bytes": 7600,
+          "crc32": 1752601869,
+          "sha256": "31ca196ab9a7099f8f30b684337d67853dc6d6c8aa25ab7f74557f5818438274"
+        },
+        {
+          "name": "Disposable canonical PostgreSQL qualification/4_Install pinned evidence validator.txt",
+          "bytes": 878,
+          "crc32": 2143165868,
+          "sha256": "d0f962faf83833d35d9e5cffb5d1ee31b689fe926cc5a132f90ebdfc5418331b"
+        },
+        {
+          "name": "Disposable canonical PostgreSQL qualification/5_Run TI-03 qualification.txt",
+          "bytes": 20777,
+          "crc32": 4076570269,
+          "sha256": "e16192581febd78d2d77ff7162aa90a030c6b5806cf2f5ef3407ef52186103db"
+        },
+        {
+          "name": "Disposable canonical PostgreSQL qualification/6_Upload non-secret TI-03 evidence.txt",
+          "bytes": 2140,
+          "crc32": 2107822554,
+          "sha256": "5a1cb26d03276181cf43f37936cd119db0198c8dfce76eefd1ed1b7357a5e2bd"
+        },
+        {
+          "name": "Disposable canonical PostgreSQL qualification/11_Post Checkout approved implementation source.txt",
+          "bytes": 1278,
+          "crc32": 94662646,
+          "sha256": "b9747061d237691aca936eaabefc99f58a23173ed1176931cd10f4d43ae0f3af"
+        },
+        {
+          "name": "Disposable canonical PostgreSQL qualification/12_Post Checkout reviewed source.txt",
+          "bytes": 1268,
+          "crc32": 155585117,
+          "sha256": "a2cbb5d7242956363cc70fc6b8ca2c5bdd697c0c698229adebd740d08f27fbf1"
+        },
+        {
+          "name": "Disposable canonical PostgreSQL qualification/13_Complete job.txt",
+          "bytes": 452,
+          "crc32": 3652873865,
+          "sha256": "87caac8287178dc2272855c6fb1f61c9e702d55b55fb90ec254dc93ec4b8f4bb"
+        }
+      ]
+    }
+  }
+}

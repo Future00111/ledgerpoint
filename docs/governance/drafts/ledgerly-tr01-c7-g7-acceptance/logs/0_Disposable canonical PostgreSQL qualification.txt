@@ -1,0 +1,556 @@
+﻿2026-10-20T18:21:00.4415912Z Current runner version: '2.337.0'
+2026-10-20T18:21:00.4450627Z ##[group]Runner Image Provisioner
+2026-10-20T18:21:00.4452218Z Hosted Compute Agent
+2026-10-20T18:21:00.4453339Z Version: 20261015.610
+2026-10-20T18:21:00.4454398Z Commit: 267fdb4e8bbec4ab5ea31367f3a00d5c480c7656
+2026-10-20T18:21:00.4455607Z Build Date: 2026-10-14T17:06:54Z
+2026-10-20T18:21:00.4456909Z Worker ID: {0934cd26-0a85-40a5-a6b6-a4a609f26785}
+2026-10-20T18:21:00.4458119Z Region: eastus
+2026-10-20T18:21:00.4459002Z Cloud: Azure
+2026-10-20T18:21:00.4459923Z ##[endgroup]
+2026-10-20T18:21:00.4462506Z ##[group]Operating System
+2026-10-20T18:21:00.4463730Z Ubuntu
+2026-10-20T18:21:00.4464619Z 24.04.5
+2026-10-20T18:21:00.4465529Z LTS
+2026-10-20T18:21:00.4466424Z ##[endgroup]
+2026-10-20T18:21:00.4467320Z ##[group]Runner Image
+2026-10-20T18:21:00.4469037Z Image: ubuntu-24.04
+2026-10-20T18:21:00.4470046Z Version: 20261018.339.1
+2026-10-20T18:21:00.4472513Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261018.339/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-20T18:21:00.4475225Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261018.339
+2026-10-20T18:21:00.4477076Z ##[endgroup]
+2026-10-20T18:21:00.4478811Z ##[group]GITHUB_TOKEN Permissions
+2026-10-20T18:21:00.4482007Z Contents: read
+2026-10-20T18:21:00.4483015Z Metadata: read
+2026-10-20T18:21:00.4484041Z ##[endgroup]
+2026-10-20T18:21:00.4487094Z Secret source: Actions
+2026-10-20T18:21:00.4488657Z Cache mode: write
+2026-10-20T18:21:00.4490091Z Prepare workflow directory
+2026-10-20T18:21:00.4960813Z Prepare all required actions
+2026-10-20T18:21:00.5031700Z Getting action download info
+2026-10-20T18:21:00.7158842Z Download action repository 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' (SHA:11bd71901bbe5b1630ceea73d27597364c9af683)
+2026-10-20T18:21:00.8559388Z Download action repository 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-10-20T18:21:01.0833993Z Complete job name: Disposable canonical PostgreSQL qualification
+2026-10-20T18:21:01.1633147Z ##[group]Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+2026-10-20T18:21:01.1634276Z with:
+2026-10-20T18:21:01.1634736Z   persist-credentials: false
+2026-10-20T18:21:01.1635296Z   ref: 706dc6a31f85733ba0c251f40b2c09f5a9312269
+2026-10-20T18:21:01.1635883Z   fetch-depth: 0
+2026-10-20T18:21:01.1636338Z   repository: Future00111/ledgerpoint
+2026-10-20T18:21:01.1640377Z   token: ***
+2026-10-20T18:21:01.1640804Z   ssh-strict: true
+2026-10-20T18:21:01.1641595Z   ssh-user: git
+2026-10-20T18:21:01.1642051Z   clean: true
+2026-10-20T18:21:01.1642491Z   sparse-checkout-cone-mode: true
+2026-10-20T18:21:01.1643012Z   fetch-tags: false
+2026-10-20T18:21:01.1643460Z   show-progress: true
+2026-10-20T18:21:01.1643898Z   lfs: false
+2026-10-20T18:21:01.1644302Z   submodules: false
+2026-10-20T18:21:01.1644745Z   set-safe-directory: true
+2026-10-20T18:21:01.1645541Z ##[endgroup]
+2026-10-20T18:21:01.2694064Z Syncing repository: Future00111/ledgerpoint
+2026-10-20T18:21:01.2696888Z ##[group]Getting Git version info
+2026-10-20T18:21:01.2698116Z Working directory is '/home/runner/work/ledgerpoint/ledgerpoint'
+2026-10-20T18:21:01.2699878Z [command]/usr/bin/git version
+2026-10-20T18:21:01.2798476Z git version 2.55.0
+2026-10-20T18:21:01.2822147Z ##[endgroup]
+2026-10-20T18:21:01.2838358Z Temporarily overriding HOME='/home/runner/work/_temp/2f97ad8d-679a-4803-a23e-c496d4c0cd9a' before making global git config changes
+2026-10-20T18:21:01.2840668Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T18:21:01.2844689Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ledgerpoint/ledgerpoint
+2026-10-20T18:21:01.2907519Z Deleting the contents of '/home/runner/work/ledgerpoint/ledgerpoint'
+2026-10-20T18:21:01.2912008Z ##[group]Initializing the repository
+2026-10-20T18:21:01.2917176Z [command]/usr/bin/git init /home/runner/work/ledgerpoint/ledgerpoint
+2026-10-20T18:21:01.3046001Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-20T18:21:01.3062633Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-20T18:21:01.3064709Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-20T18:21:01.3065838Z hint: call:
+2026-10-20T18:21:01.3066636Z hint:
+2026-10-20T18:21:01.3067564Z hint: 	git config --global init.defaultBranch <name>
+2026-10-20T18:21:01.3068227Z hint:
+2026-10-20T18:21:01.3068800Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-20T18:21:01.3069998Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-20T18:21:01.3071689Z hint:
+2026-10-20T18:21:01.3072376Z hint: 	git branch -m <name>
+2026-10-20T18:21:01.3073125Z hint:
+2026-10-20T18:21:01.3074114Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-20T18:21:01.3075802Z Initialized empty Git repository in /home/runner/work/ledgerpoint/ledgerpoint/.git/
+2026-10-20T18:21:01.3078724Z [command]/usr/bin/git remote add origin https://github.com/Future00111/ledgerpoint
+2026-10-20T18:21:01.3121000Z ##[endgroup]
+2026-10-20T18:21:01.3122438Z ##[group]Disabling automatic garbage collection
+2026-10-20T18:21:01.3124995Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-20T18:21:01.3163244Z ##[endgroup]
+2026-10-20T18:21:01.3164566Z ##[group]Setting up auth
+2026-10-20T18:21:01.3171069Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T18:21:01.3212276Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T18:21:01.3645228Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T18:21:01.3696673Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T18:21:01.3963145Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-20T18:21:01.4015232Z ##[endgroup]
+2026-10-20T18:21:01.4016610Z ##[group]Fetching the repository
+2026-10-20T18:21:01.4027167Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+2026-10-20T18:21:05.1358697Z From https://github.com/Future00111/ledgerpoint
+2026-10-20T18:21:05.1364134Z  * [new branch]      activation/tr01-c7-development -> origin/activation/tr01-c7-development
+2026-10-20T18:21:05.1366580Z  * [new branch]      audit/replit-2026-09-25-snapshot -> origin/audit/replit-2026-09-25-snapshot
+2026-10-20T18:21:05.1368895Z  * [new branch]      diagnostic/ti03-corepack-ci -> origin/diagnostic/ti03-corepack-ci
+2026-10-20T18:21:05.1370285Z  * [new branch]      fix/ti03-corepack-child-env -> origin/fix/ti03-corepack-child-env
+2026-10-20T18:21:05.1371826Z  * [new branch]      fix/ti03-node-path -> origin/fix/ti03-node-path
+2026-10-20T18:21:05.1372963Z  * [new branch]      fix/ti03-obs02-test-diagnostic -> origin/fix/ti03-obs02-test-diagnostic
+2026-10-20T18:21:05.1374133Z  * [new branch]      fix/ti03-pnpm-determinism -> origin/fix/ti03-pnpm-determinism
+2026-10-20T18:21:05.1375190Z  * [new branch]      integration/tr01-c7-workspace -> origin/integration/tr01-c7-workspace
+2026-10-20T18:21:05.1376114Z  * [new branch]      main               -> origin/main
+2026-10-20T18:21:05.1377477Z  * [new branch]      proposal-local/tr01-c7-single-owner-exception -> origin/proposal-local/tr01-c7-single-owner-exception
+2026-10-20T18:21:05.1379594Z  * [new branch]      repair/c3-database-binding-probe -> origin/repair/c3-database-binding-probe
+2026-10-20T18:21:05.1381948Z  * [new branch]      repair/c4-nested-offline-pnpm -> origin/repair/c4-nested-offline-pnpm
+2026-10-20T18:21:05.1383699Z  * [new branch]      repair/c5-external-module-resolution -> origin/repair/c5-external-module-resolution
+2026-10-20T18:21:05.1385352Z  * [new branch]      repair/c6-canonical-qualification -> origin/repair/c6-canonical-qualification
+2026-10-20T18:21:05.1386788Z  * [new branch]      restore/pnpm-authoritative-package-state -> origin/restore/pnpm-authoritative-package-state
+2026-10-20T18:21:05.1388139Z  * [new branch]      review-local/tr01-c7-acceptance-pr25 -> origin/review-local/tr01-c7-acceptance-pr25
+2026-10-20T18:21:05.1389336Z  * [new branch]      review/tr01-c2-identity-status -> origin/review/tr01-c2-identity-status
+2026-10-20T18:21:05.1390385Z  * [new branch]      review/tr01-c2-offline-pnpm -> origin/review/tr01-c2-offline-pnpm
+2026-10-20T18:21:05.1391735Z  * [new branch]      review/tr01-c3-candidate -> origin/review/tr01-c3-candidate
+2026-10-20T18:21:05.1392861Z  * [new branch]      review/tr01-c3-identity-status -> origin/review/tr01-c3-identity-status
+2026-10-20T18:21:05.1393883Z  * [new branch]      review/tr01-c4-candidate -> origin/review/tr01-c4-candidate
+2026-10-20T18:21:05.1394911Z  * [new branch]      review/tr01-c4-identity-status -> origin/review/tr01-c4-identity-status
+2026-10-20T18:21:05.1396110Z  * [new branch]      review/tr01-c5-binding-diagnostic -> origin/review/tr01-c5-binding-diagnostic
+2026-10-20T18:21:05.1398293Z  * [new branch]      review/tr01-c5-identity-producer -> origin/review/tr01-c5-identity-producer
+2026-10-20T18:21:05.1400067Z  * [new branch]      review/tr01-c5-offline-successor -> origin/review/tr01-c5-offline-successor
+2026-10-20T18:21:05.1402036Z  * [new branch]      review/tr01-c6-candidate -> origin/review/tr01-c6-candidate
+2026-10-20T18:21:05.1403636Z  * [new branch]      review/tr01-c6-candidate-v2 -> origin/review/tr01-c6-candidate-v2
+2026-10-20T18:21:05.1405429Z  * [new branch]      review/tr01-c6-identity-producer -> origin/review/tr01-c6-identity-producer
+2026-10-20T18:21:05.1407563Z  * [new branch]      review/tr01-c6-identity-producer-v2 -> origin/review/tr01-c6-identity-producer-v2
+2026-10-20T18:21:05.1410072Z  * [new branch]      review/tr01-c6-repair-diagnostic -> origin/review/tr01-c6-repair-diagnostic
+2026-10-20T18:21:05.1412634Z  * [new branch]      review/tr01-c7-acceptance-and-activation -> origin/review/tr01-c7-acceptance-and-activation
+2026-10-20T18:21:05.1414804Z  * [new branch]      review/tr01-c7-candidate-v2 -> origin/review/tr01-c7-candidate-v2
+2026-10-20T18:21:05.1416552Z  * [new branch]      review/tr01-c7-candidate-v3 -> origin/review/tr01-c7-candidate-v3
+2026-10-20T18:21:05.1418397Z  * [new branch]      review/tr01-c7-identity-producer-v2 -> origin/review/tr01-c7-identity-producer-v2
+2026-10-20T18:21:05.1420651Z  * [new branch]      review/tr01-c7-identity-producer-v3 -> origin/review/tr01-c7-identity-producer-v3
+2026-10-20T18:21:05.1423339Z  * [new branch]      review/tr01-c7-repair-diagnostic -> origin/review/tr01-c7-repair-diagnostic
+2026-10-20T18:21:05.1425300Z  * [new branch]      ti-03-canonical-qualification -> origin/ti-03-canonical-qualification
+2026-10-20T18:21:05.1427127Z  * [new branch]      ti-03-harness-correction -> origin/ti-03-harness-correction
+2026-10-20T18:21:05.1428972Z  * [new branch]      ti03-obs01-bootstrap-diagnostic -> origin/ti03-obs01-bootstrap-diagnostic
+2026-10-20T18:21:05.1431404Z  * [new branch]      tr01/implementation-identity-candidate -> origin/tr01/implementation-identity-candidate
+2026-10-20T18:21:05.1433169Z  * [new branch]      tr01/implementation-identity-successor-c2 -> origin/tr01/implementation-identity-successor-c2
+2026-10-20T18:21:05.1435579Z  * [new branch]      tr01/implementation-identity-successor-c3 -> origin/tr01/implementation-identity-successor-c3
+2026-10-20T18:21:05.1437303Z  * [new branch]      tr01/implementation-identity-successor-c4 -> origin/tr01/implementation-identity-successor-c4
+2026-10-20T18:21:05.1438903Z  * [new branch]      tr01/implementation-identity-successor-c5 -> origin/tr01/implementation-identity-successor-c5
+2026-10-20T18:21:05.1440472Z  * [new branch]      tr01/implementation-identity-successor-c6 -> origin/tr01/implementation-identity-successor-c6
+2026-10-20T18:21:05.1442591Z  * [new branch]      tr01/implementation-identity-successor-c7 -> origin/tr01/implementation-identity-successor-c7
+2026-10-20T18:21:05.1444905Z [command]/usr/bin/git rev-parse --verify --quiet 706dc6a31f85733ba0c251f40b2c09f5a9312269^{object}
+2026-10-20T18:21:05.1445934Z 706dc6a31f85733ba0c251f40b2c09f5a9312269
+2026-10-20T18:21:05.1447678Z ##[endgroup]
+2026-10-20T18:21:05.1448973Z ##[group]Determining the checkout info
+2026-10-20T18:21:05.1450717Z ##[endgroup]
+2026-10-20T18:21:05.1451972Z [command]/usr/bin/git sparse-checkout disable
+2026-10-20T18:21:05.1515196Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-20T18:21:05.1556374Z ##[group]Checking out the ref
+2026-10-20T18:21:05.1561973Z [command]/usr/bin/git checkout --progress --force 706dc6a31f85733ba0c251f40b2c09f5a9312269
+2026-10-20T18:21:05.1957153Z Note: switching to '706dc6a31f85733ba0c251f40b2c09f5a9312269'.
+2026-10-20T18:21:05.1957895Z 
+2026-10-20T18:21:05.1958450Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-20T18:21:05.1959727Z changes and commit them, and you can discard any commits you make in this
+2026-10-20T18:21:05.1960861Z state without impacting any branches by switching back to a branch.
+2026-10-20T18:21:05.1961900Z 
+2026-10-20T18:21:05.1962361Z If you want to create a new branch to retain commits you create, you may
+2026-10-20T18:21:05.1963410Z do so (now or later) by using -c with the switch command. Example:
+2026-10-20T18:21:05.1964012Z 
+2026-10-20T18:21:05.1964280Z   git switch -c <new-branch-name>
+2026-10-20T18:21:05.1964702Z 
+2026-10-20T18:21:05.1964963Z Or undo this operation with:
+2026-10-20T18:21:05.1965320Z 
+2026-10-20T18:21:05.1965538Z   git switch -
+2026-10-20T18:21:05.1965815Z 
+2026-10-20T18:21:05.1966510Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-20T18:21:05.1967600Z 
+2026-10-20T18:21:05.1968941Z HEAD is now at 706dc6a Merge pull request #26 from Future00111/activation/tr01-c7-development
+2026-10-20T18:21:05.1973090Z ##[endgroup]
+2026-10-20T18:21:05.2049583Z [command]/usr/bin/git log -1 --format=%H
+2026-10-20T18:21:05.2085816Z 706dc6a31f85733ba0c251f40b2c09f5a9312269
+2026-10-20T18:21:05.2100216Z ##[group]Removing auth
+2026-10-20T18:21:05.2100989Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T18:21:05.2140036Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T18:21:05.2381062Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T18:21:05.2417207Z http.https://github.com/.extraheader
+2026-10-20T18:21:05.2427304Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-20T18:21:05.2470245Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T18:21:05.2705413Z ##[endgroup]
+2026-10-20T18:21:05.3085997Z ##[group]Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+2026-10-20T18:21:05.3086775Z with:
+2026-10-20T18:21:05.3087208Z   persist-credentials: false
+2026-10-20T18:21:05.3087758Z   ref: 787d76decfa345e3c1104231e08d5ab00bc90259
+2026-10-20T18:21:05.3088334Z   fetch-depth: 1
+2026-10-20T18:21:05.3088768Z   path: candidate
+2026-10-20T18:21:05.3089228Z   repository: Future00111/ledgerpoint
+2026-10-20T18:21:05.3093763Z   token: ***
+2026-10-20T18:21:05.3094214Z   ssh-strict: true
+2026-10-20T18:21:05.3094642Z   ssh-user: git
+2026-10-20T18:21:05.3095052Z   clean: true
+2026-10-20T18:21:05.3095487Z   sparse-checkout-cone-mode: true
+2026-10-20T18:21:05.3096006Z   fetch-tags: false
+2026-10-20T18:21:05.3096446Z   show-progress: true
+2026-10-20T18:21:05.3096889Z   lfs: false
+2026-10-20T18:21:05.3097502Z   submodules: false
+2026-10-20T18:21:05.3097940Z   set-safe-directory: true
+2026-10-20T18:21:05.3098415Z ##[endgroup]
+2026-10-20T18:21:05.3992895Z Syncing repository: Future00111/ledgerpoint
+2026-10-20T18:21:05.3994802Z ##[group]Getting Git version info
+2026-10-20T18:21:05.3996234Z Working directory is '/home/runner/work/ledgerpoint/ledgerpoint/candidate'
+2026-10-20T18:21:05.4012181Z [command]/usr/bin/git version
+2026-10-20T18:21:05.4057661Z git version 2.55.0
+2026-10-20T18:21:05.4081430Z ##[endgroup]
+2026-10-20T18:21:05.4095795Z Temporarily overriding HOME='/home/runner/work/_temp/5ac9407e-d258-4563-bddb-7649b7b0aa1f' before making global git config changes
+2026-10-20T18:21:05.4098280Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T18:21:05.4101750Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ledgerpoint/ledgerpoint/candidate
+2026-10-20T18:21:05.4139766Z ##[group]Initializing the repository
+2026-10-20T18:21:05.4145645Z [command]/usr/bin/git init /home/runner/work/ledgerpoint/ledgerpoint/candidate
+2026-10-20T18:21:05.4192448Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-20T18:21:05.4194651Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-20T18:21:05.4196487Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-20T18:21:05.4197758Z hint: call:
+2026-10-20T18:21:05.4198880Z hint:
+2026-10-20T18:21:05.4199691Z hint: 	git config --global init.defaultBranch <name>
+2026-10-20T18:21:05.4200504Z hint:
+2026-10-20T18:21:05.4201596Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-20T18:21:05.4203559Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-20T18:21:05.4205008Z hint:
+2026-10-20T18:21:05.4206082Z hint: 	git branch -m <name>
+2026-10-20T18:21:05.4207040Z hint:
+2026-10-20T18:21:05.4207881Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-20T18:21:05.4209340Z Initialized empty Git repository in /home/runner/work/ledgerpoint/ledgerpoint/candidate/.git/
+2026-10-20T18:21:05.4212150Z [command]/usr/bin/git remote add origin https://github.com/Future00111/ledgerpoint
+2026-10-20T18:21:05.4245571Z ##[endgroup]
+2026-10-20T18:21:05.4246396Z ##[group]Disabling automatic garbage collection
+2026-10-20T18:21:05.4249719Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-20T18:21:05.4285269Z ##[endgroup]
+2026-10-20T18:21:05.4286128Z ##[group]Setting up auth
+2026-10-20T18:21:05.4292880Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T18:21:05.4330669Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T18:21:05.4601779Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T18:21:05.4647165Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T18:21:05.4912698Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-20T18:21:05.4970305Z ##[endgroup]
+2026-10-20T18:21:05.4972977Z ##[group]Fetching the repository
+2026-10-20T18:21:05.4983009Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin 787d76decfa345e3c1104231e08d5ab00bc90259
+2026-10-20T18:21:05.8229045Z From https://github.com/Future00111/ledgerpoint
+2026-10-20T18:21:05.8231738Z  * branch            787d76decfa345e3c1104231e08d5ab00bc90259 -> FETCH_HEAD
+2026-10-20T18:21:05.8237704Z ##[endgroup]
+2026-10-20T18:21:05.8240039Z ##[group]Determining the checkout info
+2026-10-20T18:21:05.8242850Z ##[endgroup]
+2026-10-20T18:21:05.8247663Z [command]/usr/bin/git sparse-checkout disable
+2026-10-20T18:21:05.8302096Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-20T18:21:05.8347790Z ##[group]Checking out the ref
+2026-10-20T18:21:05.8352666Z [command]/usr/bin/git checkout --progress --force 787d76decfa345e3c1104231e08d5ab00bc90259
+2026-10-20T18:21:05.9253397Z Note: switching to '787d76decfa345e3c1104231e08d5ab00bc90259'.
+2026-10-20T18:21:05.9255611Z 
+2026-10-20T18:21:05.9257233Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-20T18:21:05.9261125Z changes and commit them, and you can discard any commits you make in this
+2026-10-20T18:21:05.9265548Z state without impacting any branches by switching back to a branch.
+2026-10-20T18:21:05.9268271Z 
+2026-10-20T18:21:05.9270210Z If you want to create a new branch to retain commits you create, you may
+2026-10-20T18:21:05.9274237Z do so (now or later) by using -c with the switch command. Example:
+2026-10-20T18:21:05.9276433Z 
+2026-10-20T18:21:05.9277532Z   git switch -c <new-branch-name>
+2026-10-20T18:21:05.9279203Z 
+2026-10-20T18:21:05.9280242Z Or undo this operation with:
+2026-10-20T18:21:05.9282362Z 
+2026-10-20T18:21:05.9283344Z   git switch -
+2026-10-20T18:21:05.9284894Z 
+2026-10-20T18:21:05.9286825Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-20T18:21:05.9289525Z 
+2026-10-20T18:21:05.9291995Z HEAD is now at 787d76d Prepare C7 candidate with complete company-scope and lock regressions
+2026-10-20T18:21:05.9300297Z ##[endgroup]
+2026-10-20T18:21:05.9323768Z [command]/usr/bin/git log -1 --format=%H
+2026-10-20T18:21:05.9367651Z 787d76decfa345e3c1104231e08d5ab00bc90259
+2026-10-20T18:21:05.9379265Z ##[group]Removing auth
+2026-10-20T18:21:05.9384946Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T18:21:05.9432794Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T18:21:05.9675984Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T18:21:05.9709066Z http.https://github.com/.extraheader
+2026-10-20T18:21:05.9718916Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-20T18:21:05.9767459Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T18:21:06.0009293Z ##[endgroup]
+2026-10-20T18:21:06.0199114Z ##[group]Run corepack enable
+2026-10-20T18:21:06.0200384Z [36;1mcorepack enable[0m
+2026-10-20T18:21:06.0202034Z [36;1mcorepack prepare pnpm@10.26.1 --activate[0m
+2026-10-20T18:21:06.0203995Z [36;1mpnpm install --frozen-lockfile --ignore-scripts --filter workspace[0m
+2026-10-20T18:21:06.0402264Z shell: /usr/bin/bash -e {0}
+2026-10-20T18:21:06.0403424Z ##[endgroup]
+2026-10-20T18:21:06.3642577Z Preparing pnpm@10.26.1 for immediate activation...
+2026-10-20T18:21:07.8543076Z Lockfile is up to date, resolution step is skipped
+2026-10-20T18:21:07.8797674Z Progress: resolved 1, reused 0, downloaded 0, added 0
+2026-10-20T18:21:07.8852105Z .                                        |   +8 +
+2026-10-20T18:21:08.1912829Z Progress: resolved 8, reused 0, downloaded 8, added 8, done
+2026-10-20T18:21:08.2384568Z Done in 869ms using pnpm v10.26.1
+2026-10-20T18:21:08.2603130Z ##[group]Run node candidate/scripts/ci/run-ledgerly-canonical-postgresql.mjs
+2026-10-20T18:21:08.2603742Z [36;1mnode candidate/scripts/ci/run-ledgerly-canonical-postgresql.mjs[0m
+2026-10-20T18:21:08.2657725Z shell: /usr/bin/bash -e {0}
+2026-10-20T18:21:08.2657987Z env:
+2026-10-20T18:21:08.2658175Z   CI: true
+2026-10-20T18:21:08.2658366Z   DOCKER_BUILDKIT: 1
+2026-10-20T18:21:08.2658596Z   LEDGERLY_IDENTITY_MODE: activated
+2026-10-20T18:21:08.2658981Z   LEDGERLY_APPROVED_CANDIDATE_SHA: 787d76decfa345e3c1104231e08d5ab00bc90259
+2026-10-20T18:21:08.2659739Z   LEDGERLY_IMPLEMENTATION_SOURCE_SHA: 787d76decfa345e3c1104231e08d5ab00bc90259
+2026-10-20T18:21:08.2660241Z   LEDGERLY_WORKFLOW_ROOT: /home/runner/work/ledgerpoint/ledgerpoint
+2026-10-20T18:21:08.2660603Z ##[endgroup]
+2026-10-20T18:21:09.3973219Z #0 building with "default" instance using docker driver
+2026-10-20T18:21:09.3973761Z 
+2026-10-20T18:21:09.3973996Z #1 [internal] load build definition from Dockerfile.test
+2026-10-20T18:21:09.3974569Z #1 transferring dockerfile: 1.40kB 0.0s done
+2026-10-20T18:21:09.3974929Z #1 DONE 0.0s
+2026-10-20T18:21:09.3975193Z 
+2026-10-20T18:21:09.3975497Z #2 [auth] library/node:pull token for registry-1.docker.io
+2026-10-20T18:21:09.3976269Z #2 DONE 0.0s
+2026-10-20T18:21:09.3976494Z 
+2026-10-20T18:21:09.3977474Z #3 [internal] load metadata for docker.io/library/node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f
+2026-10-20T18:21:09.5981114Z #3 DONE 0.4s
+2026-10-20T18:21:09.7378713Z 
+2026-10-20T18:21:09.7379612Z #4 [internal] load .dockerignore
+2026-10-20T18:21:09.7380800Z #4 transferring context: 118B done
+2026-10-20T18:21:09.7384555Z #4 DONE 0.0s
+2026-10-20T18:21:09.7385187Z 
+2026-10-20T18:21:09.7386239Z #5 [ 1/14] FROM docker.io/library/node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f
+2026-10-20T18:21:09.7388341Z #5 resolve docker.io/library/node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f done
+2026-10-20T18:21:09.7395060Z #5 sha256:e48f83d0e30eecff4260e3620f371c7f05122e743f4fe3f4168cd7f091948996 3.31kB / 3.31kB 0.0s done
+2026-10-20T18:21:09.7396742Z #5 sha256:8db14bf7760b9640d38dc96c1b21823eaa6dcb81316334b592ab21417c36f671 23.07MB / 49.11MB 0.1s
+2026-10-20T18:21:09.7398415Z #5 sha256:1a5fa97547841412bf8527a6d445748d9acfd51ee2e73ad7e76d4ede9efe6e9f 1.05MB / 1.71MB 0.1s
+2026-10-20T18:21:09.7402725Z #5 sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f 5.20kB / 5.20kB done
+2026-10-20T18:21:09.7404643Z #5 sha256:46feb5752989c05b8606e6323fbbc3db667d14ade1c24f5d0d44d9ca9909d607 1.93kB / 1.93kB done
+2026-10-20T18:21:09.7406426Z #5 sha256:b0479ca92bfd4c96a5ea3175c8cc2e1e9469702b3bd68c2cb7ddd8d2e21e90fa 6.88kB / 6.88kB done
+2026-10-20T18:21:09.7408100Z #5 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 13.63MB / 28.23MB 0.1s
+2026-10-20T18:21:09.9018549Z #5 ...
+2026-10-20T18:21:09.9019016Z 
+2026-10-20T18:21:09.9019307Z #6 [internal] load build context
+2026-10-20T18:21:09.9020561Z #6 transferring context: 3.12MB 0.1s done
+2026-10-20T18:21:09.9021512Z #6 DONE 0.1s
+2026-10-20T18:21:09.9037672Z 
+2026-10-20T18:21:09.9038690Z #5 [ 1/14] FROM docker.io/library/node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f
+2026-10-20T18:21:09.9040519Z #5 sha256:8db14bf7760b9640d38dc96c1b21823eaa6dcb81316334b592ab21417c36f671 49.11MB / 49.11MB 0.2s done
+2026-10-20T18:21:09.9042442Z #5 sha256:1a5fa97547841412bf8527a6d445748d9acfd51ee2e73ad7e76d4ede9efe6e9f 1.71MB / 1.71MB 0.1s done
+2026-10-20T18:21:09.9044148Z #5 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 28.23MB / 28.23MB 0.1s done
+2026-10-20T18:21:09.9045660Z #5 extracting sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 0.1s
+2026-10-20T18:21:09.9047070Z #5 sha256:d90d46d619398a297e98644390dda53d92954af45066f87aea04e2da844a6754 449B / 449B 0.1s done
+2026-10-20T18:21:10.8050356Z #5 extracting sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 1.0s done
+2026-10-20T18:21:10.9834303Z #5 extracting sha256:e48f83d0e30eecff4260e3620f371c7f05122e743f4fe3f4168cd7f091948996 done
+2026-10-20T18:21:11.2372269Z #5 extracting sha256:8db14bf7760b9640d38dc96c1b21823eaa6dcb81316334b592ab21417c36f671
+2026-10-20T18:21:12.6282830Z #5 extracting sha256:8db14bf7760b9640d38dc96c1b21823eaa6dcb81316334b592ab21417c36f671 1.3s done
+2026-10-20T18:21:12.6284238Z #5 extracting sha256:1a5fa97547841412bf8527a6d445748d9acfd51ee2e73ad7e76d4ede9efe6e9f
+2026-10-20T18:21:12.7373048Z #5 extracting sha256:1a5fa97547841412bf8527a6d445748d9acfd51ee2e73ad7e76d4ede9efe6e9f 0.0s done
+2026-10-20T18:21:12.7374815Z #5 extracting sha256:d90d46d619398a297e98644390dda53d92954af45066f87aea04e2da844a6754 done
+2026-10-20T18:21:12.7375629Z #5 DONE 3.1s
+2026-10-20T18:21:12.7375849Z 
+2026-10-20T18:21:12.7376009Z #7 [ 2/14] WORKDIR /workspace
+2026-10-20T18:21:12.7376441Z #7 DONE 0.0s
+2026-10-20T18:21:12.7376655Z 
+2026-10-20T18:21:12.7376865Z #8 [ 3/14] COPY .dockerignore ./
+2026-10-20T18:21:12.7377325Z #8 DONE 0.0s
+2026-10-20T18:21:12.7377529Z 
+2026-10-20T18:21:12.7378125Z #9 [ 4/14] COPY .ci/ledgerly-canonical/Dockerfile.test ./.ci/ledgerly-canonical/Dockerfile.test
+2026-10-20T18:21:12.7378825Z #9 DONE 0.0s
+2026-10-20T18:21:12.7378956Z 
+2026-10-20T18:21:12.7379294Z #10 [ 5/14] COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+2026-10-20T18:21:12.7379931Z #10 DONE 0.0s
+2026-10-20T18:21:12.8409885Z 
+2026-10-20T18:21:12.8410497Z #11 [ 6/14] COPY artifacts ./artifacts
+2026-10-20T18:21:12.8411585Z #11 DONE 0.1s
+2026-10-20T18:21:12.8411832Z 
+2026-10-20T18:21:12.8412631Z #12 [ 7/14] COPY lib ./lib
+2026-10-20T18:21:12.8413389Z #12 DONE 0.0s
+2026-10-20T18:21:12.8413591Z 
+2026-10-20T18:21:12.8421537Z #13 [ 8/14] COPY scripts ./scripts
+2026-10-20T18:21:12.8421845Z #13 DONE 0.0s
+2026-10-20T18:21:12.8421977Z 
+2026-10-20T18:21:12.8422079Z #14 [ 9/14] COPY .github ./.github
+2026-10-20T18:21:12.8422347Z #14 DONE 0.0s
+2026-10-20T18:21:13.0222097Z 
+2026-10-20T18:21:13.0223126Z #15 [10/14] COPY docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json ./docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json
+2026-10-20T18:21:13.0223850Z #15 DONE 0.0s
+2026-10-20T18:21:13.0223986Z 
+2026-10-20T18:21:13.0224390Z #16 [11/14] COPY --chmod=0444 .ci/ledgerly-canonical/source-manifest.json ./.ci/ledgerly-canonical/source-manifest.json
+2026-10-20T18:21:13.0225000Z #16 DONE 0.0s
+2026-10-20T18:21:13.0225138Z 
+2026-10-20T18:21:13.0225288Z #17 [12/14] COPY tsconfig.base.json tsconfig.json ./
+2026-10-20T18:21:13.0225630Z #17 DONE 0.0s
+2026-10-20T18:21:13.0225752Z 
+2026-10-20T18:21:13.0226203Z #18 [13/14] RUN corepack enable   && corepack prepare pnpm@10.26.1 --activate   && pnpm install --frozen-lockfile   && chmod -R a+rX "/opt/corepack"
+2026-10-20T18:21:13.1383520Z #18 0.267 Preparing pnpm@10.26.1 for immediate activation...
+2026-10-20T18:21:14.4431003Z #18 1.572 Scope: all 9 workspace projects
+2026-10-20T18:21:14.5907717Z #18 1.660 Lockfile is up to date, resolution step is skipped
+2026-10-20T18:21:14.5908491Z #18 1.719 Progress: resolved 1, reused 0, downloaded 0, added 0
+2026-10-20T18:21:14.6923485Z #18 1.821 Packages: +638
+2026-10-20T18:21:14.6924517Z #18 1.821 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+2026-10-20T18:21:14.9468450Z #18 2.075 
+2026-10-20T18:21:14.9469587Z #18 2.075    ╭───────────────────────────────────────────────╮
+2026-10-20T18:21:14.9470359Z #18 2.075    │                                               │
+2026-10-20T18:21:14.9471416Z #18 2.075    │     Update available! 10.26.1 → 12.14.0.      │
+2026-10-20T18:21:14.9472226Z #18 2.075    │     Changelog: https://pnpm.io/v/12.14.0      │
+2026-10-20T18:21:14.9472997Z #18 2.075    │   To update, run: corepack use pnpm@12.14.0   │
+2026-10-20T18:21:14.9473746Z #18 2.075    │                                               │
+2026-10-20T18:21:14.9474495Z #18 2.075    ╰───────────────────────────────────────────────╯
+2026-10-20T18:21:14.9475012Z #18 2.075 
+2026-10-20T18:21:15.5919813Z #18 2.720 Progress: resolved 638, reused 0, downloaded 119, added 109
+2026-10-20T18:21:16.5915955Z #18 3.720 Progress: resolved 638, reused 0, downloaded 219, added 163
+2026-10-20T18:21:17.5927195Z #18 4.721 Progress: resolved 638, reused 0, downloaded 416, added 339
+2026-10-20T18:21:18.5952953Z #18 5.723 Progress: resolved 638, reused 0, downloaded 472, added 365
+2026-10-20T18:21:19.6097731Z #18 6.738 Progress: resolved 638, reused 0, downloaded 616, added 469
+2026-10-20T18:21:20.6100784Z #18 7.739 Progress: resolved 638, reused 0, downloaded 638, added 637
+2026-10-20T18:21:20.8360560Z #18 7.814 Progress: resolved 638, reused 0, downloaded 638, added 638, done
+2026-10-20T18:21:20.9309771Z #18 8.059 .../esbuild@0.28.1/node_modules/esbuild postinstall$ node install.js
+2026-10-20T18:21:21.1552283Z #18 8.133 .../esbuild@0.28.1/node_modules/esbuild postinstall: Done
+2026-10-20T18:21:21.3612094Z #18 8.489 
+2026-10-20T18:21:21.3612481Z #18 8.489 dependencies:
+2026-10-20T18:21:21.3612809Z #18 8.489 + @replit/connectors-sdk 0.4.1
+2026-10-20T18:21:21.3613129Z #18 8.489 + ajv 8.20.0
+2026-10-20T18:21:21.3613355Z #18 8.489 
+2026-10-20T18:21:21.3613578Z #18 8.489 devDependencies:
+2026-10-20T18:21:21.3613833Z #18 8.489 + prettier 3.9.6
+2026-10-20T18:21:21.3614092Z #18 8.489 + typescript 5.9.3
+2026-10-20T18:21:21.3614353Z #18 8.489 
+2026-10-20T18:21:21.5591735Z #18 8.522 . preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+2026-10-20T18:21:21.5592983Z #18 8.561 . preinstall: Done
+2026-10-20T18:21:21.5593964Z #18 8.688 ╭ Warning ─────────────────────────────────────────────────────────────────────╮
+2026-10-20T18:21:21.5594966Z #18 8.688 │                                                                              │
+2026-10-20T18:21:21.5596026Z #18 8.688 │   Ignored build scripts: @clerk/shared@3.47.8, core-js@3.50.0.               │
+2026-10-20T18:21:21.5597237Z #18 8.688 │   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+2026-10-20T18:21:21.5598302Z #18 8.688 │   to run scripts.                                                            │
+2026-10-20T18:21:21.5599190Z #18 8.688 │                                                                              │
+2026-10-20T18:21:21.5600117Z #18 8.688 ╰──────────────────────────────────────────────────────────────────────────────╯
+2026-10-20T18:21:21.6679155Z #18 8.700 Done in 7.5s using pnpm v10.26.1
+2026-10-20T18:21:21.6680137Z #18 DONE 8.8s
+2026-10-20T18:21:21.8191635Z 
+2026-10-20T18:21:21.8192498Z #19 [14/14] RUN --network=none test "$(pnpm --version)" = "10.26.1"   && pnpm --filter @workspace/db exec drizzle-kit --version
+2026-10-20T18:21:22.8273750Z #19 1.157 drizzle-kit: v0.31.10
+2026-10-20T18:21:22.8274170Z #19 1.157 drizzle-orm: v0.45.2 
+2026-10-20T18:21:22.8274536Z #19 1.157 
+2026-10-20T18:21:23.9081167Z #19 DONE 2.2s
+2026-10-20T18:21:24.0597544Z 
+2026-10-20T18:21:24.0598190Z #20 exporting to image
+2026-10-20T18:21:24.0598707Z #20 exporting layers
+2026-10-20T18:21:37.4185969Z #20 exporting layers 13.5s done
+2026-10-20T18:21:37.4377455Z #20 writing image sha256:67174f8519f1d32d8ba30d904c9c6f832b726581c4ea03afe4320c4062446729 done
+2026-10-20T18:21:37.4378610Z #20 naming to docker.io/library/ledgerly-canonical-test:24.13.0-bookworm-slim done
+2026-10-20T18:21:37.4379206Z #20 DONE 13.5s
+2026-10-20T18:21:37.7677021Z 2fb75afee912155e676cace7619a0e88cef8c67d55f71916b20320c5cae8c7cc
+2026-10-20T18:21:48.2846045Z 
+2026-10-20T18:21:48.2846687Z > @workspace/db@0.0.0 push /workspace/lib/db
+2026-10-20T18:21:48.2847635Z > drizzle-kit push --config ./drizzle.config.ts
+2026-10-20T18:21:48.2848263Z 
+2026-10-20T18:21:48.4274567Z Reading config file '/workspace/lib/db/drizzle.config.ts'
+2026-10-20T18:21:48.8313548Z Using 'pg' driver for database querying
+2026-10-20T18:21:49.1624732Z [⣷] Pulling schema from database...
+2026-10-20T18:21:49.1878130Z [2K[1G[✓] Pulling schema from database...
+2026-10-20T18:21:49.3462303Z error: there is no unique constraint matching given keys for referenced table "accounting_posting_effects"
+2026-10-20T18:21:49.3463902Z     at /workspace/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:45:11
+2026-10-20T18:21:49.3465237Z     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2026-10-20T18:21:49.3466589Z     at async Object.query (/workspace/node_modules/.pnpm/drizzle-kit@0.31.10/node_modules/drizzle-kit/bin.cjs:78906:26)
+2026-10-20T18:21:49.3467485Z     at async pgPush (/workspace/node_modules/.pnpm/drizzle-kit@0.31.10/node_modules/drizzle-kit/bin.cjs:82768:13)
+2026-10-20T18:21:49.3471467Z     at async Object.handler (/workspace/node_modules/.pnpm/drizzle-kit@0.31.10/node_modules/drizzle-kit/bin.cjs:92226:9)
+2026-10-20T18:21:49.3472798Z     at async run (/workspace/node_modules/.pnpm/drizzle-kit@0.31.10/node_modules/drizzle-kit/bin.cjs:91472:7) {
+2026-10-20T18:21:49.3473637Z   length: 172,
+2026-10-20T18:21:49.3473971Z   severity: 'ERROR',
+2026-10-20T18:21:49.3474422Z   code: '42830',
+2026-10-20T18:21:49.3474686Z   detail: undefined,
+2026-10-20T18:21:49.3474912Z   hint: undefined,
+2026-10-20T18:21:49.3475148Z   position: undefined,
+2026-10-20T18:21:49.3475576Z   internalPosition: undefined,
+2026-10-20T18:21:49.3476085Z   internalQuery: undefined,
+2026-10-20T18:21:49.3476477Z   where: undefined,
+2026-10-20T18:21:49.3476815Z   schema: undefined,
+2026-10-20T18:21:49.3477155Z   table: undefined,
+2026-10-20T18:21:49.3477484Z   column: undefined,
+2026-10-20T18:21:49.3477831Z   dataType: undefined,
+2026-10-20T18:21:49.3478201Z   constraint: undefined,
+2026-10-20T18:21:49.3478568Z   file: 'tablecmds.c',
+2026-10-20T18:21:49.3478923Z   line: '11804',
+2026-10-20T18:21:49.3479296Z   routine: 'transformFkeyCheckAttrs'
+2026-10-20T18:21:49.3479746Z }
+2026-10-20T18:21:50.1535655Z 
+2026-10-20T18:21:50.1536170Z > @workspace/db@0.0.0 push /workspace/lib/db
+2026-10-20T18:21:50.1536715Z > drizzle-kit push --config ./drizzle.config.ts
+2026-10-20T18:21:50.1537050Z 
+2026-10-20T18:21:50.2960589Z Reading config file '/workspace/lib/db/drizzle.config.ts'
+2026-10-20T18:21:50.7063293Z Using 'pg' driver for database querying
+2026-10-20T18:21:51.0383315Z [⣷] Pulling schema from database...
+2026-10-20T18:21:51.1615522Z [2K[1G[⣯] Pulling schema from database...
+2026-10-20T18:21:51.2874655Z [2K[1G[⣟] Pulling schema from database...
+2026-10-20T18:21:51.4156927Z [2K[1G[⡿] Pulling schema from database...
+2026-10-20T18:21:51.5432179Z [2K[1G[⢿] Pulling schema from database...
+2026-10-20T18:21:51.6713733Z [2K[1G[⣻] Pulling schema from database...
+2026-10-20T18:21:51.7990280Z [2K[1G[⣽] Pulling schema from database...
+2026-10-20T18:21:51.9278034Z [2K[1G[⣷] Pulling schema from database...
+2026-10-20T18:21:52.0564242Z [2K[1G[⣯] Pulling schema from database...
+2026-10-20T18:21:52.0877994Z [2K[1G[✓] Pulling schema from database...
+2026-10-20T18:21:52.1758846Z [✓] Changes applied
+2026-10-20T18:21:56.0425533Z 
+2026-10-20T18:21:56.0426440Z > @workspace/api-server@0.0.0 test:canonical-posting /workspace/artifacts/api-server
+2026-10-20T18:21:56.0427358Z > node scripts/runCanonicalPostingDisposable.mjs
+2026-10-20T18:21:56.0427761Z 
+2026-10-20T18:21:56.5319925Z 
+2026-10-20T18:21:56.5320660Z   .../ledgerly-canonical-posting-283124e1-47d4-4754-ae97-e0f59c2f5...  739.3kb
+2026-10-20T18:21:56.5321459Z 
+2026-10-20T18:21:56.5321842Z ⚡ Done in 68ms
+2026-10-20T18:21:56.7709756Z LEDGERLY_NEGATIVE_PRIVILEGE_EVIDENCE {"roleEscalationDenied":true,"setRolePostgresDenied":true,"triggerDisableDenied":true,"canonicalDeleteDenied":true}
+2026-10-20T18:21:56.7712904Z LEDGERLY_DISPOSABLE_IDENTITY {"runId":"283124e1-47d4-4754-ae97-e0f59c2f579e","databaseName":"ledgerly_canonical_test_283124e147d44754ae97e0f59c2f579e","currentUser":"ledgerly_api","triggerState":"ENABLE ALWAYS","emptyCanonicalBaseline":true,"externalCi":true}
+2026-10-20T18:21:56.7762174Z ✔ canonical integration suite is bound to an empty API-role disposable database (51.976921ms)
+2026-10-20T18:21:56.8150000Z ✔ canonical posting persists a balanced immutable journal, audit, and retry-safe effect (42.400329ms)
+2026-10-20T18:21:56.8336186Z ✔ canonical posting fails closed for stale sources, closed periods, invalid accounts, and company mismatch (19.614785ms)
+2026-10-20T18:21:56.8614952Z LEDGERLY_CONCURRENCY_EVIDENCE {"expected":2,"arrivals":[{"backendPid":179,"transactionId":"891","arrivedAt":1792520516844},{"backendPid":180,"transactionId":"892","arrivedAt":1792520516850}],"releasedAt":1792520516850,"overlapProven":true}
+2026-10-20T18:21:56.9031586Z ✔ canonical posting is atomic under audit failure, concurrent retries, and additive reversal (68.984252ms)
+2026-10-20T18:21:56.9835229Z ✔ SC-01 enforces company-scoped relation identity, uniqueness, and atomic rollback (80.690238ms)
+2026-10-20T18:21:57.1817778Z LEDGERLY_JOURNAL_LOCK_EVIDENCE {"functionOwner":"ledgerly_canonical_owner","callerHasUpdate":false,"scopedLookupsRejected":true,"directMutationDenied":true,"temporaryShadowRejected":true,"transactionalRowLockProven":true,"backendPids":[186,187]}
+2026-10-20T18:21:57.1830690Z ✔ owner journal locks serialize transactions without API mutation privileges (199.161287ms)
+2026-10-20T18:21:57.1995328Z ℹ tests 6
+2026-10-20T18:21:57.1995796Z ℹ suites 0
+2026-10-20T18:21:57.1996206Z ℹ pass 6
+2026-10-20T18:21:57.1996605Z ℹ fail 0
+2026-10-20T18:21:57.1997001Z ℹ cancelled 0
+2026-10-20T18:21:57.1997488Z ℹ skipped 0
+2026-10-20T18:21:57.1997895Z ℹ todo 0
+2026-10-20T18:21:57.1998330Z ℹ duration_ms 625.940792
+2026-10-20T18:21:57.2178458Z LEDGERLY_CANONICAL_TEST_COMPLETION {"runId":"283124e1-47d4-4754-ae97-e0f59c2f579e","databaseName":"ledgerly_canonical_test_283124e147d44754ae97e0f59c2f579e","environment":"external-ci-disposable-test","targetClass":"external-ci-postgresql-service-container","privateRunBindingVerified":true,"sourceDigests":{"applicationSchema":"67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564","drizzleConfig":"57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258","securityOverlay":"779d76aa3ab065d5bb1f5a08c9ea807cf4bc3166d0fdc1b59c21c81140404081","sourceTree":"fcd81d162cbfc406853bdd13c853cd49f81fd814622a7f90116724e668eb82d1","runControlSql":"cf7c294738f2400e5ce5ab7abcb1cc111bd8100a62386d075306ced6395bf00b","coordinator":"224275124927ffabc03a0720acb67bd4b2d3e99db8183d1c2eca4283e7440427","testSources":"2573b8b7be50acaadc68be89c6de53dbdb9279132455dac99fa02206bca916ac","lockfile":"3b8329fff64eab80ec5dfe8d875f80502789520faea4680d2fd0e7f0b4703f1b","workflow":"ad06da35f4269fbbf46e1fd4ccabf6082d309963e39b577e17ac948c546afc20","orchestrator":"3699a2ad28b5d2e3e652529c2d26bec8b7c84b7ff658fa8a08b4ae6f456ef54b"},"identityEvidence":{"runId":"283124e1-47d4-4754-ae97-e0f59c2f579e","databaseName":"ledgerly_canonical_test_283124e147d44754ae97e0f59c2f579e","currentUser":"ledgerly_api","triggerState":"ENABLE ALWAYS","emptyCanonicalBaseline":true,"externalCi":true},"concurrencyEvidence":{"expected":2,"arrivals":[{"backendPid":179,"transactionId":"891","arrivedAt":1792520516844},{"backendPid":180,"transactionId":"892","arrivedAt":1792520516850}],"releasedAt":1792520516850,"overlapProven":true},"negativePrivilegeEvidence":{"roleEscalationDenied":true,"setRolePostgresDenied":true,"triggerDisableDenied":true,"canonicalDeleteDenied":true},"journalLockEvidence":{"functionOwner":"ledgerly_canonical_owner","callerHasUpdate":false,"scopedLookupsRejected":true,"directMutationDenied":true,"temporaryShadowRejected":true,"transactionalRowLockProven":true,"backendPids":[186,187]},"externalCiIsolation":{"parentDatabaseUrlAbsent":true,"replitVariablesAbsent":true,"developmentEndpointMatched":false}}
+2026-10-20T18:21:58.0362367Z LEDGERLY_TI03_EVIDENCE {"path":"docs/governance/evidence/ledgerly-44-ti-03-283124e1-47d4-4754-ae97-e0f59c2f579e.json","sha256":"1ed8e4b18f0a3809230ba0715eef9f10640e36ba1101f4a2f8dce57998a73c1a"}
+2026-10-20T18:21:58.0548404Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+2026-10-20T18:21:58.0548844Z with:
+2026-10-20T18:21:58.0549063Z   name: ledgerly-ti-03-38621069723-1
+2026-10-20T18:21:58.0549430Z   path: candidate/docs/governance/evidence/ledgerly-44-ti-03-*.json
+
+2026-10-20T18:21:58.0549827Z   if-no-files-found: error
+2026-10-20T18:21:58.0550073Z   retention-days: 30
+2026-10-20T18:21:58.0550298Z   compression-level: 6
+2026-10-20T18:21:58.0550516Z   overwrite: false
+2026-10-20T18:21:58.0550749Z   include-hidden-files: false
+2026-10-20T18:21:58.0550993Z ##[endgroup]
+2026-10-20T18:21:58.2358633Z (node:5322) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-20T18:21:58.2359374Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-20T18:21:58.2434811Z With the provided path, there will be 2 files uploaded
+2026-10-20T18:21:58.2441034Z Artifact name is valid!
+2026-10-20T18:21:58.2443566Z Root directory input is valid!
+2026-10-20T18:21:58.4413146Z Beginning upload of artifact content to blob storage
+2026-10-20T18:21:58.4648703Z (node:5322) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-20T18:21:58.4930021Z Uploaded bytes 5290
+2026-10-20T18:21:58.5083823Z Finished uploading artifact content to blob storage!
+2026-10-20T18:21:58.5084976Z SHA256 digest of uploaded artifact zip is 41ccf0941649ffd35e9e1e5e5d588e46f3a2b3579af943fffe2f720e7fdd048f
+2026-10-20T18:21:58.5087182Z Finalizing artifact upload
+2026-10-20T18:21:58.7182339Z Artifact ledgerly-ti-03-38621069723-1.zip successfully finalized. Artifact ID 12288971026
+2026-10-20T18:21:58.7183537Z Artifact ledgerly-ti-03-38621069723-1 has been successfully uploaded! Final size is 5290 bytes. Artifact ID is 12288971026
+2026-10-20T18:21:58.7189311Z Artifact download URL: https://github.com/Future00111/ledgerpoint/actions/runs/38621069723/artifacts/12288971026
+2026-10-20T18:21:58.7388450Z Post job cleanup.
+2026-10-20T18:21:58.8254525Z [command]/usr/bin/git version
+2026-10-20T18:21:58.8303984Z git version 2.55.0
+2026-10-20T18:21:58.8347880Z Temporarily overriding HOME='/home/runner/work/_temp/6dea0461-d7d2-41a0-ae7f-2f5be32f4cd8' before making global git config changes
+2026-10-20T18:21:58.8349303Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T18:21:58.8354505Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ledgerpoint/ledgerpoint/candidate
+2026-10-20T18:21:58.8400878Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T18:21:58.8443276Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T18:21:58.8716511Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T18:21:58.8754581Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T18:21:58.9214850Z Post job cleanup.
+2026-10-20T18:21:59.0136252Z [command]/usr/bin/git version
+2026-10-20T18:21:59.0183025Z git version 2.55.0
+2026-10-20T18:21:59.0220413Z Temporarily overriding HOME='/home/runner/work/_temp/a803cc46-d1f1-456d-ae31-97e7bdca8ece' before making global git config changes
+2026-10-20T18:21:59.0221957Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T18:21:59.0226501Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ledgerpoint/ledgerpoint
+2026-10-20T18:21:59.0267407Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T18:21:59.0305020Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T18:21:59.0564705Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T18:21:59.0604095Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T18:21:59.1034282Z Cleaning up orphan processes
+2026-10-20T18:21:59.1435066Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683, actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

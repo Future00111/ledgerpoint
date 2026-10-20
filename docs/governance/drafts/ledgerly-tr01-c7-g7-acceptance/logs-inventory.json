@@ -1,0 +1,68 @@
+[
+  {
+    "name": "0_Disposable canonical PostgreSQL qualification.txt",
+    "size": 49977,
+    "crc": 3361705770,
+    "sha256": "be880e7f1d0b6fd2ca24b646b835474e1a9ea40f7e611c453a6c1a8a59f02f22"
+  },
+  {
+    "name": "Disposable canonical PostgreSQL qualification/system.txt",
+    "size": 456,
+    "crc": 699178284,
+    "sha256": "447f1998751cdf4a6625d5c784fb11696605590ed31e58055bbf3dc889787660"
+  },
+  {
+    "name": "Disposable canonical PostgreSQL qualification/1_Set up job.txt",
+    "size": 2139,
+    "crc": 2621058764,
+    "sha256": "6232ab1f82ed06ff89e9d7122b4345e018e3f936a9179540a4ba96b995787579"
+  },
+  {
+    "name": "Disposable canonical PostgreSQL qualification/2_Checkout reviewed source.txt",
+    "size": 13469,
+    "crc": 532498774,
+    "sha256": "81e9732c14d7374bb885adb427eb0404d574ba8214ce4f271f09ef35aca5357e"
+  },
+  {
+    "name": "Disposable canonical PostgreSQL qualification/3_Checkout approved implementation source.txt",
+    "size": 7600,
+    "crc": 1752601869,
+    "sha256": "31ca196ab9a7099f8f30b684337d67853dc6d6c8aa25ab7f74557f5818438274"
+  },
+  {
+    "name": "Disposable canonical PostgreSQL qualification/4_Install pinned evidence validator.txt",
+    "size": 878,
+    "crc": 2143165868,
+    "sha256": "d0f962faf83833d35d9e5cffb5d1ee31b689fe926cc5a132f90ebdfc5418331b"
+  },
+  {
+    "name": "Disposable canonical PostgreSQL qualification/5_Run TI-03 qualification.txt",
+    "size": 20777,
+    "crc": 4076570269,
+    "sha256": "e16192581febd78d2d77ff7162aa90a030c6b5806cf2f5ef3407ef52186103db"
+  },
+  {
+    "name": "Disposable canonical PostgreSQL qualification/6_Upload non-secret TI-03 evidence.txt",
+    "size": 2140,
+    "crc": 2107822554,
+    "sha256": "5a1cb26d03276181cf43f37936cd119db0198c8dfce76eefd1ed1b7357a5e2bd"
+  },
+  {
+    "name": "Disposable canonical PostgreSQL qualification/11_Post Checkout approved implementation source.txt",
+    "size": 1278,
+    "crc": 94662646,
+    "sha256": "b9747061d237691aca936eaabefc99f58a23173ed1176931cd10f4d43ae0f3af"
+  },
+  {
+    "name": "Disposable canonical PostgreSQL qualification/12_Post Checkout reviewed source.txt",
+    "size": 1268,
+    "crc": 155585117,
+    "sha256": "a2cbb5d7242956363cc70fc6b8ca2c5bdd697c0c698229adebd740d08f27fbf1"
+  },
+  {
+    "name": "Disposable canonical PostgreSQL qualification/13_Complete job.txt",
+    "size": 452,
+    "crc": 3652873865,
+    "sha256": "87caac8287178dc2272855c6fb1f61c9e702d55b55fb90ec254dc93ec4b8f4bb"
+  }
+]

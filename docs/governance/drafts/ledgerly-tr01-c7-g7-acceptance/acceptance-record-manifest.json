@@ -1,0 +1,18 @@
+[
+  {
+    "path": "ledgerly-tr01-c7-g7-acceptance-proposal.md",
+    "sha256": "900a8fcc6162c0bf731e853c321be2e9395c5ae53ce081c7f50ff7b964acfaa8"
+  },
+  {
+    "path": "ledgerly-tr01-c7-g7-acceptance/proposal-before-owner-acceptance.md",
+    "sha256": "81d855101afd04293d0ed58ed36a38f6996a87d47acb5371b7dac48e8b57085f"
+  },
+  {
+    "path": "ledgerly-tr01-c7-g7-acceptance/owner-acceptance.md",
+    "sha256": "c550500905ee4837a1366ab7fd455be0d3021839a81551eca3be227af0877d77"
+  },
+  {
+    "path": "ledgerly-tr01-c7-g7-acceptance/owner-acceptance.json",
+    "sha256": "d873fccfea3f69ed8a19edc95dabc3cecc73fd8f33159a69bbf1f5098f3729c8"
+  }
+]

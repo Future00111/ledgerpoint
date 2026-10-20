@@ -1,0 +1,227 @@
+﻿2026-10-20T18:21:08.2603116Z ##[group]Run node candidate/scripts/ci/run-ledgerly-canonical-postgresql.mjs
+2026-10-20T18:21:08.2603739Z [36;1mnode candidate/scripts/ci/run-ledgerly-canonical-postgresql.mjs[0m
+2026-10-20T18:21:08.2657715Z shell: /usr/bin/bash -e {0}
+2026-10-20T18:21:08.2657984Z env:
+2026-10-20T18:21:08.2658173Z   CI: true
+2026-10-20T18:21:08.2658364Z   DOCKER_BUILDKIT: 1
+2026-10-20T18:21:08.2658594Z   LEDGERLY_IDENTITY_MODE: activated
+2026-10-20T18:21:08.2658979Z   LEDGERLY_APPROVED_CANDIDATE_SHA: 787d76decfa345e3c1104231e08d5ab00bc90259
+2026-10-20T18:21:08.2659735Z   LEDGERLY_IMPLEMENTATION_SOURCE_SHA: 787d76decfa345e3c1104231e08d5ab00bc90259
+2026-10-20T18:21:08.2660235Z   LEDGERLY_WORKFLOW_ROOT: /home/runner/work/ledgerpoint/ledgerpoint
+2026-10-20T18:21:08.2660600Z ##[endgroup]
+2026-10-20T18:21:09.3973180Z #0 building with "default" instance using docker driver
+2026-10-20T18:21:09.3973755Z 
+2026-10-20T18:21:09.3973993Z #1 [internal] load build definition from Dockerfile.test
+2026-10-20T18:21:09.3974475Z #1 transferring dockerfile: 1.40kB 0.0s done
+2026-10-20T18:21:09.3974927Z #1 DONE 0.0s
+2026-10-20T18:21:09.3975190Z 
+2026-10-20T18:21:09.3975492Z #2 [auth] library/node:pull token for registry-1.docker.io
+2026-10-20T18:21:09.3976265Z #2 DONE 0.0s
+2026-10-20T18:21:09.3976490Z 
+2026-10-20T18:21:09.3977469Z #3 [internal] load metadata for docker.io/library/node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f
+2026-10-20T18:21:09.5981071Z #3 DONE 0.4s
+2026-10-20T18:21:09.7378595Z 
+2026-10-20T18:21:09.7379567Z #4 [internal] load .dockerignore
+2026-10-20T18:21:09.7380786Z #4 transferring context: 118B done
+2026-10-20T18:21:09.7384539Z #4 DONE 0.0s
+2026-10-20T18:21:09.7385182Z 
+2026-10-20T18:21:09.7386233Z #5 [ 1/14] FROM docker.io/library/node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f
+2026-10-20T18:21:09.7388293Z #5 resolve docker.io/library/node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f done
+2026-10-20T18:21:09.7395045Z #5 sha256:e48f83d0e30eecff4260e3620f371c7f05122e743f4fe3f4168cd7f091948996 3.31kB / 3.31kB 0.0s done
+2026-10-20T18:21:09.7396731Z #5 sha256:8db14bf7760b9640d38dc96c1b21823eaa6dcb81316334b592ab21417c36f671 23.07MB / 49.11MB 0.1s
+2026-10-20T18:21:09.7398404Z #5 sha256:1a5fa97547841412bf8527a6d445748d9acfd51ee2e73ad7e76d4ede9efe6e9f 1.05MB / 1.71MB 0.1s
+2026-10-20T18:21:09.7402691Z #5 sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f 5.20kB / 5.20kB done
+2026-10-20T18:21:09.7404628Z #5 sha256:46feb5752989c05b8606e6323fbbc3db667d14ade1c24f5d0d44d9ca9909d607 1.93kB / 1.93kB done
+2026-10-20T18:21:09.7406416Z #5 sha256:b0479ca92bfd4c96a5ea3175c8cc2e1e9469702b3bd68c2cb7ddd8d2e21e90fa 6.88kB / 6.88kB done
+2026-10-20T18:21:09.7408092Z #5 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 13.63MB / 28.23MB 0.1s
+2026-10-20T18:21:09.9018511Z #5 ...
+2026-10-20T18:21:09.9019012Z 
+2026-10-20T18:21:09.9019276Z #6 [internal] load build context
+2026-10-20T18:21:09.9020546Z #6 transferring context: 3.12MB 0.1s done
+2026-10-20T18:21:09.9021503Z #6 DONE 0.1s
+2026-10-20T18:21:09.9037656Z 
+2026-10-20T18:21:09.9038680Z #5 [ 1/14] FROM docker.io/library/node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f
+2026-10-20T18:21:09.9040508Z #5 sha256:8db14bf7760b9640d38dc96c1b21823eaa6dcb81316334b592ab21417c36f671 49.11MB / 49.11MB 0.2s done
+2026-10-20T18:21:09.9042431Z #5 sha256:1a5fa97547841412bf8527a6d445748d9acfd51ee2e73ad7e76d4ede9efe6e9f 1.71MB / 1.71MB 0.1s done
+2026-10-20T18:21:09.9044138Z #5 sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 28.23MB / 28.23MB 0.1s done
+2026-10-20T18:21:09.9045652Z #5 extracting sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 0.1s
+2026-10-20T18:21:09.9047054Z #5 sha256:d90d46d619398a297e98644390dda53d92954af45066f87aea04e2da844a6754 449B / 449B 0.1s done
+2026-10-20T18:21:10.8049943Z #5 extracting sha256:4831516dd0cb86845f5f902cb9b9d25b5c853152c337eb57e4737a9b7e2a2eb9 1.0s done
+2026-10-20T18:21:10.9834267Z #5 extracting sha256:e48f83d0e30eecff4260e3620f371c7f05122e743f4fe3f4168cd7f091948996 done
+2026-10-20T18:21:11.2372231Z #5 extracting sha256:8db14bf7760b9640d38dc96c1b21823eaa6dcb81316334b592ab21417c36f671
+2026-10-20T18:21:12.6282788Z #5 extracting sha256:8db14bf7760b9640d38dc96c1b21823eaa6dcb81316334b592ab21417c36f671 1.3s done
+2026-10-20T18:21:12.6284227Z #5 extracting sha256:1a5fa97547841412bf8527a6d445748d9acfd51ee2e73ad7e76d4ede9efe6e9f
+2026-10-20T18:21:12.7373015Z #5 extracting sha256:1a5fa97547841412bf8527a6d445748d9acfd51ee2e73ad7e76d4ede9efe6e9f 0.0s done
+2026-10-20T18:21:12.7374800Z #5 extracting sha256:d90d46d619398a297e98644390dda53d92954af45066f87aea04e2da844a6754 done
+2026-10-20T18:21:12.7375624Z #5 DONE 3.1s
+2026-10-20T18:21:12.7375844Z 
+2026-10-20T18:21:12.7376005Z #7 [ 2/14] WORKDIR /workspace
+2026-10-20T18:21:12.7376434Z #7 DONE 0.0s
+2026-10-20T18:21:12.7376650Z 
+2026-10-20T18:21:12.7376828Z #8 [ 3/14] COPY .dockerignore ./
+2026-10-20T18:21:12.7377320Z #8 DONE 0.0s
+2026-10-20T18:21:12.7377523Z 
+2026-10-20T18:21:12.7378115Z #9 [ 4/14] COPY .ci/ledgerly-canonical/Dockerfile.test ./.ci/ledgerly-canonical/Dockerfile.test
+2026-10-20T18:21:12.7378821Z #9 DONE 0.0s
+2026-10-20T18:21:12.7378948Z 
+2026-10-20T18:21:12.7379288Z #10 [ 5/14] COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+2026-10-20T18:21:12.7379925Z #10 DONE 0.0s
+2026-10-20T18:21:12.8409827Z 
+2026-10-20T18:21:12.8410489Z #11 [ 6/14] COPY artifacts ./artifacts
+2026-10-20T18:21:12.8411561Z #11 DONE 0.1s
+2026-10-20T18:21:12.8411824Z 
+2026-10-20T18:21:12.8412622Z #12 [ 7/14] COPY lib ./lib
+2026-10-20T18:21:12.8413382Z #12 DONE 0.0s
+2026-10-20T18:21:12.8413586Z 
+2026-10-20T18:21:12.8421521Z #13 [ 8/14] COPY scripts ./scripts
+2026-10-20T18:21:12.8421842Z #13 DONE 0.0s
+2026-10-20T18:21:12.8421974Z 
+2026-10-20T18:21:12.8422076Z #14 [ 9/14] COPY .github ./.github
+2026-10-20T18:21:12.8422337Z #14 DONE 0.0s
+2026-10-20T18:21:13.0222043Z 
+2026-10-20T18:21:13.0223078Z #15 [10/14] COPY docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json ./docs/governance/evidence/ledgerly-44-ti-03-evidence.schema.json
+2026-10-20T18:21:13.0223847Z #15 DONE 0.0s
+2026-10-20T18:21:13.0223983Z 
+2026-10-20T18:21:13.0224387Z #16 [11/14] COPY --chmod=0444 .ci/ledgerly-canonical/source-manifest.json ./.ci/ledgerly-canonical/source-manifest.json
+2026-10-20T18:21:13.0224998Z #16 DONE 0.0s
+2026-10-20T18:21:13.0225135Z 
+2026-10-20T18:21:13.0225286Z #17 [12/14] COPY tsconfig.base.json tsconfig.json ./
+2026-10-20T18:21:13.0225628Z #17 DONE 0.0s
+2026-10-20T18:21:13.0225750Z 
+2026-10-20T18:21:13.0226201Z #18 [13/14] RUN corepack enable   && corepack prepare pnpm@10.26.1 --activate   && pnpm install --frozen-lockfile   && chmod -R a+rX "/opt/corepack"
+2026-10-20T18:21:13.1383482Z #18 0.267 Preparing pnpm@10.26.1 for immediate activation...
+2026-10-20T18:21:14.4430959Z #18 1.572 Scope: all 9 workspace projects
+2026-10-20T18:21:14.5907645Z #18 1.660 Lockfile is up to date, resolution step is skipped
+2026-10-20T18:21:14.5908487Z #18 1.719 Progress: resolved 1, reused 0, downloaded 0, added 0
+2026-10-20T18:21:14.6923446Z #18 1.821 Packages: +638
+2026-10-20T18:21:14.6924488Z #18 1.821 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+2026-10-20T18:21:14.9468406Z #18 2.075 
+2026-10-20T18:21:14.9469575Z #18 2.075    ╭───────────────────────────────────────────────╮
+2026-10-20T18:21:14.9470352Z #18 2.075    │                                               │
+2026-10-20T18:21:14.9471405Z #18 2.075    │     Update available! 10.26.1 → 12.14.0.      │
+2026-10-20T18:21:14.9472219Z #18 2.075    │     Changelog: https://pnpm.io/v/12.14.0      │
+2026-10-20T18:21:14.9472989Z #18 2.075    │   To update, run: corepack use pnpm@12.14.0   │
+2026-10-20T18:21:14.9473738Z #18 2.075    │                                               │
+2026-10-20T18:21:14.9474488Z #18 2.075    ╰───────────────────────────────────────────────╯
+2026-10-20T18:21:14.9475004Z #18 2.075 
+2026-10-20T18:21:15.5919419Z #18 2.720 Progress: resolved 638, reused 0, downloaded 119, added 109
+2026-10-20T18:21:16.5915911Z #18 3.720 Progress: resolved 638, reused 0, downloaded 219, added 163
+2026-10-20T18:21:17.5927152Z #18 4.721 Progress: resolved 638, reused 0, downloaded 416, added 339
+2026-10-20T18:21:18.5952910Z #18 5.723 Progress: resolved 638, reused 0, downloaded 472, added 365
+2026-10-20T18:21:19.6097689Z #18 6.738 Progress: resolved 638, reused 0, downloaded 616, added 469
+2026-10-20T18:21:20.6100741Z #18 7.739 Progress: resolved 638, reused 0, downloaded 638, added 637
+2026-10-20T18:21:20.8360519Z #18 7.814 Progress: resolved 638, reused 0, downloaded 638, added 638, done
+2026-10-20T18:21:20.9309728Z #18 8.059 .../esbuild@0.28.1/node_modules/esbuild postinstall$ node install.js
+2026-10-20T18:21:21.1552244Z #18 8.133 .../esbuild@0.28.1/node_modules/esbuild postinstall: Done
+2026-10-20T18:21:21.3612057Z #18 8.489 
+2026-10-20T18:21:21.3612478Z #18 8.489 dependencies:
+2026-10-20T18:21:21.3612777Z #18 8.489 + @replit/connectors-sdk 0.4.1
+2026-10-20T18:21:21.3613127Z #18 8.489 + ajv 8.20.0
+2026-10-20T18:21:21.3613353Z #18 8.489 
+2026-10-20T18:21:21.3613576Z #18 8.489 devDependencies:
+2026-10-20T18:21:21.3613831Z #18 8.489 + prettier 3.9.6
+2026-10-20T18:21:21.3614089Z #18 8.489 + typescript 5.9.3
+2026-10-20T18:21:21.3614351Z #18 8.489 
+2026-10-20T18:21:21.5591690Z #18 8.522 . preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+2026-10-20T18:21:21.5592976Z #18 8.561 . preinstall: Done
+2026-10-20T18:21:21.5593955Z #18 8.688 ╭ Warning ─────────────────────────────────────────────────────────────────────╮
+2026-10-20T18:21:21.5594955Z #18 8.688 │                                                                              │
+2026-10-20T18:21:21.5596016Z #18 8.688 │   Ignored build scripts: @clerk/shared@3.47.8, core-js@3.50.0.               │
+2026-10-20T18:21:21.5597194Z #18 8.688 │   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+2026-10-20T18:21:21.5598294Z #18 8.688 │   to run scripts.                                                            │
+2026-10-20T18:21:21.5599184Z #18 8.688 │                                                                              │
+2026-10-20T18:21:21.5600104Z #18 8.688 ╰──────────────────────────────────────────────────────────────────────────────╯
+2026-10-20T18:21:21.6679115Z #18 8.700 Done in 7.5s using pnpm v10.26.1
+2026-10-20T18:21:21.6680131Z #18 DONE 8.8s
+2026-10-20T18:21:21.8191586Z 
+2026-10-20T18:21:21.8192491Z #19 [14/14] RUN --network=none test "$(pnpm --version)" = "10.26.1"   && pnpm --filter @workspace/db exec drizzle-kit --version
+2026-10-20T18:21:22.8273710Z #19 1.157 drizzle-kit: v0.31.10
+2026-10-20T18:21:22.8274165Z #19 1.157 drizzle-orm: v0.45.2 
+2026-10-20T18:21:22.8274533Z #19 1.157 
+2026-10-20T18:21:23.9081126Z #19 DONE 2.2s
+2026-10-20T18:21:24.0597492Z 
+2026-10-20T18:21:24.0598183Z #20 exporting to image
+2026-10-20T18:21:24.0598656Z #20 exporting layers
+2026-10-20T18:21:37.4185926Z #20 exporting layers 13.5s done
+2026-10-20T18:21:37.4377429Z #20 writing image sha256:67174f8519f1d32d8ba30d904c9c6f832b726581c4ea03afe4320c4062446729 done
+2026-10-20T18:21:37.4378604Z #20 naming to docker.io/library/ledgerly-canonical-test:24.13.0-bookworm-slim done
+2026-10-20T18:21:37.4379204Z #20 DONE 13.5s
+2026-10-20T18:21:37.7676980Z 2fb75afee912155e676cace7619a0e88cef8c67d55f71916b20320c5cae8c7cc
+2026-10-20T18:21:48.2845996Z 
+2026-10-20T18:21:48.2846669Z > @workspace/db@0.0.0 push /workspace/lib/db
+2026-10-20T18:21:48.2847629Z > drizzle-kit push --config ./drizzle.config.ts
+2026-10-20T18:21:48.2848252Z 
+2026-10-20T18:21:48.4274530Z Reading config file '/workspace/lib/db/drizzle.config.ts'
+2026-10-20T18:21:48.8313509Z Using 'pg' driver for database querying
+2026-10-20T18:21:49.1624690Z [⣷] Pulling schema from database...
+2026-10-20T18:21:49.1878092Z [2K[1G[✓] Pulling schema from database...
+2026-10-20T18:21:49.3461850Z error: there is no unique constraint matching given keys for referenced table "accounting_posting_effects"
+2026-10-20T18:21:49.3463892Z     at /workspace/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:45:11
+2026-10-20T18:21:49.3465231Z     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2026-10-20T18:21:49.3466581Z     at async Object.query (/workspace/node_modules/.pnpm/drizzle-kit@0.31.10/node_modules/drizzle-kit/bin.cjs:78906:26)
+2026-10-20T18:21:49.3467481Z     at async pgPush (/workspace/node_modules/.pnpm/drizzle-kit@0.31.10/node_modules/drizzle-kit/bin.cjs:82768:13)
+2026-10-20T18:21:49.3471453Z     at async Object.handler (/workspace/node_modules/.pnpm/drizzle-kit@0.31.10/node_modules/drizzle-kit/bin.cjs:92226:9)
+2026-10-20T18:21:49.3472788Z     at async run (/workspace/node_modules/.pnpm/drizzle-kit@0.31.10/node_modules/drizzle-kit/bin.cjs:91472:7) {
+2026-10-20T18:21:49.3473631Z   length: 172,
+2026-10-20T18:21:49.3473967Z   severity: 'ERROR',
+2026-10-20T18:21:49.3474388Z   code: '42830',
+2026-10-20T18:21:49.3474683Z   detail: undefined,
+2026-10-20T18:21:49.3474910Z   hint: undefined,
+2026-10-20T18:21:49.3475146Z   position: undefined,
+2026-10-20T18:21:49.3475570Z   internalPosition: undefined,
+2026-10-20T18:21:49.3476078Z   internalQuery: undefined,
+2026-10-20T18:21:49.3476473Z   where: undefined,
+2026-10-20T18:21:49.3476811Z   schema: undefined,
+2026-10-20T18:21:49.3477151Z   table: undefined,
+2026-10-20T18:21:49.3477481Z   column: undefined,
+2026-10-20T18:21:49.3477828Z   dataType: undefined,
+2026-10-20T18:21:49.3478198Z   constraint: undefined,
+2026-10-20T18:21:49.3478565Z   file: 'tablecmds.c',
+2026-10-20T18:21:49.3478920Z   line: '11804',
+2026-10-20T18:21:49.3479292Z   routine: 'transformFkeyCheckAttrs'
+2026-10-20T18:21:49.3479742Z }
+2026-10-20T18:21:50.1535612Z 
+2026-10-20T18:21:50.1536167Z > @workspace/db@0.0.0 push /workspace/lib/db
+2026-10-20T18:21:50.1536712Z > drizzle-kit push --config ./drizzle.config.ts
+2026-10-20T18:21:50.1537047Z 
+2026-10-20T18:21:50.2960528Z Reading config file '/workspace/lib/db/drizzle.config.ts'
+2026-10-20T18:21:50.7063248Z Using 'pg' driver for database querying
+2026-10-20T18:21:51.0383273Z [⣷] Pulling schema from database...
+2026-10-20T18:21:51.1615477Z [2K[1G[⣯] Pulling schema from database...
+2026-10-20T18:21:51.2874627Z [2K[1G[⣟] Pulling schema from database...
+2026-10-20T18:21:51.4156882Z [2K[1G[⡿] Pulling schema from database...
+2026-10-20T18:21:51.5432151Z [2K[1G[⢿] Pulling schema from database...
+2026-10-20T18:21:51.6713691Z [2K[1G[⣻] Pulling schema from database...
+2026-10-20T18:21:51.7990248Z [2K[1G[⣽] Pulling schema from database...
+2026-10-20T18:21:51.9277989Z [2K[1G[⣷] Pulling schema from database...
+2026-10-20T18:21:52.0564202Z [2K[1G[⣯] Pulling schema from database...
+2026-10-20T18:21:52.0877955Z [2K[1G[✓] Pulling schema from database...
+2026-10-20T18:21:52.1758801Z [✓] Changes applied
+2026-10-20T18:21:56.0425484Z 
+2026-10-20T18:21:56.0426390Z > @workspace/api-server@0.0.0 test:canonical-posting /workspace/artifacts/api-server
+2026-10-20T18:21:56.0427354Z > node scripts/runCanonicalPostingDisposable.mjs
+2026-10-20T18:21:56.0427756Z 
+2026-10-20T18:21:56.5319878Z 
+2026-10-20T18:21:56.5320653Z   .../ledgerly-canonical-posting-283124e1-47d4-4754-ae97-e0f59c2f5...  739.3kb
+2026-10-20T18:21:56.5321455Z 
+2026-10-20T18:21:56.5321837Z ⚡ Done in 68ms
+2026-10-20T18:21:56.7709712Z LEDGERLY_NEGATIVE_PRIVILEGE_EVIDENCE {"roleEscalationDenied":true,"setRolePostgresDenied":true,"triggerDisableDenied":true,"canonicalDeleteDenied":true}
+2026-10-20T18:21:56.7712881Z LEDGERLY_DISPOSABLE_IDENTITY {"runId":"283124e1-47d4-4754-ae97-e0f59c2f579e","databaseName":"ledgerly_canonical_test_283124e147d44754ae97e0f59c2f579e","currentUser":"ledgerly_api","triggerState":"ENABLE ALWAYS","emptyCanonicalBaseline":true,"externalCi":true}
+2026-10-20T18:21:56.7762148Z ✔ canonical integration suite is bound to an empty API-role disposable database (51.976921ms)
+2026-10-20T18:21:56.8149551Z ✔ canonical posting persists a balanced immutable journal, audit, and retry-safe effect (42.400329ms)
+2026-10-20T18:21:56.8336164Z ✔ canonical posting fails closed for stale sources, closed periods, invalid accounts, and company mismatch (19.614785ms)
+2026-10-20T18:21:56.8614911Z LEDGERLY_CONCURRENCY_EVIDENCE {"expected":2,"arrivals":[{"backendPid":179,"transactionId":"891","arrivedAt":1792520516844},{"backendPid":180,"transactionId":"892","arrivedAt":1792520516850}],"releasedAt":1792520516850,"overlapProven":true}
+2026-10-20T18:21:56.9031540Z ✔ canonical posting is atomic under audit failure, concurrent retries, and additive reversal (68.984252ms)
+2026-10-20T18:21:56.9835190Z ✔ SC-01 enforces company-scoped relation identity, uniqueness, and atomic rollback (80.690238ms)
+2026-10-20T18:21:57.1817729Z LEDGERLY_JOURNAL_LOCK_EVIDENCE {"functionOwner":"ledgerly_canonical_owner","callerHasUpdate":false,"scopedLookupsRejected":true,"directMutationDenied":true,"temporaryShadowRejected":true,"transactionalRowLockProven":true,"backendPids":[186,187]}
+2026-10-20T18:21:57.1830620Z ✔ owner journal locks serialize transactions without API mutation privileges (199.161287ms)
+2026-10-20T18:21:57.1995296Z ℹ tests 6
+2026-10-20T18:21:57.1995788Z ℹ suites 0
+2026-10-20T18:21:57.1996199Z ℹ pass 6
+2026-10-20T18:21:57.1996598Z ℹ fail 0
+2026-10-20T18:21:57.1996994Z ℹ cancelled 0
+2026-10-20T18:21:57.1997482Z ℹ skipped 0
+2026-10-20T18:21:57.1997888Z ℹ todo 0
+2026-10-20T18:21:57.1998324Z ℹ duration_ms 625.940792
+2026-10-20T18:21:57.2178364Z LEDGERLY_CANONICAL_TEST_COMPLETION {"runId":"283124e1-47d4-4754-ae97-e0f59c2f579e","databaseName":"ledgerly_canonical_test_283124e147d44754ae97e0f59c2f579e","environment":"external-ci-disposable-test","targetClass":"external-ci-postgresql-service-container","privateRunBindingVerified":true,"sourceDigests":{"applicationSchema":"67c2c27243abcdd35c1e6c5e3fa78fc7f537dce914677a8ef799ba1eb116f564","drizzleConfig":"57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258","securityOverlay":"779d76aa3ab065d5bb1f5a08c9ea807cf4bc3166d0fdc1b59c21c81140404081","sourceTree":"fcd81d162cbfc406853bdd13c853cd49f81fd814622a7f90116724e668eb82d1","runControlSql":"cf7c294738f2400e5ce5ab7abcb1cc111bd8100a62386d075306ced6395bf00b","coordinator":"224275124927ffabc03a0720acb67bd4b2d3e99db8183d1c2eca4283e7440427","testSources":"2573b8b7be50acaadc68be89c6de53dbdb9279132455dac99fa02206bca916ac","lockfile":"3b8329fff64eab80ec5dfe8d875f80502789520faea4680d2fd0e7f0b4703f1b","workflow":"ad06da35f4269fbbf46e1fd4ccabf6082d309963e39b577e17ac948c546afc20","orchestrator":"3699a2ad28b5d2e3e652529c2d26bec8b7c84b7ff658fa8a08b4ae6f456ef54b"},"identityEvidence":{"runId":"283124e1-47d4-4754-ae97-e0f59c2f579e","databaseName":"ledgerly_canonical_test_283124e147d44754ae97e0f59c2f579e","currentUser":"ledgerly_api","triggerState":"ENABLE ALWAYS","emptyCanonicalBaseline":true,"externalCi":true},"concurrencyEvidence":{"expected":2,"arrivals":[{"backendPid":179,"transactionId":"891","arrivedAt":1792520516844},{"backendPid":180,"transactionId":"892","arrivedAt":1792520516850}],"releasedAt":1792520516850,"overlapProven":true},"negativePrivilegeEvidence":{"roleEscalationDenied":true,"setRolePostgresDenied":true,"triggerDisableDenied":true,"canonicalDeleteDenied":true},"journalLockEvidence":{"functionOwner":"ledgerly_canonical_owner","callerHasUpdate":false,"scopedLookupsRejected":true,"directMutationDenied":true,"temporaryShadowRejected":true,"transactionalRowLockProven":true,"backendPids":[186,187]},"externalCiIsolation":{"parentDatabaseUrlAbsent":true,"replitVariablesAbsent":true,"developmentEndpointMatched":false}}
+2026-10-20T18:21:58.0362318Z LEDGERLY_TI03_EVIDENCE {"path":"docs/governance/evidence/ledgerly-44-ti-03-283124e1-47d4-4754-ae97-e0f59c2f579e.json","sha256":"1ed8e4b18f0a3809230ba0715eef9f10640e36ba1101f4a2f8dce57998a73c1a"}

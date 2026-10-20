@@ -1,0 +1,142 @@
+﻿2026-10-20T18:21:01.1633115Z ##[group]Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+2026-10-20T18:21:01.1634266Z with:
+2026-10-20T18:21:01.1634724Z   persist-credentials: false
+2026-10-20T18:21:01.1635292Z   ref: 706dc6a31f85733ba0c251f40b2c09f5a9312269
+2026-10-20T18:21:01.1635880Z   fetch-depth: 0
+2026-10-20T18:21:01.1636335Z   repository: Future00111/ledgerpoint
+2026-10-20T18:21:01.1640373Z   token: ***
+2026-10-20T18:21:01.1640801Z   ssh-strict: true
+2026-10-20T18:21:01.1641586Z   ssh-user: git
+2026-10-20T18:21:01.1642048Z   clean: true
+2026-10-20T18:21:01.1642487Z   sparse-checkout-cone-mode: true
+2026-10-20T18:21:01.1643009Z   fetch-tags: false
+2026-10-20T18:21:01.1643457Z   show-progress: true
+2026-10-20T18:21:01.1643895Z   lfs: false
+2026-10-20T18:21:01.1644299Z   submodules: false
+2026-10-20T18:21:01.1644742Z   set-safe-directory: true
+2026-10-20T18:21:01.1645532Z ##[endgroup]
+2026-10-20T18:21:01.2693987Z Syncing repository: Future00111/ledgerpoint
+2026-10-20T18:21:01.2696789Z ##[group]Getting Git version info
+2026-10-20T18:21:01.2698107Z Working directory is '/home/runner/work/ledgerpoint/ledgerpoint'
+2026-10-20T18:21:01.2699870Z [command]/usr/bin/git version
+2026-10-20T18:21:01.2798426Z git version 2.55.0
+2026-10-20T18:21:01.2822117Z ##[endgroup]
+2026-10-20T18:21:01.2838335Z Temporarily overriding HOME='/home/runner/work/_temp/2f97ad8d-679a-4803-a23e-c496d4c0cd9a' before making global git config changes
+2026-10-20T18:21:01.2840660Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T18:21:01.2844679Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ledgerpoint/ledgerpoint
+2026-10-20T18:21:01.2907474Z Deleting the contents of '/home/runner/work/ledgerpoint/ledgerpoint'
+2026-10-20T18:21:01.2911987Z ##[group]Initializing the repository
+2026-10-20T18:21:01.2917151Z [command]/usr/bin/git init /home/runner/work/ledgerpoint/ledgerpoint
+2026-10-20T18:21:01.3045874Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-20T18:21:01.3062604Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-20T18:21:01.3064694Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-20T18:21:01.3065824Z hint: call:
+2026-10-20T18:21:01.3066623Z hint:
+2026-10-20T18:21:01.3067550Z hint: 	git config --global init.defaultBranch <name>
+2026-10-20T18:21:01.3068224Z hint:
+2026-10-20T18:21:01.3068797Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-20T18:21:01.3069987Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-20T18:21:01.3071680Z hint:
+2026-10-20T18:21:01.3072370Z hint: 	git branch -m <name>
+2026-10-20T18:21:01.3073120Z hint:
+2026-10-20T18:21:01.3074109Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-20T18:21:01.3075795Z Initialized empty Git repository in /home/runner/work/ledgerpoint/ledgerpoint/.git/
+2026-10-20T18:21:01.3078702Z [command]/usr/bin/git remote add origin https://github.com/Future00111/ledgerpoint
+2026-10-20T18:21:01.3120977Z ##[endgroup]
+2026-10-20T18:21:01.3122430Z ##[group]Disabling automatic garbage collection
+2026-10-20T18:21:01.3124984Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-20T18:21:01.3163215Z ##[endgroup]
+2026-10-20T18:21:01.3164549Z ##[group]Setting up auth
+2026-10-20T18:21:01.3171044Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T18:21:01.3212250Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T18:21:01.3645116Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T18:21:01.3696130Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T18:21:01.3963046Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-20T18:21:01.4015193Z ##[endgroup]
+2026-10-20T18:21:01.4016587Z ##[group]Fetching the repository
+2026-10-20T18:21:01.4027138Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+2026-10-20T18:21:05.1358609Z From https://github.com/Future00111/ledgerpoint
+2026-10-20T18:21:05.1364077Z  * [new branch]      activation/tr01-c7-development -> origin/activation/tr01-c7-development
+2026-10-20T18:21:05.1366565Z  * [new branch]      audit/replit-2026-09-25-snapshot -> origin/audit/replit-2026-09-25-snapshot
+2026-10-20T18:21:05.1368881Z  * [new branch]      diagnostic/ti03-corepack-ci -> origin/diagnostic/ti03-corepack-ci
+2026-10-20T18:21:05.1370278Z  * [new branch]      fix/ti03-corepack-child-env -> origin/fix/ti03-corepack-child-env
+2026-10-20T18:21:05.1371790Z  * [new branch]      fix/ti03-node-path -> origin/fix/ti03-node-path
+2026-10-20T18:21:05.1372958Z  * [new branch]      fix/ti03-obs02-test-diagnostic -> origin/fix/ti03-obs02-test-diagnostic
+2026-10-20T18:21:05.1374125Z  * [new branch]      fix/ti03-pnpm-determinism -> origin/fix/ti03-pnpm-determinism
+2026-10-20T18:21:05.1375186Z  * [new branch]      integration/tr01-c7-workspace -> origin/integration/tr01-c7-workspace
+2026-10-20T18:21:05.1376110Z  * [new branch]      main               -> origin/main
+2026-10-20T18:21:05.1377465Z  * [new branch]      proposal-local/tr01-c7-single-owner-exception -> origin/proposal-local/tr01-c7-single-owner-exception
+2026-10-20T18:21:05.1379579Z  * [new branch]      repair/c3-database-binding-probe -> origin/repair/c3-database-binding-probe
+2026-10-20T18:21:05.1381933Z  * [new branch]      repair/c4-nested-offline-pnpm -> origin/repair/c4-nested-offline-pnpm
+2026-10-20T18:21:05.1383675Z  * [new branch]      repair/c5-external-module-resolution -> origin/repair/c5-external-module-resolution
+2026-10-20T18:21:05.1385327Z  * [new branch]      repair/c6-canonical-qualification -> origin/repair/c6-canonical-qualification
+2026-10-20T18:21:05.1386782Z  * [new branch]      restore/pnpm-authoritative-package-state -> origin/restore/pnpm-authoritative-package-state
+2026-10-20T18:21:05.1388135Z  * [new branch]      review-local/tr01-c7-acceptance-pr25 -> origin/review-local/tr01-c7-acceptance-pr25
+2026-10-20T18:21:05.1389332Z  * [new branch]      review/tr01-c2-identity-status -> origin/review/tr01-c2-identity-status
+2026-10-20T18:21:05.1390381Z  * [new branch]      review/tr01-c2-offline-pnpm -> origin/review/tr01-c2-offline-pnpm
+2026-10-20T18:21:05.1391720Z  * [new branch]      review/tr01-c3-candidate -> origin/review/tr01-c3-candidate
+2026-10-20T18:21:05.1392857Z  * [new branch]      review/tr01-c3-identity-status -> origin/review/tr01-c3-identity-status
+2026-10-20T18:21:05.1393879Z  * [new branch]      review/tr01-c4-candidate -> origin/review/tr01-c4-candidate
+2026-10-20T18:21:05.1394895Z  * [new branch]      review/tr01-c4-identity-status -> origin/review/tr01-c4-identity-status
+2026-10-20T18:21:05.1396105Z  * [new branch]      review/tr01-c5-binding-diagnostic -> origin/review/tr01-c5-binding-diagnostic
+2026-10-20T18:21:05.1398276Z  * [new branch]      review/tr01-c5-identity-producer -> origin/review/tr01-c5-identity-producer
+2026-10-20T18:21:05.1400056Z  * [new branch]      review/tr01-c5-offline-successor -> origin/review/tr01-c5-offline-successor
+2026-10-20T18:21:05.1402024Z  * [new branch]      review/tr01-c6-candidate -> origin/review/tr01-c6-candidate
+2026-10-20T18:21:05.1403630Z  * [new branch]      review/tr01-c6-candidate-v2 -> origin/review/tr01-c6-candidate-v2
+2026-10-20T18:21:05.1405424Z  * [new branch]      review/tr01-c6-identity-producer -> origin/review/tr01-c6-identity-producer
+2026-10-20T18:21:05.1407550Z  * [new branch]      review/tr01-c6-identity-producer-v2 -> origin/review/tr01-c6-identity-producer-v2
+2026-10-20T18:21:05.1409795Z  * [new branch]      review/tr01-c6-repair-diagnostic -> origin/review/tr01-c6-repair-diagnostic
+2026-10-20T18:21:05.1412600Z  * [new branch]      review/tr01-c7-acceptance-and-activation -> origin/review/tr01-c7-acceptance-and-activation
+2026-10-20T18:21:05.1414786Z  * [new branch]      review/tr01-c7-candidate-v2 -> origin/review/tr01-c7-candidate-v2
+2026-10-20T18:21:05.1416541Z  * [new branch]      review/tr01-c7-candidate-v3 -> origin/review/tr01-c7-candidate-v3
+2026-10-20T18:21:05.1418384Z  * [new branch]      review/tr01-c7-identity-producer-v2 -> origin/review/tr01-c7-identity-producer-v2
+2026-10-20T18:21:05.1420632Z  * [new branch]      review/tr01-c7-identity-producer-v3 -> origin/review/tr01-c7-identity-producer-v3
+2026-10-20T18:21:05.1423318Z  * [new branch]      review/tr01-c7-repair-diagnostic -> origin/review/tr01-c7-repair-diagnostic
+2026-10-20T18:21:05.1425285Z  * [new branch]      ti-03-canonical-qualification -> origin/ti-03-canonical-qualification
+2026-10-20T18:21:05.1427091Z  * [new branch]      ti-03-harness-correction -> origin/ti-03-harness-correction
+2026-10-20T18:21:05.1428960Z  * [new branch]      ti03-obs01-bootstrap-diagnostic -> origin/ti03-obs01-bootstrap-diagnostic
+2026-10-20T18:21:05.1431127Z  * [new branch]      tr01/implementation-identity-candidate -> origin/tr01/implementation-identity-candidate
+2026-10-20T18:21:05.1433157Z  * [new branch]      tr01/implementation-identity-successor-c2 -> origin/tr01/implementation-identity-successor-c2
+2026-10-20T18:21:05.1435559Z  * [new branch]      tr01/implementation-identity-successor-c3 -> origin/tr01/implementation-identity-successor-c3
+2026-10-20T18:21:05.1437295Z  * [new branch]      tr01/implementation-identity-successor-c4 -> origin/tr01/implementation-identity-successor-c4
+2026-10-20T18:21:05.1438897Z  * [new branch]      tr01/implementation-identity-successor-c5 -> origin/tr01/implementation-identity-successor-c5
+2026-10-20T18:21:05.1440445Z  * [new branch]      tr01/implementation-identity-successor-c6 -> origin/tr01/implementation-identity-successor-c6
+2026-10-20T18:21:05.1442581Z  * [new branch]      tr01/implementation-identity-successor-c7 -> origin/tr01/implementation-identity-successor-c7
+2026-10-20T18:21:05.1444899Z [command]/usr/bin/git rev-parse --verify --quiet 706dc6a31f85733ba0c251f40b2c09f5a9312269^{object}
+2026-10-20T18:21:05.1445930Z 706dc6a31f85733ba0c251f40b2c09f5a9312269
+2026-10-20T18:21:05.1447668Z ##[endgroup]
+2026-10-20T18:21:05.1448957Z ##[group]Determining the checkout info
+2026-10-20T18:21:05.1450684Z ##[endgroup]
+2026-10-20T18:21:05.1451955Z [command]/usr/bin/git sparse-checkout disable
+2026-10-20T18:21:05.1515141Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-20T18:21:05.1556345Z ##[group]Checking out the ref
+2026-10-20T18:21:05.1561940Z [command]/usr/bin/git checkout --progress --force 706dc6a31f85733ba0c251f40b2c09f5a9312269
+2026-10-20T18:21:05.1957105Z Note: switching to '706dc6a31f85733ba0c251f40b2c09f5a9312269'.
+2026-10-20T18:21:05.1957888Z 
+2026-10-20T18:21:05.1958389Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-20T18:21:05.1959721Z changes and commit them, and you can discard any commits you make in this
+2026-10-20T18:21:05.1960856Z state without impacting any branches by switching back to a branch.
+2026-10-20T18:21:05.1961890Z 
+2026-10-20T18:21:05.1962357Z If you want to create a new branch to retain commits you create, you may
+2026-10-20T18:21:05.1963406Z do so (now or later) by using -c with the switch command. Example:
+2026-10-20T18:21:05.1964008Z 
+2026-10-20T18:21:05.1964276Z   git switch -c <new-branch-name>
+2026-10-20T18:21:05.1964699Z 
+2026-10-20T18:21:05.1964959Z Or undo this operation with:
+2026-10-20T18:21:05.1965317Z 
+2026-10-20T18:21:05.1965534Z   git switch -
+2026-10-20T18:21:05.1965811Z 
+2026-10-20T18:21:05.1966495Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-20T18:21:05.1967583Z 
+2026-10-20T18:21:05.1968593Z HEAD is now at 706dc6a Merge pull request #26 from Future00111/activation/tr01-c7-development
+2026-10-20T18:21:05.1973065Z ##[endgroup]
+2026-10-20T18:21:05.2049551Z [command]/usr/bin/git log -1 --format=%H
+2026-10-20T18:21:05.2085785Z 706dc6a31f85733ba0c251f40b2c09f5a9312269
+2026-10-20T18:21:05.2100189Z ##[group]Removing auth
+2026-10-20T18:21:05.2100983Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T18:21:05.2140010Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T18:21:05.2381028Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T18:21:05.2417175Z http.https://github.com/.extraheader
+2026-10-20T18:21:05.2427274Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-20T18:21:05.2470170Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T18:21:05.2705370Z ##[endgroup]
