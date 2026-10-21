@@ -10,9 +10,9 @@ export default function Breadcrumbs() {
 
   let crumbs;
   if (item.path === '/') {
-    crumbs = [{ label: 'Dashboard' }];
+    crumbs = [{ label: 'Overview' }];
   } else {
-    crumbs = [{ label: item.sectionLabel }, { label: item.label, path: item.path }];
+    crumbs = item.sectionLabel === item.label ? [{ label: item.label, path: item.path }] : [{ label: item.sectionLabel }, { label: item.label, path: item.path }];
     const rest = location.pathname.slice(item.path.length).replace(/^\//, '');
     if (rest === 'new') crumbs.push({ label: 'New' });
     else if (rest) crumbs.push({ label: 'Details' });

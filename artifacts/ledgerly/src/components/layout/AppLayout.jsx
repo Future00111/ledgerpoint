@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopHeader from './TopHeader';
-import Breadcrumbs from './Breadcrumbs';
 import { AskProvider } from '@/components/ask/AskProvider';
 import { findActiveItem } from './navConfig';
 import { pushRecent } from './recentItems';
@@ -37,7 +36,7 @@ export default function AppLayout() {
 
   return (
     <AskProvider>
-      <div className="flex h-screen overflow-hidden bg-muted/30">
+      <div className="flex h-screen overflow-hidden bg-background">
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/30 z-40 lg:hidden"
@@ -54,11 +53,8 @@ export default function AppLayout() {
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <TopHeader onToggleMobile={() => setMobileOpen(true)} />
-        <div className="px-4 lg:px-6 pt-2">
-          <Breadcrumbs />
-        </div>
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6 pt-3">
+        <TopHeader onToggleMobile={() => { setCollapsed(false); setMobileOpen(true); }} />
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>

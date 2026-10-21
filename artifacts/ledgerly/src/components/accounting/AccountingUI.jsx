@@ -16,7 +16,7 @@ export function StatusPill({ status }) {
 }
 
 export function Money({ value, className = '' }) {
-  return <span className={`tabular-nums font-mono ${className}`}>{penceToDisplay(value)}</span>;
+  return <span className={`tabular-nums ${className}`}>{penceToDisplay(value)}</span>;
 }
 
 export function SettlementPill({ item }) {

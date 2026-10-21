@@ -1,402 +1,70 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ArrowDownLeft, ArrowUpRight, ArrowRight, Plus, Receipt, FileText, Wallet, Sparkles, SlidersHorizontal, CalendarDays, CheckCircle2 } from 'lucide-react';
 import { useCompany } from '@/lib/useCompany';
-import AskTrigger from '@/components/ask/AskTrigger';
-import DashboardHeader from '@/components/dashboard/DashboardHeader';
-import DashboardSuggestions from '@/components/dashboard/DashboardSuggestions';
-import { useDashboardActivity } from '@/components/dashboard/useDashboardActivity';
-import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger,
-  DropdownMenuSubContent, DropdownMenuRadioGroup, DropdownMenuRadioItem,
-} from '@/components/ui/dropdown-menu';
-import WidgetCard from '@/components/dashboard/WidgetCard';
-import WidgetErrorBoundary from '@/components/dashboard/WidgetErrorBoundary';
-import {
-  WIDGETS, MODES, buildModeLayout, normalizeLayout,
-  SECTION_ORDER, SECTION_TITLES, sectionOf,
-} from '@/components/dashboard/widgetRegistry';
+import { useLedgerSnapshot, sumMinor } from '@/lib/useLedgerSnapshot';
+import { docPath } from '@/api/accountingDocuments.mjs';
+import { Money, ErrorBox, SkeletonRows } from '@/components/accounting/AccountingUI';
 import { Button } from '@/components/ui/button';
-import { Settings2, Check, RotateCcw, Save, Building2, Plus, LayoutGrid, LayoutTemplate, Focus, Sparkles } from 'lucide-react';
+import { useAsk } from '@/components/ask/AskProvider';
+import CustomDashboard from './CustomDashboard';
 
-const KEY = 'lp.dashboard.layouts.v3';
-
-function defaultState() {
-  const saved = {};
-  Object.keys(MODES).forEach((k) => (saved[k] = buildModeLayout(k)));
-  return { mode: 'owner', active: 'owner', saved };
+function Metric({ label, value, detail, to, icon: Icon }) {
+  return <Link to={to} className="workspace-card group p-5 transition-colors hover:border-primary/40">
+    <div className="flex items-center justify-between gap-2"><span className="text-sm text-muted-foreground">{label}</span><Icon className="h-4 w-4 text-primary" /></div>
+    <p className="metric-value"><Money value={value} /></p>
+    <p className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">{detail}<ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" /></p>
+  </Link>;
 }
-
-function loadState() {
-  try {
-    const r = JSON.parse(localStorage.getItem(KEY));
-    if (r && r.saved && r.mode && MODES[r.mode]) {
-      const saved = {};
-      Object.keys(r.saved).forEach((k) => (saved[k] = normalizeLayout(r.saved[k])));
-      Object.keys(MODES).forEach((k) => {
-        if (!saved[k]) saved[k] = buildModeLayout(k);
-      });
-      return { mode: r.mode, active: r.active || r.mode, saved };
-    }
-  } catch {
-    /* ignore */
-  }
-  return defaultState();
+function OpenDocuments({ title, rows, to, date }) {
+  return <section className="workspace-card overflow-hidden">
+    <div className="flex items-center justify-between border-b p-5"><h2 className="font-semibold">{title}</h2><Link to={to} className="text-xs font-medium text-primary hover:underline">View all <span aria-hidden="true">→</span></Link></div>
+    {rows.length ? <ul className="divide-y">{[...rows].sort((a,b) => a.due_date.localeCompare(b.due_date)).slice(0,4).map(d => <li key={d.id}>
+      <Link to={docPath(d.kind,d.id)} className="flex items-center gap-4 px-5 py-4 hover:bg-muted/40"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-semibold">{d.party_name.slice(0,2).toUpperCase()}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{d.party_name}</p><p className="mt-1 text-xs text-muted-foreground">{d.number} · {d.due_date < date ? 'Overdue since' : 'Due'} {new Date(`${d.due_date}T12:00:00`).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</p></div><Money className="text-sm font-semibold" value={d.open_minor} /><ArrowRight className="h-4 w-4 text-muted-foreground" /></Link>
+    </li>)}</ul> : <div className="flex items-center gap-3 p-6 text-sm text-muted-foreground"><CheckCircle2 className="h-5 w-5 text-primary" />No outstanding balances.</div>}
+  </section>;
 }
-
-function persist(s) {
-  localStorage.setItem(KEY, JSON.stringify(s));
-}
-
 export default function Dashboard() {
   const { activeCompany, loading } = useCompany();
-  const nav = useNavigate();
-  const [state, setState] = useState(loadState);
-  const [editMode, setEditMode] = useState(false);
-  const [focusMode, setFocusMode] = useState(() => localStorage.getItem('lp.dashboard.focus') === '1');
-  const [adaptive, setAdaptive] = useState(() => localStorage.getItem('lp.dashboard.adaptive') === '1');
-  const activity = useDashboardActivity(activeCompany?.id);
-
-  useEffect(() => {
-    localStorage.setItem('lp.dashboard.focus', focusMode ? '1' : '0');
-  }, [focusMode]);
-  useEffect(() => {
-    localStorage.setItem('lp.dashboard.adaptive', adaptive ? '1' : '0');
-  }, [adaptive]);
-
-  const [isDesktop, setIsDesktop] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(min-width:1024px)').matches
-  );
-  const dragId = useRef(null);
-  const [draggingId, setDraggingId] = useState(null);
-  const [overId, setOverId] = useState(null);
-
-  useEffect(() => {
-    const m = window.matchMedia('(min-width:1024px)');
-    const h = (e) => setIsDesktop(e.matches);
-    m.addEventListener('change', h);
-    return () => m.removeEventListener('change', h);
-  }, []);
-
-  const layout = state.saved[state.active] || buildModeLayout(state.mode);
-
-  const updateArr = (fn) => {
-    setState((s) => {
-      const arr = fn(s.saved[s.active] || buildModeLayout(s.mode));
-      const saved = { ...s.saved, [s.active]: arr };
-      const next = { ...s, saved };
-      persist(next);
-      return next;
-    });
-  };
-
-  const onDragStart = (id) => {
-    dragId.current = id;
-    setDraggingId(id);
-  };
-  const onDragOver = (e, id) => {
-    e.preventDefault();
-    if (overId !== id) setOverId(id);
-  };
-  const clearDrag = () => {
-    dragId.current = null;
-    setDraggingId(null);
-    setOverId(null);
-  };
-  const onDrop = (id) => {
-    const from = dragId.current;
-    clearDrag();
-    if (!from || from === id) return;
-    updateArr((arr) => {
-      const i = arr.findIndex((x) => x.id === from);
-      const j = arr.findIndex((x) => x.id === id);
-      if (i < 0 || j < 0) return arr;
-      const cp = arr.slice();
-      const [m] = cp.splice(i, 1);
-      cp.splice(j, 0, m);
-      return cp;
-    });
-  };
-
-  const cycleW = (id) => updateArr((arr) => arr.map((x) => (x.id === id ? { ...x, w: x.w >= 3 ? 1 : x.w + 1 } : x)));
-  const cycleH = (id) => updateArr((arr) => arr.map((x) => (x.id === id ? { ...x, h: x.h >= 2 ? 1 : x.h + 1 } : x)));
-  const toggleCollapse = (id) => updateArr((arr) => arr.map((x) => (x.id === id ? { ...x, collapsed: !x.collapsed } : x)));
-  const hide = (id) => updateArr((arr) => arr.map((x) => (x.id === id && !WIDGETS[id].core ? { ...x, hidden: true } : x)));
-  const show = (id) => updateArr((arr) => arr.map((x) => (x.id === id ? { ...x, hidden: false } : x)));
-
-  const switchMode = (modeKey) =>
-    setState((s) => {
-      const saved = { ...s.saved, [modeKey]: s.saved[modeKey] || buildModeLayout(modeKey) };
-      const next = { ...s, mode: modeKey, active: modeKey, saved };
-      persist(next);
-      return next;
-    });
-
-  const reset = () =>
-    setState((s) => {
-      const saved = { ...s.saved, [s.mode]: buildModeLayout(s.mode) };
-      const next = { ...s, active: s.mode, saved };
-      persist(next);
-      return next;
-    });
-
-  const saveAs = () => {
-    const name = window.prompt('Save current layout as:', 'My Layout');
-    if (!name) return;
-    setState((s) => {
-      const saved = { ...s.saved, [name]: JSON.parse(JSON.stringify(s.saved[s.active] || buildModeLayout(s.mode))) };
-      const next = { ...s, active: name, saved };
-      persist(next);
-      return next;
-    });
-  };
-
-  const switchLayout = (name) =>
-    setState((s) => {
-      const next = { ...s, active: name, mode: MODES[name] ? name : s.mode };
-      persist(next);
-      return next;
-    });
-
-  const hiddenWidgets = Object.values(WIDGETS).filter(
-    (w) => !w.core && layout.find((x) => x.id === w.id)?.hidden
-  );
-  const edit = editMode && isDesktop && !focusMode;
-  const customLayouts = Object.keys(state.saved).filter((n) => !MODES[n]);
-
-  const order = isDesktop ? layout : [...layout].sort((a, b) => WIDGETS[a.id].priority - WIDGETS[b.id].priority);
-  const allVisible = order.filter((x) => !x.hidden);
-  // Focus Mode: a calm, distraction-free view of only the core widgets —
-  // Ask, Today's Priority and Business Health — which live in the header and
-  // the Ask bar. The widget grid is hidden entirely.
-  const visible = focusMode ? [] : allVisible;
-
-  const attentionScore = (id) => activity[id] || 0;
-  let groups = SECTION_ORDER.map((sec) => ({
-    section: sec,
-    items: visible.filter((x) => sectionOf(x.id) === sec),
-  })).filter((g) => g.items.length);
-
-  if (adaptive) {
-    groups = groups.map((g) => ({
-      ...g,
-      items: [...g.items].sort((a, b) => attentionScore(b.id) - attentionScore(a.id)),
-    }));
-    groups.sort((a, b) => {
-      const am = Math.max(0, ...a.items.map((i) => attentionScore(i.id)));
-      const bm = Math.max(0, ...b.items.map((i) => attentionScore(i.id)));
-      return bm - am;
-    });
-  }
-
-  const renderCard = (item) => {
-    const meta = WIDGETS[item.id];
-    if (!meta) return null;
-    const Comp = meta.component;
-    return (
-      <WidgetCard
-        key={item.id}
-        meta={meta}
-        size={item}
-        company={activeCompany}
-        editMode={edit}
-        collapsed={!!item.collapsed}
-        attention={attentionScore(item.id) > 0}
-        isCore={!!meta.core}
-        dragging={draggingId === item.id}
-        dragOver={!!overId && overId !== item.id && !!draggingId}
-        onDragStart={() => onDragStart(item.id)}
-        onDragOver={(e) => onDragOver(e, item.id)}
-        onDrop={() => onDrop(item.id)}
-        onDragEnd={clearDrag}
-        onCycleW={() => cycleW(item.id)}
-        onCycleH={() => cycleH(item.id)}
-        onToggleCollapse={() => toggleCollapse(item.id)}
-        onHide={() => hide(item.id)}
-      >
-        <WidgetErrorBoundary>
-          <Comp company={activeCompany} h={item.h} />
-        </WidgetErrorBoundary>
-      </WidgetCard>
-    );
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!activeCompany) {
-    return (
-      <div className="flex flex-col items-center justify-center text-center py-20 px-4">
-        <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
-          <Building2 className="w-7 h-7 text-muted-foreground" />
-        </div>
-        <h2 className="text-lg font-semibold">Welcome to Ledgerly</h2>
-        <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-          Set up your first business to unlock your Business Command Centre — KPIs, priorities, cashflow and insights.
-        </p>
-        <Button className="mt-4" onClick={() => nav('/setup')}>
-          Start setup
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mx-auto max-w-[1600px] space-y-6 pb-8">
-      <section className="relative overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-br from-card via-card to-primary/[0.035] px-4 py-5 shadow-sm sm:px-6">
-        <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-primary/[0.07] blur-3xl" />
-        <div className="relative">
-          <DashboardHeader />
-
-          {/* Ask bar — the single entry point into the Ask workspace */}
-          <div className="mt-5 max-w-3xl">
-            <AskTrigger />
-          </div>
-        </div>
+  const [params, setParams] = useSearchParams();
+  const custom = params.get('view') === 'custom';
+  const s = useLedgerSnapshot(activeCompany?.id, undefined, undefined, !custom);
+  const { openAsk } = useAsk();
+  const viewToggle = <div className="flex items-center gap-1 rounded-lg border bg-white p-1 text-sm"><button type="button" aria-pressed={!custom} className={`rounded-md px-3 py-1.5 ${!custom ? 'bg-primary/10 font-medium text-primary' : 'text-muted-foreground'}`} onClick={() => setParams({})}>Overview</button><button type="button" aria-pressed={custom} className={`flex items-center gap-2 rounded-md px-3 py-1.5 ${custom ? 'bg-primary/10 font-medium text-primary' : 'text-muted-foreground'}`} onClick={() => setParams({view:'custom'})}><SlidersHorizontal className="h-3.5 w-3.5" />My dashboard</button></div>;
+  if (custom) return <div className="workspace-page"><div className="flex justify-end">{viewToggle}</div><CustomDashboard /></div>;
+  if (loading) return <SkeletonRows />;
+  if (!activeCompany) return <div className="workspace-page"><header className="page-heading"><div><h1>Welcome to Ledgerly</h1><p>Your business, in one clear view.</p></div></header><section className="workspace-card max-w-2xl p-8"><h2 className="text-lg font-semibold">Choose a company to get started</h2><p className="mb-6 mt-2 text-sm text-muted-foreground">Open your business or create a company to start working.</p><Button asChild><Link to="/companies">Open companies</Link></Button></section></div>;
+  const d=s.data;
+  const invoices=d?.open_items.filter(r=>r.kind==='sales_invoice' && BigInt(r.open_minor)>0n) ?? [];
+  const bills=d?.open_items.filter(r=>r.kind==='purchase_bill' && BigInt(r.open_minor)>0n) ?? [];
+  const overdue=invoices.filter(r=>r.due_date<s.to);
+  const draftInvoices=d?.drafts.filter(r=>r.kind==='sales_invoice') ?? [];
+  const draftBills=d?.drafts.filter(r=>r.kind==='purchase_bill') ?? [];
+  return <div className="workspace-page">
+    <header className="page-heading"><div><span className="eyebrow">Your business at a glance</span><h1 className="mt-2">Overview</h1><p>{activeCompany.name}</p></div>{viewToggle}</header>
+    <div className="flex flex-wrap items-center justify-between gap-3"><p className="flex items-center gap-2 text-xs text-muted-foreground"><CalendarDays className="h-4 w-4" />Year to date · {s.from} — {s.to}</p><Button asChild><Link to="/invoices/new"><Plus />New invoice</Link></Button></div>
+    <ErrorBox error={s.error} onRetry={s.refresh} />
+    {!d && !s.error && <SkeletonRows rows={5} />}
+    {d && <>
+      <section aria-label="Business balances" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Metric label="Customers owe you" value={sumMinor(invoices,'open_minor')} detail={`${invoices.length} unpaid invoices`} to="/invoices?status=awaiting" icon={ArrowDownLeft} />
+        <Metric label="You owe suppliers" value={sumMinor(bills,'open_minor')} detail={`${bills.length} unpaid bills`} to="/bills?status=awaiting" icon={ArrowUpRight} />
+        <Metric label="Revenue" value={d.pnl.revenue_minor} detail="This year · excluding VAT" to="/reports?tab=pnl" icon={FileText} />
+        <Metric label="Net profit" value={d.pnl.profit_minor} detail="This year · after expenses" to="/reports?tab=pnl" icon={Wallet} />
       </section>
-
-
-
-      {focusMode ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-16 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-            <Focus className="w-6 h-6" />
-          </div>
-          <p className="text-sm text-muted-foreground max-w-sm">
-            Focus mode — a calm view of what matters now: Ask, Today's Priority and Business Health.
-          </p>
-          <Button variant="outline" size="sm" className="mt-4" onClick={() => setFocusMode(false)}>
-            Exit focus mode
-          </Button>
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="space-y-6">
+          <section className="workspace-card overflow-hidden"><div className="border-b px-5 py-4"><h2 className="font-semibold">Your next steps</h2><p className="mt-1 text-xs text-muted-foreground">Pick up where your business needs you.</p></div>
+            {[{label:'Review invoice drafts',n:draftInvoices.length,detail:'Ready to finish and post',to:'/invoices?status=draft',icon:FileText},{label:'Review bill drafts',n:draftBills.length,detail:'Check purchases before posting',to:'/bills?status=draft',icon:Receipt},{label:'Follow up overdue invoices',n:overdue.length,detail:'Check balances and record payments received',to:'/invoices?status=overdue',icon:ArrowDownLeft}].map(({label,n,detail,to,icon:Icon})=><Link key={to} to={to} className="flex items-center gap-4 border-b px-5 py-4 last:border-0 hover:bg-muted/40"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/5 text-primary"><Icon className="h-5 w-5" /></span><div className="flex-1"><p className="text-sm font-medium">{label}</p><p className="mt-1 text-xs text-muted-foreground">{detail}</p></div><span className="rounded-md bg-muted px-2.5 py-1 text-sm font-semibold tabular-nums">{n}</span><ArrowRight className="h-4 w-4 text-muted-foreground" /></Link>)}
+          </section>
+          <div className="grid gap-6 2xl:grid-cols-2"><OpenDocuments title="Money coming in" rows={invoices} to="/invoices?status=awaiting" date={s.to} /><OpenDocuments title="Money going out" rows={bills} to="/bills?status=awaiting" date={s.to} /></div>
         </div>
-      ) : (
-        <>
-          {/* Smart Suggestions — never auto-applied */}
-          {!edit && (
-            <DashboardSuggestions activity={activity} layout={layout} onAddWidget={show} />
-          )}
-
-          {/* Dashboard settings */}
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card/70 px-3 py-2 shadow-sm">
-            <div className="flex items-center gap-2">
-              <span className="hidden text-xs font-medium text-muted-foreground sm:inline">Your workspace</span>
-              <Button variant={editMode ? 'default' : 'outline'} size="sm" onClick={() => setEditMode((v) => !v)}>
-                {editMode ? <Check className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
-                {editMode ? 'Done' : 'Customise'}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <LayoutTemplate className="w-3.5 h-3.5" />
-                    Templates
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56">
-                  <DropdownMenuLabel>Dashboard templates</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup value={state.mode} onValueChange={switchMode}>
-                    {Object.entries(MODES).map(([key, m]) => (
-                      <DropdownMenuRadioItem key={key} value={key}>
-                        <m.icon className="w-3.5 h-3.5 mr-1" />
-                        {m.label}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => setFocusMode((v) => !v)}>
-                    <Focus className="w-3.5 h-3.5" />
-                    {focusMode ? 'Exit focus mode' : 'Focus mode'}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setAdaptive((v) => !v)}>
-                    <Sparkles className="w-3.5 h-3.5" />
-                    {adaptive ? 'Adaptive order: on' : 'Adaptive order: off'}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setEditMode((v) => !v)}>
-                    <LayoutGrid className="w-3.5 h-3.5" />
-                    Widget layout
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={reset}>
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    Reset template
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={saveAs}>
-                    <Save className="w-3.5 h-3.5" />
-                    Save layout as
-                  </DropdownMenuItem>
-                  {hiddenWidgets.length > 0 && (
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <Plus className="w-3.5 h-3.5" />
-                        Add widgets
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent className="w-52">
-                        {hiddenWidgets.map((w) => (
-                          <DropdownMenuItem key={w.id} onSelect={() => show(w.id)}>
-                            <w.icon className="w-3.5 h-3.5" />
-                            {w.title}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  )}
-                  {customLayouts.length > 0 && (
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <LayoutTemplate className="w-3.5 h-3.5" />
-                        Custom templates
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent className="w-52">
-                        {customLayouts.map((name) => (
-                          <DropdownMenuItem key={name} onSelect={() => switchLayout(name)}>
-                            {name}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-              {adaptive ? 'Adaptive order' : MODES[state.mode]?.label}
-            </span>
-          </div>
-
-          {edit && (
-            <div className="text-xs text-muted-foreground rounded-xl border border-primary/15 bg-primary/[0.035] px-3 py-2.5">
-              Drag the grip handle to move widgets · use Narrow/Wide/Full and Short/Tall to resize · collapse widgets you want to keep but tuck away · hide widgets you don't need. Pinned widgets stay. Switching templates changes only the layout — never your data.
-            </div>
-          )}
-
-          {/* Widget sections */}
-          {groups.map((g) => (
-            <div key={g.section} className="space-y-3">
-              <div className="flex items-center gap-3 px-1">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  {SECTION_TITLES[g.section]}
-                </h2>
-                <div className="h-px flex-1 bg-border/70" />
-              </div>
-              <div className={isDesktop ? 'grid grid-cols-12 gap-4' : 'flex flex-col gap-4'}>
-                {g.items.map((item) => renderCard(item))}
-              </div>
-            </div>
-          ))}
-
-          {visible.length === 0 && (
-            <div className="text-center py-10 text-sm text-muted-foreground">
-              All widgets are hidden.{' '}
-              <button onClick={reset} className="text-primary underline">
-                Reset dashboard
-              </button>
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
+        <div className="space-y-6">
+          <section className="workspace-card p-5"><span className="eyebrow">Cash & bank</span><p className="metric-value">{d.cash.configured ? <Money value={d.cash.balance_minor} /> : 'Not set up'}</p><p className="mt-2 text-xs leading-relaxed text-muted-foreground">Posted cash balance. Bank-feed reconciliation is separate.</p><Link to="/payments" className="mt-5 flex items-center justify-between border-t pt-4 text-sm font-medium text-primary">Payments & balances<ArrowRight className="h-4 w-4" /></Link></section>
+          <section className="rounded-xl border border-primary/20 bg-primary/[0.045] p-5"><Sparkles className="h-5 w-5 text-primary" /><h2 className="mt-3 font-semibold">A little help with the numbers</h2><p className="mt-2 text-sm leading-relaxed text-muted-foreground">Ask Ledgerly to explain a figure or help you find your next step.</p><Button variant="outline" className="mt-4 bg-white" onClick={()=>openAsk()}>Ask Ledgerly<ArrowRight /></Button></section>
+          <section className="workspace-card p-5"><h2 className="font-semibold">Useful reports</h2><div className="mt-3 space-y-1">{[['Profit & loss','pnl'],['Balance sheet','bs'],['VAT workings','vat']].map(([label,tab])=><Link key={tab} to={`/reports?tab=${tab}`} className="flex items-center justify-between py-2.5 text-sm text-muted-foreground hover:text-primary">{label}<ArrowRight className="h-4 w-4" /></Link>)}</div></section>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">Figures come from posted accounts. Drafts are excluded from balances; payments and credits reduce the amount outstanding.</p>
+    </>}
+  </div>;
 }

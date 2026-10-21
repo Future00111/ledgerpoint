@@ -6,25 +6,25 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
+    --background: 45 20% 97%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 221 83% 53%;
+    --primary: 166 72% 27%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222 47% 11%;
     --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted-foreground: 215 14% 42%;
     --accent: 210 40% 96%;
     --accent-foreground: 222 47% 11%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    --border: 210 16% 88%;
+    --input: 210 16% 83%;
+    --ring: 166 72% 27%;
     --chart-1: 221 83% 53%;
     --chart-2: 160 84% 39%;
     --chart-3: 30 80% 55%;
@@ -87,4 +87,32 @@
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
+}
+
+/* Ledgerly workspace: a quiet canvas, clear action hierarchy and readable figures. */
+@layer components {
+  .workspace-page { @apply mx-auto w-full max-w-[1440px] space-y-6 pb-10; }
+  .page-heading { @apply flex flex-wrap items-center justify-between gap-4; }
+  .page-heading h1 { @apply text-2xl font-semibold tracking-tight sm:text-3xl; }
+  .page-heading p { @apply mt-2 text-sm text-muted-foreground; }
+  .eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground; }
+  .workspace-card { @apply rounded-xl border bg-card shadow-[0_2px_4px_-3px_rgba(15,23,42,0.12)]; }
+  .metric-value { @apply mt-3 text-3xl font-semibold tracking-tight tabular-nums; }
+  .document-tabs { @apply flex gap-6 overflow-x-auto border-b px-5; }
+  .document-tabs button { @apply shrink-0 border-b-2 border-transparent py-4 text-sm font-medium text-muted-foreground; }
+  .document-tabs button[aria-selected="true"] { @apply border-primary text-primary; }
+  .document-tabs button:focus-visible { @apply outline outline-2 outline-offset-[-4px] outline-primary; }
+  .workspace-table { @apply w-full text-left text-sm; }
+  .workspace-table th { @apply whitespace-nowrap border-y bg-muted/40 px-5 py-3 text-xs font-medium text-muted-foreground; }
+  .workspace-table td { @apply border-b px-5 py-4; }
+  .workspace-table tbody tr:last-child td { @apply border-b-0; }
+  .workspace-table tbody tr:hover { @apply bg-primary/[0.025]; }
+  .ledger-sidebar { background: #142b31; color: #edf4f2; }
+  .ledger-sidebar [aria-label="Switch company"] { background: rgba(255,255,255,.07); color: white; }
+  .ledger-sidebar [aria-label="Switch company"] svg { color: #b4cfca; }
+  .ledger-sidebar a[href="/companies"] { color: #cbd5e1; }
+  .ledger-sidebar nav { scrollbar-color: #526864 transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }

@@ -137,3 +137,9 @@ in the workspace. The repaired source remains intact; the successful build and
 preview checks above precede that restart. Existing records were not recreated
 or replaced. Demo recovery or explicit recreation in persistent storage is
 required before the current preview can run again.
+
+The subsequent owner-authorised visual refresh created a fresh synthetic demo
+in persistent workspace storage and verified unchanged records after stopping
+and restarting the API and PostgreSQL processes. See
+[workspace-visual-refresh.md](workspace-visual-refresh.md). The current preview
+is available again; the missing earlier records were not recovered.

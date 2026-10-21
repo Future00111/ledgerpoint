@@ -13,10 +13,10 @@ import {
 
 // Single source of truth for navigation. New modules are added here and
 // automatically render in the correct section — no layout edits needed.
-export const SECTIONS = [
+const groups = [
   {
-    key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard,
-    items: [{ label: 'Dashboard', path: '/' }],
+    key: 'dashboard', label: 'Overview', icon: LayoutDashboard,
+    items: [{ label: 'Overview', path: '/' }],
   },
   {
     key: 'ai-accountant', label: 'AI Accountant', icon: Sparkles,
@@ -35,7 +35,7 @@ export const SECTIONS = [
       { label: 'Quotes', icon: FileCheck, soon: true },
       { label: 'Customers', path: '/customers', icon: Users },
       { label: 'Invoices', path: '/invoices', icon: FileText },
-      { label: 'Credit Notes', path: '/sales-credit-notes', icon: Undo2 },
+      { label: 'Customer credits', path: '/sales-credit-notes', icon: Undo2 },
       { label: 'Collections', path: '/collections', icon: Gavel },
     ],
   },
@@ -44,14 +44,14 @@ export const SECTIONS = [
     items: [
       { label: 'Suppliers', path: '/suppliers', icon: Truck },
       { label: 'Bills', path: '/bills', icon: Receipt },
-      { label: 'Credits', path: '/supplier-credit-notes', icon: RotateCcw },
+      { label: 'Supplier credits', path: '/supplier-credit-notes', icon: RotateCcw },
     ],
   },
   {
     key: 'banking', label: 'Banking', icon: Landmark,
     items: [
       { label: 'Accounts', path: '/bank-accounts', icon: Landmark },
-      { label: 'Payments & unapplied cash', path: '/payments', icon: ArrowLeftRight },
+      { label: 'Payments', path: '/payments', icon: ArrowLeftRight },
       { label: 'Statements', path: '/statements', icon: FileText },
       { label: 'Transactions', path: '/transactions', icon: ArrowLeftRight },
       { label: 'Reconciliation', path: '/reconciliation', icon: Scale },
@@ -64,7 +64,7 @@ export const SECTIONS = [
       { label: 'Chart of Accounts', path: '/chart-of-accounts', icon: BookOpen },
       { label: 'Manual Journals (legacy)', path: '/general-ledger/manual-journals', icon: ClipboardList },
       { label: 'Posting Setup', path: '/accounting/setup', icon: Wrench },
-      { label: 'VAT Returns', path: '/vat', icon: Percent },
+      { label: 'VAT workings', path: '/vat', icon: Percent },
       { label: 'General Ledger', path: '/general-ledger', icon: Grid3x3 },
     ],
   },
@@ -114,6 +114,11 @@ export const SECTIONS = [
     items: [{ label: 'Development Tools', path: '/dev-tools', icon: Wrench }],
   },
 ];
+
+const order = ['dashboard', 'sales', 'purchases', 'banking', 'reports', 'accounting', 'documents', 'ai-accountant', 'automation', 'settings', 'dev'];
+export const SECTIONS = order.map(key => groups.find(s => s.key === key)).map(s => ({
+  ...s, items: s.items.filter(i => !(s.key === 'reports' && i.path === '/insights')),
+}));
 
 export function allItems() {
   return SECTIONS.flatMap((s) =>

@@ -1,3 +1,4 @@
+import PostedDocument from '@/components/accounting/PostedDocument';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { accounting, KINDS, buildEnvelope, copyOriginalLines, docPath } from '@/api/accountingDocuments.mjs';
@@ -176,11 +177,13 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     } catch (err) { setError(err); } finally { setBusy(false); }
   };
 
+  if (posted && !loading) return <PostedDocument doc={doc} kind={kind} company={activeCompany} journal={journal} settlement={settlement} openItem={openItem} error={error} />;
+
   return (
-    <form onSubmit={save} className="mx-auto max-w-7xl space-y-6 pb-28">
-      <header className="flex flex-wrap items-start justify-between gap-4">
+    <form onSubmit={save} className="workspace-page">
+      <header className="page-heading">
         <div>
-          <p className="text-sm font-medium text-primary">{meta.section} · {meta.label}</p>
+          <p className="eyebrow">{meta.section} · {meta.label}</p>
           <h1 className="mt-1 flex items-center gap-3 text-3xl font-semibold tracking-tight">
             {editId ? (form.invoice_number || meta.label) : `New ${meta.label.toLowerCase()}`}
             {doc && <StatusPill status={doc.status} />}
@@ -212,15 +215,16 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
           </li>)}</ul> : <p className="mt-2 text-sm text-muted-foreground">No payments or credit notes yet.</p>}
         </> : !settlement.error && <p className="mt-2 text-sm text-muted-foreground">This document is outside the current reporting date.</p>}
       </section>}
+      {!posted && <div className="flex flex-wrap items-center gap-3 border-y py-3 text-xs text-muted-foreground" aria-label="Document progress"><span className="font-medium text-primary">1 · Enter details</span><span aria-hidden="true">→</span><span className={doc && !dirty ? 'font-medium text-primary' : ''}>2 · Save draft{doc && !dirty ? ' ✓' : ''}</span><span aria-hidden="true">→</span><span>3 · Review & post</span></div>}
       <ConfigErrors errors={configErrors} />
       <ErrorBox error={error} />
       {loading && <SkeletonRows rows={6} />}
 
       {!loading && ctx && (
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
           <fieldset disabled={posted || busy} className="min-w-0 space-y-6">
             {meta.credit && (
-              <section className="space-y-4 rounded-xl border bg-card p-5">
+              <section className="workspace-card space-y-5 p-6">
                 <div><h2 className="text-lg font-semibold">Adjustment</h2>
                   <p className="mt-1 text-sm text-muted-foreground">Offsets the outstanding balance on the original. No cash movement is recorded.</p></div>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -243,8 +247,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               </section>
             )}
 
-            <section className="space-y-4 rounded-xl border bg-card p-5">
-              <h2 className="text-lg font-semibold">Details</h2>
+            <section className="workspace-card space-y-5 p-6">
+              <h2 className="text-base font-semibold">Document details</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2"><Label htmlFor="party" className="capitalize">{meta.party}</Label>
                   <select id="party" data-testid="select-party" required className={sel} value={form.customer_id} disabled={meta.credit && !!originalDoc} onChange={e => change('customer_id', e.target.value)}>
@@ -282,11 +286,11 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               )}
             </section>
 
-            <section className="space-y-4 rounded-xl border bg-card p-5">
-              <div className="flex items-center justify-between"><h2 className="text-lg font-semibold">Lines</h2>
+            <section className="workspace-card space-y-5 p-6">
+              <div className="flex items-center justify-between"><h2 className="text-base font-semibold">Items & services</h2>
                 {meta.credit && <span className="text-xs text-muted-foreground">Copied from the original. Reduce the amount or quantity, or exclude a line, for a partial credit. The original VAT basis, rate and accounts are retained.</span>}</div>
               {form.line_items.map((l, i) => (
-                <div key={i} className="grid gap-3 rounded-lg border bg-background p-4 sm:grid-cols-12" data-testid={`row-line-${i}`}>
+                <div key={i} className="grid gap-3 border-b pb-5 sm:grid-cols-12" data-testid={`row-line-${i}`}>
                   <div className="sm:col-span-12"><Label htmlFor={`d${i}`}>Description</Label><Input id={`d${i}`} required className="mt-1" value={l.description} readOnly={meta.credit} onChange={e => changeLine(i, 'description', e.target.value)} /></div>
                   <div className="sm:col-span-3"><Label htmlFor={`q${i}`}>Quantity</Label><Input id={`q${i}`} data-testid={`input-qty-${i}`} required inputMode="decimal" className="mt-1" value={l.quantity} onChange={e => changeLine(i, 'quantity', e.target.value)} />
                     {meta.credit && origLine(i) && <p className={`mt-1 text-xs ${overQty(i) ? 'text-red-700' : 'text-muted-foreground'}`}>Original line {extra.original_line_refs[i] + 1}: max {origLine(i).quantity} at {origLine(i).unit_price} ({origLine(i).tax_code})</p>}</div>
@@ -306,8 +310,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
             </section>
           </fieldset>
 
-          <aside className="space-y-4 xl:sticky xl:top-4">
-            <div className="rounded-xl border bg-card p-5" data-testid="panel-accounts">
+          <aside className="flex flex-col gap-4 xl:sticky xl:top-4">
+            <div className="workspace-card order-3 p-5" data-testid="panel-accounts">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{posted ? 'Posted journal lines' : 'Accounts used'}</h2>
               {posted ? (
                 journal.status === 'loading' ? <SkeletonRows rows={3} />
@@ -333,24 +337,24 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               {isPurchase && !posted && vatRegistered && !extra.purchase_vat_eligible && <p className="mt-2 text-xs text-muted-foreground">Not declared recoverable: VAT is included in the purchase cost and no input VAT line is posted.</p>}
               {meta.credit && !posted && <p className="mt-2 text-xs text-muted-foreground">Uses the same accounts as the original. Offsets the outstanding balance; no cash movement.</p>}
             </div>
-            <div className="rounded-xl border bg-card p-5">
+            <div className="workspace-card order-1 p-5">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Totals</h2>
               {showTotals ? (
                 <dl className="mt-4 space-y-2 text-sm" data-testid="totals">
                   <div className="flex justify-between"><dt>Net</dt><dd><Money value={doc.money.net_pence} /></dd></div>
                   <div className="flex justify-between"><dt>VAT</dt><dd><Money value={doc.money.vat_pence} /></dd></div>
-                  <div className="flex justify-between border-t pt-2 text-base font-semibold"><dt>Gross</dt><dd><Money value={doc.money.gross_pence} /></dd></div>
+                  <div className="flex justify-between border-t pt-2 text-base font-semibold"><dt>Total</dt><dd><Money value={doc.money.gross_pence} /></dd></div>
                 </dl>
-              ) : <p className="mt-4 text-sm text-muted-foreground" data-testid="text-totals-stale">{doc ? 'Changes not saved — save the draft to recalculate totals.' : 'Save the draft to calculate totals on the server.'}</p>}
+              ) : <p className="mt-4 text-sm text-muted-foreground" data-testid="text-totals-stale">{doc ? 'Changes not saved — save the draft to recalculate totals.' : 'Save your draft to calculate the subtotal, VAT and total.'}</p>}
               {meta.credit && <p className="mt-4 rounded-md bg-muted/50 p-2.5 text-xs">Offset against outstanding balance. No cash movement.</p>}
             </div>
             {!posted && (
-              <div className="space-y-2">
+              <div className="order-2 space-y-2">
                 {creditInvalid && <p className="text-xs text-orange-800">Original, reason and effective date are required; the credit date must match the effective date and quantities cannot exceed the original.</p>}
                 <Button type="submit" className="w-full" disabled={busy || creditInvalid} data-testid="button-save">{busy ? 'Working…' : 'Save draft'}</Button>
                 <Button type="button" variant="secondary" className="w-full" disabled={busy || !doc || dirty || configErrors.length > 0}
                   onClick={() => { setError(null); setReview({ companyId: activeCompany.id, id: doc.id, revision: doc.revision, number: form.invoice_number, money: doc.money }); }}
-                  data-testid="button-post">Post to accounts</Button>
+                  data-testid="button-post">Review & post</Button>
                 {doc && dirty && <p className="text-xs text-muted-foreground">Save changes before posting.</p>}
               </div>
             )}
@@ -370,7 +374,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
             <div className="flex justify-between"><dt>Document number</dt><dd className="font-medium">{review.number}</dd></div>
             <div className="flex justify-between"><dt>Net</dt><dd><Money value={review.money.net_pence} /></dd></div>
             <div className="flex justify-between"><dt>VAT</dt><dd><Money value={review.money.vat_pence} /></dd></div>
-            <div className="flex justify-between border-t pt-2 font-semibold"><dt>Gross</dt><dd><Money value={review.money.gross_pence} /></dd></div>
+            <div className="flex justify-between border-t pt-2 font-semibold"><dt>Total</dt><dd><Money value={review.money.gross_pence} /></dd></div>
           </dl>}
           {meta.credit && <p className="text-sm text-muted-foreground">This credit offsets the linked outstanding document. No cash movement is recorded.</p>}
           {error && <ErrorBox error={error} />}

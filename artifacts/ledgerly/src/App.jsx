@@ -1,3 +1,4 @@
+import ReportLibrary from '@/pages/ReportLibrary';
 import Payments from '@/pages/Payments';
 import Statements from '@/pages/Statements';
 import { ClerkProvider, SignIn, SignUp, useAuth as useClerkAuth } from '@clerk/react';
@@ -199,7 +200,7 @@ const AuthenticatedApp = () => {
               <Route path="/documents" element={<Documents />} />
               <Route path="/email-capture" element={<EmailCapture />} />
               <Route path="/email-rules" element={<EmailRules />} />
-              <Route path="/reports" element={<AccountingReports defaultTab="tb" />} />
+              <Route path="/reports" element={<ReportLibrary />} />
               <Route path="/reports/legacy" element={<Reports />} />
               <Route path="/accountant" element={<AccountantPortal />} />
               <Route path="/chart-of-accounts" element={<ChartOfAccounts />} />

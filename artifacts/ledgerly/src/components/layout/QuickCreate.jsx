@@ -24,9 +24,9 @@ export default function QuickCreate() {
     { label: 'Bill', path: '/bills/new', icon: Receipt },
     { label: 'Customer', path: '/customers', icon: Users },
     { label: 'Supplier', path: '/suppliers', icon: Truck },
-    { label: 'Credit Note', path: '/sales-credit-notes/new', icon: Undo2 },
-    { label: 'Bank Transaction', path: '/transactions', icon: Landmark },
-    { label: 'Journal', path: '/general-ledger', icon: BookOpen },
+    { label: 'Customer credit', path: '/sales-credit-notes/new', icon: Undo2 },
+    { label: 'Supplier credit', path: '/supplier-credit-notes/new', icon: Undo2 },
+    { label: 'Record payment', path: '/payments', icon: Landmark },
     { label: 'Document', path: '/documents', icon: FolderOpen },
   ];
 

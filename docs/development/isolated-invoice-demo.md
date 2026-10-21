@@ -1,3 +1,9 @@
+> Current lifecycle: the old temporary demo directory was lost on workspace
+> restart. The owner authorised a fresh demo after the visual refresh. See
+> [workspace-visual-refresh.md](workspace-visual-refresh.md) for persistent data
+> storage and startup. The setup/history below records the earlier demo. Do not
+> reinitialise the current persistent cluster using the historical commands.
+
 # Native four-document accounting extension
 
 ## Custom chart and account-selection delivery — 2026-10-21

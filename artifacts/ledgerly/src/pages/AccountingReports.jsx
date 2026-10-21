@@ -60,11 +60,11 @@ export default function AccountingReports({ defaultTab = 'tb' }) {
   const setTab = t => { const p = new URLSearchParams(params); p.set('tab', t); setParams(p, { replace: true }); };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="workspace-page">
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <div><p className="text-sm font-medium text-primary">Accounting · Posted ledger</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Ledger reports</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Built only from posted journals. Drafts never appear here.</p></div>
+        <div><p className="text-sm font-medium text-primary">Financial reports</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">{TABS.find(([key])=>key===tab)?.[1] || 'Reports'}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Your posted accounts, with the detail behind every figure.</p></div>
         <div className="flex gap-3">
           <div><Label htmlFor="from">From</Label><Input id="from" data-testid="input-from" type="date" value={from} onChange={e => setFrom(e.target.value)} /></div>
           <div><Label htmlFor="to">To</Label><Input id="to" data-testid="input-to" type="date" value={to} onChange={e => setTo(e.target.value)} /></div>

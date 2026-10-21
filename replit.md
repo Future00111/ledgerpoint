@@ -54,9 +54,16 @@ Approved DEC-01–DEC-22 records and the existing G7 evidence remain preserved
 under `docs/` and the governance drafts. Earlier phase/PRD/backlog plans are
 historical; they do not compete with the active product plan.
 
+## Current workspace presentation
+
+The 21 October visual refresh preserves all existing menu destinations and the
+customisable dashboard. See `docs/development/workspace-visual-refresh.md`.
+The fresh authorised synthetic demo uses persistent workspace storage; the
+normal development API workflow restarts it without resetting sample records.
+
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
