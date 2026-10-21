@@ -3,7 +3,7 @@ import { fail, uuid } from '../financialDrafts/contract';
 import { postCanonicalJournal, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
 import { scope, transact, exactFields, supportedCompany, hash, queryAdapter, type Queryable } from './core';
 import { companyChart } from './accounts';
-import { allocated, appliedTo, allocationSign, unappliedEffect, paymentEvents, documentOpen } from './settlement';
+import { allocated, appliedTo, allocationSign, unappliedEffect, paymentEvents, documentOpen, syncSettlementProjection } from './settlement';
 
 const roles=['bank','customer_credit','supplier_prepayment'];
 const types:Record<string,string[]>= {bank:['asset','assets'],customer_credit:['liability','liabilities'],supplier_prepayment:['asset','assets']};
@@ -190,6 +190,7 @@ export async function postPayment(company:string,actor:string,body:unknown,testH
         (id,company_id,party_id,party_type,kind,payment_id,effective_date,reference,amount_minor,allocations,request_hash,source,journal_id,actor_id)
         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
         [b.id,company,b.party_id,b.party_type,b.kind,b.payment_id,b.date,b.reference,b.amount_minor,JSON.stringify(b.allocations),requestHash,JSON.stringify(current.source),journal.id,actor]);
+      for(const a of b.allocations) await syncSettlementProjection(queryAdapter(transaction!),company,a.document_id);
     }}
   };
   try {

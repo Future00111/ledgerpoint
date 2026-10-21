@@ -81,3 +81,47 @@ existing W06 sample. The fixture only seeds the separate sample and never alters
 the earlier company's records.
 
 The active delivery plan remains `docs/ledgerly-active-product-plan.md`.
+
+## Invoice and bill settlement workflow — 21 October 2026
+
+Built around the existing native posting engine and W06 payments:
+
+- Invoice/bill lists offer search, awaiting-payment, partial, overdue and settled
+  views, with original amount, cash allocated, credit notes and remaining balance.
+- Document detail shows the same balances and source-linked payment/credit history.
+  Credit-only reductions are labelled partially/fully credited; the original
+  document remains posted and its amounts are preserved.
+- Create credit note preselects the original. Quantity and credit unit amount are
+  editable within original limits; tax basis/rate and posting accounts are retained.
+  Server-side cumulative net/VAT/gross and outstanding-balance caps still apply.
+- Record payment opens the existing protected review flow with the party,
+  document and remaining amount prefilled. It does not instruct a bank transfer.
+- Native posting updates compatibility balance fields in the same transaction.
+  These fields are derived read models; canonical sources/events/journals remain
+  authoritative. Unallocation restores the corresponding amount due.
+- Old bank reconciliation rejects native documents before any write. Native
+  bank-statement matching is **not implemented** by this delivery; preventing
+  an unjournalled balance change is not equivalent to completing reconciliation.
+
+Evidence: 14 disposable database integration cases pass, including the new
+£60 document/£10 credit case for both sales and purchases, later cash and credits,
+unallocation, final settlement and the old-reconciliation guard. API/frontend
+typechecks and builds pass. Database cleanup is verified by the runner receipt.
+Signed-in ChatGPT-assisted preview inspection confirmed both £60/£0/£10/£50
+document screens, credit links, preselected editable credit amount, list status
+and a payment dialog prefilled with £50. No extra payment was submitted in that
+walkthrough. This is development evidence, not independent accounting acceptance.
+
+`credit-demo.ts` uses the same guarded setup/owner argument as `payment-demo.ts`
+and creates a separate **Synthetic Credits — TEST DATA, not business records**
+company. `refresh-settlement-demo.mjs` refreshes only derived compatibility
+balances in the fixed isolated database; it rejects unexplained legacy payments
+or bank links and verifies unchanged source/journal/payment/account fingerprints.
+Existing seven invoice/bill projections were refreshed; original records remain.
+
+Replit's pre-existing unstaged `productionAuthority.ts` edit lacks the
+`calculateTaxLine` export. It was preserved byte-for-byte and excluded from this
+delivery. Tests and the preview API build used a separate checkout containing
+the committed authority plus this delivery. Normal Replit source rebuilds still
+need that separate edit resolved. The preview API uses configured port **8080**
+from `.replit-artifact/artifact.toml`, not the README's generic 5000 example.

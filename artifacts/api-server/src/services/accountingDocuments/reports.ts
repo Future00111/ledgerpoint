@@ -1,4 +1,4 @@
-import { paymentEvents, appliedTo, allocated, allocationSign, unappliedEffect } from './settlement';
+import { paymentEvents, appliedTo, allocated, allocationSign, unappliedEffect, settlementAmounts } from './settlement';
 import { fail, uuid } from "../financialDrafts/contract";
 import { transact, scope, sales, credit, supportedCompany, type Kind } from "./core";
 import { movementAccounts, sections } from "./presentation";
@@ -106,12 +106,17 @@ export async function reports(company:string,actor:string,from:string,to:string,
       if(!credit(d.kind)) {
         const credited=docs.filter(c=>c.original_id===d.id).reduce((n,c)=>n+BigInt(c.money.gross_pence),0n);
         const paid=appliedTo(payments,d.id);
-        const remaining=BigInt(d.money.gross_pence)-credited-paid;
-        if(remaining<0n) fail(503,'REPORT_SETTLEMENT_MISMATCH');
+        const amounts=settlementAmounts(d.money.gross_pence,credited.toString(),paid.toString());
+        const remaining=BigInt(amounts.open_minor);
+        const history=[...docs.filter(c=>c.original_id===d.id).map(c=>({id:c.id,kind:c.kind,number:c.number,
+          date:c.posting_date,recorded_at:c.journal_created_at,journal_id:c.journal_id,amount_minor:c.money.gross_pence})),
+          ...payments.flatMap(e=>e.allocations.filter((a:any)=>a.document_id===d.id).map((a:any)=>({id:e.id,
+            kind:e.kind,number:e.reference,date:e.effective_date,recorded_at:e.created_at,journal_id:e.journal_id,
+            amount_minor:(allocationSign(e)*BigInt(a.amount_minor)).toString(),payment_id:e.payment_id??e.id})))];
+        history.sort((a,b)=>a.date.localeCompare(b.date)||new Date(a.recorded_at).getTime()-new Date(b.recorded_at).getTime()||a.id.localeCompare(b.id));
         openItems.push({id:d.id,kind:d.kind,party_id:d.party_id,party_type:p.party_type,party_name:party.name,
-          number:d.number,date:d.posting_date,due_date:d.source.due_date,gross_minor:d.money.gross_pence,
-          credited_minor:credited.toString(),paid_minor:paid.toString(),open_minor:remaining.toString(),
-          settlement:remaining===0n?'settled':paid>0n?'part_paid':'outstanding'});
+          number:d.number,date:d.posting_date,due_date:d.source.due_date,
+          ...amounts,history});
         const days=Math.floor((Date.parse(to+"T00:00:00Z")-Date.parse(d.source.due_date+"T00:00:00Z"))/86400000);
         const bucket=days<=0?"current_minor":days<=30?"days_1_30_minor":days<=60?"days_31_60_minor":days<=90?"days_61_90_minor":"days_90_plus_minor";
         const age=ageing.get(d.party_id)??{party_id:d.party_id,party_name:party.name,party_type:p.party_type,

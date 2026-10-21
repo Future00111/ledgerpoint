@@ -19,6 +19,17 @@ export function Money({ value, className = '' }) {
   return <span className={`tabular-nums font-mono ${className}`}>{penceToDisplay(value)}</span>;
 }
 
+export function SettlementPill({ item }) {
+  if (!item) return null;
+  const credited = BigInt(item.credited_minor) > 0n;
+  const cash = BigInt(item.paid_minor) > 0n;
+  const label = item.settlement === 'settled'
+    ? (credited && !cash ? 'Fully credited' : 'Paid')
+    : item.settlement === 'part_paid'
+      ? (credited && !cash ? 'Partially credited' : 'Partially paid') : 'Awaiting payment';
+  return <span data-testid="settlement-status" className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${item.settlement === 'settled' ? 'bg-emerald-50 text-emerald-900' : 'bg-amber-50 text-amber-900'}`}>{label}</span>;
+}
+
 export function ConfigErrors({ errors }) {
   if (!errors?.length) return null;
   return (

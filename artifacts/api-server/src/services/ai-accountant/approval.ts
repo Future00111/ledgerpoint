@@ -1,4 +1,6 @@
 import { assertInvoiceSettlementReady } from "../financialDrafts/settlementBoundary";
+import { queryAdapter } from "../accountingDocuments/core";
+import { assertLegacySettlementAllowed } from "../accountingDocuments/settlement";
 /**
  * AI Accountant — atomic approval of reconciliation matches.
  *
@@ -67,6 +69,7 @@ export async function applyReconciliationApproval(
     if (!fresh || (fresh.status !== "review" && fresh.status !== "unmatched")) {
       throw new Error("This transaction has already been reconciled");
     }
+    await assertLegacySettlementAllowed(queryAdapter(tx), fresh.company_id, records.map(r => r.record_id));
 
     const moneyInPence = Math.round(Number(fresh.money_in || 0) * 100);
     const moneyOutPence = Math.round(Number(fresh.money_out || 0) * 100);
@@ -261,6 +264,9 @@ export async function applyNonPaymentReconciliationMatch(
       .for("update");
     if (!fresh || (fresh.status !== "review" && fresh.status !== "unmatched")) {
       throw new Error("This transaction has already been reconciled");
+    }
+    if (input.record_type !== 'ledger_account' && input.record_id) {
+      await assertLegacySettlementAllowed(queryAdapter(tx), fresh.company_id, [input.record_id]);
     }
 
     let recordNumber = input.record_number || "";

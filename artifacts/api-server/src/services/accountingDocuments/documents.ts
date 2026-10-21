@@ -1,4 +1,4 @@
-import { documentOpen, paymentEvents } from './settlement';
+import { appliedTo, documentOpen, paymentEvents } from './settlement';
 import { randomUUID } from "node:crypto";
 import { accountId } from "./accounts";
 import type pg from "pg";
@@ -47,7 +47,7 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
     const lines=source.line_items.map((line,i)=>{
       const originalLine=original.source.line_items[references[i]];
       const fact=original.tax_context.lines[references[i]];
-      if(!fact || line.unit_price!==originalLine.unit_price || line.tax_code!==originalLine.tax_code ||
+      if(!fact || decimal(line.unit_price,false)>decimal(originalLine.unit_price,false) || line.tax_code!==originalLine.tax_code ||
          decimal(line.quantity,true)>decimal(originalLine.quantity,true)) fail(422,"CREDIT_ORIGINAL_MISMATCH");
       const amount=calculateTaxLine(entered[i]!,decimal(String(fact.rate),false)/100n,source.price_basis!,line.unit_price);
       net.push(amount.net.toString());vat.push(amount.vat.toString());unit.push(amount.unitNetPrice);
@@ -98,11 +98,12 @@ export async function assertCreditAvailable(q:Queryable, company:string, row:any
   if(entry.rowCount!==1) fail(409,"CREDIT_ORIGINAL_NOT_CURRENT_POSTED");
   const table=tables[original.kind as Kind];
   const paid=await q.query(`SELECT amount_paid FROM ${table} WHERE id=$1 AND company_id=$2 FOR SHARE`,[original.id,company]);
-  const links=await q.query(`SELECT id FROM bank_transactions WHERE company_id=$1 AND
-    (linked_invoice_id=$2 OR matched_record_id=$2::text) FOR SHARE`,[company,original.id]);
-  if(paid.rowCount!==1 || Number(paid.rows[0].amount_paid)!==0 || links.rowCount)
-    fail(422,"CREDIT_OFFSET_REQUIRES_UNPAID_SOURCE");
+  const links=await q.query(`SELECT id FROM bank_transactions b WHERE company_id=$1 AND
+    (to_jsonb(b)->>'linked_invoice_id'=$2::text OR to_jsonb(b)->>'linked_bill_id'=$2::text OR matched_record_id=$2::text) FOR SHARE`,[company,original.id]);
   const settlements=await paymentEvents(q,company);
+  // Native receipts are allowed; unexplained legacy settlement is not.
+  if(paid.rowCount!==1 || decimal(String(paid.rows[0].amount_paid),false)/100n!==appliedTo(settlements,original.id) || links.rowCount)
+    fail(422,"CREDIT_OFFSET_REQUIRES_CANONICAL_SETTLEMENT");
   if(settlements.some(e=>e.effective_date>row.source.issue_date && e.allocations.some((a:any)=>a.document_id===original.id)))
     fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
   const available=await documentOpen(q,company,original.id,settlements);

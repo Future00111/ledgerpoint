@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCompany } from '@/lib/useCompany';
@@ -18,6 +18,7 @@ const selectClass = 'h-10 w-full rounded-md border bg-background px-3 text-sm';
 export default function Payments() {
   const { activeCompany } = useCompany(), company = activeCompany?.id;
   const [params] = useSearchParams();
+  const openedDocument = useRef(null);
   const cache = useQueryClient(), ledger = useLedgerSnapshot(company);
   const [context, setContext] = useState(null), [payments, setPayments] = useState(null), [error, setError] = useState(null);
   const [tick, setTick] = useState(0), [busy, setBusy] = useState(false), [setup, setSetup] = useState(false), [mappings, setMappings] = useState({});
@@ -45,6 +46,15 @@ export default function Payments() {
       date: today(), reference: '', amount: kind === 'reversal' ? pounds(payment.amount_minor) : linked ? pounds(linked.open_minor) : '',
       allocations: linked ? { [linked.id]: pounds(linked.open_minor) } : {} });
   };
+  useEffect(() => {
+    const documentId = params.get('document');
+    const key = `${company}:${documentId}`;
+    if (documentId && context?.configuration && ledger.data && openedDocument.current !== key) {
+      const item = ledger.data.open_items.find(d => d.id === documentId && d.party_id === params.get('party_id'));
+      openedDocument.current = key;
+      if (item && BigInt(item.open_minor) > 0n) start();
+    }
+  }, [company, context, ledger.data, params]);
   const change = fields => { setForm(f => ({ ...f, ...fields })); setReview(null); setError(null); };
   const relevant = (ledger.data?.open_items || []).filter(d => d.party_id === form?.party_id && d.party_type === form?.party_type &&
     (form?.kind === 'unallocation' ? BigInt(form.payment?.allocation_balances.find(a => a.document_id === d.id)?.amount_minor || '0') > 0n : BigInt(d.open_minor) > 0n));
@@ -63,7 +73,7 @@ export default function Payments() {
   return <div className="mx-auto max-w-6xl space-y-6 pb-28">
     <header className="flex flex-wrap justify-between gap-4"><div><p className="text-sm text-primary">Money in and out</p><h1 className="text-3xl font-semibold">Payments & unapplied cash</h1><p className="mt-2 text-sm text-muted-foreground">Record money already received or paid. Recording here does not instruct a bank transfer.</p></div><div className="flex items-start gap-2"><Button variant="outline" onClick={() => setSetup(v => !v)}>Payment setup</Button><Button disabled={!context?.configuration || !ledger.data} onClick={() => start()}>Record payment</Button></div></header>
     <ErrorBox error={!form ? error || ledger.error : null} onRetry={() => { setTick(t => t + 1); ledger.refresh(); }} />
-    {result && <div role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-4">Payment event recorded. <JournalLink id={result.journal_id} /></div>}
+    {result && <div role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-4">Payment event recorded. <JournalLink id={result.journal_id} />{params.get('document') && <Link className="ml-4 underline" to={docPath(params.get('party_type') === 'supplier' ? 'purchase_bill' : 'sales_invoice', params.get('document'))}>Back to document</Link>}</div>}
     {!context && !error && <SkeletonRows />}
     {context && setup && <section className="space-y-4 rounded-xl border bg-card p-5"><h2 className="text-lg font-semibold">Payment accounts</h2><p className="text-sm text-muted-foreground">Choose separate nominal accounts for bank/cash, customer credit liabilities and supplier prepayment assets. <Link to="/chart-of-accounts" className="text-primary underline">Create accounts</Link> if needed.</p><div className="grid gap-4 md:grid-cols-3">{[['bank', 'Bank / cash', 'asset'], ['customer_credit', 'Customer credit liability', 'liability'], ['supplier_prepayment', 'Supplier prepayment asset', 'asset']].map(([role, label, type]) => <div key={role}><Label htmlFor={`payment-${role}`}>{label}</Label><select id={`payment-${role}`} className={selectClass} value={mappings[role] || ''} onChange={e => setMappings(m => ({ ...m, [role]: e.target.value }))}><option value="">Choose an account</option>{context.accounts.filter(a => a.is_active && [type, `${type}s`].includes(a.account_type)).map(a => <option key={a.id} value={a.id}>{a.code} · {a.name}</option>)}</select></div>)}</div><Button disabled={busy} onClick={saveSetup}>Save payment accounts</Button></section>}
     {payments && <div className="overflow-auto rounded-xl border"><table className="w-full text-sm"><thead className="bg-muted/50"><tr>{['Date', 'Party / reference', 'Direction', 'Amount', 'Allocated', 'Unapplied', 'Status', ''].map((h, i) => <th className="p-3 text-left" key={i}>{h}</th>)}</tr></thead><tbody>{[...payments].reverse().map(p => <tr className="border-t" key={p.id}><td className="p-3">{p.effective_date}</td><td className="p-3"><strong>{p.source.party_name}</strong><div className="text-xs text-muted-foreground">{p.reference}</div></td><td className="p-3">{p.party_type === 'customer' ? 'Received' : 'Paid'}</td><td className="p-3"><Money value={p.amount_minor} /></td><td className="p-3"><Money value={p.allocated_minor} /></td><td className="p-3"><Money value={p.unapplied_minor} /></td><td className="p-3">{p.reversed ? 'Reversed' : BigInt(p.refunded_minor) > 0n ? 'Refund recorded' : 'Posted'}</td><td className="p-3"><Button size="sm" variant="outline" onClick={() => setDetail(p)}>Review payment</Button></td></tr>)}</tbody></table>{payments.length === 0 && <p className="p-6 text-sm text-muted-foreground">No payments recorded in the posted ledger.</p>}</div>}

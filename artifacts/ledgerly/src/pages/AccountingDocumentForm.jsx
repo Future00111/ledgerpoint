@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { accounting, KINDS, buildEnvelope, copyOriginalLines, docPath } from '@/api/accountingDocuments.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { useLedgerSnapshot } from '@/lib/useLedgerSnapshot';
@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { dueFromTerms, changeDateField, submittedDates, postingAccounts, mappedId, accountLabel, issueFor, plannedAccounts, tradeRole } from '@/lib/accountingEditor.mjs';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from '@/components/ui/alert-dialog';
-import { StatusPill, Money, ConfigErrors, JournalLink, ErrorBox, SkeletonRows, today } from '@/components/accounting/AccountingUI';
+import { StatusPill, SettlementPill, Money, ConfigErrors, JournalLink, ErrorBox, SkeletonRows, today } from '@/components/accounting/AccountingUI';
 
 const blankLine = () => ({ description: '', quantity: '1', unit_price: '0', tax_code: '' });
 const blankForm = () => ({ customer_id: '', invoice_number: '', issue_date: today(), due_date: dueFromTerms(today(), '30'), payment_terms: '30', reference: '', notes: '', price_basis: 'excluding_vat', line_items: [blankLine()] });
@@ -21,6 +21,8 @@ const sel = 'mt-1.5 w-full rounded-md border bg-background p-2.5 text-sm';
 export default function AccountingDocumentForm({ kind, legacyFallback = null }) {
   const meta = KINDS[kind];
   const { id } = useParams();
+  const [params] = useSearchParams();
+  const requestedOriginal = params.get('original');
   const editId = id && id !== 'new' ? id : undefined;
   const { activeCompany } = useCompany();
   const navigate = useNavigate();
@@ -80,12 +82,19 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
             purchase_vat_eligible: existing.purchase_vat_eligible === true, posting_account_id: existing.posting_account_id || '',
           });
           if (existing.original_id) setOriginalDoc((origList || []).find(o => o.id === existing.original_id) || null);
+        } else if (meta.credit && requestedOriginal) {
+          const original = origList.find(o => o.id === requestedOriginal && o.status === 'posted');
+          if (!original) throw new Error('The original document is unavailable in this company.');
+          setOriginalDoc(original);
+          setForm(f => ({ ...f, customer_id: original.source.customer_id, price_basis: original.source.price_basis, line_items: copyOriginalLines(original) }));
+          setExtra(x => ({ ...x, original_id: original.id, original_line_refs: original.source.line_items.map((_, i) => i), effective_adjustment_date: today() }));
+          setDirty(true);
         }
       } catch (e) { if (g === gen.current && !c.signal.aborted) setError(e); }
       finally { if (g === gen.current && !c.signal.aborted) setLoading(false); }
     })();
     return () => { c.abort(); gen.current++; };
-  }, [activeCompany?.id, editId, kind]);
+  }, [activeCompany?.id, editId, kind, requestedOriginal]);
 
   if (legacy && legacyFallback) return legacyFallback;
   if (!activeCompany) return <p className="mx-auto max-w-xl rounded-xl border p-6 text-center">Select a company in <Link className="underline" to="/companies">Companies</Link> first.</p>;
@@ -105,6 +114,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   };
   const origLine = (i) => originalDoc?.source?.line_items?.[extra.original_line_refs[i]];
   const overQty = (i) => { const o = origLine(i); return o && Number(form.line_items[i].quantity) > Number(o.quantity); };
+  const overPrice = (i) => { const o = origLine(i); return o && Number(form.line_items[i].unit_price) > Number(o.unit_price); };
   const changeExtra = (k, v) => {
     touch();
     setExtra(x => ({ ...x, [k]: v }));
@@ -125,10 +135,10 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const vatRegistered = ctx?.company?.vat_registered === true;
   const defaultTradeId = role ? mappedId(ctx?.mappings, role) : '';
   const postingIssue = issueFor(error, '/posting_account_id');
-  const planned = plannedAccounts(kind, { mappings: ctx?.mappings, posting_account_id: extra.posting_account_id, purchase_vat_eligible: extra.purchase_vat_eligible, vatRegistered });
+  const planned = plannedAccounts(kind, { mappings: meta.credit && originalDoc ? originalDoc.posting_accounts : ctx?.mappings, posting_account_id: meta.credit && originalDoc ? originalDoc.posting_account_id : extra.posting_account_id, purchase_vat_eligible: meta.credit && originalDoc ? originalDoc.purchase_vat_eligible : extra.purchase_vat_eligible, vatRegistered });
   const savedPosting = doc && !dirty && doc.posting_accounts && typeof doc.posting_accounts === 'object' ? plannedAccounts(kind, { mappings: doc.posting_accounts, posting_account_id: doc.posting_account_id, purchase_vat_eligible: doc.purchase_vat_eligible, vatRegistered, vatMinor: doc.totals?.vat_minor }).filter(r => r.id) : null;
   const isPurchase = meta.party === 'supplier';
-  const creditInvalid = meta.credit && (!extra.original_id || extra.original_line_refs.length !== form.line_items.length || form.line_items.some((_, i) => overQty(i)) || !extra.reason.trim() || !extra.effective_adjustment_date || form.issue_date !== extra.effective_adjustment_date);
+  const creditInvalid = meta.credit && (!extra.original_id || extra.original_line_refs.length !== form.line_items.length || form.line_items.some((_, i) => overQty(i) || overPrice(i)) || !extra.reason.trim() || !extra.effective_adjustment_date || form.issue_date !== extra.effective_adjustment_date);
   const showTotals = doc && !dirty;
   const configErrors = ctx?.configuration_errors ?? [];
 
@@ -167,7 +177,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   };
 
   return (
-    <form onSubmit={save} className="mx-auto max-w-7xl space-y-6">
+    <form onSubmit={save} className="mx-auto max-w-7xl space-y-6 pb-28">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-primary">{meta.section} · {meta.label}</p>
@@ -179,21 +189,28 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {posted && <JournalLink id={doc.journal_id} />}
-          {posted && !meta.credit && <Button asChild variant="outline"><Link to={`/payments?party_type=${meta.party}&party_id=${doc.party_id}&document=${doc.id}`}>Record payment</Link></Button>}
+          {posted && !meta.credit && openItem && BigInt(openItem.open_minor) > 0n && <>
+            <Button asChild variant="outline"><Link to={`${KINDS[kind === 'sales_invoice' ? 'sales_credit_note' : 'supplier_credit_note'].path}/new?original=${doc.id}`}>Create credit note</Link></Button>
+            <Button asChild><Link to={`/payments?party_type=${meta.party}&party_id=${doc.party_id}&document=${doc.id}`}>Record payment</Link></Button>
+          </>}
           <Button type="button" variant="outline" onClick={() => navigate(meta.path)} data-testid="button-back">Back to {meta.plural.toLowerCase()}</Button>
         </div>
       </header>
 
-      {posted && <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">Posted to the accounts. This document is read-only; corrections are made with a credit note.</p>}
+      {posted && <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">Posted to the accounts. {meta.credit ? <>This credit reduces the balance of the <Link className="underline font-medium" to={docPath(meta.original, doc.original_id)}>original {meta.original === 'sales_invoice' ? 'invoice' : 'bill'}</Link>; the original document is preserved.</> : 'The original amounts are preserved. Payments and credit notes are recorded separately below.'}</p>}
       {posted && !meta.credit && <section className="rounded-xl border bg-card p-4" aria-label="Settlement balance">
-        <h2 className="font-semibold">Settlement as at {settlement.to}</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="font-semibold">Balance as at {settlement.to}</h2><SettlementPill item={openItem} /></div>
         <ErrorBox error={settlement.error} onRetry={settlement.refresh} />
-        {settlement.loading ? <SkeletonRows rows={1} /> : openItem ? <div className="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-sm">
-          <span>{openItem.settlement === 'settled' ? 'Settled' : openItem.settlement === 'part_paid' ? 'Part paid' : 'Outstanding'}</span>
-          <span>Payments allocated: <Money value={openItem.paid_minor} /></span>
-          <span>Credits: <Money value={openItem.credited_minor} /></span>
-          <strong>Amount remaining: <Money value={openItem.open_minor} /></strong>
-        </div> : !settlement.error && <p className="mt-2 text-sm text-muted-foreground">This document is outside the current reporting date.</p>}
+        {settlement.loading ? <SkeletonRows rows={1} /> : openItem ? <>
+          <dl className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+            {[['Original total', openItem.gross_minor], ['Payments', openItem.paid_minor], ['Credit notes', openItem.credited_minor], ['Still due', openItem.open_minor]].map(([label, amount]) => <div key={label} className={label === 'Still due' ? 'rounded-lg bg-primary/5 p-3' : 'p-3'}><dt className="text-sm text-muted-foreground">{label}</dt><dd className="mt-1 text-xl font-semibold"><Money value={amount} /></dd></div>)}
+          </dl>
+          <h3 className="mt-5 border-t pt-4 text-sm font-semibold">Payments and credits</h3>
+          {openItem.history?.length ? <ul className="mt-2 divide-y">{openItem.history.map((event, i) => <li key={`${event.id}-${i}`} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+            <div><Link className="font-medium text-primary hover:underline" to={docPath(KINDS[event.kind] ? event.kind : 'accounting_payment_event', event.payment_id ?? event.id)}>{event.number || 'Payment'}</Link><p className="text-xs text-muted-foreground">{event.date} · {KINDS[event.kind]?.label || ({payment: 'Payment', allocation: 'Credit balance allocated', unallocation: 'Payment allocation removed'}[event.kind] || event.kind)}</p></div>
+            <div className="flex items-center gap-4"><Money value={event.amount_minor} /><JournalLink id={event.journal_id} /></div>
+          </li>)}</ul> : <p className="mt-2 text-sm text-muted-foreground">No payments or credit notes yet.</p>}
+        </> : !settlement.error && <p className="mt-2 text-sm text-muted-foreground">This document is outside the current reporting date.</p>}
       </section>}
       <ConfigErrors errors={configErrors} />
       <ErrorBox error={error} />
@@ -241,7 +258,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
                 <div><Label htmlFor="due">Due date</Label><Input id="due" name="due_date" type="date" required className="mt-1.5" value={form.due_date} onInput={e => change('due_date', e.target.value)} onChange={e => change('due_date', e.target.value)} /></div>
                 <div><Label htmlFor="terms">Payment terms (days)</Label><Input id="terms" name="payment_terms" inputMode="numeric" className="mt-1.5" value={form.payment_terms} onInput={e => change('payment_terms', e.target.value)} onChange={e => change('payment_terms', e.target.value)} /></div>
                 <div><Label htmlFor="basis">Prices are</Label>
-                  <select id="basis" data-testid="select-price-basis" className={sel} value={form.price_basis} onChange={e => change('price_basis', e.target.value)}>
+                  <select id="basis" data-testid="select-price-basis" disabled={meta.credit} className={sel} value={form.price_basis} onChange={e => change('price_basis', e.target.value)}>
                     <option value="excluding_vat">Excluding VAT</option><option value="including_vat">Including VAT</option>
                   </select></div>
                 {role && <div className="sm:col-span-2"><Label htmlFor="posting">{isPurchase ? 'Purchase account' : 'Sales account'}</Label>
@@ -267,13 +284,13 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
 
             <section className="space-y-4 rounded-xl border bg-card p-5">
               <div className="flex items-center justify-between"><h2 className="text-lg font-semibold">Lines</h2>
-                {meta.credit && <span className="text-xs text-muted-foreground">Copied from the original in order. Exclude lines or reduce quantities for a partial credit; price and tax code stay as on the original.</span>}</div>
+                {meta.credit && <span className="text-xs text-muted-foreground">Copied from the original. Reduce the amount or quantity, or exclude a line, for a partial credit. The original VAT basis, rate and accounts are retained.</span>}</div>
               {form.line_items.map((l, i) => (
                 <div key={i} className="grid gap-3 rounded-lg border bg-background p-4 sm:grid-cols-12" data-testid={`row-line-${i}`}>
                   <div className="sm:col-span-12"><Label htmlFor={`d${i}`}>Description</Label><Input id={`d${i}`} required className="mt-1" value={l.description} readOnly={meta.credit} onChange={e => changeLine(i, 'description', e.target.value)} /></div>
                   <div className="sm:col-span-3"><Label htmlFor={`q${i}`}>Quantity</Label><Input id={`q${i}`} data-testid={`input-qty-${i}`} required inputMode="decimal" className="mt-1" value={l.quantity} onChange={e => changeLine(i, 'quantity', e.target.value)} />
                     {meta.credit && origLine(i) && <p className={`mt-1 text-xs ${overQty(i) ? 'text-red-700' : 'text-muted-foreground'}`}>Original line {extra.original_line_refs[i] + 1}: max {origLine(i).quantity} at {origLine(i).unit_price} ({origLine(i).tax_code})</p>}</div>
-                  <div className="sm:col-span-4"><Label htmlFor={`p${i}`}>Unit price ({form.price_basis === 'including_vat' ? 'inc' : 'exc'} VAT)</Label><Input id={`p${i}`} required inputMode="decimal" className="mt-1" value={l.unit_price} readOnly={meta.credit} onChange={e => changeLine(i, 'unit_price', e.target.value)} /></div>
+                  <div className="sm:col-span-4"><Label htmlFor={`p${i}`}>{meta.credit ? 'Credit per unit' : 'Unit price'} ({form.price_basis === 'including_vat' ? 'inc' : 'exc'} VAT)</Label><Input id={`p${i}`} data-testid={`input-unit-price-${i}`} required inputMode="decimal" className="mt-1" value={l.unit_price} onChange={e => changeLine(i, 'unit_price', e.target.value)} />{meta.credit && <p className={`mt-1 text-xs ${overPrice(i) ? 'text-red-700' : 'text-muted-foreground'}`}>Enter the amount to credit per unit, up to the original unit price. {form.price_basis === 'including_vat' ? 'For a £10 total credit, enter quantity 1 and £10.' : 'VAT is added to the entered credit, using the original tax rate.'}</p>}</div>
                   <div className="sm:col-span-5"><Label htmlFor={`t${i}`}>Tax code</Label>
                     <select id={`t${i}`} required className="mt-1 w-full rounded-md border bg-background p-2.5 text-sm" value={l.tax_code} disabled={meta.credit} onChange={e => changeLine(i, 'tax_code', e.target.value)}>
                       <option value="">Select</option>
@@ -310,7 +327,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               ) : (
                 <dl className="mt-3 space-y-1.5 text-sm" data-testid="list-planned-accounts">
                   {planned.map(r => <div key={r.key} className="flex justify-between gap-3"><dt className="text-muted-foreground">{r.label}</dt><dd className="text-right">{accountLabel(allAccounts, r.id)}</dd></div>)}
-                  <p className="pt-1 text-xs text-amber-800">Unsaved preview from your selections and current posting setup.</p>
+                  <p className="pt-1 text-xs text-amber-800">{meta.credit && originalDoc ? 'Accounts retained from the original document.' : 'Unsaved preview from your selections and current posting setup.'}</p>
                 </dl>
               )}
               {isPurchase && !posted && vatRegistered && !extra.purchase_vat_eligible && <p className="mt-2 text-xs text-muted-foreground">Not declared recoverable: VAT is included in the purchase cost and no input VAT line is posted.</p>}

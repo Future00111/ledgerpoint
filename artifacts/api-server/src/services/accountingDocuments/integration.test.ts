@@ -11,6 +11,7 @@ import {invoiceDraftRouter} from "../financialDrafts/router";
 import {isGenericEntityWriteBlocked} from "../../routes/entityWritePolicy";
 import {queryAdapter} from "./core";
 import {reports} from "./reports";
+import {applyReconciliationApproval,applyNonPaymentReconciliationMatch} from '../ai-accountant/approval';
 
 const socket=process.env.ACCOUNTING_FLOW_TEST_SOCKET??"";
 if(!/^\/tmp\/ledgerly-accounting-flow-tests-[A-Za-z0-9]+\/socket$/.test(socket)) throw Error("Disposable socket required");
@@ -344,6 +345,49 @@ async function recordPayment(f:any,b:any) {
   const r=await request(f.company,'/accounting-payments','POST',reviewed);
   assert.equal(r.status,200,JSON.stringify(r));return {...r.data,reviewed};
 }
+test('partial value credits preserve originals and agree across journals, reports, history and legacy balance readers',async()=>{
+  const f=await fixture();
+  for(const kind of ['sales_invoice','purchase_bill']) {
+    const original=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier,'60'));await post(f,original);
+    const credit=await create(f,kind==='sales_invoice'?'sales_credit_note':'supplier_credit_note',
+      {...original.source,invoice_number:'TEN-POUND-CREDIT-'+randomUUID(),line_items:[{...original.source.line_items[0],unit_price:'10'}]},
+      {original_id:original.id,reason:'Agreed £10 price reduction',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-21',original_line_refs:[0]});
+    assert.equal(credit.money.gross_pence,'1000');await post(f,credit);
+    const table=kind==='sales_invoice'?'sales_invoices':'purchase_bills';
+    const projection=async()=> (await admin.query(`SELECT total::text,amount_paid::text,balance_due::text,status FROM ${table} WHERE id=$1`,[original.id])).rows[0];
+    assert.deepEqual(await projection(),{total:'60.00',amount_paid:'0.00',balance_due:'50.00',status:'part_paid'});
+    let report=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-10-21')).data;
+    let item=report.open_items.find((d:any)=>d.id===original.id);
+    assert.equal(item.settlement,'part_paid');assert.equal(item.open_minor,'5000');assert.equal(item.paid_minor,'0');
+    assert.equal(item.history[0].id,credit.id);assert.equal(item.history[0].amount_minor,'1000');
+    const payment=paymentIntent(f,original,'2000','2000');await recordPayment(f,payment);
+    assert.deepEqual(await projection(),{total:'60.00',amount_paid:'20.00',balance_due:'30.00',status:'part_paid'});
+    // A further credit must remain possible after a canonical cash payment.
+    const next=await creditDoc(f,original,'0.1');await post(f,next);
+    report=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-10-21')).data;
+    item=report.open_items.find((d:any)=>d.id===original.id);
+    assert.equal(item.open_minor,'2400');assert.equal(item.credited_minor,'1600');assert.equal(item.paid_minor,'2000');
+    assert.equal(item.history.length,3);assert.equal(item.history.find((e:any)=>e.id===payment.id).amount_minor,'2000');
+    assert.equal((await request(f.company,`/accounting-documents/${original.id}`)).data.status,'posted');
+    assert.deepEqual(await projection(),{total:'60.00',amount_paid:'20.00',balance_due:'24.00',status:'part_paid'});
+    await recordPayment(f,paymentIntent(f,original,'1000','1000',{kind:'unallocation',payment_id:payment.id}));
+    assert.deepEqual(await projection(),{total:'60.00',amount_paid:'10.00',balance_due:'34.00',status:'part_paid'});
+    const full=await create(f,credit.kind,{...credit.source,invoice_number:'FINAL-CREDIT-'+randomUUID(),line_items:[{...credit.source.line_items[0],unit_price:'34'}]},
+      {original_id:original.id,reason:'Remaining agreed reduction',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-21',original_line_refs:[0]});
+    await post(f,full);
+    assert.deepEqual(await projection(),{total:'60.00',amount_paid:'10.00',balance_due:'0.00',status:'paid'});
+    const bank=randomUUID();
+    await admin.query(`INSERT INTO bank_transactions(id,company_id,date,description,money_in,money_out,status)
+      VALUES($1,$2,'2026-10-21','Synthetic old matching guard',$3,$4,'unmatched')`,[bank,f.company,kind==='sales_invoice'?'1':'0',kind==='purchase_bill'?'1':'0']);
+    await assert.rejects(()=>applyReconciliationApproval(bank,[{record_type:kind as any,record_id:original.id}],actor),/Use Payments/);
+    await assert.rejects(()=>applyNonPaymentReconciliationMatch(bank,{record_type:credit.kind,record_id:credit.id},actor),/Use Payments/);
+    assert.equal((await admin.query('SELECT status FROM bank_transactions WHERE id=$1',[bank])).rows[0].status,'unmatched');
+    assert.deepEqual(await projection(),{total:'60.00',amount_paid:'10.00',balance_due:'0.00',status:'paid'});
+  }
+  const final=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-10-21')).data;
+  assert.equal(final.balance_sheet.balanced,true);assert.equal(final.pnl.profit_minor,'0');
+  assert.equal(final.vat.box1_pence,final.vat.box4_pence);
+});
 test('W06 customer excess, refunds, later allocations and undo reconcile cash, statements and historical VAT',async()=>{
   const f=await fixture(),sale=await create(f,'sales_invoice',source(f.customer));await post(f,sale);
   const b=paymentIntent(f,sale);const reviewed=await reviewPayment(f,b);
