@@ -49,7 +49,7 @@ export default function BankTransactions() {
     try {
       const result = await invokeApiFunction('suggestTransactionMatches', { company_id: activeCompany.id });
       // The compatibility client returns the route body directly, while the
-      // historical Base44 client wrapped it in `data`.
+      // older clients wrapped it in `data`.
       setSuggestions(result?.data?.suggestions ?? result?.suggestions ?? {});
     } catch (e) { console.error(e); }
   };

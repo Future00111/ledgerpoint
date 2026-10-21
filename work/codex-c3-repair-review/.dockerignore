@@ -1,8 +1,0 @@
-.git
-.agents
-.local
-attached_assets
-**/node_modules
-**/dist
-**/.cache
-**/*.log

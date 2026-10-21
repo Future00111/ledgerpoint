@@ -6,3 +6,5 @@ attached_assets
 **/dist
 **/.cache
 **/*.log
+/.migration-backup
+/work

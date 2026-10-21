@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import WorkspaceShell from './WorkspaceShell';
 import WorkspaceSkeleton from './WorkspaceSkeleton';
 import { renderCard } from './workspaceCardRegistry';
@@ -33,7 +33,7 @@ const SPAN = { full: 'lg:col-span-3', 2: 'lg:col-span-2', 1: 'lg:col-span-1' };
 // contextPanel:     [card config]  (stacked in the right panel)
 // =============================================================================
 export default function WorkspaceEngine({
-  type,            // 'customer' | 'supplier' | 'invoice' | ... (analytics + theming)
+  type,            // 'customer' | 'supplier' | 'invoice' | ...
   open,
   onOpenChange,
   loading = false,
@@ -49,12 +49,6 @@ export default function WorkspaceEngine({
   leftCards = [],
   rightCards = [],
 }) {
-  useEffect(() => {
-    if (open && type) {
-      base44.analytics?.track?.({ eventName: 'workspace_opened', properties: { workspace_type: type } });
-    }
-  }, [open, type]);
-
   // Single-scroll two-column layout (no tabs): ordered left working column and
   // a sticky right context column. Used by the redesigned customer profile.
   if (layout === 'columns') {

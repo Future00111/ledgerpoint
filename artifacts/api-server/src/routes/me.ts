@@ -1,6 +1,6 @@
 /**
  * /api/me — returns the current authenticated user info from Clerk session.
- * Replaces base44.auth.me()
+ * Returns the signed-in user's native profile.
  */
 import { Router, type Request, type Response } from "express";
 import { getAuth, clerkClient } from "@clerk/express";

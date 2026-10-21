@@ -475,7 +475,7 @@ async function updateEntity(req: Request, res: Response) {
 
     const updateData = { ...req.body };
     delete updateData["id"];
-    // Legacy Base44-compatible clients used empty strings to clear relations.
+    // Older clients used empty strings to clear relations.
     // PostgreSQL UUID columns require null instead; normalise at the boundary
     // so an otherwise valid match can never fail with a 500 response.
     if (entityName === "BankTransaction") {

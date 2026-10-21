@@ -7,9 +7,8 @@
  *  3. Verify the requesting user is a member of that company.
  *  4. Reject read_only members on any write operation.
  *
- * AI-powered functions (askAI, generateInsights, createRecordFromDocument)
- * return a clear "not yet available" 503 so callers surface honest UI feedback.
- * suggestTransactionMatches is implemented with a rule-based matcher (no AI).
+ * askAI uses the native AI service. Unavailable integrations fail explicitly.
+ * suggestTransactionMatches uses the shared reconciliation analysis service.
  */
 import { Router, type Request, type Response } from "express";
 import { db } from "@workspace/db";
@@ -24,18 +23,10 @@ import {
   companiesTable,
   salesInvoicesTable,
   purchaseBillsTable,
-  salesCreditNotesTable,
-  supplierCreditNotesTable,
   bankTransactionsTable,
   bankAccountsTable,
   chartOfAccountsTable,
-  customersTable,
-  suppliersTable,
-  documentsTable,
   aiReconciliationResultsTable,
-  vatReturnsTable,
-  journalEntriesTable,
-  emailCaptureLogsTable,
   bankAutomationSettingsTable,
 } from "@workspace/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
@@ -84,10 +75,12 @@ async function assertWriteAccess(
   return true;
 }
 
-// ─── AI functions not yet fully implemented (honest 503) ─────────────────────
-const UNIMPLEMENTED_AI_FUNCTIONS = new Set([
+// ─── Unavailable integration functions (honest 503) ─────────────────────
+const UNAVAILABLE_FUNCTIONS = new Set([
   "generateInsights",
   "createRecordFromDocument",
+  "mockScanEmails",
+  "getAccountantClientList",
 ]);
 
 // ─── POST /api/functions/:name ────────────────────────────────────────────────
@@ -96,18 +89,18 @@ router.post("/:name", async (req: Request, res: Response) => {
   const funcName = req.params["name"] as string;
   const args = req.body as Record<string, unknown>;
   if (["postPurchaseBill","generateSalesInvoiceJournals","generatePurchaseBillJournals",
-    "postSalesCreditNote","postSupplierCreditNote","applySalesCreditNote","applySupplierCreditNote"].includes(funcName)) {
+    "postSalesInvoice","postSalesCreditNote","postSupplierCreditNote","applySalesCreditNote","applySupplierCreditNote"].includes(funcName)) {
     res.status(403).json({error:"Use the protected native accounting document review/post workflow. Legacy financial effects are disabled."});
     return;
   }
-  if (funcName === "generateDemoData") {
-    res.status(403).json({ error: "Demo invoice generation is held during protected draft workflow development" });
+  if (["generateDemoData", "resetDemoData", "manageDemoCompany"].includes(funcName)) {
+    res.status(410).json({ code: "LEGACY_DEMO_RETIRED", error: "Legacy demo management has been retired. Use the native accounting screens for sample records." });
     return;
   }
 
-  if (UNIMPLEMENTED_AI_FUNCTIONS.has(funcName)) {
+  if (UNAVAILABLE_FUNCTIONS.has(funcName)) {
     res.status(503).json({
-      error: `${funcName} requires additional implementation and is not yet available. This feature is coming soon.`,
+      error: `${funcName} requires additional implementation and is not yet available.`,
       notYetAvailable: true,
     });
     return;
@@ -600,38 +593,6 @@ router.post("/:name", async (req: Request, res: Response) => {
         break;
       }
 
-      // ── postSalesInvoice ─────────────────────────────────────────────────
-      case "postSalesInvoice": {
-        // The legacy implementation only flipped a status; it is not canonical posting.
-        res.status(403).json({ error: "Invoice posting requires approved canonical source/context providers" });
-        return;
-      }
-
-      // ── postPurchaseBill ─────────────────────────────────────────────────
-      case "postPurchaseBill": {
-        const { bill_id } = args as { bill_id: string };
-        if (!bill_id) { res.status(400).json({ error: "bill_id is required" }); return; }
-
-        // Step 1: load the bill to get its ACTUAL company_id
-        const [bill] = await db
-          .select({ company_id: purchaseBillsTable.company_id })
-          .from(purchaseBillsTable)
-          .where(eq(purchaseBillsTable.id, bill_id))
-          .limit(1);
-        if (!bill) { res.status(404).json({ error: "Bill not found" }); return; }
-
-        // Step 2: verify write access for the bill's actual company
-        if (!(await assertWriteAccess(userId, bill.company_id, res))) return;
-
-        await db
-          .update(purchaseBillsTable)
-          .set({ status: "posted", updated_at: new Date() })
-          .where(eq(purchaseBillsTable.id, bill_id));
-
-        res.json({ success: true });
-        break;
-      }
-
       // ── suggestTransactionMatches ────────────────────────────────────────
       case "suggestTransactionMatches": {
         const { company_id: argCompanyId, bank_transaction_id } = args as {
@@ -700,14 +661,6 @@ router.post("/:name", async (req: Request, res: Response) => {
           aiExplanation: persistAnalysis && Boolean(bank_transaction_id),
         });
         res.json(output);
-        break;
-      }
-
-      // ── generateSalesInvoiceJournals / generatePurchaseBillJournals ──────
-      case "generateSalesInvoiceJournals":
-      case "generatePurchaseBillJournals": {
-        // Full double-entry journal generation is part of Task 2 (AI integration).
-        res.json({ success: true, message: "Journal generation will be available with the AI accounting integration." });
         break;
       }
 
@@ -782,224 +735,6 @@ router.post("/:name", async (req: Request, res: Response) => {
         res.json({ data: companies });
         break;
       }
-
-      // ── generateDemoData (development only) ──────────────────────────────
-      // The original Base44 generator is not available in this workspace.
-      // Keep the development control useful by generating real, reviewable
-      // bank data through the same validated schema used by manual entry.
-      case "generateDemoData": {
-        const { company_id, months, random } = args as {
-          company_id?: string;
-          months?: number;
-          random?: boolean;
-        };
-        if (process.env.NODE_ENV === "production") {
-          res.status(403).json({ error: "Demo data generation is unavailable in production" });
-          return;
-        }
-        if (!company_id || !(await assertWriteAccess(userId, company_id, res))) return;
-
-        const monthCount = random ? 1 : Math.max(1, Math.min(12, Math.round(Number(months) || 1)));
-        const transactionCount = random ? 12 : monthCount * 8;
-        const created = await db.transaction(async (tx) => {
-          let [account] = await tx.select().from(bankAccountsTable)
-            .where(eq(bankAccountsTable.company_id, company_id)).limit(1);
-          if (!account) {
-            [account] = await tx.insert(bankAccountsTable).values({
-              company_id,
-              account_name: "Development Current Account",
-              bank_name: "Ledgerly Demo Bank",
-              currency: "GBP",
-              account_type: "current",
-              status: "active",
-              connection_type: "manual",
-              opening_balance: "0.00",
-              current_balance: "0.00",
-            }).returning();
-          }
-
-          const rows = [];
-          let customerCount = 0;
-          let supplierCount = 0;
-          let invoiceCount = 0;
-          let billCount = 0;
-          for (let i = 0; i < transactionCount; i += 1) {
-            const isIncome = i % 3 === 0;
-            const amount = (25 + ((i * 17) % 175) + (i % 4) * 0.5).toFixed(2);
-            const date = new Date(Date.now() - (i * 3 + 1) * 86400000).toISOString().slice(0, 10);
-            const reference = `DEV-${Date.now()}-${i + 1}`;
-            let description = `${random ? "Random" : "Generated"} development transaction ${i + 1}`;
-
-            if (isIncome) {
-              const customerName = `Development Customer ${i + 1}`;
-              const [customer] = await tx.insert(customersTable).values({
-                company_id,
-                name: customerName,
-                customer_reference: `DEV-CUST-${i + 1}`,
-                payment_terms: 30,
-                status: "active",
-              }).returning();
-              customerCount += 1;
-              const invoiceNumber = `DEV-INV-${Date.now()}-${i + 1}`;
-              await tx.insert(salesInvoicesTable).values({
-                company_id,
-                customer_id: customer.id,
-                customer_name: customerName,
-                invoice_number: invoiceNumber,
-                issue_date: date,
-                due_date: date,
-                payment_terms: 30,
-                reference,
-                line_items: [{ description: "Development service", quantity: 1, unit_price: amount, amount }],
-                subtotal: amount,
-                vat_total: "0.00",
-                total: amount,
-                amount_paid: "0.00",
-                balance_due: amount,
-                status: "posted",
-              });
-              invoiceCount += 1;
-              description = `Payment from ${customerName} ${invoiceNumber}`;
-            } else {
-              const supplierName = `Development Supplier ${i + 1}`;
-              const [supplier] = await tx.insert(suppliersTable).values({
-                company_id,
-                name: supplierName,
-                supplier_reference: `DEV-SUP-${i + 1}`,
-                payment_terms: 30,
-                status: "active",
-              }).returning();
-              supplierCount += 1;
-              const billNumber = `DEV-BILL-${Date.now()}-${i + 1}`;
-              await tx.insert(purchaseBillsTable).values({
-                company_id,
-                supplier_id: supplier.id,
-                supplier_name: supplierName,
-                bill_number: billNumber,
-                bill_date: date,
-                due_date: date,
-                payment_terms: 30,
-                reference,
-                line_items: [{ description: "Development expense", quantity: 1, unit_price: amount, amount }],
-                subtotal: amount,
-                vat_total: "0.00",
-                total: amount,
-                amount_paid: "0.00",
-                balance_due: amount,
-                status: "posted",
-                category: "other",
-              });
-              billCount += 1;
-              description = `Payment to ${supplierName} ${billNumber}`;
-            }
-            const [row] = await tx.insert(bankTransactionsTable).values({
-              company_id,
-              bank_account_id: account.id,
-              date,
-              description,
-              reference,
-              amount,
-              money_in: isIncome ? amount : "0.00",
-              money_out: isIncome ? "0.00" : amount,
-              balance: "0.00",
-              transaction_type: isIncome ? "income" : "expense",
-              status: "review",
-              matched_type: null,
-              matched_record_id: null,
-              matched_record_number: null,
-              linked_invoice_id: null,
-              linked_bill_id: null,
-              linked_credit_note_id: null,
-              category: isIncome ? "sales" : "other",
-              vat_rate: "0.00",
-            }).returning();
-            rows.push(row);
-          }
-          return {
-            rows,
-            counts: {
-              customers: customerCount,
-              suppliers: supplierCount,
-              sales_invoices: invoiceCount,
-              purchase_bills: billCount,
-            },
-          };
-        });
-        res.json({
-          success: true,
-          counts: {
-            bank_accounts: 1,
-            bank_transactions: created.rows.length,
-            ...created.counts,
-          },
-        });
-        break;
-      }
-
-      // ── resetDemoData (development only) ─────────────────────────────────
-      // Deliberately separate from normal entity deletion: this is the
-      // development workspace's explicit "start fresh" control. Production
-      // never exposes it, and the active company is derived from a verified
-      // membership before any deletion can occur.
-      case "resetDemoData": {
-        const { company_id, target } = args as { company_id?: string; target?: string };
-        if (target === "documents" || target === "everything") {
-          res.status(403).json({ error: "Invoice reset is held; protected draft/audit evidence must be preserved" });
-          return;
-        }
-        const allowedTargets = new Set(["transactions", "customers", "suppliers", "documents", "everything"]);
-        if (process.env.NODE_ENV === "production") {
-          res.status(403).json({ error: "Development data reset is unavailable in production" });
-          return;
-        }
-        if (!company_id || !target || !allowedTargets.has(target)) {
-          res.status(400).json({ error: "A company and valid reset target are required" });
-          return;
-        }
-        if (!(await assertWriteAccess(userId, company_id, res))) return;
-
-        const deleted = await db.transaction(async (tx) => {
-          const counts: Record<string, number> = {};
-          const remove = async (name: string, table: any) => {
-            const rows = await tx.delete(table).where(eq(table.company_id, company_id)).returning({ id: table.id });
-            counts[name] = rows.length;
-          };
-
-          if (target === "transactions" || target === "everything") await remove("transactions", bankTransactionsTable);
-          if (target === "documents" || target === "everything") {
-            await remove("documents", documentsTable);
-            await remove("email_capture_logs", emailCaptureLogsTable);
-          }
-          if (target === "everything") {
-            await remove("journal_entries", journalEntriesTable);
-            await remove("vat_returns", vatReturnsTable);
-            await remove("sales_credit_notes", salesCreditNotesTable);
-            await remove("supplier_credit_notes", supplierCreditNotesTable);
-            await remove("sales_invoices", salesInvoicesTable);
-            await remove("purchase_bills", purchaseBillsTable);
-            await remove("bank_accounts", bankAccountsTable);
-            await remove("chart_of_accounts", chartOfAccountsTable);
-          }
-          if (target === "customers" || target === "everything") await remove("customers", customersTable);
-          if (target === "suppliers" || target === "everything") await remove("suppliers", suppliersTable);
-          return counts;
-        });
-        res.json({ success: true, deleted });
-        break;
-      }
-
-      // ── safe stubs ───────────────────────────────────────────────────────
-      case "mockScanEmails":
-        res.json({ success: true, message: "Email scanning is not yet configured for this environment." });
-        break;
-
-      case "getAccountantClientList":
-        res.json({ data: [] });
-        break;
-
-      case "manageDemoCompany":
-        res.json({ success: true, message: `${funcName} is only available in the Base44 demo environment.` });
-        break;
 
       default:
         res.status(404).json({ error: `Unknown function: ${funcName}` });

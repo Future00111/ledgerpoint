@@ -11,8 +11,8 @@ as history. Existing accounting, access, security, audit, and deployment
 policies remain in force; a product target does not silently settle an
 unresolved calculation or authorize an external action.
 
-The current implementation starts with a usable native invoice-draft journey
-and the active-runtime Base44 removal. Make small changes that work in the
+The current implementation uses native invoice, bill and credit workflows,
+protected journal posting and connected reports. Make small changes that work in the
 preview, run focused checks, then provide a concise commit/PR summary. Avoid
 planning-only cycles and repeated approval requests for already-authorized
 reversible development. Preserve authentication, company isolation, protected
@@ -67,7 +67,8 @@ historical; they do not compete with the active product plan.
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+See `README.md` for the native application map. Historical migration and C3/C4
+source copies are retained in Git history and excluded from the active workspace.
 
 ## Architecture decisions
 
