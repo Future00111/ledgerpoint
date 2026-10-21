@@ -4,6 +4,13 @@ import { createInvoiceDraftClient, invoiceSource, displayPence } from "./invoice
 const form = {customer_id:"customer",invoice_number:"DRAFT-1",issue_date:"2026-10-20",due_date:"2026-11-20",
   payment_terms:30,reference:"",notes:"",total:999,status:"paid",company_id:"forged",
   line_items:[{description:"Fixture",quantity:"1.2345",unit_price:"2.3456",tax_code:"reviewed",amount:9}]};
+test("client sends selected basis, defaults legacy forms, and never converts typed amounts", () => {
+  assert.equal(invoiceSource(form).price_basis,"excluding_vat");
+  const inclusive = invoiceSource({...form,price_basis:"including_vat"});
+  assert.equal(inclusive.price_basis,"including_vat");
+  assert.equal(inclusive.line_items[0].unit_price,form.line_items[0].unit_price);
+  assert.equal(invoiceSource({...form,price_basis:"including_vat"},true).price_basis,"including_vat");
+});
 test("explicit client DTO preserves source text and excludes financial/tenant/status authority", () => {
   const dto = invoiceSource(form);
   assert.equal(dto.line_items[0].quantity,"1.2345");

@@ -12,7 +12,7 @@ import { InvoiceDraftService, type DraftAuthority } from "./invoiceService";
 import { contextRevision, createProductionInvoiceDraftAuthority } from "./productionAuthority";
 import { invoiceDraftRouter } from "./router";
 import { verifyDraftBody, draftParserErrors } from "./jsonBoundary";
-import { fail } from "./contract";
+import { fail, draftSourceFingerprint } from "./contract";
 import { genericEntityWriteBoundary } from "../../routes/entityWritePolicy";
 
 let dir: string, admin: pg.Pool, runtime: pg.Pool, server: ReturnType<ReturnType<typeof express>["listen"]>;
@@ -35,13 +35,16 @@ const authority: DraftAuthority = {
     if(auditFailure) await _tx.query("SELECT set_config('w03.fixture_audit_failure','on',true)");
     const context={company:{country:"GB",currency:"GBP",vat_registered:true,vat_scheme:"standard",
       vat_accounting_basis:"invoice"},issue_date:input.issue_date,rounding:"synthetic fixture",
+      price_basis:input.price_basis,source_fingerprint:draftSourceFingerprint(input),
       lines:input.line_items.map((line,index)=>({rule_id:"SYNTHETIC_RULE",code:line.tax_code,label:"Synthetic rule",
         treatment:"standard",rate:"20.00",effective_from:"2026-01-01",effective_to:"",
+        price_basis:input.price_basis,entered_unit_price:line.unit_price,unit_net_price:line.unit_price,
         net_pence:net[index]!.toString(),vat_pence:((net[index]!*20n)/100n).toString()}))};
     return {transactionBound:true,
       // Deliberately malformed runtime provider result in a negative-control fixture.
       contextRevision:(malformedTaxContext ? 42 : contextRevision(context)) as unknown as string,
-      context, vatPence:net.map(n=>(n*20n/100n).toString())};
+      context, vatPence:net.map(n=>(n*20n/100n).toString()),
+      netPence:net.map(String),unitNetPrices:input.line_items.map(line=>line.unit_price)};
   }
 };
 const env = () => ({PATH:process.env.PATH!,HOME:dir,LANG:"C",LC_ALL:"C"});
@@ -99,6 +102,12 @@ before(async()=>{
     VALUES($1,$2,'SYNTHETIC_5','Synthetic reduced rule',5,'reduced','1997-09-01',NULL,true)`,
   [randomUUID(),company]);
   noVatCompany=randomUUID(); noVatCustomer=randomUUID();
+  for (const treatment of ["zero","exempt","outside_scope"]) {
+    await admin.query(`INSERT INTO vat_tax_rules
+      (id,company_id,code,label,rate,treatment,effective_from,effective_to,is_active)
+      VALUES($1,$2,$3,$4,0,$5,'2026-01-01',NULL,true)`,
+      [randomUUID(),company,"SYNTHETIC_"+treatment.toUpperCase(),"Synthetic "+treatment,treatment]);
+  }
   await admin.query(`INSERT INTO companies(id,name,country,base_currency,vat_registered,vat_scheme,vat_accounting_basis)
     VALUES($1,'Synthetic Non-VAT Company','GB','GBP',false,'standard','invoice')`,[noVatCompany]);
   await admin.query("INSERT INTO company_users VALUES($1,$2,'synthetic-user','owner',true)",[randomUUID(),noVatCompany]);
@@ -169,7 +178,7 @@ test("read-only invoice context returns only the active member's company custome
   assert.equal(result.data.company.id,company);
   assert.equal(result.data.company.vat_registered,true);
   assert.deepEqual(result.data.customers.map(row=>row.id),[customer]);
-  assert.deepEqual(result.data.tax_rules.map(row=>row.code),["SYNTHETIC_20","SYNTHETIC_5"]);
+  assert.deepEqual(result.data.tax_rules.map(row=>row.code),["SYNTHETIC_20","SYNTHETIC_5","SYNTHETIC_EXEMPT","SYNTHETIC_OUTSIDE_SCOPE","SYNTHETIC_ZERO"]);
   assert.equal(result.data.can_write_draft,true);
   await admin.query("UPDATE company_users SET role='read_only' WHERE company_id=$1",[company]);
   const readOnly=await payload(await request("GET",undefined,"/context")) as typeof result;
@@ -194,7 +203,7 @@ test("production authority saves and reopens exact-penny standard VAT and non-VA
   const standardRead=await payload(standardReadResponse);
   assert.deepEqual(standardRead.data.money.lines,[{net_pence:"10000",vat_pence:"2000",gross_pence:"12000"}]);
   assert.equal((standardRead.data.tax_context as {lines:Array<{code:string;rate:string}>}).lines[0]!.code,"SYNTHETIC_20");
-  assert.equal((standardRead.data.tax_context as {rounding:{contract:string;method:string}}).rounding.contract,"w03.money.dev.v2");
+  assert.equal((standardRead.data.tax_context as {rounding:{contract:string;method:string}}).rounding.contract,"w03.money.dev.v3");
   assert.equal((standardRead.data.tax_context as {rounding:{contract:string;method:string}}).rounding.method,"nearest-penny-half-up");
   const storedAudit=await admin.query("SELECT tax_context FROM w03_invoice_draft_audit WHERE invoice_id=$1",[saved.data.id]);
   assert.equal(storedAudit.rows[0]!.tax_context.lines[0].label,"Synthetic standard rule");
@@ -260,6 +269,90 @@ test("production authority rounds each line half-up, sums saved lines, and reope
   assert.deepEqual((await payload(quantityResponse)).data.money.lines,[
     {net_pence:"290",vat_pence:"58",gross_pence:"348"},
   ]);
+});
+test("native inclusive prices extract VAT by each effective rate and preserve entered/net read fields",async()=>{
+  const cases = [
+    ["120","1","SYNTHETIC_20","10000","2000","12000"],
+    ["105","1","SYNTHETIC_5","10000","500","10500"],
+    ["0.03","1","SYNTHETIC_20","2","1","3"],
+    ["19.99","2.5","SYNTHETIC_20","4165","833","4998"],
+    ["100","1","SYNTHETIC_ZERO","10000","0","10000"],
+    ["100","1","SYNTHETIC_EXEMPT","10000","0","10000"],
+    ["100","1","SYNTHETIC_OUTSIDE_SCOPE","10000","0","10000"],
+  ];
+  for (const [price,quantity,code,net,vat,gross] of cases) {
+    const input={...source(),price_basis:"including_vat",
+      line_items:[{description:"Inclusive fixture",quantity:quantity!,unit_price:price!,tax_code:code!}]};
+    const response=await nativeRequest(company,"POST",input);
+    assert.equal(response.status,201,await response.clone().text());
+    const saved=(await payload(response)).data;
+    assert.deepEqual([saved.money.net_pence,saved.money.vat_pence,saved.money.gross_pence],[net,vat,gross]);
+    const reopenedResponse=await nativeRequest(company,"GET",undefined,"/"+saved.id);
+    assert.equal(reopenedResponse.status,200);
+    const reopened=(await payload(reopenedResponse)).data;
+    assert.deepEqual(reopened.money,saved.money);
+    const stored=(await admin.query("SELECT line_items FROM sales_invoices WHERE id=$1",[saved.id])).rows[0]!.line_items[0];
+    assert.equal(stored.entered_unit_price,price);
+    assert.equal(stored.price_basis,"including_vat");
+    if(price==="120") assert.equal(stored.unit_price,"100.0000"); // net, never relabelled gross
+  }
+  const mixed={...source(),price_basis:"including_vat",line_items:[
+    {description:"20%",quantity:"1",unit_price:"120",tax_code:"SYNTHETIC_20"},
+    {description:"5%",quantity:"1",unit_price:"105",tax_code:"SYNTHETIC_5"},
+    {description:"Zero",quantity:"1",unit_price:"100",tax_code:"SYNTHETIC_ZERO"},
+    {description:"Exempt",quantity:"1",unit_price:"100",tax_code:"SYNTHETIC_EXEMPT"}]};
+  const mixedResponse=await nativeRequest(company,"POST",mixed);
+  assert.equal(mixedResponse.status,201,await mixedResponse.clone().text());
+  const m=(await payload(mixedResponse)).data.money;
+  assert.deepEqual([m.net_pence,m.vat_pence,m.gross_pence],["40000","2500","42500"]);
+});
+test("basis changes bind source/context fingerprints, retain revisions and never replay duplicate creates",async()=>{
+  const input={...source(),customer_id:noVatCustomer,price_basis:"excluding_vat",
+    line_items:[{description:"No VAT fixture",quantity:"2.5",unit_price:"19.99",tax_code:"NO_VAT"}]};
+  const createdResponse=await nativeRequest(noVatCompany,"POST",input);
+  assert.equal(createdResponse.status,201);
+  const created=(await payload(createdResponse)).data;
+  const changedResponse=await nativeRequest(noVatCompany,"PATCH",{contract:"w03.draft.v1",price_basis:"including_vat"},
+    "/"+created.id,created.revision);
+  assert.equal(changedResponse.status,200,await changedResponse.clone().text());
+  const changed=(await payload(changedResponse)).data;
+  assert.deepEqual(changed.money,created.money);
+  assert.deepEqual([changed.money.net_pence,changed.money.vat_pence,changed.money.gross_pence],["4998","0","4998"]);
+  const before=created.tax_context as {source_fingerprint:string};
+  const after=changed.tax_context as {source_fingerprint:string};
+  assert.notEqual(before.source_fingerprint,after.source_fingerprint);
+  const reopenedResponse=await nativeRequest(noVatCompany,"GET",undefined,"/"+created.id);
+  assert.equal(reopenedResponse.status,200);
+  const reopened=(await payload(reopenedResponse)).data;
+  assert.equal((reopened.source as unknown as {price_basis:string}).price_basis,"including_vat");
+  assert.deepEqual(reopened.money,changed.money);
+  assert.equal((await nativeRequest(noVatCompany,"PATCH",{contract:"w03.draft.v1",price_basis:"excluding_vat"},
+    "/"+created.id,created.revision)).status,409);
+  const duplicate=await nativeRequest(noVatCompany,"POST",{...input,price_basis:"including_vat"});
+  assert.equal(duplicate.status,409);
+  assert.equal((await payload(duplicate)).error.code,"NUMBER_CONFLICT");
+  const audit=(await admin.query("SELECT before_source,after_source FROM w03_invoice_draft_audit WHERE invoice_id=$1 AND operation='update'",[created.id])).rows;
+  assert.equal(audit.length,1);
+  assert.equal(audit[0]!.before_source.price_basis,"excluding_vat");
+  assert.equal(audit[0]!.after_source.price_basis,"including_vat");
+  const invalid=await nativeRequest(noVatCompany,"POST",{...input,invoice_number:"INVALID-"+randomUUID(),price_basis:"gross"});
+  assert.equal(invalid.status,422);
+});
+test("old drafts hydrate excluding without rewriting source, amounts, revision or audit",async()=>{
+  const response=await nativeRequest(company,"POST",source());
+  assert.equal(response.status,201);
+  const saved=(await payload(response)).data;
+  await admin.query(`UPDATE w03_invoice_drafts SET source=source-'price_basis',
+    tax_context=tax_context-'price_basis'-'source_fingerprint' WHERE invoice_id=$1`,[saved.id]);
+  const count=Number((await admin.query("SELECT count(*) n FROM w03_invoice_draft_audit WHERE invoice_id=$1",[saved.id])).rows[0]!.n);
+  const readResponse=await nativeRequest(company,"GET",undefined,"/"+saved.id);
+  assert.equal(readResponse.status,200);
+  const read=(await payload(readResponse)).data;
+  assert.equal((read.source as unknown as {price_basis:string}).price_basis,"excluding_vat");
+  assert.equal(read.revision,saved.revision);
+  assert.deepEqual(read.money,saved.money);
+  assert.equal((await admin.query("SELECT source ? 'price_basis' present FROM w03_invoice_drafts WHERE invoice_id=$1",[saved.id])).rows[0]!.present,false);
+  assert.equal(Number((await admin.query("SELECT count(*) n FROM w03_invoice_draft_audit WHERE invoice_id=$1",[saved.id])).rows[0]!.n),count);
 });
 test("native reopen fails closed without source-lock privilege, then edits and reopens the same draft with minimal grants",async()=>{
   const input=source();

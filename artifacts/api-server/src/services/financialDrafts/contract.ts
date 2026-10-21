@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 /** W03 development fixtures, pending accounting acceptance; not VAT eligibility. */
 export class DraftError extends Error {
   constructor(public status: number, public code: string, public path = "") {
@@ -16,6 +17,7 @@ export interface DraftLine {
 export interface InvoiceSource {
   contract: "w03.draft.v1";
   currency: "GBP";
+  price_basis?: "excluding_vat" | "including_vat";
   customer_id: string;
   invoice_number: string;
   issue_date: string;
@@ -26,7 +28,7 @@ export interface InvoiceSource {
   line_items: DraftLine[];
 }
 const fields = ["contract", "currency", "customer_id", "invoice_number", "issue_date",
-  "due_date", "payment_terms", "reference", "notes", "line_items"];
+  "due_date", "payment_terms", "reference", "notes", "line_items", "price_basis"];
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export function uuid(value: unknown): string {
   if (typeof value !== "string" || !uuidPattern.test(value)) fail(400, "INVALID_REQUEST_SHAPE");
@@ -72,6 +74,8 @@ export function parseInvoice(body: unknown, previous?: InvoiceSource): InvoiceSo
   if (previous && Object.keys(input).length < 2) fail(422, "FIELD_INVALID");
   const data = { ...previous, ...input };
   if (data.currency !== "GBP") fail(422, "FIELD_INVALID", "/currency");
+  const basis = data.price_basis === undefined ? "excluding_vat" : data.price_basis;
+  if (basis !== "excluding_vat" && basis !== "including_vat") fail(422, "FIELD_INVALID", "/price_basis");
   const issue = date(data.issue_date, "/issue_date"), due = date(data.due_date, "/due_date");
   if (due < issue || !Number.isInteger(data.payment_terms) ||
       Number(data.payment_terms) < 0 || Number(data.payment_terms) > 365) fail(422, "FIELD_INVALID");
@@ -86,12 +90,16 @@ export function parseInvoice(body: unknown, previous?: InvoiceSource): InvoiceSo
       quantity: l.quantity as string, unit_price: l.unit_price as string,
       tax_code: text(l.tax_code, 64, `/line_items/${i}/tax_code`, true) };
   });
-  return { contract: "w03.draft.v1", currency: "GBP", customer_id: uuid(data.customer_id),
+  return { contract: "w03.draft.v1", currency: "GBP", price_basis: basis, customer_id: uuid(data.customer_id),
     invoice_number: text(data.invoice_number, 64, "/invoice_number", true),
     issue_date: issue, due_date: due, payment_terms: data.payment_terms as number,
     reference: text(data.reference === undefined ? "" : data.reference, 200, "/reference"),
     notes: text(data.notes === undefined ? "" : data.notes, 4000, "/notes", false, true),
     line_items: lines.map(line => ({ ...line, tax_code: line.tax_code.toUpperCase() })) };
+}
+export function draftSourceFingerprint(source: InvoiceSource): string {
+  // Canonical validation/defaulting means an absent legacy basis equals excluding.
+  return `sha256:${createHash("sha256").update(JSON.stringify(parseInvoice(source))).digest("hex")}`;
 }
 export function netPence(lines: DraftLine[]): bigint[] {
   return lines.map((l, index) => {

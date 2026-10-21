@@ -13,7 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 const line = () => ({ description: '', quantity: '1', unit_price: '0', tax_code: '' });
 const initial = () => ({
-  customer_id: '', invoice_number: '', ...newInvoiceDates(),
+  customer_id: '', invoice_number: '', price_basis: 'excluding_vat', ...newInvoiceDates(),
   reference: '', notes: '', line_items: [line()],
 });
 export default function InvoiceForm() {
@@ -53,7 +53,7 @@ export default function InvoiceForm() {
         setCompanyContext(context);
         if (draft) {
           setAutomaticDueDate(false);
-          setForm(draft.source); setRevision(draft.revision);
+          setForm({ ...draft.source, price_basis: draft.source.price_basis ?? 'excluding_vat' }); setRevision(draft.revision);
           setMoney(draft.money ?? null); setTaxContext(draft.tax_context ?? null);
         }
       } catch (e) {
@@ -117,6 +117,7 @@ export default function InvoiceForm() {
     notes: form.notes,
     status: 'draft',
     preview: true,
+    price_basis: form.price_basis,
     previewTotalsAvailable: totalsAvailable,
     subtotal: totalsAvailable ? Number(money.net_pence) / 100 : null,
     vat_total: totalsAvailable ? Number(money.vat_pence) / 100 : null,
@@ -129,6 +130,7 @@ export default function InvoiceForm() {
       return {
         ...item,
         vat_rate: rule?.rate ?? '',
+        tax_treatment: rule?.treatment ?? '',
         vat_label: rule ? `${rule.code} · ${rule.label}` : (item.tax_code || 'Tax code not selected'),
         amount: computed ? Number(computed.net_pence) / 100 : null,
         vat_amount: computed ? Number(computed.vat_pence) / 100 : null,
@@ -152,8 +154,8 @@ export default function InvoiceForm() {
       <Button type="button" variant="outline" onClick={() => navigate('/invoices')}>Back to invoices</Button>
     </header>
     <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-      Draft only — not sent or posted. Enter prices before VAT and choose a company tax code valid on the invoice date.
-      <p className="mt-2">Supports GBP drafts with Standard invoice-basis VAT or a no-VAT treatment. Discounts, credit invoices and VAT-inclusive prices are not supported.</p>
+      Draft only — not sent or posted. Choose whether your prices include VAT and select a company tax code valid on the invoice date.
+      <p className="mt-2">Supports GBP drafts with Standard invoice-basis VAT or a no-VAT treatment. Discounts and credit invoices are not supported.</p>
     </div>
     {search.get('bank_transaction_id') && <p className="rounded-lg border p-3 text-sm text-muted-foreground">Saving this draft does not record a bank receipt or payment.</p>}
     {!allowed && <p role="alert" className="rounded-lg border border-red-300 p-4 text-sm text-red-900">Your current role cannot save invoice drafts.</p>}
@@ -190,8 +192,18 @@ export default function InvoiceForm() {
         </CardContent></Card>
         <Card><CardContent className="space-y-5 p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div><h2 className="text-lg font-semibold">Items</h2><p className="mt-1 text-sm text-muted-foreground">Enter prices before VAT and select a company tax code for each item.</p></div>
+            <div><h2 className="text-lg font-semibold">Items</h2><p className="mt-1 text-sm text-muted-foreground">Select a company tax code for each item.</p></div>
             <span className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">{form.line_items.length} line{form.line_items.length === 1 ? '' : 's'}</span>
+          </div>
+          <div className="space-y-2 rounded-lg bg-muted/40 p-4">
+            <Label htmlFor="price-basis">Prices are</Label>
+            <select id="price-basis" value={form.price_basis}
+              className="block w-full rounded-md border bg-background p-2.5 sm:max-w-xs"
+              onChange={e => change('price_basis', e.target.value)}>
+              <option value="excluding_vat">Excluding VAT</option>
+              <option value="including_vat">Including VAT</option>
+            </select>
+            <p className="text-sm text-muted-foreground">Changing this treats the same entered prices differently; amounts are not converted. Save draft to update the totals.</p>
           </div>
           {form.line_items.map((l, i) => <section key={i} className="space-y-4 rounded-xl border bg-background p-4" aria-label={`Invoice item ${i + 1}`}>
             <div className="flex items-center justify-between"><h3 className="font-medium">Item {i + 1}</h3>
@@ -200,7 +212,7 @@ export default function InvoiceForm() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2"><Label htmlFor={`line-${i}-description`}>Description</Label><Input className="mt-1.5" id={`line-${i}-description`} required maxLength={500} value={l.description} onChange={e => updateLine(i, 'description', e.target.value)} /></div>
               <div><Label htmlFor={`line-${i}-quantity`}>Quantity</Label><Input className="mt-1.5" id={`line-${i}-quantity`} required inputMode="decimal" value={l.quantity} onChange={e => updateLine(i, 'quantity', e.target.value)} /></div>
-              <div><Label htmlFor={`line-${i}-unit_price`}>Unit price (GBP)</Label><Input className="mt-1.5" id={`line-${i}-unit_price`} required inputMode="decimal" value={l.unit_price} onChange={e => updateLine(i, 'unit_price', e.target.value)} /></div>
+              <div><Label htmlFor={`line-${i}-unit_price`}>Unit price (GBP, {form.price_basis === 'including_vat' ? 'including' : 'excluding'} VAT)</Label><Input className="mt-1.5" id={`line-${i}-unit_price`} required inputMode="decimal" value={l.unit_price} onChange={e => updateLine(i, 'unit_price', e.target.value)} /></div>
               <div className="sm:col-span-2"><Label htmlFor={`line-${i}-tax_code`}>Company tax code</Label>
                 <select id={`line-${i}-tax_code`} required value={l.tax_code} className="mt-1.5 w-full rounded-md border bg-background p-2.5"
                   onChange={e => updateLine(i, 'tax_code', e.target.value)}>

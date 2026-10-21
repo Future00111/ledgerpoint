@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { canWriteDraft, checkDraftJson, decimal, money, netPence, parseInvoice } from "./contract";
+import { canWriteDraft, checkDraftJson, decimal, money, netPence, parseInvoice, draftSourceFingerprint } from "./contract";
 import { isGenericEntityWriteBlocked } from "../../routes/entityWritePolicy";
 import { InvoiceDraftService } from "./invoiceService";
 import { assertInvoiceSettlementReady } from "./settlementBoundary";
@@ -9,6 +9,19 @@ const source = () => ({ contract: "w03.draft.v1", currency: "GBP",
   customer_id: "11111111-1111-4111-8111-111111111111", invoice_number: "DRAFT-1",
   issue_date: "2026-10-20", due_date: "2026-11-19", payment_terms: 30,
   line_items: [{ description: "Fixture", quantity: "1.2345", unit_price: "2.3456", tax_code: "fixture-only" }] });
+test("price basis defaults for old drafts, validates strictly and binds canonical source fingerprints", () => {
+  const legacy = parseInvoice(source());
+  assert.equal(legacy.price_basis, "excluding_vat");
+  const inclusive = parseInvoice({ ...source(), price_basis: "including_vat" });
+  assert.equal(inclusive.line_items[0]!.unit_price, legacy.line_items[0]!.unit_price);
+  assert.equal(parseInvoice({ contract:"w03.draft.v1",notes:"edit" },inclusive).price_basis,"including_vat");
+  assert.notEqual(draftSourceFingerprint(legacy),draftSourceFingerprint(inclusive));
+  const {price_basis: _basis,...withoutBasis}=legacy;
+  assert.equal(draftSourceFingerprint(withoutBasis),draftSourceFingerprint(legacy));
+  for (const price_basis of [null, "", "inclusive", true, 1, {}]) {
+    assert.throws(()=>parseInvoice({...source(),price_basis}),/FIELD_INVALID/);
+  }
+});
 test("finite draft capabilities deny unknown, legacy, inactive and unconfigured Manager", () => {
   for (const role of ["owner","admin","accountant"]) assert.equal(canWriteDraft(role, true), true);
   for (const role of ["manager","read_only","member","staff","OWNER",null,undefined,{ toString: () => "owner" }]) {

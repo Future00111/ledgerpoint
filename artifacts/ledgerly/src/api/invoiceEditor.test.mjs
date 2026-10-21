@@ -8,6 +8,14 @@ test('new draft defaults use 30 calendar days, including month and leap boundari
   assert.equal(invoiceDueDate('2026-03-29', 30), '2026-04-28');
 });
 
+test('changing price basis retains all entered line text and dates', () => {
+  const form = {...newInvoiceDates('2026-10-21'),price_basis:'excluding_vat',
+    line_items:[{quantity:'2.5',unit_price:'19.99',tax_code:'DEMO_20'}]};
+  const changed = changeInvoiceFields(form,'price_basis','including_vat',true);
+  assert.equal(changed.price_basis,'including_vat');
+  assert.equal(changed.line_items,form.line_items);
+  assert.equal(changed.due_date,form.due_date);
+});
 test('only an untouched new-draft due date follows terms and invoice date', () => {
   const form = newInvoiceDates('2026-10-21');
   assert.equal(changeInvoiceFields(form, 'payment_terms', 15, true).due_date, '2026-11-05');

@@ -98,10 +98,31 @@ Clerk authentication and web workflow unchanged.
 - Synthetic standard 20% starts 2011-01-04; reduced 5% starts 1997-09-01.
   Earlier dates are rejected; this is not full historical tax coverage.
 
-The development calculation rounds each line net, then VAT, to the nearest
-penny half-up using integer arithmetic. Totals sum saved rounded lines without
-another VAT round. Unsupported discounts, credit/negative invoices,
-VAT-inclusive prices and unsupported VAT schemes still fail closed.
+Use **Prices are: Excluding VAT / Including VAT** near the items. Excluding is
+the default for older drafts. Changing it retains the entered prices; save to
+calculate new totals. The selected basis is restored on edit/reload.
+
+The exclusive calculation rounds each line net, then VAT, nearest penny half-up.
+Inclusive input rounds quantity × entered price to gross pence, extracts VAT as
+gross × rate/(100+rate) rounded half-up, and sets net=gross−VAT. All arithmetic is
+integer/rational. Totals sum saved lines without another VAT round. Examples:
+£120 including 20% = £100 net + £20 VAT; £105 including 5% = £100 + £5;
+2.5 × £19.99 including 20% = £49.98 gross, £8.33 VAT, £41.65 net.
+Zero-rated, exempt, outside-scope and no-VAT treatments retain their distinct
+labels and zero VAT in either basis. See
+[HMRC VAT Notice 700 §7.3.1](https://www.gov.uk/guidance/vat-guide-notice-700)
+for the inclusive-price VAT fraction. This is an explicit development
+implementation choice, not formal production policy approval.
+
+Original entered unit prices and basis remain in draft source and read-projection
+metadata. Existing `unit_price` read fields remain net unit prices (four-decimal
+half-up representation for inclusive input); authoritative saved line net/VAT/
+gross must not be recomputed from that unit-price representation. The tax-context
+digest binds the canonical source fingerprint, including basis, even when a
+zero-VAT line's totals are equal. Existing duplicate-number and revision guards
+remain fail-closed; no automatic create retry/replay has been introduced.
+Unsupported discounts, credit/negative invoices and unsupported VAT schemes
+still fail closed. Old drafts are not automatically rewritten.
 
 ## Boundaries and lifecycle
 

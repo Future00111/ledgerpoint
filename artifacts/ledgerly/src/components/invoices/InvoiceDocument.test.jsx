@@ -16,6 +16,24 @@ test('draft document shows invoice date and totals, not issued or receivable/pay
   for (const label of ['Issued', 'Amount Paid', 'Balance Due']) assert.equal(html.includes(label), false);
 });
 
+test('inclusive document labels entered prices and percentage VAT without changing net fields', () => {
+  const line = {description:'Inclusive fixture',quantity:'1',unit_price:'100.0000',entered_unit_price:'120',
+    price_basis:'including_vat',vat_rate:'20.00',amount:'100.00',vat_amount:'20.00',line_total:'120.00'};
+  const html = renderToStaticMarkup(<InvoiceDocument invoice={{...invoice,line_items:[line],subtotal:'100.00',vat_total:'20.00',total:'120.00'}} />);
+  assert.match(html,/Prices including VAT/);
+  assert.match(html,/Unit price \(incl\. VAT\)/);
+  assert.match(html,/20%/);
+  assert.match(html,/£120\.00/);
+  const stale = renderToStaticMarkup(<InvoiceDocument invoice={{...invoice,preview:true,previewTotalsAvailable:false,
+    price_basis:'including_vat',line_items:[line]}} />);
+  assert.equal(stale.includes('£2.56'),false);
+  assert.match(stale,/Save draft to calculate totals/);
+  for (const treatment of ['zero','exempt','no_vat']) {
+    const zero = renderToStaticMarkup(<InvoiceDocument invoice={{...invoice,line_items:[{...line,vat_rate:'0.00',tax_treatment:treatment}]}} />);
+    assert.match(zero,/0%/);
+    assert.ok(zero.includes({zero:'Zero rated',exempt:'Exempt',no_vat:'No VAT'}[treatment]));
+  }
+});
 test('issued document retains payment labels and zero-day terms are preserved', () => {
   const html = renderToStaticMarkup(<InvoiceDocument invoice={{ ...invoice, status: 'sent', payment_terms: 0 }} />);
   for (const label of ['Issued', 'Amount Paid', 'Balance Due']) assert.ok(html.includes(label));

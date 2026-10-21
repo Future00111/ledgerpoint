@@ -5,6 +5,14 @@ import moment from 'moment';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 const VAT_LABELS = { '20': '20%', '5': '5%', '0': '0%', exempt: 'Exempt', no_vat: 'No VAT' };
+const vatLabel = line => {
+  const treatment = { zero: 'Zero rated', exempt: 'Exempt', outside_scope: 'Outside scope', no_vat: 'No VAT' }[line.tax_treatment];
+  const rate = line.vat_rate;
+  if (rate !== '' && rate != null && Number.isFinite(Number(rate))) {
+    return `${Number(rate)}%${treatment ? ` · ${treatment}` : ''}`;
+  }
+  return line.vat_label || VAT_LABELS[String(rate)] || rate || '—';
+};
 const statusColors = {
   draft: 'bg-slate-100 text-slate-700', approved: 'bg-blue-50 text-blue-700', sent: 'bg-blue-50 text-blue-700',
   part_paid: 'bg-purple-50 text-purple-700', paid: 'bg-emerald-50 text-emerald-700', overdue: 'bg-red-50 text-red-700', cancelled: 'bg-gray-100 text-gray-500',
@@ -17,6 +25,8 @@ export default function InvoiceDocument({ invoice, customer, company }) {
   const addr = (c) => [c?.address_line_1, c?.address_line_2, c?.city, c?.county, c?.postcode].filter(Boolean).join(', ');
   const totalsAvailable = invoice.previewTotalsAvailable !== false;
   const showPayments = !invoice.preview && invoice.status !== 'draft';
+  const basis = invoice.price_basis ?? invoice.line_items?.[0]?.price_basis ?? 'excluding_vat';
+  const including = basis === 'including_vat';
   const amount = (value) => totalsAvailable ? gbp.format(Number(value) || 0) : '—';
 
   return (
@@ -29,6 +39,7 @@ export default function InvoiceDocument({ invoice, customer, company }) {
               <Badge variant="secondary" className={`text-xs ${statusColors[invoice.status] || ''}`}>{invoice.status}</Badge>
             </div>
             <p className="text-xs text-muted-foreground">{company?.name || '—'}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Prices {including ? 'including' : 'excluding'} VAT</p>
           </div>
           <div className="text-right text-xs text-muted-foreground">
             <p>{invoice.status === 'draft' || invoice.preview ? 'Invoice date' : 'Issued'} {moment(invoice.issue_date).format('DD MMM YYYY')}</p>
@@ -56,7 +67,7 @@ export default function InvoiceDocument({ invoice, customer, company }) {
               <tr>
                 <th className="text-left p-2.5 font-medium">Description</th>
                 <th className="text-right p-2.5 font-medium">Qty</th>
-                <th className="text-right p-2.5 font-medium">Unit Price</th>
+                <th className="text-right p-2.5 font-medium">Unit price ({including ? 'incl.' : 'excl.'} VAT)</th>
                 <th className="text-right p-2.5 font-medium">VAT</th>
                 <th className="text-right p-2.5 font-medium">Net</th>
                 <th className="text-right p-2.5 font-medium">Gross</th>
@@ -67,8 +78,8 @@ export default function InvoiceDocument({ invoice, customer, company }) {
                 <tr key={idx} className="border-t border-border">
                   <td className="p-2.5">{line.description || '—'}</td>
                   <td className="p-2.5 text-right tabular-nums">{line.quantity}</td>
-                  <td className="p-2.5 text-right tabular-nums">{gbp.format(line.unit_price || 0)}</td>
-                  <td className="p-2.5 text-right">{line.vat_label || VAT_LABELS[String(line.vat_rate)] || line.vat_rate || '—'}</td>
+                  <td className="p-2.5 text-right tabular-nums">{gbp.format(line.entered_unit_price ?? line.unit_price ?? 0)}</td>
+                  <td className="p-2.5 text-right">{vatLabel(line)}</td>
                   <td className="p-2.5 text-right tabular-nums">{amount(line.amount)}</td>
                   <td className="p-2.5 text-right tabular-nums font-medium">{amount(line.line_total)}</td>
                 </tr>
@@ -87,7 +98,7 @@ export default function InvoiceDocument({ invoice, customer, company }) {
             <div className="flex justify-between font-semibold border-t pt-2"><span>Total</span><span className="tabular-nums">{amount(invoice.total)}</span></div>
             {showPayments && <div className="flex justify-between"><span className="text-muted-foreground">Amount Paid</span><span className="tabular-nums">{gbp.format(invoice.amount_paid || 0)}</span></div>}
             {showPayments && <div className="flex justify-between font-semibold text-primary border-t pt-2"><span>Balance Due</span><span className="tabular-nums">{gbp.format(invoice.balance_due || 0)}</span></div>}
-            {invoice.preview && !totalsAvailable && <p className="pt-2 text-xs text-muted-foreground">Totals are not estimated in the browser. They appear after the server validates and saves the draft.</p>}
+            {invoice.preview && !totalsAvailable && <p className="pt-2 text-xs text-muted-foreground">Save draft to calculate totals for the selected price basis.</p>}
           </div>
         </div>
 

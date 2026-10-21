@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import type pg from "pg";
-import { fail, type InvoiceSource } from "./contract";
+import { decimal, draftSourceFingerprint, fail, type InvoiceSource } from "./contract";
 import type { DraftAuthority } from "./invoiceService";
 
 const digest = (value: unknown) => `sha256:${createHash("sha256").update(JSON.stringify(value)).digest("hex")}`;
@@ -19,6 +19,8 @@ function basisPoints(value: unknown): bigint {
   const [whole, fraction = ""] = text.split(".");
   return BigInt(whole!) * 100n + BigInt(fraction.padEnd(2, "0"));
 }
+const halfUp = (numerator: bigint, denominator: bigint) => (2n * numerator + denominator) / (2n * denominator);
+const fourDecimals = (scaled: bigint) => `${scaled / 10000n}.${(scaled % 10000n).toString().padStart(4, "0")}`;
 
 export function createProductionInvoiceDraftAuthority(): DraftAuthority {
   return {
@@ -53,7 +55,7 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
       if (links.rowCount) fail(409, "DOCUMENT_HAS_FINANCIAL_LINK");
     },
 
-    async resolveTax(tx: pg.PoolClient, companyId: string, source: InvoiceSource, net: bigint[]) {
+    async resolveTax(tx: pg.PoolClient, companyId: string, source: InvoiceSource, enteredPence: bigint[]) {
       const companies = await tx.query(
         `SELECT country,base_currency,vat_registered,vat_scheme,vat_accounting_basis
          FROM companies WHERE id=$1 FOR SHARE`,
@@ -74,6 +76,9 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
 
       const lines: Array<Record<string, string>> = [];
       const vatPence: string[] = [];
+      const netPence: string[] = [];
+      const unitNetPrices: string[] = [];
+      const basis = source.price_basis ?? "excluding_vat";
       for (let index = 0; index < source.line_items.length; index++) {
         const line = source.line_items[index]!;
         const matches = await tx.query(
@@ -100,9 +105,20 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
           fail(422, "TAX_SETUP_MISMATCH", `/line_items/${index}/tax_code`);
         }
 
-        const numerator = net[index]! * rate;
-        const vat = ((numerator + 5000n) / 10000n).toString();
+        const entered = enteredPence[index]!;
+        // Inclusive input is first rounded to gross pence. Extract the VAT
+        // fraction from that gross; net is the exact remaining penny amount.
+        const vatValue = halfUp(entered * rate, basis === "including_vat" ? 10000n + rate : 10000n);
+        const vat = vatValue.toString();
+        const net = basis === "including_vat" ? entered - vatValue : entered;
+        // Existing read projections keep unit_price as a net unit price.
+        // Original entered text is retained separately and never reconstructed.
+        const unitNetPrice = basis === "including_vat" && rate !== 0n
+          ? fourDecimals(halfUp(decimal(line.unit_price, false) * 10000n, 10000n + rate))
+          : line.unit_price;
         vatPence.push(vat);
+        netPence.push(net.toString());
+        unitNetPrices.push(unitNetPrice);
         lines.push({
           rule_id: String(rule.id),
           code: String(rule.code),
@@ -111,7 +127,10 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
           rate: String(rule.rate),
           effective_from: String(rule.effective_from),
           effective_to: rule.effective_to == null ? "" : String(rule.effective_to),
-          net_pence: net[index]!.toString(),
+          price_basis: basis,
+          entered_unit_price: line.unit_price,
+          unit_net_price: unitNetPrice,
+          net_pence: net.toString(),
           vat_pence: vat,
         });
       }
@@ -125,15 +144,19 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
           vat_accounting_basis: company.vat_accounting_basis == null ? "" : String(company.vat_accounting_basis),
         },
         issue_date: source.issue_date,
+        price_basis: basis,
+        source_fingerprint: draftSourceFingerprint(source),
         rounding: {
-          contract: "w03.money.dev.v2",
+          contract: "w03.money.dev.v3",
           method: "nearest-penny-half-up",
-          scope: "round each line net and VAT; document totals sum saved rounded lines without another VAT rounding",
+          scope: basis === "including_vat"
+            ? "round entered line gross; half-up VAT fraction rate/(100+rate); net=gross-VAT; sum saved lines"
+            : "round each line net and VAT; sum saved rounded lines without another VAT rounding",
           decision_scope: "development invoice drafts only; not retrospective DEC-04 approval or production qualification",
         },
         lines,
       };
-      return { transactionBound: true as const, contextRevision: digest(context), context, vatPence };
+      return { transactionBound: true as const, contextRevision: digest(context), context, vatPence, netPence, unitNetPrices };
     },
   };
 }

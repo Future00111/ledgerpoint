@@ -4,6 +4,7 @@ export function invoiceSource(form, edit = false) {
     contract: "w03.draft.v1", customer_id: form.customer_id,
     invoice_number: form.invoice_number, issue_date: form.issue_date, due_date: form.due_date,
     payment_terms: form.payment_terms, reference: form.reference, notes: form.notes,
+    price_basis: form.price_basis ?? "excluding_vat",
     line_items: form.line_items.map(l => ({
       description: l.description, quantity: l.quantity, unit_price: l.unit_price, tax_code: l.tax_code,
     })),

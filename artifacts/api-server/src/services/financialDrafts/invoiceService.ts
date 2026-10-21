@@ -1,13 +1,14 @@
 import { createHash, randomUUID } from "node:crypto";
 import type pg from "pg";
-import { DraftError, fail, canWriteDraft, money, netPence, parseInvoice, uuid, type InvoiceSource } from "./contract";
+import { DraftError, fail, canWriteDraft, money, netPence, parseInvoice, uuid, draftSourceFingerprint, type InvoiceSource } from "./contract";
 
 export interface DraftAuthority {
   /** Must lock/validate authoritative journal, issue, settlement and source links. */
   assertWritable(tx: pg.PoolClient, companyId: string, invoiceId: string | undefined, source: InvoiceSource): Promise<void>;
   /** Existing VAT authority adapter, not a client rate or a second VAT engine. */
   resolveTax(tx: pg.PoolClient, companyId: string, source: InvoiceSource, net: bigint[]): Promise<{
-    transactionBound: true; contextRevision: string; context: Record<string, unknown>; vatPence: string[];
+     transactionBound: true; contextRevision: string; context: Record<string, unknown>;
+     vatPence: string[]; netPence: string[]; unitNetPrices: string[];
   }>;
 }
 const contextDigest = (context: Record<string, unknown>) =>
@@ -126,7 +127,7 @@ export class InvoiceDraftService {
         gross_pence: fixedPence(line.line_total),
       }));
       return { id, kind: "invoice", company_id: companyId, status: "draft",
-        source: row.source as InvoiceSource, revision: row.revision as string, tax_context: row.tax_context,
+        source: parseInvoice(row.source), revision: row.revision as string, tax_context: row.tax_context,
         money: { currency: "GBP", net_pence: fixedPence(row.subtotal),
           vat_pence: fixedPence(row.vat_total), gross_pence: fixedPence(row.total), lines } };
     });
@@ -146,20 +147,38 @@ export class InvoiceDraftService {
       if (customer.rowCount !== 1) fail(422, "REFERENCE_INVALID", "/customer_id");
       const duplicate = await tx.query("SELECT id FROM sales_invoices WHERE company_id=$1 AND invoice_number=$2 AND ($3::uuid IS NULL OR id<>$3)", [companyId, source.invoice_number, id ?? null]);
       if (duplicate.rows.length) fail(409, "NUMBER_CONFLICT");
-      const net = netPence(source.line_items);
-      const tax = await this.authority!.resolveTax(tx, companyId, source, net);
+      const enteredPence = netPence(source.line_items);
+      const tax = await this.authority!.resolveTax(tx, companyId, source, enteredPence);
       if (tax?.transactionBound !== true || typeof tax.contextRevision !== "string" ||
           tax.contextRevision.length > 200 || !tax.context || typeof tax.context !== "object" ||
           Array.isArray(tax.context) || contextDigest(tax.context) !== tax.contextRevision ||
-          !Array.isArray(tax.context.lines) || tax.context.lines.length !== source.line_items.length) {
+          !Array.isArray(tax.context.lines) || tax.context.lines.length !== source.line_items.length ||
+          !Array.isArray(tax.netPence) || tax.netPence.length !== source.line_items.length ||
+          !Array.isArray(tax.unitNetPrices) || tax.unitNetPrices.length !== source.line_items.length ||
+          !Array.isArray(tax.vatPence) || tax.vatPence.length !== source.line_items.length ||
+          tax.context.price_basis !== source.price_basis ||
+          tax.context.source_fingerprint !== draftSourceFingerprint(source)) {
         fail(503, "AUTHORITY_UNAVAILABLE");
       }
+      const net = tax.netPence.map(value => {
+        if (typeof value !== "string" || !/^(0|[1-9]\d{0,11})$/.test(value)) fail(503, "AUTHORITY_UNAVAILABLE");
+        return BigInt(value);
+      });
+      const totals = money(net, tax.vatPence);
       const resolvedLines = tax.context.lines as Array<Record<string, unknown>>;
       for (let index = 0; index < source.line_items.length; index++) {
         const resolved = resolvedLines[index]!;
         if (resolved.code !== source.line_items[index]!.tax_code ||
             resolved.net_pence !== net[index]!.toString() ||
             resolved.vat_pence !== tax.vatPence[index] ||
+            resolved.price_basis !== source.price_basis ||
+            resolved.entered_unit_price !== source.line_items[index]!.unit_price ||
+            resolved.unit_net_price !== tax.unitNetPrices[index] ||
+            typeof tax.unitNetPrices[index] !== "string" ||
+            !/^(0|[1-9]\d{0,7})(\.\d{1,4})?$/.test(tax.unitNetPrices[index]!) ||
+            (source.price_basis === "including_vat"
+              ? totals.lines[index]!.gross_pence !== enteredPence[index]!.toString()
+              : net[index] !== enteredPence[index]) ||
             typeof resolved.rule_id !== "string" || !resolved.rule_id ||
             typeof resolved.label !== "string" || !resolved.label ||
             typeof resolved.treatment !== "string" || !resolved.treatment ||
@@ -167,12 +186,12 @@ export class InvoiceDraftService {
           fail(503, "AUTHORITY_UNAVAILABLE");
         }
       }
-      const totals = money(net, tax.vatPence);
       const invoiceId = id ?? randomUUID(), revision = randomUUID();
       // Preserve familiar read projections, but only server-calculated values.
       const lines = source.line_items.map((line, i) => {
         const rule = resolvedLines[i]!;
-        return { ...line, amount: pounds(totals.lines[i]!.net_pence),
+        return { ...line, unit_price: tax.unitNetPrices[i], entered_unit_price: line.unit_price,
+          price_basis: source.price_basis, amount: pounds(totals.lines[i]!.net_pence),
           vat_amount: pounds(totals.lines[i]!.vat_pence), line_total: pounds(totals.lines[i]!.gross_pence),
           vat_rate: rule.rate, tax_treatment: rule.treatment, tax_rule_id: rule.rule_id, tax_label: rule.label };
       });
@@ -203,7 +222,8 @@ export class InvoiceDraftService {
           revision, old?.source ?? null, source, tax.context, tax.contextRevision, requestId]);
       return { id: invoiceId, kind: "invoice", company_id: companyId, status: "draft", source,
         revision, request_id: requestId, money: totals, tax_context: tax.context,
-         calculation: { contract: "w03.money.dev.v2",
+         calculation: { contract: "w03.money.dev.v3",
+           price_basis: source.price_basis, source_fingerprint: draftSourceFingerprint(source),
            rounding_method: "nearest-penny-half-up-per-line",
            total_method: "sum-saved-rounded-lines",
           accounting_acceptance: "pending", tax_context_revision: tax.contextRevision } };
