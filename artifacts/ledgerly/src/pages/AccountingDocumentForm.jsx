@@ -129,7 +129,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   };
 
   const parties = ctx?.parties ?? [];
-  const taxRules = (ctx?.tax_rules ?? []).filter(r => (!r.effective_from || r.effective_from <= form.issue_date) && (!r.effective_to || r.effective_to >= form.issue_date));
+  const taxRules = (ctx?.tax_rules ?? []).filter(r => (!r.effective_from || r.effective_from <= form.issue_date) && (!r.effective_to || r.effective_to >= form.issue_date)).sort((a, b) => Number(b.rate) - Number(a.rate) || a.label.localeCompare(b.label));
   const allAccounts = ctx?.accounts ?? [];
   const accounts = postingAccounts(allAccounts, kind);
   const role = tradeRole(kind);
@@ -295,11 +295,11 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
                   <div className="sm:col-span-3"><Label htmlFor={`q${i}`}>Quantity</Label><Input id={`q${i}`} data-testid={`input-qty-${i}`} required inputMode="decimal" className="mt-1" value={l.quantity} onChange={e => changeLine(i, 'quantity', e.target.value)} />
                     {meta.credit && origLine(i) && <p className={`mt-1 text-xs ${overQty(i) ? 'text-red-700' : 'text-muted-foreground'}`}>Original line {extra.original_line_refs[i] + 1}: max {origLine(i).quantity} at {origLine(i).unit_price} ({origLine(i).tax_code})</p>}</div>
                   <div className="sm:col-span-4"><Label htmlFor={`p${i}`}>{meta.credit ? 'Credit per unit' : 'Unit price'} ({form.price_basis === 'including_vat' ? 'inc' : 'exc'} VAT)</Label><Input id={`p${i}`} data-testid={`input-unit-price-${i}`} required inputMode="decimal" className="mt-1" value={l.unit_price} onChange={e => changeLine(i, 'unit_price', e.target.value)} />{meta.credit && <p className={`mt-1 text-xs ${overPrice(i) ? 'text-red-700' : 'text-muted-foreground'}`}>Enter the amount to credit per unit, up to the original unit price. {form.price_basis === 'including_vat' ? 'For a £10 total credit, enter quantity 1 and £10.' : 'VAT is added to the entered credit, using the original tax rate.'}</p>}</div>
-                  <div className="sm:col-span-5"><Label htmlFor={`t${i}`}>Tax code</Label>
+                  <div className="sm:col-span-5"><Label htmlFor={`t${i}`}>VAT rate</Label>
                     <select id={`t${i}`} required className="mt-1 w-full rounded-md border bg-background p-2.5 text-sm" value={l.tax_code} disabled={meta.credit} onChange={e => changeLine(i, 'tax_code', e.target.value)}>
                       <option value="">Select</option>
                       {l.tax_code && !taxRules.some(r => r.code === l.tax_code) && <option value={l.tax_code}>{l.tax_code}</option>}
-                      {taxRules.map(r => <option key={r.id ?? r.code} value={r.code}>{r.code} · {r.label} · {Number(r.rate).toFixed(2)}%</option>)}
+                      {taxRules.map(r => <option key={r.id ?? r.code} value={r.code}>{Number(r.rate)}% · {r.label}</option>)}
                     </select></div>
                   {showTotals && doc.money?.lines?.[i] && <p className="sm:col-span-12 text-right text-xs text-muted-foreground">Net <Money value={doc.money.lines[i].net_pence} /> · VAT <Money value={doc.money.lines[i].vat_pence} /> · Gross <Money value={doc.money.lines[i].gross_pence} /></p>}
                   {form.line_items.length > 1 && <button type="button" data-testid={`button-remove-line-${i}`} className="sm:col-span-12 justify-self-end text-xs text-destructive" onClick={() => meta.credit ? removeCreditLine(i) : change('line_items', form.line_items.filter((_, j) => j !== i))}>{meta.credit ? 'Exclude from credit' : 'Remove line'}</button>}
@@ -350,6 +350,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
             </div>
             {!posted && (
               <div className="order-2 space-y-2">
+                <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">Draft — not included in your P&amp;L, balance sheet, VAT workings or account balances until you review and post it.</p>
                 {creditInvalid && <p className="text-xs text-orange-800">Original, reason and effective date are required; the credit date must match the effective date and quantities cannot exceed the original.</p>}
                 <Button type="submit" className="w-full" disabled={busy || creditInvalid} data-testid="button-save">{busy ? 'Working…' : 'Save draft'}</Button>
                 <Button type="button" variant="secondary" className="w-full" disabled={busy || !doc || dirty || configErrors.length > 0}

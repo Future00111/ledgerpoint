@@ -11,6 +11,7 @@ import {invoiceDraftRouter} from "../financialDrafts/router";
 import {isGenericEntityWriteBlocked} from "../../routes/entityWritePolicy";
 import {queryAdapter} from "./core";
 import {reports} from "./reports";
+import {ensureWorkspaceTaxRules} from '../../../../../tools/accounting-flow/workspace-tax-rules.mjs';
 import {applyReconciliationApproval,applyNonPaymentReconciliationMatch} from '../ai-accountant/approval';
 
 const socket=process.env.ACCOUNTING_FLOW_TEST_SOCKET??"";
@@ -136,6 +137,34 @@ test("four native create/edit/reopen/review/post journeys reconcile ledger, part
   assert.equal((await admin.query("SELECT coalesce(sum(amount_paid),0)::text paid FROM sales_invoices WHERE company_id=$1",[f.company])).rows[0].paid,"0.00");
   await assert.rejects(()=>pool.query("UPDATE canonical_journal_lines SET debit_minor=0 WHERE company_id=$1",[f.company]),(e:any)=>e.code==="42501");
   await assert.rejects(()=>pool.query("DELETE FROM canonical_journal_entries WHERE company_id=$1",[f.company]),(e:any)=>e.code==="42501");
+});
+test('demo 5% and zero-rated rules survive repeat setup and reconcile invoices, bills and credits in both price bases', async () => {
+  for (const code of ['REDUCED_5', 'ZERO_0']) for (const basis of ['including_vat', 'excluding_vat']) {
+    const f = await fixture();
+    assert.deepEqual(await ensureWorkspaceTaxRules(admin, f.company), ['REDUCED_5', 'ZERO_0']);
+    assert.deepEqual(await ensureWorkspaceTaxRules(admin, f.company), []);
+    const reduced = code === 'REDUCED_5';
+    const ctx = await request(f.company, '/accounting-documents/context?kind=sales_invoice');
+    assert.ok(ctx.data.tax_rules.some((r:any) => r.code === code && Number(r.rate) === (reduced ? 5 : 0)));
+    const sale = await create(f, 'sales_invoice', {...source(f.customer, basis === 'including_vat' && reduced ? '105' : '100', '1', '2026-10-21', code), price_basis: basis});
+    const bill = await create(f, 'purchase_bill', {...source(f.supplier, basis === 'including_vat' && reduced ? '52.50' : '50', '1', '2026-10-21', code), price_basis: basis});
+    assert.equal(sale.money.net_pence, '10000');
+    assert.equal(sale.money.vat_pence, reduced ? '500' : '0');
+    const draftReports = await request(f.company, '/accounting-reports?from=2026-01-01&to=2026-12-31');
+    assert.equal(draftReports.data.pnl.revenue_minor, '0');
+    await post(f, sale); await post(f, bill);
+    const salesCredit = await creditDoc(f, sale); const supplierCredit = await creditDoc(f, bill);
+    await post(f, salesCredit); await post(f, supplierCredit);
+    const result = await request(f.company, '/accounting-reports?from=2026-01-01&to=2026-12-31');
+    assert.equal(result.status, 200, JSON.stringify(result));
+    const r = result.data;
+    assert.deepEqual([r.pnl.revenue_minor, r.pnl.expense_minor, r.pnl.profit_minor], ['8000', '4000', '4000']);
+    assert.deepEqual([r.vat.box1_pence, r.vat.box4_pence, r.vat.box6_pence, r.vat.box7_pence], [reduced ? '400' : '0', reduced ? '200' : '0', '8000', '4000']);
+    assert.equal(r.open_items.find((d:any) => d.id === sale.id).open_minor, reduced ? '8400' : '8000');
+    assert.equal(r.open_items.find((d:any) => d.id === bill.id).open_minor, reduced ? '4200' : '4000');
+    assert.equal(r.balance_sheet.balanced, true);
+    assert.equal(r.general_ledger.length, reduced ? 12 : 8);
+  }
 });
 test("credit retains original tax point, selected original lines and own effective period; movements differ from closing balances",async()=>{
   const f=await fixture();

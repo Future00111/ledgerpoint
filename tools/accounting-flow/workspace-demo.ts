@@ -5,6 +5,7 @@ import { saveConfiguration, addPeriod } from '../../artifacts/api-server/src/ser
 import { savePaymentConfiguration, previewPayment, postPayment } from '../../artifacts/api-server/src/services/accountingDocuments/payments';
 import { saveDocument } from '../../artifacts/api-server/src/services/accountingDocuments/documents';
 import { postDocument } from '../../artifacts/api-server/src/services/accountingDocuments/posting';
+import { ensureWorkspaceTaxRules } from './workspace-tax-rules.mjs';
 const name='Willow & Co — DEMO (synthetic)';
 const admin=new pg.Client({host:'/tmp/ledgerly-w03-invoice-demo/socket',port:55440,database:'ledgerly_w03_invoice_demo',user:'w03_bootstrap',password:'',ssl:false,options:''});
 async function main() { try {
@@ -37,7 +38,7 @@ async function main() { try {
     const id=randomUUID();(['bank','customer_credit','supplier_prepayment'].includes(role!)?paymentMappings:mappings)[role!]=id;
     await admin.query('INSERT INTO chart_of_accounts(id,company_id,code,name,account_type,is_active) VALUES($1,$2,$3,$4,$5,true)',[id,company,code,label,type]);
   }
-  await admin.query("INSERT INTO vat_tax_rules(id,company_id,code,label,rate,treatment,effective_from,is_active) VALUES($1,$2,'STANDARD_20','Standard VAT',20,'standard','2011-01-04',true)",[randomUUID(),company]);
+  await ensureWorkspaceTaxRules(admin,company);
   await admin.query('COMMIT');
   await saveConfiguration(company,actor,{revision:null,mappings,business_accounting_basis:'accrual'});
   await savePaymentConfiguration(company,actor,{revision:null,mappings:paymentMappings});
