@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { accounting, KINDS, buildEnvelope, copyOriginalLines, docPath } from '@/api/accountingDocuments.mjs';
 import { useCompany } from '@/lib/useCompany';
+import { useLedgerSnapshot } from '@/lib/useLedgerSnapshot';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,6 +40,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const gen = useRef(0);
   const manualDue = useRef(false);
   const [journal, setJournal] = useState({ status: 'idle', data: null, error: null });
+  const settlement = useLedgerSnapshot(activeCompany?.id, undefined, undefined, doc?.status === 'posted' && !meta.credit);
+  const openItem = settlement.data?.open_items.find(d => d.id === doc?.id);
 
   // Posted documents show the canonical journal lines, never the current mapping.
   useEffect(() => {
@@ -176,11 +179,22 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {posted && <JournalLink id={doc.journal_id} />}
+          {posted && !meta.credit && <Button asChild variant="outline"><Link to={`/payments?party_type=${meta.party}&party_id=${doc.party_id}&document=${doc.id}`}>Record payment</Link></Button>}
           <Button type="button" variant="outline" onClick={() => navigate(meta.path)} data-testid="button-back">Back to {meta.plural.toLowerCase()}</Button>
         </div>
       </header>
 
       {posted && <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">Posted to the accounts. This document is read-only; corrections are made with a credit note.</p>}
+      {posted && !meta.credit && <section className="rounded-xl border bg-card p-4" aria-label="Settlement balance">
+        <h2 className="font-semibold">Settlement as at {settlement.to}</h2>
+        <ErrorBox error={settlement.error} onRetry={settlement.refresh} />
+        {settlement.loading ? <SkeletonRows rows={1} /> : openItem ? <div className="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-sm">
+          <span>{openItem.settlement === 'settled' ? 'Settled' : openItem.settlement === 'part_paid' ? 'Part paid' : 'Outstanding'}</span>
+          <span>Payments allocated: <Money value={openItem.paid_minor} /></span>
+          <span>Credits: <Money value={openItem.credited_minor} /></span>
+          <strong>Amount remaining: <Money value={openItem.open_minor} /></strong>
+        </div> : !settlement.error && <p className="mt-2 text-sm text-muted-foreground">This document is outside the current reporting date.</p>}
+      </section>}
       <ConfigErrors errors={configErrors} />
       <ErrorBox error={error} />
       {loading && <SkeletonRows rows={6} />}

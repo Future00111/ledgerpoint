@@ -8,6 +8,7 @@ export const KINDS = {
 export const SOURCE_TYPE_KIND = { ...Object.fromEntries(Object.keys(KINDS).map(k => [k, k])) };
 
 export function docPath(kind, id) {
+  if (kind === 'accounting_payment_event') return `/payments?event=${encodeURIComponent(id)}`;
   const k = KINDS[kind];
   return k && id ? `${k.path}/${encodeURIComponent(id)}` : null;
 }
@@ -68,6 +69,11 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
   const base = c => `/api/companies/${encodeURIComponent(c)}`;
   const docs = c => `${base(c)}/accounting-documents`;
   return {
+    paymentContext: (c, signal) => call(`${base(c)}/accounting-payments/context`, { signal }),
+    payments: (c, signal) => call(`${base(c)}/accounting-payments`, { signal }),
+    savePaymentConfiguration: (c, body) => call(`${base(c)}/accounting-payments/configuration`, { method: 'PUT', body }),
+    reviewPayment: (c, body) => call(`${base(c)}/accounting-payments/review`, { method: 'POST', body }),
+    postPayment: (c, body) => call(`${base(c)}/accounting-payments`, { method: 'POST', body }),
     list: (c, kind, signal) => call(`${docs(c)}?kind=${encodeURIComponent(kind)}`, { signal }),
     accounts: (c, signal) => call(`${base(c)}/accounting-accounts`, { signal }),
     createAccount: (c, body) => call(`${base(c)}/accounting-accounts`, { method: 'POST', body }),

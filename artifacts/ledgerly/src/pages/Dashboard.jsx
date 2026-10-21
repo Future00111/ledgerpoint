@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useCompany } from '@/lib/useCompany';
 import AskTrigger from '@/components/ask/AskTrigger';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
-import MorningBriefing from '@/components/dashboard/MorningBriefing';
 import DashboardSuggestions from '@/components/dashboard/DashboardSuggestions';
 import { useDashboardActivity } from '@/components/dashboard/useDashboardActivity';
 import {
@@ -261,7 +260,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {!focusMode && <MorningBriefing company={activeCompany} />}
+
 
       {focusMode ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-16 text-center">

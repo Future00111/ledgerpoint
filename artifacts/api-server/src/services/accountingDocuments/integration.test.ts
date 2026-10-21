@@ -64,7 +64,13 @@ async function fixture(vat=true) {
   assert.equal(ctx.data.periods[0].start_date,"2026-01-01");
   assert.equal(ctx.data.tax_rules.length,2);
   assert.equal((await request(company,"/accounting-configuration")).status,200);
-  return {company,customer,supplier,mappings,period:period.data.id};
+  const paymentMappings:Record<string,string>={};
+  for(const [role,type] of [['bank','asset'],['customer_credit','liability'],['supplier_prepayment','asset']]) {
+    const id=randomUUID();paymentMappings[role!]=id;
+    await admin.query('INSERT INTO chart_of_accounts(id,company_id,code,name,account_type,is_active) VALUES($1,$2,$3,$3,$4,true)',[id,company,role,type]);
+  }
+  assert.equal((await request(company,'/accounting-payments/configuration','PUT',{revision:null,mappings:paymentMappings})).status,200);
+  return {company,customer,supplier,mappings,paymentMappings,period:period.data.id};
 }
 function source(party:string,price="120",quantity="1",date="2026-10-21",code="STANDARD_20") {
   return {contract:"w03.draft.v1",currency:"GBP",price_basis:"including_vat",customer_id:party,invoice_number:"SYNTH-"+randomUUID(),
@@ -322,4 +328,90 @@ test("native chart CRUD preserves UUID/history, serializes revisions/code unique
   assert.equal(denied.status,422);assert.equal(denied.error.issues[0].path,"/is_active");
   assert.ok(Number((await admin.query("SELECT count(*) n FROM accounting_chart_audit WHERE company_id=$1",[f.company])).rows[0].n)>0);
   await assert.rejects(()=>pool.query("DELETE FROM accounting_chart_audit WHERE company_id=$1",[f.company]),(e:any)=>e.code==="42501");
+});
+
+function paymentIntent(f:any,doc:any,amount='15000',allocate='12000',extra:any={}) {
+  return {id:randomUUID(),kind:'payment',party_type:doc.kind==='sales_invoice'?'customer':'supplier',party_id:doc.party_id,
+    payment_id:null,date:'2026-10-21',reference:'Synthetic manual payment',amount_minor:amount,
+    allocations:BigInt(allocate)>0n?[{document_id:doc.id,amount_minor:allocate}]:[],...extra};
+}
+async function reviewPayment(f:any,b:any) {
+  const r=await request(f.company,'/accounting-payments/review','POST',b);
+  assert.equal(r.status,200,JSON.stringify(r));return {...b,review_token:r.data.review_token};
+}
+async function recordPayment(f:any,b:any) {
+  const reviewed=await reviewPayment(f,b);
+  const r=await request(f.company,'/accounting-payments','POST',reviewed);
+  assert.equal(r.status,200,JSON.stringify(r));return {...r.data,reviewed};
+}
+test('W06 customer excess, refunds, later allocations and undo reconcile cash, statements and historical VAT',async()=>{
+  const f=await fixture(),sale=await create(f,'sales_invoice',source(f.customer));await post(f,sale);
+  const b=paymentIntent(f,sale);const reviewed=await reviewPayment(f,b);
+  const retry=await Promise.all([request(f.company,'/accounting-payments','POST',reviewed),request(f.company,'/accounting-payments','POST',reviewed)]);
+  assert.deepEqual(retry.map(r=>r.status),[200,200]);assert.deepEqual(retry.map(r=>r.data.status).sort(),['duplicate','posted']);
+  let r=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-10-21')).data;
+  assert.equal(r.cash.balance_minor,'15000');assert.equal(r.party_balances[0].balance_minor,'0');assert.equal(r.party_balances[0].unapplied_minor,'3000');
+  assert.equal(r.open_items[0].settlement,'settled');assert.equal(r.pnl.profit_minor,'10000');assert.equal(r.vat.box1_pence,'2000');
+  const refund=paymentIntent(f,sale,'1000','0',{kind:'refund',payment_id:b.id,date:'2026-10-22'});await recordPayment(f,refund);
+  const second=await create(f,'sales_invoice',source(f.customer,'24','1','2026-10-22'));await post(f,second);
+  const allocation=paymentIntent(f,second,'2000','2000',{kind:'allocation',payment_id:b.id,date:'2026-10-22'});await recordPayment(f,allocation);
+  r=(await request(f.company,'/accounting-reports?from=2026-10-22&to=2026-10-22')).data;
+  assert.equal(r.cash.balance_minor,'14000');assert.equal(r.party_balances[0].balance_minor,'400');assert.equal(r.party_balances[0].unapplied_minor,'0');
+  assert.equal(r.pnl.profit_minor,'2000');assert.equal(r.vat.box1_pence,'400');assert.equal(r.balance_sheet.balanced,true);
+  const undo=paymentIntent(f,second,'1000','1000',{kind:'unallocation',payment_id:b.id,date:'2026-10-23'});await recordPayment(f,undo);
+  r=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-10-23')).data;
+  assert.equal(r.party_balances[0].balance_minor,'1400');assert.equal(r.party_balances[0].unapplied_minor,'1000');
+  assert.equal(r.cash.balance_minor,'14000');assert.equal(r.pnl.revenue_minor,'12000');assert.equal(r.vat.box1_pence,'2400');
+  const old=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-10-21')).data;
+  assert.equal(old.cash.balance_minor,'15000');assert.equal(old.party_balances[0].unapplied_minor,'3000');
+  const tooMuch=await request(f.company,'/accounting-payments/review','POST',paymentIntent(f,second,'1500','1500',{kind:'allocation',payment_id:b.id,date:'2026-10-23'}));
+  assert.equal(tooMuch.status,409);
+  const lateCredit=await creditDoc(f,second,'0.75','2026-10-23');assert.equal((await post(f,lateCredit,409)).error.code,'CREDIT_EXCEEDS_OUTSTANDING');
+  await assert.rejects(()=>pool.query('UPDATE accounting_payment_events SET reference=$1 WHERE id=$2',['tampered',b.id]),(e:any)=>e.code==='42501');
+  const replay=await request(f.company,'/accounting-payments','POST',reviewed);assert.equal(replay.data.status,'duplicate');
+  const conflict=await request(f.company,'/accounting-payments','POST',{...reviewed,reference:'Changed intent'});assert.equal(conflict.status,409);
+  // Changing configuration must not turn historical receivables into bank cash.
+  const newAr=randomUUID();
+  await admin.query("INSERT INTO chart_of_accounts(id,company_id,code,name,account_type,is_active) VALUES($1,$2,'new-ar','New receivables','asset',true)",[newAr,f.company]);
+  const config=(await request(f.company,'/accounting-configuration')).data;
+  assert.equal((await request(f.company,'/accounting-configuration','PUT',{revision:config.revision,mappings:{...f.mappings,receivables:newAr},business_accounting_basis:'accrual'})).status,200);
+  const pc=(await request(f.company,'/accounting-payments/context')).data.configuration;
+  const reuse=await request(f.company,'/accounting-payments/configuration','PUT',{revision:pc.revision,mappings:{...f.paymentMappings,bank:f.mappings.receivables}});
+  assert.equal(reuse.error.code,'PAYMENT_CONTROL_ACCOUNT_CONFLICT');
+});
+test('W06 supplier prepayment and refund, full unallocation and reversal preserve profit and tax',async()=>{
+  const f=await fixture(),bill=await create(f,'purchase_bill',source(f.supplier,'60'));await post(f,bill);
+  const b=paymentIntent(f,bill,'8000','6000');await recordPayment(f,b);
+  await recordPayment(f,paymentIntent(f,bill,'500','0',{kind:'refund',payment_id:b.id,date:'2026-10-22'}));
+  let r=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-10-22')).data;
+  assert.equal(r.cash.balance_minor,'-7500');assert.equal(r.party_balances[0].unapplied_minor,'1500');
+  assert.equal(r.party_balances[0].balance_minor,'0');assert.equal(r.pnl.expense_minor,'5000');assert.equal(r.vat.box4_pence,'1000');
+  const reversal=await request(f.company,'/accounting-payments/review','POST',paymentIntent(f,bill,'8000','0',{kind:'reversal',payment_id:b.id,date:'2026-10-22'}));
+  assert.equal(reversal.status,409);
+  const sale=await create(f,'sales_invoice',source(f.customer));await post(f,sale);
+  const receipt=paymentIntent(f,sale,'12000','12000');await recordPayment(f,receipt);
+  await recordPayment(f,paymentIntent(f,sale,'12000','12000',{kind:'unallocation',payment_id:receipt.id,date:'2026-10-22'}));
+  await recordPayment(f,paymentIntent(f,sale,'12000','0',{kind:'reversal',payment_id:receipt.id,date:'2026-10-22'}));
+  r=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-10-22')).data;
+  assert.equal(r.cash.balance_minor,'-7500');assert.equal(r.party_balances.find((p:any)=>p.party_type==='customer').balance_minor,'12000');
+  assert.equal(r.party_balances.find((p:any)=>p.party_type==='customer').unapplied_minor,'0');assert.equal(r.balance_sheet.balanced,true);
+  const list=(await request(f.company,'/accounting-payments')).data;
+  assert.equal(list.find((p:any)=>p.id===receipt.id).reversed,true);
+});
+test('W06 rejects stale concurrent allocations, cross-party, read-only, closed-period and rollback failures',async()=>{
+  const f=await fixture(),sale=await create(f,'sales_invoice',source(f.customer));await post(f,sale);
+  const first=await reviewPayment(f,paymentIntent(f,sale,'12000','12000'));
+  const second=await reviewPayment(f,paymentIntent(f,sale,'12000','12000'));
+  assert.equal((await request(f.company,'/accounting-payments','POST',first,undefined,readOnly)).status,403);
+  assert.equal((await request(f.company,'/accounting-payments','POST',first,undefined,null)).status,401);
+  const other=await fixture();assert.equal((await request(other.company,'/accounting-payments/review','POST',paymentIntent(f,sale))).status,404);
+  failNext=true;assert.equal((await request(f.company,'/accounting-payments','POST',first)).status,500);
+  assert.equal((await admin.query('SELECT count(*) n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,'0');
+  const concurrent=await Promise.all([first,second].map(b=>request(f.company,'/accounting-payments','POST',b)));
+  assert.deepEqual(concurrent.map(r=>r.status).sort(),[200,409]);
+  assert.equal((await admin.query('SELECT count(*) n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,'1');
+  const credit=await creditDoc(f,sale,'0.1');assert.equal((await post(f,credit,409)).error.code,'CREDIT_EXCEEDS_OUTSTANDING');
+  await admin.query("UPDATE accounting_document_periods SET status='CLOSED' WHERE id=$1",[f.period]);
+  const closed=await request(f.company,'/accounting-payments/review','POST',paymentIntent(f,sale,'100','0'));
+  assert.equal(closed.error.code,'PERIOD_NOT_WRITABLE');
 });

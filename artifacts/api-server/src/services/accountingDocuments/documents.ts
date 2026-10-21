@@ -1,3 +1,4 @@
+import { documentOpen, paymentEvents } from './settlement';
 import { randomUUID } from "node:crypto";
 import { accountId } from "./accounts";
 import type pg from "pg";
@@ -101,6 +102,11 @@ export async function assertCreditAvailable(q:Queryable, company:string, row:any
     (linked_invoice_id=$2 OR matched_record_id=$2::text) FOR SHARE`,[company,original.id]);
   if(paid.rowCount!==1 || Number(paid.rows[0].amount_paid)!==0 || links.rowCount)
     fail(422,"CREDIT_OFFSET_REQUIRES_UNPAID_SOURCE");
+  const settlements=await paymentEvents(q,company);
+  if(settlements.some(e=>e.effective_date>row.source.issue_date && e.allocations.some((a:any)=>a.document_id===original.id)))
+    fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
+  const available=await documentOpen(q,company,original.id,settlements);
+  if(BigInt(row.money.gross_pence)>BigInt(available.open_minor)) fail(409,'CREDIT_EXCEEDS_OUTSTANDING');
   const other=await q.query("SELECT money,tax_context FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND status='posted' ORDER BY id FOR UPDATE",[company,original.id]);
   for(let i=0;i<row.money.lines.length;i++) {
     const ref=row.tax_context.original_line_refs[i], own=row.money.lines[i];

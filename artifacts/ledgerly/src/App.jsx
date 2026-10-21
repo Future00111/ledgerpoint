@@ -1,3 +1,5 @@
+import Payments from '@/pages/Payments';
+import Statements from '@/pages/Statements';
 import { ClerkProvider, SignIn, SignUp, useAuth as useClerkAuth } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
@@ -165,6 +167,8 @@ const AuthenticatedApp = () => {
               <Route path="/ai-accountant/recommendations" element={<AIAccountantRecommendations />} />
               <Route path="/companies" element={<Companies />} />
               <Route path="/customers" element={<Customers />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/statements" element={<Statements />} />
               <Route path="/customers/:id" element={<Customers />} />
               <Route path="/suppliers" element={<Suppliers />} />
               <Route path="/invoices" element={<AccountingDocumentList kind="sales_invoice" legacyLink="/invoices/earlier-drafts" />} />

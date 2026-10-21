@@ -221,8 +221,8 @@ export default function Suppliers() {
                 <CircleCheck className="h-3.5 w-3.5 text-emerald-600" />
                 Payments
               </div>
-              <p className="mt-1 text-sm font-medium">Not yet recorded in the posted ledger</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">Balances reflect bills and credits only, not payments made.</p>
+              <p className="mt-1 text-sm font-medium">Recorded through Payments</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Balances include posted bills, credits and allocated payments.</p>
             </div>
           </div>
         </div>

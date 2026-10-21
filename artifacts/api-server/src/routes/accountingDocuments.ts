@@ -10,6 +10,8 @@ import { CanonicalPostingError, type DatabaseTransaction } from "../services/acc
 import { chart, AccountSelectionError } from "../services/accountingDocuments/accounts";
 import { saveAccount } from "../services/accountingDocuments/chart";
 
+import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment } from '../services/accountingDocuments/payments';
+
 export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostHook?:(tx:DatabaseTransaction)=>Promise<void>) {
   const router=Router({mergeParams:true});
   router.use(auth);
@@ -27,6 +29,11 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     if(!value || !/^"[0-9a-f-]{36}"$/.test(value)) fail(428,"REVISION_REQUIRED");
     return value.slice(1,-1);
   };
+  router.get('/accounting-payments/context',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await paymentContext(company,actor)});});
+  router.put('/accounting-payments/configuration',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await savePaymentConfiguration(company,actor,req.body)});});
+  router.get('/accounting-payments',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await listPayments(company,actor)});});
+  router.post('/accounting-payments/review',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await previewPayment(company,actor,req.body)});});
+  router.post('/accounting-payments',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await postPayment(company,actor,req.body,testPostHook)});});
   router.get("/accounting-accounts",async(req,res)=>{
     const {company,actor}=ids(req);res.json({data:await chart(company,actor)});
   });

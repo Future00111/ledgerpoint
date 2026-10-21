@@ -34,6 +34,11 @@ export async function companyChart(q:Queryable,company:string) {
       WHERE c.company_id=a.company_id AND lower(m.value)=a.id::text),'[]'::jsonb) mapped_roles
     FROM chart_of_accounts a LEFT JOIN accounting_account_presentation p
       ON p.account_id=a.id AND p.company_id=a.company_id WHERE a.company_id=$1 ORDER BY a.code,a.id`,[company]);
+  const paymentConfig=(await q.query('SELECT mappings FROM accounting_payment_configuration WHERE company_id=$1',[company])).rows[0];
+  for(const a of rows.rows) {
+    const mapped=Object.entries(paymentConfig?.mappings??{}).filter(([,id])=>id===a.id).map(([role])=>role);
+    if(mapped.length){a.control_mapped=true;a.mapped_roles.push(...mapped);}
+  }
   if((await q.query("SELECT to_regclass('public.journal_entries') present")).rows[0].present) {
     const legacy=await q.query(`SELECT e->>'account_id' account_id,e->>'account_code' account_code
       FROM journal_entries j CROSS JOIN LATERAL jsonb_array_elements(
@@ -54,6 +59,11 @@ export async function validateAccounts(q:Queryable,company:string,mappings:Recor
   if(!mappings || typeof mappings!=="object" || Array.isArray(mappings) ||
     Object.keys(mappings).some(r=>!roles.includes(r as Role)))
     throw new AccountSelectionError("/mappings","Choose the company's posting accounts in Posting Setup.");
+  const paymentConfig=(await q.query('SELECT mappings FROM accounting_payment_configuration WHERE company_id=$1',[company])).rows[0];
+  const historical=(await q.query(`SELECT DISTINCT source->>'bank_account_id' bank,source->>'pool_account_id' pool
+    FROM accounting_payment_events WHERE company_id=$1`,[company])).rows;
+  if(Object.values(mappings).some(id=>Object.values(paymentConfig?.mappings??{}).includes(id)||historical.some(h=>h.bank===id||h.pool===id)))
+    throw new AccountSelectionError('/mappings','Payment bank and unapplied-cash accounts must remain separate from document control accounts.');
   const ids=needed.map(role=>accountId(mappings[role],paths[role]??`/mappings/${role}`));
   const rows=await q.query("SELECT * FROM chart_of_accounts WHERE company_id=$1 AND id=ANY($2::uuid[]) ORDER BY id FOR UPDATE",[company,ids]);
   for(const [i,role] of needed.entries()) {

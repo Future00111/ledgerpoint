@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus, FileText } from 'lucide-react';
 import { accounting, KINDS, docPath } from '@/api/accountingDocuments.mjs';
 import { useCompany } from '@/lib/useCompany';
+import { useLedgerSnapshot } from '@/lib/useLedgerSnapshot';
 import { Button } from '@/components/ui/button';
 import { StatusPill, Money, ErrorBox, SkeletonRows, JournalLink } from '@/components/accounting/AccountingUI';
 
@@ -12,6 +13,8 @@ export default function AccountingDocumentList({ kind, legacyLink }) {
   const [docs, setDocs] = useState(null);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
+  const ledger = useLedgerSnapshot(activeCompany?.id, undefined, undefined, !meta.credit);
+  const remaining = d => ledger.data?.open_items.find(o => o.id === d.id);
 
   const load = useCallback((signal) => {
     if (!activeCompany) return;
@@ -43,6 +46,7 @@ export default function AccountingDocumentList({ kind, legacyLink }) {
         ))}
       </div>
       <ErrorBox error={error} onRetry={() => load()} />
+      {!meta.credit && <ErrorBox error={ledger.error} onRetry={ledger.refresh} />}
       {!docs && !error && <SkeletonRows />}
       {docs && shown.length === 0 && (
         <div className="flex flex-col items-center rounded-2xl border border-dashed py-16 text-center">
@@ -55,7 +59,7 @@ export default function AccountingDocumentList({ kind, legacyLink }) {
         <div className="overflow-x-auto rounded-xl border bg-card">
           <table className="w-full text-sm">
             <thead className="border-b bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <tr><th className="px-4 py-3">Number</th><th className="px-4 py-3 capitalize">{meta.party}</th><th className="px-4 py-3">Date</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Gross</th><th className="px-4 py-3" /></tr>
+              <tr><th className="px-4 py-3">Number</th><th className="px-4 py-3 capitalize">{meta.party}</th><th className="px-4 py-3">Date</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Gross</th>{!meta.credit && <th className="px-4 py-3 text-right">Remaining at {ledger.to}</th>}<th className="px-4 py-3" /></tr>
             </thead>
             <tbody>
               {shown.map(d => (
@@ -63,8 +67,9 @@ export default function AccountingDocumentList({ kind, legacyLink }) {
                   <td className="px-4 py-3 font-medium"><Link className="hover:underline" to={docPath(kind, d.id)}>{d.source?.invoice_number || 'Untitled'}</Link></td>
                   <td className="px-4 py-3">{d.party_name || '—'}</td>
                   <td className="px-4 py-3 tabular-nums">{d.source?.issue_date}</td>
-                  <td className="px-4 py-3"><StatusPill status={d.status} /></td>
+                  <td className="px-4 py-3"><StatusPill status={d.status} />{remaining(d) && <p className="mt-1 text-xs capitalize text-muted-foreground">{remaining(d).settlement.replaceAll('_', ' ')}</p>}</td>
                   <td className="px-4 py-3 text-right"><Money value={d.money?.gross_pence} /></td>
+                  {!meta.credit && <td className="px-4 py-3 text-right">{d.status !== 'posted' ? 'Draft — not owed' : remaining(d) ? <Money value={remaining(d).open_minor} /> : ledger.loading ? 'Loading…' : 'Unavailable'}</td>}
                   <td className="px-4 py-3 text-right">{d.status === 'posted' ? <JournalLink id={d.journal_id} /> : <Link className="text-primary hover:underline" to={docPath(kind, d.id)}>Review</Link>}</td>
                 </tr>
               ))}

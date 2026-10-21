@@ -1,82 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCompany } from '@/lib/useCompany';
 import { useAuth } from '@/lib/AuthContext';
-import { useBusinessHealth, healthStatus, healthStatusTone, OPEN_HEALTH_EVENT } from './useBusinessHealth';
-import BusinessHealthDialog from './BusinessHealthDialog';
-import StatusCard from './StatusCard';
-import { ListChecks, Activity } from 'lucide-react';
-
-// Compact single-row header: greeting + standardised status cards (Today's
-// Priority and Business Health). Both cards use the shared StatusCard
-// component so they are visually identical. Clicking Business Health opens
-// the detailed breakdown.
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
-}
-
-function healthTone(score) {
-  if (score == null) return 'muted';
-  if (score >= 90) return 'emerald';
-  if (score >= 70) return 'amber';
-  if (score >= 50) return 'orange';
-  return 'rose';
-}
-
+import { useLedgerSnapshot } from '@/lib/useLedgerSnapshot';
 export default function DashboardHeader() {
-  const { activeCompany } = useCompany();
-  const { user } = useAuth();
-  const [open, setOpen] = useState(false);
-  const health = useBusinessHealth(activeCompany?.id);
-
-  useEffect(() => {
-    const h = () => setOpen(true);
-    window.addEventListener(OPEN_HEALTH_EVENT, h);
-    return () => window.removeEventListener(OPEN_HEALTH_EVENT, h);
-  }, []);
-
-  const firstName = user?.first_name || 'there';
-  const score = health.score;
-  const status = health.loading ? '…' : healthStatus(score);
-
-  return (
-    <div className="flex items-start justify-between gap-5 flex-wrap">
-      <div className="min-w-0">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-primary">
-          Financial command centre
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-[1.7rem]">
-          {greeting()}, {firstName}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {activeCompany?.name || 'Your business'} <span className="mx-1 text-border">·</span> Here’s what needs your attention.
-        </p>
-      </div>
-
-      <div className="flex items-center gap-2 flex-wrap pt-0.5">
-        {health.priority && !health.loading && (
-          <StatusCard
-            as={Link}
-            to={health.priority.route}
-            icon={ListChecks}
-            kicker="Today's priority"
-            title={health.priority.label}
-          />
-        )}
-        <StatusCard
-          icon={Activity}
-          kicker="Business health"
-          title={status}
-          meta={health.loading ? '' : `${score}/100`}
-          tone={healthTone(score)}
-          onClick={() => setOpen(true)}
-        />
-      </div>
-
-      <BusinessHealthDialog open={open} onClose={() => setOpen(false)} health={health} userName={firstName} />
-    </div>
-  );
+  const { activeCompany } = useCompany(); const { user } = useAuth(); const s = useLedgerSnapshot(activeCompany?.id);
+  const greeting = new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening';
+  return <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-medium uppercase tracking-widest text-primary">Your business at a glance</p><h1 className="mt-1 text-3xl font-semibold">{greeting}, {user?.first_name || 'there'}</h1><p className="mt-2 text-sm text-muted-foreground">{activeCompany?.name} · Figures from posted journals</p></div><Link to="/accounting/reports" className="rounded-xl border bg-card px-4 py-3 text-sm">{s.error ? 'Ledger unavailable — review' : !s.data ? 'Loading ledger…' : s.data.balance_sheet.balanced ? 'Ledger balanced · Open reports' : 'Ledger needs attention'}</Link></div>;
 }

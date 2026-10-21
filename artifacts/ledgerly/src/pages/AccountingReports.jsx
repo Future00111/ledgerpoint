@@ -1,3 +1,4 @@
+import { downloadCsv, reportRows } from '@/lib/ledgerCsv.mjs';
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { accounting, docPath } from '@/api/accountingDocuments.mjs';
@@ -72,6 +73,7 @@ export default function AccountingReports({ defaultTab = 'tb' }) {
       <nav className="flex flex-wrap gap-1 rounded-lg bg-muted/60 p-1 w-fit">
         {TABS.map(([k, l]) => <button key={k} type="button" data-testid={`tab-${k}`} onClick={() => setTab(k)} className={`rounded-md px-3 py-1.5 text-sm ${tab === k ? 'bg-background font-medium shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>{l}</button>)}
       </nav>
+      {data && <div className="flex gap-4"><button type="button" className="rounded-lg border px-3 py-2 text-sm hover:bg-muted" onClick={() => downloadCsv(`ledger-${tab}-${to}.csv`, [['Company', activeCompany.name], ['From', from, 'To', to], ...reportRows(data, tab, partyFilter)])}>Download report CSV</button><Link to={`/statements${partyFilter ? `?party_id=${encodeURIComponent(partyFilter)}` : ''}`} className="self-center text-sm text-primary underline">Account statements</Link></div>}
       <ErrorBox error={error} onRetry={() => setTick(t => t + 1)} />
       {!data && !error && <SkeletonRows rows={6} />}
       {data && <p className="text-xs text-muted-foreground" data-testid="text-report-basis">
@@ -112,7 +114,7 @@ export default function AccountingReports({ defaultTab = 'tb' }) {
         {[['1', 'VAT due on sales', 'box1_pence'], ['4', 'VAT reclaimed on purchases', 'box4_pence'], ['5', 'Net VAT', 'box5_pence'], ['6', 'Total sales ex VAT', 'box6_pence'], ['7', 'Total purchases ex VAT', 'box7_pence']].map(([b, d, k]) => <tr key={b} className={tr}><td className={`${th} font-semibold`}>{b}</td><td className={th}>{d}</td><td className={`${th} text-right`}><Money value={data.vat[k]} /></td></tr>)}
       </Table>}
       {data && tab === 'parties' && <div className="space-y-6">
-        <Table head={R(1, ['Party', 'Type', 'Balance'])}>{data.party_balances.filter(p => !partyFilter || p.party_id === partyFilter).map(p => <tr key={p.party_id} className={tr}><td className={th}><button type="button" className="text-primary hover:underline" onClick={() => { const q = new URLSearchParams(params); q.set('party_id', p.party_id); setParams(q, { replace: true }); }}>{p.party_name}</button></td><td className={`${th} capitalize`}>{p.party_type}</td><td className={`${th} text-right`}><Money value={p.balance_minor} /></td></tr>)}</Table>
+        <Table head={R(3, ['Party', 'Type', 'Outstanding', 'Unapplied', 'Net'])}>{data.party_balances.filter(p => !partyFilter || p.party_id === partyFilter).map(p => <tr key={p.party_id} className={tr}><td className={th}><button type="button" className="text-primary hover:underline" onClick={() => { const q = new URLSearchParams(params); q.set('party_id', p.party_id); setParams(q, { replace: true }); }}>{p.party_name}</button></td><td className={`${th} capitalize`}>{p.party_type}</td><td className={`${th} text-right`}><Money value={p.balance_minor} /></td><td className={`${th} text-right`}><Money value={p.unapplied_minor || '0'} /></td><td className={`${th} text-right`}><Money value={p.net_balance_minor ?? p.balance_minor} /></td></tr>)}</Table>
         {partyFilter && <button type="button" className="text-sm underline" onClick={() => { const q = new URLSearchParams(params); q.delete('party'); q.delete('party_id'); setParams(q, { replace: true }); }}>Show all transactions</button>}
         <Table head={R(1, ['Date', 'Number', 'Party', 'Type', 'Due', 'Journal', 'Effect'])}>{data.party_transactions.filter(t => !partyFilter || t.party_id === partyFilter).map((t, i) => <tr key={i} className={tr}><td className={th}>{t.date}</td><td className={th}><SrcLink type={t.source_type} id={t.source_id}>{t.number}</SrcLink></td><td className={th}>{t.party_name}</td><td className={`${th} capitalize`}>{t.source_type.replace(/_/g, ' ')}</td><td className={th}>{t.due_date}</td><td className={th}><JournalLink id={t.journal_id} /></td><td className={`${th} text-right`}><Money value={t.balance_effect_minor} /></td></tr>)}</Table>
       </div>}

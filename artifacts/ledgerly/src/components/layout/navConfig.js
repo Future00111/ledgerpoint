@@ -51,6 +51,8 @@ export const SECTIONS = [
     key: 'banking', label: 'Banking', icon: Landmark,
     items: [
       { label: 'Accounts', path: '/bank-accounts', icon: Landmark },
+      { label: 'Payments & unapplied cash', path: '/payments', icon: ArrowLeftRight },
+      { label: 'Statements', path: '/statements', icon: FileText },
       { label: 'Transactions', path: '/transactions', icon: ArrowLeftRight },
       { label: 'Reconciliation', path: '/reconciliation', icon: Scale },
       { label: 'Rules', icon: Wand2, soon: true },

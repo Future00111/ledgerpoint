@@ -20,6 +20,13 @@ financial write boundaries, repository protections, and frozen candidate
 evidence. Do not force-push, rewrite history, auto-merge, deploy, or publish
 without the required action-specific authorization.
 
+The 21 October payment delivery adds native receipts/payments, partial and later
+allocations, unapplied customer credits/supplier prepayments, refunds, reversals,
+statements, CSV exports and ledger-backed dashboard/account summaries. See
+`docs/development/w06-payments-and-connected-summaries.md` for the exact scope,
+isolated setup and verification limits. Existing synthetic samples must remain
+intact; the W06 walkthrough uses a separate company.
+
 ## Preserved qualification record
 
 Frozen C7 `787d76decfa345e3c1104231e08d5ab00bc90259` passed the recorded
