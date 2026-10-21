@@ -6,7 +6,7 @@ import { ErrorBox, SkeletonRows, Money } from '@/components/accounting/Accountin
 
 const report = tab => `/accounting/reports?tab=${tab}`;
 function Metric({ label, value, to }) {
-  return <Link to={to} className="rounded-xl border bg-card p-3 hover:border-primary/50"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-xl font-semibold tabular-nums">{value}</p></Link>;
+  return <Link to={to} className="block rounded-xl border bg-card p-3 hover:border-primary/50"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-xl font-semibold tabular-nums">{value}</p></Link>;
 }
 function Rows({ rows, empty = 'No posted activity in this period.' }) {
   return rows.length ? <div className="space-y-2">{rows.slice(0, 7).map((r, i) => <Link key={i} to={r.path} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 hover:bg-muted/50"><span className="min-w-0"><span className="block truncate text-sm font-medium">{r.label}</span><span className="text-xs text-muted-foreground">{r.detail}</span></span><Money value={r.amount} className="text-sm" /></Link>)}</div> : <p className="py-3 text-sm text-muted-foreground">{empty}</p>;
