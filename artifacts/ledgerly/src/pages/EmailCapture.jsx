@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,7 +57,7 @@ export default function EmailCapture() {
     if (!activeCompany) return;
     setDocsLoading(true);
     try {
-      const docs = await base44.entities.Document.filter({ company_id: activeCompany.id }, '-upload_date', 200);
+      const docs = await nativeEntities.Document.filter({ company_id: activeCompany.id }, '-upload_date', 200);
       setCapturedDocs(docs.filter(d => d.notes && d.notes.toLowerCase().includes('capture')));
     } catch (e) { console.error(e); }
     finally { setDocsLoading(false); }
@@ -68,7 +69,7 @@ export default function EmailCapture() {
     if (!activeCompany) return;
     setScanning(true);
     try {
-      const res = await base44.functions.invoke('mockScanEmails', { company_id: activeCompany.id });
+      const res = await invokeApiFunction('mockScanEmails', { company_id: activeCompany.id });
       setScanResult(res.data);
       toast({ title: `Scan complete: ${res.data.documents_found} document(s) found` });
       setLogRefresh(k => k + 1);

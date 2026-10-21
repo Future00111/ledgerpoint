@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,7 @@ export default function ManualJournalForm({ open, onOpenChange, onSave }) {
 
   const loadAccounts = async () => {
     try {
-      const list = await base44.entities.ChartOfAccount.filter({ company_id: activeCompany.id });
+      const list = await nativeEntities.ChartOfAccount.filter({ company_id: activeCompany.id });
       setAccounts(list.filter(a => a.is_active));
     } catch (e) {
       console.error(e);
@@ -64,7 +64,7 @@ export default function ManualJournalForm({ open, onOpenChange, onSave }) {
         const credit = parseFloat(line.credit) || 0;
         if (debit > 0 || credit > 0) {
           const account = accounts.find(a => a.id === line.account_id);
-          await base44.entities.JournalEntry.create({
+          await nativeEntities.JournalEntry.create({
             company_id: activeCompany.id,
             date,
             reference,

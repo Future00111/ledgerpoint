@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +22,7 @@ export default function AuditTab() {
   useEffect(() => {
     if (!activeCompany) return;
     (async () => {
-      const list = await base44.entities.AccountSuggestionLog.filter({ company_id: activeCompany.id }, '-created_date', 50);
+      const list = await nativeEntities.AccountSuggestionLog.filter({ company_id: activeCompany.id }, '-created_date', 50);
       setRows(list);
       setLoading(false);
     })();

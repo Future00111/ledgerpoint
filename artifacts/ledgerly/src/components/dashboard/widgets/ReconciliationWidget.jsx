@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { Skeleton, EmptyState } from '../WidgetPrimitives';
 import { Progress } from '@/components/ui/progress';
@@ -10,8 +10,8 @@ export default function ReconciliationWidget({ company }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, async (cid) => {
     const [accts, txns] = await Promise.all([
-      base44.entities.BankAccount.filter({ company_id: cid }),
-      base44.entities.BankTransaction.filter({ company_id: cid }, '-date', 1000),
+      nativeEntities.BankAccount.filter({ company_id: cid }),
+      nativeEntities.BankTransaction.filter({ company_id: cid }, '-date', 1000),
     ]);
     return { accts, txns };
   });

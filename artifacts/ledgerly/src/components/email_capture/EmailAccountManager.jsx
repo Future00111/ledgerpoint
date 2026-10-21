@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,7 @@ export default function EmailAccountManager({ companyId }) {
   const loadAccounts = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.EmailAccount.filter({ company_id: companyId });
+      const list = await nativeEntities.EmailAccount.filter({ company_id: companyId });
       setAccounts(list);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -32,7 +32,7 @@ export default function EmailAccountManager({ companyId }) {
     if (!email) { toast({ title: 'Email address is required', variant: 'destructive' }); return; }
     setAdding(true);
     try {
-      await base44.entities.EmailAccount.create({
+      await nativeEntities.EmailAccount.create({
         company_id: companyId,
         email_address: email,
         provider,
@@ -48,7 +48,7 @@ export default function EmailAccountManager({ companyId }) {
   const handleRemove = async (id) => {
     if (!confirm('Remove this email account?')) return;
     try {
-      await base44.entities.EmailAccount.delete(id);
+      await nativeEntities.EmailAccount.delete(id);
       toast({ title: 'Account removed' });
       await loadAccounts();
     } catch (e) { toast({ title: 'Error removing account', variant: 'destructive' }); }

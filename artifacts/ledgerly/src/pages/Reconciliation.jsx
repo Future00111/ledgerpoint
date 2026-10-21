@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -66,10 +67,10 @@ export default function Reconciliation() {
     setLoading(true);
     try {
       const [accts, txns, requestedTransaction] = await Promise.all([
-        base44.entities.BankAccount.filter({ company_id: activeCompany.id }),
-        base44.entities.BankTransaction.filter({ company_id: activeCompany.id }, '-date', 500),
+        nativeEntities.BankAccount.filter({ company_id: activeCompany.id }),
+        nativeEntities.BankTransaction.filter({ company_id: activeCompany.id }, '-date', 500),
         requestedTransactionId
-          ? base44.entities.BankTransaction.get(requestedTransactionId).catch(() => null)
+          ? nativeEntities.BankTransaction.get(requestedTransactionId).catch(() => null)
           : Promise.resolve(null),
       ]);
       // An AI task can reference an older receipt outside this register's
@@ -91,7 +92,7 @@ export default function Reconciliation() {
         setExpandedId(focusedTransaction.id);
       }
       try {
-        const res = await base44.functions.invoke('suggestTransactionMatches', { company_id: activeCompany.id });
+        const res = await invokeApiFunction('suggestTransactionMatches', { company_id: activeCompany.id });
         const body = res?.data ?? res;
         setSuggestions(body?.suggestions || {});
         setAiRecon(body?.reconciliation || {});
@@ -215,7 +216,7 @@ export default function Reconciliation() {
     if (!['sales_credit_note', 'supplier_credit_note', 'ledger_account'].includes(rt)) {
       throw new Error('This match type requires payment approval');
     }
-    const response = await base44.functions.invoke('approveNonPaymentReconciliationMatch', {
+    const response = await invokeApiFunction('approveNonPaymentReconciliationMatch', {
       bank_transaction_id: txn.id,
       record_type: rt,
       record_id: rec.record_id || undefined,
@@ -231,7 +232,7 @@ export default function Reconciliation() {
     try {
       const isPaymentMatch = rec.record_type === 'sales_invoice' || rec.record_type === 'purchase_bill';
       const response = isPaymentMatch
-        ? await base44.functions.invoke('approveReconciliationMatches', {
+        ? await invokeApiFunction('approveReconciliationMatches', {
             bank_transaction_id: txn.id,
             records: [{ record_type: rec.record_type, record_id: rec.record_id }],
           })
@@ -255,7 +256,7 @@ export default function Reconciliation() {
     try {
       // Server applies everything atomically: re-checks status, caps payment
       // amounts at each record's outstanding balance, and links the records.
-      const res = await base44.functions.invoke('approveReconciliationMatches', {
+      const res = await invokeApiFunction('approveReconciliationMatches', {
         bank_transaction_id: txn.id,
         records: recs.map((r) => ({
           record_type: r.record_type,
@@ -276,7 +277,7 @@ export default function Reconciliation() {
     if (!txn) return;
     setApprovingId(txn.id);
     try {
-      const response = await base44.functions.invoke('approveNonPaymentReconciliationMatch', {
+      const response = await invokeApiFunction('approveNonPaymentReconciliationMatch', {
         bank_transaction_id: txn.id,
         record_type: 'ledger_account',
         record_number: data.category || 'Categorised transaction',
@@ -297,7 +298,7 @@ export default function Reconciliation() {
     if (!txn) return;
     setApprovingId(txn.id);
     try {
-      const response = await base44.functions.invoke('recordBankTransfer', {
+      const response = await invokeApiFunction('recordBankTransfer', {
         bank_transaction_id: txn.id,
         to_account_id: data.to_account_id,
         amount: data.amount,
@@ -322,11 +323,11 @@ export default function Reconciliation() {
       const payload = { ...data, company_id: activeCompany.id };
       if (editing) {
         const { date, description, reference, transaction_type, category, vat_rate, notes } = payload;
-        await base44.functions.invoke('updateBankTransactionClassification', {
+        await invokeApiFunction('updateBankTransactionClassification', {
           bank_transaction_id: editing.id, date, description, reference, transaction_type, category, vat_rate, notes,
         });
       }
-      else await base44.functions.invoke('recordBankTransaction', payload);
+      else await invokeApiFunction('recordBankTransaction', payload);
       toast({ title: editing ? 'Transaction updated' : 'Transaction recorded' });
       setFormOpen(false); setEditing(null);
       await load();

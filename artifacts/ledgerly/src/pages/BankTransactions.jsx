@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,7 +47,7 @@ export default function BankTransactions() {
 
   const loadSuggestions = async () => {
     try {
-      const result = await base44.functions.invoke('suggestTransactionMatches', { company_id: activeCompany.id });
+      const result = await invokeApiFunction('suggestTransactionMatches', { company_id: activeCompany.id });
       // The compatibility client returns the route body directly, while the
       // historical Base44 client wrapped it in `data`.
       setSuggestions(result?.data?.suggestions ?? result?.suggestions ?? {});
@@ -56,7 +57,7 @@ export default function BankTransactions() {
   const loadTransactions = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.BankTransaction.filter({ company_id: activeCompany.id }, '-date', 200);
+      const list = await nativeEntities.BankTransaction.filter({ company_id: activeCompany.id }, '-date', 200);
       setTransactions(list);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -71,12 +72,12 @@ export default function BankTransactions() {
       const payload = { ...data, company_id: activeCompany.id };
       if (editing) {
         const { date, description, reference, transaction_type, category, vat_rate, notes } = payload;
-        await base44.functions.invoke('updateBankTransactionClassification', {
+        await invokeApiFunction('updateBankTransactionClassification', {
           bank_transaction_id: editing.id, date, description, reference, transaction_type, category, vat_rate, notes,
         });
         toast({ title: 'Transaction updated' });
       } else {
-        await base44.functions.invoke('recordBankTransaction', payload);
+        await invokeApiFunction('recordBankTransaction', payload);
         toast({ title: 'Transaction recorded' });
       }
       await loadTransactions();
@@ -87,7 +88,7 @@ export default function BankTransactions() {
 
   const handleDelete = async (t) => {
     if (!confirm('Delete this transaction?')) return;
-    try { await base44.entities.BankTransaction.delete(t.id); toast({ title: 'Deleted' }); await loadTransactions(); }
+    try { await nativeEntities.BankTransaction.delete(t.id); toast({ title: 'Deleted' }); await loadTransactions(); }
     catch (e) { toast({ title: 'Error', variant: 'destructive' }); }
   };
 
@@ -99,12 +100,12 @@ export default function BankTransactions() {
     try {
       const isPaymentMatch = suggestion.record_type === 'sales_invoice' || suggestion.record_type === 'purchase_bill';
       if (isPaymentMatch) {
-        await base44.functions.invoke('approveReconciliationMatches', {
+        await invokeApiFunction('approveReconciliationMatches', {
           bank_transaction_id: transaction.id,
           records: [{ record_type: suggestion.record_type, record_id: suggestion.record_id }],
         });
       } else {
-        await base44.functions.invoke('approveNonPaymentReconciliationMatch', {
+        await invokeApiFunction('approveNonPaymentReconciliationMatch', {
           bank_transaction_id: transaction.id,
           record_type: ['sales_credit_note', 'supplier_credit_note'].includes(suggestion.record_type)
             ? suggestion.record_type

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,10 +50,10 @@ export default function BankAccountForm({ account, open, onOpenChange, onSave, c
     setLoading(true);
     try {
       if (account) {
-        await base44.entities.BankAccount.update(account.id, formData);
+        await nativeEntities.BankAccount.update(account.id, formData);
         toast({ title: 'Account updated' });
       } else {
-        await base44.entities.BankAccount.create({
+        await nativeEntities.BankAccount.create({
           ...formData,
           company_id: companyId,
           current_balance: formData.opening_balance,

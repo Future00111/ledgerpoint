@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { gbp, monthKey, thisMonthKey, prevMonthKey } from '@/lib/format';
 import { X, Sparkles, ArrowRight } from 'lucide-react';
 
@@ -24,11 +24,11 @@ export default function MorningBriefing({ company }) {
     (async () => {
       try {
         const [txns, inv, docs, bills, vat] = await Promise.all([
-          base44.entities.BankTransaction.filter({ company_id: company.id }, '-date', 1000),
-          base44.entities.SalesInvoice.filter({ company_id: company.id }, '-issue_date', 500),
-          base44.entities.Document.filter({ company_id: company.id }),
-          base44.entities.PurchaseBill.filter({ company_id: company.id }, '-bill_date', 500),
-          base44.entities.VATReturn.filter({ company_id: company.id }, '-created_date', 5),
+          nativeEntities.BankTransaction.filter({ company_id: company.id }, '-date', 1000),
+          nativeEntities.SalesInvoice.filter({ company_id: company.id }, '-issue_date', 500),
+          nativeEntities.Document.filter({ company_id: company.id }),
+          nativeEntities.PurchaseBill.filter({ company_id: company.id }, '-bill_date', 500),
+          nativeEntities.VATReturn.filter({ company_id: company.id }, '-created_date', 5),
         ]);
         if (cancelled) return;
         const today = todayStr();

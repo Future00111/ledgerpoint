@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useAsk } from '@/components/ask/AskProvider';
 import { useWidgetData } from '../useWidgetData';
 import { ListSkeleton, EmptyState, StatusBadge } from '../WidgetPrimitives';
@@ -11,7 +11,7 @@ export default function OutstandingBillsWidget({ company, h }) {
   const nav = useNavigate();
   const { openAsk } = useAsk();
   const { data, loading } = useWidgetData(company?.id, async (cid) => {
-    const bills = await base44.entities.PurchaseBill.filter({ company_id: cid }, 'due_date', 500);
+    const bills = await nativeEntities.PurchaseBill.filter({ company_id: cid }, 'due_date', 500);
     return bills;
   });
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAsk } from '@/components/ask/AskProvider';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { Skeleton, EmptyState } from '../WidgetPrimitives';
 import CountUp from '../CountUp';
@@ -16,10 +16,10 @@ export default function ForecastWidget({ company, h }) {
   const { openAsk } = useAsk();
   const { data, loading } = useWidgetData(company?.id, async (cid) => {
     const [inv, bills, accts, txns] = await Promise.all([
-      base44.entities.SalesInvoice.filter({ company_id: cid }, '-due_date', 500),
-      base44.entities.PurchaseBill.filter({ company_id: cid }, '-due_date', 500),
-      base44.entities.BankAccount.filter({ company_id: cid }),
-      base44.entities.BankTransaction.filter({ company_id: cid }, '-date', 1000),
+      nativeEntities.SalesInvoice.filter({ company_id: cid }, '-due_date', 500),
+      nativeEntities.PurchaseBill.filter({ company_id: cid }, '-due_date', 500),
+      nativeEntities.BankAccount.filter({ company_id: cid }),
+      nativeEntities.BankTransaction.filter({ company_id: cid }, '-date', 1000),
     ]);
     return { inv, bills, accts, txns };
   });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -45,10 +45,10 @@ export default function CustomerForm({ open, onOpenChange, editing, companyId, o
     try {
       const payload = { ...form, credit_limit: Number(form.credit_limit) || 0, payment_terms: Number(form.payment_terms) };
       if (editing) {
-        await base44.entities.Customer.update(editing.id, payload);
+        await nativeEntities.Customer.update(editing.id, payload);
         toast({ title: 'Customer updated' });
       } else {
-        await base44.entities.Customer.create({ ...payload, company_id: companyId });
+        await nativeEntities.Customer.create({ ...payload, company_id: companyId });
         toast({ title: 'Customer created' });
       }
       onSaved();

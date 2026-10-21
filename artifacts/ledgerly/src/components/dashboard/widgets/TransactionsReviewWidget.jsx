@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { ListSkeleton, EmptyState } from '../WidgetPrimitives';
 import { gbp, fmtDate } from '@/lib/format';
@@ -9,7 +9,7 @@ import { ArrowLeftRight } from 'lucide-react';
 export default function TransactionsReviewWidget({ company, h }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, (cid) =>
-    base44.entities.BankTransaction.filter({ company_id: cid, status: 'review' }, '-date', 200)
+    nativeEntities.BankTransaction.filter({ company_id: cid, status: 'review' }, '-date', 200)
   );
 
   if (loading) return <ListSkeleton />;

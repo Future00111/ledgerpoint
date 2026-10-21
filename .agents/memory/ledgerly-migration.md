@@ -6,10 +6,9 @@ description: Durable decisions from the Base44-to-Replit port of Ledgerly.
 # Ledgerly migration architecture
 
 ## Auth — Clerk
-- Clerk (not Replit Auth) chosen for auth.
-- `AuthContext.jsx` wraps Clerk's `useUser`/`useClerk` in a compatibility layer so existing `useAuth()` calls keep working without touching the 40+ consumer files.
-- `useAuth()` returns a safe default instead of throwing when called outside the provider — required because `NotificationStack` renders above `AuthProvider`.
-- Auth routes: `/sign-in/*` and `/sign-up/*` use Clerk `<SignIn>`/`<SignUp>` components embedded in the app's own layout.
+- Clerk (not Replit Auth) is the actual authentication provider.
+- `useAuth()` exposes the Clerk-backed user/session and fails fast outside its provider; there is no Base44 or fake-success auth API.
+- Auth routes `/sign-in/*` and `/sign-up/*` use Clerk's embedded components.
 
 ## Authorization model — tenant isolation
 - Every entity except `Company` has a `company_id` column.
@@ -20,9 +19,14 @@ description: Durable decisions from the Base44-to-Replit port of Ledgerly.
 
 **Why:** Accounting data is highly sensitive. Without per-record ownership checks, any authenticated user could enumerate or modify another tenant's records by guessing UUIDs.
 
-## API entity proxy
-- `base44.entities.X.method()` pattern preserved via a shim in `src/api/entities.js` (factory function `entity(name)` calling `/api/entities/:name`).
-- This avoided touching 40+ page/component files that call `SalesInvoice.filter(...)`, etc.
+## Native API access
+- Frontend callers import entity services directly from `src/api/entities.js` and first-party function calls from `src/api/functions.mjs`.
+- Generic CRUD remains authenticated and tenant-scoped; invoice, VAT, company, reconciliation and other protected writes must continue through their dedicated server policies/workflows.
+- External provider capabilities must fail explicitly when unconfigured; never replace them with empty or fake success responses.
+
+**Why:** A compatibility facade obscures whether a call is native, authenticated, scoped, or protected. Direct imports keep those boundaries visible without changing the server's authorization rules.
+
+**How to apply:** Migrate callers by the underlying native entity or first-party route; preserve request payloads and rely on the existing server-side company and role checks. Treat file storage and LLM generation as unavailable until their provider services are configured.
 
 ## Routing
 - App uses react-router-dom throughout (not wouter). `ClerkProvider` wraps `BrowserRouter`.

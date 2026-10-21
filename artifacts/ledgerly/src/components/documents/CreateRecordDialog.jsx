@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ export default function CreateRecordDialog({ open, onOpenChange, document: doc, 
     try {
       const payload = { document_id: doc.id };
       if (doc.document_type === 'credit_note') payload.credit_note_type = creditNoteType;
-      const result = await base44.functions.invoke('createRecordFromDocument', payload);
+      const result = await invokeApiFunction('createRecordFromDocument', payload);
       toast({ title: `${result.data.record_type} created successfully` });
       onCreated?.();
       onOpenChange(false);

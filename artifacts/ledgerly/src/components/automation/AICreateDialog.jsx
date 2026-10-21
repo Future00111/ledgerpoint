@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, Loader2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { InvokeLLM } from '@/api/integrations.js';
 
 const EXAMPLES = [
   'Remind customers 7 days after invoices become overdue.',
@@ -15,13 +15,15 @@ const EXAMPLES = [
 export default function AICreateDialog({ open, onOpenChange, onGenerate }) {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     const userPrompt = prompt.trim();
     setLoading(true);
+    setError('');
     try {
-      const res = await base44.integrations.Core.InvokeLLM({
+      const res = await InvokeLLM({
         prompt: `You are an automation assistant for Ledgerly, a UK accounting app. Convert the user's request into an automation workflow.\n\nReturn a JSON object with:\n- name: short automation name\n- description: one sentence description\n- category: one of sales, purchases, banking, vat, documents, reports, ai, notifications\n- requires_approval: true if this could modify accounting data, false if it only notifies or reports\n- workflow: array of blocks, each with type (when, if, then, wait, else, end) and text (human-readable)\n\nUser request: "${userPrompt}"`,
         response_json_schema: {
           type: 'object',
@@ -45,20 +47,8 @@ export default function AICreateDialog({ open, onOpenChange, onGenerate }) {
       });
       onGenerate({ ...res, ai_prompt: userPrompt });
       setPrompt('');
-    } catch {
-      onGenerate({
-        name: userPrompt.slice(0, 50),
-        description: userPrompt,
-        category: 'ai',
-        requires_approval: true,
-        ai_prompt: userPrompt,
-        workflow: [
-          { type: 'when', text: 'triggered by event' },
-          { type: 'then', text: userPrompt },
-          { type: 'end' },
-        ],
-      });
-      setPrompt('');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'AI workflow drafting is unavailable.');
     } finally {
       setLoading(false);
     }
@@ -76,11 +66,12 @@ export default function AICreateDialog({ open, onOpenChange, onGenerate }) {
           <p className="text-sm text-muted-foreground">Describe what you want to automate in plain English. We'll draft a workflow for you to review.</p>
           <Textarea
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={(e) => { setPrompt(e.target.value); setError(''); }}
             placeholder="e.g. Remind customers 7 days after invoices become overdue."
             rows={3}
             autoFocus
           />
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           <div className="flex flex-wrap gap-2">
             {EXAMPLES.map((ex) => (
               <button

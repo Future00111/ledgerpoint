@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
 import { Briefcase } from 'lucide-react';
@@ -17,7 +17,7 @@ export default function AccountantPortal() {
   const loadClients = async () => {
     setLoading(true);
     try {
-      const res = await base44.functions.invoke('getAccountantClientList', {});
+      const res = await invokeApiFunction('getAccountantClientList', {});
       setClients(res.data.clients || []);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }

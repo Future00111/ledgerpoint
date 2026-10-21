@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { computeHealth, openHealthDetails } from '../useBusinessHealth';
 import { gbp, monthKey, thisMonthKey } from '@/lib/format';
@@ -16,12 +16,12 @@ export default function BusinessSnapshotWidget({ company }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, async (cid) => {
     const [inv, bills, accts, txns, docs, vat] = await Promise.all([
-      base44.entities.SalesInvoice.filter({ company_id: cid }, '-issue_date', 500),
-      base44.entities.PurchaseBill.filter({ company_id: cid }, '-bill_date', 500),
-      base44.entities.BankAccount.filter({ company_id: cid }),
-      base44.entities.BankTransaction.filter({ company_id: cid }, '-date', 500),
-      base44.entities.Document.filter({ company_id: cid }),
-      base44.entities.VATReturn.filter({ company_id: cid }, '-created_date', 5),
+      nativeEntities.SalesInvoice.filter({ company_id: cid }, '-issue_date', 500),
+      nativeEntities.PurchaseBill.filter({ company_id: cid }, '-bill_date', 500),
+      nativeEntities.BankAccount.filter({ company_id: cid }),
+      nativeEntities.BankTransaction.filter({ company_id: cid }, '-date', 500),
+      nativeEntities.Document.filter({ company_id: cid }),
+      nativeEntities.VATReturn.filter({ company_id: cid }, '-created_date', 5),
     ]);
     return { inv, bills, accts, txns, docs, vat };
   });

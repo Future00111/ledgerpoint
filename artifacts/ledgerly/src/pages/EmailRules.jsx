@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { Button } from '@/components/ui/button';
 import { Scan, Loader2 } from 'lucide-react';
@@ -17,7 +17,7 @@ export default function EmailRules() {
     if (!activeCompany) return;
     setScanning(true);
     try {
-      const res = await base44.functions.invoke('mockScanEmails', { company_id: activeCompany.id });
+      const res = await invokeApiFunction('mockScanEmails', { company_id: activeCompany.id });
       toast({ title: `Scan complete: ${res.data.documents_found} captured, ${res.data.emails_ignored} ignored` });
       setLogRefresh(k => k + 1);
     } catch (e) {

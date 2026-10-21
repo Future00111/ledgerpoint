@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,7 @@ export default function LearningTab() {
   const load = async () => {
     if (!activeCompany) return;
     setLoading(true);
-    const list = await base44.entities.AccountLearning.filter({ company_id: activeCompany.id }, '-times_used');
+    const list = await nativeEntities.AccountLearning.filter({ company_id: activeCompany.id }, '-times_used');
     setRows(list);
     setLoading(false);
   };
@@ -29,7 +30,7 @@ export default function LearningTab() {
     if (!window.confirm('Reset all learned preferences? This cannot be undone.')) return;
     setBusy(true);
     try {
-      await base44.functions.invoke('manageLearning', { company_id: activeCompany.id, action: 'reset' });
+      await invokeApiFunction('manageLearning', { company_id: activeCompany.id, action: 'reset' });
       toast({ title: 'Learning reset' });
       load();
     } catch (e) {
@@ -42,7 +43,7 @@ export default function LearningTab() {
   const exportData = async () => {
     setBusy(true);
     try {
-      const res = await base44.functions.invoke('manageLearning', { company_id: activeCompany.id, action: 'export' });
+      const res = await invokeApiFunction('manageLearning', { company_id: activeCompany.id, action: 'export' });
       const data = res?.data ?? res;
       const blob = new Blob([JSON.stringify(data.export, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -66,7 +67,7 @@ export default function LearningTab() {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      await base44.functions.invoke('manageLearning', { company_id: activeCompany.id, action: 'import', data });
+      await invokeApiFunction('manageLearning', { company_id: activeCompany.id, action: 'import', data });
       toast({ title: 'Imported' });
       load();
     } catch (err) {

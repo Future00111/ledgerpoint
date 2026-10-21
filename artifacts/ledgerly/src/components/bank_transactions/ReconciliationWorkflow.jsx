@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -34,7 +35,7 @@ export default function ReconciliationWorkflow({ open, onOpenChange, transaction
 
       if (isIncome) {
         // For income, match to unpaid sales invoices
-        const invoiceList = await base44.entities.SalesInvoice.filter({
+        const invoiceList = await nativeEntities.SalesInvoice.filter({
           company_id: companyId,
           status: { $in: ['approved', 'sent', 'part_paid'] }
         });
@@ -43,7 +44,7 @@ export default function ReconciliationWorkflow({ open, onOpenChange, transaction
         setInvoices(outstanding);
       } else {
         // For expenses, match to unpaid purchase bills
-        const billList = await base44.entities.PurchaseBill.filter({
+        const billList = await nativeEntities.PurchaseBill.filter({
           company_id: companyId,
           status: { $in: ['approved', 'part_paid'] }
         });
@@ -96,7 +97,7 @@ export default function ReconciliationWorkflow({ open, onOpenChange, transaction
 
     setFinalizing(true);
     try {
-      await base44.functions.invoke('approveReconciliationMatches', {
+      await invokeApiFunction('approveReconciliationMatches', {
         bank_transaction_id: transaction.id,
         records: matches.map((match) => ({
           record_type: match.type,

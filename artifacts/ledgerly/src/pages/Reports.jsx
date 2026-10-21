@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,11 +33,11 @@ export default function Reports() {
     setLoading(true);
     try {
       const [journals, accounts, invoices, bills, bankTxns] = await Promise.all([
-        base44.entities.JournalEntry.filter({ company_id: activeCompany.id }),
-        base44.entities.ChartOfAccount.filter({ company_id: activeCompany.id }),
-        base44.entities.SalesInvoice.filter({ company_id: activeCompany.id }),
-        base44.entities.PurchaseBill.filter({ company_id: activeCompany.id }),
-        base44.entities.BankTransaction.filter({ company_id: activeCompany.id }),
+        nativeEntities.JournalEntry.filter({ company_id: activeCompany.id }),
+        nativeEntities.ChartOfAccount.filter({ company_id: activeCompany.id }),
+        nativeEntities.SalesInvoice.filter({ company_id: activeCompany.id }),
+        nativeEntities.PurchaseBill.filter({ company_id: activeCompany.id }),
+        nativeEntities.BankTransaction.filter({ company_id: activeCompany.id }),
       ]);
       setData({ journals, accounts, invoices, bills, bankTxns });
     } catch (e) { console.error(e); }

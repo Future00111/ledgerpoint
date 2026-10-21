@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { ListSkeleton, EmptyState } from '../WidgetPrimitives';
 import { cn } from '@/lib/utils';
@@ -17,8 +17,8 @@ export default function WorkflowWidget({ company, h }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, async (cid) => {
     const [inv, cust] = await Promise.all([
-      base44.entities.SalesInvoice.filter({ company_id: cid }, '-due_date', 500),
-      base44.entities.Customer.filter({ company_id: cid }, '-created_date', 500),
+      nativeEntities.SalesInvoice.filter({ company_id: cid }, '-due_date', 500),
+      nativeEntities.Customer.filter({ company_id: cid }, '-created_date', 500),
     ]);
     return { inv: inv || [], cust: cust || [] };
   });

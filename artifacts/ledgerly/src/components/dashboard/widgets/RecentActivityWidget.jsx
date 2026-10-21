@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { ListSkeleton, EmptyState } from '../WidgetPrimitives';
 import { fmtDateTime } from '@/lib/format';
@@ -10,10 +10,10 @@ export default function RecentActivityWidget({ company, h }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, async (cid) => {
     const [inv, bills, journals, docs] = await Promise.all([
-      base44.entities.SalesInvoice.filter({ company_id: cid }, '-created_date', 15),
-      base44.entities.PurchaseBill.filter({ company_id: cid }, '-created_date', 15),
-      base44.entities.JournalEntry.filter({ company_id: cid }, '-created_date', 15),
-      base44.entities.Document.filter({ company_id: cid }, '-created_date', 15),
+      nativeEntities.SalesInvoice.filter({ company_id: cid }, '-created_date', 15),
+      nativeEntities.PurchaseBill.filter({ company_id: cid }, '-created_date', 15),
+      nativeEntities.JournalEntry.filter({ company_id: cid }, '-created_date', 15),
+      nativeEntities.Document.filter({ company_id: cid }, '-created_date', 15),
     ]);
     return { inv, bills, journals, docs };
   });

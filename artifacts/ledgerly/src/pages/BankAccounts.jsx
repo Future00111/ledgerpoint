@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ export default function BankAccounts() {
   const loadAccounts = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.BankAccount.filter({ company_id: activeCompany.id }, 'account_name');
+      const list = await nativeEntities.BankAccount.filter({ company_id: activeCompany.id }, 'account_name');
       setAccounts(list);
     } catch (e) {
       toast({ title: 'Error loading accounts', description: e.message, variant: 'destructive' });
@@ -38,7 +38,7 @@ export default function BankAccounts() {
   const handleDelete = async (account) => {
     if (!confirm(`Delete ${account.account_name}?`)) return;
     try {
-      await base44.entities.BankAccount.delete(account.id);
+      await nativeEntities.BankAccount.delete(account.id);
       toast({ title: 'Account deleted' });
       await loadAccounts();
     } catch (e) {
@@ -49,7 +49,7 @@ export default function BankAccounts() {
   const handleToggleStatus = async (account) => {
     try {
       const newStatus = account.status === 'active' ? 'inactive' : 'active';
-      await base44.entities.BankAccount.update(account.id, { status: newStatus });
+      await nativeEntities.BankAccount.update(account.id, { status: newStatus });
       toast({ title: 'Account updated' });
       await loadAccounts();
     } catch (e) {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,13 +21,13 @@ export default function CustomerMergeDialog({ customer, customers, open, onOpenC
     if (!confirm(`Merge "${target.name}" into "${customer.name}"? Invoices will be reassigned to ${customer.name} and "${target.name}" will be deleted.`)) return;
     setMerging(true);
     try {
-      const invoices = await base44.entities.SalesInvoice.filter({ customer_id: targetId });
+      const invoices = await nativeEntities.SalesInvoice.filter({ customer_id: targetId });
       if (invoices.length) {
-        await base44.entities.SalesInvoice.bulkUpdate(
+        await nativeEntities.SalesInvoice.bulkUpdate(
           invoices.map((i) => ({ id: i.id, customer_id: customer.id, customer_name: customer.name }))
         );
       }
-      await base44.entities.Customer.delete(targetId);
+      await nativeEntities.Customer.delete(targetId);
       toast({ title: 'Customers merged', description: `${target.name} merged into ${customer.name}` });
       setTargetId('');
       onMerged();

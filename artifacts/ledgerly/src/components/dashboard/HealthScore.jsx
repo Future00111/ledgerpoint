@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -26,32 +26,32 @@ export default function HealthScore({ companyId }) {
   const calculateHealthScore = async () => {
     try {
       // Fetch bank accounts
-      const bankAccounts = await base44.entities.BankAccount.filter({ company_id: companyId });
+      const bankAccounts = await nativeEntities.BankAccount.filter({ company_id: companyId });
       const bankScore = bankAccounts.length > 0 ? 20 : 0;
 
       // Fetch transactions awaiting review
-      const transactions = await base44.entities.BankTransaction.filter({
+      const transactions = await nativeEntities.BankTransaction.filter({
         company_id: companyId,
         status: 'review',
       });
       const transactionScore = transactions.length === 0 ? 20 : Math.max(0, 20 - Math.min(10, transactions.length));
 
       // Fetch documents awaiting review
-      const documents = await base44.entities.Document.filter({
+      const documents = await nativeEntities.Document.filter({
         company_id: companyId,
         status: { $in: ['pending_extraction', 'pending_review'] },
       });
       const documentScore = documents.length === 0 ? 20 : Math.max(0, 20 - Math.min(10, documents.length));
 
       // Fetch unmatched transactions
-      const unmatchedTransactions = await base44.entities.BankTransaction.filter({
+      const unmatchedTransactions = await nativeEntities.BankTransaction.filter({
         company_id: companyId,
         status: 'review',
       });
       const unmatchedScore = unmatchedTransactions.length === 0 ? 20 : Math.max(0, 20 - Math.min(10, unmatchedTransactions.length));
 
       // Fetch VAT returns status
-      const vatReturns = await base44.entities.VATReturn.filter({
+      const vatReturns = await nativeEntities.VATReturn.filter({
         company_id: companyId,
         status: { $in: ['draft', 'ready_for_review'] },
       });

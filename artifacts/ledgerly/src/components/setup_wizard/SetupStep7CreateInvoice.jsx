@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ export default function SetupStep7CreateInvoice({ companyId, customerId, data, o
 
   const loadCustomers = async () => {
     try {
-      const list = await base44.entities.Customer.filter({ company_id: companyId, status: 'active' });
+      const list = await nativeEntities.Customer.filter({ company_id: companyId, status: 'active' });
       setCustomers(list);
     } catch (e) {
       console.error('Error loading customers:', e);
@@ -46,7 +46,7 @@ export default function SetupStep7CreateInvoice({ companyId, customerId, data, o
       const amount = parseFloat(formData.amount);
       const customer = customers.find(c => c.id === formData.customer_id);
 
-      const invoice = await base44.entities.SalesInvoice.create({
+      const invoice = await nativeEntities.SalesInvoice.create({
         company_id: companyId,
         customer_id: formData.customer_id,
         customer_name: customer?.name || '',

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { Skeleton, EmptyState } from '../WidgetPrimitives';
 import { gbp } from '@/lib/format';
@@ -14,8 +14,8 @@ export default function ProfitWidget({ company, h }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, async (cid) => {
     const [inv, bills] = await Promise.all([
-      base44.entities.SalesInvoice.filter({ company_id: cid }, '-issue_date', 1000),
-      base44.entities.PurchaseBill.filter({ company_id: cid }, '-bill_date', 1000),
+      nativeEntities.SalesInvoice.filter({ company_id: cid }, '-issue_date', 1000),
+      nativeEntities.PurchaseBill.filter({ company_id: cid }, '-bill_date', 1000),
     ]);
     return { inv, bills };
   });

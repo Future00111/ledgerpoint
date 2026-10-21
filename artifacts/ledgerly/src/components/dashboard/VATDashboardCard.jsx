@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +37,7 @@ export default function VATDashboardCard() {
       const quarter = getCurrentQuarter();
       const [calc, bankTxns] = await Promise.all([
         calculateVATReturn(activeCompany.id, quarter.start.format('YYYY-MM-DD'), quarter.end.format('YYYY-MM-DD')),
-        base44.entities.BankTransaction.filter({ company_id: activeCompany.id }),
+        nativeEntities.BankTransaction.filter({ company_id: activeCompany.id }),
       ]);
       const reviewCount = bankTxns.filter(t => t.status === 'review').length;
       const deadline = getFilingDeadline(quarter.end);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,19 +19,19 @@ export default function JournalDetail({ journal, open, onOpenChange }) {
     setLoading(true);
     try {
       if (journal.source_type === 'sales_invoice' && journal.source_record_id) {
-        const doc = await base44.entities.SalesInvoice.get(journal.source_record_id);
+        const doc = await nativeEntities.SalesInvoice.get(journal.source_record_id);
         setSource(doc);
       } else if (journal.source_type === 'purchase_bill' && journal.source_record_id) {
-        const doc = await base44.entities.PurchaseBill.get(journal.source_record_id);
+        const doc = await nativeEntities.PurchaseBill.get(journal.source_record_id);
         setSource(doc);
       } else if (journal.source_type === 'bank_transaction' && journal.source_record_id) {
-        const doc = await base44.entities.BankTransaction.get(journal.source_record_id);
+        const doc = await nativeEntities.BankTransaction.get(journal.source_record_id);
         setSource(doc);
       } else if (journal.source_type === 'sales_credit_note' && journal.source_record_id) {
-        const doc = await base44.entities.SalesCreditNote.get(journal.source_record_id);
+        const doc = await nativeEntities.SalesCreditNote.get(journal.source_record_id);
         setSource(doc);
       } else if (journal.source_type === 'supplier_credit_note' && journal.source_record_id) {
-        const doc = await base44.entities.SupplierCreditNote.get(journal.source_record_id);
+        const doc = await nativeEntities.SupplierCreditNote.get(journal.source_record_id);
         setSource(doc);
       }
     } catch (e) {

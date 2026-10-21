@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,7 +47,7 @@ export default function Customers() {
   const loadCustomers = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.Customer.filter({ company_id: activeCompany.id });
+      const list = await nativeEntities.Customer.filter({ company_id: activeCompany.id });
       setCustomers(list);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -59,19 +59,19 @@ export default function Customers() {
 
   const handleDelete = async (c) => {
     if (!confirm(`Delete ${c.name}? This cannot be undone.`)) return;
-    try { await base44.entities.Customer.delete(c.id); toast({ title: 'Customer deleted' }); await loadCustomers(); }
+    try { await nativeEntities.Customer.delete(c.id); toast({ title: 'Customer deleted' }); await loadCustomers(); }
     catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
   };
 
   const handleArchive = async (c) => {
-    try { await base44.entities.Customer.update(c.id, { status: 'inactive' }); toast({ title: 'Customer archived' }); await loadCustomers(); }
+    try { await nativeEntities.Customer.update(c.id, { status: 'inactive' }); toast({ title: 'Customer archived' }); await loadCustomers(); }
     catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
   };
 
   const handleDuplicate = async (c) => {
     try {
       const { id, created_date, updated_date, created_by_id, ...rest } = c;
-      await base44.entities.Customer.create({ ...rest, name: `${c.name} (Copy)`, customer_reference: '', outstanding_balance: 0 });
+      await nativeEntities.Customer.create({ ...rest, name: `${c.name} (Copy)`, customer_reference: '', outstanding_balance: 0 });
       toast({ title: 'Customer duplicated' }); await loadCustomers();
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
   };

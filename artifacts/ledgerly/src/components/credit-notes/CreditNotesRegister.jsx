@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronUp, ChevronsUpDown, FileText, Plus, Search } from 'lucide-react';
 import moment from 'moment';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,7 +82,7 @@ export default function CreditNotesRegister({ kind }) {
   const [viewing, setViewing] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
-  const entity = base44.entities[config.entity];
+  const entity = nativeEntities[config.entity];
   const ViewComponent = config.view;
 
   useEffect(() => {
@@ -108,13 +109,13 @@ export default function CreditNotesRegister({ kind }) {
       await entity.update(creditNote.id, { status, is_applied: shouldApply });
 
       if (shouldApply && !wasApplied) {
-        await base44.functions.invoke('updatePaymentStatus', {
+        await invokeApiFunction('updatePaymentStatus', {
           entity_type: config.originalEntityType,
           record_id: originalId,
           amount_paid_delta: Number(creditNote.total) || 0,
         });
       } else if (!shouldApply && wasApplied && originalId) {
-        await base44.functions.invoke('updatePaymentStatus', {
+        await invokeApiFunction('updatePaymentStatus', {
           entity_type: config.originalEntityType,
           record_id: originalId,
           amount_paid_delta: -(Number(creditNote.total) || 0),

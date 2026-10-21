@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { computeCustomerHealth } from '@/lib/customerHealth';
@@ -60,24 +60,24 @@ export default function CustomerWorkspace({
     const load = async () => {
       setLoading(true);
       try {
-        const invs = await base44.entities.SalesInvoice.filter({ customer_id: customer.id }, '-issue_date', 200);
+        const invs = await nativeEntities.SalesInvoice.filter({ customer_id: customer.id }, '-issue_date', 200);
         if (cancelled) return;
         setInvoices(invs || []);
 
-        const cns = await base44.entities.SalesCreditNote.filter({ customer_id: customer.id }, '-credit_note_date', 200);
+        const cns = await nativeEntities.SalesCreditNote.filter({ customer_id: customer.id }, '-credit_note_date', 200);
         if (cancelled) return;
         setCreditNotes(cns || []);
 
-        const docs = await base44.entities.Document.filter({ company_id: customer.company_id });
+        const docs = await nativeEntities.Document.filter({ company_id: customer.company_id });
         if (cancelled) return;
         setDocuments((docs || []).filter((d) => (d.supplier_or_customer || '').toLowerCase() === (customer.name || '').toLowerCase()));
 
-        const txns = await base44.entities.BankTransaction.filter({ company_id: customer.company_id }, '-date', 200);
+        const txns = await nativeEntities.BankTransaction.filter({ company_id: customer.company_id }, '-date', 200);
         if (cancelled) return;
         const invIds = new Set((invs || []).map((i) => i.id));
         setPayments((txns || []).filter((t) => t.matched_type === 'sales_invoice' && invIds.has(t.linked_invoice_id)));
 
-        const acts = await base44.entities.WorkflowActivity.filter({ company_id: customer.company_id, entity_type: 'sales_invoice' }, '-event_date', 500);
+        const acts = await nativeEntities.WorkflowActivity.filter({ company_id: customer.company_id, entity_type: 'sales_invoice' }, '-event_date', 500);
         if (cancelled) return;
         setActivities((acts || []).filter((activity) => invIds.has(activity.entity_id)));
       } catch (e) {
@@ -171,11 +171,11 @@ export default function CustomerWorkspace({
 
   const saveNotes = async (v) => {
     if ((v || '') === (customer.notes || '')) return;
-    try { await base44.entities.Customer.update(customer.id, { notes: v }); toast({ title: 'Notes saved' }); }
+    try { await nativeEntities.Customer.update(customer.id, { notes: v }); toast({ title: 'Notes saved' }); }
     catch (e) { toast({ title: 'Could not save notes', variant: 'destructive' }); }
   };
   const saveTags = async (next) => {
-    try { await base44.entities.Customer.update(customer.id, { tags: next }); setTagsState(next); }
+    try { await nativeEntities.Customer.update(customer.id, { tags: next }); setTagsState(next); }
     catch (e) { toast({ title: 'Could not update tags', variant: 'destructive' }); }
   };
   const toggleTag = (t) => { const set = new Set(tagsState); if (set.has(t)) set.delete(t); else set.add(t); saveTags(Array.from(set)); };

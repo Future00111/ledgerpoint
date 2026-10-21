@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useAuth } from '@/lib/AuthContext';
 import { useCompany } from '@/lib/useCompany';
 import { findActiveItem } from '@/components/layout/navConfig';
@@ -139,17 +140,17 @@ export default function AskModal({ open, onClose, initialQuery }) {
     setUserName(user?.full_name || '');
 
     if (activeCompany) {
-      base44.entities.SuggestionSettings.filter({ company_id: activeCompany.id })
+      nativeEntities.SuggestionSettings.filter({ company_id: activeCompany.id })
         .then((list) => setAiEnabled(list[0]?.ai_enabled !== false))
         .catch(() => setAiEnabled(true));
 
       (async () => {
         try {
           const [inv, bills, txns, docs] = await Promise.all([
-            base44.entities.SalesInvoice.filter({ company_id: activeCompany.id }, '-issue_date', 300),
-            base44.entities.PurchaseBill.filter({ company_id: activeCompany.id }, '-bill_date', 300),
-            base44.entities.BankTransaction.filter({ company_id: activeCompany.id }, '-date', 300),
-            base44.entities.Document.filter({ company_id: activeCompany.id }),
+            nativeEntities.SalesInvoice.filter({ company_id: activeCompany.id }, '-issue_date', 300),
+            nativeEntities.PurchaseBill.filter({ company_id: activeCompany.id }, '-bill_date', 300),
+            nativeEntities.BankTransaction.filter({ company_id: activeCompany.id }, '-date', 300),
+            nativeEntities.Document.filter({ company_id: activeCompany.id }),
           ]);
           const overdue = inv.filter(
             (i) => i.status === 'overdue' || (Number(i.balance_due) > 0 && i.due_date && i.due_date < todayStr())
@@ -182,7 +183,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
         const cfg = CONTEXT_ENTITIES[item.path];
         if (rest && cfg) {
           try {
-            const r = await base44.entities[cfg.entity].get(rest);
+            const r = await nativeEntities[cfg.entity].get(rest);
             let desc = `The user is currently viewing ${cfg.label} ${r.invoice_number || r.bill_number || r.credit_note_number || r.reference || rest}`;
             if (r.customer_name) desc += ` for ${r.customer_name}`;
             if (r.supplier_name) desc += ` from ${r.supplier_name}`;
@@ -221,7 +222,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
     const t = setTimeout(async () => {
       try {
         const res = await Promise.race([
-          base44.functions.invoke('globalSearch', { company_id: activeCompany.id, query: q }),
+          invokeApiFunction('globalSearch', { company_id: activeCompany.id, query: q }),
           new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 7000)),
         ]);
         if (!cancelled) {
@@ -343,7 +344,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
     setRecentSearches(getRecentSearches());
     setAiAnswer({ loading: true, question: q });
     try {
-      const res = await base44.functions.invoke('askAI', {
+      const res = await invokeApiFunction('askAI', {
         company_id: activeCompany.id,
         question: q,
         context: pageContext,

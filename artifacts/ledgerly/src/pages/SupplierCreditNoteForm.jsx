@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -46,20 +47,20 @@ export default function SupplierCreditNoteForm() {
   }, [activeCompany, form.supplier_id]);
 
   const loadSuppliers = async () => {
-    try { setSuppliers(await base44.entities.Supplier.filter({ company_id: activeCompany.id })); }
+    try { setSuppliers(await nativeEntities.Supplier.filter({ company_id: activeCompany.id })); }
     catch (e) { console.error(e); }
   };
 
   const loadBills = async () => {
     try {
-      const list = await base44.entities.PurchaseBill.filter({ company_id: activeCompany.id, supplier_id: form.supplier_id });
+      const list = await nativeEntities.PurchaseBill.filter({ company_id: activeCompany.id, supplier_id: form.supplier_id });
       setBills(list.filter(b => b.status !== 'cancelled' && b.status !== 'draft'));
     } catch (e) { console.error(e); }
   };
 
   const suggestNumber = async () => {
     try {
-      const list = await base44.entities.SupplierCreditNote.filter({ company_id: activeCompany.id });
+      const list = await nativeEntities.SupplierCreditNote.filter({ company_id: activeCompany.id });
       let maxNum = 0;
       list.forEach(cn => {
         const match = cn.credit_note_number?.match(/SCN-(\d+)/i);
@@ -71,7 +72,7 @@ export default function SupplierCreditNoteForm() {
 
   const loadCreditNote = async () => {
     try {
-      const cn = await base44.entities.SupplierCreditNote.get(id);
+      const cn = await nativeEntities.SupplierCreditNote.get(id);
       setForm({
         supplier_id: cn.supplier_id || '', original_bill_id: cn.original_bill_id || '',
         credit_note_number: cn.credit_note_number || '', credit_note_date: cn.credit_note_date || '',
@@ -79,7 +80,7 @@ export default function SupplierCreditNoteForm() {
         line_items: cn.line_items?.length ? cn.line_items : [{ description: '', quantity: 1, unit_price: 0, vat_rate: '20', amount: 0, vat_amount: 0, line_total: 0, category: 'other' }]
       });
       if (cn.supplier_id) {
-        const list = await base44.entities.PurchaseBill.filter({ company_id: activeCompany.id, supplier_id: cn.supplier_id });
+        const list = await nativeEntities.PurchaseBill.filter({ company_id: activeCompany.id, supplier_id: cn.supplier_id });
         setBills(list.filter(b => b.status !== 'cancelled' && b.status !== 'draft'));
       }
     } catch (e) { console.error(e); }
@@ -97,7 +98,7 @@ export default function SupplierCreditNoteForm() {
     }
     setSaving(true);
     try {
-      const existing = await base44.entities.SupplierCreditNote.filter({
+      const existing = await nativeEntities.SupplierCreditNote.filter({
         company_id: activeCompany.id,
         supplier_id: form.supplier_id,
         credit_note_number: form.credit_note_number,
@@ -123,15 +124,15 @@ export default function SupplierCreditNoteForm() {
       };
 
       let savedId;
-      if (isEdit) { await base44.entities.SupplierCreditNote.update(id, data); savedId = id; }
-      else { const created = await base44.entities.SupplierCreditNote.create(data); savedId = created.id; }
+      if (isEdit) { await nativeEntities.SupplierCreditNote.update(id, data); savedId = id; }
+      else { const created = await nativeEntities.SupplierCreditNote.create(data); savedId = created.id; }
       // Apply or reverse credit note on original bill
       if (shouldApply && !wasApplied && originalBillId) {
-        await base44.functions.invoke('updatePaymentStatus', {
+        await invokeApiFunction('updatePaymentStatus', {
           entity_type: 'purchase_bill', record_id: originalBillId, amount_paid_delta: total
         });
       } else if (!shouldApply && wasApplied && originalBillId) {
-        await base44.functions.invoke('updatePaymentStatus', {
+        await invokeApiFunction('updatePaymentStatus', {
           entity_type: 'purchase_bill', record_id: originalBillId, amount_paid_delta: -total
         });
       }

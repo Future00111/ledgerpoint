@@ -1,4 +1,4 @@
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { WIDGETS } from './widgetRegistry';
 import { gbp, monthKey, thisMonthKey, prevMonthKey } from '@/lib/format';
 
@@ -41,8 +41,8 @@ async function snapshot() {
 
 async function cashflow(c) {
   const [accts, txns] = await Promise.all([
-    base44.entities.BankAccount.filter({ company_id: c.id }),
-    base44.entities.BankTransaction.filter({ company_id: c.id }, '-date', 1000),
+    nativeEntities.BankAccount.filter({ company_id: c.id }),
+    nativeEntities.BankTransaction.filter({ company_id: c.id }, '-date', 1000),
   ]);
   const cash = (accts || []).reduce((s, a) => s + (Number(a.current_balance) || 0), 0);
   const tm = thisMonthKey();
@@ -62,8 +62,8 @@ async function cashflow(c) {
 
 async function profit(c) {
   const [inv, bills] = await Promise.all([
-    base44.entities.SalesInvoice.filter({ company_id: c.id }, '-issue_date', 1000),
-    base44.entities.PurchaseBill.filter({ company_id: c.id }, '-bill_date', 1000),
+    nativeEntities.SalesInvoice.filter({ company_id: c.id }, '-issue_date', 1000),
+    nativeEntities.PurchaseBill.filter({ company_id: c.id }, '-bill_date', 1000),
   ]);
   const tm = thisMonthKey();
   const pm = prevMonthKey();
@@ -86,7 +86,7 @@ async function profit(c) {
 }
 
 async function invoices(c) {
-  const inv = await base44.entities.SalesInvoice.filter({ company_id: c.id }, 'due_date', 500);
+  const inv = await nativeEntities.SalesInvoice.filter({ company_id: c.id }, 'due_date', 500);
   const outstanding = (inv || [])
     .filter((i) => ['approved', 'sent', 'part_paid', 'overdue'].includes(i.status) && (Number(i.balance_due) || 0) > 0)
     .sort((a, b) => (a.due_date || '').localeCompare(b.due_date || ''));
@@ -106,7 +106,7 @@ async function invoices(c) {
 }
 
 async function bills(c) {
-  const b = await base44.entities.PurchaseBill.filter({ company_id: c.id }, 'due_date', 500);
+  const b = await nativeEntities.PurchaseBill.filter({ company_id: c.id }, 'due_date', 500);
   const today = todayStr();
   const in7 = new Date();
   in7.setDate(in7.getDate() + 7);
@@ -128,9 +128,9 @@ async function bills(c) {
 
 async function vat(c) {
   const [inv, bills, vr] = await Promise.all([
-    base44.entities.SalesInvoice.filter({ company_id: c.id }, '-issue_date', 1000),
-    base44.entities.PurchaseBill.filter({ company_id: c.id }, '-bill_date', 1000),
-    base44.entities.VATReturn.filter({ company_id: c.id }, '-created_date', 5),
+    nativeEntities.SalesInvoice.filter({ company_id: c.id }, '-issue_date', 1000),
+    nativeEntities.PurchaseBill.filter({ company_id: c.id }, '-bill_date', 1000),
+    nativeEntities.VATReturn.filter({ company_id: c.id }, '-created_date', 5),
   ]);
   const outputVat = (inv || []).filter((i) => ACTIVE.includes(i.status)).reduce((s, i) => s + (Number(i.vat_total) || 0), 0);
   const inputVat = (bills || []).filter((b) => BILL_ACTIVE.includes(b.status)).reduce((s, b) => s + (Number(b.vat_total) || 0), 0);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,7 +48,7 @@ export default function ExtractionReview({ open, onOpenChange, document: doc, on
   const handleConfirm = async () => {
     setSaving(true);
     try {
-      const saved = await base44.entities.Document.update(doc.id, {
+      const saved = await nativeEntities.Document.update(doc.id, {
         supplier_or_customer: form.supplier_name,
         reference_number: form.invoice_number,
         document_date: form.invoice_date,
@@ -68,7 +68,7 @@ export default function ExtractionReview({ open, onOpenChange, document: doc, on
   const handleReject = async () => {
     setSaving(true);
     try {
-      await base44.entities.Document.update(doc.id, { status: 'rejected' });
+      await nativeEntities.Document.update(doc.id, { status: 'rejected' });
       toast({ title: 'Document rejected' });
       onRejected?.();
       onOpenChange(false);

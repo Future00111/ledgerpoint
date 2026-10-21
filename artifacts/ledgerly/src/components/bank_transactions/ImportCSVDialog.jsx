@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,7 +59,7 @@ export default function ImportCSVDialog({ open, onOpenChange, companyId, onImpor
 
   const loadBankAccounts = async () => {
     try {
-      const accounts = await base44.entities.BankAccount.filter({ company_id: companyId });
+      const accounts = await nativeEntities.BankAccount.filter({ company_id: companyId });
       setBankAccounts(accounts);
     } catch (e) { console.error(e); }
   };
@@ -118,7 +119,7 @@ export default function ImportCSVDialog({ open, onOpenChange, companyId, onImpor
     const account = bankAccounts.find(a => a.id === bankAccountId);
     if (!account) return { imported: [], duplicates: [] };
 
-    const existing = await base44.entities.BankTransaction.filter({
+    const existing = await nativeEntities.BankTransaction.filter({
       company_id: companyId,
       bank_account_id: bankAccountId
     });
@@ -147,7 +148,7 @@ export default function ImportCSVDialog({ open, onOpenChange, companyId, onImpor
     try {
       const { imported, duplicates } = await checkDuplicates(preview);
       if (imported.length > 0) {
-        const response = await base44.functions.invoke('recordBankTransactions', {
+        const response = await invokeApiFunction('recordBankTransactions', {
           company_id: companyId,
           transactions: imported,
         });

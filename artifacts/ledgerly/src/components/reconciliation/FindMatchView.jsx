@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Input } from '@/components/ui/input';
 import { Search, ArrowLeft, FileText, Loader2 } from 'lucide-react';
 import { gbp, fmtDate } from '@/lib/format';
@@ -14,10 +14,10 @@ export default function FindMatchView({ transaction, onSelect, onBack }) {
       setLoading(true);
       try {
         const [inv, bills, scn, supcn] = await Promise.all([
-          base44.entities.SalesInvoice.filter({ company_id: transaction.company_id }, '-issue_date', 200),
-          base44.entities.PurchaseBill.filter({ company_id: transaction.company_id }, '-bill_date', 200),
-          base44.entities.SalesCreditNote.filter({ company_id: transaction.company_id }, '-credit_note_date', 100),
-          base44.entities.SupplierCreditNote.filter({ company_id: transaction.company_id }, '-credit_note_date', 100),
+          nativeEntities.SalesInvoice.filter({ company_id: transaction.company_id }, '-issue_date', 200),
+          nativeEntities.PurchaseBill.filter({ company_id: transaction.company_id }, '-bill_date', 200),
+          nativeEntities.SalesCreditNote.filter({ company_id: transaction.company_id }, '-credit_note_date', 100),
+          nativeEntities.SupplierCreditNote.filter({ company_id: transaction.company_id }, '-credit_note_date', 100),
         ]);
         const map = [
           ...inv.filter((i) => (i.balance_due ?? i.total) > 0 && i.status !== 'cancelled' && i.status !== 'draft').map((i) => ({ record_type: 'sales_invoice', record_id: i.id, record_number: i.invoice_number, record_name: i.customer_name, record_amount: i.total, date: i.issue_date, outstanding: i.balance_due })),

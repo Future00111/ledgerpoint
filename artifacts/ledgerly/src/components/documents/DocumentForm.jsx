@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { UploadFile } from '@/api/integrations.js';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -88,7 +90,7 @@ export default function DocumentForm({ open, onOpenChange, companyId, onSaved, o
     if (!selectedFile || !form.name || !form.document_type) return;
     setUploading(true);
     try {
-      const result = await base44.integrations.Core.UploadFile({ file: selectedFile });
+      const result = await UploadFile({ file: selectedFile });
       const data = {
         company_id: companyId,
         name: form.name,
@@ -106,12 +108,12 @@ export default function DocumentForm({ open, onOpenChange, companyId, onSaved, o
         mime_type: selectedFile.type,
         notes: form.notes,
       };
-      const doc = await base44.entities.Document.create(data);
+      const doc = await nativeEntities.Document.create(data);
       onSaved();
       setUploading(false);
       setExtracting(true);
       try {
-        const extractResult = await base44.functions.invoke('extractDocumentData', { document_id: doc.id });
+        const extractResult = await invokeApiFunction('extractDocumentData', { document_id: doc.id });
         onOpenChange(false);
         if (onExtracted) onExtracted(extractResult.data.document);
       } catch (e) {

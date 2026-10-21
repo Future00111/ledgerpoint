@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,7 @@ export default function SuggestionRuleForm({ rule, open, onOpenChange, onSave })
   useEffect(() => {
     if (!activeCompany) return;
     (async () => {
-      const list = await base44.entities.ChartOfAccount.filter({ company_id: activeCompany.id });
+      const list = await nativeEntities.ChartOfAccount.filter({ company_id: activeCompany.id });
       setAccounts(list.filter(a => a.is_active !== false));
     })();
   }, [activeCompany]);
@@ -54,8 +54,8 @@ export default function SuggestionRuleForm({ rule, open, onOpenChange, onSave })
         target_account_name: acc.name,
         priority: Number(form.priority) || 0,
       };
-      if (rule) await base44.entities.SuggestionRule.update(rule.id, payload);
-      else await base44.entities.SuggestionRule.create(payload);
+      if (rule) await nativeEntities.SuggestionRule.update(rule.id, payload);
+      else await nativeEntities.SuggestionRule.create(payload);
       toast({ title: rule ? 'Rule updated' : 'Rule created' });
       onOpenChange(false);
       await onSave();

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +26,7 @@ export default function AccountSuggestionField({ companyId, context, onAccountSe
     setSuggestion(null);
     const t = setTimeout(async () => {
       try {
-        const res = await base44.functions.invoke('suggestAccount', { ...context, company_id: companyId });
+        const res = await invokeApiFunction('suggestAccount', { ...context, company_id: companyId });
         if (!cancelled) setSuggestion(res?.data ?? res);
       } catch (e) {
         if (!cancelled) setSuggestion({ suggestion: null, confidence: 0, reason: 'Suggestion unavailable', source: 'none' });
@@ -38,7 +39,7 @@ export default function AccountSuggestionField({ companyId, context, onAccountSe
 
   const loadAccounts = async () => {
     if (!companyId) return;
-    const list = await base44.entities.ChartOfAccount.filter({ company_id: companyId });
+    const list = await nativeEntities.ChartOfAccount.filter({ company_id: companyId });
     setAccounts(list.filter(a => a.is_active !== false));
   };
 
@@ -53,7 +54,7 @@ export default function AccountSuggestionField({ companyId, context, onAccountSe
     const suggested = suggestion?.suggestion || null;
     try {
       setRecording(true);
-      await base44.functions.invoke('recordAccountChoice', {
+      await invokeApiFunction('recordAccountChoice', {
         company_id: companyId,
         source_type: context.source_type,
         source_record_id: context.source_record_id,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -42,7 +42,7 @@ export default function GeneralLedger() {
   const loadJournals = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.JournalEntry.filter({ company_id: activeCompany.id }, 'date');
+      const list = await nativeEntities.JournalEntry.filter({ company_id: activeCompany.id }, 'date');
       setJournals(list);
     } catch (e) {
       console.error(e);
@@ -55,7 +55,7 @@ export default function GeneralLedger() {
   const handleTestJournal = async () => {
     try {
       // Fetch accounts by code
-      const accounts = await base44.entities.ChartOfAccount.filter({ company_id: activeCompany.id });
+      const accounts = await nativeEntities.ChartOfAccount.filter({ company_id: activeCompany.id });
       const bankAccount = accounts.find(a => a.code === '1000');
       const salesAccount = accounts.find(a => a.code === '4000');
       
@@ -64,7 +64,7 @@ export default function GeneralLedger() {
         return;
       }
 
-      await base44.entities.JournalEntry.bulkCreate([
+      await nativeEntities.JournalEntry.bulkCreate([
         {
           company_id: activeCompany.id,
           date: new Date().toISOString().split('T')[0],

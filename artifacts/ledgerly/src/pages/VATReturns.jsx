@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,7 +46,7 @@ export default function VATReturns() {
     setLoading(true);
     try {
       const [list, vatOverview] = await Promise.all([
-        base44.entities.VATReturn.filter({ company_id: activeCompany.id }, '-period_start', 50),
+        nativeEntities.VATReturn.filter({ company_id: activeCompany.id }, '-period_start', 50),
         aiApi.vatOverview(activeCompany.id),
       ]);
       setReturns(list);

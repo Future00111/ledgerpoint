@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useAsk } from '@/components/ask/AskProvider';
 import { Sparkles, RotateCcw, Loader2 } from 'lucide-react';
 
@@ -14,7 +14,7 @@ export default function AiForecastsWidget({ company }) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await base44.functions.invoke('askAI', {
+        const res = await invokeApiFunction('askAI', {
           company_id: cid,
           question:
             'Act as a financial forecaster. Based on my books, forecast revenue, cashflow and key risks for the next 3 months. Be concise (max 120 words), use bullet points.',

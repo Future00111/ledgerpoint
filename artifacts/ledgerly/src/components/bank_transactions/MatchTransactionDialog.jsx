@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,11 +26,11 @@ export default function MatchTransactionDialog({ open, onOpenChange, transaction
   useEffect(() => {
     if (open && companyId) {
       Promise.all([
-        base44.entities.SalesInvoice.filter({ company_id: companyId }),
-        base44.entities.PurchaseBill.filter({ company_id: companyId }),
-        base44.entities.SalesCreditNote.filter({ company_id: companyId }),
-        base44.entities.SupplierCreditNote.filter({ company_id: companyId }),
-        base44.entities.ChartOfAccount.filter({ company_id: companyId }),
+        nativeEntities.SalesInvoice.filter({ company_id: companyId }),
+        nativeEntities.PurchaseBill.filter({ company_id: companyId }),
+        nativeEntities.SalesCreditNote.filter({ company_id: companyId }),
+        nativeEntities.SupplierCreditNote.filter({ company_id: companyId }),
+        nativeEntities.ChartOfAccount.filter({ company_id: companyId }),
       ]).then(([inv, bil, scn, supcn, coa]) => {
         setInvoices(inv.filter(i => i.status !== 'cancelled' && i.status !== 'draft'));
         setBills(bil.filter(b => b.status !== 'cancelled' && b.status !== 'draft'));
@@ -47,12 +48,12 @@ export default function MatchTransactionDialog({ open, onOpenChange, transaction
     setMatchError('');
     try {
       if (tab === 'sales_invoice' || tab === 'purchase_bill') {
-        await base44.functions.invoke('approveReconciliationMatches', {
+        await invokeApiFunction('approveReconciliationMatches', {
           bank_transaction_id: transaction.id,
           records: [{ record_type: tab, record_id: selected.id }],
         });
       } else {
-        await base44.functions.invoke('approveNonPaymentReconciliationMatch', {
+        await invokeApiFunction('approveNonPaymentReconciliationMatch', {
           bank_transaction_id: transaction.id,
           record_type: tab,
           record_id: selected.id,

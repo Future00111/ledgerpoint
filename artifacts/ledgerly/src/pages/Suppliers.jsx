@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,8 +59,8 @@ export default function Suppliers() {
     setLoading(true);
     try {
       const [supplierList, billList] = await Promise.all([
-        base44.entities.Supplier.filter({ company_id: activeCompany.id }),
-        base44.entities.PurchaseBill.filter({ company_id: activeCompany.id }, '-bill_date'),
+        nativeEntities.Supplier.filter({ company_id: activeCompany.id }),
+        nativeEntities.PurchaseBill.filter({ company_id: activeCompany.id }, '-bill_date'),
       ]);
       setSuppliers(supplierList || []);
       setBills(billList || []);
@@ -90,7 +90,7 @@ export default function Suppliers() {
   const handleDelete = async (supplier) => {
     if (!confirm(`Delete ${supplier.name}?`)) return;
     try {
-      await base44.entities.Supplier.delete(supplier.id);
+      await nativeEntities.Supplier.delete(supplier.id);
       toast({ title: 'Supplier deleted' });
       await loadData();
     } catch (e) {

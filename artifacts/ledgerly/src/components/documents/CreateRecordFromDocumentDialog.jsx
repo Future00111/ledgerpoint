@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -49,9 +50,9 @@ export default function CreateRecordFromDocumentDialog({ open, onOpenChange, doc
     if (step === 'details' && activeCompany && recordType) {
       const rt = RECORD_TYPES.find(r => r.value === recordType);
       if (rt?.needs === 'supplier') {
-        base44.entities.Supplier.filter({ company_id: activeCompany.id }, 'name', 200).then(setContacts).catch(() => {});
+        nativeEntities.Supplier.filter({ company_id: activeCompany.id }, 'name', 200).then(setContacts).catch(() => {});
       } else if (rt?.needs === 'customer') {
-        base44.entities.Customer.filter({ company_id: activeCompany.id }, 'name', 200).then(setContacts).catch(() => {});
+        nativeEntities.Customer.filter({ company_id: activeCompany.id }, 'name', 200).then(setContacts).catch(() => {});
       }
     }
   }, [step, recordType, activeCompany]);
@@ -74,7 +75,7 @@ export default function CreateRecordFromDocumentDialog({ open, onOpenChange, doc
   const handleReceiptOnly = async () => {
     setCreating(true);
     try {
-      await base44.entities.Document.update(doc.id, { status: 'approved' });
+      await nativeEntities.Document.update(doc.id, { status: 'approved' });
       toast({ title: 'Document approved' });
       onCreated?.();
       onOpenChange(false);
@@ -104,7 +105,7 @@ export default function CreateRecordFromDocumentDialog({ open, onOpenChange, doc
         if (rt.needs === 'supplier') payload.new_supplier_name = newName.trim();
         else payload.new_customer_name = newName.trim();
       }
-      const result = await base44.functions.invoke('createRecordFromDocument', payload);
+      const result = await invokeApiFunction('createRecordFromDocument', payload);
       toast({ title: `${result.data.record_type} created successfully.` });
       onCreated?.();
       onOpenChange(false);

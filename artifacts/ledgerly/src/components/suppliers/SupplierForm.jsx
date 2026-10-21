@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -59,10 +59,10 @@ export default function SupplierForm({ open, onOpenChange, editing, companyId, o
     try {
       const payload = { ...form, payment_terms: Number(form.payment_terms) };
       if (editing) {
-        await base44.entities.Supplier.update(editing.id, payload);
+        await nativeEntities.Supplier.update(editing.id, payload);
         toast({ title: 'Supplier updated' });
       } else {
-        await base44.entities.Supplier.create({ ...payload, company_id: companyId });
+        await nativeEntities.Supplier.create({ ...payload, company_id: companyId });
         toast({ title: 'Supplier created' });
       }
       onSaved();

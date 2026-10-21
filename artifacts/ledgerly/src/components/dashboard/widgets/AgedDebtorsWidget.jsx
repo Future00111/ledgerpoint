@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { ListSkeleton, EmptyState } from '../WidgetPrimitives';
 import { gbp } from '@/lib/format';
@@ -9,7 +9,7 @@ import { FileText } from 'lucide-react';
 export default function AgedDebtorsWidget({ company }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, (cid) =>
-    base44.entities.SalesInvoice.filter({ company_id: cid }, '-due_date', 2000)
+    nativeEntities.SalesInvoice.filter({ company_id: cid }, '-due_date', 2000)
   );
 
   if (loading) return <ListSkeleton rows={5} />;

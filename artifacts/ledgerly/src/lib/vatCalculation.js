@@ -1,11 +1,11 @@
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 
 export async function calculateVATReturn(companyId, dateFrom, dateTo) {
   const [invoices, bills, salesCNs, supplierCNs] = await Promise.all([
-    base44.entities.SalesInvoice.filter({ company_id: companyId }),
-    base44.entities.PurchaseBill.filter({ company_id: companyId }),
-    base44.entities.SalesCreditNote.filter({ company_id: companyId }),
-    base44.entities.SupplierCreditNote.filter({ company_id: companyId }),
+    nativeEntities.SalesInvoice.filter({ company_id: companyId }),
+    nativeEntities.PurchaseBill.filter({ company_id: companyId }),
+    nativeEntities.SalesCreditNote.filter({ company_id: companyId }),
+    nativeEntities.SupplierCreditNote.filter({ company_id: companyId }),
   ]);
 
   const filteredInvoices = invoices.filter(i =>

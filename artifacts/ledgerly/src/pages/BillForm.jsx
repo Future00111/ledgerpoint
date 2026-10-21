@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -56,14 +57,14 @@ export default function BillForm() {
 
   const loadSuppliers = async () => {
     try {
-      const list = await base44.entities.Supplier.filter({ company_id: activeCompany.id });
+      const list = await nativeEntities.Supplier.filter({ company_id: activeCompany.id });
       setSuppliers(list);
     } catch (e) { console.error(e); }
   };
 
   const loadBill = async () => {
     try {
-      const bill = await base44.entities.PurchaseBill.get(id);
+      const bill = await nativeEntities.PurchaseBill.get(id);
       setForm({
         supplier_id: bill.supplier_id || '', bill_number: bill.bill_number || '',
         bill_date: bill.bill_date || '', due_date: bill.due_date || '',
@@ -86,7 +87,7 @@ export default function BillForm() {
       return;
     }
     // Validate unique bill number within supplier and company
-    const existing = await base44.entities.PurchaseBill.filter({ company_id: activeCompany.id, supplier_id: form.supplier_id, bill_number: form.bill_number });
+    const existing = await nativeEntities.PurchaseBill.filter({ company_id: activeCompany.id, supplier_id: form.supplier_id, bill_number: form.bill_number });
     const duplicate = existing.find(b => b.id !== id);
     if (duplicate) {
       toast({ title: 'This supplier bill number already exists for this supplier.', variant: 'destructive' });
@@ -106,15 +107,15 @@ export default function BillForm() {
     try {
       let savedId;
       if (isEdit) {
-        await base44.entities.PurchaseBill.update(id, data);
+        await nativeEntities.PurchaseBill.update(id, data);
         savedId = id;
         toast({ title: 'Bill updated' });
       } else {
-        const created = await base44.entities.PurchaseBill.create(data);
+        const created = await nativeEntities.PurchaseBill.create(data);
         savedId = created.id;
         toast({ title: 'Bill created' });
       }
-      try { await base44.functions.invoke('generatePurchaseBillJournals', { bill_id: savedId }); } catch (je) { console.warn('Journal generation failed:', je); }
+      try { await invokeApiFunction('generatePurchaseBillJournals', { bill_id: savedId }); } catch (je) { console.warn('Journal generation failed:', je); }
       navigate('/bills');
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
     finally { setSaving(false); }
@@ -215,7 +216,7 @@ export default function BillForm() {
            <Button onClick={async () => {
              setPosting(true);
              try {
-               const response = await base44.functions.invoke('postPurchaseBill', { bill_id: id, company_id: activeCompany.id });
+               const response = await invokeApiFunction('postPurchaseBill', { bill_id: id, company_id: activeCompany.id });
                toast({ title: 'Bill posted successfully' });
                loadBill();
              } catch (e) {

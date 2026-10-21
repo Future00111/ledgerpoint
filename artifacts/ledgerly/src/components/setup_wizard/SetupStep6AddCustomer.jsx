@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,7 @@ export default function SetupStep6AddCustomer({ companyId, data, onUpdate }) {
 
     setSaving(true);
     try {
-      const customer = await base44.entities.Customer.create({
+      const customer = await nativeEntities.Customer.create({
         company_id: companyId,
         name: formData.name,
         email: formData.email || undefined,

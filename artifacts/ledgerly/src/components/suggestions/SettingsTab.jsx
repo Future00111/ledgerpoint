@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ export default function SettingsTab() {
     if (!activeCompany) return;
     (async () => {
       setLoading(true);
-      const list = await base44.entities.SuggestionSettings.filter({ company_id: activeCompany.id });
+      const list = await nativeEntities.SuggestionSettings.filter({ company_id: activeCompany.id });
       if (list[0]) {
         setSettings(list[0]);
         setMode(list[0].mode || 'hybrid');
@@ -40,9 +40,9 @@ export default function SettingsTab() {
     try {
       const payload = { company_id: activeCompany.id, mode, ai_enabled: mode === 'rules_only' ? false : aiEnabled };
       if (settings) {
-        await base44.entities.SuggestionSettings.update(settings.id, payload);
+        await nativeEntities.SuggestionSettings.update(settings.id, payload);
       } else {
-        const created = await base44.entities.SuggestionSettings.create(payload);
+        const created = await nativeEntities.SuggestionSettings.create(payload);
         setSettings(created);
       }
       toast({ title: 'Settings saved' });

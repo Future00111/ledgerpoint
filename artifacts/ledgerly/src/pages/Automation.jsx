@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -32,8 +32,8 @@ export default function Automation() {
     setLoading(true);
     try {
       const [autos, acts] = await Promise.all([
-        base44.entities.Automation.filter({ company_id: activeCompany.id }),
-        base44.entities.AutomationActivity.filter({ company_id: activeCompany.id }, '-run_date', 20),
+        nativeEntities.Automation.filter({ company_id: activeCompany.id }),
+        nativeEntities.AutomationActivity.filter({ company_id: activeCompany.id }, '-run_date', 20),
       ]);
       setAutomations(autos || []);
       setActivities(acts || []);
@@ -47,10 +47,10 @@ export default function Automation() {
   const handleSave = async (data) => {
     try {
       if (editing) {
-        await base44.entities.Automation.update(editing.id, data);
+        await nativeEntities.Automation.update(editing.id, data);
         toast({ title: 'Automation updated' });
       } else {
-        await base44.entities.Automation.create({
+        await nativeEntities.Automation.create({
           ...data,
           company_id: activeCompany.id,
           created_by_ai: preset?.source === 'ai',
@@ -70,7 +70,7 @@ export default function Automation() {
   const handleToggle = async (auto) => {
     const status = auto.status === 'active' ? 'paused' : 'active';
     try {
-      await base44.entities.Automation.update(auto.id, { status });
+      await nativeEntities.Automation.update(auto.id, { status });
       loadData();
     } catch {
       toast({ variant: 'destructive', title: 'Could not update automation' });
@@ -79,7 +79,7 @@ export default function Automation() {
 
   const handleDelete = async (id) => {
     try {
-      await base44.entities.Automation.delete(id);
+      await nativeEntities.Automation.delete(id);
       toast({ title: 'Automation deleted' });
       loadData();
     } catch {

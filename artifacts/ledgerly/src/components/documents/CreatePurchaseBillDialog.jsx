@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -26,7 +27,7 @@ export default function CreatePurchaseBillDialog({ open, onOpenChange, document:
 
   useEffect(() => {
     if (open && activeCompany) {
-      base44.entities.Supplier.filter({ company_id: activeCompany.id }, 'name', 200)
+      nativeEntities.Supplier.filter({ company_id: activeCompany.id }, 'name', 200)
         .then(setSuppliers)
         .catch(() => {});
     }
@@ -64,7 +65,7 @@ export default function CreatePurchaseBillDialog({ open, onOpenChange, document:
       } else {
         payload.new_supplier_name = newSupplierName.trim();
       }
-      const result = await base44.functions.invoke('createRecordFromDocument', payload);
+      const result = await invokeApiFunction('createRecordFromDocument', payload);
       toast({ title: 'Purchase Bill created successfully.' });
       onCreated?.();
       onOpenChange(false);

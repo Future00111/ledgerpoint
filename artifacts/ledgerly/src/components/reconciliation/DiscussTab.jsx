@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -19,7 +19,7 @@ export default function DiscussTab({ transaction, companyId }) {
   const load = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.TransactionComment.filter(
+      const list = await nativeEntities.TransactionComment.filter(
         { company_id: companyId, transaction_id: transaction.id }, '-created_date', 100,
       );
       setComments(list);
@@ -32,7 +32,7 @@ export default function DiscussTab({ transaction, companyId }) {
     if (!text.trim()) return;
     setPosting(true);
     try {
-      await base44.entities.TransactionComment.create({
+      await nativeEntities.TransactionComment.create({
         company_id: companyId, transaction_id: transaction.id, author_name: 'You', body: text.trim(),
       });
       setText('');

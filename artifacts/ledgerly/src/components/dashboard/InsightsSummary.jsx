@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Sparkles, ChevronRight, AlertTriangle } from 'lucide-react';
@@ -14,7 +14,7 @@ export default function InsightsSummary({ companyId }) {
     (async () => {
       try {
         const today = new Date().toISOString().slice(0, 10);
-        const data = await base44.entities.Insight.filter({ company_id: companyId, generated_date: today }, '-generated_date');
+        const data = await nativeEntities.Insight.filter({ company_id: companyId, generated_date: today }, '-generated_date');
         setInsights(data.filter(i => !i.is_dismissed));
       } catch (e) {
         console.error(e);

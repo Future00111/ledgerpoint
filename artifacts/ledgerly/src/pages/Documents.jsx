@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,7 +76,7 @@ export default function Documents() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.Document.filter({ company_id: activeCompany.id }, '-upload_date', 200);
+      const list = await nativeEntities.Document.filter({ company_id: activeCompany.id }, '-upload_date', 200);
       setDocuments(list);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -95,7 +95,7 @@ export default function Documents() {
     if (!viewDoc) return;
     setActionLoading(true);
     try {
-      const updated = await base44.entities.Document.update(viewDoc.id, { status: 'rejected' });
+      const updated = await nativeEntities.Document.update(viewDoc.id, { status: 'rejected' });
       setViewDoc(updated);
       toast({ title: 'Document rejected' });
       await loadDocuments();
@@ -105,7 +105,7 @@ export default function Documents() {
 
   const handleDelete = async (doc) => {
     if (!confirm('Delete this document?')) return;
-    try { await base44.entities.Document.delete(doc.id); toast({ title: 'Deleted' }); await loadDocuments(); }
+    try { await nativeEntities.Document.delete(doc.id); toast({ title: 'Deleted' }); await loadDocuments(); }
     catch (e) { toast({ title: 'Error', variant: 'destructive' }); }
   };
 

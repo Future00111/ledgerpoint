@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import moment from 'moment';
 
@@ -66,7 +66,7 @@ export default function InsightDrillDown({ insight, companyId, open, onClose }) 
     const ids = insight.source_ids || [];
 
     if (sourceType === 'overdue_invoices') {
-      const inv = await base44.entities.SalesInvoice.filter({ company_id: companyId });
+      const inv = await nativeEntities.SalesInvoice.filter({ company_id: companyId });
       const today = new Date(); today.setHours(0,0,0,0);
       const filtered = inv.filter(i => i.due_date && new Date(i.due_date) < today && i.status !== 'paid' && !['cancelled','draft'].includes(i.status) && (ids.length === 0 || ids.includes(i.id)));
       return {
@@ -83,7 +83,7 @@ export default function InsightDrillDown({ insight, companyId, open, onClose }) 
     }
 
     if (sourceType === 'bills_due_this_week') {
-      const bil = await base44.entities.PurchaseBill.filter({ company_id: companyId });
+      const bil = await nativeEntities.PurchaseBill.filter({ company_id: companyId });
       const today = new Date(); today.setHours(0,0,0,0);
       const weekEnd = new Date(today); weekEnd.setDate(today.getDate() + 7);
       const filtered = bil.filter(b => b.due_date && !['paid','cancelled'].includes(b.status) && new Date(b.due_date) >= today && new Date(b.due_date) <= weekEnd && (ids.length === 0 || ids.includes(b.id)));
@@ -101,7 +101,7 @@ export default function InsightDrillDown({ insight, companyId, open, onClose }) 
     }
 
     if (sourceType === 'revenue_comparison') {
-      const inv = await base44.entities.SalesInvoice.filter({ company_id: companyId });
+      const inv = await nativeEntities.SalesInvoice.filter({ company_id: companyId });
       const valid = inv.filter(i => !['cancelled','draft'].includes(i.status));
       const thisStart = startOfMonth(new Date());
       const nextStart = addMonths(thisStart, 1);
@@ -125,7 +125,7 @@ export default function InsightDrillDown({ insight, companyId, open, onClose }) 
 
     if (sourceType === 'cost_increase') {
       const cat = ids[0];
-      const bil = await base44.entities.PurchaseBill.filter({ company_id: companyId });
+      const bil = await nativeEntities.PurchaseBill.filter({ company_id: companyId });
       const valid = bil.filter(b => b.status !== 'cancelled' && (b.category || 'other') === cat);
       const thisStart = startOfMonth(new Date());
       const lastStart = addMonths(thisStart, -1);
@@ -148,7 +148,7 @@ export default function InsightDrillDown({ insight, companyId, open, onClose }) 
     }
 
     if (sourceType === 'vat_due') {
-      const vat = await base44.entities.VATReturn.filter({ company_id: companyId }, '-period_end');
+      const vat = await nativeEntities.VATReturn.filter({ company_id: companyId }, '-period_end');
       return {
         title: 'VAT returns',
         rows: vat,
@@ -162,7 +162,7 @@ export default function InsightDrillDown({ insight, companyId, open, onClose }) 
     }
 
     if (sourceType === 'duplicate_bills') {
-      const bil = await base44.entities.PurchaseBill.filter({ company_id: companyId });
+      const bil = await nativeEntities.PurchaseBill.filter({ company_id: companyId });
       const filtered = bil.filter(b => ids.includes(b.id));
       return {
         title: 'Possible duplicate supplier invoices',
@@ -177,7 +177,7 @@ export default function InsightDrillDown({ insight, companyId, open, onClose }) 
     }
 
     if (sourceType === 'reconciliation') {
-      const txn = await base44.entities.BankTransaction.filter({ company_id: companyId });
+      const txn = await nativeEntities.BankTransaction.filter({ company_id: companyId });
       const filtered = txn.filter(t => t.status !== 'matched');
       return {
         title: 'Bank transactions needing review',

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -52,11 +52,11 @@ export default function AccountForm({ account, open, onOpenChange, onSave, onCre
       };
 
       if (account) {
-        await base44.entities.ChartOfAccount.update(account.id, data);
+        await nativeEntities.ChartOfAccount.update(account.id, data);
         toast({ title: 'Account updated' });
         if (onCreated) onCreated({ id: account.id, ...data });
       } else {
-        const created = await base44.entities.ChartOfAccount.create(data);
+        const created = await nativeEntities.ChartOfAccount.create(data);
         toast({ title: 'Account created' });
         if (onCreated) onCreated(created);
       }

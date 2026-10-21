@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { ListSkeleton, EmptyState } from '../WidgetPrimitives';
 import { nextVatDeadlineDays } from '@/lib/vat';
@@ -12,11 +12,11 @@ export default function PrioritiesWidget({ company }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, async (cid) => {
     const [inv, bills, txns, docs, accts] = await Promise.all([
-      base44.entities.SalesInvoice.filter({ company_id: cid }, '-due_date', 300),
-      base44.entities.PurchaseBill.filter({ company_id: cid }, '-due_date', 300),
-      base44.entities.BankTransaction.filter({ company_id: cid }, '-date', 500),
-      base44.entities.Document.filter({ company_id: cid }),
-      base44.entities.BankAccount.filter({ company_id: cid }),
+      nativeEntities.SalesInvoice.filter({ company_id: cid }, '-due_date', 300),
+      nativeEntities.PurchaseBill.filter({ company_id: cid }, '-due_date', 300),
+      nativeEntities.BankTransaction.filter({ company_id: cid }, '-date', 500),
+      nativeEntities.Document.filter({ company_id: cid }),
+      nativeEntities.BankAccount.filter({ company_id: cid }),
     ]);
     return { inv, bills, txns, docs, accts };
   });

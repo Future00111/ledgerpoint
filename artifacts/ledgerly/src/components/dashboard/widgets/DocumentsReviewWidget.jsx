@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { ListSkeleton, EmptyState, StatusBadge } from '../WidgetPrimitives';
 import { fmtDate } from '@/lib/format';
@@ -9,7 +9,7 @@ import { FolderOpen } from 'lucide-react';
 export default function DocumentsReviewWidget({ company, h }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, (cid) =>
-    base44.entities.Document.filter({ company_id: cid, status: { $in: ['pending_review', 'pending_extraction'] } }, '-created_date', 100)
+    nativeEntities.Document.filter({ company_id: cid, status: { $in: ['pending_review', 'pending_extraction'] } }, '-created_date', 100)
   );
 
   if (loading) return <ListSkeleton />;

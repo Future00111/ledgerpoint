@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollText, Paperclip, Mail } from 'lucide-react';
@@ -14,7 +14,7 @@ export default function CaptureLog({ companyId, refreshKey }) {
   const loadLogs = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.EmailCaptureLog.filter({ company_id: companyId }, '-date_found', 100);
+      const list = await nativeEntities.EmailCaptureLog.filter({ company_id: companyId }, '-date_found', 100);
       setLogs(list);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }

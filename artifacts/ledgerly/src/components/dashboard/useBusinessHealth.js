@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 
 // Shared business-health engine. Used by the header, the Business Snapshot
 // hero, and the KPI Health card so the score is consistent everywhere.
@@ -95,12 +95,12 @@ export function useBusinessHealth(companyId) {
     (async () => {
       try {
         const [accts, txns, docs, vat, inv, bills] = await Promise.all([
-          base44.entities.BankAccount.filter({ company_id: companyId }),
-          base44.entities.BankTransaction.filter({ company_id: companyId }, '-date', 500),
-          base44.entities.Document.filter({ company_id: companyId }),
-          base44.entities.VATReturn.filter({ company_id: companyId }),
-          base44.entities.SalesInvoice.filter({ company_id: companyId }, '-due_date', 300),
-          base44.entities.PurchaseBill.filter({ company_id: companyId }, '-due_date', 300),
+          nativeEntities.BankAccount.filter({ company_id: companyId }),
+          nativeEntities.BankTransaction.filter({ company_id: companyId }, '-date', 500),
+          nativeEntities.Document.filter({ company_id: companyId }),
+          nativeEntities.VATReturn.filter({ company_id: companyId }),
+          nativeEntities.SalesInvoice.filter({ company_id: companyId }, '-due_date', 300),
+          nativeEntities.PurchaseBill.filter({ company_id: companyId }, '-due_date', 300),
         ]);
         if (cancelled) return;
         const result = computeHealth({ accts, txns, docs, vat, inv, bills });

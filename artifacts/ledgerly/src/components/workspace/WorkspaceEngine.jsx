@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import WorkspaceShell from './WorkspaceShell';
 import WorkspaceSkeleton from './WorkspaceSkeleton';
 import { renderCard } from './workspaceCardRegistry';

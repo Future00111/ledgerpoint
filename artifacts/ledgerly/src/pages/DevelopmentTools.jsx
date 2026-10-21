@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { useCanAccessDevTools } from '@/lib/devAccess';
@@ -96,27 +97,27 @@ export default function DevelopmentTools() {
   const handleCreateDemo = async () => {
     if (!window.confirm('Create a new demo company "Ledgerly Demo Ltd" with full sample data?')) return;
     const res = await run('create', () =>
-      base44.functions.invoke('manageDemoCompany', { action: 'create', template })
+      invokeApiFunction('manageDemoCompany', { action: 'create', template })
     );
     const data = res?.data || {};
     toast({ title: 'Demo company created', description: `Ledgerly Demo Ltd ready · ${JSON.stringify(data.counts || {})}` });
     await loadCompanies();
     if (data.company_id) {
-      const c = (await base44.functions.invoke('getUserCompanies', {})).data?.companies?.find((x) => x.id === data.company_id);
+      const c = (await invokeApiFunction('getUserCompanies', {})).data?.companies?.find((x) => x.id === data.company_id);
       if (c) switchCompany(c);
     }
   };
 
   const handleResetDemo = async () => {
     if (!window.confirm('Reset the demo company back to fresh sample data? This deletes all current demo data.')) return;
-    const res = await run('reset', () => base44.functions.invoke('manageDemoCompany', { action: 'reset', template }));
+    const res = await run('reset', () => invokeApiFunction('manageDemoCompany', { action: 'reset', template }));
     toast({ title: 'Demo company reset', description: JSON.stringify(res?.data?.counts || {}) });
     await loadCompanies();
   };
 
   const handleDeleteDemo = async () => {
     if (!window.confirm('Permanently delete the demo company and ALL its data?')) return;
-    await run('delete', () => base44.functions.invoke('manageDemoCompany', { action: 'delete' }));
+    await run('delete', () => invokeApiFunction('manageDemoCompany', { action: 'delete' }));
     toast({ title: 'Demo company deleted' });
     await loadCompanies();
   };
@@ -124,7 +125,7 @@ export default function DevelopmentTools() {
   const handleGenerate = async (months, random) => {
     if (!activeCompany) return toast({ title: 'Select a company first', variant: 'destructive' });
     const res = await run(`gen-${months}`, () =>
-      base44.functions.invoke('generateDemoData', { company_id: activeCompany.id, months, template, random: !!random })
+      invokeApiFunction('generateDemoData', { company_id: activeCompany.id, months, template, random: !!random })
     );
     toast({ title: random ? 'Random data generated' : `${months} month(s) of data generated`, description: JSON.stringify(res?.data?.counts || {}) });
   };
@@ -133,7 +134,7 @@ export default function DevelopmentTools() {
     if (!activeCompany) return toast({ title: 'Select a company first', variant: 'destructive' });
     if (!window.confirm(`Delete ${target} for ${activeCompany.name}? This cannot be undone.`)) return;
     const res = await run(`rst-${target}`, () =>
-      base44.functions.invoke('resetDemoData', { company_id: activeCompany.id, target })
+      invokeApiFunction('resetDemoData', { company_id: activeCompany.id, target })
     );
     const body = res?.data ?? res;
     toast({ title: `Deleted ${target}`, description: JSON.stringify(body?.deleted || {}) });
@@ -145,7 +146,7 @@ export default function DevelopmentTools() {
       const out = {};
       for (const t of EXPORT_ENTITIES) {
         try {
-          out[t] = await base44.entities[t].filter({ company_id: activeCompany.id }, '-created_date', 5000);
+          out[t] = await nativeEntities[t].filter({ company_id: activeCompany.id }, '-created_date', 5000);
         } catch {
           out[t] = [];
         }
@@ -178,7 +179,7 @@ export default function DevelopmentTools() {
       for (const t of EXPORT_ENTITIES) {
         const rows = (data[t] || []).map((r) => ({ ...r, company_id: activeCompany.id, id: undefined, created_date: undefined, updated_date: undefined, created_by_id: undefined }));
         if (rows.length) {
-          try { await base44.entities[t].bulkCreate(rows); total += rows.length; } catch { /* skip */ }
+          try { await nativeEntities[t].bulkCreate(rows); total += rows.length; } catch { /* skip */ }
         }
       }
       toast({ title: 'Import complete', description: `${total} records imported into ${activeCompany.name}` });

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { ListSkeleton, EmptyState } from '../WidgetPrimitives';
 import { relativeTime } from '@/lib/format';
@@ -12,10 +12,10 @@ export default function NotificationsWidget({ company }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, async (cid) => {
     const [vat, insights, accts, docs] = await Promise.all([
-      base44.entities.VATReturn.filter({ company_id: cid }, '-created_date', 5),
-      base44.entities.Insight.filter({ company_id: cid, is_dismissed: false }, '-generated_date', 10),
-      base44.entities.BankAccount.filter({ company_id: cid }),
-      base44.entities.Document.filter({ company_id: cid }, '-created_date', 10),
+      nativeEntities.VATReturn.filter({ company_id: cid }, '-created_date', 5),
+      nativeEntities.Insight.filter({ company_id: cid, is_dismissed: false }, '-generated_date', 10),
+      nativeEntities.BankAccount.filter({ company_id: cid }),
+      nativeEntities.Document.filter({ company_id: cid }, '-created_date', 10),
     ]);
     return { vat, insights, accts, docs };
   });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ export default function RulesTab() {
   const load = async () => {
     if (!activeCompany) return;
     setLoading(true);
-    const list = await base44.entities.SuggestionRule.filter({ company_id: activeCompany.id }, 'priority');
+    const list = await nativeEntities.SuggestionRule.filter({ company_id: activeCompany.id }, 'priority');
     setRules(list);
     setLoading(false);
   };
@@ -35,7 +35,7 @@ export default function RulesTab() {
 
   const remove = async (id) => {
     if (!window.confirm('Delete this rule?')) return;
-    await base44.entities.SuggestionRule.delete(id);
+    await nativeEntities.SuggestionRule.delete(id);
     load();
     toast({ title: 'Rule deleted' });
   };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { ListSkeleton, EmptyState } from '../WidgetPrimitives';
 import { gbp } from '@/lib/format';
@@ -8,8 +8,8 @@ import { Scale } from 'lucide-react';
 export default function BalanceSheetWidget({ company }) {
   const { data, loading } = useWidgetData(company?.id, async (cid) => {
     const [accts, journals] = await Promise.all([
-      base44.entities.ChartOfAccount.filter({ company_id: cid }),
-      base44.entities.JournalEntry.filter({ company_id: cid }, '-date', 5000),
+      nativeEntities.ChartOfAccount.filter({ company_id: cid }),
+      nativeEntities.JournalEntry.filter({ company_id: cid }, '-date', 5000),
     ]);
     return { accts, journals };
   });

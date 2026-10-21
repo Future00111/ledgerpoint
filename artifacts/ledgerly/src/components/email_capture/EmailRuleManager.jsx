@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +34,7 @@ export default function EmailRuleManager({ companyId }) {
   const loadRules = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.EmailRule.filter({ company_id: companyId });
+      const list = await nativeEntities.EmailRule.filter({ company_id: companyId });
       setRules(list);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -44,7 +44,7 @@ export default function EmailRuleManager({ companyId }) {
     if (!form.name) { toast({ title: 'Rule name is required', variant: 'destructive' }); return; }
     setCreating(true);
     try {
-      await base44.entities.EmailRule.create({ company_id: companyId, ...form, is_active: true });
+      await nativeEntities.EmailRule.create({ company_id: companyId, ...form, is_active: true });
       setForm({ name: '', sender_contains: '', subject_contains: '', attachment_type: 'any', document_type: 'auto' });
       toast({ title: 'Rule created' });
       await loadRules();
@@ -55,7 +55,7 @@ export default function EmailRuleManager({ companyId }) {
   const handleDelete = async (id) => {
     if (!confirm('Delete this rule?')) return;
     try {
-      await base44.entities.EmailRule.delete(id);
+      await nativeEntities.EmailRule.delete(id);
       toast({ title: 'Rule deleted' });
       await loadRules();
     } catch (e) { toast({ title: 'Error deleting rule', variant: 'destructive' }); }
@@ -63,7 +63,7 @@ export default function EmailRuleManager({ companyId }) {
 
   const handleToggle = async (rule) => {
     try {
-      await base44.entities.EmailRule.update(rule.id, { is_active: !rule.is_active });
+      await nativeEntities.EmailRule.update(rule.id, { is_active: !rule.is_active });
       await loadRules();
     } catch (e) { toast({ title: 'Error updating rule', variant: 'destructive' }); }
   };

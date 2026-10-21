@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -47,7 +48,7 @@ export default function ChartOfAccounts() {
   const loadAccounts = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.ChartOfAccount.filter({ company_id: activeCompany.id }, 'code');
+      const list = await nativeEntities.ChartOfAccount.filter({ company_id: activeCompany.id }, 'code');
       setAccounts(list);
     } catch (e) {
       console.error(e);
@@ -60,7 +61,7 @@ export default function ChartOfAccounts() {
   const handleCreateDefaults = async () => {
     if (!confirm('Create default chart of accounts?')) return;
     try {
-      const result = await base44.functions.invoke('createDefaultAccounts', { company_id: activeCompany.id });
+      const result = await invokeApiFunction('createDefaultAccounts', { company_id: activeCompany.id });
       const count = result.data?.count || 6;
       toast({ title: `Success`, description: `${count} default accounts created` });
       await loadAccounts();
@@ -72,7 +73,7 @@ export default function ChartOfAccounts() {
   const handleDelete = async (account) => {
     if (!confirm(`Delete account ${account.code} - ${account.name}?`)) return;
     try {
-      await base44.entities.ChartOfAccount.delete(account.id);
+      await nativeEntities.ChartOfAccount.delete(account.id);
       toast({ title: 'Account deleted' });
       await loadAccounts();
     } catch (e) {
@@ -82,7 +83,7 @@ export default function ChartOfAccounts() {
 
   const handleToggleActive = async (account) => {
     try {
-      await base44.entities.ChartOfAccount.update(account.id, { is_active: !account.is_active });
+      await nativeEntities.ChartOfAccount.update(account.id, { is_active: !account.is_active });
       toast({ title: account.is_active ? 'Account deactivated' : 'Account activated' });
       await loadAccounts();
     } catch (e) {

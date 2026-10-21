@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,7 @@ export default function SetupStep4BankAccount({ companyId, data, onUpdate }) {
 
     setSaving(true);
     try {
-      const account = await base44.entities.BankAccount.create({
+      const account = await nativeEntities.BankAccount.create({
         company_id: companyId,
         account_name: formData.account_name,
         bank_name: formData.bank_name,

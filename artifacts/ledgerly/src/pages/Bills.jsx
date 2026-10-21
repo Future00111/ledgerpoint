@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -71,8 +71,8 @@ export default function Bills() {
     setLoading(true);
     try {
       const [list, credits] = await Promise.all([
-        base44.entities.PurchaseBill.filter({ company_id: activeCompany.id }, '-bill_date'),
-        base44.entities.SupplierCreditNote.filter({ company_id: activeCompany.id }, '-credit_note_date'),
+        nativeEntities.PurchaseBill.filter({ company_id: activeCompany.id }, '-bill_date'),
+        nativeEntities.SupplierCreditNote.filter({ company_id: activeCompany.id }, '-credit_note_date'),
       ]);
       setBills(list || []);
       setSupplierCreditNotes(credits || []);
@@ -97,7 +97,7 @@ export default function Bills() {
         updateData.amount_paid = bill.total;
         updateData.balance_due = 0;
       }
-      await base44.entities.PurchaseBill.update(bill.id, updateData);
+      await nativeEntities.PurchaseBill.update(bill.id, updateData);
       toast({ title: `Bill marked as ${STATUS_BADGE[status]?.label || status}` });
       await loadBills();
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
@@ -106,7 +106,7 @@ export default function Bills() {
   const handleDelete = async (bill) => {
     if (!confirm(`Delete bill ${bill.bill_number}?`)) return;
     try {
-      await base44.entities.PurchaseBill.delete(bill.id);
+      await nativeEntities.PurchaseBill.delete(bill.id);
       toast({ title: 'Bill deleted' });
       await loadBills();
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }

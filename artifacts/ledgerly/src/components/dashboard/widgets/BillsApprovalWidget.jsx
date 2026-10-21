@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { ListSkeleton, EmptyState } from '../WidgetPrimitives';
 import { gbp, fmtDate } from '@/lib/format';
@@ -9,7 +9,7 @@ import { Receipt } from 'lucide-react';
 export default function BillsApprovalWidget({ company, h }) {
   const nav = useNavigate();
   const { data, loading } = useWidgetData(company?.id, (cid) =>
-    base44.entities.PurchaseBill.filter({ company_id: cid, status: { $in: ['awaiting_review', 'draft'] } }, '-bill_date', 200)
+    nativeEntities.PurchaseBill.filter({ company_id: cid, status: { $in: ['awaiting_review', 'draft'] } }, '-bill_date', 200)
   );
 
   if (loading) return <ListSkeleton />;

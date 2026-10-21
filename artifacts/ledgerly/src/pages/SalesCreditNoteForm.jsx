@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -46,20 +47,20 @@ export default function SalesCreditNoteForm() {
   }, [activeCompany, form.customer_id]);
 
   const loadCustomers = async () => {
-    try { setCustomers(await base44.entities.Customer.filter({ company_id: activeCompany.id })); }
+    try { setCustomers(await nativeEntities.Customer.filter({ company_id: activeCompany.id })); }
     catch (e) { console.error(e); }
   };
 
   const loadInvoices = async () => {
     try {
-      const list = await base44.entities.SalesInvoice.filter({ company_id: activeCompany.id, customer_id: form.customer_id });
+      const list = await nativeEntities.SalesInvoice.filter({ company_id: activeCompany.id, customer_id: form.customer_id });
       setInvoices(list.filter(i => i.status !== 'cancelled' && i.status !== 'draft'));
     } catch (e) { console.error(e); }
   };
 
   const suggestNumber = async () => {
     try {
-      const list = await base44.entities.SalesCreditNote.filter({ company_id: activeCompany.id });
+      const list = await nativeEntities.SalesCreditNote.filter({ company_id: activeCompany.id });
       let maxNum = 0;
       list.forEach(cn => {
         const match = cn.credit_note_number?.match(/SCN-(\d+)/i);
@@ -71,7 +72,7 @@ export default function SalesCreditNoteForm() {
 
   const loadCreditNote = async () => {
     try {
-      const cn = await base44.entities.SalesCreditNote.get(id);
+      const cn = await nativeEntities.SalesCreditNote.get(id);
       setForm({
         customer_id: cn.customer_id || '', original_invoice_id: cn.original_invoice_id || '',
         credit_note_number: cn.credit_note_number || '', credit_note_date: cn.credit_note_date || '',
@@ -79,7 +80,7 @@ export default function SalesCreditNoteForm() {
         line_items: cn.line_items?.length ? cn.line_items : [{ description: '', quantity: 1, unit_price: 0, vat_rate: '20', amount: 0, vat_amount: 0, line_total: 0 }]
       });
       if (cn.customer_id) {
-        const list = await base44.entities.SalesInvoice.filter({ company_id: activeCompany.id, customer_id: cn.customer_id });
+        const list = await nativeEntities.SalesInvoice.filter({ company_id: activeCompany.id, customer_id: cn.customer_id });
         setInvoices(list.filter(i => i.status !== 'cancelled' && i.status !== 'draft'));
       }
     } catch (e) { console.error(e); }
@@ -97,7 +98,7 @@ export default function SalesCreditNoteForm() {
     }
     setSaving(true);
     try {
-      const existing = await base44.entities.SalesCreditNote.filter({
+      const existing = await nativeEntities.SalesCreditNote.filter({
         company_id: activeCompany.id,
         credit_note_number: form.credit_note_number,
       });
@@ -122,15 +123,15 @@ export default function SalesCreditNoteForm() {
       };
 
       let savedId;
-      if (isEdit) { await base44.entities.SalesCreditNote.update(id, data); savedId = id; }
-      else { const created = await base44.entities.SalesCreditNote.create(data); savedId = created.id; }
+      if (isEdit) { await nativeEntities.SalesCreditNote.update(id, data); savedId = id; }
+      else { const created = await nativeEntities.SalesCreditNote.create(data); savedId = created.id; }
       // Apply or reverse credit note on original invoice
       if (shouldApply && !wasApplied && originalInvoiceId) {
-        await base44.functions.invoke('updatePaymentStatus', {
+        await invokeApiFunction('updatePaymentStatus', {
           entity_type: 'sales_invoice', record_id: originalInvoiceId, amount_paid_delta: total
         });
       } else if (!shouldApply && wasApplied && originalInvoiceId) {
-        await base44.functions.invoke('updatePaymentStatus', {
+        await invokeApiFunction('updatePaymentStatus', {
           entity_type: 'sales_invoice', record_id: originalInvoiceId, amount_paid_delta: -total
         });
       }

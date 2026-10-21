@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { base44 } from '@/api/base44Client';
+import { invokeApiFunction } from '@/api/functions.mjs';
 
 // Contextual Ask for any Workspace. Passes the active company + a context
 // string describing the current record so Ask understands intent without
@@ -13,7 +13,7 @@ export function useWorkspaceAsk() {
     setLoading(true);
     setAnswer(null);
     try {
-      const res = await base44.functions.invoke('askAI', { company_id: companyId, question, context });
+      const res = await invokeApiFunction('askAI', { company_id: companyId, question, context });
       setAnswer(res?.answer || res?.data?.answer || 'I could not generate an answer right now.');
     } catch (e) {
       setAnswer('Something went wrong while answering. Please try again shortly.');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,7 @@ export default function ScanConfigForm({ companyId }) {
   const loadConfig = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.EmailScanConfig.filter({ company_id: companyId });
+      const list = await nativeEntities.EmailScanConfig.filter({ company_id: companyId });
       const existing = list[0] || {
         scan_mode: 'all',
         selected_senders: '',
@@ -44,9 +44,9 @@ export default function ScanConfigForm({ companyId }) {
         ignore_older_than: config.ignore_older_than || null,
       };
       if (config.id) {
-        await base44.entities.EmailScanConfig.update(config.id, data);
+        await nativeEntities.EmailScanConfig.update(config.id, data);
       } else {
-        await base44.entities.EmailScanConfig.create({ company_id: companyId, ...data });
+        await nativeEntities.EmailScanConfig.create({ company_id: companyId, ...data });
       }
       toast({ title: 'Scan configuration saved' });
       await loadConfig();

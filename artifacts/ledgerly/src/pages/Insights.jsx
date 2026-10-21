@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { Sparkles, RefreshCw, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ export default function Insights() {
   const loadInsights = async () => {
     setLoading(true);
     try {
-      const data = await base44.entities.Insight.filter({ company_id: activeCompany.id }, '-generated_date');
+      const data = await nativeEntities.Insight.filter({ company_id: activeCompany.id }, '-generated_date');
       setInsights(data);
     } catch (e) {
       console.error(e);
@@ -35,7 +36,7 @@ export default function Insights() {
   const generateNow = async () => {
     setGenerating(true);
     try {
-      await base44.functions.invoke('generateInsights', { company_id: activeCompany.id });
+      await invokeApiFunction('generateInsights', { company_id: activeCompany.id });
       await loadInsights();
       toast({ title: 'Insights generated', description: 'Your daily business summary is ready.' });
     } catch (e) {
@@ -47,7 +48,7 @@ export default function Insights() {
 
   const dismiss = async (insight) => {
     try {
-      await base44.entities.Insight.update(insight.id, { is_dismissed: true });
+      await nativeEntities.Insight.update(insight.id, { is_dismissed: true });
       setInsights(prev => prev.filter(i => i.id !== insight.id));
     } catch (e) {
       toast({ title: 'Failed to dismiss', description: e.message, variant: 'destructive' });

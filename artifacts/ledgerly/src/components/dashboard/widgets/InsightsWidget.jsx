@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { useAsk } from '@/components/ask/AskProvider';
 import { useWidgetData } from '../useWidgetData';
 import { ListSkeleton, EmptyState } from '../WidgetPrimitives';
@@ -18,7 +18,7 @@ export default function InsightsWidget({ company }) {
   const { openAsk } = useAsk();
   const [hidden, setHidden] = useState(new Set());
   const { data, loading } = useWidgetData(company?.id, (cid) =>
-    base44.entities.Insight.filter({ company_id: cid, is_dismissed: false }, '-generated_date', 12)
+    nativeEntities.Insight.filter({ company_id: cid, is_dismissed: false }, '-generated_date', 12)
   );
 
   if (loading) return <ListSkeleton />;
@@ -38,7 +38,7 @@ export default function InsightsWidget({ company }) {
   const dismiss = async (id) => {
     setHidden((s) => new Set(s).add(id));
     try {
-      await base44.entities.Insight.update(id, { is_dismissed: true });
+      await nativeEntities.Insight.update(id, { is_dismissed: true });
     } catch {
       /* ignore */
     }

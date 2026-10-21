@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 
 // Lightweight activity scores used by Smart Suggestions and the Adaptive
 // dashboard. One fetch per company; widgets keep their own richer data — this
@@ -13,11 +13,11 @@ export function useDashboardActivity(companyId) {
     (async () => {
       try {
         const [txns, inv, bills, docs, vat] = await Promise.all([
-          base44.entities.BankTransaction.filter({ company_id: companyId }, '-date', 500),
-          base44.entities.SalesInvoice.filter({ company_id: companyId }, '-due_date', 500),
-          base44.entities.PurchaseBill.filter({ company_id: companyId }, '-due_date', 500),
-          base44.entities.Document.filter({ company_id: companyId }),
-          base44.entities.VATReturn.filter({ company_id: companyId }, '-created_date', 5),
+          nativeEntities.BankTransaction.filter({ company_id: companyId }, '-date', 500),
+          nativeEntities.SalesInvoice.filter({ company_id: companyId }, '-due_date', 500),
+          nativeEntities.PurchaseBill.filter({ company_id: companyId }, '-due_date', 500),
+          nativeEntities.Document.filter({ company_id: companyId }),
+          nativeEntities.VATReturn.filter({ company_id: companyId }, '-created_date', 5),
         ]);
         if (cancelled) return;
         const review = (txns || []).filter((t) => t.status === 'review').length;

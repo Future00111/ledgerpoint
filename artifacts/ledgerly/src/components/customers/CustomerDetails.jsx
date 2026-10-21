@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as nativeEntities from '@/api/entities';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Mail, Phone, MapPin, FileText, CreditCard, PoundSterling, Receipt, CalendarClock } from 'lucide-react';
@@ -28,7 +28,7 @@ export default function CustomerDetails({ customer, open, onOpenChange }) {
     const load = async () => {
       setLoading(true);
       try {
-        const invoices = await base44.entities.SalesInvoice.filter({ customer_id: customer.id });
+        const invoices = await nativeEntities.SalesInvoice.filter({ customer_id: customer.id });
         if (cancelled) return;
         const totalSales = invoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
         const dates = invoices.map(i => i.issue_date).filter(Boolean).sort();
