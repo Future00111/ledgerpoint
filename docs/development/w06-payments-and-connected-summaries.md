@@ -47,9 +47,13 @@ ChatGPT-assisted browser walkthrough, using synthetic data only:
 | Resulting dashboard | Posted cash £65; customer/supplier outstanding £0; profit £50; net VAT £10. |
 | Invoice detail and customer statement | Settled invoice with £0 remaining; statement retains £20 unapplied credit and source-linked journals. |
 
-Browser download completion could not be confirmed because the browser download
-event timed out. CSV calculation/escaping is covered by the focused logic tests;
-do not describe the download itself as browser-verified. Later allocation,
+The initial browser download observer timed out. The owner's screenshot supplied
+on 21 October subsequently confirmed that the customer statement downloaded and
+opened in a spreadsheet, with invoice £120 settled and £20 credit remaining.
+It also exposed apostrophe-prefixed negative amounts. The CSV writer now leaves
+plain signed decimal amounts numeric while still escaping formula-like text.
+Three focused export/statement tests cover this correction; the revised file has
+not yet been independently reopened in the owner's spreadsheet. Later allocation,
 unallocation and full reversal are integration-tested, not separately exercised
 through the signed-in browser in this walkthrough.
 

@@ -25,5 +25,13 @@ test('a statement carries opening invoices and credit through payment, allocatio
 test('exact export handles large values, negative pennies, quoted text and spreadsheet formula prefixes', () => {
   assert.equal(decimalMinor('900719925474099301'), '9007199254740993.01');
   assert.equal(decimalMinor('-1'), '-0.01');
-  assert.equal(csv([['=HYPERLINK("bad")', 'a,b\n"c"', decimalMinor('-1')]]), '\uFEFF"\'=HYPERLINK(""bad"")","a,b\n""c""","\'-0.01"');
+  assert.equal(csv([['=HYPERLINK("bad")', 'a,b\n"c"', decimalMinor('-1')]]), '\uFEFF"\'=HYPERLINK(""bad"")","a,b\n""c""","-0.01"');
+});
+
+test('customer statement negatives remain numbers while formula-like references stay escaped', () => {
+  assert.equal(csv([['Payment', decimalMinor('-12000')], ['Refund', decimalMinor('-1000')], ['Net balance', decimalMinor('-2000')]]),
+    '\uFEFF"Payment","-120.00"\r\n"Refund","-10.00"\r\n"Net balance","-20.00"');
+  for (const value of ['-1+2', '-120.00+1', '=1+2', '+1+2', '@SUM(A1)', '  =1+2', '\t=1+2', '\r=1+2']) {
+    assert.equal(csv([[value]]), `\uFEFF"'${value}"`);
+  }
 });

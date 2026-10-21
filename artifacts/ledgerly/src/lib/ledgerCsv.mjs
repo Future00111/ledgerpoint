@@ -1,5 +1,12 @@
-// Escape spreadsheet formulas in text cells; money stays exact decimal text.
-const cell = value => `"${String(value ?? '').replace(/^[=+@-]/, m => `'${m}`).replaceAll('"', '""')}"`;
+// Plain signed decimals are safe numeric cells, including negative payments and
+// credits. Only formula-like text needs the apostrophe; never convert money to
+// Number, which would lose precision before the file is written.
+const cell = value => {
+  const text = String(value ?? '');
+  const decimal = /^-?\d+(?:\.\d+)?$/.test(text);
+  const safe = !decimal && (/^\s*[=+@-]/.test(text) || /^[\t\r\n]/.test(text)) ? `'${text}` : text;
+  return `"${safe.replaceAll('"', '""')}"`;
+};
 export const csv = rows => '\uFEFF' + rows.map(row => row.map(cell).join(',')).join('\r\n');
 export const decimalMinor = value => { let n = BigInt(value ?? '0'); const sign = n < 0n ? '-' : ''; if (n < 0n) n = -n; return `${sign}${n / 100n}.${(n % 100n).toString().padStart(2, '0')}`; };
 export function downloadCsv(name, rows) {
