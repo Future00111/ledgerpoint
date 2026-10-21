@@ -119,9 +119,14 @@ balances in the fixed isolated database; it rejects unexplained legacy payments
 or bank links and verifies unchanged source/journal/payment/account fingerprints.
 Existing seven invoice/bill projections were refreshed; original records remain.
 
-Replit's pre-existing unstaged `productionAuthority.ts` edit lacks the
-`calculateTaxLine` export. It was preserved byte-for-byte and excluded from this
-delivery. Tests and the preview API build used a separate checkout containing
-the committed authority plus this delivery. Normal Replit source rebuilds still
-need that separate edit resolved. The preview API uses configured port **8080**
-from `.replit-artifact/artifact.toml`, not the README's generic 5000 example.
+The initial preview used a separate checkout because Replit had an older,
+unstaged `productionAuthority.ts` edit. On 2026-10-21, with the user's approval,
+the original file and patch were backed up under
+`.git/repair-backups/authority-20261021/` and the current committed version was
+restored. This restores the shared `calculateTaxLine` export, VAT-inclusive
+pricing, penny rounding and price-basis evidence without a new calculation
+implementation. The main Replit workspace now passes the API typecheck/build,
+all 14 accounting-flow cases and all 16 invoice integration cases. The normal
+API workflow was restarted on its configured port **8080**, replacing the
+temporary process. A fresh signed-in preview load confirmed the existing
+synthetic invoice still shows £60 original, £10 credit and £50 due.
