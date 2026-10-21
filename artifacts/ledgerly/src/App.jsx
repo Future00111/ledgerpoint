@@ -143,65 +143,67 @@ const AuthenticatedApp = () => {
 
   return (
     <AuthProvider>
-      <Routes>
-        {/* Clerk-powered auth pages */}
-        <Route path="/sign-in/*" element={<SignInPage />} />
-        <Route path="/sign-up/*" element={<SignUpPage />} />
-        {/* Legacy login routes → redirect to Clerk sign-in */}
-        <Route path="/login" element={<Navigate to="/sign-in" replace />} />
-        <Route path="/register" element={<Navigate to="/sign-up" replace />} />
-        <Route path="/forgot-password" element={<Navigate to="/sign-in" replace />} />
-        <Route path="/reset-password" element={<Navigate to="/sign-in" replace />} />
-        <Route path="/setup" element={<SetupWizard />} />
+      <AppErrorBoundary>
+        <Routes>
+          {/* Clerk-powered auth pages */}
+          <Route path="/sign-in/*" element={<SignInPage />} />
+          <Route path="/sign-up/*" element={<SignUpPage />} />
+          {/* Legacy login routes → redirect to Clerk sign-in */}
+          <Route path="/login" element={<Navigate to="/sign-in" replace />} />
+          <Route path="/register" element={<Navigate to="/sign-up" replace />} />
+          <Route path="/forgot-password" element={<Navigate to="/sign-in" replace />} />
+          <Route path="/reset-password" element={<Navigate to="/sign-in" replace />} />
+          <Route path="/setup" element={<SetupWizard />} />
 
-        <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/sign-in" replace />} />}>
-          <Route element={<CompanyProvider><AppLayout /></CompanyProvider>}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/ai-accountant" element={<AIAccountant />} />
-            <Route path="/ai-accountant/inbox" element={<AIAccountantInbox />} />
-            <Route path="/ai-accountant/tasks" element={<AIAccountantTasks />} />
-            <Route path="/ai-accountant/reviews" element={<AIAccountantReviews />} />
-            <Route path="/ai-accountant/recommendations" element={<AIAccountantRecommendations />} />
-            <Route path="/companies" element={<Companies />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="/customers/:id" element={<Customers />} />
-            <Route path="/suppliers" element={<Suppliers />} />
-            <Route path="/invoices" element={<Invoices />} />
-            <Route path="/invoices/new" element={<InvoiceForm />} />
-            <Route path="/invoices/:id" element={<InvoiceForm />} />
-            <Route path="/invoices/:id/view" element={<InvoiceDetail />} />
-            <Route path="/collections" element={<Collections />} />
-            <Route path="/bills" element={<Bills />} />
-            <Route path="/bills/new" element={<BillForm />} />
-            <Route path="/bills/:id" element={<BillForm />} />
-            <Route path="/sales-credit-notes" element={<SalesCreditNotes />} />
-            <Route path="/sales-credit-notes/new" element={<SalesCreditNoteForm />} />
-            <Route path="/sales-credit-notes/:id" element={<SalesCreditNoteForm />} />
-            <Route path="/supplier-credit-notes" element={<SupplierCreditNotes />} />
-            <Route path="/supplier-credit-notes/new" element={<SupplierCreditNoteForm />} />
-            <Route path="/supplier-credit-notes/:id" element={<SupplierCreditNoteForm />} />
-            <Route path="/bank-accounts" element={<BankAccounts />} />
-            <Route path="/transactions" element={<BankTransactions />} />
-            <Route path="/reconciliation" element={<Reconciliation />} />
-            <Route path="/vat" element={<VATReturns />} />
-            <Route path="/vat/:id" element={<VATReturnDetail />} />
-            <Route path="/documents" element={<Documents />} />
-            <Route path="/email-capture" element={<EmailCapture />} />
-            <Route path="/email-rules" element={<EmailRules />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/accountant" element={<AccountantPortal />} />
-            <Route path="/chart-of-accounts" element={<ChartOfAccounts />} />
-            <Route path="/general-ledger" element={<GeneralLedger />} />
-            <Route path="/insights" element={<Insights />} />
-            <Route path="/smart-suggestions" element={<SmartSuggestions />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/automation" element={<Automation />} />
-            <Route path="/dev-tools" element={<DevelopmentTools />} />
+          <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/sign-in" replace />} />}>
+            <Route element={<CompanyProvider><AppLayout /></CompanyProvider>}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/ai-accountant" element={<AIAccountant />} />
+              <Route path="/ai-accountant/inbox" element={<AIAccountantInbox />} />
+              <Route path="/ai-accountant/tasks" element={<AIAccountantTasks />} />
+              <Route path="/ai-accountant/reviews" element={<AIAccountantReviews />} />
+              <Route path="/ai-accountant/recommendations" element={<AIAccountantRecommendations />} />
+              <Route path="/companies" element={<Companies />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/customers/:id" element={<Customers />} />
+              <Route path="/suppliers" element={<Suppliers />} />
+              <Route path="/invoices" element={<Invoices />} />
+              <Route path="/invoices/new" element={<InvoiceForm />} />
+              <Route path="/invoices/:id" element={<InvoiceForm />} />
+              <Route path="/invoices/:id/view" element={<InvoiceDetail />} />
+              <Route path="/collections" element={<Collections />} />
+              <Route path="/bills" element={<Bills />} />
+              <Route path="/bills/new" element={<BillForm />} />
+              <Route path="/bills/:id" element={<BillForm />} />
+              <Route path="/sales-credit-notes" element={<SalesCreditNotes />} />
+              <Route path="/sales-credit-notes/new" element={<SalesCreditNoteForm />} />
+              <Route path="/sales-credit-notes/:id" element={<SalesCreditNoteForm />} />
+              <Route path="/supplier-credit-notes" element={<SupplierCreditNotes />} />
+              <Route path="/supplier-credit-notes/new" element={<SupplierCreditNoteForm />} />
+              <Route path="/supplier-credit-notes/:id" element={<SupplierCreditNoteForm />} />
+              <Route path="/bank-accounts" element={<BankAccounts />} />
+              <Route path="/transactions" element={<BankTransactions />} />
+              <Route path="/reconciliation" element={<Reconciliation />} />
+              <Route path="/vat" element={<VATReturns />} />
+              <Route path="/vat/:id" element={<VATReturnDetail />} />
+              <Route path="/documents" element={<Documents />} />
+              <Route path="/email-capture" element={<EmailCapture />} />
+              <Route path="/email-rules" element={<EmailRules />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/accountant" element={<AccountantPortal />} />
+              <Route path="/chart-of-accounts" element={<ChartOfAccounts />} />
+              <Route path="/general-ledger" element={<GeneralLedger />} />
+              <Route path="/insights" element={<Insights />} />
+              <Route path="/smart-suggestions" element={<SmartSuggestions />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/automation" element={<Automation />} />
+              <Route path="/dev-tools" element={<DevelopmentTools />} />
+            </Route>
           </Route>
-        </Route>
 
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </AppErrorBoundary>
     </AuthProvider>
   );
 };
@@ -218,9 +220,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router basename={basePath}>
           <ScrollToTop />
-          <AppErrorBoundary>
-            <AuthenticatedApp />
-          </AppErrorBoundary>
+          <AuthenticatedApp />
         </Router>
       </QueryClientProvider>
     </ClerkProvider>

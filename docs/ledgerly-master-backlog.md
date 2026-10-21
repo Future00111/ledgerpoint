@@ -1,5 +1,9 @@
 # Ledgerly Master Backlog
 
+> **Historical backlog:** The owner's 2026-10-21 reset replaces this priority
+> order for delivery. See the [active product plan](ledgerly-active-product-plan.md).
+> This backlog is retained as historical analysis, not a current work queue.
+
 This is the complete backlog derived from the read-only product gap analysis. It is a planning record, not implementation authorization.
 
 ## Priority definitions

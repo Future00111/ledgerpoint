@@ -1,5 +1,10 @@
 # Ledgerly First Implementation Approval Package
 
+> **Superseded for delivery planning (2026-10-21):** The owner-authorized
+> [active product plan](ledgerly-active-product-plan.md) replaces this proposed
+> first-task sequence. This package is retained as historical evidence; it is
+> not an additional approval gate for the reversible development now authorized.
+
 **Status:** REVIEW ONLY — NO IMPLEMENTATION AUTHORISED  
 **Review conclusion:** Planning/design work is complete enough to seek approval
 for one narrowly scoped first implementation task.  

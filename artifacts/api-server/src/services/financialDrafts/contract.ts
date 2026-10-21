@@ -90,11 +90,14 @@ export function parseInvoice(body: unknown, previous?: InvoiceSource): InvoiceSo
     invoice_number: text(data.invoice_number, 64, "/invoice_number", true),
     issue_date: issue, due_date: due, payment_terms: data.payment_terms as number,
     reference: text(data.reference === undefined ? "" : data.reference, 200, "/reference"),
-    notes: text(data.notes === undefined ? "" : data.notes, 4000, "/notes", false, true), line_items: lines };
+    notes: text(data.notes === undefined ? "" : data.notes, 4000, "/notes", false, true),
+    line_items: lines.map(line => ({ ...line, tax_code: line.tax_code.toUpperCase() })) };
 }
 export function netPence(lines: DraftLine[]): bigint[] {
-  return lines.map(l => {
-    const n = (decimal(l.quantity, true) * decimal(l.unit_price, false) + 500000n) / 1000000n;
+  return lines.map((l, index) => {
+    const product = decimal(l.quantity, true) * decimal(l.unit_price, false);
+    if (product % 1000000n !== 0n) fail(422, "ROUNDING_POLICY_REQUIRED", `/line_items/${index}`);
+    const n = product / 1000000n;
     if (n > MAX_PENCE) fail(422, "MONEY_LIMIT");
     return n;
   });

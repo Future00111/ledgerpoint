@@ -16,11 +16,16 @@ test("finite draft capabilities deny unknown, legacy, inactive and unconfigured 
   }
   assert.equal(canWriteDraft("owner", false), false);
 });
-test("server exact-decimal net and authoritative VAT composition preserve pence", () => {
-  const parsed = parseInvoice(source());
-  assert.deepEqual(netPence(parsed.line_items), [290n]);
-  assert.equal(money([290n], ["58"]).gross_pence, "348");
-  assert.equal(netPence([{ ...parsed.line_items[0]!, quantity:"1",unit_price:"0.0050" }])[0], 1n);
+test("exact-pence net and authoritative VAT composition preserve money without rounding", () => {
+  const parsed = parseInvoice({ ...source(), line_items: [
+    { description:"Exact", quantity:"1", unit_price:"19.99", tax_code:"no_vat" },
+  ] });
+  assert.deepEqual(netPence(parsed.line_items), [1999n]);
+  assert.equal(parsed.line_items[0]!.tax_code, "NO_VAT");
+  assert.equal(money([1999n], ["0"]).gross_pence, "1999");
+  assert.throws(() => netPence([{ ...parsed.line_items[0]!, unit_price:"0.0050" }]), /ROUNDING_POLICY_REQUIRED/);
+  assert.throws(() => netPence([{ ...parsed.line_items[0]!, quantity:"1.2345", unit_price:"2.3456" }]), /ROUNDING_POLICY_REQUIRED/);
+  assert.equal(money([10000n], ["2000"]).gross_pence, "12000");
   assert.equal(money([3n,3n,3n], ["1","1","1"]).gross_pence, "12");
   assert.throws(() => money([999999999999n], ["1"]), /MONEY_LIMIT/);
   assert.throws(() => money([1n], []), /AUTHORITY_UNAVAILABLE/);
@@ -54,6 +59,7 @@ test("generic invoice writes blocked for every generic operation policy", () => 
   assert.equal(isGenericEntityWriteBlocked("SalesInvoice"), true);
   assert.equal(isGenericEntityWriteBlocked("CompanyUser"), true);
   assert.equal(isGenericEntityWriteBlocked("VATReturn"), true);
+  assert.equal(isGenericEntityWriteBlocked("VATTaxRule"), true);
   assert.equal(isGenericEntityWriteBlocked("Customer"), false);
 });
 test("shared single/batch settlement sink rejects draft invoice targets", () => {

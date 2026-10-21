@@ -1,11 +1,10 @@
 /**
- * AuthContext — replaced with Clerk.
- * Provides a thin compatibility layer so existing code using useAuth() keeps working.
+ * Application identity and sign-out state from the authenticated Clerk session.
  */
 import React, { createContext, useContext } from 'react';
 import { useUser, useClerk } from '@clerk/react';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const { user, isLoaded, isSignedIn } = useUser();
@@ -29,7 +28,6 @@ export function AuthProvider({ children }) {
     isLoadingPublicSettings: !isLoaded,
     authChecked: isLoaded,
     authError: null,
-    checkUserAuth: () => {},
     navigateToLogin: () => { window.location.href = '/sign-in'; },
     logout: () => signOut({ redirectUrl: '/' }),
   };
@@ -37,19 +35,8 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-const defaultAuth = {
-  user: null,
-  isAuthenticated: false,
-  isLoadingAuth: true,
-  isLoadingPublicSettings: true,
-  authChecked: false,
-  authError: null,
-  checkUserAuth: () => {},
-  navigateToLogin: () => { window.location.href = '/sign-in'; },
-  logout: () => Promise.resolve(),
-};
-
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  return ctx ?? defaultAuth;
+  if (!ctx) throw new Error('useAuth must be used inside the Clerk-backed AuthProvider.');
+  return ctx;
 }

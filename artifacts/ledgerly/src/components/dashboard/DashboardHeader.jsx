@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
+import { useAuth } from '@/lib/AuthContext';
 import { useBusinessHealth, healthStatus, healthStatusTone, OPEN_HEALTH_EVENT } from './useBusinessHealth';
 import BusinessHealthDialog from './BusinessHealthDialog';
 import StatusCard from './StatusCard';
@@ -28,16 +28,9 @@ function healthTone(score) {
 
 export default function DashboardHeader() {
   const { activeCompany } = useCompany();
-  const [userName, setUserName] = useState('');
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const health = useBusinessHealth(activeCompany?.id);
-
-  useEffect(() => {
-    base44.auth
-      .me()
-      .then((u) => setUserName((u?.full_name || '').split(' ')[0]))
-      .catch(() => setUserName(''));
-  }, []);
 
   useEffect(() => {
     const h = () => setOpen(true);
@@ -45,7 +38,7 @@ export default function DashboardHeader() {
     return () => window.removeEventListener(OPEN_HEALTH_EVENT, h);
   }, []);
 
-  const firstName = userName || 'there';
+  const firstName = user?.first_name || 'there';
   const score = health.score;
   const status = health.loading ? '…' : healthStatus(score);
 

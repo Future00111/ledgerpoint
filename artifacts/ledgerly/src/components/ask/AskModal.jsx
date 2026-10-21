@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { useCompany } from '@/lib/useCompany';
 import { findActiveItem } from '@/components/layout/navConfig';
 import {
@@ -99,6 +100,7 @@ const CONTEXT_ENTITIES = {
 };
 
 export default function AskModal({ open, onClose, initialQuery }) {
+  const { user } = useAuth();
   const { activeCompany, roles } = useCompany();
   const navigate = useNavigate();
   const location = useLocation();
@@ -134,7 +136,7 @@ export default function AskModal({ open, onClose, initialQuery }) {
     setPageContext(null);
     setTimeout(() => inputRef.current?.focus(), 60);
 
-    base44.auth.me().then((u) => setUserName(u?.full_name || '')).catch(() => setUserName(''));
+    setUserName(user?.full_name || '');
 
     if (activeCompany) {
       base44.entities.SuggestionSettings.filter({ company_id: activeCompany.id })

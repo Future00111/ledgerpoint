@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { listCompanyInvoices } from '@/api/invoiceList.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ export default function Invoices() {
   const { activeCompany } = useCompany();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortField, setSortField] = useState('issue_date');
@@ -36,38 +37,18 @@ export default function Invoices() {
   const today = moment().format('YYYY-MM-DD');
 
   useEffect(() => {
-    if (activeCompany) loadInvoices();
-  }, [activeCompany]);
-
-  const loadInvoices = async () => {
+    if (!activeCompany) return;
+    const controller = new AbortController();
     setLoading(true);
-    try {
-      const list = await base44.entities.SalesInvoice.filter({ company_id: activeCompany.id }, '-issue_date');
-      setInvoices(list);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  };
+    setLoadError('');
+    listCompanyInvoices(activeCompany.id, controller.signal)
+      .then(setInvoices)
+      .catch(error => { if (!controller.signal.aborted) setLoadError(error.message); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [activeCompany?.id]);
 
   const isOverdue = (inv) => ['sent', 'part_paid'].includes(inv.status) && inv.due_date < today;
-
-  const updateStatus = async (inv, status) => {
-    try {
-      const updateData = { status };
-      if (status === 'paid') {
-        updateData.amount_paid = inv.total;
-        updateData.balance_due = 0;
-      }
-      await base44.entities.SalesInvoice.update(inv.id, updateData);
-      toast({ title: `Invoice marked as ${STATUS_LABEL[status] || status}` });
-      await loadInvoices();
-    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
-  };
-
-  const handleDelete = async (inv) => {
-    if (!confirm(`Delete invoice ${inv.invoice_number}?`)) return;
-    try { await base44.entities.SalesInvoice.delete(inv.id); toast({ title: 'Invoice deleted' }); await loadInvoices(); }
-    catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
-  };
 
   // ── Summary metrics ────────────────────────────────────────────────────
   const unpaidInvoices = useMemo(() => invoices.filter(i => i.status !== 'paid' && i.status !== 'cancelled'), [invoices]);
@@ -242,6 +223,7 @@ export default function Invoices() {
       </div>
 
       {/* ── Table ── */}
+      {loadError && <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-900">{loadError}</div>}
       {loading ? (
         <div className="flex justify-center py-16">
           <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -351,27 +333,14 @@ export default function Invoices() {
                           >
                             View
                           </Link>
-                          <Link
-                            to={`/invoices/${inv.id}`}
-                            className="text-xs text-primary hover:underline font-medium"
-                          >
-                            Review draft edit
-                          </Link>
-                          {(inv.status === 'sent' || inv.status === 'part_paid' || overdue) && (
-                            <button
-                              onClick={() => updateStatus(inv, 'paid')}
-                              className="text-xs text-primary hover:underline font-medium"
-                            >
-                              Receive payment
-                            </button>
-                          )}
-                          {inv.status === 'draft' && (
-                            <button
-                              onClick={() => updateStatus(inv, 'sent')}
-                              className="text-xs text-primary hover:underline font-medium"
-                            >
-                              Mark sent
-                            </button>
+                          {inv.status === 'draft' ? (
+                            <Link to={`/invoices/${inv.id}`} className="text-xs text-primary hover:underline font-medium">
+                              Open draft
+                            </Link>
+                          ) : (
+                            <Link to={`/invoices/${inv.id}/view`} className="text-xs text-primary hover:underline font-medium">
+                              View
+                            </Link>
                           )}
                         </span>
                       </td>

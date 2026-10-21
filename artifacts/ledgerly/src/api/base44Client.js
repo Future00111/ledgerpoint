@@ -1,7 +1,6 @@
 /**
- * Compatibility shim — replaces @base44/sdk client.
- * All entity CRUD goes through entities.js REST routes.
- * Auth is handled by Clerk; auth methods are no-ops or redirect.
+ * Temporary compatibility shim for unmigrated entity and integration callers.
+ * Authentication is provided by Clerk directly; this object has no auth API.
  */
 
 import {
@@ -20,28 +19,6 @@ import {
 } from '@/api/integrations';
 
 export const base44 = {
-  auth: {
-    me: async () => {
-      const res = await fetch('/api/me', { credentials: 'include' });
-      if (!res.ok) throw Object.assign(new Error('Unauthorized'), { status: res.status });
-      return res.json();
-    },
-    isAuthenticated: () => false,
-    // All these are handled by Clerk's UI — kept as no-ops to avoid crashes
-    loginViaEmailPassword: () => Promise.resolve(),
-    loginWithProvider: (provider) => {
-      window.location.href = `/sign-in`;
-    },
-    logout: () => Promise.resolve(),
-    register: () => Promise.resolve(),
-    verifyOtp: () => Promise.resolve({}),
-    resendOtp: () => Promise.resolve(),
-    setToken: () => {},
-    redirectToLogin: () => { window.location.href = '/sign-in'; },
-    resetPasswordRequest: () => Promise.resolve(),
-    resetPassword: () => Promise.resolve(),
-  },
-
   entities: {
     Company, CompanyUser, Customer, Supplier,
     SalesInvoice, PurchaseBill, SalesCreditNote, SupplierCreditNote,

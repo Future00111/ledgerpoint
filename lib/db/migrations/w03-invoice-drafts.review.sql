@@ -23,6 +23,7 @@ CREATE TABLE w03_invoice_draft_audit (
   after_revision uuid NOT NULL,
   before_source jsonb,
   after_source jsonb NOT NULL,
+  tax_context jsonb NOT NULL,
   tax_context_revision text NOT NULL,
   request_id uuid NOT NULL,
   created_at timestamptz NOT NULL DEFAULT clock_timestamp()

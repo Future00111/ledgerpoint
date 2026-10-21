@@ -544,10 +544,19 @@ export async function addVATTaxRule(companyId: string, rule: Record<string, unkn
   const rate = Number(rule.rate);
   const effectiveFrom = String(rule.effective_from ?? "");
   if (!code || !label || !Number.isFinite(rate) || rate < 0 || rate > 100 || !/^\d{4}-\d{2}-\d{2}$/.test(effectiveFrom)) throw new Error("A valid code, label, rate, and effective start date are required");
-  const [created] = await db.insert(vatTaxRulesTable).values({
-    company_id: companyId, code, label, rate: rate.toFixed(2), treatment: String(rule.treatment ?? "standard"),
-    effective_from: effectiveFrom, effective_to: rule.effective_to ? String(rule.effective_to) : null, is_recoverable: rule.is_recoverable !== false, is_active: true,
-  }).returning();
+  const created = await db.transaction(async (tx) => {
+    // Draft saves lock the same company row before resolving tax rules. This
+    // serializes effective-dated rule additions against their calculation.
+    const [company] = await tx.select({ id: companiesTable.id }).from(companiesTable)
+      .where(eq(companiesTable.id, companyId)).for("update");
+    if (!company) throw new Error("Company not found");
+    const [row] = await tx.insert(vatTaxRulesTable).values({
+      company_id: companyId, code, label, rate: rate.toFixed(2), treatment: String(rule.treatment ?? "standard"),
+      effective_from: effectiveFrom, effective_to: rule.effective_to ? String(rule.effective_to) : null, is_recoverable: rule.is_recoverable !== false, is_active: true,
+    }).returning();
+    return row;
+  });
+  if (!created) throw new Error("VAT tax rule could not be created");
   await auditVAT(companyId, null, "vat_tax_rule_created", `VAT tax rule ${code} created.`, { rule_id: created!.id }, userId);
   return created;
 }

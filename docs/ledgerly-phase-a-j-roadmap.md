@@ -1,5 +1,10 @@
 # Ledgerly Phase A–J Product Roadmap
 
+> **Historical roadmap:** The owner's 2026-10-21 reset replaces this sequence
+> for delivery planning. See the [active product plan](ledgerly-active-product-plan.md).
+> This record is preserved as history; the Phase A gate and all existing
+> security/accounting protections remain unchanged.
+
 This roadmap is preserved from the product gap analysis. It is a planning document only. It does not authorize implementation.
 
 ## Roadmap principles

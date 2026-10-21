@@ -1,5 +1,11 @@
 # Ledgerly PRD / Product Scope
 
+> **Historical scope snapshot:** On 2026-10-21 the owner reset delivery scope.
+> The [active product plan](ledgerly-active-product-plan.md) supersedes this
+> document's older release-scope and sequencing statements for delivery
+> planning. This record is retained unchanged as history; approved financial
+> and security policies remain separately applicable.
+
 **Authority level:** 3 — beneath the Product Principles and above the Technical
 Architecture  
 **Status:** Living governance document established by Decision 1 on 2026-08-21  

@@ -9,9 +9,19 @@ export function invoiceDraftRouter(service: InvoiceDraftService, auth: RequestHa
   router.use((req, res, next) => {
     res.set("Cache-Control", "no-store");
     try {
+      if (req.path === "/context" && req.method !== "GET") fail(405, "OPERATION_NOT_SUPPORTED");
       if (Object.keys(req.query).length || req.headers["x-company-id"]) fail(400, "CONTEXT_CONFLICT");
       if (["POST", "PATCH"].includes(req.method) && !req.is("application/json")) fail(415, "UNSUPPORTED_MEDIA_TYPE");
       next();
+    } catch (e) { next(e); }
+  });
+  router.get("/context", async (req, res, next) => {
+    try {
+      const data = await service.context(
+        String((req.params as { companyId?: string }).companyId),
+        (req as Request & { userId: string }).userId,
+      );
+      res.json({ data, request_id: randomUUID() });
     } catch (e) { next(e); }
   });
   const read: RequestHandler = async (req, res, next) => {
@@ -35,7 +45,23 @@ export function invoiceDraftRouter(service: InvoiceDraftService, auth: RequestHa
     const safe = error instanceof DraftError ? error : new DraftError(500, "INTERNAL_ERROR");
     res.status(safe.status).json({ error: { code: safe.code,
       message: safe.code === "AUTHORITY_UNAVAILABLE"
-        ? "Draft saving is held until approved VAT and lifecycle providers are connected."
+        ? "The server could not verify the current draft rules. No changes were saved."
+        : safe.code === "ROUNDING_POLICY_REQUIRED"
+        ? "This amount produces a fraction of a penny. Draft saving is held for this line until the rounding policy is approved."
+        : safe.code === "TAX_RULE_NOT_FOUND"
+        ? "No active company tax rule matches this code and invoice date."
+        : safe.code === "TAX_RULE_AMBIGUOUS"
+        ? "More than one active company tax rule matches this code and invoice date."
+        : safe.code === "TAX_RULE_UNSUPPORTED"
+        ? "This company tax rule is outside the supported VAT treatments."
+        : safe.code === "TAX_SETUP_MISMATCH"
+        ? "A business that is not VAT registered can only use an explicit no-VAT rule with a recorded reason."
+        : safe.code === "VAT_SETUP_UNSUPPORTED"
+        ? "This draft currently supports standard-scheme, invoice-basis VAT only."
+        : safe.code === "VAT_SETUP_INCOMPLETE"
+        ? "Complete the company's VAT registration settings before saving this draft."
+        : safe.code === "DOCUMENT_HAS_FINANCIAL_LINK"
+        ? "This invoice has a bank or payment link and cannot be changed as a draft."
         : safe.code === "LEGACY_DRAFT_REVIEW_REQUIRED"
         ? "This older invoice needs reviewed source and tax mapping before it can be edited here. No legacy data was changed."
         : "Draft request could not be completed.", request_id: randomUUID(),

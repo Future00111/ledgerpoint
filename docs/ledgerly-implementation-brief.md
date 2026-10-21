@@ -1,5 +1,11 @@
 # Ledgerly Implementation Brief
 
+> **Superseded for delivery planning (2026-10-21):** The owner has authorized
+> reversible development under the [active product plan](ledgerly-active-product-plan.md).
+> This earlier planning brief is retained as history and does not override
+> current action-specific security, accounting, deployment, or external-action
+> boundaries.
+
 **Status:** PLANNING ONLY — NOT APPROVED FOR EXECUTION  
 **Governance baseline:** DEC-01 through DEC-22 APPROVED  
 **Implementation readiness:** READY TO BEGIN IMPLEMENTATION PLANNING  

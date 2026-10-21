@@ -15,6 +15,8 @@ const statusColors = {
 export default function InvoiceDocument({ invoice, customer, company }) {
   if (!invoice) return null;
   const addr = (c) => [c?.address_line_1, c?.address_line_2, c?.city, c?.county, c?.postcode].filter(Boolean).join(', ');
+  const totalsAvailable = invoice.previewTotalsAvailable !== false;
+  const amount = (value) => totalsAvailable ? gbp.format(Number(value) || 0) : '—';
 
   return (
     <Card className="border shadow-sm">
@@ -65,9 +67,9 @@ export default function InvoiceDocument({ invoice, customer, company }) {
                   <td className="p-2.5">{line.description || '—'}</td>
                   <td className="p-2.5 text-right tabular-nums">{line.quantity}</td>
                   <td className="p-2.5 text-right tabular-nums">{gbp.format(line.unit_price || 0)}</td>
-                  <td className="p-2.5 text-right">{VAT_LABELS[String(line.vat_rate)] || line.vat_rate}</td>
-                  <td className="p-2.5 text-right tabular-nums">{gbp.format(line.amount || 0)}</td>
-                  <td className="p-2.5 text-right tabular-nums font-medium">{gbp.format(line.line_total || 0)}</td>
+                  <td className="p-2.5 text-right">{line.vat_label || VAT_LABELS[String(line.vat_rate)] || line.vat_rate || '—'}</td>
+                  <td className="p-2.5 text-right tabular-nums">{amount(line.amount)}</td>
+                  <td className="p-2.5 text-right tabular-nums font-medium">{amount(line.line_total)}</td>
                 </tr>
               ))}
               {(!invoice.line_items || invoice.line_items.length === 0) && (
@@ -79,11 +81,12 @@ export default function InvoiceDocument({ invoice, customer, company }) {
 
         <div className="flex justify-end mt-4">
           <div className="w-60 space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="tabular-nums">{gbp.format(invoice.subtotal || 0)}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">VAT Total</span><span className="tabular-nums">{gbp.format(invoice.vat_total || 0)}</span></div>
-            <div className="flex justify-between font-semibold border-t pt-2"><span>Total</span><span className="tabular-nums">{gbp.format(invoice.total || 0)}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Amount Paid</span><span className="tabular-nums">{gbp.format(invoice.amount_paid || 0)}</span></div>
-            <div className="flex justify-between font-semibold text-primary border-t pt-2"><span>Balance Due</span><span className="tabular-nums">{gbp.format(invoice.balance_due || 0)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="tabular-nums">{amount(invoice.subtotal)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">VAT Total</span><span className="tabular-nums">{amount(invoice.vat_total)}</span></div>
+            <div className="flex justify-between font-semibold border-t pt-2"><span>Total</span><span className="tabular-nums">{amount(invoice.total)}</span></div>
+            {!invoice.preview && <div className="flex justify-between"><span className="text-muted-foreground">Amount Paid</span><span className="tabular-nums">{gbp.format(invoice.amount_paid || 0)}</span></div>}
+            {!invoice.preview && <div className="flex justify-between font-semibold text-primary border-t pt-2"><span>Balance Due</span><span className="tabular-nums">{gbp.format(invoice.balance_due || 0)}</span></div>}
+            {invoice.preview && !totalsAvailable && <p className="pt-2 text-xs text-muted-foreground">Totals are not estimated in the browser. Save after server-side tax and rounding rules are available.</p>}
           </div>
         </div>
 

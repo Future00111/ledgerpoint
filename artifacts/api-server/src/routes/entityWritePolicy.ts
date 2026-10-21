@@ -4,7 +4,7 @@ import type { RequestHandler } from "express";
  * Keeping this decision separate from the Express handlers makes it harder for
  * a newly added generic mutation route to accidentally bypass a workflow lock.
  */
-const WORKFLOW_MANAGED_ENTITIES = new Set(["CompanyUser", "VATReturn", "SalesInvoice"]);
+const WORKFLOW_MANAGED_ENTITIES = new Set(["CompanyUser", "VATReturn", "SalesInvoice", "VATTaxRule"]);
 
 export function isGenericEntityWriteBlocked(entityName: string): boolean {
   return WORKFLOW_MANAGED_ENTITIES.has(entityName) || entityName === "Company";
@@ -16,6 +16,9 @@ export function genericEntityWriteError(entityName: string): string {
   }
   if (entityName === "VATReturn") {
     return "VAT returns are managed by the VAT Assistant workflow and cannot be changed through generic entity routes";
+  }
+  if (entityName === "VATTaxRule") {
+    return "VAT tax rules are managed through the protected VAT configuration workflow";
   }
   return "Use /api/companies for company management";
 }

@@ -1,92 +1,51 @@
-# [Project name]
+# Ledgerly
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Ledgerly is UK accounting software for sole traders and small businesses.
 
-## Ledgerly governance
+## Active delivery direction
 
-### Current development qualification and workspace status
+Use [the active product plan](docs/ledgerly-active-product-plan.md) as the
+single current delivery plan. The owner reset on 2026-10-21 supersedes older
+product-scope and sequencing plans for delivery. Those records remain available
+as history. Existing accounting, access, security, audit, and deployment
+policies remain in force; a product target does not silently settle an
+unresolved calculation or authorize an external action.
 
-Exact frozen C7 `787d76decfa345e3c1104231e08d5ab00bc90259` passed GitHub
-development qualification, run `38284785813` attempt 1: 6 accounting tests,
-18 negative controls and all five cleanup checks. Evidence and source digests
-were independently verified. Main contains the separate producer at
-`0da401737f35d68b9404982baad7405fe997636a`; qualified runtime fixes remain on C7.
-The runtime/producer changes have now been selectively imported on local branch
-`integration/tr01-c7-workspace`, preserving the current workspace history.
-All 17 imported files match their exact sources; full workspace typechecks and
-56 non-database regressions passed. This is a composite workspace integration,
-**not** automatic qualification of its new commit.
-See [workspace integration record](docs/governance/drafts/ledgerly-tr01-c7-workspace-integration.md).
-See [verification and synchronization assessment](docs/governance/drafts/ledgerly-tr01-c7-verification-report.md)
-and [current next actions](docs/governance/drafts/ledgerly-tr01-c7-next-actions.md).
-Preserve frozen candidates and local work. This is development qualification
-only, not production readiness, governance activation or Phase A authorization.
+The current implementation starts with a usable native invoice-draft journey
+and the active-runtime Base44 removal. Make small changes that work in the
+preview, run focused checks, then provide a concise commit/PR summary. Avoid
+planning-only cycles and repeated approval requests for already-authorized
+reversible development. Preserve authentication, company isolation, protected
+financial write boundaries, repository protections, and frozen candidate
+evidence. Do not force-push, rewrite history, auto-merge, deploy, or publish
+without the required action-specific authorization.
 
-A documentation-only [C7 final acceptance proposal](docs/governance/drafts/ledgerly-tr01-c7-final-acceptance-proposal.md)
-and [main activation proposal](docs/governance/drafts/ledgerly-tr01-c7-protected-main-activation-proposal.md)
-are prepared on an ordinary review branch. Final designation and activation
-remain unapproved. Current two-review/merge-method gaps require separate
-resolution; do not treat the development owner exception as activation approval.
+## Preserved qualification record
 
-For Ledgerly product and implementation decisions, use the active governance documents under `artifacts/ledgerly/src/docs/` and the planning records under `docs/`.
+Frozen C7 `787d76decfa345e3c1104231e08d5ab00bc90259` passed the recorded
+development qualification, run `38284785813` attempt 1. Its 6 accounting
+tests, 18 negative controls, and five cleanup checks are evidence for that
+exact C7 source only. The accepted G7 record and frozen candidates remain
+historical evidence; neither is changed or extended by current workspace work.
 
-Authority order:
+## Existing policy boundaries
 
-1. `artifacts/ledgerly/src/docs/00-ledgerly-manifesto.md`
-2. `docs/ledgerly-product-principles.md`
-3. `docs/ledgerly-prd-product-scope.md`
-4. `docs/ledgerly-technical-architecture.md`
-5. Feature specifications and `docs/ledgerly-master-backlog.md`
+- Clerk authentication, active company membership, tenant isolation, and
+  company-scoped roles/capabilities stay enabled.
+- Invoice drafts never imply posting, payment, reconciliation, or issuance.
+  Posting, payment, reconciliation, VAT return changes, and other consequential
+  writes use their dedicated protected server workflows.
+- Standard-scheme invoice-basis VAT and explicit effective-dated tax rules are
+  the current calculation boundary. Do not infer VAT from company defaults or
+  bank-feed metadata. Exact-pence results are supported; fractional-penny cases
+  fail safely pending DEC-04's remaining rounding decision.
+- Use synthetic data and disposable development databases. Do not write to an
+  existing/shared or production database, submit to HMRC, move money, or connect
+  a provider as part of the current implementation.
 
-The Manifesto is the highest authority. The Product Principles, PRD/Product
-Scope, and Technical Architecture are living governance documents established
-by Decision 1; they do not silently approve their unresolved decisions. The
-Living Product Decisions Register records explicit, revisitable product
-direction but does not authorise implementation. The product gap analysis and
-feature matrix are supporting evidence, not authority over this hierarchy.
-Existing code is evidence of current behaviour, not product authority. DEC-04
-approves the BL-06/BL-07 accounting-core architecture foundation, DEC-05
-approves the capability model, DEC-06 approves the financial-year policy,
-DEC-07 approves the accounting-period policy, DEC-08 approves the
-reporting-only year-end policy, DEC-09 approves the Chart of Accounts and
-Default Account Policy, DEC-10 approves the Control-Account Mapping Policy, and
-DEC-11 approves Configuration Versioning and Effective Dating; all are
-architecture/product/accounting-policy decisions only. DEC-12 approves the
-Payment, Allocation and Settlement Policy; all are policy decisions only.
-DEC-13 approves the Overpayments, Unapplied Cash and Excess Payment Policy;
-DEC-14 approves the Unapplied Cash Workflow Policy; DEC-15 approves the Refund
-Policy; DEC-16 approves no separate payment-on-account feature at launch; and
-DEC-17 approves class-based audit retention that preserves authoritative
-accounting evidence for company life plus the applicable legal/regulatory
-period. DEC-18 approves controlled, class-based disposal without accounting
-mutation. DEC-19 approves bounded, company-scoped exports without accounting
-authority. DEC-20 approves managed, encrypted, tested backup/recovery targets
-without implementation authority. DEC-21 approves layered company isolation
-without implementation authority. DEC-22 approves the historical
-accounting-data compatibility and cutover policy only. BL-06/BL-07 remain
-blocked until implementation planning and the required implementation approvals
-are complete.
-The [implementation-readiness review](docs/ledgerly-implementation-readiness-review.md)
-records that planning may begin separately, but implementation remains
-unauthorised.
-The [implementation brief](docs/ledgerly-implementation-brief.md) is planning
-only; it does not create executable tasks or authorise implementation.
-The [source-freshness and posting-safety
-contract](docs/ledgerly-source-freshness-posting-safety-contract.md) is a
-planning design; its final governance ownership and implementation require
-separate approval.
-The [safety-rule ownership record](docs/ledgerly-safety-rule-ownership-record.md)
-is also planning-only and does not assign source freshness to DEC-12.
-The [historical accounting migration pilot
-plan](docs/ledgerly-historical-accounting-migration-pilot-plan.md) is
-planning-only; it does not authorise migration, cutover, or implementation.
-The [first implementation approval
-package](docs/ledgerly-first-implementation-approval-package.md) recommends
-one future BL-01-FI task for explicit approval; it does not approve or execute
-that task.
-Do not choose roadmap scope or silently change a recorded decision autonomously.
-Before implementation, also review the Core Maxims, Design System, Definition
-of Done, Product Development Workflow, and Workspace Framework.
+Approved DEC-01–DEC-22 records and the existing G7 evidence remain preserved
+under `docs/` and the governance drafts. Earlier phase/PRD/backlog plans are
+historical; they do not compete with the active product plan.
 
 ## Run & Operate
 

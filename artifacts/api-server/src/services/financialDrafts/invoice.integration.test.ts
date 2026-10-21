@@ -9,13 +9,14 @@ import { execFileSync } from "node:child_process";
 import pg from "pg";
 import express from "express";
 import { InvoiceDraftService, type DraftAuthority } from "./invoiceService";
+import { contextRevision, createProductionInvoiceDraftAuthority } from "./productionAuthority";
 import { invoiceDraftRouter } from "./router";
 import { verifyDraftBody, draftParserErrors } from "./jsonBoundary";
 import { fail } from "./contract";
 import { genericEntityWriteBoundary } from "../../routes/entityWritePolicy";
 
 let dir: string, admin: pg.Pool, runtime: pg.Pool, server: ReturnType<ReturnType<typeof express>["listen"]>;
-let base: string, company: string, customer: string;
+let base: string, nativeBase: string, company: string, customer: string, noVatCompany: string, noVatCustomer: string;
 let auditFailure = false;
 let malformedTaxContext = false;
 const source = () => ({contract:"w03.draft.v1",currency:"GBP",customer_id:customer,invoice_number:"DRAFT-"+randomUUID(),
@@ -32,10 +33,15 @@ const authority: DraftAuthority = {
     // TEST ONLY; not an approved VAT provider or tax eligibility decision.
     if(input.line_items.some(l=>l.tax_code!=="SYNTHETIC_20")) fail(422,"TAX_TREATMENT_UNSUPPORTED");
     if(auditFailure) await _tx.query("SELECT set_config('w03.fixture_audit_failure','on',true)");
+    const context={company:{country:"GB",currency:"GBP",vat_registered:true,vat_scheme:"standard",
+      vat_accounting_basis:"invoice"},issue_date:input.issue_date,rounding:"synthetic fixture",
+      lines:input.line_items.map((line,index)=>({rule_id:"SYNTHETIC_RULE",code:line.tax_code,label:"Synthetic rule",
+        treatment:"standard",rate:"20.00",effective_from:"2026-01-01",effective_to:"",
+        net_pence:net[index]!.toString(),vat_pence:((net[index]!*20n)/100n).toString()}))};
     return {transactionBound:true,
       // Deliberately malformed runtime provider result in a negative-control fixture.
-      contextRevision:(malformedTaxContext ? 42 : "SYNTHETIC_NOT_APPROVED") as unknown as string,
-      vatPence:net.map(n=>((n*20n+50n)/100n).toString())};
+      contextRevision:(malformedTaxContext ? 42 : contextRevision(context)) as unknown as string,
+      context, vatPence:net.map(n=>(n*20n/100n).toString())};
   }
 };
 const env = () => ({PATH:process.env.PATH!,HOME:dir,LANG:"C",LC_ALL:"C"});
@@ -51,9 +57,17 @@ before(async()=>{
   await admin.end();
   admin=new pg.Pool({host:socket,port:55439,database:"w03_synthetic",user:"w03_bootstrap"});
   await admin.query(`
-    CREATE TABLE companies(id uuid PRIMARY KEY);
+    CREATE TABLE companies(id uuid PRIMARY KEY,name text,country text,base_currency text,vat_registered boolean,
+      vat_scheme text,vat_accounting_basis text,address_line_1 text,address_line_2 text,city text,
+      county text,postcode text,email text,vat_number text);
     CREATE TABLE company_users(id uuid PRIMARY KEY,company_id uuid,user_id text,role text,is_active boolean);
-    CREATE TABLE customers(id uuid PRIMARY KEY,company_id uuid,name text,status text);
+    CREATE TABLE customers(id uuid PRIMARY KEY,company_id uuid,name text,status text,email text,
+      address_line_1 text,address_line_2 text,city text,county text,postcode text);
+    CREATE TABLE vat_tax_rules(id uuid PRIMARY KEY,company_id uuid,code text,label text,rate numeric(5,2),
+      treatment text,effective_from date,effective_to date,is_active boolean);
+    CREATE TABLE canonical_journal_entries(id uuid PRIMARY KEY,company_id uuid,source_id text,status text);
+    CREATE TABLE bank_transactions(id uuid PRIMARY KEY,company_id uuid,linked_invoice_id uuid,
+      matched_record_id text,matched_type text);
     CREATE TABLE sales_invoices(id uuid PRIMARY KEY,company_id uuid,customer_id uuid,customer_name text,invoice_number text,
       issue_date date,due_date date,payment_terms integer,reference text,line_items jsonb,subtotal numeric(12,2),
       vat_total numeric(12,2),total numeric(12,2),amount_paid numeric(12,2),balance_due numeric(12,2),status text,notes text,
@@ -62,7 +76,8 @@ before(async()=>{
   const root=process.env.W03_WORKSPACE!;
   assert.ok(root && existsSync(join(root,"lib/db/migrations/w03-invoice-drafts.review.sql")));
   await admin.query(readFileSync(join(root,"lib/db/migrations/w03-invoice-drafts.review.sql"),"utf8"));
-  await admin.query(`GRANT SELECT,UPDATE ON companies,company_users,customers,synthetic_posted_sources TO ledgerly_api;
+  await admin.query(`GRANT SELECT,UPDATE ON companies,company_users,customers,vat_tax_rules,
+      canonical_journal_entries,bank_transactions,synthetic_posted_sources TO ledgerly_api;
     GRANT SELECT,INSERT,UPDATE ON sales_invoices,w03_invoice_drafts TO ledgerly_api;
     GRANT SELECT,INSERT ON w03_invoice_draft_audit TO ledgerly_api;
     CREATE FUNCTION synthetic_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -70,20 +85,40 @@ before(async()=>{
       RAISE EXCEPTION 'synthetic audit failure'; END IF; RETURN NEW; END $$;
     CREATE TRIGGER synthetic_audit_fail BEFORE INSERT ON w03_invoice_draft_audit FOR EACH ROW EXECUTE FUNCTION synthetic_audit_failure();`);
   company=randomUUID(); customer=randomUUID();
-  await admin.query("INSERT INTO companies VALUES($1)",[company]);
+  await admin.query(`INSERT INTO companies(id,name,country,base_currency,vat_registered,vat_scheme,vat_accounting_basis)
+    VALUES($1,'Synthetic Company','GB','GBP',true,'standard','invoice')`,[company]);
   await admin.query("INSERT INTO company_users VALUES($1,$2,'synthetic-user','owner',true)",[randomUUID(),company]);
-  await admin.query("INSERT INTO customers VALUES($1,$2,'Synthetic Customer','active')",[customer,company]);
+  await admin.query("INSERT INTO customers(id,company_id,name,status) VALUES($1,$2,'Synthetic Customer','active')",[customer,company]);
+  await admin.query(`INSERT INTO vat_tax_rules
+    (id,company_id,code,label,rate,treatment,effective_from,effective_to,is_active)
+    VALUES($1,$2,'SYNTHETIC_20','Synthetic standard rule',20,'standard','2026-01-01',NULL,true)`,
+  [randomUUID(),company]);
+  noVatCompany=randomUUID(); noVatCustomer=randomUUID();
+  await admin.query(`INSERT INTO companies(id,name,country,base_currency,vat_registered,vat_scheme,vat_accounting_basis)
+    VALUES($1,'Synthetic Non-VAT Company','GB','GBP',false,'standard','invoice')`,[noVatCompany]);
+  await admin.query("INSERT INTO company_users VALUES($1,$2,'synthetic-user','owner',true)",[randomUUID(),noVatCompany]);
+  await admin.query("INSERT INTO customers(id,company_id,name,status) VALUES($1,$2,'Synthetic Non-VAT Customer','active')",
+    [noVatCustomer,noVatCompany]);
+  await admin.query(`INSERT INTO vat_tax_rules
+    (id,company_id,code,label,rate,treatment,effective_from,effective_to,is_active)
+    VALUES($1,$2,'NO_VAT','Not VAT registered',0,'no_vat','2026-01-01',NULL,true)`,
+  [randomUUID(),noVatCompany]);
   runtime=new pg.Pool({host:socket,port:55439,database:"w03_synthetic",user:"ledgerly_api",application_name:"w03-synthetic-runtime"});
   const identity=await runtime.query("SELECT current_database() db,current_user usr,inet_server_addr() addr");
   assert.deepEqual(identity.rows[0],{db:"w03_synthetic",usr:"ledgerly_api",addr:null});
   const app=express();
   app.use(express.json({limit:"2mb",verify:verifyDraftBody})); app.use(draftParserErrors);
-  app.use("/api/companies/:companyId/financial-drafts/invoices",invoiceDraftRouter(new InvoiceDraftService(runtime,authority),
-    (req,res,next)=>{if(req.get("X-Synthetic-User")!=="fixture"){res.status(401).json({error:{code:"AUTHENTICATION_REQUIRED"}});return;}
-      Object.assign(req,{userId:"synthetic-user"});next();}));
+  const syntheticAuth=(req:express.Request,res:express.Response,next:express.NextFunction)=>{
+    if(req.get("X-Synthetic-User")!=="fixture"){res.status(401).json({error:{code:"AUTHENTICATION_REQUIRED"}});return;}
+    Object.assign(req,{userId:"synthetic-user"});next();
+  };
+  app.use("/api/companies/:companyId/financial-drafts/invoices",invoiceDraftRouter(new InvoiceDraftService(runtime,authority),syntheticAuth));
+  app.use("/api/companies/:companyId/financial-drafts/native-invoices",
+    invoiceDraftRouter(new InvoiceDraftService(runtime,createProductionInvoiceDraftAuthority()),syntheticAuth));
   app.use("/api/entities/:entity",genericEntityWriteBoundary);
   server=app.listen(0,"127.0.0.1"); await new Promise<void>(resolve=>server.once("listening",resolve));
   base=`http://127.0.0.1:${(server.address() as {port:number}).port}/api/companies/${company}/financial-drafts/invoices`;
+  nativeBase=`http://127.0.0.1:${(server.address() as {port:number}).port}/api/companies/${company}/financial-drafts/native-invoices`;
 });
 after(async()=>{
   if(server) await new Promise<void>((resolve,reject)=>server.close(e=>e?reject(e):resolve()));
@@ -97,7 +132,14 @@ after(async()=>{
 });
 const request=(method:string,body?:unknown,id="",revision?:string)=>fetch(base+id,{method,headers:{"Content-Type":"application/json",
   "X-Synthetic-User":"fixture",...(revision?{"If-Match":`"${revision}"`}:{})},...(body?{body:JSON.stringify(body)}:{})});
-type TestPayload = { data: { id:string; revision:string; money:{gross_pence:string}; source:{notes:string}; request_id:string }; error:{code:string} };
+const nativeRequest=(companyId:string,method:string,body?:unknown,id="",revision?:string)=>fetch(
+  `${nativeBase.replace(company,companyId)}${id}`,{method,headers:{"Content-Type":"application/json",
+    "X-Synthetic-User":"fixture",...(revision?{"If-Match":`"${revision}"`}:{})},...(body?{body:JSON.stringify(body)}:{})});
+type TestPayload = { data: { id:string; revision:string;
+  money:{gross_pence:string; net_pence?:string; vat_pence?:string;
+    lines?:Array<{net_pence:string;vat_pence:string;gross_pence:string}>};
+  source:{notes:string}; request_id:string; tax_context?:unknown;
+}; error:{code:string} };
 const payload = async (response: Response) => await response.json() as TestPayload;
 
 test("real SQL + HTTP create/edit/read, role scope and append-only audit",async()=>{
@@ -111,8 +153,80 @@ test("real SQL + HTTP create/edit/read, role scope and append-only audit",async(
   const audit=await runtime.query("SELECT actor_role,operation,after_revision,request_id FROM w03_invoice_draft_audit WHERE invoice_id=$1 ORDER BY created_at",[created.id]);
   assert.deepEqual(audit.rows.map(r=>r.operation),["create","update"]);
   assert.equal(audit.rows[1].request_id,updated.request_id);
+  assert.equal((await payload(await request("GET",undefined,"/"+created.id))).data.money.gross_pence,"1200");
   await assert.rejects(runtime.query("DELETE FROM w03_invoice_draft_audit"),/permission denied/);
   await assert.rejects(admin.query("UPDATE w03_invoice_draft_audit SET actor_role='admin'"),/append-only/);
+});
+test("read-only invoice context returns only the active member's company customers and tax rules",async()=>{
+  const response=await request("GET",undefined,"/context");
+  assert.equal(response.status,200);
+  const result=await payload(response) as TestPayload & {data:{company:{id:string;vat_registered:boolean};customers:Array<{id:string}>;tax_rules:Array<{code:string}>;can_write_draft:boolean}};
+  assert.equal(result.data.company.id,company);
+  assert.equal(result.data.company.vat_registered,true);
+  assert.deepEqual(result.data.customers.map(row=>row.id),[customer]);
+  assert.deepEqual(result.data.tax_rules.map(row=>row.code),["SYNTHETIC_20"]);
+  assert.equal(result.data.can_write_draft,true);
+  await admin.query("UPDATE company_users SET role='read_only' WHERE company_id=$1",[company]);
+  const readOnly=await payload(await request("GET",undefined,"/context")) as typeof result;
+  assert.equal(readOnly.data.can_write_draft,false);
+  await admin.query("UPDATE company_users SET role='owner',is_active=false WHERE company_id=$1",[company]);
+  assert.equal((await request("GET",undefined,"/context")).status,403);
+  await admin.query("UPDATE company_users SET is_active=true WHERE company_id=$1",[company]);
+  assert.equal((await request("POST",{contract:"w03.draft.v1"},"/context")).status,405);
+});
+test("production authority saves and reopens exact-penny standard VAT and non-VAT drafts",async()=>{
+  const standard=source();
+  standard.invoice_number="EXACT-VAT-"+randomUUID();
+  standard.line_items[0]!.unit_price="100";
+  const savedResponse=await nativeRequest(company,"POST",standard);
+  assert.equal(savedResponse.status,201,await savedResponse.clone().text());
+  const saved=await payload(savedResponse);
+  assert.equal(saved.data.money.net_pence,"10000");
+  assert.equal(saved.data.money.vat_pence,"2000");
+  assert.equal(saved.data.money.gross_pence,"12000");
+  const standardReadResponse=await nativeRequest(company,"GET",undefined,"/"+saved.data.id);
+  assert.equal(standardReadResponse.status,200,await standardReadResponse.clone().text());
+  const standardRead=await payload(standardReadResponse);
+  assert.deepEqual(standardRead.data.money.lines,[{net_pence:"10000",vat_pence:"2000",gross_pence:"12000"}]);
+  assert.equal((standardRead.data.tax_context as {lines:Array<{code:string;rate:string}>}).lines[0]!.code,"SYNTHETIC_20");
+  const storedAudit=await admin.query("SELECT tax_context FROM w03_invoice_draft_audit WHERE invoice_id=$1",[saved.data.id]);
+  assert.equal(storedAudit.rows[0]!.tax_context.lines[0].label,"Synthetic standard rule");
+  await admin.query("INSERT INTO bank_transactions(id,company_id,linked_invoice_id) VALUES($1,$2,$3)",
+    [randomUUID(),company,saved.data.id]);
+  const linkedEdit=await nativeRequest(company,"PATCH",{contract:"w03.draft.v1",notes:"must remain locked"},
+    "/"+saved.data.id,saved.data.revision);
+  assert.equal(linkedEdit.status,409);
+  assert.equal((await payload(linkedEdit)).error.code,"DOCUMENT_HAS_FINANCIAL_LINK");
+
+  const nonVat={...source(),customer_id:noVatCustomer,invoice_number:"EXACT-NOVAT-"+randomUUID(),
+    line_items:[{description:"Exact no VAT",quantity:"1",unit_price:"19.99",tax_code:"NO_VAT"}]};
+  const noVatResponse=await nativeRequest(noVatCompany,"POST",nonVat);
+  assert.equal(noVatResponse.status,201,await noVatResponse.clone().text());
+  const noVatSaved=await payload(noVatResponse);
+  assert.equal(noVatSaved.data.money.net_pence,"1999");
+  assert.equal(noVatSaved.data.money.vat_pence,"0");
+  assert.equal(noVatSaved.data.money.gross_pence,"1999");
+  const reopenedResponse=await nativeRequest(noVatCompany,"GET",undefined,"/"+noVatSaved.data.id);
+  assert.equal(reopenedResponse.status,200,await reopenedResponse.clone().text());
+  const reopened=await payload(reopenedResponse);
+  assert.deepEqual(reopened.data.money.lines,[{net_pence:"1999",vat_pence:"0",gross_pence:"1999"}]);
+  assert.equal((reopened.data.tax_context as {lines:Array<{treatment:string;label:string}>}).lines[0]!.treatment,"no_vat");
+});
+test("production authority rejects only calculations needing a fractional penny",async()=>{
+  const fractionalNet=source();
+  fractionalNet.invoice_number="FRACTIONAL-NET-"+randomUUID();
+  fractionalNet.line_items[0]!.unit_price="2.3456";
+  const netResponse=await nativeRequest(company,"POST",fractionalNet);
+  assert.equal(netResponse.status,422);
+  assert.equal((await payload(netResponse)).error.code,"ROUNDING_POLICY_REQUIRED");
+
+  const fractionalVat=source();
+  fractionalVat.invoice_number="FRACTIONAL-VAT-"+randomUUID();
+  fractionalVat.line_items[0]!.unit_price="1.01";
+  const vatResponse=await nativeRequest(company,"POST",fractionalVat);
+  assert.equal(vatResponse.status,422);
+  assert.equal((await payload(vatResponse)).error.code,"ROUNDING_POLICY_REQUIRED");
+  assert.equal(Number((await admin.query("SELECT count(*) n FROM sales_invoices WHERE invoice_number LIKE 'FRACTIONAL-%'")).rows[0]!.n),0);
 });
 test("real route rejects malformed/duplicate/unknown fields, body limits, missing auth and unsupported bulk",async()=>{
   for(const key of ["status","company_id","total","actor_id","amount_paid"]) {
@@ -125,7 +239,8 @@ test("real route rejects malformed/duplicate/unknown fields, body limits, missin
   assert.equal((await request("POST",source(),"/bulk")).status,405);
   const origin = base.split("/api/companies/")[0];
   for (const [method,path] of [["POST","SalesInvoice"],["POST","SalesInvoice/bulk"],
-    ["PATCH","SalesInvoice/bulk-update"],["PUT","SalesInvoice/id"],["DELETE","SalesInvoice/id"]]) {
+    ["PATCH","SalesInvoice/bulk-update"],["PUT","SalesInvoice/id"],["DELETE","SalesInvoice/id"],
+    ["POST","VATTaxRule"],["PUT","VATTaxRule/id"],["DELETE","VATTaxRule/id"]]) {
     assert.equal((await fetch(`${origin}/api/entities/${path}`,{method})).status,403);
   }
 });
@@ -171,8 +286,9 @@ test("legacy drafts hold for reviewed adoption, posted status rejects, private f
 });
 test("real foreign-company records cannot supply membership, customer or invoice scope", async()=>{
   const otherCompany=randomUUID(), otherCustomer=randomUUID(), otherInvoice=randomUUID();
-  await admin.query("INSERT INTO companies VALUES($1)",[otherCompany]);
-  await admin.query("INSERT INTO customers VALUES($1,$2,'Other Synthetic Customer','active')",[otherCustomer,otherCompany]);
+  await admin.query(`INSERT INTO companies(id,name,country,base_currency,vat_registered,vat_scheme,vat_accounting_basis)
+    VALUES($1,'Other Synthetic Company','GB','GBP',true,'standard','invoice')`,[otherCompany]);
+  await admin.query("INSERT INTO customers(id,company_id,name,status) VALUES($1,$2,'Other Synthetic Customer','active')",[otherCustomer,otherCompany]);
   await admin.query("INSERT INTO sales_invoices(id,company_id,status,amount_paid) VALUES($1,$2,'draft',0)",[otherInvoice,otherCompany]);
   assert.equal((await request("POST",{...source(),customer_id:otherCustomer})).status,422);
   assert.equal((await request("GET",undefined,"/"+otherInvoice)).status,404);

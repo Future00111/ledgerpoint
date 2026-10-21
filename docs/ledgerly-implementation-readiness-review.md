@@ -1,5 +1,10 @@
 # Ledgerly Implementation Readiness Review
 
+> **Historical readiness snapshot:** The owner's 2026-10-21 direction authorizes
+> reversible development under the [active product plan](ledgerly-active-product-plan.md).
+> The former implementation hold is superseded for delivery sequencing only;
+> existing accounting and security policies remain applicable.
+
 **Review date:** 2026-08-21  
 **Governance status:** DEC-01 through DEC-22 approved  
 **Implementation status:** Not authorised  

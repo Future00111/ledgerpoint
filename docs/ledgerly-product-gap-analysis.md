@@ -1,5 +1,9 @@
 # Ledgerly Complete Product Gap Analysis
 
+> **Historical analysis:** The owner's 2026-10-21 reset defines the current
+> delivery target in the [active product plan](ledgerly-active-product-plan.md).
+> This analysis is retained as background, not the active scope or priority list.
+
 ## 1. Executive summary
 
 Ledgerly has a substantial technical foundation but is not a complete accounting product.

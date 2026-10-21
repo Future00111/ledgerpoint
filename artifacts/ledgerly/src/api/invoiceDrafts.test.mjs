@@ -34,6 +34,21 @@ test("safe typed failures preserve code/issues and never retry", async () => {
   await assert.rejects(client.save("company",form,"draft","old"),{code:"REVISION_CONFLICT",status:409});
   assert.equal(calls,1);
 });
+test("company context uses the authenticated native invoice route and verifies tenant identity", async () => {
+  const calls=[];
+  const context={company:{id:"company"},customers:[],tax_rules:[]};
+  const client=createInvoiceDraftClient(async(url,options)=>{
+    calls.push([url,options]);
+    return new Response(JSON.stringify({data:context}),{status:200});
+  });
+  assert.deepEqual(await client.context("company"),context);
+  assert.match(calls[0][0],/\/api\/companies\/company\/financial-drafts\/invoices\/context$/);
+  assert.equal(calls[0][1].credentials,"include");
+  const wrong=createInvoiceDraftClient(async()=>new Response(JSON.stringify({
+    data:{...context,company:{id:"other"}},
+  }),{status:200}));
+  await assert.rejects(wrong.context("company"),/could not be verified/);
+});
 test("wrong-company or malformed success is uncertain, not accepted as saved", async () => {
   const client=createInvoiceDraftClient(async()=>new Response(JSON.stringify({data:{id:"x",company_id:"other",revision:"x"}})));
   await assert.rejects(client.save("company",form),/could not be verified/);

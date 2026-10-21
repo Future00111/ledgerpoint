@@ -12,6 +12,25 @@ export function invoiceSource(form, edit = false) {
   return result;
 }
 export function createInvoiceDraftClient(fetcher = fetch) {
+  const context = async (companyId, signal) => {
+    const response = await fetcher(
+      `/api/companies/${encodeURIComponent(companyId)}/financial-drafts/invoices/context`,
+      { credentials: "include", signal },
+    );
+    const json = await response.json().catch(() => null);
+    if (!response.ok) {
+      const known = json?.error;
+      throw Object.assign(new Error(known?.message || "Invoice setup could not be loaded."), {
+        status: response.status, code: known?.code, requestId: known?.request_id,
+      });
+    }
+    const data = json?.data;
+    if (!data?.company?.id || data.company.id !== companyId ||
+        !Array.isArray(data.customers) || !Array.isArray(data.tax_rules)) {
+      throw new Error("Invoice setup response could not be verified.");
+    }
+    return data;
+  };
   const request = async (companyId, id, method, source, revision, signal) => {
     const url = `/api/companies/${encodeURIComponent(companyId)}/financial-drafts/invoices${id ? `/${encodeURIComponent(id)}` : ""}`;
     const response = await fetcher(url, {
@@ -33,6 +52,7 @@ export function createInvoiceDraftClient(fetcher = fetch) {
     return json.data;
   };
   return {
+    context,
     get: (company, id, signal) => request(company, id, "GET", undefined, undefined, signal),
     save: (company, form, id, revision) => request(company, id, id ? "PATCH" : "POST",
       invoiceSource(form, !!id), revision),

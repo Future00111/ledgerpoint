@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useCompany } from '@/lib/useCompany';
+import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +53,7 @@ export default function InvoiceDetail() {
   const { id } = useParams();
   const nav = useNavigate();
   const { activeCompany } = useCompany();
+  const { user: currentUser } = useAuth();
   const { toast } = useToast();
 
   const [invoice, setInvoice] = useState(null);
@@ -59,7 +61,6 @@ export default function InvoiceDetail() {
   const [customerInvoices, setCustomerInvoices] = useState([]);
   const [creditNotes, setCreditNotes] = useState([]);
   const [payments, setPayments] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reminderDraftOpen, setReminderDraftOpen] = useState(false);
@@ -69,8 +70,6 @@ export default function InvoiceDetail() {
     try {
       const inv = await base44.entities.SalesInvoice.get(id);
       setInvoice(inv);
-      const me = await base44.auth.me().catch(() => null);
-      setCurrentUser(me);
       const cust = await base44.entities.Customer.get(inv.customer_id);
       setCustomer(cust);
       const custInv = await base44.entities.SalesInvoice.filter({ customer_id: inv.customer_id }, '-issue_date', 200);

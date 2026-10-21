@@ -1,6 +1,6 @@
 ---
-name: Product roadmap gate
-description: Ledgerly has an approved governance hierarchy, but implementation and publication remain paused until explicit decision dependencies, including the accounting-core decision pack, are accepted.
+name: Active product direction and policy boundaries
+description: The owner reset Ledgerly's delivery scope on 2026-10-21 and authorized reversible implementation; existing accounting and security decisions still govern how features are built.
 ---
 
 Decision 1 approved the living hierarchy of Manifesto → Product Principles →
@@ -62,30 +62,34 @@ company-scoped PDF/CSV reports plus CSV and versioned JSON accounting/audit
 exports, without making exports accounting authority. DEC-20 approves managed,
 encrypted, tested backup/recovery targets without implementation authority.
 DEC-21 approves layered company isolation without implementation authority.
-DEC-22 approves the historical accounting-data compatibility and cutover policy:
-validated additive adapters, controlled cohorts, bounded comparison, explicit
-exceptions, recovery checkpoints, and canonical Ledgerly journals as the sole
-authority after validated cutover. BL-06/BL-07 remain blocked pending separate
-implementation planning and the required implementation approvals.
-Do not implement
-backlog items or publish Ledgerly until the user has reviewed and selected the
-next roadmap task. Treat the Living Product Decisions Register as the
-revisitable product-direction record below the Master Backlog; it never
-authorises implementation on its own.
+DEC-22 approves validated additive historical-data adapters and Ledgerly's
+canonical journals as the authority after cutover.
 
-**Why:** The existing technical foundation and phase work do not demonstrate
-complete, end-to-end product workflows; the user explicitly requires
-roadmap-led prioritisation, recorded product decisions, and approved work before
-more delivery. The canonical accounting foundation affects every consequential
-financial workflow, so approved governance policy must still be translated into
-separately planned, reviewed, and authorised implementation rather than being
-silently filled in during delivery. The approved hierarchy makes those decision
-boundaries explicit without making them permanent or bypassable.
+The owner reset product direction on 2026-10-21: full UK small-business
+accounting, Self Assessment/MTD Income Tax, VAT filing and recovery, small-company
+Corporation Tax/CT600/accounts, end-to-end payroll, and approval-first AI.
+Small limited companies are a planning assumption; pilot owners, cohort, and
+capacity remain proposed. The active delivery plan is
+`docs/ledgerly-active-product-plan.md`; prior PRD/backlog/phase sequencing is
+historical for delivery.
 
-**How to apply:** Treat product-gap analysis, roadmap confirmation, source
-freshness/posting-safety constraints, and the selected next task as the gate for
-future build or release work. For BL-06/BL-07, also check the accounting-core
-decision pack for
-Lee's recorded approvals. Do not resolve an OPEN, PROVISIONAL, or DEFERRED
-decision silently; record the decision update first. Continue to respect
-explicit accounting-safety and approval boundaries.
+The reset authorizes reversible feature work, not weakened safeguards. Preserve
+Clerk authentication, active membership, role/capability checks, company
+isolation, protected accounting/reconciliation writes, source freshness, audit,
+posted-record immutability, and separate approvals for external actions. The
+product target for direct HMRC filing supersedes the old exclusion as a roadmap
+statement only; filing rules, consent, idempotency, receipts, amendments, and
+recovery still need a specific implementation design. DEC-04 money and rounding
+semantics remain unresolved; do not select calculation behavior silently.
+Remove Base44-shaped active runtime usage starting with invoices, then migrate
+remaining journeys to native Ledgerly services. Keep historical Base44 mentions.
+
+**Why:** The owner explicitly replaced planning-only delivery holds with
+reversible implementation, while preserving established financial and access
+protections. The expanded tax/payroll scope is a product target, not proof of
+implementation or compliance.
+
+**How to apply:** Follow the active plan for delivery order. Build small working
+features, run their preview and focused checks, then summarize the commit. Keep
+unknown accounting policies and high-consequence external actions behind their
+explicit decision and authorization boundaries.
