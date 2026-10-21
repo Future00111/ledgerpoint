@@ -16,15 +16,18 @@ test("finite draft capabilities deny unknown, legacy, inactive and unconfigured 
   }
   assert.equal(canWriteDraft("owner", false), false);
 });
-test("exact-pence net and authoritative VAT composition preserve money without rounding", () => {
+test("integer half-up line rounding and authoritative VAT composition preserve GBP pence", () => {
   const parsed = parseInvoice({ ...source(), line_items: [
     { description:"Exact", quantity:"1", unit_price:"19.99", tax_code:"no_vat" },
   ] });
   assert.deepEqual(netPence(parsed.line_items), [1999n]);
   assert.equal(parsed.line_items[0]!.tax_code, "NO_VAT");
   assert.equal(money([1999n], ["0"]).gross_pence, "1999");
-  assert.throws(() => netPence([{ ...parsed.line_items[0]!, unit_price:"0.0050" }]), /ROUNDING_POLICY_REQUIRED/);
-  assert.throws(() => netPence([{ ...parsed.line_items[0]!, quantity:"1.2345", unit_price:"2.3456" }]), /ROUNDING_POLICY_REQUIRED/);
+  assert.equal(netPence([{ ...parsed.line_items[0]!, unit_price:"0.0050" }])[0], 1n);
+  assert.equal(netPence([{ ...parsed.line_items[0]!, unit_price:"0.0049" }])[0], 0n);
+  assert.equal(netPence([{ ...parsed.line_items[0]!, quantity:"1.2345", unit_price:"2.3456" }])[0], 290n);
+  assert.equal(netPence([{ ...parsed.line_items[0]!, quantity:"100", unit_price:"99999999.9999" }])[0], 999999999999n);
+  assert.throws(() => netPence([{ ...parsed.line_items[0]!, quantity:"100.0001", unit_price:"99999999.9999" }]), /MONEY_LIMIT/);
   assert.equal(money([10000n], ["2000"]).gross_pence, "12000");
   assert.equal(money([3n,3n,3n], ["1","1","1"]).gross_pence, "12");
   assert.throws(() => money([999999999999n], ["1"]), /MONEY_LIMIT/);

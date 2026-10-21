@@ -101,10 +101,7 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
         }
 
         const numerator = net[index]! * rate;
-        if (numerator % 10000n !== 0n) {
-          fail(422, "ROUNDING_POLICY_REQUIRED", `/line_items/${index}/tax_code`);
-        }
-        const vat = (numerator / 10000n).toString();
+        const vat = ((numerator + 5000n) / 10000n).toString();
         vatPence.push(vat);
         lines.push({
           rule_id: String(rule.id),
@@ -128,7 +125,12 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
           vat_accounting_basis: company.vat_accounting_basis == null ? "" : String(company.vat_accounting_basis),
         },
         issue_date: source.issue_date,
-        rounding: "exact-pence-only; fractional-pence results are rejected pending policy",
+        rounding: {
+          contract: "w03.money.dev.v2",
+          method: "nearest-penny-half-up",
+          scope: "round each line net and VAT; document totals sum saved rounded lines without another VAT rounding",
+          decision_scope: "development invoice drafts only; not retrospective DEC-04 approval or production qualification",
+        },
         lines,
       };
       return { transactionBound: true as const, contextRevision: digest(context), context, vatPence };

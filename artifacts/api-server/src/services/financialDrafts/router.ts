@@ -47,7 +47,7 @@ export function invoiceDraftRouter(service: InvoiceDraftService, auth: RequestHa
       message: safe.code === "AUTHORITY_UNAVAILABLE"
         ? "The server could not verify the current draft rules. No changes were saved."
         : safe.code === "ROUNDING_POLICY_REQUIRED"
-        ? "This amount produces a fraction of a penny. Draft saving is held for this line until the rounding policy is approved."
+        ? "This amount cannot be safely represented by the supported development calculation. No changes were saved."
         : safe.code === "TAX_RULE_NOT_FOUND"
         ? "No active company tax rule matches this code and invoice date."
         : safe.code === "TAX_RULE_AMBIGUOUS"

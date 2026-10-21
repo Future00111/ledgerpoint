@@ -48,3 +48,5 @@ Thumbs.db
 .cache/
 .local/
 /generated-artifacts/
+# Owner instruction upload is retained locally, not application source.
+/attached_assets/Pasted-Continue-with-the-next-implemented-invoice-delivery-now_1792582888261.txt

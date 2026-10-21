@@ -23,3 +23,4 @@
 - [Asset presentation history](asset-presentation-history.md) — Library metadata may advance local HEAD; bind owner approval to the named revision and unchanged document bytes.
 - [Review tooling isolation](review-tooling-isolation.md) — nested tools need their own workspace boundary; prove the minimal host install before supplying broader harness dependencies.
 - [Evidence observation clocks](evidence-observation-clocks.md) — use a real UTC recording clock; replay-stable callback time does not establish fresh or atomic observations.
+- [Invoice development boundaries](invoice-development-boundaries.md) — owner-scoped line half-up rounding and isolated, genuinely authenticated synthetic demos are not production or DEC-04 acceptance.

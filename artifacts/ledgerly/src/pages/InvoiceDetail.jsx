@@ -68,11 +68,16 @@ export default function InvoiceDetail() {
 
   const load = async () => {
     setLoading(true);
+    setInvoice(null);
+    setCustomerInvoices([]); setCreditNotes([]); setPayments([]); setActivities([]);
     try {
       const inv = await SalesInvoice.get(id);
+      if (inv.company_id !== activeCompany?.id) throw new Error('Select this invoice’s company before opening it.');
       setInvoice(inv);
       const cust = await Customer.get(inv.customer_id);
       setCustomer(cust);
+      // Unissued drafts are documents, not receivables or collection targets.
+      if (inv.status === 'draft') return;
       const custInv = await SalesInvoice.filter({ customer_id: inv.customer_id }, '-issue_date', 200);
       setCustomerInvoices(custInv || []);
       const cns = await SalesCreditNote.filter({ customer_id: inv.customer_id }, '-credit_note_date', 200);
@@ -90,10 +95,22 @@ export default function InvoiceDetail() {
     }
   };
 
-  useEffect(() => { if (id) load(); }, [id]);
+  useEffect(() => { if (id && activeCompany?.id) load(); }, [id, activeCompany?.id]);
 
+  if (!activeCompany) return <div className="space-y-3 py-12 text-center"><p>Select a company to view its invoice.</p><Button variant="outline" onClick={() => nav('/companies')}>Open Companies</Button></div>;
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
   if (!invoice) return <p className="text-muted-foreground text-center py-20">Invoice not found.</p>;
+
+  if (invoice.status === 'draft') return (
+    <div className="mx-auto max-w-4xl space-y-5">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <Button variant="outline" onClick={() => nav('/invoices')} className="gap-1.5"><ArrowLeft className="h-4 w-4" />Back to invoices</Button>
+        <Button onClick={() => nav(`/invoices/${id}`)} className="gap-1.5"><Pencil className="h-4 w-4" />Edit draft</Button>
+      </header>
+      <p className="text-sm text-muted-foreground">Draft only — not sent, posted or included in outstanding invoice totals.</p>
+      <InvoiceDocument invoice={invoice} customer={customer} company={activeCompany} />
+    </div>
+  );
 
   const intel = computeInvoiceIntelligence({ invoice, customer, customerInvoices, payments, creditNotes });
 
@@ -195,7 +212,7 @@ export default function InvoiceDetail() {
 
   // ---- Primary actions by status ----
   let primary = [];
-  if (invoice.status === 'draft') primary = [<Btn key="e" label="Edit" icon={Pencil} onClick={edit} variant="outline" />, <Btn key="a" label="Approve" icon={CheckCircle2} onClick={approve} />, <Btn key="s" label="Send" icon={Send} onClick={sendInvoice} variant="outline" />];
+  if (invoice.status === 'draft') primary = [<Btn key="e" label="Edit draft" icon={Pencil} onClick={edit} variant="outline" />];
   else if (invoice.status === 'approved') primary = [<Btn key="s" label="Send" icon={Send} onClick={sendInvoice} />, <Btn key="e" label="Edit" icon={Pencil} onClick={edit} variant="outline" />];
   else if (['sent', 'part_paid', 'overdue'].includes(invoice.status)) primary = [<Btn key="r" label="Send reminder" icon={Mail} onClick={sendReminder} />, <Btn key="p" label="Record payment" icon={Wallet} onClick={recordPayment} variant="outline" />, <Btn key="c" label="Add credit note" icon={FileMinus} onClick={addCreditNote} variant="outline" />];
   else if (invoice.status === 'paid') primary = [<Btn key="p" label="View payment" icon={Wallet} onClick={recordPayment} />, <Btn key="d" label="Duplicate" icon={Copy} onClick={duplicate} variant="outline" />];

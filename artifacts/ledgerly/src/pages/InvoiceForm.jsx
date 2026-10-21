@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { invoiceDrafts, displayPence } from '@/api/invoiceDrafts.mjs';
+import { newInvoiceDates, changeInvoiceFields } from '@/api/invoiceEditor.mjs';
 import InvoiceDocument from '@/components/invoices/InvoiceDocument';
 import { useCompany } from '@/lib/useCompany';
 import { Button } from '@/components/ui/button';
@@ -12,12 +13,11 @@ import { useToast } from '@/components/ui/use-toast';
 
 const line = () => ({ description: '', quantity: '1', unit_price: '0', tax_code: '' });
 const initial = () => ({
-  customer_id: '', invoice_number: '', issue_date: new Date().toISOString().slice(0, 10),
-  due_date: new Date().toISOString().slice(0, 10), payment_terms: 30,
+  customer_id: '', invoice_number: '', ...newInvoiceDates(),
   reference: '', notes: '', line_items: [line()],
 });
 export default function InvoiceForm() {
-  const { activeCompany, roles } = useCompany();
+  const { activeCompany, roles, selectionWarning } = useCompany();
   const { id } = useParams();
   const [search] = useSearchParams();
   const navigate = useNavigate();
@@ -32,6 +32,7 @@ export default function InvoiceForm() {
   const [error, setError] = useState('');
   const [hold, setHold] = useState(false);
   const [money, setMoney] = useState(null);
+  const [automaticDueDate, setAutomaticDueDate] = useState(!editId);
   const generation = useRef(0);
   const allowed = ['owner', 'admin', 'accountant'].includes(roles[activeCompany?.id]);
 
@@ -39,6 +40,7 @@ export default function InvoiceForm() {
     const current = ++generation.current;
     const controller = new AbortController();
     setForm(initial()); setRevision(null); setCompanyContext(null); setTaxContext(null); setMoney(null);
+    setAutomaticDueDate(!editId);
     setError(''); setHold(false); setSaving(false); setLoading(true);
     if (!activeCompany) return () => controller.abort();
     (async () => {
@@ -50,6 +52,7 @@ export default function InvoiceForm() {
         if (generation.current !== current || controller.signal.aborted) return;
         setCompanyContext(context);
         if (draft) {
+          setAutomaticDueDate(false);
           setForm(draft.source); setRevision(draft.revision);
           setMoney(draft.money ?? null); setTaxContext(draft.tax_context ?? null);
         }
@@ -64,7 +67,8 @@ export default function InvoiceForm() {
 
   const change = (key, value) => {
     setMoney(null); setTaxContext(null);
-    setForm(f => ({ ...f, [key]: value }));
+    if (key === 'due_date') setAutomaticDueDate(false);
+    setForm(f => changeInvoiceFields(f, key, value, !editId && automaticDueDate));
   };
   const updateLine = (index, key, value) => {
     setMoney(null); setTaxContext(null);
@@ -79,7 +83,7 @@ export default function InvoiceForm() {
       const saved = await invoiceDrafts.save(activeCompany.id, form, editId, revision);
       if (generation.current !== current) return;
       setRevision(saved.revision); setMoney(saved.money); setTaxContext(saved.tax_context ?? null);
-      toast({ title: 'Draft invoice saved', description: `Server total ${displayPence(saved.money.gross_pence)}. No posting or payment was created.` });
+      toast({ title: 'Draft invoice saved', description: `Draft total ${displayPence(saved.money.gross_pence)}. Not sent or posted.` });
       // Keep the saved draft open; a new draft is now reachable by its protected edit route.
       if (!editId) navigate(`/invoices/${saved.id}`, { replace: true });
     } catch (e) {
@@ -133,8 +137,12 @@ export default function InvoiceForm() {
     }),
   };
   const disabled = !allowed || hold || saving || loading || !companyContext?.can_write_draft;
-  if (!activeCompany) return <p>Select a company to prepare an invoice draft.</p>;
+  if (!activeCompany) return <div className="mx-auto max-w-xl space-y-3 rounded-xl border p-6 text-center">
+    <p>Select a company to prepare an invoice draft.</p>
+    <Button type="button" variant="outline" onClick={() => navigate('/companies')}>{import.meta.env.DEV ? 'Open Companies to select or create a synthetic demo' : 'Open Companies'}</Button>
+  </div>;
   return <form onSubmit={save} className="mx-auto max-w-7xl space-y-6">
+    {selectionWarning && <p role="status" className="rounded-lg border p-3 text-sm">{selectionWarning}</p>}
     <header className="flex flex-wrap items-start justify-between gap-4">
       <div>
         <p className="text-sm font-medium text-primary">Sales · Draft only</p>
@@ -144,10 +152,11 @@ export default function InvoiceForm() {
       <Button type="button" variant="outline" onClick={() => navigate('/invoices')}>Back to invoices</Button>
     </header>
     <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-      This is a draft only. It will not be issued, posted, paid, or reconciled. VAT codes come from this company's effective-dated rules; the browser does not guess tax or calculate totals.
+      Draft only — not sent or posted. Enter prices before VAT and choose a company tax code valid on the invoice date.
+      <p className="mt-2">Supports GBP drafts with Standard invoice-basis VAT or a no-VAT treatment. Discounts, credit invoices and VAT-inclusive prices are not supported.</p>
     </div>
-    {search.get('bank_transaction_id') && <p className="rounded-lg border p-3 text-sm text-muted-foreground">Bank receipt context does not establish VAT eligibility or record a payment.</p>}
-    {!allowed && <p role="alert" className="rounded-lg border border-red-300 p-4 text-sm text-red-900">Your current role cannot save invoice drafts. No Manager write grant is enabled.</p>}
+    {search.get('bank_transaction_id') && <p className="rounded-lg border p-3 text-sm text-muted-foreground">Saving this draft does not record a bank receipt or payment.</p>}
+    {!allowed && <p role="alert" className="rounded-lg border border-red-300 p-4 text-sm text-red-900">Your current role cannot save invoice drafts.</p>}
     {error && <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-900">
       <p className="font-medium">{error}</p>
       {hold && <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -181,7 +190,7 @@ export default function InvoiceForm() {
         </CardContent></Card>
         <Card><CardContent className="space-y-5 p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div><h2 className="text-lg font-semibold">Items</h2><p className="mt-1 text-sm text-muted-foreground">Enter prices before VAT and select an approved company tax code for each item.</p></div>
+            <div><h2 className="text-lg font-semibold">Items</h2><p className="mt-1 text-sm text-muted-foreground">Enter prices before VAT and select a company tax code for each item.</p></div>
             <span className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">{form.line_items.length} line{form.line_items.length === 1 ? '' : 's'}</span>
           </div>
           {form.line_items.map((l, i) => <section key={i} className="space-y-4 rounded-xl border bg-background p-4" aria-label={`Invoice item ${i + 1}`}>
@@ -206,7 +215,7 @@ export default function InvoiceForm() {
           <div><Label htmlFor="notes">Notes <span className="font-normal text-muted-foreground">(optional)</span></Label><Textarea className="mt-1.5" id="notes" maxLength={4000} value={form.notes} onChange={e => change('notes', e.target.value)} /></div>
         </CardContent></Card>
         <div className="flex flex-wrap items-center justify-end gap-3">
-          {totalsAvailable && <p className="mr-auto text-sm text-muted-foreground">Saved server total: {displayPence(money.gross_pence)}</p>}
+          {totalsAvailable && <p className="mr-auto text-sm text-muted-foreground">Saved total: {displayPence(money.gross_pence)}</p>}
           <Button type="button" variant="outline" onClick={() => navigate('/invoices')}>Cancel</Button>
           <Button type="submit" disabled={disabled || !selectedRulesValid}>{saving ? 'Saving draft…' : 'Save draft'}</Button>
         </div>
@@ -214,7 +223,7 @@ export default function InvoiceForm() {
       <aside className="min-w-0 xl:sticky xl:top-4" aria-label="Invoice document preview">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div><h2 className="text-lg font-semibold">Preview</h2><p className="text-sm text-muted-foreground">Draft · not issued</p></div>
-          {totalsAvailable && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800">Server totals</span>}
+          {totalsAvailable && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800">Saved totals</span>}
         </div>
         <InvoiceDocument invoice={preview} customer={selectedCustomer} company={companyContext?.company ?? activeCompany} />
       </aside>

@@ -79,8 +79,10 @@ isolation, protected accounting/reconciliation writes, source freshness, audit,
 posted-record immutability, and separate approvals for external actions. The
 product target for direct HMRC filing supersedes the old exclusion as a roadmap
 statement only; filing rules, consent, idempotency, receipts, amendments, and
-recovery still need a specific implementation design. DEC-04 money and rounding
-semantics remain unresolved; do not select calculation behavior silently.
+recovery still need a specific implementation design. DEC-04 formal money and
+rounding acceptance remains unresolved; do not select behavior silently. The
+owner's narrow development-only invoice instruction is recorded in
+[Invoice development boundaries](invoice-development-boundaries.md).
 Remove Base44-shaped active runtime usage starting with invoices, then migrate
 remaining journeys to native Ledgerly services. Keep historical Base44 mentions.
 

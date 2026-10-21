@@ -76,8 +76,9 @@ before(async()=>{
   const root=process.env.W03_WORKSPACE!;
   assert.ok(root && existsSync(join(root,"lib/db/migrations/w03-invoice-drafts.review.sql")));
   await admin.query(readFileSync(join(root,"lib/db/migrations/w03-invoice-drafts.review.sql"),"utf8"));
-  await admin.query(`GRANT SELECT,UPDATE ON companies,company_users,customers,vat_tax_rules,
-      canonical_journal_entries,bank_transactions,synthetic_posted_sources TO ledgerly_api;
+  await admin.query(`GRANT SELECT,UPDATE ON companies,company_users,customers,vat_tax_rules,synthetic_posted_sources TO ledgerly_api;
+    GRANT SELECT ON canonical_journal_entries,bank_transactions TO ledgerly_api;
+    GRANT UPDATE(id) ON canonical_journal_entries,bank_transactions TO ledgerly_api;
     GRANT SELECT,INSERT,UPDATE ON sales_invoices,w03_invoice_drafts TO ledgerly_api;
     GRANT SELECT,INSERT ON w03_invoice_draft_audit TO ledgerly_api;
     CREATE FUNCTION synthetic_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -91,7 +92,11 @@ before(async()=>{
   await admin.query("INSERT INTO customers(id,company_id,name,status) VALUES($1,$2,'Synthetic Customer','active')",[customer,company]);
   await admin.query(`INSERT INTO vat_tax_rules
     (id,company_id,code,label,rate,treatment,effective_from,effective_to,is_active)
-    VALUES($1,$2,'SYNTHETIC_20','Synthetic standard rule',20,'standard','2026-01-01',NULL,true)`,
+    VALUES($1,$2,'SYNTHETIC_20','Synthetic standard rule',20,'standard','2011-01-04',NULL,true)`,
+  [randomUUID(),company]);
+  await admin.query(`INSERT INTO vat_tax_rules
+    (id,company_id,code,label,rate,treatment,effective_from,effective_to,is_active)
+    VALUES($1,$2,'SYNTHETIC_5','Synthetic reduced rule',5,'reduced','1997-09-01',NULL,true)`,
   [randomUUID(),company]);
   noVatCompany=randomUUID(); noVatCustomer=randomUUID();
   await admin.query(`INSERT INTO companies(id,name,country,base_currency,vat_registered,vat_scheme,vat_accounting_basis)
@@ -138,7 +143,7 @@ const nativeRequest=(companyId:string,method:string,body?:unknown,id="",revision
 type TestPayload = { data: { id:string; revision:string;
   money:{gross_pence:string; net_pence?:string; vat_pence?:string;
     lines?:Array<{net_pence:string;vat_pence:string;gross_pence:string}>};
-  source:{notes:string}; request_id:string; tax_context?:unknown;
+  source:{notes:string;due_date?:string}; request_id:string; tax_context?:unknown;
 }; error:{code:string} };
 const payload = async (response: Response) => await response.json() as TestPayload;
 
@@ -164,7 +169,7 @@ test("read-only invoice context returns only the active member's company custome
   assert.equal(result.data.company.id,company);
   assert.equal(result.data.company.vat_registered,true);
   assert.deepEqual(result.data.customers.map(row=>row.id),[customer]);
-  assert.deepEqual(result.data.tax_rules.map(row=>row.code),["SYNTHETIC_20"]);
+  assert.deepEqual(result.data.tax_rules.map(row=>row.code),["SYNTHETIC_20","SYNTHETIC_5"]);
   assert.equal(result.data.can_write_draft,true);
   await admin.query("UPDATE company_users SET role='read_only' WHERE company_id=$1",[company]);
   const readOnly=await payload(await request("GET",undefined,"/context")) as typeof result;
@@ -189,6 +194,8 @@ test("production authority saves and reopens exact-penny standard VAT and non-VA
   const standardRead=await payload(standardReadResponse);
   assert.deepEqual(standardRead.data.money.lines,[{net_pence:"10000",vat_pence:"2000",gross_pence:"12000"}]);
   assert.equal((standardRead.data.tax_context as {lines:Array<{code:string;rate:string}>}).lines[0]!.code,"SYNTHETIC_20");
+  assert.equal((standardRead.data.tax_context as {rounding:{contract:string;method:string}}).rounding.contract,"w03.money.dev.v2");
+  assert.equal((standardRead.data.tax_context as {rounding:{contract:string;method:string}}).rounding.method,"nearest-penny-half-up");
   const storedAudit=await admin.query("SELECT tax_context FROM w03_invoice_draft_audit WHERE invoice_id=$1",[saved.data.id]);
   assert.equal(storedAudit.rows[0]!.tax_context.lines[0].label,"Synthetic standard rule");
   await admin.query("INSERT INTO bank_transactions(id,company_id,linked_invoice_id) VALUES($1,$2,$3)",
@@ -218,21 +225,110 @@ test("production authority saves and reopens exact-penny standard VAT and non-VA
   assert.equal(postedEdit.status,409);
   assert.equal((await payload(postedEdit)).error.code,"DOCUMENT_NOT_DRAFT");
 });
-test("production authority rejects only calculations needing a fractional penny",async()=>{
-  const fractionalNet=source();
-  fractionalNet.invoice_number="FRACTIONAL-NET-"+randomUUID();
-  fractionalNet.line_items[0]!.unit_price="2.3456";
-  const netResponse=await nativeRequest(company,"POST",fractionalNet);
-  assert.equal(netResponse.status,422);
-  assert.equal((await payload(netResponse)).error.code,"ROUNDING_POLICY_REQUIRED");
+test("production authority rounds each line half-up, sums saved lines, and reopens identical results",async()=>{
+  const rounded=source();
+  rounded.invoice_number="HALF-UP-"+randomUUID();
+  rounded.line_items=[
+    {description:"Standard 1.01",quantity:"1",unit_price:"1.01",tax_code:"SYNTHETIC_20"},
+    {description:"Standard 1.03",quantity:"1",unit_price:"1.03",tax_code:"SYNTHETIC_20"},
+    {description:"Reduced 0.10",quantity:"1",unit_price:"0.10",tax_code:"SYNTHETIC_5"},
+  ];
+  const response=await nativeRequest(company,"POST",rounded);
+  assert.equal(response.status,201,await response.clone().text());
+  const saved=await payload(response);
+  assert.deepEqual(saved.data.money.lines,[
+    {net_pence:"101",vat_pence:"20",gross_pence:"121"},
+    {net_pence:"103",vat_pence:"21",gross_pence:"124"},
+    {net_pence:"10",vat_pence:"1",gross_pence:"11"},
+  ]);
+  assert.deepEqual(
+    [saved.data.money.net_pence,saved.data.money.vat_pence,saved.data.money.gross_pence],
+    ["214","42","256"],
+  );
+  const reopened=await nativeRequest(company,"GET",undefined,"/"+saved.data.id);
+  assert.equal(reopened.status,200,await reopened.clone().text());
+  const reopenedData=(await payload(reopened)).data;
+  assert.deepEqual(reopenedData.money,saved.data.money);
+  assert.deepEqual((reopenedData.tax_context as {rounding:unknown}).rounding,(saved.data.tax_context as {rounding:unknown}).rounding);
 
-  const fractionalVat=source();
-  fractionalVat.invoice_number="FRACTIONAL-VAT-"+randomUUID();
-  fractionalVat.line_items[0]!.unit_price="1.01";
-  const vatResponse=await nativeRequest(company,"POST",fractionalVat);
-  assert.equal(vatResponse.status,422);
-  assert.equal((await payload(vatResponse)).error.code,"ROUNDING_POLICY_REQUIRED");
-  assert.equal(Number((await admin.query("SELECT count(*) n FROM sales_invoices WHERE invoice_number LIKE 'FRACTIONAL-%'")).rows[0]!.n),0);
+  const quantity=source();
+  quantity.invoice_number="QUANTITY-HALF-UP-"+randomUUID();
+  quantity.line_items[0]!.quantity="1.2345";
+  quantity.line_items[0]!.unit_price="2.3456";
+  const quantityResponse=await nativeRequest(company,"POST",quantity);
+  assert.equal(quantityResponse.status,201,await quantityResponse.clone().text());
+  assert.deepEqual((await payload(quantityResponse)).data.money.lines,[
+    {net_pence:"290",vat_pence:"58",gross_pence:"348"},
+  ]);
+});
+test("native reopen fails closed without source-lock privilege, then edits and reopens the same draft with minimal grants",async()=>{
+  const input=source();
+  input.invoice_number="SOURCE-LOCK-"+randomUUID();
+  input.line_items[0]!.unit_price="1.03";
+  const createdResponse=await nativeRequest(company,"POST",input);
+  assert.equal(createdResponse.status,201,await createdResponse.clone().text());
+  const created=(await payload(createdResponse)).data;
+  await admin.query("REVOKE UPDATE(id) ON canonical_journal_entries,bank_transactions FROM ledgerly_api");
+  try {
+    const blocked=await nativeRequest(company,"GET",undefined,"/"+created.id);
+    assert.equal(blocked.status,503);
+    assert.equal((await payload(blocked)).error.code,"STORAGE_UNAVAILABLE");
+  } finally {
+    await admin.query("GRANT UPDATE(id) ON canonical_journal_entries,bank_transactions TO ledgerly_api");
+  }
+  const reopenedResponse=await nativeRequest(company,"GET",undefined,"/"+created.id);
+  assert.equal(reopenedResponse.status,200,await reopenedResponse.clone().text());
+  const reopened=(await payload(reopenedResponse)).data;
+  assert.deepEqual(reopened.money,created.money);
+  const editedResponse=await nativeRequest(company,"PATCH",{contract:"w03.draft.v1",notes:"same draft edit"},
+    "/"+created.id,reopened.revision);
+  assert.equal(editedResponse.status,200,await editedResponse.clone().text());
+  const edited=(await payload(editedResponse)).data;
+  const finalResponse=await nativeRequest(company,"GET",undefined,"/"+created.id);
+  assert.equal(finalResponse.status,200,await finalResponse.clone().text());
+  const final=(await payload(finalResponse)).data;
+  assert.equal(final.id,created.id);
+  assert.equal(final.source.notes,"same draft edit");
+  assert.equal(final.source.due_date,input.due_date);
+  assert.equal(final.revision,edited.revision);
+  assert.deepEqual(final.money,created.money);
+  assert.equal(Number((await admin.query("SELECT count(*) n FROM sales_invoices WHERE invoice_number=$1",[input.invoice_number])).rows[0]!.n),1);
+});
+test("synthetic VAT rules reject dates before their stated effective boundaries",async()=>{
+  const standardBefore=source();
+  standardBefore.invoice_number="BEFORE-20-"+randomUUID();
+  standardBefore.issue_date="2011-01-03";
+  standardBefore.due_date="2011-02-03";
+  const rejectedStandard=await nativeRequest(company,"POST",standardBefore);
+  assert.equal(rejectedStandard.status,422);
+  assert.equal((await payload(rejectedStandard)).error.code,"TAX_RULE_NOT_FOUND");
+
+  const standardAt=source();
+  standardAt.invoice_number="AT-20-"+randomUUID();
+  standardAt.issue_date="2011-01-04";
+  standardAt.due_date="2011-02-04";
+  const acceptedStandard=await nativeRequest(company,"POST",standardAt);
+  assert.equal(acceptedStandard.status,201,await acceptedStandard.clone().text());
+
+  const reducedBefore=source();
+  reducedBefore.invoice_number="BEFORE-5-"+randomUUID();
+  reducedBefore.issue_date="1997-08-31";
+  reducedBefore.due_date="1997-09-30";
+  reducedBefore.line_items[0]!.tax_code="SYNTHETIC_5";
+  const rejectedReduced=await nativeRequest(company,"POST",reducedBefore);
+  assert.equal(rejectedReduced.status,422);
+  assert.equal((await payload(rejectedReduced)).error.code,"TAX_RULE_NOT_FOUND");
+
+  const reducedAt=source();
+  reducedAt.invoice_number="AT-5-"+randomUUID();
+  reducedAt.issue_date="1997-09-01";
+  reducedAt.due_date="1997-10-01";
+  reducedAt.line_items[0]!.tax_code="SYNTHETIC_5";
+  const acceptedReduced=await nativeRequest(company,"POST",reducedAt);
+  assert.equal(acceptedReduced.status,201,await acceptedReduced.clone().text());
+  assert.equal(Number((await admin.query(
+    "SELECT count(*) n FROM sales_invoices WHERE invoice_number LIKE 'BEFORE-%'",
+  )).rows[0]!.n),0);
 });
 test("real route rejects malformed/duplicate/unknown fields, body limits, missing auth and unsupported bulk",async()=>{
   for(const key of ["status","company_id","total","actor_id","amount_paid"]) {

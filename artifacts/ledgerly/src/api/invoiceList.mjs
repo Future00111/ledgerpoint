@@ -15,3 +15,16 @@ export async function listCompanyInvoices(companyId, signal, fetcher = fetch) {
   }
   return body;
 }
+
+export function invoicePaymentSummary(invoices, today) {
+  const isOverdue = invoice => invoice.status === 'overdue' ||
+    (['sent', 'part_paid'].includes(invoice.status) && invoice.due_date < today);
+  const unpaid = invoices.filter(invoice => ['sent', 'part_paid', 'overdue'].includes(invoice.status));
+  const overdue = unpaid.filter(isOverdue);
+  const notDue = unpaid.filter(invoice => !isOverdue(invoice));
+  const paid = invoices.filter(invoice => invoice.status === 'paid');
+  const sum = (rows, field) => rows.reduce((total, row) => total + (Number(row[field]) || 0), 0);
+  return { unpaid, overdue, notDue, paid,
+    unpaidTotal: sum(unpaid, 'balance_due'), overdueTotal: sum(overdue, 'balance_due'),
+    notDueTotal: sum(notDue, 'balance_due'), paidTotal: sum(paid, 'total') };
+}

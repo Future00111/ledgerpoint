@@ -96,8 +96,9 @@ export function parseInvoice(body: unknown, previous?: InvoiceSource): InvoiceSo
 export function netPence(lines: DraftLine[]): bigint[] {
   return lines.map((l, index) => {
     const product = decimal(l.quantity, true) * decimal(l.unit_price, false);
-    if (product % 1000000n !== 0n) fail(422, "ROUNDING_POLICY_REQUIRED", `/line_items/${index}`);
-    const n = product / 1000000n;
+    // Decimal inputs are scaled by 10,000 each. Convert the product to pence
+    // with nearest-penny, half-up rounding using integers only.
+    const n = (product + 500000n) / 1000000n;
     if (n > MAX_PENCE) fail(422, "MONEY_LIMIT");
     return n;
   });

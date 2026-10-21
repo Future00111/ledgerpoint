@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { listCompanyInvoices } from '@/api/invoiceList.mjs';
+import { listCompanyInvoices, invoicePaymentSummary } from '@/api/invoiceList.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -48,18 +48,11 @@ export default function Invoices() {
     return () => controller.abort();
   }, [activeCompany?.id]);
 
-  const isOverdue = (inv) => ['sent', 'part_paid'].includes(inv.status) && inv.due_date < today;
+  const isOverdue = (inv) => inv.status === 'overdue' || (['sent', 'part_paid'].includes(inv.status) && inv.due_date < today);
 
   // ── Summary metrics ────────────────────────────────────────────────────
-  const unpaidInvoices = useMemo(() => invoices.filter(i => i.status !== 'paid' && i.status !== 'cancelled'), [invoices]);
-  const overdueInvoices = useMemo(() => invoices.filter(isOverdue), [invoices, today]);
-  const notDueInvoices = useMemo(() => unpaidInvoices.filter(i => !isOverdue(i)), [unpaidInvoices]);
-  const paidInvoices = useMemo(() => invoices.filter(i => i.status === 'paid'), [invoices]);
-
-  const unpaidTotal = unpaidInvoices.reduce((s, i) => s + (Number(i.balance_due) || 0), 0);
-  const overdueTotal = overdueInvoices.reduce((s, i) => s + (Number(i.balance_due) || 0), 0);
-  const notDueTotal = notDueInvoices.reduce((s, i) => s + (Number(i.balance_due) || 0), 0);
-  const paidTotal = paidInvoices.reduce((s, i) => s + (Number(i.total) || 0), 0);
+  const { unpaid: unpaidInvoices, overdue: overdueInvoices, notDue: notDueInvoices, paid: paidInvoices,
+    unpaidTotal, overdueTotal, notDueTotal, paidTotal } = useMemo(() => invoicePaymentSummary(invoices, today), [invoices, today]);
 
   const overdueBarPct = unpaidTotal > 0 ? Math.round((overdueTotal / unpaidTotal) * 100) : 0;
   const paidBarPct = 100;
@@ -130,7 +123,11 @@ export default function Invoices() {
     </th>
   );
 
-  if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
+  if (!activeCompany) return <div className="mx-auto max-w-xl space-y-3 rounded-xl border p-8 text-center">
+    <p className="font-medium">Please select a company first.</p>
+    <p className="text-sm text-muted-foreground">{import.meta.env.DEV ? 'For an isolated invoice walkthrough, open Companies and create the synthetic development demo.' : 'Open Companies to choose a company and view its invoices.'}</p>
+    <Button asChild variant="outline"><Link to="/companies">Open Companies</Link></Button>
+  </div>;
 
   return (
     <div className="mx-auto max-w-6xl space-y-4 pb-10">

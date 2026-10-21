@@ -16,6 +16,7 @@ export default function InvoiceDocument({ invoice, customer, company }) {
   if (!invoice) return null;
   const addr = (c) => [c?.address_line_1, c?.address_line_2, c?.city, c?.county, c?.postcode].filter(Boolean).join(', ');
   const totalsAvailable = invoice.previewTotalsAvailable !== false;
+  const showPayments = !invoice.preview && invoice.status !== 'draft';
   const amount = (value) => totalsAvailable ? gbp.format(Number(value) || 0) : '—';
 
   return (
@@ -30,9 +31,9 @@ export default function InvoiceDocument({ invoice, customer, company }) {
             <p className="text-xs text-muted-foreground">{company?.name || '—'}</p>
           </div>
           <div className="text-right text-xs text-muted-foreground">
-            <p>Issued {moment(invoice.issue_date).format('DD MMM YYYY')}</p>
+            <p>{invoice.status === 'draft' || invoice.preview ? 'Invoice date' : 'Issued'} {moment(invoice.issue_date).format('DD MMM YYYY')}</p>
             <p>Due {moment(invoice.due_date).format('DD MMM YYYY')}</p>
-            <p>Terms {invoice.payment_terms || 30} days</p>
+            <p>Terms {invoice.payment_terms ?? 30} days</p>
           </div>
         </div>
 
@@ -84,8 +85,8 @@ export default function InvoiceDocument({ invoice, customer, company }) {
             <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="tabular-nums">{amount(invoice.subtotal)}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">VAT Total</span><span className="tabular-nums">{amount(invoice.vat_total)}</span></div>
             <div className="flex justify-between font-semibold border-t pt-2"><span>Total</span><span className="tabular-nums">{amount(invoice.total)}</span></div>
-            {!invoice.preview && <div className="flex justify-between"><span className="text-muted-foreground">Amount Paid</span><span className="tabular-nums">{gbp.format(invoice.amount_paid || 0)}</span></div>}
-            {!invoice.preview && <div className="flex justify-between font-semibold text-primary border-t pt-2"><span>Balance Due</span><span className="tabular-nums">{gbp.format(invoice.balance_due || 0)}</span></div>}
+            {showPayments && <div className="flex justify-between"><span className="text-muted-foreground">Amount Paid</span><span className="tabular-nums">{gbp.format(invoice.amount_paid || 0)}</span></div>}
+            {showPayments && <div className="flex justify-between font-semibold text-primary border-t pt-2"><span>Balance Due</span><span className="tabular-nums">{gbp.format(invoice.balance_due || 0)}</span></div>}
             {invoice.preview && !totalsAvailable && <p className="pt-2 text-xs text-muted-foreground">Totals are not estimated in the browser. They appear after the server validates and saves the draft.</p>}
           </div>
         </div>

@@ -6,6 +6,8 @@ import companiesRouter from "./companies";
 import functionsRouter from "./functions";
 import aiAccountantRouter from "./aiAccountant";
 import financialDraftsRouter from "./financialDrafts";
+import invoiceDemoRouter from "./invoiceDemo";
+import { isInvoiceDemoModeEnabled } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -13,6 +15,7 @@ router.use(healthRouter);
 router.use(meRouter);
 router.use("/companies", companiesRouter);
 router.use("/companies/:companyId/financial-drafts/invoices", financialDraftsRouter);
+if (isInvoiceDemoModeEnabled) router.use("/dev/invoice-demo", invoiceDemoRouter);
 router.use("/entities", entitiesRouter);
 router.use("/functions", functionsRouter);
 router.use("/ai", aiAccountantRouter);

@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Building2, Plus, Pencil, Trash2, Eye } from 'lucide-react';
 import CompanyForm from '@/components/companies/CompanyForm';
 import CompanyDetails from '@/components/companies/CompanyDetails';
+import { openSyntheticInvoiceDemo } from '@/api/invoiceDemo.mjs';
 
 const BUSINESS_LABELS = {
   garage: 'Garage', retail: 'Retail', wholesale: 'Wholesale',
@@ -21,11 +22,31 @@ export default function Companies() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [demoError, setDemoError] = useState('');
   const { toast } = useToast();
 
   const openCreate = () => { setEditing(null); setFormOpen(true); };
   const openEdit = (c) => { setEditing(c); setFormOpen(true); };
   const openView = (c) => { setViewing(c); setDetailsOpen(true); };
+
+  const startSyntheticDemo = async () => {
+    if (demoLoading) return;
+    setDemoLoading(true);
+    setDemoError('');
+    try {
+      const result = await openSyntheticInvoiceDemo();
+      const refreshed = await loadCompanies();
+      const target = refreshed?.find(company => company.id === result.vatCompanyId);
+      if (!target) throw new Error('The sample was created, but the company list could not refresh. Reload this page to open it.');
+      switchCompany(target);
+      toast({ title: 'Synthetic demo ready', description: 'Only isolated development data was created. No invoice was posted or sent.' });
+    } catch (error) {
+      setDemoError(error.message || 'Could not create the synthetic demo. Refresh and retry.');
+    } finally {
+      setDemoLoading(false);
+    }
+  };
 
   const handleDelete = async (c) => {
     if (!confirm(`Delete ${c.name}? This cannot be undone.`)) return;
@@ -52,11 +73,26 @@ export default function Companies() {
         </Button>
       </div>
 
+      {import.meta.env.DEV && (
+        <Card className="border border-sky-200 bg-sky-50/70 shadow-none">
+          <CardContent className="flex flex-col items-start gap-3 p-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <div>
+              <p className="font-medium text-sky-950">Synthetic test data · isolated invoice demo</p>
+              <p className="mt-1 text-sm text-sky-900">Creates Standard VAT and No VAT sample companies for your account. The sample customer and invoices stay separate from business records in a disposable local database.</p>
+            </div>
+            <Button variant="outline" onClick={startSyntheticDemo} disabled={demoLoading}>
+              {demoLoading ? 'Preparing demo…' : 'Create / open synthetic invoice demo'}
+            </Button>
+            {demoError && <p role="alert" className="w-full rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900 sm:basis-full">{demoError}</p>}
+          </CardContent>
+        </Card>
+      )}
+
       {companies.length === 0 ? (
         <Card className="border-0 shadow-sm">
           <CardContent className="flex flex-col items-center py-16">
             <Building2 className="w-12 h-12 text-muted-foreground/30 mb-4" />
-            <p className="text-muted-foreground mb-4">No companies yet. Create your first one to get started.</p>
+            <p className="text-muted-foreground mb-4">{import.meta.env.DEV ? 'No companies yet. Create one or use the synthetic test data option above.' : 'No companies yet. Create your first one to get started.'}</p>
             <Button onClick={openCreate} className="gap-2"><Plus className="w-4 h-4" />Add Company</Button>
           </CardContent>
         </Card>

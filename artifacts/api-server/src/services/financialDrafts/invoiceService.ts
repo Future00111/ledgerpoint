@@ -203,7 +203,9 @@ export class InvoiceDraftService {
           revision, old?.source ?? null, source, tax.context, tax.contextRevision, requestId]);
       return { id: invoiceId, kind: "invoice", company_id: companyId, status: "draft", source,
         revision, request_id: requestId, money: totals, tax_context: tax.context,
-        calculation: { contract: "w03.money.dev.v1",
+         calculation: { contract: "w03.money.dev.v2",
+           rounding_method: "nearest-penny-half-up-per-line",
+           total_method: "sum-saved-rounded-lines",
           accounting_acceptance: "pending", tax_context_revision: tax.contextRevision } };
     });
   }
