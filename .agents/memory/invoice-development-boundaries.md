@@ -3,6 +3,19 @@ name: Invoice development boundaries
 description: Owner-authorized development rounding scope and isolated authenticated invoice demonstrations.
 ---
 
+Nominal codes and names are customer-defined presentation, not numeric accounting
+rules. Keep stable account identities when labels change. Category governs
+eligibility/report placement; custom report headings may change presentation
+without moving balances. Preserve classification once used or control-mapped.
+
+**Why:** The owner explicitly requires customisable codes and connected reports,
+without reinterpreting posted history.
+
+**How to apply:** Keep chart, mapping and document choices coherent. Chart writes
+must participate in company-wide posting/configuration serialization: revision
+and normalized-code uniqueness safety deliberately depend on that shared lock.
+Do not introduce a read-then-write path outside it.
+
 Draft invoices in this development slice use nearest-penny, half-up rounding
 for exclusive line net and then VAT. Inclusive input instead rounds the entered
 line gross, extracts VAT using rate/(100+rate) rounded half-up, and sets
