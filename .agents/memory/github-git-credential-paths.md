@@ -4,15 +4,18 @@ description: Authenticated CLI reads and default HTTPS Git pushes can select dif
 ---
 
 Do not infer that the default HTTPS Git push credential is usable merely
-because authenticated GitHub CLI API reads succeed. Prefer the existing CLI's
-credential path for a bounded, normally authorized push when the default
-transport fails authentication; keep any helper override command-local.
+because the Replit Git panel or GitHub CLI is authenticated. If the repository
+has no working helper and the existing GitHub CLI session is authenticated,
+scope `gh auth git-credential` to this repository with local Git configuration;
+do not change global helpers or account credentials.
 
-**Why:** The default normal Git push failed authentication while CLI API reads
-worked. Using the CLI Git credential helper for the same ordinary push
-succeeded without rotating credentials or altering stored Git configuration.
+**Why:** The Replit Git panel and command-line Git used different auth paths.
+The default askpass path rejected authentication, while the existing GitHub
+CLI helper succeeded. A repo-local helper fixed fresh CLI fetch and no-change
+push without exposing or rotating credentials or changing other projects.
 
-**How to apply:** Preserve the approved exact refspec and normal non-force
-semantics. Never print or extract tokens, silently grant write permissions,
-change persistent credential settings, or substitute an API ref write for a
-requested normal Git push. A helper-selection retry is not a protection bypass.
+**How to apply:** Inspect only sanitized Git config, confirm the exact origin
+and branch, and verify the existing `gh` session without printing its details.
+Use a repo-local helper only when needed; then test ordinary fetch and no-change
+push from a fresh process and confirm the local and remote heads still match.
+Never expose tokens, grant permissions, or substitute an API ref write for Git.

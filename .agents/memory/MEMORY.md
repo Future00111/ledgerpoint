@@ -19,7 +19,7 @@
 - [Evidence provenance trust](evidence-provenance-trust.md) — branded expected digests are insufficient if callers can choose the roots or environment that mint the brand.
 - [Ignored worktree durability](ignored-worktree-durability.md) — a checkpoint can retain a commit object but drop an ignored worktree’s .git link; pin important local commits with a ref.
 - [Offline toolchains](offline-toolchain.md) — verify final-user and actual sanitized nested pnpm resolution; top-level image smoke alone misses child-environment failures.
-- [GitHub Git credential paths](github-git-credential-paths.md) — successful CLI reads do not prove default push authentication; use command-local credentials without changing approvals.
+- [GitHub Git credential paths](github-git-credential-paths.md) — GUI and CLI auth can differ; use the existing GitHub CLI helper scoped to this repository, never expose tokens.
 - [Asset presentation history](asset-presentation-history.md) — Library metadata may advance local HEAD; bind owner approval to the named revision and unchanged document bytes.
 - [Review tooling isolation](review-tooling-isolation.md) — nested tools need their own workspace boundary; prove the minimal host install before supplying broader harness dependencies.
 - [Evidence observation clocks](evidence-observation-clocks.md) — use a real UTC recording clock; replay-stable callback time does not establish fresh or atomic observations.
