@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import * as nativeEntities from '@/api/entities';
+import { accounting } from '@/api/accountingDocuments.mjs';
 import { invokeApiFunction } from '@/api/functions.mjs';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Lightbulb, Check, Pencil, Plus, Loader2, AlertCircle } from 'lucide-react';
-import AccountForm from '@/components/chart_of_accounts/AccountForm';
+import NativeAccountForm from '@/components/chart_of_accounts/NativeAccountForm';
 
 export default function AccountSuggestionField({ companyId, context, onAccountSelected }) {
   const { toast } = useToast();
@@ -39,8 +39,15 @@ export default function AccountSuggestionField({ companyId, context, onAccountSe
 
   const loadAccounts = async () => {
     if (!companyId) return;
-    const list = await nativeEntities.ChartOfAccount.filter({ company_id: companyId });
-    setAccounts(list.filter(a => a.is_active !== false));
+    try {
+      const list = await accounting.accounts(companyId);
+      if (!Array.isArray(list)) throw new Error('Unexpected accounts response from server.');
+      // Active accounts only; when the server reports posting eligibility, hide accounts with no eligible role.
+      setAccounts(list.filter(a => a.is_active !== false && (!Array.isArray(a.eligible_roles) || a.eligible_roles.length > 0)));
+    } catch (e) {
+      setAccounts([]);
+      toast({ title: 'Could not load accounts', description: e?.message, variant: 'destructive' });
+    }
   };
 
   useEffect(() => { loadAccounts(); }, [companyId]);
@@ -150,7 +157,7 @@ export default function AccountSuggestionField({ companyId, context, onAccountSe
         </DialogContent>
       </Dialog>
 
-      <AccountForm open={createOpen} onOpenChange={setCreateOpen} onCreated={onAccountCreated} onSave={loadAccounts} />
+      <NativeAccountForm companyId={companyId} account={null} open={createOpen} onOpenChange={setCreateOpen} onSaved={onAccountCreated} />
     </div>
   );
 }

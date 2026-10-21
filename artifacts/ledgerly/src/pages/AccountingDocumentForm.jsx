@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { dueFromTerms, changeDateField, submittedDates, postingAccounts } from '@/lib/accountingEditor.mjs';
+import { dueFromTerms, changeDateField, submittedDates, postingAccounts, mappedId, accountLabel, issueFor, plannedAccounts, tradeRole } from '@/lib/accountingEditor.mjs';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { StatusPill, Money, ConfigErrors, JournalLink, ErrorBox, SkeletonRows, today } from '@/components/accounting/AccountingUI';
 
@@ -38,6 +38,18 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const [legacy, setLegacy] = useState(false);
   const gen = useRef(0);
   const manualDue = useRef(false);
+  const [journal, setJournal] = useState({ status: 'idle', data: null, error: null });
+
+  // Posted documents show the canonical journal lines, never the current mapping.
+  useEffect(() => {
+    if (!activeCompany || doc?.status !== 'posted' || !doc.journal_id) { setJournal({ status: 'idle', data: null, error: null }); return; }
+    const c = new AbortController();
+    setJournal({ status: 'loading', data: null, error: null });
+    accounting.journal(activeCompany.id, doc.journal_id, c.signal)
+      .then(data => setJournal({ status: 'ready', data, error: null }))
+      .catch(e => { if (!c.signal.aborted) setJournal({ status: 'error', data: null, error: e }); });
+    return () => c.abort();
+  }, [activeCompany?.id, doc?.status, doc?.journal_id]);
 
   useEffect(() => {
     const g = ++gen.current; const c = new AbortController();
@@ -104,7 +116,14 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
 
   const parties = ctx?.parties ?? [];
   const taxRules = (ctx?.tax_rules ?? []).filter(r => (!r.effective_from || r.effective_from <= form.issue_date) && (!r.effective_to || r.effective_to >= form.issue_date));
-  const accounts = postingAccounts(ctx?.accounts ?? [], kind);
+  const allAccounts = ctx?.accounts ?? [];
+  const accounts = postingAccounts(allAccounts, kind);
+  const role = tradeRole(kind);
+  const vatRegistered = ctx?.company?.vat_registered === true;
+  const defaultTradeId = role ? mappedId(ctx?.mappings, role) : '';
+  const postingIssue = issueFor(error, '/posting_account_id');
+  const planned = plannedAccounts(kind, { mappings: ctx?.mappings, posting_account_id: extra.posting_account_id, purchase_vat_eligible: extra.purchase_vat_eligible, vatRegistered });
+  const savedPosting = doc && !dirty && doc.posting_accounts && typeof doc.posting_accounts === 'object' ? plannedAccounts(kind, { mappings: doc.posting_accounts, posting_account_id: doc.posting_account_id, purchase_vat_eligible: doc.purchase_vat_eligible, vatRegistered, vatMinor: doc.totals?.vat_minor }).filter(r => r.id) : null;
   const isPurchase = meta.party === 'supplier';
   const creditInvalid = meta.credit && (!extra.original_id || extra.original_line_refs.length !== form.line_items.length || form.line_items.some((_, i) => overQty(i)) || !extra.reason.trim() || !extra.effective_adjustment_date || form.issue_date !== extra.effective_adjustment_date);
   const showTotals = doc && !dirty;
@@ -211,11 +230,17 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
                   <select id="basis" data-testid="select-price-basis" className={sel} value={form.price_basis} onChange={e => change('price_basis', e.target.value)}>
                     <option value="excluding_vat">Excluding VAT</option><option value="including_vat">Including VAT</option>
                   </select></div>
-                {accounts.length > 0 && <div className="sm:col-span-2"><Label htmlFor="posting">{isPurchase ? 'Expense' : 'Revenue'} account override <span className="font-normal text-muted-foreground">(optional, uses mapping)</span></Label>
-                  <select id="posting" className={sel} value={extra.posting_account_id} onChange={e => changeExtra('posting_account_id', e.target.value)}>
-                    <option value="">Use configured mapping</option>
+                {role && <div className="sm:col-span-2"><Label htmlFor="posting">{isPurchase ? 'Purchase account' : 'Sales account'}</Label>
+                  <select id="posting" data-testid="select-posting-account" className={`${sel} ${postingIssue ? 'border-red-500' : ''}`} value={extra.posting_account_id}
+                    aria-invalid={postingIssue ? 'true' : undefined} aria-describedby={`posting-help${postingIssue ? ' posting-issue' : ''}`}
+                    onChange={e => changeExtra('posting_account_id', e.target.value)}>
+                    <option value="">Company default: {accountLabel(allAccounts, defaultTradeId)}</option>
+                    {extra.posting_account_id && !accounts.some(a => a.id === extra.posting_account_id) && <option value={extra.posting_account_id}>{accountLabel(allAccounts, extra.posting_account_id)} (not eligible)</option>}
                     {accounts.map(a => <option key={a.id} value={a.id}>{a.code} · {a.name}</option>)}
-                  </select></div>}
+                  </select>
+                  <p id="posting-help" className="mt-1 text-xs text-muted-foreground">The company default comes from <Link to="/accounting/setup" className="underline">Posting setup</Link> and is used unless you choose a different {isPurchase ? 'purchase' : 'sales'} account for this document only.</p>
+                  {postingIssue && <p id="posting-issue" role="alert" className="mt-1 text-xs text-red-700" data-testid="error-posting-account">{postingIssue.message}</p>}
+                </div>}
               </div>
               {isPurchase && (
                 <label className="flex items-start gap-3 rounded-lg border border-sky-200 bg-sky-50/60 p-4 text-sm">
@@ -251,6 +276,32 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
           </fieldset>
 
           <aside className="space-y-4 xl:sticky xl:top-4">
+            <div className="rounded-xl border bg-card p-5" data-testid="panel-accounts">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{posted ? 'Posted journal lines' : 'Accounts used'}</h2>
+              {posted ? (
+                journal.status === 'loading' ? <SkeletonRows rows={3} />
+                : journal.status === 'error' ? <ErrorBox error={journal.error} />
+                : journal.data ? <table className="mt-3 w-full text-xs">
+                    <thead className="text-left text-muted-foreground"><tr><th className="py-1">Account</th><th className="py-1 text-right">Debit</th><th className="py-1 text-right">Credit</th></tr></thead>
+                    <tbody>{journal.data.lines.map((l, i) => <tr key={i} className="border-t" data-testid={`row-posted-line-${i}`}>
+                      <td className="py-1.5"><span className="font-mono">{l.account_code}</span> {l.account_name}</td>
+                      <td className="py-1.5 text-right">{l.debit_minor !== '0' && <Money value={l.debit_minor} />}</td>
+                      <td className="py-1.5 text-right">{l.credit_minor !== '0' && <Money value={l.credit_minor} />}</td></tr>)}</tbody>
+                  </table> : <p className="mt-3 text-sm text-muted-foreground">No journal linked.</p>
+              ) : savedPosting && savedPosting.length > 0 ? (
+                <dl className="mt-3 space-y-1.5 text-sm" data-testid="list-saved-accounts">
+                  {savedPosting.map(r => <div key={r.key} className="flex justify-between gap-3"><dt className="text-muted-foreground">{r.label}</dt><dd className="text-right">{accountLabel(allAccounts, r.id)}</dd></div>)}
+                  <p className="pt-1 text-xs text-muted-foreground">Planned from the saved draft.</p>
+                </dl>
+              ) : (
+                <dl className="mt-3 space-y-1.5 text-sm" data-testid="list-planned-accounts">
+                  {planned.map(r => <div key={r.key} className="flex justify-between gap-3"><dt className="text-muted-foreground">{r.label}</dt><dd className="text-right">{accountLabel(allAccounts, r.id)}</dd></div>)}
+                  <p className="pt-1 text-xs text-amber-800">Unsaved preview from your selections and current posting setup.</p>
+                </dl>
+              )}
+              {isPurchase && !posted && vatRegistered && !extra.purchase_vat_eligible && <p className="mt-2 text-xs text-muted-foreground">Not declared recoverable: VAT is included in the purchase cost and no input VAT line is posted.</p>}
+              {meta.credit && !posted && <p className="mt-2 text-xs text-muted-foreground">Uses the same accounts as the original. Offsets the outstanding balance; no cash movement.</p>}
+            </div>
             <div className="rounded-xl border bg-card p-5">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Totals</h2>
               {showTotals ? (

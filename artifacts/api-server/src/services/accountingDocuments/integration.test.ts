@@ -17,6 +17,7 @@ if(!/^\/tmp\/ledgerly-accounting-flow-tests-[A-Za-z0-9]+\/socket$/.test(socket))
 const admin=new pg.Pool({host:socket,port:55441,user:"w03_bootstrap",database:"ledgerly_accounting_flow_test",password:"",ssl:false,options:""});
 const actor="synthetic-accounting-owner",readOnly="synthetic-accounting-reader";
 let server:ReturnType<ReturnType<typeof express>["listen"]>,base:string,failNext=false;
+let pausePosting:(()=>Promise<void>)|undefined;
 const auth:express.RequestHandler=(req,res,next)=>{
   const user=req.get("x-test-actor");if(!user){res.status(401).json({error:{code:"UNAUTHORIZED"}});return;}
   (req as any).userId=user;next();
@@ -27,6 +28,7 @@ before(async()=>{
   const app=express();app.use(express.json());
   app.use("/companies/:companyId",createAccountingRouter(auth,async tx=>{
     if(failNext){failNext=false;await queryAdapter(tx).query("SELECT 1/0");}
+    await pausePosting?.();
   }));
   app.use("/legacy/:companyId",invoiceDraftRouter(new InvoiceDraftService(pool,createProductionInvoiceDraftAuthority()),auth));
   server=app.listen(0,"127.0.0.1");await new Promise<void>(r=>server.once("listening",r));
@@ -108,7 +110,11 @@ test("four native create/edit/reopen/review/post journeys reconcile ledger, part
   }
   const r=await request(f.company,"/accounting-reports?from=2026-01-01&to=2026-12-31");
   assert.equal(r.status,200,JSON.stringify(r));const d=r.data;
-  assert.deepEqual(d.pnl,{revenue_minor:"8000",expense_minor:"4000",profit_minor:"4000"});
+  assert.deepEqual({revenue_minor:d.pnl.revenue_minor,expense_minor:d.pnl.expense_minor,profit_minor:d.pnl.profit_minor},
+    {revenue_minor:"8000",expense_minor:"4000",profit_minor:"4000"});
+  assert.deepEqual(d.pnl.sections.map((s:any)=>s.total_minor),["8000","0","4000"]);
+  assert.equal(d.pnl.gross_profit_minor,"8000");
+  assert.deepEqual(d.balance_sheet.sections.map((s:any)=>s.total_minor),["10400","6400","0"]);
   assert.deepEqual([d.vat.box1_pence,d.vat.box4_pence,d.vat.box5_pence,d.vat.box6_pence,d.vat.box7_pence],["1600","800","800","8000","4000"]);
   assert.deepEqual(d.journal_movements,{debit_minor:"21600",credit_minor:"21600"});
   assert.equal(d.trial_balance.reduce((n:any,a:any)=>n+BigInt(a.debit_minor),0n),14400n);
@@ -223,4 +229,97 @@ test("reports hold a repeatable-read snapshot while a real native posting commit
   assert.equal(after.data.pnl.revenue_minor,"10000");
   assert.equal(after.data.party_balances[0].balance_minor,"12000");
   assert.equal((await request(f.company,"/accounting-reports?from=2026-02-31&to=2026-12-31")).status,422);
+});
+test("explicit eligible UUIDv5 sales/purchase accounts save/reopen; defaults clear overrides; invalid choices have safe field errors",async()=>{
+  const f=await fixture(),foreign=await fixture();
+  const revenue="96481554-479b-53bc-a074-5eaf00f4f2e0",expense="6f62dfa8-8fd5-5b43-aea0-7ca16cf0f060";
+  for(const [id,code,type] of [[revenue,"00-SALES","income"],[expense,"A-COST","expense"]])
+    await admin.query("INSERT INTO chart_of_accounts(id,company_id,code,name,account_type,is_active) VALUES($1,$2,$3,'Synthetic custom account',$4,true)",[id,f.company,code,type]);
+  const accounts=await request(f.company,"/accounting-accounts");
+  assert.equal(accounts.status,200);
+  assert.ok(accounts.data.find((a:any)=>a.id===revenue).eligible_roles.includes("revenue"));
+  for(const [kind,party,id,role] of [["sales_invoice",f.customer,revenue,"revenue"],["purchase_bill",f.supplier,expense,"expense"]]) {
+    const created=await request(f.company,"/accounting-documents","POST",{kind,source:source(party!),posting_account_id:id});
+    assert.equal(created.status,201,JSON.stringify(created));const doc=created.data;
+    const reopened=await request(f.company,`/accounting-documents/${doc.id}`);
+    assert.equal(reopened.data.posting_accounts[role!],id);
+    const cleared=await request(f.company,`/accounting-documents/${doc.id}`,"PATCH",{posting_account_id:null},doc.revision);
+    assert.equal(cleared.status,200);
+    assert.equal(cleared.data.posting_accounts[role!],f.mappings[role!]);
+    for(const bad of [f.mappings.receivables,foreign.mappings.revenue,"not-a-uuid"]) {
+      const denied=await request(f.company,"/accounting-documents","POST",{kind,source:source(party!),posting_account_id:bad});
+      assert.equal(denied.status,422);assert.equal(denied.error.issues[0].path,"/posting_account_id");
+      assert.match(denied.error.message,/account/i);assert.ok(!denied.error.message.includes(bad!));
+    }
+    await admin.query("UPDATE chart_of_accounts SET is_active=false WHERE id=$1",[id]);
+    const inactive=await request(f.company,"/accounting-documents","POST",{kind,source:source(party!),posting_account_id:id});
+    assert.equal(inactive.status,422);assert.match(inactive.error.issues[0].message,/inactive/i);
+    await admin.query("UPDATE chart_of_accounts SET is_active=true WHERE id=$1",[id]);
+  }
+});
+test("native chart CRUD preserves UUID/history, serializes revisions/code uniqueness, locks classification and groups reports",async()=>{
+  const f=await fixture(),other=await fixture();
+  const make=(code:string,type="income",group="Custom sales")=>request(f.company,"/accounting-accounts","POST",
+    {code,name:"Synthetic custom account",account_type:type,report_group:group,display_order:4});
+  let a=(await make("00-a")).data;
+  assert.ok(a?.id);assert.equal(a.code,"00-a");
+  const duplicate=await make("00-A");assert.equal(duplicate.status,422);assert.equal(duplicate.error.issues[0].path,"/code");
+  const concurrent=await Promise.all([make("X-RACE"),make("x-race")]);
+  assert.deepEqual(concurrent.map(r=>r.status).sort(),[201,422]);
+  const edits=await Promise.all(["Synthetic renamed one","Synthetic renamed two"].map(name=>request(f.company,
+    `/accounting-accounts/${a.id}`,"PATCH",{name},a.revision)));
+  assert.deepEqual(edits.map(r=>r.status).sort(),[200,409]);a=edits.find(r=>r.status===200)!.data;
+  const retype=await request(f.company,`/accounting-accounts/${a.id}`,"PATCH",{account_type:"expense"},a.revision);
+  assert.equal(retype.status,200);assert.equal(retype.data.id,a.id);
+  a=(await request(f.company,`/accounting-accounts/${a.id}`,"PATCH",{account_type:"income"},retype.data.revision)).data;
+  assert.equal((await request(other.company,`/accounting-accounts/${a.id}`,"PATCH",{name:"Forbidden"},a.revision)).status,404);
+  assert.equal((await request(f.company,"/accounting-accounts","POST",{code:"RO",name:"Read only",account_type:"income"},undefined,readOnly)).status,403);
+  assert.equal(isGenericEntityWriteBlocked("ChartOfAccount"),true);
+  let doc=(await request(f.company,"/accounting-documents","POST",
+    {kind:"sales_invoice",source:source(f.customer),posting_account_id:a.id})).data;
+  let entered!:()=>void,release!:()=>void;
+  const inside=new Promise<void>(r=>entered=r),held=new Promise<void>(r=>release=r);
+  pausePosting=async()=>{entered();await held;};
+  const posting=post(f,doc);await inside;
+  const racedEdit=request(f.company,`/accounting-accounts/${a.id}`,"PATCH",{account_type:"expense"},a.revision);
+  try {
+    let waiting=false;
+    for(let i=0;i<100;i++) {
+      waiting=(await admin.query("SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE usename='ledgerly_api' AND wait_event_type='Lock') yes")).rows[0].yes;
+      if(waiting) break;await new Promise(r=>setTimeout(r,10));
+    }
+    assert.equal(waiting,true,"Account edit must actually block behind the canonical company lock");
+  } finally {release();pausePosting=undefined;}
+  await posting;
+  const blocked=await racedEdit;assert.equal(blocked.status,422);assert.equal(blocked.error.issues[0].path,"/account_type");
+  const current=(await request(f.company,"/accounting-accounts")).data.find((x:any)=>x.id===a.id);
+  const renamed=await request(f.company,`/accounting-accounts/${a.id}`,"PATCH",
+    {code:"001-NEW",name:"Synthetic custom sales",report_group:"Owner heading"},current.revision);
+  assert.equal(renamed.status,200);
+  const direct=(await make("00-DIRECT","cost_of_sales","Direct costs")).data;
+  const bill=(await request(f.company,"/accounting-documents","POST",
+    {kind:"purchase_bill",source:source(f.supplier,"60"),posting_account_id:direct.id,purchase_vat_eligible:true})).data;
+  await post(f,bill);
+  const ar=(await request(f.company,"/accounting-accounts")).data.find((x:any)=>x.id===f.mappings.receivables);
+  assert.equal((await request(f.company,`/accounting-accounts/${ar.id}`,"PATCH",
+    {report_group:"Customer balances"},ar.revision)).status,200);
+  const before=await request(f.company,"/accounting-reports?from=2026-01-01&to=2026-12-31");
+  assert.equal(before.data.pnl.revenue_minor,"10000");
+  assert.equal(before.data.pnl.cost_of_sales_minor,"5000");
+  assert.equal(before.data.pnl.gross_profit_minor,"5000");
+  assert.equal(before.data.pnl.profit_minor,"5000");
+  assert.equal(before.data.general_ledger.find((l:any)=>l.source_id===doc.id).source_number,doc.source.invoice_number);
+  assert.equal(before.data.balance_sheet.sections[0].groups.find((g:any)=>g.name==="Customer balances").subtotal_minor,"12000");
+  const group=before.data.pnl.sections[0].groups.find((g:any)=>g.name==="Owner heading");
+  assert.equal(group.subtotal_minor,"10000");assert.equal(group.accounts[0].code,"001-NEW");
+  assert.equal(group.accounts[0].account_id,a.id);
+  const archived=await request(f.company,`/accounting-accounts/${a.id}`,"PATCH",{is_active:false},renamed.data.revision);
+  assert.equal(archived.status,200);assert.equal(archived.data.eligible_roles.length,0);
+  const after=await request(f.company,"/accounting-reports?from=2026-01-01&to=2026-12-31");
+  assert.deepEqual(after.data.pnl,before.data.pnl);assert.deepEqual(after.data.balance_sheet,before.data.balance_sheet);
+  const mapped=(await request(f.company,"/accounting-accounts")).data.find((x:any)=>x.id===f.mappings.receivables);
+  const denied=await request(f.company,`/accounting-accounts/${mapped.id}`,"PATCH",{is_active:false},mapped.revision);
+  assert.equal(denied.status,422);assert.equal(denied.error.issues[0].path,"/is_active");
+  assert.ok(Number((await admin.query("SELECT count(*) n FROM accounting_chart_audit WHERE company_id=$1",[f.company])).rows[0].n)>0);
+  await assert.rejects(()=>pool.query("DELETE FROM accounting_chart_audit WHERE company_id=$1",[f.company]),(e:any)=>e.code==="42501");
 });

@@ -18,6 +18,25 @@ function Table({ head, children, footer }) {
 }
 const R = (n, h) => Object.assign(h, { r: n });
 const Stat = ({ label, value }) => <div className="rounded-xl border bg-card p-5"><p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold"><Money value={value} /></p></div>;
+function ReportSections({ sections, testid, extraEquity }) {
+  if (!Array.isArray(sections) || sections.length === 0) return null;
+  return <div className="space-y-4" data-testid={`sections-${testid}`}>{sections.map(sec => (
+    <div key={sec.category} className="overflow-x-auto rounded-xl border bg-card">
+      <table className="w-full text-sm">
+        <thead className="border-b bg-muted/40 text-left"><tr><th className={`${th} text-xs uppercase tracking-wide text-muted-foreground`} colSpan={2}>{sec.label}</th><th className={`${th} text-right text-xs uppercase tracking-wide text-muted-foreground`}>Amount</th></tr></thead>
+        {(sec.groups ?? []).map((g, gi) => <tbody key={gi} className="border-b">
+          <tr><td colSpan={3} className="px-4 pt-3 text-xs font-semibold text-muted-foreground">{g.name || 'Ungrouped'}</td></tr>
+          {[...(g.accounts ?? [])].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)).map(a => <tr key={a.account_id} data-testid={`row-${testid}-account-${a.account_id}`}>
+            <td className="w-24 px-4 py-1.5 font-mono text-xs text-muted-foreground">{a.code}</td><td className="px-4 py-1.5">{a.name}</td><td className="px-4 py-1.5 text-right"><Money value={a.amount_minor} /></td></tr>)}
+          <tr className="border-t border-dashed"><td /><td className="px-4 py-1.5 text-xs font-medium">Total {g.name || 'ungrouped'}</td><td className="px-4 py-1.5 text-right text-xs font-medium"><Money value={g.subtotal_minor} /></td></tr>
+        </tbody>)}
+        <tfoot className="bg-muted/40 font-semibold">
+          {sec.category === 'equity' && extraEquity != null && <tr><td /><td className="px-4 py-2 font-normal">Current earnings (cumulative, unclosed)</td><td className="px-4 py-2 text-right font-normal"><Money value={extraEquity} /></td></tr>}
+          <tr><td colSpan={2} className="px-4 py-2.5">Total {sec.label.toLowerCase()}{sec.category === 'equity' && extraEquity != null ? ' (accounts only)' : ''}</td><td className="px-4 py-2.5 text-right"><Money value={sec.total_minor} /></td></tr>
+        </tfoot>
+      </table>
+    </div>))}</div>;
+}
 const SrcLink = ({ type, id, children }) => { const p = docPath(type, id); return p ? <Link to={p} className="text-primary hover:underline">{children}</Link> : <>{children}</>; };
 
 export default function AccountingReports({ defaultTab = 'tb' }) {
@@ -65,14 +84,22 @@ export default function AccountingReports({ defaultTab = 'tb' }) {
           <td className={`${th} text-right`}><Money value={columnTotals(data.trial_balance).credit_minor} /></td><td className={`${th} text-right`}>—</td></tr>}>
         {data.trial_balance.map(a => <tr key={a.account_id} className={tr}><td className={`${th} font-mono text-xs`}>{a.code}</td><td className={th}>{a.name}</td><td className={`${th} capitalize text-muted-foreground`}>{a.account_type}</td><td className={`${th} text-right`}><Money value={a.debit_minor} /></td><td className={`${th} text-right`}><Money value={a.credit_minor} /></td><td className={`${th} text-right font-medium`}><Money value={a.balance_minor} /></td></tr>)}
       </Table>}
-      {data && tab === 'gl' && <Table head={R(2, ['Date', 'Account', 'Source', 'Journal', 'Debit', 'Credit'])}
-        footer={<tr data-testid="totals-general-ledger"><th colSpan={4} scope="row" className={`${th} text-left`}>Movement totals</th>
+      {data && tab === 'gl' && <Table head={R(2, ['Date', 'Account', 'Document', 'Source', 'Journal', 'Debit', 'Credit'])}
+        footer={<tr data-testid="totals-general-ledger"><th colSpan={5} scope="row" className={`${th} text-left`}>Movement totals</th>
           <td className={`${th} text-right`}><Money value={columnTotals(data.general_ledger).debit_minor} /></td>
           <td className={`${th} text-right`}><Money value={columnTotals(data.general_ledger).credit_minor} /></td></tr>}>
-        {data.general_ledger.map((g, i) => <tr key={i} className={tr}><td className={`${th} tabular-nums`}>{g.posting_date}</td><td className={th}><span className="font-mono text-xs text-muted-foreground">{g.account_code}</span> {g.account_name}</td><td className={th}><SrcLink type={g.source_type} id={g.source_id}>{g.source_type.replace(/_/g, ' ')}</SrcLink></td><td className={th}><JournalLink id={g.journal_id} /></td><td className={`${th} text-right`}><Money value={g.debit_minor} /></td><td className={`${th} text-right`}><Money value={g.credit_minor} /></td></tr>)}
+        {data.general_ledger.map((g, i) => <tr key={i} className={tr}><td className={`${th} tabular-nums`}>{g.posting_date}</td><td className={th}><span className="font-mono text-xs text-muted-foreground">{g.account_code}</span> {g.account_name}</td><td className={`${th} font-medium`} data-testid={`text-gl-number-${i}`}><SrcLink type={g.source_type} id={g.source_id}>{g.source_number || '—'}</SrcLink></td><td className={th}><SrcLink type={g.source_type} id={g.source_id}>{g.source_type.replace(/_/g, ' ')}</SrcLink></td><td className={th}><JournalLink id={g.journal_id} /></td><td className={`${th} text-right`}><Money value={g.debit_minor} /></td><td className={`${th} text-right`}><Money value={g.credit_minor} /></td></tr>)}
       </Table>}
-      {data && tab === 'pnl' && <div className="grid gap-4 sm:grid-cols-3"><Stat label="Revenue" value={data.pnl.revenue_minor} /><Stat label="Expenses" value={data.pnl.expense_minor} /><Stat label="Profit" value={data.pnl.profit_minor} /></div>}
+      {data && tab === 'pnl' && <div className="space-y-4"><div className="grid gap-4 sm:grid-cols-3"><Stat label="Revenue" value={data.pnl.revenue_minor} /><Stat label="Expenses" value={data.pnl.expense_minor} /><Stat label="Profit" value={data.pnl.profit_minor} /></div>
+        {(data.pnl.gross_profit_minor != null || data.pnl.cost_of_sales_minor != null) && <div className="grid gap-4 sm:grid-cols-3">
+          {data.pnl.cost_of_sales_minor != null && <Stat label="Cost of sales" value={data.pnl.cost_of_sales_minor} />}
+          {data.pnl.gross_profit_minor != null && <Stat label="Gross profit" value={data.pnl.gross_profit_minor} />}
+          {data.pnl.operating_expenses_minor != null && <Stat label="Operating expenses" value={data.pnl.operating_expenses_minor} />}
+        </div>}
+        <ReportSections sections={data.pnl.sections} testid="pnl" />
+        {Array.isArray(data.pnl.sections) && <div className="flex justify-between rounded-xl border bg-card px-4 py-3 text-sm font-semibold" data-testid="total-pnl-profit"><span>Profit for the period</span><Money value={data.pnl.profit_minor} /></div>}</div>}
       {data && tab === 'bs' && <div className="space-y-3"><div className="grid gap-4 sm:grid-cols-4"><Stat label="Assets" value={data.balance_sheet.assets_minor} /><Stat label="Liabilities" value={data.balance_sheet.liabilities_minor} /><Stat label="Equity" value={data.balance_sheet.equity_minor} /><Stat label="Current earnings (cumulative, unclosed)" value={data.balance_sheet.current_earnings_minor} /></div>
+        <ReportSections sections={data.balance_sheet.sections} testid="bs" extraEquity={data.balance_sheet.current_earnings_minor} />
         <div className="grid gap-4 sm:grid-cols-3">
           {data.balance_sheet.net_vat_payable_minor != null && <Stat label="Net VAT payable (output − input)" value={data.balance_sheet.net_vat_payable_minor} />}
           {data.balance_sheet.net_assets_minor != null && <Stat label="Assets after VAT offset" value={data.balance_sheet.net_assets_minor} />}

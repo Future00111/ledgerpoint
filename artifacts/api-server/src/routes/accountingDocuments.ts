@@ -7,6 +7,8 @@ import { getDocument, listDocuments, saveDocument } from "../services/accounting
 import { postDocument } from "../services/accountingDocuments/posting";
 import { journal, reports } from "../services/accountingDocuments/reports";
 import { CanonicalPostingError, type DatabaseTransaction } from "../services/accounting/canonicalPosting";
+import { chart, AccountSelectionError } from "../services/accountingDocuments/accounts";
+import { saveAccount } from "../services/accountingDocuments/chart";
 
 export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostHook?:(tx:DatabaseTransaction)=>Promise<void>) {
   const router=Router({mergeParams:true});
@@ -25,6 +27,18 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     if(!value || !/^"[0-9a-f-]{36}"$/.test(value)) fail(428,"REVISION_REQUIRED");
     return value.slice(1,-1);
   };
+  router.get("/accounting-accounts",async(req,res)=>{
+    const {company,actor}=ids(req);res.json({data:await chart(company,actor)});
+  });
+  router.post("/accounting-accounts",async(req,res)=>{
+    const {company,actor}=ids(req);res.status(201).json({data:await saveAccount(company,actor,req.body)});
+  });
+  router.patch("/accounting-accounts/:id",async(req,res)=>{
+    const {company,actor,id}=ids(req);
+    const tag=req.get("If-Match");
+    if(!tag || !/^"sha256:[0-9a-f]{64}"$/.test(tag)) fail(428,"REVISION_REQUIRED");
+    res.json({data:await saveAccount(company,actor,req.body,id,tag.slice(1,-1))});
+  });
   router.get("/accounting-documents/context",async(req,res)=>{
     const {company,actor}=ids(req);
     res.json({data:await context(company,actor,kindOf(req.query.kind??"sales_invoice"))});
@@ -69,9 +83,14 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
   router.use(((error:any,_req:any,res:any,_next:any)=>{
     const databaseCode=error.cause?.code??error.code;
     if(error instanceof DraftError) {
-      res.status(error.status).json({error:{code:error.code,issues:[{path:error.path,code:error.code}],message:error.code.replaceAll("_"," ").toLowerCase()+
+      const labels:Record<string,string>={"/invoice_number":"Document number","/customer_id":"Customer or supplier",
+        "/due_date":"Due date","/issue_date":"Document date","/payment_terms":"Payment terms","/posting_account_id":"Document account"};
+      const field=labels[error.path]??(error.path?.startsWith("/line_items/")?"Invoice or bill line":"Submitted field");
+      const message=error instanceof AccountSelectionError?error.publicMessage:
+        error.code==="FIELD_INVALID"?`${field} is invalid. Check the value and try again.`:error.code.replaceAll("_"," ").toLowerCase()+
         (["ACCOUNT_CONFIGURATION_REQUIRED","ACCOUNT_MAPPING_INVALID","ACCOUNT_MAPPING_REQUIRED","PERIOD_NOT_WRITABLE"].includes(error.code)
-          ?". Open Posting Setup to check account mappings and the document's open period.":". No changes were committed.")}});return;
+          ?". Open Posting Setup to check account mappings and the document's open period.":". No changes were committed.");
+      res.status(error.status).json({error:{code:error.code,issues:[{path:error.path,code:error.code,message}],message}});return;
     }
     if(error instanceof CanonicalPostingError) {
       res.status(error.code.startsWith("authorization")?403:409).json({error:{code:error.code,message:error.message}});return;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { accounting } from '@/api/accountingDocuments.mjs';
+import { roleAccounts, issueFor } from '@/lib/accountingEditor.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,11 +76,22 @@ export default function AccountingSetup() {
               </select></label></div>
           {(cfg.accounts ?? []).length === 0 && <p className="text-sm">No accounts in the chart yet. <Link className="text-primary underline" to="/chart-of-accounts">Open Chart of Accounts</Link>.</p>}
           <fieldset disabled={!canEdit || busy} className="grid gap-4 sm:grid-cols-2">
-            {roles_.map(([k, l, d]) => <div key={k}><Label htmlFor={`m-${k}`}>{l}</Label>
-              <select id={`m-${k}`} data-testid={`select-map-${k}`} className={sel} value={map[k] || ''} onChange={e => setMap(m => ({ ...m, [k]: e.target.value }))}>
-                <option value="">Not mapped</option>
-                {(cfg.accounts ?? []).map(a => <option key={a.id} value={a.id}>{a.code} · {a.name}</option>)}
-              </select><p className="mt-1 text-xs text-muted-foreground">{d}</p></div>)}
+            {roles_.map(([k, l, d]) => {
+              const eligible = roleAccounts(cfg.accounts, k);
+              const current = map[k] && !eligible.some(a => a.id === map[k]) ? (cfg.accounts ?? []).find(a => a.id === map[k]) : null;
+              const issue = issueFor(error, `/mappings/${k}`);
+              return <div key={k}><Label htmlFor={`m-${k}`}>{l}</Label>
+                <select id={`m-${k}`} data-testid={`select-map-${k}`} className={`${sel} ${issue ? 'border-red-500' : ''}`} value={map[k] || ''}
+                  aria-invalid={issue ? 'true' : undefined} aria-describedby={`m-${k}-help${issue ? ` m-${k}-issue` : ''}`}
+                  onChange={e => setMap(m => ({ ...m, [k]: e.target.value }))}>
+                  <option value="">Not mapped</option>
+                  {map[k] && !eligible.some(a => a.id === map[k]) && <option value={map[k]}>{current ? `${current.code} · ${current.name} (not eligible${current.eligibility_reason ? `: ${current.eligibility_reason}` : ''})` : 'Saved account not in chart'}</option>}
+                  {eligible.map(a => <option key={a.id} value={a.id}>{a.code} · {a.name}</option>)}
+                </select>
+                <p id={`m-${k}-help`} className="mt-1 text-xs text-muted-foreground">{d}{eligible.length === 0 ? '. No eligible account in the chart for this role.' : ''}</p>
+                {issue && <p id={`m-${k}-issue`} role="alert" className="mt-1 text-xs text-red-700" data-testid={`error-map-${k}`}>{issue.message}</p>}
+              </div>;
+            })}
           </fieldset>
           <p className="text-xs text-muted-foreground">Business accounting basis is accrual: income and costs are recognised on the document date. This is separate from the company's VAT accounting basis{cfg.company?.vat_accounting_basis ? ` (currently ${cfg.company.vat_accounting_basis})` : ''}.</p>
           <div className="flex justify-end"><Button onClick={save} disabled={!canEdit || busy || !complete} data-testid="button-save-mapping">Save mapping</Button></div>

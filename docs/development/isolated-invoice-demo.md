@@ -1,5 +1,70 @@
 # Native four-document accounting extension
 
+## Custom chart and account-selection delivery — 2026-10-21
+
+The explicit sales-account failure was an unconditional rejection of sales
+overrides, not an invalid nominal code or a UUIDv4-only validator. Native
+ordinary invoices and bills now accept eligible company-owned account UUIDs
+(including the existing UUIDv5 mappings); selecting the company default
+explicitly clears a prior override. Credits retain their original accounts.
+Field errors identify the selection without disclosing foreign-account data.
+
+Chart of Accounts now uses protected native create/edit/archive APIs. Customer
+code/name (including leading zeros and alphanumeric codes), category, optional
+report heading and display order are supported. Codes are unique within the
+company after trim/case normalization. IDs stay unchanged on rename; audit
+events commit with chart changes and cannot be updated/deleted by the runtime
+role. Generic chart writes are blocked. Used or mapped accounts cannot change
+category; mapped accounts cannot be archived until remapped. Historical journal
+lines remain linked, including when a used, unmapped account is archived.
+
+Chart mutations acquire the same company `FOR UPDATE` lock as native posting
+and mapping writes **before** reading revision/usage/duplicates. Concurrent
+same-revision edits, case-duplicate creates and an actual posting/type-change
+race are exercised over separate database connections. Code uniqueness is a
+protected, company-serialized API invariant, not a new database unique index.
+Any future chart writer must participate in this lock discipline.
+
+Normal selectors share server eligibility; planned draft accounts show defaults
+versus document-specific choices. Posted document screens load actual journal
+lines. GL includes source document numbers. P&L and balance sheet show account
+code/name, category/group subtotals and earnings reconciliation from canonical
+lines, never numeric code ranges. Custom headings change presentation, not
+amounts or accounting category. Loading/errors are distinct from an empty chart.
+
+Focused evidence: 10 disposable PostgreSQL integration cases; 18 client/editor
+checks; API/frontend typechecks and frontend build. Integration cases include
+UUIDv5 selections, invalid/inactive/foreign/type errors, native chart roundtrips,
+concurrency, custom income/cost-of-sales/BS groups and archived-history totals.
+The temporary database cleanup receipt confirms shutdown/removal and no ambient
+database credentials or production contact. The user subsequently reported a
+**ChatGPT-assisted signed-in walkthrough**: a custom income account and explicit
+£25/£5/£30 unposted sales draft saved/reopened; code/name rename retained the same
+account identity/link; a custom cost-of-sales account with Project costs heading
+was archived/restored; an explicit £10/£2/£12 unposted bill saved/reopened with
+VAT not claimed. Case-insensitive duplicate code was rejected inline, with no
+duplicate created. Saved plans show only applicable document roles; posted
+screens still show actual journal lines. Chart labels distinguish eligible uses
+from currently mapped roles. Bottom padding was added to clear the fixed Ask
+button; the final signed-in padding screenshot has not been independently
+verified. This evidence is not independent human/accountant sign-off, HMRC,
+public-release or hosted qualification.
+
+Only the fixed isolated database received the additive chart metadata/audit
+schema (`node tools/accounting-flow/apply-chart-demo.mjs`). The script verifies
+its socket/database/role identity and compares existing account, draft,
+document and canonical journal fingerprints before commit. No external database
+is contacted. Fresh isolated readback at 14:40 UTC showed **five journals,
+15 lines, movement debits/credits £252/£252**, including the owner's additional
+sales invoice numbered FLOW-SC-001. No existing seeded labels or documents were
+rewritten automatically and no extra live-demo posting was made by the agent. The four-cycle values
+below remain the historical walkthrough/disposable regression, not current
+live-demo totals. The later ChatGPT-assisted walkthrough confirmed current P&L
+£110 revenue − £40 expense = £70 profit, BS £140 = £70 liabilities + £70
+earnings, 15 GL lines with document numbers/type, and £252/£252 movements.
+Both new custom drafts remain excluded from posted reports; the five posted
+documents, two custom accounts/drafts and all older samples are retained.
+
 ## ChatGPT-assisted development browser walkthrough — 2026-10-21
 
 The user reported a ChatGPT-assisted signed-in browser walkthrough through normal navigation:

@@ -1,26 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { fail, uuid, parseInvoice } from "../financialDrafts/contract";
+import { fail, parseInvoice } from "../financialDrafts/contract";
 import { scope, supportedCompany, transact, exactFields, type Queryable, type Kind, sales } from "./core";
 
-export const roles = ["receivables","payables","revenue","expense","output_vat","input_vat"] as const;
-const types: Record<string,string[]> = {
-  receivables:["asset","assets"],payables:["liability","liabilities"],
-  revenue:["income","revenue"],expense:["expense","expenses","cost_of_sales"],
-  output_vat:["liability","liabilities"],input_vat:["asset","assets"],
-};
-export async function validateAccounts(q: Queryable, company: string, mappings: Record<string,string>, vat: boolean) {
-  const needed=vat?roles:roles.slice(0,4);
-  if(!mappings || typeof mappings!=="object" || Object.keys(mappings).some(r=>!roles.includes(r as any))) fail(422,"ACCOUNT_MAPPING_REQUIRED");
-  const ids=needed.map(role=>uuid(mappings[role]));
-  if(new Set(ids).size!==ids.length) fail(422,"DISTINCT_ACCOUNT_MAPPINGS_REQUIRED");
-  const rows=await q.query("SELECT * FROM chart_of_accounts WHERE company_id=$1 AND id=ANY($2::uuid[]) ORDER BY id FOR UPDATE",[company,ids]);
-  for(const role of needed) {
-    const account=rows.rows.find(r=>r.id===mappings[role]);
-    if(!account || account.is_active!==true || !types[role]!.includes(String(account.account_type).toLowerCase()))
-      fail(422,"ACCOUNT_MAPPING_INVALID",`/${role}`);
-  }
-  return rows.rows;
-}
+import { roles, validateAccounts, companyChart } from "./accounts";
+export { roles, validateAccounts } from "./accounts";
 export async function configuration(q: Queryable, company: string, lock=false) {
   const result=await q.query(`SELECT * FROM accounting_company_configuration WHERE company_id=$1${lock?" FOR UPDATE":""}`,[company]);
   if(result.rowCount!==1) fail(422,"ACCOUNT_CONFIGURATION_REQUIRED");
@@ -32,15 +15,19 @@ export async function context(company: string,actor: string,kind: Kind) {
   return transact(async q=>{
     const c=await scope(q,company,actor);
     const config=await q.query("SELECT * FROM accounting_company_configuration WHERE company_id=$1",[company]);
-    const accounts=await q.query("SELECT * FROM chart_of_accounts WHERE company_id=$1 AND is_active=true ORDER BY code,id",[company]);
+    const accounts=await companyChart(q,company);
     const parties=await q.query(`SELECT id,name,status FROM ${sales(kind)?"customers":"suppliers"} WHERE company_id=$1 AND status='active' ORDER BY name,id`,[company]);
     const rules=await q.query("SELECT t.*,t.effective_from::text,t.effective_to::text FROM vat_tax_rules t WHERE t.company_id=$1 AND t.is_active=true ORDER BY t.code,t.effective_from",[company]);
     const periods=await q.query("SELECT p.*,p.start_date::text,p.end_date::text FROM accounting_document_periods p WHERE p.company_id=$1 ORDER BY p.start_date",[company]);
     const errors:string[]=[];
     if(!config.rowCount) errors.push("Choose accrual accounting and map the company's control, income and expense accounts.");
+    else for(const role of c.vat_registered?roles:roles.slice(0,4)) {
+      if(!accounts.some(a=>a.id===config.rows[0].mappings?.[role] && a.eligible_roles.includes(role)))
+        errors.push(`The default ${role.replaceAll("_"," ")} account is unavailable or ineligible. Update Posting Setup.`);
+    }
     if(!periods.rows.some(p=>p.status==="OPEN")) errors.push("Create an open accounting period for the document date.");
     try {supportedCompany(c);} catch {errors.push("Only UK GBP accrual, Standard invoice-accounting VAT or non-VAT businesses are supported.");}
-    return {company:c,parties:parties.rows,tax_rules:rules.rows,accounts:accounts.rows,
+    return {company:c,parties:parties.rows,tax_rules:rules.rows,accounts,
       mappings:config.rows[0]?.mappings??{},revision:config.rows[0]?.revision??null,
       business_accounting_basis:config.rows[0]?.business_accounting_basis??null,
       periods:periods.rows,configuration_errors:errors};

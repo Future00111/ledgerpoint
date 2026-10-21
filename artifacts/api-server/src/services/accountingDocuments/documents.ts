@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { accountId } from "./accounts";
 import type pg from "pg";
 import { fail, parseInvoice, netPence, money, decimal, uuid, type InvoiceSource } from "../financialDrafts/contract";
 import { calculateTaxLine, createProductionInvoiceDraftAuthority } from "../financialDrafts/productionAuthority";
@@ -67,11 +68,14 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
   } else {
     if(originalId || method || effective || reason) fail(422,"FIELD_INVALID");
     tax=await createProductionInvoiceDraftAuthority().resolveTax(q as pg.PoolClient,company,source,netPence(source.line_items));
-    if(!sales(kind) && postingAccount) accounts.expense=uuid(postingAccount);
-    if(sales(kind) && postingAccount) fail(422,"FIELD_INVALID");
+    if(postingAccount!==null) {
+      postingAccount=accountId(postingAccount);
+      accounts[sales(kind)?"revenue":"expense"]=postingAccount;
+    }
     if(eligible && (sales(kind) || c.vat_registered!==true)) fail(422,"PURCHASE_ELIGIBILITY_INVALID");
   }
-  await validateAccounts(q,company,accounts,c.vat_registered);
+  await validateAccounts(q,company,accounts,c.vat_registered,
+    !credit(kind) && postingAccount!==null?{[sales(kind)?"revenue":"expense"]:"/posting_account_id"}:{});
   const totals=money(tax.netPence.map((v:string)=>BigInt(v)),tax.vatPence);
   return {source,party_name:party.rows[0].name,party_id:source.customer_id,
     original_id:originalId??null,reason:typeof reason==="string"?reason.trim():"",

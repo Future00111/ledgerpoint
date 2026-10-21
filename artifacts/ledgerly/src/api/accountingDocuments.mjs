@@ -26,7 +26,8 @@ export function buildSource(form) {
 
 export function buildEnvelope(kind, form, extra) {
   const body = { kind, source: buildSource(form), purchase_vat_eligible: kind === 'purchase_bill' || kind === 'supplier_credit_note' ? extra.purchase_vat_eligible === true : false };
-  if (extra.posting_account_id) body.posting_account_id = extra.posting_account_id;
+  // Always explicit for invoices/bills: null clears a previous override on PATCH (omission would preserve it).
+  if (kind === 'sales_invoice' || kind === 'purchase_bill') body.posting_account_id = extra.posting_account_id || null;
   if (KINDS[kind]?.credit) {
     body.original_id = extra.original_id;
     body.reason = extra.reason;
@@ -60,7 +61,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
     const json = await res.json().catch(() => null);
     if (!res.ok) {
       const e = json?.error;
-      throw Object.assign(new Error(e?.message || `Request failed (${res.status}).`), { status: res.status, code: e?.code });
+      throw Object.assign(new Error(e?.message || `Request failed (${res.status}).`), { status: res.status, code: e?.code, issues: Array.isArray(e?.issues) ? e.issues : [] });
     }
     return json?.data;
   };
@@ -68,6 +69,9 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
   const docs = c => `${base(c)}/accounting-documents`;
   return {
     list: (c, kind, signal) => call(`${docs(c)}?kind=${encodeURIComponent(kind)}`, { signal }),
+    accounts: (c, signal) => call(`${base(c)}/accounting-accounts`, { signal }),
+    createAccount: (c, body) => call(`${base(c)}/accounting-accounts`, { method: 'POST', body }),
+    updateAccount: (c, id, body, revision) => call(`${base(c)}/accounting-accounts/${encodeURIComponent(id)}`, { method: 'PATCH', body, revision }),
     context: (c, kind, signal) => call(`${docs(c)}/context?kind=${encodeURIComponent(kind)}`, { signal }),
     get: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}`, { signal }),
     create: (c, body) => call(docs(c), { method: 'POST', body }),

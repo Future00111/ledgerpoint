@@ -27,3 +27,27 @@ test('post sends quoted If-Match and surfaces error code', async () => {
   await assert.rejects(c.post('co', 'd', 3), e => e.code === 'REVISION_CONFLICT');
   assert.equal(seen.headers['If-Match'], '"3"');
 });
+
+test('ordinary invoice/bill always sends posting_account_id; default clears to null', () => {
+  assert.equal(buildEnvelope('sales_invoice', form, { posting_account_id: 'acc-4000' }).posting_account_id, 'acc-4000');
+  const cleared = buildEnvelope('sales_invoice', form, { posting_account_id: '' });
+  assert.ok(Object.hasOwn(cleared, 'posting_account_id'));
+  assert.equal(cleared.posting_account_id, null);
+  assert.equal(buildEnvelope('purchase_bill', form, {}).posting_account_id, null);
+  assert.ok(!Object.hasOwn(buildEnvelope('sales_credit_note', form, { original_id: 'o' }), 'posting_account_id'));
+});
+test('error issues are preserved for field-level display', async () => {
+  const issues = [{ path: '/posting_account_id', code: 'ACCOUNT_NOT_ELIGIBLE', message: 'Choose a sales account.' }];
+  const c = createAccountingClient(async () => ({ ok: false, status: 422, json: async () => ({ error: { code: 'VALIDATION', message: 'Invalid', issues } }) }));
+  await assert.rejects(c.update('co', 'd', {}, 1), e => e.code === 'VALIDATION' && e.issues.length === 1 && e.issues[0].path === '/posting_account_id');
+});
+
+test('updateAccount PATCHes with quoted sha256 revision; no delete method exists', async () => {
+  let seen;
+  const c = createAccountingClient(async (url, init) => { seen = { url, init }; return { ok: true, status: 200, json: async () => ({ data: { id: 'a' } }) }; });
+  await c.updateAccount('co', 'a', { name: 'Consulting' }, 'sha256:ab');
+  assert.equal(seen.init.method, 'PATCH');
+  assert.equal(seen.init.headers['If-Match'], '"sha256:ab"');
+  assert.ok(seen.url.endsWith('/accounting-accounts/a'));
+  assert.equal(c.deleteAccount, undefined);
+});

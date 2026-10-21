@@ -1,5 +1,6 @@
 import { fail, uuid } from "../financialDrafts/contract";
 import { transact, scope, sales, credit, supportedCompany, type Kind } from "./core";
+import { movementAccounts, sections } from "./presentation";
 
 const signed=(row:any)=>BigInt(row.debit_minor)-BigInt(row.credit_minor);
 const lower=(value:unknown)=>String(value??"").toLowerCase();
@@ -21,9 +22,12 @@ export async function reports(company:string,actor:string,from:string,to:string,
   return transact(async q=>{
     const c=await scope(q,company,actor);supportedCompany(c);
     const all=await q.query(`SELECT l.*,j.id journal_id,j.posting_date::text,j.source_type,j.source_id,
-      a.code account_code,a.name account_name,a.account_type,j.description
+       a.code account_code,a.name account_name,a.account_type,j.description,d.number source_number,p.report_group,coalesce(p.display_order,0) display_order
       FROM canonical_journal_lines l JOIN canonical_journal_entries j ON j.id=l.journal_entry_id AND j.company_id=l.company_id
       JOIN chart_of_accounts a ON a.id=l.account_id AND a.company_id=l.company_id
+       LEFT JOIN accounting_document_sources d ON d.journal_id=j.id AND d.company_id=j.company_id
+         AND d.id::text=j.source_id AND d.kind=j.source_type
+       LEFT JOIN accounting_account_presentation p ON p.account_id=a.id AND p.company_id=a.company_id
       WHERE l.company_id=$1 AND j.posting_date<=$2::date ORDER BY j.posting_date,j.id,l.line_number`,[company,to]);
     await afterLedgerRead?.();
     // Reversals remain additive immutable journals; never discard a source
@@ -32,12 +36,13 @@ export async function reports(company:string,actor:string,from:string,to:string,
     const byAccount=new Map<string,any>();
     for(const line of all.rows) {
       const a=byAccount.get(line.account_id)??{account_id:line.account_id,code:line.account_code,name:line.account_name,
-        account_type:line.account_type,debit:0n,credit:0n};
+        account_type:line.account_type,report_group:line.report_group,display_order:line.display_order,debit:0n,credit:0n};
       a.debit+=BigInt(line.debit_minor);a.credit+=BigInt(line.credit_minor);byAccount.set(line.account_id,a);
     }
     const trial_balance=[...byAccount.values()].map(a=>{
       const balance=a.debit-a.credit;
       return {account_id:a.account_id,code:a.code,name:a.name,account_type:a.account_type,
+        report_group:a.report_group,display_order:a.display_order,
         debit_minor:(balance>0n?balance:0n).toString(),credit_minor:(balance<0n?-balance:0n).toString(),
         balance_minor:balance.toString(),debit_movement_minor:a.debit.toString(),credit_movement_minor:a.credit.toString()};
     });
@@ -96,13 +101,19 @@ export async function reports(company:string,actor:string,from:string,to:string,
       }
     }
     const difference=out-input;
+    const pnlSections=sections(movementAccounts(general_ledger),["income","cost_of_sales","expense"]);
+    const bsSections=sections(trial_balance.map(a=>({...a,amount_minor:
+      (["liability","liabilities","equity"].includes(lower(a.account_type))?-BigInt(a.balance_minor):BigInt(a.balance_minor)).toString()})),
+      ["asset","liability","equity"]);
     return {from,to,balance_basis:"Closing balances at to; profit/loss and VAT movements from through to.",
       general_ledger,trial_balance,
       journal_movements:{debit_minor:general_ledger.reduce((n,r)=>n+BigInt(r.debit_minor),0n).toString(),
         credit_minor:general_ledger.reduce((n,r)=>n+BigInt(r.credit_minor),0n).toString()},
-      pnl:{revenue_minor:revenue.toString(),expense_minor:expenses.toString(),profit_minor:(revenue-expenses).toString()},
+      pnl:{revenue_minor:revenue.toString(),expense_minor:expenses.toString(),profit_minor:(revenue-expenses).toString(),
+        sections:pnlSections,cost_of_sales_minor:pnlSections[1]!.total_minor,
+        operating_expenses_minor:pnlSections[2]!.total_minor,gross_profit_minor:(revenue-BigInt(pnlSections[1]!.total_minor)).toString()},
       balance_sheet:{assets_minor:assets.toString(),liabilities_minor:liabilities.toString(),equity_minor:equity.toString(),
-        current_earnings_minor:earnings.toString(),earnings_basis:"Cumulative unclosed earnings through the selected end date.",
+        sections:bsSections,current_earnings_minor:earnings.toString(),earnings_basis:"Cumulative unclosed earnings through the selected end date.",
         net_vat_payable_minor:(closingOutput-closingInput).toString(),
         net_assets_minor:(assets-closingInput+(closingInput>closingOutput?closingInput-closingOutput:0n)).toString(),
         net_liabilities_minor:(liabilities-closingOutput+(closingOutput>closingInput?closingOutput-closingInput:0n)).toString(),

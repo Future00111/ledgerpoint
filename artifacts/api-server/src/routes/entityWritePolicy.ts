@@ -4,13 +4,14 @@ import type { RequestHandler } from "express";
  * Keeping this decision separate from the Express handlers makes it harder for
  * a newly added generic mutation route to accidentally bypass a workflow lock.
  */
-const WORKFLOW_MANAGED_ENTITIES = new Set(["CompanyUser", "VATReturn", "SalesInvoice", "PurchaseBill", "SalesCreditNote", "SupplierCreditNote", "VATTaxRule", "JournalEntry", "JournalLine"]);
+const WORKFLOW_MANAGED_ENTITIES = new Set(["CompanyUser", "VATReturn", "SalesInvoice", "PurchaseBill", "SalesCreditNote", "SupplierCreditNote", "VATTaxRule", "JournalEntry", "JournalLine", "ChartOfAccount"]);
 
 export function isGenericEntityWriteBlocked(entityName: string): boolean {
   return WORKFLOW_MANAGED_ENTITIES.has(entityName) || entityName === "Company";
 }
 
 export function genericEntityWriteError(entityName: string): string {
+  if(entityName==="ChartOfAccount") return "Use the protected native Chart of Accounts create, edit and archive actions.";
   if (["SalesInvoice","PurchaseBill","SalesCreditNote","SupplierCreditNote","JournalEntry","JournalLine"].includes(entityName)) {
     return "Use the protected native accounting document and canonical posting workflows; generic financial writes are disabled";
   }
