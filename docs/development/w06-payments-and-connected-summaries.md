@@ -130,3 +130,10 @@ all 14 accounting-flow cases and all 16 invoice integration cases. The normal
 API workflow was restarted on its configured port **8080**, replacing the
 temporary process. A fresh signed-in preview load confirmed the existing
 synthetic invoice still shows £60 original, £10 credit and £50 due.
+
+A subsequent Replit workspace restart left the fixed `/tmp/ledgerly-w03-invoice-demo`
+database directory missing and the API offline. No demo database backup was found
+in the workspace. The repaired source remains intact; the successful build and
+preview checks above precede that restart. Existing records were not recreated
+or replaced. Demo recovery or explicit recreation in persistent storage is
+required before the current preview can run again.
