@@ -86,7 +86,7 @@ export default function InvoiceDocument({ invoice, customer, company }) {
             <div className="flex justify-between font-semibold border-t pt-2"><span>Total</span><span className="tabular-nums">{amount(invoice.total)}</span></div>
             {!invoice.preview && <div className="flex justify-between"><span className="text-muted-foreground">Amount Paid</span><span className="tabular-nums">{gbp.format(invoice.amount_paid || 0)}</span></div>}
             {!invoice.preview && <div className="flex justify-between font-semibold text-primary border-t pt-2"><span>Balance Due</span><span className="tabular-nums">{gbp.format(invoice.balance_due || 0)}</span></div>}
-            {invoice.preview && !totalsAvailable && <p className="pt-2 text-xs text-muted-foreground">Totals are not estimated in the browser. Save after server-side tax and rounding rules are available.</p>}
+            {invoice.preview && !totalsAvailable && <p className="pt-2 text-xs text-muted-foreground">Totals are not estimated in the browser. They appear after the server validates and saves the draft.</p>}
           </div>
         </div>
 

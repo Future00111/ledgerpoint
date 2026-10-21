@@ -79,7 +79,7 @@ export class InvoiceDraftService {
 
   private async transaction<T>(companyId: string, actor: string, work: (tx: pg.PoolClient, role: string) => Promise<T>): Promise<T> {
     uuid(companyId);
-    // Deliberate hold: no schema probe or ambient DB connection without approved providers.
+    // Fail closed if the API is constructed without transaction-bound authority.
     if (!this.authority) fail(503, "AUTHORITY_UNAVAILABLE");
     const tx = await this.pool.connect();
     try {
@@ -97,7 +97,6 @@ export class InvoiceDraftService {
       return result;
     } catch (error) {
       await tx.query("ROLLBACK");
-      if (!(error instanceof DraftError)) console.error("W03 invoice draft transaction failure", error);
       if (error instanceof DraftError) throw error;
       const code = (error as { code?: string }).code;
       if (["42P01", "42703", "42501"].includes(code ?? "")) fail(503, "STORAGE_UNAVAILABLE");
@@ -203,7 +202,8 @@ export class InvoiceDraftService {
         [randomUUID(), companyId, invoiceId, actor, role, id ? "update" : "create", old?.revision ?? null,
           revision, old?.source ?? null, source, tax.context, tax.contextRevision, requestId]);
       return { id: invoiceId, kind: "invoice", company_id: companyId, status: "draft", source,
-        revision, request_id: requestId, money: totals, calculation: { contract: "w03.money.dev.v1",
+        revision, request_id: requestId, money: totals, tax_context: tax.context,
+        calculation: { contract: "w03.money.dev.v1",
           accounting_acceptance: "pending", tax_context_revision: tax.contextRevision } };
     });
   }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Send, Loader2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { invokeApiFunction } from '@/api/functions.mjs';
 
 // Inline AI assistant for the invoice page. Uses the askAI backend function
 // with the invoice context so questions are answered about this invoice.
@@ -17,7 +17,7 @@ export default function InvoiceAIAssistant({ companyId, context, suggestions = [
     setAnswer(null);
     setQuestion(q);
     try {
-      const res = await base44.functions.invoke('askAI', { company_id: companyId, question: q, context });
+      const res = await invokeApiFunction('askAI', { company_id: companyId, question: q, context });
       setAnswer(res?.answer || 'I could not generate an answer right now.');
     } catch (e) {
       setAnswer('Something went wrong. Please try again.');

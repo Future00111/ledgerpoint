@@ -29,7 +29,7 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
       );
       if (companies.rowCount !== 1) fail(404, "RESOURCE_NOT_FOUND");
       const company = companies.rows[0]!;
-      if ((company.country ?? "GB") !== "GB" || (company.base_currency ?? "GBP") !== "GBP") {
+      if (company.country !== "GB" || company.base_currency !== "GBP") {
         fail(422, "COMPANY_SETUP_UNSUPPORTED");
       }
       if (!invoiceId) return;
@@ -46,7 +46,7 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
         `SELECT id FROM bank_transactions
          WHERE company_id=$1 AND (
            linked_invoice_id=$2::uuid OR
-           (matched_record_id=$2 AND lower(coalesce(matched_type,'')) IN ('sales_invoice','invoice'))
+           (matched_record_id=$2::text AND lower(coalesce(matched_type,'')) IN ('sales_invoice','invoice'))
          ) FOR SHARE`,
         [companyId, invoiceId],
       );
@@ -61,7 +61,7 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
       );
       if (companies.rowCount !== 1) fail(404, "RESOURCE_NOT_FOUND");
       const company = companies.rows[0]!;
-      if ((company.country ?? "GB") !== "GB" || (company.base_currency ?? "GBP") !== "GBP") {
+      if (company.country !== "GB" || company.base_currency !== "GBP") {
         fail(422, "COMPANY_SETUP_UNSUPPORTED");
       }
       if (company.vat_registered !== true && company.vat_registered !== false) {
@@ -95,7 +95,8 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
         if (RATE_BY_TREATMENT[treatment] !== rate || !String(rule.label ?? "").trim()) {
           fail(422, "TAX_RULE_UNSUPPORTED", `/line_items/${index}/tax_code`);
         }
-        if (company.vat_registered === false && treatment !== "no_vat") {
+        if ((company.vat_registered === false && treatment !== "no_vat") ||
+            (company.vat_registered === true && treatment === "no_vat")) {
           fail(422, "TAX_SETUP_MISMATCH", `/line_items/${index}/tax_code`);
         }
 
@@ -120,8 +121,8 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
 
       const context = {
         company: {
-          country: String(company.country ?? "GB"),
-          currency: String(company.base_currency ?? "GBP"),
+          country: String(company.country),
+          currency: String(company.base_currency),
           vat_registered: company.vat_registered,
           vat_scheme: company.vat_scheme == null ? "" : String(company.vat_scheme),
           vat_accounting_basis: company.vat_accounting_basis == null ? "" : String(company.vat_accounting_basis),

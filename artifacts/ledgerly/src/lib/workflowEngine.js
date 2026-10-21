@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { WorkflowActivity } from '@/api/entities';
 
 // =============================================================================
 // Workflow Engine (Phase 1)
@@ -101,7 +101,7 @@ export async function logWorkflowActivity({
 }) {
   if (!company_id || !entity_type || !entity_id || !action) return null;
   try {
-    return await base44.entities.WorkflowActivity.create({
+    return await WorkflowActivity.create({
       company_id, entity_type, entity_id, entity_name, workflow_type,
       stage, action, action_label,
       user_id: user_id || '', user_name: user_name || 'System',
@@ -122,7 +122,7 @@ export function useWorkflowActivities(entityType, entityId) {
     if (!entityType || !entityId) { setActivities([]); setLoading(false); return; }
     let cancelled = false;
     setLoading(true);
-    base44.entities.WorkflowActivity.filter({ entity_type: entityType, entity_id: entityId }, '-event_date', 200)
+    WorkflowActivity.filter({ entity_type: entityType, entity_id: entityId }, '-event_date', 200)
       .then((a) => { if (!cancelled) setActivities(a || []); })
       .catch(() => { if (!cancelled) setActivities([]); })
       .finally(() => { if (!cancelled) setLoading(false); });

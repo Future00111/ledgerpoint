@@ -55,7 +55,7 @@ export function invoiceDraftRouter(service: InvoiceDraftService, auth: RequestHa
         : safe.code === "TAX_RULE_UNSUPPORTED"
         ? "This company tax rule is outside the supported VAT treatments."
         : safe.code === "TAX_SETUP_MISMATCH"
-        ? "A business that is not VAT registered can only use an explicit no-VAT rule with a recorded reason."
+        ? "This tax code does not match the company's VAT registration status."
         : safe.code === "VAT_SETUP_UNSUPPORTED"
         ? "This draft currently supports standard-scheme, invoice-basis VAT only."
         : safe.code === "VAT_SETUP_INCOMPLETE"

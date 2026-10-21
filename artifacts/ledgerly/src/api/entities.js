@@ -1,7 +1,7 @@
 /**
- * Entity API client — replaces base44.entities.*
+ * Native app entity API client.
  *
- * Usage mirrors the original base44 SDK:
+ * Usage:
  *   import { Company, SalesInvoice, ... } from '@/api/entities';
  *   const items = await SalesInvoice.filter({ company_id: '...', status: { $in: ['a','b'] } }, '-issue_date', 300);
  *   const item  = await SalesInvoice.create({ ... });

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { SalesInvoice, Customer, SalesCreditNote, BankTransaction, WorkflowActivity } from '@/api/entities';
+import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
@@ -68,18 +69,18 @@ export default function InvoiceDetail() {
   const load = async () => {
     setLoading(true);
     try {
-      const inv = await base44.entities.SalesInvoice.get(id);
+      const inv = await SalesInvoice.get(id);
       setInvoice(inv);
-      const cust = await base44.entities.Customer.get(inv.customer_id);
+      const cust = await Customer.get(inv.customer_id);
       setCustomer(cust);
-      const custInv = await base44.entities.SalesInvoice.filter({ customer_id: inv.customer_id }, '-issue_date', 200);
+      const custInv = await SalesInvoice.filter({ customer_id: inv.customer_id }, '-issue_date', 200);
       setCustomerInvoices(custInv || []);
-      const cns = await base44.entities.SalesCreditNote.filter({ customer_id: inv.customer_id }, '-credit_note_date', 200);
+      const cns = await SalesCreditNote.filter({ customer_id: inv.customer_id }, '-credit_note_date', 200);
       setCreditNotes(cns || []);
-      const txns = await base44.entities.BankTransaction.filter({ company_id: inv.company_id, matched_type: 'sales_invoice' }, '-date', 200);
+      const txns = await BankTransaction.filter({ company_id: inv.company_id, matched_type: 'sales_invoice' }, '-date', 200);
       const invIds = new Set((custInv || []).map((i) => i.id));
       setPayments((txns || []).filter((t) => invIds.has(t.linked_invoice_id)));
-      const acts = await base44.entities.WorkflowActivity.filter({ entity_type: 'sales_invoice', entity_id: id }, '-event_date', 200);
+      const acts = await WorkflowActivity.filter({ entity_type: 'sales_invoice', entity_id: id }, '-event_date', 200);
       setActivities(acts || []);
     } catch (e) {
       console.error(e);
@@ -116,13 +117,13 @@ export default function InvoiceDetail() {
   // ---- Actions ----
   const reload = () => load();
   const sendInvoice = async () => {
-    await base44.entities.SalesInvoice.update(id, { status: 'sent' });
+    await SalesInvoice.update(id, { status: 'sent' });
     await logActivity('invoice_emailed', 'Invoice emailed', 'Marked as sent');
     toast({ title: 'Invoice sent' }); reload();
   };
   const approve = async () => {
     try {
-      await base44.functions.invoke('postSalesInvoice', { invoice_id: id, company_id: invoice.company_id });
+      await invokeApiFunction('postSalesInvoice', { invoice_id: id, company_id: invoice.company_id });
       await logActivity('invoice_approved', 'Invoice approved', 'Approved & posted');
       toast({ title: 'Invoice approved & posted' }); reload();
     }
@@ -163,11 +164,11 @@ export default function InvoiceDetail() {
 
   const duplicate = async () => {
     try {
-      const list = await base44.entities.SalesInvoice.filter({ company_id: invoice.company_id });
+      const list = await SalesInvoice.filter({ company_id: invoice.company_id });
       let maxNum = 0;
       list.forEach((i) => { const m = i.invoice_number?.match(/INV-(\d+)/i); if (m) { const n = parseInt(m[1], 10); if (n > maxNum) maxNum = n; } });
       const next = `INV-${String(maxNum + 1).padStart(4, '0')}`;
-      const created = await base44.entities.SalesInvoice.create({
+      const created = await SalesInvoice.create({
         company_id: invoice.company_id, customer_id: invoice.customer_id, customer_name: invoice.customer_name,
         invoice_number: next, issue_date: new Date().toISOString().split('T')[0],
         due_date: new Date(Date.now() + (invoice.payment_terms || 30) * 86400000).toISOString().split('T')[0],
@@ -182,13 +183,13 @@ export default function InvoiceDetail() {
 
   const cancelInvoice = async () => {
     if (!confirm('Cancel this invoice?')) return;
-    await base44.entities.SalesInvoice.update(id, { status: 'cancelled' });
+    await SalesInvoice.update(id, { status: 'cancelled' });
     await logActivity('invoice_cancelled', 'Invoice cancelled', 'Cancelled by user');
     toast({ title: 'Invoice cancelled' }); reload();
   };
   const deleteInvoice = async () => {
     if (!confirm('Delete this invoice? This cannot be undone.')) return;
-    await base44.entities.SalesInvoice.delete(id);
+    await SalesInvoice.delete(id);
     toast({ title: 'Invoice deleted' }); nav('/invoices');
   };
 

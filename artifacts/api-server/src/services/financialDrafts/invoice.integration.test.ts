@@ -211,6 +211,12 @@ test("production authority saves and reopens exact-penny standard VAT and non-VA
   const reopened=await payload(reopenedResponse);
   assert.deepEqual(reopened.data.money.lines,[{net_pence:"1999",vat_pence:"0",gross_pence:"1999"}]);
   assert.equal((reopened.data.tax_context as {lines:Array<{treatment:string;label:string}>}).lines[0]!.treatment,"no_vat");
+  await admin.query("INSERT INTO canonical_journal_entries(id,company_id,source_id,status) VALUES($1,$2,$3,'reversed')",
+    [randomUUID(),noVatCompany,noVatSaved.data.id]);
+  const postedEdit=await nativeRequest(noVatCompany,"PATCH",{contract:"w03.draft.v1",notes:"must stay locked"},
+    "/"+noVatSaved.data.id,noVatSaved.data.revision);
+  assert.equal(postedEdit.status,409);
+  assert.equal((await payload(postedEdit)).error.code,"DOCUMENT_NOT_DRAFT");
 });
 test("production authority rejects only calculations needing a fractional penny",async()=>{
   const fractionalNet=source();
