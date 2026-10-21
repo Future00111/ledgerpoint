@@ -16,8 +16,36 @@ approval, formal accounting acceptance, or production qualification.
 replaced the VAT-inclusive-input exclusion with invoice-wide including/excluding
 VAT input, while keeping formal accounting and production approval separate.
 
-**How to apply:** Do not generalize this permission to posting, issued records,
-other document types, discounts, negative/credit invoices or unsupported VAT schemes.
+**How to apply:** The owner subsequently authorized development-only native
+sales invoices, customer credits, purchase bills and supplier credits through
+the normal UI, with real canonical posting and connected reports. This replaces
+the earlier draft-only exclusion for those four flows, not for production,
+other VAT schemes, cash movements, refunds or error corrections. Credits must
+actually offset their linked outstanding original, retain its original tax-point
+rate/context and genuine adjustment reason, and record the effective VAT
+decrease date. Recoverable purchase VAT requires an explicit eligible treatment.
+
+**Why:** The owner explicitly expanded delivery to the complete four-document
+accounting cycle while retaining development isolation and financial safeguards.
+
+**How to apply:** Preserve prior draft samples. Exercise the same authenticated
+customer-facing application in a separate synthetic company. Draft save is
+never posting acceptance.
+
+The user reported a ChatGPT-assisted browser walkthrough of the complete
+signed-in development four-document cycle
+through normal navigation, explicit in-app posting review, actual journals and
+matching ledger/party/report/VAT workings. Record this as ChatGPT-assisted
+development UI evidence only, never independent owner/accountant sign-off,
+public release, HMRC qualification, independent-human review or qualification
+of a different source revision.
+
+**Why:** The user explicitly corrected the attribution and required this
+distinction in delivery records.
+
+**How to apply:** Preserve the demonstrated posted samples and the deliberately
+unposted create/reopen sample. Keep VAT-offset asset/liability presentation
+distinct from conventional net assets (assets minus liabilities).
 
 Unissued drafts are not receivables. Keep their document row and saved amount,
 but exclude them from receivables/payment KPIs. Draft detail should offer a clean

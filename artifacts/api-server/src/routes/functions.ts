@@ -95,6 +95,11 @@ router.post("/:name", async (req: Request, res: Response) => {
   const { userId } = req as AuthenticatedRequest;
   const funcName = req.params["name"] as string;
   const args = req.body as Record<string, unknown>;
+  if (["postPurchaseBill","generateSalesInvoiceJournals","generatePurchaseBillJournals",
+    "postSalesCreditNote","postSupplierCreditNote","applySalesCreditNote","applySupplierCreditNote"].includes(funcName)) {
+    res.status(403).json({error:"Use the protected native accounting document review/post workflow. Legacy financial effects are disabled."});
+    return;
+  }
   if (funcName === "generateDemoData") {
     res.status(403).json({ error: "Demo invoice generation is held during protected draft workflow development" });
     return;

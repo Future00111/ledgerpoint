@@ -1,3 +1,4 @@
+import VatWorkingsPanel from '@/components/accounting/VatWorkingsPanel';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as nativeEntities from '@/api/entities';
@@ -82,6 +83,8 @@ export default function VATReturns() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      <VatWorkingsPanel />
+      <div role="note" data-testid="text-legacy-vat-warning" className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"><span className="font-semibold">Legacy VAT returns below are not complete.</span> They predate posted journals and may omit or misstate figures. Use the authoritative workings above.</div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">VAT Returns</h1>

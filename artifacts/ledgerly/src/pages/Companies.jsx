@@ -1,3 +1,5 @@
+import { accounting } from '@/api/accountingDocuments.mjs';
+import { Link as RouterLink } from 'react-router-dom';
 import React, { useState } from 'react';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,6 +27,22 @@ export default function Companies() {
   const [demoLoading, setDemoLoading] = useState(false);
   const [demoError, setDemoError] = useState('');
   const { toast } = useToast();
+  const [acctDemo, setAcctDemo] = useState({ loading: false, error: '', result: null });
+  const startAccountingDemo = async () => {
+    if (acctDemo.loading) return;
+    setAcctDemo({ loading: true, error: '', result: null });
+    try {
+      const result = await accounting.bootstrapDemo();
+      const refreshed = await loadCompanies();
+      const target = refreshed?.find(company => company.id === result?.company?.id);
+      if (!target) throw new Error('The synthetic company was created, but the company list could not refresh. Reload to open it.');
+      switchCompany(target);
+      setAcctDemo({ loading: false, error: '', result });
+      toast({ title: 'Synthetic accounting demo ready', description: 'Four drafts created. Nothing has been posted.' });
+    } catch (error) {
+      setAcctDemo({ loading: false, error: error.message || 'Could not create the synthetic accounting demo.', result: null });
+    }
+  };
 
   const openCreate = () => { setEditing(null); setFormOpen(true); };
   const openEdit = (c) => { setEditing(c); setFormOpen(true); };
@@ -84,6 +102,27 @@ export default function Companies() {
               {demoLoading ? 'Preparing demo…' : 'Create / open synthetic invoice demo'}
             </Button>
             {demoError && <p role="alert" className="w-full rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900 sm:basis-full">{demoError}</p>}
+          </CardContent>
+        </Card>
+      )}
+
+      {import.meta.env.DEV && (
+        <Card className="border border-violet-200 bg-violet-50/60 shadow-none">
+          <CardContent className="space-y-3 p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-medium text-violet-950">Synthetic test data · accounting demo</p>
+                <p className="mt-1 text-sm text-violet-900">Creates a new synthetic company with posting setup and four drafts: a sales invoice, a purchase bill and a linked credit note for each. You post them yourself.</p>
+              </div>
+              <Button variant="outline" data-testid="button-accounting-demo" onClick={startAccountingDemo} disabled={acctDemo.loading}>
+                {acctDemo.loading ? 'Preparing…' : 'Create synthetic accounting demo'}
+              </Button>
+            </div>
+            {acctDemo.error && <p role="alert" className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900">{acctDemo.error}</p>}
+            {acctDemo.result && <div className="flex flex-wrap gap-3 text-sm">
+              <span className="text-violet-950">{acctDemo.result.company?.name} is now active. Open the drafts:</span>
+              {[['/invoices', 'Sales invoice'], ['/bills', 'Purchase bill'], ['/sales-credit-notes', 'Sales credit'], ['/supplier-credit-notes', 'Supplier credit']].map(([to, l]) => <RouterLink key={to} to={to} className="font-medium text-primary underline underline-offset-4">{l}</RouterLink>)}
+            </div>}
           </CardContent>
         </Card>
       )}

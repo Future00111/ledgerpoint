@@ -34,7 +34,7 @@ const PREDEFINED_TAGS = ['VIP', 'Fleet', 'Trade', 'Cash Account', 'High Risk', '
 export default function CustomerWorkspace({
   customer, open, onOpenChange,
   onEdit, onArchive, onDuplicate, onExport, onMerge, onDelete,
-  arrival,
+  arrival, postedBalance,
 }) {
   const { activeCompany } = useCompany();
   const nav = useNavigate();
@@ -393,7 +393,8 @@ export default function CustomerWorkspace({
     statusLabel: customer.status === 'active' ? 'Active' : 'Inactive',
     statusTone: customer.status === 'active' ? 'green' : 'amber',
     metrics: [
-      { label: 'Outstanding', value: gbp.format(outstanding), tone: outstanding > 0 ? 'rose' : 'emerald' },
+      { label: 'Posted balance', value: postedBalance ?? 'Unavailable' },
+      { label: 'Legacy outstanding (incomplete)', value: gbp.format(outstanding) },
       { label: 'Credit Limit', value: customer.credit_limit ? gbp.format(customer.credit_limit) : 'None' },
       { label: 'Payment Terms', value: `${terms} days` },
     ],

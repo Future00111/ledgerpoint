@@ -8,12 +8,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Mail, Phone, Pencil, MoreHorizontal, Archive, Trash2, Copy, Download, GitMerge, ArrowUpRight } from 'lucide-react';
 
-const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 
 // Entire card is clickable to open the Customer Profile (Workspace).
 // Edit + More (⋯) are explicit actions; the rest of the surface opens the profile.
 // Keyboard accessible (Enter / Space) with a clear focus ring and hover state.
-export default function CustomerCard({ customer, onOpen, onEdit, onArchive, onDelete, onDuplicate, onExport, onMerge }) {
+export default function CustomerCard({ customer, postedBalance, onOpen, onEdit, onArchive, onDelete, onDuplicate, onExport, onMerge }) {
   const c = customer;
   const initials = (c.name || '?')
     .split(/\s+/)
@@ -55,9 +54,9 @@ export default function CustomerCard({ customer, onOpen, onEdit, onArchive, onDe
               {c.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3 shrink-0" />{c.phone}</span>}
               {!c.contact_name && !c.email && !c.phone && <span>No contact details yet</span>}
             </div>
-            {c.outstanding_balance > 0 && (
-              <span className="mt-2 inline-flex rounded-md bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700">
-                Owed: {gbp.format(c.outstanding_balance)}
+            {postedBalance != null && (
+              <span className="mt-2 inline-flex rounded-md bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700" data-testid={`text-posted-balance-${c.id}`}>
+                Posted balance: {postedBalance}
               </span>
             )}
           </div>

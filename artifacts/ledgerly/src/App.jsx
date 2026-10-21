@@ -22,11 +22,6 @@ import InvoiceForm from '@/pages/InvoiceForm';
 import InvoiceDetail from '@/pages/InvoiceDetail';
 import Collections from '@/pages/Collections';
 import Bills from '@/pages/Bills';
-import BillForm from '@/pages/BillForm';
-import SalesCreditNotes from '@/pages/SalesCreditNotes';
-import SalesCreditNoteForm from '@/pages/SalesCreditNoteForm';
-import SupplierCreditNotes from '@/pages/SupplierCreditNotes';
-import SupplierCreditNoteForm from '@/pages/SupplierCreditNoteForm';
 import BankAccounts from '@/pages/BankAccounts';
 import BankTransactions from '@/pages/BankTransactions';
 import Reconciliation from '@/pages/Reconciliation';
@@ -50,6 +45,11 @@ import AIAccountantInbox from '@/pages/AIAccountantInbox';
 import AIAccountantTasks from '@/pages/AIAccountantTasks';
 import AIAccountantReviews from '@/pages/AIAccountantReviews';
 import AIAccountantRecommendations from '@/pages/AIAccountantRecommendations';
+import AccountingDocumentList from '@/pages/AccountingDocumentList';
+import AccountingDocumentForm from '@/pages/AccountingDocumentForm';
+import AccountingJournal from '@/pages/AccountingJournal';
+import AccountingReports from '@/pages/AccountingReports';
+import AccountingSetup from '@/pages/AccountingSetup';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -167,20 +167,26 @@ const AuthenticatedApp = () => {
               <Route path="/customers" element={<Customers />} />
               <Route path="/customers/:id" element={<Customers />} />
               <Route path="/suppliers" element={<Suppliers />} />
-              <Route path="/invoices" element={<Invoices />} />
-              <Route path="/invoices/new" element={<InvoiceForm />} />
-              <Route path="/invoices/:id" element={<InvoiceForm />} />
-              <Route path="/invoices/:id/view" element={<InvoiceDetail />} />
+              <Route path="/invoices" element={<AccountingDocumentList kind="sales_invoice" legacyLink="/invoices/earlier-drafts" />} />
+              <Route path="/invoices/earlier-drafts" element={<Invoices />} />
+              <Route path="/invoices/new" element={<AccountingDocumentForm kind="sales_invoice" />} />
+              <Route path="/invoices/legacy/new" element={<InvoiceForm />} />
+              <Route path="/invoices/:id" element={<AccountingDocumentForm kind="sales_invoice" legacyFallback={<InvoiceForm />} />} />
+              <Route path="/invoices/:id/view" element={<AccountingDocumentForm kind="sales_invoice" legacyFallback={<InvoiceDetail />} />} />
               <Route path="/collections" element={<Collections />} />
-              <Route path="/bills" element={<Bills />} />
-              <Route path="/bills/new" element={<BillForm />} />
-              <Route path="/bills/:id" element={<BillForm />} />
-              <Route path="/sales-credit-notes" element={<SalesCreditNotes />} />
-              <Route path="/sales-credit-notes/new" element={<SalesCreditNoteForm />} />
-              <Route path="/sales-credit-notes/:id" element={<SalesCreditNoteForm />} />
-              <Route path="/supplier-credit-notes" element={<SupplierCreditNotes />} />
-              <Route path="/supplier-credit-notes/new" element={<SupplierCreditNoteForm />} />
-              <Route path="/supplier-credit-notes/:id" element={<SupplierCreditNoteForm />} />
+              <Route path="/bills" element={<AccountingDocumentList kind="purchase_bill" />} />
+              <Route path="/bills/earlier" element={<Bills />} />
+              <Route path="/bills/new" element={<AccountingDocumentForm kind="purchase_bill" />} />
+              <Route path="/bills/:id" element={<AccountingDocumentForm kind="purchase_bill" />} />
+              <Route path="/sales-credit-notes" element={<AccountingDocumentList kind="sales_credit_note" />} />
+              <Route path="/sales-credit-notes/new" element={<AccountingDocumentForm kind="sales_credit_note" />} />
+              <Route path="/sales-credit-notes/:id" element={<AccountingDocumentForm kind="sales_credit_note" />} />
+              <Route path="/supplier-credit-notes" element={<AccountingDocumentList kind="supplier_credit_note" />} />
+              <Route path="/supplier-credit-notes/new" element={<AccountingDocumentForm kind="supplier_credit_note" />} />
+              <Route path="/supplier-credit-notes/:id" element={<AccountingDocumentForm kind="supplier_credit_note" />} />
+              <Route path="/accounting/journals/:id" element={<AccountingJournal />} />
+              <Route path="/accounting/reports" element={<AccountingReports />} />
+              <Route path="/accounting/setup" element={<AccountingSetup />} />
               <Route path="/bank-accounts" element={<BankAccounts />} />
               <Route path="/transactions" element={<BankTransactions />} />
               <Route path="/reconciliation" element={<Reconciliation />} />
@@ -189,10 +195,12 @@ const AuthenticatedApp = () => {
               <Route path="/documents" element={<Documents />} />
               <Route path="/email-capture" element={<EmailCapture />} />
               <Route path="/email-rules" element={<EmailRules />} />
-              <Route path="/reports" element={<Reports />} />
+              <Route path="/reports" element={<AccountingReports defaultTab="tb" />} />
+              <Route path="/reports/legacy" element={<Reports />} />
               <Route path="/accountant" element={<AccountantPortal />} />
               <Route path="/chart-of-accounts" element={<ChartOfAccounts />} />
-              <Route path="/general-ledger" element={<GeneralLedger />} />
+              <Route path="/general-ledger" element={<AccountingReports defaultTab="gl" />} />
+              <Route path="/general-ledger/manual-journals" element={<GeneralLedger />} />
               <Route path="/insights" element={<Insights />} />
               <Route path="/smart-suggestions" element={<SmartSuggestions />} />
               <Route path="/settings" element={<Settings />} />

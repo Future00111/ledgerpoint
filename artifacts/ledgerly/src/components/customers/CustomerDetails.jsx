@@ -18,7 +18,7 @@ function Field({ icon: Icon, label, value }) {
   );
 }
 
-export default function CustomerDetails({ customer, open, onOpenChange }) {
+export default function CustomerDetails({ customer, open, onOpenChange, postedBalance }) {
   const [stats, setStats] = useState({ invoiceCount: 0, totalSales: 0, lastInvoiceDate: null });
   const [loading, setLoading] = useState(false);
 
@@ -67,7 +67,7 @@ export default function CustomerDetails({ customer, open, onOpenChange }) {
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="rounded-lg border border-border p-3">
               <p className="text-xs text-muted-foreground">Outstanding Balance</p>
-              <p className="text-lg font-semibold">{gbp.format(customer.outstanding_balance || 0)}</p>
+              <p className="text-lg font-semibold">{postedBalance ?? 'See posted ledger'}</p>
             </div>
             <div className="rounded-lg border border-border p-3">
               <p className="text-xs text-muted-foreground">Number of Invoices</p>

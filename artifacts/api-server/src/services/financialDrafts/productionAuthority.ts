@@ -22,6 +22,15 @@ function basisPoints(value: unknown): bigint {
 const halfUp = (numerator: bigint, denominator: bigint) => (2n * numerator + denominator) / (2n * denominator);
 const fourDecimals = (scaled: bigint) => `${scaled / 10000n}.${(scaled % 10000n).toString().padStart(4, "0")}`;
 
+/** Shared deterministic line arithmetic; linked credits supply the original tax-point rate. */
+export function calculateTaxLine(entered: bigint, rate: bigint, basis: string, unitPrice: string) {
+  const vat = halfUp(entered * rate, basis === "including_vat" ? 10000n + rate : 10000n);
+  const net = basis === "including_vat" ? entered - vat : entered;
+  const unitNetPrice = basis === "including_vat" && rate !== 0n
+    ? fourDecimals(halfUp(decimal(unitPrice, false) * 10000n, 10000n + rate)) : unitPrice;
+  return {net,vat,unitNetPrice};
+}
+
 export function createProductionInvoiceDraftAuthority(): DraftAuthority {
   return {
     async assertWritable(tx: pg.PoolClient, companyId: string, invoiceId: string | undefined, _source: InvoiceSource) {
@@ -39,7 +48,10 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
       // Any canonical source record, including a reversed posting, permanently
       // removes an invoice from this draft-only editor.
       const postings = await tx.query(
-        "SELECT id FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2 FOR SHARE",
+        // The company SHARE lock above serializes canonical posting (which
+        // requires that same company's UPDATE lock). Immutable journal headers
+        // need no UPDATE privilege merely to check the source link.
+        "SELECT id FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2",
         [companyId, invoiceId],
       );
       if (postings.rowCount) fail(409, "DOCUMENT_NOT_DRAFT");

@@ -24,7 +24,7 @@ function Field({ icon: Icon, label, value }) {
   );
 }
 
-export default function SupplierDetails({ supplier, open, onOpenChange }) {
+export default function SupplierDetails({ supplier, postedBalance, open, onOpenChange }) {
   const [stats, setStats] = useState({ billCount: 0, totalPurchases: 0, lastBillDate: null });
   const [loading, setLoading] = useState(false);
 
@@ -72,8 +72,9 @@ export default function SupplierDetails({ supplier, open, onOpenChange }) {
 
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Outstanding Bills</p>
-              <p className="text-lg font-semibold">{gbp.format(supplier.outstanding_balance || 0)}</p>
+              <p className="text-xs text-muted-foreground">Posted balance (bills and credits)</p>
+              <p className="text-lg font-semibold" data-testid="text-supplier-posted-balance">{postedBalance ?? 'Unavailable'}</p>
+              <a href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/accounting/reports?tab=parties&party_id=${encodeURIComponent(supplier.id)}`} className="text-xs text-primary hover:underline">Posted ledger history</a>
             </div>
             <div className="rounded-lg border border-border p-3">
               <p className="text-xs text-muted-foreground">Number of Bills</p>

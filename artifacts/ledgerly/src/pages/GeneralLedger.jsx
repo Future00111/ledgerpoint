@@ -1,3 +1,4 @@
+import { LedgerNotice } from '@/components/accounting/AccountingUI';
 import React, { useState, useEffect } from 'react';
 import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
@@ -120,6 +121,7 @@ export default function GeneralLedger() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      <LedgerNotice tab="gl" text="Posted sales, purchase and credit documents appear in the authoritative general ledger" />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">General Ledger</h1>

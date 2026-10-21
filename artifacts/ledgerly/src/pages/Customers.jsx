@@ -1,3 +1,6 @@
+import { LedgerNotice, PartyLedgerLink } from '@/components/accounting/AccountingUI';
+import { usePostedPartyLedger } from '@/lib/usePostedPartyLedger';
+import { penceToDisplay } from '@/api/accountingDocuments.mjs';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import * as nativeEntities from '@/api/entities';
@@ -31,6 +34,7 @@ export default function Customers() {
   const [mergeOpen, setMergeOpen] = useState(false);
   const [search, setSearch] = useState('');
   const { toast } = useToast();
+  const ledger = usePostedPartyLedger(activeCompany?.id, 'customer');
 
   useEffect(() => {
     if (activeCompany) loadCustomers();
@@ -101,12 +105,12 @@ export default function Customers() {
   );
   const activeCount = customers.filter((c) => c.status !== 'inactive').length;
   const contactCount = customers.filter((c) => c.email || c.phone).length;
-  const outstandingTotal = customers.reduce((sum, c) => sum + (Number(c.outstanding_balance) || 0), 0);
 
   if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
 
   return (
     <div className="mx-auto max-w-6xl space-y-5 pb-8">
+      <LedgerNotice tab="parties" party={focusId} text={focusId ? "This customer's posted balance and history" : "Customer balances and histories from posted journals"} />
       <section className="relative overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-br from-card via-card to-primary/[0.04] px-5 py-5 shadow-sm sm:px-6">
         <div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-primary/[0.08] blur-3xl" />
         <div className="relative flex flex-col gap-5">
@@ -143,9 +147,11 @@ export default function Customers() {
             </div>
             <div className="rounded-xl border border-border/70 bg-background/60 px-3.5 py-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <WalletCards className="h-3.5 w-3.5 text-amber-600" /> Outstanding balance
+                <WalletCards className="h-3.5 w-3.5 text-amber-600" /> Posted receivables
               </div>
-              <p className="mt-1 text-xl font-semibold">{gbp.format(outstandingTotal)}</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums" data-testid="text-posted-receivables">{ledger.status === 'ready' ? penceToDisplay(ledger.total) : ledger.status === 'loading' ? <span className="inline-block h-6 w-20 animate-pulse rounded bg-muted" /> : 'Unavailable'}</p>
+              {ledger.status === 'error' && <button type="button" className="text-[11px] text-red-700 underline" onClick={ledger.retry} data-testid="button-retry-ledger">Posted balances could not load. Retry</button>}
+              {ledger.status === 'ready' && ledger.ageingTotals && <p className="mt-0.5 text-[11px] text-muted-foreground">Overdue: {penceToDisplay((BigInt(ledger.ageingTotals.days_1_30_minor) + BigInt(ledger.ageingTotals.days_31_60_minor) + BigInt(ledger.ageingTotals.days_61_90_minor) + BigInt(ledger.ageingTotals.days_90_plus_minor)).toString())} · from posted journals</p>}
             </div>
           </div>
         </div>
@@ -196,9 +202,10 @@ export default function Customers() {
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
           {filtered.map(c => (
+            <div key={c.id} className="space-y-1">
             <CustomerCard
-              key={c.id}
               customer={c}
+              postedBalance={ledger.display(c.id)}
               onOpen={openView}
               onEdit={openEdit}
               onArchive={handleArchive}
@@ -207,6 +214,8 @@ export default function Customers() {
               onExport={handleExport}
               onMerge={openMerge}
             />
+            <PartyLedgerLink partyId={c.id} />
+            </div>
           ))}
         </div>
       )}
@@ -214,6 +223,7 @@ export default function Customers() {
       <CustomerForm open={formOpen} onOpenChange={setFormOpen} editing={editing} companyId={activeCompany.id} onSaved={loadCustomers} />
       <CustomerWorkspace
         customer={viewing}
+        postedBalance={viewing ? ledger.display(viewing.id) : null}
         open={detailsOpen}
         onOpenChange={(o) => { setDetailsOpen(o); if (!o && searchParams.toString()) nav('/customers', { replace: true }); }}
         arrival={arrival}

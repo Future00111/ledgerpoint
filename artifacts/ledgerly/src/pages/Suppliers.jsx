@@ -1,3 +1,6 @@
+import { LedgerNotice, PartyLedgerLink } from '@/components/accounting/AccountingUI';
+import { usePostedPartyLedger, minorToNumber } from '@/lib/usePostedPartyLedger';
+import { penceToDisplay } from '@/api/accountingDocuments.mjs';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as nativeEntities from '@/api/entities';
@@ -20,14 +23,9 @@ import {
   WalletCards,
   AlertTriangle,
 } from 'lucide-react';
-import moment from 'moment';
 import SupplierForm from '@/components/suppliers/SupplierForm';
 import SupplierDetails from '@/components/suppliers/SupplierDetails';
 
-const gbp = new Intl.NumberFormat('en-GB', {
-  style: 'currency',
-  currency: 'GBP',
-});
 
 const number = new Intl.NumberFormat('en-GB', {
   minimumFractionDigits: 2,
@@ -40,7 +38,6 @@ export default function Suppliers() {
   const { activeCompany } = useCompany();
   const { toast } = useToast();
   const [suppliers, setSuppliers] = useState([]);
-  const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -58,12 +55,8 @@ export default function Suppliers() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [supplierList, billList] = await Promise.all([
-        nativeEntities.Supplier.filter({ company_id: activeCompany.id }),
-        nativeEntities.PurchaseBill.filter({ company_id: activeCompany.id }, '-bill_date'),
-      ]);
+      const supplierList = await nativeEntities.Supplier.filter({ company_id: activeCompany.id });
       setSuppliers(supplierList || []);
-      setBills(billList || []);
     } catch (e) {
       console.error(e);
       toast({ title: 'Could not load suppliers', description: e.message, variant: 'destructive' });
@@ -98,55 +91,18 @@ export default function Suppliers() {
     }
   };
 
-  const today = moment().format('YYYY-MM-DD');
-  const yearAgo = moment().subtract(365, 'days').format('YYYY-MM-DD');
 
-  const billMetrics = useMemo(() => {
-    const recentBills = bills.filter(
-      (bill) =>
-        bill.bill_date >= yearAgo &&
-        bill.status !== 'cancelled',
-    );
-    const unpaidBills = recentBills.filter(
-      (bill) => bill.status !== 'paid' && Number(bill.balance_due) > 0,
-    );
-    const overdue = unpaidBills
-      .filter((bill) => bill.due_date && bill.due_date < today)
-      .reduce((sum, bill) => sum + (Number(bill.balance_due) || 0), 0);
-    const notDue = unpaidBills
-      .filter((bill) => !bill.due_date || bill.due_date >= today)
-      .reduce((sum, bill) => sum + (Number(bill.balance_due) || 0), 0);
-    const paid = recentBills.reduce((sum, bill) => sum + (Number(bill.amount_paid) || 0), 0);
+  const ledger = usePostedPartyLedger(activeCompany?.id, 'supplier');
+  const overdueMinor = ledger.ageingTotals
+    ? (BigInt(ledger.ageingTotals.days_1_30_minor) + BigInt(ledger.ageingTotals.days_31_60_minor) + BigInt(ledger.ageingTotals.days_61_90_minor) + BigInt(ledger.ageingTotals.days_90_plus_minor)).toString()
+    : null;
+  const ledgerValue = (minor) => ledger.status === 'ready' ? penceToDisplay(minor) : ledger.status === 'loading' ? 'Loading…' : 'Unavailable';
 
-    return {
-      overdue,
-      notDue,
-      paid,
-      unpaid: overdue + notDue,
-      overduePercent: overdue + notDue > 0
-        ? Math.round((overdue / (overdue + notDue)) * 100)
-        : 0,
-    };
-  }, [bills, today, yearAgo]);
-
-  const supplierRows = useMemo(() => {
-    const balances = new Map();
-    bills.forEach((bill) => {
-      if (!bill.supplier_id || bill.status === 'cancelled') return;
-      const current = balances.get(bill.supplier_id) || 0;
-      balances.set(
-        bill.supplier_id,
-        current + (bill.status === 'paid' ? 0 : Number(bill.balance_due) || 0),
-      );
-    });
-
-    return suppliers.map((supplier) => ({
-      ...supplier,
-      openBalance: balances.has(supplier.id)
-        ? balances.get(supplier.id)
-        : Number(supplier.outstanding_balance) || 0,
-    }));
-  }, [suppliers, bills]);
+  const supplierRows = useMemo(() => suppliers.map((supplier) => ({
+    ...supplier,
+    // Posted payables only; null while unavailable so nothing is shown as a false zero.
+    openBalance: ledger.status === 'ready' ? minorToNumber(ledger.balances.get(supplier.id) ?? '0') : null,
+  })), [suppliers, ledger.status, ledger.balances]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -162,8 +118,8 @@ export default function Suppliers() {
     });
 
     return rows.sort((a, b) => {
-      const aValue = sortField === 'openBalance' ? a.openBalance : (a[sortField] || '');
-      const bValue = sortField === 'openBalance' ? b.openBalance : (b[sortField] || '');
+      const aValue = sortField === 'openBalance' ? (a.openBalance ?? -Infinity) : (a[sortField] || '');
+      const bValue = sortField === 'openBalance' ? (b.openBalance ?? -Infinity) : (b[sortField] || '');
       if (aValue < bValue) return sortDir === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortDir === 'asc' ? 1 : -1;
       return 0;
@@ -219,6 +175,7 @@ export default function Suppliers() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5 pb-10">
+      <LedgerNotice tab="parties" text="Supplier balances and histories from posted journals" />
       <section className="relative overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-br from-card via-card to-primary/[0.05] px-5 py-5 shadow-sm sm:px-6">
         <div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-primary/[0.08] blur-3xl" />
         <div className="relative space-y-5">
@@ -231,7 +188,7 @@ export default function Suppliers() {
                 <p className="text-xs font-medium uppercase tracking-[0.14em] text-primary">Purchase directory</p>
                 <h1 className="mt-1 text-2xl font-semibold tracking-tight">Suppliers</h1>
                 <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-                  Keep supplier contacts, payment activity, and open balances easy to review.
+                  Supplier contacts, with balances taken from posted bills and credit notes.
                 </p>
               </div>
             </div>
@@ -245,26 +202,27 @@ export default function Suppliers() {
             <div className="rounded-xl border border-border/70 bg-background/60 px-3.5 py-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <WalletCards className="h-3.5 w-3.5 text-primary" />
-                Unpaid balance
+                Posted payables
               </div>
-              <p className="mt-1 text-xl font-semibold tabular-nums">{gbp.format(billMetrics.unpaid)}</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">Last 365 days</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums" data-testid="text-posted-payables">{ledgerValue(ledger.total)}</p>
+              {ledger.status === 'error' ? <button type="button" onClick={ledger.retry} data-testid="button-retry-ledger" className="mt-0.5 text-[11px] text-red-700 underline">Could not load. Retry</button>
+                : <p className="mt-0.5 text-[11px] text-muted-foreground">Document balances as at today</p>}
             </div>
             <div className="rounded-xl border border-border/70 bg-background/60 px-3.5 py-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <AlertTriangle className="h-3.5 w-3.5 text-orange-600" />
                 Needs attention
               </div>
-              <p className="mt-1 text-xl font-semibold tabular-nums">{gbp.format(billMetrics.overdue)}</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">{billMetrics.overduePercent}% of unpaid is overdue</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums" data-testid="text-posted-overdue">{ledgerValue(overdueMinor)}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Overdue per posted ageing</p>
             </div>
             <div className="rounded-xl border border-border/70 bg-background/60 px-3.5 py-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <CircleCheck className="h-3.5 w-3.5 text-emerald-600" />
-                Paid activity
+                Payments
               </div>
-              <p className="mt-1 text-xl font-semibold tabular-nums">{gbp.format(billMetrics.paid)}</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">Last 365 days</p>
+              <p className="mt-1 text-sm font-medium">Not yet recorded in the posted ledger</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Balances reflect bills and credits only, not payments made.</p>
             </div>
           </div>
         </div>
@@ -348,7 +306,7 @@ export default function Suppliers() {
               <tbody className="divide-y divide-border/60">
                 {filtered.map((supplier) => {
                   const isSelected = selected.has(supplier.id);
-                  const hasBalance = supplier.openBalance > 0;
+                  const hasBalance = (supplier.openBalance ?? 0) > 0;
                   return (
                     <tr
                       key={supplier.id}
@@ -370,6 +328,7 @@ export default function Suppliers() {
                         >
                           {supplier.name || 'Unnamed supplier'}
                         </button>
+                        <PartyLedgerLink partyId={supplier.id} />
                         {supplier.status !== 'active' && (
                           <span className="mt-0.5 block text-[10px] text-muted-foreground">Inactive</span>
                         )}
@@ -389,7 +348,7 @@ export default function Suppliers() {
                         ) : '—'}
                       </td>
                       <td className={`px-3 py-2.5 text-right text-xs tabular-nums ${hasBalance ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
-                        {number.format(supplier.openBalance)}
+                        {supplier.openBalance == null ? <span className="text-muted-foreground">{ledger.status === 'loading' ? '…' : 'Unavailable'}</span> : number.format(supplier.openBalance)}
                       </td>
                       <td className="px-3 py-2.5 text-right">
                         <div className="inline-flex items-center justify-end gap-2">
@@ -401,7 +360,7 @@ export default function Suppliers() {
                                 : 'border-border bg-background text-muted-foreground hover:border-primary/30 hover:bg-primary/[0.04] hover:text-primary'
                             }`}
                           >
-                            {hasBalance ? 'Make payment' : 'Create bill'}
+                            {hasBalance ? 'Open bills' : 'Create bill'}
                           </Link>
                           <button
                             onClick={() => openView(supplier)}
@@ -451,6 +410,7 @@ export default function Suppliers() {
       />
       <SupplierDetails
         supplier={viewing}
+        postedBalance={viewing ? ledger.display(viewing.id) : null}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
       />

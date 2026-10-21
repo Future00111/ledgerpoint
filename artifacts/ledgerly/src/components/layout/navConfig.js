@@ -60,7 +60,8 @@ export const SECTIONS = [
     key: 'accounting', label: 'Accounting', icon: Calculator,
     items: [
       { label: 'Chart of Accounts', path: '/chart-of-accounts', icon: BookOpen },
-      { label: 'Journal Entries', icon: ClipboardList, soon: true },
+      { label: 'Manual Journals (legacy)', path: '/general-ledger/manual-journals', icon: ClipboardList },
+      { label: 'Posting Setup', path: '/accounting/setup', icon: Wrench },
       { label: 'VAT Returns', path: '/vat', icon: Percent },
       { label: 'General Ledger', path: '/general-ledger', icon: Grid3x3 },
     ],
@@ -80,6 +81,7 @@ export const SECTIONS = [
     key: 'reports', label: 'Reports', icon: BarChart3,
     items: [
       { label: 'Reports', path: '/reports', icon: BarChart3 },
+      { label: 'Legacy Reports', path: '/reports/legacy', icon: FileBarChart },
       { label: 'AI Insights', path: '/insights', icon: Sparkles },
       { label: 'Custom Reports', icon: FileBarChart, soon: true },
     ],

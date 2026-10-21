@@ -1,3 +1,4 @@
+import { LedgerNotice } from '@/components/accounting/AccountingUI';
 import React, { useState, useEffect } from 'react';
 import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
@@ -56,6 +57,7 @@ export default function Reports() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <LedgerNotice tab="tb" text="Trial balance, P&L, balance sheet and VAT from posted journals" />
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
         <p className="text-muted-foreground text-sm mt-1">Generate financial reports with drill-down and export.</p>
