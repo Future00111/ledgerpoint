@@ -248,7 +248,7 @@ test('discounted returned-item claims use the paid-for value and commercial disc
   const commercial=await discountCredit(f,bill);await post(f,commercial);
   const fresh=(await claimsFor(f,bill))[0];assert.equal(fresh.status,'awaiting');assert.equal(fresh.candidates.length,0);
   const confirm=await request(f.company,`/credit-claims/${claim.id}/receipts`,'POST',receiptIntent(commercial),claim.revision);
-  assert.equal(confirm.status,422,JSON.stringify(confirm));assert.equal(confirm.error.code,'CREDIT_MATCH_INVALID');
+  assert.equal(confirm.status,409,JSON.stringify(confirm));assert.equal(confirm.error.code,'CREDIT_MATCH_INVALID');
   const returned=await create(f,'supplier_credit_note',{...bill.source,discount:null,invoice_number:'DISCOUNTED-RETURN-'+randomUUID(),line_items:[{...bill.source.line_items[0],quantity:'0.5'}]},
     {original_id:bill.id,reason:'Part returned',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-21',original_line_refs:[0]});
   assert.equal(returned.money.gross_pence,'5400');await post(f,returned);
