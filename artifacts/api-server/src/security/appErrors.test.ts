@@ -1,4 +1,5 @@
 import test from "node:test";
+import pino from "pino";
 import assert from "node:assert/strict";
 import type { Express, Request, Response, NextFunction } from "express";
 import { appErrorResponse, RejectedOriginError, safeAppErrors } from "./appErrors";
@@ -160,4 +161,36 @@ test("an already-started response closes without headers, body, or raw errors re
     () => assert.fail("the raw error must not reach the default handler"));
   assert.equal(closed, true);
   assert.deepEqual(logs, [[{ error_code: "unexpected_error" }, "Request failed"]]);
+});
+
+// Keep the request boundary checks in the existing aggregate source test entry.
+import "./requestLimits.test";
+
+test("actual app limits URL-encoded parameter counts before Clerk and suppresses server fingerprint", async () => {
+  const logs: unknown[] = [];
+  await serve(await trackedApp(logs), async url => {
+    const response = await fetch(`${url}/api/companies`, {
+      method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: Array.from({ length: 101 }, (_, index) => `p${index}=${secret}`).join("&"),
+    });
+    assert.equal(response.headers.get("x-powered-by"), null);
+    assert.equal(response.headers.get("referrer-policy"), "no-referrer");
+    await expectError(response, 413, "The request body is too large.");
+  });
+  assert.deepEqual(logs, [[{ error_code: "body_too_large" }, "Request failed"]]);
+});
+
+test("logger serializes errors as a fixed category and redacts bodies, session tokens and provider responses", async () => {
+  const { securityLogOptions } = await import("../lib/logger");
+  let output = "";
+  const log = pino(securityLogOptions, { write(chunk: string) { output += chunk; } });
+  log.error({ err: new Error(secret, { cause: new Error(secret) }), error: { message: secret },
+    body: secret, token: secret, response: secret, providerResponse: secret,
+    req: { body: secret, query: secret, headers: { authorization: secret, cookie: secret } },
+    res: { headers: { "set-cookie": secret } } }, "Request failed");
+  assert.equal(output.includes(secret), false);
+  const record = JSON.parse(output);
+  assert.deepEqual(record.err, { type: "RedactedError" });
+  assert.deepEqual(record.error, { type: "RedactedError" });
+  assert.equal(record.msg, "Request failed");
 });

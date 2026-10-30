@@ -1,0 +1,2131 @@
+{
+  "version": 1,
+  "asOf": "2026-10-30",
+  "authority": "docs/ledgerly-active-product-plan.md",
+  "enginePolicy": "in_house_only",
+  "purpose": "Qualification inventory for new tax/payroll engines; does not replace existing VAT document posting boundaries or enable any calculation or filing.",
+  "scopePolicy": "Pending or unsupported means not yet qualified; it never removes a promised commercial feature. This initial inventory is not exhaustive: unknown combinations remain rejected and must be resolved against the full backlog before P04-01 acceptance.",
+  "statusValues": [
+    "supported",
+    "unsupported"
+  ],
+  "selectorFields": [
+    "domain",
+    "entity",
+    "scheme",
+    "income",
+    "employment",
+    "taxYear"
+  ],
+  "sources": {
+    "vat": {
+      "url": "https://www.gov.uk/guidance/vat-guide-notice-700",
+      "checkedAt": "2026-10-30",
+      "evidence": "Official source located; rates, schemas and calculation fixtures not yet pinned or independently reviewed."
+    },
+    "schemes": {
+      "url": "https://www.gov.uk/how-vat-works/vat-schemes",
+      "checkedAt": "2026-10-30",
+      "evidence": "Official source located; rates, schemas and calculation fixtures not yet pinned or independently reviewed."
+    },
+    "income": {
+      "url": "https://www.gov.uk/government/publications/self-assessment-technical-specifications-for-software-developers",
+      "checkedAt": "2026-10-30",
+      "evidence": "Official source located; rates, schemas and calculation fixtures not yet pinned or independently reviewed."
+    },
+    "rates": {
+      "url": "https://www.gov.uk/government/publications/rates-and-allowances-income-tax/income-tax-rates-and-allowances-current-and-past",
+      "checkedAt": "2026-10-30",
+      "evidence": "Official source located; rates, schemas and calculation fixtures not yet pinned or independently reviewed."
+    },
+    "corporation": {
+      "url": "https://www.gov.uk/government/collections/corporation-tax-online-support-for-software-developers",
+      "checkedAt": "2026-10-30",
+      "evidence": "Official source located; rates, schemas and calculation fixtures not yet pinned or independently reviewed."
+    },
+    "payroll": {
+      "url": "https://www.gov.uk/government/publications/real-time-information-internet-submissions-2026-to-2027-technical-specifications",
+      "checkedAt": "2026-10-30",
+      "evidence": "Official source located; rates, schemas and calculation fixtures not yet pinned or independently reviewed."
+    }
+  },
+  "openQualificationRequirements": [
+    "Enumerate all regional/residency, multiple-business, income interaction and company framework/supplement cases against P10/P11.",
+    "Pin year-specific official calculation routines, eligibility, rounding rules and schemas; do not reuse one year for another.",
+    "Add independently reviewed exact input/output fixtures and reviewer evidence before promoting any case to supported.",
+    "Qualify payroll tax codes/bases, NI categories/director methods, schedules, statutory pay, loans, deductions, pensions and combinations.",
+    "Retain VAT exemptions, zero/reduced rates, cross-border, reverse charge and unsupported scheme decisions from existing accounting contracts."
+  ],
+  "cases": [
+    {
+      "id": "vat-standard-2025-26",
+      "selector": {
+        "domain": "vat",
+        "entity": "sole_trader",
+        "scheme": "standard_invoice",
+        "income": "none",
+        "employment": "none",
+        "taxYear": "2025-26"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P08-01",
+        "P08-02"
+      ],
+      "ruleProvenance": {
+        "sourceId": "vat",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "vat",
+          "entity": "sole_trader",
+          "scheme": "standard_invoice",
+          "income": "none",
+          "employment": "none",
+          "taxYear": "2025-26"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "vat-standard-2025-26"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "vat-standard-2026-27",
+      "selector": {
+        "domain": "vat",
+        "entity": "sole_trader",
+        "scheme": "standard_invoice",
+        "income": "none",
+        "employment": "none",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P08-01",
+        "P08-02"
+      ],
+      "ruleProvenance": {
+        "sourceId": "vat",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "vat",
+          "entity": "sole_trader",
+          "scheme": "standard_invoice",
+          "income": "none",
+          "employment": "none",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "vat-standard-2026-27"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "vat-standard-2027-28",
+      "selector": {
+        "domain": "vat",
+        "entity": "sole_trader",
+        "scheme": "standard_invoice",
+        "income": "none",
+        "employment": "none",
+        "taxYear": "2027-28"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P08-01",
+        "P08-02"
+      ],
+      "ruleProvenance": {
+        "sourceId": "vat",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "vat",
+          "entity": "sole_trader",
+          "scheme": "standard_invoice",
+          "income": "none",
+          "employment": "none",
+          "taxYear": "2027-28"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "vat-standard-2027-28"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "vat-cash-2025-26",
+      "selector": {
+        "domain": "vat",
+        "entity": "sole_trader",
+        "scheme": "cash",
+        "income": "none",
+        "employment": "none",
+        "taxYear": "2025-26"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P08-01"
+      ],
+      "ruleProvenance": {
+        "sourceId": "schemes",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "vat",
+          "entity": "sole_trader",
+          "scheme": "cash",
+          "income": "none",
+          "employment": "none",
+          "taxYear": "2025-26"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "vat-cash-2025-26"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "vat-cash-2026-27",
+      "selector": {
+        "domain": "vat",
+        "entity": "sole_trader",
+        "scheme": "cash",
+        "income": "none",
+        "employment": "none",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P08-01"
+      ],
+      "ruleProvenance": {
+        "sourceId": "schemes",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "vat",
+          "entity": "sole_trader",
+          "scheme": "cash",
+          "income": "none",
+          "employment": "none",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "vat-cash-2026-27"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "vat-cash-2027-28",
+      "selector": {
+        "domain": "vat",
+        "entity": "sole_trader",
+        "scheme": "cash",
+        "income": "none",
+        "employment": "none",
+        "taxYear": "2027-28"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P08-01"
+      ],
+      "ruleProvenance": {
+        "sourceId": "schemes",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "vat",
+          "entity": "sole_trader",
+          "scheme": "cash",
+          "income": "none",
+          "employment": "none",
+          "taxYear": "2027-28"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "vat-cash-2027-28"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "vat-flat-rate-2025-26",
+      "selector": {
+        "domain": "vat",
+        "entity": "sole_trader",
+        "scheme": "flat_rate",
+        "income": "none",
+        "employment": "none",
+        "taxYear": "2025-26"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P08-01"
+      ],
+      "ruleProvenance": {
+        "sourceId": "schemes",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "vat",
+          "entity": "sole_trader",
+          "scheme": "flat_rate",
+          "income": "none",
+          "employment": "none",
+          "taxYear": "2025-26"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "vat-flat-rate-2025-26"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "vat-flat-rate-2026-27",
+      "selector": {
+        "domain": "vat",
+        "entity": "sole_trader",
+        "scheme": "flat_rate",
+        "income": "none",
+        "employment": "none",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P08-01"
+      ],
+      "ruleProvenance": {
+        "sourceId": "schemes",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "vat",
+          "entity": "sole_trader",
+          "scheme": "flat_rate",
+          "income": "none",
+          "employment": "none",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "vat-flat-rate-2026-27"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "vat-flat-rate-2027-28",
+      "selector": {
+        "domain": "vat",
+        "entity": "sole_trader",
+        "scheme": "flat_rate",
+        "income": "none",
+        "employment": "none",
+        "taxYear": "2027-28"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P08-01"
+      ],
+      "ruleProvenance": {
+        "sourceId": "schemes",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "vat",
+          "entity": "sole_trader",
+          "scheme": "flat_rate",
+          "income": "none",
+          "employment": "none",
+          "taxYear": "2027-28"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "vat-flat-rate-2027-28"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "vat-annual-2025-26",
+      "selector": {
+        "domain": "vat",
+        "entity": "sole_trader",
+        "scheme": "annual",
+        "income": "none",
+        "employment": "none",
+        "taxYear": "2025-26"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P08-01"
+      ],
+      "ruleProvenance": {
+        "sourceId": "schemes",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "vat",
+          "entity": "sole_trader",
+          "scheme": "annual",
+          "income": "none",
+          "employment": "none",
+          "taxYear": "2025-26"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "vat-annual-2025-26"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "vat-annual-2026-27",
+      "selector": {
+        "domain": "vat",
+        "entity": "sole_trader",
+        "scheme": "annual",
+        "income": "none",
+        "employment": "none",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P08-01"
+      ],
+      "ruleProvenance": {
+        "sourceId": "schemes",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "vat",
+          "entity": "sole_trader",
+          "scheme": "annual",
+          "income": "none",
+          "employment": "none",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "vat-annual-2026-27"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "vat-annual-2027-28",
+      "selector": {
+        "domain": "vat",
+        "entity": "sole_trader",
+        "scheme": "annual",
+        "income": "none",
+        "employment": "none",
+        "taxYear": "2027-28"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P08-01"
+      ],
+      "ruleProvenance": {
+        "sourceId": "schemes",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "vat",
+          "entity": "sole_trader",
+          "scheme": "annual",
+          "income": "none",
+          "employment": "none",
+          "taxYear": "2027-28"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "vat-annual-2027-28"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "income-trade-2025-26",
+      "selector": {
+        "domain": "income",
+        "entity": "individual",
+        "scheme": "none",
+        "income": "sole_trade",
+        "employment": "none",
+        "taxYear": "2025-26"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P10-01",
+        "P10-02"
+      ],
+      "ruleProvenance": {
+        "sourceId": "income",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "income",
+          "entity": "individual",
+          "scheme": "none",
+          "income": "sole_trade",
+          "employment": "none",
+          "taxYear": "2025-26"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "income-trade-2025-26"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "income-trade-2026-27",
+      "selector": {
+        "domain": "income",
+        "entity": "individual",
+        "scheme": "none",
+        "income": "sole_trade",
+        "employment": "none",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P10-01",
+        "P10-02"
+      ],
+      "ruleProvenance": {
+        "sourceId": "income",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "income",
+          "entity": "individual",
+          "scheme": "none",
+          "income": "sole_trade",
+          "employment": "none",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "income-trade-2026-27"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "income-trade-2027-28",
+      "selector": {
+        "domain": "income",
+        "entity": "individual",
+        "scheme": "none",
+        "income": "sole_trade",
+        "employment": "none",
+        "taxYear": "2027-28"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P10-01",
+        "P10-02"
+      ],
+      "ruleProvenance": {
+        "sourceId": "income",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "income",
+          "entity": "individual",
+          "scheme": "none",
+          "income": "sole_trade",
+          "employment": "none",
+          "taxYear": "2027-28"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "income-trade-2027-28"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "income-property-2025-26",
+      "selector": {
+        "domain": "income",
+        "entity": "individual",
+        "scheme": "none",
+        "income": "uk_property",
+        "employment": "none",
+        "taxYear": "2025-26"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P10-01",
+        "P10-02"
+      ],
+      "ruleProvenance": {
+        "sourceId": "income",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "income",
+          "entity": "individual",
+          "scheme": "none",
+          "income": "uk_property",
+          "employment": "none",
+          "taxYear": "2025-26"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "income-property-2025-26"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "income-property-2026-27",
+      "selector": {
+        "domain": "income",
+        "entity": "individual",
+        "scheme": "none",
+        "income": "uk_property",
+        "employment": "none",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P10-01",
+        "P10-02"
+      ],
+      "ruleProvenance": {
+        "sourceId": "income",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "income",
+          "entity": "individual",
+          "scheme": "none",
+          "income": "uk_property",
+          "employment": "none",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "income-property-2026-27"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "income-property-2027-28",
+      "selector": {
+        "domain": "income",
+        "entity": "individual",
+        "scheme": "none",
+        "income": "uk_property",
+        "employment": "none",
+        "taxYear": "2027-28"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P10-01",
+        "P10-02"
+      ],
+      "ruleProvenance": {
+        "sourceId": "income",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "income",
+          "entity": "individual",
+          "scheme": "none",
+          "income": "uk_property",
+          "employment": "none",
+          "taxYear": "2027-28"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "income-property-2027-28"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "income-mixed-2025-26",
+      "selector": {
+        "domain": "income",
+        "entity": "individual",
+        "scheme": "none",
+        "income": "trade_property_employment_savings_dividends",
+        "employment": "none",
+        "taxYear": "2025-26"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P10-01",
+        "P10-02"
+      ],
+      "ruleProvenance": {
+        "sourceId": "rates",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "income",
+          "entity": "individual",
+          "scheme": "none",
+          "income": "trade_property_employment_savings_dividends",
+          "employment": "none",
+          "taxYear": "2025-26"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "income-mixed-2025-26"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "income-mixed-2026-27",
+      "selector": {
+        "domain": "income",
+        "entity": "individual",
+        "scheme": "none",
+        "income": "trade_property_employment_savings_dividends",
+        "employment": "none",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P10-01",
+        "P10-02"
+      ],
+      "ruleProvenance": {
+        "sourceId": "rates",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "income",
+          "entity": "individual",
+          "scheme": "none",
+          "income": "trade_property_employment_savings_dividends",
+          "employment": "none",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "income-mixed-2026-27"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "income-mixed-2027-28",
+      "selector": {
+        "domain": "income",
+        "entity": "individual",
+        "scheme": "none",
+        "income": "trade_property_employment_savings_dividends",
+        "employment": "none",
+        "taxYear": "2027-28"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P10-01",
+        "P10-02"
+      ],
+      "ruleProvenance": {
+        "sourceId": "rates",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "income",
+          "entity": "individual",
+          "scheme": "none",
+          "income": "trade_property_employment_savings_dividends",
+          "employment": "none",
+          "taxYear": "2027-28"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "income-mixed-2027-28"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "corporation-trade-2025-26",
+      "selector": {
+        "domain": "corporation",
+        "entity": "small_limited_company",
+        "scheme": "none",
+        "income": "company_trade",
+        "employment": "none",
+        "taxYear": "2025-26"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P11-01",
+        "P11-02",
+        "P11-03",
+        "P11-04",
+        "P11-05",
+        "P11-06"
+      ],
+      "ruleProvenance": {
+        "sourceId": "corporation",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "corporation",
+          "entity": "small_limited_company",
+          "scheme": "none",
+          "income": "company_trade",
+          "employment": "none",
+          "taxYear": "2025-26"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "corporation-trade-2025-26"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "corporation-trade-2026-27",
+      "selector": {
+        "domain": "corporation",
+        "entity": "small_limited_company",
+        "scheme": "none",
+        "income": "company_trade",
+        "employment": "none",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P11-01",
+        "P11-02",
+        "P11-03",
+        "P11-04",
+        "P11-05",
+        "P11-06"
+      ],
+      "ruleProvenance": {
+        "sourceId": "corporation",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "corporation",
+          "entity": "small_limited_company",
+          "scheme": "none",
+          "income": "company_trade",
+          "employment": "none",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "corporation-trade-2026-27"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "corporation-trade-2027-28",
+      "selector": {
+        "domain": "corporation",
+        "entity": "small_limited_company",
+        "scheme": "none",
+        "income": "company_trade",
+        "employment": "none",
+        "taxYear": "2027-28"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P11-01",
+        "P11-02",
+        "P11-03",
+        "P11-04",
+        "P11-05",
+        "P11-06"
+      ],
+      "ruleProvenance": {
+        "sourceId": "corporation",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "corporation",
+          "entity": "small_limited_company",
+          "scheme": "none",
+          "income": "company_trade",
+          "employment": "none",
+          "taxYear": "2027-28"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "corporation-trade-2027-28"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-employee-2025-26",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "employee",
+        "taxYear": "2025-26"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P09-01",
+        "P09-02",
+        "P09-03",
+        "P09-04",
+        "P09-05",
+        "P09-06"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payroll",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "employee",
+          "taxYear": "2025-26"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-employee-2025-26"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-employee-2026-27",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "employee",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P09-01",
+        "P09-02",
+        "P09-03",
+        "P09-04",
+        "P09-05",
+        "P09-06"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payroll",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "employee",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-employee-2026-27"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-employee-2027-28",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "employee",
+        "taxYear": "2027-28"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P09-01",
+        "P09-02",
+        "P09-03",
+        "P09-04",
+        "P09-05",
+        "P09-06"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payroll",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "employee",
+          "taxYear": "2027-28"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-employee-2027-28"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-director-2025-26",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "director",
+        "taxYear": "2025-26"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P09-01",
+        "P09-04"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payroll",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "director",
+          "taxYear": "2025-26"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-director-2025-26"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-director-2026-27",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "director",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P09-01",
+        "P09-04"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payroll",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "director",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-director-2026-27"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-director-2027-28",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "director",
+        "taxYear": "2027-28"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P09-01",
+        "P09-04"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payroll",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "director",
+          "taxYear": "2027-28"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-director-2027-28"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-starter-leaver-2025-26",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "starter_leaver_rejoiner",
+        "taxYear": "2025-26"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P09-01",
+        "P09-08"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payroll",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "starter_leaver_rejoiner",
+          "taxYear": "2025-26"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-starter-leaver-2025-26"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-starter-leaver-2026-27",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "starter_leaver_rejoiner",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P09-01",
+        "P09-08"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payroll",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "starter_leaver_rejoiner",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-starter-leaver-2026-27"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-starter-leaver-2027-28",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "starter_leaver_rejoiner",
+        "taxYear": "2027-28"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P09-01",
+        "P09-08"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payroll",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "starter_leaver_rejoiner",
+          "taxYear": "2027-28"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-starter-leaver-2027-28"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-correction-2025-26",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "correction_midyear_migration",
+        "taxYear": "2025-26"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P09-07",
+        "P09-09",
+        "P09-10"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payroll",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "correction_midyear_migration",
+          "taxYear": "2025-26"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-correction-2025-26"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-correction-2026-27",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "correction_midyear_migration",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P09-07",
+        "P09-09",
+        "P09-10"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payroll",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "correction_midyear_migration",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-correction-2026-27"
+        }
+      },
+      "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-correction-2027-28",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "correction_midyear_migration",
+        "taxYear": "2027-28"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P09-07",
+        "P09-09",
+        "P09-10"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payroll",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "companyId",
+        "taxpayerOrEmploymentId",
+        "periodStart",
+        "periodEnd",
+        "ruleVersion",
+        "sourceIdentities",
+        "exactMoneyInputs"
+      ],
+      "requiredOutputs": [
+        "ruleVersion",
+        "calculationSteps",
+        "sourceIdentities",
+        "exactMoneyOutputs",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "correction_midyear_migration",
+          "taxYear": "2027-28"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-correction-2027-28"
+        }
+      },
+      "qualificationEvidence": null
+    }
+  ]
+}

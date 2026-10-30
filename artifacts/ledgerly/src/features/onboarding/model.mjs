@@ -113,3 +113,34 @@ export async function resumeCreatedCompany(receipt, loadCompanies, switchCompany
   switchCompany(confirmed);
   navigate('/setup');
 }
+
+/** Suggest from freshly loaded server facts, never from a browser completion flag. */
+export function nextSetupAction(readiness) {
+  if (!readiness) return null;
+  const { sales, purchases } = readiness;
+  if (!sales.canEdit && !purchases.canEdit) return {
+    title: 'Review your workspace', to: '/', action: 'Open workspace',
+    detail: 'Your current access does not allow draft changes. Ask a company administrator if you need to prepare documents.',
+  };
+  const missing = readiness.checks.find(check => !check.ready);
+  if (missing) return { title: missing.title, to: missing.to, action: missing.action, detail: missing.detail };
+  if (readiness.serverIssues.length) return {
+    title: 'Review setup messages', to: '/accounting/setup', action: 'Open posting setup',
+    detail: 'Resolve the saved configuration messages below, then refresh checks before starting a document.',
+  };
+  if (sales.canCreateDraft) return { title: 'Prepare an invoice', to: '/invoices/new', action: 'Create invoice',
+    detail: 'Your saved setup supports an invoice draft. Review the customer, date and tax treatment in the form.' };
+  if (purchases.canCreateDraft) return { title: 'Prepare a bill', to: '/bills/new', action: 'Create bill',
+    detail: 'Your saved setup supports a bill draft. Review the supplier, source, date and tax treatment in the form.' };
+  return sales.canEdit
+    ? { title: 'Add a customer', to: '/customers', action: 'Open customers', detail: 'Choose or add an active customer before preparing your first invoice.' }
+    : { title: 'Add a supplier', to: '/suppliers', action: 'Open suppliers', detail: 'Choose or add an active supplier before preparing your first bill.' };
+}
+
+export const DOCUMENT_STATE_HELP = Object.freeze([
+  ['Draft', 'Saved for review. It has not been posted, sent, paid or filed.'],
+  ['Posted', 'Recorded in the accounting ledger after review. Posting does not mean payment or filing.'],
+  ['Paid', 'The outstanding balance has been settled through recorded payments or allocations. Check the payment history for the details.'],
+  ['Credited', 'A posted credit adjusts the amount owed. A partial credit does not cancel the whole document or prove a refund.'],
+  ['Filed', 'A submission has been accepted by the relevant authority with supporting receipt or status evidence. Preparing or downloading a return is not filing.'],
+]);

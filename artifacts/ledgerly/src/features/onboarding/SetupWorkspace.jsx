@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Circle, RefreshCw, FileText, Receipt, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/workspace/PageHeader';
-import { MIN_ACCOUNTING_DATE, MAX_ACCOUNTING_DATE } from './model.mjs';
+import { MIN_ACCOUNTING_DATE, MAX_ACCOUNTING_DATE, nextSetupAction, DOCUMENT_STATE_HELP } from './model.mjs';
 
 function FirstTask({ title, description, task, to, list, parties, partyLabel, icon: Icon }) {
   return <article className="workspace-panel flex flex-col gap-4 p-5">
@@ -22,6 +22,7 @@ function FirstTask({ title, description, task, to, list, parties, partyLabel, ic
 }
 
 export default function SetupWorkspace({ company, readiness, date, onDateChange, loading, error, onRefresh, guided, onGuidedChange, guidanceWarning = '' }) {
+  const nextAction = !loading && !error ? nextSetupAction(readiness) : null;
   return <div className="workspace-page">
     <PageHeader eyebrow="Your business workspace" title="Business setup" description="Review your saved setup, then get on with your work. Come back whenever you need to."
       context={<span className="font-medium">{company.name}</span>}
@@ -34,6 +35,12 @@ export default function SetupWorkspace({ company, readiness, date, onDateChange,
     {error && <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-900"><p className="font-medium">Setup checks could not be verified.</p><p className="mt-1">{error.message}</p><Button variant="outline" className="mt-3" onClick={onRefresh}>Retry checks</Button></div>}
     {loading && <p role="status" className="rounded-xl border bg-card p-5 text-sm text-muted-foreground">Checking saved accounts, tax rules, periods and your access…</p>}
     {!loading && !error && readiness && <>
+      {nextAction && <section className="workspace-panel flex flex-wrap items-center justify-between gap-4 p-5" aria-labelledby="setup-next-action">
+        <div><h2 id="setup-next-action" className="workspace-section-title">Next useful action: {nextAction.title}</h2><p className="mt-1 text-sm text-muted-foreground">{nextAction.detail}</p><p className="mt-2 text-xs text-muted-foreground">Based on your saved company records. Reloading checks those records again; it does not reset your setup.</p></div>
+        <Button asChild><Link to={nextAction.to}>{nextAction.action}<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+      </section>}
+      {guided && <section className="workspace-panel p-5" aria-labelledby="setup-document-states"><h2 id="setup-document-states" className="workspace-section-title">What document states mean</h2><dl className="mt-3 space-y-3">{DOCUMENT_STATE_HELP.map(([label, detail]) => <div key={label}><dt className="text-sm font-semibold">{label}</dt><dd className="text-sm text-muted-foreground">{detail}</dd></div>)}</dl></section>}
+
       <section className="workspace-panel overflow-hidden" aria-labelledby="setup-review-title">
         <div className="workspace-panel-header flex flex-wrap items-center justify-between gap-3"><div><h2 id="setup-review-title" className="workspace-section-title">Accounting setup review</h2><p className="mt-1 text-sm text-muted-foreground">{readiness.configuredCount} of {readiness.checks.length} setup checks available for {date}. This is a readiness check, not approval of a document.</p></div><Button asChild variant="outline"><Link to="/accounting/setup">Posting setup</Link></Button></div>
         <ol className="divide-y">{readiness.checks.map(check => <li key={check.id} data-testid={`setup-check-${check.id}`} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-start">

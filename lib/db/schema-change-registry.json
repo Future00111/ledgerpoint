@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "purpose": "design inventory; not executable migration or installed-schema evidence",
+  "reviewedSource": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
+  "contract": "docs/development/persistence-contracts.md",
+  "existingReviewMigrations": [
+    {
+      "path": "lib/db/migrations/accounting-chart.review.sql",
+      "sha256": "105fc4409a5c5f0be80441f659a4f5a1f7bbe23d3111c30da745f8a41aee3b28",
+      "status": "review_sql_only",
+      "tables": [
+        "accounting_account_presentation",
+        "accounting_chart_audit"
+      ]
+    },
+    {
+      "path": "lib/db/migrations/accounting-document-amendments.review.sql",
+      "sha256": "fbec16a4ba8c5d1dbdd631a492680cfe836546ac5b189dd00ec98c183323f600",
+      "status": "review_sql_only",
+      "tables": [
+        "accounting_document_amendments",
+        "accounting_document_amendment_heads"
+      ]
+    },
+    {
+      "path": "lib/db/migrations/accounting-documents.review.sql",
+      "sha256": "ff7035a91ca4b998eae04aa7379ecf8b78baa6416ba22de76ebf804aa847d6bc",
+      "status": "review_sql_only",
+      "tables": [
+        "accounting_company_configuration",
+        "accounting_document_periods",
+        "accounting_document_sources",
+        "accounting_document_audit"
+      ]
+    },
+    {
+      "path": "lib/db/migrations/accounting-payments.review.sql",
+      "sha256": "a4ed77c19d5e663a2231d038e22bab18647b18c3f8095724be7de99cd18c47de",
+      "status": "review_sql_only",
+      "tables": [
+        "accounting_payment_configuration",
+        "accounting_payment_events",
+        "accounting_payment_config_audit"
+      ]
+    },
+    {
+      "path": "lib/db/migrations/credit-tracking.review.sql",
+      "sha256": "3ee0dcfc473483145052df47d78c07e0ad8a0742959a626d5ef7d394f0e1dd47",
+      "status": "review_sql_only",
+      "tables": [
+        "supplier_credit_claims",
+        "supplier_credit_receipts",
+        "supplier_credit_claim_commands"
+      ]
+    },
+    {
+      "path": "lib/db/migrations/document-intake.review.sql",
+      "sha256": "94b25447f0ea167effefd9a0f7c83f6b6bed16e73dfa4576c637ac0d8e864c92",
+      "status": "review_sql_only",
+      "tables": [
+        "document_intake_sources",
+        "document_intake_audit"
+      ]
+    },
+    {
+      "path": "lib/db/migrations/w03-invoice-drafts.review.sql",
+      "sha256": "cd62e959adffa726b22ffe9dacd16bb90d256f5a1573358edd769dbd88ccb06a",
+      "status": "review_sql_only",
+      "tables": [
+        "w03_invoice_drafts",
+        "w03_invoice_draft_audit"
+      ]
+    }
+  ],
+  "reservedChanges": [
+    {
+      "task": "P03-01",
+      "migration": "lib/db/migrations/operation-recovery.review.sql",
+      "tables": [
+        "operation_commands",
+        "operation_outcomes"
+      ],
+      "status": "contract_only"
+    },
+    {
+      "task": "P03-02",
+      "migration": "lib/db/migrations/durable-jobs.review.sql",
+      "tables": [
+        "durable_jobs",
+        "durable_job_attempts",
+        "durable_outbox"
+      ],
+      "status": "contract_only"
+    },
+    {
+      "task": "P03-03",
+      "tables": [
+        "schema_migrations"
+      ],
+      "status": "contract_only"
+    },
+    {
+      "tasks": [
+        "P09",
+        "P10",
+        "P11"
+      ],
+      "tables": [
+        "filing_submissions",
+        "filing_attempts",
+        "filing_receipts"
+      ],
+      "status": "reserved_interface_only"
+    }
+  ],
+  "guards": {
+    "startupDdl": false,
+    "existingDatabaseExecutionAuthorized": false,
+    "schemaVersionRowSufficient": false,
+    "requiredChecks": [
+      "migration_checksum",
+      "dependency_order",
+      "contract_version",
+      "columns",
+      "tenant_keys",
+      "constraints",
+      "immutable_always_triggers",
+      "ownership",
+      "grants"
+    ],
+    "runtimeRole": "ledgerly_api",
+    "forbiddenRoleFlags": [
+      "rolsuper",
+      "rolcreatedb",
+      "rolcreaterole",
+      "rolreplication",
+      "rolbypassrls"
+    ],
+    "forbiddenMembership": "ledgerly_canonical_owner"
+  },
+  "verification": {
+    "unitPartialSchema": "artifacts/api-server/src/services/accountingDocuments/amendmentsMath.test.ts",
+    "disposableRunner": "tools/accounting-flow/test.mjs",
+    "restoreRunner": "tools/accounting-flow/restore-drill.mjs",
+    "realDatabasePartialSchemaMatrix": "pending P03-03; not proved by unit mocks",
+    "installedSchema": "not inspected or changed"
+  }
+}

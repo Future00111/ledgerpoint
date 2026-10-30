@@ -13,6 +13,7 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 import { verifyDraftBody, draftParserErrors } from "./services/financialDrafts/jsonBoundary";
 import { RejectedOriginError, safeAppErrors } from "./security/appErrors";
+import { apiResponseHeaders } from "./security/requestLimits";
 
 export interface ApiAppOptions {
   /**
@@ -24,6 +25,7 @@ export interface ApiAppOptions {
 
 export function createApp({ beforeClerkMiddleware }: ApiAppOptions = {}): Express {
 const app: Express = express();
+app.disable("x-powered-by");
 
 app.use(
   pinoHttp({
@@ -50,6 +52,11 @@ if (beforeClerkMiddleware) app.use(beforeClerkMiddleware);
 // Clerk proxy must come before body parsers (streams raw bytes)
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
+// Apply financial response headers after the Clerk streaming proxy so its session
+// and asset transport remain unchanged. Admission is not enabled until the trusted
+// edge/client identity and distributed quota policy are verified for deployment.
+app.use("/api", apiResponseHeaders);
+
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Allow only known Ledgerly origins. Never reflect arbitrary Origin headers for
 // credentialed requests — that allows cross-site reads of the Clerk session.
@@ -59,8 +66,7 @@ const ALLOWED_ORIGINS = new Set<string>(
     process.env.REPLIT_DEV_DOMAIN
       ? `https://${process.env.REPLIT_DEV_DOMAIN}`
       : undefined,
-    "http://localhost:5173",
-    "http://localhost:3000",
+    ...(process.env.NODE_ENV === "production" ? [] : ["http://localhost:5173", "http://localhost:3000"]),
   ].filter(Boolean) as string[],
 );
 
@@ -95,7 +101,7 @@ app.use((req, res, next) => {
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb", verify: verifyDraftBody }));
 app.use(draftParserErrors);
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false, limit: "100kb", parameterLimit: 100 }));
 
 // Resolve publishable key from request host (supports custom domains)
 app.use(

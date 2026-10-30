@@ -53,6 +53,7 @@ try {
     execFileSync(process.execPath, ['--test', outfile], { cwd: api, env, stdio: 'inherit' });
   }
   const mjs = [...readdirSync(frontend, { recursive: true }).filter(file => file.endsWith('.test.mjs')).map(file => path.join(frontend, file)),
+    ...readdirSync(path.join(api, 'src/services'), { recursive: true }).filter(file => file.endsWith('.test.mjs')).map(file => path.join(api, 'src/services', file)),
     ...readdirSync(path.join(root, 'tools/development/work-queue')).filter(file => file.endsWith('.test.mjs')).map(file => path.join(root, 'tools/development/work-queue', file)),
     path.join(root,'tools/accounting-flow/restore-drill.test.mjs')];
   execFileSync(process.execPath, ['--test', ...mjs], { cwd: root, env, stdio: 'inherit' });

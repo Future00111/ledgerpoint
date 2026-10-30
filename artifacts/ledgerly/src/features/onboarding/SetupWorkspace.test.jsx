@@ -47,3 +47,38 @@ test('missing non-VAT rule is actionable and does not masquerade as successful s
   assert.match(html, /Needs attention/); assert.ok(links(html).includes('/vat'));
   assert.equal(links(html).includes('/invoices/new'), false);
 });
+
+test('resume suggests the first missing saved prerequisite, then the first available real task', () => {
+  const data = fixture();
+  data.sales.mappings = {}; data.purchases.mappings = {};
+  assert.match(render(data), /Next useful action: Posting accounts/);
+  const resumed = fixture();
+  assert.match(render(resumed), /Next useful action: Prepare an invoice/);
+  assert.match(render(resumed), /Reloading checks those records again; it does not reset your setup/);
+  resumed.sales.parties = [];
+  assert.match(render(resumed), /Next useful action: Prepare a bill/);
+  resumed.purchases.parties = [];
+  assert.match(render(resumed), /Next useful action: Add a customer/);
+  resumed.sales.capabilities.edit_drafts = false;
+  assert.match(render(resumed), /Next useful action: Add a supplier/);
+});
+
+test('resume respects permissions, unresolved server requirements and failed fresh reads', () => {
+  const readonly = fixture();
+  readonly.sales.capabilities = {}; readonly.purchases.capabilities = {};
+  readonly.sales.mappings = {}; readonly.purchases.mappings = {};
+  assert.match(render(readonly), /Next useful action: Review your workspace/);
+  const unknown = fixture(); unknown.sales.configuration_errors = ['A future server rule requires attention'];
+  assert.match(render(unknown), /Next useful action: Review setup messages/);
+  for (const state of [{ loading: true }, { error: new Error('Membership changed') }]) {
+    assert.equal(render(fixture(), state).includes('Next useful action:'), false);
+  }
+});
+
+test('optional state explanations distinguish saved work, ledger records and external evidence', () => {
+  const html = render(fixture(), { guided: true });
+  for (const label of ['Draft', 'Posted', 'Paid', 'Credited', 'Filed']) assert.ok(html.includes(`>${label}</dt>`));
+  assert.match(html, /A partial credit does not cancel the whole document or prove a refund/);
+  assert.match(html, /Preparing or downloading a return is not filing/);
+  assert.equal(render(fixture(), { guided: false }).includes('What document states mean'), false);
+});
