@@ -92,7 +92,7 @@ test("invalid roles are rejected before identity lookup or writes on add, edit a
   assert.equal((await activeOwners(f.company)).length, 1);
 });
 
-test("nonowners, inactive, unknown, null, duplicate and cross-company memberships cannot escalate", async () => {
+test("nonowners, inactive, unknown, null and cross-company memberships cannot escalate; active duplicates are rejected", async () => {
   const f = await fixture(), other = await fixture(); const beforeCalls = identityCalls;
   const actors: string[] = [other.owner];
   for (const role of ["admin", "accountant", "staff", "member", "read_only", "unknown", null]) {
@@ -102,7 +102,19 @@ test("nonowners, inactive, unknown, null, duplicate and cross-company membership
     const actor = `synthetic-inactive-${randomUUID()}`; actors.push(actor); await addMember(f.company, actor, "owner", active);
   }
   const duplicate = `synthetic-duplicate-${randomUUID()}`; actors.push(duplicate);
-  await addMember(f.company, duplicate); await addMember(f.company, duplicate, "member");
+  await addMember(f.company, duplicate, "member");
+  // The real database prevents conflicting active rows. Preserve that guard;
+  // ambiguous membership policy is exercised separately by the pure unit tests.
+  await assert.rejects(() => addMember(f.company, duplicate, "owner"), error => {
+    const databaseError = error as { code?: string; constraint?: string };
+    assert.equal(databaseError.code, "23505");
+    assert.equal(databaseError.constraint, "w03_active_membership_identity");
+    return true;
+  });
+  assert.deepEqual((await admin.query(
+    "SELECT role,is_active FROM company_users WHERE company_id=$1 AND user_id=$2",
+    [f.company, duplicate],
+  )).rows, [{ role: "member", is_active: true }]);
   for (const actor of actors) {
     assert.equal((await request(`/${f.company}/members/${f.owner}`, "PUT", { role: "member" }, actor)).status, 403, actor);
     assert.equal((await request(`/${f.company}/members`, "POST", { user_id: "synthetic-new", role: "owner" }, actor)).status, 403, actor);
