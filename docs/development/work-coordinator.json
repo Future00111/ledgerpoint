@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "revision": 15,
+  "revision": 17,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
+  "codeHead": "ca88934dfe54b482d1acb5829af2f83cb5e1781a",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261030-2333",
     "token": "459bb9e4-6df1-497d-818f-be04b16656bf",
     "acquiredAt": 1793403323893,
-    "expiresAt": 1793405317825
+    "expiresAt": 1793405611744
   },
   "lastOwner": {
     "runId": "hosted-20261030-2316",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 2,
-    "revision": 82,
+    "revision": 90,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -308,14 +308,28 @@
         "priority": 505
       },
       "P06-00": {
-        "status": "running",
+        "status": "review",
         "priority": 600,
         "discoveredDependencies": [],
+        "checkpoint": "Before review correction: clean codex/lp-2333-worker4 c6c01ebaea5e9509e0e68ccc61ee499e9c051e3b. Clarifying exact existing fixture coverage; native bank status mutation and new-command concurrency remain missing.",
+        "evidence": {
+          "commit": "5695988f34d27cd97c11d50b1a092bd44dc8033d",
+          "summary": "PARTIAL native bank import contract, with exact existing-fixture boundaries corrected after coordinator review. Bank-status-only mutation fixture remains missing; existing Promise.all payment replay is not new-bank-command or forced lock-overlap evidence. No new financial functionality enabled; do not accept full P06-00.",
+          "tests": [
+            {
+              "command": "node --test artifacts/ledgerly/src/features/bankImport/model.test.mjs artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs (23 passed)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        },
         "owner": "worker4",
-        "token": "2e1a37d5-394a-4c62-aca7-b7d01cba3846",
-        "leaseUntil": 1793404330334,
-        "workStarted": true,
-        "checkpoint": "Before edits: clean codex/lp-2333-worker4 at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Native bank contract absent; inspected import model, recovery model, payment planning/posting and credit contract. Writing contract only within leased path."
+        "token": "8191f8bd-79ab-4967-b63b-ee8109cf3fd7",
+        "leaseUntil": 1793404505215,
+        "workStarted": true
       },
       "P06-01": {
         "status": "pending",
@@ -400,13 +414,28 @@
         ]
       },
       "P07-03": {
-        "status": "running",
+        "status": "review",
         "priority": 703,
         "discoveredDependencies": [],
         "owner": "worker6",
         "token": "12089e61-f199-43b9-917a-8e49e705041f",
         "leaseUntil": 1793404391247,
-        "workStarted": false
+        "workStarted": true,
+        "checkpoint": "Before edits: clean codex/lp-2333-worker6 at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. DailyWork currently exposes only source upload and credit tracking; add direct accounting browse/create shortcuts with permission-aware labels and focused render tests. Broad table/bulk acceptance remains pending.",
+        "evidence": {
+          "commit": "66c8709",
+          "summary": "PARTIAL: DailyWork compact/full views expose direct invoice, bill, payment and report paths and permission-aware draft shortcuts; readonly copy no longer suggests draft preparation. Full searchable table, VAT/payment detail, bulk/keyboard journey acceptance remains pending.",
+          "tests": [
+            {
+              "command": "Bundle Navigation.test.jsx with API esbuild; node --test /tmp/lp-2333-worker6-nav.cjs (6 passed)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
       },
       "P07-04": {
         "status": "pending",
@@ -1618,37 +1647,125 @@
             }
           ]
         }
+      },
+      {
+        "at": 1793403518770,
+        "actor": "worker4",
+        "type": "submit",
+        "taskId": "P06-00",
+        "evidence": {
+          "commit": "c6c01ebaea5e9509e0e68ccc61ee499e9c051e3b",
+          "summary": "Native bank contract specifies immutable observations vs movement identity, exact money/date/review, splits/fees/reversal and original-command recovery. Contract only; dependent functionality remains unimplemented. Existing PostgreSQL settlement guard fixture found but matching-commit CI and coordinator review still required before acceptance.",
+          "tests": [
+            {
+              "command": "node --test artifacts/ledgerly/src/features/bankImport/model.test.mjs artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs (23 passed)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793403528942,
+        "actor": "worker6",
+        "type": "checkpoint",
+        "taskId": "P07-03",
+        "checkpoint": "Before edits: clean codex/lp-2333-worker6 at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. DailyWork currently exposes only source upload and credit tracking; add direct accounting browse/create shortcuts with permission-aware labels and focused render tests. Broad table/bulk acceptance remains pending."
+      },
+      {
+        "at": 1793403551490,
+        "actor": "worker6",
+        "type": "submit",
+        "taskId": "P07-03",
+        "evidence": {
+          "commit": "66c8709",
+          "summary": "PARTIAL: DailyWork compact/full views expose direct invoice, bill, payment and report paths and permission-aware draft shortcuts; readonly copy no longer suggests draft preparation. Full searchable table, VAT/payment detail, bulk/keyboard journey acceptance remains pending.",
+          "tests": [
+            {
+              "command": "Bundle Navigation.test.jsx with API esbuild; node --test /tmp/lp-2333-worker6-nav.cjs (6 passed)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793403593005,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P06-00",
+        "reason": "Review requires correcting existing fixture coverage claim; bank-status invariant and concurrent same-command replay not yet evidenced."
+      },
+      {
+        "at": 1793403593087,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P06-00",
+        "checkpoint": "worker4 stopped clean at c6c01ebaea5e9509e0e68ccc61ee499e9c051e3b; correction of contract evidence only required"
+      },
+      {
+        "at": 1793403605215,
+        "actor": "worker4",
+        "type": "claim",
+        "taskId": "P06-00",
+        "token": "8191f8bd-79ab-4967-b63b-ee8109cf3fd7"
+      },
+      {
+        "at": 1793403620695,
+        "actor": "worker4",
+        "type": "checkpoint",
+        "taskId": "P06-00",
+        "checkpoint": "Before review correction: clean codex/lp-2333-worker4 c6c01ebaea5e9509e0e68ccc61ee499e9c051e3b. Clarifying exact existing fixture coverage; native bank status mutation and new-command concurrency remain missing."
+      },
+      {
+        "at": 1793403627967,
+        "actor": "worker4",
+        "type": "submit",
+        "taskId": "P06-00",
+        "evidence": {
+          "commit": "5695988f34d27cd97c11d50b1a092bd44dc8033d",
+          "summary": "PARTIAL native bank import contract, with exact existing-fixture boundaries corrected after coordinator review. Bank-status-only mutation fixture remains missing; existing Promise.all payment replay is not new-bank-command or forced lock-overlap evidence. No new financial functionality enabled; do not accept full P06-00.",
+          "tests": [
+            {
+              "command": "node --test artifacts/ledgerly/src/features/bankImport/model.test.mjs artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs (23 passed)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
       }
     ],
     "catalogDigest": "4ec38da8ef67c6f42bc913d0e01b8e5d3b34fb4228853599a11b239c38ec4314"
   },
   "checkpoint": {
     "ref": "refs/heads/codex/whole-product-first-sprint",
-    "sha": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
+    "sha": "ca88934dfe54b482d1acb5829af2f83cb5e1781a",
     "evidence": [
       {
         "ref": "refs/heads/codex/whole-product-first-sprint",
-        "sha": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
+        "sha": "ca88934dfe54b482d1acb5829af2f83cb5e1781a",
         "path": "tools/development/check.mjs"
       }
     ],
     "runId": "hosted-20261030-2333",
-    "at": 1793403517829,
-    "codeHead": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5"
+    "at": 1793403811751,
+    "codeHead": "ca88934dfe54b482d1acb5829af2f83cb5e1781a"
   },
-  "updatedAt": 1793403517829,
+  "updatedAt": 1793403811751,
   "validation": {
-    "sourceCommit": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
-    "sourceTree": "f9f97b78701439e9f672b1c14a662d2f7a9ba047",
-    "ciRun": "https://github.com/Future00111/ledgerpoint/actions/runs/41144653667",
-    "sourceTests": 699,
-    "disposablePostgresTests": 66,
-    "tests": 765,
-    "failed": 0,
-    "skipped": 0,
-    "buildTypecheckPassed": true,
-    "restorePassed": true,
-    "isolatedCleanupPassed": true
+    "sourceCommit": "ca88934dfe54b482d1acb5829af2f83cb5e1781a",
+    "status": "awaiting_exact_source_CI",
+    "localSourceTests": 708,
+    "localBuildPassed": true
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -1657,43 +1774,41 @@
     "firstRunVerified": true
   },
   "runEvidence": {
-    "workerCheckpoints": {
-      "worker1": {
-        "local": "4b60b75364926b5410d2b290898f35a76c752133",
-        "remote": "70a6adecceccf7a530cac60bbda2767ae67f0d44",
-        "tree": "b4abe28642a27369d4a306cb8a9702413deaf8ac"
+    "workerCheckpoints": [
+      {
+        "branch": "codex/lp-2333-worker1",
+        "local": "41b2fdaab8e8d75eb4acc913685dc46a75d56968",
+        "remote": "d40df93e2074d27c43e3c903258d1457471bf57c"
       },
-      "worker2": {
-        "local": "18689e505dca925d3cd7f599bf100632f8a78ceb",
-        "remote": "266e82114abbd7f3dce0191cdd8c3bf601d80de8",
-        "tree": "55251599ce719b9163911351e3a80844dc4be7fb"
+      {
+        "branch": "codex/lp-2333-worker2",
+        "local": "b154e0e6d80e1b20abb63e84068d021946603b7b",
+        "remote": "8502aa098f084cd5fded99893420241bcf389ebc"
       },
-      "worker3": {
-        "local": "cc4a23d676ea83fa6cde03b1e816cd3c6b86410b",
-        "remote": "ee3dc2ff2892b1bf86ffa36ca4479d4ce3e9a002",
-        "tree": "73ffae0833627c1b59735c01d08087dccb958c0c"
+      {
+        "branch": "codex/lp-2333-worker3",
+        "local": "3f34853c31171a70e7ca7a16830e84aac5ea6290",
+        "remote": "93a89f99636ebff239f254a3dd2ea5196ec242b0"
       },
-      "worker4": {
-        "local": "25c2c73e1ad005010da9963d3473424864ff8612",
-        "remote": "6aecd9ca9d65a06fa464152786c19a3ac8854278",
-        "tree": "272b81117dfd79c1dd446fca09a29ea6eebb7c8a"
+      {
+        "branch": "codex/lp-2333-worker4",
+        "local": "5695988f34d27cd97c11d50b1a092bd44dc8033d",
+        "remote": "ead504eaf4fc17a2335070759ab9b179d0d4ccdc"
       },
-      "worker5": {
-        "local": "a26d4a5d3e0a5f7979182430c7439bbd8d6cfe86",
-        "remote": "4f5adca8f419e11bbb7259bb2d787eca64b656b7",
-        "tree": "709714535f72a8173298b46c21f0d50a7d1667aa"
+      {
+        "branch": "codex/lp-2333-worker5",
+        "local": "35b85b9f16fdb6350f30e8c66d739aa1c3b9cb79",
+        "remote": "6a55274f557729aad3bf9c843a5631d0de112b2f"
       },
-      "worker6": {
-        "local": "39b359132593d2df0aa6a20e751abd752a9b07cb",
-        "remote": "fc5a76e33a1a33110e02069318ae6bc662bf7859",
-        "tree": "aa91d226c13b3c9e1244a00eacbd9e7fa6abb98d"
+      {
+        "branch": "codex/lp-2333-worker6",
+        "local": "66c87097664e334093e3feed6f91d828025a879c",
+        "remote": "4893e832ce46f9c997702501eac4e0e820c760c2"
       }
-    },
-    "integratedTree": "f9f97b78701439e9f672b1c14a662d2f7a9ba047",
-    "localTests": 699,
-    "ci": "passed",
+    ],
     "workersStopped": true,
     "worktreesClean": true,
-    "remaining": "P02-01, P02-03, P03-00, P04-01 and P07-02 contain integrated partial slices and remain pending; P07-01 blocked for full authenticated synthetic signup-to-post journey. P01-00 contract accepted only. No deployment, migration or statutory acceptance."
+    "integratedTree": "f1d20e062bc1c1411a224da57b69e27304a43dfe",
+    "remaining": "All six slices partial; no broader package accepted; exact-source CI pending"
   }
 }
