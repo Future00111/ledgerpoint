@@ -111,3 +111,29 @@ reject a date preceding the latest related financial activity.
 
 This contract needs no changes to existing production data. Detailed supported
 tax cases and external filing corrections remain separately governed.
+
+## P01-00 dependency contract: credit capacity and stable corrections
+
+The [credit-capacity contract](credit-capacity-contract.md) separates commercial
+credit capacity from current unpaid balance. It defines fully paid credits and
+unapplied excess as an atomic credit plus explicitly reviewed unallocation,
+preserving original cash and journal evidence. This is the target interface for
+dependent implementation; the current restrictions above remain enabled until
+all relevant projections and transaction tests pass.
+
+Concrete correction history: D1/J1 posts £100 net + £20 VAT on 1 October;
+PAY1/JPAY1 allocates £50 on 5 October. On 10 October, AM1/JAM1 changes the same
+D1 line 0 to £90 net + £18 VAT. JAM1 is the signed difference (£-10 net,
+£-2 VAT, £-12 gross), not a replacement £108 posting. On 9 October the shared
+projection returns £120 gross/£70 due; on 10 October it returns £108 gross/£58
+due. D1, J1, PAY1, JPAY1 and their original contents stay unchanged. A later
+£12 linked credit uses D1/current financial revision and original line 0,
+producing £46 due; it cannot bind only to obsolete J1 amounts or create D2.
+
+Current code intentionally blocks that last corrected-original credit step.
+Removing that blocker requires the common line-capacity projection described
+in the linked contract; it must not be removed as an isolated UI change.
+Correction, credit and payment commands must share lock order and period/date
+rules, so a review made before any competing financial event fails safely.
+Keep a stable request UUID for unknown outcomes, bind exact reviewed intent,
+and atomically append revision head, difference journal, audit and read models.
