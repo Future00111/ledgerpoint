@@ -12,7 +12,7 @@ import { publicErrorMessage, safeErrorLog, safeRouteErrors } from "../security/p
  * askAI uses the native AI service. Unavailable integrations fail explicitly.
  * suggestTransactionMatches uses the shared reconciliation analysis service.
  */
-import { Router, type Request, type Response } from "express";
+import { Router, type Request, type Response, type RequestHandler } from "express";
 import { db } from "@workspace/db";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
 import { retiredChartBootstrapBoundary } from "./legacyChartBootstrapPolicy";
@@ -24,8 +24,6 @@ import { aiService, AIProviderError } from "../services/ai/index.js";
 import {
   companyUsersTable,
   companiesTable,
-  salesInvoicesTable,
-  purchaseBillsTable,
   bankTransactionsTable,
   bankAccountsTable,
   aiReconciliationResultsTable,
@@ -40,8 +38,9 @@ import {
   type NonPaymentMatchInput,
 } from "../services/ai-accountant/index.js";
 
+export function createFunctionsRouter(authenticate: RequestHandler = requireAuth) {
 const router = Router();
-router.use(requireAuth);
+router.use(authenticate);
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -91,7 +90,7 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
   const funcName = req.params["name"] as string;
   const args = req.body as Record<string, unknown>;
   if (["postPurchaseBill","generateSalesInvoiceJournals","generatePurchaseBillJournals",
-    "postSalesInvoice","postSalesCreditNote","postSupplierCreditNote","applySalesCreditNote","applySupplierCreditNote"].includes(funcName)) {
+    "postSalesInvoice","postSalesCreditNote","postSupplierCreditNote","applySalesCreditNote","applySupplierCreditNote","updatePaymentStatus"].includes(funcName)) {
     res.status(403).json({error:"Use the protected native accounting document review/post workflow. Legacy financial effects are disabled."});
     return;
   }
@@ -224,79 +223,6 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
           model: result.model,
         });
         return;
-      }
-
-      // ── updatePaymentStatus ──────────────────────────────────────────────
-      case "updatePaymentStatus": {
-        const { entity_type, record_id, amount_paid_delta } = args as {
-          entity_type: string;
-          record_id: string;
-          amount_paid_delta: number;
-        };
-        if (entity_type === "sales_invoice") {
-          res.status(403).json({ error: "Invoice settlement requires the protected payment workflow" });
-          return;
-        }
-        const table =
-          entity_type === "sales_invoice" ? salesInvoicesTable :
-          entity_type === "purchase_bill" ? purchaseBillsTable : null;
-
-        if (!table) {
-          res.status(400).json({ error: `Unknown entity_type: ${entity_type}` });
-          return;
-        }
-
-        // Step 1: load the record to get its ACTUAL company_id
-        const rows = await db.select().from(table).where(eq(table["id"], record_id)).limit(1);
-        if (!rows[0]) { res.status(404).json({ error: "Record not found" }); return; }
-        const companyId = (rows[0] as Record<string, unknown>)["company_id"] as string;
-
-        // Step 2: verify membership AND write role on the record's actual company
-        if (!(await assertWriteAccess(userId, companyId, res))) return;
-
-        // Keep payment totals, the remaining balance, and the document status
-        // in sync. Numeric columns arrive from Postgres as strings, so operate
-        // in integer pence to avoid floating-point drift. The row lock prevents
-        // concurrent payments from both reading the same prior balance.
-        const updated = await db.transaction(async (tx) => {
-          const [current] = await tx
-            .select()
-            .from(table)
-            .where(eq(table["id"], record_id))
-            .for("update");
-          if (!current) throw new Error("Record not found");
-
-          const totalPence = Math.max(0, Math.round(Number(current.total ?? 0) * 100));
-          const paidPence = Math.max(0, Math.round(Number(current.amount_paid ?? 0) * 100));
-          const deltaPence = Math.round((Number(amount_paid_delta) || 0) * 100);
-          const nextPaidPence = Math.max(0, Math.min(totalPence, paidPence + deltaPence));
-          const balancePence = totalPence - nextPaidPence;
-
-          const currentStatus = String(current.status ?? "");
-          const status =
-            balancePence === 0 && totalPence > 0
-              ? "paid"
-              : nextPaidPence > 0
-                ? "part_paid"
-                : currentStatus === "paid" || currentStatus === "part_paid"
-                  ? (entity_type === "purchase_bill" ? "awaiting_payment" : "sent")
-                  : currentStatus;
-
-          const rows = await tx
-            .update(table)
-            .set({
-              amount_paid: (nextPaidPence / 100).toFixed(2),
-              balance_due: (balancePence / 100).toFixed(2),
-              status,
-              updated_at: new Date(),
-            })
-            .where(eq(table["id"], record_id))
-            .returning();
-          return rows[0];
-        });
-
-        res.json({ success: true, record: updated });
-        break;
       }
 
       // ── approveReconciliationMatches ─────────────────────────────────────
@@ -695,4 +621,7 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
 
 router.use(safeRouteErrors);
 
-export default router;
+return router;
+}
+
+export default createFunctionsRouter();
