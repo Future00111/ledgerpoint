@@ -64,3 +64,22 @@ test('the daily task queue shows supplied counts and links without pretending ta
   assert.equal(html.includes('completed'), false);
   assert.equal(html.includes('href="/invoices/new"'), false);
 });
+
+
+test('daily accounting shortcuts retain direct expert paths and only offer draft creation with permission', () => {
+  for (const compact of [false, true]) {
+    for (const canPrepare of [false, true]) {
+      const html = render(<DailyWorkLinks compact={compact} canPrepare={canPrepare} />);
+      assert.match(html, /aria-label="Accounting shortcuts"/);
+      for (const route of ['/invoices', '/bills', '/payments', '/reports', '/documents', '/awaiting-credits']) {
+        assert.ok(html.includes(`href="${route}"`), `${route} stays reachable`);
+      }
+      for (const route of ['/invoices/new', '/bills/new']) assert.equal(html.includes(`href="${route}"`), canPrepare);
+      assert.equal(html.includes('<button'), false, 'Shortcuts navigate without performing financial actions');
+      if (!compact && !canPrepare) {
+        assert.match(html, /Your current access does not allow draft changes/);
+        assert.equal(html.includes('check the details and prepare a draft'), false);
+      }
+    }
+  }
+});
