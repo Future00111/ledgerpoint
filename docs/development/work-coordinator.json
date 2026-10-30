@@ -1,54 +1,51 @@
 {
   "version": 1,
-  "revision": 10,
+  "revision": 12,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261030-2316",
     "token": "034bfc02-fe81-4d45-b6eb-9fa8ca63e771",
     "acquiredAt": 1793402275316,
     "expiresAt": 1793404699637
   },
-  "lastOwner": {
-    "runId": "bootstrap-20261030",
-    "token": "2863c9a5-cdae-4eaf-afdb-1c3f6a9d58f0",
-    "acquiredAt": 1793401393560,
-    "expiresAt": 1793403193560
-  },
   "queueState": {
     "version": 2,
-    "revision": 38,
+    "revision": 54,
     "tasks": {
       "P01-00": {
-        "status": "review",
+        "status": "done",
         "priority": 100,
         "discoveredDependencies": [],
-        "owner": "worker1",
-        "token": "df98d191-0b29-402e-a588-f73ab8fc1d1e",
-        "leaseUntil": 1793403231508,
-        "workStarted": true,
-        "checkpoint": "refs/heads/codex/lp-hosted-2316-worker1 at 4b60b75; two leased contract files committed, worktree clean, awaiting coordinator durable publication/review",
+        "checkpoint": "Published refs/heads/codex/whole-product-first-sprint at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; integrated contract restored; no edits; refreshing matching-commit verification",
         "evidence": {
-          "commit": "4b60b75",
-          "summary": "P01-00 financial interfaces: exact paid/unpaid/excess/corrected-original cases, atomic credit plus reviewed payment unallocation, stable evidence, shared historical projection, integer-pence and authorization invariants. Specification only; dependent implementations remain gated.",
+          "commit": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
+          "summary": "Contract only accepted after independent worker5 and coordinator review of exact source; fully-paid credit implementation remains pending. Explicit immutable identities, cutoff, atomicity, precision, tenant and role invariants plus exact examples verified.",
           "tests": [
             {
-              "command": "git diff HEAD^ HEAD --check",
+              "command": "node tools/development/check.mjs: 699 passed on exact published source",
               "passed": true
             },
             {
-              "command": "node --test tools/development/work-queue/coordinator.test.mjs (7 passed)",
+              "command": "PORT=5179 BASE_PATH=/ pnpm_config_verify_deps_before_run=false pnpm run build: passed on exact source",
               "passed": true
             },
             {
-              "command": "node --input-type=module contract arithmetic assertions (5 synthetic scenarios; specification arithmetic only)",
+              "command": "Independent worker5 bounded arithmetic: 706011 cases passed; worker1 exact contract examples passed",
+              "passed": true
+            },
+            {
+              "command": "PR27 development CI 41144653667: source, build, disposable PostgreSQL, restore and cleanup passed",
               "passed": true
             }
-          ]
+          ],
+          "reviewed": true,
+          "reviewer": "worker5-and-coordinator"
         }
       },
       "P01-01": {
@@ -76,10 +73,10 @@
         "priority": 180
       },
       "P02-01": {
-        "status": "review",
+        "status": "pending",
         "priority": 201,
         "discoveredDependencies": [],
-        "checkpoint": "codex/lp-hosted-2316-worker2 18689e505dca925d3cd7f599bf100632f8a78ceb; test type correction complete; API tsc and 2 HTTP tests pass. Broad P02-01 remains partial; previous remaining audit/client migration notes still apply; worker stopped clean.",
+        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated narrow legacy payment bypass fix; remaining exhaustive authorization inventory, cross-company checks and legacy client migrations are not completed.",
         "evidence": {
           "commit": "18689e505dca925d3cd7f599bf100632f8a78ceb",
           "summary": "PARTIAL narrow security fix with TS2571 response type correction; broad P02-01 criteria remain unverified.",
@@ -98,20 +95,17 @@
             }
           ]
         },
-        "owner": "worker2",
-        "token": "638e08e0-fa47-4e67-a73e-612a8aa9c9c4",
-        "leaseUntil": 1793403622215,
-        "workStarted": true
+        "blockers": []
       },
       "P02-02": {
         "status": "pending",
         "priority": 202
       },
       "P02-03": {
-        "status": "review",
+        "status": "pending",
         "priority": 203,
         "discoveredDependencies": [],
-        "checkpoint": "codex/lp-hosted-2316-worker3 at 2dc459440d5b03ec9d02b734440df67efb8df3c8; coordinator requests removing default limiter for shared-proxy safety",
+        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated headers/parser/log hardening; trusted-edge quotas, production sessions/transport and secrets/dependency audit remain unfinished.",
         "evidence": {
           "commit": "cc4a23d676ea83fa6cde03b1e816cd3c6b86410b",
           "summary": "Reviewed partial hardening: private API response headers, form limits, fingerprint suppression, no automatic production localhost origin, structured diagnostic redaction. Default admission mount removed following independent shared-proxy availability review; tested limiter utility explicitly unenabled until trusted edge/distributed quota policy exists. Full P02-03 remains unfinished (session/transport/proxy policy, deployment rate limits, secret/dependency audit).",
@@ -130,10 +124,7 @@
             }
           ]
         },
-        "owner": "worker3",
-        "token": "cd4ed689-1146-4011-936e-0bc0f6a3a793",
-        "leaseUntil": 1793403447621,
-        "workStarted": true
+        "blockers": []
       },
       "P02-04": {
         "status": "pending",
@@ -160,14 +151,10 @@
         }
       },
       "P03-00": {
-        "status": "review",
+        "status": "pending",
         "priority": 300,
         "discoveredDependencies": [],
-        "owner": "worker4",
-        "token": "1ffcf950-5526-4aa3-a601-73e5c043b23d",
-        "leaseUntil": 1793403260428,
-        "workStarted": true,
-        "checkpoint": "Branch codex/lp-hosted-2316-worker4 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker4; no edits yet.",
+        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated persistence contract/registry; executable disposable PostgreSQL partial-schema matrix remains unfinished.",
         "evidence": {
           "commit": "25c2c73e1ad005010da9963d3473424864ff8612",
           "summary": "Partial contract slice: persistence interfaces, immutable migration checksum inventory, identifiers, version guards and negative-control matrix. Do not accept entire P03-00: actual disposable PostgreSQL partial-schema tests remain missing, and coordinator review is pending.",
@@ -181,7 +168,8 @@
               "passed": true
             }
           ]
-        }
+        },
+        "blockers": []
       },
       "P03-01": {
         "status": "pending",
@@ -204,14 +192,10 @@
         "priority": 380
       },
       "P04-01": {
-        "status": "review",
+        "status": "pending",
         "priority": 401,
         "discoveredDependencies": [],
-        "owner": "worker5",
-        "token": "22b75133-b91c-4509-9a90-8b64a785689e",
-        "leaseUntil": 1793403268425,
-        "workStarted": true,
-        "checkpoint": "refs/heads/codex/lp-hosted-2316-worker5 at a26d4a5d3e0a5f7979182430c7439bbd8d6cfe86; clean worktree; 41 contract tests pass; partial inventory only, full case freeze and statutory fixture qualification remain pending",
+        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated unqualified native case inventory/rejection resolver; exhaustive combinations, pinned rules and independently reviewed statutory outputs remain unfinished.",
         "evidence": {
           "commit": "a26d4a5d3e0a5f7979182430c7439bbd8d6cfe86",
           "summary": "PARTIAL ONLY: fail-closed qualification inventory across VAT, income, corporation and payroll with official discovery sources and 2025-28 rows. No case claimed calculation-supported; full exhaustive matrix and pinned statutory expected results remain pending. Do not accept P04-01 as complete from this slice.",
@@ -221,7 +205,8 @@
               "passed": true
             }
           ]
-        }
+        },
+        "blockers": []
       },
       "P04-02": {
         "status": "pending",
@@ -316,14 +301,10 @@
         ]
       },
       "P07-02": {
-        "status": "review",
+        "status": "pending",
         "priority": 702,
         "discoveredDependencies": [],
-        "owner": "worker6",
-        "token": "79129ca7-a9a4-4144-8122-e9dd34920066",
-        "leaseUntil": 1793403313310,
-        "workStarted": true,
-        "checkpoint": "codex/lp-hosted-2316-worker6 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits; inspect saved readiness and next task",
+        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated server-derived next action and state help; browser reload/resume and all first-task consistency acceptance remain unverified.",
         "evidence": {
           "commit": "39b359132593d2df0aa6a20e751abd752a9b07cb",
           "summary": "Fresh server-backed saved setup now suggests the next prerequisite/contact/document task, respects readonly and failed reads, and offers optional accurate draft/posted/paid/credited/filed guidance. No additional browser storage or financial mutations. Render/model verified; live browser journey remains P07-01 environment-blocked.",
@@ -341,7 +322,8 @@
               "passed": true
             }
           ]
-        }
+        },
+        "blockers": []
       },
       "P07-03": {
         "status": "pending",
@@ -1125,6 +1107,154 @@
             }
           ]
         }
+      },
+      {
+        "at": 1793402959720,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P02-01",
+        "reason": "Integrated narrow legacy payment bypass fix; remaining exhaustive authorization inventory, cross-company checks and legacy client migrations are not completed."
+      },
+      {
+        "at": 1793402959800,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P02-01",
+        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated narrow legacy payment bypass fix; remaining exhaustive authorization inventory, cross-company checks and legacy client migrations are not completed."
+      },
+      {
+        "at": 1793402959889,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P02-03",
+        "reason": "Integrated headers/parser/log hardening; trusted-edge quotas, production sessions/transport and secrets/dependency audit remain unfinished."
+      },
+      {
+        "at": 1793402959973,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P02-03",
+        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated headers/parser/log hardening; trusted-edge quotas, production sessions/transport and secrets/dependency audit remain unfinished."
+      },
+      {
+        "at": 1793402960051,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P03-00",
+        "reason": "Integrated persistence contract/registry; executable disposable PostgreSQL partial-schema matrix remains unfinished."
+      },
+      {
+        "at": 1793402960133,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P03-00",
+        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated persistence contract/registry; executable disposable PostgreSQL partial-schema matrix remains unfinished."
+      },
+      {
+        "at": 1793402960228,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P04-01",
+        "reason": "Integrated unqualified native case inventory/rejection resolver; exhaustive combinations, pinned rules and independently reviewed statutory outputs remain unfinished."
+      },
+      {
+        "at": 1793402960310,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P04-01",
+        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated unqualified native case inventory/rejection resolver; exhaustive combinations, pinned rules and independently reviewed statutory outputs remain unfinished."
+      },
+      {
+        "at": 1793402960388,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P07-02",
+        "reason": "Integrated server-derived next action and state help; browser reload/resume and all first-task consistency acceptance remain unverified."
+      },
+      {
+        "at": 1793402960472,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P07-02",
+        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated server-derived next action and state help; browser reload/resume and all first-task consistency acceptance remain unverified."
+      },
+      {
+        "at": 1793402960552,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P01-00",
+        "reason": "Refresh contract submission against durable published exact source a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5 after connector remapped local commit metadata; scope unchanged."
+      },
+      {
+        "at": 1793402960637,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P01-00",
+        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Refresh contract submission against durable published exact source a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5 after connector remapped local commit metadata; scope unchanged."
+      },
+      {
+        "at": 1793402972818,
+        "actor": "worker1",
+        "type": "claim",
+        "taskId": "P01-00",
+        "token": "5c0bb7a6-dfb2-47d4-8c7e-e17e497c4a25"
+      },
+      {
+        "at": 1793402985194,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-00",
+        "checkpoint": "Published refs/heads/codex/whole-product-first-sprint at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; integrated contract restored; no edits; refreshing matching-commit verification"
+      },
+      {
+        "at": 1793402985353,
+        "actor": "worker1",
+        "type": "submit",
+        "taskId": "P01-00",
+        "evidence": {
+          "commit": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
+          "summary": "Verified integrated P01-00 paid-credit/correction contract: exact cases, original evidence identities, historical cutoffs, atomic unallocation/credit intent, precision and tenant/capability invariants. Contract only; dependent functionality remains unimplemented.",
+          "tests": [
+            {
+              "command": "git diff 83ec61812c53d47a14cf1c7bb5d288f5829e2df2 HEAD --check -- docs/development/posted-document-corrections.md docs/development/credit-capacity-contract.md",
+              "passed": true
+            },
+            {
+              "command": "node --input-type=module: five integrated credit-example arithmetic assertions plus correction delta/historical cutoff assertions",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793403003623,
+        "actor": "coordinator",
+        "type": "accept",
+        "taskId": "P01-00",
+        "evidence": {
+          "commit": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
+          "summary": "Contract only accepted after independent worker5 and coordinator review of exact source; fully-paid credit implementation remains pending. Explicit immutable identities, cutoff, atomicity, precision, tenant and role invariants plus exact examples verified.",
+          "tests": [
+            {
+              "command": "node tools/development/check.mjs: 699 passed on exact published source",
+              "passed": true
+            },
+            {
+              "command": "PORT=5179 BASE_PATH=/ pnpm_config_verify_deps_before_run=false pnpm run build: passed on exact source",
+              "passed": true
+            },
+            {
+              "command": "Independent worker5 bounded arithmetic: 706011 cases passed; worker1 exact contract examples passed",
+              "passed": true
+            },
+            {
+              "command": "PR27 development CI 41144653667: source, build, disposable PostgreSQL, restore and cleanup passed",
+              "passed": true
+            }
+          ],
+          "reviewed": true,
+          "reviewer": "worker5-and-coordinator"
+        }
       }
     ],
     "catalogDigest": "4ec38da8ef67c6f42bc913d0e01b8e5d3b34fb4228853599a11b239c38ec4314"
@@ -1140,18 +1270,17 @@
       }
     ],
     "runId": "hosted-20261030-2316",
-    "at": 1793402899637,
+    "at": 1793403024785,
     "codeHead": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5"
   },
-  "updatedAt": 1793402899637,
+  "updatedAt": 1793403024785,
   "validation": {
-    "sourceCommit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
-    "sourceTree": "234772f1646ffeb7540efe1b72e25f9a80ae1389",
-    "ciMergeCommit": "974c9cf187c6521827409c4eac80d2034a6d369d",
-    "ciRun": "https://github.com/Future00111/ledgerpoint/actions/runs/41141980249",
-    "tests": 715,
-    "sourceTests": 649,
+    "sourceCommit": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
+    "sourceTree": "f9f97b78701439e9f672b1c14a662d2f7a9ba047",
+    "ciRun": "https://github.com/Future00111/ledgerpoint/actions/runs/41144653667",
+    "sourceTests": 699,
     "disposablePostgresTests": 66,
+    "tests": 765,
     "failed": 0,
     "skipped": 0,
     "buildTypecheckPassed": true,
@@ -1162,7 +1291,7 @@
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
     "cadence": "hourly",
     "mode": "bounded hosted resumptions",
-    "firstRunVerified": false
+    "firstRunVerified": true
   },
   "runEvidence": {
     "workerCheckpoints": {
@@ -1199,7 +1328,9 @@
     },
     "integratedTree": "f9f97b78701439e9f672b1c14a662d2f7a9ba047",
     "localTests": 699,
-    "ci": "pending",
-    "workersStopped": true
+    "ci": "passed",
+    "workersStopped": true,
+    "worktreesClean": true,
+    "remaining": "P02-01, P02-03, P03-00, P04-01 and P07-02 contain integrated partial slices and remain pending; P07-01 blocked for full authenticated synthetic signup-to-post journey. P01-00 contract accepted only. No deployment, migration or statutory acceptance."
   }
 }
