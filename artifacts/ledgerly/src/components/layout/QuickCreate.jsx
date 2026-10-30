@@ -10,7 +10,7 @@ export default function QuickCreate() {
   const { activeCompany } = useCompany();
   const { actions, loading, error, refresh } = useWorkspaceCapabilities();
   return <DropdownMenu onOpenChange={open => { if (open) refresh(); }}>
-    <DropdownMenuTrigger asChild><Button className="h-11 gap-1.5 px-3" aria-label="Quick create"><Plus className="h-4 w-4" /><span className="hidden sm:inline">Create</span></Button></DropdownMenuTrigger>
+    <DropdownMenuTrigger asChild><Button className="h-11 gap-1.5 rounded-xl px-3 sm:px-4" aria-label="Quick create"><Plus className="h-4 w-4" /><span className="hidden sm:inline">Create</span></Button></DropdownMenuTrigger>
     <DropdownMenuContent align="end" className="w-64">
       <DropdownMenuLabel className="text-xs text-muted-foreground">{activeCompany ? `Create in ${activeCompany.name}` : 'Select a company to start'}</DropdownMenuLabel>
       {loading ? <p role="status" className="px-2 py-3 text-sm text-muted-foreground">Checking permissions…</p> : actions.map(item => { const Icon = icons[item.id]; return <DropdownMenuItem asChild key={item.id}><Link className="min-h-11 gap-2" to={item.path}><Icon className="h-4 w-4" />{item.label}</Link></DropdownMenuItem>; })}

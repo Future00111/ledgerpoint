@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
-import ClaimList from './ClaimList';
+import ClaimList, { ClaimRowView } from './ClaimList';
 
 const money = value => ({ net_pence: value, vat_pence: '0', gross_pence: value });
 const fixture = {
@@ -15,8 +15,48 @@ const fixture = {
   candidates: [{ credit_id: 'credit-new', credit_revision: 'revision-2', credit_line_ref: 0, number: 'SYNTHETIC-C1', quantity: '1', money: money('1000'), status: 'posted', can_confirm: true }],
 };
 const render = (claim = fixture, canManage = true) => renderToStaticMarkup(
-  <MemoryRouter><ClaimList claims={[claim]} companyId="company-1" canManage={canManage} onChanged={() => {}} showBill /></MemoryRouter>,
+  <MemoryRouter><ClaimRowView claim={claim} canManage={canManage} expanded detailId="details-claim-1" onChanged={() => {}} showBill /></MemoryRouter>,
 );
+
+test('collapsed queue preserves item and money context but requires review before confirmation', () => {
+  const html = renderToStaticMarkup(<MemoryRouter><ClaimList claims={[fixture]} companyId="company-1" canManage onChanged={() => {}} showBill /></MemoryRouter>);
+  for (const value of ['Synthetic Parts', 'SYNTHETIC-B1', 'Returned caliper', 'PART-123', 'RETURN-123', '£40.00', '£30.00', '£10.00', 'Review match']) assert.ok(html.includes(value), value);
+  assert.ok(html.includes('aria-expanded="false"'));
+  assert.ok(!html.includes('Confirm match'));
+  assert.ok(!html.includes('Credit receipt history'));
+});
+
+test('review disclosure and confirmation retain the exact selected candidate', () => {
+  let opened = 0, received;
+  const element = ClaimRowView({ claim: fixture, canManage: true, expanded: true, detailId: 'review-this-item', showBill: true,
+    onToggle: () => { opened++; }, onReceive: candidate => { received = candidate; }, date: '2026-10-30' });
+  const elements = [];
+  const visit = node => { if (!React.isValidElement(node)) return; elements.push(node); React.Children.forEach(node.props.children, visit); };
+  visit(element);
+  const toggle = elements.find(node => node.props['aria-controls'] === 'review-this-item');
+  assert.equal(toggle.props['aria-expanded'], true);
+  toggle.props.onClick();
+  assert.equal(opened, 1);
+  const confirm = elements.find(node => React.Children.toArray(node.props.children).includes('Confirm match'));
+  confirm.props.onClick();
+  assert.equal(received, fixture.candidates[0]);
+  const html = renderToStaticMarkup(<MemoryRouter>{element}</MemoryRouter>);
+  assert.ok(html.includes('id="review-this-item"'));
+  assert.ok(html.includes('Credit receipt history'));
+});
+
+test('busy review locks disclosure and confirmation while missing amounts stay unavailable', () => {
+  const element = ClaimRowView({ claim: { ...fixture, remaining: undefined }, canManage: true, expanded: true, busy: true, detailId: 'busy-review' });
+  const elements = [];
+  const visit = node => { if (!React.isValidElement(node)) return; elements.push(node); React.Children.forEach(node.props.children, visit); };
+  visit(element);
+  assert.equal(elements.find(node => node.props['aria-controls'] === 'busy-review').props.disabled, true);
+  assert.equal(elements.find(node => React.Children.toArray(node.props.children).includes('Working…')).props.disabled, true);
+  const html = renderToStaticMarkup(<MemoryRouter>{element}</MemoryRouter>);
+  const waitingFigure = html.slice(html.indexOf('Still waiting'), html.indexOf('</dd>', html.indexOf('Still waiting')));
+  assert.ok(waitingFigure.includes('—'));
+  assert.ok(!waitingFigure.includes('£0.00'));
+});
 
 test('partial credit shows expected, received and remaining server amounts without settlement claims', () => {
   const html = render();

@@ -57,7 +57,11 @@ document submitters and original-line identity, payment recovery/shortcut
 gates, statement and report scope, CSV precision and capability checks.
 Exact-commit GitHub/database results are recorded on draft PR 27.
 
-The Replit connection became unavailable after the capture-demo refresh was
-requested. Its completion and the later usability demo are not confirmed.
-The final appearance, real keyboard focus and responsive interaction still
-need authorised interactive review; source and render tests are not that review.
+Follow-up on 30 October confirmed the capture refresh at `92cb24c`, then the
+usability demo at `41d3eed`. Replit's CLI evidence identified both the API source
+and frontend checkout; fresh fingerprints in both isolated databases matched.
+The owner found this pass visually too subtle. The next work is tracked in
+[product-redesign-wave.md](product-redesign-wave.md), with the remaining product
+tasks in [product-completion-plan.md](product-completion-plan.md).
+Final appearance, real keyboard focus and responsive interaction still require
+authorised interactive review; source and render tests are not that review.

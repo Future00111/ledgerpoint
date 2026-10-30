@@ -9,6 +9,16 @@ import { Input } from '@/components/ui/input';
 
 const date = value => new Date(`${value}T12:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 const sum = rows => rows.reduce((n, row) => n + BigInt(row.amount_minor), 0n).toString();
+export function ProfitLossOverview({ pnl, onRevenue }) {
+  return <section aria-label="Profit and loss overview" className="workspace-hero grid gap-6 2xl:grid-cols-[minmax(220px,.9fr)_minmax(0,1.5fr)] 2xl:items-center">
+    <div><p className="workspace-kicker">Net profit for the period</p><p className="mt-3 break-words text-3xl font-semibold leading-tight tracking-tight sm:text-4xl"><Money value={pnl.profit_minor} /></p><p className="mt-3 text-sm text-muted-foreground">Your result after recorded costs.</p></div>
+    <dl className="grid gap-4 border-t border-primary/15 pt-5 sm:grid-cols-3 2xl:border-l 2xl:border-t-0 2xl:pl-6 2xl:pt-0">
+      <div><dt className="text-xs font-medium text-muted-foreground">Revenue</dt><dd className="mt-2 break-all"><button type="button" onClick={onRevenue} aria-label="View revenue transactions" className="min-h-11 text-left text-lg font-semibold text-primary underline decoration-primary/25 underline-offset-4"><Money value={pnl.revenue_minor} /></button></dd></div>
+      <div><dt className="text-xs font-medium text-muted-foreground">Total costs</dt><dd className="mt-2 flex min-h-11 items-center break-all text-lg font-semibold"><Money value={pnl.expense_minor} /></dd></div>
+      <div><dt className="text-xs font-medium text-muted-foreground">Gross profit</dt><dd className="mt-2 flex min-h-11 items-center break-all text-lg font-semibold"><Money value={pnl.gross_profit_minor} /></dd></div>
+    </dl>
+  </section>;
+}
 export default function ProfitLossReport({ data, company, from, to }) {
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState('');
@@ -52,10 +62,10 @@ export default function ProfitLossReport({ data, company, from, to }) {
   </section>;
 
   return <div className="space-y-5">
-    <div className="grid gap-4 sm:grid-cols-3">{[['Revenue', data.pnl.revenue_minor, 'income'], ['Total costs', data.pnl.expense_minor, null], ['Net profit', data.pnl.profit_minor, null]].map(([label, amount, cat]) => <div key={label} className={`workspace-card p-5 ${label === 'Net profit' ? 'border-primary/25 bg-primary/5' : ''}`}><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>{cat ? <button className="mt-2 text-2xl font-semibold text-primary hover:underline" onClick={() => openCategory(cat)}><Money value={amount} /></button> : <Money className="mt-2 block text-2xl font-semibold" value={amount} />}</div>)}</div>
+    <ProfitLossOverview pnl={data.pnl} onRevenue={() => openCategory('income')} />
     <section className="workspace-card overflow-hidden" aria-label="Profit and loss statement">
-      <header className="flex flex-wrap justify-between gap-4 border-b px-6 py-5"><div><h2 className="font-semibold">{company.name}</h2><p className="mt-1 text-sm text-muted-foreground">{date(from)} – {date(to)}</p></div><p className="max-w-xs text-xs leading-relaxed text-muted-foreground">Select a category, account or amount to see its invoices, bills and credits.</p></header>
-      <div className="overflow-x-auto"><table className="workspace-table"><thead><tr><th colSpan={2}>Account</th><th className="text-right">Amount · GBP</th></tr></thead>
+      <header className="flex flex-wrap justify-between gap-4 border-b px-6 py-6"><div><p className="workspace-kicker">Profit &amp; loss statement</p><h2 className="mt-2 text-lg font-semibold">{company.name}</h2><p className="mt-1 text-sm text-muted-foreground">{date(from)} – {date(to)}</p></div><p className="max-w-xs self-end text-xs leading-relaxed text-muted-foreground">Select a category, account or amount to see its invoices, bills and credits.</p></header>
+      <div className="overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" tabIndex={0} role="region" aria-label="Profit and loss statement, scroll for more columns"><table className="workspace-table"><caption className="sr-only">Profit and loss statement, amounts in GBP.</caption><thead><tr><th scope="col" colSpan={2}>Account</th><th scope="col" className="text-right">Amount · GBP</th></tr></thead>
         {sections.map(s => <tbody key={s.category}>
           <tr className="border-t bg-muted/40"><th colSpan={2} className="text-left"><button className="inline-flex items-center gap-2 font-semibold text-primary hover:underline" onClick={() => openCategory(s.category)} aria-label={`View ${s.label} transactions`}>{s.label}<ArrowUpRight className="h-3.5 w-3.5" /></button></th><th className="text-right"><button className="font-semibold text-primary hover:underline" onClick={() => openCategory(s.category)} aria-label={`View ${s.label} total`}><Money value={s.total_minor} /></button></th></tr>
           {s.groups.map((g, i) => <Group key={i} section={s} group={g} openAccount={openAccount} openGroup={openGroup} />)}

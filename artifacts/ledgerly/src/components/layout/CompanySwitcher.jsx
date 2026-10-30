@@ -21,7 +21,7 @@ export default function CompanySwitcher({ collapsed = false, onNavigate, surface
         to="/companies"
         onClick={onNavigate}
         className={cn(
-          'flex min-h-11 items-center gap-2 rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', surface === 'sidebar' ? 'text-slate-200 hover:bg-white/5' : 'text-muted-foreground hover:bg-muted',
+          'flex min-h-11 items-center gap-2 rounded-xl text-sm text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           collapsed ? 'lg:justify-center lg:w-10 lg:h-10 lg:mx-auto p-2' : 'px-3 py-2'
         )}
         title="Choose company" aria-label={loading ? "Loading companies" : "Choose or create a company"}
@@ -37,10 +37,10 @@ export default function CompanySwitcher({ collapsed = false, onNavigate, surface
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            'w-full min-h-11 flex items-center gap-2 rounded-lg text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'w-full min-h-11 flex items-center gap-2 rounded-xl border border-transparent text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
             collapsed
-              ? 'justify-center p-2 hover:bg-white/10'
-              : surface === 'sidebar' ? 'items-center justify-between px-3 py-2 bg-white/10 text-white hover:bg-white/15' : 'items-center justify-between px-3 py-2 bg-muted/50 text-foreground hover:bg-muted'
+              ? 'justify-center p-2 text-foreground hover:bg-muted'
+              : surface === 'sidebar' ? 'items-center justify-between px-3 py-3 bg-muted/60 text-foreground hover:border-border hover:bg-muted' : 'items-center justify-between px-3 py-2 bg-muted/50 text-foreground hover:bg-muted'
           )}
           title={collapsed ? activeCompany?.name : undefined}
           aria-label={`Current company: ${activeCompany?.name || 'none selected'}. Switch company`}
@@ -50,10 +50,10 @@ export default function CompanySwitcher({ collapsed = false, onNavigate, surface
           ) : (
             <>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-6 h-6 rounded-md bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Building2 className="w-3.5 h-3.5" />
+                <div className="w-8 h-8 rounded-lg border bg-white text-primary flex items-center justify-center flex-shrink-0">
+                  <Building2 className="w-4 h-4" />
                 </div>
-                <span className="truncate font-medium text-sm">{activeCompany?.name || 'Select company'}</span>
+                <span className="min-w-0 text-left"><span className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Your business</span><span className="block truncate font-medium text-sm">{activeCompany?.name || 'Select company'}</span></span>
               </div>
               <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             </>

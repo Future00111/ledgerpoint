@@ -10,7 +10,7 @@ export default function Breadcrumbs() {
 
   let crumbs;
   if (item.path === '/') {
-    crumbs = [{ label: 'Overview' }];
+    crumbs = [{ label: 'Today' }];
   } else {
     crumbs = item.sectionLabel === item.label ? [{ label: item.label, path: item.path }] : [{ label: item.sectionLabel }, { label: item.label, path: item.path }];
     const rest = location.pathname.slice(item.path.length).replace(/^\//, '');

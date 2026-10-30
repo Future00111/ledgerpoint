@@ -258,7 +258,7 @@ export default function CustomDashboard() {
           </div>
         </div>
       </section>
-      <DailyWork />
+      <DailyWork compact />
       <p className="sr-only" role="status" aria-live="polite">{moveAnnouncement}</p>
 
       {focusMode ? (

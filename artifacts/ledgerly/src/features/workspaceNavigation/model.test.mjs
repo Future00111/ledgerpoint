@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SIDEBAR_KEY, SHORTCUTS, readCollapsed, rememberCollapsed, sidebarMode, workspacePermissions, availableShortcuts,
-  currentWorkspaceState, loadWorkspaceCapabilities, visibleSections, moveWidget, restoreNavigationFocus } from './model.mjs';
-import { SECTIONS, allItems, findActiveItem } from '../../components/layout/navConfig.js';
+  currentWorkspaceState, loadWorkspaceCapabilities, visibleSections, navigationGroups, moveWidget, restoreNavigationFocus } from './model.mjs';
+import { SECTIONS, EVERYDAY_ROUTES, allItems, findActiveItem } from '../../components/layout/navConfig.js';
 const company = 'synthetic-company';
 const configuration = { company_id: company, revision: 'reviewed-revision', mappings: { bank: 'bank', customer_credit: 'credit', supplier_prepayment: 'prepayment' } };
 const state = (drafts = true, payments = true) => ({ key: 'scope-1', companyId: company, loading: false,
@@ -112,4 +112,34 @@ test('closing navigation restores its real opener and falls back to the workspac
   restoreNavigationFocus({ ...opener, getClientRects: () => [] }, main);
   restoreNavigationFocus(null, main);
   assert.deepEqual(calls, ['opener', 'main', 'main', 'main']);
+});
+
+
+test('daily navigation keeps its seven direct routes and partitions the entire catalogue without loss or duplicates', () => {
+  const groups = navigationGroups(SECTIONS, EVERYDAY_ROUTES, { canDev: true, showPlanned: true });
+  assert.deepEqual(groups.everyday.map(item => item.path), ['/', '/documents', '/invoices', '/bills', '/awaiting-credits', '/payments', '/reports']);
+  const actual = [...groups.everyday, ...groups.more.flatMap(section => section.items)];
+  const paths = actual.filter(item => item.path).map(item => item.path);
+  assert.deepEqual([...paths].sort(), allItems().filter(item => item.path).map(item => item.path).sort());
+  assert.equal(new Set(paths).size, paths.length);
+  assert.deepEqual(actual.filter(item => item.soon).map(item => item.label).sort(), allItems().filter(item => item.soon).map(item => item.label).sort());
+});
+
+test('navigation searches the whole catalogue and retains development and planned restrictions', () => {
+  const credit = navigationGroups(SECTIONS, EVERYDAY_ROUTES, { query: 'awaiting' });
+  assert.deepEqual(credit.everyday, []);
+  assert.deepEqual(credit.more.flatMap(section => section.items).map(item => item.path), ['/awaiting-credits']);
+  const ordinary = navigationGroups(SECTIONS, EVERYDAY_ROUTES);
+  assert.ok(ordinary.more.every(section => !section.devOnly));
+  assert.ok(ordinary.more.flatMap(section => section.items).every(item => !item.soon));
+  assert.equal(navigationGroups(SECTIONS, EVERYDAY_ROUTES, { query: 'development' }).more.length, 0);
+  assert.equal(navigationGroups(SECTIONS, EVERYDAY_ROUTES, { query: 'development', canDev: true }).more[0].key, 'dev');
+});
+
+
+test('new everyday names remain discoverable through feature search', () => {
+  for (const [query, path] of [['today', '/'], ['document inbox', '/documents']]) {
+    const groups = navigationGroups(SECTIONS, EVERYDAY_ROUTES, { query });
+    assert.ok(groups.more.flatMap(section => section.items).some(item => item.path === path));
+  }
 });

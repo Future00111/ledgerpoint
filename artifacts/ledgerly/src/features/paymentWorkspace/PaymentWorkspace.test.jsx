@@ -6,9 +6,33 @@ import { MemoryRouter } from 'react-router-dom';
 import { PaymentFilters, PaymentList, PaymentBalanceSummary } from './PaymentList';
 import PaymentAllocations from './PaymentAllocations';
 import StatementMovements from './StatementMovements';
+import PaymentOverview from './PaymentOverview';
+import StatementSummary from './StatementSummary';
 
 const render = element => renderToStaticMarkup(<MemoryRouter>{element}</MemoryRouter>);
 const payment = { id: 'p1', party_type: 'supplier', source: { party_name: 'Synthetic Parts' }, reference: 'SYNTHETIC-21', effective_date: '2026-10-30', amount_minor: '15000', allocated_minor: '10000', unapplied_minor: '5000', refunded_minor: '0', reversed: false };
+
+test('payment overview shortcuts use existing row filters and clear conflicting search', () => {
+  const payments = [payment, { ...payment, id:'p2', party_type:'customer', unapplied_minor:'0' }];
+  const selected = [];
+  const element = PaymentOverview({ payments, filters:{ search:'old search', direction:'paid', balance:'all' }, onChange:value => selected.push(value) });
+  const choices = element.props.children;
+  choices.forEach(choice => choice.props.onClick());
+  assert.deepEqual(selected, [{search:'',direction:'received',balance:'all'}, {search:'',direction:'paid',balance:'all'}, {search:'',direction:'all',balance:'unapplied'}]);
+  const html = render(<PaymentOverview payments={payments} filters={selected[2]} />);
+  assert.equal((html.match(/aria-pressed="true"/g) || []).length, 1);
+  assert.ok(html.includes('Customer payment records')); assert.ok(html.includes('Payments with an unapplied amount'));
+  assert.ok(!html.includes('£'), 'Record counts must not imply cash totals');
+  const unavailable = render(<PaymentOverview payments={null} filters={selected[0]} />);
+  assert.equal((unavailable.match(/disabled=""/g) || []).length, 3);
+  assert.equal((unavailable.match(/>—</g) || []).length, 3);
+});
+
+test('statement summary preserves server balances separately and retains exact large values', () => {
+  const html = render(<StatementSummary party={{name:'Synthetic Supplier',type:'supplier'}} from="2026-10-01" to="2026-10-30" statement={{ closing:'9007199254740993', unapplied:'200', net:'9007199254740793' }} />);
+  for (const text of ['Synthetic Supplier', 'Outstanding documents', 'Supplier prepayments', 'Net account balance', '£90,071,992,547,409.93', '£2.00', '£90,071,992,547,407.93', 'through 2026-10-30']) assert.ok(html.includes(text), text);
+  assert.ok(!html.includes('settled'));
+});
 
 test('payment filters have named search/direction/unapplied controls and preserve selected view', () => {
   const html = render(<PaymentFilters filters={{ search: 'SYNTHETIC', direction: 'paid', balance: 'unapplied' }} />);

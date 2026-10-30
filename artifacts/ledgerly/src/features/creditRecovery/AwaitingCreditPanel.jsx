@@ -136,7 +136,7 @@ function BillCreditTracker({ companyId, doc, children }) {
     {loading && data && <p role="status" className="text-xs text-muted-foreground">Refreshing credit tracking…</p>}
     {message && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-950">{message}</p>}
     {data && <>
-      {claims.length > 0 ? <ClaimList claims={claims} companyId={companyId} canManage={canManage && !busy} onChanged={refresh} /> : <p className="rounded-lg bg-muted/40 p-4 text-sm text-muted-foreground">No items from this bill are being tracked yet. {data.can_manage && 'Select an item in the bill above, or use “Select lines awaiting credit”.'}</p>}
+      {claims.length > 0 ? <div className="-mx-6 overflow-hidden border-y"><ClaimList claims={claims} companyId={companyId} canManage={canManage && !busy} onChanged={refresh} /></div> : <p className="rounded-xl bg-muted/40 p-4 text-sm leading-6 text-muted-foreground">No items from this bill are being tracked yet. {data.can_manage && 'Select an item in the bill above, or use “Select lines awaiting credit”.'}</p>}
       {!data.can_manage && <p className="text-xs text-muted-foreground">Your role can view this tracker. An owner, administrator or accountant can add items or confirm matches.</p>}
     </>}
     {!renderChildren && action}

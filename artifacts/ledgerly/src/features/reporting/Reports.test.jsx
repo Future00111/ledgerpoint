@@ -10,6 +10,7 @@ import { CompanyReports } from '../../pages/AccountingReports';
 import ReportLibrary from '../../pages/ReportLibrary';
 import HistoricalVatNotice, { historicalStatus } from '../vatPreparation/HistoricalVatNotice';
 import { visibleRead } from './model.mjs';
+import ProfitLossReport, { ProfitLossOverview } from '../../components/accounting/ProfitLossReport';
 const render = (element, entry = '/reports') => renderToStaticMarkup(<MemoryRouter initialEntries={[entry]}>{element}</MemoryRouter>);
 
 test('navigation announces selection; closing date toolbar presents one As-at control', () => {
@@ -53,4 +54,19 @@ test('report library leads to native VAT and historical status never implies ver
   const notice = render(<HistoricalVatNotice from="2026-07-01" to="2026-09-30" />);
   assert.ok(notice.includes('not a verified HMRC submission receipt'));
   assert.ok(notice.includes('/vat?from=2026-07-01&amp;to=2026-09-30'));
+});
+
+test('report hub retains every current report and historical tools without invented figures', () => {
+  const html = render(<ReportLibrary />);
+  for (const route of ['/reports?tab=pnl', '/reports?tab=bs', '/vat', '/reports?tab=parties', '/reports?tab=ageing', '/reports?tab=tb', '/reports?tab=gl', '/statements', '/reports/legacy']) assert.ok(html.includes(`href="${route}"`), route);
+  assert.ok(html.includes('they do not submit a return'));
+  assert.ok(!html.includes('£'));
+});
+
+test('profit overview keeps server totals exact and the statement keeps category and account drilldowns', () => {
+  const pnl = { profit_minor:'9007199254740993', revenue_minor:'9007199254741003', expense_minor:'10', gross_profit_minor:'9007199254740998', sections:[{category:'income',label:'Revenue',total_minor:'9007199254741003',groups:[{name:'Service income',subtotal_minor:'9007199254741003',accounts:[{account_id:'a1',code:'4000',name:'Sales',amount_minor:'9007199254741003'}]}]}] };
+  const summary = render(<ProfitLossOverview pnl={pnl} />);
+  for (const text of ['£90,071,992,547,409.93', '£90,071,992,547,410.03', '£0.10', '£90,071,992,547,409.98', 'View revenue transactions']) assert.ok(summary.includes(text), text);
+  const statement = render(<ProfitLossReport data={{pnl}} company={{name:'Synthetic company'}} from="2026-10-01" to="2026-10-30" />);
+  for (const text of ['View Revenue transactions', 'View Service income transactions', 'View transactions for 4000 Sales', 'tabindex="0"', 'Drafts are excluded']) assert.ok(statement.includes(text), text);
 });

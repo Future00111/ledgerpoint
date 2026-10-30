@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FileText, Image, CheckCircle2, Clock3, Download } from 'lucide-react';
 import { documentIntake } from '@/api/documentIntake.mjs';
 import { Button } from '@/components/ui/button';
 import { ErrorBox, SkeletonRows } from '@/components/accounting/AccountingUI';
@@ -13,7 +14,7 @@ export function SourceActions({ source, canManage, compact = false }) {
   return <><Button asChild size="sm" className="min-h-11"><Link to={prepareCapturePath('purchase_bill', source.id)}>Prepare bill</Link></Button><Button asChild variant="outline" size="sm" className="min-h-11"><Link to={prepareCapturePath('supplier_credit_note', source.id)}>Prepare supplier credit</Link></Button></>;
 }
 
-export function SourceDownload({ companyId, source }) {
+export function SourceDownload({ companyId, source, compact = false }) {
   const [state, setState] = useState({ busy: false, error: null });
   const latest = useRef(null);
   const key = JSON.stringify([companyId, source.id]); latest.current = key;
@@ -33,7 +34,21 @@ export function SourceDownload({ companyId, source }) {
       setState({ busy: false, error: null });
     } catch (error) { if (!request.signal.aborted && latest.current === key) setState({ busy: false, error }); }
   };
-  return <div><Button type="button" variant="outline" size="sm" className="min-h-11" onClick={download} disabled={state.busy} aria-label={`Download source file ${source.filename}`}>{state.busy ? 'Downloading…' : 'Download source file'}</Button>{state.error && <p role="alert" className="mt-1 text-xs text-destructive">{state.error.message}</p>}</div>;
+  return <div><Button type="button" variant={compact ? 'ghost' : 'outline'} size="sm" className="min-h-11" onClick={download} disabled={state.busy} aria-label={`Download source file ${source.filename}`}><Download className="h-4 w-4" aria-hidden="true" /><span className={compact ? 'sr-only' : undefined}>{state.busy ? 'Downloading…' : 'Download source file'}</span></Button>{state.error && <p role="alert" className="mt-1 text-xs text-destructive">{state.error.message}</p>}</div>;
+}
+
+/** Compact inbox rows retain the original source identity and native draft routes. */
+export function SourceRow({ source, companyId, canManage = false, highlighted = false }) {
+  const linked = Boolean(source.document_id);
+  const Icon = source.media_type === 'application/pdf' ? FileText : Image;
+  return <article id={`capture-${source.id}`} aria-label={`Source file ${source.filename}`} className={`grid items-center gap-4 px-5 py-4 sm:px-6 xl:grid-cols-[minmax(0,1fr)_auto] ${highlighted ? 'bg-primary/5 ring-1 ring-inset ring-primary/30' : 'bg-card hover:bg-muted/20'}`}>
+    <div className="flex min-w-0 items-center gap-3">
+      <span className="flex h-11 w-10 shrink-0 items-center justify-center rounded-xl border bg-background text-muted-foreground"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+      <div className="min-w-0 flex-1"><h3 className="break-words text-sm font-semibold">{source.filename}</h3><p className="mt-1 text-xs text-muted-foreground">{source.media_type === 'application/pdf' ? 'PDF' : source.media_type === 'image/png' ? 'PNG' : 'JPG'} · {Math.ceil(source.byte_length / 1024)} KiB{source.created_at ? ` · ${new Date(source.created_at).toLocaleDateString('en-GB')}` : ''}</p></div>
+      <span className={`hidden shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs sm:inline-flex ${linked ? 'bg-primary/10 text-primary' : 'bg-amber-50 text-amber-900'}`}>{linked ? <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> : <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />}{linked ? 'Linked' : 'Needs preparing'}</span>
+    </div>
+    <div className="flex flex-wrap items-center gap-2"><SourceActions source={source} canManage={canManage} compact /><SourceDownload companyId={companyId} source={source} compact /></div>
+  </article>;
 }
 
 export function SourceCard({ source, companyId, canManage = false, highlighted = false, compact = false }) {

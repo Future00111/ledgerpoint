@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, FileText, Search, ArrowUpRight } from 'lucide-react';
+import { Plus, FileText, Search, ArrowUpRight, FileUp, ListFilter } from 'lucide-react';
 import { accounting, KINDS, docPath } from '@/api/accountingDocuments.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { useLedgerSnapshot } from '@/lib/useLedgerSnapshot';
@@ -12,8 +12,8 @@ import PageHeader from '@/components/workspace/PageHeader';
 import EmptyState from '@/components/workspace/EmptyState';
 
 export function DocumentStatusFilters({ tabs, filter, counts, title, onChange }) {
-  return <div className="flex flex-wrap gap-2 border-b p-4" role="group" aria-label={`${title} status`}>
-    {tabs.map(([value, label]) => <Button key={value} type="button" variant={filter === value ? 'secondary' : 'outline'} className="min-h-11" aria-pressed={filter === value} data-testid={`tab-${value}`} onClick={() => onChange(value)}>{label}<span className="rounded-md bg-muted px-1.5 py-0.5 text-xs">{counts[value] ?? '—'}</span></Button>)}
+  return <div className="workspace-segmented" role="group" aria-label={`${title} status`}>
+    {tabs.map(([value, label]) => <button key={value} type="button" aria-pressed={filter === value} data-testid={`tab-${value}`} onClick={() => onChange(value)}>{label}<span className="ml-2 rounded-md bg-muted px-1.5 py-0.5 text-xs">{counts[value] ?? '—'}</span></button>)}
   </div>;
 }
 
@@ -84,20 +84,21 @@ function CompanyDocumentList({ kind, legacyLink, activeCompany }) {
         description={meta.credit ? 'Every credit, clearly linked to its original document.' : kind === 'sales_invoice' ? 'Keep track of your sales and what customers owe you.' : 'Keep purchases organised and see what needs paying.'}
         actions={<>
           {legacyLink && <Button variant="ghost" asChild className="min-h-11"><Link to={legacyLink} data-testid="link-legacy">Earlier drafts</Link></Button>}
-          {canEdit && meta.party === 'supplier' && <Button variant="outline" asChild className="min-h-11"><Link to="/documents">Upload supplier files</Link></Button>}
+          {canEdit && meta.party === 'supplier' && <Button variant="outline" asChild className="min-h-11"><Link to="/documents"><FileUp aria-hidden="true" />Upload supplier files</Link></Button>}
           {canEdit && <Button asChild className="min-h-11"><Link to={`${meta.path}/new`} data-testid="button-new-doc"><Plus />New {kind==='purchase_bill' ? 'bill' : kind==='sales_invoice' ? 'invoice' : 'credit note'}</Link></Button>}
         </>} />
-      {!meta.credit && <section className="grid gap-4 sm:grid-cols-3" aria-label="Document balances">
-        {[['awaiting',kind === 'sales_invoice' ? 'Outstanding invoices' : 'Outstanding bills','Total still to be paid'],['overdue','Overdue','Past the payment due date'],['draft','Drafts','Not yet included in your accounts']].map(([key,label,detail]) => <button key={key} type="button" aria-pressed={filter === key} onClick={()=>setFilter(key)} className={`workspace-card p-5 text-left transition-colors hover:border-primary/40 ${filter===key ? 'border-primary/40' : ''}`}><p className="flex items-center justify-between text-sm text-muted-foreground">{label}<ArrowUpRight className="h-4 w-4" /></p><p className={`metric-value ${key==='overdue' ? 'text-amber-800' : ''}`}>{!docs ? '—' : key==='draft' ? docs.filter(d=>d.status==='draft').length : <Money value={sumOpen(key)} />}</p><p className="mt-2 text-xs text-muted-foreground">{detail}</p></button>)}
+      {!meta.credit && <section className="grid overflow-hidden rounded-2xl border bg-white sm:grid-cols-3" aria-label="Document balances">
+        {[['awaiting',kind === 'sales_invoice' ? 'Outstanding invoices' : 'Outstanding bills','Total still to be paid'],['overdue','Overdue','Past the payment due date'],['draft','Drafts','Not yet included in your accounts']].map(([key,label,detail]) => <button key={key} type="button" aria-pressed={filter === key} onClick={()=>setFilter(key)} className={`border-b p-5 text-left transition-colors last:border-b-0 hover:bg-muted/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary sm:border-b-0 sm:border-r sm:last:border-r-0 ${filter===key ? 'bg-primary/5' : ''}`}><p className="flex items-center justify-between text-sm text-muted-foreground">{label}<ArrowUpRight className="h-4 w-4" /></p><p className={`metric-value ${key==='overdue' ? 'text-amber-800' : ''}`}>{!docs ? '—' : key==='draft' ? docs.filter(d=>d.status==='draft').length : <Money value={sumOpen(key)} />}</p><p className="mt-2 text-xs text-muted-foreground">{detail}</p></button>)}
       </section>}
       <ErrorBox error={error} onRetry={() => load()} />
       {accessError && <p role="status" className="text-sm text-muted-foreground">Editing permissions could not be verified. You can still view documents; retry to enable permitted actions.</p>}
       {accessError && <Button type="button" variant="outline" onClick={() => load()}>Retry permissions</Button>}
       {!meta.credit && <ErrorBox error={ledger.error} onRetry={ledger.refresh} />}
-      <section className="workspace-card overflow-hidden" aria-label={title}>
-        <DocumentStatusFilters tabs={tabs} filter={filter} title={title} onChange={setFilter}
-          counts={Object.fromEntries(tabs.map(([value]) => [value, !docs || (!meta.credit && !['all', 'draft'].includes(value) && (ledger.loading || ledger.error)) ? null : searched.filter(doc => matches(doc, value)).length]))} />
-        <div className="flex flex-wrap items-center justify-between gap-3 p-5"><div className="relative w-full sm:max-w-sm"><Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input aria-label={`Search ${meta.plural.toLowerCase()}`} placeholder="Search name, number or reference…" value={search} onChange={e=>setSearch(e.target.value)} className="min-h-11 bg-background pl-9" /></div><span className="text-xs text-muted-foreground">{docs ? `${shown.length} ${shown.length===1 ? 'document' : 'documents'}` : 'Loading…'}</span></div>
+      <section className="workspace-panel" aria-label={title}>
+        <div className="workspace-panel-header"><div className="flex items-center gap-2"><ListFilter className="h-4 w-4 text-muted-foreground" aria-hidden="true" /><h2 className="workspace-section-title">All {title.toLowerCase()}</h2></div><span className="text-xs text-muted-foreground">{docs ? `${shown.length} ${shown.length === 1 ? 'document' : 'documents'}` : 'Loading…'}</span></div>
+        <div className="px-5 pt-4"><DocumentStatusFilters tabs={tabs} filter={filter} title={title} onChange={setFilter}
+          counts={Object.fromEntries(tabs.map(([value]) => [value, !docs || (!meta.credit && !['all', 'draft'].includes(value) && (ledger.loading || ledger.error)) ? null : searched.filter(doc => matches(doc, value)).length]))} /></div>
+        <div className="flex flex-wrap items-center justify-between gap-3 p-5"><div className="relative w-full sm:max-w-sm"><Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input aria-label={`Search ${meta.plural.toLowerCase()}`} placeholder="Search name, number or reference…" value={search} onChange={e=>setSearch(e.target.value)} className="min-h-11 bg-background pl-9" /></div><span className="text-xs text-muted-foreground">Open a document to review its details</span></div>
         {!docs && !error && <div className="p-5"><SkeletonRows /></div>}
         {docs && shown.length === 0 && (meta.credit || !ledger.loading) && <EmptyState icon={FileText}
           title={search || filter !== 'all' ? 'Nothing matches this view' : `Your ${title.toLowerCase()} will appear here`}

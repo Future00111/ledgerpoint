@@ -82,7 +82,9 @@ export function CompanyReports({ company, defaultTab }) {
       <PageHeader eyebrow="Financial reports" title={REPORT_TABS.find(([key]) => key === tab)?.[1]} description="Understand your posted accounts and follow the detail behind each figure."
         context={<><span className="font-medium text-foreground">{company.name}</span><span aria-hidden="true">·</span><span>{validation ? 'Choose valid dates' : reportPeriodLabel(tab, from, to)}</span></>}
         actions={<><Button asChild variant="outline"><Link to="/reports">All reports</Link></Button>{canExport && <Button onClick={exportCurrent}>Export {tab === 'gl' ? 'matching entries' : tab === 'parties' ? 'balances' : 'report'} CSV</Button>}</>} />
-      <ReportNavigation tab={tab} onChange={setTab} />
+      <div className="grid items-start gap-5 xl:grid-cols-[210px_minmax(0,1fr)]">
+      <aside className="space-y-4 xl:sticky xl:top-0"><ReportNavigation tab={tab} onChange={setTab} vertical /><p className="hidden px-3 text-xs leading-5 text-muted-foreground xl:block">Your figures are linked to posted documents. Select an amount to follow the detail.</p></aside>
+      <div className="min-w-0 space-y-5">
       <ReportToolbar tab={tab} from={from} to={to} validation={validation} onDate={setDate} onPreset={setPeriod} />
       {!validation && <div className="flex flex-wrap items-center gap-4"><Button variant="outline" disabled={loading} onClick={refresh}>{loading ? 'Loading report…' : 'Refresh report'}</Button><Link to={partyFilter ? statementPath(partyFilter, from, to) : '/statements'} className="text-sm font-medium text-primary underline">Account statements</Link></div>}
       <ErrorBox error={error} onRetry={refresh} />
@@ -123,6 +125,7 @@ export function CompanyReports({ company, defaultTab }) {
       {data && tab === 'ageing' && <Table head={R(5, ['Party', 'Type', 'Current', '1–30', '31–60', '61–90', '90+'])}>
         {data.ageing.map(a => <tr key={a.party_id} className={tr}><td className={th}><Link to={statementPath(a.party_id, from, to)} className="font-medium text-primary underline">{a.party_name}</Link><p className="mt-1 text-xs text-muted-foreground">Open statement</p></td><td className={`${th} capitalize`}>{a.party_type}</td>{['current_minor', 'days_1_30_minor', 'days_31_60_minor', 'days_61_90_minor', 'days_90_plus_minor'].map(k => <td key={k} className={`${th} text-right`}><Money value={a[k]} /></td>)}</tr>)}
       </Table>}
+      </div></div>
     </div>
   );
 }

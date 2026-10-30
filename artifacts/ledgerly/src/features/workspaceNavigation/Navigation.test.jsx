@@ -6,6 +6,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { DailyWorkLinks } from './DailyWork';
+import { DailyTaskQueue } from './DailyTaskQueue';
+import { NavigationLinks } from '@/components/layout/NavigationLinks';
+import { SECTIONS, EVERYDAY_ROUTES } from '@/components/layout/navConfig';
+import { navigationGroups } from './model.mjs';
+import { FileText } from 'lucide-react';
 const render = (node, route = '/') => renderToStaticMarkup(<MemoryRouter initialEntries={[route]}>{node}</MemoryRouter>);
 
 test('closed navigation sheet renders no hidden focusable menu entries', () => {
@@ -32,5 +37,30 @@ test('breadcrumbs retain document parent navigation and mark the current view', 
   assert.ok(html.includes('href="/supplier-credit-notes"'));
   assert.match(html, /aria-current="page"[^>]*>Details/);
   const root = render(<Breadcrumbs />);
-  assert.match(root, /aria-current="page"[^>]*>Overview/);
+  assert.match(root, /aria-current="page"[^>]*>Today/);
+});
+
+
+test('everyday destinations render as real links with one selected route and accessible collapsed labels', () => {
+  const { everyday, more } = navigationGroups(SECTIONS, EVERYDAY_ROUTES);
+  for (const collapsed of [false, true]) {
+    const html = render(<NavigationLinks everyday={everyday} sections={more} activePath="/invoices" collapsed={collapsed} query="" onSectionClick={() => {}} />);
+    for (const route of EVERYDAY_ROUTES) assert.ok(html.includes(`href="${route.path}"`));
+    assert.equal((html.match(/aria-current="page"/g) || []).length, 1);
+    assert.ok(html.includes('aria-label="Document inbox"'));
+    assert.ok(html.includes('aria-label="Awaiting credits"'));
+    assert.equal(html.includes('/dev-tools'), false);
+  }
+});
+
+test('the daily task queue shows supplied counts and links without pretending tasks are complete', () => {
+  const html = render(<DailyTaskQueue tasks={[
+    { label: 'Overdue invoices', count: 2, detail: 'Follow up', to: '/invoices?status=overdue', icon: FileText, urgent: true },
+    { label: 'Bill drafts', count: 3, detail: 'Review', to: '/bills?status=draft', icon: FileText },
+  ]} />);
+  assert.ok(html.includes('5 items'));
+  assert.ok(html.includes('href="/invoices?status=overdue"'));
+  assert.ok(html.includes('href="/bills?status=draft"'));
+  assert.equal(html.includes('completed'), false);
+  assert.equal(html.includes('href="/invoices/new"'), false);
 });

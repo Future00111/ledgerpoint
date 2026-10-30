@@ -6,8 +6,8 @@
 
 @layer base {
   :root {
-    --background: 210 25% 98%;
-    --foreground: 222 47% 11%;
+    --background: 150 14% 97%;
+    --foreground: 163 24% 13%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
@@ -16,13 +16,13 @@
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 14% 42%;
-    --accent: 210 40% 96%;
+    --muted: 150 16% 94%;
+    --muted-foreground: 160 8% 39%;
+    --accent: 153 27% 94%;
     --accent-foreground: 222 47% 11%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214 22% 89%;
+    --border: 150 12% 87%;
     --input: 210 16% 83%;
     --ring: 166 72% 27%;
     --chart-1: 221 83% 53%;
@@ -91,10 +91,10 @@
 
 /* Ledgerly workspace: a quiet canvas, clear action hierarchy and readable figures. */
 @layer components {
-  .workspace-page { @apply mx-auto w-full max-w-[1440px] space-y-6 pb-10; }
+  .workspace-page { @apply mx-auto w-full max-w-[1440px] space-y-6 pb-12; }
   .workspace-heading { @apply flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between; }
   .workspace-eyebrow { @apply mb-2 text-xs font-medium tracking-wide text-primary; }
-  .workspace-title { @apply text-2xl font-semibold leading-tight tracking-tight sm:text-3xl; }
+  .workspace-title { @apply text-[28px] font-semibold leading-tight tracking-[-0.035em] sm:text-4xl; }
   .workspace-description { @apply mt-2 max-w-2xl text-sm leading-6 text-muted-foreground; }
   .workspace-heading-actions { @apply flex shrink-0 flex-wrap items-center gap-2 sm:pt-1; }
   .workspace-heading-actions > button, .workspace-heading-actions > a { @apply min-h-11; }
@@ -106,7 +106,16 @@
   .page-heading h1 { @apply text-2xl font-semibold tracking-tight sm:text-3xl; }
   .page-heading p { @apply mt-2 text-sm text-muted-foreground; }
   .eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground; }
-  .workspace-card { @apply rounded-xl border bg-card shadow-[0_2px_4px_-3px_rgba(15,23,42,0.12)]; }
+  .workspace-card { @apply rounded-2xl border bg-card shadow-[0_2px_8px_-5px_rgba(15,45,30,0.12)]; }
+  .workspace-hero { @apply relative overflow-hidden rounded-2xl border border-primary/15 bg-[#e9f3ed] p-5 sm:p-7; }
+  .workspace-panel { @apply overflow-hidden rounded-2xl border bg-card; }
+  .workspace-panel-header { @apply flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4 sm:px-6; }
+  .workspace-section-title { @apply text-base font-semibold tracking-tight; }
+  .workspace-kicker { @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground; }
+  .workspace-segmented { @apply flex flex-wrap gap-1 rounded-xl bg-muted p-1; }
+  .workspace-segmented button { @apply min-h-11 rounded-lg px-4 text-sm font-medium text-muted-foreground transition-colors; }
+  .workspace-segmented button[aria-pressed="true"] { @apply bg-white text-foreground shadow-sm; }
+  .workspace-segmented button:focus-visible { @apply outline outline-2 outline-offset-2 outline-primary; }
   .metric-value { @apply mt-3 text-3xl font-semibold tracking-tight tabular-nums; }
   .document-tabs { @apply flex gap-6 overflow-x-auto border-b px-5; }
   .document-tabs button { @apply shrink-0 border-b-2 border-transparent py-4 text-sm font-medium text-muted-foreground; }
@@ -117,11 +126,11 @@
   .workspace-table td { @apply border-b px-5 py-4; }
   .workspace-table tbody tr:last-child td { @apply border-b-0; }
   .workspace-table tbody tr:hover { @apply bg-primary/[0.025]; }
-  .ledger-sidebar { background: #142b31; color: #edf4f2; }
-  .ledger-sidebar [aria-label="Switch company"] { background: rgba(255,255,255,.07); color: white; }
-  .ledger-sidebar [aria-label="Switch company"] svg { color: #b4cfca; }
-  .ledger-sidebar a[href="/companies"] { color: #cbd5e1; }
-  .ledger-sidebar nav { scrollbar-color: #526864 transparent; }
+  .ledger-sidebar { background: #ffffff; color: #192a22; border-right: 1px solid hsl(var(--border)); }
+  .ledger-sidebar [aria-label="Switch company"] { background: #f4f7f4; color: #192a22; }
+  .ledger-sidebar [aria-label="Switch company"] svg { color: #486457; }
+  .ledger-sidebar a[href="/companies"] { color: #486457; }
+  .ledger-sidebar nav { scrollbar-color: #c0cec5 transparent; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }

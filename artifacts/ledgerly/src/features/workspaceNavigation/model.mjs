@@ -74,3 +74,23 @@ export function restoreNavigationFocus(opener, fallback) {
   if (opener?.isConnected && opener.getClientRects?.().length && typeof opener.focus === 'function') opener.focus();
   else fallback?.focus?.();
 }
+
+/** Partition the existing catalogue without dropping or duplicating destinations. */
+export function navigationGroups(sections, everydayRoutes, options = {}) {
+  const visible = visibleSections(sections, options);
+  if (options.query?.trim()) {
+    const query = options.query.trim().toLowerCase();
+    const aliasPaths = new Set(everydayRoutes.filter(item => item.label.toLowerCase().includes(query)).map(item => item.path));
+    // Search both the existing catalogue and the new everyday labels. Filtering
+    // through visibleSections first retains development access restrictions.
+    const catalogue = visibleSections(sections, { ...options, query: '', showPlanned: true });
+    return { everyday: [], more: catalogue.map(section => ({ ...section,
+      items: section.items.filter(item => aliasPaths.has(item.path) || `${section.label} ${item.label}`.toLowerCase().includes(query)),
+    })).filter(section => section.items.length) };
+  }
+  const byPath = new Map(visible.flatMap(section => section.items.filter(item => item.path).map(item => [item.path, item])));
+  const everyday = everydayRoutes.filter(item => byPath.has(item.path)).map(item => ({ ...byPath.get(item.path), ...item }));
+  const paths = new Set(everyday.map(item => item.path));
+  const more = visible.map(section => ({ ...section, items: section.items.filter(item => !paths.has(item.path)) })).filter(section => section.items.length);
+  return { everyday, more };
+}

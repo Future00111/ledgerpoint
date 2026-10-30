@@ -11,7 +11,24 @@ accounting and fewer manual steps. Track owner minutes per document, correction
 rate, unresolved exceptions, recovered credits and time to close the books.
 Feature count and AI-generated output alone are not success measures.
 
-## Current parallel wave — capture and recovery
+## Current execution — product redesign, then completion backlog
+
+The current verified source and isolated demo are `41d3eed`, with 405 checks
+passing in run `41105844807`. The owner found the first usability pass too
+subtle and asked for a visibly modern product and faster coordinated delivery.
+Four implementation owners are now assigned to home/navigation, capture/
+documents, credit recovery, and payments/reports; the coordinator owns shared
+design, contracts, review, regression and demo integration. See
+[product redesign ownership](product-redesign-wave.md).
+
+The [product completion plan](product-completion-plan.md) is the current task
+queue beneath the active product plan: it records source-backed gaps, four
+sustained streams, the next task for each after visual integration, dependencies,
+file leases and accounting/operational acceptance. A task is done when integrated,
+tested at its exact commit and demonstrated. The earlier wave and baseline
+inventory below remain historical evidence, not current assignments.
+
+## Completed parallel wave — capture and recovery
 
 Starting point: `a51625554d68385068d65a2156a3b9f5230f2333`, draft PR 27,
 with 245 current-source checks and 36 disposable PostgreSQL tests passing in

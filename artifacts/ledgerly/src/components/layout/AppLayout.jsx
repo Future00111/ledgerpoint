@@ -39,7 +39,7 @@ export default function AppLayout() {
     <div className="flex h-dvh overflow-hidden bg-background">
       <a href="#workspace-main" className="sr-only z-[100] rounded-lg bg-card px-4 py-3 text-sm font-medium focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to workspace</a>
       {mode.rail && <Sidebar collapsed={mode.collapsed} setCollapsed={setCollapsed} tablet={mode.tablet} onOpenNavigation={openNavigation} />}
-      <SheetContent id="workspace-navigation" side="left" className="ledger-sidebar w-[min(320px,90vw)] border-0 p-0 [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:text-white"
+      <SheetContent id="workspace-navigation" side="left" className="ledger-sidebar w-[min(320px,90vw)] border-0 p-0 [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:text-foreground"
         onCloseAutoFocus={event => {
           event.preventDefault();
           restoreNavigationFocus(returnFocus.current, main.current);
@@ -51,7 +51,7 @@ export default function AppLayout() {
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <TopHeader onToggleMobile={openNavigation} mobileOpen={mobileOpen} showCompanyContext={mode.collapsed || !mode.rail} />
         {selectionWarning && <div role="status" className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:px-6">{selectionWarning}</div>}
-        <main id="workspace-main" ref={main} tabIndex={-1} className="min-w-0 flex-1 overflow-y-auto p-4 outline-none sm:p-6 lg:p-8"><Outlet /></main>
+        <main id="workspace-main" ref={main} tabIndex={-1} className="min-w-0 flex-1 overflow-y-auto p-4 outline-none sm:p-6 lg:px-9 lg:py-8"><Outlet /></main>
       </div>
     </div>
   </Sheet></WorkspaceCapabilities></AskProvider>;

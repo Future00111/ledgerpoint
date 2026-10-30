@@ -3,8 +3,10 @@ import { useSearchParams } from 'react-router-dom';
 import { documentIntake } from '@/api/documentIntake.mjs';
 import { Button } from '@/components/ui/button';
 import { ErrorBox, SkeletonRows } from '@/components/accounting/AccountingUI';
-import { ACCEPTED_FILES, readCaptureFile, validateBatch, validateCaptureFile } from './model.mjs';
-import { SourceCard, RequestedSource, SourceActions } from './SourceFiles';
+import { readCaptureFile, validateBatch, validateCaptureFile } from './model.mjs';
+import { SourceCard, SourceRow, RequestedSource, SourceActions } from './SourceFiles';
+import SourceUpload from './SourceUpload';
+import { Search, RefreshCw, FileCheck2, Inbox } from 'lucide-react';
 import { useIntakeSources } from './useDocumentIntake';
 import { Input } from '@/components/ui/input';
 import PageHeader from '@/components/workspace/PageHeader';
@@ -24,19 +26,26 @@ export function IntakeWorkspaceView({ companyId, state, items, batchError, onSel
   const visibleSources = filterSources(sources, search, status);
   const selectedSource = sources.find(source => source.id === highlighted);
   const active = items.some(item => ['queued', 'reading', 'uploading'].includes(item.status));
-  return <div className="space-y-5">
-    <PageHeader eyebrow="Purchases · Documents" title="Your document inbox" description="Upload supplier invoices and credits, then prepare their accounting drafts." />
-    <section className="workspace-card space-y-4 p-5" aria-label="Upload supplier files"><div><h2 className="font-semibold">Add invoices and supplier credits</h2><p className="mt-1 text-sm text-muted-foreground">PDF, JPG or PNG · up to 5 MiB per file · up to 10 files in the queue. Files upload one at a time.</p></div><p className="rounded-lg bg-muted/50 p-3 text-sm">Automatic extraction: not connected. Email intake: not connected. Upload a file, then enter and review its details in the native bill or supplier credit form.</p>
-      {canManage ? <label className="block text-sm font-medium">Choose source files<input type="file" multiple accept={ACCEPTED_FILES} disabled={active} className="mt-2 block w-full rounded-lg border p-3 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground" onChange={event => { onSelect(Array.from(event.target.files || [])); event.target.value = ''; }} /></label> : <p className="text-sm text-muted-foreground">{state.loading ? 'Checking upload permissions…' : state.error ? 'Upload permissions could not be verified. Retry below.' : 'You can view source files. Uploading and preparing drafts require editing permission.'}</p>}
-      {batchError && <p role="alert" className="text-sm text-destructive">{batchError}</p>}
-    </section>
+  const groups = status === 'all'
+    ? [{ key: 'prepare', label: 'Ready to prepare', description: 'Choose whether each file is a bill or a supplier credit.', sources: visibleSources.filter(source => !source.document_id) },
+       { key: 'linked', label: 'Linked to documents', description: 'Reopen the document or download its original source.', sources: visibleSources.filter(source => source.document_id) }]
+    : [{ key: status, label: status === 'prepare' ? 'Ready to prepare' : 'Linked to documents', sources: visibleSources }];
+  return <div className="space-y-6">
+    <PageHeader eyebrow="Documents" title="Your document inbox" description="One place for supplier paperwork, from upload to a reviewed draft." />
+    <SourceUpload canManage={canManage} busy={active} loading={state.loading} error={state.error} batchError={batchError} onSelect={onSelect} />
     <UploadQueue items={items} canManage={canManage} onRetry={onRetry} onRemove={onRemove} />
     {highlighted && !visibleSources.some(source => source.id === highlighted) && (selectedSource ? <SourceCard companyId={companyId} source={selectedSource} canManage={canManage} highlighted /> : <RequestedSource key={`${companyId}:${highlighted}`} companyId={companyId} sourceId={highlighted} />)}
-    <section className="space-y-4" aria-label="Native source files">
-      <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold">Source files</h2><p className="mt-1 text-sm text-muted-foreground">Latest 100 uploads. An older source opens directly from its capture link.</p></div><Button type="button" variant="outline" className="min-h-11" disabled={state.loading} onClick={state.refresh}>Refresh</Button></div>
-      <div className="flex flex-wrap items-center gap-3"><Input aria-label="Search source filenames" placeholder="Find a file by name…" className="min-h-11 sm:max-w-sm" value={search} onChange={event => setSearch(event.target.value)} /><div role="group" aria-label="Source file status" className="flex flex-wrap gap-2">{[['all', 'All files'], ['prepare', 'Needs preparing'], ['linked', 'Linked documents']].map(([value, label]) => <Button key={value} type="button" variant={status === value ? 'secondary' : 'outline'} className="min-h-11" aria-pressed={status === value} onClick={() => setStatus(value)}>{label}</Button>)}</div></div>
-      <ErrorBox error={state.error} onRetry={state.refresh} />
-      {state.loading && !state.data ? <SkeletonRows rows={3} /> : visibleSources.length ? visibleSources.map(source => <SourceCard key={source.id} companyId={companyId} source={source} canManage={canManage} highlighted={source.id === highlighted} />) : !state.error && <div className="workspace-card"><EmptyState title={sources.length ? 'No files match this view' : 'Your supplier files will appear here'} description={sources.length ? 'Try another filename or status.' : 'Upload a supplier invoice or credit to get started.'} action={sources.length ? <Button type="button" variant="outline" onClick={() => { setSearch(''); setStatus('all'); }}>Show all files</Button> : null} /></div>}
+    <section className="workspace-panel" aria-label="Native source files">
+      <div className="workspace-panel-header"><div><h2 className="workspace-section-title">Source files</h2><p className="mt-1 text-xs text-muted-foreground">Latest 100 uploads. An older source opens directly from its capture link.</p></div><Button type="button" variant="ghost" className="min-h-11" disabled={state.loading} onClick={state.refresh}><RefreshCw className="h-4 w-4" aria-hidden="true" />Refresh</Button></div>
+      <div className="flex flex-col justify-between gap-4 border-b px-5 py-4 sm:px-6 lg:flex-row lg:items-center">
+        <div role="group" aria-label="Source file status" className="workspace-segmented w-fit">{[['all', 'All files'], ['prepare', 'Needs preparing'], ['linked', 'Linked documents']].map(([value, label]) => <button key={value} type="button" aria-pressed={status === value} onClick={() => setStatus(value)}>{label}<span className="ml-2 text-xs tabular-nums">{state.data ? filterSources(sources, '', value).length : '—'}</span></button>)}</div>
+        <div className="relative w-full lg:max-w-xs"><Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" aria-hidden="true" /><Input aria-label="Search source filenames" placeholder="Find a file…" className="h-11 bg-background pl-9" value={search} onChange={event => setSearch(event.target.value)} /></div>
+      </div>
+      {state.error && <div className="p-5"><ErrorBox error={state.error} onRetry={state.refresh} /></div>}
+      {state.loading && !state.data ? <div className="p-5"><SkeletonRows rows={3} /></div> : visibleSources.length ? groups.filter(group => group.sources.length).map(group => <section key={group.key} aria-label={group.label}>
+        <div className="flex items-center gap-2 border-b bg-muted/35 px-5 py-3 sm:px-6">{group.key === 'prepare' ? <Inbox className="h-4 w-4 text-muted-foreground" aria-hidden="true" /> : <FileCheck2 className="h-4 w-4 text-primary" aria-hidden="true" />}<h3 className="text-xs font-semibold">{group.label}</h3><span className="text-xs text-muted-foreground">{group.sources.length}</span></div>
+        <div className="divide-y">{group.sources.map(source => <SourceRow key={source.id} companyId={companyId} source={source} canManage={canManage} highlighted={source.id === highlighted} />)}</div>
+      </section>) : !state.error && <EmptyState icon={Inbox} title={sources.length ? 'No files match this view' : 'A clear inbox starts here'} description={sources.length ? 'Try another filename or status.' : 'Add your first supplier invoice or credit above. Your original files and linked drafts will appear here.'} action={sources.length ? <Button type="button" variant="outline" onClick={() => { setSearch(''); setStatus('all'); }}>Show all files</Button> : null} />}
     </section>
   </div>;
 }

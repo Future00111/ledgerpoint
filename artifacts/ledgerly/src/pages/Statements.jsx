@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import PageHeader from '@/components/workspace/PageHeader';
 import EmptyState from '@/components/workspace/EmptyState';
 import StatementMovements from '@/features/paymentWorkspace/StatementMovements';
+import StatementSummary from '@/features/paymentWorkspace/StatementSummary';
 import { statementDateError, statementPeriod, loadStatementParties, selectedStatementParty, retryStatementReads, statementCsvRows } from '@/features/paymentWorkspace/model.mjs';
 
 export default function Statements() {
@@ -73,11 +74,9 @@ function CompanyStatements({ company }) {
     {loading && <div role="status" aria-label="Loading statement"><p className="mb-3 text-sm text-muted-foreground">Loading current account information…</p><SkeletonRows rows={3} /></div>}
     {!loading && !accounts.error && !party && <section className="workspace-card"><EmptyState icon={FileText} title={id ? 'Choose an account in this company' : 'Whose statement do you need?'} description={id ? 'The linked account is not available in the selected company. Choose a current customer or supplier above.' : accounts.parties.length ? 'Choose a customer or supplier and a date range to see balances and download a statement.' : 'No customer or supplier accounts are available for this company yet.'} /></section>}
     {st && <>
-      <section aria-label="Statement balances" className="grid gap-4 sm:grid-cols-3">
-        {[['Outstanding documents', st.closing], [party.type === 'customer' ? 'Unapplied customer credit' : 'Supplier prepayments', st.unapplied], ['Net account balance', st.net]].map(([name, value]) => <div className="workspace-card min-w-0 p-5" key={name}><p className="text-sm text-muted-foreground">{name}</p><p className="mt-3 break-all text-2xl font-semibold tracking-tight"><Money value={value} /></p></div>)}
-      </section>
+      <StatementSummary party={party} statement={st} from={from} to={to} />
       <section className="workspace-card overflow-hidden" aria-label="Account movements">
-        <div className="space-y-3 border-b p-5"><div className="flex flex-wrap items-baseline justify-between gap-2"><h2 className="break-words text-lg font-semibold">{party.name}</h2><p className="text-xs text-muted-foreground">{from} to {to} · {party.type === 'customer' ? 'Customer' : 'Supplier'}</p></div><p className="text-sm text-muted-foreground">Opening document balance: <Money value={st.opening} /> · Opening unapplied balance: <Money value={st.openingUnapplied} /></p></div>
+        <div className="space-y-3 border-b p-5"><h2 className="workspace-section-title">Account movements</h2><p className="text-sm text-muted-foreground">Opening document balance: <Money value={st.opening} /> · Opening unapplied balance: <Money value={st.openingUnapplied} /></p></div>
         <StatementMovements rows={st.rows} />
       </section>
       <p className="text-xs leading-5 text-muted-foreground">Drafts are excluded. Unapplied money remains separate until explicitly allocated or refunded. Downloading does not email this statement.</p>
