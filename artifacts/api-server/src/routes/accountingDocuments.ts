@@ -9,6 +9,7 @@ import { journal, reports } from "../services/accountingDocuments/reports";
 import { CanonicalPostingError, type DatabaseTransaction } from "../services/accounting/canonicalPosting";
 import { chart, AccountSelectionError } from "../services/accountingDocuments/accounts";
 import { saveAccount } from "../services/accountingDocuments/chart";
+import { correctionContext, reviewCorrection, commitCorrection, correctionHistory } from "../services/accountingDocuments/corrections";
 
 import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment } from '../services/accountingDocuments/payments';
 import { createClaims, listClaims, confirmReceipt, cancelClaim } from '../services/creditTracking/service';
@@ -74,6 +75,18 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     const {company,actor,id}=ids(req);
     res.json({data:await getDocument(company,actor,id)});
   });
+  router.get('/accounting-documents/:id/correction-context',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await correctionContext(company,actor,id)});
+  });
+  router.get('/accounting-documents/:id/corrections',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await correctionHistory(company,actor,id)});
+  });
+  router.post('/accounting-documents/:id/corrections/review',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await reviewCorrection(company,actor,id,revision(req),req.body)});
+  });
+  router.post('/accounting-documents/:id/corrections',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await commitCorrection(company,actor,id,revision(req),req.body,testPostHook)});
+  });
   router.post("/accounting-documents",async(req,res)=>{
     const {company,actor}=ids(req);
     res.status(201).json({data:await saveDocument(company,actor,req.body)});
@@ -111,6 +124,16 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
         "/discount":"Discount","/discount_adjustment":"Discount adjustment"};
       const field=labels[error.path]??(error.path?.startsWith("/line_items/")?"Invoice or bill line":"Submitted field");
       const guidance:Record<string,string>={
+        CORRECTION_REVIEW_STALE:"This document, its payments or accounting setup changed after review. Refresh and review the correction again.",
+        CORRECTION_BELOW_PAID:"The corrected total cannot be less than payments already applied. Review the payment and refund history first.",
+        CORRECTION_CHILD_CREDITS:"This document already has a linked credit. Corrections are not yet supported for this case.",
+        CORRECTION_ACTIVE_CLAIMS:"This bill has items awaiting credit. Resolve those claims before reviewing a correction.",
+        CORRECTED_DOCUMENT_DEPENDENCY_UNSUPPORTED:"New credits, later discount credits and return-credit tracking are not yet available for corrected invoices or bills.",
+        CORRECTION_ZERO_CHANGE_UNSUPPORTED:"These edits do not change the financial totals. Metadata-only changes are not supported here yet.",
+        CORRECTION_POSITIVE_TOTAL_REQUIRED:"The corrected total must be greater than zero. Use the appropriate credit workflow for a full cancellation.",
+        CORRECTION_REASON_REQUIRED:"Enter a reason for the correction, up to 1,000 characters.",
+        CORRECTION_LINE_SHAPE_CHANGED:"Keep the existing items and line order. This correction can change only quantities and unit prices.",
+        DATE_PRECEDES_SETTLEMENT_ACTIVITY:"Choose a date on or after the document's latest payment or correction activity.",
         DISCOUNT_INVALID:"Enter a positive discount: a percentage up to 100%, or an amount with at most two decimal places.",
         DISCOUNT_CONFLICT:"Choose either a draft discount or a later discount adjustment, not both.",
         DISCOUNT_EXCEEDS_TOTAL:"The discount cannot exceed the document value. No changes were committed.",

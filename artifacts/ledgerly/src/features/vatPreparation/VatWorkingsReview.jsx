@@ -4,6 +4,7 @@ import { Download, RefreshCw, Search } from 'lucide-react';
 import { KINDS, docPath, penceToDisplay } from '@/api/accountingDocuments.mjs';
 import { JournalLink } from '@/components/accounting/AccountingUI';
 import { BOXES, sourceDocuments, workingsError } from './model.mjs';
+import VatCoverageReview from './VatCoverageReview';
 
 export default function VatWorkingsReview({ data, loading, error, onRetry, onExport }) {
   const [selected, setSelected] = useState('all');
@@ -33,9 +34,10 @@ export default function VatWorkingsReview({ data, loading, error, onRetry, onExp
       </div>
       <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Box 5 is the absolute difference between sales VAT and reclaimed purchase VAT; the direction is shown above. Credits reduce the relevant sales or purchase figures. Amounts come from the accounting report without recalculating VAT here.</p>
     </div>
+    <VatCoverageReview coverage={data.vat_coverage} />
     <section aria-labelledby="vat-sources-title" className="space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div><h3 id="vat-sources-title" className="font-semibold">{box ? `Box ${box.box} · related sources` : 'Posted source documents'}</h3><p className="mt-1 text-xs text-muted-foreground">{sources.length} shown of {allSources.length} documents in the period. Open a document or journal to check the evidence.</p></div>
+        <div><h3 id="vat-sources-title" className="font-semibold">{box ? `Box ${box.box} · related sources` : 'Posted source movements'}</h3><p className="mt-1 text-xs text-muted-foreground">{sources.length} shown of {allSources.length} movements in the period. Open a document or journal to check the evidence.</p></div>
         <label className="relative"><span className="sr-only">Search VAT source documents</span><Search aria-hidden="true" className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Document or customer / supplier" className="w-72 max-w-full rounded-lg border bg-background py-2 pl-9 pr-3 text-sm" /></label>
       </div>
       {box && <button type="button" onClick={() => setSelected('all')} className="text-sm font-medium text-primary underline">Show all source documents</button>}
@@ -43,9 +45,9 @@ export default function VatWorkingsReview({ data, loading, error, onRetry, onExp
         <table className="w-full text-sm">
           <caption className="sr-only">Source documents posted between {data.from} and {data.to}. Signed amounts in GBP.</caption>
           <thead className="border-b bg-muted/40 text-left text-xs text-muted-foreground"><tr>{['Posted', 'Document', 'Customer / supplier', 'Net', 'VAT in workings', 'Gross', 'Evidence'].map((h, i) => <th scope="col" key={h} className={`px-3 py-3 ${i >= 3 && i < 6 ? 'text-right' : ''}`}>{h}</th>)}</tr></thead>
-          <tbody>{sources.map(d => <tr key={d.id} className="border-b last:border-0" data-testid={`vat-source-${d.id}`}>
+          <tbody>{sources.map(d => <tr key={d.journal_id} className="border-b last:border-0" data-testid={`vat-source-${d.id}`}>
             <td className="whitespace-nowrap px-3 py-3 text-xs text-muted-foreground">{d.date}</td>
-            <td className="px-3 py-3"><Link to={docPath(d.kind, d.id)} className="font-medium text-primary underline-offset-4 hover:underline">{d.number || 'Open document'}</Link><p className="mt-1 text-xs text-muted-foreground">{KINDS[d.kind].label}</p></td>
+            <td className="px-3 py-3"><Link to={docPath(d.kind, d.id)} className="font-medium text-primary underline-offset-4 hover:underline">{d.number || 'Open document'}</Link><p className="mt-1 text-xs text-muted-foreground">{KINDS[d.kind].label}{d.movement_kind === 'financial_correction' ? ' · Correction' : ''}</p></td>
             <td className="px-3 py-3">{d.party_name}</td>
             <td className="whitespace-nowrap px-3 py-3 text-right font-mono text-xs">{penceToDisplay(d.net_minor)}</td>
             <td className="whitespace-nowrap px-3 py-3 text-right font-mono text-xs">{penceToDisplay(d.vat_minor)}</td>
@@ -55,7 +57,7 @@ export default function VatWorkingsReview({ data, loading, error, onRetry, onExp
         </table>
         {!sources.length && <p className="p-5 text-sm text-muted-foreground">{allSources.length ? 'No source documents match these filters.' : 'No posted invoices, bills or credit notes in this period.'}</p>}
       </div>
-      <p className="text-xs leading-relaxed text-muted-foreground">Source VAT reconciles to boxes 1 and 4. Sources are selected by posting date, not payment date. Purchase VAT shown here is the amount included in the workings, which may differ from the VAT charged by the supplier. Drafts and historical VAT projections are excluded. The CSV includes every source in the period, regardless of these filters.</p>
+      <p className="text-xs leading-relaxed text-muted-foreground">Signed source amounts reconcile to boxes 1, 4, 6 and 7; box 5 checks the net direction and difference. Sources are selected by posting date, not payment date. Corrections appear as separate dated differences. Purchase VAT shown here is the amount included in the workings, which may differ from the VAT charged by the supplier. Drafts and historical VAT projections are excluded. The CSV includes every source movement in the period, regardless of these filters.</p>
     </section>
   </div>;
 }

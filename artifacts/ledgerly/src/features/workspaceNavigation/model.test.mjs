@@ -71,7 +71,7 @@ test('late permission reads are discarded after company change or abort; one fai
 });
 
 test('feature search preserves all existing destinations and never reveals development routes without access', () => {
-  const normal = visibleSections(SECTIONS, { showPlanned: true });
+  const normal = visibleSections(SECTIONS, { showPlanned: true, companyRole: 'owner' });
   assert.deepEqual(normal.flatMap(section => section.items.filter(item => item.path).map(item => item.path)), allItems().filter(item => !item.devOnly && item.sectionKey !== 'dev' && item.path).map(item => item.path));
   assert.equal(visibleSections(SECTIONS, { query: 'development' }).length, 0);
   assert.equal(visibleSections(SECTIONS, { query: 'development', canDev: true })[0].key, 'dev');
@@ -116,7 +116,7 @@ test('closing navigation restores its real opener and falls back to the workspac
 
 
 test('daily navigation keeps its seven direct routes and partitions the entire catalogue without loss or duplicates', () => {
-  const groups = navigationGroups(SECTIONS, EVERYDAY_ROUTES, { canDev: true, showPlanned: true });
+  const groups = navigationGroups(SECTIONS, EVERYDAY_ROUTES, { canDev: true, showPlanned: true, companyRole: 'owner' });
   assert.deepEqual(groups.everyday.map(item => item.path), ['/', '/documents', '/invoices', '/bills', '/awaiting-credits', '/payments', '/reports']);
   const actual = [...groups.everyday, ...groups.more.flatMap(section => section.items)];
   const paths = actual.filter(item => item.path).map(item => item.path);
@@ -141,5 +141,17 @@ test('new everyday names remain discoverable through feature search', () => {
   for (const [query, path] of [['today', '/'], ['document inbox', '/documents']]) {
     const groups = navigationGroups(SECTIONS, EVERYDAY_ROUTES, { query });
     assert.ok(groups.more.flatMap(section => section.items).some(item => item.path === path));
+  }
+});
+
+test('audit navigation and search respect the active company role and hide while membership is unavailable', () => {
+  for (const companyRole of [undefined, null, 'viewer', 'staff', 'unknown']) {
+    for (const query of ['', 'audit']) {
+      const groups = navigationGroups(SECTIONS, EVERYDAY_ROUTES, { companyRole, query, showPlanned: true, canDev: true });
+      assert.ok(![...groups.everyday, ...groups.more.flatMap(section => section.items)].some(item => item.path === '/audit-history'));
+    }
+  }
+  for (const companyRole of ['owner', 'admin', 'accountant']) {
+    assert.ok(navigationGroups(SECTIONS, EVERYDAY_ROUTES, { companyRole, query: 'audit' }).more.flatMap(section => section.items).some(item => item.path === '/audit-history'));
   }
 });

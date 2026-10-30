@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
 import VatWorkingsReview from './VatWorkingsReview';
 import { visibleState } from './model.mjs';
-import { reportFixture } from './fixtures.mjs';
+import { reportFixture, coverageFixture } from './fixtures.mjs';
 const render = ({ key, ...props }) => renderToStaticMarkup(<MemoryRouter><VatWorkingsReview key={key} {...props} /></MemoryRouter>);
 
 test('workings show five server boxes, signed credits, zero eligible VAT and document/journal routes', () => {
@@ -20,10 +20,43 @@ test('workings show five server boxes, signed credits, zero eligible VAT and doc
 
 test('repayment direction uses server direction and does not turn box 5 negative', () => {
   const d = reportFixture(); d.vat.repayment = true; d.vat.net_payable_pence = '-900';
+  Object.assign(d.posted_documents[2], { net_minor: '13000', vat_minor: '2600', gross_minor: '15600' });
+  d.vat.box4_pence = '2400'; d.vat.box7_pence = '13000'; d.vat_coverage = coverageFixture(d);
   const html = render({ data: d });
   assert.ok(html.includes('Net VAT to reclaim'));
   assert.ok(html.includes('£9.00'));
   assert.ok(!html.includes('−£9.00'));
+});
+
+test('coverage separates reconciled workings from unsupported boxes, engine scope and filing authority', () => {
+  const html = render({ data: reportFixture() });
+  for (const box of [1, 2, 3, 4, 5, 6, 7, 8, 9]) assert.ok(html.includes(`vat-coverage-box-${box}`));
+  for (const text of ['Workings reconciled · 5 of 9 boxes', 'Filing unavailable', 'Current engine scope', 'not confirmation that every transaction', 'Unknown', 'Not implemented', 'Coverage and reconciliation details']) assert.ok(html.includes(text), text);
+  for (const box of [2, 3, 8, 9]) {
+    const row = html.match(new RegExp(`<tr[^>]+data-testid="vat-coverage-box-${box}"[^>]*>(.*?)</tr>`))?.[1];
+    assert.ok(row?.includes('Unknown')); assert.ok(!row?.includes('£0.00'));
+  }
+  assert.ok(!html.includes('>Submit')); assert.ok(!html.includes('>Approve'));
+});
+
+test('missing coverage is shown as unavailable and old data cannot leave a green reconciliation claim', () => {
+  const d = reportFixture(); delete d.vat_coverage;
+  const html = render({ data: d });
+  assert.ok(html.includes('Coverage check unavailable')); assert.ok(!html.includes('Workings reconciled'));
+  assert.ok(html.includes('button-vat-csv'));
+  const stale = render({ data: reportFixture(), loading: true });
+  assert.ok(!stale.includes('Workings reconciled')); assert.ok(!stale.includes('vat-coverage-box'));
+});
+
+test('correction row keeps its document and distinct journal links and is clearly a difference movement', () => {
+  const d = reportFixture();
+  d.posted_documents.push({ ...d.posted_documents[0], journal_id: 'correction-journal', date: '2026-10-28',
+    net_minor: '-1000', vat_minor: '-200', gross_minor: '-1200', movement_kind: 'financial_correction' });
+  d.vat.box1_pence = '1300'; d.vat.box5_pence = '700'; d.vat.box6_pence = '6500'; d.vat.net_payable_pence = '700';
+  d.vat_coverage = coverageFixture(d);
+  const html = render({ data: d });
+  for (const text of ['6 posted movements from 5 source documents', 'Correction', '/accounting/journals/correction-journal', '−£2.00']) assert.ok(html.includes(text), text);
+  assert.equal((html.match(/href="\/invoices\/invoice"/g) ?? []).length, 2);
 });
 
 test('non-VAT view hides boxes, monetary rows and CSV export', () => {

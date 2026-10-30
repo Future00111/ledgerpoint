@@ -3,15 +3,17 @@ import { MAX_PENCE } from '../financialDrafts/contract';
 /**
  * Pure financial-history projection. This is not a posting/correction command.
  *
- * A future authorised reader must load the complete immutable history and an
- * independently bound head revision in one consistent database snapshot. It must
- * verify journal relationships, source/tax evidence, quantities, periods and
- * capabilities before calling this helper. UUIDs/hashes here validate shape and
+ * The amendments reader loads the complete immutable history and an
+ * independently bound head revision in one consistent database snapshot, and
+ * verifies journal relationships and source/tax evidence before this helper.
+ * The protected correction command additionally validates quantities, periods and
+ * current capabilities. UUIDs/hashes here validate shape and
  * continuity; they do not establish authority or the existence of a journal.
  *
- * No current settlement/report/credit consumer imports this module. All such
- * consumers must move to the same projection together when persistence and the
- * protected correction command are ready. Metadata-only revisions are separate.
+ * Document, settlement, report and credit admission readers share that validated
+ * projection. Both persistence tables absent preserves original-only behavior;
+ * partial or inconsistent installed history fails closed. Metadata-only revisions
+ * remain separate.
  */
 export type ProjectedDocumentKind = 'sales_invoice' | 'purchase_bill' | 'sales_credit_note' | 'supplier_credit_note';
 export interface DocumentAmounts {

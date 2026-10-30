@@ -90,7 +90,7 @@ function BillCreditTracker({ companyId, doc, children }) {
   const claims = data?.claims ?? [];
   const lineClaims = new Map(claims.filter(claim => !claim.cancelled).map(claim => [claim.original_line_ref, claim]));
   const selected = lines.filter(line => line.selected && !lineClaims.has(line.original_line_ref));
-  const canManage = data?.can_manage === true && !loading;
+  const canManage = data?.can_manage === true && !loading && !doc.correction_count;
   const panelId = `awaiting-credits-${doc.id}`;
   const renderChildren = typeof children === 'function';
   const changeValue = (field, value) => setValues(previous => ({ ...previous, [field]: value }));
@@ -132,11 +132,12 @@ function BillCreditTracker({ companyId, doc, children }) {
   const panel = <section ref={panelRef} id={panelId} tabIndex={-1} className="workspace-card scroll-mt-6 space-y-5 p-6" aria-label="Awaiting supplier credits" data-testid="awaiting-credit-panel">
     <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="flex items-center gap-2 font-semibold"><RotateCcw className="h-4 w-4 text-primary" />Awaiting credits</h2><p className="mt-1 text-sm text-muted-foreground">Track items you have returned or are waiting to be credited.</p></div><Link className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline" to="/awaiting-credits">All awaiting credits<ArrowRight className="h-3.5 w-3.5" /></Link></div>
     <ErrorBox error={error} onRetry={refresh} />
+    {doc.correction_count > 0 && <p className="rounded-lg border bg-muted/40 p-3 text-sm">Existing tracking history is preserved. New return-credit tracking is unavailable for corrected bills in this version.</p>}
     {loading && !data && <SkeletonRows rows={2} />}
     {loading && data && <p role="status" className="text-xs text-muted-foreground">Refreshing credit tracking…</p>}
     {message && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-950">{message}</p>}
     {data && <>
-      {claims.length > 0 ? <div className="-mx-6 overflow-hidden border-y"><ClaimList claims={claims} companyId={companyId} canManage={canManage && !busy} onChanged={refresh} /></div> : <p className="rounded-xl bg-muted/40 p-4 text-sm leading-6 text-muted-foreground">No items from this bill are being tracked yet. {data.can_manage && 'Select an item in the bill above, or use “Select lines awaiting credit”.'}</p>}
+      {claims.length > 0 ? <div className="-mx-6 overflow-hidden border-y"><ClaimList claims={claims} companyId={companyId} canManage={canManage && !busy} onChanged={refresh} /></div> : <p className="rounded-xl bg-muted/40 p-4 text-sm leading-6 text-muted-foreground">No items from this bill are being tracked yet. {canManage && 'Select an item in the bill above, or use “Select lines awaiting credit”.'}</p>}
       {!data.can_manage && <p className="text-xs text-muted-foreground">Your role can view this tracker. An owner, administrator or accountant can add items or confirm matches.</p>}
     </>}
     {!renderChildren && action}
@@ -148,7 +149,7 @@ function BillCreditTracker({ companyId, doc, children }) {
         onCloseAutoFocus={event => { event.preventDefault(); (openedFrom.current?.isConnected ? openedFrom.current : panelRef.current)?.focus(); }}>
         <DialogHeader><DialogTitle>Select lines awaiting credit</DialogTitle><DialogDescription>{doc.source.invoice_number} · Choose the original items you are returning, including partial quantities.</DialogDescription></DialogHeader>
         <ErrorBox error={error} onRetry={refresh} />
-        {loading && !data ? <SkeletonRows rows={3} /> : data?.can_manage ? <CreditSelectionForm doc={doc} lines={lines} lineClaims={lineClaims} values={values} busy={busy} loading={loading} saveError={saveError}
+        {loading && !data ? <SkeletonRows rows={3} /> : canManage ? <CreditSelectionForm doc={doc} lines={lines} lineClaims={lineClaims} values={values} busy={busy} loading={loading} saveError={saveError}
           onSave={save} onLineChange={changeLine} onValueChange={changeValue} onClose={() => changeOpen(false)}
           onViewHistory={() => { openedFrom.current = panelRef.current; changeOpen(false); }} panelId={panelId} />
           : !error && <p className="text-sm text-muted-foreground">Your role can view credit tracking, but cannot select items or change claims.</p>}

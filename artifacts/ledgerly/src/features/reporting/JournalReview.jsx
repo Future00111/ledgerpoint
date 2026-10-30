@@ -6,8 +6,8 @@ import { Money, ErrorBox, SkeletonRows } from '@/components/accounting/Accountin
 import { shortDate } from './model.mjs';
 
 export default function JournalReview({ company, data, error, loading, onRetry }) {
-  const entry = data?.entry, source = entry && docPath(entry.source_type, entry.source_id);
-  const sourceLabel = KINDS[entry?.source_type]?.label.toLowerCase() || (entry?.source_type === 'accounting_payment_event' ? 'payment event' : 'source document');
+  const entry = data?.entry, source = entry && docPath(entry.document_kind ?? entry.source_type, entry.document_id ?? entry.source_id);
+  const sourceLabel = KINDS[entry?.document_kind ?? entry?.source_type]?.label.toLowerCase() || (entry?.source_type === 'accounting_payment_event' ? 'payment event' : 'source document');
   return <div className="workspace-page">
     <PageHeader eyebrow="Accounting evidence" title={entry?.reference || 'Journal entry'} description={entry?.description || 'The accounting entries behind a posted document or payment.'}
       context={<><span className="font-medium text-foreground">{company.name}</span>{entry && <><span aria-hidden="true">·</span><span>Posted {shortDate(entry.posting_date)}</span><span className="rounded-full border px-2 py-0.5 text-xs">{entry.status || 'Posted journal'}</span></>}</>}

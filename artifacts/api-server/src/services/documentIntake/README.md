@@ -4,8 +4,10 @@ The native API stores uploaded supplier invoices and credit notes, lets an activ
 company member download their original evidence, and creates a native accounting
 draft after explicit review. Storage requires the coordinator-reviewed
 `lib/db/migrations/document-intake.review.sql` in an isolated development database.
-OCR and email are **not connected**. There is no provider call, parser, background
-worker, automatic posting or simulated extraction result.
+OCR and email are **not connected**. There is no configured provider call, parser,
+application background worker, automatic posting or simulated UI extraction
+result. The worker boundary below is executable only with an explicitly supplied
+trusted transport and source-authority adapter.
 
 ## Storage and authority
 
@@ -57,7 +59,7 @@ intent cannot create a second document; later edits belong to the native draft.
 
 ## Extraction foundation
 
-**Ready for provider integration: a pure adapter/job contract only.**
+**Pure adapter/job contract.**
 `extraction/contract.ts` does not call a provider, parse files, run a worker,
 persist jobs, change API/provider status or supply UI extraction results. OCR and
 email remain **not connected**. `extraction/contract.test.ts` uses explicit
@@ -133,10 +135,82 @@ supersedeJob(job: ExtractionJob, expectedRevision: number,
   can be tighter than any individual limit. These checks cannot bound allocation
   by an upstream JSON parser or document parser.
 
-### Remaining worker requirements
+### In-process worker boundary
+
+`extraction/worker.ts` adds runnable orchestration and
+`worker/referenceRepository.ts` supplies an atomic **in-process reference store**.
+It is not a durable database store, an OS sandbox or an enabled OCR service. No
+route, background schedule, provider connection or UI availability flag uses it.
+Synthetic transports in `worker.test.ts` exercise the stream/lifecycle boundary
+without parsing files or sending evidence anywhere.
+
+The source-authority adapter is required. It must load the requested tenant's
+immutable source and verify the original requester still has extraction
+capability. The repository checks tenant/source IDs, unconverted status, revision,
+5 MiB input limit, media signature and recomputed hash before dispatch and again
+before accepting an outcome. It gives transports a separate byte copy; source
+bytes, native drafts and accounting records are never modified. A changed source,
+revoked capability or existing conversion prevents acceptance. These checks are
+not malware detection or proof that a file is safe to parse.
+
+```ts
+const repository = new InProcessExtractionRepository(resolveAuthorizedSource, {
+  maxConcurrent: 2, maxJobs: 16,
+});
+const job = await repository.enqueue({
+  company_id, source_id, actor_id, request_id, recipe, max_attempts: 3,
+});
+const worker = createExtractionWorker({ repository, transports: [reviewedTransport] });
+const outcome = await worker.run({ company_id, job_id: job.job_id });
+```
+
+This is an interface example, not a configured adapter. Transports are explicitly
+allowlisted trusted code keyed by provider/version. No document text, URL or shell
+command can configure execution. A transport receives the bound source/recipe/
+attempt and abort signal, and returns a UTF-8 JSON byte stream plus a `closed`
+promise that must resolve only when **actual host work has stopped**. Output is
+limited before parsing (2 MiB maximum, 4,096 nonempty chunks, JSON depth 12, no
+duplicate keys or invalid UTF-8), then passed through existing evidence, transcript
+and candidate validators. The worker's page cap may be tightened below the existing
+200-page maximum. Errors remain review issues or bounded failure codes; no result
+can post or select supplier/tax authority.
+
+One shared repository serializes latest-state transitions and bounds executions
+across all worker objects that use it (default two, configurable one to eight).
+It binds jobs to their original requester and immutable source revision, returns
+identical enqueue requests idempotently, rejects competing active source jobs and
+requires explicit cancellation/supersession. Expected revisions reject stale
+user operations. Leases fence expired, cancelled and superseded output; abandoned
+leases can transition to bounded retry without accepting an old attempt's result.
+Source-authority calls also have a timeout and a global outstanding-call bound.
+The reference store retains at most 16 jobs by default, configurable up to 64;
+reaching the cap fails explicitly rather than silently evicting evidence.
+
+**A timeout is not proof that an adapter stopped.** Logical timeout/cancellation
+settles or fences the attempt, but execution capacity remains occupied until both
+output processing finishes and the transport confirms closure. An adapter that
+ignores abort, hangs or rejects its closure promise cannot create unlimited orphan
+work through retries; it can instead exhaust the bounded worker capacity. The host
+must diagnose/terminate that work before capacity can safely return. Repeated
+workers sharing the reference store are covered by concurrency tests. Separate
+repositories/processes do not share a global capacity limit.
+
+These in-process checks cannot interrupt synchronous CPU-bound adapter code or
+prevent allocations made before a source/transport yields bytes. The future
+isolated host must enforce those CPU, memory, network and parser limits itself;
+an abort signal is cooperative and is not a security sandbox.
+
+The repository deliberately keeps B1's branded objects in memory. It cannot
+restore jobs across a process restart; lease recovery tests simulate an abandoned
+attempt within a surviving store. There is no persisted audit/outbox or automatic
+retry scheduler. No database schema was added. Diagnostics contain fixed event
+codes only, excluding document contents, identifiers, provider messages, stack
+traces and credentials.
+
+### Remaining live-worker requirements
 
 Connection requires a separately reviewed provider and authenticated persistence/
-worker design. Before accepting work or a result, that boundary must verify active
+worker host. Before accepting work or a result, that boundary must verify active
 company membership and capability, source ownership and current source status,
 reconstruct evidence from rehashed stored bytes, and enforce company-scoped
 deduplication. Job snapshots and tokens are not credentials. An authenticated,
@@ -149,7 +223,7 @@ workers from dispatching or committing from an older snapshot. Define unique job
 keys, a single active request policy, leases/timeouts, crash recovery and an
 outbox/delivery mechanism; commit job outcomes and audit records atomically. A
 duplicate completed delivery must return its accepted outcome without creating a
-second draft. No schema change is authorized by this foundation.
+second draft. No schema change is introduced by these worker modules.
 
 Before sending any evidence externally, implement credentials/consent and regional
 retention/deletion rules, encrypted storage, redacted observability and explicit

@@ -14,7 +14,7 @@ export default function DocumentPostingImpact({ doc, kind, journal }) {
   ];
   return <section className="workspace-card p-5" aria-label="Where this appears" data-testid="posting-impact">
     <h2 className="font-semibold">Where this appears</h2>
-    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">This document’s original posting. Payments and credits have their own entries.</p>
+    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">This document’s original posting. Payments, credits and corrections have their own entries.</p>
     {journal.status === 'loading' ? <SkeletonRows rows={3} /> : journal.error ? <ErrorBox error={journal.error} /> : journal.data && <dl className="mt-4 divide-y">
       {rows.map(([label, role, creditPositive, tab]) => {
         const movement = postedAccountMovement(doc, lines, role, creditPositive);

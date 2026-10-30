@@ -47,6 +47,15 @@ test('journal review presents evidence and hides prior-scope links and amounts',
   assert.ok(stale.includes('New company')); assert.ok(!stale.includes('INV-1')); assert.ok(!stale.includes('£120.00')); assert.ok(!stale.includes('/invoices/invoice'));
 });
 
+test('correction ledger and journal links use verified original document identity without replacing journal evidence', () => {
+  const entry = { id: 'correction', company_id: 'a', reference: 'INV-1', posting_date: '2026-10-30', source_type: 'canonical_journal', source_id: 'original-journal', document_id: 'invoice', document_kind: 'sales_invoice', movement_kind: 'financial_correction', total_debit_minor: '1200', total_credit_minor: '1200', status: 'posted' };
+  const ledger = render(<LedgerTable rows={[{ ...entry, journal_id: 'correction', source_number: 'INV-1', account_code: '4000', account_name: 'Sales', debit_minor: '1000', credit_minor: '0' }]} />);
+  for (const text of ['/invoices/invoice', '/accounting/journals/correction', 'Document correction']) assert.ok(ledger.includes(text), text);
+  assert.ok(!ledger.includes('/invoices/original-journal'));
+  const journal = render(<JournalReview company={{ name: 'Synthetic company' }} data={{ entry, lines: [] }} />);
+  assert.ok(journal.includes('/invoices/invoice')); assert.ok(journal.includes('original-journal')); assert.ok(journal.includes('Open sales invoice'));
+});
+
 test('report library leads to native VAT and historical status never implies verified filing', () => {
   const library = render(<ReportLibrary />);
   assert.ok(library.includes('href="/vat"')); assert.ok(library.includes('href="/reports?tab=pnl"'));

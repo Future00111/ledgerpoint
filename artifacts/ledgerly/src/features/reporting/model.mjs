@@ -58,7 +58,7 @@ export function validateJournal(data, companyId, id) {
 export function ledgerRows(rows, { accountId, documentId, search = '' } = {}) {
   const query = search.trim().toLocaleLowerCase('en-GB');
   return filterLedger(rows, accountId, documentId).filter(row => !query || [row.account_code, row.account_name,
-    row.source_number, row.source_type?.replaceAll('_', ' '), row.description].filter(Boolean).join(' ').toLocaleLowerCase('en-GB').includes(query));
+    row.source_number, row.document_kind?.replaceAll('_', ' '), row.movement_kind?.replaceAll('_', ' '), row.source_type?.replaceAll('_', ' '), row.description].filter(Boolean).join(' ').toLocaleLowerCase('en-GB').includes(query));
 }
 export const statementPath = (partyId, from, to) => `/statements?${new URLSearchParams({ party_id: partyId,
   ...(from && to && !dateError(from, to) ? { from, to } : {}) })}`;

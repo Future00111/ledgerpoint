@@ -13,7 +13,7 @@ export const MAX_DATE = '9999-12-31';
 const validDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
   && value >= MIN_DATE && value <= MAX_DATE && Number.isFinite(Date.parse(`${value}T00:00:00Z`))
   && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
-const minor = value => typeof value === 'string' && /^-?\d+$/.test(value);
+const minor = value => typeof value === 'string' && /^(?:0|-?[1-9]\d{0,29})$/.test(value);
 
 export function initialPeriod(now = new Date()) {
   return { from: `${now.getUTCFullYear()}-${String(Math.floor(now.getUTCMonth() / 3) * 3 + 1).padStart(2, '0')}-01`, to: now.toISOString().slice(0, 10) };
@@ -47,14 +47,58 @@ export function validateSnapshot(data, from, to) {
   for (const d of data.posted_documents) {
     if (!KINDS[d.kind] || typeof d.id !== 'string' || !d.id || typeof d.journal_id !== 'string' || !d.journal_id
       || !validDate(d.date) || !minor(d.net_minor) || !minor(d.gross_minor)
-      || !minor(d.vat_minor) || d.vat_box !== (KINDS[d.kind].party === 'customer' ? '1' : '4')) invalid();
+      || !minor(d.vat_minor) || d.vat_box !== (KINDS[d.kind].party === 'customer' ? '1' : '4')
+      || (d.movement_kind !== undefined && !['original', 'financial_correction'].includes(d.movement_kind))) invalid();
+    if (d.movement_kind !== 'financial_correction') {
+      const credit = d.kind === 'sales_credit_note' || d.kind === 'supplier_credit_note';
+      if ((credit && (BigInt(d.net_minor) > 0n || BigInt(d.vat_minor) > 0n))
+          || (!credit && (BigInt(d.net_minor) < 0n || BigInt(d.vat_minor) < 0n))) invalid();
+    }
   }
   // Reconcile the supplied signed facts, without calculating any tax amounts.
-  for (const box of ['1', '4']) {
-    const total = sourceDocuments(data).filter(d => d.vat_box === box).reduce((n, d) => n + BigInt(d.vat_minor), 0n);
+  const sources = sourceDocuments(data);
+  if (new Set(data.posted_documents.map(d => d.journal_id)).size !== data.posted_documents.length) invalid();
+  for (const [box, sourceBox, field] of [['1', '1', 'vat_minor'], ['4', '4', 'vat_minor'], ['6', '1', 'net_minor'], ['7', '4', 'net_minor']]) {
+    const total = sources.filter(d => d.vat_box === sourceBox).reduce((n, d) => n + BigInt(d[field]), 0n);
     if (total !== BigInt(data.vat[`box${box}_pence`])) invalid();
   }
+  const net = BigInt(data.vat.box1_pence) - BigInt(data.vat.box4_pence);
+  if (BigInt(data.vat.net_payable_pence) !== net || BigInt(data.vat.box5_pence) !== (net < 0n ? -net : net)
+      || data.vat.repayment !== (net < 0n)) invalid();
+  if (data.vat_coverage !== undefined) validateCoverage(data, invalid);
   return data;
+}
+
+/** Validate the additive server evidence; never turn a missing capability into a successful check. */
+function validateCoverage(data, invalid) {
+  const coverage = data.vat_coverage;
+  if (!coverage || coverage.contract !== 'vat-workings.coverage.v1' || coverage.status !== 'workings_reconciled'
+      || coverage.filing_ready !== false || coverage.scope?.from !== data.from || coverage.scope?.to !== data.to
+      || coverage.scope?.basis !== 'posted_source_movements' || coverage.scope?.scheme !== 'standard'
+      || coverage.scope?.accounting_basis !== 'invoice' || coverage.scope?.currency !== 'GBP'
+      || !Array.isArray(coverage.boxes) || coverage.boxes.length !== 9 || !Array.isArray(coverage.cases) || !coverage.cases.length
+      || !Array.isArray(coverage.blockers)) invalid();
+  const sources = sourceDocuments(data);
+  if (coverage.movement_count !== sources.length || coverage.journal_count !== sources.length
+      || coverage.source_document_count !== new Set(sources.map(d => d.id)).size) invalid();
+  for (let i = 0; i < 9; i++) {
+    const row = coverage.boxes[i]; const box = String(i + 1); const known = BOXES.find(item => item.box === box);
+    if (!row || row.box !== box || (known
+      ? row.status !== 'reconciled' || row.amount_pence !== data.vat[known.key] || row.source_total_pence !== data.vat[known.key]
+      : row.status !== 'unsupported' || row.amount_pence !== null || row.source_total_pence !== null)) invalid();
+  }
+  if (!['INCOMPLETE_RETURN', 'SUPPORTED_CASE_REVIEW', 'FILING_UNAVAILABLE'].every(code => coverage.blockers.some(item => item?.code === code && typeof item.message === 'string' && item.message.trim()))
+      || coverage.cases.some(item => !item || typeof item.id !== 'string' || typeof item.label !== 'string'
+        || !['supported', 'unsupported'].includes(item.status))) invalid();
+}
+
+export function coverageRows(data) {
+  if (!data?.vat_coverage) return [['Coverage', 'Coverage check unavailable. Refresh before relying on the reconciliation status.']];
+  return [['Coverage', 'Workings only; five supported boxes are reconciled. This is not a complete or filing-ready return.'],
+    ['Box', 'Status', 'Workings GBP', 'Reconciled source amount GBP'],
+    ...data.vat_coverage.boxes.map(box => [box.box, box.status === 'reconciled' ? 'Reconciled' : 'Not implemented — unknown amount',
+      box.amount_pence === null ? '' : decimalMinor(box.amount_pence), box.source_total_pence === null ? '' : decimalMinor(box.source_total_pence)]),
+    ...data.vat_coverage.blockers.map(item => ['Review boundary', item.message])];
 }
 
 /** Cancellation also guards clients which resolve after ignoring AbortSignal. */
@@ -89,10 +133,12 @@ export function workingsRows(data, companyName) {
     ['Box', 'Description', 'Amount GBP'],
     ...BOXES.map(b => [b.box, b.label, decimalMinor(data.vat[b.key])]),
     ['Net position', data.vat.repayment ? 'Repayment' : 'Payable', decimalMinor(data.vat.net_payable_pence)],
+    [], ...coverageRows(data),
     [], ['Sources', 'Signed amounts supplied by the accounting report. Credits reduce the relevant totals.'],
-    ['Posting date', 'Document', 'Type', 'Customer or supplier', 'Net GBP', 'VAT in workings GBP', 'Gross GBP', 'Source ID', 'Journal ID'],
+    ['Posting date', 'Document', 'Type', 'Customer or supplier', 'Net GBP', 'VAT in workings GBP', 'Gross GBP', 'Source ID', 'Journal ID', 'Movement'],
     ...docs.map(d => [d.date, d.number, KINDS[d.kind].label, d.party_name, decimalMinor(d.net_minor),
-      decimalMinor(d.vat_minor), decimalMinor(d.gross_minor), d.id, d.journal_id]),
+      decimalMinor(d.vat_minor), decimalMinor(d.gross_minor), d.id, d.journal_id,
+      d.movement_kind === 'financial_correction' ? 'Financial correction' : 'Original posting']),
   ];
 }
 

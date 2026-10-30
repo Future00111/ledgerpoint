@@ -1,10 +1,12 @@
+import { journalLines } from './documentJournal';
+export { journalLines } from './documentJournal';
 import { randomUUID } from "node:crypto";
 import { syncSettlementProjection } from './settlement';
 import { fail } from "../financialDrafts/contract";
 import { postCanonicalJournal, type CanonicalPostingDependencies, type DatabaseTransaction,
   type CanonicalLineDraft, type LockedAuthority } from "../accounting/canonicalPosting";
-import { calculateDocument, assertCreditAvailable, getDocument } from "./documents";
-import { queryAdapter, scope, document, hash, sales, credit, tables, type Kind, type Queryable } from "./core";
+import { calculateDocument, assertCreditAvailable } from "./documents";
+import { queryAdapter, scope, document, transact, hash, sales, credit, tables, type Kind, type Queryable } from "./core";
 
 class AlreadyPosted extends Error {
   constructor(public journalId:string) {super("Already posted");}
@@ -36,29 +38,11 @@ async function assertProjection(q:Queryable,company:string,row:any) {
       fixed(line.amount)!==row.money.lines[i].net_pence || fixed(line.vat_amount)!==row.money.lines[i].vat_pence ||
       fixed(line.line_total)!==row.money.lines[i].gross_pence)) fail(409,"SOURCE_PROJECTION_MISMATCH");
 }
-export function journalLines(row:any):CanonicalLineDraft[] {
-  const counterDebit=sales(row.kind)!==credit(row.kind);
-  const result:CanonicalLineDraft[]=[];
-  const add=(account:string,amount:string,debit:boolean,ref:string,taxCode?:string)=>{
-    if(BigInt(amount)===0n) return;
-    result.push({accountId:account,debitMinor:debit?amount:"0",creditMinor:debit?"0":amount,
-      currencyCode:"GBP",sourceLineRef:ref,taxCode:taxCode??null});
-  };
-  add(row.posting_accounts[sales(row.kind)?"receivables":"payables"],row.money.gross_pence,counterDebit,"counterparty");
-  row.money.lines.forEach((line:any,i:number)=>{
-    const vatRecovered=sales(row.kind) || row.purchase_vat_eligible;
-    const trade=(BigInt(line.net_pence)+(vatRecovered?0n:BigInt(line.vat_pence))).toString();
-    const ref=credit(row.kind)?`original:${row.original_id}:${row.tax_context.original_line_refs[i]}`:String(i);
-    add(row.posting_accounts[sales(row.kind)?"revenue":"expense"],trade,!counterDebit,ref,row.source.line_items[i].tax_code);
-    if(vatRecovered) add(row.posting_accounts[sales(row.kind)?"output_vat":"input_vat"],line.vat_pence,!counterDebit,ref,row.source.line_items[i].tax_code);
-  });
-  return result;
-}
 export async function postDocument(company:string,actor:string,id:string,expected:string,
   testHook?: (tx:DatabaseTransaction)=>Promise<void>) {
   // Read admission is advisory; all authorities and capabilities are locked and
   // checked again inside postCanonicalJournal's one transaction.
-  const initial=await getDocument(company,actor,id);
+  const initial=await transact(async q=>{await scope(q,company,actor);return document(q,company,id);},true);
   if(initial.revision!==expected) fail(409,"REVISION_CONFLICT");
   let current:any, transaction:DatabaseTransaction;
   const dependencies:CanonicalPostingDependencies={

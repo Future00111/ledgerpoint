@@ -41,13 +41,16 @@ try {
   admin=new Client({host:socket,port,user:'w03_bootstrap',database:'postgres',password:()=>'',ssl:false,options:'-c timezone=UTC'});await admin.connect();
   await admin.query('CREATE DATABASE ledgerly_accounting_flow_test');await admin.end();
   admin=new Client({host:socket,port,user:'w03_bootstrap',database:'ledgerly_accounting_flow_test',password:()=>'',ssl:false,options:'-c timezone=UTC'});await admin.connect();
-  await installSchema(admin,exportSchema());await admin.end();admin=null;
+  await installSchema(admin,exportSchema(),{includeAmendments:true});await admin.end();admin=null;
   const testEnv={...env,NODE_ENV:'test',NODE_PATH:root+'/artifacts/api-server/node_modules',
     ACCOUNTING_FLOW_TEST_SOCKET:socket,
     DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_test?host=${encodeURIComponent(socket)}&port=${port}`};
   for(const [entry,output] of [
     ['src/services/accountingDocuments/integration.test.ts','accounting-flow.test.cjs'],
     ['src/security/integration.test.ts','security-flow.test.cjs'],
+    ['src/services/accountingDocuments/corrections.integration.test.ts','corrections-flow.test.cjs'],
+    ['src/services/accountingDocuments/vatCoverage.integration.test.ts','vat-coverage-flow.test.cjs'],
+    ['src/services/auditReview/integration.test.ts','audit-review-flow.test.cjs'],
   ]) {
     execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',entry,
       '--bundle','--platform=node','--format=cjs','--external:pg','--external:@clerk/express',

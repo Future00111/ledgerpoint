@@ -2,6 +2,8 @@ import { paymentEvents, appliedTo, allocated, allocationSign, unappliedEffect, s
 import { fail, uuid } from "../financialDrafts/contract";
 import { transact, scope, sales, credit, supportedCompany, type Kind } from "./core";
 import { movementAccounts, sections } from "./presentation";
+import { amendmentHistory, amendmentSchema } from './amendments';
+import { buildVatCoverage } from './vatCoverage';
 
 const signed=(row:any)=>BigInt(row.debit_minor)-BigInt(row.credit_minor);
 const lower=(value:unknown)=>String(value??"").toLowerCase();
@@ -13,8 +15,18 @@ export async function journal(company:string,actor:string,id:string) {
     const lines=await q.query(`SELECT l.*,a.code account_code,a.name account_name FROM canonical_journal_lines l
       JOIN chart_of_accounts a ON a.id=l.account_id AND a.company_id=l.company_id
       WHERE l.company_id=$1 AND l.journal_entry_id=$2 ORDER BY l.line_number`,[company,id]);
+    if (await amendmentSchema(q)) {
+      const sources=(await q.query(`SELECT d.* FROM accounting_document_amendments a
+        JOIN accounting_document_sources d ON d.company_id=a.company_id AND d.id=a.document_id
+        WHERE a.company_id=$1 AND a.journal_id=$2`,[company,id])).rows;
+      if (sources.length) {
+        if (sources.length!==1) fail(503,'CORRECTION_HISTORY_INVALID');
+        await amendmentHistory(q,company,sources[0]);
+        Object.assign(entry.rows[0],{document_id:sources[0].id,document_kind:sources[0].kind,movement_kind:'financial_correction'});
+      }
+    }
     return {entry:entry.rows[0],lines:lines.rows};
-  });
+  },true);
 }
 export async function reports(company:string,actor:string,from:string,to:string,afterLedgerRead?:()=>Promise<void>) {
   const valid=(s:string)=>/^\d{4}-\d{2}-\d{2}$/.test(s) && Number.isFinite(Date.parse(s+"T00:00:00Z")) &&
@@ -69,6 +81,21 @@ export async function reports(company:string,actor:string,from:string,to:string,
       else if(income(t)||expense(t)) earnings-=n;
       else fail(503,"REPORT_ACCOUNT_TYPE_UNSUPPORTED");
     }
+    // Full-chain validation precedes any historical cutoff. Unsupported correction
+    // or reversal history must not disappear behind an old report date.
+    const histories = new Map<string, Awaited<ReturnType<typeof amendmentHistory>>>();
+    if (await amendmentSchema(q)) {
+      const amended = (await q.query(`SELECT DISTINCT d.* FROM accounting_document_sources d
+        LEFT JOIN accounting_document_amendment_heads h ON h.company_id=d.company_id AND h.document_id=d.id
+        LEFT JOIN accounting_document_amendments a ON a.company_id=d.company_id AND a.document_id=d.id
+        LEFT JOIN canonical_journal_relations r ON r.company_id=d.company_id AND r.original_journal_id=d.journal_id
+        WHERE d.company_id=$1 AND (h.document_id IS NOT NULL OR a.id IS NOT NULL OR r.relation_type='correction')`, [company])).rows;
+      for (const source of amended) {
+        const history = await amendmentHistory(q,company,source,to);
+        if (!history.rows.length) fail(503,'CORRECTION_JOURNAL_INVALID');
+        histories.set(source.id,history);
+      }
+    }
     const docs=(await q.query(`SELECT d.*,j.posting_date::text,j.created_at journal_created_at FROM accounting_document_sources d
       JOIN canonical_journal_entries j ON j.id=d.journal_id AND j.company_id=d.company_id
         AND j.source_id=d.id::text AND j.source_type=d.kind AND j.status='posted'
@@ -77,47 +104,61 @@ export async function reports(company:string,actor:string,from:string,to:string,
     let out=0n,input=0n,saleNet=0n,buyNet=0n,closingOutput=0n,closingInput=0n;
     for(const d of docs) {
       const role=sales(d.kind)?"receivables":"payables";
-      const journalLines=all.rows.filter(l=>l.journal_id===d.journal_id);
-      const counter=journalLines.filter(l=>l.account_id===d.posting_accounts[role])
-        .reduce((n,l)=>n+signed(l),0n)*(sales(d.kind)?1n:-1n);
-      const expected=BigInt(d.money.gross_pence)*(credit(d.kind)?-1n:1n);
-      if(counter!==expected) fail(503,"REPORT_LEDGER_MISMATCH");
       const taxRole=sales(d.kind)?"output_vat":"input_vat";
-      const tax=journalLines.filter(l=>l.account_id===d.posting_accounts[taxRole])
-        .reduce((n,l)=>n+signed(l),0n)*(sales(d.kind)?-1n:1n);
-      const taxExpected=(sales(d.kind)||d.purchase_vat_eligible?BigInt(d.money.vat_pence):0n)*(credit(d.kind)?-1n:1n);
-      if(tax!==taxExpected) fail(503,"REPORT_LEDGER_MISMATCH");
-      if(sales(d.kind)) closingOutput+=tax;else closingInput+=tax;
+      const history=histories.get(d.id);
+      const amendments=history?.rows.filter(row=>row.effective_date<=to)??[];
+      const current=history?.current??d;
+      const sign=credit(d.kind)?-1n:1n;
+      const facts=[{journal_id:d.journal_id,date:d.posting_date,recorded_at:d.journal_created_at,money:d.money,movement_kind:'original'},
+        ...amendments.map(row=>({journal_id:row.journal_id,date:row.effective_date,recorded_at:row.created_at,money:row.delta_money,movement_kind:'financial_correction'}))];
       const party=(await q.query(`SELECT name FROM ${sales(d.kind)?"customers":"suppliers"} WHERE company_id=$1 AND id=$2`,[company,d.party_id])).rows[0];
       if(!party) fail(503,"REPORT_PARTY_MISSING");
       const p=parties.get(d.party_id)??{party_id:d.party_id,party_name:party.name,
         party_type:sales(d.kind)?"customer":"supplier",balance:0n,unapplied:0n};
-      p.balance+=counter;parties.set(d.party_id,p);
-      if(d.posting_date>=from) {
-        transactions.push({source_type:d.kind,source_id:d.id,journal_id:d.journal_id,date:d.posting_date,recorded_at:d.journal_created_at,
-          number:d.number,party_id:d.party_id,party_name:party.name,balance_effect_minor:counter.toString(),
-          due_date:d.source.due_date,unapplied_effect_minor:"0",net_minor:(BigInt(d.money.net_pence)*(credit(d.kind)?-1n:1n)).toString()});
-        if(sales(d.kind)) {out+=tax;saleNet+=BigInt(d.money.net_pence)*(credit(d.kind)?-1n:1n);}
-        else {input+=tax;buyNet+=BigInt(d.money.net_pence)*(credit(d.kind)?-1n:1n);}
+      for(const fact of facts) {
+        const journalLines=all.rows.filter(line=>line.journal_id===fact.journal_id);
+        const counter=journalLines.filter(line=>line.account_id===d.posting_accounts[role])
+          .reduce((n,line)=>n+signed(line),0n)*(sales(d.kind)?1n:-1n);
+        const expected=BigInt(fact.money.gross_pence)*sign;
+        if(counter!==expected) fail(503,"REPORT_LEDGER_MISMATCH");
+        const tax=journalLines.filter(line=>line.account_id===d.posting_accounts[taxRole])
+          .reduce((n,line)=>n+signed(line),0n)*(sales(d.kind)?-1n:1n);
+        const taxExpected=(sales(d.kind)||d.purchase_vat_eligible?BigInt(fact.money.vat_pence):0n)*sign;
+        if(tax!==taxExpected) fail(503,"REPORT_LEDGER_MISMATCH");
+        if(fact.movement_kind==='financial_correction') for(const line of journalLines) {
+          line.document_kind=d.kind;line.document_id=d.id;line.source_number=d.number;line.movement_kind='financial_correction';
+        }
+        if(sales(d.kind)) closingOutput+=tax;else closingInput+=tax;
+        p.balance+=counter;
+        if(fact.date>=from) {
+          transactions.push({source_type:d.kind,source_id:d.id,document_id:d.id,document_kind:d.kind,movement_id:fact.journal_id,journal_id:fact.journal_id,date:fact.date,recorded_at:fact.recorded_at,
+            number:d.number,party_id:d.party_id,party_name:party.name,balance_effect_minor:counter.toString(),movement_kind:fact.movement_kind,
+            due_date:d.source.due_date,unapplied_effect_minor:"0",net_minor:(BigInt(fact.money.net_pence)*sign).toString()});
+          if(sales(d.kind)) {out+=tax;saleNet+=BigInt(fact.money.net_pence)*sign;}
+          else {input+=tax;buyNet+=BigInt(fact.money.net_pence)*sign;}
+        }
+        postedDocuments.push({id:d.id,kind:d.kind,document_id:d.id,document_kind:d.kind,movement_id:fact.journal_id,party_id:d.party_id,party_name:party.name,party_type:p.party_type,
+          number:d.number,date:fact.date,due_date:d.source.due_date,journal_id:fact.journal_id,movement_kind:fact.movement_kind,
+          net_minor:(BigInt(fact.money.net_pence)*sign).toString(),gross_minor:counter.toString(),
+          vat_minor:tax.toString(),vat_box:sales(d.kind)?'1':'4'});
       }
-      postedDocuments.push({id:d.id,kind:d.kind,party_id:d.party_id,party_name:party.name,party_type:p.party_type,
-        number:d.number,date:d.posting_date,due_date:d.source.due_date,journal_id:d.journal_id,
-        net_minor:(BigInt(d.money.net_pence)*(credit(d.kind)?-1n:1n)).toString(),gross_minor:counter.toString(),
-        vat_minor:tax.toString(),vat_box:sales(d.kind)?'1':'4'});
+      parties.set(d.party_id,p);
       if(!credit(d.kind)) {
         const credited=docs.filter(c=>c.original_id===d.id).reduce((n,c)=>n+BigInt(c.money.gross_pence),0n);
         const paid=appliedTo(payments,d.id);
-        const amounts=settlementAmounts(d.money.gross_pence,credited.toString(),paid.toString());
+        const amounts=settlementAmounts(current.money.gross_pence,credited.toString(),paid.toString());
         const remaining=BigInt(amounts.open_minor);
-        const history=[...docs.filter(c=>c.original_id===d.id).map(c=>({id:c.id,kind:c.kind,number:c.number,
+        const historyRows=[...docs.filter(c=>c.original_id===d.id).map(c=>({id:c.id,kind:c.kind,number:c.number,
           date:c.posting_date,recorded_at:c.journal_created_at,journal_id:c.journal_id,amount_minor:c.money.gross_pence})),
+          ...amendments.map(row=>({id:row.id,kind:'financial_correction',document_id:d.id,document_kind:d.kind,source_type:d.kind,source_id:d.id,number:d.number,date:row.effective_date,
+            recorded_at:row.created_at,journal_id:row.journal_id,amount_minor:row.delta_money.gross_pence})),
           ...payments.flatMap(e=>e.allocations.filter((a:any)=>a.document_id===d.id).map((a:any)=>({id:e.id,
             kind:e.kind,number:e.reference,date:e.effective_date,recorded_at:e.created_at,journal_id:e.journal_id,
             amount_minor:(allocationSign(e)*BigInt(a.amount_minor)).toString(),payment_id:e.payment_id??e.id})))];
-        history.sort((a,b)=>a.date.localeCompare(b.date)||new Date(a.recorded_at).getTime()-new Date(b.recorded_at).getTime()||a.id.localeCompare(b.id));
+        historyRows.sort((a,b)=>a.date.localeCompare(b.date)||new Date(a.recorded_at).getTime()-new Date(b.recorded_at).getTime()||a.id.localeCompare(b.id));
         openItems.push({id:d.id,kind:d.kind,party_id:d.party_id,party_type:p.party_type,party_name:party.name,
           number:d.number,date:d.posting_date,due_date:d.source.due_date,
-          ...amounts,history});
+          ...amounts,history:historyRows,correction_count:amendments.length});
         const days=Math.floor((Date.parse(to+"T00:00:00Z")-Date.parse(d.source.due_date+"T00:00:00Z"))/86400000);
         const bucket=days<=0?"current_minor":days<=30?"days_1_30_minor":days<=60?"days_31_60_minor":days<=90?"days_61_90_minor":"days_90_plus_minor";
         const age=ageing.get(d.party_id)??{party_id:d.party_id,party_name:party.name,party_type:p.party_type,
@@ -147,6 +188,9 @@ export async function reports(company:string,actor:string,from:string,to:string,
     const drafts=(await q.query(`SELECT id,kind,number,party_id,source->>'issue_date' date,money->>'gross_pence' gross_minor
       FROM accounting_document_sources WHERE company_id=$1 AND status='draft' ORDER BY created_at DESC`,[company])).rows;
     const difference=out-input;
+    const vat={applicable:c.vat_registered,box1_pence:out.toString(),box4_pence:input.toString(),box5_pence:(difference<0n?-difference:difference).toString(),
+      box6_pence:saleNet.toString(),box7_pence:buyNet.toString(),net_payable_pence:difference.toString(),repayment:difference<0n,
+      reconciliation:"Reconciled to source-linked canonical VAT lines; review workings, not an HMRC submission."};
     const pnlSections=sections(movementAccounts(general_ledger),["income","cost_of_sales","expense"]);
     const bsSections=sections(trial_balance.map(a=>({...a,amount_minor:
       (["liability","liabilities","equity"].includes(lower(a.account_type))?-BigInt(a.balance_minor):BigInt(a.balance_minor)).toString()})),
@@ -165,9 +209,7 @@ export async function reports(company:string,actor:string,from:string,to:string,
         net_assets_minor:(assets-closingInput+(closingInput>closingOutput?closingInput-closingOutput:0n)).toString(),
         net_liabilities_minor:(liabilities-closingOutput+(closingOutput>closingInput?closingOutput-closingInput:0n)).toString(),
         balanced:assets===liabilities+equity+earnings},
-      vat:{applicable:c.vat_registered,box1_pence:out.toString(),box4_pence:input.toString(),box5_pence:(difference<0n?-difference:difference).toString(),
-        box6_pence:saleNet.toString(),box7_pence:buyNet.toString(),net_payable_pence:difference.toString(),repayment:difference<0n,
-        reconciliation:"Reconciled to source-linked canonical VAT lines; review workings, not an HMRC submission."},
+      vat,vat_coverage:buildVatCoverage({from,to,vat,movements:postedDocuments}),
       party_balances:[...parties.values()].map(({balance,unapplied,...p})=>({...p,balance_minor:balance.toString(),
         unapplied_minor:unapplied.toString(),net_balance_minor:(balance-unapplied).toString()})),
       party_transactions:transactions,

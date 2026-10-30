@@ -104,7 +104,7 @@ const groups = [
       { label: 'AI Integrations', icon: Sparkles, soon: true },
       { label: 'Integrations', icon: Plug, soon: true },
       { label: 'Notifications', icon: Bell, soon: true },
-      { label: 'Audit Log', icon: History, soon: true },
+      { label: 'Audit history', path: '/audit-history', icon: History, roles: ['owner', 'admin', 'accountant'] },
       { label: 'User Profile', icon: UserCircle, soon: true },
       { label: 'Subscription', icon: CreditCard, soon: true },
     ],

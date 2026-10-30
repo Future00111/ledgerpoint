@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { csv } from '../../lib/ledgerCsv.mjs';
 import { initialPeriod, periodFromParams, periodError, scopeKey, visibleState, validateSnapshot, requestWorkings, sourceDocuments, workingsRows } from './model.mjs';
-import { reportFixture } from './fixtures.mjs';
+import { reportFixture, coverageFixture } from './fixtures.mjs';
 
 test('VAT links retain their exact dates and invalid explicit dates require correction', () => {
   assert.deepEqual(periodFromParams(new URLSearchParams('from=2026-07-01&to=2026-09-30')), { from: '2026-07-01', to: '2026-09-30' });
@@ -39,6 +39,11 @@ test('incomplete, mismatched or unreconciled server evidence cannot appear as ve
     d => { d.posted_documents[1].vat_minor = '500'; },
     d => { d.vat.box1_pence = '9999'; },
     d => { d.vat.box5_pence = 'NaN'; },
+    d => { d.vat.box5_pence = '901'; },
+    d => { d.vat.box6_pence = '7501'; },
+    d => { d.vat.box7_pence = '4001'; },
+    d => { d.vat.net_payable_pence = '-900'; },
+    d => { d.vat.repayment = true; },
     d => { d.vat.applicable = 'false'; },
   ]) { const d = reportFixture(); edit(d); assert.throws(() => validateSnapshot(d, d.from, d.to), /could not be verified/); }
 });
@@ -48,6 +53,10 @@ test('CSV preserves integer-string precision and neutralises formula-like source
   d.posted_documents[0].net_minor = '900719925474099312345';
   d.posted_documents[0].vat_minor = '900719925474099312345';
   d.vat.box1_pence = '900719925474099311845';
+  d.vat.box6_pence = '900719925474099309845';
+  d.vat.box5_pence = '900719925474099311245';
+  d.vat.net_payable_pence = '900719925474099311245';
+  d.vat_coverage = coverageFixture(d);
   d.posted_documents[0].number = '=HYPERLINK("https://invalid.example")';
   d.posted_documents[0].party_name = '\t+SUM(1,2)';
   d.posted_documents[1].party_name = '@SUM(1,2)';
@@ -60,6 +69,38 @@ test('CSV preserves integer-string precision and neutralises formula-like source
   assert.ok(output.includes('"\'-unsafe company"'));
   assert.ok(output.includes('"-25.00","-5.00","-30.00"'));
   assert.ok(output.includes('not a filed return'));
+});
+
+test('coverage validates all nine box statuses and never accepts zeros for unsupported boxes', () => {
+  for (const edit of [
+    d => { d.vat_coverage.filing_ready = true; },
+    d => { d.vat_coverage.scope.from = '2025-10-01'; },
+    d => { d.vat_coverage.boxes[1].amount_pence = '0'; },
+    d => { d.vat_coverage.boxes[2].source_total_pence = '0'; },
+    d => { d.vat_coverage.boxes[3].source_total_pence = '601'; },
+    d => { d.vat_coverage.boxes.pop(); },
+    d => { d.vat_coverage.movement_count++; },
+    d => { d.vat_coverage.source_document_count++; },
+    d => { d.vat_coverage.blockers = []; },
+  ]) { const d = reportFixture(); edit(d); assert.throws(() => validateSnapshot(d, d.from, d.to), /could not be verified/); }
+  const data = reportFixture(); delete data.vat_coverage;
+  assert.equal(validateSnapshot(data, data.from, data.to), data);
+  assert.ok(workingsRows(data, 'Synthetic').some(row => row[1]?.includes('Coverage check unavailable')));
+});
+
+test('correction movements retain original document links with distinct journals and signed dated CSV evidence', () => {
+  const d = reportFixture();
+  d.posted_documents.push({ ...d.posted_documents[0], journal_id: 'correction-journal', date: '2026-10-28',
+    net_minor: '-1000', vat_minor: '-200', gross_minor: '-1200', movement_kind: 'financial_correction' });
+  d.vat.box1_pence = '1300'; d.vat.box5_pence = '700'; d.vat.box6_pence = '6500'; d.vat.net_payable_pence = '700';
+  d.vat_coverage = coverageFixture(d);
+  assert.equal(validateSnapshot(d, d.from, d.to), d);
+  assert.equal(d.vat_coverage.movement_count, 6); assert.equal(d.vat_coverage.source_document_count, 5);
+  const rows = workingsRows(d, 'Synthetic');
+  assert.ok(rows.some(row => row.includes('correction-journal') && row.includes('Financial correction') && row.includes('-2.00')));
+  assert.ok(rows.some(row => row[0] === '2' && row[1] === 'Not implemented — unknown amount' && row[2] === '' && row[3] === ''));
+  d.posted_documents.at(-1).journal_id = d.posted_documents[0].journal_id;
+  assert.throws(() => validateSnapshot(d, d.from, d.to), /could not be verified/);
 });
 
 test('company, date, removal and refresh scope changes hide both old data and old errors immediately', () => {

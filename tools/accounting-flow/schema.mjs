@@ -14,8 +14,12 @@ export function exportSchema() {
   return execFileSync('pnpm',['--filter','@workspace/db','exec','drizzle-kit','export',
     '--schema=./src/schema/index.ts','--dialect=postgresql'],{cwd:root,env,encoding:'utf8',maxBuffer:4e6});
 }
-export async function installSchema(admin,sql) {
+export async function installSchema(admin,sql,{includeAmendments=false}={}) {
   // Caller has already proved its Unix-socket identity. This never opens a connection.
+  if(includeAmendments) {
+    const existing=await admin.query("SELECT count(*)::int n FROM pg_tables WHERE schemaname='public'");
+    if(existing.rows[0].n!==0) throw Error('Amendment overlay is restricted to a newly created empty disposable database');
+  }
   const tables=[...sql.matchAll(/CREATE TABLE "([^"]+)" \([\s\S]*?\n\);/g)];
   if(!tables.some(m=>m[1]==='canonical_journal_lines')) throw Error('Full canonical export missing');
   await admin.query('BEGIN');
@@ -51,6 +55,7 @@ export async function installSchema(admin,sql) {
     await admin.query(readFileSync(path.join(root,'lib/db/migrations/accounting-payments.review.sql'),'utf8'));
     await admin.query(readFileSync(path.join(root,'lib/db/migrations/credit-tracking.review.sql'),'utf8'));
     await admin.query(readFileSync(path.join(root,'lib/db/migrations/document-intake.review.sql'),'utf8'));
+    if(includeAmendments) await admin.query(readFileSync(path.join(root,'lib/db/migrations/accounting-document-amendments.review.sql'),'utf8'));
     const legacy=(await admin.query("SELECT to_regclass('public.w03_invoice_drafts') present")).rows[0].present;
     if(!legacy) await admin.query(readFileSync(path.join(root,'lib/db/migrations/w03-invoice-drafts.review.sql'),'utf8')
       .replace(/^BEGIN;$/m,'').replace(/^COMMIT;$/m,''));

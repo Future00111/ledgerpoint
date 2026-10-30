@@ -129,6 +129,7 @@ async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof 
     const d=await documentOpen(q,company,a.document_id,events);
     if(d.party_id!==b.party_id || d.kind!==(customer?'sales_invoice':'purchase_bill')) fail(422,'ALLOCATION_PARTY_MISMATCH');
     if(d.posting_date>b.date) fail(409,'DATE_PRECEDES_DOCUMENT');
+    if(d.latest_correction_date && d.latest_correction_date>b.date) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
     // Do not let a backdated event invalidate a later allocation or credit.
     const later=(await q.query(`SELECT 1 FROM accounting_document_sources d JOIN canonical_journal_entries j ON j.id=d.journal_id
       WHERE d.company_id=$1 AND d.original_id=$2 AND d.status='posted' AND j.posting_date>$3::date LIMIT 1`,[company,d.id,b.date])).rowCount;

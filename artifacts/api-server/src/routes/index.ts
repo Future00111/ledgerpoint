@@ -10,6 +10,7 @@ import invoiceDemoRouter from "./invoiceDemo";
 import accountingDocumentsRouter from "./accountingDocuments";
 import documentIntakeRouter from "./documentIntake";
 import accountingDemoRouter from "./accountingDemo";
+import auditReviewRouter from "./auditReview";
 import { isInvoiceDemoModeEnabled } from "@workspace/db";
 
 const router: IRouter = Router();
@@ -19,6 +20,7 @@ router.use(meRouter);
 router.use("/companies", companiesRouter);
 router.use("/companies/:companyId/document-intake", documentIntakeRouter);
 router.use("/companies/:companyId", accountingDocumentsRouter);
+router.use("/companies/:companyId", auditReviewRouter);
 router.use("/companies/:companyId/financial-drafts/invoices", financialDraftsRouter);
 if (isInvoiceDemoModeEnabled) router.use("/dev/invoice-demo", invoiceDemoRouter);
 if (isInvoiceDemoModeEnabled) router.use("/dev/accounting-flow", accountingDemoRouter);

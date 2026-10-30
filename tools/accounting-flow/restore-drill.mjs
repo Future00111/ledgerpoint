@@ -77,6 +77,10 @@ export async function runRestoreDrill({ Client, directory, socket, port }) {
       'accounting_audit_events', 'document_intake_sources', 'document_intake_audit']) {
       if (!before.tables.some(table => table.table === name && table.rows > 0)) throw new Error('Restore drill needs populated synthetic accounting and capture evidence.');
     }
+    const hasAmendments = before.tables.some(table => table.table === 'accounting_document_amendments');
+    if (hasAmendments) for (const name of ['accounting_document_amendments', 'accounting_document_amendment_heads']) {
+      if (!before.tables.some(table => table.table === name && table.rows > 0)) throw new Error('Restore drill needs populated synthetic correction evidence.');
+    }
     const archive = path.join(directory, 'synthetic-accounting.dump');
     execFileSync('pg_dump', ['-h', socket, '-p', String(port), '-U', 'w03_bootstrap', '-d', SOURCE, '-Fc', '-f', archive], { env, stdio: 'pipe', timeout: 60000 });
     await source.query(`CREATE DATABASE ${quote(RESTORED)}`);
@@ -93,6 +97,11 @@ export async function runRestoreDrill({ Client, directory, socket, port }) {
       ('ledgerly_canonical_journal_entries_guard','ledgerly_canonical_journal_lines_guard',
        'ledgerly_canonical_journal_relations_guard','ledgerly_accounting_audit_events_guard','ledgerly_accounting_posting_effects_guard')`);
     if (guards.rows[0].n !== 5) throw new Error('Canonical guards are missing after restore.');
+    if (hasAmendments) {
+      const amendmentGuards = await restored.query(`SELECT count(*)::int n FROM pg_trigger WHERE tgenabled='A' AND tgname IN
+        ('accounting_amendment_immutable','accounting_amendment_no_truncate','accounting_amendment_head_guard','accounting_amendment_head_no_truncate')`);
+      if (amendmentGuards.rows[0].n !== 4) throw new Error('Correction guards are missing after restore.');
+    }
     await runtime.connect();
     const access = await runtime.query(`SELECT current_user actor,
       has_table_privilege(current_user,'accounting_document_audit','UPDATE') audit_update,

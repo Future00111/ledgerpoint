@@ -1,8 +1,10 @@
-# Posted document corrections — next coordinated contract
+# Posted document corrections — coordinated contract and bounded implementation
 
-Design reviewed against `a516255` and the capture/recovery follow-up. This is
-the next implementation contract, not an enabled financial-edit feature.
-Draft editing and linked later-discount credits remain available separately.
+The current batch implements invoice/bill quantity and unit-price corrections
+against the A1 validated history contract. It requires the additive overlay in
+a newly created disposable database and exact integrated regression evidence.
+No existing demo/production migration is automatic. Draft editing and linked
+later-discount credits on uncorrected originals remain separate workflows.
 
 ## Accounting model
 
@@ -17,13 +19,13 @@ locking also requires the first correction slice to retain the original
 account mappings. Document settlement and VAT projections must consume the
 same amendment history before financial edits can be exposed.
 
-## Initial supported cases
+## Current supported slice and remaining cases
 
 | Case | Supported proposal | First-slice blockers |
 | --- | --- | --- |
-| Posted invoice/bill | Price/quantity changes, including after partial payment; same line order, tax codes, party, currency, number and accounts. | Total below applied payments; posted child credits; active return claims; changed party/tax point/accounts; unknown correction/reversal history. |
-| Posted credit | Amount change against the same original and original line references, including a discount-adjustment value. | Confirmed return-credit receipts; excess over parent credit capacity; changed original, party or original tax evidence. |
-| Metadata | Versioned reference, notes and due date. | Invalid dates or stale version. No financial journal for unchanged money. |
+| Posted invoice/bill | Price/quantity changes, including after partial payment; same line order, tax codes, party, currency, number and accounts. | Total below applied payments; any draft or posted child credit; active return claims; changed party/tax point/accounts/discount terms; unknown correction/reversal history; zero aggregate money change; newly nonzero account absent from the original journal. |
+| Posted credit — deferred | Future amount change against the same original and original line references. | Needs shared credit-capacity and receipt-correction contract; no edit command enabled. |
+| Metadata — deferred | Future versioned reference, notes and due date. | Requires separate nonfinancial revision semantics; no metadata edit command enabled. |
 
 Retain the existing separate linked-credit workflow for later commercial
 discounts. A price correction is not automatically a discount. Keep metadata
@@ -46,16 +48,33 @@ implement competing settlement or tax projections.
   arithmetic under locks; commit all effects atomically.
 - `GET /accounting-documents/:id/corrections`: immutable history.
 
-Proposed additive `accounting_document_amendments` contains company/document
+Additive `accounting_document_amendments` contains company/document
 identity, revision chain, request ID/hash, actor, reason, effective date,
 before/after financial snapshots, signed net/VAT/gross differences and an
-optional journal ID. Enforce unique request identity and one successor per
+mandatory difference journal ID. The companion `accounting_document_amendment_heads`
+provides an independently checked current head. Enforce unique request identity and one successor per
 revision; deny update/delete/truncate. Preserve document numbering.
 
 The wrapper replay identity binds company, actor, reason, date, expected
 revision and normalised proposal. Canonical correction fingerprints alone do
 not bind all these fields. An accepted retry returns its original outcome
 before recalculating changed state, while rechecking current permissions.
+
+## Integration and runtime boundary
+
+- Both new tables absent: baseline document operations remain available, correction
+  context explicitly reports setup unavailable. Partial schema fails closed.
+- The installer refuses a nonempty database when the overlay is requested.
+  Only the fresh disposable test runner opts in. Existing demo refresh does not.
+- Reads validate every amendment, canonical relation, journal, audit record and
+  final head before applying a historical cutoff. Reports use dated signed
+  movements; payment allocations use corrected capacity and cannot predate the
+  latest correction. Original posting retries still use immutable source state.
+- Corrected documents cannot yet accept new credits, later discount credits or
+  return claims. Existing cancelled-claim history remains visible. The UI states
+  this restriction before confirmation and removes incompatible choices.
+- Unknown-response recovery retains the exact request in page memory only.
+  Durable reload recovery is D3; leaving the page requires checking history.
 
 ## Execution order
 
@@ -78,10 +97,11 @@ reject a date preceding the latest related financial activity.
 ## Required regression cases
 
 - £120 invoice, £50 payment, correction to £108: £58 due, unchanged cash and
-  payment history. Credit increases/decreases change the parent correctly.
+  payment history. Credit correction effects remain a later acceptance gate.
 - Mixed 20%/5%/0% VAT, inclusive/exclusive input, discounts and penny boundaries;
   balanced journals and exact integer money throughout.
-- Metadata-only changes preserve financial evidence, journals and VAT.
+- Future metadata-only changes must preserve financial evidence, journals and VAT;
+  this command rejects them until the separate version contract is implemented.
 - Multiple corrections, historical cutoffs and report/ledger reconciliation.
 - Stale reviews after payments, credits, claims, setup, period or membership
   changes; concurrent corrections and correction/payment races.

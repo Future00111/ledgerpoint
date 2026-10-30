@@ -62,10 +62,10 @@ export async function loadWorkspaceCapabilities(client, companyId, signal, isCur
       ? 'Some creation permissions could not be checked. You can still browse your workspace.' : null };
 }
 
-export function visibleSections(sections, { canDev = false, showPlanned = false, query = '' } = {}) {
+export function visibleSections(sections, { canDev = false, showPlanned = false, query = '', companyRole = null } = {}) {
   const search = query.trim().toLowerCase();
   return sections.filter(section => !section.devOnly || canDev).map(section => ({ ...section,
-    items: section.items.filter(item => (!item.devOnly || canDev) && (showPlanned || !item.soon || search))
+    items: section.items.filter(item => (!item.roles || item.roles.includes(companyRole)) && (!item.devOnly || canDev) && (showPlanned || !item.soon || search))
       .filter(item => !search || `${section.label} ${item.label}`.toLowerCase().includes(search)),
   })).filter(section => section.items.length);
 }

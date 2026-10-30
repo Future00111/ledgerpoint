@@ -1,6 +1,7 @@
 import { fail } from '../financialDrafts/contract';
 import type { Queryable } from './core';
 import { pounds, tables, type Kind } from './core';
+import { amendmentHistory } from './amendments';
 
 export function settlementAmounts(gross:string, credited:string, paid:string) {
   const remaining=BigInt(gross)-BigInt(credited)-BigInt(paid);
@@ -36,7 +37,8 @@ export async function documentOpen(q:Queryable,company:string,id:string,events?:
   if(!r || !['sales_invoice','purchase_bill'].includes(r.kind)) fail(422,'POSTED_DOCUMENT_REQUIRED');
   const credits=(await q.query(`SELECT coalesce(sum((money->>'gross_pence')::numeric),0)::text amount
     FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND status='posted'`,[company,id])).rows[0].amount;
-  return {...r,...settlementAmounts(r.money.gross_pence,credits,appliedTo(events??await paymentEvents(q,company),id).toString())};
+  const current=(await amendmentHistory(q,company,r)).current;
+  return {...current,...settlementAmounts(current.money.gross_pence,credits,appliedTo(events??await paymentEvents(q,company),id).toString())};
 }
 
 // Compatibility fields are read models only. Update them inside the SAME

@@ -54,6 +54,7 @@ import AwaitingCreditsPage from '@/features/creditRecovery/AwaitingCreditsPage';
 import AccountingJournal from '@/pages/AccountingJournal';
 import AccountingReports from '@/pages/AccountingReports';
 import AccountingSetup from '@/pages/AccountingSetup';
+import AuditHistory from '@/pages/AuditHistory';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -194,6 +195,7 @@ const AuthenticatedApp = () => {
               <Route path="/accounting/journals/:id" element={<AccountingJournal />} />
               <Route path="/accounting/reports" element={<AccountingReports />} />
               <Route path="/accounting/setup" element={<AccountingSetup />} />
+              <Route path="/audit-history" element={<AuditHistory />} />
               <Route path="/bank-accounts" element={<BankAccounts />} />
               <Route path="/transactions" element={<BankTransactions />} />
               <Route path="/reconciliation" element={<Reconciliation />} />

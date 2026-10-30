@@ -1,4 +1,5 @@
 import { appliedTo, documentOpen, paymentEvents } from './settlement';
+import { amendmentHistory, assertUncorrectedOriginal } from './amendments';
 import { randomUUID } from "node:crypto";
 import { accountId } from "./accounts";
 import type pg from "pg";
@@ -37,6 +38,7 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
     if(!originalId || typeof reason!=="string" || !reason.trim() || reason.length>1000 ||
       method!=="offset_outstanding" || effective!==source.issue_date) fail(422,"CREDIT_EFFECTIVE_DECREASE_REQUIRED");
     const original=await document(q,company,uuid(originalId),true);
+    await assertUncorrectedOriginal(q,company,original);
     if(original.kind!==(sales(kind)?"sales_invoice":"purchase_bill") ||
        original.party_id!==source.customer_id || source.issue_date<original.source.issue_date ||
        source.price_basis!==(original.source.price_basis??"excluding_vat")) fail(422,"CREDIT_ORIGINAL_MISMATCH");
@@ -115,6 +117,7 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
 export async function assertCreditAvailable(q:Queryable, company:string, row:any) {
   if(!credit(row.kind)) return;
   const original=await document(q,company,row.original_id,true);
+  await assertUncorrectedOriginal(q,company,original);
   if(original.status!=="posted" || !original.journal_id ||
     row.tax_context.original_revision!==original.revision ||
     row.tax_context.original_evidence_hash!==hash({source:original.source,money:original.money,tax_context:original.tax_context,accounts:original.posting_accounts}))
@@ -222,14 +225,17 @@ export async function getDocument(company:string,actor:string,id:string) {
     }
     const row=await document(q,company,id);
     const p=await q.query(`SELECT name FROM ${sales(row.kind)?"customers":"suppliers"} WHERE id=$1 AND company_id=$2`,[row.party_id,company]);
-    return {...row,party_name:p.rows[0]?.name??""};
-  });
+    return {...(await amendmentHistory(q,company,row)).current,party_name:p.rows[0]?.name??""};
+  },true);
 }
 export async function listDocuments(company:string,actor:string,kind:Kind) {
   return transact(async q=>{
     await scope(q,company,actor);
-    return (await q.query(`SELECT d.*,p.name party_name FROM accounting_document_sources d
+    const rows=(await q.query(`SELECT d.*,p.name party_name FROM accounting_document_sources d
       JOIN ${sales(kind)?"customers":"suppliers"} p ON p.id=d.party_id AND p.company_id=d.company_id
       WHERE d.company_id=$1 AND d.kind=$2 ORDER BY d.created_at DESC,d.id`,[company,kind])).rows;
-  });
+    const result=[];
+    for(const row of rows) result.push({...row,...(await amendmentHistory(q,company,row)).current});
+    return result;
+  },true);
 }

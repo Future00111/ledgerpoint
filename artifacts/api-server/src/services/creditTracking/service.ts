@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { canWriteDraft, decimal, fail, uuid } from '../financialDrafts/contract';
 import { document, exactFields, hash, scope, transact, type Queryable } from '../accountingDocuments/core';
 import { expectedClaim, creditCandidate, claimProgress } from './domain';
+import { assertUncorrectedOriginal } from '../accountingDocuments/amendments';
 
 type Row = Record<string, any>;
 type TestHook = (q: Queryable) => Promise<void>;
@@ -54,6 +55,7 @@ export async function createClaims(company: string, actor: string, input: unknow
   const body = exactFields(input, commandFields);
   return command(company, actor, 'create', body, undefined, async q => {
     const bill = await document(q, company, uuid(body.bill_id), true);
+    await assertUncorrectedOriginal(q,company,bill);
     if (bill.kind !== 'purchase_bill' || !await liveJournal(q, company, bill)) fail(409, 'POSTED_BILL_REQUIRED');
     if (uuid(body.bill_revision) !== bill.revision) fail(409, 'REVISION_CONFLICT');
     const reason = text(body.reason, 1000, true, true), returnReference = text(body.return_reference ?? '', 200);

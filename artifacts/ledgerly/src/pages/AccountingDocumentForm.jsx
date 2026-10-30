@@ -46,6 +46,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const [ctx, setCtx] = useState(null);
   const [loadedScope, setLoadedScope] = useState(null);
   const [doc, setDoc] = useState(null);
+  const [documentRefresh, setDocumentRefresh] = useState(0);
   const [form, setForm] = useState(blankForm);
   const [extra, setExtra] = useState(blankExtra);
   const [originals, setOriginals] = useState([]);
@@ -101,7 +102,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
         setCtx(context);
         setLoadedScope(scopeKey);
         if (existing === 'LEGACY') { setLegacy(true); return; }
-        setOriginals((origList || []).filter(d => d.status === 'posted'));
+        setOriginals((origList || []).filter(d => d.status === 'posted' && !d.correction_count));
         if (existing) {
           setDoc(existing);
           setForm({ ...blankForm(), ...existing.source, payment_terms: String(existing.source?.payment_terms ?? '0') });
@@ -114,6 +115,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
         } else if (meta.credit && requestedOriginal) {
           const original = origList.find(o => o.id === requestedOriginal && o.status === 'posted');
           if (!original) throw new Error('The original document is unavailable in this company.');
+          if (original.correction_count) throw new Error('Credits and later discounts are not yet available for corrected invoices or bills. Open the original document to review its correction history.');
           setOriginalDoc(original);
           setForm(f => ({ ...f, customer_id: original.source.customer_id, price_basis: original.source.price_basis, discount: null, line_items: copyOriginalLines(original),
             ...(requestedDiscount ? { discount_adjustment: discountAdjustment(original) } : {}) }));
@@ -124,7 +126,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
       finally { if (g === gen.current && !c.signal.aborted) setLoading(false); }
     })();
     return () => { c.abort(); gen.current++; };
-  }, [activeCompany?.id, editId, kind, requestedOriginal, requestedDiscount, requestedCapture]);
+  }, [activeCompany?.id, editId, kind, requestedOriginal, requestedDiscount, requestedCapture, documentRefresh]);
 
   if (legacy && currentContext) return canEdit && legacyFallback ? legacyFallback : <div className="workspace-page"><h1>Earlier draft</h1><p className="text-sm text-muted-foreground">This earlier draft cannot be edited in your current view. Your accounting access remains unchanged.</p><Link className="text-primary underline" to={meta.path}>Back to {meta.plural.toLowerCase()}</Link></div>;
   if (!activeCompany) return <p className="mx-auto max-w-xl rounded-xl border p-6 text-center">Select a company in <Link className="underline" to="/companies">Companies</Link> first.</p>;
@@ -227,7 +229,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     } catch (err) { if (stillCurrent()) setError(err); } finally { if (stillCurrent()) setBusy(false); }
   };
 
-  if (posted && !loading && currentContext) return <PostedDocument doc={doc} kind={kind} company={activeCompany} journal={journal} settlement={settlement} openItem={openItem} error={error} capabilities={capabilities} sourceReturn={sourceReturn} />;
+  if (posted && !loading && currentContext) return <PostedDocument doc={doc} kind={kind} company={activeCompany} journal={journal} settlement={settlement} openItem={openItem} error={error} capabilities={capabilities} sourceReturn={sourceReturn} onCorrectionSaved={() => { toast({ title: 'Correction posted', description: 'The original and payment history are preserved.' }); settlement.refresh(); setDocumentRefresh(value => value + 1); }} />;
 
   return (
     <form onSubmit={save} className="workspace-page">
