@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "revision": 13,
+  "revision": 15,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261030-2333",
     "token": "459bb9e4-6df1-497d-818f-be04b16656bf",
     "acquiredAt": 1793403323893,
-    "expiresAt": 1793405123893
+    "expiresAt": 1793405317825
   },
   "lastOwner": {
     "runId": "hosted-20261030-2316",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 2,
-    "revision": 54,
+    "revision": 82,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -58,16 +58,48 @@
         "priority": 101
       },
       "P01-02": {
-        "status": "pending",
-        "priority": 102
+        "status": "blocked",
+        "priority": 102,
+        "discoveredDependencies": [],
+        "checkpoint": "No edits; clean codex/lp-2333-worker1 at durable source a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; operation stopped",
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Atomic paid-credit contract requires changes to posting.ts protected command, review API/UI and persisted parent operation linkage; task lease excludes posting.ts, API route and schema. Coordinator must reconcile narrow file ownership/schema contract before enabling; removing documents.ts outstanding guard alone violates accepted contract."
+          }
+        ]
       },
       "P01-03": {
         "status": "pending",
         "priority": 103
       },
       "P01-04": {
-        "status": "pending",
-        "priority": 104
+        "status": "review",
+        "priority": 104,
+        "discoveredDependencies": [],
+        "owner": "worker1",
+        "token": "9376c35d-c85b-413d-8867-f6c6a1ce6e59",
+        "leaseUntil": 1793404314071,
+        "workStarted": true,
+        "checkpoint": "Clean codex/lp-2333-worker1 a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; inspect historical projections before edits; corrected-original safety blocks retained",
+        "evidence": {
+          "commit": "41b2fdaab8e8d75eb4acc913685dc46a75d56968",
+          "summary": "PARTIAL: common linked-credit history validation now feeds settlement/report totals and validates complete linked history before cutoff. Retains corrected-original blocks; no enablement of correction-credit/claim combinations. New PostgreSQL tests pending CI because no local postgres/initdb.",
+          "tests": [
+            {
+              "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+              "passed": true
+            },
+            {
+              "command": "esbuild linkedCreditDocuments harness; six historical cutoff/missing-journal/wrong-kind/party/currency checks passed",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
       },
       "P01-05": {
         "status": "pending",
@@ -78,20 +110,20 @@
         "priority": 180
       },
       "P02-01": {
-        "status": "pending",
+        "status": "review",
         "priority": 201,
         "discoveredDependencies": [],
-        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated narrow legacy payment bypass fix; remaining exhaustive authorization inventory, cross-company checks and legacy client migrations are not completed.",
+        "checkpoint": "codex/lp-2333-worker2 at b154e0e6d80e1b20abb63e84068d021946603b7b; clean stopped worktree. Narrow stale-company boundary fix across four bank actions; broad route inventory/client migration remains unfinished. Focused HTTP 3 tests and API tsc passed.",
         "evidence": {
-          "commit": "18689e505dca925d3cd7f599bf100632f8a78ceb",
-          "summary": "PARTIAL narrow security fix with TS2571 response type correction; broad P02-01 criteria remain unverified.",
+          "commit": "b154e0e6d80e1b20abb63e84068d021946603b7b",
+          "summary": "PARTIAL P02-01: four legacy bank mutation handlers now reject contradictory/malformed caller company via existing shared company-scope guard. Omitted/matching context retains resource membership/capability checks. Broad route inventory and complete client migration remain pending.",
           "tests": [
             {
-              "command": "node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit",
+              "command": "esbuild companyRoutes.test.ts; isolated loopback DATABASE_URL node --test /tmp/lp2333-worker2.cjs: 3 passed",
               "passed": true
             },
             {
-              "command": "esbuild companyRoutes.test.ts; DATABASE_URL=loopback-unusable NODE_ENV=test node --test bundled companyRoutes (2 passed)",
+              "command": "node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit",
               "passed": true
             },
             {
@@ -100,27 +132,30 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "worker2",
+        "token": "1c3cb695-5c81-46f8-bd8e-9a0cb6671565",
+        "leaseUntil": 1793404285160,
+        "workStarted": true
       },
       "P02-02": {
         "status": "pending",
         "priority": 202
       },
       "P02-03": {
-        "status": "pending",
+        "status": "review",
         "priority": 203,
         "discoveredDependencies": [],
-        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated headers/parser/log hardening; trusted-edge quotas, production sessions/transport and secrets/dependency audit remain unfinished.",
+        "checkpoint": "codex/lp-2333-worker3 at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; clean initial source; inspecting security before edits",
         "evidence": {
-          "commit": "cc4a23d676ea83fa6cde03b1e816cd3c6b86410b",
-          "summary": "Reviewed partial hardening: private API response headers, form limits, fingerprint suppression, no automatic production localhost origin, structured diagnostic redaction. Default admission mount removed following independent shared-proxy availability review; tested limiter utility explicitly unenabled until trusted edge/distributed quota policy exists. Full P02-03 remains unfinished (session/transport/proxy policy, deployment rate limits, secret/dependency audit).",
+          "commit": "3f34853",
+          "summary": "PARTIAL P02-03: reject explicit cross-site unsafe browser requests lacking Origin, preserve allowlisted origins and non-browser clients; full sessions, distributed quotas and dependency audit remain pending.",
           "tests": [
             {
-              "command": "esbuild bundle appErrors.test.ts + NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp-worker3-appErrors.cjs (13/13 passed)",
+              "command": "esbuild appErrors.test.ts bundle plus NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp2333-security.cjs: 17 passed",
               "passed": true
             },
             {
-              "command": "./node_modules/.bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+              "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
               "passed": true
             },
             {
@@ -129,7 +164,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "worker3",
+        "token": "fa7c23b8-48d9-47ab-ba17-d9923d0d1765",
+        "leaseUntil": 1793404289428,
+        "workStarted": true
       },
       "P02-04": {
         "status": "pending",
@@ -156,10 +194,10 @@
         }
       },
       "P03-00": {
-        "status": "pending",
+        "status": "blocked",
         "priority": 300,
         "discoveredDependencies": [],
-        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated persistence contract/registry; executable disposable PostgreSQL partial-schema matrix remains unfinished.",
+        "checkpoint": "No edits; worker stopped clean at durable refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5.",
         "evidence": {
           "commit": "25c2c73e1ad005010da9963d3473424864ff8612",
           "summary": "Partial contract slice: persistence interfaces, immutable migration checksum inventory, identifiers, version guards and negative-control matrix. Do not accept entire P03-00: actual disposable PostgreSQL partial-schema tests remain missing, and coordinator review is pending.",
@@ -174,7 +212,12 @@
             }
           ]
         },
-        "blockers": []
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Acceptance requires executable disposable PostgreSQL partial-schema matrix, but P03-00 leases only contract markdown and JSON inventory. Executable runner/schema files are owned by P03-03, which depends on P03-00; coordinator must reconcile catalogue ownership/dependency while affected workers stopped. No postgres/initdb executable locally; existing isolated CI can provide runtime after test implementation."
+          }
+        ]
       },
       "P03-01": {
         "status": "pending",
@@ -197,21 +240,28 @@
         "priority": 380
       },
       "P04-01": {
-        "status": "pending",
+        "status": "review",
         "priority": 401,
         "discoveredDependencies": [],
-        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated unqualified native case inventory/rejection resolver; exhaustive combinations, pinned rules and independently reviewed statutory outputs remain unfinished.",
+        "checkpoint": "codex/lp-2333-worker5 at 35b85b9f16fdb6350f30e8c66d739aa1c3b9cb79; clean/stopped; 44 registry tests pass; strict truthful discovery metadata/examples only; exhaustive statutory matrix and pinned calculation outputs remain pending",
         "evidence": {
-          "commit": "a26d4a5d3e0a5f7979182430c7439bbd8d6cfe86",
-          "summary": "PARTIAL ONLY: fail-closed qualification inventory across VAT, income, corporation and payroll with official discovery sources and 2025-28 rows. No case claimed calculation-supported; full exhaustive matrix and pinned statutory expected results remain pending. Do not accept P04-01 as complete from this slice.",
+          "commit": "35b85b9f16fdb6350f30e8c66d739aa1c3b9cb79",
+          "summary": "PARTIAL P04-01: validates unqualified discovery sources, truthful provenance, required input/output names and exact rejection examples. No statutory calculations qualified; full supported-case matrix and pinned reviewed outcomes remain pending.",
           "tests": [
             {
-              "command": "node --test artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs (41 passed)",
+              "command": "node --test artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs (44 passed)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
               "passed": true
             }
           ]
         },
-        "blockers": []
+        "owner": "worker5",
+        "token": "517447d9-451c-4cd0-9fa6-81ab226c2d82",
+        "leaseUntil": 1793404299673,
+        "workStarted": true
       },
       "P04-02": {
         "status": "pending",
@@ -238,8 +288,16 @@
         "priority": 502
       },
       "P05-03": {
-        "status": "pending",
-        "priority": 503
+        "status": "blocked",
+        "priority": 503,
+        "discoveredDependencies": [],
+        "checkpoint": "No edits; operation stopped clean at existing durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5 on codex/lp-2333-worker6; coordinator confirmed engineering prerequisite.",
+        "blockers": [
+          {
+            "type": "decision",
+            "reason": "Internal coordinator-reviewed close/reopen contract required: reconciliation evidence and historical snapshot identity, posting/close lock ordering and retries, retained-earnings strategy. Existing CLOSED guards preserved. This is an engineering prerequisite, not an owner approval gate."
+          }
+        ]
       },
       "P05-04": {
         "status": "pending",
@@ -250,8 +308,14 @@
         "priority": 505
       },
       "P06-00": {
-        "status": "pending",
-        "priority": 600
+        "status": "running",
+        "priority": 600,
+        "discoveredDependencies": [],
+        "owner": "worker4",
+        "token": "2e1a37d5-394a-4c62-aca7-b7d01cba3846",
+        "leaseUntil": 1793404330334,
+        "workStarted": true,
+        "checkpoint": "Before edits: clean codex/lp-2333-worker4 at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Native bank contract absent; inspected import model, recovery model, payment planning/posting and credit contract. Writing contract only within leased path."
       },
       "P06-01": {
         "status": "pending",
@@ -306,10 +370,10 @@
         ]
       },
       "P07-02": {
-        "status": "pending",
+        "status": "blocked",
         "priority": 702,
         "discoveredDependencies": [],
-        "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated server-derived next action and state help; browser reload/resume and all first-task consistency acceptance remain unverified.",
+        "checkpoint": "No edits; clean/stopped at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Inspected SetupWizard, readiness model, scoped guidance and render tests; existing implementation already supplies server-derived progress and next tasks.",
         "evidence": {
           "commit": "39b359132593d2df0aa6a20e751abd752a9b07cb",
           "summary": "Fresh server-backed saved setup now suggests the next prerequisite/contact/document task, respects readonly and failed reads, and offers optional accurate draft/posted/paid/credited/filed guidance. No additional browser storage or financial mutations. Render/model verified; live browser journey remains P07-01 environment-blocked.",
@@ -328,11 +392,21 @@
             }
           ]
         },
-        "blockers": []
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Remaining reload/resume and cross-product first-task acceptance needs isolated authenticated synthetic Clerk/browser/database journey, unavailable in this worker runtime. Existing render/model tests cannot prove this; do not duplicate already implemented source or use existing demo data."
+          }
+        ]
       },
       "P07-03": {
-        "status": "pending",
-        "priority": 703
+        "status": "running",
+        "priority": 703,
+        "discoveredDependencies": [],
+        "owner": "worker6",
+        "token": "12089e61-f199-43b9-917a-8e49e705041f",
+        "leaseUntil": 1793404391247,
+        "workStarted": false
       },
       "P07-04": {
         "status": "pending",
@@ -1260,6 +1334,290 @@
           "reviewed": true,
           "reviewer": "worker5-and-coordinator"
         }
+      },
+      {
+        "at": 1793403375672,
+        "actor": "worker1",
+        "type": "claim",
+        "taskId": "P01-02",
+        "token": "fee8749e-73ae-4ee4-8f12-fd642fc94793"
+      },
+      {
+        "at": 1793403385160,
+        "actor": "worker2",
+        "type": "claim",
+        "taskId": "P02-01",
+        "token": "1c3cb695-5c81-46f8-bd8e-9a0cb6671565"
+      },
+      {
+        "at": 1793403389428,
+        "actor": "worker3",
+        "type": "claim",
+        "taskId": "P02-03",
+        "token": "fa7c23b8-48d9-47ab-ba17-d9923d0d1765"
+      },
+      {
+        "at": 1793403390982,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-02",
+        "checkpoint": "Clean isolated codex/lp-2333-worker1 at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; inspecting atomic paid-credit requirements before edits"
+      },
+      {
+        "at": 1793403394458,
+        "actor": "worker2",
+        "type": "checkpoint",
+        "taskId": "P02-01",
+        "checkpoint": "Starting isolated codex/lp-2333-worker2 at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; inspect legacy route capability boundaries before editing."
+      },
+      {
+        "at": 1793403395842,
+        "actor": "worker4",
+        "type": "claim",
+        "taskId": "P03-00",
+        "token": "52194a48-fa10-4448-9858-ec191cabe02c"
+      },
+      {
+        "at": 1793403399673,
+        "actor": "worker5",
+        "type": "claim",
+        "taskId": "P04-01",
+        "token": "517447d9-451c-4cd0-9fa6-81ab226c2d82"
+      },
+      {
+        "at": 1793403401199,
+        "actor": "worker3",
+        "type": "checkpoint",
+        "taskId": "P02-03",
+        "checkpoint": "codex/lp-2333-worker3 at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; clean initial source; inspecting security before edits"
+      },
+      {
+        "at": 1793403410205,
+        "actor": "worker6",
+        "type": "claim",
+        "taskId": "P05-03",
+        "token": "a97c0937-66da-400d-9033-2553d058e08b"
+      },
+      {
+        "at": 1793403413988,
+        "actor": "worker1",
+        "type": "block",
+        "taskId": "P01-02",
+        "checkpoint": "No edits; clean codex/lp-2333-worker1 at durable source a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; operation stopped",
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Atomic paid-credit contract requires changes to posting.ts protected command, review API/UI and persisted parent operation linkage; task lease excludes posting.ts, API route and schema. Coordinator must reconcile narrow file ownership/schema contract before enabling; removing documents.ts outstanding guard alone violates accepted contract."
+          }
+        ]
+      },
+      {
+        "at": 1793403414071,
+        "actor": "worker1",
+        "type": "claim",
+        "taskId": "P01-04",
+        "token": "9376c35d-c85b-413d-8867-f6c6a1ce6e59"
+      },
+      {
+        "at": 1793403419908,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-04",
+        "checkpoint": "Clean codex/lp-2333-worker1 a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; inspect historical projections before edits; corrected-original safety blocks retained"
+      },
+      {
+        "at": 1793403429854,
+        "actor": "worker5",
+        "type": "checkpoint",
+        "taskId": "P04-01",
+        "checkpoint": "codex/lp-2333-worker5 at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; clean isolated worktree; inspected unqualified inventory; tightening metadata integrity only, no statutory qualification or scope change"
+      },
+      {
+        "at": 1793403430121,
+        "actor": "worker4",
+        "type": "checkpoint",
+        "taskId": "P03-00",
+        "checkpoint": "No edits; clean isolated codex/lp-2333-worker4 at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5, already durable on refs/heads/codex/whole-product-first-sprint. Existing contract inspected; partial-schema test criterion requires files owned by dependent P03-03."
+      },
+      {
+        "at": 1793403430223,
+        "actor": "worker4",
+        "type": "block",
+        "taskId": "P03-00",
+        "checkpoint": "No edits; worker stopped clean at durable refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5.",
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Acceptance requires executable disposable PostgreSQL partial-schema matrix, but P03-00 leases only contract markdown and JSON inventory. Executable runner/schema files are owned by P03-03, which depends on P03-00; coordinator must reconcile catalogue ownership/dependency while affected workers stopped. No postgres/initdb executable locally; existing isolated CI can provide runtime after test implementation."
+          }
+        ]
+      },
+      {
+        "at": 1793403430334,
+        "actor": "worker4",
+        "type": "claim",
+        "taskId": "P06-00",
+        "token": "2e1a37d5-394a-4c62-aca7-b7d01cba3846"
+      },
+      {
+        "at": 1793403450223,
+        "actor": "worker4",
+        "type": "checkpoint",
+        "taskId": "P06-00",
+        "checkpoint": "Before edits: clean codex/lp-2333-worker4 at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Native bank contract absent; inspected import model, recovery model, payment planning/posting and credit contract. Writing contract only within leased path."
+      },
+      {
+        "at": 1793403451572,
+        "actor": "worker6",
+        "type": "checkpoint",
+        "taskId": "P05-03",
+        "checkpoint": "No edits; codex/lp-2333-worker6 at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Existing closed-period posting guards inspected; close/reopen workflow absent. Awaiting coordinator contract on reconciliation evidence, snapshot identity, lock ordering and retained earnings before implementing financial schema/interfaces."
+      },
+      {
+        "at": 1793403469305,
+        "actor": "worker6",
+        "type": "block",
+        "taskId": "P05-03",
+        "checkpoint": "No edits; operation stopped clean at existing durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5 on codex/lp-2333-worker6; coordinator confirmed engineering prerequisite.",
+        "blockers": [
+          {
+            "type": "decision",
+            "reason": "Internal coordinator-reviewed close/reopen contract required: reconciliation evidence and historical snapshot identity, posting/close lock ordering and retries, retained-earnings strategy. Existing CLOSED guards preserved. This is an engineering prerequisite, not an owner approval gate."
+          }
+        ]
+      },
+      {
+        "at": 1793403469390,
+        "actor": "worker6",
+        "type": "claim",
+        "taskId": "P07-02",
+        "token": "7bac9a7f-c5ba-4341-b46b-3e9f7be6ce8d"
+      },
+      {
+        "at": 1793403472100,
+        "actor": "worker5",
+        "type": "checkpoint",
+        "taskId": "P04-01",
+        "checkpoint": "codex/lp-2333-worker5 at 35b85b9f16fdb6350f30e8c66d739aa1c3b9cb79; clean/stopped; 44 registry tests pass; strict truthful discovery metadata/examples only; exhaustive statutory matrix and pinned calculation outputs remain pending"
+      },
+      {
+        "at": 1793403472215,
+        "actor": "worker5",
+        "type": "submit",
+        "taskId": "P04-01",
+        "evidence": {
+          "commit": "35b85b9f16fdb6350f30e8c66d739aa1c3b9cb79",
+          "summary": "PARTIAL P04-01: validates unqualified discovery sources, truthful provenance, required input/output names and exact rejection examples. No statutory calculations qualified; full supported-case matrix and pinned reviewed outcomes remain pending.",
+          "tests": [
+            {
+              "command": "node --test artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs (44 passed)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793403483246,
+        "actor": "worker3",
+        "type": "submit",
+        "taskId": "P02-03",
+        "evidence": {
+          "commit": "3f34853",
+          "summary": "PARTIAL P02-03: reject explicit cross-site unsafe browser requests lacking Origin, preserve allowlisted origins and non-browser clients; full sessions, distributed quotas and dependency audit remain pending.",
+          "tests": [
+            {
+              "command": "esbuild appErrors.test.ts bundle plus NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp2333-security.cjs: 17 passed",
+              "passed": true
+            },
+            {
+              "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793403484878,
+        "actor": "worker2",
+        "type": "checkpoint",
+        "taskId": "P02-01",
+        "checkpoint": "codex/lp-2333-worker2 at b154e0e6d80e1b20abb63e84068d021946603b7b; clean stopped worktree. Narrow stale-company boundary fix across four bank actions; broad route inventory/client migration remains unfinished. Focused HTTP 3 tests and API tsc passed."
+      },
+      {
+        "at": 1793403484967,
+        "actor": "worker2",
+        "type": "submit",
+        "taskId": "P02-01",
+        "evidence": {
+          "commit": "b154e0e6d80e1b20abb63e84068d021946603b7b",
+          "summary": "PARTIAL P02-01: four legacy bank mutation handlers now reject contradictory/malformed caller company via existing shared company-scope guard. Omitted/matching context retains resource membership/capability checks. Broad route inventory and complete client migration remain pending.",
+          "tests": [
+            {
+              "command": "esbuild companyRoutes.test.ts; isolated loopback DATABASE_URL node --test /tmp/lp2333-worker2.cjs: 3 passed",
+              "passed": true
+            },
+            {
+              "command": "node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793403491143,
+        "actor": "worker6",
+        "type": "block",
+        "taskId": "P07-02",
+        "checkpoint": "No edits; clean/stopped at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Inspected SetupWizard, readiness model, scoped guidance and render tests; existing implementation already supplies server-derived progress and next tasks.",
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Remaining reload/resume and cross-product first-task acceptance needs isolated authenticated synthetic Clerk/browser/database journey, unavailable in this worker runtime. Existing render/model tests cannot prove this; do not duplicate already implemented source or use existing demo data."
+          }
+        ]
+      },
+      {
+        "at": 1793403491247,
+        "actor": "worker6",
+        "type": "claim",
+        "taskId": "P07-03",
+        "token": "12089e61-f199-43b9-917a-8e49e705041f"
+      },
+      {
+        "at": 1793403510574,
+        "actor": "worker1",
+        "type": "submit",
+        "taskId": "P01-04",
+        "evidence": {
+          "commit": "41b2fdaab8e8d75eb4acc913685dc46a75d56968",
+          "summary": "PARTIAL: common linked-credit history validation now feeds settlement/report totals and validates complete linked history before cutoff. Retains corrected-original blocks; no enablement of correction-credit/claim combinations. New PostgreSQL tests pending CI because no local postgres/initdb.",
+          "tests": [
+            {
+              "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+              "passed": true
+            },
+            {
+              "command": "esbuild linkedCreditDocuments harness; six historical cutoff/missing-journal/wrong-kind/party/currency checks passed",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
       }
     ],
     "catalogDigest": "4ec38da8ef67c6f42bc913d0e01b8e5d3b34fb4228853599a11b239c38ec4314"
@@ -1274,11 +1632,11 @@
         "path": "tools/development/check.mjs"
       }
     ],
-    "runId": "hosted-20261030-2316",
-    "at": 1793403024785,
+    "runId": "hosted-20261030-2333",
+    "at": 1793403517829,
     "codeHead": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5"
   },
-  "updatedAt": 1793403323893,
+  "updatedAt": 1793403517829,
   "validation": {
     "sourceCommit": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
     "sourceTree": "f9f97b78701439e9f672b1c14a662d2f7a9ba047",
