@@ -13,7 +13,7 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 import { verifyDraftBody, draftParserErrors } from "./services/financialDrafts/jsonBoundary";
 import { RejectedOriginError, safeAppErrors } from "./security/appErrors";
-import { apiResponseHeaders } from "./security/requestLimits";
+import { apiResponseHeaders, rejectCrossSiteUnsafeRequest } from "./security/requestLimits";
 
 export interface ApiAppOptions {
   /**
@@ -82,21 +82,11 @@ app.use(
   }),
 );
 
-// ── CSRF / origin check for unsafe methods ───────────────────────────────────
-// For state-changing requests from a browser the Origin header must be present
-// and must match an allowed origin. This prevents cross-site form submissions.
-app.use((req, res, next) => {
-  const unsafe = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
-  if (!unsafe) return next();
-  // Skip Clerk proxy path (handled above) and pre-flight OPTIONS
-  if (req.method === "OPTIONS") return next();
-  if (req.path.startsWith(CLERK_PROXY_PATH)) return next();
-  const origin = req.headers["origin"] as string | undefined;
-  // Non-browser (no Origin header) — allow (server-to-server, curl, etc.)
-  if (!origin) return next();
-  if (ALLOWED_ORIGINS.has(origin)) return next();
-  res.status(403).json({ error: "CSRF: origin not permitted" });
-});
+// CORS validates every supplied Origin above. Fetch Metadata also identifies
+// browser cross-site writes that arrive without an Origin header. Keep clients
+// without browser metadata supported; this is defence in depth, not a substitute
+// for Clerk authentication and protected financial action authorization.
+app.use(rejectCrossSiteUnsafeRequest);
 
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb", verify: verifyDraftBody }));

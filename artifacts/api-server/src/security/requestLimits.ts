@@ -1,4 +1,5 @@
 import type { RequestHandler } from "express";
+import { RejectedOriginError } from "./appErrors";
 
 // UNENABLED policy utility: app.ts deliberately does not mount this limiter.
 // A shared reverse-proxy socket would otherwise throttle all users as one client.
@@ -40,5 +41,19 @@ export function requestAdmission({ limit = 600, windowMs = 60_000, maxClients = 
 export const apiResponseHeaders: RequestHandler = (_req, res, next) => {
   res.set("Cache-Control", "no-store").set("X-Content-Type-Options", "nosniff")
     .set("Referrer-Policy", "no-referrer");
+  next();
+};
+
+/** Run after the allowlist CORS check and after the isolated Clerk proxy. */
+export const rejectCrossSiteUnsafeRequest: RequestHandler = (req, _res, next) => {
+  const unsafe = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
+  // An explicit Origin already passed the allowlist. A missing Origin must not
+  // erase the browser's explicit cross-site signal (for example a stripped
+  // Origin at an intermediary). These headers are not authentication evidence.
+  const fetchSite = req.headers["sec-fetch-site"];
+  if (unsafe && !req.headers.origin && typeof fetchSite === "string" && fetchSite.toLowerCase() === "cross-site") {
+    next(new RejectedOriginError());
+    return;
+  }
   next();
 };

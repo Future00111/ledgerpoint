@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { requestAdmission, apiResponseHeaders } from "./requestLimits";
+import { requestAdmission, apiResponseHeaders, rejectCrossSiteUnsafeRequest } from "./requestLimits";
 
 function request(middleware: ReturnType<typeof requestAdmission>, ip: string, forwarded?: string) {
   const result = { status: 200, headers: {} as Record<string, string>, body: null as unknown, next: false };
@@ -46,4 +46,23 @@ test("invalid admission settings fail closed and API responses are never cached"
   apiResponseHeaders({} as any, { set(key: string, value: string) { headers[key] = value; return this; } } as any, () => { next = true; });
   assert.equal(next, true);
   assert.deepEqual(headers, { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" });
+});
+
+
+test("fetch metadata boundary preserves safe methods and rejects only explicit cross-site unsafe requests without Origin", () => {
+  for (const method of ["GET", "HEAD", "OPTIONS"]) {
+    let called = false;
+    rejectCrossSiteUnsafeRequest({ method, headers: { "sec-fetch-site": "cross-site" } } as any,
+      {} as any, error => { called = true; assert.equal(error, undefined); });
+    assert.equal(called, true);
+  }
+});
+
+
+test("fetch metadata comparison handles mixed-case cross-site values without reflecting them", () => {
+  let rejected: unknown;
+  rejectCrossSiteUnsafeRequest({ method: "POST", headers: { "sec-fetch-site": "Cross-Site" } } as any,
+    {} as any, error => { rejected = error; });
+  assert.ok(rejected instanceof Error);
+  assert.equal(rejected.message, "Request origin is not permitted.");
 });
