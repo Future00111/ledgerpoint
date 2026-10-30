@@ -1,38 +1,146 @@
 {
   "version": 2,
-  "revision": 1,
+  "revision": 104,
   "tasks": {
     "P01-00": {
-      "status": "pending",
-      "priority": 100
+      "status": "done",
+      "priority": 100,
+      "discoveredDependencies": [],
+      "checkpoint": "Published refs/heads/codex/whole-product-first-sprint at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; integrated contract restored; no edits; refreshing matching-commit verification",
+      "evidence": {
+        "commit": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
+        "summary": "Contract only accepted after independent worker5 and coordinator review of exact source; fully-paid credit implementation remains pending. Explicit immutable identities, cutoff, atomicity, precision, tenant and role invariants plus exact examples verified.",
+        "tests": [
+          {
+            "command": "node tools/development/check.mjs: 699 passed on exact published source",
+            "passed": true
+          },
+          {
+            "command": "PORT=5179 BASE_PATH=/ pnpm_config_verify_deps_before_run=false pnpm run build: passed on exact source",
+            "passed": true
+          },
+          {
+            "command": "Independent worker5 bounded arithmetic: 706011 cases passed; worker1 exact contract examples passed",
+            "passed": true
+          },
+          {
+            "command": "PR27 development CI 41144653667: source, build, disposable PostgreSQL, restore and cleanup passed",
+            "passed": true
+          }
+        ],
+        "reviewed": true,
+        "reviewer": "worker5-and-coordinator"
+      }
     },
     "P01-01": {
-      "status": "pending",
-      "priority": 101
+      "status": "blocked",
+      "priority": 101,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P01-02": {
       "status": "pending",
-      "priority": 102
+      "priority": 102,
+      "discoveredDependencies": [],
+      "checkpoint": "No edits; clean codex/lp-2333-worker1 at durable source a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; operation stopped"
     },
     "P01-03": {
-      "status": "pending",
-      "priority": 103
+      "status": "blocked",
+      "priority": 103,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P01-02",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P01-04": {
       "status": "pending",
-      "priority": 104
+      "priority": 104,
+      "discoveredDependencies": [],
+      "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated linked-credit projection validation; full correction interactions and browser acceptance remain unfinished.",
+      "evidence": {
+        "commit": "41b2fdaab8e8d75eb4acc913685dc46a75d56968",
+        "summary": "PARTIAL: common linked-credit history validation now feeds settlement/report totals and validates complete linked history before cutoff. Retains corrected-original blocks; no enablement of correction-credit/claim combinations. New PostgreSQL tests pending CI because no local postgres/initdb.",
+        "tests": [
+          {
+            "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+            "passed": true
+          },
+          {
+            "command": "esbuild linkedCreditDocuments harness; six historical cutoff/missing-journal/wrong-kind/party/currency checks passed",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      },
+      "blockers": []
     },
     "P01-05": {
-      "status": "pending",
-      "priority": 105
+      "status": "blocked",
+      "priority": 105,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P01-02",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        },
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P01-80": {
-      "status": "pending",
-      "priority": 180
+      "status": "blocked",
+      "priority": 180,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P02-01": {
       "status": "pending",
-      "priority": 201
+      "priority": 201,
+      "discoveredDependencies": [],
+      "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated requested-company guards on four legacy bank mutations; exhaustive route audit and client migration remain unfinished.",
+      "evidence": {
+        "commit": "b154e0e6d80e1b20abb63e84068d021946603b7b",
+        "summary": "PARTIAL P02-01: four legacy bank mutation handlers now reject contradictory/malformed caller company via existing shared company-scope guard. Omitted/matching context retains resource membership/capability checks. Broad route inventory and complete client migration remain pending.",
+        "tests": [
+          {
+            "command": "esbuild companyRoutes.test.ts; isolated loopback DATABASE_URL node --test /tmp/lp2333-worker2.cjs: 3 passed",
+            "passed": true
+          },
+          {
+            "command": "node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      },
+      "blockers": []
     },
     "P02-02": {
       "status": "pending",
@@ -40,7 +148,28 @@
     },
     "P02-03": {
       "status": "pending",
-      "priority": 203
+      "priority": 203,
+      "discoveredDependencies": [],
+      "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated cross-site missing-Origin denial; full session/transport/quotas/secrets and dependency audit remain unfinished.",
+      "evidence": {
+        "commit": "3f34853",
+        "summary": "PARTIAL P02-03: reject explicit cross-site unsafe browser requests lacking Origin, preserve allowlisted origins and non-browser clients; full sessions, distributed quotas and dependency audit remain pending.",
+        "tests": [
+          {
+            "command": "esbuild appErrors.test.ts bundle plus NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp2333-security.cjs: 17 passed",
+            "passed": true
+          },
+          {
+            "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      },
+      "blockers": []
     },
     "P02-04": {
       "status": "pending",
@@ -48,35 +177,110 @@
     },
     "P02-90": {
       "status": "done",
-      "priority": 290
+      "priority": 290,
+      "evidence": {
+        "commit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
+        "summary": "Imported verified narrow trial slice; broad source package remains pending.",
+        "tests": [
+          {
+            "command": "node tools/development/check.mjs (649 passed)",
+            "passed": true
+          },
+          {
+            "command": "pnpm run build (full workspace)",
+            "passed": true
+          }
+        ],
+        "reviewer": "/root",
+        "reviewed": true
+      }
     },
     "P03-00": {
       "status": "pending",
-      "priority": 300
+      "priority": 300,
+      "discoveredDependencies": [],
+      "checkpoint": "No edits; worker stopped clean at durable refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5."
     },
     "P03-01": {
-      "status": "pending",
-      "priority": 301
+      "status": "blocked",
+      "priority": 301,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P03-02": {
-      "status": "pending",
-      "priority": 302
+      "status": "blocked",
+      "priority": 302,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P03-03": {
-      "status": "pending",
-      "priority": 303
+      "status": "blocked",
+      "priority": 303,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P03-04": {
-      "status": "pending",
-      "priority": 304
+      "status": "blocked",
+      "priority": 304,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P03-80": {
-      "status": "pending",
-      "priority": 380
+      "status": "blocked",
+      "priority": 380,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P04-01": {
       "status": "pending",
-      "priority": 401
+      "priority": 401,
+      "discoveredDependencies": [],
+      "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated case metadata validation; exhaustive case matrix and reviewed statutory outputs remain unfinished.",
+      "evidence": {
+        "commit": "35b85b9f16fdb6350f30e8c66d739aa1c3b9cb79",
+        "summary": "PARTIAL P04-01: validates unqualified discovery sources, truthful provenance, required input/output names and exact rejection examples. No statutory calculations qualified; full supported-case matrix and pinned reviewed outcomes remain pending.",
+        "tests": [
+          {
+            "command": "node --test artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs (44 passed)",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      },
+      "blockers": []
     },
     "P04-02": {
       "status": "pending",
@@ -87,8 +291,16 @@
       "priority": 403
     },
     "P04-04": {
-      "status": "pending",
-      "priority": 404
+      "status": "blocked",
+      "priority": 404,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P04-05": {
       "status": "pending",
@@ -103,8 +315,16 @@
       "priority": 502
     },
     "P05-03": {
-      "status": "pending",
-      "priority": 503
+      "status": "blocked",
+      "priority": 503,
+      "discoveredDependencies": [],
+      "checkpoint": "No edits; operation stopped clean at existing durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5 on codex/lp-2333-worker6; coordinator confirmed engineering prerequisite.",
+      "blockers": [
+        {
+          "type": "decision",
+          "reason": "Internal coordinator-reviewed close/reopen contract required: reconciliation evidence and historical snapshot identity, posting/close lock ordering and retries, retained-earnings strategy. Existing CLOSED guards preserved. This is an engineering prerequisite, not an owner approval gate."
+        }
+      ]
     },
     "P05-04": {
       "status": "pending",
@@ -116,23 +336,72 @@
     },
     "P06-00": {
       "status": "pending",
-      "priority": 600
+      "priority": 600,
+      "discoveredDependencies": [],
+      "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated reviewed native bank contract; promised bank-status-only invariant fixture still missing, so contract acceptance remains pending.",
+      "evidence": {
+        "commit": "5695988f34d27cd97c11d50b1a092bd44dc8033d",
+        "summary": "PARTIAL native bank import contract, with exact existing-fixture boundaries corrected after coordinator review. Bank-status-only mutation fixture remains missing; existing Promise.all payment replay is not new-bank-command or forced lock-overlap evidence. No new financial functionality enabled; do not accept full P06-00.",
+        "tests": [
+          {
+            "command": "node --test artifacts/ledgerly/src/features/bankImport/model.test.mjs artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs (23 passed)",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      },
+      "blockers": []
     },
     "P06-01": {
-      "status": "pending",
-      "priority": 601
+      "status": "blocked",
+      "priority": 601,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P06-02": {
-      "status": "pending",
-      "priority": 602
+      "status": "blocked",
+      "priority": 602,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P06-03": {
-      "status": "pending",
-      "priority": 603
+      "status": "blocked",
+      "priority": 603,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P06-04": {
-      "status": "pending",
-      "priority": 604
+      "status": "blocked",
+      "priority": 604,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P06-05": {
       "status": "pending",
@@ -140,31 +409,122 @@
     },
     "P06-90": {
       "status": "done",
-      "priority": 690
+      "priority": 690,
+      "evidence": {
+        "commit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
+        "summary": "Imported verified narrow trial slice; broad source package remains pending.",
+        "tests": [
+          {
+            "command": "node tools/development/check.mjs (649 passed)",
+            "passed": true
+          },
+          {
+            "command": "pnpm run build (full workspace)",
+            "passed": true
+          }
+        ],
+        "reviewer": "/root",
+        "reviewed": true
+      }
     },
     "P07-01": {
-      "status": "pending",
-      "priority": 701
+      "status": "blocked",
+      "priority": 701,
+      "discoveredDependencies": [],
+      "checkpoint": "No edits; codex/lp-hosted-2316-worker6 at existing durable source 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; worker operation stopped",
+      "blockers": [
+        {
+          "type": "environment",
+          "reason": "Complete fresh-company signup/contact/draft/review/posting qualification needs an isolated authenticated browser and fresh disposable PostgreSQL runtime. This worker has no configured synthetic Clerk session and command -v postgres initdb returns neither executable. Existing model/render tests and seeded API fixtures cannot verify that end-to-end acceptance. Resume on configured isolated test runtime; do not use existing demo database."
+        }
+      ]
     },
     "P07-02": {
-      "status": "pending",
-      "priority": 702
+      "status": "blocked",
+      "priority": 702,
+      "discoveredDependencies": [],
+      "checkpoint": "No edits; clean/stopped at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Inspected SetupWizard, readiness model, scoped guidance and render tests; existing implementation already supplies server-derived progress and next tasks.",
+      "evidence": {
+        "commit": "39b359132593d2df0aa6a20e751abd752a9b07cb",
+        "summary": "Fresh server-backed saved setup now suggests the next prerequisite/contact/document task, respects readonly and failed reads, and offers optional accurate draft/posted/paid/credited/filed guidance. No additional browser storage or financial mutations. Render/model verified; live browser journey remains P07-01 environment-blocked.",
+        "tests": [
+          {
+            "command": "node --test artifacts/ledgerly/src/features/onboarding/model.test.mjs (11 passed)",
+            "passed": true
+          },
+          {
+            "command": "esbuild bundle SetupWorkspace.test.jsx; node --test /tmp/lp-worker6-ui.cjs (7 passed, including 3 new)",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      },
+      "blockers": [
+        {
+          "type": "environment",
+          "reason": "Remaining reload/resume and cross-product first-task acceptance needs isolated authenticated synthetic Clerk/browser/database journey, unavailable in this worker runtime. Existing render/model tests cannot prove this; do not duplicate already implemented source or use existing demo data."
+        }
+      ]
     },
     "P07-03": {
       "status": "pending",
-      "priority": 703
+      "priority": 703,
+      "discoveredDependencies": [],
+      "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated permission-aware direct daily links; full tables/filter/detail/expert-tools criteria remain unfinished.",
+      "evidence": {
+        "commit": "66c8709",
+        "summary": "PARTIAL: DailyWork compact/full views expose direct invoice, bill, payment and report paths and permission-aware draft shortcuts; readonly copy no longer suggests draft preparation. Full searchable table, VAT/payment detail, bulk/keyboard journey acceptance remains pending.",
+        "tests": [
+          {
+            "command": "Bundle Navigation.test.jsx with API esbuild; node --test /tmp/lp-2333-worker6-nav.cjs (6 passed)",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      },
+      "blockers": []
     },
     "P07-04": {
       "status": "pending",
       "priority": 704
     },
     "P07-05": {
-      "status": "pending",
-      "priority": 705
+      "status": "blocked",
+      "priority": 705,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P07-90": {
       "status": "done",
-      "priority": 790
+      "priority": 790,
+      "evidence": {
+        "commit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
+        "summary": "Imported verified narrow trial slice; broad source package remains pending.",
+        "tests": [
+          {
+            "command": "node tools/development/check.mjs (649 passed)",
+            "passed": true
+          },
+          {
+            "command": "pnpm run build (full workspace)",
+            "passed": true
+          }
+        ],
+        "reviewer": "/root",
+        "reviewed": true
+      }
     },
     "P08-01": {
       "status": "pending",
@@ -175,16 +535,40 @@
       "priority": 802
     },
     "P08-03": {
-      "status": "pending",
-      "priority": 803
+      "status": "blocked",
+      "priority": 803,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P08-04": {
-      "status": "pending",
-      "priority": 804
+      "status": "blocked",
+      "priority": 804,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P08-05": {
-      "status": "pending",
-      "priority": 805
+      "status": "blocked",
+      "priority": 805,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P08-80": {
       "status": "pending",
@@ -192,79 +576,239 @@
     },
     "P08-90": {
       "status": "done",
-      "priority": 890
+      "priority": 890,
+      "evidence": {
+        "commit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
+        "summary": "Imported verified narrow trial slice; broad source package remains pending.",
+        "tests": [
+          {
+            "command": "node tools/development/check.mjs (649 passed)",
+            "passed": true
+          },
+          {
+            "command": "pnpm run build (full workspace)",
+            "passed": true
+          }
+        ],
+        "reviewer": "/root",
+        "reviewed": true
+      }
     },
     "P09-01": {
-      "status": "pending",
-      "priority": 901
+      "status": "blocked",
+      "priority": 901,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P09-02": {
-      "status": "pending",
-      "priority": 902
+      "status": "blocked",
+      "priority": 902,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P09-03": {
-      "status": "pending",
-      "priority": 903
+      "status": "blocked",
+      "priority": 903,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P09-04": {
-      "status": "pending",
-      "priority": 904
+      "status": "blocked",
+      "priority": 904,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P09-05": {
-      "status": "pending",
-      "priority": 905
+      "status": "blocked",
+      "priority": 905,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P09-06": {
-      "status": "pending",
-      "priority": 906
+      "status": "blocked",
+      "priority": 906,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P09-07": {
-      "status": "pending",
-      "priority": 907
+      "status": "blocked",
+      "priority": 907,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P09-08": {
-      "status": "pending",
-      "priority": 908
+      "status": "blocked",
+      "priority": 908,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P09-09": {
-      "status": "pending",
-      "priority": 909
+      "status": "blocked",
+      "priority": 909,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P09-10": {
-      "status": "pending",
-      "priority": 910
+      "status": "blocked",
+      "priority": 910,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P09-80": {
-      "status": "pending",
-      "priority": 980
+      "status": "blocked",
+      "priority": 980,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P10-01": {
-      "status": "pending",
-      "priority": 1001
+      "status": "blocked",
+      "priority": 1001,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P10-02": {
-      "status": "pending",
-      "priority": 1002
+      "status": "blocked",
+      "priority": 1002,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P10-03": {
-      "status": "pending",
-      "priority": 1003
+      "status": "blocked",
+      "priority": 1003,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P10-04": {
-      "status": "pending",
-      "priority": 1004
+      "status": "blocked",
+      "priority": 1004,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P10-05": {
-      "status": "pending",
-      "priority": 1005
+      "status": "blocked",
+      "priority": 1005,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P10-06": {
-      "status": "pending",
-      "priority": 1006
+      "status": "blocked",
+      "priority": 1006,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P10-07": {
-      "status": "pending",
-      "priority": 1007
+      "status": "blocked",
+      "priority": 1007,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P11-01": {
       "status": "pending",
@@ -287,44 +831,132 @@
       "priority": 1105
     },
     "P11-06": {
-      "status": "pending",
-      "priority": 1106
+      "status": "blocked",
+      "priority": 1106,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P11-07": {
-      "status": "pending",
-      "priority": 1107
+      "status": "blocked",
+      "priority": 1107,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P12-01": {
-      "status": "pending",
-      "priority": 1201
+      "status": "blocked",
+      "priority": 1201,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P12-02": {
-      "status": "pending",
-      "priority": 1202
+      "status": "blocked",
+      "priority": 1202,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P12-03": {
-      "status": "pending",
-      "priority": 1203
+      "status": "blocked",
+      "priority": 1203,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P12-04": {
-      "status": "pending",
-      "priority": 1204
+      "status": "blocked",
+      "priority": 1204,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P12-05": {
-      "status": "pending",
-      "priority": 1205
+      "status": "blocked",
+      "priority": 1205,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P12-06": {
-      "status": "pending",
-      "priority": 1206
+      "status": "blocked",
+      "priority": 1206,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P12-90": {
       "status": "done",
-      "priority": 1290
+      "priority": 1290,
+      "evidence": {
+        "commit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
+        "summary": "Imported verified narrow trial slice; broad source package remains pending.",
+        "tests": [
+          {
+            "command": "node tools/development/check.mjs (649 passed)",
+            "passed": true
+          },
+          {
+            "command": "pnpm run build (full workspace)",
+            "passed": true
+          }
+        ],
+        "reviewer": "/root",
+        "reviewed": true
+      }
     },
     "P13-01": {
-      "status": "pending",
-      "priority": 1301
+      "status": "blocked",
+      "priority": 1301,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P13-02": {
       "status": "pending",
@@ -339,28 +971,68 @@
       "priority": 1304
     },
     "P14-01": {
-      "status": "pending",
-      "priority": 1401
+      "status": "blocked",
+      "priority": 1401,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P14-02": {
-      "status": "pending",
-      "priority": 1402
+      "status": "blocked",
+      "priority": 1402,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P14-03": {
-      "status": "pending",
-      "priority": 1403
+      "status": "blocked",
+      "priority": 1403,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P14-04": {
       "status": "pending",
       "priority": 1404
     },
     "P14-80": {
-      "status": "pending",
-      "priority": 1480
+      "status": "blocked",
+      "priority": 1480,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P14-81": {
-      "status": "pending",
-      "priority": 1481
+      "status": "blocked",
+      "priority": 1481,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P14-82": {
       "status": "pending",
@@ -380,31 +1052,103 @@
     },
     "P15-04": {
       "status": "done",
-      "priority": 1504
+      "priority": 1504,
+      "evidence": {
+        "commit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
+        "summary": "Imported verified narrow trial slice; broad source package remains pending.",
+        "tests": [
+          {
+            "command": "node tools/development/check.mjs (649 passed)",
+            "passed": true
+          },
+          {
+            "command": "pnpm run build (full workspace)",
+            "passed": true
+          }
+        ],
+        "reviewer": "/root",
+        "reviewed": true
+      }
     },
     "P15-90": {
       "status": "done",
-      "priority": 1590
+      "priority": 1590,
+      "evidence": {
+        "commit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
+        "summary": "Imported verified narrow trial slice; broad source package remains pending.",
+        "tests": [
+          {
+            "command": "node tools/development/check.mjs (649 passed)",
+            "passed": true
+          },
+          {
+            "command": "pnpm run build (full workspace)",
+            "passed": true
+          }
+        ],
+        "reviewer": "/root",
+        "reviewed": true
+      }
     },
     "P16-01": {
-      "status": "pending",
-      "priority": 1601
+      "status": "blocked",
+      "priority": 1601,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P16-02": {
-      "status": "pending",
-      "priority": 1602
+      "status": "blocked",
+      "priority": 1602,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P16-03": {
-      "status": "pending",
-      "priority": 1603
+      "status": "blocked",
+      "priority": 1603,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P16-04": {
-      "status": "pending",
-      "priority": 1604
+      "status": "blocked",
+      "priority": 1604,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P16-05": {
-      "status": "pending",
-      "priority": 1605
+      "status": "blocked",
+      "priority": 1605,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P17-01": {
       "status": "pending",
@@ -415,40 +1159,148 @@
       "priority": 1702
     },
     "P17-03": {
-      "status": "pending",
-      "priority": 1703
+      "status": "blocked",
+      "priority": 1703,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P17-04": {
-      "status": "pending",
-      "priority": 1704
+      "status": "blocked",
+      "priority": 1704,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P17-80": {
-      "status": "pending",
-      "priority": 1780
+      "status": "blocked",
+      "priority": 1780,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P18-01": {
-      "status": "pending",
-      "priority": 1801
+      "status": "blocked",
+      "priority": 1801,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P01-02",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        },
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P18-02": {
-      "status": "pending",
-      "priority": 1802
+      "status": "blocked",
+      "priority": 1802,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P01-02",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        },
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P18-03": {
-      "status": "pending",
-      "priority": 1803
+      "status": "blocked",
+      "priority": 1803,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P01-02",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        },
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P18-04": {
-      "status": "pending",
-      "priority": 1804
+      "status": "blocked",
+      "priority": 1804,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P01-02",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        },
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P18-80": {
-      "status": "pending",
-      "priority": 1880
+      "status": "blocked",
+      "priority": 1880,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P01-02",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        },
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     },
     "P18-81": {
-      "status": "pending",
-      "priority": 1881
+      "status": "blocked",
+      "priority": 1881,
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P01-02",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        },
+        {
+          "type": "task",
+          "id": "P03-00",
+          "source": "dependency",
+          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+        }
+      ]
     }
   },
   "events": [
@@ -459,7 +1311,1025 @@
       "from": 1,
       "to": 2,
       "reason": "No active claims or workers; retain all task states and catalogue identity. Old executables must reject discovered dependency state."
+    },
+    {
+      "at": 1793401393557,
+      "actor": "/root",
+      "type": "import_verified_completion",
+      "taskIds": [
+        "P02-90",
+        "P06-90",
+        "P07-90",
+        "P08-90",
+        "P12-90",
+        "P15-04",
+        "P15-90"
+      ],
+      "commit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
+      "reason": "Initial catalogue completion evidence, reviewed against integrated code; no worker claims fabricated."
+    },
+    {
+      "at": 1793402331508,
+      "actor": "worker1",
+      "type": "claim",
+      "taskId": "P01-00",
+      "token": "df98d191-0b29-402e-a588-f73ab8fc1d1e"
+    },
+    {
+      "at": 1793402337123,
+      "actor": "worker1",
+      "type": "checkpoint",
+      "taskId": "P01-00",
+      "checkpoint": "refs/heads/codex/lp-hosted-2316-worker1 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits yet; isolated /workspace/scratch/6bd079311608/lp-worker1"
+    },
+    {
+      "at": 1793402340564,
+      "actor": "worker2",
+      "type": "claim",
+      "taskId": "P02-01",
+      "token": "db04e091-32a4-4e70-9a52-a6cb1abad022"
+    },
+    {
+      "at": 1793402351613,
+      "actor": "worker2",
+      "type": "checkpoint",
+      "taskId": "P02-01",
+      "checkpoint": "codex/lp-hosted-2316-worker2 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated worktree lp-worker2, no edits yet"
+    },
+    {
+      "at": 1793402352195,
+      "actor": "worker3",
+      "type": "claim",
+      "taskId": "P02-03",
+      "token": "6883c5a8-c612-4240-ab03-a9ab1fff0def"
+    },
+    {
+      "at": 1793402360366,
+      "actor": "worker3",
+      "type": "checkpoint",
+      "taskId": "P02-03",
+      "checkpoint": "codex/lp-hosted-2316-worker3 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker3; no edits yet"
+    },
+    {
+      "at": 1793402360428,
+      "actor": "worker4",
+      "type": "claim",
+      "taskId": "P03-00",
+      "token": "1ffcf950-5526-4aa3-a601-73e5c043b23d"
+    },
+    {
+      "at": 1793402368425,
+      "actor": "worker5",
+      "type": "claim",
+      "taskId": "P04-01",
+      "token": "22b75133-b91c-4509-9a90-8b64a785689e"
+    },
+    {
+      "at": 1793402368833,
+      "actor": "worker4",
+      "type": "checkpoint",
+      "taskId": "P03-00",
+      "checkpoint": "Branch codex/lp-hosted-2316-worker4 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker4; no edits yet."
+    },
+    {
+      "at": 1793402379241,
+      "actor": "worker6",
+      "type": "claim",
+      "taskId": "P07-01",
+      "token": "faf7d005-b537-49cf-9cb2-8214016d22b3"
+    },
+    {
+      "at": 1793402384614,
+      "actor": "worker5",
+      "type": "checkpoint",
+      "taskId": "P04-01",
+      "checkpoint": "refs/heads/codex/lp-hosted-2316-worker5 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker5; no edits yet"
+    },
+    {
+      "at": 1793402393892,
+      "actor": "worker6",
+      "type": "checkpoint",
+      "taskId": "P07-01",
+      "checkpoint": "codex/lp-hosted-2316-worker6 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits; inspect existing empty-company test and disposable runner"
+    },
+    {
+      "at": 1793402413199,
+      "actor": "worker6",
+      "type": "block",
+      "taskId": "P07-01",
+      "checkpoint": "No edits; codex/lp-hosted-2316-worker6 at existing durable source 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; worker operation stopped",
+      "blockers": [
+        {
+          "type": "environment",
+          "reason": "Complete fresh-company signup/contact/draft/review/posting qualification needs an isolated authenticated browser and fresh disposable PostgreSQL runtime. This worker has no configured synthetic Clerk session and command -v postgres initdb returns neither executable. Existing model/render tests and seeded API fixtures cannot verify that end-to-end acceptance. Resume on configured isolated test runtime; do not use existing demo database."
+        }
+      ]
+    },
+    {
+      "at": 1793402413310,
+      "actor": "worker6",
+      "type": "claim",
+      "taskId": "P07-02",
+      "token": "79129ca7-a9a4-4144-8122-e9dd34920066"
+    },
+    {
+      "at": 1793402422783,
+      "actor": "worker6",
+      "type": "checkpoint",
+      "taskId": "P07-02",
+      "checkpoint": "codex/lp-hosted-2316-worker6 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits; inspect saved readiness and next task"
+    },
+    {
+      "at": 1793402445566,
+      "actor": "worker1",
+      "type": "checkpoint",
+      "taskId": "P01-00",
+      "checkpoint": "refs/heads/codex/lp-hosted-2316-worker1 at 4b60b75; two leased contract files committed, worktree clean, awaiting coordinator durable publication/review"
+    },
+    {
+      "at": 1793402445659,
+      "actor": "worker1",
+      "type": "submit",
+      "taskId": "P01-00",
+      "evidence": {
+        "commit": "4b60b75",
+        "summary": "P01-00 financial interfaces: exact paid/unpaid/excess/corrected-original cases, atomic credit plus reviewed payment unallocation, stable evidence, shared historical projection, integer-pence and authorization invariants. Specification only; dependent implementations remain gated.",
+        "tests": [
+          {
+            "command": "git diff HEAD^ HEAD --check",
+            "passed": true
+          },
+          {
+            "command": "node --test tools/development/work-queue/coordinator.test.mjs (7 passed)",
+            "passed": true
+          },
+          {
+            "command": "node --input-type=module contract arithmetic assertions (5 synthetic scenarios; specification arithmetic only)",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793402446596,
+      "actor": "worker3",
+      "type": "renew",
+      "taskId": "P02-03"
+    },
+    {
+      "at": 1793402459990,
+      "actor": "worker3",
+      "type": "submit",
+      "taskId": "P02-03",
+      "evidence": {
+        "commit": "2dc459440d5b03ec9d02b734440df67efb8df3c8",
+        "summary": "Partial P02-03 review slice: bounded socket-based process-local API admission, no-cache/security headers, explicit form limits, no default localhost origin in production, structured error/body/session/provider log redaction. Clerk streaming proxy unchanged. Broader production transport/session/proxy trust and dependency/secret audit remain unverified; do not accept the full package as complete.",
+        "tests": [
+          {
+            "command": "esbuild bundle appErrors.test.ts + NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp-worker3-appErrors.cjs (13/13 passed)",
+            "passed": true
+          },
+          {
+            "command": "./node_modules/.bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793402460412,
+      "actor": "worker2",
+      "type": "checkpoint",
+      "taskId": "P02-01",
+      "checkpoint": "codex/lp-hosted-2316-worker2 d278fec7458e771a7c7d7d4e88b889517283cbe4; legacy purchase-bill settlement bypass closed; focused 2 HTTP tests passed; partial P02-01 only. Remaining: exhaustive legacy capability inventory, cross-company read/write/download/export and stale-response verification. Client migration needed for SalesCreditNoteForm, SupplierCreditNoteForm and CreditNotesRegister remaining updatePaymentStatus calls; those files outside this lease."
+    },
+    {
+      "at": 1793402460505,
+      "actor": "worker2",
+      "type": "submit",
+      "taskId": "P02-01",
+      "evidence": {
+        "commit": "d278fec7458e771a7c7d7d4e88b889517283cbe4",
+        "summary": "PARTIAL narrow security fix only: reject legacy settlement before database/provider; P02-01 broad inventory and cross-company criteria remain unverified, do not accept broad completion.",
+        "tests": [
+          {
+            "command": "esbuild companyRoutes.test.ts; DATABASE_URL=loopback-unusable NODE_ENV=test node --test bundled companyRoutes (2 passed)",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793402469242,
+      "actor": "worker5",
+      "type": "checkpoint",
+      "taskId": "P04-01",
+      "checkpoint": "refs/heads/codex/lp-hosted-2316-worker5 at a26d4a5d3e0a5f7979182430c7439bbd8d6cfe86; clean worktree; 41 contract tests pass; partial inventory only, full case freeze and statutory fixture qualification remain pending"
+    },
+    {
+      "at": 1793402469340,
+      "actor": "worker5",
+      "type": "submit",
+      "taskId": "P04-01",
+      "evidence": {
+        "commit": "a26d4a5d3e0a5f7979182430c7439bbd8d6cfe86",
+        "summary": "PARTIAL ONLY: fail-closed qualification inventory across VAT, income, corporation and payroll with official discovery sources and 2025-28 rows. No case claimed calculation-supported; full exhaustive matrix and pinned statutory expected results remain pending. Do not accept P04-01 as complete from this slice.",
+        "tests": [
+          {
+            "command": "node --test artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs (41 passed)",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793402474193,
+      "actor": "worker6",
+      "type": "submit",
+      "taskId": "P07-02",
+      "evidence": {
+        "commit": "39b359132593d2df0aa6a20e751abd752a9b07cb",
+        "summary": "Fresh server-backed saved setup now suggests the next prerequisite/contact/document task, respects readonly and failed reads, and offers optional accurate draft/posted/paid/credited/filed guidance. No additional browser storage or financial mutations. Render/model verified; live browser journey remains P07-01 environment-blocked.",
+        "tests": [
+          {
+            "command": "node --test artifacts/ledgerly/src/features/onboarding/model.test.mjs (11 passed)",
+            "passed": true
+          },
+          {
+            "command": "esbuild bundle SetupWorkspace.test.jsx; node --test /tmp/lp-worker6-ui.cjs (7 passed, including 3 new)",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793402496812,
+      "actor": "worker4",
+      "type": "submit",
+      "taskId": "P03-00",
+      "evidence": {
+        "commit": "25c2c73e1ad005010da9963d3473424864ff8612",
+        "summary": "Partial contract slice: persistence interfaces, immutable migration checksum inventory, identifiers, version guards and negative-control matrix. Do not accept entire P03-00: actual disposable PostgreSQL partial-schema tests remain missing, and coordinator review is pending.",
+        "tests": [
+          {
+            "command": "Bundle amendmentsMath.test.ts with esbuild; NODE_PATH=$PWD/artifacts/api-server/node_modules DATABASE_URL=postgresql://unused:unused@127.0.0.1:1/no_database node --test /tmp/lp-worker4-amendments.cjs (6 passed)",
+            "passed": true
+          },
+          {
+            "command": "Node assert JSON registry version and SHA-256 for all seven migration files (passed)",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793402523677,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P02-03",
+      "reason": "Shared reverse proxy socket makes default 600/min admission limit global; require explicit deployment policy before enabling."
+    },
+    {
+      "at": 1793402523758,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P02-03",
+      "checkpoint": "Worker3 stopped clean at 2dc459440d5b03ec9d02b734440df67efb8df3c8; reviewed default proxy admission regression requires amendment."
+    },
+    {
+      "at": 1793402547621,
+      "actor": "worker3",
+      "type": "claim",
+      "taskId": "P02-03",
+      "token": "cd4ed689-1146-4011-936e-0bc0f6a3a793"
+    },
+    {
+      "at": 1793402557573,
+      "actor": "worker3",
+      "type": "checkpoint",
+      "taskId": "P02-03",
+      "checkpoint": "codex/lp-hosted-2316-worker3 at 2dc459440d5b03ec9d02b734440df67efb8df3c8; coordinator requests removing default limiter for shared-proxy safety"
+    },
+    {
+      "at": 1793402569712,
+      "actor": "worker3",
+      "type": "submit",
+      "taskId": "P02-03",
+      "evidence": {
+        "commit": "cc4a23d676ea83fa6cde03b1e816cd3c6b86410b",
+        "summary": "Reviewed partial hardening: private API response headers, form limits, fingerprint suppression, no automatic production localhost origin, structured diagnostic redaction. Default admission mount removed following independent shared-proxy availability review; tested limiter utility explicitly unenabled until trusted edge/distributed quota policy exists. Full P02-03 remains unfinished (session/transport/proxy policy, deployment rate limits, secret/dependency audit).",
+        "tests": [
+          {
+            "command": "esbuild bundle appErrors.test.ts + NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp-worker3-appErrors.cjs (13/13 passed)",
+            "passed": true
+          },
+          {
+            "command": "./node_modules/.bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793402711418,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P02-01",
+      "reason": "Integrated full build failed TS2571 at companyRoutes.test.ts response.json unknown; narrow test typing fix required."
+    },
+    {
+      "at": 1793402711519,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P02-01",
+      "checkpoint": "Worker2 stopped clean d278fec7458e771a7c7d7d4e88b889517283cbe4; remote checkpoint 12ea4c8c8ee7a104d0c11637a76dd124970beead on codex/lp-hosted-2316-worker2."
+    },
+    {
+      "at": 1793402722215,
+      "actor": "worker2",
+      "type": "claim",
+      "taskId": "P02-01",
+      "token": "638e08e0-fa47-4e67-a73e-612a8aa9c9c4"
+    },
+    {
+      "at": 1793402728355,
+      "actor": "worker2",
+      "type": "checkpoint",
+      "taskId": "P02-01",
+      "checkpoint": "Resume clean local d278fec7458e771a7c7d7d4e88b889517283cbe4; durable tree-equivalent remote 12ea4c8c8ee7a104d0c11637a76dd124970beead; correcting TS2571 test response type only"
+    },
+    {
+      "at": 1793402748046,
+      "actor": "worker2",
+      "type": "checkpoint",
+      "taskId": "P02-01",
+      "checkpoint": "codex/lp-hosted-2316-worker2 18689e505dca925d3cd7f599bf100632f8a78ceb; test type correction complete; API tsc and 2 HTTP tests pass. Broad P02-01 remains partial; previous remaining audit/client migration notes still apply; worker stopped clean."
+    },
+    {
+      "at": 1793402748146,
+      "actor": "worker2",
+      "type": "submit",
+      "taskId": "P02-01",
+      "evidence": {
+        "commit": "18689e505dca925d3cd7f599bf100632f8a78ceb",
+        "summary": "PARTIAL narrow security fix with TS2571 response type correction; broad P02-01 criteria remain unverified.",
+        "tests": [
+          {
+            "command": "node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit",
+            "passed": true
+          },
+          {
+            "command": "esbuild companyRoutes.test.ts; DATABASE_URL=loopback-unusable NODE_ENV=test node --test bundled companyRoutes (2 passed)",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793402959720,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P02-01",
+      "reason": "Integrated narrow legacy payment bypass fix; remaining exhaustive authorization inventory, cross-company checks and legacy client migrations are not completed."
+    },
+    {
+      "at": 1793402959800,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P02-01",
+      "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated narrow legacy payment bypass fix; remaining exhaustive authorization inventory, cross-company checks and legacy client migrations are not completed."
+    },
+    {
+      "at": 1793402959889,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P02-03",
+      "reason": "Integrated headers/parser/log hardening; trusted-edge quotas, production sessions/transport and secrets/dependency audit remain unfinished."
+    },
+    {
+      "at": 1793402959973,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P02-03",
+      "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated headers/parser/log hardening; trusted-edge quotas, production sessions/transport and secrets/dependency audit remain unfinished."
+    },
+    {
+      "at": 1793402960051,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P03-00",
+      "reason": "Integrated persistence contract/registry; executable disposable PostgreSQL partial-schema matrix remains unfinished."
+    },
+    {
+      "at": 1793402960133,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P03-00",
+      "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated persistence contract/registry; executable disposable PostgreSQL partial-schema matrix remains unfinished."
+    },
+    {
+      "at": 1793402960228,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P04-01",
+      "reason": "Integrated unqualified native case inventory/rejection resolver; exhaustive combinations, pinned rules and independently reviewed statutory outputs remain unfinished."
+    },
+    {
+      "at": 1793402960310,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P04-01",
+      "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated unqualified native case inventory/rejection resolver; exhaustive combinations, pinned rules and independently reviewed statutory outputs remain unfinished."
+    },
+    {
+      "at": 1793402960388,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P07-02",
+      "reason": "Integrated server-derived next action and state help; browser reload/resume and all first-task consistency acceptance remain unverified."
+    },
+    {
+      "at": 1793402960472,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P07-02",
+      "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Integrated server-derived next action and state help; browser reload/resume and all first-task consistency acceptance remain unverified."
+    },
+    {
+      "at": 1793402960552,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P01-00",
+      "reason": "Refresh contract submission against durable published exact source a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5 after connector remapped local commit metadata; scope unchanged."
+    },
+    {
+      "at": 1793402960637,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P01-00",
+      "checkpoint": "All workers confirmed clean/stopped; integrated exact source refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Refresh contract submission against durable published exact source a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5 after connector remapped local commit metadata; scope unchanged."
+    },
+    {
+      "at": 1793402972818,
+      "actor": "worker1",
+      "type": "claim",
+      "taskId": "P01-00",
+      "token": "5c0bb7a6-dfb2-47d4-8c7e-e17e497c4a25"
+    },
+    {
+      "at": 1793402985194,
+      "actor": "worker1",
+      "type": "checkpoint",
+      "taskId": "P01-00",
+      "checkpoint": "Published refs/heads/codex/whole-product-first-sprint at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; integrated contract restored; no edits; refreshing matching-commit verification"
+    },
+    {
+      "at": 1793402985353,
+      "actor": "worker1",
+      "type": "submit",
+      "taskId": "P01-00",
+      "evidence": {
+        "commit": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
+        "summary": "Verified integrated P01-00 paid-credit/correction contract: exact cases, original evidence identities, historical cutoffs, atomic unallocation/credit intent, precision and tenant/capability invariants. Contract only; dependent functionality remains unimplemented.",
+        "tests": [
+          {
+            "command": "git diff 83ec61812c53d47a14cf1c7bb5d288f5829e2df2 HEAD --check -- docs/development/posted-document-corrections.md docs/development/credit-capacity-contract.md",
+            "passed": true
+          },
+          {
+            "command": "node --input-type=module: five integrated credit-example arithmetic assertions plus correction delta/historical cutoff assertions",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793403003623,
+      "actor": "coordinator",
+      "type": "accept",
+      "taskId": "P01-00",
+      "evidence": {
+        "commit": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
+        "summary": "Contract only accepted after independent worker5 and coordinator review of exact source; fully-paid credit implementation remains pending. Explicit immutable identities, cutoff, atomicity, precision, tenant and role invariants plus exact examples verified.",
+        "tests": [
+          {
+            "command": "node tools/development/check.mjs: 699 passed on exact published source",
+            "passed": true
+          },
+          {
+            "command": "PORT=5179 BASE_PATH=/ pnpm_config_verify_deps_before_run=false pnpm run build: passed on exact source",
+            "passed": true
+          },
+          {
+            "command": "Independent worker5 bounded arithmetic: 706011 cases passed; worker1 exact contract examples passed",
+            "passed": true
+          },
+          {
+            "command": "PR27 development CI 41144653667: source, build, disposable PostgreSQL, restore and cleanup passed",
+            "passed": true
+          }
+        ],
+        "reviewed": true,
+        "reviewer": "worker5-and-coordinator"
+      }
+    },
+    {
+      "at": 1793403375672,
+      "actor": "worker1",
+      "type": "claim",
+      "taskId": "P01-02",
+      "token": "fee8749e-73ae-4ee4-8f12-fd642fc94793"
+    },
+    {
+      "at": 1793403385160,
+      "actor": "worker2",
+      "type": "claim",
+      "taskId": "P02-01",
+      "token": "1c3cb695-5c81-46f8-bd8e-9a0cb6671565"
+    },
+    {
+      "at": 1793403389428,
+      "actor": "worker3",
+      "type": "claim",
+      "taskId": "P02-03",
+      "token": "fa7c23b8-48d9-47ab-ba17-d9923d0d1765"
+    },
+    {
+      "at": 1793403390982,
+      "actor": "worker1",
+      "type": "checkpoint",
+      "taskId": "P01-02",
+      "checkpoint": "Clean isolated codex/lp-2333-worker1 at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; inspecting atomic paid-credit requirements before edits"
+    },
+    {
+      "at": 1793403394458,
+      "actor": "worker2",
+      "type": "checkpoint",
+      "taskId": "P02-01",
+      "checkpoint": "Starting isolated codex/lp-2333-worker2 at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; inspect legacy route capability boundaries before editing."
+    },
+    {
+      "at": 1793403395842,
+      "actor": "worker4",
+      "type": "claim",
+      "taskId": "P03-00",
+      "token": "52194a48-fa10-4448-9858-ec191cabe02c"
+    },
+    {
+      "at": 1793403399673,
+      "actor": "worker5",
+      "type": "claim",
+      "taskId": "P04-01",
+      "token": "517447d9-451c-4cd0-9fa6-81ab226c2d82"
+    },
+    {
+      "at": 1793403401199,
+      "actor": "worker3",
+      "type": "checkpoint",
+      "taskId": "P02-03",
+      "checkpoint": "codex/lp-2333-worker3 at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; clean initial source; inspecting security before edits"
+    },
+    {
+      "at": 1793403410205,
+      "actor": "worker6",
+      "type": "claim",
+      "taskId": "P05-03",
+      "token": "a97c0937-66da-400d-9033-2553d058e08b"
+    },
+    {
+      "at": 1793403413988,
+      "actor": "worker1",
+      "type": "block",
+      "taskId": "P01-02",
+      "checkpoint": "No edits; clean codex/lp-2333-worker1 at durable source a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; operation stopped",
+      "blockers": [
+        {
+          "type": "environment",
+          "reason": "Atomic paid-credit contract requires changes to posting.ts protected command, review API/UI and persisted parent operation linkage; task lease excludes posting.ts, API route and schema. Coordinator must reconcile narrow file ownership/schema contract before enabling; removing documents.ts outstanding guard alone violates accepted contract."
+        }
+      ]
+    },
+    {
+      "at": 1793403414071,
+      "actor": "worker1",
+      "type": "claim",
+      "taskId": "P01-04",
+      "token": "9376c35d-c85b-413d-8867-f6c6a1ce6e59"
+    },
+    {
+      "at": 1793403419908,
+      "actor": "worker1",
+      "type": "checkpoint",
+      "taskId": "P01-04",
+      "checkpoint": "Clean codex/lp-2333-worker1 a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; inspect historical projections before edits; corrected-original safety blocks retained"
+    },
+    {
+      "at": 1793403429854,
+      "actor": "worker5",
+      "type": "checkpoint",
+      "taskId": "P04-01",
+      "checkpoint": "codex/lp-2333-worker5 at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5; clean isolated worktree; inspected unqualified inventory; tightening metadata integrity only, no statutory qualification or scope change"
+    },
+    {
+      "at": 1793403430121,
+      "actor": "worker4",
+      "type": "checkpoint",
+      "taskId": "P03-00",
+      "checkpoint": "No edits; clean isolated codex/lp-2333-worker4 at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5, already durable on refs/heads/codex/whole-product-first-sprint. Existing contract inspected; partial-schema test criterion requires files owned by dependent P03-03."
+    },
+    {
+      "at": 1793403430223,
+      "actor": "worker4",
+      "type": "block",
+      "taskId": "P03-00",
+      "checkpoint": "No edits; worker stopped clean at durable refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5.",
+      "blockers": [
+        {
+          "type": "environment",
+          "reason": "Acceptance requires executable disposable PostgreSQL partial-schema matrix, but P03-00 leases only contract markdown and JSON inventory. Executable runner/schema files are owned by P03-03, which depends on P03-00; coordinator must reconcile catalogue ownership/dependency while affected workers stopped. No postgres/initdb executable locally; existing isolated CI can provide runtime after test implementation."
+        }
+      ]
+    },
+    {
+      "at": 1793403430334,
+      "actor": "worker4",
+      "type": "claim",
+      "taskId": "P06-00",
+      "token": "2e1a37d5-394a-4c62-aca7-b7d01cba3846"
+    },
+    {
+      "at": 1793403450223,
+      "actor": "worker4",
+      "type": "checkpoint",
+      "taskId": "P06-00",
+      "checkpoint": "Before edits: clean codex/lp-2333-worker4 at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Native bank contract absent; inspected import model, recovery model, payment planning/posting and credit contract. Writing contract only within leased path."
+    },
+    {
+      "at": 1793403451572,
+      "actor": "worker6",
+      "type": "checkpoint",
+      "taskId": "P05-03",
+      "checkpoint": "No edits; codex/lp-2333-worker6 at a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Existing closed-period posting guards inspected; close/reopen workflow absent. Awaiting coordinator contract on reconciliation evidence, snapshot identity, lock ordering and retained earnings before implementing financial schema/interfaces."
+    },
+    {
+      "at": 1793403469305,
+      "actor": "worker6",
+      "type": "block",
+      "taskId": "P05-03",
+      "checkpoint": "No edits; operation stopped clean at existing durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5 on codex/lp-2333-worker6; coordinator confirmed engineering prerequisite.",
+      "blockers": [
+        {
+          "type": "decision",
+          "reason": "Internal coordinator-reviewed close/reopen contract required: reconciliation evidence and historical snapshot identity, posting/close lock ordering and retries, retained-earnings strategy. Existing CLOSED guards preserved. This is an engineering prerequisite, not an owner approval gate."
+        }
+      ]
+    },
+    {
+      "at": 1793403469390,
+      "actor": "worker6",
+      "type": "claim",
+      "taskId": "P07-02",
+      "token": "7bac9a7f-c5ba-4341-b46b-3e9f7be6ce8d"
+    },
+    {
+      "at": 1793403472100,
+      "actor": "worker5",
+      "type": "checkpoint",
+      "taskId": "P04-01",
+      "checkpoint": "codex/lp-2333-worker5 at 35b85b9f16fdb6350f30e8c66d739aa1c3b9cb79; clean/stopped; 44 registry tests pass; strict truthful discovery metadata/examples only; exhaustive statutory matrix and pinned calculation outputs remain pending"
+    },
+    {
+      "at": 1793403472215,
+      "actor": "worker5",
+      "type": "submit",
+      "taskId": "P04-01",
+      "evidence": {
+        "commit": "35b85b9f16fdb6350f30e8c66d739aa1c3b9cb79",
+        "summary": "PARTIAL P04-01: validates unqualified discovery sources, truthful provenance, required input/output names and exact rejection examples. No statutory calculations qualified; full supported-case matrix and pinned reviewed outcomes remain pending.",
+        "tests": [
+          {
+            "command": "node --test artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs (44 passed)",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793403483246,
+      "actor": "worker3",
+      "type": "submit",
+      "taskId": "P02-03",
+      "evidence": {
+        "commit": "3f34853",
+        "summary": "PARTIAL P02-03: reject explicit cross-site unsafe browser requests lacking Origin, preserve allowlisted origins and non-browser clients; full sessions, distributed quotas and dependency audit remain pending.",
+        "tests": [
+          {
+            "command": "esbuild appErrors.test.ts bundle plus NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp2333-security.cjs: 17 passed",
+            "passed": true
+          },
+          {
+            "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793403484878,
+      "actor": "worker2",
+      "type": "checkpoint",
+      "taskId": "P02-01",
+      "checkpoint": "codex/lp-2333-worker2 at b154e0e6d80e1b20abb63e84068d021946603b7b; clean stopped worktree. Narrow stale-company boundary fix across four bank actions; broad route inventory/client migration remains unfinished. Focused HTTP 3 tests and API tsc passed."
+    },
+    {
+      "at": 1793403484967,
+      "actor": "worker2",
+      "type": "submit",
+      "taskId": "P02-01",
+      "evidence": {
+        "commit": "b154e0e6d80e1b20abb63e84068d021946603b7b",
+        "summary": "PARTIAL P02-01: four legacy bank mutation handlers now reject contradictory/malformed caller company via existing shared company-scope guard. Omitted/matching context retains resource membership/capability checks. Broad route inventory and complete client migration remain pending.",
+        "tests": [
+          {
+            "command": "esbuild companyRoutes.test.ts; isolated loopback DATABASE_URL node --test /tmp/lp2333-worker2.cjs: 3 passed",
+            "passed": true
+          },
+          {
+            "command": "node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793403491143,
+      "actor": "worker6",
+      "type": "block",
+      "taskId": "P07-02",
+      "checkpoint": "No edits; clean/stopped at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. Inspected SetupWizard, readiness model, scoped guidance and render tests; existing implementation already supplies server-derived progress and next tasks.",
+      "blockers": [
+        {
+          "type": "environment",
+          "reason": "Remaining reload/resume and cross-product first-task acceptance needs isolated authenticated synthetic Clerk/browser/database journey, unavailable in this worker runtime. Existing render/model tests cannot prove this; do not duplicate already implemented source or use existing demo data."
+        }
+      ]
+    },
+    {
+      "at": 1793403491247,
+      "actor": "worker6",
+      "type": "claim",
+      "taskId": "P07-03",
+      "token": "12089e61-f199-43b9-917a-8e49e705041f"
+    },
+    {
+      "at": 1793403510574,
+      "actor": "worker1",
+      "type": "submit",
+      "taskId": "P01-04",
+      "evidence": {
+        "commit": "41b2fdaab8e8d75eb4acc913685dc46a75d56968",
+        "summary": "PARTIAL: common linked-credit history validation now feeds settlement/report totals and validates complete linked history before cutoff. Retains corrected-original blocks; no enablement of correction-credit/claim combinations. New PostgreSQL tests pending CI because no local postgres/initdb.",
+        "tests": [
+          {
+            "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+            "passed": true
+          },
+          {
+            "command": "esbuild linkedCreditDocuments harness; six historical cutoff/missing-journal/wrong-kind/party/currency checks passed",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793403518770,
+      "actor": "worker4",
+      "type": "submit",
+      "taskId": "P06-00",
+      "evidence": {
+        "commit": "c6c01ebaea5e9509e0e68ccc61ee499e9c051e3b",
+        "summary": "Native bank contract specifies immutable observations vs movement identity, exact money/date/review, splits/fees/reversal and original-command recovery. Contract only; dependent functionality remains unimplemented. Existing PostgreSQL settlement guard fixture found but matching-commit CI and coordinator review still required before acceptance.",
+        "tests": [
+          {
+            "command": "node --test artifacts/ledgerly/src/features/bankImport/model.test.mjs artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs (23 passed)",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793403528942,
+      "actor": "worker6",
+      "type": "checkpoint",
+      "taskId": "P07-03",
+      "checkpoint": "Before edits: clean codex/lp-2333-worker6 at durable a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5. DailyWork currently exposes only source upload and credit tracking; add direct accounting browse/create shortcuts with permission-aware labels and focused render tests. Broad table/bulk acceptance remains pending."
+    },
+    {
+      "at": 1793403551490,
+      "actor": "worker6",
+      "type": "submit",
+      "taskId": "P07-03",
+      "evidence": {
+        "commit": "66c8709",
+        "summary": "PARTIAL: DailyWork compact/full views expose direct invoice, bill, payment and report paths and permission-aware draft shortcuts; readonly copy no longer suggests draft preparation. Full searchable table, VAT/payment detail, bulk/keyboard journey acceptance remains pending.",
+        "tests": [
+          {
+            "command": "Bundle Navigation.test.jsx with API esbuild; node --test /tmp/lp-2333-worker6-nav.cjs (6 passed)",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793403593005,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P06-00",
+      "reason": "Review requires correcting existing fixture coverage claim; bank-status invariant and concurrent same-command replay not yet evidenced."
+    },
+    {
+      "at": 1793403593087,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P06-00",
+      "checkpoint": "worker4 stopped clean at c6c01ebaea5e9509e0e68ccc61ee499e9c051e3b; correction of contract evidence only required"
+    },
+    {
+      "at": 1793403605215,
+      "actor": "worker4",
+      "type": "claim",
+      "taskId": "P06-00",
+      "token": "8191f8bd-79ab-4967-b63b-ee8109cf3fd7"
+    },
+    {
+      "at": 1793403620695,
+      "actor": "worker4",
+      "type": "checkpoint",
+      "taskId": "P06-00",
+      "checkpoint": "Before review correction: clean codex/lp-2333-worker4 c6c01ebaea5e9509e0e68ccc61ee499e9c051e3b. Clarifying exact existing fixture coverage; native bank status mutation and new-command concurrency remain missing."
+    },
+    {
+      "at": 1793403627967,
+      "actor": "worker4",
+      "type": "submit",
+      "taskId": "P06-00",
+      "evidence": {
+        "commit": "5695988f34d27cd97c11d50b1a092bd44dc8033d",
+        "summary": "PARTIAL native bank import contract, with exact existing-fixture boundaries corrected after coordinator review. Bank-status-only mutation fixture remains missing; existing Promise.all payment replay is not new-bank-command or forced lock-overlap evidence. No new financial functionality enabled; do not accept full P06-00.",
+        "tests": [
+          {
+            "command": "node --test artifacts/ledgerly/src/features/bankImport/model.test.mjs artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs (23 passed)",
+            "passed": true
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793403845337,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P01-04",
+      "reason": "Integrated linked-credit projection validation; full correction interactions and browser acceptance remain unfinished."
+    },
+    {
+      "at": 1793403845435,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P01-04",
+      "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated linked-credit projection validation; full correction interactions and browser acceptance remain unfinished."
+    },
+    {
+      "at": 1793403845519,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P02-01",
+      "reason": "Integrated requested-company guards on four legacy bank mutations; exhaustive route audit and client migration remain unfinished."
+    },
+    {
+      "at": 1793403845626,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P02-01",
+      "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated requested-company guards on four legacy bank mutations; exhaustive route audit and client migration remain unfinished."
+    },
+    {
+      "at": 1793403845728,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P02-03",
+      "reason": "Integrated cross-site missing-Origin denial; full session/transport/quotas/secrets and dependency audit remain unfinished."
+    },
+    {
+      "at": 1793403845811,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P02-03",
+      "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated cross-site missing-Origin denial; full session/transport/quotas/secrets and dependency audit remain unfinished."
+    },
+    {
+      "at": 1793403845897,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P04-01",
+      "reason": "Integrated case metadata validation; exhaustive case matrix and reviewed statutory outputs remain unfinished."
+    },
+    {
+      "at": 1793403845981,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P04-01",
+      "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated case metadata validation; exhaustive case matrix and reviewed statutory outputs remain unfinished."
+    },
+    {
+      "at": 1793403846076,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P06-00",
+      "reason": "Integrated reviewed native bank contract; promised bank-status-only invariant fixture still missing, so contract acceptance remains pending."
+    },
+    {
+      "at": 1793403846176,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P06-00",
+      "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated reviewed native bank contract; promised bank-status-only invariant fixture still missing, so contract acceptance remains pending."
+    },
+    {
+      "at": 1793403846258,
+      "actor": "coordinator",
+      "type": "reject",
+      "taskId": "P07-03",
+      "reason": "Integrated permission-aware direct daily links; full tables/filter/detail/expert-tools criteria remain unfinished."
+    },
+    {
+      "at": 1793403846356,
+      "actor": "coordinator",
+      "type": "recover",
+      "taskId": "P07-03",
+      "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated permission-aware direct daily links; full tables/filter/detail/expert-tools criteria remain unfinished."
+    },
+    {
+      "at": 1793403925992,
+      "actor": "coordinator",
+      "type": "reopen",
+      "taskId": "P01-02",
+      "reason": "Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+    },
+    {
+      "at": 1793403925996,
+      "actor": "coordinator",
+      "type": "reopen",
+      "taskId": "P03-00",
+      "reason": "Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
     }
   ],
-  "catalogDigest": "4ec38da8ef67c6f42bc913d0e01b8e5d3b34fb4228853599a11b239c38ec4314"
+  "catalogDigest": "37580ba0a586c6493ee62ad8e8a5682f79cdced7e8c5e5e02c77b4bb1b3e4392"
 }

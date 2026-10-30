@@ -51,10 +51,11 @@
     {
       "id": "P01-02",
       "title": "Allow credits after full payment",
-      "description": "Allow credits after full payment. Complete the missing workflow for a fully paid bill or invoice to receive a valid credit and create a refundable or reusable balance. Example: a \u00a3120 paid bill must be able to receive a \u00a312 supplier credit.",
+      "description": "Allow credits after full payment. Complete the missing workflow for a fully paid bill or invoice to receive a valid credit and create a refundable or reusable balance. Example: a £120 paid bill must be able to receive a £12 supplier credit.",
       "priority": 102,
       "dependencies": [
-        "P01-00"
+        "P01-00",
+        "P03-00"
       ],
       "acceptance": [
         "A synthetic fully paid GBP120 bill can receive a valid GBP12 supplier credit, retaining the payment and producing a reusable/refundable balance.",
@@ -65,7 +66,21 @@
         "artifacts/api-server/src/services/accountingDocuments/settlement.ts",
         "artifacts/api-server/src/services/accountingDocuments/payments.ts",
         "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
-        "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx"
+        "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx",
+        "artifacts/api-server/src/services/accountingDocuments/posting.ts",
+        "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+        "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
+        "artifacts/api-server/src/routes/accountingDocuments.ts",
+        "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+        "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+        "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
+        "lib/db/migrations/paid-credit-operations.review.sql",
+        "lib/db/schema-change-registry.json",
+        "tools/accounting-flow/schema.mjs"
       ],
       "kind": "implementation",
       "approval": "approved"
@@ -280,7 +295,10 @@
       ],
       "files": [
         "docs/development/persistence-contracts.md",
-        "lib/db/schema-change-registry.json"
+        "lib/db/schema-change-registry.json",
+        "tools/development/migrations/partial-schema.test.mjs",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs"
       ],
       "kind": "contract",
       "approval": "approved"
