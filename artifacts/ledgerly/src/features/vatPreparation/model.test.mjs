@@ -1,8 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { csv } from '../../lib/ledgerCsv.mjs';
-import { initialPeriod, periodError, scopeKey, visibleState, validateSnapshot, requestWorkings, sourceDocuments, workingsRows } from './model.mjs';
+import { initialPeriod, periodFromParams, periodError, scopeKey, visibleState, validateSnapshot, requestWorkings, sourceDocuments, workingsRows } from './model.mjs';
 import { reportFixture } from './fixtures.mjs';
+
+test('VAT links retain their exact dates and invalid explicit dates require correction', () => {
+  assert.deepEqual(periodFromParams(new URLSearchParams('from=2026-07-01&to=2026-09-30')), { from: '2026-07-01', to: '2026-09-30' });
+  const invalid = periodFromParams(new URLSearchParams('from=&to=2026-02-30'));
+  assert.equal(invalid.from, ''); assert.ok(periodError(invalid.from, invalid.to));
+});
 
 test('period input rejects impossible, unbounded, missing and reversed dates without rollover', () => {
   assert.deepEqual(initialPeriod(new Date('2026-10-30T23:59:00Z')), { from: '2026-10-01', to: '2026-10-30' });

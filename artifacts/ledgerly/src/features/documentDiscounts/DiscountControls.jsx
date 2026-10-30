@@ -3,24 +3,29 @@ import { Label } from '@/components/ui/label';
 import { Money, ErrorBox, SkeletonRows } from '@/components/accounting/AccountingUI';
 import { Button } from '@/components/ui/button';
 import { balanceAfterSavedCredit, canEditDrafts, canPostDocuments } from './model.mjs';
+import { useState } from 'react';
 
-export function DraftWriteActions({ capabilities, doc, editId, busy, dirty, creditInvalid, configurationErrors = [], onReview }) {
+export function DraftWriteActions({ capabilities, doc, editId, busy, dirty, creditInvalid, configurationErrors = [], onReview, compact = false }) {
   const zeroTotal = !dirty && doc?.money?.gross_pence === '0';
+  const actionClass = compact ? 'min-h-11 w-full sm:w-auto' : 'min-h-11 w-full';
+  const ready = Boolean(doc && !dirty && !zeroTotal && configurationErrors.length === 0);
   return <>
-    {canEditDrafts(capabilities) && <Button type="submit" className="w-full" disabled={busy || creditInvalid} data-testid="button-save">{busy ? 'Working…' : editId ? 'Save changes' : 'Save draft'}</Button>}
-    {canPostDocuments(capabilities) && <Button type="button" variant="secondary" className="w-full" disabled={busy || !doc || dirty || zeroTotal || configurationErrors.length > 0} onClick={onReview} data-testid="button-post">Review & post</Button>}
+    {canEditDrafts(capabilities) && <Button type="submit" variant={ready && canPostDocuments(capabilities) ? 'outline' : 'default'} className={actionClass} disabled={busy || creditInvalid} data-testid="button-save">{busy ? 'Working…' : editId ? 'Save changes' : 'Save draft'}</Button>}
+    {canPostDocuments(capabilities) && <Button type="button" variant={ready ? 'default' : 'secondary'} className={actionClass} disabled={busy || !doc || dirty || zeroTotal || configurationErrors.length > 0} onClick={onReview} data-testid="button-post">Review & post</Button>}
     {zeroTotal && <p className="text-xs text-muted-foreground">This draft totals £0.00. Zero-value documents cannot be posted yet.</p>}
     {canEditDrafts(capabilities) && !canPostDocuments(capabilities) && <p className="text-xs text-muted-foreground">You can prepare this draft. An owner or accountant must review and post it.</p>}
   </>;
 }
 
 export function DiscountEditor({ value, onChange, priceBasis, adjustment = false, disabled = false }) {
+  const [expanded, setExpanded] = useState(false);
   const type = value?.type ?? (adjustment ? 'percentage' : 'none');
   const includingVat = adjustment || priceBasis === 'including_vat';
+  if (!adjustment && type === 'none' && !expanded) return <Button type="button" variant="outline" className="min-h-11" disabled={disabled} onClick={() => setExpanded(true)}>Add a discount (optional)</Button>;
   return <section className="workspace-card space-y-4 p-6" aria-label={adjustment ? 'Discount adjustment' : 'Document discount'}>
     <div><h2 className="font-semibold">{adjustment ? 'Discount adjustment' : 'Discount'}</h2><p className="mt-1 text-sm text-muted-foreground">{adjustment ? 'Prepare a credit against the original document. A percentage uses its original total including VAT, not the remaining balance.' : 'Optional discount across this document. VAT and line amounts are recalculated when you save.'}</p></div>
     <div className="grid gap-4 sm:grid-cols-2"><div><Label htmlFor="discount-type">Discount type</Label><select id="discount-type" className="mt-1.5 w-full rounded-md border bg-background p-2.5 text-sm" disabled={disabled} value={type}
-      onChange={event => onChange(event.target.value === 'none' ? null : { ...value, type: event.target.value, value: value?.value ?? '' })}>
+      onChange={event => { if (event.target.value === 'none') setExpanded(false); onChange(event.target.value === 'none' ? null : { ...value, type: event.target.value, value: value?.value ?? '' }); }}>
       {!adjustment && <option value="none">None</option>}<option value="percentage">Percentage (%)</option><option value="amount">Fixed amount (£)</option>
     </select></div>
       {type !== 'none' && <div><Label htmlFor="discount-value">{type === 'percentage' ? 'Discount percentage' : `Discount amount (${includingVat ? 'including VAT' : 'before VAT'})`}</Label><Input id="discount-value" className="mt-1.5" inputMode="decimal" required disabled={disabled} value={value?.value ?? ''} onChange={event => onChange({ ...value, type, value: event.target.value })} /></div>}

@@ -19,6 +19,12 @@ export function initialPeriod(now = new Date()) {
   return { from: `${now.getUTCFullYear()}-${String(Math.floor(now.getUTCMonth() / 3) * 3 + 1).padStart(2, '0')}-01`, to: now.toISOString().slice(0, 10) };
 }
 
+/** Explicit empty/malformed URL dates stay visible for validation, never silently reset. */
+export function periodFromParams(params, now = new Date()) {
+  const initial = initialPeriod(now);
+  return { from: params.has('from') ? params.get('from') : initial.from, to: params.has('to') ? params.get('to') : initial.to };
+}
+
 export function periodError(from, to) {
   if (!validDate(from) || !validDate(to)) return 'Enter valid start and end dates between 1900 and 9999.';
   if (from > to) return 'The start date must be on or before the end date.';

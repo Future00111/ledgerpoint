@@ -8,6 +8,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StatusPill, SettlementPill, Money, ErrorBox, SkeletonRows, JournalLink } from '@/components/accounting/AccountingUI';
 import { canEditDrafts, documentActionLabel } from '@/features/documentDiscounts/model.mjs';
+import PageHeader from '@/components/workspace/PageHeader';
+import EmptyState from '@/components/workspace/EmptyState';
+
+export function DocumentStatusFilters({ tabs, filter, counts, title, onChange }) {
+  return <div className="flex flex-wrap gap-2 border-b p-4" role="group" aria-label={`${title} status`}>
+    {tabs.map(([value, label]) => <Button key={value} type="button" variant={filter === value ? 'secondary' : 'outline'} className="min-h-11" aria-pressed={filter === value} data-testid={`tab-${value}`} onClick={() => onChange(value)}>{label}<span className="rounded-md bg-muted px-1.5 py-0.5 text-xs">{counts[value] ?? '—'}</span></Button>)}
+  </div>;
+}
+
+export function MobileDocumentCards({ docs, kind, capabilities, remaining, ledgerLoading }) {
+  const meta = KINDS[kind];
+  return <div className="divide-y border-t lg:hidden" aria-label={`${meta.plural} list`}>{docs.map(doc => {
+    const item = remaining(doc);
+    return <article key={doc.id} className="space-y-4 p-5" data-testid={`card-doc-${doc.id}`}>
+      <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="break-words font-semibold"><Link className="text-primary hover:underline" to={docPath(kind, doc.id)}>{doc.source?.invoice_number || 'Untitled'}</Link></h2><p className="mt-1 break-words text-sm">{doc.party_name || '—'}</p>{doc.source?.reference && <p className="mt-1 break-words text-sm text-muted-foreground">{doc.source.reference}</p>}</div>{!meta.credit && item ? <SettlementPill item={item} /> : <StatusPill status={doc.status} />}</div>
+      <dl className="grid grid-cols-2 gap-3 text-sm"><div><dt className="text-muted-foreground">Date</dt><dd className="mt-1">{doc.source?.issue_date || '—'}</dd></div><div><dt className="text-muted-foreground">Total</dt><dd className="mt-1 font-medium"><Money value={doc.money?.gross_pence} /></dd></div>{!meta.credit && <><div><dt className="text-muted-foreground">Due</dt><dd className="mt-1">{doc.source?.due_date || '—'}</dd></div><div><dt className="text-muted-foreground">Still due</dt><dd className="mt-1 font-semibold">{doc.status !== 'posted' ? 'Not posted' : item ? <Money value={item.open_minor} /> : ledgerLoading ? 'Loading…' : 'Unavailable'}</dd></div><div><dt className="text-muted-foreground">Paid</dt><dd className="mt-1"><Money value={item?.paid_minor} /></dd></div><div><dt className="text-muted-foreground">Credited</dt><dd className="mt-1"><Money value={item?.credited_minor} /></dd></div></>}</dl>
+      <Button asChild variant="outline" className="min-h-11 w-full"><Link to={docPath(kind, doc.id)}>{documentActionLabel(doc.status, capabilities)}</Link></Button>
+    </article>;
+  })}</div>;
+}
 
 export default function AccountingDocumentList({ kind, legacyLink }) {
   const { activeCompany } = useCompany();
@@ -60,28 +80,31 @@ function CompanyDocumentList({ kind, legacyLink, activeCompany }) {
   const title = {sales_invoice:'Invoices',purchase_bill:'Bills',sales_credit_note:'Customer credits',supplier_credit_note:'Supplier credits'}[kind];
   return (
     <div className="workspace-page">
-      <header className="page-heading">
-        <div><span className="eyebrow">{meta.section}</span><h1 className="mt-2">{title}</h1><p>{meta.credit ? 'Every credit, clearly linked to its original document.' : kind === 'sales_invoice' ? 'Keep track of your sales and what customers owe you.' : 'Keep purchases organised and see what needs paying.'}</p></div>
-        <div className="flex flex-wrap gap-2">
-          {legacyLink && <Button variant="ghost" asChild><Link to={legacyLink} data-testid="link-legacy">Earlier drafts</Link></Button>}
-          {canEdit && <Button asChild><Link to={`${meta.path}/new`} data-testid="button-new-doc"><Plus />New {kind==='purchase_bill' ? 'bill' : kind==='sales_invoice' ? 'invoice' : 'credit note'}</Link></Button>}
-        </div>
-      </header>
+      <PageHeader eyebrow={meta.section} title={title}
+        description={meta.credit ? 'Every credit, clearly linked to its original document.' : kind === 'sales_invoice' ? 'Keep track of your sales and what customers owe you.' : 'Keep purchases organised and see what needs paying.'}
+        actions={<>
+          {legacyLink && <Button variant="ghost" asChild className="min-h-11"><Link to={legacyLink} data-testid="link-legacy">Earlier drafts</Link></Button>}
+          {canEdit && meta.party === 'supplier' && <Button variant="outline" asChild className="min-h-11"><Link to="/documents">Upload supplier files</Link></Button>}
+          {canEdit && <Button asChild className="min-h-11"><Link to={`${meta.path}/new`} data-testid="button-new-doc"><Plus />New {kind==='purchase_bill' ? 'bill' : kind==='sales_invoice' ? 'invoice' : 'credit note'}</Link></Button>}
+        </>} />
       {!meta.credit && <section className="grid gap-4 sm:grid-cols-3" aria-label="Document balances">
-        {[['awaiting',kind === 'sales_invoice' ? 'Outstanding invoices' : 'Outstanding bills','Total still to be paid'],['overdue','Overdue','Past the payment due date'],['draft','Drafts','Not yet included in your accounts']].map(([key,label,detail]) => <button key={key} type="button" onClick={()=>setFilter(key)} className={`workspace-card p-5 text-left transition-colors hover:border-primary/40 ${filter===key ? 'border-primary/40' : ''}`}><p className="flex items-center justify-between text-sm text-muted-foreground">{label}<ArrowUpRight className="h-4 w-4" /></p><p className={`metric-value ${key==='overdue' ? 'text-amber-800' : ''}`}>{!docs ? '—' : key==='draft' ? docs.filter(d=>d.status==='draft').length : <Money value={sumOpen(key)} />}</p><p className="mt-2 text-xs text-muted-foreground">{detail}</p></button>)}
+        {[['awaiting',kind === 'sales_invoice' ? 'Outstanding invoices' : 'Outstanding bills','Total still to be paid'],['overdue','Overdue','Past the payment due date'],['draft','Drafts','Not yet included in your accounts']].map(([key,label,detail]) => <button key={key} type="button" aria-pressed={filter === key} onClick={()=>setFilter(key)} className={`workspace-card p-5 text-left transition-colors hover:border-primary/40 ${filter===key ? 'border-primary/40' : ''}`}><p className="flex items-center justify-between text-sm text-muted-foreground">{label}<ArrowUpRight className="h-4 w-4" /></p><p className={`metric-value ${key==='overdue' ? 'text-amber-800' : ''}`}>{!docs ? '—' : key==='draft' ? docs.filter(d=>d.status==='draft').length : <Money value={sumOpen(key)} />}</p><p className="mt-2 text-xs text-muted-foreground">{detail}</p></button>)}
       </section>}
       <ErrorBox error={error} onRetry={() => load()} />
       {accessError && <p role="status" className="text-sm text-muted-foreground">Editing permissions could not be verified. You can still view documents; retry to enable permitted actions.</p>}
       {accessError && <Button type="button" variant="outline" onClick={() => load()}>Retry permissions</Button>}
       {!meta.credit && <ErrorBox error={ledger.error} onRetry={ledger.refresh} />}
       <section className="workspace-card overflow-hidden" aria-label={title}>
-        <div className="document-tabs" role="tablist" aria-label={`${title} status`}>
-          {tabs.map(([f,label]) => <button key={f} type="button" role="tab" aria-selected={filter===f} data-testid={`tab-${f}`} onClick={()=>setFilter(f)}>{label}<span className={`ml-2 rounded-md px-1.5 py-0.5 text-[11px] ${filter===f ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>{!docs || (!meta.credit && !['all','draft'].includes(f) && (ledger.loading || ledger.error)) ? '—' : searched.filter(d=>matches(d,f)).length}</span></button>)}
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 p-5"><div className="relative w-full sm:max-w-sm"><Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input aria-label={`Search ${meta.plural.toLowerCase()}`} placeholder="Search name, number or reference…" value={search} onChange={e=>setSearch(e.target.value)} className="bg-white pl-9" /></div><span className="text-xs text-muted-foreground">{docs ? `${shown.length} ${shown.length===1 ? 'document' : 'documents'}` : 'Loading…'}</span></div>
+        <DocumentStatusFilters tabs={tabs} filter={filter} title={title} onChange={setFilter}
+          counts={Object.fromEntries(tabs.map(([value]) => [value, !docs || (!meta.credit && !['all', 'draft'].includes(value) && (ledger.loading || ledger.error)) ? null : searched.filter(doc => matches(doc, value)).length]))} />
+        <div className="flex flex-wrap items-center justify-between gap-3 p-5"><div className="relative w-full sm:max-w-sm"><Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input aria-label={`Search ${meta.plural.toLowerCase()}`} placeholder="Search name, number or reference…" value={search} onChange={e=>setSearch(e.target.value)} className="min-h-11 bg-background pl-9" /></div><span className="text-xs text-muted-foreground">{docs ? `${shown.length} ${shown.length===1 ? 'document' : 'documents'}` : 'Loading…'}</span></div>
         {!docs && !error && <div className="p-5"><SkeletonRows /></div>}
-        {docs && shown.length === 0 && (meta.credit || !ledger.loading) && <div className="flex flex-col items-center border-t px-6 py-16 text-center"><span className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-muted"><FileText className="h-6 w-6 text-muted-foreground" /></span><h2 className="font-medium">{search || filter!=='all' ? 'Nothing matches this view' : `Your ${title.toLowerCase()} will appear here`}</h2><p className="mt-2 max-w-sm text-sm text-muted-foreground">{search || filter!=='all' ? 'Try another search or choose a different status.' : 'Create your first draft. You can review it before posting it to your accounts.'}</p>{canEdit && !search && filter==='all' && <Button variant="outline" className="mt-5" asChild><Link to={`${meta.path}/new`}>Create a draft</Link></Button>}</div>}
-        {shown.length>0 && <div className="overflow-x-auto"><table className="workspace-table">
+        {docs && shown.length === 0 && (meta.credit || !ledger.loading) && <EmptyState icon={FileText}
+          title={search || filter !== 'all' ? 'Nothing matches this view' : `Your ${title.toLowerCase()} will appear here`}
+          description={search || filter !== 'all' ? 'Try another search or choose a different status.' : 'Create your first draft. You can review it before posting it to your accounts.'}
+          action={search || filter !== 'all' ? <Button type="button" variant="outline" className="min-h-11" onClick={() => { setSearch(''); setFilter('all'); }}>Show all documents</Button> : canEdit && <Button variant="outline" asChild className="min-h-11"><Link to={`${meta.path}/new`}>Create a draft</Link></Button>} />}
+        {shown.length > 0 && <MobileDocumentCards docs={shown} kind={kind} capabilities={capabilities} remaining={remaining} ledgerLoading={ledger.loading} />}
+        {shown.length>0 && <div className="hidden overflow-x-auto lg:block"><table className="workspace-table">
           <thead><tr><th>Document</th><th className="capitalize">{meta.party}</th><th>Date / due</th><th>Status</th><th className="text-right">Total</th>{!meta.credit && <><th className="text-right">Paid</th><th className="text-right">Credited</th><th className="text-right">Still due</th></>}<th><span className="sr-only">Open document</span></th></tr></thead>
           <tbody>{shown.map(d=><tr key={d.id} data-testid={`row-doc-${d.id}`}>
             <td><Link className="whitespace-nowrap font-medium text-primary hover:underline" to={docPath(kind,d.id)}>{d.source?.invoice_number || 'Untitled'}</Link>{d.source?.reference && <p className="mt-1 max-w-[160px] truncate text-xs text-muted-foreground">{d.source.reference}</p>}</td>

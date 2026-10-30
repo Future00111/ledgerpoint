@@ -19,18 +19,18 @@ export default function Breadcrumbs() {
   }
 
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground py-1">
+    <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 overflow-hidden py-1 text-sm text-muted-foreground">
       {crumbs.map((c, i) => {
         const last = i === crumbs.length - 1;
         return (
           <React.Fragment key={i}>
-            {i > 0 && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />}
+            {i > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" aria-hidden="true" />}
             {c.path && !last ? (
-              <Link to={c.path} className="hover:text-foreground transition-colors">
+              <Link to={c.path} className="inline-flex min-h-11 shrink-0 items-center rounded-md hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 {c.label}
               </Link>
             ) : (
-              <span className={last ? 'text-foreground font-medium' : ''}>{c.label}</span>
+              <span aria-current={last ? 'page' : undefined} className={last ? 'truncate font-medium text-foreground' : 'hidden shrink-0 lg:inline'}>{c.label}</span>
             )}
           </React.Fragment>
         );

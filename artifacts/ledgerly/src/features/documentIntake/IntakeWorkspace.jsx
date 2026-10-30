@@ -1,29 +1,43 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { documentIntake } from '@/api/documentIntake.mjs';
 import { Button } from '@/components/ui/button';
 import { ErrorBox, SkeletonRows } from '@/components/accounting/AccountingUI';
-import { ACCEPTED_FILES, capturePath, readCaptureFile, validateBatch, validateCaptureFile } from './model.mjs';
-import { SourceCard, RequestedSource } from './SourceFiles';
+import { ACCEPTED_FILES, readCaptureFile, validateBatch, validateCaptureFile } from './model.mjs';
+import { SourceCard, RequestedSource, SourceActions } from './SourceFiles';
 import { useIntakeSources } from './useDocumentIntake';
+import { Input } from '@/components/ui/input';
+import PageHeader from '@/components/workspace/PageHeader';
+import EmptyState from '@/components/workspace/EmptyState';
+import { filterSources } from './presentation.mjs';
 
 export function UploadQueue({ items, canManage, onRetry, onRemove }) {
   if (!items.length) return null;
-  return <section aria-label="Upload queue" className="rounded-xl border p-4"><h2 className="font-semibold">Upload queue</h2><ul className="mt-2 divide-y">{items.map(item => <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div className="min-w-0 flex-1"><p className="break-words text-sm font-medium">{item.file.name}</p><p className="mt-1 text-xs text-muted-foreground" role="status">{item.status === 'queued' ? 'Waiting to upload' : item.status === 'reading' ? `Reading file · ${item.progress}%` : item.status === 'uploading' ? 'Uploading file…' : item.status === 'done' ? item.duplicate ? 'Already uploaded · existing source retained' : 'Uploaded · ready to prepare' : item.error}</p>{['reading', 'uploading'].includes(item.status) && <progress aria-label={`Upload progress for ${item.file.name}`} className="mt-2 h-2 w-full max-w-xs" max="100" {...(item.status === 'reading' ? { value: item.progress } : {})} />}</div><div className="flex gap-2">{item.source && <Button asChild size="sm" variant="outline"><Link to={capturePath(item.source)}>{item.source.document_id ? 'Open linked document' : 'Open source'}</Link></Button>}{item.status === 'error' && item.retryable && canManage && <Button type="button" size="sm" variant="outline" onClick={() => onRetry(item.id)}>Retry upload</Button>}{['done', 'error'].includes(item.status) && <Button type="button" size="sm" variant="ghost" onClick={() => onRemove(item.id)} aria-label={`Remove ${item.file.name} from queue`}>Clear</Button>}</div></li>)}</ul></section>;
+  return <section aria-label="Upload queue" className="rounded-xl border p-4"><h2 className="font-semibold">Upload queue</h2><ul className="mt-2 divide-y">{items.map(item => <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div className="min-w-0 flex-1"><p className="break-words text-sm font-medium">{item.file.name}</p><p className="mt-1 text-xs text-muted-foreground" role="status">{item.status === 'queued' ? 'Waiting to upload' : item.status === 'reading' ? `Reading file · ${item.progress}%` : item.status === 'uploading' ? 'Uploading file…' : item.status === 'done' ? item.duplicate ? 'Already uploaded · existing source retained' : 'Uploaded · ready to prepare' : item.error}</p>{['reading', 'uploading'].includes(item.status) && <progress aria-label={`Upload progress for ${item.file.name}`} className="mt-2 h-2 w-full max-w-xs" max="100" {...(item.status === 'reading' ? { value: item.progress } : {})} />}</div><div className="flex flex-wrap gap-2">{item.source && <SourceActions source={item.source} canManage={canManage} compact />}{item.status === 'error' && item.retryable && canManage && <Button type="button" size="sm" variant="outline" className="min-h-11" onClick={() => onRetry(item.id)}>Retry upload</Button>}{['done', 'error'].includes(item.status) && <Button type="button" size="sm" variant="ghost" className="min-h-11" onClick={() => onRemove(item.id)} aria-label={`Remove ${item.file.name} from queue`}>Clear</Button>}</div></li>)}</ul></section>;
 }
 
 export function IntakeWorkspaceView({ companyId, state, items, batchError, onSelect, onRetry, onRemove, highlighted }) {
   const canManage = state.data?.can_manage === true && !state.error;
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('all');
+  const sources = state.data?.sources ?? [];
+  const visibleSources = filterSources(sources, search, status);
+  const selectedSource = sources.find(source => source.id === highlighted);
   const active = items.some(item => ['queued', 'reading', 'uploading'].includes(item.status));
   return <div className="space-y-5">
-    <header className="page-heading"><div><p className="eyebrow">Documents</p><h1>Invoices & credits, ready to prepare</h1><p>Keep each supplier file with the bill or credit you prepare from it.</p></div></header>
+    <PageHeader eyebrow="Purchases · Documents" title="Your document inbox" description="Upload supplier invoices and credits, then prepare their accounting drafts." />
     <section className="workspace-card space-y-4 p-5" aria-label="Upload supplier files"><div><h2 className="font-semibold">Add invoices and supplier credits</h2><p className="mt-1 text-sm text-muted-foreground">PDF, JPG or PNG · up to 5 MiB per file · up to 10 files in the queue. Files upload one at a time.</p></div><p className="rounded-lg bg-muted/50 p-3 text-sm">Automatic extraction: not connected. Email intake: not connected. Upload a file, then enter and review its details in the native bill or supplier credit form.</p>
       {canManage ? <label className="block text-sm font-medium">Choose source files<input type="file" multiple accept={ACCEPTED_FILES} disabled={active} className="mt-2 block w-full rounded-lg border p-3 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground" onChange={event => { onSelect(Array.from(event.target.files || [])); event.target.value = ''; }} /></label> : <p className="text-sm text-muted-foreground">{state.loading ? 'Checking upload permissions…' : state.error ? 'Upload permissions could not be verified. Retry below.' : 'You can view source files. Uploading and preparing drafts require editing permission.'}</p>}
       {batchError && <p role="alert" className="text-sm text-destructive">{batchError}</p>}
     </section>
     <UploadQueue items={items} canManage={canManage} onRetry={onRetry} onRemove={onRemove} />
-    {highlighted && !state.data?.sources?.some(source => source.id === highlighted) && <RequestedSource key={`${companyId}:${highlighted}`} companyId={companyId} sourceId={highlighted} />}
-    <section className="space-y-3" aria-label="Native source files"><div className="flex items-center justify-between gap-3"><div><h2 className="font-semibold">Source files</h2><p className="mt-1 text-xs text-muted-foreground">Latest 100 uploads. An older source opens directly from its capture link.</p></div><Button type="button" variant="ghost" size="sm" disabled={state.loading} onClick={state.refresh}>Refresh</Button></div><ErrorBox error={state.error} onRetry={state.refresh} />{state.loading && !state.data ? <SkeletonRows rows={3} /> : state.data?.sources?.length ? state.data.sources.map(source => <SourceCard key={source.id} companyId={companyId} source={source} canManage={canManage} highlighted={source.id === highlighted} />) : !state.error && <p className="rounded-xl border p-8 text-center text-sm text-muted-foreground">No source files yet. Upload a supplier invoice or credit to get started.</p>}</section>
+    {highlighted && !visibleSources.some(source => source.id === highlighted) && (selectedSource ? <SourceCard companyId={companyId} source={selectedSource} canManage={canManage} highlighted /> : <RequestedSource key={`${companyId}:${highlighted}`} companyId={companyId} sourceId={highlighted} />)}
+    <section className="space-y-4" aria-label="Native source files">
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold">Source files</h2><p className="mt-1 text-sm text-muted-foreground">Latest 100 uploads. An older source opens directly from its capture link.</p></div><Button type="button" variant="outline" className="min-h-11" disabled={state.loading} onClick={state.refresh}>Refresh</Button></div>
+      <div className="flex flex-wrap items-center gap-3"><Input aria-label="Search source filenames" placeholder="Find a file by name…" className="min-h-11 sm:max-w-sm" value={search} onChange={event => setSearch(event.target.value)} /><div role="group" aria-label="Source file status" className="flex flex-wrap gap-2">{[['all', 'All files'], ['prepare', 'Needs preparing'], ['linked', 'Linked documents']].map(([value, label]) => <Button key={value} type="button" variant={status === value ? 'secondary' : 'outline'} className="min-h-11" aria-pressed={status === value} onClick={() => setStatus(value)}>{label}</Button>)}</div></div>
+      <ErrorBox error={state.error} onRetry={state.refresh} />
+      {state.loading && !state.data ? <SkeletonRows rows={3} /> : visibleSources.length ? visibleSources.map(source => <SourceCard key={source.id} companyId={companyId} source={source} canManage={canManage} highlighted={source.id === highlighted} />) : !state.error && <div className="workspace-card"><EmptyState title={sources.length ? 'No files match this view' : 'Your supplier files will appear here'} description={sources.length ? 'Try another filename or status.' : 'Upload a supplier invoice or credit to get started.'} action={sources.length ? <Button type="button" variant="outline" onClick={() => { setSearch(''); setStatus('all'); }}>Show all files</Button> : null} /></div>}
+    </section>
   </div>;
 }
 

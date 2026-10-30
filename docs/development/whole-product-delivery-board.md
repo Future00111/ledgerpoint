@@ -54,6 +54,15 @@ belong in PR 27; local checks alone do not establish those results.
 The reviewed next accounting contract is
 [posted document corrections](posted-document-corrections.md).
 
+Capture/recovery integration is now verified at `92cb24c`: GitHub run
+`41101741030` passed all 306 source checks and 43 disposable PostgreSQL tests,
+full build/typecheck and cleanup. The owner then prioritised whole-product
+look and usability. The coordinated follow-up is
+[the usability wave](usability-wave.md): shell/dashboard, documents/capture,
+payments/statements and reports/VAT in four isolated worktrees. It preserves
+the existing accounting contracts while reducing navigation and scrolling,
+improving mobile/keyboard access and preventing stale report display/export.
+
 ## What exists and what remains
 
 “Implemented” below means source and relevant tests exist, not that this commit

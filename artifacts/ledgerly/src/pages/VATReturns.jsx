@@ -1,8 +1,10 @@
 import VatWorkingsPanel from '@/components/accounting/VatWorkingsPanel';
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
+import PageHeader from '@/components/workspace/PageHeader';
+import { ErrorBox } from '@/components/accounting/AccountingUI';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +33,9 @@ const STATUS_LABELS = {
 
 function CompanyVATReturns({ activeCompany }) {
   const [returns, setReturns] = useState([]);
+  const [loadError, setLoadError] = useState(null);
+  const alive = useRef(false), loadVersion = useRef(0);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; loadVersion.current++; }; }, []);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -43,27 +48,30 @@ function CompanyVATReturns({ activeCompany }) {
   useEffect(() => { if (activeCompany) loadReturns(); }, [activeCompany]);
 
   const loadReturns = async () => {
-    setLoading(true);
+    const version = ++loadVersion.current;
+    setLoading(true); setLoadError(null);
     try {
       const [list, vatOverview] = await Promise.all([
         nativeEntities.VATReturn.filter({ company_id: activeCompany.id }, '-period_start', 50),
         aiApi.vatOverview(activeCompany.id),
       ]);
+      if (!alive.current || version !== loadVersion.current) return;
       setReturns(list);
       setOverview(vatOverview);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+    } catch (e) { if (alive.current && version === loadVersion.current) { setReturns([]); setOverview(null); setLoadError(new Error('Historical VAT records could not be loaded. Please retry.')); } }
+    finally { if (alive.current && version === loadVersion.current) setLoading(false); }
   };
 
   const handleCreate = async (form) => {
     setCreating(true);
     try {
       const result = await aiApi.createVatReturn(activeCompany.id, form.period_start, form.period_end);
+      if (!alive.current) return;
       const created = result.vat_return;
       toast({ title: 'Legacy VAT record created' });
       setFormOpen(false);
       navigate(`/vat/${created.id}`);
-    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
+    } catch (e) { if (alive.current) toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
     finally { setCreating(false); }
   };
 
@@ -71,18 +79,19 @@ function CompanyVATReturns({ activeCompany }) {
     setRefreshing(true);
     try {
       const result = await aiApi.refreshVatReview(activeCompany.id, overview?.period?.start, overview?.period?.end);
+      if (!alive.current) return;
       setOverview(result);
       toast({ title: 'VAT review refreshed', description: 'No accounting records were changed.' });
     } catch (e) {
-      toast({ title: 'Could not refresh VAT review', description: e.message, variant: 'destructive' });
+      if (alive.current) toast({ title: 'Could not refresh VAT review', description: e.message, variant: 'destructive' });
     } finally { setRefreshing(false); }
   };
 
   if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <header><h1 className="text-2xl font-semibold tracking-tight">VAT preparation</h1><p className="mt-1 text-sm text-muted-foreground">Review posted figures and trace them back to your documents.</p></header>
+    <div className="workspace-page">
+      <PageHeader eyebrow="Tax preparation" title="VAT preparation" description="Review posted figures and trace them back to your documents." context={<span className="font-medium">{activeCompany.name}</span>} actions={<Button asChild variant="outline"><Link to="/reports">All reports</Link></Button>} />
       <VatWorkingsPanel />
       <details className="rounded-2xl border bg-card p-4 sm:p-5" data-testid="section-historical-vat">
       <summary className="cursor-pointer font-semibold">Historical VAT returns and settings <span className="ml-2 text-xs font-normal text-muted-foreground">Legacy records · expand to view</span></summary>
@@ -125,7 +134,8 @@ function CompanyVATReturns({ activeCompany }) {
         </div>
       )}
 
-      {loading ? (
+      <ErrorBox error={loadError} onRetry={loadReturns} />
+      {loadError ? null : loading ? (
         <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
       ) : returns.length === 0 ? (
         <Card className="border-0 shadow-sm">
@@ -138,7 +148,7 @@ function CompanyVATReturns({ activeCompany }) {
       ) : (
         <div className="grid gap-2">
           {returns.map(r => (
-            <Card key={r.id} className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/vat/${r.id}`)}>
+            <Link key={r.id} to={`/vat/${r.id}`} className="block rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"><Card className="border shadow-sm hover:border-primary/40 transition-colors">
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -158,7 +168,7 @@ function CompanyVATReturns({ activeCompany }) {
                   <p className={`text-lg font-bold ${Number(r.box5_net_vat_due) >= 0 ? 'text-blue-600' : 'text-emerald-600'}`}>{formatCurrency(Math.abs(Number(r.box5_net_vat_due) || 0))}</p>
                 </div>
               </CardContent>
-            </Card>
+            </Card></Link>
           ))}
         </div>
       )}

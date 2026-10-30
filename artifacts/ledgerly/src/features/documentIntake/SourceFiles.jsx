@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/button';
 import { ErrorBox, SkeletonRows } from '@/components/accounting/AccountingUI';
 import { capturePath, prepareCapturePath } from './model.mjs';
 import { useIntakeSources } from './useDocumentIntake';
+import { sourceOpenPath } from './presentation.mjs';
+
+export function SourceActions({ source, canManage, compact = false }) {
+  if (source.document_id) return <Button asChild variant="outline" size="sm" className="min-h-11"><Link to={sourceOpenPath(source)}>Open linked document</Link></Button>;
+  if (!canManage) return compact ? <Button asChild variant="outline" size="sm" className="min-h-11"><Link to={capturePath(source)}>Open source</Link></Button> : <p className="text-sm text-muted-foreground">You can view this source. Preparing a draft requires editing permission.</p>;
+  return <><Button asChild size="sm" className="min-h-11"><Link to={prepareCapturePath('purchase_bill', source.id)}>Prepare bill</Link></Button><Button asChild variant="outline" size="sm" className="min-h-11"><Link to={prepareCapturePath('supplier_credit_note', source.id)}>Prepare supplier credit</Link></Button></>;
+}
 
 export function SourceDownload({ companyId, source }) {
   const [state, setState] = useState({ busy: false, error: null });
@@ -26,13 +33,13 @@ export function SourceDownload({ companyId, source }) {
       setState({ busy: false, error: null });
     } catch (error) { if (!request.signal.aborted && latest.current === key) setState({ busy: false, error }); }
   };
-  return <div><Button type="button" variant="outline" size="sm" onClick={download} disabled={state.busy} aria-label={`Download source file ${source.filename}`}>{state.busy ? 'Downloading…' : 'Download source file'}</Button>{state.error && <p role="alert" className="mt-1 text-xs text-destructive">{state.error.message}</p>}</div>;
+  return <div><Button type="button" variant="outline" size="sm" className="min-h-11" onClick={download} disabled={state.busy} aria-label={`Download source file ${source.filename}`}>{state.busy ? 'Downloading…' : 'Download source file'}</Button>{state.error && <p role="alert" className="mt-1 text-xs text-destructive">{state.error.message}</p>}</div>;
 }
 
 export function SourceCard({ source, companyId, canManage = false, highlighted = false, compact = false }) {
   return <article id={`capture-${source.id}`} className={`rounded-xl border p-4 ${highlighted ? 'border-primary bg-primary/5' : 'bg-card'}`} aria-label={`Source file ${source.filename}`}>
     <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><h3 className="break-words font-medium">{source.filename}</h3><p className="mt-1 text-xs text-muted-foreground">{source.media_type} · {Math.ceil(source.byte_length / 1024)} KiB{source.created_at ? ` · ${new Date(source.created_at).toLocaleDateString('en-GB')}` : ''}</p><p className="mt-1 text-sm text-muted-foreground">{source.document_id ? 'Linked to an accounting document' : 'Uploaded · ready for manual entry'}</p></div><SourceDownload companyId={companyId} source={source} /></div>
-    {!compact && <div className="mt-4 flex flex-wrap gap-2">{source.document_id ? <Button asChild variant="outline" size="sm"><Link to={capturePath(source)}>Open linked document</Link></Button> : canManage ? <><Button asChild size="sm"><Link to={prepareCapturePath('purchase_bill', source.id)}>Prepare bill</Link></Button><Button asChild variant="outline" size="sm"><Link to={prepareCapturePath('supplier_credit_note', source.id)}>Prepare supplier credit</Link></Button></> : <p className="text-xs text-muted-foreground">You can view this source. Preparing a draft requires editing permission.</p>}</div>}
+    {!compact && <div className="mt-4 flex flex-wrap gap-2"><SourceActions source={source} canManage={canManage} /></div>}
   </article>;
 }
 

@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --background: 45 20% 97%;
+    --background: 210 25% 98%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
@@ -22,7 +22,7 @@
     --accent-foreground: 222 47% 11%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 210 16% 88%;
+    --border: 214 22% 89%;
     --input: 210 16% 83%;
     --ring: 166 72% 27%;
     --chart-1: 221 83% 53%;
@@ -30,7 +30,7 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     --font-heading: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -92,6 +92,16 @@
 /* Ledgerly workspace: a quiet canvas, clear action hierarchy and readable figures. */
 @layer components {
   .workspace-page { @apply mx-auto w-full max-w-[1440px] space-y-6 pb-10; }
+  .workspace-heading { @apply flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between; }
+  .workspace-eyebrow { @apply mb-2 text-xs font-medium tracking-wide text-primary; }
+  .workspace-title { @apply text-2xl font-semibold leading-tight tracking-tight sm:text-3xl; }
+  .workspace-description { @apply mt-2 max-w-2xl text-sm leading-6 text-muted-foreground; }
+  .workspace-heading-actions { @apply flex shrink-0 flex-wrap items-center gap-2 sm:pt-1; }
+  .workspace-heading-actions > button, .workspace-heading-actions > a { @apply min-h-11; }
+  .workspace-toolbar { @apply flex flex-col gap-3 rounded-xl border bg-card p-3 sm:flex-row sm:flex-wrap sm:items-center sm:p-4; }
+  .workspace-actionbar { @apply flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3 shadow-sm sm:p-4; }
+  .workspace-actionbar button, .workspace-actionbar a { @apply min-h-11; }
+  .workspace-page a:focus-visible { @apply rounded-sm outline outline-2 outline-offset-4 outline-primary; }
   .page-heading { @apply flex flex-wrap items-center justify-between gap-4; }
   .page-heading h1 { @apply text-2xl font-semibold tracking-tight sm:text-3xl; }
   .page-heading p { @apply mt-2 text-sm text-muted-foreground; }
@@ -100,7 +110,7 @@
   .metric-value { @apply mt-3 text-3xl font-semibold tracking-tight tabular-nums; }
   .document-tabs { @apply flex gap-6 overflow-x-auto border-b px-5; }
   .document-tabs button { @apply shrink-0 border-b-2 border-transparent py-4 text-sm font-medium text-muted-foreground; }
-  .document-tabs button[aria-selected="true"] { @apply border-primary text-primary; }
+  .document-tabs button[aria-selected="true"], .document-tabs button[aria-pressed="true"] { @apply border-primary text-primary; }
   .document-tabs button:focus-visible { @apply outline outline-2 outline-offset-[-4px] outline-primary; }
   .workspace-table { @apply w-full text-left text-sm; }
   .workspace-table th { @apply whitespace-nowrap border-y bg-muted/40 px-5 py-3 text-xs font-medium text-muted-foreground; }

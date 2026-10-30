@@ -19,6 +19,9 @@ import { useCaptureDraft } from '@/features/documentIntake/useDocumentIntake';
 import { CaptureSourceReview, CaptureDraftActions } from '@/features/documentIntake/CaptureReview';
 import SourceAttachments from '@/features/documentIntake/SourceFiles';
 import { displayedDocumentMoney } from '@/features/documentIntake/model.mjs';
+import { captureReturnPath, savedCapturePath } from '@/features/documentIntake/presentation.mjs';
+import DocumentProgress from '@/features/documentIntake/DocumentProgress';
+import PageHeader from '@/components/workspace/PageHeader';
 
 const blankLine = () => ({ description: '', quantity: '1', unit_price: '0', tax_code: '' });
 const blankForm = () => ({ customer_id: '', invoice_number: '', issue_date: today(), due_date: dueFromTerms(today(), '30'), payment_terms: '30', reference: '', notes: '', price_basis: 'excluding_vat', line_items: [blankLine()] });
@@ -35,6 +38,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const requestedCapture = params.get('capture');
   const editId = id && id !== 'new' ? id : undefined;
   const captureMode = Boolean(requestedCapture && !editId);
+  const sourceReturn = captureReturnPath(requestedCapture);
   const { activeCompany } = useCompany();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -190,7 +194,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
         if (creating) {
           if (!result.document?.id) throw new Error('The linked draft response could not be verified. Refresh the source before retrying.');
           toast({ title: result.duplicate ? 'Existing linked draft opened' : 'Source linked to draft', description: 'Review and post the saved draft separately.' });
-          navigate(docPath(result.document.kind || kind, result.document.id), { replace: true });
+          navigate(savedCapturePath(result.document.kind || kind, result.document.id, requestedCapture), { replace: true });
         }
         return;
       }
@@ -222,28 +226,15 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     } catch (err) { if (stillCurrent()) setError(err); } finally { if (stillCurrent()) setBusy(false); }
   };
 
-  if (posted && !loading && currentContext) return <PostedDocument doc={doc} kind={kind} company={activeCompany} journal={journal} settlement={settlement} openItem={openItem} error={error} capabilities={capabilities} />;
+  if (posted && !loading && currentContext) return <PostedDocument doc={doc} kind={kind} company={activeCompany} journal={journal} settlement={settlement} openItem={openItem} error={error} capabilities={capabilities} sourceReturn={sourceReturn} />;
 
   return (
     <form onSubmit={save} className="workspace-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{meta.section} · {meta.label}</p>
-          <h1 className="mt-1 flex items-center gap-3 text-3xl font-semibold tracking-tight">
-            {editId ? `${canEdit ? 'Edit draft' : 'View draft'} · ${form.invoice_number || meta.label}` : `New ${discountMode ? 'discount credit' : meta.label.toLowerCase()}`}
-            {doc && <StatusPill status={doc.status} />}
-          </h1>
-          {doc?.party_name && <p className="mt-1 text-sm text-muted-foreground">{doc.party_name}</p>}
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          {posted && <JournalLink id={doc.journal_id} />}
-          {posted && !meta.credit && openItem && BigInt(openItem.open_minor) > 0n && <>
-            <Button asChild variant="outline"><Link to={`${KINDS[kind === 'sales_invoice' ? 'sales_credit_note' : 'supplier_credit_note'].path}/new?original=${doc.id}`}>Create credit note</Link></Button>
-            <Button asChild><Link to={`/payments?party_type=${meta.party}&party_id=${doc.party_id}&document=${doc.id}`}>Record payment</Link></Button>
-          </>}
-          <Button type="button" variant="outline" onClick={() => navigate(meta.path)} data-testid="button-back">Back to {meta.plural.toLowerCase()}</Button>
-        </div>
-      </header>
+      <PageHeader eyebrow={`${meta.section} · ${meta.label}`}
+        title={editId ? `${canEdit ? 'Edit draft' : 'View draft'} · ${form.invoice_number || meta.label}` : `${captureMode ? 'Prepare' : 'New'} ${discountMode ? 'discount credit' : meta.label.toLowerCase()}`}
+        description={doc?.party_name || (captureMode ? 'Enter the source details, check the calculated totals, then save a linked draft.' : 'Enter the details below. You can review the saved draft before posting.')}
+        context={doc ? <StatusPill status={doc.status} /> : null}
+        actions={<Button type="button" variant="outline" className="min-h-11" onClick={() => navigate(sourceReturn || meta.path)} data-testid="button-back">{sourceReturn ? 'Back to source files' : `Back to ${meta.plural.toLowerCase()}`}</Button>} />
 
       {posted && <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">Posted to the accounts. {meta.credit ? <>This credit reduces the balance of the <Link className="underline font-medium" to={docPath(meta.original, doc.original_id)}>original {meta.original === 'sales_invoice' ? 'invoice' : 'bill'}</Link>; the original document is preserved.</> : 'The original amounts are preserved. Payments and credit notes are recorded separately below.'}</p>}
       {posted && !meta.credit && <section className="rounded-xl border bg-card p-4" aria-label="Settlement balance">
@@ -260,11 +251,18 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
           </li>)}</ul> : <p className="mt-2 text-sm text-muted-foreground">No payments or credit notes yet.</p>}
         </> : !settlement.error && <p className="mt-2 text-sm text-muted-foreground">This document is outside the current reporting date.</p>}
       </section>}
-      {!posted && <div className="flex flex-wrap items-center gap-3 border-y py-3 text-xs text-muted-foreground" aria-label="Document progress"><span className="font-medium text-primary">1 · Enter details</span><span aria-hidden="true">→</span><span className={doc && !dirty ? 'font-medium text-primary' : ''}>2 · Save draft{doc && !dirty ? ' ✓' : ''}</span><span aria-hidden="true">→</span><span>3 · Review & post</span></div>}
+      {!posted && <DocumentProgress captureMode={captureMode} reviewed={Boolean(capture.currentReview)} saved={Boolean(doc && !dirty)} />}
       <ConfigErrors errors={configErrors} />
       <ErrorBox error={error} />
       {captureMode && <CaptureSourceReview capture={capture} companyId={activeCompany.id} />}
       {!captureMode && doc && <SourceAttachments companyId={activeCompany.id} documentId={doc.id} />}
+      {!posted && (captureMode ? canEdit : canEdit || canPost) && <section id="document-actions" tabIndex={-1} className="workspace-card scroll-mt-24 space-y-3 p-4 sm:p-5" aria-label="Save and review document">
+        {captureMode ? <CaptureDraftActions capture={capture} canEdit={canEdit} invalid={creditInvalid || busy} /> : <>
+          <div className="flex flex-wrap items-center gap-3"><DraftWriteActions compact capabilities={capabilities} doc={doc} editId={editId} busy={busy} dirty={dirty} creditInvalid={creditInvalid} configurationErrors={configErrors}
+            onReview={() => { setError(null); setReview({ companyId: activeCompany.id, id: doc.id, revision: doc.revision, number: form.invoice_number, money: doc.money }); }} /></div>
+          <p className="text-sm text-muted-foreground">{doc && dirty ? 'Unsaved changes. Save to update the calculated totals before posting.' : doc ? 'Saved draft. Review and confirm posting when you are ready.' : 'Save a draft to calculate its totals. It will not affect your accounts until you post it.'}</p>
+        </>}
+      </section>}
       {!posted && !canEditDrafts(capabilities) && <p className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">You have view-only access to this draft. Editing requires permission from your company owner.</p>}
       {loading && <SkeletonRows rows={6} />}
 
@@ -294,8 +292,6 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
                 </div>
               </section>
             )}
-            {(!meta.credit || discountMode) && <DiscountEditor value={discountMode ? form.discount_adjustment : form.discount} priceBasis={form.price_basis} adjustment={discountMode} disabled={!canEdit || busy}
-              onChange={value => change(discountMode ? 'discount_adjustment' : 'discount', value)} />}
 
             <section className="workspace-card space-y-5 p-6">
               <h2 className="text-base font-semibold">Document details</h2>
@@ -336,6 +332,9 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               )}
             </section>
 
+            {(!meta.credit || discountMode) && <DiscountEditor value={discountMode ? form.discount_adjustment : form.discount} priceBasis={form.price_basis} adjustment={discountMode} disabled={!canEdit || busy}
+              onChange={value => change(discountMode ? 'discount_adjustment' : 'discount', value)} />}
+
             <section className="workspace-card space-y-5 p-6">
               <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">{discountMode ? 'Original items · reference only' : 'Items & services'}</h2>
                 {meta.credit && <span className="text-xs text-muted-foreground">{discountMode ? 'The original quantities, prices and VAT rates are retained. The saved discount determines the credit amounts below.' : 'Copied from the original. Reduce the amount or quantity, or exclude a line, for a partial credit. The original VAT basis, rate and accounts are retained.'}</span>}</div>
@@ -351,8 +350,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
           </fieldset>
 
           <aside className="flex flex-col gap-4 xl:sticky xl:top-4">
-            <div className="workspace-card order-3 p-5" data-testid="panel-accounts">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{posted ? 'Posted journal lines' : 'Accounts used'}</h2>
+            <details className="workspace-card order-3 p-5" data-testid="panel-accounts">
+              <summary className="cursor-pointer text-sm font-semibold">Accounting details</summary>
               {posted ? (
                 journal.status === 'loading' ? <SkeletonRows rows={3} />
                 : journal.status === 'error' ? <ErrorBox error={journal.error} />
@@ -376,7 +375,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               )}
               {isPurchase && !posted && vatRegistered && !extra.purchase_vat_eligible && <p className="mt-2 text-xs text-muted-foreground">Not declared recoverable: VAT is included in the purchase cost and no input VAT line is posted.</p>}
               {meta.credit && !posted && <p className="mt-2 text-xs text-muted-foreground">Uses the same accounts as the original. Offsets the outstanding balance; no cash movement.</p>}
-            </div>
+            </details>
             <div className="workspace-card order-1 p-5">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Totals</h2>
               {showTotals ? (
@@ -394,8 +393,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               <div className="order-2 space-y-2">
                 <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">Draft — not included in your P&amp;L, balance sheet, VAT workings or account balances until you review and post it.</p>
                 {creditInvalid && <p className="text-xs text-orange-800">Original, reason and effective date are required; the credit date must match the effective date and quantities cannot exceed the original.</p>}
-                {captureMode ? <CaptureDraftActions capture={capture} canEdit={canEdit} invalid={creditInvalid || busy} /> : <DraftWriteActions capabilities={capabilities} doc={doc} editId={editId} busy={busy} dirty={dirty} creditInvalid={creditInvalid} configurationErrors={configErrors}
-                  onReview={() => { setError(null); setReview({ companyId: activeCompany.id, id: doc.id, revision: doc.revision, number: form.invoice_number, money: doc.money }); }} />}
+                {(captureMode ? canEdit : canEdit || canPost) && <a href="#document-actions" className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4">Back to save and review</a>}
                 {doc && dirty && <p className="text-xs text-muted-foreground">Save changes before posting.</p>}
               </div>
             )}

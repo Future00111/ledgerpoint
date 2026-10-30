@@ -7,9 +7,13 @@ import { Money, ErrorBox, SkeletonRows } from '@/components/accounting/Accountin
 import { Button } from '@/components/ui/button';
 import { useAsk } from '@/components/ask/AskProvider';
 import CustomDashboard from './CustomDashboard';
+import PageHeader from '@/components/workspace/PageHeader';
+import EmptyState from '@/components/workspace/EmptyState';
+import DailyWork from '@/features/workspaceNavigation/DailyWork';
+import { useWorkspaceCapabilities } from '@/features/workspaceNavigation/WorkspaceCapabilities';
 
 function Metric({ label, value, detail, to, icon: Icon }) {
-  return <Link to={to} className="workspace-card group p-5 transition-colors hover:border-primary/40">
+  return <Link to={to} className="workspace-card group p-5 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
     <div className="flex items-center justify-between gap-2"><span className="text-sm text-muted-foreground">{label}</span><Icon className="h-4 w-4 text-primary" /></div>
     <p className="metric-value"><Money value={value} /></p>
     <p className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">{detail}<ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" /></p>
@@ -29,10 +33,12 @@ export default function Dashboard() {
   const custom = params.get('view') === 'custom';
   const s = useLedgerSnapshot(activeCompany?.id, undefined, undefined, !custom);
   const { openAsk } = useAsk();
-  const viewToggle = <div className="flex items-center gap-1 rounded-lg border bg-white p-1 text-sm"><button type="button" aria-pressed={!custom} className={`rounded-md px-3 py-1.5 ${!custom ? 'bg-primary/10 font-medium text-primary' : 'text-muted-foreground'}`} onClick={() => setParams({})}>Overview</button><button type="button" aria-pressed={custom} className={`flex items-center gap-2 rounded-md px-3 py-1.5 ${custom ? 'bg-primary/10 font-medium text-primary' : 'text-muted-foreground'}`} onClick={() => setParams({view:'custom'})}><SlidersHorizontal className="h-3.5 w-3.5" />My dashboard</button></div>;
+  const { permissions } = useWorkspaceCapabilities();
+  const selectView = value => setParams(previous => { const next = new URLSearchParams(previous); if (value) next.set('view', value); else next.delete('view'); return next; });
+  const viewToggle = <div className="flex items-center gap-1 rounded-lg border bg-white p-1 text-sm"><button type="button" aria-pressed={!custom} className={`min-h-11 rounded-md px-3 py-2 ${!custom ? 'bg-primary/10 font-medium text-primary' : 'text-muted-foreground'}`} onClick={() => selectView(null)}>Overview</button><button type="button" aria-pressed={custom} className={`flex items-center gap-2 min-h-11 rounded-md px-3 py-2 ${custom ? 'bg-primary/10 font-medium text-primary' : 'text-muted-foreground'}`} onClick={() => selectView('custom')}><SlidersHorizontal className="h-3.5 w-3.5" />My dashboard</button></div>;
   if (custom) return <div className="workspace-page"><div className="flex justify-end">{viewToggle}</div><CustomDashboard /></div>;
   if (loading) return <SkeletonRows />;
-  if (!activeCompany) return <div className="workspace-page"><header className="page-heading"><div><h1>Welcome to Ledgerly</h1><p>Your business, in one clear view.</p></div></header><section className="workspace-card max-w-2xl p-8"><h2 className="text-lg font-semibold">Choose a company to get started</h2><p className="mb-6 mt-2 text-sm text-muted-foreground">Open your business or create a company to start working.</p><Button asChild><Link to="/companies">Open companies</Link></Button></section></div>;
+  if (!activeCompany) return <div className="workspace-page"><PageHeader title="Welcome to Ledgerly" description="Your business, in one clear view." /><section className="workspace-card"><EmptyState icon={Wallet} title="Choose a company to get started" description="Open your business or create a company to start working." action={<Button asChild><Link to="/companies">Open companies</Link></Button>} /></section></div>;
   const d=s.data;
   const invoices=d?.open_items.filter(r=>r.kind==='sales_invoice' && BigInt(r.open_minor)>0n) ?? [];
   const bills=d?.open_items.filter(r=>r.kind==='purchase_bill' && BigInt(r.open_minor)>0n) ?? [];
@@ -40,8 +46,9 @@ export default function Dashboard() {
   const draftInvoices=d?.drafts.filter(r=>r.kind==='sales_invoice') ?? [];
   const draftBills=d?.drafts.filter(r=>r.kind==='purchase_bill') ?? [];
   return <div className="workspace-page">
-    <header className="page-heading"><div><span className="eyebrow">Your business at a glance</span><h1 className="mt-2">Overview</h1><p>{activeCompany.name}</p></div>{viewToggle}</header>
-    <div className="flex flex-wrap items-center justify-between gap-3"><p className="flex items-center gap-2 text-xs text-muted-foreground"><CalendarDays className="h-4 w-4" />Year to date · {s.from} — {s.to}</p><Button asChild><Link to="/invoices/new"><Plus />New invoice</Link></Button></div>
+    <PageHeader eyebrow="Your business at a glance" title="Overview" description={activeCompany.name} actions={viewToggle} />
+    <DailyWork />
+    <div className="flex flex-wrap items-center justify-between gap-3"><p className="flex items-center gap-2 text-xs text-muted-foreground"><CalendarDays className="h-4 w-4" />Year to date · {s.from} — {s.to}</p>{permissions.drafts && <Button asChild><Link to="/invoices/new"><Plus />New invoice</Link></Button>}</div>
     <ErrorBox error={s.error} onRetry={s.refresh} />
     {!d && !s.error && <SkeletonRows rows={5} />}
     {d && <>
