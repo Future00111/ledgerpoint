@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "revision": 4,
+  "revision": 6,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261030-2316",
     "token": "034bfc02-fe81-4d45-b6eb-9fa8ca63e771",
     "acquiredAt": 1793402275316,
-    "expiresAt": 1793404075316
+    "expiresAt": 1793404240962
   },
   "lastOwner": {
     "runId": "bootstrap-20261030",
@@ -21,11 +21,17 @@
   },
   "queueState": {
     "version": 2,
-    "revision": 2,
+    "revision": 17,
     "tasks": {
       "P01-00": {
-        "status": "pending",
-        "priority": 100
+        "status": "running",
+        "priority": 100,
+        "discoveredDependencies": [],
+        "owner": "worker1",
+        "token": "df98d191-0b29-402e-a588-f73ab8fc1d1e",
+        "leaseUntil": 1793403231508,
+        "workStarted": true,
+        "checkpoint": "refs/heads/codex/lp-hosted-2316-worker1 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits yet; isolated /workspace/scratch/6bd079311608/lp-worker1"
       },
       "P01-01": {
         "status": "pending",
@@ -52,16 +58,28 @@
         "priority": 180
       },
       "P02-01": {
-        "status": "pending",
-        "priority": 201
+        "status": "running",
+        "priority": 201,
+        "discoveredDependencies": [],
+        "owner": "worker2",
+        "token": "db04e091-32a4-4e70-9a52-a6cb1abad022",
+        "leaseUntil": 1793403240564,
+        "workStarted": true,
+        "checkpoint": "codex/lp-hosted-2316-worker2 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated worktree lp-worker2, no edits yet"
       },
       "P02-02": {
         "status": "pending",
         "priority": 202
       },
       "P02-03": {
-        "status": "pending",
-        "priority": 203
+        "status": "running",
+        "priority": 203,
+        "discoveredDependencies": [],
+        "owner": "worker3",
+        "token": "6883c5a8-c612-4240-ab03-a9ab1fff0def",
+        "leaseUntil": 1793403252195,
+        "workStarted": true,
+        "checkpoint": "codex/lp-hosted-2316-worker3 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker3; no edits yet"
       },
       "P02-04": {
         "status": "pending",
@@ -88,8 +106,14 @@
         }
       },
       "P03-00": {
-        "status": "pending",
-        "priority": 300
+        "status": "running",
+        "priority": 300,
+        "discoveredDependencies": [],
+        "owner": "worker4",
+        "token": "1ffcf950-5526-4aa3-a601-73e5c043b23d",
+        "leaseUntil": 1793403260428,
+        "workStarted": true,
+        "checkpoint": "Branch codex/lp-hosted-2316-worker4 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker4; no edits yet."
       },
       "P03-01": {
         "status": "pending",
@@ -112,8 +136,14 @@
         "priority": 380
       },
       "P04-01": {
-        "status": "pending",
-        "priority": 401
+        "status": "running",
+        "priority": 401,
+        "discoveredDependencies": [],
+        "owner": "worker5",
+        "token": "22b75133-b91c-4509-9a90-8b64a785689e",
+        "leaseUntil": 1793403268425,
+        "workStarted": true,
+        "checkpoint": "refs/heads/codex/lp-hosted-2316-worker5 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker5; no edits yet"
       },
       "P04-02": {
         "status": "pending",
@@ -196,12 +226,26 @@
         }
       },
       "P07-01": {
-        "status": "pending",
-        "priority": 701
+        "status": "blocked",
+        "priority": 701,
+        "discoveredDependencies": [],
+        "checkpoint": "No edits; codex/lp-hosted-2316-worker6 at existing durable source 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; worker operation stopped",
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Complete fresh-company signup/contact/draft/review/posting qualification needs an isolated authenticated browser and fresh disposable PostgreSQL runtime. This worker has no configured synthetic Clerk session and command -v postgres initdb returns neither executable. Existing model/render tests and seeded API fixtures cannot verify that end-to-end acceptance. Resume on configured isolated test runtime; do not use existing demo database."
+          }
+        ]
       },
       "P07-02": {
-        "status": "pending",
-        "priority": 702
+        "status": "running",
+        "priority": 702,
+        "discoveredDependencies": [],
+        "owner": "worker6",
+        "token": "79129ca7-a9a4-4144-8122-e9dd34920066",
+        "leaseUntil": 1793403313310,
+        "workStarted": true,
+        "checkpoint": "codex/lp-hosted-2316-worker6 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits; inspect saved readiness and next task"
       },
       "P07-03": {
         "status": "pending",
@@ -608,6 +652,117 @@
         ],
         "commit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
         "reason": "Initial catalogue completion evidence, reviewed against integrated code; no worker claims fabricated."
+      },
+      {
+        "at": 1793402331508,
+        "actor": "worker1",
+        "type": "claim",
+        "taskId": "P01-00",
+        "token": "df98d191-0b29-402e-a588-f73ab8fc1d1e"
+      },
+      {
+        "at": 1793402337123,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-00",
+        "checkpoint": "refs/heads/codex/lp-hosted-2316-worker1 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits yet; isolated /workspace/scratch/6bd079311608/lp-worker1"
+      },
+      {
+        "at": 1793402340564,
+        "actor": "worker2",
+        "type": "claim",
+        "taskId": "P02-01",
+        "token": "db04e091-32a4-4e70-9a52-a6cb1abad022"
+      },
+      {
+        "at": 1793402351613,
+        "actor": "worker2",
+        "type": "checkpoint",
+        "taskId": "P02-01",
+        "checkpoint": "codex/lp-hosted-2316-worker2 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated worktree lp-worker2, no edits yet"
+      },
+      {
+        "at": 1793402352195,
+        "actor": "worker3",
+        "type": "claim",
+        "taskId": "P02-03",
+        "token": "6883c5a8-c612-4240-ab03-a9ab1fff0def"
+      },
+      {
+        "at": 1793402360366,
+        "actor": "worker3",
+        "type": "checkpoint",
+        "taskId": "P02-03",
+        "checkpoint": "codex/lp-hosted-2316-worker3 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker3; no edits yet"
+      },
+      {
+        "at": 1793402360428,
+        "actor": "worker4",
+        "type": "claim",
+        "taskId": "P03-00",
+        "token": "1ffcf950-5526-4aa3-a601-73e5c043b23d"
+      },
+      {
+        "at": 1793402368425,
+        "actor": "worker5",
+        "type": "claim",
+        "taskId": "P04-01",
+        "token": "22b75133-b91c-4509-9a90-8b64a785689e"
+      },
+      {
+        "at": 1793402368833,
+        "actor": "worker4",
+        "type": "checkpoint",
+        "taskId": "P03-00",
+        "checkpoint": "Branch codex/lp-hosted-2316-worker4 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker4; no edits yet."
+      },
+      {
+        "at": 1793402379241,
+        "actor": "worker6",
+        "type": "claim",
+        "taskId": "P07-01",
+        "token": "faf7d005-b537-49cf-9cb2-8214016d22b3"
+      },
+      {
+        "at": 1793402384614,
+        "actor": "worker5",
+        "type": "checkpoint",
+        "taskId": "P04-01",
+        "checkpoint": "refs/heads/codex/lp-hosted-2316-worker5 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker5; no edits yet"
+      },
+      {
+        "at": 1793402393892,
+        "actor": "worker6",
+        "type": "checkpoint",
+        "taskId": "P07-01",
+        "checkpoint": "codex/lp-hosted-2316-worker6 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits; inspect existing empty-company test and disposable runner"
+      },
+      {
+        "at": 1793402413199,
+        "actor": "worker6",
+        "type": "block",
+        "taskId": "P07-01",
+        "checkpoint": "No edits; codex/lp-hosted-2316-worker6 at existing durable source 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; worker operation stopped",
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Complete fresh-company signup/contact/draft/review/posting qualification needs an isolated authenticated browser and fresh disposable PostgreSQL runtime. This worker has no configured synthetic Clerk session and command -v postgres initdb returns neither executable. Existing model/render tests and seeded API fixtures cannot verify that end-to-end acceptance. Resume on configured isolated test runtime; do not use existing demo database."
+          }
+        ]
+      },
+      {
+        "at": 1793402413310,
+        "actor": "worker6",
+        "type": "claim",
+        "taskId": "P07-02",
+        "token": "79129ca7-a9a4-4144-8122-e9dd34920066"
+      },
+      {
+        "at": 1793402422783,
+        "actor": "worker6",
+        "type": "checkpoint",
+        "taskId": "P07-02",
+        "checkpoint": "codex/lp-hosted-2316-worker6 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits; inspect saved readiness and next task"
       }
     ],
     "catalogDigest": "4ec38da8ef67c6f42bc913d0e01b8e5d3b34fb4228853599a11b239c38ec4314"
@@ -622,11 +777,11 @@
         "path": "docs/development/parallel-trial.json"
       }
     ],
-    "runId": "bootstrap-20261030",
-    "at": 1793401393561,
+    "runId": "hosted-20261030-2316",
+    "at": 1793402440962,
     "codeHead": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2"
   },
-  "updatedAt": 1793402275316,
+  "updatedAt": 1793402440962,
   "validation": {
     "sourceCommit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
     "sourceTree": "234772f1646ffeb7540efe1b72e25f9a80ae1389",
