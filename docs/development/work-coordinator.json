@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "revision": 8,
+  "revision": 10,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
+  "codeHead": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261030-2316",
     "token": "034bfc02-fe81-4d45-b6eb-9fa8ca63e771",
     "acquiredAt": 1793402275316,
-    "expiresAt": 1793404528080
+    "expiresAt": 1793404699637
   },
   "lastOwner": {
     "runId": "bootstrap-20261030",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 2,
-    "revision": 35,
+    "revision": 38,
     "tasks": {
       "P01-00": {
         "status": "review",
@@ -76,14 +76,18 @@
         "priority": 180
       },
       "P02-01": {
-        "status": "running",
+        "status": "review",
         "priority": 201,
         "discoveredDependencies": [],
-        "checkpoint": "Worker2 stopped clean d278fec7458e771a7c7d7d4e88b889517283cbe4; remote checkpoint 12ea4c8c8ee7a104d0c11637a76dd124970beead on codex/lp-hosted-2316-worker2.",
+        "checkpoint": "codex/lp-hosted-2316-worker2 18689e505dca925d3cd7f599bf100632f8a78ceb; test type correction complete; API tsc and 2 HTTP tests pass. Broad P02-01 remains partial; previous remaining audit/client migration notes still apply; worker stopped clean.",
         "evidence": {
-          "commit": "d278fec7458e771a7c7d7d4e88b889517283cbe4",
-          "summary": "PARTIAL narrow security fix only: reject legacy settlement before database/provider; P02-01 broad inventory and cross-company criteria remain unverified, do not accept broad completion.",
+          "commit": "18689e505dca925d3cd7f599bf100632f8a78ceb",
+          "summary": "PARTIAL narrow security fix with TS2571 response type correction; broad P02-01 criteria remain unverified.",
           "tests": [
+            {
+              "command": "node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit",
+              "passed": true
+            },
             {
               "command": "esbuild companyRoutes.test.ts; DATABASE_URL=loopback-unusable NODE_ENV=test node --test bundled companyRoutes (2 passed)",
               "passed": true
@@ -97,7 +101,7 @@
         "owner": "worker2",
         "token": "638e08e0-fa47-4e67-a73e-612a8aa9c9c4",
         "leaseUntil": 1793403622215,
-        "workStarted": false
+        "workStarted": true
       },
       "P02-02": {
         "status": "pending",
@@ -1083,25 +1087,63 @@
         "type": "claim",
         "taskId": "P02-01",
         "token": "638e08e0-fa47-4e67-a73e-612a8aa9c9c4"
+      },
+      {
+        "at": 1793402728355,
+        "actor": "worker2",
+        "type": "checkpoint",
+        "taskId": "P02-01",
+        "checkpoint": "Resume clean local d278fec7458e771a7c7d7d4e88b889517283cbe4; durable tree-equivalent remote 12ea4c8c8ee7a104d0c11637a76dd124970beead; correcting TS2571 test response type only"
+      },
+      {
+        "at": 1793402748046,
+        "actor": "worker2",
+        "type": "checkpoint",
+        "taskId": "P02-01",
+        "checkpoint": "codex/lp-hosted-2316-worker2 18689e505dca925d3cd7f599bf100632f8a78ceb; test type correction complete; API tsc and 2 HTTP tests pass. Broad P02-01 remains partial; previous remaining audit/client migration notes still apply; worker stopped clean."
+      },
+      {
+        "at": 1793402748146,
+        "actor": "worker2",
+        "type": "submit",
+        "taskId": "P02-01",
+        "evidence": {
+          "commit": "18689e505dca925d3cd7f599bf100632f8a78ceb",
+          "summary": "PARTIAL narrow security fix with TS2571 response type correction; broad P02-01 criteria remain unverified.",
+          "tests": [
+            {
+              "command": "node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit",
+              "passed": true
+            },
+            {
+              "command": "esbuild companyRoutes.test.ts; DATABASE_URL=loopback-unusable NODE_ENV=test node --test bundled companyRoutes (2 passed)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
       }
     ],
     "catalogDigest": "4ec38da8ef67c6f42bc913d0e01b8e5d3b34fb4228853599a11b239c38ec4314"
   },
   "checkpoint": {
     "ref": "refs/heads/codex/whole-product-first-sprint",
-    "sha": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
+    "sha": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
     "evidence": [
       {
         "ref": "refs/heads/codex/whole-product-first-sprint",
-        "sha": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
-        "path": "docs/development/parallel-trial.json"
+        "sha": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5",
+        "path": "tools/development/check.mjs"
       }
     ],
     "runId": "hosted-20261030-2316",
-    "at": 1793402728080,
-    "codeHead": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2"
+    "at": 1793402899637,
+    "codeHead": "a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5"
   },
-  "updatedAt": 1793402728080,
+  "updatedAt": 1793402899637,
   "validation": {
     "sourceCommit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
     "sourceTree": "234772f1646ffeb7540efe1b72e25f9a80ae1389",
@@ -1130,9 +1172,9 @@
         "tree": "b4abe28642a27369d4a306cb8a9702413deaf8ac"
       },
       "worker2": {
-        "local": "d278fec7458e771a7c7d7d4e88b889517283cbe4",
-        "remote": "12ea4c8c8ee7a104d0c11637a76dd124970beead",
-        "tree": "dcde2c31c61c4f4fe6f308f7806d02fca4b33b81"
+        "local": "18689e505dca925d3cd7f599bf100632f8a78ceb",
+        "remote": "266e82114abbd7f3dce0191cdd8c3bf601d80de8",
+        "tree": "55251599ce719b9163911351e3a80844dc4be7fb"
       },
       "worker3": {
         "local": "cc4a23d676ea83fa6cde03b1e816cd3c6b86410b",
@@ -1155,7 +1197,9 @@
         "tree": "aa91d226c13b3c9e1244a00eacbd9e7fa6abb98d"
       }
     },
-    "notes": "Connector commits preserve identical worker trees; local source hashes are recorded, remote matching-commit validation pending. Review fixes in progress.",
-    "workersStopped": false
+    "integratedTree": "f9f97b78701439e9f672b1c14a662d2f7a9ba047",
+    "localTests": 699,
+    "ci": "pending",
+    "workersStopped": true
   }
 }
