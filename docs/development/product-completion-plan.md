@@ -29,7 +29,7 @@ CI evidence. They do not establish visual acceptance or production readiness.
 | Capture | Native PDF/JPEG/PNG uploads, immutable originals, company-local deduplication, authenticated downloads and atomic reviewed draft conversion. | OCR and email are not connected. Uploads still require manual field entry. File signature checks are not malware scanning or a safe document parser. |
 | Awaiting credits | Select original posted bill lines/partial quantities; preserve part, return and job references; expected/received/remaining values and explicit posted-credit confirmation. | One noncancelled tracker per original line. Further return cycles and receipt corrections need audited contracts; matching suggestions must not imply receipt. |
 | VAT | Canonical workings for boxes 1, 4, 5, 6 and 7 with source trace and exact exports. | Not a complete nine-box filing implementation. Historical statuses are not verified HMRC receipts. |
-| SA/MTD, CT/CT600, payroll | Required by the active product plan. | No complete dedicated calculation/filing routes in the current application. Supported-case rules and engine/provider decisions remain prerequisites. |
+| SA/MTD, CT/CT600, payroll | Required by the active product plan. | No complete dedicated calculation/filing routes in the current application. Supported-case rules and independently verified in-house engine fixtures remain prerequisites. |
 | Operations | Protected financial audit records, isolated tests, development persistence and a local demo backup command. | Current batch adds audit review/export. Off-site restore/recovery qualification and the public-release support package remain open. |
 
 Evidence: `artifacts/ledgerly/src/App.jsx`; `B/services/accountingDocuments/`;
@@ -48,9 +48,13 @@ requiring an experienced user to complete a wizard or switch product modes.
 Automation should remove repeated entry and surface exceptions; it must not
 hide financial evidence or silently exercise posting authority.
 
-Use **at most four implementation owners plus one coordinator**. Read-only
-subagents review security and accounting invariants; they do not create a
-competing implementation. A1/B1, onboarding, membership hardening and D1 are
+The owner superseded the fixed four-stream structure on 30 October 2026. Use
+**up to six interchangeable workers plus one coordinator** in the current
+seven-slot host, drawing from the shared [18-priority queue](work-backlog.json).
+Follow the [queue operating instructions](../../tools/development/work-queue/README.md).
+Each claim has temporary file ownership; no agent owns a permanent area.
+Read-only review can use any free worker slot. The table below records the
+previous batch and is historical assignment evidence, not current staffing. A1/B1, onboarding, membership hardening and D1 are
 integrated in the verified baseline. The next batch uses separate
 `codex/next-*` worktrees from that baseline.
 
@@ -80,8 +84,10 @@ External identity lifecycle reconciliation and all release gates remain open.
 Each task receives one branch/worktree, exact file lease, dependency, acceptance
 examples and a small reviewable commit. Do not have multiple agents rewrite the
 same page or shared service. Keep one active implementation task per owner;
-pull the next ready task when the current one is integrated. Agents are not
-promised to run between sessions.
+submit for independent integration review, then automatically claim the next
+safe ready task. Retain the submitted file lease until review accepts it.
+Cross-session work resumes from the durable repository checkpoint; hosted
+scheduled runs are bounded resumptions, not a continuously running local daemon.
 
 The coordinator owns `lib/db/**`, `lib/api-spec/**`, generated packages,
 `B/services/accounting/**`, canonical money/posting/settlement interfaces,
@@ -103,7 +109,7 @@ existing contract is sufficient to implement the next slice.
    then update the isolated demo from the exact tested commit. Desktop/mobile
    and owner acceptance remain a separate gate; do not describe source tests
    as screenshots or visual verification.
-2. **M1 — make the next four streams independently productive.** Complete the
+2. **M1 — unblock independent work in priority order.** Complete the
    A1/B1, onboarding, security and D1 baseline, then integrate the current
    A2/B2-partial/C1/D2 batch above. C2 remains a bounded rule-research task. Freeze only
    shared contracts that block dependent implementation.
@@ -114,10 +120,10 @@ existing contract is sufficient to implement the next slice.
    fixtures or review UI while waiting for a provider.
 4. **M3 — complete supported tax journeys.** Build and validate VAT filing
    recovery, SA/MTD and CT computations against approved supported-case fixtures.
-   Rule research and engine assessment can run during M1/M2; live connections
+   Rule research and in-house engine implementation can run during M1/M2; live connections
    and filing do not start merely because a page exists.
-5. **M4 — complete payroll and cross-product operations.** Deliver the selected
-   calculation/RTI/pension approach, corrections and recovery; complete access,
+5. **M4 — complete payroll and cross-product operations.** Deliver in-house
+   calculations and direct RTI/necessary pension interfaces, corrections and recovery; complete access,
    observability, restore, migration and support exercises.
 6. **M5 — controlled pilot, then release decision.** A separately scoped pilot
    does not shrink the final tax/payroll scope. Release requires evidence for
@@ -131,7 +137,7 @@ The critical dependency chains are below; independent rows can advance together.
 | Correct posted documents | A1 shared projection, then A2 atomic command, then A3 user review; A4 remains a separately bounded extension. |
 | Automate capture | B1 contract/fixtures and B2 worker isolation, then B3 reviewed drafts; B4 adds authorised email ingestion; B5 adds evidence-linked credit suggestions. |
 | Reconcile banking | A5 native import/match contract, then A6 connected workspace; provider feeds remain optional until authorised. |
-| Tax and payroll | C1 VAT evidence and C2 supported rules precede C3/C4/C5; C6 engine assessment can run independently, with implementation after its own rule/contract gate. |
+| Tax and payroll | C1 VAT evidence and C2 supported rules precede C3/C4/C5; C6 in-house payroll contract and fixture work can run independently, with implementation after its own rule/contract gate. |
 | Reliability | D1 restore, D2 audit and D4 journey checks can start independently; D3 depends on shared recovery identity; D5/D6 harden the integrated product before D7 release evidence. |
 
 ## Task queue and integration dependencies
@@ -155,11 +161,11 @@ real filing and production actions retain separate authority requirements.
 | B4 — contract gate | Email intake adapter under proposed `B/services/documentIntake/email/**`; new native `EmailCapture.jsx` and `EmailRules.jsx` integration. | Approved mailbox scope/provider, attachment provenance, authenticated delivery, idempotent message/attachment identity and revocation. | Replay, forwarded duplicates, same file via photo/email, spoofed sender hints, unsupported attachments and revoked access; reviewable inbox entries only. |
 | B5 — after B3 | Credit matching suggestions and exception triage in `creditTracking/**` and `F/features/creditRecovery/**`, with separate service/UI leases. | Existing original bill/line links and untrusted extraction evidence; use protected candidate checks. | Wrong supplier, repeated part number, partial quantity, earlier credit and commercial discount cannot auto-satisfy a claim; confirmed matches alone count as received. |
 | C1 — implemented; integrated regression gate | Canonical VAT coverage/reconciliation fixtures in `B/services/accountingDocuments/reports*.test.ts`, `F/features/vatPreparation/**`. | Existing five-box snapshot and source VAT; exact boundaries stated. | Source VAT reconciles to boxes; unsupported cases/boxes are visible blockers, not zeroes or fabricated filing readiness. |
-| C2 — contract gate | Effective-dated tax supported-case fixtures under proposed `B/services/tax/fixtures/**`, with a machine-readable case/status registry. | Accountant-reviewed supported schemes/entities/income cases, rule sources/version and calculation/provider decision. Research current official rules when implementing, rather than embedding rates from memory. | Each supported input has a deterministic expected result and provenance; unsupported input fails explicitly; yearly/version changes do not rewrite past results. |
+| C2 — contract gate | Effective-dated tax supported-case fixtures under proposed `B/services/tax/fixtures/**`, with a machine-readable case/status registry. | Accountant-reviewed supported schemes/entities/income cases, rule sources/version and in-house calculation contract. Research current official rules when implementing, rather than embedding rates from memory. | Each supported input has a deterministic expected result and provenance; unsupported input fails explicitly; yearly/version changes do not rewrite past results. |
 | C3 — after C1/C2 | VAT submission package, consent/review, receipts/status and recovery: proposed `B/services/tax/vat/**`, `F/features/tax/vat/**`. | Reviewed complete return model, adjustment/amendment rules and separately authorised sandbox provider access. | Duplicate submit/timeout/status recovery, immutable submitted snapshot, receipt verification, role/tenant audit and amendment tests. “Submitted” requires provider evidence. |
-| C4 — after C2 | SA/MTD calculation and obligation package: proposed `B/services/tax/income/**`, `F/features/tax/income/**`. | Approved supported taxpayer/income matrix, accounting-to-tax mappings and maintained engine decision. | Synthetic computations, period boundaries, adjustments, review/replay and obligations/receipt lifecycle per supported case. No compliance claim from scaffolding. |
-| C5 — after C2 | CT/CT600/accounts package: proposed `B/services/tax/corporation/**`, `F/features/tax/corporation/**`. | Supported entity/period and adjustment matrix; accounts taxonomy/filing engine and review decisions. | Accounting-to-tax reconciliation, period/rounding fixtures, accounts package consistency and submission/recovery evidence. |
-| C6 — ready assessment; implementation gated | Payroll adapter and fixture harness: proposed `B/services/payroll/**`, `F/features/payroll/**`. | Assess maintained engine/provider versus direct implementation; approve supported employment, statutory pay, pension and RTI cases. | Gross-to-net/PAYE/NI and pension fixtures, period corrections, payslips, RTI requests/receipts, duplicate/retry, permissions and privacy. No provider purchase/connection by this task. |
+| C4 — after C2 | SA/MTD calculation and obligation package: proposed `B/services/tax/income/**`, `F/features/tax/income/**`. | Approved supported taxpayer/income matrix, accounting-to-tax mappings and in-house engine contract. | Synthetic computations, period boundaries, adjustments, review/replay and obligations/receipt lifecycle per supported case. No compliance claim from scaffolding. |
+| C5 — after C2 | CT/CT600/accounts package: proposed `B/services/tax/corporation/**`, `F/features/tax/corporation/**`. | Supported entity/period and adjustment matrix; accounts taxonomy, in-house computation and direct filing/review contracts. | Accounting-to-tax reconciliation, period/rounding fixtures, accounts package consistency and submission/recovery evidence. |
+| C6 — in-house contract/fixtures; implementation gated | In-house payroll engine and fixture harness: proposed `B/services/payroll/**`, `F/features/payroll/**`. | Implement calculations in-house; define and verify supported employment, statutory pay, pension and direct RTI cases. | Gross-to-net/PAYE/NI and pension fixtures, period corrections, payslips, RTI requests/receipts, duplicate/retry, permissions and privacy. No provider purchase/connection by this task. |
 | D1 — implemented drill; integration gate below | Isolated backup/restore drill in proposed `tools/accounting-flow/restore-drill.mjs` with fixtures. | Extend documented demo backup patterns; positively identify fresh disposable source/restore targets. | Restore into a different disposable database, compare journals/source/audit/capture hashes and counts; prove restricted runtime and cleanup. Never restore over owner/shared data. |
 | D2 — implemented; integrated regression gate | Audit review/export: proposed `B/services/auditReview/**`, `F/features/auditReview/**`; coordinator route/navigation lease. | Company/role-scoped read projection of existing audit histories; cursor pagination and export bounds. | Create/edit/review/post/payment/correction actors and reasons trace to source; no financial write path; cross-company denial and safe CSV. |
 | D3 — contract gate | Durable operation recovery for payment/capture/correction under proposed `B/services/operationRecovery/**`, targeted UI clients. | Retain minimal server-side attempt identity and outcome, tied to company/actor; no financial payload/token copied into browser storage. | Reload/company-switch/relogin and concurrent retry find the same outcome, current permission rechecked, no double posting and no false failure from an empty lookup. |

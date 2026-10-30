@@ -7,6 +7,7 @@ import { ErrorBox, SkeletonRows } from '@/components/accounting/AccountingUI';
 import { capturePath, prepareCapturePath } from './model.mjs';
 import { useIntakeSources } from './useDocumentIntake';
 import { sourceOpenPath } from './presentation.mjs';
+import SourcePreview from './SourcePreview';
 
 export function SourceActions({ source, canManage, compact = false }) {
   if (source.document_id) return <Button asChild variant="outline" size="sm" className="min-h-11"><Link to={sourceOpenPath(source)}>Open linked document</Link></Button>;
@@ -48,6 +49,7 @@ export function SourceRow({ source, companyId, canManage = false, highlighted = 
       <span className={`hidden shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs sm:inline-flex ${linked ? 'bg-primary/10 text-primary' : 'bg-amber-50 text-amber-900'}`}>{linked ? <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> : <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />}{linked ? 'Linked' : 'Needs preparing'}</span>
     </div>
     <div className="flex flex-wrap items-center gap-2"><SourceActions source={source} canManage={canManage} compact /><SourceDownload companyId={companyId} source={source} compact /></div>
+    <div className="xl:col-span-2"><SourcePreview companyId={companyId} source={source} /></div>
   </article>;
 }
 
@@ -55,6 +57,7 @@ export function SourceCard({ source, companyId, canManage = false, highlighted =
   return <article id={`capture-${source.id}`} className={`rounded-xl border p-4 ${highlighted ? 'border-primary bg-primary/5' : 'bg-card'}`} aria-label={`Source file ${source.filename}`}>
     <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><h3 className="break-words font-medium">{source.filename}</h3><p className="mt-1 text-xs text-muted-foreground">{source.media_type} · {Math.ceil(source.byte_length / 1024)} KiB{source.created_at ? ` · ${new Date(source.created_at).toLocaleDateString('en-GB')}` : ''}</p><p className="mt-1 text-sm text-muted-foreground">{source.document_id ? 'Linked to an accounting document' : 'Uploaded · ready for manual entry'}</p></div><SourceDownload companyId={companyId} source={source} /></div>
     {!compact && <div className="mt-4 flex flex-wrap gap-2"><SourceActions source={source} canManage={canManage} /></div>}
+    <div className="mt-3"><SourcePreview companyId={companyId} source={source} /></div>
   </article>;
 }
 

@@ -85,3 +85,24 @@ test('old scope and refresh loading render no stale money or source links', () =
     assert.ok(!html.includes('button-vat-csv'));
   }
 });
+
+test('full workings and filtered evidence exports remain distinct with an explicit evidence-only label', () => {
+  const html = render({ data: reportFixture(), companyId: 'company-one', companyName: 'Synthetic company' });
+  for (const label of ['Export all workings CSV', 'Export filtered sources CSV', 'only the 5 source movements shown below',
+    'company, period and filter details', 'It is not a complete VAT return']) assert.ok(html.includes(label), label);
+  const filtered = html.match(/<button[^>]+data-testid="button-vat-filtered-csv"[^>]*>/)?.[0];
+  assert.ok(filtered); assert.ok(!filtered.includes('disabled=""'));
+});
+
+test('filtered export is disabled without verified company context or source movements', () => {
+  const empty = reportFixture(); empty.posted_documents = [];
+  for (const field of ['box1_pence', 'box4_pence', 'box5_pence', 'box6_pence', 'box7_pence', 'net_payable_pence']) empty.vat[field] = '0';
+  empty.vat_coverage = coverageFixture(empty);
+  for (const props of [{ data: empty, companyId: 'company-one', companyName: 'Synthetic company' }, { data: reportFixture() }]) {
+    const html = render(props);
+    const filtered = html.match(/<button[^>]+data-testid="button-vat-filtered-csv"[^>]*>/)?.[0];
+    assert.ok(filtered?.includes('disabled=""'));
+  }
+  for (const props of [{ data: reportFixture(), loading: true }, { error: new Error('offline') },
+    { data: { ...reportFixture(), vat: { applicable: false } } }]) assert.ok(!render(props).includes('button-vat-filtered-csv'));
+});

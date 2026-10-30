@@ -34,7 +34,7 @@ function CompanyVatWorkings({ company }) {
     <div className="mt-3 flex flex-wrap gap-2" aria-label="VAT period shortcuts"><Button size="sm" variant="outline" onClick={() => changePeriod(periodPreset('quarter'))}>This quarter to date</Button><Button size="sm" variant="outline" onClick={() => changePeriod(periodPreset('last-month'))}>Last month</Button></div>
     <p id="vat-scope-note" className="mt-4 rounded-lg border bg-card px-3 py-2 text-xs leading-relaxed text-muted-foreground">Read-only preparation for the standard VAT scheme on an invoice basis. This review covers boxes 1, 4, 5, 6 and 7 only; it is not a complete nine-box VAT return or an HMRC submission. Changing dates does not create or file a return.</p>
     {validation ? <p role="alert" id="vat-period-error" className="mt-4 text-sm text-red-800">{validation}</p> : <>
-      <VatWorkingsReview key={key} data={current.data} loading={current.loading} error={current.error} onRetry={() => setRefresh(value => value + 1)} onExport={() => { if (current.data?.vat.applicable) downloadCsv(`vat-workings-${from}-${to}.csv`, workingsRows(current.data, company.name)); }} />
+      <VatWorkingsReview key={key} companyId={company.id} companyName={company.name} reviewScope={key} data={current.data} loading={current.loading} error={current.error} onRetry={() => setRefresh(value => value + 1)} onExport={() => { if (current.data?.vat.applicable) downloadCsv(`vat-workings-${from}-${to}.csv`, workingsRows(current.data, company.name)); }} />
       <Link to={`/accounting/reports?tab=vat&from=${from}&to=${to}`} data-testid="link-vat-report" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">Open VAT and ledger reports</Link>
     </>}
   </section>;

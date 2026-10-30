@@ -1,13 +1,16 @@
 // Current-source checks; no credentials, shared database or provider required.
 // PostgreSQL accounting integration runs separately through its disposable runner.
 import { createRequire } from 'node:module';
-import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { validateCatalog, validateState } from './work-queue/core.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const catalog = validateCatalog(JSON.parse(readFileSync(path.join(root, 'docs/development/work-backlog.json'), 'utf8')));
+validateState(catalog, JSON.parse(readFileSync(path.join(root, 'docs/development/work-state.json'), 'utf8')));
 const api = path.join(root, 'artifacts/api-server');
 const frontend = path.join(root, 'artifacts/ledgerly/src');
 const { buildSync } = createRequire(path.join(api, 'package.json'))('esbuild');
@@ -31,6 +34,7 @@ const apiTests = [
   'src/security/companyPolicy.test.ts',
   'src/security/companyRoutes.test.ts',
   'src/security/publicErrors.test.ts',
+  'src/security/appErrors.test.ts',
   'src/services/creditTracking/domain.test.ts',
   'src/services/documentIntake/intake.test.ts',
   'src/services/documentIntake/service.test.ts',
@@ -45,10 +49,11 @@ try {
   for (const [index, entry] of apiTests.entries()) {
     const outfile = path.join(dir, `api-${index}.cjs`);
     buildSync({ entryPoints: [path.join(api, entry)], outfile, bundle: true, platform: 'node', format: 'cjs',
-      external: ['pg', 'pino', 'pino-http', 'pino-pretty', 'thread-stream'], logLevel: 'warning' });
+      external: ['pg', 'pino', 'pino-http', 'pino-pretty', 'thread-stream', '@clerk/express'], logLevel: 'warning' });
     execFileSync(process.execPath, ['--test', outfile], { cwd: api, env, stdio: 'inherit' });
   }
   const mjs = [...readdirSync(frontend, { recursive: true }).filter(file => file.endsWith('.test.mjs')).map(file => path.join(frontend, file)),
+    ...readdirSync(path.join(root, 'tools/development/work-queue')).filter(file => file.endsWith('.test.mjs')).map(file => path.join(root, 'tools/development/work-queue', file)),
     path.join(root,'tools/accounting-flow/restore-drill.test.mjs')];
   execFileSync(process.execPath, ['--test', ...mjs], { cwd: root, env, stdio: 'inherit' });
   const renders = readdirSync(frontend, { recursive: true }).filter(file => file.endsWith('.test.jsx'));

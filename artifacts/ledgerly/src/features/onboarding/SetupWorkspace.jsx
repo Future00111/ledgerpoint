@@ -21,7 +21,7 @@ function FirstTask({ title, description, task, to, list, parties, partyLabel, ic
   </article>;
 }
 
-export default function SetupWorkspace({ company, readiness, date, onDateChange, loading, error, onRefresh, guided, onGuidedChange }) {
+export default function SetupWorkspace({ company, readiness, date, onDateChange, loading, error, onRefresh, guided, onGuidedChange, guidanceWarning = '' }) {
   return <div className="workspace-page">
     <PageHeader eyebrow="Your business workspace" title="Business setup" description="Review your saved setup, then get on with your work. Come back whenever you need to."
       context={<span className="font-medium">{company.name}</span>}
@@ -30,6 +30,7 @@ export default function SetupWorkspace({ company, readiness, date, onDateChange,
       <label className="flex flex-wrap items-center gap-2 text-sm font-medium" htmlFor="setup-date">Check document date<input id="setup-date" type="date" min={MIN_ACCOUNTING_DATE} max={MAX_ACCOUNTING_DATE} value={date} onChange={event => onDateChange(event.target.value)} className="rounded-lg border bg-background px-3 py-2" /></label>
       <Button type="button" variant="ghost" aria-pressed={guided} onClick={() => onGuidedChange(!guided)}><HelpCircle className="mr-2 h-4 w-4" />{guided ? 'Hide explanations' : 'Show explanations'}</Button>
     </div>
+    {guidanceWarning && <p role="status" className="text-sm text-muted-foreground">{guidanceWarning}</p>}
     {error && <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-900"><p className="font-medium">Setup checks could not be verified.</p><p className="mt-1">{error.message}</p><Button variant="outline" className="mt-3" onClick={onRefresh}>Retry checks</Button></div>}
     {loading && <p role="status" className="rounded-xl border bg-card p-5 text-sm text-muted-foreground">Checking saved accounts, tax rules, periods and your access…</p>}
     {!loading && !error && readiness && <>

@@ -123,6 +123,44 @@ export function sourceDocuments(data, side = 'all', search = '') {
     && (!query || [d.number, d.party_name, KINDS[d.kind].label].filter(Boolean).join(' ').toLocaleLowerCase('en-GB').includes(query)));
 }
 
+/** Scope the visible filters too, so an old search cannot hide a new period's evidence. */
+export function visibleSourceFilter(filter, key) {
+  return filter.key === key ? filter : { key, selected: 'all', search: '' };
+}
+
+export function selectedSourceDocuments(data, selected = 'all', search = '') {
+  const box = BOXES.find(item => item.box === selected);
+  if (selected !== 'all' && !box) throw new Error('Choose a supported VAT workings box.');
+  return sourceDocuments(data, box?.side ?? 'all', search);
+}
+
+const sourceHeader = () => ['Posting date', 'Document', 'Type', 'Customer or supplier', 'Net GBP', 'VAT in workings GBP', 'Gross GBP', 'Source ID', 'Journal ID', 'Movement'];
+const sourceRow = d => [d.date, d.number, KINDS[d.kind].label, d.party_name, decimalMinor(d.net_minor),
+  decimalMinor(d.vat_minor), decimalMinor(d.gross_minor), d.id, d.journal_id,
+  d.movement_kind === 'financial_correction' ? 'Financial correction' : 'Original posting'];
+
+/** Evidence subset only: never calculate a tax figure or imply this is a return. */
+export function filteredSourceRows(data, { companyId, companyName, selected = 'all', search = '' }) {
+  if (data?.vat?.applicable !== true) return [];
+  if (typeof companyId !== 'string' || !companyId.trim() || typeof companyName !== 'string' || !companyName.trim()) {
+    throw new Error('The company for this export could not be verified. Refresh the workings.');
+  }
+  validateSnapshot(data, data.from, data.to);
+  const docs = selectedSourceDocuments(data, selected, search);
+  const box = BOXES.find(item => item.box === selected);
+  return [
+    ['Filtered VAT source evidence - review only; not a complete VAT return'],
+    ['Company', companyName], ['Company ID', companyId], ['From', data.from, 'To', data.to],
+    ['Related sources', box ? `Box ${box.box}: ${box.label}` : 'All supported source movements'],
+    ['Search', search], ['Movements selected', String(docs.length), 'Of', String(sourceDocuments(data).length)],
+    ['Meaning', 'Only source movements matching the visible filters. This is not a VAT return or filing receipt.'],
+    ['Box 5 boundary', 'Related sources include both sales and purchases. Their VAT column must not be summed as the net VAT return figure.'],
+    ['Return boundary', 'Boxes 2, 3, 8 and 9 remain unsupported with unknown amounts, not assumed zero. Filing is unavailable.'],
+    ['Basis', 'Signed amounts supplied by the accounting report. Drafts and historical VAT projections excluded.'],
+    [], sourceHeader(), ...docs.map(sourceRow),
+  ];
+}
+
 export function workingsRows(data, companyName) {
   if (data?.vat?.applicable !== true) return [];
   const docs = sourceDocuments(data);
@@ -135,10 +173,7 @@ export function workingsRows(data, companyName) {
     ['Net position', data.vat.repayment ? 'Repayment' : 'Payable', decimalMinor(data.vat.net_payable_pence)],
     [], ...coverageRows(data),
     [], ['Sources', 'Signed amounts supplied by the accounting report. Credits reduce the relevant totals.'],
-    ['Posting date', 'Document', 'Type', 'Customer or supplier', 'Net GBP', 'VAT in workings GBP', 'Gross GBP', 'Source ID', 'Journal ID', 'Movement'],
-    ...docs.map(d => [d.date, d.number, KINDS[d.kind].label, d.party_name, decimalMinor(d.net_minor),
-      decimalMinor(d.vat_minor), decimalMinor(d.gross_minor), d.id, d.journal_id,
-      d.movement_kind === 'financial_correction' ? 'Financial correction' : 'Original posting']),
+    sourceHeader(), ...docs.map(sourceRow),
   ];
 }
 

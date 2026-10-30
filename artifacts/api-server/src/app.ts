@@ -12,6 +12,7 @@ import {
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { verifyDraftBody, draftParserErrors } from "./services/financialDrafts/jsonBoundary";
+import { RejectedOriginError, safeAppErrors } from "./security/appErrors";
 
 export interface ApiAppOptions {
   /**
@@ -70,7 +71,7 @@ app.use(
       // Same-origin / server-to-server requests have no Origin header — allow.
       if (!requestOrigin) return callback(null, true);
       if (ALLOWED_ORIGINS.has(requestOrigin)) return callback(null, requestOrigin);
-      callback(new Error(`CORS: origin '${requestOrigin}' not allowed`));
+      callback(new RejectedOriginError());
     },
   }),
 );
@@ -107,6 +108,7 @@ app.use(
 );
 
 app.use("/api", router);
+app.use(safeAppErrors);
 
 return app;
 }
