@@ -38,3 +38,46 @@ test('payroll boundary rejects cross-domain case and does not mutate input', () 
   resolveQualifiedCase(registry, registry.cases[0].selector);
   assert.equal(JSON.stringify(registry),before);
 });
+test('discovery provenance cannot silently become reviewed qualification', () => {
+  for (const mutate of [
+    r => r.cases[0].ruleProvenance.reviewedCalculation = true,
+    r => r.cases[0].ruleProvenance.ruleVersion = 'unverified-v1',
+    r => r.cases[0].ruleProvenance.role = 'reviewed_rule',
+    r => r.cases[0].qualificationEvidence = { reviewed: true },
+    r => r.cases[0].deliveryStatus = 'complete',
+    r => r.cases[0].scopeStatus = 'excluded',
+  ]) {
+    const r = clone(); mutate(r);
+    assert.throws(() => resolveQualifiedCase(r, r.cases[0].selector), /INVALID_CASE_REGISTRY/);
+  }
+});
+test('examples must exactly identify their case and explicitly reject calculation', () => {
+  for (const mutate of [
+    r => delete r.cases[0].example,
+    r => r.cases[0].example.input.taxYear = '2028-29',
+    r => r.cases[0].example.expected.ok = true,
+    r => r.cases[0].example.expected.caseId = r.cases[1].id,
+    r => r.cases[0].example.expected.code = 'CALCULATION_SUPPORTED',
+    r => r.cases[0].example.expected.amount = '100.00',
+  ]) {
+    const r = clone(); mutate(r);
+    assert.throws(() => validateCaseRegistry(r), /INVALID_CASE_REGISTRY/);
+  }
+});
+test('incomplete traceability and invalid source metadata reject the registry', () => {
+  for (const mutate of [
+    r => r.sources.vat = null,
+    r => r.sources.vat.url = 'https://gov.uk.example.com/pretend',
+    r => r.sources.vat.url = 'http://www.gov.uk/guidance/vat-guide-notice-700',
+    r => r.sources.vat.checkedAt = '2026-02-30',
+    r => r.sources.vat.evidence = '',
+    r => r.cases[0].requiredInputs = [],
+    r => r.cases[0].requiredOutputs = ['amount', 'amount'],
+    r => r.cases[0].backlogTasks = ['untraceable'],
+    r => r.openQualificationRequirements = [],
+    r => r.selectorFields = ['domain'],
+  ]) {
+    const r = clone(); mutate(r);
+    assert.throws(() => validateCaseRegistry(r), /INVALID_CASE_REGISTRY/);
+  }
+});
