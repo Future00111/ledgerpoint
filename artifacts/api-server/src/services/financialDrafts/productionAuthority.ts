@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import type pg from "pg";
-import { decimal, draftSourceFingerprint, fail, type InvoiceSource } from "./contract";
+import { decimal, draftSourceFingerprint, fail, type DraftLine, type InvoiceSource } from "./contract";
 import type { DraftAuthority } from "./invoiceService";
+import { discountedAmounts, proratedDiscountedCredit } from './discounts';
 
 const digest = (value: unknown) => `sha256:${createHash("sha256").update(JSON.stringify(value)).digest("hex")}`;
 const RATE_BY_TREATMENT: Record<string, bigint> = {
@@ -29,6 +30,15 @@ export function calculateTaxLine(entered: bigint, rate: bigint, basis: string, u
   const unitNetPrice = basis === "including_vat" && rate !== 0n
     ? fourDecimals(halfUp(decimal(unitPrice, false) * 10000n, 10000n + rate)) : unitPrice;
   return {net,vat,unitNetPrice};
+}
+
+/** Preserve legacy rounding on original lines that received no discount pennies. */
+export function calculateReturnLine(entered: bigint, rate: bigint, basis: string, line: DraftLine,
+  originalLine: DraftLine, originalMoney: {net_pence:string;vat_pence:string}, discountPence?: string) {
+  const ordinary=calculateTaxLine(entered,rate,basis,line.unit_price);
+  if(discountPence===undefined) return ordinary;
+  if(typeof discountPence!=='string' || !/^(0|[1-9]\d{0,11})$/.test(discountPence)) fail(409,'SOURCE_CONTEXT_CHANGED');
+  return BigInt(discountPence)>0n ? {...ordinary,...proratedDiscountedCredit(line,originalLine,originalMoney)} : ordinary;
 }
 
 export function createProductionInvoiceDraftAuthority(): DraftAuthority {
@@ -68,6 +78,7 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
     },
 
     async resolveTax(tx: pg.PoolClient, companyId: string, source: InvoiceSource, enteredPence: bigint[]) {
+      if (source.discount_adjustment) fail(422, 'DISCOUNT_ADJUSTMENT_REQUIRES_CREDIT');
       const companies = await tx.query(
         `SELECT country,base_currency,vat_registered,vat_scheme,vat_accounting_basis
          FROM companies WHERE id=$1 FOR SHARE`,
@@ -91,6 +102,7 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
       const netPence: string[] = [];
       const unitNetPrices: string[] = [];
       const basis = source.price_basis ?? "excluding_vat";
+      const discounted = discountedAmounts(enteredPence, source.discount, basis);
       for (let index = 0; index < source.line_items.length; index++) {
         const line = source.line_items[index]!;
         const matches = await tx.query(
@@ -117,7 +129,7 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
           fail(422, "TAX_SETUP_MISMATCH", `/line_items/${index}/tax_code`);
         }
 
-        const entered = enteredPence[index]!;
+        const entered = discounted.amounts[index]!;
         // Inclusive input is first rounded to gross pence. Extract the VAT
         // fraction from that gross; net is the exact remaining penny amount.
         const vatValue = halfUp(entered * rate, basis === "including_vat" ? 10000n + rate : 10000n);
@@ -144,6 +156,8 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
           unit_net_price: unitNetPrice,
           net_pence: net.toString(),
           vat_pence: vat,
+          ...(discounted.summary ? { entered_before_discount_pence: enteredPence[index]!.toString(),
+            discount_pence: discounted.summary.lines[index]!.discount_pence, entered_after_discount_pence: entered.toString() } : {}),
         });
       }
 
@@ -167,6 +181,7 @@ export function createProductionInvoiceDraftAuthority(): DraftAuthority {
           decision_scope: "development invoice drafts only; not retrospective DEC-04 approval or production qualification",
         },
         lines,
+        ...(discounted.summary ? { discount: discounted.summary } : {}),
       };
       return { transactionBound: true as const, contextRevision: digest(context), context, vatPence, netPence, unitNetPrices };
     },

@@ -3,7 +3,8 @@ import { randomUUID } from "node:crypto";
 import { accountId } from "./accounts";
 import type pg from "pg";
 import { fail, parseInvoice, netPence, money, decimal, uuid, type InvoiceSource } from "../financialDrafts/contract";
-import { calculateTaxLine, createProductionInvoiceDraftAuthority } from "../financialDrafts/productionAuthority";
+import { calculateReturnLine, createProductionInvoiceDraftAuthority } from "../financialDrafts/productionAuthority";
+import { discountedAmounts, creditFromGross } from '../financialDrafts/discounts';
 import { configuration, validateAccounts } from "./configuration";
 import { transact, scope, document, supportedCompany, kindOf, sales, credit, tables, hash, exactFields, pounds,
   type Queryable, type Kind } from "./core";
@@ -32,6 +33,7 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
   let postingAccount=body.posting_account_id===undefined?previous?.posting_account_id??null:body.posting_account_id;
   let tax:any;
   if(credit(kind)) {
+    if(source.discount) fail(422,"DISCOUNT_REQUIRES_ORIGINAL_DOCUMENT");
     if(!originalId || typeof reason!=="string" || !reason.trim() || reason.length>1000 ||
       method!=="offset_outstanding" || effective!==source.issue_date) fail(422,"CREDIT_EFFECTIVE_DECREASE_REQUIRED");
     const original=await document(q,company,uuid(originalId),true);
@@ -42,6 +44,15 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
     if(!Array.isArray(references) || references.length!==source.line_items.length ||
        new Set(references).size!==references.length ||
        references.some(i=>!Number.isInteger(i) || i<0 || i>=original.source.line_items.length)) fail(422,"CREDIT_ORIGINAL_MISMATCH");
+    const adjustment=source.discount_adjustment;
+    if(adjustment && (original.status!=="posted" || adjustment.original_revision!==original.revision))
+      fail(409,"DISCOUNT_ORIGINAL_CHANGED");
+    if(adjustment && (references.length!==original.source.line_items.length || references.some((ref,i)=>ref!==i) ||
+      source.line_items.some((line,i)=>line.quantity!==original.source.line_items[i].quantity ||
+        line.unit_price!==original.source.line_items[i].unit_price || line.tax_code!==original.source.line_items[i].tax_code)))
+      fail(422,"DISCOUNT_ORIGINAL_LINES_REQUIRED");
+    const lateDiscount=adjustment?discountedAmounts(original.money.lines.map((line:any)=>BigInt(line.gross_pence)),
+      {type:adjustment.type,value:adjustment.value},'including_vat'):undefined;
     const entered=netPence(source.line_items);
     const net:string[]=[], vat:string[]=[], unit:string[]=[];
     const lines=source.line_items.map((line,i)=>{
@@ -49,16 +60,27 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
       const fact=original.tax_context.lines[references[i]];
       if(!fact || decimal(line.unit_price,false)>decimal(originalLine.unit_price,false) || line.tax_code!==originalLine.tax_code ||
          decimal(line.quantity,true)>decimal(originalLine.quantity,true)) fail(422,"CREDIT_ORIGINAL_MISMATCH");
-      const amount=calculateTaxLine(entered[i]!,decimal(String(fact.rate),false)/100n,source.price_basis!,line.unit_price);
+      const rate=decimal(String(fact.rate),false)/100n;
+      const allocatedDiscount=original.source.discount?original.money.discount?.lines?.[references[i]]?.discount_pence:undefined;
+      if(original.source.discount && allocatedDiscount===undefined) fail(409,'SOURCE_CONTEXT_CHANGED');
+      const ordinary=calculateReturnLine(entered[i]!,rate,source.price_basis!,line,originalLine,original.money.lines[references[i]],allocatedDiscount);
+      const adjusted=lateDiscount?.summary
+        ?creditFromGross(BigInt(lateDiscount.summary.lines[i]!.discount_pence),original.money.lines[references[i]],rate)
+        :null;
+      const amount=adjusted?{...adjusted,unitNetPrice:ordinary.unitNetPrice}:ordinary;
       net.push(amount.net.toString());vat.push(amount.vat.toString());unit.push(amount.unitNetPrice);
-      return {...fact,entered_unit_price:line.unit_price,unit_net_price:amount.unitNetPrice,
+      const { entered_before_discount_pence: _before, discount_pence: _discount, entered_after_discount_pence: _after, ...originalFact }=fact;
+      return {...originalFact,entered_unit_price:line.unit_price,unit_net_price:amount.unitNetPrice,
         net_pence:amount.net.toString(),vat_pence:amount.vat.toString(),original_line_ref:references[i]};
     });
     eligible=original.purchase_vat_eligible;
     accounts=original.posting_accounts;
     postingAccount=original.posting_account_id;
+    const {discount:originalDiscount,...originalContext}=original.tax_context;
     tax={netPence:net,vatPence:vat,unitNetPrices:unit,context:{
-      ...original.tax_context,lines,original_line_refs:references,
+      ...originalContext,lines,original_line_refs:references,
+      ...(originalDiscount?{original_discount:originalDiscount}:{}),
+      ...(lateDiscount?.summary?{discount_adjustment:lateDiscount.summary}:{}),
       original_document_id:original.id,original_revision:original.revision,
       original_tax_point_date:original.source.issue_date,issue_date:source.issue_date,
       effective_adjustment_date:effective,adjustment_method:method,adjustment_reason:reason.trim(),
@@ -67,6 +89,7 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
     }};
     if(original.tax_context.company.vat_registered!==c.vat_registered) fail(422,"TAX_CONTEXT_CHANGED");
   } else {
+    if(source.discount_adjustment) fail(422,"DISCOUNT_ADJUSTMENT_REQUIRES_CREDIT");
     if(originalId || method || effective || reason) fail(422,"FIELD_INVALID");
     tax=await createProductionInvoiceDraftAuthority().resolveTax(q as pg.PoolClient,company,source,netPence(source.line_items));
     if(postingAccount!==null) {
@@ -77,7 +100,9 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
   }
   await validateAccounts(q,company,accounts,c.vat_registered,
     !credit(kind) && postingAccount!==null?{[sales(kind)?"revenue":"expense"]:"/posting_account_id"}:{});
-  const totals=money(tax.netPence.map((v:string)=>BigInt(v)),tax.vatPence);
+  const totals={...money(tax.netPence.map((v:string)=>BigInt(v)),tax.vatPence),
+    ...(source.discount?{discount:tax.context.discount}:{}),
+    ...(source.discount_adjustment?{discount_adjustment:tax.context.discount_adjustment}:{})};
   return {source,party_name:party.rows[0].name,party_id:source.customer_id,
     original_id:originalId??null,reason:typeof reason==="string"?reason.trim():"",
     adjustment_method:method,effective_adjustment_date:effective,
@@ -117,7 +142,7 @@ export async function assertCreditAvailable(q:Queryable, company:string, row:any
         const ix=prior.tax_context.original_line_refs.indexOf(ref);
         if(ix>=0) total+=BigInt(prior.money.lines[ix][field]);
       }
-      if(total>BigInt(original.money.lines[ref][field])) fail(409,"CREDIT_EXCEEDS_OUTSTANDING");
+      if(total>BigInt(original.money.lines[ref][field])) fail(409,'CREDIT_EXCEEDS_OUTSTANDING');
     }
   }
 }

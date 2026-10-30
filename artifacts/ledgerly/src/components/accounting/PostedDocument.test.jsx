@@ -18,10 +18,12 @@ const doc = {
   journal_id: 'synthetic-journal', original_id: 'synthetic-original', source,
   money: { net_pence: '12000', vat_pence: '2400', gross_pence: '14400', lines: [{ net_pence: '10000' }, { net_pence: '2000' }] },
 };
-function render(kind) {
+function render(kind, overrides = {}) {
   return renderToStaticMarkup(<MemoryRouter><PostedDocument kind={kind} doc={{ ...doc, kind }}
     company={{ id: 'synthetic-company', name: 'Synthetic test company' }} journal={{ status: 'loading', data: null }}
+    capabilities={{ edit_drafts: true, post_documents: true }}
     settlement={{ loading: false, to: '2026-10-30' }} openItem={{ gross_minor: '14400', paid_minor: '0', credited_minor: '3000', open_minor: '11400', history: [] }}
+    {...overrides}
   /></MemoryRouter>);
 }
 
@@ -43,4 +45,36 @@ test('sales invoices and posted credit notes retain their original actions witho
     assert.match(html, /£144.00/);
     assert.ok(html.includes(kind === 'sales_invoice' ? 'Record payment' : 'View original document'), kind);
   }
+});
+
+test('apply discount is available on partially settled originals only with verified edit permission', () => {
+  for (const kind of ['sales_invoice', 'purchase_bill']) {
+    const html = render(kind, { openItem: { gross_minor: '14400', paid_minor: '5000', credited_minor: '0', open_minor: '9400', history: [] }, capabilities: { edit_drafts: true, post_documents: false } });
+    assert.ok(html.includes('Apply discount'));
+    assert.ok(html.includes('original=synthetic-bill&amp;discount=1'));
+    assert.ok(!html.includes('Record payment'));
+    const readonly = render(kind, { capabilities: null });
+    assert.ok(!readonly.includes('Apply discount'));
+    assert.ok(!readonly.includes('Create credit note'));
+    assert.ok(!readonly.includes('Record payment'));
+    assert.ok(readonly.includes('View journal'));
+    assert.ok(!render(kind, { openItem: { gross_minor: '14400', paid_minor: '14400', credited_minor: '0', open_minor: '0', history: [] } }).includes('Apply discount'));
+  }
+});
+
+test('posted discount credit labels original prices and server allocated credit amounts', () => {
+  const adjustedDoc = { ...doc, kind: 'sales_credit_note', source: { ...source, discount_adjustment: { type: 'amount', value: '10', original_revision: 'rev' } },
+    money: { ...doc.money, net_pence: '833', vat_pence: '167', gross_pence: '1000', discount_adjustment: {
+      type: 'amount', value: '10', price_basis: 'including_vat', base_pence: '14400', amount_pence: '1000', after_pence: '13400',
+    } } };
+  const html = render('sales_credit_note', { doc: adjustedDoc });
+  for (const text of ['Original unit price', 'Original qty', 'Credit net', 'allocated discount credit', 'Discount credit', '£10.00', '£134.00']) assert.ok(html.includes(text), text);
+  assert.ok(!html.includes('Apply discount'));
+});
+
+test('normal return from discounted original explains inherited pricing without claiming another full discount', () => {
+  const html = render('supplier_credit_note', { doc: { ...doc, kind: 'supplier_credit_note', tax_context: { original_discount: { type: 'percentage', value: '10' } } } });
+  assert.ok(html.includes('Credit amounts use the original discounted prices.'));
+  assert.ok(html.includes('Unit price before original discount'));
+  assert.ok(!html.includes('Original total less discount'));
 });

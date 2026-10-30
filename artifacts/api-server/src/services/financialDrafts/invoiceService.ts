@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import type pg from "pg";
 import { DraftError, fail, canWriteDraft, money, netPence, parseInvoice, uuid, draftSourceFingerprint, type InvoiceSource } from "./contract";
+import { discountedAmounts } from './discounts';
 
 export interface DraftAuthority {
   /** Must lock/validate authoritative journal, issue, settlement and source links. */
@@ -129,7 +130,8 @@ export class InvoiceDraftService {
       return { id, kind: "invoice", company_id: companyId, status: "draft",
         source: parseInvoice(row.source), revision: row.revision as string, tax_context: row.tax_context,
         money: { currency: "GBP", net_pence: fixedPence(row.subtotal),
-          vat_pence: fixedPence(row.vat_total), gross_pence: fixedPence(row.total), lines } };
+          vat_pence: fixedPence(row.vat_total), gross_pence: fixedPence(row.total), lines,
+          ...(row.tax_context?.discount ? { discount: row.tax_context.discount } : {}) } };
     });
   }
   async save(companyId: string, actor: string, body: unknown, id?: string, etag?: string) {
@@ -140,6 +142,7 @@ export class InvoiceDraftService {
       const old = id ? await this.locked(tx, companyId, id) : undefined;
       if (old && etag !== `"${old.revision}"`) fail(409, "REVISION_CONFLICT");
       const source = createdSource ?? parseInvoice(body, old!.source);
+      if (source.discount_adjustment) fail(422, 'DISCOUNT_ADJUSTMENT_REQUIRES_CREDIT');
       // Recheck the proposed dates/source too, not only the persisted edit target.
       // Undefined identity means creation and still requires a write-period check.
       await this.authority!.assertWritable(tx, companyId, id, source);
@@ -148,6 +151,7 @@ export class InvoiceDraftService {
       const duplicate = await tx.query("SELECT id FROM sales_invoices WHERE company_id=$1 AND invoice_number=$2 AND ($3::uuid IS NULL OR id<>$3)", [companyId, source.invoice_number, id ?? null]);
       if (duplicate.rows.length) fail(409, "NUMBER_CONFLICT");
       const enteredPence = netPence(source.line_items);
+      const discounted = discountedAmounts(enteredPence, source.discount, source.price_basis ?? 'excluding_vat');
       const tax = await this.authority!.resolveTax(tx, companyId, source, enteredPence);
       if (tax?.transactionBound !== true || typeof tax.contextRevision !== "string" ||
           tax.contextRevision.length > 200 || !tax.context || typeof tax.context !== "object" ||
@@ -164,7 +168,8 @@ export class InvoiceDraftService {
         if (typeof value !== "string" || !/^(0|[1-9]\d{0,11})$/.test(value)) fail(503, "AUTHORITY_UNAVAILABLE");
         return BigInt(value);
       });
-      const totals = money(net, tax.vatPence);
+      const totals = { ...money(net, tax.vatPence), ...(discounted.summary ? { discount: discounted.summary } : {}) };
+      if (source.discount && JSON.stringify(tax.context.discount) !== JSON.stringify(discounted.summary)) fail(503, 'AUTHORITY_UNAVAILABLE');
       const resolvedLines = tax.context.lines as Array<Record<string, unknown>>;
       for (let index = 0; index < source.line_items.length; index++) {
         const resolved = resolvedLines[index]!;
@@ -177,8 +182,8 @@ export class InvoiceDraftService {
             typeof tax.unitNetPrices[index] !== "string" ||
             !/^(0|[1-9]\d{0,7})(\.\d{1,4})?$/.test(tax.unitNetPrices[index]!) ||
             (source.price_basis === "including_vat"
-              ? totals.lines[index]!.gross_pence !== enteredPence[index]!.toString()
-              : net[index] !== enteredPence[index]) ||
+              ? totals.lines[index]!.gross_pence !== discounted.amounts[index]!.toString()
+              : net[index] !== discounted.amounts[index]) ||
             typeof resolved.rule_id !== "string" || !resolved.rule_id ||
             typeof resolved.label !== "string" || !resolved.label ||
             typeof resolved.treatment !== "string" || !resolved.treatment ||

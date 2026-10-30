@@ -19,6 +19,8 @@ export function buildSource(form) {
     invoice_number: form.invoice_number, issue_date: form.issue_date, due_date: form.due_date,
     payment_terms: Number(form.payment_terms) || 0, reference: form.reference ?? '', notes: form.notes ?? '',
     price_basis: form.price_basis ?? 'excluding_vat',
+    discount: form.discount ? { type: form.discount.type, value: String(form.discount.value) } : null,
+    discount_adjustment: form.discount_adjustment ? { type: form.discount_adjustment.type, value: String(form.discount_adjustment.value), original_revision: form.discount_adjustment.original_revision } : null,
     line_items: form.line_items.map(l => ({
       description: String(l.description), quantity: String(l.quantity), unit_price: String(l.unit_price), tax_code: String(l.tax_code),
     })),

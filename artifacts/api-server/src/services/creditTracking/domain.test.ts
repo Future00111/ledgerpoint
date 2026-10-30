@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { DraftError } from "../financialDrafts/contract";
 import { claimProgress, creditCandidate, expectedClaim, type ClaimMoney } from "./domain";
+import { discountedAmounts } from '../financialDrafts/discounts';
 
 const amount = (net: string, vat: string, gross: string): ClaimMoney => ({ net_pence: net, vat_pence: vat, gross_pence: gross });
 function bill({ price = "10", quantity = "2", basis = "excluding_vat", rate = "20", treatment = "standard", money = amount("2000", "400", "2400") } = {}) {
@@ -19,6 +20,38 @@ function credit(status = "draft") {
     tax_context: { original_document_id: "bill-1", original_revision: "bill-revision-1", original_line_refs: [0] } };
 }
 const throwsCode = (fn: () => unknown, code: string) => assert.throws(fn, (error: unknown) => error instanceof DraftError && error.code === code);
+
+test('discounted bill claims retain stored discounted pennies for full and partial returns', () => {
+  const original:any=bill({money:amount('1800','360','2160')});
+  original.source.discount={type:'percentage',value:'10'};
+  original.money.discount=discountedAmounts([2000n],original.source.discount,'excluding_vat').summary;
+  assert.deepEqual(expectedClaim(original,0,'2').expected,amount('1800','360','2160'));
+  assert.deepEqual(expectedClaim(original,0,'1').expected,amount('900','180','1080'));
+  assert.deepEqual(expectedClaim(original,0,'0.5').expected,amount('450','90','540'));
+  const bad=structuredClone(original);bad.money.discount.lines[0].discount_pence='100';
+  throwsCode(()=>expectedClaim(bad,0,'1'),'CREDIT_CLAIM_SOURCE_INVALID');
+  const wrong=structuredClone(original);wrong.money.lines[0]=amount('1801','360','2161');
+  throwsCode(()=>expectedClaim(wrong,0,'1'),'CREDIT_CLAIM_SOURCE_INVALID');
+});
+
+test('commercial discount credits are never returned-item credit candidates',()=>{
+  for(const status of ['draft','posted']) {
+    const candidate:any=credit(status);
+    candidate.source.discount_adjustment={type:'amount',value:'10',original_revision:'bill-revision-1'};
+    assert.equal(creditCandidate(claim(),candidate,0),false);
+  }
+});
+
+test('claims on an original line with zero allocated discount keep legacy partial VAT rounding',()=>{
+  const original:any=bill({quantity:'1',price:'1',money:amount('99','20','119')});
+  original.source.line_items.push({description:'Small item',quantity:'1',unit_price:'0.03',tax_code:'ORIGINAL_TAX_CODE'});
+  original.money.lines.push(amount('3','1','4'));
+  original.tax_context.lines.push({...original.tax_context.lines[0],net_pence:'3',vat_pence:'1'});
+  original.source.discount={type:'amount',value:'0.01'};
+  original.money.discount=discountedAmounts([100n,3n],original.source.discount,'excluding_vat').summary;
+  assert.deepEqual(expectedClaim(original,1,'0.5').expected,amount('2','0','2'));
+  assert.deepEqual(expectedClaim(original,1,'1').expected,amount('3','1','4'));
+});
 
 for (const [treatment, rate, net, vat, gross] of [
   ["standard", "20", "1000", "200", "1200"], ["reduced", "5", "1000", "50", "1050"],

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildEnvelope, copyOriginalLines, penceToDisplay, createAccountingClient, docPath } from './accountingDocuments.mjs';
+import { buildSource, buildEnvelope, copyOriginalLines, penceToDisplay, createAccountingClient, docPath } from './accountingDocuments.mjs';
 
 const form = { customer_id: 'p', invoice_number: 'C1', issue_date: '2025-01-10', due_date: '2025-01-10', payment_terms: '0', reference: '', notes: '', price_basis: 'including_vat', line_items: [{ description: 'a', quantity: '0.2', unit_price: '120', tax_code: 'S20' }] };
 
@@ -21,6 +21,24 @@ test('copy preserves order', () => {
 });
 test('pence display', () => { assert.equal(penceToDisplay('-12000'), '−£120.00'); assert.equal(penceToDisplay('123456'), '£1,234.56'); });
 test('doc paths', () => { assert.equal(docPath('purchase_bill', 'a'), '/bills/a'); });
+test('discount inputs stay decimal strings and clearing sends explicit null for PATCH semantics', () => {
+  const discounted = buildSource({ ...form, discount: { type: 'percentage', value: '12.3456' } });
+  assert.deepEqual(discounted.discount, { type: 'percentage', value: '12.3456' });
+  assert.equal(discounted.discount_adjustment, null);
+  const cleared = buildSource({ ...form, discount: null });
+  assert.equal(cleared.discount, null);
+  assert.equal(cleared.discount_adjustment, null);
+});
+test('discount adjustment preserves original revision and full source lines in native credit envelope', () => {
+  const adjustment = { type: 'amount', value: '10.00', original_revision: 'original-revision' };
+  const body = buildEnvelope('supplier_credit_note', { ...form, discount_adjustment: adjustment }, { original_id: 'original', original_line_refs: [2], reason: 'Agreed discount', effective_adjustment_date: '2025-01-10' });
+  assert.deepEqual(body.source.discount_adjustment, adjustment);
+  assert.equal(body.source.discount, null);
+  assert.deepEqual(body.original_line_refs, [2]);
+  assert.equal(body.source.line_items[0].unit_price, '120');
+  assert.equal(body.source.line_items[0].quantity, '0.2');
+  assert.equal(body.adjustment_method, 'offset_outstanding');
+});
 test('post sends quoted If-Match and surfaces error code', async () => {
   let seen;
   const c = createAccountingClient(async (url, init) => { seen = init; return { ok: false, status: 409, json: async () => ({ error: { code: 'REVISION_CONFLICT', message: 'stale' } }) }; });

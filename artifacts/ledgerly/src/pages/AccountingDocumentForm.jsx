@@ -12,6 +12,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { dueFromTerms, changeDateField, submittedDates, postingAccounts, mappedId, accountLabel, issueFor, plannedAccounts, tradeRole } from '@/lib/accountingEditor.mjs';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { StatusPill, SettlementPill, Money, ConfigErrors, JournalLink, ErrorBox, SkeletonRows, today } from '@/components/accounting/AccountingUI';
+import { DiscountEditor, SavedDiscountSummary, DiscountBalanceReview, DraftWriteActions } from '@/features/documentDiscounts/DiscountControls';
+import DocumentLineFields from '@/features/documentDiscounts/DocumentLineFields';
+import { canEditDrafts, canPostDocuments, discountAdjustment, isCurrentDocumentRequest } from '@/features/documentDiscounts/model.mjs';
 
 const blankLine = () => ({ description: '', quantity: '1', unit_price: '0', tax_code: '' });
 const blankForm = () => ({ customer_id: '', invoice_number: '', issue_date: today(), due_date: dueFromTerms(today(), '30'), payment_terms: '30', reference: '', notes: '', price_basis: 'excluding_vat', line_items: [blankLine()] });
@@ -24,11 +27,13 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const { id } = useParams();
   const [params] = useSearchParams();
   const requestedOriginal = params.get('original');
+  const requestedDiscount = meta.credit && params.get('discount') === '1';
   const editId = id && id !== 'new' ? id : undefined;
   const { activeCompany } = useCompany();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [ctx, setCtx] = useState(null);
+  const [loadedScope, setLoadedScope] = useState(null);
   const [doc, setDoc] = useState(null);
   const [form, setForm] = useState(blankForm);
   const [extra, setExtra] = useState(blankExtra);
@@ -41,10 +46,20 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const [review, setReview] = useState(null);
   const [legacy, setLegacy] = useState(false);
   const gen = useRef(0);
+  const scopeKey = JSON.stringify([activeCompany?.id, editId, kind, requestedOriginal, requestedDiscount]);
+  const latestScope = useRef(scopeKey);
+  latestScope.current = scopeKey;
+  const currentContext = loadedScope === scopeKey;
+  const capabilities = currentContext ? ctx?.capabilities : null;
+  const canEdit = canEditDrafts(capabilities);
+  const canPost = canPostDocuments(capabilities);
+  const discountMode = meta.credit && Boolean(form.discount_adjustment || (!editId && requestedDiscount));
   const manualDue = useRef(false);
   const [journal, setJournal] = useState({ status: 'idle', data: null, error: null });
   const settlement = useLedgerSnapshot(activeCompany?.id, undefined, undefined, doc?.status === 'posted' && !meta.credit);
   const openItem = settlement.data?.open_items.find(d => d.id === doc?.id);
+  const originalSettlement = useLedgerSnapshot(activeCompany?.id, undefined, undefined, discountMode && !!extra.original_id);
+  const originalOpenItem = !originalSettlement.error && originalSettlement.data?.open_items.find(d => d.id === extra.original_id);
 
   // Posted documents show the canonical journal lines, never the current mapping.
   useEffect(() => {
@@ -52,7 +67,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     const c = new AbortController();
     setJournal({ status: 'loading', data: null, error: null });
     accounting.journal(activeCompany.id, doc.journal_id, c.signal)
-      .then(data => setJournal({ status: 'ready', data, error: null }))
+      .then(data => { if (!c.signal.aborted && latestScope.current === scopeKey) setJournal({ status: 'ready', data, error: null }); })
       .catch(e => { if (!c.signal.aborted) setJournal({ status: 'error', data: null, error: e }); });
     return () => c.abort();
   }, [activeCompany?.id, doc?.status, doc?.journal_id]);
@@ -61,7 +76,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     const g = ++gen.current; const c = new AbortController();
     manualDue.current = Boolean(editId);
     setReview(null);
-    setCtx(null); setDoc(null); setForm(blankForm()); setExtra(blankExtra()); setDirty(false); setError(null); setLegacy(false); setLoading(true); setOriginalDoc(null);
+    setCtx(null); setLoadedScope(null); setDoc(null); setForm(blankForm()); setExtra(blankExtra()); setDirty(false); setBusy(false); setError(null); setLegacy(false); setLoading(true); setOriginalDoc(null);
     if (!activeCompany) return () => c.abort();
     (async () => {
       try {
@@ -70,9 +85,10 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
           editId ? accounting.get(activeCompany.id, editId, c.signal).catch(e => { if (e.code === 'LEGACY_DRAFT') return 'LEGACY'; throw e; }) : null,
           meta.credit ? accounting.list(activeCompany.id, meta.original, c.signal) : [],
         ]);
-        if (g !== gen.current) return;
-        if (existing === 'LEGACY') { setLegacy(true); return; }
+        if (g !== gen.current || latestScope.current !== scopeKey || c.signal.aborted) return;
         setCtx(context);
+        setLoadedScope(scopeKey);
+        if (existing === 'LEGACY') { setLegacy(true); return; }
         setOriginals((origList || []).filter(d => d.status === 'posted'));
         if (existing) {
           setDoc(existing);
@@ -87,7 +103,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
           const original = origList.find(o => o.id === requestedOriginal && o.status === 'posted');
           if (!original) throw new Error('The original document is unavailable in this company.');
           setOriginalDoc(original);
-          setForm(f => ({ ...f, customer_id: original.source.customer_id, price_basis: original.source.price_basis, line_items: copyOriginalLines(original) }));
+          setForm(f => ({ ...f, customer_id: original.source.customer_id, price_basis: original.source.price_basis, discount: null, line_items: copyOriginalLines(original),
+            ...(requestedDiscount ? { discount_adjustment: discountAdjustment(original) } : {}) }));
           setExtra(x => ({ ...x, original_id: original.id, original_line_refs: original.source.line_items.map((_, i) => i), effective_adjustment_date: today() }));
           setDirty(true);
         }
@@ -95,10 +112,11 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
       finally { if (g === gen.current && !c.signal.aborted) setLoading(false); }
     })();
     return () => { c.abort(); gen.current++; };
-  }, [activeCompany?.id, editId, kind, requestedOriginal]);
+  }, [activeCompany?.id, editId, kind, requestedOriginal, requestedDiscount]);
 
-  if (legacy && legacyFallback) return legacyFallback;
+  if (legacy && currentContext) return canEdit && legacyFallback ? legacyFallback : <div className="workspace-page"><h1>Earlier draft</h1><p className="text-sm text-muted-foreground">This earlier draft cannot be edited in your current view. Your accounting access remains unchanged.</p><Link className="text-primary underline" to={meta.path}>Back to {meta.plural.toLowerCase()}</Link></div>;
   if (!activeCompany) return <p className="mx-auto max-w-xl rounded-xl border p-6 text-center">Select a company in <Link className="underline" to="/companies">Companies</Link> first.</p>;
+  if (!currentContext) return <div className="workspace-page"><Link className="text-primary underline" to={meta.path}>Back to {meta.plural.toLowerCase()}</Link><ErrorBox error={error} />{loading && <SkeletonRows rows={6} />}</div>;
 
   const posted = doc?.status === 'posted';
   const touch = () => setDirty(true);
@@ -108,7 +126,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   };
   const changeLine = (i, k, v) => { touch(); setForm(f => ({ ...f, line_items: f.line_items.map((l, j) => j === i ? { ...l, [k]: v } : l) })); };
   const removeCreditLine = (i) => {
-    if (form.line_items.length <= 1) return;
+    if (discountMode || form.line_items.length <= 1) return;
     touch();
     setForm(f => ({ ...f, line_items: f.line_items.filter((_, j) => j !== i) }));
     setExtra(x => ({ ...x, original_line_refs: x.original_line_refs.filter((_, j) => j !== i) }));
@@ -125,7 +143,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     const o = originals.find(d => d.id === oid) || null;
     setOriginalDoc(o); touch();
     setExtra(x => ({ ...x, original_id: oid, original_line_refs: o ? o.source.line_items.map((_, i) => i) : [] }));
-    if (o) setForm(f => ({ ...f, customer_id: o.source.customer_id, price_basis: o.source.price_basis, line_items: copyOriginalLines(o) }));
+    if (o) setForm(f => ({ ...f, customer_id: o.source.customer_id, price_basis: o.source.price_basis, discount: null, line_items: copyOriginalLines(o),
+      ...(discountMode ? { discount_adjustment: discountAdjustment(o, f.discount_adjustment) } : {}) }));
   };
 
   const parties = ctx?.parties ?? [];
@@ -145,7 +164,9 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
 
   const save = async (e) => {
     e?.preventDefault();
-    if (busy || posted || creditInvalid) return;
+    if (!canEdit || busy || posted || creditInvalid) return;
+    const started = { scope: scopeKey, generation: gen.current };
+    const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
     const fields = new FormData(e.currentTarget);
     const submitted = submittedDates(form, Object.fromEntries(
       ['issue_date', 'due_date', 'payment_terms'].map(k => [k, fields.get(k) ?? form[k]]),
@@ -154,15 +175,18 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     try {
       const body = buildEnvelope(kind, submitted, extra);
       const saved = editId ? await accounting.update(activeCompany.id, editId, body, doc.revision) : await accounting.create(activeCompany.id, body);
+      if (!stillCurrent()) return;
       setForm({ ...blankForm(), ...saved.source, payment_terms: String(saved.source.payment_terms) });
       manualDue.current = true;
       setDoc(saved); setDirty(false);
-      toast({ title: 'Draft saved', description: 'Totals recalculated. Not yet posted to the accounts.' });
+      toast({ title: editId ? 'Changes saved' : 'Draft saved', description: 'Totals recalculated. Not yet posted to the accounts.' });
       if (!editId) navigate(docPath(kind, saved.id), { replace: true });
-    } catch (err) { setError(err); } finally { setBusy(false); }
+    } catch (err) { if (stillCurrent()) setError(err); } finally { if (stillCurrent()) setBusy(false); }
   };
   const post = async () => {
-    if (busy || !doc || dirty || posted || !review || configErrors.length > 0) return;
+    if (!canPost || busy || !doc || dirty || doc.money?.gross_pence === '0' || posted || !review || configErrors.length > 0) return;
+    const started = { scope: scopeKey, generation: gen.current };
+    const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
     if (review.companyId !== activeCompany.id || review.id !== doc.id || review.revision !== doc.revision) {
       setReview(null);
       setError({ message: 'The draft changed. Review its current saved totals before posting.' });
@@ -171,13 +195,14 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     setBusy(true); setError(null);
     try {
       const r = await accounting.post(review.companyId, review.id, review.revision);
+      if (!stillCurrent()) return;
       setDoc({ ...doc, status: 'posted', journal_id: r.journal_id });
       setReview(null);
       toast({ title: r.status === 'duplicate' ? 'Already posted' : 'Posted to accounts', description: 'Journal recorded.' });
-    } catch (err) { setError(err); } finally { setBusy(false); }
+    } catch (err) { if (stillCurrent()) setError(err); } finally { if (stillCurrent()) setBusy(false); }
   };
 
-  if (posted && !loading) return <PostedDocument doc={doc} kind={kind} company={activeCompany} journal={journal} settlement={settlement} openItem={openItem} error={error} />;
+  if (posted && !loading && currentContext) return <PostedDocument doc={doc} kind={kind} company={activeCompany} journal={journal} settlement={settlement} openItem={openItem} error={error} capabilities={capabilities} />;
 
   return (
     <form onSubmit={save} className="workspace-page">
@@ -185,7 +210,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
         <div>
           <p className="eyebrow">{meta.section} · {meta.label}</p>
           <h1 className="mt-1 flex items-center gap-3 text-3xl font-semibold tracking-tight">
-            {editId ? (form.invoice_number || meta.label) : `New ${meta.label.toLowerCase()}`}
+            {editId ? `${canEdit ? 'Edit draft' : 'View draft'} · ${form.invoice_number || meta.label}` : `New ${discountMode ? 'discount credit' : meta.label.toLowerCase()}`}
             {doc && <StatusPill status={doc.status} />}
           </h1>
           {doc?.party_name && <p className="mt-1 text-sm text-muted-foreground">{doc.party_name}</p>}
@@ -218,18 +243,19 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
       {!posted && <div className="flex flex-wrap items-center gap-3 border-y py-3 text-xs text-muted-foreground" aria-label="Document progress"><span className="font-medium text-primary">1 · Enter details</span><span aria-hidden="true">→</span><span className={doc && !dirty ? 'font-medium text-primary' : ''}>2 · Save draft{doc && !dirty ? ' ✓' : ''}</span><span aria-hidden="true">→</span><span>3 · Review & post</span></div>}
       <ConfigErrors errors={configErrors} />
       <ErrorBox error={error} />
+      {!posted && !canEdit && <p className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">You have view-only access to this draft. Editing requires permission from your company owner.</p>}
       {loading && <SkeletonRows rows={6} />}
 
       {!loading && ctx && (
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <fieldset disabled={posted || busy} className="min-w-0 space-y-6">
+          <fieldset disabled={posted || busy || !canEdit} className="min-w-0 space-y-6">
             {meta.credit && (
               <section className="workspace-card space-y-5 p-6">
-                <div><h2 className="text-lg font-semibold">Adjustment</h2>
+                <div><h2 className="text-lg font-semibold">{discountMode ? 'Discount credit' : 'Adjustment'}</h2>
                   <p className="mt-1 text-sm text-muted-foreground">Offsets the outstanding balance on the original. No cash movement is recorded.</p></div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="sm:col-span-2"><Label htmlFor="original">Original {meta.original === 'sales_invoice' ? 'invoice' : 'bill'} (posted)</Label>
-                    <select id="original" data-testid="select-original" required className={sel} value={extra.original_id} onChange={e => pickOriginal(e.target.value)}>
+                    <select id="original" data-testid="select-original" required disabled={discountMode && !!extra.original_id} className={sel} value={extra.original_id} onChange={e => pickOriginal(e.target.value)}>
                       <option value="">Select original</option>
                       {originals.map(o => <option key={o.id} value={o.id}>{o.source?.invoice_number} · {o.party_name} · {o.source?.issue_date}</option>)}
                       {extra.original_id && !originals.some(o => o.id === extra.original_id) && <option value={extra.original_id}>Linked original</option>}
@@ -246,6 +272,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
                 </div>
               </section>
             )}
+            {(!meta.credit || discountMode) && <DiscountEditor value={discountMode ? form.discount_adjustment : form.discount} priceBasis={form.price_basis} adjustment={discountMode} disabled={!canEdit || busy}
+              onChange={value => change(discountMode ? 'discount_adjustment' : 'discount', value)} />}
 
             <section className="workspace-card space-y-5 p-6">
               <h2 className="text-base font-semibold">Document details</h2>
@@ -279,7 +307,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               </div>
               {isPurchase && (
                 <label className="flex items-start gap-3 rounded-lg border border-sky-200 bg-sky-50/60 p-4 text-sm">
-                  <input type="checkbox" data-testid="checkbox-vat-eligible" className="mt-0.5 h-4 w-4" checked={extra.purchase_vat_eligible} onChange={e => changeExtra('purchase_vat_eligible', e.target.checked)} />
+                  <input type="checkbox" data-testid="checkbox-vat-eligible" className="mt-0.5 h-4 w-4" disabled={discountMode} checked={discountMode ? originalDoc?.purchase_vat_eligible === true : extra.purchase_vat_eligible} onChange={e => changeExtra('purchase_vat_eligible', e.target.checked)} />
                   <span><span className="font-medium">I declare this is a fully recoverable, eligible business purchase.</span>
                     <span className="block text-muted-foreground">Leave unticked and no input VAT is recovered; the VAT stays in the cost.</span></span>
                 </label>
@@ -287,24 +315,14 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
             </section>
 
             <section className="workspace-card space-y-5 p-6">
-              <div className="flex items-center justify-between"><h2 className="text-base font-semibold">Items & services</h2>
-                {meta.credit && <span className="text-xs text-muted-foreground">Copied from the original. Reduce the amount or quantity, or exclude a line, for a partial credit. The original VAT basis, rate and accounts are retained.</span>}</div>
-              {form.line_items.map((l, i) => (
-                <div key={i} className="grid gap-3 border-b pb-5 sm:grid-cols-12" data-testid={`row-line-${i}`}>
-                  <div className="sm:col-span-12"><Label htmlFor={`d${i}`}>Description</Label><Input id={`d${i}`} required className="mt-1" value={l.description} readOnly={meta.credit} onChange={e => changeLine(i, 'description', e.target.value)} /></div>
-                  <div className="sm:col-span-3"><Label htmlFor={`q${i}`}>Quantity</Label><Input id={`q${i}`} data-testid={`input-qty-${i}`} required inputMode="decimal" className="mt-1" value={l.quantity} onChange={e => changeLine(i, 'quantity', e.target.value)} />
-                    {meta.credit && origLine(i) && <p className={`mt-1 text-xs ${overQty(i) ? 'text-red-700' : 'text-muted-foreground'}`}>Original line {extra.original_line_refs[i] + 1}: max {origLine(i).quantity} at {origLine(i).unit_price} ({origLine(i).tax_code})</p>}</div>
-                  <div className="sm:col-span-4"><Label htmlFor={`p${i}`}>{meta.credit ? 'Credit per unit' : 'Unit price'} ({form.price_basis === 'including_vat' ? 'inc' : 'exc'} VAT)</Label><Input id={`p${i}`} data-testid={`input-unit-price-${i}`} required inputMode="decimal" className="mt-1" value={l.unit_price} onChange={e => changeLine(i, 'unit_price', e.target.value)} />{meta.credit && <p className={`mt-1 text-xs ${overPrice(i) ? 'text-red-700' : 'text-muted-foreground'}`}>Enter the amount to credit per unit, up to the original unit price. {form.price_basis === 'including_vat' ? 'For a £10 total credit, enter quantity 1 and £10.' : 'VAT is added to the entered credit, using the original tax rate.'}</p>}</div>
-                  <div className="sm:col-span-5"><Label htmlFor={`t${i}`}>VAT rate</Label>
-                    <select id={`t${i}`} required className="mt-1 w-full rounded-md border bg-background p-2.5 text-sm" value={l.tax_code} disabled={meta.credit} onChange={e => changeLine(i, 'tax_code', e.target.value)}>
-                      <option value="">Select</option>
-                      {l.tax_code && !taxRules.some(r => r.code === l.tax_code) && <option value={l.tax_code}>{l.tax_code}</option>}
-                      {taxRules.map(r => <option key={r.id ?? r.code} value={r.code}>{Number(r.rate)}% · {r.label}</option>)}
-                    </select></div>
-                  {showTotals && doc.money?.lines?.[i] && <p className="sm:col-span-12 text-right text-xs text-muted-foreground">Net <Money value={doc.money.lines[i].net_pence} /> · VAT <Money value={doc.money.lines[i].vat_pence} /> · Gross <Money value={doc.money.lines[i].gross_pence} /></p>}
-                  {form.line_items.length > 1 && <button type="button" data-testid={`button-remove-line-${i}`} className="sm:col-span-12 justify-self-end text-xs text-destructive" onClick={() => meta.credit ? removeCreditLine(i) : change('line_items', form.line_items.filter((_, j) => j !== i))}>{meta.credit ? 'Exclude from credit' : 'Remove line'}</button>}
-                </div>
-              ))}
+              <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">{discountMode ? 'Original items · reference only' : 'Items & services'}</h2>
+                {meta.credit && <span className="text-xs text-muted-foreground">{discountMode ? 'The original quantities, prices and VAT rates are retained. The saved discount determines the credit amounts below.' : 'Copied from the original. Reduce the amount or quantity, or exclude a line, for a partial credit. The original VAT basis, rate and accounts are retained.'}</span>}</div>
+              {meta.credit && !discountMode && (originalDoc?.source?.discount || doc?.tax_context?.original_discount) && <p className="rounded-lg bg-primary/5 p-3 text-sm">Credit amounts use the original discounted prices.</p>}
+              {form.line_items.map((line, index) => <DocumentLineFields key={index} line={line} index={index} credit={meta.credit} discountMode={discountMode}
+                originalDiscount={Boolean(originalDoc?.source?.discount || doc?.tax_context?.original_discount)}
+                priceBasis={form.price_basis} taxRules={taxRules} originalLine={origLine(index)} originalLineRef={extra.original_line_refs[index]}
+                money={showTotals ? doc.money?.lines?.[index] : null} canRemove={form.line_items.length > 1}
+                onChange={(field, value) => changeLine(index, field, value)} onRemove={() => meta.credit ? removeCreditLine(index) : change('line_items', form.line_items.filter((_, j) => j !== index))} />)}
               {!meta.credit && <Button type="button" variant="outline" onClick={() => change('line_items', [...form.line_items, blankLine()])} data-testid="button-add-line">Add line</Button>}
               <div><Label htmlFor="notes">Notes</Label><Textarea id="notes" maxLength={4000} className="mt-1.5" value={form.notes} onChange={e => change('notes', e.target.value)} /></div>
             </section>
@@ -341,6 +359,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Totals</h2>
               {showTotals ? (
                 <dl className="mt-4 space-y-2 text-sm" data-testid="totals">
+                  <SavedDiscountSummary money={doc.money} />
                   <div className="flex justify-between"><dt>Net</dt><dd><Money value={doc.money.net_pence} /></dd></div>
                   <div className="flex justify-between"><dt>VAT</dt><dd><Money value={doc.money.vat_pence} /></dd></div>
                   <div className="flex justify-between border-t pt-2 text-base font-semibold"><dt>Total</dt><dd><Money value={doc.money.gross_pence} /></dd></div>
@@ -348,14 +367,13 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               ) : <p className="mt-4 text-sm text-muted-foreground" data-testid="text-totals-stale">{doc ? 'Changes not saved — save the draft to recalculate totals.' : 'Save your draft to calculate the subtotal, VAT and total.'}</p>}
               {meta.credit && <p className="mt-4 rounded-md bg-muted/50 p-2.5 text-xs">Offset against outstanding balance. No cash movement.</p>}
             </div>
+            {discountMode && <DiscountBalanceReview original={originalDoc} item={originalOpenItem} money={doc?.money} dirty={dirty || !doc} loading={originalSettlement.loading} error={originalSettlement.error} onRetry={originalSettlement.refresh} />}
             {!posted && (
               <div className="order-2 space-y-2">
                 <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">Draft — not included in your P&amp;L, balance sheet, VAT workings or account balances until you review and post it.</p>
                 {creditInvalid && <p className="text-xs text-orange-800">Original, reason and effective date are required; the credit date must match the effective date and quantities cannot exceed the original.</p>}
-                <Button type="submit" className="w-full" disabled={busy || creditInvalid} data-testid="button-save">{busy ? 'Working…' : 'Save draft'}</Button>
-                <Button type="button" variant="secondary" className="w-full" disabled={busy || !doc || dirty || configErrors.length > 0}
-                  onClick={() => { setError(null); setReview({ companyId: activeCompany.id, id: doc.id, revision: doc.revision, number: form.invoice_number, money: doc.money }); }}
-                  data-testid="button-post">Review & post</Button>
+                <DraftWriteActions capabilities={capabilities} doc={doc} editId={editId} busy={busy} dirty={dirty} creditInvalid={creditInvalid} configurationErrors={configErrors}
+                  onReview={() => { setError(null); setReview({ companyId: activeCompany.id, id: doc.id, revision: doc.revision, number: form.invoice_number, money: doc.money }); }} />
                 {doc && dirty && <p className="text-xs text-muted-foreground">Save changes before posting.</p>}
               </div>
             )}
@@ -381,7 +399,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
           {error && <ErrorBox error={error} />}
           <AlertDialogFooter>
             <AlertDialogCancel type="button" disabled={busy} data-testid="button-cancel-posting">Cancel</AlertDialogCancel>
-            <Button type="button" onClick={post} disabled={busy || dirty || posted || configErrors.length > 0} data-testid="button-confirm-posting">
+            <Button type="button" onClick={post} disabled={!canPost || busy || dirty || doc?.money?.gross_pence === '0' || posted || configErrors.length > 0} data-testid="button-confirm-posting">
               {busy ? 'Posting…' : 'Confirm posting'}
             </Button>
           </AlertDialogFooter>

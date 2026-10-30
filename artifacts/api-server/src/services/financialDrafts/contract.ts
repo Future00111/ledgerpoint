@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import type { Discount, DiscountAdjustment } from './discounts';
 /** W03 development fixtures, pending accounting acceptance; not VAT eligibility. */
 export class DraftError extends Error {
   constructor(public status: number, public code: string, public path = "") {
@@ -26,9 +27,11 @@ export interface InvoiceSource {
   reference: string;
   notes: string;
   line_items: DraftLine[];
+  discount?: Discount;
+  discount_adjustment?: DiscountAdjustment;
 }
 const fields = ["contract", "currency", "customer_id", "invoice_number", "issue_date",
-  "due_date", "payment_terms", "reference", "notes", "line_items", "price_basis"];
+  "due_date", "payment_terms", "reference", "notes", "line_items", "price_basis", "discount", "discount_adjustment"];
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export function uuid(value: unknown): string {
   if (typeof value !== "string" || !uuidPattern.test(value)) fail(400, "INVALID_REQUEST_SHAPE");
@@ -67,6 +70,24 @@ function date(value: unknown, path: string): string {
       new Date(value + "T00:00:00Z").toISOString().slice(0, 10) !== value) fail(422, "FIELD_INVALID", path);
   return value as string;
 }
+export function parseDiscount(value: unknown, adjustment = false): Discount | DiscountAdjustment | undefined {
+  if (value === undefined || value === null) return undefined;
+  const d = object(value);
+  keys(d, adjustment ? ['type', 'value', 'original_revision'] : ['type', 'value']);
+  const path = adjustment ? '/discount_adjustment' : '/discount';
+  if (typeof d.type !== 'string' || !['percentage', 'amount'].includes(d.type) || typeof d.value !== 'string') fail(422, 'DISCOUNT_INVALID', path);
+  if (d.type === 'amount') {
+    if (d.value.length > 20 || !/^(0|[1-9]\d*)(\.\d{1,2})?$/.test(d.value)) fail(422, 'DISCOUNT_INVALID', path);
+    const [whole, fraction = ''] = d.value.split('.');
+    const pence = BigInt(whole!) * 100n + BigInt(fraction.padEnd(2, '0'));
+    if (pence <= 0n || pence > MAX_PENCE) fail(422, 'DISCOUNT_INVALID', path);
+  } else {
+    const amount = decimal(d.value, false);
+    if (amount <= 0n || amount > 1000000n) fail(422, 'DISCOUNT_INVALID', path);
+  }
+  const result: Discount = { type: d.type as Discount['type'], value: d.value };
+  return adjustment ? { ...result, original_revision: uuid(d.original_revision) } : result;
+}
 export function parseInvoice(body: unknown, previous?: InvoiceSource): InvoiceSource {
   const input = object(body);
   keys(input, previous ? fields.filter(k => k !== "currency") : fields);
@@ -90,12 +111,16 @@ export function parseInvoice(body: unknown, previous?: InvoiceSource): InvoiceSo
       quantity: l.quantity as string, unit_price: l.unit_price as string,
       tax_code: text(l.tax_code, 64, `/line_items/${i}/tax_code`, true) };
   });
+  const discount = parseDiscount(data.discount) as Discount | undefined;
+  const adjustment = parseDiscount(data.discount_adjustment, true) as DiscountAdjustment | undefined;
+  if (discount && adjustment) fail(422, 'DISCOUNT_CONFLICT', '/discount_adjustment');
   return { contract: "w03.draft.v1", currency: "GBP", price_basis: basis, customer_id: uuid(data.customer_id),
     invoice_number: text(data.invoice_number, 64, "/invoice_number", true),
     issue_date: issue, due_date: due, payment_terms: data.payment_terms as number,
     reference: text(data.reference === undefined ? "" : data.reference, 200, "/reference"),
     notes: text(data.notes === undefined ? "" : data.notes, 4000, "/notes", false, true),
-    line_items: lines.map(line => ({ ...line, tax_code: line.tax_code.toUpperCase() })) };
+    line_items: lines.map(line => ({ ...line, tax_code: line.tax_code.toUpperCase() })),
+    ...(discount ? { discount } : {}), ...(adjustment ? { discount_adjustment: adjustment } : {}) };
 }
 export function draftSourceFingerprint(source: InvoiceSource): string {
   // Canonical validation/defaulting means an absent legacy basis equals excluding.

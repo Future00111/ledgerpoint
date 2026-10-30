@@ -1,5 +1,6 @@
 import { decimal, fail, MAX_PENCE, netPence } from "../financialDrafts/contract";
-import { calculateTaxLine } from "../financialDrafts/productionAuthority";
+import { calculateReturnLine, calculateTaxLine } from "../financialDrafts/productionAuthority";
+import { discountedAmounts } from '../financialDrafts/discounts';
 
 /** Tracking values are evidence for review, never instructions to post a journal. */
 export interface ClaimMoney {
@@ -72,12 +73,23 @@ export function expectedClaim(bill: any, lineRef: number, quantity: string): {
 
   const originalQuantity = decimal(line.quantity, true), requestedQuantity = decimal(quantity, true);
   if (requestedQuantity > originalQuantity) fail(422, "CREDIT_CLAIM_QUANTITY_EXCEEDS_ORIGINAL");
+  const originalMoney = checkedMoney(bill.money.lines[lineRef], "CREDIT_CLAIM_SOURCE_INVALID");
+  const discount = bill.source.discount ? discountedAmounts(netPence(bill.source.line_items), bill.source.discount, basis) : undefined;
+  if (discount?.summary) {
+    const stored = bill.money.discount, expected = discount.summary;
+    if (!stored || ['type','value','price_basis','base_pence','amount_pence','after_pence'].some(key => stored[key] !== expected[key as keyof typeof expected]) ||
+      !Array.isArray(stored.lines) || stored.lines.length !== expected.lines.length ||
+      expected.lines.some((value, i) => !stored.lines[i] || ['before_pence','discount_pence','after_pence'].some(key => stored.lines[i][key] !== value[key as keyof typeof value])))
+      fail(409, 'CREDIT_CLAIM_SOURCE_INVALID');
+    const full = calculateTaxLine(discount.amounts[lineRef]!, rate, basis, line.unit_price);
+    if (!sameMoney(originalMoney, {net_pence:full.net.toString(),vat_pence:full.vat.toString(),gross_pence:(full.net+full.vat).toString()}))
+      fail(409, 'CREDIT_CLAIM_SOURCE_INVALID');
+  }
   const calculate = (qty: string): ClaimMoney => {
     const entered = netPence([{ ...line, quantity: qty }])[0]!;
-    const result = calculateTaxLine(entered, rate, basis, line.unit_price);
+    const result = calculateReturnLine(entered,rate,basis,{...line,quantity:qty},line,originalMoney,discount?.summary?.lines[lineRef]?.discount_pence);
     return checkedMoney({ net_pence: result.net.toString(), vat_pence: result.vat.toString(), gross_pence: (result.net + result.vat).toString() });
   };
-  const originalMoney = checkedMoney(bill.money.lines[lineRef], "CREDIT_CLAIM_SOURCE_INVALID");
   if (!sameMoney(calculate(line.quantity), originalMoney) ||
       fact.net_pence !== originalMoney.net_pence || fact.vat_pence !== originalMoney.vat_pence) {
     fail(409, "CREDIT_CLAIM_SOURCE_INVALID");
@@ -96,6 +108,7 @@ export function expectedClaim(bill: any, lineRef: number, quantity: string): {
  */
 export function creditCandidate(claim: any, credit: any, lineRef: number): boolean {
   if (!claim || !credit || credit.kind !== "supplier_credit_note" ||
+      credit.source?.discount_adjustment ||
       !["draft", "posted"].includes(credit.status) ||
       !Number.isInteger(lineRef) || lineRef < 0 ||
       !Number.isInteger(claim.original_line_ref) || claim.original_line_ref < 0 ||

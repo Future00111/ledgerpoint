@@ -107,12 +107,24 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     const databaseCode=error.cause?.code??error.code;
     if(error instanceof DraftError) {
       const labels:Record<string,string>={"/invoice_number":"Document number","/customer_id":"Customer or supplier",
-        "/due_date":"Due date","/issue_date":"Document date","/payment_terms":"Payment terms","/posting_account_id":"Document account"};
+        "/due_date":"Due date","/issue_date":"Document date","/payment_terms":"Payment terms","/posting_account_id":"Document account",
+        "/discount":"Discount","/discount_adjustment":"Discount adjustment"};
       const field=labels[error.path]??(error.path?.startsWith("/line_items/")?"Invoice or bill line":"Submitted field");
+      const guidance:Record<string,string>={
+        DISCOUNT_INVALID:"Enter a positive discount: a percentage up to 100%, or an amount with at most two decimal places.",
+        DISCOUNT_CONFLICT:"Choose either a draft discount or a later discount adjustment, not both.",
+        DISCOUNT_EXCEEDS_TOTAL:"The discount cannot exceed the document value. No changes were committed.",
+        DISCOUNT_ROUNDS_TO_ZERO:"This discount rounds to £0.00. Enter a discount of at least one penny, or remove it.",
+        DISCOUNT_REQUIRES_ORIGINAL_DOCUMENT:"Draft discounts apply to invoices and bills. Use the linked discount adjustment for a posted document.",
+        DISCOUNT_ADJUSTMENT_REQUIRES_CREDIT:"A later discount must be recorded as a linked credit note.",
+        DISCOUNT_ORIGINAL_CHANGED:"The original document changed. Reopen it and prepare the discount again.",
+        DISCOUNT_ORIGINAL_LINES_REQUIRED:"A discount adjustment must retain the original items and quantities. Reopen the original document to prepare it again.",
+        CREDIT_EXCEEDS_OUTSTANDING:"This credit exceeds the remaining balance or the amount still creditable on an original line. Review existing payments and credits; an excess needs a separate refund or credit-balance workflow. No changes were committed.",
+      };
       const message=error instanceof AccountSelectionError?error.publicMessage:
-        error.code==="FIELD_INVALID"?`${field} is invalid. Check the value and try again.`:error.code.replaceAll("_"," ").toLowerCase()+
+        guidance[error.code]??(error.code==="FIELD_INVALID"?`${field} is invalid. Check the value and try again.`:error.code.replaceAll("_"," ").toLowerCase()+
         (["ACCOUNT_CONFIGURATION_REQUIRED","ACCOUNT_MAPPING_INVALID","ACCOUNT_MAPPING_REQUIRED","PERIOD_NOT_WRITABLE"].includes(error.code)
-          ?". Open Posting Setup to check account mappings and the document's open period.":". No changes were committed.");
+          ?". Open Posting Setup to check account mappings and the document's open period.":". No changes were committed."));
       res.status(error.status).json({error:{code:error.code,issues:[{path:error.path,code:error.code,message}],message}});return;
     }
     if(error instanceof CanonicalPostingError) {

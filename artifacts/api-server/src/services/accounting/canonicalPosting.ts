@@ -231,6 +231,11 @@ const ROLE_CAPABILITIES: Record<string, readonly AccountingCapability[]> = {
   accountant: ["accounting.post", "accounting.reverse", "accounting.correct"],
 };
 
+/** Advisory UI capabilities use the same role policy as protected posting. */
+export function roleHasAccountingCapability(role: unknown, capability: AccountingCapability): boolean {
+  return typeof role === "string" && (ROLE_CAPABILITIES[role] ?? []).includes(capability);
+}
+
 function fail(code: CanonicalPostingErrorCode, message: string): never {
   throw new CanonicalPostingError(code, message);
 }
@@ -384,7 +389,7 @@ async function lockMembership(
       "The locked membership state does not authorise this operation",
     );
   }
-  if (!(ROLE_CAPABILITIES[membership.role ?? ""] ?? []).includes(capability)) {
+  if (!roleHasAccountingCapability(membership.role, capability)) {
     fail("authorization_failed", "The principal lacks the required accounting capability");
   }
   return membership;

@@ -96,6 +96,199 @@ async function creditDoc(f:any,original:any,quantity="0.2",date="2026-10-21",ref
     {original_id:original.id,reason:"Agreed price reduction offset against outstanding liability, no cash refund.",
       adjustment_method:"offset_outstanding",effective_adjustment_date:date,original_line_refs:refs});
 }
+
+async function discountCredit(f:any,original:any,type='percentage',value='10',date='2026-10-21') {
+  return create(f,original.kind==='sales_invoice'?'sales_credit_note':'supplier_credit_note',
+    {...original.source,discount:null,discount_adjustment:{type,value,original_revision:original.revision},
+      invoice_number:'DISCOUNT-'+randomUUID(),issue_date:date,due_date:date},
+    {original_id:original.id,reason:'Agreed commercial discount after invoice creation',
+      adjustment_method:'offset_outstanding',effective_adjustment_date:date,
+      original_line_refs:original.source.line_items.map((_:any,i:number)=>i)});
+}
+
+test('document capabilities match actual draft and protected posting permissions',async()=>{
+  const f=await fixture();
+  for(const [role,editDrafts,postDocuments] of [['owner',true,true],['accountant',true,true],['admin',true,false],['read_only',false,false]] as const) {
+    const user='discount-role-'+randomUUID();
+    await admin.query('INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,$4,true)',[randomUUID(),f.company,user,role]);
+    const ctx=await request(f.company,'/accounting-documents/context?kind=purchase_bill','GET',undefined,undefined,user);
+    assert.deepEqual(ctx.data.capabilities,{edit_drafts:editDrafts,post_documents:postDocuments});
+    const doc=await create(f,'sales_invoice',source(f.customer));
+    const changed=await request(f.company,`/accounting-documents/${doc.id}`,'PATCH',
+      {source:{contract:'w03.draft.v1',discount:{type:'percentage',value:'10'}}},doc.revision,user);
+    assert.equal(changed.status,editDrafts?200:403,JSON.stringify(changed));
+    const current=changed.data??doc;
+    const posted=await request(f.company,`/accounting-documents/${doc.id}/post`,'POST',{},current.revision,user);
+    assert.equal(posted.status,postDocuments?200:403,JSON.stringify(posted));
+    await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,user]);
+    assert.equal((await request(f.company,'/accounting-documents/context','GET',undefined,undefined,user)).status,404);
+  }
+});
+
+test('all four document drafts edit and reopen with revised totals, stale-write protection and source audit',async()=>{
+  const f=await fixture();
+  const sale=await create(f,'sales_invoice',source(f.customer)),bill=await create(f,'purchase_bill',source(f.supplier));
+  await post(f,sale);await post(f,bill);
+  const drafts=[await create(f,'sales_invoice',source(f.customer)),await create(f,'purchase_bill',source(f.supplier)),
+    await creditDoc(f,sale),await creditDoc(f,bill)];
+  for(const doc of drafts) {
+    const input={source:{contract:'w03.draft.v1',reference:'Edited saved draft',line_items:doc.source.line_items.map((l:any)=>({...l,unit_price:'60'}))}};
+    const edited=await request(f.company,`/accounting-documents/${doc.id}`,'PATCH',input,doc.revision);
+    assert.equal(edited.status,200,JSON.stringify(edited));assert.notEqual(edited.data.revision,doc.revision);
+    assert.equal(edited.data.money.gross_pence,doc.kind.includes('credit')?'1200':'6000');
+    const reopened=await request(f.company,`/accounting-documents/${doc.id}`);
+    assert.deepEqual(reopened.data.source,edited.data.source);assert.deepEqual(reopened.data.money,edited.data.money);
+    assert.equal((await request(f.company,`/accounting-documents/${doc.id}`,'PATCH',input,doc.revision)).error.code,'REVISION_CONFLICT');
+    const audit=(await admin.query("SELECT before_source,after_source FROM accounting_document_audit WHERE document_id=$1 AND action='edit'",[doc.id])).rows;
+    assert.equal(audit.length,1);assert.deepEqual(audit[0].before_source,doc.source);assert.deepEqual(audit[0].after_source,edited.data.source);
+    await post(f,edited.data);
+    assert.equal((await request(f.company,`/accounting-documents/${doc.id}`,'PATCH',input,edited.data.revision)).error.code,'DOCUMENT_NOT_DRAFT');
+  }
+});
+
+test('draft discounts allocate mixed VAT in both bases, clear on edit, post balanced, and allow exact full returns',async()=>{
+  for(const kind of ['sales_invoice','purchase_bill']) for(const basis of ['excluding_vat','including_vat']) for(const type of ['percentage','amount']) {
+    const f=await fixture();await ensureWorkspaceTaxRules(admin,f.company);
+    const inclusive=basis==='including_vat';
+    const src={...source(kind==='sales_invoice'?f.customer:f.supplier),price_basis:basis,
+      discount:{type,value:type==='percentage'?'10':inclusive?'32.50':'30.00'},
+      line_items:[['STANDARD_20',inclusive?'120':'100'],['REDUCED_5',inclusive?'105':'100'],['ZERO_0','100']].map(([tax_code,unit_price])=>({description:'Mixed VAT discount '+tax_code,quantity:'1',unit_price,tax_code}))};
+    let doc=await create(f,kind,src);
+    assert.deepEqual([doc.money.net_pence,doc.money.vat_pence,doc.money.gross_pence],['27000','2250','29250']);
+    assert.equal(doc.money.discount.amount_pence,inclusive?'3250':'3000');
+    assert.deepEqual((await request(f.company,`/accounting-documents/${doc.id}`)).data.source.discount,src.discount);
+    const clear=await request(f.company,`/accounting-documents/${doc.id}`,'PATCH',{source:{contract:'w03.draft.v1',discount:null}},doc.revision);
+    assert.equal(clear.status,200,JSON.stringify(clear));assert.equal(clear.data.source.discount,undefined);assert.equal(clear.data.money.gross_pence,'32500');
+    const restored=await request(f.company,`/accounting-documents/${doc.id}`,'PATCH',{source:{contract:'w03.draft.v1',discount:src.discount}},clear.data.revision);
+    assert.equal(restored.status,200,JSON.stringify(restored));doc=restored.data;await post(f,doc);
+    const cr=await create(f,kind==='sales_invoice'?'sales_credit_note':'supplier_credit_note',
+      {...doc.source,discount:null,invoice_number:'FULL-DISCOUNTED-RETURN-'+randomUUID()},
+      {original_id:doc.id,reason:'Return of entire discounted order',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-21',original_line_refs:[0,1,2]});
+    assert.deepEqual([cr.money.net_pence,cr.money.vat_pence,cr.money.gross_pence],['27000','2250','29250']);await post(f,cr);
+    const report=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-12-31')).data;
+    assert.equal(report.open_items.find((d:any)=>d.id===doc.id).open_minor,'0');assert.equal(report.balance_sheet.balanced,true);
+    assert.equal(report.pnl.profit_minor,'0');assert.equal(report.vat.box1_pence,'0');assert.equal(report.vat.box4_pence,'0');
+    const balance=await admin.query('SELECT total_debit_minor,total_credit_minor FROM canonical_journal_entries WHERE company_id=$1',[f.company]);
+    assert.equal(balance.rows.length,2);assert.ok(balance.rows.every(j=>j.total_debit_minor===j.total_credit_minor));
+  }
+});
+
+test('later percentage and fixed discounts preserve partial payments and original source for invoices and bills',async()=>{
+  for(const kind of ['sales_invoice','purchase_bill']) for(const type of ['percentage','amount']) {
+    const f=await fixture(),original=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,original);
+    const payment=paymentIntent(f,original,'5000','5000');await recordPayment(f,payment);
+    const before=(await request(f.company,`/accounting-documents/${original.id}`)).data;
+    const paymentBefore=(await admin.query('SELECT * FROM accounting_payment_events WHERE id=$1',[payment.id])).rows;
+    const cr=await discountCredit(f,original,type,'10');
+    const expected=type==='percentage'?'1200':'1000';
+    assert.equal(cr.money.gross_pence,expected);assert.equal(cr.money.discount_adjustment.amount_pence,expected);
+    await post(f,cr);assert.equal((await post(f,cr)).data.status,'duplicate');
+    assert.deepEqual((await request(f.company,`/accounting-documents/${original.id}`)).data,before);
+    assert.deepEqual((await admin.query('SELECT * FROM accounting_payment_events WHERE id=$1',[payment.id])).rows,paymentBefore);
+    const report=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-12-31')).data;
+    const item=report.open_items.find((d:any)=>d.id===original.id);
+    assert.deepEqual([item.gross_minor,item.paid_minor,item.credited_minor,item.open_minor],['12000','5000',expected,type==='percentage'?'5800':'6000']);
+    assert.equal(report.balance_sheet.balanced,true);assert.equal(item.history.length,2);
+    const j=(await request(f.company,`/accounting-journals/${(await request(f.company,`/accounting-documents/${cr.id}`)).data.journal_id}`)).data;
+    assert.equal(j.entry.total_debit_minor,j.entry.total_credit_minor);
+    assert.equal((await admin.query("SELECT count(*)::int n FROM accounting_document_audit WHERE document_id=$1 AND action='post'",[cr.id])).rows[0].n,1);
+  }
+});
+
+test('discount credits use original VAT evidence and adjustment date after tax rules change',async()=>{
+  const f=await fixture();await ensureWorkspaceTaxRules(admin,f.company);
+  const bill=await create(f,'purchase_bill',{...source(f.supplier,'105','1','2026-09-21','REDUCED_5'),
+    line_items:[...source(f.supplier,'105','1','2026-09-21','REDUCED_5').line_items,{description:'Zero rated',quantity:'1',unit_price:'100',tax_code:'ZERO_0'}]});await post(f,bill);
+  await admin.query("UPDATE vat_tax_rules SET effective_to='2026-09-30' WHERE company_id=$1",[f.company]);
+  const cr=await discountCredit(f,bill,'amount','20.50');await post(f,cr);
+  assert.deepEqual([cr.money.net_pence,cr.money.vat_pence,cr.money.gross_pence],['2000','50','2050']);
+  assert.deepEqual(cr.tax_context.lines.map((l:any)=>l.rate),['5.00','0.00']);
+  const old=(await request(f.company,'/accounting-reports?from=2026-09-01&to=2026-09-30')).data;
+  assert.equal(old.pnl.expense_minor,'20000');assert.equal(old.vat.box4_pence,'500');
+  const now=(await request(f.company,'/accounting-reports?from=2026-10-01&to=2026-10-31')).data;
+  assert.equal(now.pnl.expense_minor,'-2000');assert.equal(now.vat.box4_pence,'-50');assert.equal(now.open_items.find((d:any)=>d.id===bill.id).open_minor,'18450');
+});
+
+test('competing discounts cannot exceed the balance after a partial payment',async()=>{
+  const f=await fixture(),sale=await create(f,'sales_invoice',source(f.customer));await post(f,sale);
+  await recordPayment(f,paymentIntent(f,sale,'5000','5000'));
+  const first=await discountCredit(f,sale,'amount','50'),second=await discountCredit(f,sale,'amount','50');
+  const results=await Promise.all([first,second].map(d=>request(f.company,`/accounting-documents/${d.id}/post`,'POST',{},d.revision)));
+  assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);assert.equal(results.find(r=>r.status===409)?.error.code,'CREDIT_EXCEEDS_OUTSTANDING');
+  const item=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-12-31')).data.open_items.find((d:any)=>d.id===sale.id);
+  assert.deepEqual([item.paid_minor,item.credited_minor,item.open_minor],['5000','5000','2000']);
+});
+
+test('discount failures preserve journal, payments, audit and source; permissions, revisions and periods stay enforced',async()=>{
+  const f=await fixture(),other=await fixture(),sale=await create(f,'sales_invoice',source(f.customer));await post(f,sale);
+  await recordPayment(f,paymentIntent(f,sale,'5000','5000'));
+  const cr=await discountCredit(f,sale);
+  const reportBefore=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-12-31')).data;
+  const path=`/accounting-documents/${cr.id}/post`;
+  assert.equal((await request(other.company,path,'POST',{},cr.revision)).status,404);
+  assert.equal((await request(f.company,path,'POST',{},cr.revision,readOnly)).status,403);
+  assert.equal((await request(f.company,path,'POST',{},randomUUID())).error.code,'REVISION_CONFLICT');
+  failNext=true;await post(f,cr,500);
+  assert.deepEqual((await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-12-31')).data,reportBefore);
+  assert.equal((await request(f.company,`/accounting-documents/${cr.id}`)).data.status,'draft');
+  assert.equal((await admin.query("SELECT count(*)::int n FROM accounting_document_audit WHERE document_id=$1 AND action='post'",[cr.id])).rows[0].n,0);
+  await admin.query("UPDATE accounting_document_periods SET status='CLOSED' WHERE id=$1",[f.period]);
+  assert.equal((await post(f,cr,409)).error.code,'PERIOD_NOT_WRITABLE');
+  await admin.query("UPDATE accounting_document_periods SET status='OPEN' WHERE id=$1",[f.period]);
+  const stale=await request(f.company,`/accounting-documents/${cr.id}`,'PATCH',
+    {source:{contract:'w03.draft.v1',discount_adjustment:{type:'percentage',value:'10',original_revision:randomUUID()}}},cr.revision);
+  assert.equal(stale.status,409,JSON.stringify(stale));
+  await post(f,cr);
+});
+
+test('discounted returned-item claims use the paid-for value and commercial discounts never satisfy those claims',async()=>{
+  const f=await fixture();
+  const bill=await create(f,'purchase_bill',{...source(f.supplier),discount:{type:'percentage',value:'10'}});await post(f,bill);
+  const [claim]=await track(f,bill,claimIntent(bill,[{original_line_ref:0,quantity:'0.5',part_reference:'PART-001',job_reference:'JOB-001'}]));assert.equal(claim.expected.gross_pence,'5400');
+  const commercial=await discountCredit(f,bill);await post(f,commercial);
+  const fresh=(await claimsFor(f,bill))[0];assert.equal(fresh.status,'awaiting');assert.equal(fresh.candidates.length,0);
+  const confirm=await request(f.company,`/credit-claims/${claim.id}/receipts`,'POST',receiptIntent(commercial),claim.revision);
+  assert.equal(confirm.status,422,JSON.stringify(confirm));assert.equal(confirm.error.code,'CREDIT_MATCH_INVALID');
+  const returned=await create(f,'supplier_credit_note',{...bill.source,discount:null,invoice_number:'DISCOUNTED-RETURN-'+randomUUID(),line_items:[{...bill.source.line_items[0],quantity:'0.5'}]},
+    {original_id:bill.id,reason:'Part returned',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-21',original_line_refs:[0]});
+  assert.equal(returned.money.gross_pence,'5400');await post(f,returned);
+  assert.equal((await request(f.company,`/credit-claims/${claim.id}/receipts`,'POST',receiptIntent(returned),claim.revision)).status,200);
+  assert.equal((await claimsFor(f,bill))[0].status,'received');
+});
+
+test('legacy draft discount is calculated, saved and reopened rather than silently ignored',async()=>{
+  const f=await fixture(),body={...source(f.customer),discount:{type:'percentage',value:'10'}};
+  const result=await fetch(base+'/legacy/'+f.company,{method:'POST',headers:{'x-test-actor':actor,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  assert.equal(result.status,201,await result.clone().text());const saved=(await result.json() as any).data;
+  assert.equal(saved.money.gross_pence,'10800');assert.equal(saved.source.discount.value,'10');
+  const read=await fetch(base+'/legacy/'+f.company+'/'+saved.id,{headers:{'x-test-actor':actor}});
+  assert.equal(read.status,200);const reopened=(await read.json() as any).data;
+  assert.deepEqual(reopened.money,saved.money);assert.deepEqual(reopened.source,saved.source);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,0);
+});
+
+test('an audit insert failure atomically rolls back a discount edit and its compatibility projection',async()=>{
+  const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));
+  const before=(await request(f.company,`/accounting-documents/${doc.id}`)).data;
+  const projection=(await admin.query('SELECT * FROM sales_invoices WHERE id=$1',[doc.id])).rows;
+  const audit=(await admin.query('SELECT * FROM accounting_document_audit WHERE document_id=$1 ORDER BY created_at,id',[doc.id])).rows;
+  // Test-only DDL belongs to this disposable database and this one fixture UUID.
+  const name='test_discount_audit_'+randomUUID().replaceAll('-','');
+  await admin.query(`CREATE FUNCTION ${name}() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'Synthetic audit failure'; END $$`);
+  try {
+    await admin.query(`CREATE TRIGGER ${name} BEFORE INSERT ON accounting_document_audit FOR EACH ROW
+      WHEN (NEW.document_id='${doc.id}'::uuid AND NEW.action='edit') EXECUTE FUNCTION ${name}()`);
+    const edit=await request(f.company,`/accounting-documents/${doc.id}`,'PATCH',
+      {source:{contract:'w03.draft.v1',notes:'Must roll back',discount:{type:'amount',value:'12.00'}}},doc.revision);
+    assert.equal(edit.status,500,JSON.stringify(edit));
+    assert.deepEqual((await request(f.company,`/accounting-documents/${doc.id}`)).data,before);
+    assert.deepEqual((await admin.query('SELECT * FROM sales_invoices WHERE id=$1',[doc.id])).rows,projection);
+    assert.deepEqual((await admin.query('SELECT * FROM accounting_document_audit WHERE document_id=$1 ORDER BY created_at,id',[doc.id])).rows,audit);
+  } finally {
+    await admin.query(`DROP TRIGGER IF EXISTS ${name} ON accounting_document_audit`);
+    await admin.query(`DROP FUNCTION ${name}()`);
+  }
+});
 test("isolated legacy journal history remains readable but cannot become a financial write bypass",async()=>{
   const f=await fixture();
   const id=randomUUID();
