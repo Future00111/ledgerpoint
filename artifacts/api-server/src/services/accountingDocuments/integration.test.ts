@@ -96,6 +96,23 @@ async function creditDoc(f:any,original:any,quantity="0.2",date="2026-10-21",ref
     {original_id:original.id,reason:"Agreed price reduction offset against outstanding liability, no cash refund.",
       adjustment_method:"offset_outstanding",effective_adjustment_date:date,original_line_refs:refs});
 }
+test("isolated legacy journal history remains readable but cannot become a financial write bypass",async()=>{
+  const f=await fixture();
+  const id=randomUUID();
+  await admin.query(`INSERT INTO journal_entries(id,company_id,date,description,total_debit,total_credit,status)
+    VALUES($1,$2,'2026-10-30','Synthetic archived journal',10,10,'posted')`,[id,f.company]);
+  const history=await pool.query('SELECT description,total_debit,total_credit FROM journal_entries WHERE company_id=$1',[f.company]);
+  assert.deepEqual(history.rows,[{description:'Synthetic archived journal',total_debit:'10.00',total_credit:'10.00'}]);
+  for(const [sql,params] of [
+    ['INSERT INTO journal_entries(id,company_id) VALUES($1,$2)',[randomUUID(),f.company]],
+    ['UPDATE journal_entries SET total_debit=20 WHERE id=$1',[id]],
+    ['DELETE FROM journal_entries WHERE id=$1',[id]],
+    ['TRUNCATE journal_entries',[]],
+  ] as [string,string[]][]) await assert.rejects(pool.query(sql,params),{code:'42501'});
+  assert.equal((await pool.query('SELECT total_debit FROM journal_entries WHERE id=$1',[id])).rows[0].total_debit,'10.00');
+  assert.equal((await pool.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,0);
+});
+
 test("four native create/edit/reopen/review/post journeys reconcile ledger, parties, P&L, BS and VAT with idempotent retries",async()=>{
   const f=await fixture();
   let sale=await create(f,"sales_invoice",source(f.customer));

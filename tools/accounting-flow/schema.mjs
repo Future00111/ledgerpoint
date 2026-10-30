@@ -5,7 +5,7 @@ import path from 'node:path';
 
 export const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const selected=new Set(['companies','company_users','customers','suppliers','sales_invoices','purchase_bills',
-  'sales_credit_notes','supplier_credit_notes','vat_tax_rules','bank_transactions','chart_of_accounts',
+  'sales_credit_notes','supplier_credit_notes','vat_tax_rules','bank_transactions','chart_of_accounts','journal_entries',
   'accounting_posting_effects','canonical_journal_entries','canonical_journal_lines',
   'canonical_journal_relations','accounting_audit_events']);
 export function exportSchema() {
@@ -66,6 +66,8 @@ export async function installSchema(admin,sql) {
         sales_invoices,purchase_bills,sales_credit_notes,supplier_credit_notes,w03_invoice_drafts,
         accounting_company_configuration,accounting_document_periods,accounting_document_sources TO ledgerly_api;
       GRANT SELECT ON bank_transactions TO ledgerly_api;
+      GRANT SELECT ON journal_entries TO ledgerly_api;
+      REVOKE INSERT,UPDATE,DELETE,TRUNCATE ON journal_entries FROM ledgerly_api;
       GRANT UPDATE(id) ON bank_transactions TO ledgerly_api;
       GRANT SELECT,INSERT ON accounting_document_audit,w03_invoice_draft_audit TO ledgerly_api;
       REVOKE UPDATE,DELETE,TRUNCATE ON accounting_document_audit,w03_invoice_draft_audit FROM ledgerly_api;

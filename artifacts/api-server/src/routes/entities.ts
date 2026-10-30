@@ -240,7 +240,7 @@ router.get("/:entity", async (req: Request, res: Response) => {
     res.json(rows);
   } catch (err: unknown) {
     req.log.error({ err }, "entity list error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 });
 
@@ -280,7 +280,7 @@ router.get("/:entity/:id", async (req: Request, res: Response) => {
     res.json(row);
   } catch (err: unknown) {
     req.log.error({ err }, "entity get error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 });
 
@@ -335,7 +335,7 @@ router.patch("/:entity/bulk-update", async (req: Request, res: Response) => {
     res.json(results);
   } catch (err: unknown) {
     req.log.error({ err }, "entity bulk-update error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 });
 
@@ -386,7 +386,7 @@ router.post("/:entity/bulk", async (req: Request, res: Response) => {
     res.status(201).json(rows);
   } catch (err: unknown) {
     req.log.error({ err }, "entity bulk create error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 });
 
@@ -427,7 +427,7 @@ router.post("/:entity", async (req: Request, res: Response) => {
     res.status(201).json(row);
   } catch (err: unknown) {
     req.log.error({ err }, "entity create error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 });
 
@@ -490,7 +490,7 @@ async function updateEntity(req: Request, res: Response) {
     res.json(row);
   } catch (err: unknown) {
     req.log.error({ err }, "entity update error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 }
 
@@ -539,7 +539,7 @@ router.delete("/:entity/:id", async (req: Request, res: Response) => {
     res.json({ success: true });
   } catch (err: unknown) {
     req.log.error({ err }, "entity delete error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 });
 

@@ -101,9 +101,11 @@ source with read-only repository permissions and no production secrets. It is
 separate from the frozen C7 qualification workflows and does not replace their
 evidence or modify branch protections. It performs no merge, deployment or filing.
 
-Local verification on 30 October: full build/typecheck passed and 194 unit,
-scenario and UI tests passed. Native PostgreSQL execution cannot run in the
-local root-only UID namespace, so the database suite must pass in isolated CI.
-Read the PR's current-commit result before acceptance; the historical baseline
-test record is not evidence for these changes. Authenticated browser acceptance
-in a separately prepared synthetic environment is still required before merge.
+Local verification on 30 October: full build/typecheck and 203 unit, scenario
+and UI tests passed after the browser-driven legacy-history corrections. Native
+PostgreSQL execution cannot run in the local root-only UID namespace, so the
+26-case database suite must pass in isolated CI. Read the PR's current-commit
+result before acceptance; an earlier green commit is not evidence for a later
+patch. Authenticated checks and the separated demo are recorded in
+[the demo acceptance log](pr27-demo-acceptance.md). Keep the PR draft for the
+owner's demo review; no merge or deployment is part of this work.
