@@ -50,6 +50,7 @@ import AIAccountantReviews from '@/pages/AIAccountantReviews';
 import AIAccountantRecommendations from '@/pages/AIAccountantRecommendations';
 import AccountingDocumentList from '@/pages/AccountingDocumentList';
 import AccountingDocumentForm from '@/pages/AccountingDocumentForm';
+import AwaitingCreditsPage from '@/features/creditRecovery/AwaitingCreditsPage';
 import AccountingJournal from '@/pages/AccountingJournal';
 import AccountingReports from '@/pages/AccountingReports';
 import AccountingSetup from '@/pages/AccountingSetup';
@@ -180,6 +181,7 @@ const AuthenticatedApp = () => {
               <Route path="/invoices/:id/view" element={<AccountingDocumentForm kind="sales_invoice" legacyFallback={<InvoiceDetail />} />} />
               <Route path="/collections" element={<Collections />} />
               <Route path="/bills" element={<AccountingDocumentList kind="purchase_bill" />} />
+              <Route path="/awaiting-credits" element={<AwaitingCreditsPage />} />
               <Route path="/bills/earlier" element={<Bills />} />
               <Route path="/bills/new" element={<AccountingDocumentForm kind="purchase_bill" />} />
               <Route path="/bills/:id" element={<AccountingDocumentForm kind="purchase_bill" />} />

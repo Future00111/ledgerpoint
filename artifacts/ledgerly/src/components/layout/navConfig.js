@@ -45,6 +45,7 @@ const groups = [
       { label: 'Suppliers', path: '/suppliers', icon: Truck },
       { label: 'Bills', path: '/bills', icon: Receipt },
       { label: 'Supplier credits', path: '/supplier-credit-notes', icon: RotateCcw },
+      { label: 'Awaiting credits', path: '/awaiting-credits', icon: ClipboardList },
     ],
   },
   {

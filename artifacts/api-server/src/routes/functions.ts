@@ -13,6 +13,7 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
+import { retiredChartBootstrapBoundary } from "./legacyChartBootstrapPolicy";
 import {
   findActiveMembership,
   requireCompanyScope,
@@ -25,7 +26,6 @@ import {
   purchaseBillsTable,
   bankTransactionsTable,
   bankAccountsTable,
-  chartOfAccountsTable,
   aiReconciliationResultsTable,
   bankAutomationSettingsTable,
 } from "@workspace/db/schema";
@@ -84,7 +84,7 @@ const UNAVAILABLE_FUNCTIONS = new Set([
 ]);
 
 // ─── POST /api/functions/:name ────────────────────────────────────────────────
-router.post("/:name", async (req: Request, res: Response) => {
+router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: Response) => {
   const { userId } = req as AuthenticatedRequest;
   const funcName = req.params["name"] as string;
   const args = req.body as Record<string, unknown>;
@@ -661,60 +661,6 @@ router.post("/:name", async (req: Request, res: Response) => {
           aiExplanation: persistAnalysis && Boolean(bank_transaction_id),
         });
         res.json(output);
-        break;
-      }
-
-      // ── createDefaultAccounts ────────────────────────────────────────────
-      case "createDefaultAccounts": {
-        const { company_id } = args as { company_id: string };
-        if (!company_id) { res.status(400).json({ error: "company_id is required" }); return; }
-
-        // Verify write access for the requested company
-        if (!(await assertWriteAccess(userId, company_id, res))) return;
-
-        // Standard UK chart of accounts
-        const defaults = [
-          { code: "1000", name: "Cash in Hand",            account_type: "asset",     account_subtype: "current_asset"      },
-          { code: "1100", name: "Bank Accounts",            account_type: "asset",     account_subtype: "current_asset"      },
-          { code: "1200", name: "Accounts Receivable",      account_type: "asset",     account_subtype: "current_asset"      },
-          { code: "1300", name: "Stock/Inventory",          account_type: "asset",     account_subtype: "current_asset"      },
-          { code: "1400", name: "Prepayments",              account_type: "asset",     account_subtype: "current_asset"      },
-          { code: "1500", name: "Fixed Assets",             account_type: "asset",     account_subtype: "fixed_asset"        },
-          { code: "1600", name: "Accumulated Depreciation", account_type: "asset",     account_subtype: "fixed_asset"        },
-          { code: "2000", name: "Accounts Payable",         account_type: "liability", account_subtype: "current_liability"  },
-          { code: "2100", name: "VAT Liability",            account_type: "liability", account_subtype: "current_liability"  },
-          { code: "2200", name: "PAYE/NI Payable",          account_type: "liability", account_subtype: "current_liability"  },
-          { code: "2300", name: "Corporation Tax",          account_type: "liability", account_subtype: "current_liability"  },
-          { code: "2400", name: "Director Loan",            account_type: "liability", account_subtype: "current_liability"  },
-          { code: "2500", name: "Long-term Loans",          account_type: "liability", account_subtype: "long_term_liability" },
-          { code: "3000", name: "Share Capital",            account_type: "equity",    account_subtype: "equity"             },
-          { code: "3100", name: "Retained Earnings",        account_type: "equity",    account_subtype: "equity"             },
-          { code: "4000", name: "Sales Revenue",            account_type: "revenue",   account_subtype: "revenue"            },
-          { code: "4100", name: "Other Income",             account_type: "revenue",   account_subtype: "revenue"            },
-          { code: "5000", name: "Cost of Goods Sold",       account_type: "expense",   account_subtype: "cost_of_sales"      },
-          { code: "6000", name: "Wages & Salaries",         account_type: "expense",   account_subtype: "operating"          },
-          { code: "6100", name: "Rent & Rates",             account_type: "expense",   account_subtype: "operating"          },
-          { code: "6200", name: "Utilities",                account_type: "expense",   account_subtype: "operating"          },
-          { code: "6300", name: "Telephone & Internet",     account_type: "expense",   account_subtype: "operating"          },
-          { code: "6400", name: "Marketing & Advertising",  account_type: "expense",   account_subtype: "operating"          },
-          { code: "6500", name: "Professional Fees",        account_type: "expense",   account_subtype: "operating"          },
-          { code: "6600", name: "Travel & Subsistence",     account_type: "expense",   account_subtype: "operating"          },
-          { code: "6700", name: "Office Supplies",          account_type: "expense",   account_subtype: "operating"          },
-          { code: "6800", name: "Bank Charges",             account_type: "expense",   account_subtype: "operating"          },
-          { code: "6900", name: "Depreciation",             account_type: "expense",   account_subtype: "operating"          },
-          { code: "7000", name: "Miscellaneous",            account_type: "expense",   account_subtype: "operating"          },
-        ];
-
-        const records = defaults.map((d) => ({ ...d, company_id, is_active: true }));
-
-        // Idempotent: skip rows that already exist for this company+code (unique constraint enforced in DB)
-        const created = await db
-          .insert(chartOfAccountsTable)
-          .values(records)
-          .onConflictDoNothing()
-          .returning();
-
-        res.json({ success: true, created: created.length });
         break;
       }
 

@@ -1,0 +1,47 @@
+name: LedgerPoint development regression
+
+on:
+  pull_request:
+    branches: [dev/w03-draft-invoice-slice]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ledgerpoint-development-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  regression:
+    name: Current source and disposable accounting checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24'
+      - name: Use pinned pnpm
+        run: |
+          npm install --global pnpm@10.26.1
+      - name: Install the locked workspace
+        run: pnpm install --frozen-lockfile
+      - name: Build and typecheck
+        env:
+          PORT: '8080'
+          BASE_PATH: '/'
+        run: pnpm run build
+      - name: Unit, permission, precision and UI regression
+        run: node tools/development/check.mjs
+      - name: Prepare disposable PostgreSQL binaries
+        run: echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+      - name: Accounting API, atomicity and ledger regression
+        run: node tools/accounting-flow/test.mjs
+      - name: Verify isolated cleanup
+        if: always()
+        run: |
+          if [ -f generated-artifacts/accounting-flow-cleanup.json ]; then
+            node -e 'const r=require("./generated-artifacts/accounting-flow-cleanup.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'
+          fi

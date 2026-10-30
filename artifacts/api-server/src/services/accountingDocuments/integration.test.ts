@@ -13,12 +13,13 @@ import {queryAdapter} from "./core";
 import {reports} from "./reports";
 import {ensureWorkspaceTaxRules} from '../../../../../tools/accounting-flow/workspace-tax-rules.mjs';
 import {applyReconciliationApproval,applyNonPaymentReconciliationMatch} from '../ai-accountant/approval';
+import {reverseCanonicalJournal} from '../accounting/canonicalPosting';
 
 const socket=process.env.ACCOUNTING_FLOW_TEST_SOCKET??"";
 if(!/^\/tmp\/ledgerly-accounting-flow-tests-[A-Za-z0-9]+\/socket$/.test(socket)) throw Error("Disposable socket required");
 const admin=new pg.Pool({host:socket,port:55441,user:"w03_bootstrap",database:"ledgerly_accounting_flow_test",password:"",ssl:false,options:""});
 const actor="synthetic-accounting-owner",readOnly="synthetic-accounting-reader";
-let server:ReturnType<ReturnType<typeof express>["listen"]>,base:string,failNext=false;
+let server:ReturnType<ReturnType<typeof express>["listen"]>,base:string,failNext=false,failNextCredit=false;
 let pausePosting:(()=>Promise<void>)|undefined;
 const auth:express.RequestHandler=(req,res,next)=>{
   const user=req.get("x-test-actor");if(!user){res.status(401).json({error:{code:"UNAUTHORIZED"}});return;}
@@ -31,6 +32,8 @@ before(async()=>{
   app.use("/companies/:companyId",createAccountingRouter(auth,async tx=>{
     if(failNext){failNext=false;await queryAdapter(tx).query("SELECT 1/0");}
     await pausePosting?.();
+  },async q=>{
+    if(failNextCredit){failNextCredit=false;await q.query('SELECT 1/0');}
   }));
   app.use("/legacy/:companyId",invoiceDraftRouter(new InvoiceDraftService(pool,createProductionInvoiceDraftAuthority()),auth));
   server=app.listen(0,"127.0.0.1");await new Promise<void>(r=>server.once("listening",r));
@@ -487,4 +490,242 @@ test('W06 rejects stale concurrent allocations, cross-party, read-only, closed-p
   await admin.query("UPDATE accounting_document_periods SET status='CLOSED' WHERE id=$1",[f.period]);
   const closed=await request(f.company,'/accounting-payments/review','POST',paymentIntent(f,sale,'100','0'));
   assert.equal(closed.error.code,'PERIOD_NOT_WRITABLE');
+});
+
+function claimIntent(bill:any,lines=[{original_line_ref:0,quantity:'1',part_reference:'PART-001',job_reference:'JOB-001'}]) {
+  return {request_id:randomUUID(),bill_id:bill.id,bill_revision:bill.revision,reason:'Synthetic warranty return',
+    return_reference:'RN-TEST-001',returned_on:'2026-10-21',expected_by:'2026-11-04',lines};
+}
+function receiptIntent(credit:any,line=0) {
+  return {request_id:randomUUID(),credit_id:credit.id,credit_revision:credit.revision,credit_line_ref:line};
+}
+async function claimsFor(f:any,bill:any) {
+  const result=await request(f.company,`/credit-claims?bill_id=${bill.id}`);
+  assert.equal(result.status,200,JSON.stringify(result));return result.data.claims as any[];
+}
+async function track(f:any,bill:any,body=claimIntent(bill)) {
+  const result=await request(f.company,'/credit-claims','POST',body);
+  assert.equal(result.status,201,JSON.stringify(result));return claimsFor(f,bill);
+}
+async function accountingSnapshot(f:any,bill:any) {
+  const doc=await request(f.company,`/accounting-documents/${bill.id}`);
+  const report=await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-12-31');
+  assert.equal(doc.status,200);assert.equal(report.status,200,JSON.stringify(report));
+  const projection=(await admin.query('SELECT total,amount_paid,balance_due,status FROM purchase_bills WHERE company_id=$1 AND id=$2',[f.company,bill.id])).rows[0];
+  const audit=(await admin.query('SELECT count(*)::int n FROM accounting_audit_events WHERE company_id=$1',[f.company])).rows[0].n;
+  return {document:doc.data,report:report.data,projection,audit};
+}
+
+test('credit tracking enforces authentication, membership, roles and company boundaries on every operation',async()=>{
+  const f=await fixture(),other=await fixture(),bill=await create(f,'purchase_bill',source(f.supplier));await post(f,bill);
+  const intent=claimIntent(bill),inactive='synthetic-inactive-tracker';
+  await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',false)",[randomUUID(),f.company,inactive]);
+  for(const [user,status] of [[null,401],[readOnly,403],['synthetic-outsider',404],[inactive,404]] as const) {
+    assert.equal((await request(f.company,'/credit-claims','POST',intent,undefined,user)).status,status);
+  }
+  assert.equal((await request(other.company,'/credit-claims','POST',intent)).status,404);
+  const [claim]=await track(f,bill,intent),credit=await creditDoc(f,bill,'0.2');await post(f,credit);
+  for(const [user,status] of [[null,401],[readOnly,403],['synthetic-outsider',404],[inactive,404]] as const) {
+    assert.equal((await request(f.company,`/credit-claims/${claim.id}/receipts`,'POST',receiptIntent(credit),claim.revision,user)).status,status);
+    assert.equal((await request(f.company,`/credit-claims/${claim.id}/cancel`,'POST',{request_id:randomUUID()},claim.revision,user)).status,status);
+  }
+  for(const suffix of ['receipts','cancel']) {
+    const body=suffix==='receipts'?receiptIntent(credit):{request_id:randomUUID()};
+    assert.equal((await request(other.company,`/credit-claims/${claim.id}/${suffix}`,'POST',body,claim.revision)).status,404);
+  }
+  assert.equal((await request(f.company,'/credit-claims','GET',undefined,undefined,null)).status,401);
+  assert.equal((await request(f.company,'/credit-claims','GET',undefined,undefined,'synthetic-outsider')).status,404);
+  const reader=await request(f.company,'/credit-claims','GET',undefined,undefined,readOnly);
+  assert.equal(reader.status,200);assert.equal(reader.data.can_manage,false);
+  assert.equal(reader.data.claims[0].candidates[0].can_confirm,false);
+  assert.deepEqual((await request(other.company,`/credit-claims?bill_id=${bill.id}`)).data.claims,[]);
+  const foreignBill=await create(other,'purchase_bill',source(other.supplier));await post(other,foreignBill);
+  const foreignCredit=await creditDoc(other,foreignBill);await post(other,foreignCredit);
+  assert.equal((await request(f.company,`/credit-claims/${claim.id}/receipts`,'POST',receiptIntent(foreignCredit),claim.revision)).status,404);
+  assert.equal((await claimsFor(f,bill))[0].receipts.length,0);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM supplier_credit_claim_commands WHERE company_id=$1',[f.company])).rows[0].n,1);
+});
+
+test('credit tracking allows existing draft-management roles without granting posting capability',async()=>{
+  const f=await fixture(),bill=await create(f,'purchase_bill',{...source(f.supplier),line_items:[
+    ...source(f.supplier).line_items,{description:'Separate surcharge',quantity:'1',unit_price:'24',tax_code:'STANDARD_20'}]});await post(f,bill);
+  for(const [index,role] of ['admin','accountant'].entries()) {
+    const user=`synthetic-tracker-${role}`;
+    await admin.query('INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,$4,true)',[randomUUID(),f.company,user,role]);
+    const intent=claimIntent(bill,[{original_line_ref:index,quantity:'1',part_reference:'',job_reference:''}]);
+    assert.equal((await request(f.company,'/credit-claims','POST',intent,undefined,user)).status,201);
+  }
+  assert.equal((await claimsFor(f,bill)).length,2);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,1);
+});
+
+test('credit tracking retries are idempotent and bind body, actor and current permissions',async()=>{
+  const f=await fixture(),bill=await create(f,'purchase_bill',source(f.supplier));await post(f,bill);
+  const intent=claimIntent(bill);
+  const concurrent=await Promise.all([request(f.company,'/credit-claims','POST',intent),request(f.company,'/credit-claims','POST',intent)]);
+  assert.deepEqual(concurrent.map(r=>r.status),[201,201]);assert.deepEqual(concurrent[0].data,concurrent[1].data);
+  const changed=await request(f.company,'/credit-claims','POST',{...intent,reason:'Changed return'});
+  assert.equal(changed.status,409);assert.equal(changed.error.code,'REQUEST_ID_CONFLICT');
+  const secondOwner='synthetic-second-owner';
+  await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',true)",[randomUUID(),f.company,secondOwner]);
+  assert.equal((await request(f.company,'/credit-claims','POST',intent,undefined,secondOwner)).error.code,'REQUEST_ID_CONFLICT');
+  await admin.query("UPDATE company_users SET role='read_only' WHERE company_id=$1 AND user_id=$2",[f.company,actor]);
+  try {assert.equal((await request(f.company,'/credit-claims','POST',intent)).status,403);}
+  finally {await admin.query("UPDATE company_users SET role='owner' WHERE company_id=$1 AND user_id=$2",[f.company,actor]);}
+  assert.equal((await claimsFor(f,bill)).length,1);
+  assert.deepEqual((await admin.query('SELECT actor_id,action,claim_ids FROM supplier_credit_claim_commands WHERE company_id=$1',[f.company])).rows,
+    [{actor_id:actor,action:'create',claim_ids:concurrent[0].data.ids}]);
+});
+
+test('credit tracking races serialize and stale claim or credit revisions fail without duplicate receipts',async()=>{
+  const f=await fixture(),bill=await create(f,'purchase_bill',source(f.supplier));await post(f,bill);
+  const competing=await Promise.all([request(f.company,'/credit-claims','POST',claimIntent(bill)),request(f.company,'/credit-claims','POST',claimIntent(bill))]);
+  assert.deepEqual(competing.map(r=>r.status).sort(),[201,409]);
+  const [claim]=await claimsFor(f,bill),credit=await creditDoc(f,bill,'0.2');await post(f,credit);
+  const path=`/credit-claims/${claim.id}/receipts`,intent=receiptIntent(credit);
+  assert.equal((await request(f.company,path,'POST',intent)).status,428);
+  assert.equal((await request(f.company,path,'POST',intent,randomUUID())).error.code,'REVISION_CONFLICT');
+  assert.equal((await request(f.company,path,'POST',{...intent,credit_revision:randomUUID()},claim.revision)).error.code,'CREDIT_REVISION_CONFLICT');
+  const pair=await Promise.all([request(f.company,path,'POST',intent,claim.revision),request(f.company,path,'POST',{...intent,request_id:randomUUID()},claim.revision)]);
+  assert.deepEqual(pair.map(r=>r.status).sort(),[200,409]);
+  const [fresh]=await claimsFor(f,bill);assert.equal(fresh.receipts.length,1);assert.notEqual(fresh.revision,claim.revision);
+  assert.equal((await request(f.company,path,'POST',receiptIntent(credit),fresh.revision)).error.code,'CREDIT_ALREADY_RECEIVED');
+  assert.equal((await request(f.company,`/credit-claims/${claim.id}/cancel`,'POST',{request_id:randomUUID()},claim.revision)).error.code,'REVISION_CONFLICT');
+  assert.equal((await admin.query('SELECT count(*)::int n FROM supplier_credit_claim_commands WHERE company_id=$1',[f.company])).rows[0].n,2);
+  const winner=pair.find(r=>r.status===200)!;
+  // Replay the command that actually won, including its original revision.
+  const commands=(await admin.query("SELECT request_id FROM supplier_credit_claim_commands WHERE company_id=$1 AND action='receive'",[f.company])).rows;
+  const replay=await request(f.company,path,'POST',{...intent,request_id:commands[0].request_id},claim.revision);
+  assert.equal(replay.status,200);assert.deepEqual(replay.data,winner.data);
+});
+
+test('credit tracking rolls back claims, receipts, revisions and audit atomically without touching accounting',async()=>{
+  const f=await fixture(),bill=await create(f,'purchase_bill',{...source(f.supplier),line_items:[
+    ...source(f.supplier).line_items,{description:'Core surcharge',quantity:'1',unit_price:'24',tax_code:'STANDARD_20'}]});await post(f,bill);
+  const intent=claimIntent(bill,[0,1].map(original_line_ref=>({original_line_ref,quantity:'1',part_reference:'',job_reference:''})));
+  const before=await accountingSnapshot(f,bill);
+  const invalid=await request(f.company,'/credit-claims','POST',{...intent,lines:[intent.lines[0],{...intent.lines[1],original_line_ref:99}]});
+  assert.equal(invalid.status,422);assert.equal((await claimsFor(f,bill)).length,0);
+  failNextCredit=true;assert.equal((await request(f.company,'/credit-claims','POST',intent)).status,500);
+  assert.equal((await claimsFor(f,bill)).length,0);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM supplier_credit_claim_commands WHERE company_id=$1',[f.company])).rows[0].n,0);
+  assert.deepEqual(await accountingSnapshot(f,bill),before);
+  const claims=await track(f,bill,intent),claim=claims.find(c=>c.original_line_ref===0),unused=claims.find(c=>c.original_line_ref===1);
+  assert.deepEqual(await accountingSnapshot(f,bill),before);
+  const credit=await creditDoc(f,bill,'0.2');await post(f,credit);
+  const afterPosting=await accountingSnapshot(f,bill),receipt=receiptIntent(credit),path=`/credit-claims/${claim.id}/receipts`;
+  failNextCredit=true;assert.equal((await request(f.company,path,'POST',receipt,claim.revision)).status,500);
+  let current=(await claimsFor(f,bill)).find(c=>c.id===claim.id);
+  assert.equal(current.revision,claim.revision);assert.equal(current.receipts.length,0);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM supplier_credit_claim_commands WHERE company_id=$1',[f.company])).rows[0].n,1);
+  assert.deepEqual(await accountingSnapshot(f,bill),afterPosting);
+  assert.equal((await request(f.company,path,'POST',receipt,claim.revision)).status,200);
+  const cancel={request_id:randomUUID()},cancelPath=`/credit-claims/${unused.id}/cancel`;
+  failNextCredit=true;assert.equal((await request(f.company,cancelPath,'POST',cancel,unused.revision)).status,500);
+  current=(await claimsFor(f,bill)).find(c=>c.id===unused.id);
+  assert.equal(current.cancelled,false);assert.equal(current.revision,unused.revision);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM supplier_credit_claim_commands WHERE company_id=$1',[f.company])).rows[0].n,2);
+  const cancelled=await request(f.company,cancelPath,'POST',cancel,unused.revision);assert.equal(cancelled.status,200);
+  assert.deepEqual((await request(f.company,cancelPath,'POST',cancel,unused.revision)).data,cancelled.data);
+  assert.equal((await claimsFor(f,bill)).find(c=>c.id===unused.id).cancelled,true);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM supplier_credit_claim_commands WHERE company_id=$1',[f.company])).rows[0].n,3);
+  assert.deepEqual(await accountingSnapshot(f,bill),afterPosting);
+});
+
+test('a reduced-price credit leaves value outstanding and never satisfies a separate surcharge',async()=>{
+  const f=await fixture(),bill=await create(f,'purchase_bill',{...source(f.supplier),line_items:[
+    {...source(f.supplier).line_items[0],description:'Brake caliper'},
+    {description:'Brake caliper surcharge',quantity:'1',unit_price:'24',tax_code:'STANDARD_20'}]});await post(f,bill);
+  const [part,surcharge]=(await track(f,bill,claimIntent(bill,[0,1].map(original_line_ref=>({original_line_ref,quantity:'1',part_reference:'',job_reference:''}))))).sort((a,b)=>a.original_line_ref-b.original_line_ref);
+  const credit=await create(f,'supplier_credit_note',{...bill.source,invoice_number:'PARTIAL-'+randomUUID(),line_items:[{...bill.source.line_items[0],unit_price:'90'}]},
+    {original_id:bill.id,reason:'Partial value credited',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-21',original_line_refs:[0]});await post(f,credit);
+  const before=await accountingSnapshot(f,bill);
+  assert.equal((await request(f.company,`/credit-claims/${part.id}/receipts`,'POST',receiptIntent(credit),part.revision)).status,200);
+  const claims=await claimsFor(f,bill),result=claims.find(c=>c.id===part.id),unmatched=claims.find(c=>c.id===surcharge.id);
+  assert.equal(result.status,'partial');assert.equal(result.received_quantity,'1');
+  assert.deepEqual(result.remaining,{net_pence:'2500',vat_pence:'500',gross_pence:'3000'});
+  assert.equal(unmatched.status,'awaiting');assert.equal(unmatched.remaining.gross_pence,'2400');
+  assert.equal(unmatched.receipts.length,0);assert.equal(unmatched.candidates.length,0);
+  assert.deepEqual(await accountingSnapshot(f,bill),before);
+});
+
+test('historical posted credits are excluded, drafts require posting, and multiple confirmed partial credits complete a claim',async()=>{
+  const f=await fixture(),bill=await create(f,'purchase_bill',source(f.supplier));await post(f,bill);
+  const historical=await creditDoc(f,bill,'0.1');await post(f,historical);
+  const pending=await creditDoc(f,bill,'0.2');
+  let [claim]=await track(f,bill,claimIntent(bill,[{original_line_ref:0,quantity:'0.5',part_reference:'',job_reference:''}]));
+  assert.deepEqual(claim.baseline_credit_ids,[historical.id]);
+  assert.equal(claim.candidates.length,1);assert.equal(claim.candidates[0].credit_id,pending.id);assert.equal(claim.candidates[0].can_confirm,false);
+  assert.equal(claim.received.gross_pence,'0');
+  const path=`/credit-claims/${claim.id}/receipts`;
+  assert.equal((await request(f.company,path,'POST',receiptIntent(historical),claim.revision)).error.code,'CREDIT_PREDATES_CLAIM');
+  assert.equal((await request(f.company,path,'POST',receiptIntent(pending),claim.revision)).error.code,'CREDIT_MATCH_INVALID');
+  await post(f,pending);
+  assert.equal((await request(f.company,path,'POST',receiptIntent(pending),claim.revision)).status,200);
+  [claim]=await claimsFor(f,bill);assert.equal(claim.status,'partial');assert.equal(claim.remaining.gross_pence,'3600');
+  const finalCredit=await creditDoc(f,bill,'0.3');await post(f,finalCredit);
+  assert.equal((await request(f.company,path,'POST',receiptIntent(finalCredit),claim.revision)).status,200);
+  [claim]=await claimsFor(f,bill);assert.equal(claim.status,'received');assert.equal(claim.received_quantity,'0.5');
+  assert.deepEqual(claim.received,claim.expected);assert.deepEqual(claim.remaining,{net_pence:'0',vat_pence:'0',gross_pence:'0'});
+  assert.equal(claim.receipts.length,2);
+  assert.equal((await request(f.company,`/credit-claims/${claim.id}/cancel`,'POST',{request_id:randomUUID()},claim.revision)).error.code,'CLAIM_CANNOT_CANCEL');
+});
+
+test('fully paid bills can be tracked without changing their accounting or settled status',async()=>{
+  const f=await fixture(),bill=await create(f,'purchase_bill',source(f.supplier,'60'));await post(f,bill);
+  await recordPayment(f,paymentIntent(f,bill,'6000','6000'));
+  const before=await accountingSnapshot(f,bill);assert.equal(before.projection.balance_due,'0.00');assert.equal(before.projection.status,'paid');
+  const [claim]=await track(f,bill,claimIntent(bill,[{original_line_ref:0,quantity:'0.5',part_reference:'',job_reference:''}]));
+  assert.equal(claim.status,'awaiting');assert.equal(claim.expected.gross_pence,'3000');
+  assert.deepEqual(await accountingSnapshot(f,bill),before);
+});
+
+test('tracking receipt and command history are immutable and claim financial snapshots cannot be edited by runtime role',async()=>{
+  const f=await fixture(),bill=await create(f,'purchase_bill',source(f.supplier));await post(f,bill);
+  const [claim]=await track(f,bill),credit=await creditDoc(f,bill,'0.2');await post(f,credit);
+  assert.equal((await request(f.company,`/credit-claims/${claim.id}/receipts`,'POST',receiptIntent(credit),claim.revision)).status,200);
+  for(const query of [
+    "UPDATE supplier_credit_claims SET quantity='999' WHERE company_id=$1",
+    "UPDATE supplier_credit_claims SET expected='{}'::jsonb WHERE company_id=$1",
+    'DELETE FROM supplier_credit_claims WHERE company_id=$1',
+    "UPDATE supplier_credit_receipts SET quantity='999' WHERE company_id=$1",
+    'DELETE FROM supplier_credit_receipts WHERE company_id=$1',
+    "UPDATE supplier_credit_claim_commands SET action='cancel' WHERE company_id=$1",
+    'DELETE FROM supplier_credit_claim_commands WHERE company_id=$1',
+  ]) await assert.rejects(()=>pool.query(query,[f.company]),(error:any)=>error.code==='42501');
+  await assert.rejects(()=>admin.query("UPDATE supplier_credit_receipts SET quantity='999' WHERE company_id=$1",[f.company]),/immutable/);
+  await assert.rejects(()=>admin.query('DELETE FROM supplier_credit_claim_commands WHERE company_id=$1',[f.company]),/immutable/);
+  const [after]=await claimsFor(f,bill);assert.equal(after.quantity,'1');assert.equal(after.receipts.length,1);
+  assert.equal(after.receipts[0].quantity,'0.2');
+});
+
+async function reverseTrackingFixture(f:any,doc:any) {
+  const current=(await request(f.company,`/accounting-documents/${doc.id}`)).data;
+  return reverseCanonicalJournal({principal:{kind:'user',userId:actor,requestedCompanyId:f.company},requestedCompanyId:f.company,
+    originalJournalId:current.journal_id,reason:'Synthetic tracking lifecycle test',postingDate:'2026-10-22',
+    economicEffectId:'tracking-reversal-'+randomUUID(),idempotencyKey:'tracking-reversal-'+randomUUID(),configurationVersionId:current.mapping_revision},
+  {contextProvider:{async lockForPosting(input,tx){
+    const q=queryAdapter(tx);
+    const period=(await q.query("SELECT * FROM accounting_document_periods WHERE company_id=$1 AND id=$2 AND status='OPEN' FOR UPDATE",[f.company,f.period])).rows[0];
+    const config=(await q.query('SELECT revision FROM accounting_company_configuration WHERE company_id=$1 FOR UPDATE',[f.company])).rows[0];
+    const accounts=(await q.query('SELECT id,company_id,is_active FROM chart_of_accounts WHERE company_id=$1 AND id=ANY($2::uuid[]) ORDER BY id FOR UPDATE',[f.company,input.accountIds])).rows;
+    assert.ok(period);assert.ok(config);
+    return {authority:{companyId:f.company,financialYearId:period.financial_year_id,accountingPeriodId:period.id,periodStatus:'OPEN' as const,
+      configurationVersionId:config.revision,currencyCode:'GBP',accounts:Object.fromEntries(accounts.map(a=>[a.id,{id:a.id,companyId:a.company_id,isActive:a.is_active,isEligible:true,currencyCode:'GBP'}]))},
+      recordKeys:[`accounting_document_periods:${period.id}`,`accounting_company_configuration:${f.company}`],capturedToken:{revision:config.revision},
+      transactionBound:true as const,lockMode:'FOR UPDATE' as const,validateCurrent:()=>({ok:true as const})};
+  }}});
+}
+test('real canonical reversals invalidate confirmed tracking receipts and prevent reversed bill claims',async()=>{
+  const f=await fixture(),bill=await create(f,'purchase_bill',source(f.supplier));await post(f,bill);
+  const [claim]=await track(f,bill),credit=await creditDoc(f,bill,'0.2');await post(f,credit);
+  assert.equal((await request(f.company,`/credit-claims/${claim.id}/receipts`,'POST',receiptIntent(credit),claim.revision)).status,200);
+  assert.equal((await claimsFor(f,bill))[0].status,'partial');
+  await reverseTrackingFixture(f,credit);
+  const [after]=await claimsFor(f,bill);assert.equal(after.status,'needs_review');assert.equal(after.receipts[0].active,false);
+  assert.equal(after.received.gross_pence,'0');assert.equal(after.remaining.gross_pence,'12000');
+  const secondBill=await create(f,'purchase_bill',source(f.supplier));await post(f,secondBill);
+  await reverseTrackingFixture(f,secondBill);
+  const refused=await request(f.company,'/credit-claims','POST',claimIntent(secondBill));
+  assert.equal(refused.status,409);assert.equal(refused.error.code,'POSTED_BILL_REQUIRED');
 });

@@ -5,12 +5,11 @@ import { useCompany } from '@/lib/useCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Eye } from 'lucide-react';
+import { Search, Eye } from 'lucide-react';
 import moment from 'moment';
-import ManualJournalForm from '@/components/general_ledger/ManualJournalForm';
 import JournalDetail from '@/components/general_ledger/JournalDetail';
 
 const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
@@ -31,7 +30,6 @@ export default function GeneralLedger() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [formOpen, setFormOpen] = useState(false);
   const [viewing, setViewing] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const { toast } = useToast();
@@ -50,56 +48,6 @@ export default function GeneralLedger() {
       toast({ title: 'Error loading journals', description: e.message, variant: 'destructive' });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleTestJournal = async () => {
-    try {
-      // Fetch accounts by code
-      const accounts = await nativeEntities.ChartOfAccount.filter({ company_id: activeCompany.id });
-      const bankAccount = accounts.find(a => a.code === '1000');
-      const salesAccount = accounts.find(a => a.code === '4000');
-      
-      if (!bankAccount || !salesAccount) {
-        toast({ title: 'Error', description: 'Required accounts not found. Please ensure default accounts are created.', variant: 'destructive' });
-        return;
-      }
-
-      await nativeEntities.JournalEntry.bulkCreate([
-        {
-          company_id: activeCompany.id,
-          date: new Date().toISOString().split('T')[0],
-          reference: 'TEST-001',
-          description: 'Test Journal Entry',
-          account_id: bankAccount.id,
-          account_code: '1000',
-          account_name: 'Bank Account',
-          debit: 100,
-          credit: 0,
-          source_type: 'manual_journal',
-          source_record_id: null,
-          is_system_generated: false,
-        },
-        {
-          company_id: activeCompany.id,
-          date: new Date().toISOString().split('T')[0],
-          reference: 'TEST-001',
-          description: 'Test Journal Entry',
-          account_id: salesAccount.id,
-          account_code: '4000',
-          account_name: 'Sales',
-          debit: 0,
-          credit: 100,
-          source_type: 'manual_journal',
-          source_record_id: null,
-          is_system_generated: false,
-        },
-      ]);
-      
-      toast({ title: 'Success', description: 'Test journal created: Debit 1000 Bank Account £100, Credit 4000 Sales £100' });
-      loadJournals();
-    } catch (e) {
-      toast({ title: 'Error creating test journal', description: e.message, variant: 'destructive' });
     }
   };
 
@@ -128,15 +76,15 @@ export default function GeneralLedger() {
           <p className="text-muted-foreground text-sm mt-1">{journals.length} journal entry{journals.length !== 1 ? 'ies' : ''}</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setFormOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
+          <Button disabled aria-describedby="manual-journal-availability">
             Manual Journal
-          </Button>
-          <Button onClick={handleTestJournal} variant="outline" className="gap-2">
-            Test Journal
           </Button>
         </div>
       </div>
+      <p id="manual-journal-availability" className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+        Manual journal entry is not yet available. Existing journal history remains available below.
+        Record invoices, bills, credits and payments through their dedicated accounting screens.
+      </p>
 
       {/* Balance Check */}
       <Card className={`border-0 shadow-sm ${isBalanced ? 'bg-emerald-50' : 'bg-red-50'}`}>
@@ -244,7 +192,6 @@ export default function GeneralLedger() {
         </div>
       )}
 
-      <ManualJournalForm open={formOpen} onOpenChange={setFormOpen} onSave={loadJournals} />
       <JournalDetail journal={viewing} open={detailOpen} onOpenChange={setDetailOpen} />
     </div>
   );

@@ -11,8 +11,10 @@ import { chart, AccountSelectionError } from "../services/accountingDocuments/ac
 import { saveAccount } from "../services/accountingDocuments/chart";
 
 import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment } from '../services/accountingDocuments/payments';
+import { createClaims, listClaims, confirmReceipt, cancelClaim } from '../services/creditTracking/service';
+import type { Queryable } from '../services/accountingDocuments/core';
 
-export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostHook?:(tx:DatabaseTransaction)=>Promise<void>,testCreditHook?:(q:Queryable)=>Promise<void>) {
   const router=Router({mergeParams:true});
   router.use(auth);
   router.use((req,res,next)=>{
@@ -29,6 +31,20 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     if(!value || !/^"[0-9a-f-]{36}"$/.test(value)) fail(428,"REVISION_REQUIRED");
     return value.slice(1,-1);
   };
+  router.get('/credit-claims',async(req,res)=>{
+    const {company,actor}=ids(req);
+    if(req.query.bill_id!==undefined && typeof req.query.bill_id!=='string') fail(400,'INVALID_REQUEST_SHAPE');
+    res.json({data:await listClaims(company,actor,req.query.bill_id as string|undefined)});
+  });
+  router.post('/credit-claims',async(req,res)=>{
+    const {company,actor}=ids(req);res.status(201).json({data:await createClaims(company,actor,req.body,testCreditHook)});
+  });
+  router.post('/credit-claims/:id/receipts',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await confirmReceipt(company,actor,id,revision(req),req.body,testCreditHook)});
+  });
+  router.post('/credit-claims/:id/cancel',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await cancelClaim(company,actor,id,revision(req),req.body,testCreditHook)});
+  });
   router.get('/accounting-payments/context',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await paymentContext(company,actor)});});
   router.put('/accounting-payments/configuration',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await savePaymentConfiguration(company,actor,req.body)});});
   router.get('/accounting-payments',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await listPayments(company,actor)});});
