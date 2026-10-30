@@ -70,7 +70,11 @@ test("legacy settlement cannot mutate invoice or bill balances, regardless of ro
           body: JSON.stringify({ entity_type, record_id: "synthetic-record", company_id: "synthetic-other-company", amount_paid_delta: 10 }),
         });
         assert.equal(response.status, actor ? 403 : 401, `${actor}: ${entity_type}`);
-        if (actor) assert.match((await response.json()).error, /protected native accounting/);
+        if (actor) {
+          const body: unknown = await response.json();
+          assert.ok(body && typeof body === "object" && "error" in body && typeof body.error === "string");
+          assert.match(body.error, /protected native accounting/);
+        }
       }
     }
     assert.equal(providerCalls, 0);
