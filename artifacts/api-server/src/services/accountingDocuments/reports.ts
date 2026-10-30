@@ -1,4 +1,4 @@
-import { paymentEvents, appliedTo, allocated, allocationSign, unappliedEffect, settlementAmounts } from './settlement';
+import { paymentEvents, appliedTo, allocated, allocationSign, unappliedEffect, settlementAmounts, linkedCreditDocuments } from './settlement';
 import { fail, uuid } from "../financialDrafts/contract";
 import { transact, scope, sales, credit, supportedCompany, type Kind } from "./core";
 import { movementAccounts, sections } from "./presentation";
@@ -144,7 +144,7 @@ export async function reports(company:string,actor:string,from:string,to:string,
       }
       parties.set(d.party_id,p);
       if(!credit(d.kind)) {
-        const credited=docs.filter(c=>c.original_id===d.id).reduce((n,c)=>n+BigInt(c.money.gross_pence),0n);
+        const credited=(await linkedCreditDocuments(q,company,d,to)).reduce((n,c)=>n+BigInt(c.money.gross_pence),0n);
         const paid=appliedTo(payments,d.id);
         const amounts=settlementAmounts(current.money.gross_pence,credited.toString(),paid.toString());
         const remaining=BigInt(amounts.open_minor);

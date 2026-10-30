@@ -194,3 +194,30 @@ test("logger serializes errors as a fixed category and redacts bodies, session t
   assert.deepEqual(record.error, { type: "RedactedError" });
   assert.equal(record.msg, "Request failed");
 });
+
+
+test("actual app rejects cross-site browser writes without Origin before parsing or Clerk", async () => {
+  const logs: unknown[] = [];
+  await serve(await trackedApp(logs), async url => {
+    for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
+      await expectError(await fetch(`${url}/api/companies`, {
+        method, headers: { "Sec-Fetch-Site": "cross-site", "Content-Type": "application/json" },
+        body: `{\"${secret}\":`,
+      }), 403, "Request origin is not permitted.");
+    }
+  });
+  assert.deepEqual(logs, Array.from({ length: 4 }, () => [{ error_code: "origin_not_permitted" }, "Request failed"]));
+});
+
+test("allowed cross-site origins and non-browser clients still reach the parser", async () => {
+  const logs: unknown[] = [];
+  await serve(await trackedApp(logs), async url => {
+    for (const extra of [{}, { "Sec-Fetch-Site": "same-origin" },
+      { Origin: "http://localhost:5173", "Sec-Fetch-Site": "cross-site" }]) {
+      await expectError(await fetch(`${url}/api/companies`, {
+        method: "POST", headers: { "Content-Type": "application/json", ...extra }, body: "{",
+      }), 400, "The request body is invalid.");
+    }
+  });
+  assert.equal(logs.length, 3);
+});

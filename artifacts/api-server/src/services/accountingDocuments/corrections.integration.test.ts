@@ -8,6 +8,7 @@ import { createAccountingRouter } from '../../routes/accountingDocuments';
 import { correctionContext, reviewCorrection, commitCorrection, correctionHistory } from './corrections';
 import { queryAdapter } from './core';
 import { previewPayment, postPayment } from './payments';
+import { linkedCreditDocuments, documentOpen } from './settlement';
 import { createClaims, cancelClaim } from '../creditTracking/service';
 
 const socket = process.env.ACCOUNTING_FLOW_TEST_SOCKET ?? '';
@@ -250,4 +251,30 @@ test('concurrent correction and payment cannot allocate more than the final corr
   assert.equal(outcomes.filter(o=>o.status==='fulfilled').length,1);
   const data=await report(f),open=data.open_items[0];assert.ok(BigInt(open.paid_minor)<=BigInt(open.gross_minor));assert.equal(BigInt(open.open_minor),BigInt(open.gross_minor)-BigInt(open.paid_minor));assert.equal(data.balance_sheet.balanced,true);assert.equal(data.journal_movements.debit_minor,data.journal_movements.credit_minor);
   const state=await counts(f);assert.equal(state.journals,2);assert.equal(state.effects,2);assert.equal(state.amendments,outcomes[0].status==='fulfilled'?1:0);
+});
+
+
+test('settlement and historical reports agree on linked credit cutoffs for both parties',async()=>{
+  for(const kind of ['sales_invoice','purchase_bill']) {
+    const f=await fixture(),party=kind==='sales_invoice'?f.customer:f.supplier;
+    const doc=await postNew(f,kind,source(party,'excluding_vat',['STANDARD']));
+    const creditKind=kind==='sales_invoice'?'sales_credit_note':'supplier_credit_note';
+    const creditSource={...doc.source,invoice_number:'C-'+randomUUID(),issue_date:'2026-10-20',due_date:'2026-10-20',
+      line_items:[{...doc.source.line_items[0],quantity:'0.1'}]};
+    await postNew(f,creditKind,creditSource,{original_id:doc.id,reason:'Return',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-20',original_line_refs:[0]});
+    const open=await documentOpen(pool,f.company,doc.id);
+    assert.equal(open.credited_minor,'1200');assert.equal(open.open_minor,'10800');
+    assert.equal((await report(f,'2026-10-19')).open_items[0].credited_minor,'0');
+    assert.equal((await report(f,'2026-10-20')).open_items[0].credited_minor,open.credited_minor);
+  }
+});
+
+test('linked credit projection rejects missing journal, wrong party and kind even beyond cutoff',async()=>{
+  const original={id:randomUUID(),kind:'sales_invoice',party_id:randomUUID(),source:{currency:'GBP'}};
+  const credit={id:randomUUID(),kind:'sales_credit_note',party_id:original.party_id,source:{currency:'GBP'},status:'posted',
+    verified_journal_id:randomUUID(),posting_date:'2026-10-20',money:{gross_pence:'1200'}};
+  for(const patch of [{verified_journal_id:null},{party_id:randomUUID()},{kind:'supplier_credit_note'},{source:{currency:'EUR'}}]) {
+    const q={query:async()=>({rows:[{...credit,...patch}]})} as any;
+    await rejected(()=>linkedCreditDocuments(q,randomUUID(),original,'2026-10-01'),'CREDIT_HISTORY_INVALID');
+  }
 });

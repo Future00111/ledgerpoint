@@ -55,16 +55,19 @@ async function getMembership(
 
 /**
  * Assert read+write access: caller must be a member of companyId and must not
- * have the read_only role.  Returns 403 and ends the response on failure.
+ * have the read_only role. Explicit caller context must agree with the resource;
+ * an omitted context still uses the resource company. Failure ends the response.
  */
 async function assertWriteAccess(
   userId: string,
   companyId: string,
   res: Response,
+  requestedCompanyId?: unknown,
 ): Promise<boolean> {
   const scope = await requireCompanyScope(res, {
     userId,
-    requestedCompanyId: companyId,
+    requestedCompanyId,
+    resourceCompanyId: companyId,
   });
   if (!scope) {
     return false;
@@ -251,7 +254,7 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
           .where(eq(bankTransactionsTable.id, bank_transaction_id))
           .limit(1);
         if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
-        if (!(await assertWriteAccess(userId, txn.company_id, res))) return;
+        if (!(await assertWriteAccess(userId, txn.company_id, res, args["company_id"]))) return;
 
         try {
           // Shared atomic approval implementation (services/ai-accountant).
@@ -288,7 +291,7 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
         const [txn] = await db.select().from(bankTransactionsTable)
           .where(eq(bankTransactionsTable.id, bank_transaction_id)).limit(1);
         if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
-        if (!(await assertWriteAccess(userId, txn.company_id, res))) return;
+        if (!(await assertWriteAccess(userId, txn.company_id, res, args["company_id"]))) return;
 
         try {
           const result = await applyNonPaymentReconciliationMatch(bank_transaction_id, {
@@ -321,7 +324,7 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
         const [source] = await db.select().from(bankTransactionsTable)
           .where(eq(bankTransactionsTable.id, bank_transaction_id)).limit(1);
         if (!source) { res.status(404).json({ error: "Transaction not found" }); return; }
-        if (!(await assertWriteAccess(userId, source.company_id, res))) return;
+        if (!(await assertWriteAccess(userId, source.company_id, res, args["company_id"]))) return;
 
         try {
           const result = await db.transaction(async (tx) => {
@@ -497,7 +500,7 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
         const [existing] = await db.select().from(bankTransactionsTable)
           .where(eq(bankTransactionsTable.id, bank_transaction_id)).limit(1);
         if (!existing) { res.status(404).json({ error: "Transaction not found" }); return; }
-        if (!(await assertWriteAccess(userId, existing.company_id, res))) return;
+        if (!(await assertWriteAccess(userId, existing.company_id, res, args["company_id"]))) return;
         const parsedVat = vat_rate == null || vat_rate === "" ? null : Number(vat_rate);
         if (parsedVat != null && (!Number.isFinite(parsedVat) || parsedVat < 0 || parsedVat > 100)) {
           res.status(400).json({ error: "VAT rate must be between 0 and 100" }); return;

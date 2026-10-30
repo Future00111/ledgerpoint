@@ -83,3 +83,63 @@ test("legacy settlement cannot mutate invoice or bill balances, regardless of ro
     await new Promise<void>(resolve => server.close(() => resolve()));
   }
 });
+
+// Keep this at the HTTP boundary: a user can belong to both companies, so
+// membership alone cannot make a delayed request from the old workspace safe.
+test("legacy bank mutations reject contradictory or malformed caller company before membership or writes", async () => {
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "synthetic-no-provider-access";
+  const { createFunctionsRouter } = await import("../routes/functions");
+  if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
+  else process.env.OPENAI_API_KEY = previousKey;
+  const { db } = await import("@workspace/db");
+  const { bankTransactionsTable, companyUsersTable } = await import("@workspace/db/schema");
+  const originalSelect = db.select, originalTransaction = db.transaction;
+  let membershipReads = 0, writes = 0;
+  // No actual database is configured or contacted. Only the target bank record
+  // and an active viewer membership may be read; all other access is a tripwire.
+  db.select = (() => ({ from(table: unknown) {
+    if (table === bankTransactionsTable) return { where: () => ({ limit: async () => [{ id: "bank-row", company_id: "company-a" }] }) };
+    assert.equal(table, companyUsersTable);
+    membershipReads++;
+    return { where: async () => [{ company_id: "company-a", user_id: "synthetic-viewer", role: "read_only", is_active: true }] };
+  } })) as unknown as typeof db.select;
+  db.transaction = (async () => { writes++; throw new Error("Write must never be reached"); }) as typeof db.transaction;
+  const app = express(); app.use(express.json());
+  app.use(createFunctionsRouter((req, _res, next) => { (req as any).userId = "synthetic-viewer"; next(); }));
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise<void>(resolve => server.once("listening", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const actions = [
+    ["approveReconciliationMatches", { records: [{ record_type: "sales_invoice", record_id: "invoice" }] }],
+    ["approveNonPaymentReconciliationMatch", { record_type: "ledger_account", record_id: "ledger" }],
+    ["recordBankTransfer", { to_account_id: "bank-destination", amount: 10 }],
+    ["updateBankTransactionClassification", { description: "Synthetic" }],
+  ] as const;
+  try {
+    for (const [name, extra] of actions) {
+      for (const company_id of ["company-b", null, "", {}, ["company-a"], 12]) {
+        const beforeReads = membershipReads;
+        const response = await fetch(`http://127.0.0.1:${address.port}/${name}`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bank_transaction_id: "bank-row", ...extra, company_id }),
+        });
+        assert.equal(response.status, company_id === "company-b" ? 403 : 400, `${name}: ${JSON.stringify(company_id)}`);
+        assert.equal(membershipReads, beforeReads, "invalid context must fail before membership lookup");
+      }
+      for (const company_id of [undefined, "company-a"]) {
+        const beforeReads = membershipReads;
+        const response = await fetch(`http://127.0.0.1:${address.port}/${name}`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bank_transaction_id: "bank-row", ...extra, company_id }),
+        });
+        assert.equal(response.status, 403, `${name}: viewer cannot mutate`);
+        assert.equal(membershipReads, beforeReads + 1, "omitted or matching context still checks resource membership");
+      }
+    }
+    assert.equal(writes, 0);
+  } finally {
+    db.select = originalSelect; db.transaction = originalTransaction;
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  }
+});
