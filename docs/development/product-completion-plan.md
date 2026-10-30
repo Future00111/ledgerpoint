@@ -13,9 +13,9 @@ coverage, accessible presentation and dependable operations.
 
 ## Verified starting point
 
-`41d3eeddf83d049890382856f66d9f89b5a34bfe` passed 362 source checks and 43
+`7262bad2b0caee20debee43b45801c349c80a735` passed 387 source checks and 43
 disposable PostgreSQL tests, plus build/typecheck and cleanup, in
-[run 41105844807](https://github.com/Future00111/ledgerpoint/actions/runs/41105844807).
+[run 41115658840](https://github.com/Future00111/ledgerpoint/actions/runs/41115658840).
 The isolated demo was subsequently confirmed at that commit through its running
 API source identity and frontend checkout. Its refresh preserved all records.
 Those results qualify that development version only. They do not qualify this
@@ -40,11 +40,19 @@ Hereafter **F** = `artifacts/ledgerly/src`, **B** = `artifacts/api-server/src`.
 
 ## Team and delivery rules
 
+The accepted interface direction is a professional accounting workspace with
+clear everyday actions and optional guidance. Preserve familiar terminology,
+searchable tables, detailed money/VAT/payment information, filters, batch
+actions and direct expert tools. Explanations should help a new user without
+requiring an experienced user to complete a wizard or switch product modes.
+Automation should remove repeated entry and surface exceptions; it must not
+hide financial evidence or silently exercise posting authority.
+
 Use **at most four implementation owners plus one coordinator**. The current
-visual wave temporarily splits those owners into home/navigation, documents/
-capture, credit recovery and payments/reports; exact leases are in
-[product-redesign-wave.md](product-redesign-wave.md). After its integration,
-assign the same implementation capacity to the four sustained streams below.
+completion batch follows the integrated visual wave documented in
+[product-redesign-wave.md](product-redesign-wave.md). It temporarily prioritises
+the newly found onboarding and membership defects alongside A1 and B1; the
+coordinator implements D1. Then assign capacity to the sustained streams below.
 Read-only subagents may review security, accounting invariants or a bounded
 research question; they do not create a competing implementation.
 
@@ -54,6 +62,30 @@ research question; they do not create a competing implementation.
 | B — capture and recovery | New extraction/email adapters, capture workspace, credit recovery and evidence-linked suggestion presentation. | **B1:** implement a provider-neutral extraction job contract and synthetic adapter fixtures over the existing transcript/candidate validators. |
 | C — tax and payroll | New isolated computation/obligation modules and their fixture suites; canonical VAT preparation presentation. | **C1:** produce an executable VAT coverage matrix that reconciles supported workings to source journals and marks unsupported boxes/cases explicitly. |
 | D — product reliability | Accessible journeys, audit review, durable operation recovery, isolated restore checks, test/operational tooling. | **D1:** implement a disposable backup-and-restore drill using synthetic data and compare restored source, journal, audit and capture hashes. |
+
+### Current batch: leased files and acceptance
+
+Each implementation runs in its own `codex/completion-*` worktree from the
+verified baseline. The coordinator alone integrates the combined changes and
+owns shared wiring and regression. A separate read-only reviewer checks the
+contracts and failure paths. These are review targets until the exact
+integrated commit passes CI; individual tests are not release evidence.
+
+| Owner | Exclusive implementation files | Interface and acceptance |
+| --- | --- | --- |
+| Onboarding | `F/pages/SetupWizard.jsx`, obsolete `F/components/setup_wizard/**`, new `F/features/onboarding/**`; narrow leases on `Companies.jsx`, `CompanyForm.jsx` and VAT settings dialog. | Read native company/configuration/chart/period/tax context; separate readiness from role capabilities; resume from persisted data; select a newly saved authorised company before opening setup. Real invoice/bill links and optional explanations. |
+| Accounting | New `B/services/accountingDocuments/documentEvents.ts` and adjacent tests. | A1 validates the complete immutable amendment chain and independently supplied head even for historical cutoffs. Exact signed differences and existing settlement compatibility. No enabled correction command, consumer switch or schema. |
+| Extraction | New `B/services/documentIntake/extraction/**` and bounded README section. | B1 binds tenant/source hash/recipe/request/attempt and rejects stale/conflicting output; bounded retries and existing evidence validators. No live OCR, email, parser or worker implied. |
+| Security | Narrow leases on `B/routes/{companies,entities,functions,aiAccountant}.ts`, new `B/security/**`. | Finite write roles; strict company/member fields; verified direct-add identities; atomic last-owner protection and existing valid self-leave; generic public failures. Disposable HTTP race/tenant/role checks with injected test auth; production defaults remain Clerk. |
+| Coordinator | `F/App.jsx`, test runner/CI, `tools/accounting-flow/restore-drill*`, this plan, integration branch. | Protect setup inside company/auth context; register tests; restore only into another database in the fresh disposable cluster; compare source/journal/audit/capture and controls; prove runtime write denial and remove temporary data. |
+
+No existing database overlay, production data or shared financial interface is
+changed in this batch. The restore rehearsal validates a database archive within
+one disposable cluster, not recreation of cluster roles, off-site backup,
+recovery-time objectives or production disaster recovery. Onboarding exposes
+remaining setup work; it does not automatically provision all accounting rules.
+Externally deleted legacy identities still need lifecycle reconciliation; a
+database membership check cannot prove every existing owner can sign in.
 
 Each task receives one branch/worktree, exact file lease, dependency, acceptance
 examples and a small reviewable commit. Do not have multiple agents rewrite the
@@ -81,9 +113,10 @@ existing contract is sufficient to implement the next slice.
    then update the isolated demo from the exact tested commit. Desktop/mobile
    and owner acceptance remain a separate gate; do not describe source tests
    as screenshots or visual verification.
-2. **M1 — make the next four streams independently productive.** Start A1, B1,
-   C1 and D1 together. Freeze only the shared contracts that block dependent
-   work. Continue with A2, B2, C2 and D2 as their prerequisites pass.
+2. **M1 — make the next four streams independently productive.** Complete the
+   current A1/B1, onboarding, security and D1 batch above. Next pull A2, B2,
+   C1 and D2, with C2 rule research in a bounded read-only task. Freeze only
+   shared contracts that block dependent implementation.
 3. **M2 — complete the daily automation loop.** Ship reviewed corrections,
    extraction into drafts, credit recovery, durable retry recovery and native
    bank import/matching. Email/provider connections follow their explicit
@@ -120,13 +153,13 @@ real filing and production actions retain separate authority requirements.
 
 | ID / state | Deliverable and exact file area | Dependency / contract | Acceptance before integration |
 | --- | --- | --- | --- |
-| A1 — ready | Shared as-of event projection and fixtures: proposed `B/services/accountingDocuments/documentEvents.ts`, adjacent tests; read consumers in `settlement.ts`, `reports.ts`, `posting.ts` and credit tracking. | Coordinator lease; follow `posted-document-corrections.md`. | Historical cutoff retains original values; later cutoff applies signed differences once; cash/credit caps/report totals use the same projection. No edit command enabled yet. |
+| A1 — implemented; combined checks pending | Shared as-of event projection and fixtures: proposed `B/services/accountingDocuments/documentEvents.ts`, adjacent tests; read consumers in `settlement.ts`, `reports.ts`, `posting.ts` and credit tracking. | Coordinator lease; follow `posted-document-corrections.md`. | Historical cutoff retains original values; later cutoff applies signed differences once; existing settlement compatibility is tested. No edit command or consumer switch enabled. A2 must switch cash/credit caps/reports together. |
 | A2 — after A1 | Atomic correction review/commit/history: proposed `accountingDocuments/corrections.ts`, route lease, coordinator-owned amendment overlay in `lib/db/migrations/`. | Stable original ID, immutable amendments, balanced difference journals and replay identity; all consumers switched together. | £120 invoice, £50 paid, corrected to £108 leaves £58 due and unchanged cash; VAT/period/stale/concurrency/rollback/audit cases pass. Reject unsupported dependent claims/credits. |
 | A3 — after A2 | Correction review UI in proposed `F/features/documentCorrections/**`; narrow `AccountingDocumentForm.jsx`/`PostedDocument.jsx` integration. | Frozen context/review/commit/history contract; explicit reason/date and before/after values. | Invoice/bill and supported credit correction journeys; permission denial; identical retry; original history and partial payments visible. |
 | A4 — contract gate | Credit-balance/refund and return-cycle extensions: task leases on `accountingDocuments/{posting,payments,settlement}.ts`, `creditTracking/**`, affected UI. | Decide excess credit allocation/refund and claim receipt-correction model; coordinator owns shared events. | No over-settlement, duplicated refund or reused credit line; original VAT and receipt history remain traceable. Implement separately from A2's bounded slice. |
 | A5 — ready contract/fixtures | Native bank import and matching: proposed `B/services/bankReconciliation/**`, `F/features/bankReconciliation/**`; later leases on `BankTransactions.jsx`/`Reconciliation.jsx`. | Stable company/bank/source transaction identity, pending match review, protected payment/allocation command. No legacy balance write. | Re-import, duplicates, split/partial match, fees, unmatched items, reversal and ambiguous response tests; a match cannot post twice. Coordinator reviews additive persistence before integration. |
 | A6 — after A5 | Bank workspace replaces supported legacy matching entry points; optional provider adapter behind explicit connection. | Same reviewed native command; statement provenance and reconciled-period policy. | Statement balance, payments and ledger reconcile; duplicate bank-feed/import events remain one effect; disconnect retains evidence. |
-| B1 — ready | Provider-neutral extraction jobs and adapters under proposed `B/services/documentIntake/extraction/**`; fixtures alongside existing `intake.test.ts`. | Existing immutable source hash and transcript/candidate citation contract. | Synthetic malformed/ambiguous/mixed-VAT/credit cases, duplicate job delivery, cancellation, bounded retries and evidence mismatch. Extracted text cannot execute instructions or select posting authority. |
+| B1 — implemented; combined checks pending | Provider-neutral extraction jobs and adapters under proposed `B/services/documentIntake/extraction/**`; fixtures alongside existing `intake.test.ts`. | Existing immutable source hash and transcript/candidate citation contract. | Synthetic malformed/ambiguous/mixed-VAT/credit cases, duplicate job delivery, cancellation, bounded retries and evidence mismatch. Extracted text cannot execute instructions or select posting authority. |
 | B2 — contract gate | Sandboxed extraction worker, malware/parser limits and credential/retention boundaries; reviewed job persistence overlay. | Provider/engine assessment, allowable data destination and retention decision; coordinator approves worker and schema. | Limits for bytes/pages/time, unsupported/encrypted files, isolation, redacted logs and tenant access; provider failure preserves original and manual route. No live connection implied. |
 | B3 — after B1/B2 | Field-evidence review and suggested native envelope in `F/features/documentIntake/**`; exact adapter in `F/api/documentIntake.mjs`. | Server-normalised proposal with source/page/offset evidence; explicit supplier/tax confirmation; current review token. | File queue opens draft directly; corrections invalidate stale review; line/total mismatches surface; one source becomes at most one native draft; no automatic posting. |
 | B4 — contract gate | Email intake adapter under proposed `B/services/documentIntake/email/**`; new native `EmailCapture.jsx` and `EmailRules.jsx` integration. | Approved mailbox scope/provider, attachment provenance, authenticated delivery, idempotent message/attachment identity and revocation. | Replay, forwarded duplicates, same file via photo/email, spoofed sender hints, unsupported attachments and revoked access; reviewable inbox entries only. |
@@ -137,7 +170,7 @@ real filing and production actions retain separate authority requirements.
 | C4 — after C2 | SA/MTD calculation and obligation package: proposed `B/services/tax/income/**`, `F/features/tax/income/**`. | Approved supported taxpayer/income matrix, accounting-to-tax mappings and maintained engine decision. | Synthetic computations, period boundaries, adjustments, review/replay and obligations/receipt lifecycle per supported case. No compliance claim from scaffolding. |
 | C5 — after C2 | CT/CT600/accounts package: proposed `B/services/tax/corporation/**`, `F/features/tax/corporation/**`. | Supported entity/period and adjustment matrix; accounts taxonomy/filing engine and review decisions. | Accounting-to-tax reconciliation, period/rounding fixtures, accounts package consistency and submission/recovery evidence. |
 | C6 — ready assessment; implementation gated | Payroll adapter and fixture harness: proposed `B/services/payroll/**`, `F/features/payroll/**`. | Assess maintained engine/provider versus direct implementation; approve supported employment, statutory pay, pension and RTI cases. | Gross-to-net/PAYE/NI and pension fixtures, period corrections, payslips, RTI requests/receipts, duplicate/retry, permissions and privacy. No provider purchase/connection by this task. |
-| D1 — ready | Isolated backup/restore drill in proposed `tools/accounting-flow/restore-drill.mjs` with fixtures. | Extend documented demo backup patterns; positively identify fresh disposable source/restore targets. | Restore into a different disposable database, compare journals/source/audit/capture hashes and counts; prove restricted runtime and cleanup. Never restore over owner/shared data. |
+| D1 — implemented; disposable CI pending | Isolated backup/restore drill in proposed `tools/accounting-flow/restore-drill.mjs` with fixtures. | Extend documented demo backup patterns; positively identify fresh disposable source/restore targets. | Restore into a different disposable database, compare journals/source/audit/capture hashes and counts; prove restricted runtime and cleanup. Never restore over owner/shared data. |
 | D2 — ready read contract | Audit review/export: proposed `B/services/auditReview/**`, `F/features/auditReview/**`; coordinator route/navigation lease. | Company/role-scoped read projection of existing audit histories; cursor pagination and export bounds. | Create/edit/review/post/payment/correction actors and reasons trace to source; no financial write path; cross-company denial and safe CSV. |
 | D3 — contract gate | Durable operation recovery for payment/capture/correction under proposed `B/services/operationRecovery/**`, targeted UI clients. | Retain minimal server-side attempt identity and outcome, tied to company/actor; no financial payload/token copied into browser storage. | Reload/company-switch/relogin and concurrent retry find the same outcome, current permission rechecked, no double posting and no false failure from an empty lookup. |
 | D4 — ready per feature | Accessibility/customer/contact/onboarding regressions and useful error recovery in task-leased `F/pages/Customers.jsx`, `Suppliers.jsx`, `Settings.jsx`, `SetupWizard.jsx`, shared layouts. | Preserve existing routes and real capabilities; use the shared design system. | Keyboard/phone/desktop journeys, long content/empty/loading/error states, archived/duplicate-name contacts and no stale company display or export. |

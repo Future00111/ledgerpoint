@@ -23,9 +23,15 @@ const apiTests = [
   'src/services/financialDrafts/contract.test.ts',
   'src/services/financialDrafts/jsonBoundary.test.ts',
   'src/services/financialDrafts/discounts.test.ts',
+  'src/services/accountingDocuments/documentEvents.test.ts',
+  'src/security/roles.test.ts',
+  'src/security/companyPolicy.test.ts',
+  'src/security/companyRoutes.test.ts',
+  'src/security/publicErrors.test.ts',
   'src/services/creditTracking/domain.test.ts',
   'src/services/documentIntake/intake.test.ts',
   'src/services/documentIntake/service.test.ts',
+  'src/services/documentIntake/extraction/contract.test.ts',
   'src/routes/legacyChartBootstrapPolicy.test.ts',
   'src/services/ai-accountant/matcher.scenarios.test.ts',
   'src/services/ai-accountant/collectionsAnalysis.scenarios.test.ts',
@@ -38,7 +44,8 @@ try {
       external: ['pg', 'pino', 'pino-http', 'pino-pretty', 'thread-stream'], logLevel: 'warning' });
     execFileSync(process.execPath, ['--test', outfile], { cwd: api, env, stdio: 'inherit' });
   }
-  const mjs = readdirSync(frontend, { recursive: true }).filter(file => file.endsWith('.test.mjs')).map(file => path.join(frontend, file));
+  const mjs = [...readdirSync(frontend, { recursive: true }).filter(file => file.endsWith('.test.mjs')).map(file => path.join(frontend, file)),
+    path.join(root,'tools/accounting-flow/restore-drill.test.mjs')];
   execFileSync(process.execPath, ['--test', ...mjs], { cwd: root, env, stdio: 'inherit' });
   const renders = readdirSync(frontend, { recursive: true }).filter(file => file.endsWith('.test.jsx'));
   for (const [index, entry] of renders.entries()) {

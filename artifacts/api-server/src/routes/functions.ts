@@ -1,3 +1,5 @@
+import { canWriteCompanyData } from "../security/roles";
+import { publicErrorMessage, safeErrorLog, safeRouteErrors } from "../security/publicErrors";
 /**
  * /api/functions/:name — server-side business logic functions.
  *
@@ -43,7 +45,7 @@ router.use(requireAuth);
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-const WRITE_BLOCKED_ROLES = new Set(["read_only"]);
+
 
 async function getMembership(
   userId: string,
@@ -68,7 +70,7 @@ async function assertWriteAccess(
   if (!scope) {
     return false;
   }
-  if (WRITE_BLOCKED_ROLES.has(scope.role ?? "")) {
+  if (!canWriteCompanyData(scope.role)) {
     res.status(403).json({ error: "Your role does not permit this operation" });
     return false;
   }
@@ -334,7 +336,7 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
           );
           res.json({ success: true, ...result });
         } catch (e) {
-          res.status(409).json({ error: e instanceof Error ? e.message : "Reconciliation failed" });
+          res.status(409).json({ error: publicErrorMessage(e, "Reconciliation failed") });
         }
         break;
       }
@@ -373,7 +375,7 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
           }, userId);
           res.json({ success: true, ...result });
         } catch (e) {
-          res.status(409).json({ error: e instanceof Error ? e.message : "Reconciliation failed" });
+          res.status(409).json({ error: publicErrorMessage(e, "Reconciliation failed") });
         }
         break;
       }
@@ -449,7 +451,7 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
           });
           res.json({ success: true, ...result });
         } catch (e) {
-          res.status(409).json({ error: e instanceof Error ? e.message : "Transfer could not be recorded" });
+          res.status(409).json({ error: publicErrorMessage(e, "Transfer could not be recorded") });
         }
         break;
       }
@@ -545,13 +547,13 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
             // The import itself is valid bookkeeping data. Preserve it when
             // optional analysis is temporarily unavailable, and surface the
             // failure in server logs rather than silently losing the receipt.
-            req.log.warn({ err: analysisError, company_id: companyId }, "Imported transactions were not analysed");
+            req.log.warn({ ...safeErrorLog(analysisError), company_id: companyId }, "Imported transactions were not analysed");
           }
           res.status(201).json(isBatch
             ? { success: true, data: created, analysis_summary: analysisSummary, analysis_status: analysisSummary ? "complete" : "disabled" }
             : { success: true, data: created[0], analysis_summary: analysisSummary, analysis_status: analysisSummary ? "complete" : "disabled" });
         } catch (e) {
-          res.status(400).json({ error: e instanceof Error ? e.message : "Bank transaction could not be recorded" });
+          res.status(400).json({ error: publicErrorMessage(e, "Bank transaction could not be recorded") });
         }
         break;
       }
@@ -623,7 +625,7 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
             resourceCompanyId: txn.company_id,
           });
           if (!scope) return;
-          persistAnalysis = !WRITE_BLOCKED_ROLES.has(scope.role ?? "");
+          persistAnalysis = canWriteCompanyData(scope.role);
           txnsToScore = [txn];
         } else if (argCompanyId) {
           // Bulk mode: verify membership then fetch all review-status transactions.
@@ -632,7 +634,7 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
             requestedCompanyId: argCompanyId,
           });
           if (!scope) return;
-          persistAnalysis = !WRITE_BLOCKED_ROLES.has(scope.role ?? "");
+          persistAnalysis = canWriteCompanyData(scope.role);
           txnsToScore = await db
             .select()
             .from(bankTransactionsTable)
@@ -686,9 +688,11 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
         res.status(404).json({ error: `Unknown function: ${funcName}` });
     }
   } catch (err: unknown) {
-    req.log.error({ err, funcName }, "function invocation error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    req.log.error({ ...safeErrorLog(err), funcName }, "function invocation error");
+    res.status(500).json({ error: publicErrorMessage(err, "Internal error") });
   }
 });
+
+router.use(safeRouteErrors);
 
 export default router;

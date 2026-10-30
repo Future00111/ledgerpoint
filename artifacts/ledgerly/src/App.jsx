@@ -157,10 +157,10 @@ const AuthenticatedApp = () => {
           <Route path="/register" element={<Navigate to="/sign-up" replace />} />
           <Route path="/forgot-password" element={<Navigate to="/sign-in" replace />} />
           <Route path="/reset-password" element={<Navigate to="/sign-in" replace />} />
-          <Route path="/setup" element={<SetupWizard />} />
 
           <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/sign-in" replace />} />}>
             <Route element={<CompanyProvider><AppLayout /></CompanyProvider>}>
+              <Route path="/setup" element={<SetupWizard />} />
               <Route path="/" element={<Dashboard />} />
               <Route path="/ai-accountant" element={<AIAccountant />} />
               <Route path="/ai-accountant/inbox" element={<AIAccountantInbox />} />

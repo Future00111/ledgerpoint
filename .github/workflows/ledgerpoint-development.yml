@@ -37,11 +37,23 @@ jobs:
         run: node tools/development/check.mjs
       - name: Prepare disposable PostgreSQL binaries
         run: echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
-      - name: Accounting API, atomicity and ledger regression
+      - name: Accounting API, security, atomicity and restore regression
+        id: accounting
         run: node tools/accounting-flow/test.mjs
       - name: Verify isolated cleanup
         if: always()
         run: |
-          if [ -f generated-artifacts/accounting-flow-cleanup.json ]; then
+          if [ '${{ steps.accounting.outcome }}' != 'skipped' ]; then
             node -e 'const r=require("./generated-artifacts/accounting-flow-cleanup.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'
           fi
+      - name: Verify current-run restore evidence
+        if: success()
+        run: |
+          node <<'NODE'
+          const cleanup = require('./generated-artifacts/accounting-flow-cleanup.json');
+          const restore = require('./generated-artifacts/accounting-restore-drill.json');
+          if (!cleanup.restoreVerified || cleanup.runId !== restore.runId || cleanup.sourceCommit !== restore.sourceCommit ||
+              restore.sourceCommit !== process.env.GITHUB_SHA || !restore.syntheticOnly || !restore.sourceUnchanged ||
+              !restore.controlsPreserved || !restore.runtimeRestricted || restore.sourceFingerprint !== restore.restoredFingerprint ||
+              restore.ambientDatabaseCredentialsUsed || restore.productionContact) process.exit(1);
+          NODE
