@@ -1,23 +1,18 @@
 {
   "version": 1,
-  "revision": 19,
+  "revision": 20,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "799b7f7c02acd0dedf5eeab2815d0264a9782cbe",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261030-2333",
     "token": "459bb9e4-6df1-497d-818f-be04b16656bf",
     "acquiredAt": 1793403323893,
     "expiresAt": 1793405770885
-  },
-  "lastOwner": {
-    "runId": "hosted-20261030-2316",
-    "token": "034bfc02-fe81-4d45-b6eb-9fa8ca63e771",
-    "acquiredAt": 1793402275316,
-    "expiresAt": 1793404699637
   },
   "queueState": {
     "version": 2,
@@ -2368,12 +2363,19 @@
     "at": 1793403970891,
     "codeHead": "799b7f7c02acd0dedf5eeab2815d0264a9782cbe"
   },
-  "updatedAt": 1793403970891,
+  "updatedAt": 1793404095850,
   "validation": {
     "sourceCommit": "799b7f7c02acd0dedf5eeab2815d0264a9782cbe",
-    "status": "CI_pending",
-    "previousVerifiedSource": "ca88934dfe54b482d1acb5829af2f83cb5e1781a",
-    "previousCI": "https://github.com/Future00111/ledgerpoint/actions/runs/41146125008"
+    "sourceTree": "2ceb99e8a7e1e3336760b3daa697233ddcf8f0ea",
+    "ciRun": "https://github.com/Future00111/ledgerpoint/actions/runs/41146394405",
+    "sourceTests": 708,
+    "disposablePostgresTests": 68,
+    "tests": 776,
+    "failed": 0,
+    "skipped": 0,
+    "buildTypecheckPassed": true,
+    "restorePassed": true,
+    "isolatedCleanupPassed": true
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -2417,6 +2419,9 @@
     "workersStopped": true,
     "worktreesClean": true,
     "integratedTree": "2ceb99e8a7e1e3336760b3daa697233ddcf8f0ea",
-    "queueMigration": "Independently reviewed by worker4; all workers stopped; runtime archived and migrated without changing acceptance or source bullets; P01-02 now awaits P03-00, whose executable test ownership is repaired."
+    "queueMigration": "Independently reviewed by worker4; all workers stopped; runtime archived and migrated without changing acceptance or source bullets; P01-02 now awaits P03-00, whose executable test ownership is repaired.",
+    "remaining": "Partial slices integrated and independently reviewed; broad tasks remain pending. P01-02 awaits P03-00; ownership deadlocks repaired. P05-03 requires internal close/reopen contract; P07-01/P07-02 require isolated synthetic authenticated browser qualification.",
+    "localTests": 708,
+    "ci": "passed"
   }
 }
