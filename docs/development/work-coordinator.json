@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "revision": 6,
+  "revision": 8,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261030-2316",
     "token": "034bfc02-fe81-4d45-b6eb-9fa8ca63e771",
     "acquiredAt": 1793402275316,
-    "expiresAt": 1793404240962
+    "expiresAt": 1793404528080
   },
   "lastOwner": {
     "runId": "bootstrap-20261030",
@@ -21,17 +21,35 @@
   },
   "queueState": {
     "version": 2,
-    "revision": 17,
+    "revision": 35,
     "tasks": {
       "P01-00": {
-        "status": "running",
+        "status": "review",
         "priority": 100,
         "discoveredDependencies": [],
         "owner": "worker1",
         "token": "df98d191-0b29-402e-a588-f73ab8fc1d1e",
         "leaseUntil": 1793403231508,
         "workStarted": true,
-        "checkpoint": "refs/heads/codex/lp-hosted-2316-worker1 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits yet; isolated /workspace/scratch/6bd079311608/lp-worker1"
+        "checkpoint": "refs/heads/codex/lp-hosted-2316-worker1 at 4b60b75; two leased contract files committed, worktree clean, awaiting coordinator durable publication/review",
+        "evidence": {
+          "commit": "4b60b75",
+          "summary": "P01-00 financial interfaces: exact paid/unpaid/excess/corrected-original cases, atomic credit plus reviewed payment unallocation, stable evidence, shared historical projection, integer-pence and authorization invariants. Specification only; dependent implementations remain gated.",
+          "tests": [
+            {
+              "command": "git diff HEAD^ HEAD --check",
+              "passed": true
+            },
+            {
+              "command": "node --test tools/development/work-queue/coordinator.test.mjs (7 passed)",
+              "passed": true
+            },
+            {
+              "command": "node --input-type=module contract arithmetic assertions (5 synthetic scenarios; specification arithmetic only)",
+              "passed": true
+            }
+          ]
+        }
       },
       "P01-01": {
         "status": "pending",
@@ -61,25 +79,57 @@
         "status": "running",
         "priority": 201,
         "discoveredDependencies": [],
+        "checkpoint": "Worker2 stopped clean d278fec7458e771a7c7d7d4e88b889517283cbe4; remote checkpoint 12ea4c8c8ee7a104d0c11637a76dd124970beead on codex/lp-hosted-2316-worker2.",
+        "evidence": {
+          "commit": "d278fec7458e771a7c7d7d4e88b889517283cbe4",
+          "summary": "PARTIAL narrow security fix only: reject legacy settlement before database/provider; P02-01 broad inventory and cross-company criteria remain unverified, do not accept broad completion.",
+          "tests": [
+            {
+              "command": "esbuild companyRoutes.test.ts; DATABASE_URL=loopback-unusable NODE_ENV=test node --test bundled companyRoutes (2 passed)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        },
         "owner": "worker2",
-        "token": "db04e091-32a4-4e70-9a52-a6cb1abad022",
-        "leaseUntil": 1793403240564,
-        "workStarted": true,
-        "checkpoint": "codex/lp-hosted-2316-worker2 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated worktree lp-worker2, no edits yet"
+        "token": "638e08e0-fa47-4e67-a73e-612a8aa9c9c4",
+        "leaseUntil": 1793403622215,
+        "workStarted": false
       },
       "P02-02": {
         "status": "pending",
         "priority": 202
       },
       "P02-03": {
-        "status": "running",
+        "status": "review",
         "priority": 203,
         "discoveredDependencies": [],
+        "checkpoint": "codex/lp-hosted-2316-worker3 at 2dc459440d5b03ec9d02b734440df67efb8df3c8; coordinator requests removing default limiter for shared-proxy safety",
+        "evidence": {
+          "commit": "cc4a23d676ea83fa6cde03b1e816cd3c6b86410b",
+          "summary": "Reviewed partial hardening: private API response headers, form limits, fingerprint suppression, no automatic production localhost origin, structured diagnostic redaction. Default admission mount removed following independent shared-proxy availability review; tested limiter utility explicitly unenabled until trusted edge/distributed quota policy exists. Full P02-03 remains unfinished (session/transport/proxy policy, deployment rate limits, secret/dependency audit).",
+          "tests": [
+            {
+              "command": "esbuild bundle appErrors.test.ts + NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp-worker3-appErrors.cjs (13/13 passed)",
+              "passed": true
+            },
+            {
+              "command": "./node_modules/.bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        },
         "owner": "worker3",
-        "token": "6883c5a8-c612-4240-ab03-a9ab1fff0def",
-        "leaseUntil": 1793403252195,
-        "workStarted": true,
-        "checkpoint": "codex/lp-hosted-2316-worker3 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker3; no edits yet"
+        "token": "cd4ed689-1146-4011-936e-0bc0f6a3a793",
+        "leaseUntil": 1793403447621,
+        "workStarted": true
       },
       "P02-04": {
         "status": "pending",
@@ -106,14 +156,28 @@
         }
       },
       "P03-00": {
-        "status": "running",
+        "status": "review",
         "priority": 300,
         "discoveredDependencies": [],
         "owner": "worker4",
         "token": "1ffcf950-5526-4aa3-a601-73e5c043b23d",
         "leaseUntil": 1793403260428,
         "workStarted": true,
-        "checkpoint": "Branch codex/lp-hosted-2316-worker4 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker4; no edits yet."
+        "checkpoint": "Branch codex/lp-hosted-2316-worker4 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker4; no edits yet.",
+        "evidence": {
+          "commit": "25c2c73e1ad005010da9963d3473424864ff8612",
+          "summary": "Partial contract slice: persistence interfaces, immutable migration checksum inventory, identifiers, version guards and negative-control matrix. Do not accept entire P03-00: actual disposable PostgreSQL partial-schema tests remain missing, and coordinator review is pending.",
+          "tests": [
+            {
+              "command": "Bundle amendmentsMath.test.ts with esbuild; NODE_PATH=$PWD/artifacts/api-server/node_modules DATABASE_URL=postgresql://unused:unused@127.0.0.1:1/no_database node --test /tmp/lp-worker4-amendments.cjs (6 passed)",
+              "passed": true
+            },
+            {
+              "command": "Node assert JSON registry version and SHA-256 for all seven migration files (passed)",
+              "passed": true
+            }
+          ]
+        }
       },
       "P03-01": {
         "status": "pending",
@@ -136,14 +200,24 @@
         "priority": 380
       },
       "P04-01": {
-        "status": "running",
+        "status": "review",
         "priority": 401,
         "discoveredDependencies": [],
         "owner": "worker5",
         "token": "22b75133-b91c-4509-9a90-8b64a785689e",
         "leaseUntil": 1793403268425,
         "workStarted": true,
-        "checkpoint": "refs/heads/codex/lp-hosted-2316-worker5 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; isolated lp-worker5; no edits yet"
+        "checkpoint": "refs/heads/codex/lp-hosted-2316-worker5 at a26d4a5d3e0a5f7979182430c7439bbd8d6cfe86; clean worktree; 41 contract tests pass; partial inventory only, full case freeze and statutory fixture qualification remain pending",
+        "evidence": {
+          "commit": "a26d4a5d3e0a5f7979182430c7439bbd8d6cfe86",
+          "summary": "PARTIAL ONLY: fail-closed qualification inventory across VAT, income, corporation and payroll with official discovery sources and 2025-28 rows. No case claimed calculation-supported; full exhaustive matrix and pinned statutory expected results remain pending. Do not accept P04-01 as complete from this slice.",
+          "tests": [
+            {
+              "command": "node --test artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs (41 passed)",
+              "passed": true
+            }
+          ]
+        }
       },
       "P04-02": {
         "status": "pending",
@@ -238,14 +312,32 @@
         ]
       },
       "P07-02": {
-        "status": "running",
+        "status": "review",
         "priority": 702,
         "discoveredDependencies": [],
         "owner": "worker6",
         "token": "79129ca7-a9a4-4144-8122-e9dd34920066",
         "leaseUntil": 1793403313310,
         "workStarted": true,
-        "checkpoint": "codex/lp-hosted-2316-worker6 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits; inspect saved readiness and next task"
+        "checkpoint": "codex/lp-hosted-2316-worker6 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits; inspect saved readiness and next task",
+        "evidence": {
+          "commit": "39b359132593d2df0aa6a20e751abd752a9b07cb",
+          "summary": "Fresh server-backed saved setup now suggests the next prerequisite/contact/document task, respects readonly and failed reads, and offers optional accurate draft/posted/paid/credited/filed guidance. No additional browser storage or financial mutations. Render/model verified; live browser journey remains P07-01 environment-blocked.",
+          "tests": [
+            {
+              "command": "node --test artifacts/ledgerly/src/features/onboarding/model.test.mjs (11 passed)",
+              "passed": true
+            },
+            {
+              "command": "esbuild bundle SetupWorkspace.test.jsx; node --test /tmp/lp-worker6-ui.cjs (7 passed, including 3 new)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
       },
       "P07-03": {
         "status": "pending",
@@ -763,6 +855,234 @@
         "type": "checkpoint",
         "taskId": "P07-02",
         "checkpoint": "codex/lp-hosted-2316-worker6 at 83ec61812c53d47a14cf1c7bb5d288f5829e2df2; no edits; inspect saved readiness and next task"
+      },
+      {
+        "at": 1793402445566,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-00",
+        "checkpoint": "refs/heads/codex/lp-hosted-2316-worker1 at 4b60b75; two leased contract files committed, worktree clean, awaiting coordinator durable publication/review"
+      },
+      {
+        "at": 1793402445659,
+        "actor": "worker1",
+        "type": "submit",
+        "taskId": "P01-00",
+        "evidence": {
+          "commit": "4b60b75",
+          "summary": "P01-00 financial interfaces: exact paid/unpaid/excess/corrected-original cases, atomic credit plus reviewed payment unallocation, stable evidence, shared historical projection, integer-pence and authorization invariants. Specification only; dependent implementations remain gated.",
+          "tests": [
+            {
+              "command": "git diff HEAD^ HEAD --check",
+              "passed": true
+            },
+            {
+              "command": "node --test tools/development/work-queue/coordinator.test.mjs (7 passed)",
+              "passed": true
+            },
+            {
+              "command": "node --input-type=module contract arithmetic assertions (5 synthetic scenarios; specification arithmetic only)",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793402446596,
+        "actor": "worker3",
+        "type": "renew",
+        "taskId": "P02-03"
+      },
+      {
+        "at": 1793402459990,
+        "actor": "worker3",
+        "type": "submit",
+        "taskId": "P02-03",
+        "evidence": {
+          "commit": "2dc459440d5b03ec9d02b734440df67efb8df3c8",
+          "summary": "Partial P02-03 review slice: bounded socket-based process-local API admission, no-cache/security headers, explicit form limits, no default localhost origin in production, structured error/body/session/provider log redaction. Clerk streaming proxy unchanged. Broader production transport/session/proxy trust and dependency/secret audit remain unverified; do not accept the full package as complete.",
+          "tests": [
+            {
+              "command": "esbuild bundle appErrors.test.ts + NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp-worker3-appErrors.cjs (13/13 passed)",
+              "passed": true
+            },
+            {
+              "command": "./node_modules/.bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793402460412,
+        "actor": "worker2",
+        "type": "checkpoint",
+        "taskId": "P02-01",
+        "checkpoint": "codex/lp-hosted-2316-worker2 d278fec7458e771a7c7d7d4e88b889517283cbe4; legacy purchase-bill settlement bypass closed; focused 2 HTTP tests passed; partial P02-01 only. Remaining: exhaustive legacy capability inventory, cross-company read/write/download/export and stale-response verification. Client migration needed for SalesCreditNoteForm, SupplierCreditNoteForm and CreditNotesRegister remaining updatePaymentStatus calls; those files outside this lease."
+      },
+      {
+        "at": 1793402460505,
+        "actor": "worker2",
+        "type": "submit",
+        "taskId": "P02-01",
+        "evidence": {
+          "commit": "d278fec7458e771a7c7d7d4e88b889517283cbe4",
+          "summary": "PARTIAL narrow security fix only: reject legacy settlement before database/provider; P02-01 broad inventory and cross-company criteria remain unverified, do not accept broad completion.",
+          "tests": [
+            {
+              "command": "esbuild companyRoutes.test.ts; DATABASE_URL=loopback-unusable NODE_ENV=test node --test bundled companyRoutes (2 passed)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793402469242,
+        "actor": "worker5",
+        "type": "checkpoint",
+        "taskId": "P04-01",
+        "checkpoint": "refs/heads/codex/lp-hosted-2316-worker5 at a26d4a5d3e0a5f7979182430c7439bbd8d6cfe86; clean worktree; 41 contract tests pass; partial inventory only, full case freeze and statutory fixture qualification remain pending"
+      },
+      {
+        "at": 1793402469340,
+        "actor": "worker5",
+        "type": "submit",
+        "taskId": "P04-01",
+        "evidence": {
+          "commit": "a26d4a5d3e0a5f7979182430c7439bbd8d6cfe86",
+          "summary": "PARTIAL ONLY: fail-closed qualification inventory across VAT, income, corporation and payroll with official discovery sources and 2025-28 rows. No case claimed calculation-supported; full exhaustive matrix and pinned statutory expected results remain pending. Do not accept P04-01 as complete from this slice.",
+          "tests": [
+            {
+              "command": "node --test artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs (41 passed)",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793402474193,
+        "actor": "worker6",
+        "type": "submit",
+        "taskId": "P07-02",
+        "evidence": {
+          "commit": "39b359132593d2df0aa6a20e751abd752a9b07cb",
+          "summary": "Fresh server-backed saved setup now suggests the next prerequisite/contact/document task, respects readonly and failed reads, and offers optional accurate draft/posted/paid/credited/filed guidance. No additional browser storage or financial mutations. Render/model verified; live browser journey remains P07-01 environment-blocked.",
+          "tests": [
+            {
+              "command": "node --test artifacts/ledgerly/src/features/onboarding/model.test.mjs (11 passed)",
+              "passed": true
+            },
+            {
+              "command": "esbuild bundle SetupWorkspace.test.jsx; node --test /tmp/lp-worker6-ui.cjs (7 passed, including 3 new)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793402496812,
+        "actor": "worker4",
+        "type": "submit",
+        "taskId": "P03-00",
+        "evidence": {
+          "commit": "25c2c73e1ad005010da9963d3473424864ff8612",
+          "summary": "Partial contract slice: persistence interfaces, immutable migration checksum inventory, identifiers, version guards and negative-control matrix. Do not accept entire P03-00: actual disposable PostgreSQL partial-schema tests remain missing, and coordinator review is pending.",
+          "tests": [
+            {
+              "command": "Bundle amendmentsMath.test.ts with esbuild; NODE_PATH=$PWD/artifacts/api-server/node_modules DATABASE_URL=postgresql://unused:unused@127.0.0.1:1/no_database node --test /tmp/lp-worker4-amendments.cjs (6 passed)",
+              "passed": true
+            },
+            {
+              "command": "Node assert JSON registry version and SHA-256 for all seven migration files (passed)",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793402523677,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P02-03",
+        "reason": "Shared reverse proxy socket makes default 600/min admission limit global; require explicit deployment policy before enabling."
+      },
+      {
+        "at": 1793402523758,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P02-03",
+        "checkpoint": "Worker3 stopped clean at 2dc459440d5b03ec9d02b734440df67efb8df3c8; reviewed default proxy admission regression requires amendment."
+      },
+      {
+        "at": 1793402547621,
+        "actor": "worker3",
+        "type": "claim",
+        "taskId": "P02-03",
+        "token": "cd4ed689-1146-4011-936e-0bc0f6a3a793"
+      },
+      {
+        "at": 1793402557573,
+        "actor": "worker3",
+        "type": "checkpoint",
+        "taskId": "P02-03",
+        "checkpoint": "codex/lp-hosted-2316-worker3 at 2dc459440d5b03ec9d02b734440df67efb8df3c8; coordinator requests removing default limiter for shared-proxy safety"
+      },
+      {
+        "at": 1793402569712,
+        "actor": "worker3",
+        "type": "submit",
+        "taskId": "P02-03",
+        "evidence": {
+          "commit": "cc4a23d676ea83fa6cde03b1e816cd3c6b86410b",
+          "summary": "Reviewed partial hardening: private API response headers, form limits, fingerprint suppression, no automatic production localhost origin, structured diagnostic redaction. Default admission mount removed following independent shared-proxy availability review; tested limiter utility explicitly unenabled until trusted edge/distributed quota policy exists. Full P02-03 remains unfinished (session/transport/proxy policy, deployment rate limits, secret/dependency audit).",
+          "tests": [
+            {
+              "command": "esbuild bundle appErrors.test.ts + NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp-worker3-appErrors.cjs (13/13 passed)",
+              "passed": true
+            },
+            {
+              "command": "./node_modules/.bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793402711418,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P02-01",
+        "reason": "Integrated full build failed TS2571 at companyRoutes.test.ts response.json unknown; narrow test typing fix required."
+      },
+      {
+        "at": 1793402711519,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P02-01",
+        "checkpoint": "Worker2 stopped clean d278fec7458e771a7c7d7d4e88b889517283cbe4; remote checkpoint 12ea4c8c8ee7a104d0c11637a76dd124970beead on codex/lp-hosted-2316-worker2."
+      },
+      {
+        "at": 1793402722215,
+        "actor": "worker2",
+        "type": "claim",
+        "taskId": "P02-01",
+        "token": "638e08e0-fa47-4e67-a73e-612a8aa9c9c4"
       }
     ],
     "catalogDigest": "4ec38da8ef67c6f42bc913d0e01b8e5d3b34fb4228853599a11b239c38ec4314"
@@ -778,10 +1098,10 @@
       }
     ],
     "runId": "hosted-20261030-2316",
-    "at": 1793402440962,
+    "at": 1793402728080,
     "codeHead": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2"
   },
-  "updatedAt": 1793402440962,
+  "updatedAt": 1793402728080,
   "validation": {
     "sourceCommit": "83ec61812c53d47a14cf1c7bb5d288f5829e2df2",
     "sourceTree": "234772f1646ffeb7540efe1b72e25f9a80ae1389",
@@ -801,5 +1121,41 @@
     "cadence": "hourly",
     "mode": "bounded hosted resumptions",
     "firstRunVerified": false
+  },
+  "runEvidence": {
+    "workerCheckpoints": {
+      "worker1": {
+        "local": "4b60b75364926b5410d2b290898f35a76c752133",
+        "remote": "70a6adecceccf7a530cac60bbda2767ae67f0d44",
+        "tree": "b4abe28642a27369d4a306cb8a9702413deaf8ac"
+      },
+      "worker2": {
+        "local": "d278fec7458e771a7c7d7d4e88b889517283cbe4",
+        "remote": "12ea4c8c8ee7a104d0c11637a76dd124970beead",
+        "tree": "dcde2c31c61c4f4fe6f308f7806d02fca4b33b81"
+      },
+      "worker3": {
+        "local": "cc4a23d676ea83fa6cde03b1e816cd3c6b86410b",
+        "remote": "ee3dc2ff2892b1bf86ffa36ca4479d4ce3e9a002",
+        "tree": "73ffae0833627c1b59735c01d08087dccb958c0c"
+      },
+      "worker4": {
+        "local": "25c2c73e1ad005010da9963d3473424864ff8612",
+        "remote": "6aecd9ca9d65a06fa464152786c19a3ac8854278",
+        "tree": "272b81117dfd79c1dd446fca09a29ea6eebb7c8a"
+      },
+      "worker5": {
+        "local": "a26d4a5d3e0a5f7979182430c7439bbd8d6cfe86",
+        "remote": "4f5adca8f419e11bbb7259bb2d787eca64b656b7",
+        "tree": "709714535f72a8173298b46c21f0d50a7d1667aa"
+      },
+      "worker6": {
+        "local": "39b359132593d2df0aa6a20e751abd752a9b07cb",
+        "remote": "fc5a76e33a1a33110e02069318ae6bc662bf7859",
+        "tree": "aa91d226c13b3c9e1244a00eacbd9e7fa6abb98d"
+      }
+    },
+    "notes": "Connector commits preserve identical worker trees; local source hashes are recorded, remote matching-commit validation pending. Review fixes in progress.",
+    "workersStopped": false
   }
 }
