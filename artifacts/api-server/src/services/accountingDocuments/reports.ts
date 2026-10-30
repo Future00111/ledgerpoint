@@ -102,7 +102,8 @@ export async function reports(company:string,actor:string,from:string,to:string,
       }
       postedDocuments.push({id:d.id,kind:d.kind,party_id:d.party_id,party_name:party.name,party_type:p.party_type,
         number:d.number,date:d.posting_date,due_date:d.source.due_date,journal_id:d.journal_id,
-        net_minor:(BigInt(d.money.net_pence)*(credit(d.kind)?-1n:1n)).toString(),gross_minor:counter.toString()});
+        net_minor:(BigInt(d.money.net_pence)*(credit(d.kind)?-1n:1n)).toString(),gross_minor:counter.toString(),
+        vat_minor:tax.toString(),vat_box:sales(d.kind)?'1':'4'});
       if(!credit(d.kind)) {
         const credited=docs.filter(c=>c.original_id===d.id).reduce((n,c)=>n+BigInt(c.money.gross_pence),0n);
         const paid=appliedTo(payments,d.id);

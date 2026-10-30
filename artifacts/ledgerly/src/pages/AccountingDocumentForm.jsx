@@ -15,6 +15,10 @@ import { StatusPill, SettlementPill, Money, ConfigErrors, JournalLink, ErrorBox,
 import { DiscountEditor, SavedDiscountSummary, DiscountBalanceReview, DraftWriteActions } from '@/features/documentDiscounts/DiscountControls';
 import DocumentLineFields from '@/features/documentDiscounts/DocumentLineFields';
 import { canEditDrafts, canPostDocuments, discountAdjustment, isCurrentDocumentRequest } from '@/features/documentDiscounts/model.mjs';
+import { useCaptureDraft } from '@/features/documentIntake/useDocumentIntake';
+import { CaptureSourceReview, CaptureDraftActions } from '@/features/documentIntake/CaptureReview';
+import SourceAttachments from '@/features/documentIntake/SourceFiles';
+import { displayedDocumentMoney } from '@/features/documentIntake/model.mjs';
 
 const blankLine = () => ({ description: '', quantity: '1', unit_price: '0', tax_code: '' });
 const blankForm = () => ({ customer_id: '', invoice_number: '', issue_date: today(), due_date: dueFromTerms(today(), '30'), payment_terms: '30', reference: '', notes: '', price_basis: 'excluding_vat', line_items: [blankLine()] });
@@ -28,7 +32,9 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const [params] = useSearchParams();
   const requestedOriginal = params.get('original');
   const requestedDiscount = meta.credit && params.get('discount') === '1';
+  const requestedCapture = params.get('capture');
   const editId = id && id !== 'new' ? id : undefined;
+  const captureMode = Boolean(requestedCapture && !editId);
   const { activeCompany } = useCompany();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -46,12 +52,13 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const [review, setReview] = useState(null);
   const [legacy, setLegacy] = useState(false);
   const gen = useRef(0);
-  const scopeKey = JSON.stringify([activeCompany?.id, editId, kind, requestedOriginal, requestedDiscount]);
+  const scopeKey = JSON.stringify([activeCompany?.id, editId, kind, requestedOriginal, requestedDiscount, requestedCapture]);
   const latestScope = useRef(scopeKey);
   latestScope.current = scopeKey;
   const currentContext = loadedScope === scopeKey;
   const capabilities = currentContext ? ctx?.capabilities : null;
-  const canEdit = canEditDrafts(capabilities);
+  const capture = useCaptureDraft({ companyId: activeCompany?.id, sourceId: captureMode ? requestedCapture : null, kind, scope: scopeKey, envelope: buildEnvelope(kind, form, extra) });
+  const canEdit = canEditDrafts(capabilities) && (!captureMode || capture.canManage);
   const canPost = canPostDocuments(capabilities);
   const discountMode = meta.credit && Boolean(form.discount_adjustment || (!editId && requestedDiscount));
   const manualDue = useRef(false);
@@ -112,14 +119,14 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
       finally { if (g === gen.current && !c.signal.aborted) setLoading(false); }
     })();
     return () => { c.abort(); gen.current++; };
-  }, [activeCompany?.id, editId, kind, requestedOriginal, requestedDiscount]);
+  }, [activeCompany?.id, editId, kind, requestedOriginal, requestedDiscount, requestedCapture]);
 
   if (legacy && currentContext) return canEdit && legacyFallback ? legacyFallback : <div className="workspace-page"><h1>Earlier draft</h1><p className="text-sm text-muted-foreground">This earlier draft cannot be edited in your current view. Your accounting access remains unchanged.</p><Link className="text-primary underline" to={meta.path}>Back to {meta.plural.toLowerCase()}</Link></div>;
   if (!activeCompany) return <p className="mx-auto max-w-xl rounded-xl border p-6 text-center">Select a company in <Link className="underline" to="/companies">Companies</Link> first.</p>;
   if (!currentContext) return <div className="workspace-page"><Link className="text-primary underline" to={meta.path}>Back to {meta.plural.toLowerCase()}</Link><ErrorBox error={error} />{loading && <SkeletonRows rows={6} />}</div>;
 
   const posted = doc?.status === 'posted';
-  const touch = () => setDirty(true);
+  const touch = () => { setDirty(true); if (captureMode) capture.invalidateReview(); };
   const change = (k, v) => {
     if (k === 'due_date') manualDue.current = true;
     touch(); setForm(f => changeDateField(f, k, v, manualDue.current, meta.credit));
@@ -159,12 +166,13 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const savedPosting = doc && !dirty && doc.posting_accounts && typeof doc.posting_accounts === 'object' ? plannedAccounts(kind, { mappings: doc.posting_accounts, posting_account_id: doc.posting_account_id, purchase_vat_eligible: doc.purchase_vat_eligible, vatRegistered, vatMinor: doc.totals?.vat_minor }).filter(r => r.id) : null;
   const isPurchase = meta.party === 'supplier';
   const creditInvalid = meta.credit && (!extra.original_id || extra.original_line_refs.length !== form.line_items.length || form.line_items.some((_, i) => overQty(i) || overPrice(i)) || !extra.reason.trim() || !extra.effective_adjustment_date || form.issue_date !== extra.effective_adjustment_date);
-  const showTotals = doc && !dirty;
+  const displayedMoney = displayedDocumentMoney(captureMode, capture.currentReview, doc, dirty);
+  const showTotals = Boolean(displayedMoney);
   const configErrors = ctx?.configuration_errors ?? [];
 
   const save = async (e) => {
     e?.preventDefault();
-    if (!canEdit || busy || posted || creditInvalid) return;
+    if (!canEdit || busy || capture.busy || posted || creditInvalid) return;
     const started = { scope: scopeKey, generation: gen.current };
     const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
     const fields = new FormData(e.currentTarget);
@@ -174,6 +182,18 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     setBusy(true); setError(null);
     try {
       const body = buildEnvelope(kind, submitted, extra);
+      if (captureMode) {
+        setForm(submitted);
+        const creating = e.nativeEvent?.submitter?.value === 'save';
+        const result = creating ? await capture.saveDraft(body) : await capture.reviewEnvelope(body);
+        if (!stillCurrent() || !result) return;
+        if (creating) {
+          if (!result.document?.id) throw new Error('The linked draft response could not be verified. Refresh the source before retrying.');
+          toast({ title: result.duplicate ? 'Existing linked draft opened' : 'Source linked to draft', description: 'Review and post the saved draft separately.' });
+          navigate(docPath(result.document.kind || kind, result.document.id), { replace: true });
+        }
+        return;
+      }
       const saved = editId ? await accounting.update(activeCompany.id, editId, body, doc.revision) : await accounting.create(activeCompany.id, body);
       if (!stillCurrent()) return;
       setForm({ ...blankForm(), ...saved.source, payment_terms: String(saved.source.payment_terms) });
@@ -243,12 +263,14 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
       {!posted && <div className="flex flex-wrap items-center gap-3 border-y py-3 text-xs text-muted-foreground" aria-label="Document progress"><span className="font-medium text-primary">1 · Enter details</span><span aria-hidden="true">→</span><span className={doc && !dirty ? 'font-medium text-primary' : ''}>2 · Save draft{doc && !dirty ? ' ✓' : ''}</span><span aria-hidden="true">→</span><span>3 · Review & post</span></div>}
       <ConfigErrors errors={configErrors} />
       <ErrorBox error={error} />
-      {!posted && !canEdit && <p className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">You have view-only access to this draft. Editing requires permission from your company owner.</p>}
+      {captureMode && <CaptureSourceReview capture={capture} companyId={activeCompany.id} />}
+      {!captureMode && doc && <SourceAttachments companyId={activeCompany.id} documentId={doc.id} />}
+      {!posted && !canEditDrafts(capabilities) && <p className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">You have view-only access to this draft. Editing requires permission from your company owner.</p>}
       {loading && <SkeletonRows rows={6} />}
 
       {!loading && ctx && (
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <fieldset disabled={posted || busy || !canEdit} className="min-w-0 space-y-6">
+          <fieldset disabled={posted || busy || capture.busy || !canEdit} className="min-w-0 space-y-6">
             {meta.credit && (
               <section className="workspace-card space-y-5 p-6">
                 <div><h2 className="text-lg font-semibold">{discountMode ? 'Discount credit' : 'Adjustment'}</h2>
@@ -321,7 +343,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               {form.line_items.map((line, index) => <DocumentLineFields key={index} line={line} index={index} credit={meta.credit} discountMode={discountMode}
                 originalDiscount={Boolean(originalDoc?.source?.discount || doc?.tax_context?.original_discount)}
                 priceBasis={form.price_basis} taxRules={taxRules} originalLine={origLine(index)} originalLineRef={extra.original_line_refs[index]}
-                money={showTotals ? doc.money?.lines?.[index] : null} canRemove={form.line_items.length > 1}
+                money={displayedMoney?.lines?.[index]} canRemove={form.line_items.length > 1}
                 onChange={(field, value) => changeLine(index, field, value)} onRemove={() => meta.credit ? removeCreditLine(index) : change('line_items', form.line_items.filter((_, j) => j !== index))} />)}
               {!meta.credit && <Button type="button" variant="outline" onClick={() => change('line_items', [...form.line_items, blankLine()])} data-testid="button-add-line">Add line</Button>}
               <div><Label htmlFor="notes">Notes</Label><Textarea id="notes" maxLength={4000} className="mt-1.5" value={form.notes} onChange={e => change('notes', e.target.value)} /></div>
@@ -359,12 +381,12 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Totals</h2>
               {showTotals ? (
                 <dl className="mt-4 space-y-2 text-sm" data-testid="totals">
-                  <SavedDiscountSummary money={doc.money} />
-                  <div className="flex justify-between"><dt>Net</dt><dd><Money value={doc.money.net_pence} /></dd></div>
-                  <div className="flex justify-between"><dt>VAT</dt><dd><Money value={doc.money.vat_pence} /></dd></div>
-                  <div className="flex justify-between border-t pt-2 text-base font-semibold"><dt>Total</dt><dd><Money value={doc.money.gross_pence} /></dd></div>
+                  <SavedDiscountSummary money={displayedMoney} />
+                  <div className="flex justify-between"><dt>Net</dt><dd><Money value={displayedMoney.net_pence} /></dd></div>
+                  <div className="flex justify-between"><dt>VAT</dt><dd><Money value={displayedMoney.vat_pence} /></dd></div>
+                  <div className="flex justify-between border-t pt-2 text-base font-semibold"><dt>Total</dt><dd><Money value={displayedMoney.gross_pence} /></dd></div>
                 </dl>
-              ) : <p className="mt-4 text-sm text-muted-foreground" data-testid="text-totals-stale">{doc ? 'Changes not saved — save the draft to recalculate totals.' : 'Save your draft to calculate the subtotal, VAT and total.'}</p>}
+              ) : <p className="mt-4 text-sm text-muted-foreground" data-testid="text-totals-stale">{captureMode ? 'Review the current details to calculate the subtotal, VAT and total before saving.' : doc ? 'Changes not saved — save the draft to recalculate totals.' : 'Save your draft to calculate the subtotal, VAT and total.'}</p>}
               {meta.credit && <p className="mt-4 rounded-md bg-muted/50 p-2.5 text-xs">Offset against outstanding balance. No cash movement.</p>}
             </div>
             {discountMode && <DiscountBalanceReview original={originalDoc} item={originalOpenItem} money={doc?.money} dirty={dirty || !doc} loading={originalSettlement.loading} error={originalSettlement.error} onRetry={originalSettlement.refresh} />}
@@ -372,8 +394,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               <div className="order-2 space-y-2">
                 <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">Draft — not included in your P&amp;L, balance sheet, VAT workings or account balances until you review and post it.</p>
                 {creditInvalid && <p className="text-xs text-orange-800">Original, reason and effective date are required; the credit date must match the effective date and quantities cannot exceed the original.</p>}
-                <DraftWriteActions capabilities={capabilities} doc={doc} editId={editId} busy={busy} dirty={dirty} creditInvalid={creditInvalid} configurationErrors={configErrors}
-                  onReview={() => { setError(null); setReview({ companyId: activeCompany.id, id: doc.id, revision: doc.revision, number: form.invoice_number, money: doc.money }); }} />
+                {captureMode ? <CaptureDraftActions capture={capture} canEdit={canEdit} invalid={creditInvalid || busy} /> : <DraftWriteActions capabilities={capabilities} doc={doc} editId={editId} busy={busy} dirty={dirty} creditInvalid={creditInvalid} configurationErrors={configErrors}
+                  onReview={() => { setError(null); setReview({ companyId: activeCompany.id, id: doc.id, revision: doc.revision, number: form.invoice_number, money: doc.money }); }} />}
                 {doc && dirty && <p className="text-xs text-muted-foreground">Save changes before posting.</p>}
               </div>
             )}

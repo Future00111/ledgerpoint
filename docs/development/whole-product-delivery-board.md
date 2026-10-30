@@ -11,6 +11,49 @@ accounting and fewer manual steps. Track owner minutes per document, correction
 rate, unresolved exceptions, recovered credits and time to close the books.
 Feature count and AI-generated output alone are not success measures.
 
+## Current parallel wave — capture and recovery
+
+Starting point: `a51625554d68385068d65a2156a3b9f5230f2333`, draft PR 27,
+with 245 current-source checks and 36 disposable PostgreSQL tests passing in
+run `41096073217`. This is development evidence for that commit only.
+Supplier line claims, all four draft editing paths, percentage/fixed discounts,
+and linked later-discount credits are already implemented on this branch.
+
+The owner authorised the next parallel implementation wave. This table is the
+current assignment; historical baseline descriptions below remain context.
+
+| Workstream | Isolated implementation ownership | Contract and integration gate |
+| --- | --- | --- |
+| Capture | `codex/intake-persistence`: `B/services/documentIntake/**`, new `B/routes/documentIntake.ts`; narrow lease to extract the existing transactional draft save. `codex/intake-workspace-ui`: `F/features/documentIntake/**`, `F/api/documentIntake.mjs`, `Documents.jsx` and capture-only form/source attachment changes. | Verified original bytes, company-local deduplication, source review and atomic native draft creation. No OCR/email provider is connected. Root owns migration, router registration and real PostgreSQL tests. |
+| Payments | `codex/payment-recovery`: `Payments.jsx`, `F/features/paymentRecovery/**`; narrow backend lease for payment-context capability metadata only. | Keep the same reviewed event ID/body/token after an unknown response. Read-only status lookup and exact retry use existing protected payment commands. No new ledger or cash calculation. |
+| VAT review | `codex/vat-workings-review`: `VatWorkingsPanel.jsx`, `F/features/vatPreparation/**`, bounded `VATReturns.jsx` integration. | One canonical report snapshot, signed source VAT, document/journal trace and safe CSV. Root exposes already-calculated source VAT; no filing or claim of a complete nine-box return. |
+| Corrections and quality | Read-only accounting/security subagent; coordinator owns contracts, shared schema, integration and regression suite. | Define append-only posted corrections and shared as-of projections before exposing financial edits. Review capture permissions, evidence, atomicity and retry semantics independently. |
+
+Capture persistence uses two additive reviewed tables: immutable
+`document_intake_sources` with a one-time same-company document link, and
+append-only `document_intake_audit`. Uploads are PDF/JPEG/PNG, at most 5 MiB,
+and downloaded as authenticated attachments. A server review binds the exact
+normalised envelope, file identity, source revision, money and accounting
+context. Creation requires explicit source/supplier/tax acknowledgements and
+the source revision. The native draft, compatibility projection, source link
+and audit commit in one transaction. Exact retries return the same document,
+including after subsequent editing/posting, while always rechecking authority.
+
+Execution: implement disjoint modules in parallel; integrate reviewed backend
+contracts and coordinator schema first, then the three interfaces. Run all
+current-source checks, full build/typecheck and the disposable database suite
+on the combined commit. Refresh only the previously authorised isolated
+synthetic demonstration after those checks pass, preserving existing records.
+No merge, deployment, provider connection or production data changes are part
+of this wave. Combined local source validation passed: 306 unit/scenario/client/
+rendered-UI tests, no failures or skips, plus full workspace typecheck/build.
+The added database cases cover capture deduplication, authority, exact review,
+concurrent retry, source evidence, immutable audit and injected transaction
+rollback. Exact-commit PostgreSQL/CI results and demo preservation evidence
+belong in PR 27; local checks alone do not establish those results.
+The reviewed next accounting contract is
+[posted document corrections](posted-document-corrections.md).
+
 ## What exists and what remains
 
 “Implemented” below means source and relevant tests exist, not that this commit

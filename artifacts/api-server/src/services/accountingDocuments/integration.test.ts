@@ -5,6 +5,8 @@ import pg from "pg";
 import express from "express";
 import {pool} from "@workspace/db";
 import {createAccountingRouter} from "../../routes/accountingDocuments";
+import {createDocumentIntakeRouter} from "../../routes/documentIntake";
+import {verifyDraftBody,draftParserErrors} from '../financialDrafts/jsonBoundary';
 import {InvoiceDraftService} from "../financialDrafts/invoiceService";
 import {createProductionInvoiceDraftAuthority} from "../financialDrafts/productionAuthority";
 import {invoiceDraftRouter} from "../financialDrafts/router";
@@ -19,7 +21,7 @@ const socket=process.env.ACCOUNTING_FLOW_TEST_SOCKET??"";
 if(!/^\/tmp\/ledgerly-accounting-flow-tests-[A-Za-z0-9]+\/socket$/.test(socket)) throw Error("Disposable socket required");
 const admin=new pg.Pool({host:socket,port:55441,user:"w03_bootstrap",database:"ledgerly_accounting_flow_test",password:"",ssl:false,options:""});
 const actor="synthetic-accounting-owner",readOnly="synthetic-accounting-reader";
-let server:ReturnType<ReturnType<typeof express>["listen"]>,base:string,failNext=false,failNextCredit=false;
+let server:ReturnType<ReturnType<typeof express>["listen"]>,base:string,failNext=false,failNextCredit=false,failNextCapture=false;
 let pausePosting:(()=>Promise<void>)|undefined;
 const auth:express.RequestHandler=(req,res,next)=>{
   const user=req.get("x-test-actor");if(!user){res.status(401).json({error:{code:"UNAUTHORIZED"}});return;}
@@ -28,7 +30,10 @@ const auth:express.RequestHandler=(req,res,next)=>{
 before(async()=>{
   const identity=(await pool.query("SELECT current_database() db,current_user role,inet_server_addr() addr")).rows[0];
   assert.deepEqual(identity,{db:"ledgerly_accounting_flow_test",role:"ledgerly_api",addr:null});
-  const app=express();app.use(express.json());
+  const app=express();app.use(express.json({limit:'10mb',verify:verifyDraftBody}));app.use(draftParserErrors);
+  app.use('/companies/:companyId/document-intake',createDocumentIntakeRouter(auth,async q=>{
+    if(failNextCapture){failNextCapture=false;await q.query('SELECT 1/0');}
+  }));
   app.use("/companies/:companyId",createAccountingRouter(auth,async tx=>{
     if(failNext){failNext=false;await queryAdapter(tx).query("SELECT 1/0");}
     await pausePosting?.();
@@ -113,6 +118,8 @@ test('document capabilities match actual draft and protected posting permissions
     await admin.query('INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,$4,true)',[randomUUID(),f.company,user,role]);
     const ctx=await request(f.company,'/accounting-documents/context?kind=purchase_bill','GET',undefined,undefined,user);
     assert.deepEqual(ctx.data.capabilities,{edit_drafts:editDrafts,post_documents:postDocuments});
+    const paymentContext=await request(f.company,'/accounting-payments/context','GET',undefined,undefined,user);
+    assert.deepEqual(paymentContext.data.capabilities,{configure_payments:editDrafts,review_payments:editDrafts,post_payments:postDocuments});
     const doc=await create(f,'sales_invoice',source(f.customer));
     const changed=await request(f.company,`/accounting-documents/${doc.id}`,'PATCH',
       {source:{contract:'w03.draft.v1',discount:{type:'percentage',value:'10'}}},doc.revision,user);
@@ -122,6 +129,7 @@ test('document capabilities match actual draft and protected posting permissions
     assert.equal(posted.status,postDocuments?200:403,JSON.stringify(posted));
     await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,user]);
     assert.equal((await request(f.company,'/accounting-documents/context','GET',undefined,undefined,user)).status,404);
+    assert.equal((await request(f.company,'/accounting-payments/context','GET',undefined,undefined,user)).status,404);
   }
 });
 
@@ -337,6 +345,10 @@ test("four native create/edit/reopen/review/post journeys reconcile ledger, part
   assert.equal(d.pnl.gross_profit_minor,"8000");
   assert.deepEqual(d.balance_sheet.sections.map((s:any)=>s.total_minor),["10400","6400","0"]);
   assert.deepEqual([d.vat.box1_pence,d.vat.box4_pence,d.vat.box5_pence,d.vat.box6_pence,d.vat.box7_pence],["1600","800","800","8000","4000"]);
+  for(const box of ['1','4']) assert.equal(d.posted_documents.filter((s:any)=>s.vat_box===box)
+    .reduce((n:bigint,s:any)=>n+BigInt(s.vat_minor),0n).toString(),d.vat[`box${box}_pence`]);
+  assert.equal(d.posted_documents.find((s:any)=>s.id===sc.id).vat_minor,'-400');
+  assert.equal(d.posted_documents.find((s:any)=>s.id===pc.id).vat_minor,'-200');
   assert.deepEqual(d.journal_movements,{debit_minor:"21600",credit_minor:"21600"});
   assert.equal(d.trial_balance.reduce((n:any,a:any)=>n+BigInt(a.debit_minor),0n),14400n);
   assert.equal(d.trial_balance.reduce((n:any,a:any)=>n+BigInt(a.credit_minor),0n),14400n);
@@ -938,4 +950,129 @@ test('real canonical reversals invalidate confirmed tracking receipts and preven
   await reverseTrackingFixture(f,secondBill);
   const refused=await request(f.company,'/credit-claims','POST',claimIntent(secondBill));
   assert.equal(refused.status,409);assert.equal(refused.error.code,'POSTED_BILL_REQUIRED');
+});
+
+function captureUpload() {
+  const bytes=Buffer.from('%PDF-1.4\nSYNTHETIC CAPTURE '+randomUUID()+'\n%%EOF');
+  return {filename:'Synthetic supplier invoice.pdf',media_type:'application/pdf',content_base64:bytes.toString('base64')};
+}
+const captureEnvelope=(f:any)=>({kind:'purchase_bill',purchase_vat_eligible:true,source:source(f.supplier)});
+async function captured(f:any,upload=captureUpload(),user=actor) {
+  const r=await request(f.company,'/document-intake/upload','POST',upload,undefined,user);
+  assert.equal(r.status,201,JSON.stringify(r));return r.data.source;
+}
+async function captureReview(f:any,s:any,envelope=captureEnvelope(f),user=actor) {
+  const r=await request(f.company,`/document-intake/${s.id}/review`,'POST',{envelope},undefined,user);
+  assert.equal(r.status,200,JSON.stringify(r));
+  return {envelope:r.data.envelope,review_fingerprint:r.data.review_fingerprint,
+    source_reviewed:true,supplier_confirmed:true,tax_treatment_confirmed:true};
+}
+test('capture retains exact authenticated evidence and deduplicates concurrent uploads within a company',async()=>{
+  const f=await fixture(),other=await fixture(),upload=captureUpload();
+  const results=await Promise.all([request(f.company,'/document-intake/upload','POST',upload),request(f.company,'/document-intake/upload','POST',upload)]);
+  assert.deepEqual(results.map(r=>r.status).sort(),[200,201]);
+  assert.equal(results[0].data.source.id,results[1].data.source.id);const s=results[0].data.source;
+  assert.equal((await admin.query('SELECT count(*)::int n FROM document_intake_audit WHERE source_id=$1',[s.id])).rows[0].n,1);
+  const otherSource=await captured(other,upload);assert.notEqual(otherSource.id,s.id);
+  assert.equal((await request(other.company,`/document-intake/${s.id}`)).status,404);
+  assert.equal((await request(f.company,'/document-intake','GET',undefined,undefined,null)).status,401);
+  const read=await request(f.company,'/document-intake');assert.equal(read.data.can_manage,true);
+  assert.deepEqual(read.data.provider_status,{ocr:'not_connected',email:'not_connected'});
+  assert.equal('content' in read.data.sources[0],false);
+  const file=await fetch(base+`/companies/${f.company}/document-intake/${s.id}/content`,{headers:{'x-test-actor':readOnly}});
+  assert.equal(file.status,200);assert.match(file.headers.get('content-disposition')??'',/^attachment;/);
+  assert.equal(file.headers.get('x-content-type-options'),'nosniff');assert.match(file.headers.get('content-security-policy')??'',/sandbox/);
+  assert.deepEqual(Buffer.from(await file.arrayBuffer()),Buffer.from(upload.content_base64,'base64'));
+  assert.equal((await fetch(base+`/companies/${f.company}/document-intake/${s.id}/content`)).status,401);
+  assert.equal((await request(other.company,`/document-intake/${s.id}/content`)).status,404);
+  assert.equal((await request(f.company,'/document-intake/upload','POST',{...upload,media_type:'image/png'})).status,422);
+  assert.equal((await request(f.company,'/document-intake/upload','POST',{...upload,content_base64:upload.content_base64+'\n'})).status,422);
+  const duplicateJson=await fetch(base+`/companies/${f.company}/document-intake/upload`,{method:'POST',headers:{'x-test-actor':actor,'Content-Type':'application/json'},
+    body:'{"filename":"one.pdf","filename":"two.pdf"}'});
+  assert.equal(duplicateJson.status,400);assert.equal((await duplicateJson.json() as any).error.code,'DUPLICATE_KEY');
+});
+test('capture creates exactly one reviewed draft under concurrent retries and never posts',async()=>{
+  const f=await fixture(),s=await captured(f),intent=await captureReview(f,s);
+  const path=`/document-intake/${s.id}/draft`;
+  const pair=await Promise.all([request(f.company,path,'POST',intent,s.revision),request(f.company,path,'POST',intent,s.revision)]);
+  assert.deepEqual(pair.map(r=>r.status).sort(),[200,201]);
+  assert.equal(pair[0].data.document.id,pair[1].data.document.id);const doc=pair[0].data.document;
+  assert.equal(doc.status,'draft');assert.equal(doc.money.gross_pence,'12000');assert.equal(doc.money.vat_pence,'2000');
+  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_document_sources WHERE company_id=$1',[f.company])).rows[0].n,1);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,0);
+  assert.equal((await admin.query("SELECT count(*)::int n FROM document_intake_audit WHERE source_id=$1 AND action='draft_created'",[s.id])).rows[0].n,1);
+  assert.equal((await request(f.company,`/document-intake?document_id=${doc.id}`)).data.sources[0].id,s.id);
+  const changed=await request(f.company,`/accounting-documents/${doc.id}`,'PATCH',{source:{contract:'w03.draft.v1',notes:'Edited after capture'}},doc.revision);
+  assert.equal(changed.status,200);await post(f,changed.data);
+  const retry=await request(f.company,path,'POST',intent,s.revision);
+  assert.equal(retry.status,200);assert.equal(retry.data.duplicate,true);assert.equal(retry.data.document.status,'posted');
+  const altered={...intent,envelope:{...intent.envelope,source:{...intent.envelope.source,reference:'Different intent'}}};
+  assert.equal((await request(f.company,path,'POST',altered,s.revision)).error.code,'SOURCE_ALREADY_LINKED');
+});
+test('capture review rejects missing acknowledgements, stale intent, stale tax and foreign supplier',async()=>{
+  const f=await fixture(),other=await fixture(),s=await captured(f),intent=await captureReview(f,s),path=`/document-intake/${s.id}/draft`;
+  assert.equal((await request(f.company,path,'POST',intent)).status,428);
+  assert.equal((await request(f.company,path,'POST',intent,randomUUID())).error.code,'REVISION_CONFLICT');
+  for(const field of ['source_reviewed','supplier_confirmed','tax_treatment_confirmed']) {
+    assert.equal((await request(f.company,path,'POST',{...intent,[field]:false},s.revision)).error.code,'REVIEW_REQUIRED');
+  }
+  assert.equal((await request(f.company,path,'POST',{...intent,envelope:{...intent.envelope,source:{...intent.envelope.source,reference:'changed'}}},s.revision)).error.code,'REVIEW_STALE');
+  assert.equal((await request(f.company,`/document-intake/${s.id}/review`,'POST',{envelope:captureEnvelope(other)})).status,422);
+  await admin.query("UPDATE vat_tax_rules SET label='Reviewed standard VAT label' WHERE company_id=$1 AND code='STANDARD_20'",[f.company]);
+  assert.equal((await request(f.company,path,'POST',intent,s.revision)).error.code,'REVIEW_STALE');
+  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_document_sources WHERE company_id=$1',[f.company])).rows[0].n,0);
+});
+test('capture draft, compatibility projection, source link and audits roll back together',async()=>{
+  const f=await fixture(),s=await captured(f),intent=await captureReview(f,s);
+  failNextCapture=true;
+  const failed=await request(f.company,`/document-intake/${s.id}/draft`,'POST',intent,s.revision);
+  assert.equal(failed.status,500,JSON.stringify(failed));
+  for(const table of ['accounting_document_sources','purchase_bills','accounting_document_audit','canonical_journal_entries'])
+    assert.equal((await admin.query(`SELECT count(*)::int n FROM ${table} WHERE company_id=$1`,[f.company])).rows[0].n,0,table);
+  const row=(await admin.query('SELECT revision,document_id,review_fingerprint FROM document_intake_sources WHERE id=$1',[s.id])).rows[0];
+  assert.deepEqual(row,{revision:s.revision,document_id:null,review_fingerprint:null});
+  assert.equal((await admin.query('SELECT count(*)::int n FROM document_intake_audit WHERE source_id=$1',[s.id])).rows[0].n,1);
+  const retry=await request(f.company,`/document-intake/${s.id}/draft`,'POST',intent,s.revision);assert.equal(retry.status,201,JSON.stringify(retry));
+});
+test('capture permissions are checked on upload, review and every idempotent retry',async()=>{
+  const f=await fixture(),s=await captured(f),intent=await captureReview(f,s),path=`/document-intake/${s.id}/draft`;
+  assert.equal((await request(f.company,`/document-intake/${s.id}/review`,'POST',{envelope:intent.envelope},undefined,readOnly)).status,403);
+  assert.equal((await request(f.company,path,'POST',intent,s.revision)).status,201);
+  for(const [role,allowed] of [['owner',true],['accountant',true],['admin',true],['read_only',false]] as const) {
+    const user='capture-role-'+randomUUID();
+    await admin.query('INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,$4,true)',[randomUUID(),f.company,user,role]);
+    assert.equal((await request(f.company,'/document-intake','GET',undefined,undefined,user)).data.can_manage,allowed);
+    assert.equal((await request(f.company,'/document-intake/upload','POST',captureUpload(),undefined,user)).status,allowed?201:403);
+    assert.equal((await request(f.company,path,'POST',intent,s.revision,user)).status,allowed?200:403);
+    await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,user]);
+    assert.equal((await request(f.company,path,'POST',intent,s.revision,user)).status,404);
+    assert.equal((await request(f.company,`/document-intake/${s.id}`,'GET',undefined,undefined,user)).status,404);
+  }
+});
+test('capture evidence and audit are immutable and document links enforce tenant identity',async()=>{
+  const f=await fixture(),other=await fixture(),s=await captured(f),foreign=await create(other,'purchase_bill',source(other.supplier));
+  const token='v1:'+ 'a'.repeat(64)+':'+ 'b'.repeat(64);
+  await assert.rejects(pool.query('UPDATE document_intake_sources SET content=$2 WHERE id=$1',[s.id,Buffer.from('tamper')]));
+  await assert.rejects(admin.query("UPDATE document_intake_sources SET filename='changed.pdf' WHERE id=$1",[s.id]));
+  await assert.rejects(pool.query('UPDATE document_intake_sources SET document_id=$2,review_fingerprint=$3,revision=$4 WHERE id=$1',[s.id,foreign.id,token,randomUUID()]));
+  await assert.rejects(admin.query('DELETE FROM document_intake_sources WHERE id=$1',[s.id]));
+  await assert.rejects(pool.query('DELETE FROM document_intake_audit WHERE source_id=$1',[s.id]));
+  await assert.rejects(admin.query("UPDATE document_intake_audit SET actor_id='tamper' WHERE source_id=$1",[s.id]));
+  await assert.rejects(pool.query('TRUNCATE document_intake_audit'));
+  await assert.rejects(admin.query('TRUNCATE document_intake_audit'));
+  const intent=await captureReview(f,s),created=await request(f.company,`/document-intake/${s.id}/draft`,'POST',intent,s.revision);
+  assert.equal(created.status,201,JSON.stringify(created));
+  await assert.rejects(admin.query('UPDATE document_intake_sources SET document_id=NULL,review_fingerprint=NULL,revision=$2 WHERE id=$1',[s.id,randomUUID()]));
+});
+test('captured supplier credits retain original source rates and native settlement controls',async()=>{
+  const f=await fixture(),bill=await create(f,'purchase_bill',source(f.supplier));await post(f,bill);
+  const s=await captured(f),envelope={kind:'supplier_credit_note',purchase_vat_eligible:true,
+    source:{...bill.source,invoice_number:'CAPTURE-CREDIT-'+randomUUID(),line_items:bill.source.line_items.map((l:any)=>({...l,quantity:'0.5'}))},
+    original_id:bill.id,original_line_refs:[0],reason:'Returned half of the original supply',
+    adjustment_method:'offset_outstanding',effective_adjustment_date:bill.source.issue_date};
+  const intent=await captureReview(f,s,envelope);const created=await request(f.company,`/document-intake/${s.id}/draft`,'POST',intent,s.revision);
+  assert.equal(created.status,201,JSON.stringify(created));assert.equal(created.data.document.money.gross_pence,'6000');
+  assert.equal(created.data.document.money.vat_pence,'1000');await post(f,created.data.document);
+  const report=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-12-31')).data;
+  assert.equal(report.open_items[0].open_minor,'6000');assert.equal(report.vat.box4_pence,'1000');assert.equal(report.balance_sheet.balanced,true);
 });

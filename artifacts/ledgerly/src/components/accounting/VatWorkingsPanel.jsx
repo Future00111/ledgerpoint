@@ -1,51 +1,41 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { accounting, penceToDisplay } from '@/api/accountingDocuments.mjs';
+import { accounting } from '@/api/accountingDocuments.mjs';
 import { useCompany } from '@/lib/useCompany';
+import { downloadCsv } from '@/lib/ledgerCsv.mjs';
+import VatWorkingsReview from '@/features/vatPreparation/VatWorkingsReview';
+import { initialPeriod, periodError, MIN_DATE, MAX_DATE, scopeKey, visibleState, requestWorkings, workingsRows } from '@/features/vatPreparation/model.mjs';
 
-const quarterStart = () => { const d = new Date(); const m = Math.floor(d.getMonth() / 3) * 3; return `${d.getFullYear()}-${String(m + 1).padStart(2, '0')}-01`; };
-const iso = () => new Date().toISOString().slice(0, 10);
-const BOXES = [['1', 'VAT due on sales', 'box1_pence'], ['4', 'VAT reclaimed', 'box4_pence'], ['5', 'Net VAT', 'box5_pence'], ['6', 'Sales ex VAT', 'box6_pence'], ['7', 'Purchases ex VAT', 'box7_pence']];
+function CompanyVatWorkings({ company }) {
+  const [period, setPeriod] = useState(initialPeriod);
+  const [refresh, setRefresh] = useState(0);
+  const [state, setState] = useState({ key: null, data: null, loading: true, error: null });
+  const { from, to } = period;
+  const validation = periodError(from, to);
+  const key = scopeKey(company.id, from, to, refresh);
+  const current = visibleState(state, key);
+  useEffect(() => {
+    setState({ key, data: null, loading: !validation, error: null });
+    if (validation) return;
+    const request = requestWorkings({ companyId: company.id, from, to, key, load: accounting.reports, publish: setState });
+    return request.cancel;
+  }, [company.id, from, to, key, validation]);
 
-/** Authoritative VAT workings from posted journals, shown on the normal VAT Returns page. */
+  return <section className="rounded-2xl border border-primary/25 bg-primary/[0.04] p-4 sm:p-5" data-testid="panel-vat-workings">
+    <div className="flex flex-wrap items-end justify-between gap-4">
+      <div><p className="text-xs font-semibold uppercase tracking-wide text-primary">Posted VAT workings</p><h2 className="mt-1 text-lg font-semibold">Review your VAT period</h2><p className="mt-1 text-sm text-muted-foreground">{company.name} · from posted invoices, bills and credits</p></div>
+      <div className="flex flex-wrap gap-3 text-sm">{[['from', 'From'], ['to', 'To']].map(([field, label]) => <label key={field} className="flex flex-col gap-1 text-xs font-medium">{label}<input type="date" min={MIN_DATE} max={MAX_DATE} data-testid={`input-vat-${field}`} aria-invalid={Boolean(validation)} aria-describedby={validation ? 'vat-period-error' : 'vat-scope-note'} className="rounded-lg border bg-background p-2 text-sm" value={period[field]} onChange={e => setPeriod(previous => ({ ...previous, [field]: e.target.value }))} /></label>)}</div>
+    </div>
+    <p id="vat-scope-note" className="mt-4 rounded-lg border bg-card px-3 py-2 text-xs leading-relaxed text-muted-foreground">Read-only preparation for the standard VAT scheme on an invoice basis. This review covers boxes 1, 4, 5, 6 and 7 only; it is not a complete nine-box VAT return or an HMRC submission. Changing dates does not create or file a return.</p>
+    {validation ? <p role="alert" id="vat-period-error" className="mt-4 text-sm text-red-800">{validation}</p> : <>
+      <VatWorkingsReview key={key} data={current.data} loading={current.loading} error={current.error} onRetry={() => setRefresh(value => value + 1)} onExport={() => { if (current.data?.vat.applicable) downloadCsv(`vat-workings-${from}-${to}.csv`, workingsRows(current.data, company.name)); }} />
+      <Link to={`/accounting/reports?tab=vat&from=${from}&to=${to}`} data-testid="link-vat-report" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">Open VAT and ledger reports</Link>
+    </>}
+  </section>;
+}
+
+/** A company switch unmounts its complete review and cancels outstanding reads. */
 export default function VatWorkingsPanel() {
   const { activeCompany } = useCompany();
-  const [from, setFrom] = useState(quarterStart());
-  const [to, setTo] = useState(iso());
-  const [vat, setVat] = useState(null);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    if (!activeCompany) return;
-    const c = new AbortController(); setVat(null); setError('');
-    accounting.reports(activeCompany.id, from, to, c.signal).then(d => setVat(d.vat)).catch(e => { if (!c.signal.aborted) setError(e.message); });
-    return () => c.abort();
-  }, [activeCompany?.id, from, to]);
-  if (!activeCompany) return null;
-  return (
-    <section className="rounded-2xl border border-primary/25 bg-primary/[0.04] p-5" data-testid="panel-vat-workings">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary">Authoritative VAT workings</p>
-          <h2 className="mt-1 text-lg font-semibold">From posted journals only</h2>
-          <p className="text-sm text-muted-foreground">Movements posted {from} to {to}. Legacy figures below may be incomplete.</p>
-        </div>
-        <div className="flex items-end gap-2 text-sm">
-          <label>From<input type="date" data-testid="input-vat-from" className="ml-1 rounded-md border bg-background p-1.5" value={from} onChange={e => setFrom(e.target.value)} /></label>
-          <label>To<input type="date" data-testid="input-vat-to" className="ml-1 rounded-md border bg-background p-1.5" value={to} onChange={e => setTo(e.target.value)} /></label>
-        </div>
-      </div>
-      {error && <p role="alert" className="mt-3 text-sm text-red-800">{error} <Link to="/accounting/setup" className="underline">Check posting setup</Link></p>}
-      {vat?.applicable === false ? <p className="mt-4 rounded-xl border bg-card p-4 text-sm" data-testid="text-not-vat-registered">Not VAT registered. There are no VAT return workings for this company.</p> : <>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
-        {BOXES.map(([b, l, k]) => (
-          <div key={b} className="rounded-xl border bg-card p-3">
-            <p className="text-xs text-muted-foreground">Box {b} · {l}</p>
-            <p className="mt-1 font-mono text-base font-semibold tabular-nums">{vat ? penceToDisplay(vat[k]) : <span className="inline-block h-5 w-16 animate-pulse rounded bg-muted" />}</p>
-          </div>
-        ))}
-      </div>
-      </>}
-      <Link to={`/accounting/reports?tab=vat&from=${from}&to=${to}`} data-testid="link-vat-report" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">Open full VAT and ledger report</Link>
-    </section>
-  );
+  return activeCompany ? <CompanyVatWorkings key={activeCompany.id} company={activeCompany} /> : null;
 }

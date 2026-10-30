@@ -21,9 +21,11 @@ env.NODE_PATH = path.join(api, 'node_modules');
 const apiTests = [
   'src/middlewares/companyScope.test.ts',
   'src/services/financialDrafts/contract.test.ts',
+  'src/services/financialDrafts/jsonBoundary.test.ts',
   'src/services/financialDrafts/discounts.test.ts',
   'src/services/creditTracking/domain.test.ts',
   'src/services/documentIntake/intake.test.ts',
+  'src/services/documentIntake/service.test.ts',
   'src/routes/legacyChartBootstrapPolicy.test.ts',
   'src/services/ai-accountant/matcher.scenarios.test.ts',
   'src/services/ai-accountant/collectionsAnalysis.scenarios.test.ts',

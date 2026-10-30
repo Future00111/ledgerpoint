@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { fail, uuid } from '../financialDrafts/contract';
-import { postCanonicalJournal, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
+import { canWriteDraft, fail, uuid } from '../financialDrafts/contract';
+import { postCanonicalJournal, roleHasAccountingCapability, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
 import { scope, transact, exactFields, supportedCompany, hash, queryAdapter, type Queryable } from './core';
 import { companyChart } from './accounts';
 import { allocated, appliedTo, allocationSign, unappliedEffect, paymentEvents, documentOpen, syncSettlementProjection } from './settlement';
@@ -49,7 +49,12 @@ export async function savePaymentConfiguration(company:string,actor:string,body:
 export async function paymentContext(company:string,actor:string) {
   return transact(async q=>{
     await scope(q,company,actor);
-    return {configuration:await configuration(q,company),accounts:await companyChart(q,company),
+    const members=(await q.query('SELECT role,is_active FROM company_users WHERE company_id=$1 AND user_id=$2 ORDER BY id',[company,actor])).rows;
+    const active=members.length===1 && members[0].is_active===true;
+    const capabilities={configure_payments:canWriteDraft(members[0]?.role,active),
+      review_payments:canWriteDraft(members[0]?.role,active),
+      post_payments:active && roleHasAccountingCapability(members[0]?.role,'accounting.post')};
+    return {capabilities,configuration:await configuration(q,company),accounts:await companyChart(q,company),
       customers:(await q.query('SELECT id,name FROM customers WHERE company_id=$1 ORDER BY name',[company])).rows,
       suppliers:(await q.query('SELECT id,name FROM suppliers WHERE company_id=$1 ORDER BY name',[company])).rows};
   });

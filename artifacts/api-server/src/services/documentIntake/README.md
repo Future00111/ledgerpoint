@@ -1,59 +1,76 @@
-# Supplier document intake foundation
+# Supplier document intake
 
-This module prepares source-linked supplier invoice and credit-note candidates for
-review. It has no route, UI, database writes, storage adapter, OCR implementation,
-email connection, provider calls or background worker. It does not save a draft or
-post accounting entries. Live capture remains unavailable.
+The native API stores uploaded supplier invoices and credit notes, lets an active
+company member download their original evidence, and creates a native accounting
+draft after explicit review. Storage requires the coordinator-reviewed
+`lib/db/migrations/document-intake.review.sql` in an isolated development database.
+OCR and email are **not connected**. There is no provider call, parser, background
+worker, automatic posting or simulated extraction result.
 
-## Boundaries
+## Storage and authority
 
-- `createEvidence()` hashes actual PDF, JPEG or PNG bytes (maximum 20 MiB) and
-  returns an immutable descriptor. File signatures are a format sanity check,
-  **not** malware scanning or proof that a document is well formed. A future
-  ingestion adapter must separately sandbox parsers and handle malicious files.
-- `contentFingerprint()` compares content independently of filename or delivery
-  channel. The future persistence layer must scope duplicate lookups to the
-  company, enforce uniqueness/idempotency atomically, and link existing captures.
-  A matching hash alone says nothing about whether an accounting entry exists.
-- `createTranscript()` binds bounded parser/OCR page text to source evidence.
-  `reviewCandidate()` checks that every supplied field has exact source/page/offset
-  citations, validates strict decimal strings, dates and simple net/VAT/gross
-  relationships, and reports missing or inconsistent data. These checks establish
-  citation consistency only: they cannot establish that the OCR text is true or
-  that a cited passage supports a provider's interpretation. Source review is
-  always required. Document text remains data; nothing in it is executed.
-- Extracted supplier names and VAT rates never select an authoritative supplier
-  or tax rule. Blank, unsupported or ambiguous fields require correction. Part
-  numbers may remain capture evidence but are not added to the strict native
-  accounting source contract. Discounts, extra charges, foreign currencies and
-  complex tax cases need explicit support before conversion.
-- `reviewDraft()` validates an explicitly reviewed `w03.draft.v1` supplier draft
-  using the existing `parseInvoice()` function. Credits require an original bill
-  ID, unique original line references, reason and adjustment date. The review
-  fingerprint binds the complete payload to the exact source evidence.
-- `buildReviewedDraft()` requires explicit source/supplier/tax confirmations and
-  the current fingerprint. It returns a draft **candidate**, never saved or
-  posted state. This is a review-freshness check, not a security boundary.
+- `service.ts` accepts PDF, JPEG and PNG uploads up to **5 MiB** through strict
+  canonical base64. The lower-level evidence contract allows 20 MiB, but the HTTP
+  storage boundary deliberately has a smaller limit. Magic signatures are format
+  sanity checks, not malware scanning or proof that a document is well formed.
+- Server-generated IDs and byte-derived SHA-256 hashes identify immutable source
+  evidence. Duplicate lookups are company-scoped and serialized under the company
+  lock. A duplicate upload returns the original capture without another audit row.
+- Active company membership is required for metadata and downloads; the existing
+  owner/admin/accountant draft capability is required for upload, review and
+  conversion. Metadata responses never contain file bytes. Download responses use
+  attachment disposition, private no-store caching, nosniff and CSP sandbox.
+- Stored bytes are rehashed before download, review and conversion. The source's
+  one-way link to a native document and both creation audit records are written
+  atomically with the protected native draft. No generic entity write is used.
+- `saveDocumentInTransaction()` retains the same company scope, permissions,
+  source validation, server money calculation, compatibility projection and audit
+  as `saveDocument()`. The separate posting workflow remains unchanged.
 
-Only the returned `envelope` belongs in the native `saveDocument()` input. The
-separate evidence metadata needs a coordinator-approved persistence/audit design;
-do not pass it through generic entity writes or silently drop its association.
-Native saving must still enforce authentication, active company membership,
-permissions, supplier ownership, accounting configuration, effective-dated tax
-rules, original-credit evidence and transaction/audit guarantees. Server-calculated
-saved totals must be checked against the source totals before further approval.
-Posting continues through the existing separate reviewed workflow.
+## API contract
 
-Evidence descriptors and transcripts intentionally cannot be supplied as arbitrary
-JSON. Reconstruct descriptors from verified bytes and bind a transcript again after
-a persistence boundary. `ExtractionProvider` is an interface only; adding a real
-adapter requires coordinated storage, provider configuration, consent and retention
-decisions. Do not replace unavailable integrations with sample extraction results.
+The router is mounted at `/api/companies/:companyId/document-intake`; JSON responses
+use `{data: ...}`. `GET /` lists at most 100 newest source metadata records, accepts
+an optional `document_id` filter and returns `can_manage` plus explicit unavailable
+provider status. `GET /:id` returns `{source,can_manage,provider_status}`.
+
+- `POST /upload`: `{filename,media_type,content_base64}` → `{source,duplicate}`.
+- `GET /:id/content`: authenticated attachment bytes; never an inline document viewer.
+- `POST /:id/review`: `{envelope}` → `{envelope,money,revision,review_fingerprint}`.
+- `POST /:id/draft`: `{envelope,review_fingerprint,source_reviewed:true,
+  supplier_confirmed:true,tax_treatment_confirmed:true}` and quoted capture revision
+  in `If-Match` → `{source,document,duplicate}`.
+
+Source metadata includes `id`, `revision`, `sha256`, `media_type`, `filename`,
+`byte_length`, `channel`, `created_by`, `created_at`, nullable `document_id`, nullable
+`document_kind` and nullable `review_fingerprint`. Upload, detail, review and draft
+responses include the quoted source revision as `ETag`.
+
+Review uses `reviewDraft()` to normalize the native supplier envelope and
+`calculateDocument()` to produce authoritative money. The opaque fingerprint
+`v1:<intent hash>:<native-context hash>` binds verified evidence, normalized input,
+source revision, tax context, amounts and account mapping. Changed input or
+accounting context requires another review. All three acknowledgements are required.
+A retry with the same accepted intent returns the linked document even with the
+old capture revision, after checking current authority and evidence again. Changed
+intent cannot create a second document; later edits belong to the native draft.
+
+## Extraction foundation
+
+`createTranscript()` and `reviewCandidate()` remain pure contracts for a future
+provider. They require source/page/offset citations and strict decimal/date/total
+checks. Citation consistency cannot establish that OCR text or an interpretation
+is true. Extracted names and VAT rates never select an authoritative supplier or
+tax rule. Credits require an original bill and original line references. Document
+text remains data; nothing in it is executed. Provider configuration, consent,
+retention and sandboxed parsing need coordinated implementation before connection.
 
 ## Tests
 
-`intake.test.ts` is pure and uses synthetic bytes/text only. Bundle it with the
-workspace's existing esbuild and run with `node --test`; it needs no database,
-credentials, provider or network access. Tests cover input and citation bounds,
-forged evidence, content deduplication, decimal/total/VAT rejection, prompt-like
-document text, native-envelope validation, review freshness and credit requirements.
+`intake.test.ts` covers the evidence/candidate/review contracts. `service.test.ts`
+adds synthetic upload boundaries, tamper detection, filename handling, native
+review freshness, source-bound replay, tenant-local deduplication, audit cardinality
+and retained authority gates. Both use no live database or provider. The disposable
+PostgreSQL suite separately verifies atomic rollback, concurrent conversion,
+current-role checks, immutable evidence/audit and native draft persistence. The
+injected router mutation hook is available only to that test harness, not HTTP.

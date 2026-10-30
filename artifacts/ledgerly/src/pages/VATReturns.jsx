@@ -19,18 +19,17 @@ const STATUS_STYLES = {
   draft: 'bg-muted text-muted-foreground',
   ready_for_review: 'bg-amber-100 text-amber-700',
   approved: 'bg-blue-100 text-blue-700',
-  submitted: 'bg-emerald-100 text-emerald-700',
+  submitted: 'bg-muted text-muted-foreground',
 };
 
 const STATUS_LABELS = {
   draft: 'Draft',
   ready_for_review: 'Ready for Review',
   approved: 'Approved',
-  submitted: 'Submitted',
+  submitted: 'Historical submitted status (unverified)',
 };
 
-export default function VATReturns() {
-  const { activeCompany } = useCompany();
+function CompanyVATReturns({ activeCompany }) {
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -61,7 +60,7 @@ export default function VATReturns() {
     try {
       const result = await aiApi.createVatReturn(activeCompany.id, form.period_start, form.period_end);
       const created = result.vat_return;
-      toast({ title: 'VAT return created' });
+      toast({ title: 'Legacy VAT record created' });
       setFormOpen(false);
       navigate(`/vat/${created.id}`);
     } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
@@ -82,25 +81,29 @@ export default function VATReturns() {
   if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
+      <header><h1 className="text-2xl font-semibold tracking-tight">VAT preparation</h1><p className="mt-1 text-sm text-muted-foreground">Review posted figures and trace them back to your documents.</p></header>
       <VatWorkingsPanel />
-      <div role="note" data-testid="text-legacy-vat-warning" className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"><span className="font-semibold">Legacy VAT returns below are not complete.</span> They predate posted journals and may omit or misstate figures. Use the authoritative workings above.</div>
+      <details className="rounded-2xl border bg-card p-4 sm:p-5" data-testid="section-historical-vat">
+      <summary className="cursor-pointer font-semibold">Historical VAT returns and settings <span className="ml-2 text-xs font-normal text-muted-foreground">Legacy records · expand to view</span></summary>
+      <div className="mt-4 space-y-6">
+      <div role="note" data-testid="text-legacy-vat-warning" className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"><span className="font-semibold">These historical VAT figures are incomplete.</span> They predate posted journals and may omit or misstate figures. Their statuses are not verified HMRC submission receipts. Use the posted workings above for current review.</div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">VAT Returns</h1>
-          <p className="text-muted-foreground text-sm mt-1">Deterministic UK VAT calculation, review, and approval</p>
+          <h2 className="text-lg font-semibold tracking-tight">Historical VAT records</h2>
+          <p className="text-muted-foreground text-sm mt-1">Legacy controls remain available. They do not use the posted workings above.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setSettingsOpen(true)} className="gap-2"><Settings2 className="w-4 h-4" />VAT settings</Button>
-          <Button variant="outline" onClick={refreshReview} disabled={refreshing} className="gap-2"><RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />Refresh review</Button>
-          <Button onClick={() => setFormOpen(true)} className="gap-2"><Plus className="w-4 h-4" />Create VAT Return</Button>
+          <Button variant="outline" onClick={refreshReview} disabled={refreshing} className="gap-2"><RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />Refresh legacy review</Button>
+          <Button onClick={() => setFormOpen(true)} className="gap-2"><Plus className="w-4 h-4" />Create legacy VAT record</Button>
         </div>
       </div>
 
       {overview && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <Card className="border-blue-100 bg-blue-50/40"><CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Current VAT position</p>
+            <p className="text-xs text-muted-foreground">Legacy VAT estimate</p>
             <p className="text-xl font-bold mt-1">{formatCurrency(Math.abs(overview.boxes?.[5] || 0))}</p>
             <p className="text-xs text-muted-foreground">{overview.boxes?.[5] >= 0 ? 'Estimated amount to pay' : 'Estimated amount to reclaim'}</p>
           </CardContent></Card>
@@ -129,7 +132,7 @@ export default function VATReturns() {
           <CardContent className="flex flex-col items-center py-16">
             <Calculator className="w-12 h-12 text-muted-foreground/30 mb-4" />
             <p className="text-muted-foreground">No VAT returns yet</p>
-            <Button onClick={() => setFormOpen(true)} variant="outline" className="mt-4 gap-2"><Plus className="w-4 h-4" />Create your first VAT return</Button>
+            <Button onClick={() => setFormOpen(true)} variant="outline" className="mt-4 gap-2"><Plus className="w-4 h-4" />Create legacy VAT record</Button>
           </CardContent>
         </Card>
       ) : (
@@ -160,8 +163,16 @@ export default function VATReturns() {
         </div>
       )}
 
+      </div>
+      </details>
       <VATReturnForm open={formOpen} onOpenChange={setFormOpen} companyScheme={overview?.settings?.scheme || activeCompany?.vat_scheme} onCreate={handleCreate} creating={creating} />
       <VATAssistantSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} companyId={activeCompany.id} settings={overview?.settings} taxRules={overview?.tax_rules} onSaved={async () => { await loadReturns(); setSettingsOpen(false); toast({ title: 'VAT settings saved' }); }} />
     </div>
   );
+}
+
+export default function VATReturns() {
+  const { activeCompany } = useCompany();
+  return activeCompany ? <CompanyVATReturns key={activeCompany.id} activeCompany={activeCompany} />
+    : <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
 }

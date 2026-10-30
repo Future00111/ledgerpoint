@@ -174,40 +174,42 @@ export async function project(q:Queryable,company:string,id:string,kind:Kind,row
   }
 }
 const editable=["kind","source","original_id","purchase_vat_eligible","posting_account_id","reason","adjustment_method","effective_adjustment_date","original_line_refs"];
-export async function saveDocument(company:string,actor:string,input:unknown,id?:string,expected?:string) {
+/** Same native validation and audit, composed only inside an existing transaction. */
+export async function saveDocumentInTransaction(q:Queryable,company:string,actor:string,input:unknown,id?:string,expected?:string) {
   const body=exactFields(input,editable);
-  return transact(async q=>{
-    await scope(q,company,actor,true,true);
-    const old=id?await document(q,company,id,true):undefined;
-    if(old && old.status!=="draft") fail(409,"DOCUMENT_NOT_DRAFT");
-    if(old && expected!==old.revision) fail(409,"REVISION_CONFLICT");
-    if(old && body.kind!==undefined && body.kind!==old.kind) fail(422,"DOCUMENT_KIND_INVALID");
-    const kind=old?.kind??kindOf(body.kind);
-    if(old) {
-      const linked=await q.query("SELECT id FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2",[company,id]);
-      if(linked.rowCount) fail(409,"DOCUMENT_NOT_DRAFT");
-    }
-    const row=await calculateDocument(q,company,kind,body,old);
-    const docId=id??randomUUID(),revision=randomUUID();
-    await project(q,company,docId,kind,row,!old);
-    const vals=[company,kind,row.source.invoice_number,revision,row.source,row.party_id,row.original_id,
-      row.reason,row.adjustment_method,row.effective_adjustment_date,row.purchase_vat_eligible,row.posting_account_id,
-      row.money,row.tax_context,row.posting_accounts,row.mapping_revision,docId];
-    if(old) {
-      await q.query(`UPDATE accounting_document_sources SET number=$3,revision=$4,source=$5,party_id=$6,original_id=$7,
-        reason=$8,adjustment_method=$9,effective_adjustment_date=$10,purchase_vat_eligible=$11,posting_account_id=$12,
-        money=$13,tax_context=$14,posting_accounts=$15,mapping_revision=$16,updated_at=clock_timestamp()
-        WHERE company_id=$1 AND kind=$2 AND id=$17`,vals);
-    } else {
-      await q.query(`INSERT INTO accounting_document_sources(company_id,kind,number,revision,source,party_id,original_id,
-        reason,adjustment_method,effective_adjustment_date,purchase_vat_eligible,posting_account_id,
-        money,tax_context,posting_accounts,mapping_revision,id,status)
-        VALUES(${vals.map((_,i)=>`$${i+1}`).join(",")},'draft')`,vals);
-    }
-    await q.query(`INSERT INTO accounting_document_audit(id,company_id,document_id,actor_id,action,before_source,after_source)
-      VALUES($1,$2,$3,$4,$5,$6,$7)`,[randomUUID(),company,docId,actor,old?"edit":"create",old?.source??null,row.source]);
-    return {...row,id:docId,kind,status:"draft",revision,journal_id:null};
-  });
+  await scope(q,company,actor,true,true);
+  const old=id?await document(q,company,id,true):undefined;
+  if(old && old.status!=="draft") fail(409,"DOCUMENT_NOT_DRAFT");
+  if(old && expected!==old.revision) fail(409,"REVISION_CONFLICT");
+  if(old && body.kind!==undefined && body.kind!==old.kind) fail(422,"DOCUMENT_KIND_INVALID");
+  const kind=old?.kind??kindOf(body.kind);
+  if(old) {
+    const linked=await q.query("SELECT id FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2",[company,id]);
+    if(linked.rowCount) fail(409,"DOCUMENT_NOT_DRAFT");
+  }
+  const row=await calculateDocument(q,company,kind,body,old);
+  const docId=id??randomUUID(),revision=randomUUID();
+  await project(q,company,docId,kind,row,!old);
+  const vals=[company,kind,row.source.invoice_number,revision,row.source,row.party_id,row.original_id,
+    row.reason,row.adjustment_method,row.effective_adjustment_date,row.purchase_vat_eligible,row.posting_account_id,
+    row.money,row.tax_context,row.posting_accounts,row.mapping_revision,docId];
+  if(old) {
+    await q.query(`UPDATE accounting_document_sources SET number=$3,revision=$4,source=$5,party_id=$6,original_id=$7,
+      reason=$8,adjustment_method=$9,effective_adjustment_date=$10,purchase_vat_eligible=$11,posting_account_id=$12,
+      money=$13,tax_context=$14,posting_accounts=$15,mapping_revision=$16,updated_at=clock_timestamp()
+      WHERE company_id=$1 AND kind=$2 AND id=$17`,vals);
+  } else {
+    await q.query(`INSERT INTO accounting_document_sources(company_id,kind,number,revision,source,party_id,original_id,
+      reason,adjustment_method,effective_adjustment_date,purchase_vat_eligible,posting_account_id,
+      money,tax_context,posting_accounts,mapping_revision,id,status)
+      VALUES(${vals.map((_,i)=>`$${i+1}`).join(",")},'draft')`,vals);
+  }
+  await q.query(`INSERT INTO accounting_document_audit(id,company_id,document_id,actor_id,action,before_source,after_source)
+    VALUES($1,$2,$3,$4,$5,$6,$7)`,[randomUUID(),company,docId,actor,old?"edit":"create",old?.source??null,row.source]);
+  return {...row,id:docId,kind,status:"draft",revision,journal_id:null};
+}
+export async function saveDocument(company:string,actor:string,input:unknown,id?:string,expected?:string) {
+  return transact(q=>saveDocumentInTransaction(q,company,actor,input,id,expected));
 }
 export async function getDocument(company:string,actor:string,id:string) {
   return transact(async q=>{
