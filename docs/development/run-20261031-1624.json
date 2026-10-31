@@ -1,8 +1,8 @@
 {
   "runId": "hosted-20261031-1624",
-  "codeHead": "c232bc283ec348a734a7599c31390db31587b242",
-  "localIntegrated": "063dd0773ee462545c84cdc83f434fded0c6a6e3",
-  "tree": "69479026da5d446213fc454cdb60b40ddad5096f",
+  "codeHead": "12b31286277683071804101fe3fc7b778d15fc98",
+  "localIntegrated": "820c41b243225e6c38c1ee6316133fbb0ed58096",
+  "tree": "b02f45bf04187cbe9c76198f5a4ea081ae3b06dc",
   "workers": [
     {
       "worker": 1,
@@ -49,7 +49,7 @@
   ],
   "workersStopped": true,
   "worktreesClean": true,
-  "sourceTests": 752,
+  "sourceTests": 756,
   "extraTests": 32,
   "buildPassed": true,
   "ciStatus": "pending",
@@ -59,5 +59,58 @@
     "queueRevision": 373,
     "scope": "four P01-03 UI/test paths",
     "allSourceBulletsPreserved": 92
-  }
+  },
+  "ciRun": 41221118306,
+  "ciJob": 124595694654,
+  "priorVerifiedIntegration": {
+    "sourceCommit": "c232bc283ec348a734a7599c31390db31587b242",
+    "status": "passed",
+    "ciRun": 41220663255,
+    "ciJob": 124594338543,
+    "tests": 869,
+    "failed": 0,
+    "skipped": 0,
+    "localSourceTests": 752,
+    "localExtraTests": 32,
+    "buildPassed": true,
+    "disposablePostgres": true,
+    "restorePassed": true,
+    "encryptedRecoveryPassed": true,
+    "cleanupPassed": true,
+    "ciMergeHead": "628627c6da1e962e8c949751a30a151d7ec4b08f",
+    "ciTree": "69479026da5d446213fc454cdb60b40ddad5096f",
+    "liveBrowserQualified": false,
+    "productionQualified": false
+  },
+  "paidDiscountWorker": {
+    "ref": "refs/heads/codex/lp-1624-worker1-paid",
+    "local": "8abc2a755cf9555a2cb31ad3d104d79aba49a7c1",
+    "remote": "12b31286277683071804101fe3fc7b778d15fc98",
+    "tree": "b02f45bf04187cbe9c76198f5a4ea081ae3b06dc"
+  },
+  "review": {
+    "companyContext": "worker6 and coordinator; seven HTTP cases passed",
+    "creditJournal": "worker2, worker6 and coordinator; disposable CI first integration passed",
+    "migrationInputs": "coordinator; 24 tests passed",
+    "recovery": "worker3 and coordinator; eight unit controls and disposable first CI passed",
+    "payrollReferences": "worker4 and coordinator;65 focused cases passed",
+    "paidDiscount": "worker2 and coordinator; malformed-render finding fixed;7 model+7 render+2 review tests;88 independent malformed cases",
+    "catalogue": "worker4 independent;all112 tasks and92 original source bullets preserved"
+  },
+  "partialTasksRemainPending": true,
+  "newlyAccepted": [],
+  "evidenceCorrections": [
+    {
+      "task": "P17-02",
+      "historicalSubmittedCommit": "HEAD",
+      "actualTestedCommit": "c4079c346a05dd2682de80a031bef683f19050c8",
+      "note": "Historical event preserved; exact checkpoint/worker branch authoritative; task not accepted."
+    }
+  ],
+  "blockers": [
+    "Conditional-discount contract/examples remain unfinished; paid-entry gate now implemented.",
+    "Persisted credit follow-up needs reviewed service/API/schema ownership and operation contract.",
+    "Complete company-switch qualification needs mounted synthetic browser/page/export harness and broader page ownership.",
+    "Inline automation wording requires actual Automation page/component ownership; global notice integrated."
+  ]
 }
