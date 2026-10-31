@@ -642,6 +642,42 @@ test('partial value credits preserve originals and agree across journals, report
   assert.equal(final.balance_sheet.balanced,true);assert.equal(final.pnl.profit_minor,'0');
   assert.equal(final.vat.box1_pence,final.vat.box4_pence);
 });
+test('bank status and matching metadata cannot settle documents or duplicate recovered payment commands',async()=>{
+  for(const kind of ['sales_invoice','purchase_bill']) {
+    const f=await fixture();
+    const original=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,original);
+    const credit=await create(f,kind==='sales_invoice'?'sales_credit_note':'supplier_credit_note',
+      {...original.source,invoice_number:'BANK-CREDIT-'+randomUUID(),line_items:[{...original.source.line_items[0],unit_price:'10'}]},
+      {original_id:original.id,reason:'Agreed £10 reduction',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-21',original_line_refs:[0]});
+    await post(f,credit);
+    const reviewed=await reviewPayment(f,paymentIntent(f,original,'2000','2000'));
+    // Discard the first outcome, as a caller with a lost response would do.
+    assert.equal((await request(f.company,'/accounting-payments','POST',reviewed)).status,200);
+    const report=async()=> (await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-10-21')).data;
+    const before=await report(),item=before.open_items.find((d:any)=>d.id===original.id);
+    assert.equal(item.open_minor,'9000');assert.equal(item.credited_minor,'1000');assert.equal(item.paid_minor,'2000');
+    const snapshot=async()=> (await admin.query(`SELECT
+      (SELECT count(*)::int FROM accounting_payment_events WHERE company_id=$1) payments,
+      (SELECT count(*)::int FROM canonical_journal_entries WHERE company_id=$1) journals,
+      (SELECT to_jsonb(t) FROM ${kind==='sales_invoice'?'sales_invoices':'purchase_bills'} t WHERE id=$2) document`,[f.company,original.id])).rows[0];
+    const financialBefore=await snapshot(),bank=randomUUID();
+    await admin.query(`INSERT INTO bank_transactions(id,company_id,date,money_in,money_out,status)
+      VALUES($1,$2,'2026-10-21',$3,$4,'unmatched')`,[bank,f.company,kind==='sales_invoice'?'90':'0',kind==='purchase_bill'?'90':'0']);
+    // Deliberately corrupt only synthetic bank labels through fixture administration.
+    // The application must never grant this write a financial effect.
+    for(const status of ['matched','reconciled','unmatched']) {
+      await admin.query('UPDATE bank_transactions SET status=$1,matched_type=$2,matched_record_id=$3 WHERE id=$4',
+        [status,kind,original.id,bank]);
+      assert.deepEqual(await report(),before);
+      assert.deepEqual(await snapshot(),financialBefore);
+    }
+    const recovered=await request(f.company,'/accounting-payments','POST',reviewed);
+    assert.equal(recovered.status,200);assert.equal(recovered.data.status,'duplicate');assert.equal(recovered.data.id,reviewed.id);
+    const conflict=await request(f.company,'/accounting-payments','POST',{...reviewed,reference:'Changed retry intent'});
+    assert.equal(conflict.status,409);assert.equal(conflict.error.code,'IDEMPOTENCY_CONFLICT');
+    assert.deepEqual(await snapshot(),financialBefore);assert.deepEqual(await report(),before);
+  }
+});
 test('W06 customer excess, refunds, later allocations and undo reconcile cash, statements and historical VAT',async()=>{
   const f=await fixture(),sale=await create(f,'sales_invoice',source(f.customer));await post(f,sale);
   const b=paymentIntent(f,sale);const reviewed=await reviewPayment(f,b);
