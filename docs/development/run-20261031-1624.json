@@ -52,7 +52,7 @@
   "sourceTests": 756,
   "extraTests": 32,
   "buildPassed": true,
-  "ciStatus": "pending",
+  "ciStatus": "passed",
   "productionActions": false,
   "ownershipMigration": {
     "reviewer": "worker4",
@@ -112,5 +112,36 @@
     "Persisted credit follow-up needs reviewed service/API/schema ownership and operation contract.",
     "Complete company-switch qualification needs mounted synthetic browser/page/export harness and broader page ownership.",
     "Inline automation wording requires actual Automation page/component ownership; global notice integrated."
-  ]
+  ],
+  "tests": 873,
+  "failed": 0,
+  "skipped": 0,
+  "ciMergeHead": "7c938e2a0e2df05d83b4948762247d9873e0aee0",
+  "ciTreeMatchesPublished": true,
+  "disposablePostgres": true,
+  "restorePassed": true,
+  "encryptedRecoveryPassed": true,
+  "cleanupPassed": true,
+  "liveBrowserQualified": false,
+  "productionQualified": false,
+  "finalValidation": {
+    "sourceCommit": "12b31286277683071804101fe3fc7b778d15fc98",
+    "status": "passed",
+    "ciRun": 41221118306,
+    "ciJob": 124595694654,
+    "tests": 873,
+    "failed": 0,
+    "skipped": 0,
+    "localSourceTests": 756,
+    "localExtraTests": 32,
+    "buildPassed": true,
+    "disposablePostgres": true,
+    "restorePassed": true,
+    "encryptedRecoveryPassed": true,
+    "cleanupPassed": true,
+    "ciMergeHead": "7c938e2a0e2df05d83b4948762247d9873e0aee0",
+    "ciTree": "b02f45bf04187cbe9c76198f5a4ea081ae3b06dc",
+    "liveBrowserQualified": false,
+    "productionQualified": false
+  }
 }
