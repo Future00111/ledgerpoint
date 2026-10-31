@@ -29,3 +29,9 @@ Record tests and independent review before acceptance; a commit alone is not don
 Checkpoint/release blocked work and claim again. Never steal expired work leases.
 Accounting, tax and payroll calculation engines are built in-house. Direct HMRC
 and necessary external interfaces remain permitted within their existing authority.
+
+Keep all six workers productive where safe approved work exists, with flexible
+implementation/review/testing assignments. Concentrate on at most two complete
+priority workflows; resolve internal blockers first and preserve original
+priority selection. Follow the completion-focused checkpoint and handoff rules
+in the queue README. Never count partial submissions as completed source bullets.

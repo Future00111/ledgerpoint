@@ -3,7 +3,7 @@
 const KINDS = new Set(['implementation', 'contract', 'verification', 'external']);
 const STATUSES = new Set(['pending', 'running', 'review', 'blocked', 'done', 'quarantined']);
 const HELD = new Set(['running', 'review', 'quarantined']);
-const COORDINATOR = new Set(['accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve']);
+const COORDINATOR = new Set(['accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
 const text = value => typeof value === 'string' && value.trim().length > 0;
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 const requireValue = (condition, code, message) => { if (!condition) fail(code, message); };
@@ -154,7 +154,7 @@ export function transition(catalog, state, command, { now, coordinator } = {}) {
   reconcile(catalog, next, now);
   const actor = command.actor, type = command.type;
   if (COORDINATOR.has(type)) requireValue(text(coordinator) && actor === coordinator, 'COORDINATOR_REQUIRED', 'This transition requires the configured coordinator.');
-  let claim = null;
+  let claim = null, resolvedBlockers;
   if (type === 'claim') {
     leaseDuration(command.leaseMs, now);
     requireValue(text(command.token) && command.token.length >= 8 && !next.events.some(item => item.token === command.token) && !Object.values(next.tasks).some(entry => entry.token === command.token), 'INVALID_TOKEN', 'A new unique lease token of at least eight characters is required.');
@@ -212,6 +212,13 @@ export function transition(catalog, state, command, { now, coordinator } = {}) {
           else { child.status = 'blocked'; clearLease(child); }
         }
         break;
+      case 'resolve':
+        requireValue(entry.status === 'blocked' && text(command.reason), 'RESOLUTION_REQUIRED', 'Resolve only stopped blocked work with a reviewed concrete reason.');
+        requireValue(Array.isArray(command.resolvedBlockers) && command.resolvedBlockers.length > 0 && new Set(command.resolvedBlockers).size === command.resolvedBlockers.length && command.resolvedBlockers.every(index => Number.isSafeInteger(index) && index >= 0 && index < (entry.blockers ?? []).length && entry.blockers[index].type !== 'task'), 'RESOLUTION_REQUIRED', 'Select existing environment/decision blocker indices; real dependencies cannot be removed.');
+        resolvedBlockers = command.resolvedBlockers.map(index => structuredClone(entry.blockers[index]));
+        entry.blockers = entry.blockers.filter((_, index) => !command.resolvedBlockers.includes(index));
+        entry.status = entry.blockers.length ? 'blocked' : 'pending';
+        break;
       case 'reprioritize':
         requireValue(priorityValid(command.priority), 'INVALID_PRIORITY', 'Priority must be a non-negative integer.'); entry.priority = command.priority;
         break;
@@ -228,6 +235,7 @@ export function transition(catalog, state, command, { now, coordinator } = {}) {
     }
     event(next, now, actor, type, task.id, {
       ...(command.reason ? { reason: command.reason } : {}),
+      ...(resolvedBlockers ? { resolvedBlockers } : {}),
       ...(command.evidence ? { evidence: structuredClone(command.evidence) } : {}),
       ...(command.approvalEvidence ? { approvalEvidence: structuredClone(command.approvalEvidence) } : {}),
       ...(command.checkpoint ? { checkpoint: command.checkpoint } : {}),

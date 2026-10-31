@@ -231,3 +231,23 @@ test('worker blockers cannot impersonate scheduler-owned quarantine causes', () 
   h.run({ type: 'block', actor: 'worker-a', taskId: 'a', token: first.token, blockers: [{ type: 'environment', source: 'lease', reason: 'Real missing environment.' }] });
   assert.deepEqual(h.state.tasks.a.blockers, [{ type: 'environment', reason: 'Real missing environment.' }]);
 });
+
+test('explicit blocker resolution preserves evidence and dependencies without reopening descendants', () => {
+  const h = harness([task('a'), task('dep', 2), task('child', 3, { dependencies: ['a'] })]);
+  const a = h.claim('worker');
+  h.run({type:'block',actor:'worker',taskId:'a',token:a.token,blockers:[{type:'environment',reason:'Missing runtime ownership'},{type:'task',id:'dep',reason:'Needs prerequisite'}]});
+  h.state.tasks.a.evidence = evidence('partial');
+  const before = structuredClone(h.state);
+  const cmd = {type:'resolve',actor:'coordinator',taskId:'a',resolvedBlockers:[0],reason:'Reviewed ownership transfer recorded'};
+  assert.throws(()=>h.run({...cmd,actor:'worker'}),{code:'COORDINATOR_REQUIRED'});
+  for (const resolvedBlockers of [[1],[0,0],[-1],[2],[]]) assert.throws(()=>h.run({...cmd,resolvedBlockers}),{code:'RESOLUTION_REQUIRED'});
+  h.run(cmd);
+  assert.deepEqual(h.state.tasks.a.evidence,before.tasks.a.evidence);
+  assert.deepEqual(h.state.tasks.child,before.tasks.child);
+  assert.deepEqual(h.state.tasks.a.discoveredDependencies,['dep']);
+  assert.equal(h.state.tasks.a.status,'blocked');
+  const dep=h.claim('worker'); assert.equal(dep.taskId,'dep'); h.submit('worker',dep);h.accept('dep');
+  assert.equal(h.claim('worker').taskId,'a');
+  assert.equal(h.state.tasks.child.status,'pending');
+  assert.throws(()=>h.run(cmd),{code:'RESOLUTION_REQUIRED'});
+});
