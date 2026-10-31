@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
-import { MobileDocumentCards, DocumentStatusFilters, DocumentTotal } from '@/pages/AccountingDocumentList';
+import { MobileDocumentCards, DocumentStatusFilters, DocumentTotal, documentSettlement, SettlementFilterNotice } from '@/pages/AccountingDocumentList';
 import PostedDocument, { PostedLineCards } from '@/components/accounting/PostedDocument';
 import { DiscountEditor, DraftWriteActions } from '@/features/documentDiscounts/DiscountControls';
 import { CaptureDraftActions } from './CaptureReview';
@@ -145,4 +145,27 @@ test('document totals disclose saved net and VAT precisely without inferring una
     assert.match(mobile, /£24.00/);
     assert.equal(mobile.includes('Edit draft'), false);
   }
+});
+
+
+test('settlement views discard stale cached balances after failed refresh and retain document access', () => {
+  const item = { id: 'doc', open_minor: '0', paid_minor: '14400', credited_minor: '0', settlement: 'settled' };
+  const data = { open_items: [item] };
+  assert.equal(documentSettlement({ data, loading: false, error: null }, 'doc'), item);
+  assert.equal(documentSettlement({ data, loading: false, error: null }, 'missing'), null);
+  for (const ledger of [{ data, error: new Error('Refresh failed') }, { data, loading: true }, { loading: false }]) {
+    assert.equal(documentSettlement(ledger, 'doc'), null);
+    const html = render(<MobileDocumentCards docs={[doc]} kind="purchase_bill" capabilities={{}} remaining={d => documentSettlement(ledger, d.id)} ledgerLoading={Boolean(ledger.loading)} />);
+    assert.ok(html.includes('href="/bills/doc"'));
+    assert.match(html, /<dt[^>]*>Paid<\/dt><dd[^>]*>[^]*?—[^]*?<\/dd>/);
+    assert.ok(html.includes(ledger.loading ? 'Loading…' : 'Unavailable'));
+  }
+  const failed = render(<SettlementFilterNotice loading={false} onShowAll={noop} />);
+  assert.ok(failed.includes('role="status"'));
+  assert.ok(failed.includes('Payment status is unavailable'));
+  assert.ok(failed.includes('Show all documents'));
+  assert.equal(failed.includes('Nothing matches'), false);
+  const loading = render(<SettlementFilterNotice loading onShowAll={noop} />);
+  assert.ok(loading.includes('Loading payment status…'));
+  assert.equal(loading.includes('unavailable'), false);
 });
