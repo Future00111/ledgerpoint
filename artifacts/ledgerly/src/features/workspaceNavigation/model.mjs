@@ -98,7 +98,14 @@ export function navigationGroups(sections, everydayRoutes, options = {}) {
 
 /** Verified provider limits for existing routes; never infer a connection from saved settings. */
 export function workspaceAvailabilityNotice(pathname) {
-  if (!['/email-capture', '/email-rules'].includes(pathname.replace(/\/$/, ''))) return null;
+  const route = pathname.replace(/\/$/, '');
+  if (route === '/automation') return {
+    title: 'Saved workflows do not run automatically',
+    message: 'This workspace saves workflow plans and historical activity. Marking a workflow active does not schedule or execute it, send reminders, or change accounting records. AI can help draft a plan for your review.',
+    path: '/',
+    label: 'Return to dashboard',
+  };
+  if (!['/email-capture', '/email-rules'].includes(route)) return null;
   return {
     title: 'Email capture is not connected',
     message: 'Saved email accounts and rules do not scan a mailbox or import attachments. You can upload supplier files to the document inbox and review them manually.',

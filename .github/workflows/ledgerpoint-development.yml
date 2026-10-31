@@ -42,6 +42,8 @@ jobs:
       - name: Accounting API, security, atomicity and restore regression
         id: accounting
         run: node tools/accounting-flow/test.mjs
+      - name: Encrypted recovery unit controls
+        run: node --test tools/operations/backup-restore/*.test.mjs
       - name: Encrypted disposable PostgreSQL recovery rehearsal
         id: encrypted_recovery
         run: node tools/operations/backup-restore/rehearsal.mjs
@@ -58,6 +60,8 @@ jobs:
           const r = require('./generated-artifacts/encrypted-recovery.json');
           if (r.sourceCommit !== process.env.GITHUB_SHA || !r.syntheticOnly || !r.verified ||
               !r.separateClusters || !r.encryptedArchiveUsed || !r.runtimeMutationDenied ||
+              !r.schemaControlsPreserved || !r.roleMembershipsPreserved ||
+              JSON.stringify(r.negativeControls) !== JSON.stringify(["missing_source_foreign_key", "unexpected_role_membership", "unexpected_audit_delete_grant"]) ||
               r.sourceFingerprint !== r.restoredFingerprint ||
               r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);
           NODE

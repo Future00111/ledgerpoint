@@ -1,6 +1,7 @@
 # Native bank import and reconciliation contract
 
-P06-00, reviewed source baseline `a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5`.
+P06-00, contract baseline `a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5`;
+status-independence fixture added after integrated baseline `854c4c5`.
 This is an implementation interface for P06-01 onward. It does not enable bank
 feeds, posting, durable import replay or unqualified currencies. Calculations
 remain native. Existing protected payments and canonical journals remain the
@@ -130,15 +131,19 @@ Existing executable evidence to rerun on the exact candidate:
   `accountingDocuments/integration.test.ts`, including rejection of old bank
   matching as a way to settle protected documents. That test verifies the bank
   status stays `unmatched` and the document projection stays unchanged after
-  rejection; it does not mutate bank status directly to prove status independence.
+  rejection. The added `bank status and matching metadata cannot settle documents
+  or duplicate recovered payment commands` fixture directly changes synthetic bank
+  labels through admin-only setup: a £120 customer invoice or supplier bill, £10
+  credit and £20 payment remain £90 open through matched/reconciled/unmatched
+  labels. Full report and stored-document snapshots, journal/payment counts, and
+  original-command replay/changed-intent rejection must remain unchanged.
   The W06 payment fixture sends two identical reviewed payment POSTs with
   `Promise.all` and expects one posted/one duplicate result. This is evidence for
   the existing payment endpoint, not forced database-lock overlap or the new
   native bank command.
 
-P06-00 remains partial until a fixture directly changes bank status and proves
-unchanged document balances, and recovery evidence is reviewed on the exact
-candidate. These existing fixtures do not prove future durable import identities,
+P06-00 remains pending until this added fixture executes in isolated PostgreSQL
+and coordinator review accepts the exact candidate plus payment-recovery evidence. These existing fixtures do not prove future durable import identities,
 split/fee commands or cross-statement matching. Add their concurrency, stale-review,
 partial-schema, rollback, historical-cutoff, tenant and removed-member fixtures
 with their implementations. Contract acceptance requires coordinator review and

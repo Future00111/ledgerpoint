@@ -5,6 +5,8 @@ import { randomBytes, createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { performance } from 'node:perf_hooks';
 import { transformFile } from './archive.mjs';
+import { fingerprintDatabase } from '../../accounting-flow/restore-drill.mjs';
+import { proveRecoveryControl } from './recovery-controls.mjs';
 const require = createRequire(new URL('../../../artifacts/api-server/package.json', import.meta.url));
 const { Client } = require('pg');
 const root = new URL('../../../', import.meta.url).pathname;
@@ -20,6 +22,7 @@ let verified = false, postgresStopped = true, directoryRemoved = false, failure;
 const run = (command, args) => execFileSync(command, args, { env, stdio: 'pipe', timeout: 60000 });
 const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 let sourceFingerprint, restoredFingerprint;
+const negativeControls = [];
 async function cluster(name) {
   const base = `${directory}/${name}`, socket = `${base}/socket`, data = `${base}/data`;
   mkdirSync(socket, { recursive: true, mode: 0o700 });
@@ -34,18 +37,21 @@ async function cluster(name) {
   return { ...result, client };
 }
 async function fingerprint(client) {
-  const rows = [];
-  for (const table of ['original_attachments', 'durable_jobs', 'audit_evidence']) {
-    const result = await client.query(`SELECT to_jsonb(t)::text value FROM ${table} t ORDER BY to_jsonb(t)::text`);
-    rows.push({ table, rows: result.rows });
-  }
-  const roles = await client.query("SELECT rolname,rolsuper,rolinherit,rolcreaterole,rolcreatedb,rolcanlogin,rolreplication,rolbypassrls FROM pg_roles WHERE rolname='lp_synthetic_reader'");
-  const grants = await client.query("SELECT table_name,grantee,privilege_type,is_grantable FROM information_schema.table_privileges WHERE table_schema='public' ORDER BY 1,2,3,4");
-  return digest({ rows, roles: roles.rows, grants: grants.rows });
+  // Reuse the accounting restore verifier: rows alone cannot prove that source
+  // constraints, ownership, immutable guards or function privileges survived.
+  const database = await fingerprintDatabase(client);
+  const roles = await client.query("SELECT rolname,rolsuper,rolinherit,rolcreaterole,rolcreatedb,rolcanlogin,rolreplication,rolbypassrls FROM pg_roles WHERE rolname IN ('lp_synthetic_reader','lp_synthetic_elevated') ORDER BY rolname");
+  const memberships = await client.query(`SELECT parent.rolname role_name,member.rolname member_name,m.admin_option
+    FROM pg_auth_members m JOIN pg_roles parent ON parent.oid=m.roleid JOIN pg_roles member ON member.oid=m.member
+    WHERE parent.rolname LIKE 'lp_synthetic_%' OR member.rolname LIKE 'lp_synthetic_%'
+    ORDER BY role_name,member_name`);
+  return digest({ database, roles: roles.rows, memberships: memberships.rows });
 }
+
 try {
   const source = await cluster('source');
   await source.client.query(`CREATE ROLE lp_synthetic_reader NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+    CREATE ROLE lp_synthetic_elevated NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
     CREATE TABLE original_attachments(id text PRIMARY KEY, content bytea NOT NULL);
     CREATE TABLE durable_jobs(id text PRIMARY KEY, source_id text REFERENCES original_attachments(id), state text NOT NULL);
     CREATE TABLE audit_evidence(id text PRIMARY KEY, source_id text REFERENCES original_attachments(id), payload jsonb NOT NULL);
@@ -62,10 +68,18 @@ try {
   if (!readFileSync(dump).equals(readFileSync(restored))) throw new Error('Archive bytes differ.');
   const target = await cluster('restored');
   // Exact synthetic role contract; never replay arbitrary cluster SQL or credentials.
-  await target.client.query('CREATE ROLE lp_synthetic_reader NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS');
+  await target.client.query('CREATE ROLE lp_synthetic_reader NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; CREATE ROLE lp_synthetic_elevated NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS');
   run('pg_restore', ['-h', target.socket, '-p', '55442', '-U', 'lp_bootstrap', '-d', 'postgres', '--exit-on-error', restored]);
   restoredFingerprint = await fingerprint(target.client);
   if (sourceFingerprint !== restoredFingerprint || sourceFingerprint !== await fingerprint(source.client)) throw new Error('Recovery fingerprint mismatch.');
+  for (const [name, sql] of [
+    ['missing_source_foreign_key', 'ALTER TABLE durable_jobs DROP CONSTRAINT durable_jobs_source_id_fkey'],
+    ['unexpected_role_membership', 'GRANT lp_synthetic_elevated TO lp_synthetic_reader'],
+    ['unexpected_audit_delete_grant', 'GRANT DELETE ON audit_evidence TO lp_synthetic_reader'],
+  ]) {
+    await proveRecoveryControl(target.client, restoredFingerprint, sql, fingerprint);
+    negativeControls.push(name);
+  }
   await target.client.query('SET ROLE lp_synthetic_reader');
   await target.client.query('SELECT content FROM original_attachments');
   let denied = false;
@@ -83,7 +97,7 @@ finally {
   if (postgresStopped) { rmSync(directory, { recursive: true, force: true }); directoryRemoved = true; }
   writeFileSync(receiptPath, JSON.stringify({ sourceCommit, syntheticOnly: true, verified, sourceFingerprint, restoredFingerprint,
     elapsedMilliseconds: Math.round(performance.now() - started), postgresStopped, directoryRemoved,
-    separateClusters: true, encryptedArchiveUsed: verified, runtimeMutationDenied: verified,
+    separateClusters: true, negativeControls, schemaControlsPreserved: verified, roleMembershipsPreserved: verified, encryptedArchiveUsed: verified, runtimeMutationDenied: verified,
     fixtureScope: 'Representative synthetic role, binary attachment, pending job and audit tables; not the application schema or production recovery qualification',
     ambientDatabaseCredentialsUsed: false, productionContact: false }, null, 2) + '\n');
 }

@@ -1,7 +1,7 @@
 {
-  "version": 1,
+  "version": 2,
   "authority": "disposable-rehearsal-only",
-  "purpose": "Pins reviewed input bytes for the disposable installer; not installed schema history, production authorization or full compatibility evidence.",
+  "purpose": "Pins reviewed migration and canonical security overlay input bytes for the disposable installer; not installed schema history, production authorization or full compatibility evidence.",
   "migrations": [
     {
       "id": "accounting-documents",
@@ -73,5 +73,11 @@
       ],
       "sha256": "cd62e959adffa726b22ffe9dacd16bb90d256f5a1573358edd769dbd88ccb06a"
     }
-  ]
+  ],
+  "securityOverlay": {
+    "id": "canonical-security-overlay",
+    "path": "scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql",
+    "contractVersion": 1,
+    "sha256": "779d76aa3ab065d5bb1f5a08c9ea807cf4bc3166d0fdc1b59c21c81140404081"
+  }
 }

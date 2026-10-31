@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -68,7 +67,7 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
       .replace(/^BEGIN;$/m,'').replace(/^COMMIT;$/m,''));
     // Reuse the EXACT canonical ownership, immutable guards and finalization
     // transition guards; omit unrelated external-CI attestation functionality.
-    const overlay=readFileSync(path.join(root,'scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql'),'utf8');
+    const overlay=migrationInputs['canonical-security-overlay'];
     const start=overlay.indexOf('ALTER TABLE public.accounting_posting_effects OWNER');
     const end=overlay.indexOf('CREATE OR REPLACE FUNCTION public.ledgerly_verify_disposable_run');
     const triggers=overlay.indexOf('DROP TRIGGER IF EXISTS ledgerly_canonical_journal_entries_guard');

@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
-import { MobileDocumentCards, DocumentStatusFilters, DocumentTotal, documentSettlement, SettlementFilterNotice } from '@/pages/AccountingDocumentList';
+import { MobileDocumentCards, DocumentTable, DocumentStatusFilters, DocumentTotal, documentSettlement, SettlementFilterNotice } from '@/pages/AccountingDocumentList';
 import PostedDocument, { PostedLineCards } from '@/components/accounting/PostedDocument';
 import { DiscountEditor, DraftWriteActions } from '@/features/documentDiscounts/DiscountControls';
 import { CaptureDraftActions } from './CaptureReview';
@@ -168,4 +168,27 @@ test('settlement views discard stale cached balances after failed refresh and re
   const loading = render(<SettlementFilterNotice loading onShowAll={noop} />);
   assert.ok(loading.includes('Loading payment status…'));
   assert.equal(loading.includes('unavailable'), false);
+});
+
+
+test('desktop document tables preserve keyboard access, full references and named document actions', () => {
+  for (const [kind, path] of [['sales_invoice', '/invoices'], ['purchase_bill', '/bills'], ['sales_credit_note', '/sales-credit-notes'], ['supplier_credit_note', '/supplier-credit-notes']]) {
+    const record = { ...doc, status: 'draft', source: { ...doc.source, reference: 'Purchase order 123456789012345678901234567890' } };
+    const props = { docs: [record], kind, remaining: () => null, ledgerLoading: false, isOverdue: () => false };
+    const html = render(<DocumentTable {...props} capabilities={{ edit_drafts: true }} />);
+    assert.match(html, /tabindex="0" role="region"/);
+    assert.match(html, /table, scroll for more columns/);
+    assert.match(html, /<caption[^>]*>Matching/);
+    assert.match(html, /scope="col"/);
+    assert.ok(html.includes(record.source.reference));
+    assert.equal(html.includes('truncate'), false);
+    assert.ok(html.includes(`href="${path}/doc"`));
+    assert.ok(html.includes('aria-label="Edit draft SYNTHETIC-1 for Synthetic Supplier"'));
+    assert.ok(html.includes('£144.00'));
+    assert.ok(html.includes('£24.00'));
+    const readonly = render(<DocumentTable {...props} capabilities={{}} />);
+    assert.equal(readonly.includes('Edit draft'), false);
+    assert.ok(readonly.includes('aria-label="View SYNTHETIC-1 for Synthetic Supplier"'));
+    assert.equal(readonly.includes('Still due'), !kind.includes('credit_note'));
+  }
 });

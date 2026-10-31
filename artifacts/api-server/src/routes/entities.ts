@@ -21,7 +21,6 @@ import { db } from "@workspace/db";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
 import {
   findActiveCompanyIds,
-  findActiveMembership,
   requireCompanyScope,
   resolveCompanyScope,
 } from "../middlewares/companyScope";
@@ -136,12 +135,6 @@ function hasUnsafeReconciliationCreation(data: Record<string, unknown>): boolean
 /** Returns all company IDs the Clerk user is a member of. */
 async function getAuthorizedCompanyIds(userId: string): Promise<string[]> {
   return findActiveCompanyIds(userId);
-}
-
-/** Returns the user's role in a specific company, or null if not a member. */
-async function getUserRole(userId: string, companyId: string): Promise<string | null> {
-  const membership = await findActiveMembership(userId, companyId);
-  return membership?.role ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -370,8 +363,12 @@ router.post("/:entity/bulk", async (req: Request, res: Response) => {
     }
 
     // All records must target the same authorized company
-    const companyId = records[0]["company_id"] as string | undefined;
-    if (!companyId) {
+    if (records.some(record => !record || typeof record !== "object" || Array.isArray(record))) {
+      res.status(400).json({ error: "Each bulk record must be an object" });
+      return;
+    }
+    const companyId = records[0]["company_id"];
+    if (typeof companyId !== "string" || !companyId.trim()) {
       res.status(400).json({ error: "company_id is required in each record" });
       return;
     }
@@ -380,12 +377,12 @@ router.post("/:entity/bulk", async (req: Request, res: Response) => {
       return;
     }
 
-    const role = await getUserRole(userId, companyId);
-    if (!role) {
-      res.status(403).json({ error: "Not authorized for this company" });
-      return;
-    }
-    if (!canWriteCompanyData(role)) {
+    // A delayed create must not silently target the old workspace, even when
+    // the actor is a member of both the body and query companies.
+    const scope = await requireCompanyScope(res, { userId,
+      requestedCompanyId: req.query["company_id"], resourceCompanyId: companyId });
+    if (!scope) return;
+    if (!canWriteCompanyData(scope.role)) {
       res.status(403).json({ error: "Your role does not permit creating records" });
       return;
     }
@@ -414,18 +411,22 @@ router.post("/:entity", async (req: Request, res: Response) => {
       return;
     }
 
-    const companyId = req.body["company_id"] as string | undefined;
-    if (!companyId) {
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+      res.status(400).json({ error: "Body must be a record object" });
+      return;
+    }
+    const companyId = req.body["company_id"];
+    if (typeof companyId !== "string" || !companyId.trim()) {
       res.status(400).json({ error: "company_id is required" });
       return;
     }
 
-    const role = await getUserRole(userId, companyId);
-    if (!role) {
-      res.status(403).json({ error: "Not authorized for this company" });
-      return;
-    }
-    if (!canWriteCompanyData(role)) {
+    // A delayed create must not silently target the old workspace, even when
+    // the actor is a member of both the body and query companies.
+    const scope = await requireCompanyScope(res, { userId,
+      requestedCompanyId: req.query["company_id"], resourceCompanyId: companyId });
+    if (!scope) return;
+    if (!canWriteCompanyData(scope.role)) {
       res.status(403).json({ error: "Your role does not permit creating records" });
       return;
     }

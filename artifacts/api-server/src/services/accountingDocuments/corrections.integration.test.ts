@@ -305,3 +305,33 @@ test('receipt confirmation and claim listing fail closed on corrupt bill history
   await rejected(()=>confirmReceipt(f.company,actor,claim.id,listed.claims[0].revision,{request_id:randomUUID(),credit_id:second.id,credit_revision:second.revision,credit_line_ref:0}),'CORRECTION_HISTORY_INVALID');
   assert.deepEqual((await admin.query('SELECT * FROM supplier_credit_receipts WHERE company_id=$1',[f.company])).rows,before);
 });
+
+
+test('linked credit journal revision and currency mismatches fail closed before historical cutoff',async()=>{
+  for (const kind of ['sales_invoice','purchase_bill']) {
+    const f=await fixture(),original=await postNew(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier,'excluding_vat',['STANDARD']));
+    const creditKind=kind==='sales_invoice'?'sales_credit_note':'supplier_credit_note';
+    const credit=await postNew(f,creditKind,{...original.source,invoice_number:'C-'+randomUUID(),
+      issue_date:'2026-10-20',due_date:'2026-10-20',line_items:[{...original.source.line_items[0],quantity:'0.1'}]},
+      {original_id:original.id,reason:'Return',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-20',original_line_refs:[0]});
+    const before=await documentOpen(pool,f.company,original.id);
+    assert.equal(before.credited_minor,'1200');assert.equal(before.open_minor,'10800');
+    const journal=(await admin.query('SELECT journal_id FROM accounting_document_sources WHERE id=$1',[credit.id])).rows[0].journal_id;
+    for (const [column,value] of [['source_revision',randomUUID()],['currency_code','EUR']]) {
+      const client=await admin.connect();
+      try {
+        // Corrupt only a disposable fixture inside a transaction. Rollback restores
+        // both the immutable guard and journal bytes, including on assertion failure.
+        await client.query('BEGIN');
+        await client.query('ALTER TABLE canonical_journal_entries DISABLE TRIGGER ledgerly_canonical_journal_entries_guard');
+        await client.query(`UPDATE canonical_journal_entries SET ${column}=$2 WHERE id=$1`,[journal,value]);
+        await rejected(()=>documentOpen(client,f.company,original.id),'CREDIT_HISTORY_INVALID');
+        await rejected(()=>linkedCreditDocuments(client,f.company,original,'2026-10-19'),'CREDIT_HISTORY_INVALID');
+      } finally { await client.query('ROLLBACK');client.release(); }
+    }
+    assert.deepEqual(await documentOpen(pool,f.company,original.id),before);
+    assert.equal((await report(f,'2026-10-19')).open_items[0].credited_minor,'0');
+    assert.equal((await report(f,'2026-10-20')).open_items[0].credited_minor,'1200');
+    assert.equal((await admin.query("SELECT tgenabled FROM pg_trigger WHERE tgname='ledgerly_canonical_journal_entries_guard'")).rows[0].tgenabled,'A');
+  }
+});
