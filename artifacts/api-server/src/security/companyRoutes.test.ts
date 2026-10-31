@@ -342,3 +342,87 @@ test("generic updates preserve tenant ownership and reject stale or malformed wo
     await new Promise<void>(resolve => server.close(() => resolve()));
   }
 });
+
+test("generic creates reject malformed or contradictory company context before membership and insert", async () => {
+  const { createEntitiesRouter } = await import("../routes/entities");
+  const { db } = await import("@workspace/db");
+  const { customersTable, companyUsersTable } = await import("@workspace/db/schema");
+  const { PgDialect } = await import("drizzle-orm/pg-core");
+  const dialect = new PgDialect();
+  const originalSelect = db.select, originalInsert = db.insert;
+  let reads = 0, role = "owner", active = true, membership = true;
+  const inserts: unknown[] = [];
+  db.select = (() => ({ from(table: unknown) {
+    assert.equal(table, companyUsersTable);
+    return { where: async (condition: any) => {
+      reads++;
+      const params = dialect.sqlToQuery(condition).params;
+      // Both companies are authorized: a mismatch must be rejected by context,
+      // rather than accidentally passing because one membership exists.
+      const company_id = params.includes("company-b") ? "company-b" : "company-a";
+      return membership ? [{ company_id, user_id: "synthetic-owner", role, is_active: active }] : [];
+    } };
+  } })) as unknown as typeof db.select;
+  db.insert = ((table: unknown) => {
+    assert.equal(table, customersTable);
+    return { values(value: unknown) {
+      inserts.push(value);
+      return { returning: async () => Array.isArray(value) ? value : [value] };
+    } };
+  }) as unknown as typeof db.insert;
+  const app = express(); app.use(express.json({ strict: false }));
+  app.use(createEntitiesRouter((req, res, next) => {
+    if (!req.get("x-test-actor")) { res.sendStatus(401); return; }
+    (req as any).userId = "synthetic-owner"; next();
+  }));
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise<void>(resolve => server.once("listening", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const create = (path: string, body: unknown, authenticated = true) => fetch(`http://127.0.0.1:${address.port}${path}`, {
+    method: "POST", headers: { "Content-Type": "application/json", ...(authenticated ? { "x-test-actor": "synthetic-owner" } : {}) }, body: JSON.stringify(body),
+  });
+  try {
+    for (const bulk of [false, true]) {
+      const path = bulk ? "/Customer/bulk" : "/Customer";
+      const wrap = (record: unknown) => bulk ? [record] : record;
+      const beforeReads = reads;
+      for (const company_id of [undefined, null, "", "  ", [], {}, 12, false]) {
+        assert.equal((await create(path, wrap({ name: "Synthetic", company_id }))).status, 400);
+      }
+      for (const invalid of [null, [], "value", 12, false]) {
+        assert.equal((await create(path, wrap(invalid))).status, 400);
+      }
+      for (const [query, expected] of [["?company_id=company-b", 403], ["?company_id=", 400], ["?company_id=company-a&company_id=company-b", 400]] as const) {
+        assert.equal((await create(path + query, wrap({ company_id: "company-a", name: "Synthetic" }))).status, expected);
+      }
+      assert.equal(reads, beforeReads, "malformed and contradictory context must not trigger membership queries");
+      const beforeInserts = inserts.length;
+      for (const state of ["viewer", "inactive", "missing"]) {
+        role = state === "viewer" ? "read_only" : "owner";
+        active = state !== "inactive"; membership = state !== "missing";
+        assert.equal((await create(path, wrap({ company_id: "company-a", name: "Synthetic" }))).status, 403);
+      }
+      assert.equal(inserts.length, beforeInserts);
+      role = "owner"; active = true; membership = true;
+      for (const query of ["", "?company_id=company-a"]) {
+        const record = { company_id: "company-a", name: "Synthetic" };
+        const response = await create(path + query, wrap(record));
+        assert.equal(response.status, 201);
+        assert.deepEqual(await response.json(), wrap(record));
+      }
+      assert.equal((await create(path, wrap({ company_id: "company-a" }), false)).status, 401);
+    }
+    assert.equal((await create("/Customer/bulk", [{ company_id: "company-a" }, { company_id: "company-b" }])).status, 400);
+    assert.equal((await create("/Customer/bulk", [{ company_id: "company-a" }, null])).status, 400);
+    assert.equal(inserts.length, 4);
+    for (const entity of ["Company", "CompanyUser", "SalesInvoice", "PurchaseBill", "SalesCreditNote", "SupplierCreditNote", "JournalEntry", "VATReturn", "ChartOfAccount"]) {
+      for (const suffix of ["", "/bulk"]) {
+        assert.equal((await create(`/${entity}${suffix}`, { company_id: "company-a" })).status, 403);
+      }
+    }
+    assert.equal(inserts.length, 4, "protected workflows must never reach generic inserts");
+  } finally {
+    db.select = originalSelect; db.insert = originalInsert;
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  }
+});

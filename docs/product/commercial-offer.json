@@ -1,7 +1,7 @@
 {
   "version": 1,
   "status": "draft_not_approved_for_publication",
-  "sourceCommit": "1e0d6bada4d14c2042544f9ce910567749466e84",
+  "sourceCommit": "854c4c5478a0dacb79701f1c62ca49512d5b5c4e",
   "customerProfile": {
     "deliveryTarget": "UK sole traders and small businesses, with small limited companies retained in the agreed scope",
     "approvedPilotCohort": null,
@@ -28,6 +28,15 @@
         "/supplier-credit-notes/new"
       ],
       "status": "draft_source_checked_browser_acceptance_pending"
+    },
+    {
+      "path": "docs/product/help/credit-after-payment.md",
+      "appRoutes": [
+        "/supplier-credit-notes/new",
+        "/sales-credit-notes/new",
+        "/payments"
+      ],
+      "status": "draft_source_checked_browser_acceptance_pending"
     }
   ],
   "claimsNotPermitted": [
@@ -35,13 +44,20 @@
     "Email scanning or automatic document extraction is available",
     "The complete in-house tax or payroll engine is implemented or HMRC-qualified",
     "Saving a draft posts, pays, sends or files it",
-    "The commercial product, pilot cohort, subscription price or support commitment is approved"
+    "The commercial product, pilot cohort, subscription price or support commitment is approved",
+    "Posting a credit after payment sends a cash refund",
+    "Development paid-credit checks enable every existing demo/customer environment",
+    "Credits against corrected originals are fully supported"
   ],
   "evidencePaths": [
     "docs/ledgerly-active-product-plan.md",
     "artifacts/ledgerly/src/features/documentIntake/DocumentIntake.test.jsx",
     "artifacts/ledgerly/src/features/documentIntake/useDocumentIntake.jsx",
-    "artifacts/api-server/src/services/documentIntake/service.ts"
+    "artifacts/api-server/src/services/documentIntake/service.ts",
+    "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+    "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
+    "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx",
+    "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts"
   ],
   "remaining": [
     "Approve a concrete subscription offer and supported customer cohort",
