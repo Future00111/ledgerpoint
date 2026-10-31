@@ -52,6 +52,11 @@
       "url": "https://www.gov.uk/government/publications/software-developers-payroll-test-data-2026-to-2027",
       "checkedAt": "2026-10-31",
       "evidence": "Official Student Loan v1.0 ODS downloaded and SHA-256 pinned; 130 exact examples extracted reproducibly. No LedgerPoint engine or statutory qualification claimed."
+    },
+    "payrollPayeExamples2026": {
+      "url": "https://www.gov.uk/government/publications/software-developers-payroll-test-data-2026-to-2027",
+      "checkedAt": "2026-10-31",
+      "evidence": "Official PAYE v1.1 ZIP bytes pinned; 168 cached reference rows across 22 regional sheets extracted. No native PAYE engine or statutory qualification claimed."
     }
   },
   "openQualificationRequirements": [
@@ -2479,6 +2484,210 @@
           "four_weekly",
           "monthly"
         ],
+        "qualification": "reference_only_engine_not_implemented"
+      }
+    },
+    {
+      "id": "payroll-paye-rest_of_uk-2026-27",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "employee_paye_rest_of_uk",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P04-01",
+        "P09-01",
+        "P09-10"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payrollPayeExamples2026",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "taxYear",
+        "region",
+        "frequency",
+        "period",
+        "taxCode",
+        "week1Month1",
+        "grossPayMinor",
+        "taxablePayToDateMinor",
+        "priorTaxDueToDateMinor",
+        "employmentId",
+        "paymentDate"
+      ],
+      "requiredOutputs": [
+        "taxDueMinor",
+        "taxDueToDateMinor",
+        "ruleVersion",
+        "calculationSteps",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "employee_paye_rest_of_uk",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-paye-rest_of_uk-2026-27"
+        }
+      },
+      "qualificationEvidence": null,
+      "referenceFixtures": {
+        "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-paye-2026-27-v1.1.json",
+        "region": "rest_of_uk",
+        "caseCount": 64,
+        "qualification": "reference_only_engine_not_implemented"
+      }
+    },
+    {
+      "id": "payroll-paye-scotland-2026-27",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "employee_paye_scotland",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P04-01",
+        "P09-01",
+        "P09-10"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payrollPayeExamples2026",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "taxYear",
+        "region",
+        "frequency",
+        "period",
+        "taxCode",
+        "week1Month1",
+        "grossPayMinor",
+        "taxablePayToDateMinor",
+        "priorTaxDueToDateMinor",
+        "employmentId",
+        "paymentDate"
+      ],
+      "requiredOutputs": [
+        "taxDueMinor",
+        "taxDueToDateMinor",
+        "ruleVersion",
+        "calculationSteps",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "employee_paye_scotland",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-paye-scotland-2026-27"
+        }
+      },
+      "qualificationEvidence": null,
+      "referenceFixtures": {
+        "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-paye-2026-27-v1.1.json",
+        "region": "scotland",
+        "caseCount": 64,
+        "qualification": "reference_only_engine_not_implemented"
+      }
+    },
+    {
+      "id": "payroll-paye-wales-2026-27",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "employee_paye_wales",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P04-01",
+        "P09-01",
+        "P09-10"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payrollPayeExamples2026",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "taxYear",
+        "region",
+        "frequency",
+        "period",
+        "taxCode",
+        "week1Month1",
+        "grossPayMinor",
+        "taxablePayToDateMinor",
+        "priorTaxDueToDateMinor",
+        "employmentId",
+        "paymentDate"
+      ],
+      "requiredOutputs": [
+        "taxDueMinor",
+        "taxDueToDateMinor",
+        "ruleVersion",
+        "calculationSteps",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "employee_paye_wales",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-paye-wales-2026-27"
+        }
+      },
+      "qualificationEvidence": null,
+      "referenceFixtures": {
+        "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-paye-2026-27-v1.1.json",
+        "region": "wales",
+        "caseCount": 40,
         "qualification": "reference_only_engine_not_implemented"
       }
     }
