@@ -1,5 +1,6 @@
 import test from "node:test";
 import pino from "pino";
+import pinoHttp from "pino-http";
 import assert from "node:assert/strict";
 import type { Express, Request, Response, NextFunction } from "express";
 import { appErrorResponse, RejectedOriginError, safeAppErrors } from "./appErrors";
@@ -220,4 +221,44 @@ test("allowed cross-site origins and non-browser clients still reach the parser"
     }
   });
   assert.equal(logs.length, 3);
+});
+
+
+test("implicit error log messages cannot escape the structured error serializer", async () => {
+  const { securityLogOptions } = await import("../lib/logger");
+  let output = "";
+  const log = pino(securityLogOptions, { write(chunk: string) { output += chunk; } });
+  log.error(new Error(secret, { cause: new Error(secret) }));
+  log.error({ err: new Error(secret) });
+  log.error({ err: { message: secret, stack: secret } });
+  log.error({ error: new Error(secret) });
+  log.error({ err: new Error(secret) }, "Fixed application diagnostic");
+  assert.equal(output.includes(secret), false);
+  const records = output.trim().split("\n").map(line => JSON.parse(line));
+  assert.deepEqual(records.map(record => record.msg), ["Request failed", "Request failed", "Request failed", "Request failed", "Fixed application diagnostic"]);
+});
+
+test("HTTP logs omit sensitive request targets, credentials, payloads and response bodies", async () => {
+  const { default: express } = await import("express");
+  const { securityLogOptions, httpLogSerializers } = await import("../lib/logger");
+  let output = "";
+  const app = express();
+  app.use(pinoHttp({ logger: pino(securityLogOptions, { write(chunk: string) { output += chunk; } }),
+    serializers: httpLogSerializers }));
+  app.use(express.json());
+  app.use((_req, res) => { res.set("set-cookie", `session=${secret}`); res.status(400).json({ error: secret }); });
+  await serve(app, async url => {
+    const response = await fetch(`${url}/${secret}?token=${secret}`, {
+      method: "POST", headers: { Authorization: `Bearer ${secret}`, Cookie: `session=${secret}`,
+        "Content-Type": "application/json", "X-Request-Id": secret }, body: JSON.stringify({ secret }),
+    });
+    assert.equal(response.status, 400);
+    await response.text();
+  });
+  assert.equal(output.includes(secret), false);
+  const records = output.trim().split("\n").map(line => JSON.parse(line));
+  assert.equal(records.length, 1);
+  assert.deepEqual(Object.keys(records[0].req).sort(), ["id", "method"]);
+  assert.equal(records[0].req.method, "POST");
+  assert.deepEqual(records[0].res, { statusCode: 400 });
 });
