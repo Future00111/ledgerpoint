@@ -143,3 +143,28 @@ test('discount review hides stale or malformed balances and never suggests exces
     assert.ok(!html.includes('posting this credit does not move cash'));
   }
 });
+
+
+test('ordinary credits use remaining original credit capacity even when cash is fully settled', () => {
+  for (const kind of ['sales_invoice', 'purchase_bill']) {
+    const paid = { gross_minor: '14400', paid_minor: '13400', credited_minor: '1000', open_minor: '0', history: [] };
+    const html = render(kind, { openItem: paid, capabilities: { edit_drafts: true, post_documents: false } });
+    assert.ok(html.includes('Create credit note'));
+    assert.ok(html.includes(`${kind === 'sales_invoice' ? '/sales-credit-notes' : '/supplier-credit-notes'}/new?original=synthetic-bill`));
+    assert.ok(!html.includes('Record payment'));
+    assert.ok(!html.includes('Record refund'));
+    for (const override of [
+      { openItem: null },
+      { openItem: { ...paid, paid_minor: '0', credited_minor: '14400' } },
+      { openItem: { ...paid, paid_minor: '13300' } },
+      { openItem: { ...paid, gross_minor: '14500', paid_minor: '13500' } },
+      { settlement: { loading: true } },
+      { settlement: { loading: false, error: new Error('Unavailable') } },
+      { error: new Error('Document unavailable') },
+      { capabilities: null },
+      { capabilities: { edit_drafts: 'true', post_documents: true } },
+      ...[{ correction_count: 1 }, { status: 'cancelled' }, { status: 'draft' }, { kind: 'supplier_credit_note' }, { id: '' }]
+        .map(patch => ({ doc: { ...doc, kind, ...patch } })),
+    ]) assert.ok(!render(kind, { openItem: paid, ...override }).includes('Create credit note'), JSON.stringify(override));
+  }
+});

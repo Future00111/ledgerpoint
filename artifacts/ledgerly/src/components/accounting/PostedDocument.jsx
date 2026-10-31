@@ -6,7 +6,7 @@ import { Money, StatusPill, SettlementPill, ErrorBox, SkeletonRows, JournalLink 
 import DocumentPostingImpact from './DocumentPostingImpact';
 import AwaitingCreditPanel from '@/features/creditRecovery/AwaitingCreditPanel';
 import { SavedDiscountSummary } from '@/features/documentDiscounts/DiscountControls';
-import { canApplyDiscount, isValidSettlementSnapshot, canEditDrafts, canPostDocuments, discountCreditPath } from '@/features/documentDiscounts/model.mjs';
+import { canApplyDiscount, isValidSettlementSnapshot, canPostDocuments, discountCreditPath } from '@/features/documentDiscounts/model.mjs';
 import SourceAttachments from '@/features/documentIntake/SourceFiles';
 import PageHeader from '@/components/workspace/PageHeader';
 import DocumentCorrections from '@/features/documentCorrections/DocumentCorrections';
@@ -27,8 +27,8 @@ function PostedDocumentLayout({ doc, kind, company, journal, settlement, openIte
   const discountCredit = Boolean(source.discount_adjustment);
   const discounted = Boolean(source.discount);
   const originalDiscount = !discountCredit && meta.credit && Boolean(doc.tax_context?.original_discount);
-  const canEdit = canEditDrafts(capabilities);
-  const canDiscount = doc.status === 'posted' && doc.kind === kind && typeof doc.id === 'string' && doc.id.length > 0
+  const canPrepareCredit = doc.status === 'posted' && doc.kind === kind && typeof doc.id === 'string' && doc.id.length > 0
+    && openItem?.gross_minor === doc.money?.gross_pence
     && !error && !doc.correction_count && !settlement.loading && !settlementError && canApplyDiscount(kind, openItem, capabilities);
   const canSettle = !meta.credit && hasBalance && !settlement.loading && !settlementError;
   const completed=openItem && BigInt(openItem.gross_minor)>0n ? Number((BigInt(openItem.gross_minor)-BigInt(openItem.open_minor))*100n/BigInt(openItem.gross_minor)) : 0;
@@ -38,9 +38,9 @@ function PostedDocumentLayout({ doc, kind, company, journal, settlement, openIte
       context={<><StatusPill status="posted" /><JournalLink id={doc.journal_id} /></>}
       actions={<>
         {canSettle && canPostDocuments(capabilities) && <Button asChild className="min-h-11"><Link to={`/payments?party_type=${meta.party}&party_id=${doc.party_id}&document=${doc.id}`}>Record payment<ArrowRight /></Link></Button>}
-        {canSettle && canEdit && !doc.correction_count && <Button asChild variant="outline" className="min-h-11"><Link to={`${KINDS[creditKind].path}/new?original=${doc.id}`}>Create credit note</Link></Button>}
+        {canPrepareCredit && <Button asChild variant="outline" className="min-h-11"><Link to={`${KINDS[creditKind].path}/new?original=${doc.id}`}>Create credit note</Link></Button>}
         {creditUI?.action}
-        {canDiscount && !doc.correction_count && <Button asChild variant="outline" className="min-h-11"><Link to={discountCreditPath(kind, doc.id)}>Apply discount</Link></Button>}
+        {canPrepareCredit && <Button asChild variant="outline" className="min-h-11"><Link to={discountCreditPath(kind, doc.id)}>Apply discount</Link></Button>}
       </>} />
     <ErrorBox error={error} />
     {doc.correction_count > 0 && <p className="rounded-lg border bg-muted/30 p-4 text-sm">This document includes {doc.correction_count} recorded correction{doc.correction_count === 1 ? '' : 's'}. Original total: <Money value={doc.original_money?.gross_pence} />. New credits, later discount credits and return-credit tracking are unavailable for corrected documents in this version.</p>}
