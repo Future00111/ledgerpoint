@@ -1,0 +1,63 @@
+{
+  "runId": "hosted-20261031-1624",
+  "codeHead": "c232bc283ec348a734a7599c31390db31587b242",
+  "localIntegrated": "063dd0773ee462545c84cdc83f434fded0c6a6e3",
+  "tree": "69479026da5d446213fc454cdb60b40ddad5096f",
+  "workers": [
+    {
+      "worker": 1,
+      "ref": "codex/lp-1624-worker1",
+      "local": "9156863cc13103eea811247e40dcd5c846b26d5c",
+      "remote": "54ea86fdf3e6aedd672c6f9dd3b918e4b99a7845",
+      "tree": "d7944dad086d3348bd0546b06cb584c9ce1b5c1e"
+    },
+    {
+      "worker": 2,
+      "ref": "codex/lp-1624-worker2",
+      "local": "c4079c346a05dd2682de80a031bef683f19050c8",
+      "remote": "ea061342c6d211a2246bfc4e0280860d646a783c",
+      "tree": "33cca850e34b22a907405953966c89e8e75ba986"
+    },
+    {
+      "worker": 3,
+      "ref": "codex/lp-1624-worker3",
+      "local": "a53af951984939c165cd0684d87b3237684bfd16",
+      "remote": "84971b380c7817aab8bcdc5fbd0caf5c4445c4ca",
+      "tree": "e9ee7a9de223a05de445a1438cd8cbbc61342d6f"
+    },
+    {
+      "worker": 4,
+      "ref": "codex/lp-1624-worker4",
+      "local": "94d4843c2ba2ddf5af25b6b8d10f61af90454a87",
+      "remote": "ef2f1d6faa8b29a3f809daf249daf8bd1cd9d503",
+      "tree": "9fe9fcc290f8061bc1b8837f9444342eba2cc8df"
+    },
+    {
+      "worker": 5,
+      "ref": "codex/lp-1624-worker5",
+      "local": "10583032b845bf1afa38d6ebe32c584fda7da98d",
+      "remote": "7c3a655e376d50ed8fa4261f1715b206327cd513",
+      "tree": "44fb88a779ac1dd1fa08d9dc93f68933988c596e"
+    },
+    {
+      "worker": 6,
+      "ref": "codex/lp-1624-worker6",
+      "local": "d37dc95f0fc3589ce8ddae1646c67d81641d0bef",
+      "remote": "a72d0841b8ef45f7daceb9484c736f1f4b76a2f8",
+      "tree": "2fc54cec6ddadf9d7f2d85e250a1731227157d2b"
+    }
+  ],
+  "workersStopped": true,
+  "worktreesClean": true,
+  "sourceTests": 752,
+  "extraTests": 32,
+  "buildPassed": true,
+  "ciStatus": "pending",
+  "productionActions": false,
+  "ownershipMigration": {
+    "reviewer": "worker4",
+    "queueRevision": 373,
+    "scope": "four P01-03 UI/test paths",
+    "allSourceBulletsPreserved": 92
+  }
+}
