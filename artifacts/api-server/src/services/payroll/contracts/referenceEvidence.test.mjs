@@ -21,6 +21,10 @@ test('contradictory reference descriptors fail at the ordinary registry boundary
     row => row.referenceFixtures.region = 'scotland',
     row => row.referenceFixtures.frequencies = ['weekly', 'weekly'],
     row => row.referenceFixtures = null,
+    row => delete row.referenceFixtures.sourceSha256,
+    row => row.referenceFixtures.sourceSha256 = 'not-a-digest',
+    row => delete row.referenceFixtures.sourceVersion,
+    row => row.referenceFixtures.sourceVersion = 'unreviewed',
   ]) {
     const r = structuredClone(registry); mutate(first(r));
     assert.throws(() => validateCaseRegistry(r), /INVALID_CASE_REGISTRY/);
@@ -122,4 +126,22 @@ test('independent PAYE sequences can interleave without losing their own lineage
     for (const rows of sequences.values()) if (rows.length) c[path].cases.push(rows.shift());
   }
   assert.deepEqual(validatePayrollReferenceEvidence(registry, c), {referenceCases:8, qualifiedCases:0});
+});
+
+
+test('registered reference identity rejects substituted valid hashes and source versions', () => {
+  for (const path of Object.keys(corpora)) {
+    for (const mutate of [
+      c => c.source.sha256 = 'f'.repeat(64),
+      c => c.source.version = '99.0',
+      c => delete c.source.version,
+    ]) {
+      const c = structuredClone(corpora); mutate(c[path]);
+      assert.throws(() => validatePayrollReferenceEvidence(registry, c), /INVALID_PAYROLL_REFERENCE_EVIDENCE/);
+    }
+    const r = structuredClone(registry);
+    const rows = r.cases.filter(row => row.referenceFixtures?.path === path);
+    for (const row of rows) row.referenceFixtures.sourceSha256 = 'f'.repeat(64);
+    assert.throws(() => validatePayrollReferenceEvidence(r, corpora), /INVALID_PAYROLL_REFERENCE_EVIDENCE/);
+  }
 });

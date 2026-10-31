@@ -2204,7 +2204,9 @@
           "four_weekly",
           "monthly"
         ],
-        "qualification": "reference_only_engine_not_implemented"
+        "qualification": "reference_only_engine_not_implemented",
+        "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+        "sourceVersion": "1.0"
       }
     },
     {
@@ -2274,7 +2276,9 @@
           "four_weekly",
           "monthly"
         ],
-        "qualification": "reference_only_engine_not_implemented"
+        "qualification": "reference_only_engine_not_implemented",
+        "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+        "sourceVersion": "1.0"
       }
     },
     {
@@ -2344,7 +2348,9 @@
           "four_weekly",
           "monthly"
         ],
-        "qualification": "reference_only_engine_not_implemented"
+        "qualification": "reference_only_engine_not_implemented",
+        "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+        "sourceVersion": "1.0"
       }
     },
     {
@@ -2414,7 +2420,9 @@
           "four_weekly",
           "monthly"
         ],
-        "qualification": "reference_only_engine_not_implemented"
+        "qualification": "reference_only_engine_not_implemented",
+        "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+        "sourceVersion": "1.0"
       }
     },
     {
@@ -2484,7 +2492,9 @@
           "four_weekly",
           "monthly"
         ],
-        "qualification": "reference_only_engine_not_implemented"
+        "qualification": "reference_only_engine_not_implemented",
+        "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+        "sourceVersion": "1.0"
       }
     },
     {
@@ -2552,7 +2562,9 @@
         "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-paye-2026-27-v1.1.json",
         "region": "rest_of_uk",
         "caseCount": 64,
-        "qualification": "reference_only_engine_not_implemented"
+        "qualification": "reference_only_engine_not_implemented",
+        "sourceSha256": "163b18bd7dcfb699b8d77ec621ac1d4509372299de72daa1a5a027564caf188c",
+        "sourceVersion": "1.1"
       }
     },
     {
@@ -2620,7 +2632,9 @@
         "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-paye-2026-27-v1.1.json",
         "region": "scotland",
         "caseCount": 64,
-        "qualification": "reference_only_engine_not_implemented"
+        "qualification": "reference_only_engine_not_implemented",
+        "sourceSha256": "163b18bd7dcfb699b8d77ec621ac1d4509372299de72daa1a5a027564caf188c",
+        "sourceVersion": "1.1"
       }
     },
     {
@@ -2688,7 +2702,9 @@
         "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-paye-2026-27-v1.1.json",
         "region": "wales",
         "caseCount": 40,
-        "qualification": "reference_only_engine_not_implemented"
+        "qualification": "reference_only_engine_not_implemented",
+        "sourceSha256": "163b18bd7dcfb699b8d77ec621ac1d4509372299de72daa1a5a027564caf188c",
+        "sourceVersion": "1.1"
       }
     }
   ]
