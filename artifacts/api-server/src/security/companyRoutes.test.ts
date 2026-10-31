@@ -566,3 +566,193 @@ test("bank imports reject stale row companies atomically before access and prese
     await new Promise<void>(resolve => server.close(() => resolve()));
   }
 });
+
+// Reviewed inventory of every generic entity exposed by entities.ts. Each alias
+// shares these HTTP handlers, while protected financial/company writes stop at
+// the admission boundary before any database access. This is HTTP qualification,
+// not proof of browser response fencing or of the dedicated download/export APIs.
+const legacyEntityInventory = [
+  "Company", "CompanyUser", "Customer", "Supplier", "SalesInvoice", "PurchaseBill",
+  "SalesCreditNote", "SupplierCreditNote", "BankAccount", "BankTransaction",
+  "ChartOfAccount", "JournalEntry", "VATReturn", "Document", "EmailAccount",
+  "EmailRule", "EmailCaptureLog", "EmailScanConfig", "Insight", "Automation",
+  "AutomationActivity", "WorkflowActivity", "AccountLearning", "AccountSuggestionLog",
+  "SuggestionRule", "SuggestionSettings", "TransactionComment",
+];
+
+test("complete legacy entity inventory denies every CRUD write to inactive, foreign and viewer actors", async () => {
+  const { createEntitiesRouter } = await import("../routes/entities");
+  const { isGenericEntityWriteBlocked } = await import("../routes/entityWritePolicy");
+  const { db } = await import("@workspace/db");
+  const { companiesTable } = await import("@workspace/db/schema");
+  const originalSelect = db.select, originalInsert = db.insert, originalUpdate = db.update, originalDelete = db.delete;
+  let membership: "viewer" | "inactive" | "foreign" | "invalid-role" = "viewer";
+  let writes = 0;
+  db.select = ((columns?: unknown) => ({ from(table: unknown) {
+    if (columns) return { where: async () => [{
+      company_id: membership === "foreign" ? "company-b" : "company-a",
+      user_id: "synthetic-actor", role: membership === "invalid-role" ? "OWNER" : "read_only",
+      is_active: membership !== "inactive",
+    }] };
+    return { where: () => ({ limit: async () => [{ id: table === companiesTable ? "company-a" : "record", company_id: "company-a", name: "Synthetic" }] }) };
+  } })) as unknown as typeof db.select;
+  const forbiddenWrite = () => { writes++; throw new Error("Rejected request reached a database write"); };
+  db.insert = forbiddenWrite as typeof db.insert;
+  db.update = forbiddenWrite as typeof db.update;
+  db.delete = forbiddenWrite as typeof db.delete;
+  const app = express(); app.use(express.json());
+  app.use(createEntitiesRouter((req, res, next) => {
+    if (!req.get("x-test-actor")) { res.sendStatus(401); return; }
+    (req as any).userId = "synthetic-actor"; next();
+  }));
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise<void>(resolve => server.once("listening", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const base = `http://127.0.0.1:${address.port}`;
+  const operations = [
+    { method: "GET", suffix: "", body: undefined },
+    { method: "GET", suffix: "/record", body: undefined },
+    { method: "POST", suffix: "", body: { company_id: "company-a", name: "Synthetic" } },
+    { method: "POST", suffix: "/bulk", body: [{ company_id: "company-a", name: "Synthetic" }] },
+    { method: "PATCH", suffix: "/record", body: { name: "Changed" } },
+    { method: "PUT", suffix: "/record", body: { name: "Changed" } },
+    { method: "PATCH", suffix: "/bulk-update", body: [{ id: "record", name: "Changed" }] },
+    { method: "DELETE", suffix: "/record", body: undefined },
+  ];
+  const request = (entity: string, op: typeof operations[number], authenticated: boolean) => fetch(`${base}/${entity}${op.suffix}?company_id=company-a`, {
+    method: op.method,
+    headers: { "Content-Type": "application/json", ...(authenticated ? { "x-test-actor": "synthetic-actor" } : {}) },
+    ...(op.body === undefined ? {} : { body: JSON.stringify(op.body) }),
+  });
+  try {
+    for (const entity of legacyEntityInventory) {
+      for (const op of operations) {
+        assert.equal((await request(entity, op, false)).status, 401, `${entity} ${op.method}${op.suffix}: authentication`);
+        if (op.method === "GET") continue; // Read permission is covered separately below.
+        for (membership of ["viewer", "inactive", "foreign", "invalid-role"] as const) {
+          const response = await request(entity, op, true);
+          const expected = isGenericEntityWriteBlocked(entity) ? 403
+            : entity === "BankTransaction" && op.method === "POST" ? 400
+            : op.suffix === "/bulk-update" ? 200 : 403;
+          assert.equal(response.status, expected, `${entity} ${op.method}${op.suffix}: ${membership}`);
+          if (expected === 200) assert.deepEqual(await response.json(), [], "bulk skips forbidden rows without acknowledging writes");
+        }
+      }
+    }
+    assert.equal(writes, 0, "none of the entity/verb/actor combinations reached a mutation adapter");
+  } finally {
+    db.select = originalSelect; db.insert = originalInsert; db.update = originalUpdate; db.delete = originalDelete;
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  }
+});
+
+test("complete legacy entity inventory permits scoped viewer reads and denies inactive, foreign and stale-context reads", async () => {
+  const { createEntitiesRouter } = await import("../routes/entities");
+  const { db } = await import("@workspace/db");
+  const { companiesTable } = await import("@workspace/db/schema");
+  const originalSelect = db.select;
+  let membership: "viewer" | "inactive" | "foreign" = "viewer";
+  db.select = ((columns?: unknown) => ({ from(table: unknown) {
+    if (columns) return { where: async () => membership === "inactive" ? [] : [{
+      company_id: membership === "foreign" ? "company-b" : "company-a",
+      user_id: "synthetic-viewer", role: "read_only", is_active: true,
+    }] };
+    const rows = [{ id: table === companiesTable ? "company-a" : "record", company_id: "company-a", name: "Synthetic" }];
+    const query = { where() { return query; }, orderBy() { return query; }, limit: async () => rows };
+    return { where: () => query, $dynamic: () => query };
+  } })) as unknown as typeof db.select;
+  const app = express();
+  app.use(createEntitiesRouter((req, _res, next) => { (req as any).userId = "synthetic-viewer"; next(); }));
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise<void>(resolve => server.once("listening", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const base = `http://127.0.0.1:${address.port}`;
+  try {
+    for (const entity of legacyEntityInventory) for (const suffix of ["", "/record"]) {
+      membership = "viewer";
+      const response = await fetch(`${base}/${entity}${suffix}?company_id=company-a`);
+      assert.equal(response.status, 200, `${entity}${suffix}: viewer read`);
+      assert.match(await response.text(), /Synthetic/);
+      for (membership of ["inactive", "foreign"] as const) {
+        const denied = await fetch(`${base}/${entity}${suffix}?company_id=company-a`);
+        assert.equal(denied.status, 403, `${entity}${suffix}: ${membership}`);
+        assert.doesNotMatch(await denied.text(), /Synthetic/);
+      }
+      membership = "viewer";
+      for (const context of ["company-b", "", "company-a&company_id=company-b"]) {
+        const denied = await fetch(`${base}/${entity}${suffix}?company_id=${context}`);
+        assert.equal(denied.status, context === "company-b" ? 403 : 400, `${entity}${suffix}: ${context}`);
+        assert.doesNotMatch(await denied.text(), /Synthetic/);
+      }
+    }
+  } finally {
+    db.select = originalSelect;
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  }
+});
+
+// Remaining closure work for P02-01: inventory/qualification of the separately
+// mounted AI router, native download/export services and real browser company
+// switches. These legacy HTTP matrices do not substitute for those scenarios.
+test("legacy function inventory authenticates every action and rejects inactive or foreign company access before effects", async () => {
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "synthetic-no-provider-access";
+  const { createFunctionsRouter } = await import("../routes/functions");
+  const { aiService } = await import("../services/ai/index");
+  if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
+  else process.env.OPENAI_API_KEY = previousKey;
+  const { db } = await import("@workspace/db");
+  const { bankTransactionsTable, companyUsersTable } = await import("@workspace/db/schema");
+  const originals = { select: db.select, insert: db.insert, update: db.update, delete: db.delete, transaction: db.transaction, complete: aiService.complete };
+  let membership: "inactive" | "foreign" = "inactive", effects = 0;
+  db.select = (() => ({ from(table: unknown) {
+    if (table === bankTransactionsTable) return { where: () => ({ limit: async () => [{ id: "bank-row", company_id: "company-a" }] }) };
+    assert.equal(table, companyUsersTable, "no other company data may be read before authorization");
+    return { where: async () => membership === "inactive" ? [] : [{ company_id: "company-b", user_id: "synthetic-actor", role: "owner", is_active: true }] };
+  } })) as unknown as typeof db.select;
+  const forbidden = () => { effects++; throw new Error("Rejected legacy request reached a side effect"); };
+  db.insert = forbidden as typeof db.insert; db.update = forbidden as typeof db.update;
+  db.delete = forbidden as typeof db.delete; db.transaction = forbidden as typeof db.transaction;
+  aiService.complete = forbidden as typeof aiService.complete;
+  const companyActions = [
+    ["askAI", { prompt: "Synthetic question" }],
+    ["approveReconciliationMatches", { bank_transaction_id: "bank-row", records: [{ record_type: "sales_invoice", record_id: "invoice" }] }],
+    ["approveNonPaymentReconciliationMatch", { bank_transaction_id: "bank-row", record_type: "ledger_account", record_id: "ledger" }],
+    ["recordBankTransfer", { bank_transaction_id: "bank-row", to_account_id: "destination", amount: 10 }],
+    ["recordBankTransaction", { description: "Synthetic", amount: 10 }],
+    ["recordBankTransactions", { transactions: [{ description: "Synthetic", amount: 10 }] }],
+    ["updateBankTransactionClassification", { bank_transaction_id: "bank-row", description: "Synthetic" }],
+    ["suggestTransactionMatches", { bank_transaction_id: "bank-row" }],
+  ] as const;
+  const retired = ["postPurchaseBill", "generateSalesInvoiceJournals", "generatePurchaseBillJournals", "postSalesInvoice", "postSalesCreditNote", "postSupplierCreditNote", "applySalesCreditNote", "applySupplierCreditNote", "updatePaymentStatus"];
+  const demo = ["generateDemoData", "resetDemoData", "manageDemoCompany"];
+  const unavailable = ["generateInsights", "createRecordFromDocument", "mockScanEmails", "getAccountantClientList"];
+  const app = express(); app.use(express.json());
+  app.use(createFunctionsRouter((req, res, next) => {
+    if (!req.get("x-test-actor")) { res.sendStatus(401); return; }
+    (req as any).userId = "synthetic-actor"; next();
+  }));
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise<void>(resolve => server.once("listening", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const request = (name: string, body: unknown, authenticated: boolean) => fetch(`http://127.0.0.1:${address.port}/${name}`, {
+    method: "POST", headers: { "Content-Type": "application/json", ...(authenticated ? { "x-test-actor": "synthetic-actor" } : {}) }, body: JSON.stringify(body),
+  });
+  try {
+    for (const name of [...companyActions.map(([name]) => name), "testAI", "getUserCompanies", ...retired, ...demo, ...unavailable, "unknown-action"]) {
+      assert.equal((await request(name, {}, false)).status, 401, `${name}: authentication`);
+    }
+    for (membership of ["inactive", "foreign"] as const) for (const [name, body] of companyActions) {
+      assert.equal((await request(name, { ...body, company_id: "company-a" }, true)).status, 403, `${name}: ${membership}`);
+    }
+    for (const [names, status] of [[retired, 403], [demo, 410], [unavailable, 503]] as const) {
+      for (const name of names) assert.equal((await request(name, {}, true)).status, status, name);
+    }
+    assert.equal((await request("unknown-action", {}, true)).status, 404);
+    assert.equal(effects, 0);
+  } finally {
+    db.select = originals.select; db.insert = originals.insert; db.update = originals.update;
+    db.delete = originals.delete; db.transaction = originals.transaction; aiService.complete = originals.complete;
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  }
+});
