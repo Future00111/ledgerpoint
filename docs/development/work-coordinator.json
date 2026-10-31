@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "revision": 48,
+  "revision": 50,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
+  "codeHead": "854c4c5478a0dacb79701f1c62ca49512d5b5c4e",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261031-1504",
     "token": "11d8f231-76fc-4f4c-bf08-ba69610004a1",
     "acquiredAt": 1793459135653,
-    "expiresAt": 1793461468500
+    "expiresAt": 1793461797198
   },
   "lastOwner": {
     "runId": "hosted-20261031-0148",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 2,
-    "revision": 298,
+    "revision": 317,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,14 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "review",
+        "status": "pending",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Clean codex/lp-1504-worker1 c49070cd6ffb126ce3ffe7d2de7d7cf4e63e1ea8; accurate excess discount preview and downstream refund/allocation fixture; 6 existing + 4 scratch render cases and API typecheck pass; disposable PostgreSQL pending. Fully-paid entry gate and conditional discounts unfinished.",
-        "owner": "worker1",
-        "token": "c6da3681-7122-46b6-be2f-301d1c4c2c92",
-        "leaseUntil": 1793460115818,
-        "workStarted": true,
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker1 at 3800f136e2085cce0952aca67690f54b6bf92023; local c49070cd6ffb126ce3ffe7d2de7d7cf4e63e1ea8. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished.",
         "evidence": {
           "commit": "c49070cd6ffb126ce3ffe7d2de7d7cf4e63e1ea8",
           "summary": "PARTIAL P01-03: excess-discount preview no longer requests reducing a valid excess credit; hides stale previews while loading/error and describes separately reviewed reuse/refund without moving cash. Adds customer/supplier paid-discount later allocation/refund/undo/replay/cap/history fixture; PostgreSQL execution pending. Full paid-discount entry gate and conditional discounts remain unfinished.",
@@ -129,7 +125,8 @@
               "passed": true
             }
           ]
-        }
+        },
+        "blockers": []
       },
       "P01-04": {
         "status": "pending",
@@ -191,10 +188,10 @@
         ]
       },
       "P02-01": {
-        "status": "review",
+        "status": "pending",
         "priority": 201,
         "discoveredDependencies": [],
-        "checkpoint": "Clean codex/lp-1504-worker2 at 32511cec52d6dab6627c9fc44bf1fa235a9546a3; inspecting remaining legacy capability gaps before edits; no processes or database.",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker2 at 5517f3c9690e44c08806dd92c841401273d613ef; local 1ad8b508aa9760daf2e814774916e7e545073443. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished.",
         "evidence": {
           "commit": "1ad8b50",
           "summary": "PARTIAL P02-01: generic single/bulk updates preserve immutable company ownership, reject explicit malformed/foreign body context and stale query context; viewer, inactive, missing membership fail closed. Full route inventory and browser/export qualification remain pending.",
@@ -213,10 +210,7 @@
             }
           ]
         },
-        "owner": "worker2",
-        "token": "f022401c-0dff-4411-b3db-5ed230cb98c6",
-        "leaseUntil": 1793460129904,
-        "workStarted": true
+        "blockers": []
       },
       "P02-02": {
         "status": "pending",
@@ -327,14 +321,10 @@
         ]
       },
       "P03-03": {
-        "status": "review",
+        "status": "pending",
         "priority": 303,
         "discoveredDependencies": [],
-        "owner": "worker3",
-        "token": "fca9f0ea-8275-4a41-a94c-cd0a6dad95af",
-        "leaseUntil": 1793460136113,
-        "workStarted": true,
-        "checkpoint": "Clean stopped candidate 40c40e8c9357cf147593660e1e4a7dcc3cf31063 on codex/lp-1504-worker3. 14 registry/input-gate tests pass; schema syntax passes; partial-schema test bundle passes. CI includes worker4 encrypted rehearsal hook; independent review and exact disposable CI required; full migration pipeline remains pending.",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker3 at 532a0d00297903ecd1366608c00bb3fb89183ce9; local 4f8c21d89056c4116796f071a55e5165325c39bb. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished.",
         "evidence": {
           "commit": "40c40e8c9357cf147593660e1e4a7dcc3cf31063",
           "summary": "PARTIAL P03-03: existing disposable installer now validates ordered version/contract/path/dependency/SHA256 registry and uses verified bytes; both installer modes refuse nonempty schemas. Adds CI registry checks and encrypted recovery hook coordinated with worker4. Not installed-schema history or production/existing-data migration qualification; exact disposable CI and independent review pending.",
@@ -356,13 +346,14 @@
               "passed": true
             }
           ]
-        }
+        },
+        "blockers": []
       },
       "P03-04": {
-        "status": "review",
+        "status": "pending",
         "priority": 304,
         "discoveredDependencies": [],
-        "checkpoint": "Clean stopped codex/lp-1504-worker4 at205f230; implemented separate fresh-cluster encrypted PostgreSQL rehearsal with representative fixtures and cleanup receipt. Four archive tests/syntax pass; exact CI runtime and independent review pending. Full application recovery/offsite/targets incomplete.",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker4 at 334b84fe5edcb25a8d0ae7b0ef4b9a4498fae416; local 205f230f2353716e3789409d71d00eb60b2cc39e. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished.",
         "evidence": {
           "commit": "205f230",
           "summary": "PARTIAL: actual encrypted pg_dump/decrypt/pg_restore CLI across two fresh isolated clusters, with synthetic role/grants and representative attachment/job/audit tables. Matching fingerprints, denied audit mutation and cleanup receipts. Exact PostgreSQL runtime CI and independent review pending; full application schema recovery, offsite and operational ownership/targets not qualified.",
@@ -381,10 +372,7 @@
             }
           ]
         },
-        "owner": "worker4",
-        "token": "73ba7104-4c1b-4bf4-b3e2-444a5542b98b",
-        "leaseUntil": 1793460144093,
-        "workStarted": true
+        "blockers": []
       },
       "P03-80": {
         "status": "blocked",
@@ -399,10 +387,10 @@
         ]
       },
       "P04-01": {
-        "status": "review",
+        "status": "pending",
         "priority": 401,
         "discoveredDependencies": [],
-        "checkpoint": "Clean stopped codex/lp-1504-worker5 eeeb64b7beb3107fd40745e18d9034b7f933c323; connected registry descriptor/corpus audits, 62 focused tests passed, review pending.",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker5 at 50844a84997bb8c749f1ec94fc0790bce744a837; local eeeb64b7beb3107fd40745e18d9034b7f933c323. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished.",
         "evidence": {
           "commit": "eeeb64b7beb3107fd40745e18d9034b7f933c323",
           "summary": "PARTIAL P04-01: registry rejects contradictory reference metadata; CI-discovered evidence audit checks every referenced payroll corpus for matching source page, tax year, region/plan counts and frequencies. All existing 298 pinned examples retained; no calculation or qualification promoted. Full supported case mapping and engines remain unfinished.",
@@ -417,10 +405,7 @@
             }
           ]
         },
-        "owner": "worker5",
-        "token": "df75e856-b613-4153-a809-461dc011b518",
-        "leaseUntil": 1793460152932,
-        "workStarted": true
+        "blockers": []
       },
       "P04-02": {
         "status": "pending",
@@ -619,10 +604,10 @@
         ]
       },
       "P07-03": {
-        "status": "review",
+        "status": "pending",
         "priority": 703,
         "discoveredDependencies": [],
-        "checkpoint": "Clean codex/lp-1504-worker6 f82b51f9fbc03d68519369a1b3457dad3d9b0e4b; settlement filter failure/loading fix; 9 render tests and frontend tsc pass. Stopped editing for coordinator review/publication.",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker6 at d483db5b307c3bf3437cf3638957b915a25a1fcb; local f82b51f9fbc03d68519369a1b3457dad3d9b0e4b. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished.",
         "evidence": {
           "commit": "f82b51f9fbc03d68519369a1b3457dad3d9b0e4b",
           "summary": "PARTIAL P07-03: settlement filters distinguish failed/loading ledger from empty matches; cached balances hidden on error and Show all documents retained. Financial calculations and permissions unchanged. Broad keyboard/bulk/browser qualification still pending.",
@@ -641,38 +626,13 @@
             }
           ]
         },
-        "owner": "worker6",
-        "token": "d9c20311-6c67-41e6-8734-889bd18ab321",
-        "leaseUntil": 1793460163309,
-        "workStarted": true
+        "blockers": []
       },
       "P07-04": {
-        "status": "running",
+        "status": "pending",
         "priority": 704,
         "discoveredDependencies": [],
-        "checkpoint": "No P07-04 edits; clean branch codex/lp-1504-worker1 c49070cd6ffb126ce3ffe7d2de7d7cf4e63e1ea8 contains separately submitted P01-03 only. Inspected existing availability notices; stopped operation for coordinator-requested independent review; catalogue-wide acceptance remains pending.",
-        "evidence": {
-          "commit": "d7440481fd820fcece19b7a772fcad228ec99c49",
-          "summary": "PARTIAL email journey: removes simulated connected-account creation and mockScanEmails actions; shows unavailable connection/scan labels and manual document-inbox alternative; preserves saved account cleanup, rule/config edits and historical capture records. Full route inventory and live browser acceptance pending.",
-          "tests": [
-            {
-              "command": "esbuild EmailCapabilities.test.jsx then node --test /tmp/lp0043-email-worker5.cjs: 3 passed",
-              "passed": true
-            },
-            {
-              "command": "esbuild browser bundles EmailCapture.jsx and EmailRules.jsx: passed",
-              "passed": true
-            },
-            {
-              "command": "git diff --check",
-              "passed": true
-            }
-          ]
-        },
-        "owner": "worker1",
-        "token": "944453a7-b812-4635-a6d7-efd7e6330c4d",
-        "leaseUntil": 1793460229263,
-        "workStarted": true
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker1 at 3800f136e2085cce0952aca67690f54b6bf92023; local c49070cd6ffb126ce3ffe7d2de7d7cf4e63e1ea8. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished."
       },
       "P07-05": {
         "status": "blocked",
@@ -683,6 +643,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P07-04",
+            "source": "dependency",
+            "reason": "Dependency reopened: Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
           }
         ]
       },
@@ -1147,10 +1113,10 @@
         "priority": 1303
       },
       "P13-04": {
-        "status": "running",
+        "status": "blocked",
         "priority": 1304,
         "discoveredDependencies": [],
-        "checkpoint": "No edits started; clean worker2 commit 1ad8b508aa9760daf2e814774916e7e545073443; coordinator requests independent worker1 review first.",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker2 at 5517f3c9690e44c08806dd92c841401273d613ef; local 1ad8b508aa9760daf2e814774916e7e545073443. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished.",
         "evidence": {
           "commit": "9b00421067ce804c0ef76d0d484bf5d062c8e1c8",
           "summary": "PARTIAL P13-04: unresolved queue prioritizes discrepancy review, posted matches, overdue then waiting and older items within priority; rows show valid UTC calendar age and truthful suggested follow-up with original bill context. No reminder sending or accounting writes. Persisted follow-up state/history and draft controls still pending; live browser unverified.",
@@ -1169,10 +1135,12 @@
             }
           ]
         },
-        "owner": "worker2",
-        "token": "4fe5f913-0218-4159-81df-fa09d16ca11f",
-        "leaseUntil": 1793460243353,
-        "workStarted": true
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Persisted credit follow-up needs existing creditTracking service/routes, API client and schema ownership absent from current lease; coordinator must repair ownership/contracts. No disconnected scaffold created."
+          }
+        ]
       },
       "P14-01": {
         "status": "blocked",
@@ -1287,14 +1255,10 @@
         "priority": 1501
       },
       "P15-02": {
-        "status": "running",
+        "status": "pending",
         "priority": 1502,
         "discoveredDependencies": [],
-        "checkpoint": "No P15-02 edits; worktree clean/stopped at f82b51f9fbc03d68519369a1b3457dad3d9b0e4b. Paused implementation for coordinator-required independent review; worker5 eeeb64b reviewed and 62 payroll registry/reference tests passed. Preserve P15-02 as pending when closing run.",
-        "owner": "worker6",
-        "token": "5c8aa66f-e5a9-45dd-a1f3-96c6e60aed66",
-        "leaseUntil": 1793460261166,
-        "workStarted": true
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker6 at d483db5b307c3bf3437cf3638957b915a25a1fcb; local f82b51f9fbc03d68519369a1b3457dad3d9b0e4b. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished."
       },
       "P15-03": {
         "status": "blocked",
@@ -1419,28 +1383,10 @@
         "priority": 1701
       },
       "P17-02": {
-        "status": "running",
+        "status": "pending",
         "priority": 1702,
         "discoveredDependencies": [],
-        "checkpoint": "No P17-02 edits started. Clean codex/lp-1504-worker5 at eeeb64b7beb3107fd40745e18d9034b7f933c323; coordinator requested independent review and bounded-run shutdown. Claim can be explicitly recovered after durable branch save and stopped confirmation.",
-        "evidence": {
-          "commit": "385133bbe5276c6f34578aa2e08f5da5e4da3181",
-          "summary": "PARTIAL: draft manual source-upload help and honest commercial availability/claim limits. Existing routes and source evidence checked; pricing/customer admission/support contact explicitly unapproved/unset, launch app absent, browser help acceptance pending. Not a completed commercial offer.",
-          "tests": [
-            {
-              "command": "Node assertions: draft JSON, evidence file paths and 3 app routes validated against route inventory",
-              "passed": true
-            },
-            {
-              "command": "git diff --check",
-              "passed": true
-            }
-          ]
-        },
-        "owner": "worker5",
-        "token": "9e452709-a483-4bab-932b-055476faaf5e",
-        "leaseUntil": 1793460266784,
-        "workStarted": true
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker5 at 50844a84997bb8c749f1ec94fc0790bce744a837; local eeeb64b7beb3107fd40745e18d9034b7f933c323. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished."
       },
       "P17-03": {
         "status": "blocked",
@@ -1475,6 +1421,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P17-02",
+            "source": "dependency",
+            "reason": "Dependency reopened: Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
           }
         ]
       },
@@ -1523,6 +1475,12 @@
             "id": "P06-00",
             "source": "dependency",
             "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P07-04",
+            "source": "dependency",
+            "reason": "Dependency reopened: Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
           }
         ]
       },
@@ -1559,6 +1517,24 @@
             "id": "P15-02",
             "source": "dependency",
             "reason": "Dependency reopened: Temporary run cutoff resolved; no product blocker established; worker stopped without edits."
+          },
+          {
+            "type": "task",
+            "id": "P07-04",
+            "source": "dependency",
+            "reason": "Dependency reopened: Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
+          },
+          {
+            "type": "task",
+            "id": "P15-02",
+            "source": "dependency",
+            "reason": "Dependency reopened: Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
+          },
+          {
+            "type": "task",
+            "id": "P17-02",
+            "source": "dependency",
+            "reason": "Dependency reopened: Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
           }
         ]
       },
@@ -1595,6 +1571,24 @@
             "id": "P15-02",
             "source": "dependency",
             "reason": "Dependency reopened: Temporary run cutoff resolved; no product blocker established; worker stopped without edits."
+          },
+          {
+            "type": "task",
+            "id": "P07-04",
+            "source": "dependency",
+            "reason": "Dependency reopened: Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
+          },
+          {
+            "type": "task",
+            "id": "P15-02",
+            "source": "dependency",
+            "reason": "Dependency reopened: Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
+          },
+          {
+            "type": "task",
+            "id": "P17-02",
+            "source": "dependency",
+            "reason": "Dependency reopened: Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
           }
         ]
       },
@@ -1631,6 +1625,24 @@
             "id": "P15-02",
             "source": "dependency",
             "reason": "Dependency reopened: Temporary run cutoff resolved; no product blocker established; worker stopped without edits."
+          },
+          {
+            "type": "task",
+            "id": "P07-04",
+            "source": "dependency",
+            "reason": "Dependency reopened: Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
+          },
+          {
+            "type": "task",
+            "id": "P15-02",
+            "source": "dependency",
+            "reason": "Dependency reopened: Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
+          },
+          {
+            "type": "task",
+            "id": "P17-02",
+            "source": "dependency",
+            "reason": "Dependency reopened: Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
           }
         ]
       },
@@ -4646,25 +4658,182 @@
         "type": "checkpoint",
         "taskId": "P15-02",
         "checkpoint": "No P15-02 edits; worktree clean/stopped at f82b51f9fbc03d68519369a1b3457dad3d9b0e4b. Paused implementation for coordinator-required independent review; worker5 eeeb64b reviewed and 62 payroll registry/reference tests passed. Preserve P15-02 as pending when closing run."
+      },
+      {
+        "at": 1793459948971,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P01-03",
+        "reason": "Reviewed partial slice integrated; full package acceptance criteria remain incomplete. Exact new CI pending."
+      },
+      {
+        "at": 1793459949083,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P01-03",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker1 at 3800f136e2085cce0952aca67690f54b6bf92023; local c49070cd6ffb126ce3ffe7d2de7d7cf4e63e1ea8. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished."
+      },
+      {
+        "at": 1793459949175,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P02-01",
+        "reason": "Reviewed partial slice integrated; full package acceptance criteria remain incomplete. Exact new CI pending."
+      },
+      {
+        "at": 1793459949298,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P02-01",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker2 at 5517f3c9690e44c08806dd92c841401273d613ef; local 1ad8b508aa9760daf2e814774916e7e545073443. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished."
+      },
+      {
+        "at": 1793459949405,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P03-03",
+        "reason": "Reviewed partial slice integrated; full package acceptance criteria remain incomplete. Exact new CI pending."
+      },
+      {
+        "at": 1793459949510,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P03-03",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker3 at 532a0d00297903ecd1366608c00bb3fb89183ce9; local 4f8c21d89056c4116796f071a55e5165325c39bb. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished."
+      },
+      {
+        "at": 1793459949624,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P03-04",
+        "reason": "Reviewed partial slice integrated; full package acceptance criteria remain incomplete. Exact new CI pending."
+      },
+      {
+        "at": 1793459949728,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P03-04",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker4 at 334b84fe5edcb25a8d0ae7b0ef4b9a4498fae416; local 205f230f2353716e3789409d71d00eb60b2cc39e. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished."
+      },
+      {
+        "at": 1793459949848,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P04-01",
+        "reason": "Reviewed partial slice integrated; full package acceptance criteria remain incomplete. Exact new CI pending."
+      },
+      {
+        "at": 1793459949951,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P04-01",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker5 at 50844a84997bb8c749f1ec94fc0790bce744a837; local eeeb64b7beb3107fd40745e18d9034b7f933c323. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished."
+      },
+      {
+        "at": 1793459950047,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P07-03",
+        "reason": "Reviewed partial slice integrated; full package acceptance criteria remain incomplete. Exact new CI pending."
+      },
+      {
+        "at": 1793459950147,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P07-03",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker6 at d483db5b307c3bf3437cf3638957b915a25a1fcb; local f82b51f9fbc03d68519369a1b3457dad3d9b0e4b. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished."
+      },
+      {
+        "at": 1793459950260,
+        "actor": "worker1",
+        "type": "block",
+        "taskId": "P07-04",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker1 at 3800f136e2085cce0952aca67690f54b6bf92023; local c49070cd6ffb126ce3ffe7d2de7d7cf4e63e1ea8. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished.",
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Bounded run worker stopped without edits for review and integration; durable checkpoint ready for continuation."
+          }
+        ]
+      },
+      {
+        "at": 1793459950372,
+        "actor": "coordinator",
+        "type": "reopen",
+        "taskId": "P07-04",
+        "reason": "Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
+      },
+      {
+        "at": 1793459950487,
+        "actor": "worker2",
+        "type": "block",
+        "taskId": "P13-04",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker2 at 5517f3c9690e44c08806dd92c841401273d613ef; local 1ad8b508aa9760daf2e814774916e7e545073443. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished.",
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Persisted credit follow-up needs existing creditTracking service/routes, API client and schema ownership absent from current lease; coordinator must repair ownership/contracts. No disconnected scaffold created."
+          }
+        ]
+      },
+      {
+        "at": 1793459950608,
+        "actor": "worker6",
+        "type": "block",
+        "taskId": "P15-02",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker6 at d483db5b307c3bf3437cf3638957b915a25a1fcb; local f82b51f9fbc03d68519369a1b3457dad3d9b0e4b. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished.",
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Bounded run worker stopped without edits for review and integration; durable checkpoint ready for continuation."
+          }
+        ]
+      },
+      {
+        "at": 1793459950714,
+        "actor": "coordinator",
+        "type": "reopen",
+        "taskId": "P15-02",
+        "reason": "Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
+      },
+      {
+        "at": 1793459950814,
+        "actor": "worker5",
+        "type": "block",
+        "taskId": "P17-02",
+        "checkpoint": "Worker stopped clean. Durable codex/lp-1504-worker5 at 50844a84997bb8c749f1ec94fc0790bce744a837; local eeeb64b7beb3107fd40745e18d9034b7f933c323. Integrated candidate854c4c5478a0dacb79701f1c62ca49512d5b5c4e; exact CI pending. Broad task remains unfinished.",
+        "blockers": [
+          {
+            "type": "environment",
+            "reason": "Bounded run worker stopped without edits for review and integration; durable checkpoint ready for continuation."
+          }
+        ]
+      },
+      {
+        "at": 1793459950905,
+        "actor": "coordinator",
+        "type": "reopen",
+        "taskId": "P17-02",
+        "reason": "Stopped worker and durable branch verified; no remaining implementation blocker from run boundary."
       }
     ],
     "catalogDigest": "c708e672a6e57c01d6295ebe136604b411bb429d0b2b9010f3ff52fd62eda137"
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "36a1349132ed95cc1b86d5c1d984bc0157672738",
+    "sha": "e408a7e718de9bc2a089a73aad0a5e4a9887441f",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "36a1349132ed95cc1b86d5c1d984bc0157672738",
-        "path": "docs/development/recovery-20261031-1454.json"
+        "sha": "e408a7e718de9bc2a089a73aad0a5e4a9887441f",
+        "path": "docs/development/run-20261031-1504.json"
       }
     ],
-    "runId": "hosted-20261031-0148",
-    "at": 1793458794938,
-    "codeHead": "32511cec52d6dab6627c9fc44bf1fa235a9546a3"
+    "runId": "hosted-20261031-1504",
+    "at": 1793459997186,
+    "codeHead": "854c4c5478a0dacb79701f1c62ca49512d5b5c4e"
   },
-  "updatedAt": 1793459668500,
+  "updatedAt": 1793459997198,
   "validation": {
     "sourceCommit": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
     "status": "passed",
