@@ -56,6 +56,22 @@ export function MobileDocumentCards({ docs, kind, capabilities, remaining, ledge
   })}</div>;
 }
 
+export function DocumentTable({ docs, kind, capabilities, remaining, ledgerLoading, isOverdue }) {
+  const meta = KINDS[kind];
+  return <div tabIndex={0} role="region" aria-label={`${meta.plural} table, scroll for more columns`} className="hidden overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary lg:block"><table className="workspace-table"><caption className="sr-only">Matching {meta.plural.toLowerCase()}. Saved document totals{!meta.credit && ' and payment balances'} in GBP.</caption>
+          <thead><tr><th scope="col">Document</th><th scope="col" className="capitalize">{meta.party}</th><th scope="col">Date / due</th><th scope="col">Status</th><th scope="col" className="text-right">Total</th>{!meta.credit && <><th scope="col" className="text-right">Paid</th><th scope="col" className="text-right">Credited</th><th scope="col" className="text-right">Still due</th></>}<th scope="col"><span className="sr-only">Open document</span></th></tr></thead>
+          <tbody>{docs.map(d=><tr key={d.id} data-testid={`row-doc-${d.id}`}>
+            <td><Link className="whitespace-nowrap font-medium text-primary hover:underline" to={docPath(kind,d.id)}>{d.source?.invoice_number || 'Untitled'}</Link>{d.source?.reference && <p className="mt-1 max-w-[200px] break-words text-xs text-muted-foreground">{d.source.reference}</p>}</td>
+            <td className="min-w-[140px]">{d.party_name || '—'}</td>
+            <td className="whitespace-nowrap text-xs tabular-nums">{d.source?.issue_date}{!meta.credit && <p className={`mt-1 ${isOverdue(d) ? 'text-amber-800' : 'text-muted-foreground'}`}>Due {d.source?.due_date}</p>}</td>
+            <td>{!meta.credit && remaining(d) ? <SettlementPill item={remaining(d)} /> : <StatusPill status={d.status} />}</td>
+            <td className="whitespace-nowrap text-right"><DocumentTotal money={d.money} documentNumber={d.source?.invoice_number} /></td>
+            {!meta.credit && <>{['paid_minor','credited_minor'].map(field=><td key={field} className="whitespace-nowrap text-right text-muted-foreground"><Money value={remaining(d)?.[field]} /></td>)}<td className="whitespace-nowrap text-right font-semibold">{d.status!=='posted' ? <span className="text-xs font-normal text-muted-foreground">Not posted</span> : remaining(d) ? <Money value={remaining(d).open_minor} /> : ledgerLoading ? 'Loading…' : 'Unavailable'}</td></>}
+            <td><Link className="text-xs font-medium text-primary hover:underline" to={docPath(kind,d.id)} aria-label={`${documentActionLabel(d.status, capabilities)} ${d.source?.invoice_number || 'untitled document'} for ${d.party_name || 'unnamed party'}`}>{documentActionLabel(d.status, capabilities)}</Link></td>
+          </tr>)}</tbody>
+        </table></div>;
+}
+
 export default function AccountingDocumentList({ kind, legacyLink }) {
   const { activeCompany } = useCompany();
   if (!activeCompany) return <p className="mx-auto max-w-xl rounded-xl border p-6 text-center">Select a company in <Link className="underline" to="/companies">Companies</Link> first.</p>;
@@ -135,18 +151,7 @@ function CompanyDocumentList({ kind, legacyLink, activeCompany }) {
           description={search || filter !== 'all' ? 'Try another search or choose a different status.' : 'Create your first draft. You can review it before posting it to your accounts.'}
           action={search || filter !== 'all' ? <Button type="button" variant="outline" className="min-h-11" onClick={() => { setSearch(''); setFilter('all'); }}>Show all documents</Button> : canEdit && <Button variant="outline" asChild className="min-h-11"><Link to={`${meta.path}/new`}>Create a draft</Link></Button>} />}
         {shown.length > 0 && <MobileDocumentCards docs={shown} kind={kind} capabilities={capabilities} remaining={remaining} ledgerLoading={ledger.loading} />}
-        {shown.length>0 && <div className="hidden overflow-x-auto lg:block"><table className="workspace-table">
-          <thead><tr><th>Document</th><th className="capitalize">{meta.party}</th><th>Date / due</th><th>Status</th><th className="text-right">Total</th>{!meta.credit && <><th className="text-right">Paid</th><th className="text-right">Credited</th><th className="text-right">Still due</th></>}<th><span className="sr-only">Open document</span></th></tr></thead>
-          <tbody>{shown.map(d=><tr key={d.id} data-testid={`row-doc-${d.id}`}>
-            <td><Link className="whitespace-nowrap font-medium text-primary hover:underline" to={docPath(kind,d.id)}>{d.source?.invoice_number || 'Untitled'}</Link>{d.source?.reference && <p className="mt-1 max-w-[160px] truncate text-xs text-muted-foreground">{d.source.reference}</p>}</td>
-            <td className="min-w-[140px]">{d.party_name || '—'}</td>
-            <td className="whitespace-nowrap text-xs tabular-nums">{d.source?.issue_date}{!meta.credit && <p className={`mt-1 ${matches(d,'overdue') ? 'text-amber-800' : 'text-muted-foreground'}`}>Due {d.source?.due_date}</p>}</td>
-            <td>{!meta.credit && remaining(d) ? <SettlementPill item={remaining(d)} /> : <StatusPill status={d.status} />}</td>
-            <td className="whitespace-nowrap text-right"><DocumentTotal money={d.money} documentNumber={d.source?.invoice_number} /></td>
-            {!meta.credit && <>{['paid_minor','credited_minor'].map(field=><td key={field} className="whitespace-nowrap text-right text-muted-foreground"><Money value={remaining(d)?.[field]} /></td>)}<td className="whitespace-nowrap text-right font-semibold">{d.status!=='posted' ? <span className="text-xs font-normal text-muted-foreground">Not posted</span> : remaining(d) ? <Money value={remaining(d).open_minor} /> : ledger.loading ? 'Loading…' : 'Unavailable'}</td></>}
-            <td><Link className="text-xs font-medium text-primary hover:underline" to={docPath(kind,d.id)}>{documentActionLabel(d.status, capabilities)}</Link></td>
-          </tr>)}</tbody>
-        </table></div>}
+        {shown.length > 0 && <DocumentTable docs={shown} kind={kind} capabilities={capabilities} remaining={remaining} ledgerLoading={ledger.loading} isOverdue={d => matches(d, 'overdue')} />}
       </section>
       <p className="text-xs text-muted-foreground">{meta.credit ? 'Posted credits adjust the original balance. They do not represent a cash payment.' : 'Drafts do not affect your accounts. Payments and credits are shown separately against the original total.'}</p>
     </div>
