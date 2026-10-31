@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "source_revision": "799b7f7c02acd0dedf5eeab2815d0264a9782cbe",
+  "scope": "Source inspection inventory, not deployment/configuration evidence or authority to connect services.",
+  "runtime_enforcement": false,
+  "qualification_rule": "No destination or scope is allowed by this inventory. Pin exact destination, minimum scopes, retention/deletion commitments, current company consent and revocation semantics before qualifying a real-data connection. Observed adapter code does not prove configured or connected service.",
+  "services": [
+    {
+      "id": "clerk_identity",
+      "implementation": "adapter_present",
+      "source_paths": [
+        "artifacts/api-server/src/middlewares/clerkProxyMiddleware.ts",
+        "artifacts/api-server/src/routes/me.ts",
+        "artifacts/api-server/src/routes/companies.ts"
+      ],
+      "observed_destinations": [
+        "https://frontend-api.clerk.dev"
+      ],
+      "destination_allowlist": null,
+      "allowed_scopes": null,
+      "operation_boundary": [
+        "Authentication proxy",
+        "Current user lookup",
+        "Invitation identity lookup"
+      ],
+      "data_categories": [
+        "Clerk user identifier",
+        "email address for explicit user lookup",
+        "authentication/session request data and client network metadata"
+      ],
+      "retention": {
+        "provider": null,
+        "application": null,
+        "deletion_verification": null
+      },
+      "consent": {
+        "evidence": null,
+        "company_scope_required": true,
+        "revocation_evidence": null
+      },
+      "qualification": "unverified",
+      "fallback": "Reauthenticate; preserve saved accounting work. Revocation must reconcile external identity with company membership; do not infer company authority from identity alone."
+    },
+    {
+      "id": "openai_assistance",
+      "implementation": "adapter_present",
+      "source_paths": [
+        "artifacts/api-server/src/services/ai/providers/openai.ts"
+      ],
+      "observed_destinations": [],
+      "destination_allowlist": null,
+      "allowed_scopes": null,
+      "operation_boundary": [
+        "Suggestion/completion only"
+      ],
+      "data_categories": [
+        "Caller-provided chat messages"
+      ],
+      "retention": {
+        "provider": null,
+        "application": null,
+        "deletion_verification": null
+      },
+      "consent": {
+        "evidence": null,
+        "company_scope_required": true,
+        "revocation_evidence": null
+      },
+      "qualification": "unverified",
+      "fallback": "Keep user work locally/server-side; show unavailable assistance and continue manual accounting. Do not silently switch models/providers or resend unknown outcomes."
+    },
+    {
+      "id": "document_extraction",
+      "implementation": "contract_only",
+      "source_paths": [
+        "artifacts/api-server/src/services/documentIntake/extraction/contract.ts"
+      ],
+      "observed_destinations": [],
+      "destination_allowlist": null,
+      "allowed_scopes": null,
+      "operation_boundary": [
+        "Reviewed extraction only"
+      ],
+      "data_categories": [
+        "Original document bytes",
+        "Extraction transcript"
+      ],
+      "retention": {
+        "provider": null,
+        "application": null,
+        "deletion_verification": null
+      },
+      "consent": {
+        "evidence": null,
+        "company_scope_required": true,
+        "revocation_evidence": null
+      },
+      "qualification": "unverified",
+      "fallback": "Retain original document and extraction job identity; manual transcription remains available. No accounting posting from extraction."
+    },
+    {
+      "id": "bank_feed",
+      "implementation": "not_qualified",
+      "source_paths": [
+        "docs/development/native-bank-import-contract.md"
+      ],
+      "observed_destinations": [],
+      "destination_allowlist": null,
+      "allowed_scopes": null,
+      "operation_boundary": [
+        "Read authorised account transactions only"
+      ],
+      "data_categories": [
+        "Bank account identity",
+        "Statement transactions"
+      ],
+      "retention": {
+        "provider": null,
+        "application": null,
+        "deletion_verification": null
+      },
+      "consent": {
+        "evidence": null,
+        "company_scope_required": true,
+        "revocation_evidence": null
+      },
+      "qualification": "unverified",
+      "fallback": "Preserve imported observations and review identities; manual file import must retain duplicate provenance. No money movement authority."
+    },
+    {
+      "id": "hmrc_filing",
+      "implementation": "not_qualified",
+      "source_paths": [
+        "docs/ledgerly-active-product-plan.md"
+      ],
+      "observed_destinations": [],
+      "destination_allowlist": null,
+      "allowed_scopes": null,
+      "operation_boundary": [
+        "Direct HMRC interface within actual filing authority"
+      ],
+      "data_categories": [
+        "Reviewed tax/payroll submission payload"
+      ],
+      "retention": {
+        "provider": null,
+        "application": null,
+        "deletion_verification": null
+      },
+      "consent": {
+        "evidence": null,
+        "company_scope_required": true,
+        "revocation_evidence": null
+      },
+      "qualification": "unverified",
+      "fallback": "Unknown filing outcome requires original submission recovery; never automatic resubmission/new identity or false filed status."
+    },
+    {
+      "id": "email_intake_delivery",
+      "implementation": "not_qualified",
+      "source_paths": [
+        "README.md"
+      ],
+      "observed_destinations": [],
+      "destination_allowlist": null,
+      "allowed_scopes": null,
+      "operation_boundary": [
+        "Separate intake and sending permissions"
+      ],
+      "data_categories": [
+        "Explicitly selected message, attachment and recipient data"
+      ],
+      "retention": {
+        "provider": null,
+        "application": null,
+        "deletion_verification": null
+      },
+      "consent": {
+        "evidence": null,
+        "company_scope_required": true,
+        "revocation_evidence": null
+      },
+      "qualification": "unverified",
+      "fallback": "Preserve draft/source; no silent send or broader mailbox permission. Unknown sends require original operation recovery."
+    }
+  ],
+  "remaining": [
+    "Inspect all deployment-specific configured destinations and SDK overrides without exposing credentials.",
+    "Verify actual contractual retention/deletion terms; do not infer provider defaults.",
+    "Integrate validated policy at each outbound adapter and exercise real isolated expiry/outage/revocation acceptance.",
+    "Qualify hosting/database/storage/telemetry boundaries and any newly discovered external services."
+  ]
+}
