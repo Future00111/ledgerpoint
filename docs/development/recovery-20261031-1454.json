@@ -1,0 +1,13 @@
+{
+  "priorRunId": "hosted-20261031-0148",
+  "observedAt": "2026-10-31T14:54:53.968Z",
+  "codeHead": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
+  "checks": [
+    "Live collaboration inventory contains only /root; no prior worker agents available.",
+    "Restored run-0148 and w0148-1 both clean at published32511cec; no worker edits or new commits.",
+    "Local runtime revision264 only adds claims P01-03 and P02-01 to durable revision262; neither checkpoint nor workStarted recorded.",
+    "Hosted automation latest run completed no_update; latest published result remains prior run. Current restored host has no old worker operations."
+  ],
+  "workersStopped": true,
+  "worktreesClean": true
+}
