@@ -139,3 +139,59 @@ test('real PostgreSQL: object-only public schemas cannot bypass the empty-databa
     await admin.query(`DROP DATABASE ${database}`);
   }
 });
+
+for (const includeAmendments of [false, true]) {
+  test(`real PostgreSQL: late installer failure rolls back all migrations and permits clean retry, amendments=${includeAmendments}`, async () => {
+    const database = `ledgerly_migration_rollback_${includeAmendments ? 'amended' : 'original'}_test`;
+    await admin.query(`CREATE DATABASE ${database}`);
+    const candidate = new pg.Client({ host: socket, port: 55441, user: 'w03_bootstrap',
+      database, password: '', ssl: false, options: '-c timezone=UTC' });
+    try {
+      await candidate.connect();
+      const { installSchema, exportSchema } = await import(
+        pathToFileURL(path.join(process.cwd(), 'tools/accounting-flow/schema.mjs')).href);
+      const sql = exportSchema();
+      const objects = async () => (await candidate.query(`SELECT count(*)::int n FROM (
+        SELECT oid FROM pg_class WHERE relnamespace='public'::regnamespace
+        UNION ALL SELECT oid FROM pg_proc WHERE pronamespace='public'::regnamespace
+        UNION ALL SELECT oid FROM pg_type WHERE typnamespace='public'::regnamespace
+      ) objects`)).rows[0].n;
+      assert.equal(await objects(), 0);
+      let injected = false;
+      // Fail with a real PostgreSQL error after the table migrations and before
+      // canonical security installation. No installer bypass or ambient DB is used.
+      const failingAdmin = { query: async (statement, values) => {
+        if (!injected && statement.startsWith('ALTER TABLE public.accounting_posting_effects OWNER')) {
+          injected = true;
+          const { rows: [installed] } = await candidate.query(`SELECT
+            to_regclass('public.accounting_document_sources') sources,
+            to_regclass('public.accounting_paid_credit_operations') paid_credits,
+            to_regclass('public.w03_invoice_drafts') drafts`);
+          assert.ok(installed.sources); assert.ok(installed.paid_credits); assert.ok(installed.drafts);
+          return candidate.query('SELECT 1 / 0');
+        }
+        return candidate.query(statement, values);
+      } };
+      await assert.rejects(() => installSchema(failingAdmin, sql, { includeAmendments }),
+        error => error.code === '22012');
+      assert.equal(injected, true, 'failure must occur after the real migrations ran');
+      assert.equal(await objects(), 0, 'ROLLBACK must remove all partial schema objects');
+      await installSchema(candidate, sql, { includeAmendments });
+      assert.ok(await objects() > 0);
+      const { rows: [installed] } = await candidate.query(`SELECT
+        to_regclass('public.accounting_document_sources') sources,
+        to_regclass('public.accounting_document_amendments') amendments,
+        to_regclass('public.accounting_document_amendment_heads') heads`);
+      assert.ok(installed.sources);
+      assert.equal(Boolean(installed.amendments), includeAmendments);
+      assert.equal(Boolean(installed.heads), includeAmendments);
+      const before = await fingerprintDatabase(candidate);
+      await assert.rejects(() => installSchema(candidate, sql, { includeAmendments }),
+        /restricted to a newly created empty disposable database/);
+      assertSameFingerprint(before, await fingerprintDatabase(candidate));
+    } finally {
+      await candidate.end();
+      await admin.query(`DROP DATABASE ${database}`);
+    }
+  });
+}

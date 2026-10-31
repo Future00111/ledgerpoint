@@ -17,7 +17,6 @@ import { db } from "@workspace/db";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
 import { retiredChartBootstrapBoundary } from "./legacyChartBootstrapPolicy";
 import {
-  findActiveMembership,
   requireCompanyScope,
 } from "../middlewares/companyScope";
 import { aiService, AIProviderError } from "../services/ai/index.js";
@@ -45,13 +44,6 @@ router.use(authenticate);
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 
-
-async function getMembership(
-  userId: string,
-  companyId: string,
-): Promise<{ company_id: string; role: string | null; is_active: boolean | null } | null> {
-  return findActiveMembership(userId, companyId);
-}
 
 /**
  * Assert read+write access: caller must be a member of companyId and must not
@@ -110,6 +102,11 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
     return;
   }
 
+  if (!args || typeof args !== "object" || Array.isArray(args)) {
+    res.status(400).json({ error: "A function arguments object is required" });
+    return;
+  }
+
   try {
     switch (funcName) {
       // ── testAI ───────────────────────────────────────────────────────────
@@ -151,13 +148,11 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
           prompt?: string;
         };
 
-        // Verify membership when a company is supplied.
-        if (company_id) {
-          const m = await getMembership(userId, company_id);
-          if (!m) {
-            res.status(403).json({ error: "Access denied" });
-            return;
-          }
+        // Omitted context permits general chat. Explicit malformed context must
+        // never downgrade a company request into an unscoped provider call.
+        if (company_id !== undefined) {
+          const scope = await requireCompanyScope(res, { userId, requestedCompanyId: company_id });
+          if (!scope) return;
         }
 
         // Accept either a pre-built messages array or a single prompt string.

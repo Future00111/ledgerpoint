@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
 import PostedDocument from './PostedDocument';
+import { DiscountBalanceReview } from '../../features/documentDiscounts/DiscountControls';
 
 const source = {
   invoice_number: 'SYNTHETIC-144', issue_date: '2026-10-30', due_date: '2026-11-29',
@@ -120,5 +121,25 @@ test('malformed settlement renders an unavailable state rather than money, statu
       assert.ok(!html.includes('data-testid="settlement-status"'));
       assert.ok(!html.includes('Apply discount'));
     }
+  }
+});
+
+
+test('discount review hides stale or malformed balances and never suggests excess beyond credit capacity', () => {
+  const item = { gross_minor: '14400', credited_minor: '0', paid_minor: '14000', open_minor: '400' };
+  const money = { gross_pence: '1000' };
+  const renderReview = (props = {}) => renderToStaticMarkup(<DiscountBalanceReview original={doc} item={item} money={money} {...props} />);
+  const valid = renderReview();
+  for (const value of ['£144.00', '£140.00', '£4.00', '£10.00', '£6.00', 'posting this credit does not move cash']) assert.ok(valid.includes(value), value);
+  for (const props of [{ loading: true }, { error: new Error('Unavailable') }, { item: null }, { original: { money: { gross_pence: '14500' } } },
+    ...Object.keys(item).flatMap(field => [undefined, null, '', '-1', '01', 'bad', '1.2', 0, '1000000000000'].map(value => ({ item: { ...item, [field]: value } })))]) {
+    const html = renderReview(props);
+    for (const value of ['£144.00', '£140.00', '£4.00', '£10.00', '£6.00', 'Balance if posted', 'posting this credit does not move cash']) assert.ok(!html.includes(value), JSON.stringify(props) + value);
+  }
+  for (const props of [{ dirty: true }, ...[undefined, null, '', '-1', 'bad', '1.2', 1000, '14401'].map(value => ({ money: { gross_pence: value } }))]) {
+    const html = renderReview(props);
+    assert.ok(html.includes('Balance preview unavailable'));
+    assert.ok(!html.includes('Balance if posted'));
+    assert.ok(!html.includes('posting this credit does not move cash'));
   }
 });

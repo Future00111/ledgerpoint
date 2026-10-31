@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
-import { MobileDocumentCards, DocumentTable, DocumentStatusFilters, DocumentTotal, documentSettlement, SettlementFilterNotice } from '@/pages/AccountingDocumentList';
+import { MobileDocumentCards, DocumentTable, DocumentStatusFilters, DocumentTotal, documentSettlement, documentSettlementsAvailable, SettlementFilterNotice } from '@/pages/AccountingDocumentList';
 import PostedDocument, { PostedLineCards } from '@/components/accounting/PostedDocument';
 import { DiscountEditor, DraftWriteActions } from '@/features/documentDiscounts/DiscountControls';
 import { CaptureDraftActions } from './CaptureReview';
@@ -149,7 +149,7 @@ test('document totals disclose saved net and VAT precisely without inferring una
 
 
 test('settlement views discard stale cached balances after failed refresh and retain document access', () => {
-  const item = { id: 'doc', open_minor: '0', paid_minor: '14400', credited_minor: '0', settlement: 'settled' };
+  const item = { id: 'doc', gross_minor: '14400', open_minor: '0', paid_minor: '14400', credited_minor: '0', settlement: 'settled' };
   const data = { open_items: [item] };
   assert.equal(documentSettlement({ data, loading: false, error: null }, 'doc'), item);
   assert.equal(documentSettlement({ data, loading: false, error: null }, 'missing'), null);
@@ -190,5 +190,35 @@ test('desktop document tables preserve keyboard access, full references and name
     assert.equal(readonly.includes('Edit draft'), false);
     assert.ok(readonly.includes('aria-label="View SYNTHETIC-1 for Synthetic Supplier"'));
     assert.equal(readonly.includes('Still due'), !kind.includes('credit_note'));
+  }
+});
+
+
+test('malformed settlement snapshots cannot crash document rows or masquerade as filtered zero balances', () => {
+  const item = { id: 'doc', gross_minor: '14400', open_minor: '9400', paid_minor: '5000', credited_minor: '0', settlement: 'part_paid' };
+  const valid = { data: { open_items: [item] }, loading: false };
+  assert.equal(documentSettlementsAvailable(valid), true);
+  assert.equal(documentSettlement(valid, 'doc'), item);
+  assert.equal(documentSettlementsAvailable({ data: { open_items: [] } }), true);
+  const badItems = [null, {}, { ...item, id: '' }, { ...item, gross_minor: '14401' },
+    { ...item, open_minor: 'not-money' }, { ...item, paid_minor: 5000 }, { ...item, credited_minor: '-1' },
+    { ...item, open_minor: '09400' }, { ...item, settlement: 'settled' }, { ...item, settlement: 'unknown' }];
+  const snapshots = [undefined, {}, { data: {} }, { data: { open_items: {} } },
+    { data: { open_items: [item, item] } }, ...badItems.map(bad => ({ data: { open_items: [item, bad] } }))];
+  for (const ledger of snapshots) {
+    assert.equal(documentSettlementsAvailable(ledger), false);
+    assert.equal(documentSettlement(ledger, 'doc'), null);
+    for (const kind of ['sales_invoice', 'purchase_bill']) {
+      const props = { docs: [doc], kind, capabilities: {}, remaining: d => documentSettlement(ledger, d.id), ledgerLoading: false, isOverdue: () => false };
+      for (const Component of [MobileDocumentCards, DocumentTable]) {
+        const html = render(<Component {...props} />);
+        assert.ok(html.includes(kind === 'sales_invoice' ? 'href="/invoices/doc"' : 'href="/bills/doc"'));
+        assert.ok(html.includes('Unavailable'));
+        assert.equal(html.includes('settlement-status'), false);
+        assert.equal(html.includes('£94.00'), false);
+        assert.equal(html.includes('£50.00'), false);
+        assert.ok(html.includes('£144.00'));
+      }
+    }
   }
 });

@@ -426,3 +426,65 @@ test("generic creates reject malformed or contradictory company context before m
     await new Promise<void>(resolve => server.close(() => resolve()));
   }
 });
+
+test("legacy AI rejects malformed explicit company and mismatched membership before company data or provider access", async () => {
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "synthetic-no-provider-access";
+  const { createFunctionsRouter } = await import("../routes/functions");
+  const { aiService } = await import("../services/ai/index");
+  if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
+  else process.env.OPENAI_API_KEY = previousKey;
+  const { db } = await import("@workspace/db");
+  const { companyUsersTable, aiReconciliationResultsTable } = await import("@workspace/db/schema");
+  const { PgDialect } = await import("drizzle-orm/pg-core");
+  const dialect = new PgDialect();
+  const originalSelect = db.select, originalComplete = aiService.complete;
+  let membershipReads = 0, companyReads = 0, providerCalls = 0;
+  let membership: Record<string, unknown> | null = { company_id: "company-a", user_id: "synthetic-viewer", role: "read_only", is_active: true };
+  db.select = (() => ({ from(table: unknown) {
+    if (table === companyUsersTable) return { where: async () => { membershipReads++; return membership ? [membership] : []; } };
+    assert.equal(table, aiReconciliationResultsTable);
+    return { where(condition: any) {
+      assert.deepEqual(dialect.sqlToQuery(condition).params, ["company-a", "pending"]);
+      return { limit: async () => { companyReads++; return []; } };
+    } };
+  } })) as unknown as typeof db.select;
+  aiService.complete = (async () => { providerCalls++; return { provider: "synthetic", model: "synthetic", text: "Synthetic reply" }; }) as typeof aiService.complete;
+  const app = express(); app.use(express.json({ strict: false }));
+  app.use(createFunctionsRouter((req, res, next) => {
+    if (!req.get("x-test-actor")) { res.sendStatus(401); return; }
+    (req as any).userId = "synthetic-viewer"; next();
+  }));
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise<void>(resolve => server.once("listening", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const request = (body: unknown, authenticated = true) => fetch(`http://127.0.0.1:${address.port}/askAI`, {
+    method: "POST", headers: { "Content-Type": "application/json", ...(authenticated ? { "x-test-actor": "synthetic-viewer" } : {}) }, body: JSON.stringify(body),
+  });
+  try {
+    assert.equal((await request({ prompt: "Synthetic" }, false)).status, 401);
+    for (const body of [null, false, 0, "text", []]) assert.equal((await request(body)).status, 400);
+    for (const company_id of [null, "", false, 0, {}, [], ["company-a"]]) {
+      assert.equal((await request({ company_id, prompt: "Synthetic" })).status, 400);
+    }
+    assert.equal(membershipReads, 0); assert.equal(companyReads, 0); assert.equal(providerCalls, 0);
+    for (const row of [null,
+      { company_id: "company-a", user_id: "synthetic-viewer", role: "read_only", is_active: false },
+      { company_id: "company-b", user_id: "synthetic-viewer", role: "read_only", is_active: true },
+      { company_id: "company-a", user_id: "other-user", role: "read_only", is_active: true },
+    ]) {
+      membership = row;
+      assert.equal((await request({ company_id: "company-a", prompt: "Synthetic" })).status, 403);
+    }
+    assert.equal(companyReads, 0); assert.equal(providerCalls, 0);
+    membership = { company_id: "company-a", user_id: "synthetic-viewer", role: "read_only", is_active: true };
+    assert.equal((await request({ company_id: "company-a", prompt: "Synthetic" })).status, 200);
+    assert.equal(companyReads, 1); assert.equal(providerCalls, 1);
+    const beforeMembershipReads = membershipReads;
+    assert.equal((await request({ prompt: "General synthetic question" })).status, 200);
+    assert.equal(membershipReads, beforeMembershipReads); assert.equal(companyReads, 1); assert.equal(providerCalls, 2);
+  } finally {
+    db.select = originalSelect; aiService.complete = originalComplete;
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  }
+});

@@ -63,7 +63,7 @@ test('late discount original line fields are locked, while normal credit quantit
 });
 
 test('discount review separates original total, payments, current remaining and saved discount', () => {
-  const props = { original: { money: { gross_pence: '12000' } }, item: { paid_minor: '5000', open_minor: '7000' }, money: { gross_pence: '1200' } };
+  const props = { original: { money: { gross_pence: '12000' } }, item: { gross_minor: '12000', credited_minor: '0', paid_minor: '5000', open_minor: '7000' }, money: { gross_pence: '1200' } };
   const saved = render(<DiscountBalanceReview {...props} />);
   for (const text of ['£120.00', '£50.00', '£70.00', '£12.00', '£58.00', 'Balance if posted']) assert.ok(saved.includes(text), text);
   const unsaved = render(<DiscountBalanceReview {...props} dirty />);

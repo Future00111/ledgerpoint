@@ -7,13 +7,26 @@ import { useLedgerSnapshot } from '@/lib/useLedgerSnapshot';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StatusPill, SettlementPill, Money, ErrorBox, SkeletonRows, JournalLink } from '@/components/accounting/AccountingUI';
-import { canEditDrafts, documentActionLabel } from '@/features/documentDiscounts/model.mjs';
+import { canEditDrafts, documentActionLabel, isValidSettlementSnapshot } from '@/features/documentDiscounts/model.mjs';
 import PageHeader from '@/components/workspace/PageHeader';
 import EmptyState from '@/components/workspace/EmptyState';
 
+/** Reject an incomplete or contradictory snapshot before filtering or rendering balances. */
+export function documentSettlementsAvailable(ledger) {
+  if (!ledger || ledger.loading || ledger.error || !Array.isArray(ledger.data?.open_items)) return false;
+  const seen = new Set();
+  return ledger.data.open_items.every(item => {
+    if (!isValidSettlementSnapshot(item) || typeof item.id !== 'string' || !item.id.trim() || seen.has(item.id)) return false;
+    seen.add(item.id);
+    const status = BigInt(item.open_minor) === 0n ? 'settled'
+      : BigInt(item.paid_minor) + BigInt(item.credited_minor) > 0n ? 'part_paid' : 'outstanding';
+    return item.settlement === status;
+  });
+}
+
 /** Failed refreshes may retain cached ledger data: do not present it as current settlement. */
 export function documentSettlement(ledger, id) {
-  if (ledger.loading || ledger.error || !ledger.data) return null;
+  if (!documentSettlementsAvailable(ledger)) return null;
   return ledger.data.open_items.find(item => item.id === id) ?? null;
 }
 
@@ -92,8 +105,8 @@ function CompanyDocumentList({ kind, legacyLink, activeCompany }) {
   const setFilter = value => { const next = new URLSearchParams(params); next.set('status',value); setParams(next,{replace:true}); };
   const [search, setSearch] = useState('');
   const ledger = useLedgerSnapshot(activeCompany?.id, undefined, undefined, !meta.credit);
-  const remaining = d => documentSettlement(ledger, d.id);
-  const settlementUnavailable = !meta.credit && (ledger.loading || ledger.error || !ledger.data);
+  const settlementUnavailable = !meta.credit && !documentSettlementsAvailable(ledger);
+  const remaining = d => meta.credit || settlementUnavailable ? null : ledger.data.open_items.find(item => item.id === d.id) ?? null;
   const filterUnavailable = settlementUnavailable && !['all', 'draft'].includes(filter);
 
   const load = useCallback((signal) => {

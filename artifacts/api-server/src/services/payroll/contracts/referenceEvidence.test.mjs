@@ -88,3 +88,38 @@ test('reference amounts and source coordinates must be complete exact values', (
     assert.throws(() => validatePayrollReferenceEvidence(registry, c), /INVALID_PAYROLL_REFERENCE_EVIDENCE/);
   }
 });
+
+test('PAYE reference coverage preserves ordered workbook sequence lineage', () => {
+  const path = registry.cases.find(row => row.referenceFixtures?.region).referenceFixtures.path;
+  for (const mutate of [
+    c => c.cases[0].previousExampleId = 'missing',
+    c => c.cases[1].previousExampleId = null,
+    c => c.cases[1].previousExampleId = c.cases.find(e => e.input.region === 'wales').id,
+    c => c.cases[1].sequenceId = 'unrelated/sequence',
+    c => c.cases[1].sourceSheet = 'another_sheet',
+    c => c.cases[1].sourceWorkbook = 'missing.xlsx',
+    c => c.cases[1].sourceWorkbook = c.source.workbooks.find(b => b.region === 'wales').path,
+    c => c.cases[1].input.frequency = 'weekly',
+    c => c.cases[1].input.week1Month1 = 'WM1',
+    c => delete c.cases[1].input.week1Month1,
+    c => c.cases[1].sourceRow = c.cases[0].sourceRow,
+    c => [c.cases[0], c.cases[1]] = [c.cases[1], c.cases[0]],
+    c => delete c.source.workbooks,
+    c => c.source.workbooks.push({...c.source.workbooks[0]}),
+    c => c.source.workbooks[0].sha256 = 'unverified',
+  ]) {
+    const c = structuredClone(corpora); mutate(c[path]);
+    assert.throws(() => validatePayrollReferenceEvidence(registry, c), /INVALID_PAYROLL_REFERENCE_EVIDENCE/);
+  }
+});
+
+test('independent PAYE sequences can interleave without losing their own lineage', () => {
+  const path = registry.cases.find(row => row.referenceFixtures?.region).referenceFixtures.path;
+  const c = structuredClone(corpora);
+  const sequences = Map.groupBy(c[path].cases, e => e.sequenceId);
+  c[path].cases = [];
+  while ([...sequences.values()].some(rows => rows.length)) {
+    for (const rows of sequences.values()) if (rows.length) c[path].cases.push(rows.shift());
+  }
+  assert.deepEqual(validatePayrollReferenceEvidence(registry, c), {referenceCases:8, qualifiedCases:0});
+});

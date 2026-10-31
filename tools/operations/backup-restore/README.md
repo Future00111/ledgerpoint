@@ -36,14 +36,14 @@ ownership and external provisioning gates.
 Run `node tools/operations/backup-restore/rehearsal.mjs` as a non-root development
 user with PostgreSQL binaries on PATH. The CLI accepts no arguments, ignores
 ambient database credentials, and creates two fresh socket-only clusters. It
-backs up representative synthetic binary attachment, pending job and audit tables,
+backs up representative synthetic two-tenant binary attachment, pending job and audit tables,
 encrypts the pg_dump, authenticates and decrypts it, and feeds only recovered bytes
 to pg_restore in the second cluster. An explicit synthetic least-privilege role is
 recreated. Rows, constraints, indexes, triggers, functions, ownership, grants and
-role memberships must match. Three negative controls deliberately remove a source
-foreign key, add a role membership, or grant audit deletion; each must change the
+role memberships and row-security policies/enabled/forced flags must match. Six negative controls deliberately remove a source
+foreign key, add a role membership, grant audit deletion, remove the tenant-read policy, disable row security or remove its forced flag; each must change the
 fingerprint and roll back to the original recovered state. An attempted audit
-deletion under the restored reader must remain denied. Both clusters and the temporary key/archive directory are
+deletion under the restored reader must remain denied. That reader must see exactly the permitted tenant attachment with original bytes and no other tenant attachment. Both clusters and the temporary key/archive directory are
 removed before success. CI checks the current-commit receipt at
 `generated-artifacts/encrypted-recovery.json`.
 
