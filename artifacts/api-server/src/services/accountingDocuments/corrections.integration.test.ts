@@ -9,7 +9,7 @@ import { correctionContext, reviewCorrection, commitCorrection, correctionHistor
 import { queryAdapter } from './core';
 import { previewPayment, postPayment } from './payments';
 import { linkedCreditDocuments, documentOpen } from './settlement';
-import { createClaims, cancelClaim } from '../creditTracking/service';
+import { createClaims, cancelClaim, confirmReceipt, listClaims } from '../creditTracking/service';
 
 const socket = process.env.ACCOUNTING_FLOW_TEST_SOCKET ?? '';
 if (!/^\/tmp\/ledgerly-accounting-flow-tests-[A-Za-z0-9]+\/socket$/.test(socket)) throw Error('Disposable socket required');
@@ -205,6 +205,9 @@ test('active claims block correction, cancelled claims persist, and corrected bi
   await cancelClaim(f.company,actor,saved.id,saved.revision,{request_id:randomUUID()});
   await commit(f,doc,await review(f,doc));await rejected(()=>createClaims(f.company,actor,{...body,request_id:randomUUID()}),'CORRECTED_DOCUMENT_DEPENDENCY_UNSUPPORTED');
   assert.equal((await admin.query('SELECT cancelled FROM supplier_credit_claims WHERE id=$1',[saved.id])).rows[0].cancelled,true);
+  const historical=await listClaims(f.company,actor,doc.id);
+  assert.equal(historical.claims[0].cancelled,true);assert.equal(historical.claims[0].status,'needs_review');
+  assert.deepEqual(historical.claims[0].expected,saved.expected);assert.deepEqual(historical.claims[0].candidates,[]);
 });
 
 test('SQL boundaries enforce runtime grants, owner immutable triggers, strict head succession and tenant FKs',async()=>{
@@ -277,4 +280,28 @@ test('linked credit projection rejects missing journal, wrong party and kind eve
     const q={query:async()=>({rows:[{...credit,...patch}]})} as any;
     await rejected(()=>linkedCreditDocuments(q,randomUUID(),original,'2026-10-01'),'CREDIT_HISTORY_INVALID');
   }
+});
+
+
+test('receipt confirmation and claim listing fail closed on corrupt bill history without changing receipt evidence',async()=>{
+  const templateCompany=await fixture(),templateBill=await postNew(templateCompany,'purchase_bill',source(templateCompany.supplier,'excluding_vat',['STANDARD']));
+  await commit(templateCompany,templateBill,await review(templateCompany,templateBill));
+  const template=(await admin.query('SELECT id FROM accounting_document_amendments WHERE company_id=$1',[templateCompany.company])).rows[0];
+  const f=await fixture(),bill=await postNew(f,'purchase_bill',source(f.supplier,'excluding_vat',['STANDARD']));
+  const created=await createClaims(f.company,actor,{request_id:randomUUID(),bill_id:bill.id,bill_revision:bill.revision,
+    reason:'Returned part',returned_on:'2026-10-11',lines:[{original_line_ref:0,quantity:'0.2'}]});
+  const creditSource={...bill.source,invoice_number:'C-'+randomUUID(),issue_date:'2026-10-12',due_date:'2026-10-12',line_items:[{...bill.source.line_items[0],quantity:'0.1'}]};
+  const credit=await postNew(f,'supplier_credit_note',creditSource,{original_id:bill.id,reason:'Return',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-12',original_line_refs:[0]});
+  const claim=(await admin.query('SELECT * FROM supplier_credit_claims WHERE id=$1',[created.ids[0]])).rows[0];
+  await confirmReceipt(f.company,actor,claim.id,claim.revision,{request_id:randomUUID(),credit_id:credit.id,credit_revision:credit.revision,credit_line_ref:0});
+  const listed=await listClaims(f.company,actor,bill.id);assert.equal(listed.claims[0].status,'partial');assert.equal(listed.claims[0].receipts[0].active,true);
+  const before=(await admin.query('SELECT * FROM supplier_credit_receipts WHERE company_id=$1',[f.company])).rows;
+  const second=await postNew(f,'supplier_credit_note',{...creditSource,invoice_number:'C-'+randomUUID()},{original_id:bill.id,reason:'Return',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-12',original_line_refs:[0]});
+  const unrelated=await postNew(f,'purchase_bill',source(f.supplier,'excluding_vat',['STANDARD']));
+  const journals=(await admin.query('SELECT id,journal_id FROM accounting_document_sources WHERE company_id=$1',[f.company])).rows;
+  // Insert an intentionally orphaned amendment only into this disposable fixture.
+  await pool.query(`INSERT INTO accounting_document_amendments SELECT $1::uuid,$2::uuid,$3::uuid,1,$4::uuid,$5::uuid,$6::uuid,request_hash,review_token,actor_id,reason,effective_date,$7::uuid,$8::uuid,financial_context_hash,before_source,after_source,before_money,after_money,delta_money,after_tax_context,created_at FROM accounting_document_amendments WHERE id=$9`,[randomUUID(),f.company,bill.id,bill.revision,randomUUID(),randomUUID(),journals.find(j=>j.id===bill.id).journal_id,journals.find(j=>j.id===unrelated.id).journal_id,template.id]);
+  await rejected(()=>listClaims(f.company,actor,bill.id),'CORRECTION_HISTORY_INVALID');
+  await rejected(()=>confirmReceipt(f.company,actor,claim.id,listed.claims[0].revision,{request_id:randomUUID(),credit_id:second.id,credit_revision:second.revision,credit_line_ref:0}),'CORRECTION_HISTORY_INVALID');
+  assert.deepEqual((await admin.query('SELECT * FROM supplier_credit_receipts WHERE company_id=$1',[f.company])).rows,before);
 });

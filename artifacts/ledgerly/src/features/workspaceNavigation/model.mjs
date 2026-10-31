@@ -94,3 +94,15 @@ export function navigationGroups(sections, everydayRoutes, options = {}) {
   const more = visible.map(section => ({ ...section, items: section.items.filter(item => !paths.has(item.path)) })).filter(section => section.items.length);
   return { everyday, more };
 }
+
+
+/** Verified provider limits for existing routes; never infer a connection from saved settings. */
+export function workspaceAvailabilityNotice(pathname) {
+  if (!['/email-capture', '/email-rules'].includes(pathname.replace(/\/$/, ''))) return null;
+  return {
+    title: 'Email capture is not connected',
+    message: 'Saved email accounts and rules do not scan a mailbox or import attachments. You can upload supplier files to the document inbox and review them manually.',
+    path: '/documents',
+    label: 'Open document inbox',
+  };
+}

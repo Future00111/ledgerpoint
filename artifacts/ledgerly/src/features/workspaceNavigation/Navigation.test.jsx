@@ -11,6 +11,7 @@ import { NavigationLinks } from '@/components/layout/NavigationLinks';
 import { SECTIONS, EVERYDAY_ROUTES } from '@/components/layout/navConfig';
 import { navigationGroups } from './model.mjs';
 import { FileText } from 'lucide-react';
+import LedgerTable from '../reporting/LedgerTable';
 const render = (node, route = '/') => renderToStaticMarkup(<MemoryRouter initialEntries={[route]}>{node}</MemoryRouter>);
 
 test('closed navigation sheet renders no hidden focusable menu entries', () => {
@@ -81,5 +82,28 @@ test('daily accounting shortcuts retain direct expert paths and only offer draft
         assert.equal(html.includes('check the details and prepare a draft'), false);
       }
     }
+  }
+});
+
+
+test('posted ledger retains exact amounts and evidence while descriptions use native keyboard disclosures', () => {
+  const row = { id: 'line1', journal_id: 'journal-1', posting_date: '2026-10-30', account_code: '4000', account_name: 'Sales',
+    document_kind: 'sales_invoice', document_id: 'document-1', source_type: 'sales_invoice', source_number: 'INV-42',
+    debit_minor: '0', credit_minor: '12345', description: 'Service & parts\n<script>unsafe</script>' };
+  const html = render(<LedgerTable rows={[row]} from="2026-10-01" to="2026-10-31" />);
+  assert.match(html, /<details[^>]*><summary/);
+  assert.match(html, /Entry description/);
+  assert.match(html, /for INV-42, account 4000/);
+  assert.match(html, /Service &amp; parts/);
+  assert.match(html, /&lt;script&gt;unsafe&lt;\/script&gt;/);
+  assert.equal(html.includes('<script>'), false);
+  assert.match(html, /href="\/invoices\/document-1"/);
+  assert.match(html, /href="\/accounting\/journals\/journal-1"/);
+  assert.match(html, /123.45/);
+  assert.match(html, /Matching movement totals/);
+  for (const description of [undefined, null, '', '   ', 17]) {
+    const empty = render(<LedgerTable rows={[{ ...row, description }]} from="2026-10-01" to="2026-10-31" />);
+    assert.equal(empty.includes('<details'), false);
+    assert.match(empty, /href="\/accounting\/journals\/journal-1"/);
   }
 });

@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { canWriteDraft, decimal, fail, uuid } from '../financialDrafts/contract';
 import { document, exactFields, hash, scope, transact, type Queryable } from '../accountingDocuments/core';
 import { expectedClaim, creditCandidate, claimProgress } from './domain';
-import { assertUncorrectedOriginal } from '../accountingDocuments/amendments';
+import { amendmentHistory, assertUncorrectedOriginal } from '../accountingDocuments/amendments';
 
 type Row = Record<string, any>;
 type TestHook = (q: Queryable) => Promise<void>;
@@ -90,8 +90,10 @@ export async function confirmReceipt(company: string, actor: string, id: string,
     if (claim.cancelled) fail(409, 'CLAIM_CANCELLED');
     if (claim.revision !== expected) fail(409, 'REVISION_CONFLICT');
     const bill = await document(q, company, claim.bill_id, true);
+    await assertUncorrectedOriginal(q, company, bill);
     if (bill.revision !== claim.bill_revision || !await liveJournal(q, company, bill)) fail(409, 'ORIGINAL_BILL_NOT_CURRENT');
     const credit = await document(q, company, uuid(body.credit_id), true);
+    await assertUncorrectedOriginal(q, company, credit);
     if (credit.revision !== uuid(body.credit_revision)) fail(409, 'CREDIT_REVISION_CONFLICT');
     if (!creditCandidate(claim, credit, body.credit_line_ref) || !await liveJournal(q, company, credit)) fail(409, 'CREDIT_MATCH_INVALID');
     if (claim.baseline_credit_ids.includes(credit.id)) fail(409, 'CREDIT_PREDATES_CLAIM');
@@ -132,12 +134,17 @@ export async function listClaims(company: string, actor: string, billId?: string
     const claims = [];
     for (const claim of rows) {
       const bill = await document(q, company, claim.bill_id);
-      const originalActive = bill.revision === claim.bill_revision && await liveJournal(q, company, bill);
+      // Immutable source revisions do not advance with financial corrections. Read
+      // and validate the same full chain used by settlement/reports before
+      // deciding whether this claim's frozen original is still current.
+      const history = await amendmentHistory(q, company, bill);
+      const originalActive = history.rows.length === 0 && bill.revision === claim.bill_revision && await liveJournal(q, company, bill);
       const credits = (await q.query("SELECT * FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND kind='supplier_credit_note' ORDER BY created_at,id", [company, claim.bill_id])).rows;
       const allocations = (await q.query('SELECT * FROM supplier_credit_receipts WHERE company_id=$1 AND credit_id=ANY($2::uuid[])', [company, credits.map(r => r.id)])).rows;
       const receipts = [], candidates = [];
       for (const credit of credits) {
-        const active = originalActive && await liveJournal(q, company, credit);
+        const creditHistory = await amendmentHistory(q, company, credit);
+        const active = originalActive && creditHistory.rows.length === 0 && await liveJournal(q, company, credit);
         for (let index = 0; index < credit.source.line_items.length; index++) {
           const allocation = allocations.find(r => r.credit_id === credit.id && r.credit_line_ref === index);
           if (allocation?.claim_id === claim.id) receipts.push({ ...allocation, number: credit.number,

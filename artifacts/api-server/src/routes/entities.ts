@@ -16,12 +16,13 @@ import { safeErrorLog, safeRouteErrors } from "../security/publicErrors";
  *  - IN list:         ?field[]=a&field[]=b  (sent by entities.js $in operator)
  */
 
-import { Router, type Request, type Response } from "express";
+import { Router, type Request, type Response, type RequestHandler } from "express";
 import { db } from "@workspace/db";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
 import {
   findActiveCompanyIds,
   findActiveMembership,
+  requireCompanyScope,
 } from "../middlewares/companyScope";
 import { genericEntityWriteError, isGenericEntityWriteBlocked, genericEntityWriteBoundary } from "./entityWritePolicy";
 import {
@@ -146,10 +147,11 @@ async function getUserRole(userId: string, companyId: string): Promise<string | 
 // Router
 // ---------------------------------------------------------------------------
 
+export function createEntitiesRouter(authenticate: RequestHandler = requireAuth) {
 const router = Router();
 
 // Validate entity name + authenticate
-router.use("/:entity", requireAuth, genericEntityWriteBoundary, (req: Request, res: Response, next) => {
+router.use("/:entity", authenticate, genericEntityWriteBoundary, (req: Request, res: Response, next) => {
   const entityName = req.params["entity"] as string;
   if (!ENTITY_MAP[entityName]) {
     res.status(404).json({ error: `Unknown entity: ${entityName}` });
@@ -268,16 +270,20 @@ router.get("/:entity/:id", async (req: Request, res: Response) => {
 
     const row = rows[0] as Record<string, unknown>;
 
-    // Verify ownership
-    if (entityName === COMPANY_ENTITY) {
-      if (!authorizedIds.includes(row["id"] as string)) {
-        res.status(403).json({ error: "Access denied" });
-        return;
-      }
-    } else if (!authorizedIds.includes(row["company_id"] as string)) {
+    // The current workspace, when supplied, must agree with the resource even
+    // for a user who can access both companies. Recheck active membership for
+    // this exact resource; list membership alone is not an authorization token.
+    const resourceCompanyId = entityName === COMPANY_ENTITY ? row["id"] : row["company_id"];
+    if (!authorizedIds.includes(resourceCompanyId as string)) {
       res.status(403).json({ error: "Access denied" });
       return;
     }
+    const scope = await requireCompanyScope(res, {
+      userId,
+      requestedCompanyId: req.query["company_id"],
+      resourceCompanyId,
+    });
+    if (!scope) return;
 
     res.json(row);
   } catch (err: unknown) {
@@ -547,4 +553,7 @@ router.delete("/:entity/:id", async (req: Request, res: Response) => {
 
 router.use(safeRouteErrors);
 
-export default router;
+return router;
+}
+
+export default createEntitiesRouter();

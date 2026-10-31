@@ -143,3 +143,60 @@ test("legacy bank mutations reject contradictory or malformed caller company bef
     await new Promise<void>(resolve => server.close(() => resolve()));
   }
 });
+
+test("generic entity reads bind explicit workspace context and recheck active membership while preserving viewer reads", async () => {
+  const { createEntitiesRouter } = await import("../routes/entities");
+  const { db } = await import("@workspace/db");
+  const { customersTable, companiesTable, companyUsersTable } = await import("@workspace/db/schema");
+  const originalSelect = db.select;
+  let membershipReads = 0;
+  let active = true;
+  let membershipCompany = "company-a";
+  let hasMembership = true;
+  db.select = (() => ({ from(table: unknown) {
+    if (table === customersTable) return { where: () => ({ limit: async () => [{ id: "customer", company_id: "company-a", name: "Synthetic" }] }) };
+    if (table === companiesTable) return { where: () => ({ limit: async () => [{ id: "company-a", name: "Synthetic company" }] }) };
+    assert.equal(table, companyUsersTable);
+    return { where: async () => {
+      membershipReads++;
+      return hasMembership ? [{ company_id: membershipCompany, user_id: "synthetic-viewer", role: "read_only", is_active: active }] : [];
+    } };
+  } })) as unknown as typeof db.select;
+  const app = express();
+  app.use(createEntitiesRouter((req, res, next) => {
+    if (!req.get("x-test-actor")) { res.sendStatus(401); return; }
+    (req as any).userId = "synthetic-viewer"; next();
+  }));
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise<void>(resolve => server.once("listening", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const base = `http://127.0.0.1:${address.port}`;
+  const get = (path: string) => fetch(base + path, { headers: { "x-test-actor": "synthetic-viewer" } });
+  try {
+    for (const path of ["/Customer/customer", "/Company/company-a"]) {
+      for (const query of ["", "?company_id=company-a"]) {
+        const response = await get(path + query);
+        assert.equal(response.status, 200, path + query);
+        assert.match(await response.text(), /Synthetic/);
+      }
+      for (const [query, status] of [["?company_id=company-b", 403], ["?company_id=", 400], ["?company_id=company-a&company_id=company-b", 400]] as const) {
+        const before = membershipReads;
+        const response = await get(path + query);
+        assert.equal(response.status, status, path + query);
+        assert.doesNotMatch(await response.text(), /Synthetic/);
+        assert.equal(membershipReads, before + 1, "context rejected before resource membership recheck");
+      }
+      active = false;
+      assert.equal((await get(path)).status, 403, "inactive resource membership fails closed");
+      active = true; membershipCompany = "company-b";
+      assert.equal((await get(path)).status, 403, "foreign membership cannot read record");
+      membershipCompany = "company-a"; hasMembership = false;
+      assert.equal((await get(path)).status, 403, "no membership cannot read record");
+      hasMembership = true;
+      assert.equal((await fetch(base + path)).status, 401);
+    }
+  } finally {
+    db.select = originalSelect;
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  }
+});

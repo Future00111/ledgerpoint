@@ -10,7 +10,7 @@ import {
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
-import { logger } from "./lib/logger";
+import { logger, httpLogSerializers } from "./lib/logger";
 import { verifyDraftBody, draftParserErrors } from "./services/financialDrafts/jsonBoundary";
 import { RejectedOriginError, safeAppErrors } from "./security/appErrors";
 import { apiResponseHeaders, rejectCrossSiteUnsafeRequest } from "./security/requestLimits";
@@ -30,20 +30,7 @@ app.disable("x-powered-by");
 app.use(
   pinoHttp({
     logger,
-    serializers: {
-      req(req) {
-        return {
-          id: req.id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
-      },
-      res(res) {
-        return {
-          statusCode: res.statusCode,
-        };
-      },
-    },
+    serializers: httpLogSerializers,
   }),
 );
 

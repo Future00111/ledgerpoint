@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopHeader from './TopHeader';
 import { AskProvider } from '@/components/ask/AskProvider';
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { useCompany } from '@/lib/useCompany';
 import { WorkspaceCapabilities } from '@/features/workspaceNavigation/WorkspaceCapabilities';
-import { readCollapsed, rememberCollapsed, sidebarMode, restoreNavigationFocus } from '@/features/workspaceNavigation/model.mjs';
+import { readCollapsed, rememberCollapsed, sidebarMode, restoreNavigationFocus, workspaceAvailabilityNotice } from '@/features/workspaceNavigation/model.mjs';
 import { findActiveItem } from './navConfig';
 import { pushRecent } from './recentItems';
 
@@ -17,6 +17,7 @@ export default function AppLayout() {
   const [navigationSection, setNavigationSection] = useState(null);
   const { selectionWarning } = useCompany();
   const location = useLocation();
+  const availability = workspaceAvailabilityNotice(location.pathname);
   const returnFocus = useRef(null);
   const main = useRef(null);
   const mode = sidebarMode(width, preference);
@@ -51,7 +52,10 @@ export default function AppLayout() {
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <TopHeader onToggleMobile={openNavigation} mobileOpen={mobileOpen} showCompanyContext={mode.collapsed || !mode.rail} />
         {selectionWarning && <div role="status" className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:px-6">{selectionWarning}</div>}
-        <main id="workspace-main" ref={main} tabIndex={-1} className="min-w-0 flex-1 overflow-y-auto p-4 outline-none sm:p-6 lg:px-9 lg:py-8"><Outlet /></main>
+        <main id="workspace-main" ref={main} tabIndex={-1} className="min-w-0 flex-1 overflow-y-auto p-4 outline-none sm:p-6 lg:px-9 lg:py-8">{availability && <section aria-label="Feature availability" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          <h2 className="font-semibold">{availability.title}</h2><p className="mt-1">{availability.message}</p>
+          <Link className="mt-2 inline-block font-medium underline" to={availability.path}>{availability.label}</Link>
+        </section>}<Outlet /></main>
       </div>
     </div>
   </Sheet></WorkspaceCapabilities></AskProvider>;
