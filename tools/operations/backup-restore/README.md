@@ -16,7 +16,7 @@ symlink/path replacement races; it is not a multi-user upload endpoint.
 ```sh
 node tools/operations/backup-restore/archive.mjs encrypt synthetic.dump synthetic.dump.enc /secure/separate-key --synthetic-only
 node tools/operations/backup-restore/archive.mjs decrypt synthetic.dump.enc fresh-restored.dump /secure/separate-key --synthetic-only
-node --test tools/operations/backup-restore/archive.test.mjs
+node --test tools/operations/backup-restore/*.test.mjs
 ```
 
 Outputs must not exist. Decryption authenticates before creating restored bytes.
@@ -26,9 +26,9 @@ owns its isolated rehearsal cleanup. Wrapper tests use a synthetic JSON bundle
 containing role, job, audit and original attachment bytes; they do not restore
 PostgreSQL roles/schema or prove full database recovery.
 
-Integrating this wrapper with `tools/accounting-flow/restore-drill.mjs`, restoring
-to a fresh PostgreSQL cluster, and validating representative recovery time are
-still required. See `docs/operations/recovery-targets.json` for unresolved targets,
+The separate-cluster rehearsal below connects encryption to PostgreSQL.
+Extending it to the complete populated application schema and validating
+representative recovery time are still required. See `docs/operations/recovery-targets.json` for unresolved targets,
 ownership and external provisioning gates.
 
 ## Separate-cluster encrypted PostgreSQL rehearsal
@@ -39,8 +39,11 @@ ambient database credentials, and creates two fresh socket-only clusters. It
 backs up representative synthetic binary attachment, pending job and audit tables,
 encrypts the pg_dump, authenticates and decrypts it, and feeds only recovered bytes
 to pg_restore in the second cluster. An explicit synthetic least-privilege role is
-recreated, grants and row fingerprints must match, and an attempted audit deletion
-must remain denied. Both clusters and the temporary key/archive directory are
+recreated. Rows, constraints, indexes, triggers, functions, ownership, grants and
+role memberships must match. Three negative controls deliberately remove a source
+foreign key, add a role membership, or grant audit deletion; each must change the
+fingerprint and roll back to the original recovered state. An attempted audit
+deletion under the restored reader must remain denied. Both clusters and the temporary key/archive directory are
 removed before success. CI checks the current-commit receipt at
 `generated-artifacts/encrypted-recovery.json`.
 
