@@ -48,7 +48,7 @@ removed before success. CI checks the current-commit receipt at
 `generated-artifacts/encrypted-recovery.json`.
 
 This executable verifies the encryption/restore connection and fresh-cluster role
-and grant restoration for representative fixtures. It does not replace the full
+and grant restoration for representative fixtures. Column types, nullability, defaults, identity/generation markers and collation, plus sequence configuration and consumed identifier state, are compared. Five additional rollback-contained negative controls remove a required field constraint, change a default or type, rewind an identity sequence or change its increment. A deleted synthetic job leaves a consumed identifier so recovery must preserve gaps rather than reconstruct sequence state from surviving rows. It does not replace the full
 application restore drill, restore real customers, establish operational RTO/RPO,
 or qualify off-site storage, custody, retention or production recovery. The
 recorded elapsed duration is only the complete tiny synthetic rehearsal duration.
