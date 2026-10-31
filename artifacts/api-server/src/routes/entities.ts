@@ -23,6 +23,7 @@ import {
   findActiveCompanyIds,
   findActiveMembership,
   requireCompanyScope,
+  resolveCompanyScope,
 } from "../middlewares/companyScope";
 import { genericEntityWriteError, isGenericEntityWriteBlocked, genericEntityWriteBoundary } from "./entityWritePolicy";
 import {
@@ -315,6 +316,7 @@ router.patch("/:entity/bulk-update", async (req: Request, res: Response) => {
     const results: Array<Record<string, unknown>> = [];
 
     for (const record of records) {
+      if (!record || typeof record !== "object" || Array.isArray(record)) continue;
       const id = record["id"] as string | undefined;
       if (!id) continue;
 
@@ -324,14 +326,15 @@ router.patch("/:entity/bulk-update", async (req: Request, res: Response) => {
       const existingRow = existing[0] as Record<string, unknown>;
       const companyId = existingRow["company_id"] as string;
 
-      const role = await getUserRole(userId, companyId);
-      if (!canWriteCompanyData(role)) continue;
-
-      // Prevent tenant reassignment
-      if (record["company_id"] && record["company_id"] !== companyId) continue;
+      // Explicit null/empty context is invalid, never permission to clear the tenant.
+      if (record["company_id"] !== undefined && record["company_id"] !== companyId) continue;
+      const decision = await resolveCompanyScope({ userId,
+        requestedCompanyId: req.query["company_id"], resourceCompanyId: companyId });
+      if (!decision.ok || !canWriteCompanyData(decision.scope.role)) continue;
 
       const updateData = { ...record };
       delete updateData["id"];
+      delete updateData["company_id"];
       if (table["updated_at"]) updateData["updated_at"] = new Date();
 
       const updated = await db.update(table).set(updateData).where(eq(table["id"], id)).returning();
@@ -463,24 +466,24 @@ async function updateEntity(req: Request, res: Response) {
     const existingRow = existing[0] as Record<string, unknown>;
     const companyId = existingRow["company_id"] as string;
 
-    const role = await getUserRole(userId, companyId);
-    if (!role) {
-      res.status(403).json({ error: "Access denied" });
-      return;
-    }
-    if (!canWriteCompanyData(role)) {
-      res.status(403).json({ error: "Your role does not permit updating records" });
-      return;
-    }
-
-    // Never allow changing company_id — prevents cross-tenant record reassignment
-    if (req.body["company_id"] && req.body["company_id"] !== companyId) {
+    // Check both caller contexts against the authoritative resource company.
+    // Never let explicit null/empty context clear tenant ownership in UPDATE.
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body) ||
+      (req.body["company_id"] !== undefined && req.body["company_id"] !== companyId)) {
       res.status(400).json({ error: "Changing company_id is not permitted" });
+      return;
+    }
+    const scope = await requireCompanyScope(res, { userId,
+      requestedCompanyId: req.query["company_id"], resourceCompanyId: companyId });
+    if (!scope) return;
+    if (!canWriteCompanyData(scope.role)) {
+      res.status(403).json({ error: "Your role does not permit updating records" });
       return;
     }
 
     const updateData = { ...req.body };
     delete updateData["id"];
+    delete updateData["company_id"];
     // Older clients used empty strings to clear relations.
     // PostgreSQL UUID columns require null instead; normalise at the boundary
     // so an otherwise valid match can never fail with a 500 response.

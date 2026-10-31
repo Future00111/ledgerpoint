@@ -275,3 +275,70 @@ test("generic lists and deletes honor selected company without broadening malfor
     await new Promise<void>(resolve => server.close(() => resolve()));
   }
 });
+
+test("generic updates preserve tenant ownership and reject stale or malformed workspace context", async () => {
+  const { createEntitiesRouter } = await import("../routes/entities");
+  const { db } = await import("@workspace/db");
+  const { customersTable, companyUsersTable } = await import("@workspace/db/schema");
+  const originalSelect = db.select, originalUpdate = db.update;
+  let role = "owner", active = true, membership = true;
+  const updates: Record<string, unknown>[] = [];
+  db.select = (() => ({ from(table: unknown) {
+    if (table === customersTable) return { where: () => ({ limit: async () => [{ id: "customer", company_id: "company-a", name: "Synthetic" }] }) };
+    assert.equal(table, companyUsersTable);
+    return { where: async () => membership ? [{ company_id: "company-a", user_id: "synthetic-owner", role, is_active: active }] : [] };
+  } })) as unknown as typeof db.select;
+  db.update = (() => ({ set(data: Record<string, unknown>) {
+    updates.push(data);
+    return { where: () => ({ returning: async () => [{ id: "customer", company_id: "company-a", ...data }] }) };
+  } })) as unknown as typeof db.update;
+  const app = express(); app.use(express.json({ strict: false }));
+  app.use(createEntitiesRouter((req, res, next) => {
+    if (!req.get("x-test-actor")) { res.sendStatus(401); return; }
+    (req as any).userId = "synthetic-owner"; next();
+  }));
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise<void>(resolve => server.once("listening", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const request = (path: string, body: unknown, method = "PATCH") => fetch(`http://127.0.0.1:${address.port}${path}`, {
+    method, headers: { "Content-Type": "application/json", "x-test-actor": "synthetic-owner" }, body: JSON.stringify(body),
+  });
+  try {
+    for (const method of ["PATCH", "PUT"]) {
+      for (const company_id of [null, "", "company-b", [], {}, 0, false]) {
+        assert.equal((await request("/Customer/customer", { company_id, name: "Changed" }, method)).status, 400);
+      }
+      for (const [query, status] of [["?company_id=company-b", 403], ["?company_id=", 400], ["?company_id=company-a&company_id=company-b", 400]] as const) {
+        assert.equal((await request(`/Customer/customer${query}`, { company_id: "company-a", name: "Changed" }, method)).status, status);
+      }
+    }
+    assert.equal(updates.length, 0);
+    for (const company_id of [null, "", "company-b", [], {}, 0, false]) {
+      const response = await request("/Customer/bulk-update", [{ id: "customer", company_id, name: "Changed" }]);
+      assert.equal(response.status, 200); assert.deepEqual(await response.json(), []);
+    }
+    for (const query of ["?company_id=company-b", "?company_id=", "?company_id=company-a&company_id=company-b"]) {
+      const response = await request(`/Customer/bulk-update${query}`, [{ id: "customer", name: "Changed" }]);
+      assert.equal(response.status, 200); assert.deepEqual(await response.json(), []);
+    }
+    assert.equal(updates.length, 0);
+    for (const state of ["viewer", "inactive", "missing"]) {
+      role = state === "viewer" ? "read_only" : "owner"; active = state !== "inactive"; membership = state !== "missing";
+      assert.equal((await request("/Customer/customer", { name: "Changed" })).status, 403);
+      const response = await request("/Customer/bulk-update", [{ id: "customer", name: "Changed" }]);
+      assert.deepEqual(await response.json(), []);
+    }
+    assert.equal(updates.length, 0);
+    role = "owner"; active = true; membership = true;
+    for (const company_id of [undefined, "company-a"]) {
+      const response = await request("/Customer/customer?company_id=company-a", { company_id, name: "Changed" });
+      assert.equal(response.status, 200); assert.equal(((await response.json()) as { company_id: string }).company_id, "company-a");
+      assert.equal((await request("/Customer/bulk-update?company_id=company-a", [{ id: "customer", company_id, name: "Changed" }])).status, 200);
+    }
+    assert.equal(updates.length, 4);
+    for (const update of updates) { assert.equal(Object.hasOwn(update, "company_id"), false); assert.equal(Object.hasOwn(update, "id"), false); }
+  } finally {
+    db.select = originalSelect; db.update = originalUpdate;
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  }
+});
