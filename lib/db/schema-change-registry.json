@@ -142,7 +142,7 @@
     "unitPartialSchema": "artifacts/api-server/src/services/accountingDocuments/amendmentsMath.test.ts",
     "disposableRunner": "tools/accounting-flow/test.mjs",
     "restoreRunner": "tools/accounting-flow/restore-drill.mjs",
-    "realDatabasePartialSchemaMatrix": "pending P03-03; not proved by unit mocks",
+    "realDatabasePartialSchemaMatrix": "tools/development/migrations/partial-schema.test.mjs; seven amendment absence/partial/rollback/restricted-role/repeated-install cases wired to disposable runner; exact-source CI pending; full P03-03 compatibility matrix remains pending",
     "installedSchema": "not inspected or changed"
   }
 }

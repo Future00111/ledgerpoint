@@ -128,3 +128,24 @@ same-hash concurrent replay, changed-hash replay conflict, stale job completion,
 and lost response after commit under P03-01/02. The missing real-database partial
 schema matrix is explicitly outstanding, so this contract alone does not prove
 migration readiness or complete P03-03.
+
+
+### Disposable amendment-schema matrix (implementation awaiting exact-source CI)
+
+`tools/development/migrations/partial-schema.test.mjs` is now wired into the
+existing private Unix-socket accounting runner. It checks seven cases: each
+one-table-only amendment schema; complete absence with original-only projection;
+a missing lookup column; failed transactional DDL; complete-schema reads under
+`ledgerly_api`; and repeated overlay installation refusing a nonempty schema.
+It verifies database/user/socket/data-directory identity before alterations,
+checks restricted runtime flags and owner separation, rolls test alterations
+back, and compares the full database fingerprint (rows, guards, constraints,
+indexes, functions, owners and grants). It consumes no ambient connection URL.
+
+These tests preserve the existing correction behavior; they do not install a
+production schema gate. The missing-column case currently fails at SQL read
+with `42703`, not a typed compatibility error. Checksum/version validation,
+individual missing constraints/triggers, wrong ownership/grants, and full
+existing-business migration rehearsal remain P03-03 work. Passing syntax and
+bundle checks locally is not PostgreSQL evidence: P03-00 acceptance requires
+this exact candidate's isolated CI result and coordinator contract review.

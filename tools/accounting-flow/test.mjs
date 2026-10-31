@@ -51,6 +51,7 @@ try {
     ['src/services/accountingDocuments/corrections.integration.test.ts','corrections-flow.test.cjs'],
     ['src/services/accountingDocuments/vatCoverage.integration.test.ts','vat-coverage-flow.test.cjs'],
     ['src/services/auditReview/integration.test.ts','audit-review-flow.test.cjs'],
+    ['../../tools/development/migrations/partial-schema.test.mjs','partial-schema-flow.test.cjs'],
   ]) {
     execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',entry,
       '--bundle','--platform=node','--format=cjs','--external:pg','--external:@clerk/express',
