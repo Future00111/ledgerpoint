@@ -2707,5 +2707,347 @@
         "sourceVersion": "1.1"
       }
     }
-  ]
+  ],
+  "registerAcceptanceBoundary": "Register completion means declared case scope, required inputs/outputs and acceptance scenarios are reviewed. It does not require or imply implemented engines. P04-03 supplies independent expected-result fixtures and P04-02 implements deterministic rules; promotion to supported remains separately gated.",
+  "payrollPrerequisites": {
+    "status": "declared_requirements_not_engine_qualification",
+    "sourceId": "payroll",
+    "taxYears": [
+      "2025-26",
+      "2026-27",
+      "2027-28"
+    ],
+    "scopePolicy": "Each variant remains in commercial scope. This family matrix does not claim every combination is qualified; unknown combinations fail closed. Year-specific eligibility and statutory rules must be pinned before calculation.",
+    "nextTasks": {
+      "P04-03": "For each family and year, pin official or independently reviewed input/output fixtures, boundary and interaction cases, with reviewer identity.",
+      "P04-02": "Use those reviewed fixtures to implement explicit precision, rounding, effective rule versions and immutable replay; do not derive expected results from the engine."
+    },
+    "families": [
+      {
+        "id": "employment_and_schedule",
+        "backlogTask": "P09-01",
+        "status": "unqualified",
+        "owner": "coordinator",
+        "variants": [
+          "employee",
+          "director",
+          "starter",
+          "leaver",
+          "rejoiner",
+          "midyear_migration"
+        ],
+        "requiredInputs": [
+          "employerId",
+          "employmentId",
+          "payrollId",
+          "employmentDates",
+          "paySchedule",
+          "taxCode",
+          "niCategory",
+          "priorYearToDate"
+        ],
+        "requiredOutputs": [
+          "versionedEmploymentSnapshot",
+          "schedulePeriods",
+          "validationErrors"
+        ],
+        "acceptanceScenario": "Create starter, import prior year-to-date, change schedule, leave and rejoin; preserve separate payroll identities and reject conflicting dates.",
+        "expectedResultEvidence": null
+      },
+      {
+        "id": "gross_pay",
+        "backlogTask": "P09-02",
+        "status": "unqualified",
+        "owner": "coordinator",
+        "variants": [
+          "salary",
+          "hours",
+          "overtime",
+          "bonus",
+          "arrears",
+          "holiday_absence",
+          "adjustment",
+          "benefit"
+        ],
+        "requiredInputs": [
+          "employmentSnapshot",
+          "payPeriod",
+          "payComponents",
+          "componentTaxAndNiTreatment",
+          "effectiveRuleVersion"
+        ],
+        "requiredOutputs": [
+          "grossPayMinor",
+          "taxablePayMinor",
+          "niablePayMinor",
+          "pensionablePayMinor",
+          "componentCalculationSteps"
+        ],
+        "acceptanceScenario": "Combine salary, overtime and arrears with absence and benefit inputs; reconcile each treatment-specific earnings basis without inferring taxable status.",
+        "expectedResultEvidence": null
+      },
+      {
+        "id": "paye",
+        "backlogTask": "P09-03",
+        "status": "unqualified",
+        "owner": "coordinator",
+        "variants": [
+          "cumulative",
+          "non_cumulative",
+          "rest_of_uk",
+          "scotland",
+          "wales",
+          "code_change",
+          "irregular_pay",
+          "refund"
+        ],
+        "requiredInputs": [
+          "taxYear",
+          "taxRegion",
+          "taxCode",
+          "taxBasis",
+          "periodNumber",
+          "taxablePayMinor",
+          "taxablePayToDateMinor",
+          "priorTaxMinor",
+          "ruleVersion"
+        ],
+        "requiredOutputs": [
+          "payeMinor",
+          "payeToDateMinor",
+          "allowanceAndBandSteps",
+          "ruleVersion"
+        ],
+        "acceptanceScenario": "Replay cumulative and non-cumulative runs across region and code changes, irregular pay and refunds against independent official examples; retain earlier results.",
+        "expectedResultEvidence": null
+      },
+      {
+        "id": "national_insurance",
+        "backlogTask": "P09-04",
+        "status": "unqualified",
+        "owner": "coordinator",
+        "variants": [
+          "employee",
+          "employer",
+          "category_change",
+          "director_annual",
+          "director_alternative",
+          "irregular_earnings_period"
+        ],
+        "requiredInputs": [
+          "taxYear",
+          "niCategory",
+          "niablePayMinor",
+          "earningsPeriod",
+          "directorMethod",
+          "appointmentDate",
+          "yearToDate",
+          "ruleVersion"
+        ],
+        "requiredOutputs": [
+          "employeeNiMinor",
+          "employerNiMinor",
+          "yearToDateNi",
+          "thresholdAndRoundingSteps"
+        ],
+        "acceptanceScenario": "Exercise category transitions, both director methods and irregular periods at every applicable threshold; reconcile employee and employer contributions independently.",
+        "expectedResultEvidence": null
+      },
+      {
+        "id": "loans_statutory_deductions",
+        "backlogTask": "P09-05",
+        "status": "unqualified",
+        "owner": "coordinator",
+        "variants": [
+          "student_plan_1",
+          "student_plan_2",
+          "student_plan_4",
+          "student_plan_5",
+          "postgraduate",
+          "concurrent_student_and_postgraduate",
+          "protected_earnings",
+          "statutory_pay",
+          "statutory_recovery",
+          "other_deductions",
+          "salary_sacrifice"
+        ],
+        "requiredInputs": [
+          "taxYear",
+          "effectiveLoanNotices",
+          "loanPlan",
+          "niablePayMinor",
+          "earningsPeriod",
+          "protectedEarningsOrder",
+          "statutoryEligibilityEvidence",
+          "deductionInstructions",
+          "salarySacrificeAgreement",
+          "ruleVersion"
+        ],
+        "requiredOutputs": [
+          "loanDeductionsMinor",
+          "statutoryPayMinor",
+          "statutoryRecoveryMinor",
+          "otherDeductionsMinor",
+          "earningsBasisAdjustments",
+          "calculationSteps"
+        ],
+        "acceptanceScenario": "Verify notice start/stop and concurrent loans, protected earnings ordering, statutory eligibility/recovery and salary-sacrifice interactions; reject unspecified treatment instead of guessing.",
+        "expectedResultEvidence": null
+      },
+      {
+        "id": "pensions",
+        "backlogTask": "P09-06",
+        "status": "unqualified",
+        "owner": "coordinator",
+        "variants": [
+          "assessment",
+          "enrolment",
+          "postponement",
+          "opt_out",
+          "re_enrolment",
+          "scheme_contributions"
+        ],
+        "requiredInputs": [
+          "employmentSnapshot",
+          "assessmentDate",
+          "earningsBasis",
+          "schemeRules",
+          "enrolmentEvents",
+          "contributionInstructions"
+        ],
+        "requiredOutputs": [
+          "assessmentOutcome",
+          "employeeContributionMinor",
+          "employerContributionMinor",
+          "schemeOutput",
+          "auditEvents"
+        ],
+        "acceptanceScenario": "Assess and enrol, postpone, opt out and re-enrol synthetic workers; reconcile contribution basis and scheme outputs with effective-dated rules.",
+        "expectedResultEvidence": null
+      },
+      {
+        "id": "run_lifecycle",
+        "backlogTask": "P09-07",
+        "status": "unqualified",
+        "owner": "coordinator",
+        "variants": [
+          "preview",
+          "approve",
+          "finalise",
+          "lock",
+          "correction",
+          "duplicate_retry"
+        ],
+        "requiredInputs": [
+          "companyId",
+          "actorId",
+          "runId",
+          "operationId",
+          "employmentAndRuleSnapshots",
+          "reviewedPreviewHash"
+        ],
+        "requiredOutputs": [
+          "immutableRunResult",
+          "approvalEvidence",
+          "lockVersion",
+          "correctionLink",
+          "operationOutcome"
+        ],
+        "acceptanceScenario": "Preview and approve identical snapshots, finalise once under retry/concurrency, then correct by linked history; reject stale approvals and unauthorised changes.",
+        "expectedResultEvidence": null
+      },
+      {
+        "id": "outputs_and_year_end",
+        "backlogTask": "P09-08",
+        "status": "unqualified",
+        "owner": "coordinator",
+        "variants": [
+          "payslip",
+          "employer_report",
+          "p45",
+          "p60",
+          "payment_file",
+          "year_end"
+        ],
+        "requiredInputs": [
+          "finalisedRunId",
+          "employmentIdentity",
+          "taxYear",
+          "yearToDate",
+          "outputPermissions",
+          "paymentInstructions"
+        ],
+        "requiredOutputs": [
+          "payslip",
+          "employerReport",
+          "p45",
+          "p60",
+          "paymentFile",
+          "yearEndReconciliation"
+        ],
+        "acceptanceScenario": "Reconcile secure payslips, employer reports and year-end/leaver forms to immutable runs; reject cross-company access and never transmit payment files implicitly.",
+        "expectedResultEvidence": null
+      },
+      {
+        "id": "rti_and_notices",
+        "backlogTask": "P09-09",
+        "status": "unqualified",
+        "owner": "coordinator",
+        "variants": [
+          "fps",
+          "eps",
+          "receipt",
+          "rejection",
+          "unknown_response",
+          "amendment",
+          "notice"
+        ],
+        "requiredInputs": [
+          "employerAuthority",
+          "finalisedRunSnapshot",
+          "submissionId",
+          "schemaVersion",
+          "priorReceipt",
+          "noticeIdentity"
+        ],
+        "requiredOutputs": [
+          "validatedPayload",
+          "submissionState",
+          "receiptIdentity",
+          "rejectionDetails",
+          "noticeState"
+        ],
+        "acceptanceScenario": "Prepare and validate synthetic FPS/EPS, recover unknown/rejected responses without duplicate submission, then apply effective notices with audit; no live filing authority inferred.",
+        "expectedResultEvidence": null
+      },
+      {
+        "id": "full_cycle_and_rollover",
+        "backlogTask": "P09-10",
+        "status": "unqualified",
+        "owner": "coordinator",
+        "variants": [
+          "ordinary_cycle",
+          "correction_cycle",
+          "tax_year_rollover",
+          "prior_year_replay"
+        ],
+        "requiredInputs": [
+          "supportedCaseIds",
+          "officialFixtures",
+          "independentReview",
+          "ruleVersions",
+          "openingYearToDate",
+          "runSequence"
+        ],
+        "requiredOutputs": [
+          "reconciledGrossToNet",
+          "reconciledEmployerLiability",
+          "yearEndTotals",
+          "qualificationEvidence"
+        ],
+        "acceptanceScenario": "Run complete gross-to-net cycles through corrections and year rollover, independently reconcile all deductions and employer liabilities, and reproduce prior-year results unchanged.",
+        "expectedResultEvidence": null
+      }
+    ]
+  }
 }

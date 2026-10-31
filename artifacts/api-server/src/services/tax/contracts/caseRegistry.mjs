@@ -37,6 +37,27 @@ function validReference(row) {
     && row.selector.employment === `employee_${loan ? 'loan' : 'paye'}_${ref[dimension]}`
     && (!loan || names(ref.frequencies) && ref.frequencies.every(f => ['weekly', 'fortnightly', 'four_weekly', 'monthly'].includes(f)));
 }
+// Scope declaration is an input to fixture/engine work, never calculation authority.
+function validPayrollPrerequisites(registry) {
+  const matrix = registry.payrollPrerequisites;
+  if (!nonempty(registry.registerAcceptanceBoundary) || !plain(matrix)
+    || matrix.status !== 'declared_requirements_not_engine_qualification'
+    || !Object.hasOwn(registry.sources, matrix.sourceId) || !names(matrix.taxYears)
+    || !nonempty(matrix.scopePolicy) || !plain(matrix.nextTasks)
+    || !nonempty(matrix.nextTasks['P04-02']) || !nonempty(matrix.nextTasks['P04-03'])
+    || !Array.isArray(matrix.families) || matrix.families.length !== 10) return false;
+  const ids = new Set(), tasks = new Set();
+  for (const family of matrix.families) {
+    if (!plain(family) || !nonempty(family.id) || ids.has(family.id)
+      || !/^P09-(?:0[1-9]|10)$/.test(family.backlogTask) || tasks.has(family.backlogTask)
+      || family.status !== 'unqualified' || !nonempty(family.owner)
+      || !names(family.variants) || !names(family.requiredInputs) || !names(family.requiredOutputs)
+      || !nonempty(family.acceptanceScenario) || family.expectedResultEvidence !== null) return false;
+    ids.add(family.id); tasks.add(family.backlogTask);
+  }
+  const years = new Set(registry.cases.filter(row => row.selector?.domain === 'payroll').map(row => row.selector.taxYear));
+  return matrix.taxYears.length === years.size && matrix.taxYears.every(year => years.has(year));
+}
 export function validateCaseRegistry(registry) {
   if (!plain(registry) || registry.version !== 1 || registry.enginePolicy !== 'in_house_only'
     || !plain(registry.sources) || !Array.isArray(registry.cases) || registry.cases.length === 0
@@ -68,6 +89,7 @@ export function validateCaseRegistry(registry) {
       || row.example.expected.caseId !== row.id) throw new Error('INVALID_CASE_REGISTRY');
     ids.add(row.id); selectors.add(signature(row.selector));
   }
+  if (!validPayrollPrerequisites(registry)) throw new Error('INVALID_PAYROLL_PREREQUISITES');
   return registry;
 }
 export function resolveQualifiedCase(registry, selector) {
