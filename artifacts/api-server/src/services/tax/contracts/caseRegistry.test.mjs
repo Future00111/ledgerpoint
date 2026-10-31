@@ -81,3 +81,36 @@ test('incomplete traceability and invalid source metadata reject the registry', 
     assert.throws(() => validateCaseRegistry(r), /INVALID_CASE_REGISTRY/);
   }
 });
+
+test('payroll scope covers every original engine/workflow bullet without promoting support', () => {
+  const matrix = registry.payrollPrerequisites;
+  assert.deepEqual(matrix.families.map(f => f.backlogTask).sort(), Array.from({length:10}, (_, i) => `P09-${String(i+1).padStart(2,'0')}`));
+  assert.ok(matrix.families.every(f => f.status === 'unqualified' && f.expectedResultEvidence === null));
+  for (const task of ['P04-02', 'P04-03']) assert.ok(matrix.nextTasks[task].length > 40);
+  // Declaring a required interaction does not make it an executable case.
+  const employee = registry.cases.find(c => c.id === 'payroll-employee-2026-27').selector;
+  assert.deepEqual(resolvePayrollCase(registry, {...employee, employment:'concurrent_student_and_postgraduate'}), {ok:false,code:'UNKNOWN_CASE'});
+});
+test('missing payroll families, years, scenarios and speculative qualification fail closed', () => {
+  for (const mutate of [
+    r => delete r.payrollPrerequisites,
+    r => r.payrollPrerequisites.families.pop(),
+    r => r.payrollPrerequisites.families[1].backlogTask = 'P09-01',
+    r => r.payrollPrerequisites.families[0].requiredInputs = [],
+    r => r.payrollPrerequisites.families[0].requiredOutputs = [],
+    r => r.payrollPrerequisites.families[0].acceptanceScenario = '',
+    r => r.payrollPrerequisites.families[0].variants = [],
+    r => r.payrollPrerequisites.families[0].status = 'supported',
+    r => r.payrollPrerequisites.families[0].expectedResultEvidence = {passed:true},
+    r => r.payrollPrerequisites.taxYears.pop(),
+    r => r.payrollPrerequisites.taxYears.push('2028-29'),
+    r => delete r.payrollPrerequisites.nextTasks['P04-03'],
+  ]) { const r=clone(); mutate(r); assert.throws(()=>validateCaseRegistry(r), /INVALID_PAYROLL_PREREQUISITES/); }
+});
+
+test('malformed case rows retain the registry validation boundary', () => {
+  for (const row of [null, undefined, 42, [], {}]) {
+    const r=clone(); r.cases[0]=row;
+    assert.throws(()=>validateCaseRegistry(r), /^Error: INVALID_CASE_REGISTRY$/);
+  }
+});

@@ -46,3 +46,51 @@ export function loadMigrationInputs(root) {
   catch { fail('MIGRATION_REGISTRY_UNAVAILABLE'); }
   return validateMigrationInputs(registry, relative => readFileSync(path.join(root, relative)));
 }
+
+// This attests installed history only; schema controls require separate verification.
+export function expectedMigrationHistory(inputs, { includeAmendments = false } = {}) {
+  return [...migrationOrder.filter(id => includeAmendments || id !== 'accounting-document-amendments'),
+    'canonical-security-overlay'].map(id => ({ id, sha256: sha256(Buffer.from(inputs[id])), contract_version: 1,
+      dependencies: id === 'canonical-security-overlay' ? ['w03-invoice-drafts']
+        : id === 'w03-invoice-drafts' ? ['accounting-documents']
+        : migrationOrder.indexOf(id) === 0 ? [] : [migrationOrder[migrationOrder.indexOf(id) - 1]] }));
+}
+export function validateInstalledMigrationHistory(rows, expected) {
+  if (!Array.isArray(rows) || rows.length !== expected.length) fail('MIGRATION_HISTORY_INCOMPATIBLE');
+  const byId = new Map(rows.map(row => [row.id, row]));
+  if (byId.size !== expected.length) fail('MIGRATION_HISTORY_INCOMPATIBLE');
+  for (const entry of expected) {
+    const row = byId.get(entry.id);
+    if (!row || row.sha256 !== entry.sha256 || row.contract_version !== entry.contract_version
+        || JSON.stringify(row.dependencies) !== JSON.stringify(entry.dependencies)) fail('MIGRATION_HISTORY_INCOMPATIBLE');
+  }
+  return true;
+}
+export async function checkInstalledMigrationHistory(client, inputs, options) {
+  const present = await client.query("SELECT to_regclass('public.schema_migrations') present");
+  if (!present.rows[0]?.present) fail('MIGRATION_HISTORY_UNAVAILABLE');
+  const { rows } = await client.query('SELECT id,sha256,contract_version,dependencies FROM public.schema_migrations ORDER BY id');
+  return validateInstalledMigrationHistory(rows, expectedMigrationHistory(inputs, options));
+}
+export async function recordInstalledMigrationHistory(client, inputs, options) {
+  // Called only inside the fresh installer's transaction, after schema controls pass.
+  await client.query(`CREATE TABLE public.schema_migrations (
+    id text PRIMARY KEY, sha256 text NOT NULL CHECK (sha256 ~ '^[a-f0-9]{64}$'),
+    contract_version integer NOT NULL CHECK (contract_version > 0), dependencies jsonb NOT NULL,
+    applied_at timestamptz NOT NULL DEFAULT transaction_timestamp()
+  );
+  CREATE FUNCTION public.ledgerly_migration_history_immutable() RETURNS trigger LANGUAGE plpgsql AS $$
+  BEGIN RAISE EXCEPTION 'Migration history is immutable'; END $$;
+  CREATE TRIGGER ledgerly_migration_history_immutable BEFORE UPDATE OR DELETE ON public.schema_migrations
+    FOR EACH ROW EXECUTE FUNCTION public.ledgerly_migration_history_immutable();
+  CREATE TRIGGER ledgerly_migration_history_no_truncate BEFORE TRUNCATE ON public.schema_migrations
+    FOR EACH STATEMENT EXECUTE FUNCTION public.ledgerly_migration_history_immutable();
+  ALTER TABLE public.schema_migrations ENABLE ALWAYS TRIGGER ledgerly_migration_history_immutable;
+  ALTER TABLE public.schema_migrations ENABLE ALWAYS TRIGGER ledgerly_migration_history_no_truncate;
+  REVOKE ALL ON public.schema_migrations FROM PUBLIC,ledgerly_api;
+  GRANT SELECT ON public.schema_migrations TO ledgerly_api;`);
+  for (const row of expectedMigrationHistory(inputs, options)) await client.query(
+    'INSERT INTO public.schema_migrations(id,sha256,contract_version,dependencies) VALUES($1,$2,$3,$4::jsonb)',
+    [row.id, row.sha256, row.contract_version, JSON.stringify(row.dependencies)]);
+  await checkInstalledMigrationHistory(client, inputs, options);
+}

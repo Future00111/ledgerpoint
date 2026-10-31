@@ -325,7 +325,19 @@
         "lib/db/migrations/operation-recovery.review.sql",
         "artifacts/ledgerly/src/features/paymentRecovery/model.mjs",
         "artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx",
-        "artifacts/ledgerly/src/features/documentCorrections/model.mjs"
+        "artifacts/ledgerly/src/features/documentCorrections/model.mjs",
+        "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+        "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+        "artifacts/api-server/src/routes/accountingDocuments.ts",
+        "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+        "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+        "artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs",
+        "tools/development/migrations/registry.mjs",
+        "tools/development/migrations/registry.test.mjs",
+        "lib/db/migration-registry.json",
+        "lib/db/schema-change-registry.json"
       ],
       "kind": "implementation",
       "approval": "approved"
@@ -346,7 +358,20 @@
         "artifacts/api-server/src/services/durableJobs/",
         "lib/db/migrations/durable-jobs.review.sql",
         "artifacts/api-server/src/services/documentIntake/extraction/worker/types.ts",
-        "artifacts/api-server/src/services/documentIntake/extraction/worker.ts"
+        "artifacts/api-server/src/services/documentIntake/extraction/worker.ts",
+        "artifacts/api-server/src/services/documentIntake/extraction/contract.ts",
+        "artifacts/api-server/src/services/documentIntake/extraction/contract.test.ts",
+        "artifacts/api-server/src/services/documentIntake/extraction/worker.test.ts",
+        "artifacts/api-server/src/services/documentIntake/service.ts",
+        "artifacts/api-server/src/services/documentIntake/service.test.ts",
+        "artifacts/api-server/src/routes/documentIntake.ts",
+        "artifacts/api-server/src/index.ts",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs",
+        "tools/development/migrations/registry.mjs",
+        "tools/development/migrations/registry.test.mjs",
+        "lib/db/migration-registry.json",
+        "lib/db/schema-change-registry.json"
       ],
       "kind": "implementation",
       "approval": "approved"
@@ -386,7 +411,8 @@
       ],
       "files": [
         "tools/operations/backup-restore/",
-        "docs/operations/recovery-targets.json"
+        "docs/operations/recovery-targets.json",
+        "tools/accounting-flow/restore-drill.mjs"
       ],
       "kind": "verification",
       "approval": "approved"

@@ -219,3 +219,53 @@ test('a changed catalogue cannot reinterpret shared state or file leases and ini
   await assert.rejects(run({ type: 'init', actor: 'coordinator' }), code('CATALOG_MISMATCH'));
   assert.equal(readFileSync(statePath, 'utf8'), before);
 });
+
+test('CLI blocker resolution requires current revision and preserves evidence, dependencies and separate acceptance', async t => {
+  const { repository, run } = cliFixture(t);
+  await run({ type: 'init', actor: 'coordinator' });
+  const proof = id => ({ commit: `synthetic-${id}`, summary: 'Matching synthetic acceptance', tests: [{ command: 'synthetic checks', passed: true }] });
+  const parent = (await run({ type: 'claim', actor: 'worker-parent' })).claim;
+  await run({ type: 'submit', actor: 'worker-parent', taskId: parent.taskId, token: parent.token, evidence: proof('parent') });
+  await run({ type: 'accept', actor: 'coordinator', taskId: parent.taskId, evidence: { ...proof('parent'), reviewed: true, reviewer: 'independent' } });
+  const child = (await run({ type: 'claim', actor: 'worker-child' })).claim;
+  await run({ type: 'submit', actor: 'worker-child', taskId: child.taskId, token: child.token, evidence: proof('partial') });
+  await run({ type: 'reject', actor: 'coordinator', taskId: child.taskId, reason: 'Partial evidence; connected prerequisite remains.' });
+  await run({ type: 'recover', actor: 'coordinator', taskId: child.taskId, workerStopped: true, checkpoint: 'Saved synthetic partial branch; worker stopped.' });
+  const resumed = (await run({ type: 'claim', actor: 'worker-child' })).claim;
+  const blockers = [{ type: 'environment', reason: 'Missing connected runtime ownership.' }, { type: 'task', id: 'unrelated', reason: 'Required connected runtime prerequisite.' }];
+  await run({ type: 'block', actor: 'worker-child', taskId: resumed.taskId, token: resumed.token, blockers, checkpoint: 'Partial work saved, stopped before ownership transfer.' });
+  const inspected = await run({ type: 'status' });
+  const command = { type: 'resolve', actor: 'coordinator', taskId: child.taskId, resolvedBlockers: [0], reason: 'Reviewed connected ownership transfer recorded.' };
+  const statePath = path.join(resolveRepositoryPaths(repository).directory, 'queue.json');
+  const before = readFileSync(statePath, 'utf8');
+  for (const expectedRevision of [undefined, -1, '8']) {
+    await assert.rejects(run({ ...command, expectedRevision }), code('REVISION_REQUIRED'));
+    assert.equal(readFileSync(statePath, 'utf8'), before);
+  }
+  const prerequisite = (await run({ type: 'claim', actor: 'worker-prerequisite' })).claim;
+  assert.equal(prerequisite.taskId, 'unrelated');
+  const concurrent = readFileSync(statePath, 'utf8');
+  await assert.rejects(run({ ...command, expectedRevision: inspected.revision }), code('REVISION_CONFLICT'));
+  assert.equal(readFileSync(statePath, 'utf8'), concurrent);
+  const revision = (await run({ type: 'status' })).revision;
+  await assert.rejects(run({ ...command, resolvedBlockers: [1], expectedRevision: revision }), code('RESOLUTION_REQUIRED'));
+  assert.equal(readFileSync(statePath, 'utf8'), concurrent);
+  await run({ ...command, expectedRevision: revision });
+  const state = readJSON(statePath);
+  assert.deepEqual(state.tasks.dependent.evidence, proof('partial'));
+  assert.deepEqual(state.tasks.dependent.discoveredDependencies, ['unrelated']);
+  assert.deepEqual(state.tasks.dependent.blockers, [blockers[1]]);
+  assert.equal(state.tasks.dependent.status, 'blocked');
+  assert.equal(state.tasks.first.status, 'done');
+  assert.deepEqual(state.tasks.first, JSON.parse(before).tasks.first);
+  assert.deepEqual(state.events.slice(0, JSON.parse(concurrent).events.length), JSON.parse(concurrent).events);
+  assert.deepEqual(state.events.at(-1).resolvedBlockers, [blockers[0]]);
+  assert.equal((await run({ type: 'claim', actor: 'worker-new' })).claim, null);
+  await run({ type: 'submit', actor: 'worker-prerequisite', taskId: prerequisite.taskId, token: prerequisite.token, evidence: proof('prerequisite') });
+  await run({ type: 'accept', actor: 'coordinator', taskId: prerequisite.taskId, evidence: { ...proof('prerequisite'), reviewed: true, reviewer: 'independent' } });
+  assert.equal((await run({ type: 'status' })).next, 'dependent');
+  assert.equal(readJSON(statePath).tasks.dependent.status, 'blocked');
+  assert.equal((await run({ type: 'claim', actor: 'worker-new' })).claim.taskId, 'dependent');
+  assert.equal(readJSON(statePath).tasks.dependent.status, 'running');
+  assert.equal(readJSON(statePath).tasks.first.status, 'done');
+});

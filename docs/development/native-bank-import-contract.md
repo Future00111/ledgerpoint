@@ -142,8 +142,10 @@ Existing executable evidence to rerun on the exact candidate:
   the existing payment endpoint, not forced database-lock overlap or the new
   native bank command.
 
-P06-00 remains pending until this added fixture executes in isolated PostgreSQL
-and coordinator review accepts the exact candidate plus payment-recovery evidence. These existing fixtures do not prove future durable import identities,
+P06-00 contract accepted on 31 October 2026 against source `aa45af5`: the named
+fixture passed in CI run `41226519311`, job `124611701175`; source and CI merge
+trees matched. Worker2, worker1 and coordinator reviewed the contract and the
+23 bank/recovery model tests. This accepts the existing settlement boundary only. These existing fixtures do not prove future durable import identities,
 split/fee commands or cross-statement matching. Add their concurrency, stale-review,
 partial-schema, rollback, historical-cutoff, tenant and removed-member fixtures
 with their implementations. Contract acceptance requires coordinator review and

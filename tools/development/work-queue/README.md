@@ -114,3 +114,39 @@ For continuously running workers between hosted runs, use an always-on runner
 with authenticated Codex CLI/SDK and the same queue/CAS protocol. That runner and
 credentials are not installed by this change. Eight concurrent workers also
 exceed this Work session's seven total slots and require another execution host.
+
+## Completion-focused coordination (owner approved 31 October 2026)
+
+Keep all six interchangeable workers productive whenever safe approved work is
+available. Review, acceptance testing and prerequisite resolution count as work;
+there is no fixed developer/reviewer split. Claims still select the original
+highest-priority eligible task. Do not use focus targets to skip dependencies or
+higher-priority independent work.
+
+Select at most two primary end-to-end targets, continuing them across runs until
+accepted or concretely blocked. Initially these are excess-credit/conditional
+discounts and connected persistence/migration. Inspect existing implementation
+first: repeat tests for qualification when needed, but do not rebuild completed
+allocation/refund behavior or substitute polish for unfinished acceptance.
+Resolve internal interfaces, period-close rules and file ownership first.
+A stopped task's reviewed environment/decision blocker can be cleared using
+`resolve` with `resolvedBlockers` indices, a concrete `reason`, and the
+`expectedRevision` from a fresh status read. This preserves
+partial evidence and discovered dependencies, unlike reopening accepted work.
+It cannot clear task dependencies, active leases, unknown rules or owner gates.
+Catalogue ownership changes still require reviewed, durable migration.
+
+Split a broad bullet only when useful: children retain original priority and
+explicit parent linkage, dependencies, acceptance scenario, exact files and
+review requirements. A child's completion never accepts its parent. Retain all
+92 original bullets, priorities and acceptance criteria. Every partial submission
+records remaining work, the next executable task and exact parent-closing evidence.
+Review continuously; submitted files remain leased and authors cannot self-approve.
+Free workers immediately take eligible independent review, testing or implementation.
+
+Every five minutes record observed worker activity, progress, blocker and next
+action; leases alone are not activity evidence. Save a compact run handoff with
+original bullets accepted, journeys verified, internal blockers resolved/remaining
+(age and next action), measured review wait, regressions, utilisation/idle reasons,
+next tasks and exact-commit checks. Mark unmeasured values unknown. Compare after
+three runs and adapt assignments without reducing capacity, scope or quality.

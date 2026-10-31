@@ -6,8 +6,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createQueueStore, QueueStoreError, readJSON } from './store.mjs';
 
-const COMMANDS = new Set(['status', 'listready', 'init', 'export', 'recover-lock', 'claim', 'renew', 'checkpoint', 'block', 'submit', 'accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve']);
-const COORDINATOR_COMMANDS = new Set(['init', 'export', 'recover-lock', 'accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve']);
+const COMMANDS = new Set(['status', 'listready', 'init', 'export', 'recover-lock', 'claim', 'renew', 'checkpoint', 'block', 'submit', 'accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
+const COORDINATOR_COMMANDS = new Set(['init', 'export', 'recover-lock', 'accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
 const COMMAND_FIELDS = {
   status: ['capabilities'], listready: ['capabilities'], init: [], export: ['expectedRevision'], 'recover-lock': ['expectedToken', 'reason'],
   claim: ['leaseMs', 'capabilities', 'expectedRevision'], renew: ['taskId', 'token', 'leaseMs', 'workStarted', 'expectedRevision'],
@@ -16,6 +16,7 @@ const COMMAND_FIELDS = {
   reject: ['taskId', 'reason', 'expectedRevision'], reopen: ['taskId', 'reason', 'expectedRevision'],
   reprioritize: ['taskId', 'priority', 'expectedRevision'], recover: ['taskId', 'workerStopped', 'checkpoint', 'expectedRevision'],
   approve: ['taskId', 'approvalEvidence', 'expectedRevision'],
+  resolve: ['taskId', 'resolvedBlockers', 'reason', 'expectedRevision'],
 };
 const fail = (code, message) => { throw new QueueStoreError(code, message); };
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -109,6 +110,7 @@ export async function main({ argv = process.argv.slice(2), input = process.stdin
   }
   if (command.type === 'export') return { ok: true, ...await store.exportCheckpoint(locations.checkpoint, { expectedRevision: command.expectedRevision }) };
   if (command.type === 'recover-lock') return { ok: true, ...await store.recoverLock({ expectedToken: command.expectedToken, reason: command.reason }) };
+  if (command.type === 'resolve' && (!Number.isSafeInteger(command.expectedRevision) || command.expectedRevision < 0)) fail('REVISION_REQUIRED', 'Blocker resolution requires the inspected state revision.');
   const expectedRevision = command.expectedRevision;
   delete command.expectedRevision;
   if (command.type === 'claim') {

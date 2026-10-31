@@ -149,3 +149,32 @@ individual missing constraints/triggers, wrong ownership/grants, and full
 existing-business migration rehearsal remain P03-03 work. Passing syntax and
 bundle checks locally is not PostgreSQL evidence: P03-00 acceptance requires
 this exact candidate's isolated CI result and coordinator contract review.
+
+## Connected implementation handoff, 31 October 2026
+
+The P03-00 contract is already accepted; do not treat old dependency notes as an
+unresolved owner decision. P03-01 now owns the existing payment service, mounted
+accounting route/client, recovery tests and disposable schema installer while
+claimed. Start with recovery of the existing protected payment request identity:
+commit outcome with its existing financial effect, recover after a new client
+session, deny removed membership/cross-company reads and changed-intent replay.
+Other operation families remain explicit unfinished scope, not implied support.
+
+P03-02 now owns intake contract rehydration, service/router, worker tests and
+bounded runtime lifecycle plus disposable schema wiring while claimed. Validate
+persisted shape/history, source revision/hash and current membership before
+re-branding jobs. Never JSON-cast WeakSet-authorized values. Commit job transition,
+audit and outbox together; CAS on tenant-qualified job revision and lease token.
+Preserve held transport capacity until actual closure. First acceptance scenario:
+enqueue synthetic intake → new repository process → claim → crash → fenced retry
+→ reject old completion → exactly one review-required result, no automatic draft.
+Include cancellation, revoked membership and other-tenant negative controls.
+Keep unconfigured OCR unavailable; synthetic transport tests grant no provider
+connection authority. P03-04 owns restore-drill.mjs to connect encrypted new-cluster
+recovery to the actual populated accounting/capture fixture before runner cleanup.
+
+These exact-file extensions overlap deliberately with financial/migration tasks;
+the scheduler must serialize them, not remove conflicts or dependencies. All
+workers stopped before the reviewed catalogue migration. Parent acceptance and
+all original priorities are unchanged. Full upgrade, durable multi-operation and
+production recovery qualification remain outstanding.
