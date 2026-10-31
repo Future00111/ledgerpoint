@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "revision": 37,
+  "revision": 39,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261031-0043",
     "token": "161e5aeb-dbd3-45e6-a0f2-a8cdb844b0f9",
     "acquiredAt": 1793407428143,
-    "expiresAt": 1793409820330
+    "expiresAt": 1793410146507
   },
   "lastOwner": {
     "runId": "hosted-20261031-0003",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 2,
-    "revision": 229,
+    "revision": 249,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -69,33 +69,21 @@
         "status": "review",
         "priority": 102,
         "discoveredDependencies": [],
-        "checkpoint": "Clean codex/lp-0043-worker1 with atomic paid-credit workflow, review UI/fallback, concurrent/cutoff/disposable fixtures; API tsc now passes; parent reviewing and disposable CI pending",
-        "owner": "worker1",
-        "token": "1df6acb7-76c0-4c80-bf32-8891ba5fa1fc",
-        "leaseUntil": 1793408642354,
-        "workStarted": true,
+        "checkpoint": "Clean codex/lp-0043-worker1-final fcbef971ffd1d530646de551b86102cb032644d9 based exact91342fc; source links/resulting pools and final negative controls added; API tsc and 3 review tests pass; worker2 review and exact final disposable CI pending; stopped",
         "evidence": {
-          "commit": "732bc5ddb93ff5b64605ed00c5435968c36221dd",
-          "summary": "Review candidate: atomic paid-credit review/commit and immutable parent evidence, preserved original payment pools and protected posting guards, explicit UI allocation vector, safe pre-mutation absent-schema fallback. Supplier/customer examples, after-unallocation rollback, concurrent replay, cumulative capacity race, role/company/vector/hash and historical-cutoff tests added. PostgreSQL execution and independent review pending; do not accept yet. Corrected-original credits remain blocked.",
+          "commit": "fcbef971ffd1d530646de551b86102cb032644d9",
+          "summary": "Candidate adds exact original document/payment journal links and authoritative before/after unapplied pools including prior refunds, plus part-paid excess, revoked-member replay, closed period, stale configuration and absent/partial schema no-write fixtures. Atomic core passed previous exact91342fc CI; this new candidate still needs independent review and disposable CI before acceptance. Corrected-original credit remains explicitly excluded under separate P01-04 work.",
           "tests": [
             {
               "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
               "passed": true
             },
             {
-              "command": "node --test artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs: 2 passed",
+              "command": "esbuild paid-credit review render + node --test /tmp/lp-final-paidcredit-render.cjs artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs: 3 passed",
               "passed": true
             },
             {
-              "command": "node --test /tmp/paid-credit-render.cjs: 1 passed",
-              "passed": true
-            },
-            {
-              "command": "node --test artifacts/ledgerly/src/api/accountingDocuments.test.mjs: 11 passed",
-              "passed": true
-            },
-            {
-              "command": "esbuild accountingDocuments/integration.test.ts bundle passed; disposable execution pending CI",
+              "command": "esbuild accountingDocuments/integration.test.ts: passed; final disposable execution pending CI",
               "passed": true
             },
             {
@@ -103,7 +91,11 @@
               "passed": true
             }
           ]
-        }
+        },
+        "owner": "worker1",
+        "token": "85953750-f21e-4683-833b-0ab71c89ae6f",
+        "leaseUntil": 1793409021887,
+        "workStarted": true
       },
       "P01-03": {
         "status": "blocked",
@@ -177,10 +169,10 @@
         ]
       },
       "P02-01": {
-        "status": "review",
+        "status": "pending",
         "priority": 201,
         "discoveredDependencies": [],
-        "checkpoint": "codex/lp-0043-worker2 7e6bcb621bf8be72652479cb99a03a6d27197f38; clean committed list/delete context slice; five real-router tests and API tsc passed. Broad inventory/export/client race acceptance remains pending.",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated explicit selected context in list/delete; wider route audit and client migration remain unfinished.",
         "evidence": {
           "commit": "7e6bcb621bf8be72652479cb99a03a6d27197f38",
           "summary": "PARTIAL P02-01: generic Company/entity lists now scope explicit company consistently, reject malformed context instead of broadening; generic DELETE rejects contradictory/malformed company before writes. Viewer reads, omitted authorized list and valid owner deletion preserved.",
@@ -199,10 +191,7 @@
             }
           ]
         },
-        "owner": "worker2",
-        "token": "1c6f29ba-446f-48bd-b93a-76ebda6dd729",
-        "leaseUntil": 1793408367580,
-        "workStarted": true
+        "blockers": []
       },
       "P02-02": {
         "status": "pending",
@@ -325,10 +314,10 @@
         ]
       },
       "P03-04": {
-        "status": "review",
+        "status": "pending",
         "priority": 304,
         "discoveredDependencies": [],
-        "checkpoint": "Clean stopped codex/lp-0043-worker6 d2daf15b451fe19a7fd63fbb400d08d996ff3aaa; O_NONBLOCK before fstat rejects FIFO keys/inputs without hang; 4 tests pass including 2-second child process deadlines. Parent directories must be caller-controlled. Partial backup wrapper only.",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated synthetic encrypted archive CLI only; encrypted PostgreSQL restore/offsite ownership and targets unfinished.",
         "evidence": {
           "commit": "d2daf15b451fe19a7fd63fbb400d08d996ff3aaa",
           "summary": "PARTIAL P03-04 review fix: nonblocking regular-file read validation prevents FIFO hangs; timeout-bounded FIFO regression and controlled-parent-directory limitation documented. Working synthetic authenticated archive wrapper only; actual PostgreSQL encrypted restore, offsite and recovery targets remain pending.",
@@ -347,10 +336,7 @@
             }
           ]
         },
-        "owner": "worker6",
-        "token": "ded17798-1628-4421-9eab-990be640bb92",
-        "leaseUntil": 1793408612925,
-        "workStarted": true
+        "blockers": []
       },
       "P03-80": {
         "status": "blocked",
@@ -365,10 +351,10 @@
         ]
       },
       "P04-01": {
-        "status": "review",
+        "status": "pending",
         "priority": 401,
         "discoveredDependencies": [],
-        "checkpoint": "Before edits: clean codex/lp-0043-worker4 at durable 1e0d6bada4d14c2042544f9ce910567749466e84. Official HMRC PAYE v1.1 ZIP downloaded to scratch; inspecting three regional workbooks and explicit Scottish K-code corrections. Will pin unqualified reference corpus and reproducible stdlib extractor, no calculation claims.",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated regional PAYE reference examples; native calculations and full case qualification unfinished.",
         "evidence": {
           "commit": "2bdc3054ee1831b6e9623a6d9661c7f1a8d59cf2",
           "summary": "PARTIAL reference qualification foundation: official HMRC PAYE v1.1 ZIP pinned with workbook hashes, published Scottish K-code corrections and 168 extracted ordered reference rows across 22 sheets for rest-of-UK/Scotland/Wales. Raw numeric lexemes retained; only sub-millionth-penny binary residues normalized, no tax computed. Regional registry cases remain unsupported/unqualified. Full P04-01 and native engine remain incomplete.",
@@ -387,10 +373,7 @@
             }
           ]
         },
-        "owner": "worker4",
-        "token": "2c2f2b2f-ac2a-458c-ae64-14039485ca37",
-        "leaseUntil": 1793408407523,
-        "workStarted": true
+        "blockers": []
       },
       "P04-02": {
         "status": "pending",
@@ -589,10 +572,10 @@
         ]
       },
       "P07-03": {
-        "status": "review",
+        "status": "pending",
         "priority": 703,
         "discoveredDependencies": [],
-        "checkpoint": "codex/lp-0043-worker3 commit 24d8fb1630d135c99ba7c0e470a9e2f2c425ba28; clean, stopped; saved net/VAT disclosure desktop/mobile; 8 render tests/frontend tsc passed; coordinator remote persistence pending",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated saved net/VAT display; full UI tables/filter/expert workflow acceptance pending.",
         "evidence": {
           "commit": "24d8fb1630d135c99ba7c0e470a9e2f2c425ba28",
           "summary": "PARTIAL P07-03: compact keyboard-operable saved net/VAT disclosure for desktop and mobile invoice/bill/credit lists; integer-string exact amounts and unavailable values preserved. No calculation or permission changes. Broader task/bulk/browser acceptance unfinished.",
@@ -611,16 +594,13 @@
             }
           ]
         },
-        "owner": "worker3",
-        "token": "3619301d-d686-4787-af60-24f81ccd8716",
-        "leaseUntil": 1793408421767,
-        "workStarted": true
+        "blockers": []
       },
       "P07-04": {
-        "status": "review",
+        "status": "pending",
         "priority": 704,
         "discoveredDependencies": [],
-        "checkpoint": "codex/lp-0043-worker5 d7440481fd820fcece19b7a772fcad228ec99c49 clean/stopped. Removed fake connected-account creation and unavailable mock scans; retained saved accounts/rules/config and history, manual document link. 3 render tests and two page browser bundles pass. Broad route inventory/browser acceptance pending.",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated removal of fake email connection and scan actions; full route inventory/browser acceptance pending.",
         "evidence": {
           "commit": "d7440481fd820fcece19b7a772fcad228ec99c49",
           "summary": "PARTIAL email journey: removes simulated connected-account creation and mockScanEmails actions; shows unavailable connection/scan labels and manual document-inbox alternative; preserves saved account cleanup, rule/config edits and historical capture records. Full route inventory and live browser acceptance pending.",
@@ -639,10 +619,7 @@
             }
           ]
         },
-        "owner": "worker5",
-        "token": "9fa0f18c-10cd-4808-9772-f9edcf3a91fd",
-        "leaseUntil": 1793408442180,
-        "workStarted": true
+        "blockers": []
       },
       "P07-05": {
         "status": "blocked",
@@ -1117,14 +1094,10 @@
         "priority": 1303
       },
       "P13-04": {
-        "status": "review",
+        "status": "pending",
         "priority": 1304,
         "discoveredDependencies": [],
-        "checkpoint": "codex/lp-0043-worker2 9b00421067ce804c0ef76d0d484bf5d062c8e1c8; clean stopped. Presentation-only credit priority/age/suggested follow-up; no sends or balances changed. Five model + nine render tests pass. Persisted follow-up history/drafts and live browser acceptance remain unimplemented.",
-        "owner": "worker2",
-        "token": "c2f8a624-94c1-4d6f-8799-76d1e0ee9940",
-        "leaseUntil": 1793408457311,
-        "workStarted": true,
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated age/priority/next-step display; persisted follow-up and browser qualification pending.",
         "evidence": {
           "commit": "9b00421067ce804c0ef76d0d484bf5d062c8e1c8",
           "summary": "PARTIAL P13-04: unresolved queue prioritizes discrepancy review, posted matches, overdue then waiting and older items within priority; rows show valid UTC calendar age and truthful suggested follow-up with original bill context. No reminder sending or accounting writes. Persisted follow-up state/history and draft controls still pending; live browser unverified.",
@@ -1142,7 +1115,8 @@
               "passed": true
             }
           ]
-        }
+        },
+        "blockers": []
       },
       "P14-01": {
         "status": "blocked",
@@ -1385,14 +1359,10 @@
         "priority": 1701
       },
       "P17-02": {
-        "status": "review",
+        "status": "pending",
         "priority": 1702,
         "discoveredDependencies": [],
-        "owner": "worker5",
-        "token": "253726c6-119f-491a-969f-f16d7a4b1dfb",
-        "leaseUntil": 1793408572585,
-        "workStarted": true,
-        "checkpoint": "codex/lp-0043-worker5 385133bbe5276c6f34578aa2e08f5da5e4da3181 clean/stopped. Added factual draft source-upload help with verified 3 app routes and source links, draft availability/claim limits. No pricing invented, no support contact fabricated; full P17-02 pending.",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Draft truthful help/claim limits added; pricing/support/publication decisions not set.",
         "evidence": {
           "commit": "385133bbe5276c6f34578aa2e08f5da5e4da3181",
           "summary": "PARTIAL: draft manual source-upload help and honest commercial availability/claim limits. Existing routes and source evidence checked; pricing/customer admission/support contact explicitly unapproved/unset, launch app absent, browser help acceptance pending. Not a completed commercial offer.",
@@ -1406,7 +1376,8 @@
               "passed": true
             }
           ]
-        }
+        },
+        "blockers": []
       },
       "P17-03": {
         "status": "blocked",
@@ -3921,6 +3892,167 @@
         "type": "reopen",
         "taskId": "P15-02",
         "reason": "Temporary run cutoff resolved; no product blocker established; worker stopped without edits."
+      },
+      {
+        "at": 1793408107745,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P01-02",
+        "reason": "Verified paid-credit core passes exact-source CI; finish source/pool review presentation and remaining negative examples before final acceptance."
+      },
+      {
+        "at": 1793408107905,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P01-02",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Verified paid-credit core passes exact-source CI; finish source/pool review presentation and remaining negative examples before final acceptance."
+      },
+      {
+        "at": 1793408108031,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P02-01",
+        "reason": "Integrated explicit selected context in list/delete; wider route audit and client migration remain unfinished."
+      },
+      {
+        "at": 1793408108118,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P02-01",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated explicit selected context in list/delete; wider route audit and client migration remain unfinished."
+      },
+      {
+        "at": 1793408108215,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P03-04",
+        "reason": "Integrated synthetic encrypted archive CLI only; encrypted PostgreSQL restore/offsite ownership and targets unfinished."
+      },
+      {
+        "at": 1793408108315,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P03-04",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated synthetic encrypted archive CLI only; encrypted PostgreSQL restore/offsite ownership and targets unfinished."
+      },
+      {
+        "at": 1793408108414,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P04-01",
+        "reason": "Integrated regional PAYE reference examples; native calculations and full case qualification unfinished."
+      },
+      {
+        "at": 1793408108534,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P04-01",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated regional PAYE reference examples; native calculations and full case qualification unfinished."
+      },
+      {
+        "at": 1793408108639,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P07-03",
+        "reason": "Integrated saved net/VAT display; full UI tables/filter/expert workflow acceptance pending."
+      },
+      {
+        "at": 1793408108732,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P07-03",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated saved net/VAT display; full UI tables/filter/expert workflow acceptance pending."
+      },
+      {
+        "at": 1793408108828,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P07-04",
+        "reason": "Integrated removal of fake email connection and scan actions; full route inventory/browser acceptance pending."
+      },
+      {
+        "at": 1793408108917,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P07-04",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated removal of fake email connection and scan actions; full route inventory/browser acceptance pending."
+      },
+      {
+        "at": 1793408108998,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P13-04",
+        "reason": "Integrated age/priority/next-step display; persisted follow-up and browser qualification pending."
+      },
+      {
+        "at": 1793408109079,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P13-04",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated age/priority/next-step display; persisted follow-up and browser qualification pending."
+      },
+      {
+        "at": 1793408109169,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P17-02",
+        "reason": "Draft truthful help/claim limits added; pricing/support/publication decisions not set."
+      },
+      {
+        "at": 1793408109253,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P17-02",
+        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Draft truthful help/claim limits added; pricing/support/publication decisions not set."
+      },
+      {
+        "at": 1793408121887,
+        "actor": "worker1",
+        "type": "claim",
+        "taskId": "P01-02",
+        "token": "85953750-f21e-4683-833b-0ab71c89ae6f"
+      },
+      {
+        "at": 1793408161949,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-02",
+        "checkpoint": "Clean codex/lp-0043-worker1-final 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd; adding projected resulting pool balances/source journal links and final negative-control tests before edits"
+      },
+      {
+        "at": 1793408202433,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-02",
+        "checkpoint": "Clean codex/lp-0043-worker1-final fcbef971ffd1d530646de551b86102cb032644d9 based exact91342fc; source links/resulting pools and final negative controls added; API tsc and 3 review tests pass; worker2 review and exact final disposable CI pending; stopped"
+      },
+      {
+        "at": 1793408202523,
+        "actor": "worker1",
+        "type": "submit",
+        "taskId": "P01-02",
+        "evidence": {
+          "commit": "fcbef971ffd1d530646de551b86102cb032644d9",
+          "summary": "Candidate adds exact original document/payment journal links and authoritative before/after unapplied pools including prior refunds, plus part-paid excess, revoked-member replay, closed period, stale configuration and absent/partial schema no-write fixtures. Atomic core passed previous exact91342fc CI; this new candidate still needs independent review and disposable CI before acceptance. Corrected-original credit remains explicitly excluded under separate P01-04 work.",
+          "tests": [
+            {
+              "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+              "passed": true
+            },
+            {
+              "command": "esbuild paid-credit review render + node --test /tmp/lp-final-paidcredit-render.cjs artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs: 3 passed",
+              "passed": true
+            },
+            {
+              "command": "esbuild accountingDocuments/integration.test.ts: passed; final disposable execution pending CI",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
       }
     ],
     "catalogDigest": "c708e672a6e57c01d6295ebe136604b411bb429d0b2b9010f3ff52fd62eda137"
@@ -3936,16 +4068,17 @@
       }
     ],
     "runId": "hosted-20261031-0043",
-    "at": 1793408020339,
+    "at": 1793408346515,
     "codeHead": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd"
   },
-  "updatedAt": 1793408020339,
+  "updatedAt": 1793408346515,
   "validation": {
     "sourceCommit": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd",
-    "status": "CI_pending",
-    "localSourceTests": 740,
+    "status": "passed",
+    "ciRun": 41152585945,
+    "tests": 818,
     "localBackupTests": 4,
-    "localBuildPassed": true
+    "buildPassed": true
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -3992,8 +4125,8 @@
         "tree": "bd143cc15e0169e443a0ad02f9f119eefc0cb26f"
       }
     ],
-    "workersStopped": true,
-    "worktreesClean": true,
+    "workersStopped": false,
+    "worktreesClean": false,
     "integratedTree": "7b6d18c66c621e175c703a474029365f7ebcc659"
   }
 }
