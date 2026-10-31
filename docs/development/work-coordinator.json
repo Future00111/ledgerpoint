@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "revision": 39,
+  "revision": 41,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd",
+  "codeHead": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261031-0043",
     "token": "161e5aeb-dbd3-45e6-a0f2-a8cdb844b0f9",
     "acquiredAt": 1793407428143,
-    "expiresAt": 1793410146507
+    "expiresAt": 1793410386098
   },
   "lastOwner": {
     "runId": "hosted-20261031-0003",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 2,
-    "revision": 249,
+    "revision": 255,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -69,21 +69,17 @@
         "status": "review",
         "priority": 102,
         "discoveredDependencies": [],
-        "checkpoint": "Clean codex/lp-0043-worker1-final fcbef971ffd1d530646de551b86102cb032644d9 based exact91342fc; source links/resulting pools and final negative controls added; API tsc and 3 review tests pass; worker2 review and exact final disposable CI pending; stopped",
+        "checkpoint": "Clean stopped codex/lp-0043-worker1-final ab0e75fa467c41be31c028547487b6abfc149dec; final competing credit/payment fixture added; API tsc/bundle pass; independent reviewer2 and exact CI pending",
         "evidence": {
-          "commit": "fcbef971ffd1d530646de551b86102cb032644d9",
-          "summary": "Candidate adds exact original document/payment journal links and authoritative before/after unapplied pools including prior refunds, plus part-paid excess, revoked-member replay, closed period, stale configuration and absent/partial schema no-write fixtures. Atomic core passed previous exact91342fc CI; this new candidate still needs independent review and disposable CI before acceptance. Corrected-original credit remains explicitly excluded under separate P01-04 work.",
+          "commit": "ab0e75fa467c41be31c028547487b6abfc149dec",
+          "summary": "Final paid-credit candidate includes exact source links/result pools and part-paid/role/period/config/schema coverage, now also competing paid-credit versus independently reviewed payment unallocation. Asserts one stale loser, branch-specific balances, unchanged cash, single release and atomic parent/document outcomes. Independent review and exact final PostgreSQL CI remain required before acceptance.",
           "tests": [
             {
               "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
               "passed": true
             },
             {
-              "command": "esbuild paid-credit review render + node --test /tmp/lp-final-paidcredit-render.cjs artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs: 3 passed",
-              "passed": true
-            },
-            {
-              "command": "esbuild accountingDocuments/integration.test.ts: passed; final disposable execution pending CI",
+              "command": "esbuild accountingDocuments/integration.test.ts bundle passed; race execution pending disposable CI",
               "passed": true
             },
             {
@@ -93,8 +89,8 @@
           ]
         },
         "owner": "worker1",
-        "token": "85953750-f21e-4683-833b-0ab71c89ae6f",
-        "leaseUntil": 1793409021887,
+        "token": "8137591e-5ba1-402e-ab52-9ad6d784b474",
+        "leaseUntil": 1793409040955,
         "workStarted": true
       },
       "P01-03": {
@@ -4053,32 +4049,90 @@
             }
           ]
         }
+      },
+      {
+        "at": 1793408440730,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P01-02",
+        "reason": "Independent review requests final paid-credit versus payment race fixture before acceptance."
+      },
+      {
+        "at": 1793408440837,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P01-02",
+        "checkpoint": "Worker1 stopped clean fcbef971ffd1d530646de551b86102cb032644d9; durable branch codex/lp-0043-worker1-final bda8c29640c1ff9c007df12cb4328273885b69d4 tree2b34fc0344bd9ffc12588643ed8b87ca0f296a95; add requested race fixture"
+      },
+      {
+        "at": 1793408440955,
+        "actor": "worker1",
+        "type": "claim",
+        "taskId": "P01-02",
+        "token": "8137591e-5ba1-402e-ab52-9ad6d784b474"
+      },
+      {
+        "at": 1793408469779,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-02",
+        "checkpoint": "Clean fcbef971ffd1d530646de551b86102cb032644d9; durable tree-equivalent bda8c29640c1ff9c007df12cb4328273885b69d4 on codex/lp-0043-worker1-final; adding one independently requested credit/payment race fixture"
+      },
+      {
+        "at": 1793408501608,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-02",
+        "checkpoint": "Clean stopped codex/lp-0043-worker1-final ab0e75fa467c41be31c028547487b6abfc149dec; final competing credit/payment fixture added; API tsc/bundle pass; independent reviewer2 and exact CI pending"
+      },
+      {
+        "at": 1793408501693,
+        "actor": "worker1",
+        "type": "submit",
+        "taskId": "P01-02",
+        "evidence": {
+          "commit": "ab0e75fa467c41be31c028547487b6abfc149dec",
+          "summary": "Final paid-credit candidate includes exact source links/result pools and part-paid/role/period/config/schema coverage, now also competing paid-credit versus independently reviewed payment unallocation. Asserts one stale loser, branch-specific balances, unchanged cash, single release and atomic parent/document outcomes. Independent review and exact final PostgreSQL CI remain required before acceptance.",
+          "tests": [
+            {
+              "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+              "passed": true
+            },
+            {
+              "command": "esbuild accountingDocuments/integration.test.ts bundle passed; race execution pending disposable CI",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
       }
     ],
     "catalogDigest": "c708e672a6e57c01d6295ebe136604b411bb429d0b2b9010f3ff52fd62eda137"
   },
   "checkpoint": {
     "ref": "refs/heads/codex/whole-product-first-sprint",
-    "sha": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd",
+    "sha": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
     "evidence": [
       {
         "ref": "refs/heads/codex/whole-product-first-sprint",
-        "sha": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd",
+        "sha": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
         "path": "tools/development/check.mjs"
       }
     ],
     "runId": "hosted-20261031-0043",
-    "at": 1793408346515,
-    "codeHead": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd"
+    "at": 1793408586109,
+    "codeHead": "32511cec52d6dab6627c9fc44bf1fa235a9546a3"
   },
-  "updatedAt": 1793408346515,
+  "updatedAt": 1793408586109,
   "validation": {
-    "sourceCommit": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd",
-    "status": "passed",
-    "ciRun": 41152585945,
-    "tests": 818,
+    "sourceCommit": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
+    "status": "CI_pending",
+    "localSourceTests": 740,
     "localBackupTests": 4,
-    "buildPassed": true
+    "localBuildPassed": true
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -4123,10 +4177,16 @@
         "local": "d2daf15b451fe19a7fd63fbb400d08d996ff3aaa",
         "remote": "7752d4574334188b303139ed9087b71131096cab",
         "tree": "bd143cc15e0169e443a0ad02f9f119eefc0cb26f"
+      },
+      {
+        "branch": "codex/lp-0043-worker1-final",
+        "local": "ab0e75fa467c41be31c028547487b6abfc149dec",
+        "remote": "31d424a9731b2b770815100311c76e49041ea406",
+        "tree": "25c44c85af18b5cbac788ead4e73d73ed6149979"
       }
     ],
-    "workersStopped": false,
-    "worktreesClean": false,
-    "integratedTree": "7b6d18c66c621e175c703a474029365f7ebcc659"
+    "workersStopped": true,
+    "worktreesClean": true,
+    "integratedTree": "25c44c85af18b5cbac788ead4e73d73ed6149979"
   }
 }
