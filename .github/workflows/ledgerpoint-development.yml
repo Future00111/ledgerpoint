@@ -35,11 +35,32 @@ jobs:
         run: pnpm run build
       - name: Unit, permission, precision and UI regression
         run: node tools/development/check.mjs
+      - name: Validate pinned migration inputs
+        run: node --test tools/development/migrations/registry.test.mjs
       - name: Prepare disposable PostgreSQL binaries
         run: echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
       - name: Accounting API, security, atomicity and restore regression
         id: accounting
         run: node tools/accounting-flow/test.mjs
+      - name: Encrypted disposable PostgreSQL recovery rehearsal
+        id: encrypted_recovery
+        run: node tools/operations/backup-restore/rehearsal.mjs
+      - name: Verify encrypted recovery cleanup
+        if: always()
+        run: |
+          if [ '${{ steps.encrypted_recovery.outcome }}' != 'skipped' ]; then
+            node -e 'const r=require("./generated-artifacts/encrypted-recovery.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'
+          fi
+      - name: Verify exact-source encrypted recovery evidence
+        if: success()
+        run: |
+          node <<'NODE'
+          const r = require('./generated-artifacts/encrypted-recovery.json');
+          if (r.sourceCommit !== process.env.GITHUB_SHA || !r.syntheticOnly || !r.verified ||
+              !r.separateClusters || !r.encryptedArchiveUsed || !r.runtimeMutationDenied ||
+              r.sourceFingerprint !== r.restoredFingerprint ||
+              r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);
+          NODE
       - name: Verify isolated cleanup
         if: always()
         run: |
