@@ -1,0 +1,63 @@
+{
+  "runId": "hosted-20261031-1504",
+  "codeHead": "854c4c5478a0dacb79701f1c62ca49512d5b5c4e",
+  "tree": "dead996066708567f99c14f00f652504768897e6",
+  "workers": [
+    {
+      "worker": 1,
+      "local": "c49070cd6ffb126ce3ffe7d2de7d7cf4e63e1ea8",
+      "remote": "3800f136e2085cce0952aca67690f54b6bf92023",
+      "tree": "f8c44daf159b2cfad7f238ab2e224da28788fa07"
+    },
+    {
+      "worker": 2,
+      "local": "1ad8b508aa9760daf2e814774916e7e545073443",
+      "remote": "5517f3c9690e44c08806dd92c841401273d613ef",
+      "tree": "8ce19de1bd79037ac07650f0e0496b1eb9d2f6f8"
+    },
+    {
+      "worker": 3,
+      "local": "4f8c21d89056c4116796f071a55e5165325c39bb",
+      "remote": "532a0d00297903ecd1366608c00bb3fb89183ce9",
+      "tree": "78cd1abc2f83a7893789a354bead08bc1fa50ba1"
+    },
+    {
+      "worker": 4,
+      "local": "205f230f2353716e3789409d71d00eb60b2cc39e",
+      "remote": "334b84fe5edcb25a8d0ae7b0ef4b9a4498fae416",
+      "tree": "bb614808f8e0e7476048ef932505ee0e4cbc2cc5"
+    },
+    {
+      "worker": 5,
+      "local": "eeeb64b7beb3107fd40745e18d9034b7f933c323",
+      "remote": "50844a84997bb8c749f1ec94fc0790bce744a837",
+      "tree": "56bb63e0e5aca2b7ec296364c79f4f639405d845"
+    },
+    {
+      "worker": 6,
+      "local": "f82b51f9fbc03d68519369a1b3457dad3d9b0e4b",
+      "remote": "d483db5b307c3bf3437cf3638957b915a25a1fcb",
+      "tree": "40ab18516c24832d9df49c10f4f30f10f30a509b"
+    }
+  ],
+  "workersStopped": true,
+  "worktreesClean": true,
+  "partialTasks": [
+    "P01-03",
+    "P02-01",
+    "P03-03",
+    "P03-04",
+    "P04-01",
+    "P07-03"
+  ],
+  "sourceTests": 746,
+  "localExtraTests": 18,
+  "buildPassed": true,
+  "ciRun": 41214196277,
+  "ciStatus": "pending",
+  "priorPublicationFailure": {
+    "commit": "5fe6a9e19f5c62c93440a1cc0114266628a2eb3f",
+    "reason": "Text transfer omitted integration-test bytes; corrected using base64 blob; final Git tree equals locally reviewed dead996066708567f99c14f00f652504768897e6."
+  },
+  "productionActions": false
+}
