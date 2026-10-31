@@ -43,6 +43,38 @@ export function DocumentStatusFilters({ tabs, filter, counts, title, onChange })
   </div>;
 }
 
+const DOCUMENT_SORTS = [
+  ['saved', 'Saved order'], ['newest', 'Document date: newest first'], ['oldest', 'Document date: oldest first'],
+  ['due', 'Due date: earliest first'], ['largest', 'Total: largest first'], ['smallest', 'Total: smallest first'],
+];
+
+/** Presentation only: compare saved exact values, never mutate the server list or infer missing money. */
+export function sortDocuments(docs, order = 'saved') {
+  if (!DOCUMENT_SORTS.some(([value]) => value === order) || order === 'saved') return [...docs];
+  const amount = order === 'largest' || order === 'smallest';
+  const descending = order === 'largest' || order === 'newest';
+  const value = doc => {
+    const raw = amount ? doc.money?.gross_pence : doc.source?.[order === 'due' ? 'due_date' : 'issue_date'];
+    if (typeof raw !== 'string') return null;
+    if (amount) return /^(0|[1-9][0-9]*)$/.test(raw) ? BigInt(raw) : null;
+    return /^\d{4}-\d{2}-\d{2}$/.test(raw) && Number.isFinite(Date.parse(raw))
+      && new Date(raw).toISOString().slice(0, 10) === raw ? raw : null;
+  };
+  return docs.map((doc, index) => ({ doc, index, value: value(doc) })).sort((a, b) => {
+    if (a.value === null || b.value === null) return a.value === b.value ? a.index - b.index : a.value === null ? 1 : -1;
+    const comparison = a.value < b.value ? -1 : a.value > b.value ? 1 : 0;
+    return (descending ? -comparison : comparison) || a.index - b.index;
+  }).map(item => item.doc);
+}
+
+export function DocumentSort({ value, onChange, credit = false }) {
+  return <label className="flex flex-wrap items-center gap-2 text-sm">Sort documents
+    <select value={value} onChange={event => onChange(event.target.value)} className="min-h-11 rounded-md border bg-background px-3 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+      {DOCUMENT_SORTS.filter(([key]) => !credit || key !== 'due').map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+    </select>
+  </label>;
+}
+
 /** Show saved server amounts without recomputing VAT or substituting missing values. */
 export function DocumentTotal({ money, documentNumber }) {
   return <div>
@@ -104,6 +136,7 @@ function CompanyDocumentList({ kind, legacyLink, activeCompany }) {
   const filter = validFilters.includes(params.get('status')) ? params.get('status') : 'all';
   const setFilter = value => { const next = new URLSearchParams(params); next.set('status',value); setParams(next,{replace:true}); };
   const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('saved');
   const ledger = useLedgerSnapshot(activeCompany?.id, undefined, undefined, !meta.credit);
   const settlementUnavailable = !meta.credit && !documentSettlementsAvailable(ledger);
   const remaining = d => meta.credit || settlementUnavailable ? null : ledger.data.open_items.find(item => item.id === d.id) ?? null;
@@ -132,7 +165,7 @@ function CompanyDocumentList({ kind, legacyLink, activeCompany }) {
     return item.settlement === 'settled';
   };
   const searched = (docs ?? []).filter(d => `${d.source?.invoice_number ?? ''} ${d.party_name ?? ''} ${d.source?.reference ?? ''}`.toLowerCase().includes(search.trim().toLowerCase()));
-  const shown = searched.filter(d => matches(d, filter));
+  const shown = sortDocuments(searched.filter(d => matches(d, filter)), sort);
 
   const sumOpen = selected => settlementUnavailable ? null : (docs ?? []).filter(d => matches(d,selected)).reduce((total,d) => total + BigInt(remaining(d)?.open_minor ?? '0'), 0n).toString();
   const title = {sales_invoice:'Invoices',purchase_bill:'Bills',sales_credit_note:'Customer credits',supplier_credit_note:'Supplier credits'}[kind];
@@ -156,7 +189,7 @@ function CompanyDocumentList({ kind, legacyLink, activeCompany }) {
         <div className="workspace-panel-header"><div className="flex items-center gap-2"><ListFilter className="h-4 w-4 text-muted-foreground" aria-hidden="true" /><h2 className="workspace-section-title">All {title.toLowerCase()}</h2></div><span className="text-xs text-muted-foreground">{filterUnavailable ? (ledger.loading ? 'Loading payment status…' : 'Count unavailable') : docs ? `${shown.length} ${shown.length === 1 ? 'document' : 'documents'}` : 'Loading…'}</span></div>
         <div className="px-5 pt-4"><DocumentStatusFilters tabs={tabs} filter={filter} title={title} onChange={setFilter}
           counts={Object.fromEntries(tabs.map(([value]) => [value, !docs || (settlementUnavailable && !['all', 'draft'].includes(value)) ? null : searched.filter(doc => matches(doc, value)).length]))} /></div>
-        <div className="flex flex-wrap items-center justify-between gap-3 p-5"><div className="relative w-full sm:max-w-sm"><Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input aria-label={`Search ${meta.plural.toLowerCase()}`} placeholder="Search name, number or reference…" value={search} onChange={e=>setSearch(e.target.value)} className="min-h-11 bg-background pl-9" /></div><span className="text-xs text-muted-foreground">Open a document to review its details</span></div>
+        <div className="flex flex-wrap items-center justify-between gap-3 p-5"><div className="relative w-full sm:max-w-sm"><Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input aria-label={`Search ${meta.plural.toLowerCase()}`} placeholder="Search name, number or reference…" value={search} onChange={e=>setSearch(e.target.value)} className="min-h-11 bg-background pl-9" /></div><DocumentSort value={sort} onChange={setSort} credit={meta.credit} /></div>
         {!docs && !error && <div className="p-5"><SkeletonRows /></div>}
         {docs && filterUnavailable && <SettlementFilterNotice loading={ledger.loading} onShowAll={() => setFilter('all')} />}
         {docs && !filterUnavailable && shown.length === 0 && <EmptyState icon={FileText}

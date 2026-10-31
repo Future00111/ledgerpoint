@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
-import { MobileDocumentCards, DocumentTable, DocumentStatusFilters, DocumentTotal, documentSettlement, documentSettlementsAvailable, SettlementFilterNotice } from '@/pages/AccountingDocumentList';
+import { sortDocuments, DocumentSort, MobileDocumentCards, DocumentTable, DocumentStatusFilters, DocumentTotal, documentSettlement, documentSettlementsAvailable, SettlementFilterNotice } from '@/pages/AccountingDocumentList';
 import PostedDocument, { PostedLineCards } from '@/components/accounting/PostedDocument';
 import { DiscountEditor, DraftWriteActions } from '@/features/documentDiscounts/DiscountControls';
 import { CaptureDraftActions } from './CaptureReview';
@@ -221,4 +221,45 @@ test('malformed settlement snapshots cannot crash document rows or masquerade as
       }
     }
   }
+});
+
+
+test('document sorting compares exact saved amounts, preserves ties and places missing values last', () => {
+  const records = [
+    { id: 'unknown', money: { gross_pence: 'not-money' } },
+    { id: 'a', money: { gross_pence: '9007199254740992' } },
+    { id: 'b', money: { gross_pence: '9007199254740993' } },
+    { id: 'zero', money: { gross_pence: '0' } },
+    { id: 'tie', money: { gross_pence: '9007199254740992' } },
+    { id: 'missing' },
+  ];
+  const before = JSON.stringify(records);
+  const ids = order => sortDocuments(records, order).map(record => record.id);
+  assert.deepEqual(ids('largest'), ['b', 'a', 'tie', 'zero', 'unknown', 'missing']);
+  assert.deepEqual(ids('smallest'), ['zero', 'a', 'tie', 'b', 'unknown', 'missing']);
+  for (const order of ['saved', 'invalid']) assert.deepEqual(ids(order), records.map(record => record.id));
+  assert.equal(JSON.stringify(records), before);
+  assert.notEqual(sortDocuments(records), records);
+  assert.equal(sortDocuments(records, 'largest')[0], records[2]);
+});
+
+test('document date ordering is stable, rejects impossible dates and does not invent credit due dates', () => {
+  const records = [
+    { id: 'a', source: { issue_date: '2026-10-31', due_date: '2026-11-30' } },
+    { id: 'missing' },
+    { id: 'b', source: { issue_date: '2026-10-30', due_date: '2026-11-01' } },
+    { id: 'invalid', source: { issue_date: '2026-02-30', due_date: 'tomorrow' } },
+    { id: 'tie', source: { issue_date: '2026-10-31', due_date: '2026-11-30' } },
+  ];
+  const ids = order => sortDocuments(records, order).map(record => record.id);
+  assert.deepEqual(ids('newest'), ['a', 'tie', 'b', 'missing', 'invalid']);
+  assert.deepEqual(ids('oldest'), ['b', 'a', 'tie', 'missing', 'invalid']);
+  assert.deepEqual(ids('due'), ['b', 'a', 'tie', 'missing', 'invalid']);
+  const html = render(<DocumentSort value="largest" onChange={noop} />);
+  assert.match(html, /<label[^>]*>Sort documents<select/);
+  assert.match(html, /<option value="largest" selected="">/);
+  assert.match(html, /Due date: earliest first/);
+  const credit = render(<DocumentSort value="saved" onChange={noop} credit />);
+  assert.equal(credit.includes('Due date'), false);
+  assert.match(credit, /Total: largest first/);
 });
