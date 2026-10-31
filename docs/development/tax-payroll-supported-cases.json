@@ -47,6 +47,11 @@
       "url": "https://www.gov.uk/government/publications/real-time-information-internet-submissions-2026-to-2027-technical-specifications",
       "checkedAt": "2026-10-30",
       "evidence": "Official source located; rates, schemas and calculation fixtures not yet pinned or independently reviewed."
+    },
+    "payrollLoanExamples2026": {
+      "url": "https://www.gov.uk/government/publications/software-developers-payroll-test-data-2026-to-2027",
+      "checkedAt": "2026-10-31",
+      "evidence": "Official Student Loan v1.0 ODS downloaded and SHA-256 pinned; 130 exact examples extracted reproducibly. No LedgerPoint engine or statutory qualification claimed."
     }
   },
   "openQualificationRequirements": [
@@ -2126,6 +2131,356 @@
         }
       },
       "qualificationEvidence": null
+    },
+    {
+      "id": "payroll-loan-plan_1-2026-27",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "employee_loan_plan_1",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P04-01",
+        "P09-01",
+        "P09-05",
+        "P09-10"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payrollLoanExamples2026",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "taxYear",
+        "plan",
+        "frequency",
+        "payMinor",
+        "loanNotice",
+        "employmentId",
+        "paymentDate"
+      ],
+      "requiredOutputs": [
+        "deductionMinor",
+        "ruleVersion",
+        "calculationSteps",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "employee_loan_plan_1",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-loan-plan_1-2026-27"
+        }
+      },
+      "qualificationEvidence": null,
+      "referenceFixtures": {
+        "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-student-loans-2026-27-v1.0.json",
+        "plan": "plan_1",
+        "caseCount": 26,
+        "frequencies": [
+          "weekly",
+          "fortnightly",
+          "four_weekly",
+          "monthly"
+        ],
+        "qualification": "reference_only_engine_not_implemented"
+      }
+    },
+    {
+      "id": "payroll-loan-plan_2-2026-27",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "employee_loan_plan_2",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P04-01",
+        "P09-01",
+        "P09-05",
+        "P09-10"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payrollLoanExamples2026",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "taxYear",
+        "plan",
+        "frequency",
+        "payMinor",
+        "loanNotice",
+        "employmentId",
+        "paymentDate"
+      ],
+      "requiredOutputs": [
+        "deductionMinor",
+        "ruleVersion",
+        "calculationSteps",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "employee_loan_plan_2",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-loan-plan_2-2026-27"
+        }
+      },
+      "qualificationEvidence": null,
+      "referenceFixtures": {
+        "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-student-loans-2026-27-v1.0.json",
+        "plan": "plan_2",
+        "caseCount": 26,
+        "frequencies": [
+          "weekly",
+          "fortnightly",
+          "four_weekly",
+          "monthly"
+        ],
+        "qualification": "reference_only_engine_not_implemented"
+      }
+    },
+    {
+      "id": "payroll-loan-plan_4-2026-27",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "employee_loan_plan_4",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P04-01",
+        "P09-01",
+        "P09-05",
+        "P09-10"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payrollLoanExamples2026",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "taxYear",
+        "plan",
+        "frequency",
+        "payMinor",
+        "loanNotice",
+        "employmentId",
+        "paymentDate"
+      ],
+      "requiredOutputs": [
+        "deductionMinor",
+        "ruleVersion",
+        "calculationSteps",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "employee_loan_plan_4",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-loan-plan_4-2026-27"
+        }
+      },
+      "qualificationEvidence": null,
+      "referenceFixtures": {
+        "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-student-loans-2026-27-v1.0.json",
+        "plan": "plan_4",
+        "caseCount": 26,
+        "frequencies": [
+          "weekly",
+          "fortnightly",
+          "four_weekly",
+          "monthly"
+        ],
+        "qualification": "reference_only_engine_not_implemented"
+      }
+    },
+    {
+      "id": "payroll-loan-plan_5-2026-27",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "employee_loan_plan_5",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P04-01",
+        "P09-01",
+        "P09-05",
+        "P09-10"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payrollLoanExamples2026",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "taxYear",
+        "plan",
+        "frequency",
+        "payMinor",
+        "loanNotice",
+        "employmentId",
+        "paymentDate"
+      ],
+      "requiredOutputs": [
+        "deductionMinor",
+        "ruleVersion",
+        "calculationSteps",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "employee_loan_plan_5",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-loan-plan_5-2026-27"
+        }
+      },
+      "qualificationEvidence": null,
+      "referenceFixtures": {
+        "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-student-loans-2026-27-v1.0.json",
+        "plan": "plan_5",
+        "caseCount": 26,
+        "frequencies": [
+          "weekly",
+          "fortnightly",
+          "four_weekly",
+          "monthly"
+        ],
+        "qualification": "reference_only_engine_not_implemented"
+      }
+    },
+    {
+      "id": "payroll-loan-postgraduate-2026-27",
+      "selector": {
+        "domain": "payroll",
+        "entity": "employer",
+        "scheme": "none",
+        "income": "employment",
+        "employment": "employee_loan_postgraduate",
+        "taxYear": "2026-27"
+      },
+      "status": "unsupported",
+      "deliveryStatus": "pending_qualification",
+      "scopeStatus": "retained_for_qualification",
+      "owner": "coordinator",
+      "backlogTasks": [
+        "P04-01",
+        "P09-01",
+        "P09-05",
+        "P09-10"
+      ],
+      "ruleProvenance": {
+        "sourceId": "payrollLoanExamples2026",
+        "role": "official_discovery_source_not_pinned_calculation_rule",
+        "ruleVersion": null,
+        "reviewedCalculation": false
+      },
+      "requiredInputs": [
+        "taxYear",
+        "plan",
+        "frequency",
+        "payMinor",
+        "loanNotice",
+        "employmentId",
+        "paymentDate"
+      ],
+      "requiredOutputs": [
+        "deductionMinor",
+        "ruleVersion",
+        "calculationSteps",
+        "warnings"
+      ],
+      "example": {
+        "input": {
+          "domain": "payroll",
+          "entity": "employer",
+          "scheme": "none",
+          "income": "employment",
+          "employment": "employee_loan_postgraduate",
+          "taxYear": "2026-27"
+        },
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "caseId": "payroll-loan-postgraduate-2026-27"
+        }
+      },
+      "qualificationEvidence": null,
+      "referenceFixtures": {
+        "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-student-loans-2026-27-v1.0.json",
+        "plan": "postgraduate",
+        "caseCount": 26,
+        "frequencies": [
+          "weekly",
+          "fortnightly",
+          "four_weekly",
+          "monthly"
+        ],
+        "qualification": "reference_only_engine_not_implemented"
+      }
     }
   ]
 }
