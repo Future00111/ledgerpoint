@@ -1,23 +1,18 @@
 {
   "version": 1,
-  "revision": 29,
+  "revision": 30,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "1e0d6bada4d14c2042544f9ce910567749466e84",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261031-0003",
     "token": "33afe71d-967c-4268-8df1-ce44466c9bae",
     "acquiredAt": 1793405084528,
     "expiresAt": 1793407771228
-  },
-  "lastOwner": {
-    "runId": "hosted-20261030-2333",
-    "token": "459bb9e4-6df1-497d-818f-be04b16656bf",
-    "acquiredAt": 1793403323893,
-    "expiresAt": 1793405770885
   },
   "queueState": {
     "version": 2,
@@ -3207,12 +3202,19 @@
     "at": 1793405971240,
     "codeHead": "1e0d6bada4d14c2042544f9ce910567749466e84"
   },
-  "updatedAt": 1793405971240,
+  "updatedAt": 1793406072060,
   "validation": {
     "sourceCommit": "1e0d6bada4d14c2042544f9ce910567749466e84",
-    "status": "CI_pending",
-    "previousVerifiedSource": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
-    "previousCI": "https://github.com/Future00111/ledgerpoint/actions/runs/41149269177"
+    "sourceTree": "ab1a3ffec7239e38158e7f02154bc1b035345717",
+    "ciRun": "https://github.com/Future00111/ledgerpoint/actions/runs/41149519096",
+    "sourceTests": 724,
+    "disposablePostgresTests": 76,
+    "tests": 800,
+    "failed": 0,
+    "skipped": 0,
+    "buildTypecheckPassed": true,
+    "restorePassed": true,
+    "isolatedCleanupPassed": true
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -3262,6 +3264,9 @@
     "workersStopped": true,
     "worktreesClean": true,
     "integratedTree": "ab1a3ffec7239e38158e7f02154bc1b035345717",
-    "queueMigration": "Worker4 independently reviewed exact ownership repairs; all task leases resolved; runtime archived; every acceptance criterion and 92 source bullets preserved. P03-00 accepted against exact source 4b488369b9edb8c4912d26e1c31e236ee6c0310a passing 800 tests."
+    "queueMigration": "Worker4 independently reviewed exact ownership repairs; all task leases resolved; runtime archived; every acceptance criterion and 92 source bullets preserved. P03-00 accepted against exact source 4b488369b9edb8c4912d26e1c31e236ee6c0310a passing 800 tests.",
+    "remaining": "P03-00 prerequisite accepted; paid-credit P01-02 next eligible. Other integrated slices remain partial. P05-03 internal period-close contract and P07-01/P07-02 isolated authenticated browser qualification still blocked. No owner decisions needed for available work.",
+    "localTests": 724,
+    "ci": "passed"
   }
 }
