@@ -37,6 +37,15 @@
         "/payments"
       ],
       "status": "draft_source_checked_browser_acceptance_pending"
+    },
+    {
+      "path": "docs/product/help/apply-a-later-discount.md",
+      "appRoutes": [
+        "/invoices",
+        "/bills"
+      ],
+      "status": "draft_source_checked_browser_acceptance_pending",
+      "sourceCommit": "12b31286277683071804101fe3fc7b778d15fc98"
     }
   ],
   "claimsNotPermitted": [
@@ -47,7 +56,8 @@
     "The commercial product, pilot cohort, subscription price or support commitment is approved",
     "Posting a credit after payment sends a cash refund",
     "Development paid-credit checks enable every existing demo/customer environment",
-    "Credits against corrected originals are fully supported"
+    "Credits against corrected originals are fully supported",
+    "Conditional early-payment discounts apply automatically when a payment arrives"
   ],
   "evidencePaths": [
     "docs/ledgerly-active-product-plan.md",
