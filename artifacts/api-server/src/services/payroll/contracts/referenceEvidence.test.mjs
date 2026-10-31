@@ -49,3 +49,42 @@ test('incorrect declared count and frequencies cannot pass as reference coverage
     assert.throws(() => validatePayrollReferenceEvidence(r, corpora), /INVALID_PAYROLL_REFERENCE_EVIDENCE/);
   }
 });
+test('unregistered and malformed examples cannot be silently omitted from coverage', () => {
+  const path = first(registry).referenceFixtures.path;
+  for (const extra of [null, {}, {id:'orphan', input:{plan:'unknown_plan'}}]) {
+    const c = structuredClone(corpora); c[path].cases.push(extra);
+    assert.throws(() => validatePayrollReferenceEvidence(registry, c), /INVALID_PAYROLL_REFERENCE_EVIDENCE/);
+  }
+  const r = structuredClone(registry);
+  r.cases = r.cases.filter(row => row.id !== first(r).id);
+  assert.throws(() => validatePayrollReferenceEvidence(r, corpora), /INVALID_PAYROLL_REFERENCE_EVIDENCE/);
+});
+test('case identity is unique across all dimensions of a linked corpus', () => {
+  const c = structuredClone(corpora);
+  const path = first(registry).referenceFixtures.path;
+  const examples = c[path].cases;
+  const other = examples.find(example => example.input.plan !== examples[0].input.plan);
+  other.id = examples[0].id;
+  assert.throws(() => validatePayrollReferenceEvidence(registry, c), /INVALID_PAYROLL_REFERENCE_EVIDENCE/);
+});
+test('reference amounts and source coordinates must be complete exact values', () => {
+  for (const path of Object.keys(corpora)) {
+    for (const mutate of [
+      e => e.expected = null,
+      e => e.expected = {},
+      e => e.expected.extraResult = '100',
+      e => e.expected[Object.keys(e.expected)[0]] = 100,
+      e => e.expected[Object.keys(e.expected)[0]] = '1.2',
+      e => e.expected[Object.keys(e.expected)[0]] = '-0',
+      e => e.input[Object.keys(e.input).find(key => key.endsWith('Minor'))] = 'NaN',
+      e => e.sourceRow = 1.5,
+      e => e.sourceSheet = '',
+    ]) {
+      const c = structuredClone(corpora); mutate(c[path].cases[0]);
+      assert.throws(() => validatePayrollReferenceEvidence(registry, c), /INVALID_PAYROLL_REFERENCE_EVIDENCE/);
+    }
+  }
+  for (const c of [null, [], undefined]) {
+    assert.throws(() => validatePayrollReferenceEvidence(registry, c), /INVALID_PAYROLL_REFERENCE_EVIDENCE/);
+  }
+});
