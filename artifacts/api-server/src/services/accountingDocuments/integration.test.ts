@@ -1196,3 +1196,38 @@ test('paid credit and separately reviewed payment unallocation fence competing a
  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind=$2',[f.company,'unallocation'])).rows[0].n,1);
  assert.equal((await admin.query('SELECT status FROM accounting_document_sources WHERE company_id=$1 AND id=$2',[f.company,credit.id])).rows[0].status,creditWon?'posted':'draft');
 });
+
+test('paid-credit released pools support later allocation, refund and undo without double use or rewriting history',async()=>{
+ const {reviewPaidCredit,commitPaidCredit}=await import('./paidCredit');
+ for(const kind of ['purchase_bill','sales_invoice']) {
+  const f=await fixture(),original=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,original);
+  const payment=await recordPayment(f,paymentIntent(f,original,'12000','12000'));
+  const credit=await discountCredit(f,original,'percentage','10','2026-10-22');
+  const r=await reviewPaidCredit(f.company,actor,credit.id,credit.revision,{request_id:randomUUID(),reason:'Agreed later discount'});
+  await commitPaidCredit(f.company,actor,credit.id,credit.revision,{...r.intent,review_token:r.review_token,releases:r.releases});
+  const frozen=(await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 ORDER BY id',[f.company])).rows;
+  const second=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,second);
+  const allocation=await recordPayment(f,paymentIntent(f,second,'700','700',{kind:'allocation',payment_id:payment.id,date:'2026-10-23'}));
+  const refund=await recordPayment(f,paymentIntent(f,original,'500','0',{kind:'refund',payment_id:payment.id,date:'2026-10-23'}));
+  for(const event of [allocation,refund]) {
+   const replay=await request(f.company,'/accounting-payments','POST',event.reviewed);
+   assert.equal(replay.status,200);assert.equal(replay.data.status,'duplicate');
+  }
+  const exhausted=await request(f.company,'/accounting-payments/review','POST',paymentIntent(f,original,'1','0',{kind:'refund',payment_id:payment.id,date:'2026-10-23'}));
+  assert.equal(exhausted.status,409);assert.equal(exhausted.error.code,'AMOUNT_EXCEEDS_UNAPPLIED');
+  const prior=await reports(f.company,actor,'2026-10-01','2026-10-22');
+  assert.equal(prior.cash.balance_minor,kind==='sales_invoice'?'12000':'-12000');
+  assert.equal(prior.party_balances[0].unapplied_minor,'1200');
+  await recordPayment(f,paymentIntent(f,second,'700','700',{kind:'unallocation',payment_id:payment.id,date:'2026-10-24'}));
+  const payments=(await request(f.company,'/accounting-payments')).data;
+  assert.equal(payments[0].amount_minor,'12000');assert.equal(payments[0].allocated_minor,'10800');
+  assert.equal(payments[0].unapplied_minor,'700');assert.equal(payments[0].refunded_minor,'500');
+  const reversal=await request(f.company,'/accounting-payments/review','POST',paymentIntent(f,original,'12000','0',{kind:'reversal',payment_id:payment.id,date:'2026-10-24'}));
+  assert.equal(reversal.status,409);
+  const after=await reports(f.company,actor,'2026-10-01','2026-10-24');
+  assert.equal(after.cash.balance_minor,kind==='sales_invoice'?'11500':'-11500');assert.equal(after.balance_sheet.balanced,true);
+  const item=after.open_items.find((d:any)=>d.id===original.id);
+  assert.equal(item.open_minor,'0');assert.equal(item.credited_minor,'1200');assert.equal(item.paid_minor,'10800');
+  assert.deepEqual((await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=ANY($2::uuid[]) ORDER BY id',[f.company,frozen.map((e:any)=>e.id)])).rows,frozen);
+ }
+});
