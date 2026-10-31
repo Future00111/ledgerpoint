@@ -72,7 +72,8 @@ export default function EmailRuleManager({ companyId }) {
     <div className="space-y-4">
       <Card className="border-0 shadow-sm">
         <CardContent className="p-4 space-y-3">
-          <p className="text-sm font-medium">Create a new rule</p>
+          <p className="text-sm font-medium">Save a capture rule</p>
+          <EmailRuleAvailability />
           <Input placeholder="Rule name (e.g. 'Supplier Invoices')" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Input placeholder="Sender contains (e.g. @supplier.com)" value={form.sender_contains} onChange={e => setForm({ ...form, sender_contains: e.target.value })} />
@@ -106,7 +107,7 @@ export default function EmailRuleManager({ companyId }) {
           <CardContent className="flex flex-col items-center py-12">
             <Filter className="w-10 h-10 text-muted-foreground/30 mb-3" />
             <p className="text-muted-foreground text-sm">No rules created yet</p>
-            <p className="text-xs text-muted-foreground mt-1">Rules help filter which emails are captured as documents</p>
+            <p className="text-xs text-muted-foreground mt-1">Saved rules will be available when email scanning is implemented</p>
           </CardContent>
         </Card>
       ) : (
@@ -119,7 +120,7 @@ export default function EmailRuleManager({ companyId }) {
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-sm">{rule.name}</p>
                       <Badge className={`text-xs ${rule.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
-                        {rule.is_active ? 'Active' : 'Inactive'}
+                        {rule.is_active ? 'Preference enabled' : 'Preference disabled'}
                       </Badge>
                     </div>
                     <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
@@ -143,4 +144,7 @@ export default function EmailRuleManager({ companyId }) {
       )}
     </div>
   );
+}
+export function EmailRuleAvailability() {
+  return <p className="text-sm text-muted-foreground">Rules are saved preferences. Email scanning is unavailable; saving or enabling a rule does not process emails.</p>;
 }

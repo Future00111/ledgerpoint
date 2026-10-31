@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import * as nativeEntities from '@/api/entities';
-import { invokeApiFunction } from '@/api/functions.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Scan, Loader2, FileText, Receipt, Undo2, FolderOpen, ArrowRight } from 'lucide-react';
+import { Scan, FileText, Receipt, Undo2, FolderOpen, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
 import EmailAccountManager from '@/components/email_capture/EmailAccountManager';
 import EmailRuleManager from '@/components/email_capture/EmailRuleManager';
 import CaptureLog from '@/components/email_capture/CaptureLog';
@@ -46,12 +44,8 @@ const STATUS_LABELS = {
 export default function EmailCapture() {
   const { activeCompany } = useCompany();
   const [tab, setTab] = useState('accounts');
-  const [scanning, setScanning] = useState(false);
-  const [scanResult, setScanResult] = useState(null);
   const [capturedDocs, setCapturedDocs] = useState([]);
   const [docsLoading, setDocsLoading] = useState(false);
-  const [logRefresh, setLogRefresh] = useState(0);
-  const { toast } = useToast();
 
   const loadCapturedDocs = async () => {
     if (!activeCompany) return;
@@ -64,23 +58,6 @@ export default function EmailCapture() {
   };
 
   useEffect(() => { if (activeCompany) loadCapturedDocs(); }, [activeCompany]);
-
-  const handleScan = async () => {
-    if (!activeCompany) return;
-    setScanning(true);
-    try {
-      const res = await invokeApiFunction('mockScanEmails', { company_id: activeCompany.id });
-      setScanResult(res.data);
-      toast({ title: `Scan complete: ${res.data.documents_found} document(s) found` });
-      setLogRefresh(k => k + 1);
-      loadCapturedDocs();
-    } catch (e) {
-      const msg = e?.response?.data?.error || e.message;
-      toast({ title: 'Scan failed', description: msg, variant: 'destructive' });
-    } finally {
-      setScanning(false);
-    }
-  };
 
   if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
 
@@ -96,21 +73,11 @@ export default function EmailCapture() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Email Invoice Capture</h1>
-          <p className="text-muted-foreground text-sm mt-1">Add email accounts, create rules, and scan for invoices and receipts.</p>
+          <p className="text-muted-foreground text-sm mt-1">Review saved email preferences and historical capture records.</p>
         </div>
-        <Button onClick={handleScan} disabled={scanning} className="gap-2">
-          {scanning ? <><Loader2 className="w-4 h-4 animate-spin" />Scanning...</> : <><Scan className="w-4 h-4" />Scan All</>}
-        </Button>
+        <Button disabled className="gap-2"><Scan className="w-4 h-4" />Scanning unavailable</Button>
       </div>
-
-      {scanResult && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card className="border-0 shadow-sm"><CardContent className="p-3 text-center"><p className="text-2xl font-semibold">{scanResult.accounts_scanned}</p><p className="text-xs text-muted-foreground">Accounts Scanned</p></CardContent></Card>
-          <Card className="border-0 shadow-sm"><CardContent className="p-3 text-center"><p className="text-2xl font-semibold">{scanResult.emails_scanned}</p><p className="text-xs text-muted-foreground">Emails Scanned</p></CardContent></Card>
-          <Card className="border-0 shadow-sm"><CardContent className="p-3 text-center"><p className="text-2xl font-semibold text-emerald-600">{scanResult.documents_found}</p><p className="text-xs text-muted-foreground">Documents Found</p></CardContent></Card>
-          <Card className="border-0 shadow-sm"><CardContent className="p-3 text-center"><p className="text-2xl font-semibold">{scanResult.emails_ignored}</p><p className="text-xs text-muted-foreground">Emails Ignored</p></CardContent></Card>
-        </div>
-      )}
+      <EmailCaptureAvailability />
 
       <div className="flex gap-1 border-b overflow-x-auto">
         {tabs.map(t => (
@@ -122,7 +89,7 @@ export default function EmailCapture() {
 
       {tab === 'accounts' && <EmailAccountManager companyId={activeCompany.id} />}
       {tab === 'rules' && <EmailRuleManager companyId={activeCompany.id} />}
-      {tab === 'log' && <CaptureLog companyId={activeCompany.id} refreshKey={logRefresh} />}
+      {tab === 'log' && <CaptureLog companyId={activeCompany.id} refreshKey={0} />}
       {tab === 'captured' && (
         <div className="space-y-3">
           {docsLoading ? (
@@ -132,7 +99,7 @@ export default function EmailCapture() {
               <CardContent className="flex flex-col items-center py-12">
                 <FolderOpen className="w-10 h-10 text-muted-foreground/30 mb-3" />
                 <p className="text-muted-foreground text-sm">No documents captured yet</p>
-                <p className="text-xs text-muted-foreground mt-1">Run a scan to capture documents from your email accounts</p>
+                <p className="text-xs text-muted-foreground mt-1">Email scanning is unavailable. Upload source documents through the Document inbox.</p>
               </CardContent>
             </Card>
           ) : (
@@ -178,4 +145,11 @@ export default function EmailCapture() {
       )}
     </div>
   );
+}
+export function EmailCaptureAvailability() {
+  return <div role="status" className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+    <p className="font-medium">Email connection and scanning are not available yet.</p>
+    <p>Saved accounts, rules and preferences do not connect a mailbox or run scans. Existing capture records remain available.</p>
+    <Link to="/documents" className="text-primary underline">Upload invoices and credits in the Document inbox</Link>
+  </div>;
 }
