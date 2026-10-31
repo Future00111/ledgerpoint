@@ -628,7 +628,8 @@
         "Prove in fixtures that bank status alone cannot change a document balance and unknown outcomes recover using the original command identity."
       ],
       "files": [
-        "docs/development/native-bank-import-contract.md"
+        "docs/development/native-bank-import-contract.md",
+        "artifacts/api-server/src/services/accountingDocuments/integration.test.ts"
       ],
       "kind": "contract",
       "approval": "approved"
@@ -813,8 +814,9 @@
       "files": [
         "artifacts/ledgerly/src/features/workspaceNavigation/DailyWork.jsx",
         "artifacts/ledgerly/src/features/reporting/LedgerTable.jsx",
-        "artifacts/ledgerly/src/components/accounting/DocumentList.jsx",
-        "artifacts/ledgerly/src/features/workspaceNavigation/Navigation.test.jsx"
+        "artifacts/ledgerly/src/features/workspaceNavigation/Navigation.test.jsx",
+        "artifacts/ledgerly/src/pages/AccountingDocumentList.jsx",
+        "artifacts/ledgerly/src/features/documentIntake/DocumentUsability.test.jsx"
       ],
       "kind": "implementation",
       "approval": "approved"
@@ -833,7 +835,13 @@
         "artifacts/ledgerly/src/components/layout/AppLayout.jsx",
         "artifacts/ledgerly/src/features/workspaceNavigation/WorkspaceCapabilities.jsx",
         "artifacts/ledgerly/src/features/workspaceNavigation/model.mjs",
-        "artifacts/ledgerly/src/features/routeLoading/route-inventory.json"
+        "artifacts/ledgerly/src/features/routeLoading/route-inventory.json",
+        "artifacts/ledgerly/src/pages/EmailCapture.jsx",
+        "artifacts/ledgerly/src/pages/EmailRules.jsx",
+        "artifacts/ledgerly/src/components/email_capture/EmailAccountManager.jsx",
+        "artifacts/ledgerly/src/components/email_capture/ScanConfigForm.jsx",
+        "artifacts/ledgerly/src/components/email_capture/EmailRuleManager.jsx",
+        "artifacts/ledgerly/src/features/workspaceNavigation/EmailCapabilities.test.jsx"
       ],
       "kind": "implementation",
       "approval": "approved"
@@ -1773,9 +1781,13 @@
         "Any reminder path requires a reviewable recipient/content/action and permission check; this task prepares drafts only and external sending is P14-81."
       ],
       "files": [
-        "artifacts/ledgerly/src/features/creditRecovery/CreditQueue.jsx",
         "artifacts/ledgerly/src/features/creditRecovery/queuePresentation.mjs",
-        "artifacts/api-server/src/services/creditTracking/followUp/"
+        "artifacts/api-server/src/services/creditTracking/followUp/",
+        "artifacts/ledgerly/src/features/creditRecovery/AwaitingCreditsPage.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/ClaimList.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/ClaimList.test.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/CreditQueue.test.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/queuePresentation.test.mjs"
       ],
       "kind": "implementation",
       "approval": "approved"
