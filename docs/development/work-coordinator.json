@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "revision": 35,
+  "revision": 37,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "1e0d6bada4d14c2042544f9ce910567749466e84",
+  "codeHead": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261031-0043",
     "token": "161e5aeb-dbd3-45e6-a0f2-a8cdb844b0f9",
     "acquiredAt": 1793407428143,
-    "expiresAt": 1793409749092
+    "expiresAt": 1793409820330
   },
   "lastOwner": {
     "runId": "hosted-20261031-0003",
@@ -3927,31 +3927,25 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/whole-product-first-sprint",
-    "sha": "1e0d6bada4d14c2042544f9ce910567749466e84",
+    "sha": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd",
     "evidence": [
       {
         "ref": "refs/heads/codex/whole-product-first-sprint",
-        "sha": "1e0d6bada4d14c2042544f9ce910567749466e84",
-        "path": "docs/development/work-backlog.json"
+        "sha": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd",
+        "path": "tools/development/check.mjs"
       }
     ],
     "runId": "hosted-20261031-0043",
-    "at": 1793407949099,
-    "codeHead": "1e0d6bada4d14c2042544f9ce910567749466e84"
+    "at": 1793408020339,
+    "codeHead": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd"
   },
-  "updatedAt": 1793407949099,
+  "updatedAt": 1793408020339,
   "validation": {
-    "sourceCommit": "1e0d6bada4d14c2042544f9ce910567749466e84",
-    "sourceTree": "ab1a3ffec7239e38158e7f02154bc1b035345717",
-    "ciRun": "https://github.com/Future00111/ledgerpoint/actions/runs/41149519096",
-    "sourceTests": 724,
-    "disposablePostgresTests": 76,
-    "tests": 800,
-    "failed": 0,
-    "skipped": 0,
-    "buildTypecheckPassed": true,
-    "restorePassed": true,
-    "isolatedCleanupPassed": true
+    "sourceCommit": "91342fc16c964d6a5e7d6c423fa2a14dd9607bbd",
+    "status": "CI_pending",
+    "localSourceTests": 740,
+    "localBackupTests": 4,
+    "localBuildPassed": true
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -4000,6 +3994,6 @@
     ],
     "workersStopped": true,
     "worktreesClean": true,
-    "remaining": "Paid-credit candidate independently reviewed; local integration checks underway; no publication or acceptance yet."
+    "integratedTree": "7b6d18c66c621e175c703a474029365f7ebcc659"
   }
 }
