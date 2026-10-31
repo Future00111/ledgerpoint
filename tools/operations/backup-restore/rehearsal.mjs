@@ -22,7 +22,7 @@ let verified = false, postgresStopped = true, directoryRemoved = false, failure;
 const run = (command, args) => execFileSync(command, args, { env, stdio: 'pipe', timeout: 60000 });
 const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 let sourceFingerprint, restoredFingerprint;
-const negativeControls = [];
+const negativeControls = [], rowSecurityNegativeControls = [];
 async function cluster(name) {
   const base = `${directory}/${name}`, socket = `${base}/socket`, data = `${base}/data`;
   mkdirSync(socket, { recursive: true, mode: 0o700 });
@@ -45,18 +45,29 @@ async function fingerprint(client) {
     FROM pg_auth_members m JOIN pg_roles parent ON parent.oid=m.roleid JOIN pg_roles member ON member.oid=m.member
     WHERE parent.rolname LIKE 'lp_synthetic_%' OR member.rolname LIKE 'lp_synthetic_%'
     ORDER BY role_name,member_name`);
-  return digest({ database, roles: roles.rows, memberships: memberships.rows });
+  const rowSecurity = await client.query(`SELECT c.relname table_name,c.relrowsecurity enabled,c.relforcerowsecurity forced
+    FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public' AND c.relkind IN ('r','p') ORDER BY c.relname`);
+  const policies = await client.query(`SELECT schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check
+    FROM pg_policies WHERE schemaname='public' ORDER BY tablename,policyname`);
+  return digest({ database, roles: roles.rows, memberships: memberships.rows,
+    rowSecurity: rowSecurity.rows, policies: policies.rows });
 }
 
 try {
   const source = await cluster('source');
   await source.client.query(`CREATE ROLE lp_synthetic_reader NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
     CREATE ROLE lp_synthetic_elevated NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
-    CREATE TABLE original_attachments(id text PRIMARY KEY, content bytea NOT NULL);
+    CREATE TABLE original_attachments(id text PRIMARY KEY, tenant_id text NOT NULL, content bytea NOT NULL);
     CREATE TABLE durable_jobs(id text PRIMARY KEY, source_id text REFERENCES original_attachments(id), state text NOT NULL);
     CREATE TABLE audit_evidence(id text PRIMARY KEY, source_id text REFERENCES original_attachments(id), payload jsonb NOT NULL);
-    GRANT SELECT ON original_attachments,durable_jobs,audit_evidence TO lp_synthetic_reader;`);
-  await source.client.query('INSERT INTO original_attachments VALUES($1,$2)', ['source-1', Buffer.from([0,255,1,10,13])]);
+    GRANT SELECT ON original_attachments,durable_jobs,audit_evidence TO lp_synthetic_reader;
+    ALTER TABLE original_attachments ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE original_attachments FORCE ROW LEVEL SECURITY;
+    CREATE POLICY synthetic_tenant_read ON original_attachments FOR SELECT TO lp_synthetic_reader
+      USING (tenant_id = 'synthetic-tenant-1');`);
+  await source.client.query('INSERT INTO original_attachments VALUES($1,$2,$3)', ['source-1', 'synthetic-tenant-1', Buffer.from([0,255,1,10,13])]);
+  await source.client.query('INSERT INTO original_attachments VALUES($1,$2,$3)', ['source-2', 'synthetic-tenant-2', Buffer.from('other synthetic tenant')]);
   await source.client.query("INSERT INTO durable_jobs VALUES('job-1','source-1','pending'); INSERT INTO audit_evidence VALUES('audit-1','source-1','{\"actor\":\"synthetic\",\"action\":\"capture\"}');");
   sourceFingerprint = await fingerprint(source.client);
   const dump = `${directory}/source.dump`, encrypted = `${directory}/source.enc`, restored = `${directory}/restored.dump`, keyFile = `${directory}/key`;
@@ -76,12 +87,18 @@ try {
     ['missing_source_foreign_key', 'ALTER TABLE durable_jobs DROP CONSTRAINT durable_jobs_source_id_fkey'],
     ['unexpected_role_membership', 'GRANT lp_synthetic_elevated TO lp_synthetic_reader'],
     ['unexpected_audit_delete_grant', 'GRANT DELETE ON audit_evidence TO lp_synthetic_reader'],
+    ['missing_tenant_policy', 'DROP POLICY synthetic_tenant_read ON original_attachments'],
+    ['disabled_row_security', 'ALTER TABLE original_attachments DISABLE ROW LEVEL SECURITY'],
+    ['unforced_row_security', 'ALTER TABLE original_attachments NO FORCE ROW LEVEL SECURITY'],
   ]) {
     await proveRecoveryControl(target.client, restoredFingerprint, sql, fingerprint);
-    negativeControls.push(name);
+    (['missing_tenant_policy', 'disabled_row_security', 'unforced_row_security'].includes(name)
+      ? rowSecurityNegativeControls : negativeControls).push(name);
   }
   await target.client.query('SET ROLE lp_synthetic_reader');
-  await target.client.query('SELECT content FROM original_attachments');
+  const visible = await target.client.query('SELECT id,content FROM original_attachments ORDER BY id');
+  if (visible.rowCount !== 1 || visible.rows[0].id !== 'source-1' ||
+      !visible.rows[0].content.equals(Buffer.from([0,255,1,10,13]))) throw new Error('Restored tenant policy or original attachment bytes differ.');
   let denied = false;
   try { await target.client.query('DELETE FROM audit_evidence'); } catch (error) { if (error.code !== '42501') throw error; denied = true; }
   finally { await target.client.query('RESET ROLE'); }
@@ -97,8 +114,8 @@ finally {
   if (postgresStopped) { rmSync(directory, { recursive: true, force: true }); directoryRemoved = true; }
   writeFileSync(receiptPath, JSON.stringify({ sourceCommit, syntheticOnly: true, verified, sourceFingerprint, restoredFingerprint,
     elapsedMilliseconds: Math.round(performance.now() - started), postgresStopped, directoryRemoved,
-    separateClusters: true, negativeControls, schemaControlsPreserved: verified, roleMembershipsPreserved: verified, encryptedArchiveUsed: verified, runtimeMutationDenied: verified,
-    fixtureScope: 'Representative synthetic role, binary attachment, pending job and audit tables; not the application schema or production recovery qualification',
+    separateClusters: true, negativeControls, rowSecurityNegativeControls, schemaControlsPreserved: verified, roleMembershipsPreserved: verified, rowSecurityPreserved: verified, tenantVisibilityVerified: verified, encryptedArchiveUsed: verified, runtimeMutationDenied: verified,
+    fixtureScope: 'Representative synthetic role, two-tenant RLS binary attachments, pending job and audit tables; not the application schema or production recovery qualification',
     ambientDatabaseCredentialsUsed: false, productionContact: false }, null, 2) + '\n');
 }
 if (failure || !verified || !postgresStopped || !directoryRemoved) {
