@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "revision": 46,
+  "revision": 47,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261031-1504",
     "token": "11d8f231-76fc-4f4c-bf08-ba69610004a1",
     "acquiredAt": 1793459135653,
-    "expiresAt": 1793460935653
+    "expiresAt": 1793461098857
   },
   "lastOwner": {
     "runId": "hosted-20261031-0148",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 2,
-    "revision": 266,
+    "revision": 276,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,11 +100,14 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "blockers": [],
-        "checkpoint": "Interrupted run stopped. Restored worktree clean at published32511cec52d6dab6627c9fc44bf1fa235a9546a3; claims only, no code changes. Recovery receipt awaits authorized remote publication."
+        "checkpoint": "Clean codex/lp-1504-worker1 at 32511cec; inspected P01-03 contracts and existing paid-credit/payment paths. Adding paid-credit subsequent allocation/refund regression and correcting stale excess-discount preview within leased files; fully-paid Apply discount model needs separate lease repair.",
+        "owner": "worker1",
+        "token": "c6da3681-7122-46b6-be2f-301d1c4c2c92",
+        "leaseUntil": 1793460115818,
+        "workStarted": true
       },
       "P01-04": {
         "status": "pending",
@@ -166,10 +169,10 @@
         ]
       },
       "P02-01": {
-        "status": "pending",
+        "status": "running",
         "priority": 201,
         "discoveredDependencies": [],
-        "checkpoint": "Interrupted run stopped. Restored worktree clean at published32511cec52d6dab6627c9fc44bf1fa235a9546a3; claims only, no code changes. Recovery receipt awaits authorized remote publication.",
+        "checkpoint": "Clean codex/lp-1504-worker2 at 32511cec52d6dab6627c9fc44bf1fa235a9546a3; inspecting remaining legacy capability gaps before edits; no processes or database.",
         "evidence": {
           "commit": "7e6bcb621bf8be72652479cb99a03a6d27197f38",
           "summary": "PARTIAL P02-01: generic Company/entity lists now scope explicit company consistently, reject malformed context instead of broadening; generic DELETE rejects contradictory/malformed company before writes. Viewer reads, omitted authorized list and valid owner deletion preserved.",
@@ -188,7 +191,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "worker2",
+        "token": "f022401c-0dff-4411-b3db-5ed230cb98c6",
+        "leaseUntil": 1793460129904,
+        "workStarted": true
       },
       "P02-02": {
         "status": "pending",
@@ -299,22 +305,20 @@
         ]
       },
       "P03-03": {
-        "status": "blocked",
+        "status": "running",
         "priority": 303,
-        "blockers": [
-          {
-            "type": "task",
-            "id": "P03-00",
-            "source": "dependency",
-            "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
-          }
-        ]
+        "discoveredDependencies": [],
+        "owner": "worker3",
+        "token": "fca9f0ea-8275-4a41-a94c-cd0a6dad95af",
+        "leaseUntil": 1793460136113,
+        "workStarted": true,
+        "checkpoint": "Clean codex/lp-1504-worker3 at 32511cec; inspect existing disposable installer and contract completed. Before edits: implement pinned ordered migration-input validation consumed by existing disposable installer; never migrate existing DB or attest production compatibility."
       },
       "P03-04": {
-        "status": "pending",
+        "status": "running",
         "priority": 304,
         "discoveredDependencies": [],
-        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated synthetic encrypted archive CLI only; encrypted PostgreSQL restore/offsite ownership and targets unfinished.",
+        "checkpoint": "Clean codex/lp-1504-worker4 at published32511cec52d6dab6627c9fc44bf1fa235a9546a3; inspected existing encrypted archive, targets and PostgreSQL runner; no edits. Connecting encryption requires restore-drill.mjs outside current lease; coordinator notified before blocker/release.",
         "evidence": {
           "commit": "d2daf15b451fe19a7fd63fbb400d08d996ff3aaa",
           "summary": "PARTIAL P03-04 review fix: nonblocking regular-file read validation prevents FIFO hangs; timeout-bounded FIFO regression and controlled-parent-directory limitation documented. Working synthetic authenticated archive wrapper only; actual PostgreSQL encrypted restore, offsite and recovery targets remain pending.",
@@ -333,7 +337,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "worker4",
+        "token": "73ba7104-4c1b-4bf4-b3e2-444a5542b98b",
+        "leaseUntil": 1793460144093,
+        "workStarted": true
       },
       "P03-80": {
         "status": "blocked",
@@ -348,7 +355,7 @@
         ]
       },
       "P04-01": {
-        "status": "pending",
+        "status": "running",
         "priority": 401,
         "discoveredDependencies": [],
         "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated regional PAYE reference examples; native calculations and full case qualification unfinished.",
@@ -370,7 +377,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "worker5",
+        "token": "df75e856-b613-4153-a809-461dc011b518",
+        "leaseUntil": 1793460152932,
+        "workStarted": false
       },
       "P04-02": {
         "status": "pending",
@@ -569,7 +579,7 @@
         ]
       },
       "P07-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 703,
         "discoveredDependencies": [],
         "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated saved net/VAT display; full UI tables/filter/expert workflow acceptance pending.",
@@ -591,7 +601,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "worker6",
+        "token": "d9c20311-6c67-41e6-8734-889bd18ab321",
+        "leaseUntil": 1793460163309,
+        "workStarted": false
       },
       "P07-04": {
         "status": "pending",
@@ -4250,6 +4263,76 @@
         "type": "recover",
         "taskId": "P02-01",
         "checkpoint": "Interrupted run stopped. Restored worktree clean at published32511cec52d6dab6627c9fc44bf1fa235a9546a3; claims only, no code changes. Recovery receipt awaits authorized remote publication."
+      },
+      {
+        "at": 1793459215818,
+        "actor": "worker1",
+        "type": "claim",
+        "taskId": "P01-03",
+        "token": "c6da3681-7122-46b6-be2f-301d1c4c2c92"
+      },
+      {
+        "at": 1793459229904,
+        "actor": "worker2",
+        "type": "claim",
+        "taskId": "P02-01",
+        "token": "f022401c-0dff-4411-b3db-5ed230cb98c6"
+      },
+      {
+        "at": 1793459236113,
+        "actor": "worker3",
+        "type": "claim",
+        "taskId": "P03-03",
+        "token": "fca9f0ea-8275-4a41-a94c-cd0a6dad95af"
+      },
+      {
+        "at": 1793459241619,
+        "actor": "worker2",
+        "type": "checkpoint",
+        "taskId": "P02-01",
+        "checkpoint": "Clean codex/lp-1504-worker2 at 32511cec52d6dab6627c9fc44bf1fa235a9546a3; inspecting remaining legacy capability gaps before edits; no processes or database."
+      },
+      {
+        "at": 1793459244093,
+        "actor": "worker4",
+        "type": "claim",
+        "taskId": "P03-04",
+        "token": "73ba7104-4c1b-4bf4-b3e2-444a5542b98b"
+      },
+      {
+        "at": 1793459252932,
+        "actor": "worker5",
+        "type": "claim",
+        "taskId": "P04-01",
+        "token": "df75e856-b613-4153-a809-461dc011b518"
+      },
+      {
+        "at": 1793459262879,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Clean codex/lp-1504-worker1 at 32511cec; inspected P01-03 contracts and existing paid-credit/payment paths. Adding paid-credit subsequent allocation/refund regression and correcting stale excess-discount preview within leased files; fully-paid Apply discount model needs separate lease repair."
+      },
+      {
+        "at": 1793459263309,
+        "actor": "worker6",
+        "type": "claim",
+        "taskId": "P07-03",
+        "token": "d9c20311-6c67-41e6-8734-889bd18ab321"
+      },
+      {
+        "at": 1793459276352,
+        "actor": "worker4",
+        "type": "checkpoint",
+        "taskId": "P03-04",
+        "checkpoint": "Clean codex/lp-1504-worker4 at published32511cec52d6dab6627c9fc44bf1fa235a9546a3; inspected existing encrypted archive, targets and PostgreSQL runner; no edits. Connecting encryption requires restore-drill.mjs outside current lease; coordinator notified before blocker/release."
+      },
+      {
+        "at": 1793459276413,
+        "actor": "worker3",
+        "type": "checkpoint",
+        "taskId": "P03-03",
+        "checkpoint": "Clean codex/lp-1504-worker3 at 32511cec; inspect existing disposable installer and contract completed. Before edits: implement pinned ordered migration-input validation consumed by existing disposable installer; never migrate existing DB or attest production compatibility."
       }
     ],
     "catalogDigest": "c708e672a6e57c01d6295ebe136604b411bb429d0b2b9010f3ff52fd62eda137"
@@ -4268,7 +4351,7 @@
     "at": 1793458794938,
     "codeHead": "32511cec52d6dab6627c9fc44bf1fa235a9546a3"
   },
-  "updatedAt": 1793459135653,
+  "updatedAt": 1793459298857,
   "validation": {
     "sourceCommit": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
     "status": "passed",
