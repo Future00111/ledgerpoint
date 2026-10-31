@@ -195,3 +195,76 @@ for (const includeAmendments of [false, true]) {
     }
   });
 }
+
+for (const includeAmendments of [false, true]) {
+  for (const winnerCommits of [false, true]) {
+    test(`real PostgreSQL: installer serializes and rechecks after competing migration, amendments=${includeAmendments}, commit=${winnerCommits}`, async () => {
+      const database = `ledgerly_migration_race_${includeAmendments ? 'amended' : 'original'}_${winnerCommits ? 'commit' : 'rollback'}_test`;
+      await admin.query(`CREATE DATABASE ${database}`);
+      const connection = () => new pg.Client({ host: socket, port: 55441, user: 'w03_bootstrap',
+        database, password: '', ssl: false, options: '-c timezone=UTC' });
+      const winner = connection(), contender = connection();
+      let installation;
+      try {
+        await winner.connect(); await contender.connect();
+        const { installSchema, exportSchema } = await import(
+          pathToFileURL(path.join(process.cwd(), 'tools/accounting-flow/schema.mjs')).href);
+        const sql = exportSchema();
+        await winner.query('BEGIN');
+        await winner.query('SELECT pg_advisory_xact_lock(17428, 3003)');
+        let announceLock;
+        const requestedLock = new Promise(resolve => { announceLock = resolve; });
+        const contenderAdmin = { query: (statement, values) => {
+          const result = contender.query(statement, values);
+          if (statement === 'SELECT pg_advisory_xact_lock(17428, 3003)') announceLock();
+          return result;
+        } };
+        // Attach rejection handling immediately; the losing installation must be
+        // a clean empty-schema refusal, never a partial migration or DDL error.
+        installation = installSchema(contenderAdmin, sql, { includeAmendments })
+          .then(() => ({ ok: true }), error => ({ ok: false, error }));
+        await Promise.race([requestedLock, installation.then(result => {
+          throw result.error ?? Error("Installer completed without requesting the migration lock");
+        })]);
+        const pid = contender.processID;
+        const deadline = Date.now() + 5000;
+        let waiting = false;
+        do {
+          waiting = (await winner.query(`SELECT EXISTS(SELECT 1 FROM pg_locks
+            WHERE pid=$1 AND locktype='advisory' AND NOT granted) waiting`, [pid])).rows[0].waiting;
+          if (!waiting) await new Promise(resolve => setTimeout(resolve, 10));
+        } while (!waiting && Date.now() < deadline);
+        assert.equal(waiting, true, 'contender must wait on the transaction migration lock');
+        await winner.query('CREATE TABLE public.competing_migration_evidence(value text NOT NULL)');
+        await winner.query("INSERT INTO public.competing_migration_evidence VALUES ('retained synthetic evidence')");
+        await winner.query(winnerCommits ? 'COMMIT' : 'ROLLBACK');
+        const result = await installation;
+        if (winnerCommits) {
+          assert.equal(result.ok, false);
+          assert.match(result.error.message, /restricted to a newly created empty disposable database/);
+          assert.deepEqual((await contender.query('SELECT * FROM public.competing_migration_evidence')).rows,
+            [{ value: 'retained synthetic evidence' }]);
+          assert.equal((await contender.query("SELECT to_regclass('public.accounting_document_sources') sources")).rows[0].sources, null);
+        } else {
+          assert.equal(result.ok, true, result.error?.message);
+          const { rows: [installed] } = await contender.query(`SELECT
+            to_regclass('public.accounting_document_sources') sources,
+            to_regclass('public.accounting_document_amendments') amendments,
+            to_regclass('public.competing_migration_evidence') competing`);
+          assert.ok(installed.sources);
+          assert.equal(Boolean(installed.amendments), includeAmendments);
+          assert.equal(installed.competing, null);
+        }
+        // Success and refusal both release the transaction lock; no stale lease.
+        const acquired = (await winner.query('SELECT pg_try_advisory_lock(17428, 3003) acquired')).rows[0].acquired;
+        assert.equal(acquired, true);
+        await winner.query('SELECT pg_advisory_unlock(17428, 3003)');
+      } finally {
+        await winner.query('ROLLBACK').catch(() => {});
+        if (installation) await installation;
+        await contender.end(); await winner.end();
+        await admin.query(`DROP DATABASE ${database}`);
+      }
+    });
+  }
+}

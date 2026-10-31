@@ -23,13 +23,15 @@ function validReference(row) {
   if (!plain(ref) || row.selector.domain !== 'payroll' || row.selector.entity !== 'employer'
     || row.selector.income !== 'employment' || row.selector.scheme !== 'none'
     || ref.qualification !== 'reference_only_engine_not_implemented'
+    || typeof ref.sourceSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(ref.sourceSha256)
+    || typeof ref.sourceVersion !== 'string' || !/^[0-9]+(?:\.[0-9]+)+$/.test(ref.sourceVersion)
     || !Number.isSafeInteger(ref.caseCount) || ref.caseCount <= 0
     || typeof ref.path !== 'string'
     || !/^artifacts\/api-server\/src\/services\/payroll\/contracts\/fixtures\/[a-z0-9.-]+\.json$/.test(ref.path)) return false;
   const loan = Object.hasOwn(ref, 'plan');
   const dimension = loan ? 'plan' : 'region';
   const allowed = loan ? ['plan_1', 'plan_2', 'plan_4', 'plan_5', 'postgraduate'] : ['rest_of_uk', 'scotland', 'wales'];
-  const keys = ['path', dimension, 'caseCount', 'qualification', ...(loan ? ['frequencies'] : [])];
+  const keys = ['path', dimension, 'caseCount', 'qualification', 'sourceSha256', 'sourceVersion', ...(loan ? ['frequencies'] : [])];
   return Object.keys(ref).length === keys.length && keys.every(key => Object.hasOwn(ref, key))
     && allowed.includes(ref[dimension])
     && row.selector.employment === `employee_${loan ? 'loan' : 'paye'}_${ref[dimension]}`

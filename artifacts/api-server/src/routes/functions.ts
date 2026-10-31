@@ -391,8 +391,16 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
           ? (args as { transactions?: Array<Record<string, unknown>> }).transactions
           : [args as Record<string, unknown>];
         const companyId = (args as { company_id?: string }).company_id;
-        if (!companyId || !Array.isArray(entries) || entries.length === 0) {
+        if (typeof companyId !== "string" || !companyId.trim() || !Array.isArray(entries) || entries.length === 0) {
           res.status(400).json({ error: "A company and at least one bank transaction are required" });
+          return;
+        }
+        // Imported rows may retain the workspace where they were prepared.
+        // Never silently relabel those rows with a later selected company;
+        // validate the entire batch before membership reads or any inserts.
+        if (entries.some(entry => !entry || typeof entry !== "object" || Array.isArray(entry) ||
+          (entry.company_id !== undefined && entry.company_id !== companyId))) {
+          res.status(400).json({ error: "Each bank transaction must be an object in the selected company" });
           return;
         }
         if (!(await assertWriteAccess(userId, companyId, res))) return;

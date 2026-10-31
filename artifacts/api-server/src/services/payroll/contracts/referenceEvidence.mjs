@@ -62,6 +62,7 @@ export function validatePayrollReferenceEvidence(registry, corpora) {
     if (!corpus || corpus.version !== 1 || corpus.taxYear !== row.selector.taxYear
       || corpus.status !== 'reference_fixtures_only_not_engine_qualification'
       || corpus.source?.page !== source.url || !/^[a-f0-9]{64}$/.test(corpus.source?.sha256)
+      || corpus.source.sha256 !== ref.sourceSha256 || corpus.source.version !== ref.sourceVersion
       || !Array.isArray(corpus.cases)) fail();
     const dimension = Object.hasOwn(ref, 'plan') ? 'plan' : 'region';
     if (dimension === 'region' && !auditedSequences.has(ref.path)) {

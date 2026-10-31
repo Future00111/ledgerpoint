@@ -36,7 +36,8 @@
         "/sales-credit-notes/new",
         "/payments"
       ],
-      "status": "draft_source_checked_browser_acceptance_pending"
+      "status": "draft_source_checked_browser_acceptance_pending",
+      "sourceCommit": "fa5559864cd237a8a63b9250f22c3710b3219eaa"
     },
     {
       "path": "docs/product/help/apply-a-later-discount.md",
