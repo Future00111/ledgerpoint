@@ -488,3 +488,81 @@ test("legacy AI rejects malformed explicit company and mismatched membership bef
     await new Promise<void>(resolve => server.close(() => resolve()));
   }
 });
+
+test("bank imports reject stale row companies atomically before access and preserve valid selected-company imports", async () => {
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "synthetic-no-provider-access";
+  const { createFunctionsRouter } = await import("../routes/functions");
+  if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
+  else process.env.OPENAI_API_KEY = previousKey;
+  const { db } = await import("@workspace/db");
+  const { companyUsersTable, bankTransactionsTable, bankAutomationSettingsTable } = await import("@workspace/db/schema");
+  const originalSelect = db.select, originalTransaction = db.transaction;
+  let membershipReads = 0, transactions = 0, role = "owner", active = true;
+  const inserted: Record<string, unknown>[] = [];
+  db.select = (() => ({ from(table: unknown) {
+    if (table === companyUsersTable) return { where: async () => {
+      membershipReads++;
+      return [{ company_id: "company-a", user_id: "synthetic-owner", role, is_active: active }];
+    } };
+    assert.equal(table, bankAutomationSettingsTable);
+    return { where: () => ({ limit: async () => [{ automatic_analysis_enabled: false }] }) };
+  } })) as unknown as typeof db.select;
+  db.transaction = (async (fn: any) => {
+    transactions++;
+    return fn({ insert(table: unknown) {
+      assert.equal(table, bankTransactionsTable);
+      return { values(row: Record<string, unknown>) {
+        inserted.push(row);
+        return { returning: async () => [{ id: `synthetic-${inserted.length}`, ...row }] };
+      } };
+    } });
+  }) as typeof db.transaction;
+  const app = express(); app.use(express.json({ strict: false }));
+  app.use(createFunctionsRouter((req, res, next) => {
+    if (!req.get("x-test-actor")) { res.sendStatus(401); return; }
+    (req as any).userId = "synthetic-owner"; next();
+  }));
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise<void>(resolve => server.once("listening", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const request = (name: string, body: unknown, authenticated = true) => fetch(`http://127.0.0.1:${address.port}/${name}`, {
+    method: "POST", headers: { "Content-Type": "application/json", ...(authenticated ? { "x-test-actor": "synthetic-owner" } : {}) }, body: JSON.stringify(body),
+  });
+  const valid = { money_in: "10.00", money_out: "0.00", description: "Synthetic" };
+  try {
+    for (const bad of [null, false, 1, "row", [], { ...valid, company_id: "company-b" },
+      ...[null, "", false, 0, {}, []].map(company_id => ({ ...valid, company_id }))]) {
+      // A valid first row must not be written before the later invalid row.
+      const response = await request("recordBankTransactions", { company_id: "company-a", transactions: [valid, bad] });
+      assert.equal(response.status, 400);
+    }
+    for (const company_id of [null, "", "  ", false, 1, {}, []]) {
+      for (const name of ["recordBankTransaction", "recordBankTransactions"]) {
+        assert.equal((await request(name, { ...valid, company_id, transactions: [valid] })).status, 400);
+      }
+    }
+    assert.equal(membershipReads, 0); assert.equal(transactions, 0); assert.equal(inserted.length, 0);
+    for (const [nextRole, nextActive] of [["read_only", true], ["owner", false]] as const) {
+      role = nextRole; active = nextActive;
+      assert.equal((await request("recordBankTransactions", { company_id: "company-a", transactions: [valid] })).status, 403);
+    }
+    assert.equal(transactions, 0);
+    role = "owner"; active = true;
+    const response = await request("recordBankTransactions", { company_id: "company-a", transactions: [valid, { ...valid, company_id: "company-a" }] });
+    assert.equal(response.status, 201);
+    assert.equal((await response.json() as { data: unknown[] }).data.length, 2);
+    assert.equal((await request("recordBankTransaction", { ...valid, company_id: "company-a" })).status, 201);
+    assert.equal(transactions, 2); assert.equal(inserted.length, 3);
+    for (const row of inserted) {
+      assert.equal(row.company_id, "company-a"); assert.equal(row.status, "review");
+      assert.equal(row.money_in, "10.00"); assert.equal(row.money_out, "0.00");
+      assert.equal(row.matched_type, null); assert.equal(row.linked_invoice_id, null);
+    }
+    assert.equal((await request("recordBankTransactions", { company_id: "company-a", transactions: [valid] }, false)).status, 401);
+    assert.equal(transactions, 2);
+  } finally {
+    db.select = originalSelect; db.transaction = originalTransaction;
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  }
+});
