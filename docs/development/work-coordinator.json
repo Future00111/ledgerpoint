@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "revision": 27,
+  "revision": 29,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
+  "codeHead": "1e0d6bada4d14c2042544f9ce910567749466e84",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261031-0003",
     "token": "33afe71d-967c-4268-8df1-ce44466c9bae",
     "acquiredAt": 1793405084528,
-    "expiresAt": 1793407598690
+    "expiresAt": 1793407771228
   },
   "lastOwner": {
     "runId": "hosted-20261030-2333",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 2,
-    "revision": 151,
+    "revision": 173,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -84,10 +84,10 @@
         ]
       },
       "P01-04": {
-        "status": "review",
+        "status": "pending",
         "priority": 104,
         "discoveredDependencies": [],
-        "checkpoint": "codex/lp-0003-worker1 aa22eb1b4c3c8dfc1c7ebb5a5803e254a91789b7 clean; correction-history receipt fix; 35 domain tests/API tsc pass, new disposable receipt corruption test pending CI; worker stopped",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated receipt amendment-history checks; complete corrected credit/claim activation remains unfinished.",
         "evidence": {
           "commit": "aa22eb1b4c3c8dfc1c7ebb5a5803e254a91789b7",
           "summary": "PARTIAL: return receipt confirmation/listing now validates complete bill and credit correction chains; valid corrected bill history invalidates frozen claim availability; malformed history fails closed. Full corrected-original credit/claim activation remains blocked and not claimed complete. Added disposable PostgreSQL normal receipt/corrupt history/evidence preservation tests, pending CI.",
@@ -110,10 +110,7 @@
             }
           ]
         },
-        "owner": "worker1",
-        "token": "4e87368c-546f-4fe8-ae65-faf31d78151f",
-        "leaseUntil": 1793406039514,
-        "workStarted": true
+        "blockers": []
       },
       "P01-05": {
         "status": "blocked",
@@ -146,10 +143,10 @@
         ]
       },
       "P02-01": {
-        "status": "review",
+        "status": "pending",
         "priority": 201,
         "discoveredDependencies": [],
-        "checkpoint": "codex/lp-0003-worker2 2ccab5b52306f87da1daf33d770eacc0cb2055b7; clean stopped worktree. Generic record reads now reject contradictory/malformed company queries and recheck resource membership; viewer reads preserved. 4 HTTP tests and API tsc pass. Broad route inventory and frontend stale response acceptance remain incomplete.",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated explicit company scope for generic entity reads; broader route and client migration audit incomplete.",
         "evidence": {
           "commit": "2ccab5b52306f87da1daf33d770eacc0cb2055b7",
           "summary": "PARTIAL P02-01: generic entity get-by-ID binds supplied company_id to resource and rechecks active resource membership. Authentication defaults unchanged; owner/company and customer viewer reads preserve omitted or matching context. Full route inventory, export coverage and client stale-response handling remain pending.",
@@ -168,20 +165,17 @@
             }
           ]
         },
-        "owner": "worker2",
-        "token": "f6f06ece-eb28-4f29-a236-e5ad3d975896",
-        "leaseUntil": 1793406049487,
-        "workStarted": true
+        "blockers": []
       },
       "P02-02": {
         "status": "pending",
         "priority": 202
       },
       "P02-03": {
-        "status": "review",
+        "status": "pending",
         "priority": 203,
         "discoveredDependencies": [],
-        "checkpoint": "codex/lp-0003-worker3 commit 358c0f5fab547762115c0affdc281607a89ab3d1; clean worktree, logging minimization slice 19 tests/API tsc passed; no running processes; awaiting coordinator durable publication",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated implicit-error and HTTP target log redaction; broad session transport quota and dependency audit incomplete.",
         "evidence": {
           "commit": "358c0f5fab547762115c0affdc281607a89ab3d1",
           "summary": "PARTIAL: prevent Pino implicit Error messages escaping serializers and omit raw HTTP targets from request logs. Real HTTP and Pino-overload tests pass. Full sessions/transport/distributed quotas and dependency audit remain unfinished.",
@@ -200,10 +194,7 @@
             }
           ]
         },
-        "owner": "worker3",
-        "token": "9e96d70d-dbaf-42f9-9759-42beeecdc993",
-        "leaseUntil": 1793406060586,
-        "workStarted": true
+        "blockers": []
       },
       "P02-04": {
         "status": "pending",
@@ -230,31 +221,29 @@
         }
       },
       "P03-00": {
-        "status": "review",
+        "status": "done",
         "priority": 300,
         "discoveredDependencies": [],
-        "checkpoint": "Before edits clean codex/lp-0003-worker4 at durable 799b7f7. New leased matrix will exercise amendment service with real disposable PostgreSQL, restricted role and transactionally missing tables/columns, preserving full fingerprints. No production or service behavior change.",
-        "owner": "worker4",
-        "token": "96795798-1219-4574-ab60-8360fcd2e9c2",
-        "leaseUntil": 1793406073755,
-        "workStarted": true,
+        "checkpoint": "No edits; exact published source 4b488369b9edb8c4912d26e1c31e236ee6c0310a restored for matching acceptance. Independent worker2 and coordinator reviews complete; waiting disposable CI.",
         "evidence": {
-          "commit": "acd2a5e62e952b859f22d0f42d5dcb35bce0a6e6",
-          "summary": "Seven real PostgreSQL amendment-schema matrix cases wired into fresh disposable runner: individual/both missing tables, missing column, failed DDL rollback, restricted-role full schema, repeated installation refusal; full rows/schema/ownership/grants fingerprints preserved. Bundle/syntax checked only locally; no local PostgreSQL. Exact-source CI and coordinator review REQUIRED before P03-00 acceptance. Broader P03-03 compatibility gates remain unimplemented.",
+          "commit": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
+          "summary": "P03-00 contract accepted only: reviewed additive identities, version/transaction boundaries plus seven real disposable PostgreSQL partial-schema/rollback/restricted-role tests. P03-03 comprehensive migration implementation remains pending.",
           "tests": [
             {
-              "command": "esbuild tools/development/migrations/partial-schema.test.mjs --bundle --platform=node --format=cjs --external:pg --external:@clerk/express --outfile=/tmp/lp-worker4-partial-schema.cjs (passed)",
+              "command": "node tools/development/check.mjs exact published source: 724 passed",
               "passed": true
             },
             {
-              "command": "node --check /tmp/lp-worker4-partial-schema.cjs; node --check tools/accounting-flow/test.mjs; node --check tools/development/migrations/partial-schema.test.mjs",
+              "command": "pnpm run build exact published source: passed",
               "passed": true
             },
             {
-              "command": "git diff --check",
+              "command": "PR27 CI 41149269177 exact source: disposable PostgreSQL including seven partial-schema cases, restore and cleanup passed",
               "passed": true
             }
-          ]
+          ],
+          "reviewed": true,
+          "reviewer": "worker2-and-coordinator"
         }
       },
       "P03-01": {
@@ -318,10 +307,10 @@
         ]
       },
       "P04-01": {
-        "status": "review",
+        "status": "pending",
         "priority": 401,
         "discoveredDependencies": [],
-        "checkpoint": "codex/lp-0003-worker5 8dd0f620f7f071dd9c82a14683bed78858b95556; clean/stopped. Official HMRC 2026-27 Student Loan v1.0 raw ODS and SHA256 pinned, reproducible extraction of 130 exact examples; five unqualified payroll case families added. 52 contract/fixture tests pass; calculation engine and broad P04 acceptance remain pending.",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated 130 official loan reference examples; full case coverage and qualified native calculations incomplete.",
         "evidence": {
           "commit": "8dd0f620f7f071dd9c82a14683bed78858b95556",
           "summary": "PARTIAL: official HMRC 2026-27 loan fixture corpus pinned with source bytes/hash, reproducible exact-string extraction and 130 examples across plans 1/2/4/5/postgraduate and four frequencies. Five case families added to register with P09-05/P09-10 coverage references. Engine support remains unqualified and P04-01 remains incomplete.",
@@ -336,10 +325,7 @@
             }
           ]
         },
-        "owner": "worker5",
-        "token": "2dd5b2d0-776d-4551-841b-54f449143357",
-        "leaseUntil": 1793406084835,
-        "workStarted": true
+        "blockers": []
       },
       "P04-02": {
         "status": "pending",
@@ -394,30 +380,10 @@
         "priority": 505
       },
       "P06-00": {
-        "status": "blocked",
+        "status": "pending",
         "priority": 600,
         "discoveredDependencies": [],
-        "checkpoint": "No edits; stopped clean at durable 799b7f7c02acd0dedf5eeab2815d0264a9782cbe on codex/lp-0003-worker6; 23 bank-import/recovery tests pass.",
-        "evidence": {
-          "commit": "5695988f34d27cd97c11d50b1a092bd44dc8033d",
-          "summary": "PARTIAL native bank import contract, with exact existing-fixture boundaries corrected after coordinator review. Bank-status-only mutation fixture remains missing; existing Promise.all payment replay is not new-bank-command or forced lock-overlap evidence. No new financial functionality enabled; do not accept full P06-00.",
-          "tests": [
-            {
-              "command": "node --test artifacts/ledgerly/src/features/bankImport/model.test.mjs artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs (23 passed)",
-              "passed": true
-            },
-            {
-              "command": "git diff --check",
-              "passed": true
-            }
-          ]
-        },
-        "blockers": [
-          {
-            "type": "decision",
-            "reason": "Internal file-ownership repair needed: P06-00 leases only its completed contract document, but remaining direct bank-status invariant fixture needs dedicated test path plus disposable runner registration. Coordinator must repair ownership after active workers stop; no dependency on unrelated paid-credit completion or owner permission is required."
-          }
-        ]
+        "checkpoint": "No edits; stopped clean at durable 799b7f7c02acd0dedf5eeab2815d0264a9782cbe on codex/lp-0003-worker6; 23 bank-import/recovery tests pass."
       },
       "P06-01": {
         "status": "blocked",
@@ -428,6 +394,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -440,6 +412,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -452,6 +430,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -464,6 +448,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -534,10 +524,10 @@
         ]
       },
       "P07-03": {
-        "status": "review",
+        "status": "pending",
         "priority": 703,
         "discoveredDependencies": [],
-        "checkpoint": "Clean stopped codex/lp-0003-worker6 at f2e381f4f360fb3c5fea9bc9e8e61ee4d0b2257b. Seven navigation/ledger render tests pass; native disclosure preserves compact rows and exact amounts and evidence links. Partial P07-03 only; full browser, document-list and bulk qualification remain pending.",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated accessible ledger descriptions; broad list/filter/advanced workflow criteria incomplete.",
         "evidence": {
           "commit": "f2e381f4f360fb3c5fea9bc9e8e61ee4d0b2257b",
           "summary": "PARTIAL P07-03: expose server-supplied ledger entry descriptions through native keyboard-operable disclosure with contextual accessible labels and escaped content. Source/journal links and exact totals unchanged. Full list/search/VAT/payment/bulk and browser acceptance remain pending.",
@@ -552,20 +542,13 @@
             }
           ]
         },
-        "owner": "worker6",
-        "token": "a2a3324c-789b-4a32-b60d-044a173df53d",
-        "leaseUntil": 1793406142205,
-        "workStarted": true
+        "blockers": []
       },
       "P07-04": {
-        "status": "review",
+        "status": "pending",
         "priority": 704,
         "discoveredDependencies": [],
-        "owner": "worker1",
-        "token": "be78704a-481b-4267-8503-2ae1b3e34cf7",
-        "leaseUntil": 1793406205535,
-        "workStarted": true,
-        "checkpoint": "Clean codex/lp-0003-worker1 a516ff7ca76714d26e1ba5404c138022da45bb8e; email unavailable notices only; 13 navigation tests and 7 route checks plus AppLayout bundle pass. Full inventory and underlying scan labels remain pending; worker stopped",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated truthful email availability banner; underlying simulated connection/scan labels still require cleanup.",
         "evidence": {
           "commit": "a516ff7ca76714d26e1ba5404c138022da45bb8e",
           "summary": "PARTIAL: email capture/rules pages explicitly say provider unavailable and saved accounts/rules do not scan or import, with manual document-inbox link. Existing routes, widgets, saved configuration remain accessible. Full route/dashboard inventory and underlying misleading page action text remain pending (page files absent from lease).",
@@ -587,7 +570,8 @@
               "passed": true
             }
           ]
-        }
+        },
+        "blockers": []
       },
       "P07-05": {
         "status": "blocked",
@@ -1062,16 +1046,10 @@
         "priority": 1303
       },
       "P13-04": {
-        "status": "blocked",
+        "status": "pending",
         "priority": 1304,
         "discoveredDependencies": [],
-        "checkpoint": "No P13 edits; existing durable source 799b7f7c02acd0dedf5eeab2815d0264a9782cbe. worker3 operation stopped; no work to publish.",
-        "blockers": [
-          {
-            "type": "environment",
-            "reason": "Catalogue lease names nonexistent CreditQueue.jsx, while mounted UI lives in AwaitingCreditsPage.jsx and ClaimList.jsx and relevant tests in queuePresentation.test.mjs/ClaimList.test.jsx. Reviewed catalogue repair must lease actual implementation/test files before UI work; do not bypass pinned digest or create unused component."
-          }
-        ]
+        "checkpoint": "No P13 edits; existing durable source 799b7f7c02acd0dedf5eeab2815d0264a9782cbe. worker3 operation stopped; no work to publish."
       },
       "P14-01": {
         "status": "blocked",
@@ -1082,6 +1060,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -1110,10 +1094,10 @@
         ]
       },
       "P14-04": {
-        "status": "review",
+        "status": "pending",
         "priority": 1404,
         "discoveredDependencies": [],
-        "checkpoint": "Clean stopped codex/lp-0003-worker6 at 6f89fbdce34f4f158dbae4f1a03fb5fdcf66a67a. Corrected source-linked AI data inventory covers all current aiService.complete callers and server-generated financial/counterparty context; 4 contract tests pass. Runtime qualification remains pending; no more claims.",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated source-linked outbound data inventory; real destinations consent retention and runtime adapter qualification incomplete.",
         "evidence": {
           "commit": "6f89fbdce34f4f158dbae4f1a03fb5fdcf66a67a",
           "summary": "PARTIAL P14-04 corrected after review: inventory now explicitly includes bank identifiers/descriptions/references/directions/amounts/chart names, reconciliation matched records, company/customer/invoice/due/balance reminder context, financial aggregates, and askAI review counts plus caller prompts. Call-site coverage test detects missing current AI callers. Destinations/scopes/retention/consent remain unqualified; no runtime enforcement or provider connection claimed.",
@@ -1128,10 +1112,7 @@
             }
           ]
         },
-        "owner": "worker6",
-        "token": "fbb14ca3-0423-489b-8cf7-8476eadde7a2",
-        "leaseUntil": 1793406519918,
-        "workStarted": true
+        "blockers": []
       },
       "P14-80": {
         "status": "blocked",
@@ -1142,6 +1123,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -1154,6 +1141,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P13-04",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -1248,6 +1241,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -1334,6 +1333,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -1352,6 +1357,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -1376,6 +1387,12 @@
             "id": "P15-02",
             "source": "dependency",
             "reason": "Dependency reopened: Run cutoff cleared; no product blocker established, worker stopped with no edits."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -1400,6 +1417,12 @@
             "id": "P15-02",
             "source": "dependency",
             "reason": "Dependency reopened: Run cutoff cleared; no product blocker established, worker stopped with no edits."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -1424,6 +1447,12 @@
             "id": "P15-02",
             "source": "dependency",
             "reason": "Dependency reopened: Run cutoff cleared; no product blocker established, worker stopped with no edits."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       },
@@ -1442,6 +1471,12 @@
             "id": "P03-00",
             "source": "dependency",
             "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+          },
+          {
+            "type": "task",
+            "id": "P06-00",
+            "source": "dependency",
+            "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
           }
         ]
       }
@@ -2964,30 +2999,220 @@
             }
           ]
         }
+      },
+      {
+        "at": 1793405855452,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P03-00",
+        "reason": "Refresh submission against exact integrated source for matching CI evidence; contract and seven real database tests independently reviewed."
+      },
+      {
+        "at": 1793405855539,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P03-00",
+        "checkpoint": "Worker4 clean stopped; original worker branch durable; exact integrated source 4b488369b9edb8c4912d26e1c31e236ee6c0310a awaiting CI."
+      },
+      {
+        "at": 1793405855629,
+        "actor": "worker4",
+        "type": "claim",
+        "taskId": "P03-00",
+        "token": "c4190343-991f-4f7a-a871-c488ed45de34"
+      },
+      {
+        "at": 1793405868852,
+        "actor": "worker4",
+        "type": "checkpoint",
+        "taskId": "P03-00",
+        "checkpoint": "No edits; exact published source 4b488369b9edb8c4912d26e1c31e236ee6c0310a restored for matching acceptance. Independent worker2 and coordinator reviews complete; waiting disposable CI."
+      },
+      {
+        "at": 1793405868961,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P01-04",
+        "reason": "Integrated receipt amendment-history checks; complete corrected credit/claim activation remains unfinished."
+      },
+      {
+        "at": 1793405869053,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P01-04",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated receipt amendment-history checks; complete corrected credit/claim activation remains unfinished."
+      },
+      {
+        "at": 1793405869142,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P02-01",
+        "reason": "Integrated explicit company scope for generic entity reads; broader route and client migration audit incomplete."
+      },
+      {
+        "at": 1793405869228,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P02-01",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated explicit company scope for generic entity reads; broader route and client migration audit incomplete."
+      },
+      {
+        "at": 1793405869311,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P02-03",
+        "reason": "Integrated implicit-error and HTTP target log redaction; broad session transport quota and dependency audit incomplete."
+      },
+      {
+        "at": 1793405869397,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P02-03",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated implicit-error and HTTP target log redaction; broad session transport quota and dependency audit incomplete."
+      },
+      {
+        "at": 1793405869485,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P04-01",
+        "reason": "Integrated 130 official loan reference examples; full case coverage and qualified native calculations incomplete."
+      },
+      {
+        "at": 1793405869568,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P04-01",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated 130 official loan reference examples; full case coverage and qualified native calculations incomplete."
+      },
+      {
+        "at": 1793405869657,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P07-03",
+        "reason": "Integrated accessible ledger descriptions; broad list/filter/advanced workflow criteria incomplete."
+      },
+      {
+        "at": 1793405869747,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P07-03",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated accessible ledger descriptions; broad list/filter/advanced workflow criteria incomplete."
+      },
+      {
+        "at": 1793405869842,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P07-04",
+        "reason": "Integrated truthful email availability banner; underlying simulated connection/scan labels still require cleanup."
+      },
+      {
+        "at": 1793405869926,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P07-04",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated truthful email availability banner; underlying simulated connection/scan labels still require cleanup."
+      },
+      {
+        "at": 1793405870021,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P14-04",
+        "reason": "Integrated source-linked outbound data inventory; real destinations consent retention and runtime adapter qualification incomplete."
+      },
+      {
+        "at": 1793405870115,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P14-04",
+        "checkpoint": "All worker edits stopped clean and branches durable; integrated 4b488369b9edb8c4912d26e1c31e236ee6c0310a. Integrated source-linked outbound data inventory; real destinations consent retention and runtime adapter qualification incomplete."
+      },
+      {
+        "at": 1793405901218,
+        "actor": "worker4",
+        "type": "submit",
+        "taskId": "P03-00",
+        "evidence": {
+          "commit": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
+          "summary": "P03-00 contract accepted only: reviewed additive identities, version/transaction boundaries plus seven real disposable PostgreSQL partial-schema/rollback/restricted-role tests. P03-03 comprehensive migration implementation remains pending.",
+          "tests": [
+            {
+              "command": "node tools/development/check.mjs exact published source: 724 passed",
+              "passed": true
+            },
+            {
+              "command": "pnpm run build exact published source: passed",
+              "passed": true
+            },
+            {
+              "command": "PR27 CI 41149269177 exact source: disposable PostgreSQL including seven partial-schema cases, restore and cleanup passed",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793405901312,
+        "actor": "coordinator",
+        "type": "accept",
+        "taskId": "P03-00",
+        "evidence": {
+          "commit": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
+          "summary": "P03-00 contract accepted only: reviewed additive identities, version/transaction boundaries plus seven real disposable PostgreSQL partial-schema/rollback/restricted-role tests. P03-03 comprehensive migration implementation remains pending.",
+          "tests": [
+            {
+              "command": "node tools/development/check.mjs exact published source: 724 passed",
+              "passed": true
+            },
+            {
+              "command": "pnpm run build exact published source: passed",
+              "passed": true
+            },
+            {
+              "command": "PR27 CI 41149269177 exact source: disposable PostgreSQL including seven partial-schema cases, restore and cleanup passed",
+              "passed": true
+            }
+          ],
+          "reviewed": true,
+          "reviewer": "worker2-and-coordinator"
+        }
+      },
+      {
+        "at": 1793405901390,
+        "actor": "coordinator",
+        "type": "reopen",
+        "taskId": "P06-00",
+        "reason": "Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
+      },
+      {
+        "at": 1793405901396,
+        "actor": "coordinator",
+        "type": "reopen",
+        "taskId": "P13-04",
+        "reason": "Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
       }
     ],
-    "catalogDigest": "37580ba0a586c6493ee62ad8e8a5682f79cdced7e8c5e5e02c77b4bb1b3e4392"
+    "catalogDigest": "c708e672a6e57c01d6295ebe136604b411bb429d0b2b9010f3ff52fd62eda137"
   },
   "checkpoint": {
     "ref": "refs/heads/codex/whole-product-first-sprint",
-    "sha": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
+    "sha": "1e0d6bada4d14c2042544f9ce910567749466e84",
     "evidence": [
       {
         "ref": "refs/heads/codex/whole-product-first-sprint",
-        "sha": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
-        "path": "tools/development/check.mjs"
+        "sha": "1e0d6bada4d14c2042544f9ce910567749466e84",
+        "path": "docs/development/work-backlog.json"
       }
     ],
     "runId": "hosted-20261031-0003",
-    "at": 1793405798711,
-    "codeHead": "4b488369b9edb8c4912d26e1c31e236ee6c0310a"
+    "at": 1793405971240,
+    "codeHead": "1e0d6bada4d14c2042544f9ce910567749466e84"
   },
-  "updatedAt": 1793405798711,
+  "updatedAt": 1793405971240,
   "validation": {
-    "sourceCommit": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
+    "sourceCommit": "1e0d6bada4d14c2042544f9ce910567749466e84",
     "status": "CI_pending",
-    "localSourceTests": 724,
-    "localBuildPassed": true
+    "previousVerifiedSource": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
+    "previousCI": "https://github.com/Future00111/ledgerpoint/actions/runs/41149269177"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -3036,6 +3261,7 @@
     ],
     "workersStopped": true,
     "worktreesClean": true,
-    "integratedTree": "14ef1303f8eb56f3c4503f24e5d7346342a63727"
+    "integratedTree": "ab1a3ffec7239e38158e7f02154bc1b035345717",
+    "queueMigration": "Worker4 independently reviewed exact ownership repairs; all task leases resolved; runtime archived; every acceptance criterion and 92 source bullets preserved. P03-00 accepted against exact source 4b488369b9edb8c4912d26e1c31e236ee6c0310a passing 800 tests."
   }
 }
