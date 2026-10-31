@@ -20,6 +20,33 @@ function validExample(example, dimension) {
     && exactMoney(expected.taxDueMinor) && exactMoney(expected.taxDueToDateMinor);
 }
 
+// PAYE references include cumulative examples and retain workbook row sequences.
+// Preserve that lineage without inferring calculation rules from row order.
+function validPayeSequences(corpus) {
+  const workbooks = corpus.source?.workbooks;
+  if (!Array.isArray(workbooks) || workbooks.length === 0
+    || workbooks.some(book => !plain(book) || typeof book.path !== 'string' || !book.path
+      || !['rest_of_uk', 'scotland', 'wales'].includes(book.region)
+      || !/^[a-f0-9]{64}$/.test(book.sha256))
+    || new Set(workbooks.map(book => book.path)).size !== workbooks.length) return false;
+  const previous = new Map();
+  for (const example of corpus.cases) {
+    if (!validExample(example, 'region')) return false;
+    const book = workbooks.find(book => book.path === example.sourceWorkbook);
+    const prior = previous.get(example.sequenceId);
+    if (!book || book.region !== example.input.region
+      || example.sequenceId !== `${example.input.region}/${example.sourceSheet}`
+      || ![null, 'WM1'].includes(example.input.week1Month1)
+      || example.previousExampleId !== (prior?.id ?? null)
+      || prior && (example.sourceWorkbook !== prior.sourceWorkbook
+        || example.input.frequency !== prior.input.frequency
+        || example.input.week1Month1 !== prior.input.week1Month1
+        || example.sourceRow <= prior.sourceRow)) return false;
+    previous.set(example.sequenceId, example);
+  }
+  return true;
+}
+
 /** Audit reference links against supplied pinned corpora. This never qualifies an engine. */
 export function validatePayrollReferenceEvidence(registry, corpora) {
   validateCaseRegistry(registry);
@@ -27,6 +54,7 @@ export function validatePayrollReferenceEvidence(registry, corpora) {
   if (!plain(corpora)) fail();
   const rows = registry.cases.filter(row => row.referenceFixtures);
   const coverage = new Map();
+  const auditedSequences = new Set();
   for (const row of rows) {
     const ref = row.referenceFixtures;
     const corpus = Object.hasOwn(corpora, ref.path) ? corpora[ref.path] : null;
@@ -36,6 +64,10 @@ export function validatePayrollReferenceEvidence(registry, corpora) {
       || corpus.source?.page !== source.url || !/^[a-f0-9]{64}$/.test(corpus.source?.sha256)
       || !Array.isArray(corpus.cases)) fail();
     const dimension = Object.hasOwn(ref, 'plan') ? 'plan' : 'region';
+    if (dimension === 'region' && !auditedSequences.has(ref.path)) {
+      if (!validPayeSequences(corpus)) fail();
+      auditedSequences.add(ref.path);
+    }
     const covered = coverage.get(ref.path) ?? new Set();
     coverage.set(ref.path, covered);
     const examples = corpus.cases.filter(example => example?.input?.[dimension] === ref[dimension]);
