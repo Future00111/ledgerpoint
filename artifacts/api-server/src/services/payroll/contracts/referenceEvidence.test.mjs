@@ -23,6 +23,7 @@ test('contradictory reference descriptors fail at the ordinary registry boundary
     row => row.referenceFixtures = null,
     row => delete row.referenceFixtures.sourceSha256,
     row => row.referenceFixtures.sourceSha256 = 'not-a-digest',
+    row => row.referenceFixtures.sourceSha256 = [row.referenceFixtures.sourceSha256],
     row => delete row.referenceFixtures.sourceVersion,
     row => row.referenceFixtures.sourceVersion = 'unreviewed',
   ]) {

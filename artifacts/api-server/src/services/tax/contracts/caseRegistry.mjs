@@ -23,7 +23,7 @@ function validReference(row) {
   if (!plain(ref) || row.selector.domain !== 'payroll' || row.selector.entity !== 'employer'
     || row.selector.income !== 'employment' || row.selector.scheme !== 'none'
     || ref.qualification !== 'reference_only_engine_not_implemented'
-    || !/^[a-f0-9]{64}$/.test(ref.sourceSha256)
+    || typeof ref.sourceSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(ref.sourceSha256)
     || typeof ref.sourceVersion !== 'string' || !/^[0-9]+(?:\.[0-9]+)+$/.test(ref.sourceVersion)
     || !Number.isSafeInteger(ref.caseCount) || ref.caseCount <= 0
     || typeof ref.path !== 'string'
