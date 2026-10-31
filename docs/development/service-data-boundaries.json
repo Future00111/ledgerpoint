@@ -45,16 +45,28 @@
       "id": "openai_assistance",
       "implementation": "adapter_present",
       "source_paths": [
-        "artifacts/api-server/src/services/ai/providers/openai.ts"
+        "artifacts/api-server/src/services/ai/providers/openai.ts",
+        "artifacts/api-server/src/services/ai-accountant/categorise.ts",
+        "artifacts/api-server/src/services/ai-accountant/analysis.ts",
+        "artifacts/api-server/src/services/ai-accountant/collections.ts",
+        "artifacts/api-server/src/services/ai-accountant/insights.ts",
+        "artifacts/api-server/src/routes/functions.ts"
       ],
       "observed_destinations": [],
       "destination_allowlist": null,
       "allowed_scopes": null,
       "operation_boundary": [
-        "Suggestion/completion only"
+        "Suggestions, explanations, reminder drafts and insights only; no AI authority to post, allocate, file or send",
+        "This inventory describes code capable of outbound transmission; it does not establish actual configuration, current consent, retention or allowlisting"
       ],
       "data_categories": [
-        "Caller-provided chat messages"
+        "Caller-provided chat prompts/messages, including any financial or personal data supplied by the caller",
+        "Server-generated bank transaction identifiers, descriptions, references, dates, directions and amounts",
+        "Company chart account names supplied as available categorisation choices",
+        "Reconciliation scenarios, statuses, matched totals, remaining amounts, matched record numbers/names/amounts",
+        "Company and customer names, invoice number, due date, outstanding balance and requested reminder tone",
+        "Company monthly revenue and supplier spend, overdue/outstanding invoice counts and totals, unreconciled transaction counts",
+        "Company pending transaction-review counts grouped by state, possible duplicates, VAT review and high-priority counts"
       ],
       "retention": {
         "provider": null,
@@ -67,7 +79,82 @@
         "revocation_evidence": null
       },
       "qualification": "unverified",
-      "fallback": "Keep user work locally/server-side; show unavailable assistance and continue manual accounting. Do not silently switch models/providers or resend unknown outcomes."
+      "fallback": "Keep user work locally/server-side; show unavailable assistance and continue manual accounting. Do not silently switch models/providers or resend unknown outcomes.",
+      "outbound_payloads": [
+        {
+          "source_path": "artifacts/api-server/src/services/ai-accountant/categorise.ts",
+          "operation": "categoriseWithAI",
+          "fields": [
+            "transaction.id",
+            "transaction.description",
+            "transaction.reference",
+            "transaction.direction",
+            "transaction.amount",
+            "accountNames"
+          ],
+          "bounds": "Up to 25 transactions per call; chart names included in system prompt. Optional caller invocation does not itself establish consent."
+        },
+        {
+          "source_path": "artifacts/api-server/src/services/ai-accountant/analysis.ts",
+          "operation": "single transaction AI explanation",
+          "fields": [
+            "transaction.description",
+            "transaction.reference",
+            "transaction.date",
+            "transaction.amount",
+            "transaction.direction",
+            "scenario",
+            "status",
+            "matched_total",
+            "remaining",
+            "matched_records.number",
+            "matched_records.name",
+            "matched_records.amount"
+          ],
+          "bounds": "Optional explanation for single-transaction mode; matched names may identify customer/supplier counterparties."
+        },
+        {
+          "source_path": "artifacts/api-server/src/services/ai-accountant/collections.ts",
+          "operation": "generateReminderDraft",
+          "fields": [
+            "tone",
+            "company_name",
+            "customer_name",
+            "invoice_number",
+            "due_date",
+            "outstanding_balance_gbp"
+          ],
+          "bounds": "Draft text generation only. Customer email is returned to the application but is not a field in this completion payload; no email send is performed by the AI call."
+        },
+        {
+          "source_path": "artifacts/api-server/src/services/ai-accountant/insights.ts",
+          "operation": "generateCompanyInsights",
+          "fields": [
+            "revenue_this_month",
+            "revenue_last_month",
+            "supplier_spend_this_month",
+            "supplier_spend_last_month",
+            "overdue_invoice_count",
+            "overdue_invoice_total",
+            "unreconciled_transaction_count",
+            "outstanding_invoice_total"
+          ],
+          "bounds": "Aggregated company financial figures, not anonymous public data; still require outbound-data qualification."
+        },
+        {
+          "source_path": "artifacts/api-server/src/routes/functions.ts",
+          "operation": "askAI and provider diagnostic completion",
+          "fields": [
+            "caller prompt or accepted user/assistant/system messages",
+            "total_pending",
+            "by_state",
+            "possible_duplicates",
+            "vat_reviews",
+            "high_priority"
+          ],
+          "bounds": "askAI adds company review counts derived from up to 100 pending analyses. Diagnostic completion can transmit caller prompt. User messages may themselves contain additional sensitive data."
+        }
+      ]
     },
     {
       "id": "document_extraction",

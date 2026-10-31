@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { recoveryPlan } from './recovery.mjs';
 const root = new URL('../../../../../', import.meta.url);
@@ -38,4 +38,22 @@ test('unknown services, malformed operation identity and premature destination e
   premature.services.find(s => s.id === request.service).destination_allowlist = [request.destination];
   assert.equal(recoveryPlan(request, premature).reason, 'SERVICE_NOT_QUALIFIED');
   assert.equal(inventory.services.find(s => s.id === request.service).destination_allowlist, null);
+});
+
+
+test('every current AI completion caller is covered by explicit outbound data inventory', () => {
+  const service = inventory.services.find(item => item.id === 'openai_assistance');
+  const directory = new URL('artifacts/api-server/src/', root);
+  const callers = readdirSync(directory, { recursive: true }).filter(path => path.endsWith('.ts') && !path.includes('.test.') &&
+    /aiService\.complete\s*\(/.test(readFileSync(new URL(path, directory), 'utf8'))).map(path => `artifacts/api-server/src/${path}`);
+  assert.ok(callers.length > 0);
+  for (const caller of callers) {
+    assert.ok(service.source_paths.includes(caller), `Missing AI source ${caller}`);
+    const payloads = service.outbound_payloads.filter(item => item.source_path === caller);
+    assert.ok(payloads.length > 0 && payloads.every(item => item.fields.length > 0 && item.bounds), `Missing payload boundaries ${caller}`);
+  }
+  const fields = service.outbound_payloads.flatMap(item => item.fields);
+  for (const sensitive of ['transaction.id', 'accountNames', 'matched_records.name', 'customer_name', 'outstanding_balance_gbp', 'revenue_this_month', 'by_state']) {
+    assert.ok(fields.includes(sensitive), `Missing known outbound field ${sensitive}`);
+  }
 });
