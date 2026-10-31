@@ -1169,3 +1169,30 @@ test('paid-credit stale setup, closed period and absent/partial schema commit no
  assert.deepEqual(await snapshot(),before);
  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,0);
 });
+
+test('paid credit and separately reviewed payment unallocation fence competing allocation vectors',async()=>{
+ const {reviewPaidCredit,commitPaidCredit}=await import('./paidCredit');
+ const {postPayment}=await import('./payments');
+ const f=await fixture(),original=await create(f,'purchase_bill',source(f.supplier));await post(f,original);
+ const payment=await recordPayment(f,paymentIntent(f,original,'12000','12000'));
+ const cashBefore=(await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[f.company,payment.id])).rows[0];
+ const credit=await creditDoc(f,original,'0.1','2026-10-22');
+ const r=await reviewPaidCredit(f.company,actor,credit.id,credit.revision,{request_id:randomUUID(),reason:'Returned part'});
+ const independent=await reviewPayment(f,paymentIntent(f,original,'500','500',{kind:'unallocation',payment_id:payment.id,date:'2026-10-22'}));
+ const results=await Promise.allSettled([
+   commitPaidCredit(f.company,actor,credit.id,credit.revision,{...r.intent,review_token:r.review_token,releases:r.releases}),
+   postPayment(f.company,actor,independent),
+ ]);
+ assert.equal(results.filter(x=>x.status==='fulfilled').length,1);
+ const loser=results.find(x=>x.status==='rejected') as PromiseRejectedResult;
+ assert.ok(['PAYMENT_REVIEW_STALE','PAID_CREDIT_REVIEW_STALE'].includes(loser.reason.code),loser.reason.code);
+ const creditWon=results[0].status==='fulfilled';
+ const data=await reports(f.company,actor,'2026-10-01','2026-10-22'),open=data.open_items[0];
+ assert.equal(open.credited_minor,creditWon?'1200':'0');assert.equal(open.paid_minor,creditWon?'10800':'11500');assert.equal(open.open_minor,creditWon?'0':'500');
+ const events=(await request(f.company,'/accounting-payments')).data;
+ assert.equal(events[0].unapplied_minor,creditWon?'1200':'500');assert.equal(data.balance_sheet.balanced,true);
+ assert.deepEqual((await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[f.company,payment.id])).rows[0],cashBefore);
+ assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,creditWon?1:0);
+ assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind=$2',[f.company,'unallocation'])).rows[0].n,1);
+ assert.equal((await admin.query('SELECT status FROM accounting_document_sources WHERE company_id=$1 AND id=$2',[f.company,credit.id])).rows[0].status,creditWon?'posted':'draft');
+});
