@@ -17,13 +17,27 @@ export function DocumentStatusFilters({ tabs, filter, counts, title, onChange })
   </div>;
 }
 
+/** Show saved server amounts without recomputing VAT or substituting missing values. */
+export function DocumentTotal({ money, documentNumber }) {
+  return <div>
+    <Money value={money?.gross_pence} />
+    <details className="mt-1 text-xs font-normal">
+      <summary className="cursor-pointer rounded-sm text-muted-foreground underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Net &amp; VAT<span className="sr-only"> for {documentNumber || 'untitled document'}</span></summary>
+      <dl className="mt-2 space-y-1">
+        <div className="flex justify-between gap-3"><dt>Net</dt><dd><Money value={money?.net_pence} /></dd></div>
+        <div className="flex justify-between gap-3"><dt>VAT</dt><dd><Money value={money?.vat_pence} /></dd></div>
+      </dl>
+    </details>
+  </div>;
+}
+
 export function MobileDocumentCards({ docs, kind, capabilities, remaining, ledgerLoading }) {
   const meta = KINDS[kind];
   return <div className="divide-y border-t lg:hidden" aria-label={`${meta.plural} list`}>{docs.map(doc => {
     const item = remaining(doc);
     return <article key={doc.id} className="space-y-4 p-5" data-testid={`card-doc-${doc.id}`}>
       <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="break-words font-semibold"><Link className="text-primary hover:underline" to={docPath(kind, doc.id)}>{doc.source?.invoice_number || 'Untitled'}</Link></h2><p className="mt-1 break-words text-sm">{doc.party_name || '—'}</p>{doc.source?.reference && <p className="mt-1 break-words text-sm text-muted-foreground">{doc.source.reference}</p>}</div>{!meta.credit && item ? <SettlementPill item={item} /> : <StatusPill status={doc.status} />}</div>
-      <dl className="grid grid-cols-2 gap-3 text-sm"><div><dt className="text-muted-foreground">Date</dt><dd className="mt-1">{doc.source?.issue_date || '—'}</dd></div><div><dt className="text-muted-foreground">Total</dt><dd className="mt-1 font-medium"><Money value={doc.money?.gross_pence} /></dd></div>{!meta.credit && <><div><dt className="text-muted-foreground">Due</dt><dd className="mt-1">{doc.source?.due_date || '—'}</dd></div><div><dt className="text-muted-foreground">Still due</dt><dd className="mt-1 font-semibold">{doc.status !== 'posted' ? 'Not posted' : item ? <Money value={item.open_minor} /> : ledgerLoading ? 'Loading…' : 'Unavailable'}</dd></div><div><dt className="text-muted-foreground">Paid</dt><dd className="mt-1"><Money value={item?.paid_minor} /></dd></div><div><dt className="text-muted-foreground">Credited</dt><dd className="mt-1"><Money value={item?.credited_minor} /></dd></div></>}</dl>
+      <dl className="grid grid-cols-2 gap-3 text-sm"><div><dt className="text-muted-foreground">Date</dt><dd className="mt-1">{doc.source?.issue_date || '—'}</dd></div><div><dt className="text-muted-foreground">Total</dt><dd className="mt-1 font-medium"><DocumentTotal money={doc.money} documentNumber={doc.source?.invoice_number} /></dd></div>{!meta.credit && <><div><dt className="text-muted-foreground">Due</dt><dd className="mt-1">{doc.source?.due_date || '—'}</dd></div><div><dt className="text-muted-foreground">Still due</dt><dd className="mt-1 font-semibold">{doc.status !== 'posted' ? 'Not posted' : item ? <Money value={item.open_minor} /> : ledgerLoading ? 'Loading…' : 'Unavailable'}</dd></div><div><dt className="text-muted-foreground">Paid</dt><dd className="mt-1"><Money value={item?.paid_minor} /></dd></div><div><dt className="text-muted-foreground">Credited</dt><dd className="mt-1"><Money value={item?.credited_minor} /></dd></div></>}</dl>
       <Button asChild variant="outline" className="min-h-11 w-full"><Link to={docPath(kind, doc.id)}>{documentActionLabel(doc.status, capabilities)}</Link></Button>
     </article>;
   })}</div>;
@@ -112,7 +126,7 @@ function CompanyDocumentList({ kind, legacyLink, activeCompany }) {
             <td className="min-w-[140px]">{d.party_name || '—'}</td>
             <td className="whitespace-nowrap text-xs tabular-nums">{d.source?.issue_date}{!meta.credit && <p className={`mt-1 ${matches(d,'overdue') ? 'text-amber-800' : 'text-muted-foreground'}`}>Due {d.source?.due_date}</p>}</td>
             <td>{!meta.credit && remaining(d) ? <SettlementPill item={remaining(d)} /> : <StatusPill status={d.status} />}</td>
-            <td className="whitespace-nowrap text-right"><Money value={d.money?.gross_pence} /></td>
+            <td className="whitespace-nowrap text-right"><DocumentTotal money={d.money} documentNumber={d.source?.invoice_number} /></td>
             {!meta.credit && <>{['paid_minor','credited_minor'].map(field=><td key={field} className="whitespace-nowrap text-right text-muted-foreground"><Money value={remaining(d)?.[field]} /></td>)}<td className="whitespace-nowrap text-right font-semibold">{d.status!=='posted' ? <span className="text-xs font-normal text-muted-foreground">Not posted</span> : remaining(d) ? <Money value={remaining(d).open_minor} /> : ledger.loading ? 'Loading…' : 'Unavailable'}</td></>}
             <td><Link className="text-xs font-medium text-primary hover:underline" to={docPath(kind,d.id)}>{documentActionLabel(d.status, capabilities)}</Link></td>
           </tr>)}</tbody>
