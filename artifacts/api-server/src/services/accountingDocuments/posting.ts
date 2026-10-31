@@ -3,7 +3,7 @@ export { journalLines } from './documentJournal';
 import { randomUUID } from "node:crypto";
 import { syncSettlementProjection } from './settlement';
 import { fail } from "../financialDrafts/contract";
-import { postCanonicalJournal, type CanonicalPostingDependencies, type DatabaseTransaction,
+import { postCanonicalJournal, postCanonicalJournalInTransaction, type CanonicalPostingDependencies, type DatabaseTransaction,
   type CanonicalLineDraft, type LockedAuthority } from "../accounting/canonicalPosting";
 import { calculateDocument, assertCreditAvailable } from "./documents";
 import { queryAdapter, scope, document, transact, hash, sales, credit, tables, type Kind, type Queryable } from "./core";
@@ -39,10 +39,11 @@ async function assertProjection(q:Queryable,company:string,row:any) {
       fixed(line.line_total)!==row.money.lines[i].gross_pence)) fail(409,"SOURCE_PROJECTION_MISMATCH");
 }
 export async function postDocument(company:string,actor:string,id:string,expected:string,
-  testHook?: (tx:DatabaseTransaction)=>Promise<void>) {
+  testHook?: (tx:DatabaseTransaction)=>Promise<void>, existingTransaction?:DatabaseTransaction) {
   // Read admission is advisory; all authorities and capabilities are locked and
   // checked again inside postCanonicalJournal's one transaction.
-  const initial=await transact(async q=>{await scope(q,company,actor);return document(q,company,id);},true);
+  const admission=async(q:Queryable)=>{await scope(q,company,actor);return document(q,company,id);};
+  const initial=existingTransaction?await admission(queryAdapter(existingTransaction)):await transact(admission,true);
   if(initial.revision!==expected) fail(409,"REVISION_CONFLICT");
   let current:any, transaction:DatabaseTransaction;
   const dependencies:CanonicalPostingDependencies={
@@ -99,7 +100,8 @@ export async function postDocument(company:string,actor:string,id:string,expecte
     }},
   };
   try {
-    const result=await postCanonicalJournal({
+    const post=existingTransaction?(command:any,deps:CanonicalPostingDependencies)=>postCanonicalJournalInTransaction(existingTransaction,command,deps):postCanonicalJournal;
+    const result=await post({
       principal:{kind:"user",userId:actor,requestedCompanyId:company},requestedCompanyId:company,
       sourceType:initial.kind,sourceId:id,sourceRevision:expected,sourceStatus:"draft",
       sourceEvidenceHash:hash({source:initial.source,money:initial.money,tax_context:initial.tax_context,accounts:initial.posting_accounts}),
