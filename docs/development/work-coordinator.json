@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "revision": 21,
+  "revision": 23,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "799b7f7c02acd0dedf5eeab2815d0264a9782cbe",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261031-0003",
     "token": "33afe71d-967c-4268-8df1-ce44466c9bae",
     "acquiredAt": 1793405084528,
-    "expiresAt": 1793406884528
+    "expiresAt": 1793407089437
   },
   "lastOwner": {
     "runId": "hosted-20261030-2333",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 2,
-    "revision": 104,
+    "revision": 125,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -84,20 +84,24 @@
         ]
       },
       "P01-04": {
-        "status": "pending",
+        "status": "review",
         "priority": 104,
         "discoveredDependencies": [],
-        "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated linked-credit projection validation; full correction interactions and browser acceptance remain unfinished.",
+        "checkpoint": "codex/lp-0003-worker1 aa22eb1b4c3c8dfc1c7ebb5a5803e254a91789b7 clean; correction-history receipt fix; 35 domain tests/API tsc pass, new disposable receipt corruption test pending CI; worker stopped",
         "evidence": {
-          "commit": "41b2fdaab8e8d75eb4acc913685dc46a75d56968",
-          "summary": "PARTIAL: common linked-credit history validation now feeds settlement/report totals and validates complete linked history before cutoff. Retains corrected-original blocks; no enablement of correction-credit/claim combinations. New PostgreSQL tests pending CI because no local postgres/initdb.",
+          "commit": "aa22eb1b4c3c8dfc1c7ebb5a5803e254a91789b7",
+          "summary": "PARTIAL: return receipt confirmation/listing now validates complete bill and credit correction chains; valid corrected bill history invalidates frozen claim availability; malformed history fails closed. Full corrected-original credit/claim activation remains blocked and not claimed complete. Added disposable PostgreSQL normal receipt/corrupt history/evidence preservation tests, pending CI.",
           "tests": [
             {
               "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
               "passed": true
             },
             {
-              "command": "esbuild linkedCreditDocuments harness; six historical cutoff/missing-journal/wrong-kind/party/currency checks passed",
+              "command": "esbuild creditTracking/domain.test.ts then node --test /tmp/lp0003-w1-domain.cjs: 35 passed",
+              "passed": true
+            },
+            {
+              "command": "esbuild corrections.integration.test.ts bundle: passed (DB execution pending CI)",
               "passed": true
             },
             {
@@ -106,7 +110,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "worker1",
+        "token": "4e87368c-546f-4fe8-ae65-faf31d78151f",
+        "leaseUntil": 1793406039514,
+        "workStarted": true
       },
       "P01-05": {
         "status": "blocked",
@@ -139,16 +146,16 @@
         ]
       },
       "P02-01": {
-        "status": "pending",
+        "status": "review",
         "priority": 201,
         "discoveredDependencies": [],
-        "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated requested-company guards on four legacy bank mutations; exhaustive route audit and client migration remain unfinished.",
+        "checkpoint": "codex/lp-0003-worker2 2ccab5b52306f87da1daf33d770eacc0cb2055b7; clean stopped worktree. Generic record reads now reject contradictory/malformed company queries and recheck resource membership; viewer reads preserved. 4 HTTP tests and API tsc pass. Broad route inventory and frontend stale response acceptance remain incomplete.",
         "evidence": {
-          "commit": "b154e0e6d80e1b20abb63e84068d021946603b7b",
-          "summary": "PARTIAL P02-01: four legacy bank mutation handlers now reject contradictory/malformed caller company via existing shared company-scope guard. Omitted/matching context retains resource membership/capability checks. Broad route inventory and complete client migration remain pending.",
+          "commit": "2ccab5b52306f87da1daf33d770eacc0cb2055b7",
+          "summary": "PARTIAL P02-01: generic entity get-by-ID binds supplied company_id to resource and rechecks active resource membership. Authentication defaults unchanged; owner/company and customer viewer reads preserve omitted or matching context. Full route inventory, export coverage and client stale-response handling remain pending.",
           "tests": [
             {
-              "command": "esbuild companyRoutes.test.ts; isolated loopback DATABASE_URL node --test /tmp/lp2333-worker2.cjs: 3 passed",
+              "command": "esbuild companyRoutes.test.ts; DATABASE_URL=unusable-loopback node --test /tmp/lp0003-worker2.cjs: 4 passed",
               "passed": true
             },
             {
@@ -161,23 +168,26 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "worker2",
+        "token": "f6f06ece-eb28-4f29-a236-e5ad3d975896",
+        "leaseUntil": 1793406049487,
+        "workStarted": true
       },
       "P02-02": {
         "status": "pending",
         "priority": 202
       },
       "P02-03": {
-        "status": "pending",
+        "status": "review",
         "priority": 203,
         "discoveredDependencies": [],
-        "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated cross-site missing-Origin denial; full session/transport/quotas/secrets and dependency audit remain unfinished.",
+        "checkpoint": "codex/lp-0003-worker3 commit 358c0f5fab547762115c0affdc281607a89ab3d1; clean worktree, logging minimization slice 19 tests/API tsc passed; no running processes; awaiting coordinator durable publication",
         "evidence": {
-          "commit": "3f34853",
-          "summary": "PARTIAL P02-03: reject explicit cross-site unsafe browser requests lacking Origin, preserve allowlisted origins and non-browser clients; full sessions, distributed quotas and dependency audit remain pending.",
+          "commit": "358c0f5fab547762115c0affdc281607a89ab3d1",
+          "summary": "PARTIAL: prevent Pino implicit Error messages escaping serializers and omit raw HTTP targets from request logs. Real HTTP and Pino-overload tests pass. Full sessions/transport/distributed quotas and dependency audit remain unfinished.",
           "tests": [
             {
-              "command": "esbuild appErrors.test.ts bundle plus NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp2333-security.cjs: 17 passed",
+              "command": "esbuild appErrors.test.ts bundle; NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp0003-security.cjs (19 passed)",
               "passed": true
             },
             {
@@ -190,7 +200,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "worker3",
+        "token": "9e96d70d-dbaf-42f9-9759-42beeecdc993",
+        "leaseUntil": 1793406060586,
+        "workStarted": true
       },
       "P02-04": {
         "status": "pending",
@@ -217,10 +230,14 @@
         }
       },
       "P03-00": {
-        "status": "pending",
+        "status": "running",
         "priority": 300,
         "discoveredDependencies": [],
-        "checkpoint": "No edits; worker stopped clean at durable refs/heads/codex/whole-product-first-sprint a64c6c31a3b3e0b5093c89b4c00889d0c382b0f5."
+        "checkpoint": "Before edits clean codex/lp-0003-worker4 at durable 799b7f7. New leased matrix will exercise amendment service with real disposable PostgreSQL, restricted role and transactionally missing tables/columns, preserving full fingerprints. No production or service behavior change.",
+        "owner": "worker4",
+        "token": "96795798-1219-4574-ab60-8360fcd2e9c2",
+        "leaseUntil": 1793406073755,
+        "workStarted": true
       },
       "P03-01": {
         "status": "blocked",
@@ -283,10 +300,10 @@
         ]
       },
       "P04-01": {
-        "status": "pending",
+        "status": "running",
         "priority": 401,
         "discoveredDependencies": [],
-        "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated case metadata validation; exhaustive case matrix and reviewed statutory outputs remain unfinished.",
+        "checkpoint": "codex/lp-0003-worker5 at 799b7f7 baseline; clean worktree. Inspecting official 2026-27 HMRC payroll test corpus for pinned fixture coverage; no calculation qualification claimed.",
         "evidence": {
           "commit": "35b85b9f16fdb6350f30e8c66d739aa1c3b9cb79",
           "summary": "PARTIAL P04-01: validates unqualified discovery sources, truthful provenance, required input/output names and exact rejection examples. No statutory calculations qualified; full supported-case matrix and pinned reviewed outcomes remain pending.",
@@ -301,7 +318,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "worker5",
+        "token": "2dd5b2d0-776d-4551-841b-54f449143357",
+        "leaseUntil": 1793406084835,
+        "workStarted": true
       },
       "P04-02": {
         "status": "pending",
@@ -356,10 +376,10 @@
         "priority": 505
       },
       "P06-00": {
-        "status": "pending",
+        "status": "blocked",
         "priority": 600,
         "discoveredDependencies": [],
-        "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated reviewed native bank contract; promised bank-status-only invariant fixture still missing, so contract acceptance remains pending.",
+        "checkpoint": "No edits; stopped clean at durable 799b7f7c02acd0dedf5eeab2815d0264a9782cbe on codex/lp-0003-worker6; 23 bank-import/recovery tests pass.",
         "evidence": {
           "commit": "5695988f34d27cd97c11d50b1a092bd44dc8033d",
           "summary": "PARTIAL native bank import contract, with exact existing-fixture boundaries corrected after coordinator review. Bank-status-only mutation fixture remains missing; existing Promise.all payment replay is not new-bank-command or forced lock-overlap evidence. No new financial functionality enabled; do not accept full P06-00.",
@@ -374,7 +394,12 @@
             }
           ]
         },
-        "blockers": []
+        "blockers": [
+          {
+            "type": "decision",
+            "reason": "Internal file-ownership repair needed: P06-00 leases only its completed contract document, but remaining direct bank-status invariant fixture needs dedicated test path plus disposable runner registration. Coordinator must repair ownership after active workers stop; no dependency on unrelated paid-credit completion or owner permission is required."
+          }
+        ]
       },
       "P06-01": {
         "status": "blocked",
@@ -491,10 +516,10 @@
         ]
       },
       "P07-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 703,
         "discoveredDependencies": [],
-        "checkpoint": "All workers stopped clean; all worker branches durable; integrated ca88934dfe54b482d1acb5829af2f83cb5e1781a. Integrated permission-aware direct daily links; full tables/filter/detail/expert-tools criteria remain unfinished.",
+        "checkpoint": "Before edits clean codex/lp-0003-worker6 799b7f7c02acd0dedf5eeab2815d0264a9782cbe. Existing shortcuts preserved; posted LedgerTable currently omits server-supplied journal descriptions. Add native keyboard-operable compact description disclosure and test exact money/source links remain unchanged. Broad document-list/bulk qualification pending.",
         "evidence": {
           "commit": "66c8709",
           "summary": "PARTIAL: DailyWork compact/full views expose direct invoice, bill, payment and report paths and permission-aware draft shortcuts; readonly copy no longer suggests draft preparation. Full searchable table, VAT/payment detail, bulk/keyboard journey acceptance remains pending.",
@@ -509,7 +534,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "worker6",
+        "token": "a2a3324c-789b-4a32-b60d-044a173df53d",
+        "leaseUntil": 1793406142205,
+        "workStarted": true
       },
       "P07-04": {
         "status": "pending",
@@ -2350,6 +2378,214 @@
         "type": "reopen",
         "taskId": "P03-00",
         "reason": "Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+      },
+      {
+        "at": 1793405139514,
+        "actor": "worker1",
+        "type": "claim",
+        "taskId": "P01-04",
+        "token": "4e87368c-546f-4fe8-ae65-faf31d78151f"
+      },
+      {
+        "at": 1793405149487,
+        "actor": "worker2",
+        "type": "claim",
+        "taskId": "P02-01",
+        "token": "f6f06ece-eb28-4f29-a236-e5ad3d975896"
+      },
+      {
+        "at": 1793405160586,
+        "actor": "worker3",
+        "type": "claim",
+        "taskId": "P02-03",
+        "token": "9e96d70d-dbaf-42f9-9759-42beeecdc993"
+      },
+      {
+        "at": 1793405168244,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-04",
+        "checkpoint": "Clean codex/lp-0003-worker1 at 799b7f7c02acd0dedf5eeab2815d0264a9782cbe; reading existing integrated credit validation and correction/claim dependencies before edits"
+      },
+      {
+        "at": 1793405168471,
+        "actor": "worker2",
+        "type": "checkpoint",
+        "taskId": "P02-01",
+        "checkpoint": "Starting clean codex/lp-0003-worker2 at durable 799b7f7c02acd0dedf5eeab2815d0264a9782cbe; inspect remaining generic entity membership and stale company boundaries; prior bank context fix preserved."
+      },
+      {
+        "at": 1793405173755,
+        "actor": "worker4",
+        "type": "claim",
+        "taskId": "P03-00",
+        "token": "96795798-1219-4574-ab60-8360fcd2e9c2"
+      },
+      {
+        "at": 1793405176861,
+        "actor": "worker3",
+        "type": "checkpoint",
+        "taskId": "P02-03",
+        "checkpoint": "codex/lp-0003-worker3 at 799b7f7; clean before edits; inspect remaining P02-03 log/input exposure"
+      },
+      {
+        "at": 1793405184835,
+        "actor": "worker5",
+        "type": "claim",
+        "taskId": "P04-01",
+        "token": "2dd5b2d0-776d-4551-841b-54f449143357"
+      },
+      {
+        "at": 1793405196168,
+        "actor": "worker6",
+        "type": "claim",
+        "taskId": "P06-00",
+        "token": "e9f2909d-b616-419c-993b-f36445968391"
+      },
+      {
+        "at": 1793405211999,
+        "actor": "worker5",
+        "type": "checkpoint",
+        "taskId": "P04-01",
+        "checkpoint": "codex/lp-0003-worker5 at 799b7f7 baseline; clean worktree. Inspecting official 2026-27 HMRC payroll test corpus for pinned fixture coverage; no calculation qualification claimed."
+      },
+      {
+        "at": 1793405234418,
+        "actor": "worker6",
+        "type": "checkpoint",
+        "taskId": "P06-00",
+        "checkpoint": "No edits; clean source codex/lp-0003-worker6 799b7f7c02acd0dedf5eeab2815d0264a9782cbe. Existing comprehensive contract inspected; bank import plus recovery model suite 23 passed. Remaining direct status-mutation integration fixture is outside sole documentation lease and integration.test.ts currently owned by P01-02. Coordinator reviewing lease/dependency repair."
+      },
+      {
+        "at": 1793405242118,
+        "actor": "worker6",
+        "type": "block",
+        "taskId": "P06-00",
+        "checkpoint": "No edits; stopped clean at durable 799b7f7c02acd0dedf5eeab2815d0264a9782cbe on codex/lp-0003-worker6; 23 bank-import/recovery tests pass.",
+        "blockers": [
+          {
+            "type": "decision",
+            "reason": "Internal file-ownership repair needed: P06-00 leases only its completed contract document, but remaining direct bank-status invariant fixture needs dedicated test path plus disposable runner registration. Coordinator must repair ownership after active workers stop; no dependency on unrelated paid-credit completion or owner permission is required."
+          }
+        ]
+      },
+      {
+        "at": 1793405242205,
+        "actor": "worker6",
+        "type": "claim",
+        "taskId": "P07-03",
+        "token": "a2a3324c-789b-4a32-b60d-044a173df53d"
+      },
+      {
+        "at": 1793405248565,
+        "actor": "worker2",
+        "type": "checkpoint",
+        "taskId": "P02-01",
+        "checkpoint": "codex/lp-0003-worker2 2ccab5b52306f87da1daf33d770eacc0cb2055b7; clean stopped worktree. Generic record reads now reject contradictory/malformed company queries and recheck resource membership; viewer reads preserved. 4 HTTP tests and API tsc pass. Broad route inventory and frontend stale response acceptance remain incomplete."
+      },
+      {
+        "at": 1793405248655,
+        "actor": "worker2",
+        "type": "submit",
+        "taskId": "P02-01",
+        "evidence": {
+          "commit": "2ccab5b52306f87da1daf33d770eacc0cb2055b7",
+          "summary": "PARTIAL P02-01: generic entity get-by-ID binds supplied company_id to resource and rechecks active resource membership. Authentication defaults unchanged; owner/company and customer viewer reads preserve omitted or matching context. Full route inventory, export coverage and client stale-response handling remain pending.",
+          "tests": [
+            {
+              "command": "esbuild companyRoutes.test.ts; DATABASE_URL=unusable-loopback node --test /tmp/lp0003-worker2.cjs: 4 passed",
+              "passed": true
+            },
+            {
+              "command": "node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793405252099,
+        "actor": "worker4",
+        "type": "checkpoint",
+        "taskId": "P03-00",
+        "checkpoint": "Before edits clean codex/lp-0003-worker4 at durable 799b7f7. New leased matrix will exercise amendment service with real disposable PostgreSQL, restricted role and transactionally missing tables/columns, preserving full fingerprints. No production or service behavior change."
+      },
+      {
+        "at": 1793405256394,
+        "actor": "worker3",
+        "type": "checkpoint",
+        "taskId": "P02-03",
+        "checkpoint": "codex/lp-0003-worker3 commit 358c0f5fab547762115c0affdc281607a89ab3d1; clean worktree, logging minimization slice 19 tests/API tsc passed; no running processes; awaiting coordinator durable publication"
+      },
+      {
+        "at": 1793405256474,
+        "actor": "worker3",
+        "type": "submit",
+        "taskId": "P02-03",
+        "evidence": {
+          "commit": "358c0f5fab547762115c0affdc281607a89ab3d1",
+          "summary": "PARTIAL: prevent Pino implicit Error messages escaping serializers and omit raw HTTP targets from request logs. Real HTTP and Pino-overload tests pass. Full sessions/transport/distributed quotas and dependency audit remain unfinished.",
+          "tests": [
+            {
+              "command": "esbuild appErrors.test.ts bundle; NODE_PATH=artifacts/api-server/node_modules node --test /tmp/lp0003-security.cjs (19 passed)",
+              "passed": true
+            },
+            {
+              "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793405284418,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-04",
+        "checkpoint": "codex/lp-0003-worker1 aa22eb1b4c3c8dfc1c7ebb5a5803e254a91789b7 clean; correction-history receipt fix; 35 domain tests/API tsc pass, new disposable receipt corruption test pending CI; worker stopped"
+      },
+      {
+        "at": 1793405284444,
+        "actor": "worker6",
+        "type": "checkpoint",
+        "taskId": "P07-03",
+        "checkpoint": "Before edits clean codex/lp-0003-worker6 799b7f7c02acd0dedf5eeab2815d0264a9782cbe. Existing shortcuts preserved; posted LedgerTable currently omits server-supplied journal descriptions. Add native keyboard-operable compact description disclosure and test exact money/source links remain unchanged. Broad document-list/bulk qualification pending."
+      },
+      {
+        "at": 1793405284502,
+        "actor": "worker1",
+        "type": "submit",
+        "taskId": "P01-04",
+        "evidence": {
+          "commit": "aa22eb1b4c3c8dfc1c7ebb5a5803e254a91789b7",
+          "summary": "PARTIAL: return receipt confirmation/listing now validates complete bill and credit correction chains; valid corrected bill history invalidates frozen claim availability; malformed history fails closed. Full corrected-original credit/claim activation remains blocked and not claimed complete. Added disposable PostgreSQL normal receipt/corrupt history/evidence preservation tests, pending CI.",
+          "tests": [
+            {
+              "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+              "passed": true
+            },
+            {
+              "command": "esbuild creditTracking/domain.test.ts then node --test /tmp/lp0003-w1-domain.cjs: 35 passed",
+              "passed": true
+            },
+            {
+              "command": "esbuild corrections.integration.test.ts bundle: passed (DB execution pending CI)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
       }
     ],
     "catalogDigest": "37580ba0a586c6493ee62ad8e8a5682f79cdced7e8c5e5e02c77b4bb1b3e4392"
@@ -2364,11 +2600,11 @@
         "path": "docs/development/work-backlog.json"
       }
     ],
-    "runId": "hosted-20261030-2333",
-    "at": 1793403970891,
+    "runId": "hosted-20261031-0003",
+    "at": 1793405289444,
     "codeHead": "799b7f7c02acd0dedf5eeab2815d0264a9782cbe"
   },
-  "updatedAt": 1793405084528,
+  "updatedAt": 1793405289444,
   "validation": {
     "sourceCommit": "799b7f7c02acd0dedf5eeab2815d0264a9782cbe",
     "sourceTree": "2ceb99e8a7e1e3336760b3daa697233ddcf8f0ea",
