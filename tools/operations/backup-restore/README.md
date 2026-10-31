@@ -30,3 +30,22 @@ Integrating this wrapper with `tools/accounting-flow/restore-drill.mjs`, restori
 to a fresh PostgreSQL cluster, and validating representative recovery time are
 still required. See `docs/operations/recovery-targets.json` for unresolved targets,
 ownership and external provisioning gates.
+
+## Separate-cluster encrypted PostgreSQL rehearsal
+
+Run `node tools/operations/backup-restore/rehearsal.mjs` as a non-root development
+user with PostgreSQL binaries on PATH. The CLI accepts no arguments, ignores
+ambient database credentials, and creates two fresh socket-only clusters. It
+backs up representative synthetic binary attachment, pending job and audit tables,
+encrypts the pg_dump, authenticates and decrypts it, and feeds only recovered bytes
+to pg_restore in the second cluster. An explicit synthetic least-privilege role is
+recreated, grants and row fingerprints must match, and an attempted audit deletion
+must remain denied. Both clusters and the temporary key/archive directory are
+removed before success. CI checks the current-commit receipt at
+`generated-artifacts/encrypted-recovery.json`.
+
+This executable verifies the encryption/restore connection and fresh-cluster role
+and grant restoration for representative fixtures. It does not replace the full
+application restore drill, restore real customers, establish operational RTO/RPO,
+or qualify off-site storage, custody, retention or production recovery. The
+recorded elapsed duration is only the complete tiny synthetic rehearsal duration.
