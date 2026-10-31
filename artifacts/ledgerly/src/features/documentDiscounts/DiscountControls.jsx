@@ -2,7 +2,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Money, ErrorBox, SkeletonRows } from '@/components/accounting/AccountingUI';
 import { Button } from '@/components/ui/button';
-import { balanceAfterSavedCredit, canEditDrafts, canPostDocuments } from './model.mjs';
+import { balanceAfterSavedCredit, canEditDrafts, canPostDocuments, isValidSettlementSnapshot } from './model.mjs';
 import { useState } from 'react';
 
 export function DraftWriteActions({ capabilities, doc, editId, busy, dirty, creditInvalid, configurationErrors = [], onReview, compact = false }) {
@@ -48,18 +48,21 @@ export function SavedDiscountSummary({ money }) {
 }
 
 export function DiscountBalanceReview({ original, item, money, dirty, loading, error, onRetry }) {
-  const after = loading || error ? null : balanceAfterSavedCredit(item, money, dirty);
+  const visibleItem = !loading && !error && isValidSettlementSnapshot(item)
+    && item.gross_minor === original?.money?.gross_pence ? item : null;
+  const after = balanceAfterSavedCredit(visibleItem, money, dirty);
   const excess = after !== null && BigInt(after) < 0n ? (-BigInt(after)).toString() : null;
   return <section className="workspace-card order-2 space-y-3 p-5" aria-label="Discount balance review">
     <h2 className="text-sm font-semibold">Effect on the original balance</h2>
     <ErrorBox error={error} onRetry={onRetry} />
     {loading ? <SkeletonRows rows={2} /> : <dl className="space-y-2 text-sm">
-      <div className="flex justify-between"><dt>Original total</dt><dd><Money value={original?.money?.gross_pence} /></dd></div>
-      <div className="flex justify-between"><dt>Payments received / made</dt><dd><Money value={item?.paid_minor} /></dd></div>
-      <div className="flex justify-between"><dt>Current remaining balance</dt><dd><Money value={item?.open_minor} /></dd></div>
-      <div className="flex justify-between"><dt>Saved discount credit</dt><dd><Money value={!dirty ? money?.gross_pence : null} /></dd></div>
+      <div className="flex justify-between"><dt>Original total</dt><dd><Money value={visibleItem?.gross_minor} /></dd></div>
+      <div className="flex justify-between"><dt>Payments received / made</dt><dd><Money value={visibleItem?.paid_minor} /></dd></div>
+      <div className="flex justify-between"><dt>Current remaining balance</dt><dd><Money value={visibleItem?.open_minor} /></dd></div>
+      <div className="flex justify-between"><dt>Saved discount credit</dt><dd><Money value={after !== null ? money.gross_pence : null} /></dd></div>
       {after !== null && <div className="flex justify-between border-t pt-2 font-semibold"><dt>Balance if posted</dt><dd><Money value={excess ? '0' : after} /></dd></div>}
     </dl>}
+    {!loading && after === null && <p className="text-sm">Balance preview unavailable. Save a valid credit and refresh the original balance before review.</p>}
     {excess && <p className="text-sm">This credit includes <Money value={excess} /> beyond the remaining balance. Review &amp; post will check whether that amount can be released from existing payment allocations into an unapplied balance. Allocation to another document or a refund requires a separate review; posting this credit does not move cash.</p>}
     <p className="text-xs text-muted-foreground">{dirty || !money ? 'Save the draft to calculate the discount and its effect. ' : ''}This is a preview from the displayed balance. Posting checks cumulative credit limits and current payment allocations again.</p>
   </section>;

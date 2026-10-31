@@ -31,12 +31,20 @@ test('adjustment preparation captures source revision while preserving entered d
   assert.deepEqual(discountAdjustment({ revision: 'rev3' }), { type: 'percentage', value: '', original_revision: 'rev3' });
 });
 
-test('balance preview subtracts only saved pence and never computes a percentage or uses stale totals', () => {
-  assert.equal(balanceAfterSavedCredit({ open_minor: '7000' }, { gross_pence: '1200' }), '5800');
-  assert.equal(balanceAfterSavedCredit({ open_minor: '9007199254740993' }, { gross_pence: '10' }), '9007199254740983');
-  assert.equal(balanceAfterSavedCredit({ open_minor: '1000' }, { gross_pence: '1200' }), '-200');
-  assert.equal(balanceAfterSavedCredit({ open_minor: '7000' }, { gross_pence: '1200' }, true), null);
-  assert.equal(balanceAfterSavedCredit(null, { gross_pence: '1200' }), null);
+test('balance preview uses canonical reconciled settlement and saved credit within remaining credit capacity', () => {
+  const partial = { gross_minor: '12000', credited_minor: '0', paid_minor: '5000', open_minor: '7000' };
+  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '1200' }), '5800');
+  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '8000' }), '-1000');
+  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '12000' }), '-5000');
+  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '12001' }), null);
+  assert.equal(balanceAfterSavedCredit({ ...partial, credited_minor: '1000', open_minor: '6000' }, { gross_pence: '11001' }), null);
+  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '1200' }, true), null);
+  for (const value of [undefined, null, '', '01', '-1', '1.2', 0, '1e2', '1000000000000', 'garbage']) {
+    assert.equal(balanceAfterSavedCredit(partial, { gross_pence: value }), null);
+    for (const field of Object.keys(partial)) assert.equal(balanceAfterSavedCredit({ ...partial, [field]: value }, { gross_pence: '1200' }), null);
+  }
+  for (const item of [null, {}, { open_minor: '7000' }, { ...partial, paid_minor: '5001' }])
+    assert.equal(balanceAfterSavedCredit(item, { gross_pence: '1200' }), null);
 });
 
 test('old company, document, or load generation cannot apply mutation result to a new view', () => {

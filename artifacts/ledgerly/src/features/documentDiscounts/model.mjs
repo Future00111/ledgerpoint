@@ -28,8 +28,11 @@ export function canApplyDiscount(kind, openItem, capabilities) {
 
 /** Only subtract saved, server-calculated pence for an explicitly labelled preview. */
 export function balanceAfterSavedCredit(openItem, money, dirty = false) {
-  if (!openItem || !money || dirty) return null;
-  return (BigInt(openItem.open_minor) - BigInt(money.gross_pence)).toString();
+  if (dirty || !isValidSettlementSnapshot(openItem) || typeof money?.gross_pence !== 'string'
+    || money.gross_pence.length > 12 || !/^(?:0|[1-9]\d*)$/.test(money.gross_pence)) return null;
+  const credit = BigInt(money.gross_pence);
+  if (credit > BigInt(openItem.gross_minor) - BigInt(openItem.credited_minor)) return null;
+  return (BigInt(openItem.open_minor) - credit).toString();
 }
 
 export function isCurrentDocumentRequest(started, current) {
