@@ -1,0 +1,4745 @@
+{
+  "version": 1,
+  "taxYear": "2026-27",
+  "status": "reference_fixtures_only_not_engine_qualification",
+  "source": {
+    "publisher": "HM Revenue & Customs",
+    "version": "1.1",
+    "page": "https://www.gov.uk/government/publications/software-developers-payroll-test-data-2026-to-2027",
+    "url": "https://assets.publishing.service.gov.uk/media/696f9b5f2b64f0e8c32e33a4/Tax-test-data-examples-2026-27-v1-1.zip",
+    "sha256": "163b18bd7dcfb699b8d77ec621ac1d4509372299de72daa1a5a027564caf188c",
+    "retrievedAt": "2026-10-31",
+    "licence": "Open Government Licence v3.0",
+    "licenceUrl": "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+    "workbooks": [
+      {
+        "path": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+        "region": "scotland",
+        "sha256": "0a9d2c405b80b55954a8c786fca589e1c9d76ffa9f280483d6b6f553eb759799"
+      },
+      {
+        "path": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+        "region": "rest_of_uk",
+        "sha256": "7065bb13294de6312a0dfa00863f67a02dfa618c7434cf2512989812981cf7a1"
+      },
+      {
+        "path": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+        "region": "wales",
+        "sha256": "9da8793fde0c03bcb7c1ec55de1a3ca1b4c1cc28c33e8d2f20ff5c8f4c8a1537"
+      }
+    ],
+    "publishedChanges": "Tax-test-data-examples-2026-27\r\n\r\nChanges from v1.0 (published 19/01/2026) to v1.1 (current version)\r\n\r\n-------------------------------------------------------------\r\n\r\nFile: Scottish tax v1.0 to v1.1\r\n\r\nTab: K_cumul_mthly\r\nLine 6\t\t\tTax due \twas 279.29\tnow 273.29\r\nLine 6\t\t\tTax due to date was 279.29\tnow 273.29\r\nLine 7\t\t\tTax due \twas 341.24\tnow 347.24\r\n\r\n-------------------------------------------------------------\r\n\r\nFiles: Rest-of-UK v1.0 and Welsh v1.0\r\n\r\nNo change"
+  },
+  "limitations": [
+    "Reference cells only; no native PAYE engine qualification.",
+    "Cumulative examples are ordered sequences, not independent employee inputs; previous examples and official guidance must be respected.",
+    "Cached XLSX numeric residues below 0.000001 pence are normalized to integer pence; original numeric lexemes retained.",
+    "Eligibility, statutory rules, rounding algorithm, prior employment and all earnings periods require separate qualification; no other-year carry-forward."
+  ],
+  "cases": [
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 6,
+      "sequenceId": "scotland/Gen_cumul_mthly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "115625",
+        "taxablePayToDateMinor": "115625"
+      },
+      "expected": {
+        "taxDueMinor": "2033",
+        "taxDueToDateMinor": "2033"
+      },
+      "sourceNumericLexemes": {
+        "B": "1156.25",
+        "C": "1156.25",
+        "G": "20.329999999999998",
+        "H": "20.329999999999998"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 7,
+      "sequenceId": "scotland/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 2,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "115626",
+        "taxablePayToDateMinor": "231251"
+      },
+      "expected": {
+        "taxDueMinor": "2052",
+        "taxDueToDateMinor": "4085"
+      },
+      "sourceNumericLexemes": {
+        "B": "1156.26",
+        "C": "2312.5100000000002",
+        "G": "20.520000000000003",
+        "H": "40.85"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 8,
+      "sequenceId": "scotland/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 3,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "3112326",
+        "taxablePayToDateMinor": "3343577"
+      },
+      "expected": {
+        "taxDueMinor": "1143678",
+        "taxDueToDateMinor": "1147763"
+      },
+      "sourceNumericLexemes": {
+        "B": "31123.26",
+        "C": "33435.769999999997",
+        "G": "11436.779999999999",
+        "H": "11477.63"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-9",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 9,
+      "sequenceId": "scotland/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-8",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 4,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "1446571",
+        "taxablePayToDateMinor": "4790148"
+      },
+      "expected": {
+        "taxDueMinor": "538032",
+        "taxDueToDateMinor": "1685795"
+      },
+      "sourceNumericLexemes": {
+        "B": "14465.71",
+        "C": "47901.479999999996",
+        "G": "5380.3200000000015",
+        "H": "16857.95"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-10",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 10,
+      "sequenceId": "scotland/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-9",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 5,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "5268125",
+        "taxablePayToDateMinor": "10058273"
+      },
+      "expected": {
+        "taxDueMinor": "2375337",
+        "taxDueToDateMinor": "4061132"
+      },
+      "sourceNumericLexemes": {
+        "B": "52681.25",
+        "C": "100582.73",
+        "G": "23753.37",
+        "H": "40611.32"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-11",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 11,
+      "sequenceId": "scotland/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-10",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 6,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "5000000",
+        "taxablePayToDateMinor": "15058273"
+      },
+      "expected": {
+        "taxDueMinor": "2246649",
+        "taxDueToDateMinor": "6307781"
+      },
+      "sourceNumericLexemes": {
+        "B": "50000",
+        "C": "150582.72999999998",
+        "G": "22466.489999999998",
+        "H": "63077.81"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-12",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 12,
+      "sequenceId": "scotland/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-11",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 7,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "1500000",
+        "taxablePayToDateMinor": "16558273"
+      },
+      "expected": {
+        "taxDueMinor": "566601",
+        "taxDueToDateMinor": "6874382"
+      },
+      "sourceNumericLexemes": {
+        "B": "15000",
+        "C": "165582.72999999998",
+        "G": "5666.0100000000093",
+        "H": "68743.820000000007"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-13",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 13,
+      "sequenceId": "scotland/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-12",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 8,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "1400055",
+        "taxablePayToDateMinor": "17958328"
+      },
+      "expected": {
+        "taxDueMinor": "518697",
+        "taxDueToDateMinor": "7393079"
+      },
+      "sourceNumericLexemes": {
+        "B": "14000.55",
+        "C": "179583.27999999997",
+        "G": "5186.9699999999866",
+        "H": "73930.789999999994"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-14",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 14,
+      "sequenceId": "scotland/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-13",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 9,
+        "taxCode": "SBR",
+        "week1Month1": null,
+        "grossPayMinor": "1259045",
+        "taxablePayToDateMinor": "19217373"
+      },
+      "expected": {
+        "taxDueMinor": "-3549619",
+        "taxDueToDateMinor": "3843460"
+      },
+      "sourceNumericLexemes": {
+        "B": "12590.45",
+        "C": "192173.72999999998",
+        "G": "-35496.189999999995",
+        "H": "38434.6"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-15",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 15,
+      "sequenceId": "scotland/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-14",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 10,
+        "taxCode": "NT",
+        "week1Month1": null,
+        "grossPayMinor": "1124505",
+        "taxablePayToDateMinor": "20341878"
+      },
+      "expected": {
+        "taxDueMinor": "-3843460",
+        "taxDueToDateMinor": "0"
+      },
+      "sourceNumericLexemes": {
+        "B": "11245.05",
+        "C": "203418.77999999997",
+        "G": "-38434.6",
+        "H": "0"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 6,
+      "sequenceId": "scotland/Gen_cumul_wkly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "26707",
+        "taxablePayToDateMinor": "26707"
+      },
+      "expected": {
+        "taxDueMinor": "475",
+        "taxDueToDateMinor": "475"
+      },
+      "sourceNumericLexemes": {
+        "B": "267.07",
+        "C": "267.07",
+        "G": "4.75",
+        "H": "4.75"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 7,
+      "sequenceId": "scotland/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 2,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "26608",
+        "taxablePayToDateMinor": "53315"
+      },
+      "expected": {
+        "taxDueMinor": "456",
+        "taxDueToDateMinor": "931"
+      },
+      "sourceNumericLexemes": {
+        "B": "266.08",
+        "C": "533.15",
+        "G": "4.5600000000000005",
+        "H": "9.31"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 8,
+      "sequenceId": "scotland/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 3,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "85305",
+        "taxablePayToDateMinor": "138620"
+      },
+      "expected": {
+        "taxDueMinor": "12040",
+        "taxDueToDateMinor": "12971"
+      },
+      "sourceNumericLexemes": {
+        "B": "853.05",
+        "C": "1386.1999999999998",
+        "G": "120.4",
+        "H": "129.71"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-9",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 9,
+      "sequenceId": "scotland/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-8",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 4,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "202109",
+        "taxablePayToDateMinor": "340729"
+      },
+      "expected": {
+        "taxDueMinor": "37631",
+        "taxDueToDateMinor": "50602"
+      },
+      "sourceNumericLexemes": {
+        "B": "2021.09",
+        "C": "3407.29",
+        "G": "376.30999999999995",
+        "H": "506.02"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-10",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 10,
+      "sequenceId": "scotland/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-9",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 5,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "983416",
+        "taxablePayToDateMinor": "1324145"
+      },
+      "expected": {
+        "taxDueMinor": "407990",
+        "taxDueToDateMinor": "458592"
+      },
+      "sourceNumericLexemes": {
+        "B": "9834.16",
+        "C": "13241.45",
+        "G": "4079.9",
+        "H": "4585.92"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-11",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 11,
+      "sequenceId": "scotland/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-10",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 6,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "1500000",
+        "taxablePayToDateMinor": "2824145"
+      },
+      "expected": {
+        "taxDueMinor": "684599",
+        "taxDueToDateMinor": "1143191"
+      },
+      "sourceNumericLexemes": {
+        "B": "15000",
+        "C": "28241.45",
+        "G": "6845.99",
+        "H": "11431.91"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-12",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 12,
+      "sequenceId": "scotland/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-11",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 7,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "24284",
+        "taxablePayToDateMinor": "2848429"
+      },
+      "expected": {
+        "taxDueMinor": "-23732",
+        "taxDueToDateMinor": "1119459"
+      },
+      "sourceNumericLexemes": {
+        "B": "242.84",
+        "C": "28484.29",
+        "G": "-237.31999999999971",
+        "H": "11194.59"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-13",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 13,
+      "sequenceId": "scotland/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-12",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 8,
+        "taxCode": "S1257L",
+        "week1Month1": null,
+        "grossPayMinor": "24383",
+        "taxablePayToDateMinor": "2872812"
+      },
+      "expected": {
+        "taxDueMinor": "-23684",
+        "taxDueToDateMinor": "1095775"
+      },
+      "sourceNumericLexemes": {
+        "B": "243.83",
+        "C": "28728.120000000003",
+        "G": "-236.84000000000015",
+        "H": "10957.75"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-14",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 14,
+      "sequenceId": "scotland/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-13",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 9,
+        "taxCode": "SBR",
+        "week1Month1": null,
+        "grossPayMinor": "63284",
+        "taxablePayToDateMinor": "2936096"
+      },
+      "expected": {
+        "taxDueMinor": "-508575",
+        "taxDueToDateMinor": "587200"
+      },
+      "sourceNumericLexemes": {
+        "B": "632.84",
+        "C": "29360.960000000003",
+        "G": "-5085.75",
+        "H": "5872"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-15",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 15,
+      "sequenceId": "scotland/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_wkly-row-14",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 10,
+        "taxCode": "NT",
+        "week1Month1": null,
+        "grossPayMinor": "289383",
+        "taxablePayToDateMinor": "3225479"
+      },
+      "expected": {
+        "taxDueMinor": "-587200",
+        "taxDueToDateMinor": "0"
+      },
+      "sourceNumericLexemes": {
+        "B": "2893.83",
+        "C": "32254.79",
+        "G": "-5872",
+        "H": "0"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 6,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "S45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "3924",
+        "taxablePayToDateMinor": "3924"
+      },
+      "expected": {
+        "taxDueMinor": "0",
+        "taxDueToDateMinor": "0"
+      },
+      "sourceNumericLexemes": {
+        "B": "39.24",
+        "C": "39.24",
+        "G": "0",
+        "H": "0"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 7,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "S45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "3925",
+        "taxablePayToDateMinor": "3925"
+      },
+      "expected": {
+        "taxDueMinor": "19",
+        "taxDueToDateMinor": "19"
+      },
+      "sourceNumericLexemes": {
+        "B": "39.25",
+        "C": "39.25",
+        "G": "0.19",
+        "H": "0.19"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 8,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "S45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "316424",
+        "taxablePayToDateMinor": "316424"
+      },
+      "expected": {
+        "taxDueMinor": "75095",
+        "taxDueToDateMinor": "75095"
+      },
+      "sourceNumericLexemes": {
+        "B": "3164.24",
+        "C": "3164.24",
+        "G": "750.95",
+        "H": "750.95"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-9",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 9,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-8",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "S45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "316425",
+        "taxablePayToDateMinor": "316425"
+      },
+      "expected": {
+        "taxDueMinor": "75137",
+        "taxDueToDateMinor": "75137"
+      },
+      "sourceNumericLexemes": {
+        "B": "3164.25",
+        "C": "3164.25",
+        "G": "751.37",
+        "H": "751.37"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-10",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 10,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-9",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "S45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "1045024",
+        "taxablePayToDateMinor": "1045024"
+      },
+      "expected": {
+        "taxDueMinor": "396732",
+        "taxDueToDateMinor": "396732"
+      },
+      "sourceNumericLexemes": {
+        "B": "10450.24",
+        "C": "10450.24",
+        "G": "3967.32",
+        "H": "3967.32"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-11",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 11,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-10",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "S45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "1050078",
+        "taxablePayToDateMinor": "1050078"
+      },
+      "expected": {
+        "taxDueMinor": "399128",
+        "taxDueToDateMinor": "399128"
+      },
+      "sourceNumericLexemes": {
+        "B": "10500.78",
+        "C": "10500.78",
+        "G": "3991.28",
+        "H": "3991.28"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-12",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 12,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-11",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "S45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "1253924",
+        "taxablePayToDateMinor": "1253924"
+      },
+      "expected": {
+        "taxDueMinor": "496952",
+        "taxDueToDateMinor": "496952"
+      },
+      "sourceNumericLexemes": {
+        "B": "12539.24",
+        "C": "12539.24",
+        "G": "4969.5200000000004",
+        "H": "4969.5200000000004"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-13",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 13,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-12",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "S45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "1253925",
+        "taxablePayToDateMinor": "1253925"
+      },
+      "expected": {
+        "taxDueMinor": "497000",
+        "taxDueToDateMinor": "497000"
+      },
+      "sourceNumericLexemes": {
+        "B": "12539.25",
+        "C": "12539.25",
+        "G": "4970",
+        "H": "4970"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-14",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 14,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-13",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SBR",
+        "week1Month1": "WM1",
+        "grossPayMinor": "9999",
+        "taxablePayToDateMinor": "9999"
+      },
+      "expected": {
+        "taxDueMinor": "1980",
+        "taxDueToDateMinor": "1980"
+      },
+      "sourceNumericLexemes": {
+        "B": "99.99",
+        "C": "99.99",
+        "G": "19.8",
+        "H": "19.8"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-15",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 15,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-14",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SBR",
+        "week1Month1": "WM1",
+        "grossPayMinor": "145003",
+        "taxablePayToDateMinor": "145003"
+      },
+      "expected": {
+        "taxDueMinor": "29000",
+        "taxDueToDateMinor": "29000"
+      },
+      "sourceNumericLexemes": {
+        "B": "1450.03",
+        "C": "1450.03",
+        "G": "290",
+        "H": "290"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-16",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 16,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-15",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SD0",
+        "week1Month1": "WM1",
+        "grossPayMinor": "9999",
+        "taxablePayToDateMinor": "9999"
+      },
+      "expected": {
+        "taxDueMinor": "2079",
+        "taxDueToDateMinor": "2079"
+      },
+      "sourceNumericLexemes": {
+        "B": "99.99",
+        "C": "99.99",
+        "G": "20.79",
+        "H": "20.79"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-17",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 17,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-16",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SD0",
+        "week1Month1": "WM1",
+        "grossPayMinor": "145003",
+        "taxablePayToDateMinor": "145003"
+      },
+      "expected": {
+        "taxDueMinor": "30450",
+        "taxDueToDateMinor": "30450"
+      },
+      "sourceNumericLexemes": {
+        "B": "1450.03",
+        "C": "1450.03",
+        "G": "304.5",
+        "H": "304.5"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-18",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 18,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-17",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SD1",
+        "week1Month1": "WM1",
+        "grossPayMinor": "9999",
+        "taxablePayToDateMinor": "9999"
+      },
+      "expected": {
+        "taxDueMinor": "4158",
+        "taxDueToDateMinor": "4158"
+      },
+      "sourceNumericLexemes": {
+        "B": "99.99",
+        "C": "99.99",
+        "G": "41.58",
+        "H": "41.58"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-19",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 19,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-18",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SD1",
+        "week1Month1": "WM1",
+        "grossPayMinor": "145003",
+        "taxablePayToDateMinor": "145003"
+      },
+      "expected": {
+        "taxDueMinor": "60900",
+        "taxDueToDateMinor": "60900"
+      },
+      "sourceNumericLexemes": {
+        "B": "1450.03",
+        "C": "1450.03",
+        "G": "609",
+        "H": "609"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-20",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 20,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-19",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SD2",
+        "week1Month1": "WM1",
+        "grossPayMinor": "9999",
+        "taxablePayToDateMinor": "9999"
+      },
+      "expected": {
+        "taxDueMinor": "4455",
+        "taxDueToDateMinor": "4455"
+      },
+      "sourceNumericLexemes": {
+        "B": "99.99",
+        "C": "99.99",
+        "G": "44.55",
+        "H": "44.55"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-21",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 21,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-20",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SD2",
+        "week1Month1": "WM1",
+        "grossPayMinor": "145003",
+        "taxablePayToDateMinor": "145003"
+      },
+      "expected": {
+        "taxDueMinor": "65250",
+        "taxDueToDateMinor": "65250"
+      },
+      "sourceNumericLexemes": {
+        "B": "1450.03",
+        "C": "1450.03",
+        "G": "652.5",
+        "H": "652.5"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-22",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 22,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-21",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SD2",
+        "week1Month1": "WM1",
+        "grossPayMinor": "530067",
+        "taxablePayToDateMinor": "530067"
+      },
+      "expected": {
+        "taxDueMinor": "238500",
+        "taxDueToDateMinor": "238500"
+      },
+      "sourceNumericLexemes": {
+        "B": "5300.67",
+        "C": "5300.67",
+        "G": "2385",
+        "H": "2385"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-23",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 23,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-22",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SD3",
+        "week1Month1": "WM1",
+        "grossPayMinor": "9999",
+        "taxablePayToDateMinor": "9999"
+      },
+      "expected": {
+        "taxDueMinor": "4752",
+        "taxDueToDateMinor": "4752"
+      },
+      "sourceNumericLexemes": {
+        "B": "99.99",
+        "C": "99.99",
+        "G": "47.52",
+        "H": "47.52"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-24",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 24,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-23",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SD3",
+        "week1Month1": "WM1",
+        "grossPayMinor": "145003",
+        "taxablePayToDateMinor": "145003"
+      },
+      "expected": {
+        "taxDueMinor": "69600",
+        "taxDueToDateMinor": "69600"
+      },
+      "sourceNumericLexemes": {
+        "B": "1450.03",
+        "C": "1450.03",
+        "G": "696",
+        "H": "696"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-25",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 25,
+      "sequenceId": "scotland/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_mthly-row-24",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SD3",
+        "week1Month1": "WM1",
+        "grossPayMinor": "530067",
+        "taxablePayToDateMinor": "530067"
+      },
+      "expected": {
+        "taxDueMinor": "254400",
+        "taxDueToDateMinor": "254400"
+      },
+      "sourceNumericLexemes": {
+        "B": "5300.67",
+        "C": "5300.67",
+        "G": "2544",
+        "H": "2544"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 6,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "S145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "2905",
+        "taxablePayToDateMinor": "2905"
+      },
+      "expected": {
+        "taxDueMinor": "0",
+        "taxDueToDateMinor": "0"
+      },
+      "sourceNumericLexemes": {
+        "B": "29.05",
+        "C": "29.05",
+        "G": "0",
+        "H": "0"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 7,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "S145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "2906",
+        "taxablePayToDateMinor": "2906"
+      },
+      "expected": {
+        "taxDueMinor": "19",
+        "taxDueToDateMinor": "19"
+      },
+      "sourceNumericLexemes": {
+        "B": "29.06",
+        "C": "29.06",
+        "G": "0.19",
+        "H": "0.19"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 8,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "S145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "75006",
+        "taxablePayToDateMinor": "75006"
+      },
+      "expected": {
+        "taxDueMinor": "17365",
+        "taxDueToDateMinor": "17365"
+      },
+      "sourceNumericLexemes": {
+        "B": "750.06",
+        "C": "750.06",
+        "G": "173.65",
+        "H": "173.65"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-9",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 9,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-8",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "S145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "75007",
+        "taxablePayToDateMinor": "75007"
+      },
+      "expected": {
+        "taxDueMinor": "17365",
+        "taxDueToDateMinor": "17365"
+      },
+      "sourceNumericLexemes": {
+        "B": "750.07",
+        "C": "750.07",
+        "G": "173.65",
+        "H": "173.65"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-10",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 10,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-9",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "S145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "291306",
+        "taxablePayToDateMinor": "291306"
+      },
+      "expected": {
+        "taxDueMinor": "114699",
+        "taxDueToDateMinor": "114699"
+      },
+      "sourceNumericLexemes": {
+        "B": "2913.06",
+        "C": "2913.06",
+        "G": "1146.99",
+        "H": "1146.99"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-11",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 11,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-10",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "S145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "291307",
+        "taxablePayToDateMinor": "291307"
+      },
+      "expected": {
+        "taxDueMinor": "114699",
+        "taxDueToDateMinor": "114699"
+      },
+      "sourceNumericLexemes": {
+        "B": "2913.07",
+        "C": "2913.07",
+        "G": "1146.99",
+        "H": "1146.99"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-12",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 12,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-11",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SBR",
+        "week1Month1": "WM1",
+        "grossPayMinor": "10199",
+        "taxablePayToDateMinor": "10199"
+      },
+      "expected": {
+        "taxDueMinor": "2020",
+        "taxDueToDateMinor": "2020"
+      },
+      "sourceNumericLexemes": {
+        "B": "101.99",
+        "C": "101.99",
+        "G": "20.2",
+        "H": "20.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-13",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 13,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-12",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SBR",
+        "week1Month1": "WM1",
+        "grossPayMinor": "32463",
+        "taxablePayToDateMinor": "32463"
+      },
+      "expected": {
+        "taxDueMinor": "6480",
+        "taxDueToDateMinor": "6480"
+      },
+      "sourceNumericLexemes": {
+        "B": "324.63",
+        "C": "324.63",
+        "G": "64.8",
+        "H": "64.8"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-14",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 14,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-13",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SD0",
+        "week1Month1": "WM1",
+        "grossPayMinor": "10199",
+        "taxablePayToDateMinor": "10199"
+      },
+      "expected": {
+        "taxDueMinor": "2121",
+        "taxDueToDateMinor": "2121"
+      },
+      "sourceNumericLexemes": {
+        "B": "101.99",
+        "C": "101.99",
+        "G": "21.21",
+        "H": "21.21"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-15",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 15,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-14",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SD0",
+        "week1Month1": "WM1",
+        "grossPayMinor": "32463",
+        "taxablePayToDateMinor": "32463"
+      },
+      "expected": {
+        "taxDueMinor": "6804",
+        "taxDueToDateMinor": "6804"
+      },
+      "sourceNumericLexemes": {
+        "B": "324.63",
+        "C": "324.63",
+        "G": "68.040000000000006",
+        "H": "68.040000000000006"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-16",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 16,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-15",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SD1",
+        "week1Month1": "WM1",
+        "grossPayMinor": "10199",
+        "taxablePayToDateMinor": "10199"
+      },
+      "expected": {
+        "taxDueMinor": "4242",
+        "taxDueToDateMinor": "4242"
+      },
+      "sourceNumericLexemes": {
+        "B": "101.99",
+        "C": "101.99",
+        "G": "42.42",
+        "H": "42.42"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-17",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 17,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-16",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SD1",
+        "week1Month1": "WM1",
+        "grossPayMinor": "32463",
+        "taxablePayToDateMinor": "32463"
+      },
+      "expected": {
+        "taxDueMinor": "13608",
+        "taxDueToDateMinor": "13608"
+      },
+      "sourceNumericLexemes": {
+        "B": "324.63",
+        "C": "324.63",
+        "G": "136.08000000000001",
+        "H": "136.08000000000001"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-18",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 18,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-17",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SD2",
+        "week1Month1": "WM1",
+        "grossPayMinor": "10199",
+        "taxablePayToDateMinor": "10199"
+      },
+      "expected": {
+        "taxDueMinor": "4545",
+        "taxDueToDateMinor": "4545"
+      },
+      "sourceNumericLexemes": {
+        "B": "101.99",
+        "C": "101.99",
+        "G": "45.45",
+        "H": "45.45"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-19",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 19,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-18",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SD2",
+        "week1Month1": "WM1",
+        "grossPayMinor": "32463",
+        "taxablePayToDateMinor": "32463"
+      },
+      "expected": {
+        "taxDueMinor": "14580",
+        "taxDueToDateMinor": "14580"
+      },
+      "sourceNumericLexemes": {
+        "B": "324.63",
+        "C": "324.63",
+        "G": "145.80000000000001",
+        "H": "145.80000000000001"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-20",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 20,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-19",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SD2",
+        "week1Month1": "WM1",
+        "grossPayMinor": "105681",
+        "taxablePayToDateMinor": "105681"
+      },
+      "expected": {
+        "taxDueMinor": "47520",
+        "taxDueToDateMinor": "47520"
+      },
+      "sourceNumericLexemes": {
+        "B": "1056.81",
+        "C": "1056.81",
+        "G": "475.2",
+        "H": "475.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-21",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 21,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-20",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SD3",
+        "week1Month1": "WM1",
+        "grossPayMinor": "10199",
+        "taxablePayToDateMinor": "10199"
+      },
+      "expected": {
+        "taxDueMinor": "4848",
+        "taxDueToDateMinor": "4848"
+      },
+      "sourceNumericLexemes": {
+        "B": "101.99",
+        "C": "101.99",
+        "G": "48.48",
+        "H": "48.48"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-22",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 22,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-21",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SD3",
+        "week1Month1": "WM1",
+        "grossPayMinor": "32463",
+        "taxablePayToDateMinor": "32463"
+      },
+      "expected": {
+        "taxDueMinor": "15552",
+        "taxDueToDateMinor": "15552"
+      },
+      "sourceNumericLexemes": {
+        "B": "324.63",
+        "C": "324.63",
+        "G": "155.52000000000001",
+        "H": "155.52000000000001"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-23",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 23,
+      "sequenceId": "scotland/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_W1M1_wkly-row-22",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SD3",
+        "week1Month1": "WM1",
+        "grossPayMinor": "105681",
+        "taxablePayToDateMinor": "105681"
+      },
+      "expected": {
+        "taxDueMinor": "50688",
+        "taxDueToDateMinor": "50688"
+      },
+      "sourceNumericLexemes": {
+        "B": "1056.81",
+        "C": "1056.81",
+        "G": "506.88",
+        "H": "506.88"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-K_cumul_mthly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "K_cumul_mthly",
+      "sourceRow": 6,
+      "sequenceId": "scotland/K_cumul_mthly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "SK585",
+        "week1Month1": null,
+        "grossPayMinor": "89500",
+        "taxablePayToDateMinor": "89500"
+      },
+      "expected": {
+        "taxDueMinor": "27329",
+        "taxDueToDateMinor": "27329"
+      },
+      "sourceNumericLexemes": {
+        "B": "895",
+        "C": "895",
+        "G": "273.29000000000002",
+        "H": "273.29000000000002"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-K_cumul_mthly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "K_cumul_mthly",
+      "sourceRow": 7,
+      "sequenceId": "scotland/K_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-K_cumul_mthly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 2,
+        "taxCode": "SK585",
+        "week1Month1": null,
+        "grossPayMinor": "125000",
+        "taxablePayToDateMinor": "214500"
+      },
+      "expected": {
+        "taxDueMinor": "34724",
+        "taxDueToDateMinor": "62053"
+      },
+      "sourceNumericLexemes": {
+        "B": "1250",
+        "C": "2145",
+        "G": "347.23999999999995",
+        "H": "620.53"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-K_cumul_mthly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "K_cumul_mthly",
+      "sourceRow": 8,
+      "sequenceId": "scotland/K_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-K_cumul_mthly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "monthly",
+        "period": 3,
+        "taxCode": "SK585",
+        "week1Month1": null,
+        "grossPayMinor": "76500",
+        "taxablePayToDateMinor": "291000"
+      },
+      "expected": {
+        "taxDueMinor": "24570",
+        "taxDueToDateMinor": "86623"
+      },
+      "sourceNumericLexemes": {
+        "B": "765",
+        "C": "2910",
+        "G": "245.70000000000005",
+        "H": "866.23"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-K_cumul_wkly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "K_cumul_wkly",
+      "sourceRow": 6,
+      "sequenceId": "scotland/K_cumul_wkly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "SK630",
+        "week1Month1": null,
+        "grossPayMinor": "15000",
+        "taxablePayToDateMinor": "15000"
+      },
+      "expected": {
+        "taxDueMinor": "5343",
+        "taxDueToDateMinor": "5343"
+      },
+      "sourceNumericLexemes": {
+        "B": "150",
+        "C": "150",
+        "G": "53.43",
+        "H": "53.43"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-K_cumul_wkly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "K_cumul_wkly",
+      "sourceRow": 7,
+      "sequenceId": "scotland/K_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-K_cumul_wkly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 2,
+        "taxCode": "SK630",
+        "week1Month1": null,
+        "grossPayMinor": "30000",
+        "taxablePayToDateMinor": "45000"
+      },
+      "expected": {
+        "taxDueMinor": "8384",
+        "taxDueToDateMinor": "13727"
+      },
+      "sourceNumericLexemes": {
+        "B": "300",
+        "C": "450",
+        "G": "83.84",
+        "H": "137.27000000000001"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-scotland-K_cumul_wkly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+      "sourceSheet": "K_cumul_wkly",
+      "sourceRow": 8,
+      "sequenceId": "scotland/K_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-scotland-K_cumul_wkly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "scotland",
+        "frequency": "weekly",
+        "period": 3,
+        "taxCode": "SK630",
+        "week1Month1": null,
+        "grossPayMinor": "24500",
+        "taxablePayToDateMinor": "69500"
+      },
+      "expected": {
+        "taxDueMinor": "7304",
+        "taxDueToDateMinor": "21031"
+      },
+      "sourceNumericLexemes": {
+        "B": "245",
+        "C": "695",
+        "G": "73.039999999999992",
+        "H": "210.31"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-mthly",
+      "sourceRow": 6,
+      "sequenceId": "rest_of_uk/Gen_cumul-mthly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "115625",
+        "taxablePayToDateMinor": "115625"
+      },
+      "expected": {
+        "taxDueMinor": "2140",
+        "taxDueToDateMinor": "2140"
+      },
+      "sourceNumericLexemes": {
+        "B": "1156.25",
+        "C": "1156.25",
+        "G": "21.4",
+        "H": "21.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-mthly",
+      "sourceRow": 7,
+      "sequenceId": "rest_of_uk/Gen_cumul-mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 2,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "115626",
+        "taxablePayToDateMinor": "231251"
+      },
+      "expected": {
+        "taxDueMinor": "2160",
+        "taxDueToDateMinor": "4300"
+      },
+      "sourceNumericLexemes": {
+        "B": "1156.26",
+        "C": "2312.5100000000002",
+        "G": "21.6",
+        "H": "43"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-mthly",
+      "sourceRow": 8,
+      "sequenceId": "rest_of_uk/Gen_cumul-mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 3,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "3112326",
+        "taxablePayToDateMinor": "3343577"
+      },
+      "expected": {
+        "taxDueMinor": "1018800",
+        "taxDueToDateMinor": "1023100"
+      },
+      "sourceNumericLexemes": {
+        "B": "31123.26",
+        "C": "33435.769999999997",
+        "G": "10188",
+        "H": "10231"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-9",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-mthly",
+      "sourceRow": 9,
+      "sequenceId": "rest_of_uk/Gen_cumul-mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-8",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 4,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "1446571",
+        "taxablePayToDateMinor": "4790148"
+      },
+      "expected": {
+        "taxDueMinor": "483860",
+        "taxDueToDateMinor": "1506960"
+      },
+      "sourceNumericLexemes": {
+        "B": "14465.71",
+        "C": "47901.479999999996",
+        "G": "4838.6000000000004",
+        "H": "15069.6"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-10",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-mthly",
+      "sourceRow": 10,
+      "sequenceId": "rest_of_uk/Gen_cumul-mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-9",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 5,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "5268125",
+        "taxablePayToDateMinor": "10058273"
+      },
+      "expected": {
+        "taxDueMinor": "2208510",
+        "taxDueToDateMinor": "3715470"
+      },
+      "sourceNumericLexemes": {
+        "B": "52681.25",
+        "C": "100582.73",
+        "G": "22085.1",
+        "H": "37154.699999999997"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-11",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-mthly",
+      "sourceRow": 11,
+      "sequenceId": "rest_of_uk/Gen_cumul-mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-10",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 6,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "5000000",
+        "taxablePayToDateMinor": "15058273"
+      },
+      "expected": {
+        "taxDueMinor": "2087865",
+        "taxDueToDateMinor": "5803335"
+      },
+      "sourceNumericLexemes": {
+        "B": "50000",
+        "C": "150582.72999999998",
+        "G": "20878.650000000001",
+        "H": "58033.35"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-12",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-mthly",
+      "sourceRow": 12,
+      "sequenceId": "rest_of_uk/Gen_cumul-mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-11",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 7,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "1500000",
+        "taxablePayToDateMinor": "16558273"
+      },
+      "expected": {
+        "taxDueMinor": "512820",
+        "taxDueToDateMinor": "6316155"
+      },
+      "sourceNumericLexemes": {
+        "B": "15000",
+        "C": "165582.72999999998",
+        "G": "5128.2000000000044",
+        "H": "63161.55"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-13",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-mthly",
+      "sourceRow": 13,
+      "sequenceId": "rest_of_uk/Gen_cumul-mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-12",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 8,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "1400055",
+        "taxablePayToDateMinor": "17958328"
+      },
+      "expected": {
+        "taxDueMinor": "467910",
+        "taxDueToDateMinor": "6784065"
+      },
+      "sourceNumericLexemes": {
+        "B": "14000.55",
+        "C": "179583.27999999997",
+        "G": "4679.0999999999913",
+        "H": "67840.649999999994"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-14",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-mthly",
+      "sourceRow": 14,
+      "sequenceId": "rest_of_uk/Gen_cumul-mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-13",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 9,
+        "taxCode": "BR",
+        "week1Month1": null,
+        "grossPayMinor": "1259045",
+        "taxablePayToDateMinor": "19217373"
+      },
+      "expected": {
+        "taxDueMinor": "-2940605",
+        "taxDueToDateMinor": "3843460"
+      },
+      "sourceNumericLexemes": {
+        "B": "12590.45",
+        "C": "192173.72999999998",
+        "G": "-29406.049999999996",
+        "H": "38434.6"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-15",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-mthly",
+      "sourceRow": 15,
+      "sequenceId": "rest_of_uk/Gen_cumul-mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-14",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 10,
+        "taxCode": "NT",
+        "week1Month1": null,
+        "grossPayMinor": "1124505",
+        "taxablePayToDateMinor": "20341878"
+      },
+      "expected": {
+        "taxDueMinor": "-3843460",
+        "taxDueToDateMinor": "0"
+      },
+      "sourceNumericLexemes": {
+        "B": "11245.05",
+        "C": "203418.77999999997",
+        "G": "-38434.6",
+        "H": "0"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-wkly",
+      "sourceRow": 6,
+      "sequenceId": "rest_of_uk/Gen_cumul-wkly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "26707",
+        "taxablePayToDateMinor": "26707"
+      },
+      "expected": {
+        "taxDueMinor": "500",
+        "taxDueToDateMinor": "500"
+      },
+      "sourceNumericLexemes": {
+        "B": "267.07",
+        "C": "267.07",
+        "G": "5",
+        "H": "5"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-wkly",
+      "sourceRow": 7,
+      "sequenceId": "rest_of_uk/Gen_cumul-wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 2,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "26608",
+        "taxablePayToDateMinor": "53315"
+      },
+      "expected": {
+        "taxDueMinor": "480",
+        "taxDueToDateMinor": "980"
+      },
+      "sourceNumericLexemes": {
+        "B": "266.08",
+        "C": "533.15",
+        "G": "4.8000000000000007",
+        "H": "9.8000000000000007"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-wkly",
+      "sourceRow": 8,
+      "sequenceId": "rest_of_uk/Gen_cumul-wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 3,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "85305",
+        "taxablePayToDateMinor": "138620"
+      },
+      "expected": {
+        "taxDueMinor": "12220",
+        "taxDueToDateMinor": "13200"
+      },
+      "sourceNumericLexemes": {
+        "B": "853.05",
+        "C": "1386.1999999999998",
+        "G": "122.2",
+        "H": "132"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-9",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-wkly",
+      "sourceRow": 9,
+      "sequenceId": "rest_of_uk/Gen_cumul-wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-8",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 4,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "202109",
+        "taxablePayToDateMinor": "340729"
+      },
+      "expected": {
+        "taxDueMinor": "35580",
+        "taxDueToDateMinor": "48780"
+      },
+      "sourceNumericLexemes": {
+        "B": "2021.09",
+        "C": "3407.29",
+        "G": "355.8",
+        "H": "487.8"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-10",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-wkly",
+      "sourceRow": 10,
+      "sequenceId": "rest_of_uk/Gen_cumul-wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-9",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 5,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "983416",
+        "taxablePayToDateMinor": "1324145"
+      },
+      "expected": {
+        "taxDueMinor": "359960",
+        "taxDueToDateMinor": "408740"
+      },
+      "sourceNumericLexemes": {
+        "B": "9834.16",
+        "C": "13241.45",
+        "G": "3599.6",
+        "H": "4087.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-11",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-wkly",
+      "sourceRow": 11,
+      "sequenceId": "rest_of_uk/Gen_cumul-wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-10",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 6,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "1500000",
+        "taxablePayToDateMinor": "2824145"
+      },
+      "expected": {
+        "taxDueMinor": "637568",
+        "taxDueToDateMinor": "1046308"
+      },
+      "sourceNumericLexemes": {
+        "B": "15000",
+        "C": "28241.45",
+        "G": "6375.68",
+        "H": "10463.08"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-12",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-wkly",
+      "sourceRow": 12,
+      "sequenceId": "rest_of_uk/Gen_cumul-wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-11",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 7,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "24284",
+        "taxablePayToDateMinor": "2848429"
+      },
+      "expected": {
+        "taxDueMinor": "-26487",
+        "taxDueToDateMinor": "1019821"
+      },
+      "sourceNumericLexemes": {
+        "B": "242.84",
+        "C": "28484.29",
+        "G": "-264.8700000000008",
+        "H": "10198.209999999999"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-13",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-wkly",
+      "sourceRow": 13,
+      "sequenceId": "rest_of_uk/Gen_cumul-wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-12",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 8,
+        "taxCode": "1257L",
+        "week1Month1": null,
+        "grossPayMinor": "24383",
+        "taxablePayToDateMinor": "2872812"
+      },
+      "expected": {
+        "taxDueMinor": "-26443",
+        "taxDueToDateMinor": "993378"
+      },
+      "sourceNumericLexemes": {
+        "B": "243.83",
+        "C": "28728.120000000003",
+        "G": "-264.42999999999847",
+        "H": "9933.7800000000007"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-14",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-wkly",
+      "sourceRow": 14,
+      "sequenceId": "rest_of_uk/Gen_cumul-wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-13",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 9,
+        "taxCode": "BR",
+        "week1Month1": null,
+        "grossPayMinor": "63284",
+        "taxablePayToDateMinor": "2936096"
+      },
+      "expected": {
+        "taxDueMinor": "-406178",
+        "taxDueToDateMinor": "587200"
+      },
+      "sourceNumericLexemes": {
+        "B": "632.84",
+        "C": "29360.960000000003",
+        "G": "-4061.7800000000007",
+        "H": "5872"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-15",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul-wkly",
+      "sourceRow": 15,
+      "sequenceId": "rest_of_uk/Gen_cumul-wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-wkly-row-14",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 10,
+        "taxCode": "NT",
+        "week1Month1": null,
+        "grossPayMinor": "289383",
+        "taxablePayToDateMinor": "3225479"
+      },
+      "expected": {
+        "taxDueMinor": "-587200",
+        "taxDueToDateMinor": "0"
+      },
+      "sourceNumericLexemes": {
+        "B": "2893.83",
+        "C": "32254.79",
+        "G": "-5872",
+        "H": "0"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 6,
+      "sequenceId": "rest_of_uk/Gen_W1M1_mthly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "3924",
+        "taxablePayToDateMinor": "3924"
+      },
+      "expected": {
+        "taxDueMinor": "0",
+        "taxDueToDateMinor": "0"
+      },
+      "sourceNumericLexemes": {
+        "B": "39.24",
+        "C": "39.24",
+        "G": "0",
+        "H": "0"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 7,
+      "sequenceId": "rest_of_uk/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "3925",
+        "taxablePayToDateMinor": "3925"
+      },
+      "expected": {
+        "taxDueMinor": "20",
+        "taxDueToDateMinor": "20"
+      },
+      "sourceNumericLexemes": {
+        "B": "39.25",
+        "C": "39.25",
+        "G": "0.2",
+        "H": "0.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 8,
+      "sequenceId": "rest_of_uk/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "316424",
+        "taxablePayToDateMinor": "316424"
+      },
+      "expected": {
+        "taxDueMinor": "62500",
+        "taxDueToDateMinor": "62500"
+      },
+      "sourceNumericLexemes": {
+        "B": "3164.24",
+        "C": "3164.24",
+        "G": "625",
+        "H": "625"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-9",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 9,
+      "sequenceId": "rest_of_uk/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-8",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "316425",
+        "taxablePayToDateMinor": "316425"
+      },
+      "expected": {
+        "taxDueMinor": "62520",
+        "taxDueToDateMinor": "62520"
+      },
+      "sourceNumericLexemes": {
+        "B": "3164.25",
+        "C": "3164.25",
+        "G": "625.20000000000005",
+        "H": "625.20000000000005"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-10",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 10,
+      "sequenceId": "rest_of_uk/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-9",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "1045024",
+        "taxablePayToDateMinor": "1045024"
+      },
+      "expected": {
+        "taxDueMinor": "353606",
+        "taxDueToDateMinor": "353606"
+      },
+      "sourceNumericLexemes": {
+        "B": "10450.24",
+        "C": "10450.24",
+        "G": "3536.06",
+        "H": "3536.06"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-11",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 11,
+      "sequenceId": "rest_of_uk/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-10",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "1050078",
+        "taxablePayToDateMinor": "1050078"
+      },
+      "expected": {
+        "taxDueMinor": "355815",
+        "taxDueToDateMinor": "355815"
+      },
+      "sourceNumericLexemes": {
+        "B": "10500.78",
+        "C": "10500.78",
+        "G": "3558.15",
+        "H": "3558.15"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-12",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 12,
+      "sequenceId": "rest_of_uk/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-11",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "1253924",
+        "taxablePayToDateMinor": "1253924"
+      },
+      "expected": {
+        "taxDueMinor": "447525",
+        "taxDueToDateMinor": "447525"
+      },
+      "sourceNumericLexemes": {
+        "B": "12539.24",
+        "C": "12539.24",
+        "G": "4475.25",
+        "H": "4475.25"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-13",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 13,
+      "sequenceId": "rest_of_uk/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-12",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "1253925",
+        "taxablePayToDateMinor": "1253925"
+      },
+      "expected": {
+        "taxDueMinor": "447570",
+        "taxDueToDateMinor": "447570"
+      },
+      "sourceNumericLexemes": {
+        "B": "12539.25",
+        "C": "12539.25",
+        "G": "4475.7",
+        "H": "4475.7"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-14",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 14,
+      "sequenceId": "rest_of_uk/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-13",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "BR",
+        "week1Month1": "WM1",
+        "grossPayMinor": "9999",
+        "taxablePayToDateMinor": "9999"
+      },
+      "expected": {
+        "taxDueMinor": "1980",
+        "taxDueToDateMinor": "1980"
+      },
+      "sourceNumericLexemes": {
+        "B": "99.99",
+        "C": "99.99",
+        "G": "19.8",
+        "H": "19.8"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-15",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 15,
+      "sequenceId": "rest_of_uk/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-14",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "D0",
+        "week1Month1": "WM1",
+        "grossPayMinor": "9999",
+        "taxablePayToDateMinor": "9999"
+      },
+      "expected": {
+        "taxDueMinor": "3960",
+        "taxDueToDateMinor": "3960"
+      },
+      "sourceNumericLexemes": {
+        "B": "99.99",
+        "C": "99.99",
+        "G": "39.6",
+        "H": "39.6"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-16",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 16,
+      "sequenceId": "rest_of_uk/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_mthly-row-15",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "D1",
+        "week1Month1": "WM1",
+        "grossPayMinor": "9999",
+        "taxablePayToDateMinor": "9999"
+      },
+      "expected": {
+        "taxDueMinor": "4455",
+        "taxDueToDateMinor": "4455"
+      },
+      "sourceNumericLexemes": {
+        "B": "99.99",
+        "C": "99.99",
+        "G": "44.55",
+        "H": "44.55"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 6,
+      "sequenceId": "rest_of_uk/Gen_W1M1_wkly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "2905",
+        "taxablePayToDateMinor": "2905"
+      },
+      "expected": {
+        "taxDueMinor": "0",
+        "taxDueToDateMinor": "0"
+      },
+      "sourceNumericLexemes": {
+        "B": "29.05",
+        "C": "29.05",
+        "G": "0",
+        "H": "0"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 7,
+      "sequenceId": "rest_of_uk/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "2906",
+        "taxablePayToDateMinor": "2906"
+      },
+      "expected": {
+        "taxDueMinor": "20",
+        "taxDueToDateMinor": "20"
+      },
+      "sourceNumericLexemes": {
+        "B": "29.06",
+        "C": "29.06",
+        "G": "0.2",
+        "H": "0.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 8,
+      "sequenceId": "rest_of_uk/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "75006",
+        "taxablePayToDateMinor": "75006"
+      },
+      "expected": {
+        "taxDueMinor": "14440",
+        "taxDueToDateMinor": "14440"
+      },
+      "sourceNumericLexemes": {
+        "B": "750.06",
+        "C": "750.06",
+        "G": "144.4",
+        "H": "144.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-9",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 9,
+      "sequenceId": "rest_of_uk/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-8",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "75007",
+        "taxablePayToDateMinor": "75007"
+      },
+      "expected": {
+        "taxDueMinor": "14440",
+        "taxDueToDateMinor": "14440"
+      },
+      "sourceNumericLexemes": {
+        "B": "750.07",
+        "C": "750.07",
+        "G": "144.4",
+        "H": "144.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-10",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 10,
+      "sequenceId": "rest_of_uk/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-9",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "291306",
+        "taxablePayToDateMinor": "291306"
+      },
+      "expected": {
+        "taxDueMinor": "103292",
+        "taxDueToDateMinor": "103292"
+      },
+      "sourceNumericLexemes": {
+        "B": "2913.06",
+        "C": "2913.06",
+        "G": "1032.92",
+        "H": "1032.92"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-11",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 11,
+      "sequenceId": "rest_of_uk/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-10",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "291307",
+        "taxablePayToDateMinor": "291307"
+      },
+      "expected": {
+        "taxDueMinor": "103292",
+        "taxDueToDateMinor": "103292"
+      },
+      "sourceNumericLexemes": {
+        "B": "2913.07",
+        "C": "2913.07",
+        "G": "1032.92",
+        "H": "1032.92"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-12",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 12,
+      "sequenceId": "rest_of_uk/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-11",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "BR",
+        "week1Month1": "WM1",
+        "grossPayMinor": "10199",
+        "taxablePayToDateMinor": "10199"
+      },
+      "expected": {
+        "taxDueMinor": "2020",
+        "taxDueToDateMinor": "2020"
+      },
+      "sourceNumericLexemes": {
+        "B": "101.99",
+        "C": "101.99",
+        "G": "20.2",
+        "H": "20.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-13",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 13,
+      "sequenceId": "rest_of_uk/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-12",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "D0",
+        "week1Month1": "WM1",
+        "grossPayMinor": "10199",
+        "taxablePayToDateMinor": "10199"
+      },
+      "expected": {
+        "taxDueMinor": "4040",
+        "taxDueToDateMinor": "4040"
+      },
+      "sourceNumericLexemes": {
+        "B": "101.99",
+        "C": "101.99",
+        "G": "40.4",
+        "H": "40.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-14",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 14,
+      "sequenceId": "rest_of_uk/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_W1M1_wkly-row-13",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "D1",
+        "week1Month1": "WM1",
+        "grossPayMinor": "10199",
+        "taxablePayToDateMinor": "10199"
+      },
+      "expected": {
+        "taxDueMinor": "4545",
+        "taxDueToDateMinor": "4545"
+      },
+      "sourceNumericLexemes": {
+        "B": "101.99",
+        "C": "101.99",
+        "G": "45.45",
+        "H": "45.45"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-BR_monthly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "BR_monthly",
+      "sourceRow": 6,
+      "sequenceId": "rest_of_uk/BR_monthly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "BR",
+        "week1Month1": null,
+        "grossPayMinor": "287055",
+        "taxablePayToDateMinor": "287055"
+      },
+      "expected": {
+        "taxDueMinor": "57400",
+        "taxDueToDateMinor": "57400"
+      },
+      "sourceNumericLexemes": {
+        "B": "2870.55",
+        "C": "2870.55",
+        "G": "574",
+        "H": "574"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-BR_monthly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "BR_monthly",
+      "sourceRow": 7,
+      "sequenceId": "rest_of_uk/BR_monthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-BR_monthly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 2,
+        "taxCode": "BR",
+        "week1Month1": null,
+        "grossPayMinor": "350095",
+        "taxablePayToDateMinor": "637150"
+      },
+      "expected": {
+        "taxDueMinor": "70020",
+        "taxDueToDateMinor": "127420"
+      },
+      "sourceNumericLexemes": {
+        "B": "3500.95",
+        "C": "6371.5",
+        "G": "700.2",
+        "H": "1274.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-BR_monthly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "BR_monthly",
+      "sourceRow": 8,
+      "sequenceId": "rest_of_uk/BR_monthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-BR_monthly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 3,
+        "taxCode": "BR",
+        "week1Month1": null,
+        "grossPayMinor": "3200000",
+        "taxablePayToDateMinor": "3837150"
+      },
+      "expected": {
+        "taxDueMinor": "640000",
+        "taxDueToDateMinor": "767420"
+      },
+      "sourceNumericLexemes": {
+        "B": "32000",
+        "C": "38371.5",
+        "G": "6400",
+        "H": "7674.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-BR_weekly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "BR_weekly",
+      "sourceRow": 6,
+      "sequenceId": "rest_of_uk/BR_weekly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "BR",
+        "week1Month1": null,
+        "grossPayMinor": "65015",
+        "taxablePayToDateMinor": "65015"
+      },
+      "expected": {
+        "taxDueMinor": "13000",
+        "taxDueToDateMinor": "13000"
+      },
+      "sourceNumericLexemes": {
+        "B": "650.15",
+        "C": "650.15",
+        "G": "130",
+        "H": "130"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-BR_weekly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "BR_weekly",
+      "sourceRow": 7,
+      "sequenceId": "rest_of_uk/BR_weekly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-BR_weekly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 2,
+        "taxCode": "BR",
+        "week1Month1": null,
+        "grossPayMinor": "99555",
+        "taxablePayToDateMinor": "164570"
+      },
+      "expected": {
+        "taxDueMinor": "19900",
+        "taxDueToDateMinor": "32900"
+      },
+      "sourceNumericLexemes": {
+        "B": "995.55",
+        "C": "1645.6999999999998",
+        "G": "199",
+        "H": "329"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-BR_weekly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "BR_weekly",
+      "sourceRow": 8,
+      "sequenceId": "rest_of_uk/BR_weekly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-BR_weekly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 3,
+        "taxCode": "BR",
+        "week1Month1": null,
+        "grossPayMinor": "710035",
+        "taxablePayToDateMinor": "874605"
+      },
+      "expected": {
+        "taxDueMinor": "142020",
+        "taxDueToDateMinor": "174920"
+      },
+      "sourceNumericLexemes": {
+        "B": "7100.35",
+        "C": "8746.0499999999993",
+        "G": "1420.2",
+        "H": "1749.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-K_cumul_mthly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "K_cumul_mthly",
+      "sourceRow": 6,
+      "sequenceId": "rest_of_uk/K_cumul_mthly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "K585",
+        "week1Month1": null,
+        "grossPayMinor": "89500",
+        "taxablePayToDateMinor": "89500"
+      },
+      "expected": {
+        "taxDueMinor": "27660",
+        "taxDueToDateMinor": "27660"
+      },
+      "sourceNumericLexemes": {
+        "B": "895",
+        "C": "895",
+        "G": "276.60000000000002",
+        "H": "276.60000000000002"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-K_cumul_mthly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "K_cumul_mthly",
+      "sourceRow": 7,
+      "sequenceId": "rest_of_uk/K_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-K_cumul_mthly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 2,
+        "taxCode": "K585",
+        "week1Month1": null,
+        "grossPayMinor": "125000",
+        "taxablePayToDateMinor": "214500"
+      },
+      "expected": {
+        "taxDueMinor": "34760",
+        "taxDueToDateMinor": "62420"
+      },
+      "sourceNumericLexemes": {
+        "B": "1250",
+        "C": "2145",
+        "G": "347.6",
+        "H": "624.20000000000005"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-K_cumul_mthly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "K_cumul_mthly",
+      "sourceRow": 8,
+      "sequenceId": "rest_of_uk/K_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-K_cumul_mthly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 3,
+        "taxCode": "K585",
+        "week1Month1": null,
+        "grossPayMinor": "76500",
+        "taxablePayToDateMinor": "291000"
+      },
+      "expected": {
+        "taxDueMinor": "25060",
+        "taxDueToDateMinor": "87480"
+      },
+      "sourceNumericLexemes": {
+        "B": "765",
+        "C": "2910",
+        "G": "250.59999999999991",
+        "H": "874.8"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-K_cumul_wkly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "K_cumul_wkly",
+      "sourceRow": 6,
+      "sequenceId": "rest_of_uk/K_cumul_wkly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "K630",
+        "week1Month1": null,
+        "grossPayMinor": "15000",
+        "taxablePayToDateMinor": "15000"
+      },
+      "expected": {
+        "taxDueMinor": "5420",
+        "taxDueToDateMinor": "5420"
+      },
+      "sourceNumericLexemes": {
+        "B": "150",
+        "C": "150",
+        "G": "54.2",
+        "H": "54.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-K_cumul_wkly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "K_cumul_wkly",
+      "sourceRow": 7,
+      "sequenceId": "rest_of_uk/K_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-K_cumul_wkly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 2,
+        "taxCode": "K630",
+        "week1Month1": null,
+        "grossPayMinor": "30000",
+        "taxablePayToDateMinor": "45000"
+      },
+      "expected": {
+        "taxDueMinor": "8420",
+        "taxDueToDateMinor": "13840"
+      },
+      "sourceNumericLexemes": {
+        "B": "300",
+        "C": "450",
+        "G": "84.2",
+        "H": "138.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-K_cumul_wkly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "K_cumul_wkly",
+      "sourceRow": 8,
+      "sequenceId": "rest_of_uk/K_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-K_cumul_wkly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 3,
+        "taxCode": "K630",
+        "week1Month1": null,
+        "grossPayMinor": "24500",
+        "taxablePayToDateMinor": "69500"
+      },
+      "expected": {
+        "taxDueMinor": "7340",
+        "taxDueToDateMinor": "21180"
+      },
+      "sourceNumericLexemes": {
+        "B": "245",
+        "C": "695",
+        "G": "73.400000000000006",
+        "H": "211.8"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-K_W1M1_mthly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "K_W1M1_mthly",
+      "sourceRow": 6,
+      "sequenceId": "rest_of_uk/K_W1M1_mthly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "K45",
+        "week1Month1": "WM1",
+        "grossPayMinor": "95000",
+        "taxablePayToDateMinor": "95000"
+      },
+      "expected": {
+        "taxDueMinor": "19760",
+        "taxDueToDateMinor": "19760"
+      },
+      "sourceNumericLexemes": {
+        "B": "950",
+        "C": "950",
+        "G": "197.6",
+        "H": "197.6"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-K_W1M1_mthly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "K_W1M1_mthly",
+      "sourceRow": 7,
+      "sequenceId": "rest_of_uk/K_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-K_W1M1_mthly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "K285",
+        "week1Month1": "WM1",
+        "grossPayMinor": "112000",
+        "taxablePayToDateMinor": "112000"
+      },
+      "expected": {
+        "taxDueMinor": "27160",
+        "taxDueToDateMinor": "27160"
+      },
+      "sourceNumericLexemes": {
+        "B": "1120",
+        "C": "1120",
+        "G": "271.60000000000002",
+        "H": "271.60000000000002"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-K_W1M1_mthly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "K_W1M1_mthly",
+      "sourceRow": 8,
+      "sequenceId": "rest_of_uk/K_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-K_W1M1_mthly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "K401",
+        "week1Month1": "WM1",
+        "grossPayMinor": "88500",
+        "taxablePayToDateMinor": "88500"
+      },
+      "expected": {
+        "taxDueMinor": "24380",
+        "taxDueToDateMinor": "24380"
+      },
+      "sourceNumericLexemes": {
+        "B": "885",
+        "C": "885",
+        "G": "243.8",
+        "H": "243.8"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-K_W1M1_wkly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "K_W1M1_wkly",
+      "sourceRow": 6,
+      "sequenceId": "rest_of_uk/K_W1M1_wkly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "K27",
+        "week1Month1": "WM1",
+        "grossPayMinor": "56000",
+        "taxablePayToDateMinor": "56000"
+      },
+      "expected": {
+        "taxDueMinor": "11300",
+        "taxDueToDateMinor": "11300"
+      },
+      "sourceNumericLexemes": {
+        "B": "560",
+        "C": "560",
+        "G": "113",
+        "H": "113"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-K_W1M1_wkly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "K_W1M1_wkly",
+      "sourceRow": 7,
+      "sequenceId": "rest_of_uk/K_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-K_W1M1_wkly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "K159",
+        "week1Month1": "WM1",
+        "grossPayMinor": "43200",
+        "taxablePayToDateMinor": "43200"
+      },
+      "expected": {
+        "taxDueMinor": "9240",
+        "taxDueToDateMinor": "9240"
+      },
+      "sourceNumericLexemes": {
+        "B": "432",
+        "C": "432",
+        "G": "92.4",
+        "H": "92.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-K_W1M1_wkly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "K_W1M1_wkly",
+      "sourceRow": 8,
+      "sequenceId": "rest_of_uk/K_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-K_W1M1_wkly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "K306",
+        "week1Month1": "WM1",
+        "grossPayMinor": "81000",
+        "taxablePayToDateMinor": "81000"
+      },
+      "expected": {
+        "taxDueMinor": "20260",
+        "taxDueToDateMinor": "20260"
+      },
+      "sourceNumericLexemes": {
+        "B": "810",
+        "C": "810",
+        "G": "202.6",
+        "H": "202.6"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Large_code_mthly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Large_code_mthly",
+      "sourceRow": 6,
+      "sequenceId": "rest_of_uk/Large_code_mthly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "999L",
+        "week1Month1": null,
+        "grossPayMinor": "250000",
+        "taxablePayToDateMinor": "250000"
+      },
+      "expected": {
+        "taxDueMinor": "33320",
+        "taxDueToDateMinor": "33320"
+      },
+      "sourceNumericLexemes": {
+        "B": "2500",
+        "C": "2500",
+        "G": "333.2",
+        "H": "333.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Large_code_mthly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Large_code_mthly",
+      "sourceRow": 7,
+      "sequenceId": "rest_of_uk/Large_code_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Large_code_mthly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "1000L",
+        "week1Month1": null,
+        "grossPayMinor": "300000",
+        "taxablePayToDateMinor": "300000"
+      },
+      "expected": {
+        "taxDueMinor": "43300",
+        "taxDueToDateMinor": "43300"
+      },
+      "sourceNumericLexemes": {
+        "B": "3000",
+        "C": "3000",
+        "G": "433",
+        "H": "433"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Large_code_mthly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Large_code_mthly",
+      "sourceRow": 8,
+      "sequenceId": "rest_of_uk/Large_code_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Large_code_mthly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "1001L",
+        "week1Month1": null,
+        "grossPayMinor": "500000",
+        "taxablePayToDateMinor": "500000"
+      },
+      "expected": {
+        "taxDueMinor": "103766",
+        "taxDueToDateMinor": "103766"
+      },
+      "sourceNumericLexemes": {
+        "B": "5000",
+        "C": "5000",
+        "G": "1037.6600000000001",
+        "H": "1037.6600000000001"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Large_code_wkly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Large_code_wkly",
+      "sourceRow": 6,
+      "sequenceId": "rest_of_uk/Large_code_wkly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "999L",
+        "week1Month1": null,
+        "grossPayMinor": "75000",
+        "taxablePayToDateMinor": "75000"
+      },
+      "expected": {
+        "taxDueMinor": "11140",
+        "taxDueToDateMinor": "11140"
+      },
+      "sourceNumericLexemes": {
+        "B": "750",
+        "C": "750",
+        "G": "111.4",
+        "H": "111.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Large_code_wkly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Large_code_wkly",
+      "sourceRow": 7,
+      "sequenceId": "rest_of_uk/Large_code_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Large_code_wkly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "1000L",
+        "week1Month1": null,
+        "grossPayMinor": "90000",
+        "taxablePayToDateMinor": "90000"
+      },
+      "expected": {
+        "taxDueMinor": "14140",
+        "taxDueToDateMinor": "14140"
+      },
+      "sourceNumericLexemes": {
+        "B": "900",
+        "C": "900",
+        "G": "141.4",
+        "H": "141.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-rest_of_uk-Large_code_wkly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+      "sourceSheet": "Large_code_wkly",
+      "sourceRow": 8,
+      "sequenceId": "rest_of_uk/Large_code_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Large_code_wkly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "rest_of_uk",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "1001L",
+        "week1Month1": null,
+        "grossPayMinor": "150000",
+        "taxablePayToDateMinor": "150000"
+      },
+      "expected": {
+        "taxDueMinor": "37780",
+        "taxDueToDateMinor": "37780"
+      },
+      "sourceNumericLexemes": {
+        "B": "1500",
+        "C": "1500",
+        "G": "377.8",
+        "H": "377.8"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 6,
+      "sequenceId": "wales/Gen_cumul_mthly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "115625",
+        "taxablePayToDateMinor": "115625"
+      },
+      "expected": {
+        "taxDueMinor": "2140",
+        "taxDueToDateMinor": "2140"
+      },
+      "sourceNumericLexemes": {
+        "B": "1156.25",
+        "C": "1156.25",
+        "G": "21.4",
+        "H": "21.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 7,
+      "sequenceId": "wales/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 2,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "115626",
+        "taxablePayToDateMinor": "231251"
+      },
+      "expected": {
+        "taxDueMinor": "2160",
+        "taxDueToDateMinor": "4300"
+      },
+      "sourceNumericLexemes": {
+        "B": "1156.26",
+        "C": "2312.5100000000002",
+        "G": "21.6",
+        "H": "43"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 8,
+      "sequenceId": "wales/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 3,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "3112326",
+        "taxablePayToDateMinor": "3343577"
+      },
+      "expected": {
+        "taxDueMinor": "1018800",
+        "taxDueToDateMinor": "1023100"
+      },
+      "sourceNumericLexemes": {
+        "B": "31123.26",
+        "C": "33435.769999999997",
+        "G": "10188",
+        "H": "10231"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-9",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 9,
+      "sequenceId": "wales/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-8",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 4,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "1446571",
+        "taxablePayToDateMinor": "4790148"
+      },
+      "expected": {
+        "taxDueMinor": "483860",
+        "taxDueToDateMinor": "1506960"
+      },
+      "sourceNumericLexemes": {
+        "B": "14465.71",
+        "C": "47901.479999999996",
+        "G": "4838.6000000000004",
+        "H": "15069.6"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-10",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 10,
+      "sequenceId": "wales/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-9",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 5,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "5268125",
+        "taxablePayToDateMinor": "10058273"
+      },
+      "expected": {
+        "taxDueMinor": "2208510",
+        "taxDueToDateMinor": "3715470"
+      },
+      "sourceNumericLexemes": {
+        "B": "52681.25",
+        "C": "100582.73",
+        "G": "22085.1",
+        "H": "37154.699999999997"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-11",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 11,
+      "sequenceId": "wales/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-10",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 6,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "5000000",
+        "taxablePayToDateMinor": "15058273"
+      },
+      "expected": {
+        "taxDueMinor": "2087865",
+        "taxDueToDateMinor": "5803335"
+      },
+      "sourceNumericLexemes": {
+        "B": "50000",
+        "C": "150582.72999999998",
+        "G": "20878.650000000001",
+        "H": "58033.35"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-12",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 12,
+      "sequenceId": "wales/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-11",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 7,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "1500000",
+        "taxablePayToDateMinor": "16558273"
+      },
+      "expected": {
+        "taxDueMinor": "512820",
+        "taxDueToDateMinor": "6316155"
+      },
+      "sourceNumericLexemes": {
+        "B": "15000",
+        "C": "165582.72999999998",
+        "G": "5128.2000000000044",
+        "H": "63161.55"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-13",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 13,
+      "sequenceId": "wales/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-12",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 8,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "1400055",
+        "taxablePayToDateMinor": "17958328"
+      },
+      "expected": {
+        "taxDueMinor": "467910",
+        "taxDueToDateMinor": "6784065"
+      },
+      "sourceNumericLexemes": {
+        "B": "14000.55",
+        "C": "179583.27999999997",
+        "G": "4679.0999999999913",
+        "H": "67840.649999999994"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-14",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 14,
+      "sequenceId": "wales/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-13",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 9,
+        "taxCode": "CBR",
+        "week1Month1": null,
+        "grossPayMinor": "1259045",
+        "taxablePayToDateMinor": "19217373"
+      },
+      "expected": {
+        "taxDueMinor": "-2940605",
+        "taxDueToDateMinor": "3843460"
+      },
+      "sourceNumericLexemes": {
+        "B": "12590.45",
+        "C": "192173.72999999998",
+        "G": "-29406.049999999996",
+        "H": "38434.6"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-15",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_mthly",
+      "sourceRow": 15,
+      "sequenceId": "wales/Gen_cumul_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-14",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 10,
+        "taxCode": "NT",
+        "week1Month1": null,
+        "grossPayMinor": "1124505",
+        "taxablePayToDateMinor": "20341878"
+      },
+      "expected": {
+        "taxDueMinor": "-3843460",
+        "taxDueToDateMinor": "0"
+      },
+      "sourceNumericLexemes": {
+        "B": "11245.05",
+        "C": "203418.77999999997",
+        "G": "-38434.6",
+        "H": "0"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 6,
+      "sequenceId": "wales/Gen_cumul_wkly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "26707",
+        "taxablePayToDateMinor": "26707"
+      },
+      "expected": {
+        "taxDueMinor": "500",
+        "taxDueToDateMinor": "500"
+      },
+      "sourceNumericLexemes": {
+        "B": "267.07",
+        "C": "267.07",
+        "G": "5",
+        "H": "5"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 7,
+      "sequenceId": "wales/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 2,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "26608",
+        "taxablePayToDateMinor": "53315"
+      },
+      "expected": {
+        "taxDueMinor": "480",
+        "taxDueToDateMinor": "980"
+      },
+      "sourceNumericLexemes": {
+        "B": "266.08",
+        "C": "533.15",
+        "G": "4.8000000000000007",
+        "H": "9.8000000000000007"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 8,
+      "sequenceId": "wales/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 3,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "85305",
+        "taxablePayToDateMinor": "138620"
+      },
+      "expected": {
+        "taxDueMinor": "12220",
+        "taxDueToDateMinor": "13200"
+      },
+      "sourceNumericLexemes": {
+        "B": "853.05",
+        "C": "1386.1999999999998",
+        "G": "122.2",
+        "H": "132"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-9",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 9,
+      "sequenceId": "wales/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-8",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 4,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "202109",
+        "taxablePayToDateMinor": "340729"
+      },
+      "expected": {
+        "taxDueMinor": "35580",
+        "taxDueToDateMinor": "48780"
+      },
+      "sourceNumericLexemes": {
+        "B": "2021.09",
+        "C": "3407.29",
+        "G": "355.8",
+        "H": "487.8"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-10",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 10,
+      "sequenceId": "wales/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-9",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 5,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "983416",
+        "taxablePayToDateMinor": "1324145"
+      },
+      "expected": {
+        "taxDueMinor": "359960",
+        "taxDueToDateMinor": "408740"
+      },
+      "sourceNumericLexemes": {
+        "B": "9834.16",
+        "C": "13241.45",
+        "G": "3599.6",
+        "H": "4087.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-11",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 11,
+      "sequenceId": "wales/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-10",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 6,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "1500000",
+        "taxablePayToDateMinor": "2824145"
+      },
+      "expected": {
+        "taxDueMinor": "637568",
+        "taxDueToDateMinor": "1046308"
+      },
+      "sourceNumericLexemes": {
+        "B": "15000",
+        "C": "28241.45",
+        "G": "6375.68",
+        "H": "10463.08"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-12",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 12,
+      "sequenceId": "wales/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-11",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 7,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "24284",
+        "taxablePayToDateMinor": "2848429"
+      },
+      "expected": {
+        "taxDueMinor": "-26487",
+        "taxDueToDateMinor": "1019821"
+      },
+      "sourceNumericLexemes": {
+        "B": "242.84",
+        "C": "28484.29",
+        "G": "-264.8700000000008",
+        "H": "10198.209999999999"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-13",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 13,
+      "sequenceId": "wales/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-12",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 8,
+        "taxCode": "C1257L",
+        "week1Month1": null,
+        "grossPayMinor": "24383",
+        "taxablePayToDateMinor": "2872812"
+      },
+      "expected": {
+        "taxDueMinor": "-26443",
+        "taxDueToDateMinor": "993378"
+      },
+      "sourceNumericLexemes": {
+        "B": "243.83",
+        "C": "28728.120000000003",
+        "G": "-264.42999999999847",
+        "H": "9933.7800000000007"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-14",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 14,
+      "sequenceId": "wales/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-13",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 9,
+        "taxCode": "CBR",
+        "week1Month1": null,
+        "grossPayMinor": "63284",
+        "taxablePayToDateMinor": "2936096"
+      },
+      "expected": {
+        "taxDueMinor": "-406178",
+        "taxDueToDateMinor": "587200"
+      },
+      "sourceNumericLexemes": {
+        "B": "632.84",
+        "C": "29360.960000000003",
+        "G": "-4061.7800000000007",
+        "H": "5872"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-15",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_cumul_wkly",
+      "sourceRow": 15,
+      "sequenceId": "wales/Gen_cumul_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_wkly-row-14",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 10,
+        "taxCode": "NT",
+        "week1Month1": null,
+        "grossPayMinor": "289383",
+        "taxablePayToDateMinor": "3225479"
+      },
+      "expected": {
+        "taxDueMinor": "-587200",
+        "taxDueToDateMinor": "0"
+      },
+      "sourceNumericLexemes": {
+        "B": "2893.83",
+        "C": "32254.79",
+        "G": "-5872",
+        "H": "0"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 6,
+      "sequenceId": "wales/Gen_W1M1_mthly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "C45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "3924",
+        "taxablePayToDateMinor": "3924"
+      },
+      "expected": {
+        "taxDueMinor": "0",
+        "taxDueToDateMinor": "0"
+      },
+      "sourceNumericLexemes": {
+        "B": "39.24",
+        "C": "39.24",
+        "G": "0",
+        "H": "0"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 7,
+      "sequenceId": "wales/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "C45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "3925",
+        "taxablePayToDateMinor": "3925"
+      },
+      "expected": {
+        "taxDueMinor": "20",
+        "taxDueToDateMinor": "20"
+      },
+      "sourceNumericLexemes": {
+        "B": "39.25",
+        "C": "39.25",
+        "G": "0.2",
+        "H": "0.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 8,
+      "sequenceId": "wales/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "C45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "316424",
+        "taxablePayToDateMinor": "316424"
+      },
+      "expected": {
+        "taxDueMinor": "62500",
+        "taxDueToDateMinor": "62500"
+      },
+      "sourceNumericLexemes": {
+        "B": "3164.24",
+        "C": "3164.24",
+        "G": "625",
+        "H": "625"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-9",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 9,
+      "sequenceId": "wales/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-8",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "C45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "316425",
+        "taxablePayToDateMinor": "316425"
+      },
+      "expected": {
+        "taxDueMinor": "62520",
+        "taxDueToDateMinor": "62520"
+      },
+      "sourceNumericLexemes": {
+        "B": "3164.25",
+        "C": "3164.25",
+        "G": "625.20000000000005",
+        "H": "625.20000000000005"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-10",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 10,
+      "sequenceId": "wales/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-9",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "C45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "1045024",
+        "taxablePayToDateMinor": "1045024"
+      },
+      "expected": {
+        "taxDueMinor": "353606",
+        "taxDueToDateMinor": "353606"
+      },
+      "sourceNumericLexemes": {
+        "B": "10450.24",
+        "C": "10450.24",
+        "G": "3536.06",
+        "H": "3536.06"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-11",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 11,
+      "sequenceId": "wales/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-10",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "C45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "1050078",
+        "taxablePayToDateMinor": "1050078"
+      },
+      "expected": {
+        "taxDueMinor": "355815",
+        "taxDueToDateMinor": "355815"
+      },
+      "sourceNumericLexemes": {
+        "B": "10500.78",
+        "C": "10500.78",
+        "G": "3558.15",
+        "H": "3558.15"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-12",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 12,
+      "sequenceId": "wales/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-11",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "C45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "1253924",
+        "taxablePayToDateMinor": "1253924"
+      },
+      "expected": {
+        "taxDueMinor": "447525",
+        "taxDueToDateMinor": "447525"
+      },
+      "sourceNumericLexemes": {
+        "B": "12539.24",
+        "C": "12539.24",
+        "G": "4475.25",
+        "H": "4475.25"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-13",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 13,
+      "sequenceId": "wales/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-12",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "C45L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "1253925",
+        "taxablePayToDateMinor": "1253925"
+      },
+      "expected": {
+        "taxDueMinor": "447570",
+        "taxDueToDateMinor": "447570"
+      },
+      "sourceNumericLexemes": {
+        "B": "12539.25",
+        "C": "12539.25",
+        "G": "4475.7",
+        "H": "4475.7"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-14",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 14,
+      "sequenceId": "wales/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-13",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "CBR",
+        "week1Month1": "WM1",
+        "grossPayMinor": "9999",
+        "taxablePayToDateMinor": "9999"
+      },
+      "expected": {
+        "taxDueMinor": "1980",
+        "taxDueToDateMinor": "1980"
+      },
+      "sourceNumericLexemes": {
+        "B": "99.99",
+        "C": "99.99",
+        "G": "19.8",
+        "H": "19.8"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-15",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 15,
+      "sequenceId": "wales/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-14",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "CD0",
+        "week1Month1": "WM1",
+        "grossPayMinor": "9999",
+        "taxablePayToDateMinor": "9999"
+      },
+      "expected": {
+        "taxDueMinor": "3960",
+        "taxDueToDateMinor": "3960"
+      },
+      "sourceNumericLexemes": {
+        "B": "99.99",
+        "C": "99.99",
+        "G": "39.6",
+        "H": "39.6"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-16",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_mthly",
+      "sourceRow": 16,
+      "sequenceId": "wales/Gen_W1M1_mthly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_mthly-row-15",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "monthly",
+        "period": 1,
+        "taxCode": "CD1",
+        "week1Month1": "WM1",
+        "grossPayMinor": "9999",
+        "taxablePayToDateMinor": "9999"
+      },
+      "expected": {
+        "taxDueMinor": "4455",
+        "taxDueToDateMinor": "4455"
+      },
+      "sourceNumericLexemes": {
+        "B": "99.99",
+        "C": "99.99",
+        "G": "44.55",
+        "H": "44.55"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-6",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 6,
+      "sequenceId": "wales/Gen_W1M1_wkly",
+      "previousExampleId": null,
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "C145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "2905",
+        "taxablePayToDateMinor": "2905"
+      },
+      "expected": {
+        "taxDueMinor": "0",
+        "taxDueToDateMinor": "0"
+      },
+      "sourceNumericLexemes": {
+        "B": "29.05",
+        "C": "29.05",
+        "G": "0",
+        "H": "0"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-7",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 7,
+      "sequenceId": "wales/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-6",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "C145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "2906",
+        "taxablePayToDateMinor": "2906"
+      },
+      "expected": {
+        "taxDueMinor": "20",
+        "taxDueToDateMinor": "20"
+      },
+      "sourceNumericLexemes": {
+        "B": "29.06",
+        "C": "29.06",
+        "G": "0.2",
+        "H": "0.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-8",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 8,
+      "sequenceId": "wales/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-7",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "C145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "75006",
+        "taxablePayToDateMinor": "75006"
+      },
+      "expected": {
+        "taxDueMinor": "14440",
+        "taxDueToDateMinor": "14440"
+      },
+      "sourceNumericLexemes": {
+        "B": "750.06",
+        "C": "750.06",
+        "G": "144.4",
+        "H": "144.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-9",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 9,
+      "sequenceId": "wales/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-8",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "C145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "75007",
+        "taxablePayToDateMinor": "75007"
+      },
+      "expected": {
+        "taxDueMinor": "14440",
+        "taxDueToDateMinor": "14440"
+      },
+      "sourceNumericLexemes": {
+        "B": "750.07",
+        "C": "750.07",
+        "G": "144.4",
+        "H": "144.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-10",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 10,
+      "sequenceId": "wales/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-9",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "C145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "291306",
+        "taxablePayToDateMinor": "291306"
+      },
+      "expected": {
+        "taxDueMinor": "103292",
+        "taxDueToDateMinor": "103292"
+      },
+      "sourceNumericLexemes": {
+        "B": "2913.06",
+        "C": "2913.06",
+        "G": "1032.92",
+        "H": "1032.92"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-11",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 11,
+      "sequenceId": "wales/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-10",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "C145L",
+        "week1Month1": "WM1",
+        "grossPayMinor": "291307",
+        "taxablePayToDateMinor": "291307"
+      },
+      "expected": {
+        "taxDueMinor": "103292",
+        "taxDueToDateMinor": "103292"
+      },
+      "sourceNumericLexemes": {
+        "B": "2913.07",
+        "C": "2913.07",
+        "G": "1032.92",
+        "H": "1032.92"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-12",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 12,
+      "sequenceId": "wales/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-11",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "CBR",
+        "week1Month1": "WM1",
+        "grossPayMinor": "10199",
+        "taxablePayToDateMinor": "10199"
+      },
+      "expected": {
+        "taxDueMinor": "2020",
+        "taxDueToDateMinor": "2020"
+      },
+      "sourceNumericLexemes": {
+        "B": "101.99",
+        "C": "101.99",
+        "G": "20.2",
+        "H": "20.2"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-13",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 13,
+      "sequenceId": "wales/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-12",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "CD0",
+        "week1Month1": "WM1",
+        "grossPayMinor": "10199",
+        "taxablePayToDateMinor": "10199"
+      },
+      "expected": {
+        "taxDueMinor": "4040",
+        "taxDueToDateMinor": "4040"
+      },
+      "sourceNumericLexemes": {
+        "B": "101.99",
+        "C": "101.99",
+        "G": "40.4",
+        "H": "40.4"
+      }
+    },
+    {
+      "id": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-14",
+      "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+      "sourceSheet": "Gen_W1M1_wkly",
+      "sourceRow": 14,
+      "sequenceId": "wales/Gen_W1M1_wkly",
+      "previousExampleId": "hmrc-paye-2026-27-wales-Gen_W1M1_wkly-row-13",
+      "input": {
+        "taxYear": "2026-27",
+        "region": "wales",
+        "frequency": "weekly",
+        "period": 1,
+        "taxCode": "CD1",
+        "week1Month1": "WM1",
+        "grossPayMinor": "10199",
+        "taxablePayToDateMinor": "10199"
+      },
+      "expected": {
+        "taxDueMinor": "4545",
+        "taxDueToDateMinor": "4545"
+      },
+      "sourceNumericLexemes": {
+        "B": "101.99",
+        "C": "101.99",
+        "G": "45.45",
+        "H": "45.45"
+      }
+    }
+  ]
+}

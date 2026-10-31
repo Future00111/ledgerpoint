@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { canWriteDraft, fail, uuid } from '../financialDrafts/contract';
-import { postCanonicalJournal, roleHasAccountingCapability, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
+import { postCanonicalJournal, postCanonicalJournalInTransaction, roleHasAccountingCapability, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
 import { scope, transact, exactFields, supportedCompany, hash, queryAdapter, type Queryable } from './core';
 import { companyChart } from './accounts';
 import { allocated, appliedTo, allocationSign, unappliedEffect, paymentEvents, documentOpen, syncSettlementProjection } from './settlement';
@@ -152,22 +152,26 @@ async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof 
   return {source,review_token:hash(source),lines,period:periods[0],configuration:config,party_name:party.name,
     allocated_minor:sum.toString(),unapplied_minor:(b.kind==='payment'?value-sum:remainder+unappliedEffect({...b,allocations:b.allocations})).toString()};
 }
+export async function previewPaymentInTransaction(q:Queryable,company:string,actor:string,body:unknown) {
+  return plan(q,company,actor,intent(body));
+}
 export async function previewPayment(company:string,actor:string,body:unknown) {
   const b=intent(body);return transact(q=>plan(q,company,actor,b));
 }
 class Replayed extends Error {constructor(public data:any){super('Payment event already recorded');}}
-export async function postPayment(company:string,actor:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+export async function postPayment(company:string,actor:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>,existingTransaction?:DatabaseTransaction) {
   const b=intent(body),expected=(body as any).review_token;
   if(typeof expected!=='string'||!/^sha256:[a-f0-9]{64}$/.test(expected)) fail(428,'PAYMENT_REVIEW_REQUIRED');
   const requestHash=hash(b);
   // Admission read only supplies the command envelope. Locked calculation below
   // is the authority. Retries are checked before recalculating spent remainders.
-  const initial=await transact(async q=>{
+  const admission=async(q:Queryable)=>{
     await scope(q,company,actor,true,true);
     const prior=(await q.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[company,b.id])).rows[0];
     if(prior){if(prior.request_hash!==requestHash) fail(409,'IDEMPOTENCY_CONFLICT');return {replayed:prior};}
     const p=await plan(q,company,actor,b);if(p.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');return {plan:p};
-  });
+  };
+  const initial=existingTransaction?await admission(queryAdapter(existingTransaction)):await transact(admission);
   if(initial.replayed) return {status:'duplicate',id:b.id,journal_id:initial.replayed.journal_id};
   const first=initial.plan!;let current=first,transaction:DatabaseTransaction;
   const authority=<T>(value:T,keys:string[],token:string):LockedAuthority<T>=>({authority:value,recordKeys:keys,
@@ -200,7 +204,8 @@ export async function postPayment(company:string,actor:string,body:unknown,testH
     }}
   };
   try {
-    const result=await postCanonicalJournal({principal:{kind:'user',userId:actor,requestedCompanyId:company},requestedCompanyId:company,
+    const post=existingTransaction?(command:any,deps:CanonicalPostingDependencies)=>postCanonicalJournalInTransaction(existingTransaction,command,deps):postCanonicalJournal;
+    const result=await post({principal:{kind:'user',userId:actor,requestedCompanyId:company},requestedCompanyId:company,
       sourceType:'accounting_payment_event',sourceId:b.id,sourceRevision:expected,sourceEvidenceHash:expected,sourceStatus:'reviewed',
       postingKind:`party_${b.kind}`,economicEffectId:`payment-event:${b.id}`,idempotencyKey:`payment-event:${b.id}`,
       accountIds:[...new Set(first.lines.map(l=>l.accountId))],postingDate:b.date,configurationVersionId:first.configuration.revision,

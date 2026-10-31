@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { creditQueue, queueSummary, reviewableCandidates } from './queuePresentation.mjs';
+import { creditQueue, queueSummary, reviewableCandidates, followUpPresentation } from './queuePresentation.mjs';
 
 const candidate = { credit_id: 'credit', credit_line_ref: 1, status: 'posted', can_confirm: true };
 const claim = { id: 'one', status: 'partial', cancelled: false, party_name: 'Synthetic Parts', bill_number: 'BILL-123', description: 'Caliper',
@@ -22,7 +22,7 @@ test('overdue and ready filters retain multi-field search and original source id
 
 test('existing lifecycle filters retain cancelled, received and partial claim distinctions', () => {
   const rows = [claim, { ...claim, id: 'received', status: 'received' }, { ...claim, id: 'cancelled', cancelled: true }, { ...claim, id: 'review', status: 'needs_review' }];
-  assert.deepEqual(creditQueue(rows, 'open', '', '2026-10-30').map(row => row.id), ['one', 'review']);
+  assert.deepEqual(creditQueue(rows, 'open', '', '2026-10-30').map(row => row.id), ['review', 'one']);
   assert.deepEqual(creditQueue(rows, 'received', '', '2026-10-30').map(row => row.id), ['received']);
   assert.deepEqual(creditQueue(rows, 'cancelled', '', '2026-10-30').map(row => row.id), ['cancelled']);
   assert.deepEqual(creditQueue(rows, 'needs_review', '', '2026-10-30').map(row => row.id), ['review']);
@@ -35,4 +35,20 @@ test('summary aggregates server minor units exactly and never substitutes missin
   assert.equal(queueSummary([claim, { ...claim, remaining: undefined }], '2026-10-30').remaining, undefined);
   assert.equal(queueSummary([claim, { ...claim, remaining: { gross_pence: 500 } }], '2026-10-30').remaining, undefined);
   assert.deepEqual(queueSummary([], '2026-10-30'), { remaining: '0', waiting: 0, matches: 0, overdue: 0 });
+});
+
+
+test('follow-up priorities and UTC calendar ages preserve evidence and never infer sending', () => {
+  const date = '2026-03-01';
+  const base = { ...claim, candidates: [], expected_by: '2026-02-27', returned_on: '2026-02-28' };
+  assert.deepEqual(followUpPresentation(base, date), { rank: 2, priority: 'Follow up', next: '2 days past expected date — contact the supplier', ageDays: 1, ageLabel: '1 day since return' });
+  assert.equal(followUpPresentation({ ...base, status: 'needs_review' }, date).rank, 0);
+  assert.equal(followUpPresentation({ ...base, candidates: [candidate] }, date).rank, 1);
+  assert.equal(followUpPresentation({ ...base, expected_by: null }, date).next, 'No expected date recorded — check with the supplier');
+  for (const returned_on of ['2026-02-30', '2026-03-02', 'invalid']) assert.equal(followUpPresentation({ ...base, returned_on }, date).ageDays, null);
+  assert.equal(followUpPresentation({ ...base, returned_on: null, created_at: '2026-02-28T23:59:59Z' }, date).ageLabel, '1 day since tracking began');
+  for (const closed of [{ cancelled: true }, { status: 'received' }]) assert.equal(followUpPresentation({ ...base, ...closed }, date).next, 'No follow-up needed');
+  const rows = Object.freeze([Object.freeze({ ...base, id: 'young' }), Object.freeze({ ...base, id: 'old', returned_on: '2026-02-01' }), Object.freeze({ ...base, id: 'review', status: 'needs_review' })]);
+  assert.deepEqual(creditQueue(rows, 'open', '', date).map(row => row.id), ['review', 'old', 'young']);
+  assert.equal(rows[0].id, 'young');
 });

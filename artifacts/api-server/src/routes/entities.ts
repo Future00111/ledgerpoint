@@ -173,7 +173,15 @@ router.get("/:entity", async (req: Request, res: Response) => {
     const _order = rawQuery["_order"] as string | undefined;
     const _limit = rawQuery["_limit"] as string | undefined;
 
-    const authorizedIds = await getAuthorizedCompanyIds(userId);
+    // Explicit workspace context is never an optional truthy filter: malformed
+    // values must not fall back to a cross-company list. Company uses the same
+    // selected scope as every other entity, despite having no company_id column.
+    const requestedCompanyId = req.query["company_id"];
+    const selectedScope = requestedCompanyId === undefined ? null : await requireCompanyScope(res, {
+      userId, requestedCompanyId,
+    });
+    if (requestedCompanyId !== undefined && !selectedScope) return;
+    const authorizedIds = selectedScope ? [selectedScope.companyId] : await getAuthorizedCompanyIds(userId);
     if (authorizedIds.length === 0) {
       res.json([]);
       return;
@@ -185,17 +193,7 @@ router.get("/:entity", async (req: Request, res: Response) => {
     if (entityName === COMPANY_ENTITY) {
       conditions.push(inArray(table["id"], authorizedIds));
     } else {
-      // Scope to company
-      const requestedCompanyId = rawQuery["company_id"] as string | undefined;
-      if (requestedCompanyId) {
-        if (!authorizedIds.includes(requestedCompanyId)) {
-          res.status(403).json({ error: "Access denied to this company" });
-          return;
-        }
-        conditions.push(eq(table["company_id"], requestedCompanyId));
-      } else {
-        conditions.push(inArray(table["company_id"], authorizedIds));
-      }
+      conditions.push(inArray(table["company_id"], authorizedIds));
 
       // Apply additional filters (skip control params and company_id, already handled)
       for (const [rawKey, rawVal] of Object.entries(rawQuery)) {
@@ -529,12 +527,13 @@ router.delete("/:entity/:id", async (req: Request, res: Response) => {
     const existingRow = existing[0] as Record<string, unknown>;
     const companyId = existingRow["company_id"] as string;
 
-    const role = await getUserRole(userId, companyId);
-    if (!role) {
-      res.status(403).json({ error: "Access denied" });
-      return;
-    }
-    if (!canWriteCompanyData(role)) {
+    const scope = await requireCompanyScope(res, {
+      userId,
+      requestedCompanyId: req.query["company_id"],
+      resourceCompanyId: companyId,
+    });
+    if (!scope) return;
+    if (!canWriteCompanyData(scope.role)) {
       res.status(403).json({ error: "Your role does not permit deleting records" });
       return;
     }

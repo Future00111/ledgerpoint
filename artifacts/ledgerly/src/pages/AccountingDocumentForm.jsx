@@ -1,3 +1,5 @@
+import {prepareCreditReview} from '@/features/paidCreditReview/model.mjs';
+import PaidCreditReview from '@/features/paidCreditReview/PaidCreditReview';
 import PostedDocument from '@/components/accounting/PostedDocument';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowDown, FileText, ListPlus, UserRound } from 'lucide-react';
@@ -210,6 +212,16 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
       if (!editId) navigate(docPath(kind, saved.id), { replace: true });
     } catch (err) { if (stillCurrent()) setError(err); } finally { if (stillCurrent()) setBusy(false); }
   };
+  const preparePostingReview = async () => {
+    if (!canPost || busy || !doc || dirty) return;
+    const started = { scope: scopeKey, generation: gen.current };
+    const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
+    setBusy(true);setError(null);
+    try {
+      const {paidCredit,paidCreditUnavailable}=meta.credit ? await prepareCreditReview(accounting,activeCompany.id,doc,crypto.randomUUID()) : {paidCredit:null,paidCreditUnavailable:false};
+      if(stillCurrent())setReview({companyId:activeCompany.id,id:doc.id,revision:doc.revision,number:doc.source.invoice_number,money:doc.money,paidCredit,paidCreditUnavailable});
+    } catch(err) {if(stillCurrent())setError(err);} finally {if(stillCurrent())setBusy(false);}
+  };
   const post = async () => {
     if (!canPost || busy || !doc || dirty || doc.money?.gross_pence === '0' || posted || !review || configErrors.length > 0) return;
     const started = { scope: scopeKey, generation: gen.current };
@@ -221,7 +233,9 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     }
     setBusy(true); setError(null);
     try {
-      const r = await accounting.post(review.companyId, review.id, review.revision);
+      const r = review.paidCredit
+        ? await accounting.commitPaidCredit(review.companyId,review.id,{...review.paidCredit.intent,review_token:review.paidCredit.review_token,releases:review.paidCredit.releases},review.revision)
+        : await accounting.post(review.companyId, review.id, review.revision);
       if (!stillCurrent()) return;
       setDoc({ ...doc, status: 'posted', journal_id: r.journal_id });
       setReview(null);
@@ -350,7 +364,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
             {!posted && (captureMode ? canEdit : canEdit || canPost) && <section id="document-actions" tabIndex={-1} className="workspace-card order-2 scroll-mt-6 space-y-3 p-5" aria-label="Save and review document">
               {captureMode ? <CaptureDraftActions capture={capture} canEdit={canEdit} invalid={creditInvalid || busy} /> : <>
                 <div className="flex flex-wrap items-center gap-3"><DraftWriteActions compact capabilities={capabilities} doc={doc} editId={editId} busy={busy} dirty={dirty} creditInvalid={creditInvalid} configurationErrors={configErrors}
-                  onReview={() => { setError(null); setReview({ companyId: activeCompany.id, id: doc.id, revision: doc.revision, number: form.invoice_number, money: doc.money }); }} /></div>
+                  onReview={preparePostingReview} /></div>
                 <p className="text-sm text-muted-foreground">{doc && dirty ? 'Unsaved changes. Save to update the calculated totals before posting.' : doc ? 'Saved draft. Review and confirm posting when you are ready.' : 'Save a draft to calculate its totals. It will not affect your accounts until you post it.'}</p>
               </>}
             </section>}
@@ -378,7 +392,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
                 </dl>
               )}
               {isPurchase && !posted && vatRegistered && !extra.purchase_vat_eligible && <p className="mt-2 text-xs text-muted-foreground">Not declared recoverable: VAT is included in the purchase cost and no input VAT line is posted.</p>}
-              {meta.credit && !posted && <p className="mt-2 text-xs text-muted-foreground">Uses the same accounts as the original. Offsets the outstanding balance; no cash movement.</p>}
+              {meta.credit && !posted && <p className="mt-2 text-xs text-muted-foreground">Uses the same accounts as the original. Review the balance offset and any payment allocation release before posting; no cash movement.</p>}
             </details>
             <div className="workspace-hero order-1 p-5">
               <div className="flex items-center justify-between"><h2 className="workspace-kicker">Document summary</h2><FileText className="h-4 w-4 text-primary" aria-hidden="true" /></div><p className="mt-2 text-sm font-medium">{form.invoice_number || 'Draft document'}</p>
@@ -413,6 +427,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               You cannot edit or delete its posted amounts here. Posting does not send the document or move cash.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {review?.paidCreditUnavailable && <p className="text-sm">Payment allocation release is unavailable in this environment. Only credits within the original outstanding balance can be posted here.</p>}
+          {review?.paidCredit && <PaidCreditReview review={review.paidCredit} />}
           {review && <dl aria-label="Saved amounts to post" className="space-y-2 rounded-lg border p-4 text-sm">
             <div className="flex justify-between"><dt>Document number</dt><dd className="font-medium">{review.number}</dd></div>
             <div className="flex justify-between"><dt>Net</dt><dd><Money value={review.money.net_pence} /></dd></div>

@@ -1,3 +1,4 @@
+import { reviewPaidCredit, commitPaidCredit } from '../services/accountingDocuments/paidCredit';
 import { Router, type RequestHandler, type Request } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import { DraftError, fail } from "../services/financialDrafts/contract";
@@ -95,6 +96,8 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     const {company,actor,id}=ids(req);
     res.json({data:await saveDocument(company,actor,req.body,id,revision(req))});
   });
+  router.post('/accounting-documents/:id/paid-credit/review',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await reviewPaidCredit(company,actor,id,revision(req),req.body)});});
+  router.post('/accounting-documents/:id/paid-credit',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await commitPaidCredit(company,actor,id,revision(req),req.body,testPostHook)});});
   router.post("/accounting-documents/:id/post",async(req,res)=>{
     const {company,actor,id}=ids(req);exactFields(req.body,[]);
     res.json({data:await postDocument(company,actor,id,revision(req),testPostHook)});

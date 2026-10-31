@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
-import { MobileDocumentCards, DocumentStatusFilters } from '@/pages/AccountingDocumentList';
+import { MobileDocumentCards, DocumentStatusFilters, DocumentTotal } from '@/pages/AccountingDocumentList';
 import PostedDocument, { PostedLineCards } from '@/components/accounting/PostedDocument';
 import { DiscountEditor, DraftWriteActions } from '@/features/documentDiscounts/DiscountControls';
 import { CaptureDraftActions } from './CaptureReview';
@@ -120,4 +120,29 @@ test('optional discount stays compact until needed, while existing discounts and
   assert.match(draft, /disabled=""[^>]*data-testid="button-post"/);
   assert.equal((draft.match(/type="submit"/g) || []).length, 1);
   assert.ok(draft.includes('Zero-value documents cannot be posted yet'));
+});
+
+
+test('document totals disclose saved net and VAT precisely without inferring unavailable tax', () => {
+  const money = { net_pence: '9007199254740993', vat_pence: '0', gross_pence: '9007199254740993' };
+  const before = JSON.stringify(money);
+  const html = render(<DocumentTotal money={money} documentNumber="SYNTHETIC-EXACT" />);
+  assert.match(html, /<details[^>]*><summary/);
+  assert.match(html, /Net &amp; VAT/);
+  assert.match(html, /for SYNTHETIC-EXACT/);
+  assert.match(html, /£90,071,992,547,409.93/);
+  assert.match(html, /<dt>VAT<\/dt><dd>[^]*?£0.00/);
+  assert.equal(JSON.stringify(money), before);
+  const unavailable = render(<DocumentTotal money={{ gross_pence: '14400' }} />);
+  assert.match(unavailable, /£144.00/);
+  assert.equal(unavailable.includes('£0.00'), false);
+  assert.match(unavailable, /<dt>Net<\/dt><dd>[^]*?—/);
+  assert.match(unavailable, /<dt>VAT<\/dt><dd>[^]*?—/);
+  for (const kind of ['sales_invoice', 'purchase_bill', 'sales_credit_note', 'supplier_credit_note']) {
+    const mobile = render(<MobileDocumentCards docs={[doc]} kind={kind} capabilities={{}} remaining={() => null} ledgerLoading={false} />);
+    assert.match(mobile, /Net &amp; VAT/);
+    assert.match(mobile, /£120.00/);
+    assert.match(mobile, /£24.00/);
+    assert.equal(mobile.includes('Edit draft'), false);
+  }
 });

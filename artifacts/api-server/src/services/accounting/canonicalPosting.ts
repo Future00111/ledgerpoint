@@ -940,6 +940,7 @@ async function persistJournal(
   };
 }
 
+const protectedTransactions = new WeakSet<object>();
 async function runCanonicalTransaction<T>(
   operation: (transaction: DatabaseTransaction) => Promise<T>,
 ): Promise<T> {
@@ -947,7 +948,8 @@ async function runCanonicalTransaction<T>(
     try {
       return await db.transaction(async (transaction) => {
         await setTransactionLockTimeout(transaction);
-        return operation(transaction);
+        protectedTransactions.add(transaction);
+        try { return await operation(transaction); } finally { protectedTransactions.delete(transaction); }
       });
     } catch (error) {
       const mapped = mapDatabaseError(error);
@@ -1020,10 +1022,17 @@ function reversalLines(lines: CanonicalJournalLine[]): CanonicalLineDraft[] {
   }));
 }
 
-export async function postCanonicalJournal(
+/** Internal composition keeps every child on the same protected transaction. */
+export const withCanonicalPostingTransaction = runCanonicalTransaction;
+export async function postCanonicalJournal(command: CanonicalPostingCommand, dependencies: CanonicalPostingDependencies) {
+  return runCanonicalTransaction(transaction => postCanonicalJournalInTransaction(transaction, command, dependencies));
+}
+export async function postCanonicalJournalInTransaction(
+  transaction: DatabaseTransaction,
   command: CanonicalPostingCommand,
   dependencies: CanonicalPostingDependencies,
 ): Promise<CanonicalPostingResult> {
+  if (!protectedTransactions.has(transaction)) throw new Error("Protected posting transaction required");
   validateCommand(command);
   const companyId = requireResolvedCompanyId(
     command.requestedCompanyId ??
@@ -1033,7 +1042,6 @@ export async function postCanonicalJournal(
   );
   const accountIds = commandAccountIds(command);
 
-  return runCanonicalTransaction(async (transaction) => {
     await dependencies.hooks?.afterTransactionStart?.(transaction);
     await lockCompany(transaction, companyId);
     const sourceAuthority = await dependencies.sourceProvider.lockForPosting(
@@ -1114,7 +1122,6 @@ export async function postCanonicalJournal(
       actor: actor(command.principal),
       hooks: dependencies.hooks,
     });
-  });
 }
 
 async function postLinkedJournal(

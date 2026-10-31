@@ -70,6 +70,14 @@
         "w03_invoice_drafts",
         "w03_invoice_draft_audit"
       ]
+    },
+    {
+      "path": "lib/db/migrations/paid-credit-operations.review.sql",
+      "sha256": "abb192d7a144403e5073909b2423dbd3701ce2b6d202fe741a8d7e066fe4db2a",
+      "status": "review_sql_only",
+      "tables": [
+        "accounting_paid_credit_operations"
+      ]
     }
   ],
   "reservedChanges": [

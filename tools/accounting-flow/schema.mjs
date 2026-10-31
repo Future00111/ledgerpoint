@@ -55,6 +55,7 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
     await admin.query(readFileSync(path.join(root,'lib/db/migrations/accounting-payments.review.sql'),'utf8'));
     await admin.query(readFileSync(path.join(root,'lib/db/migrations/credit-tracking.review.sql'),'utf8'));
     await admin.query(readFileSync(path.join(root,'lib/db/migrations/document-intake.review.sql'),'utf8'));
+    await admin.query(readFileSync(path.join(root,'lib/db/migrations/paid-credit-operations.review.sql'),'utf8'));
     if(includeAmendments) await admin.query(readFileSync(path.join(root,'lib/db/migrations/accounting-document-amendments.review.sql'),'utf8'));
     const legacy=(await admin.query("SELECT to_regclass('public.w03_invoice_drafts') present")).rows[0].present;
     if(!legacy) await admin.query(readFileSync(path.join(root,'lib/db/migrations/w03-invoice-drafts.review.sql'),'utf8')

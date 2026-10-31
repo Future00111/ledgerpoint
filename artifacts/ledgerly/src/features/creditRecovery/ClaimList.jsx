@@ -6,7 +6,7 @@ import { docPath } from '@/api/accountingDocuments.mjs';
 import { Button } from '@/components/ui/button';
 import { Money, ErrorBox, today } from '@/components/accounting/AccountingUI';
 import { canCancelClaim, canConfirmCandidate, claimStatus, createRequestBook, isOverdue } from './model.mjs';
-import { reviewableCandidates } from './queuePresentation.mjs';
+import { reviewableCandidates, followUpPresentation } from './queuePresentation.mjs';
 import { useMutationScope } from './useCreditClaims';
 
 export function ClaimStatus({ claim }) {
@@ -20,6 +20,7 @@ export function ClaimRowView({ claim, canManage, showBill, expanded, detailId, b
   const candidates = claim.candidates ?? [];
   const matches = reviewableCandidates(claim);
   const overdue = isOverdue(claim, date);
+  const followUp = followUpPresentation(claim, date);
   return <article className="bg-card" aria-label={`Credit for ${claim.description}`} data-testid={`credit-claim-${claim.id}`}>
     <div className={`grid gap-4 p-4 sm:px-6 sm:py-5 ${showBill ? 'xl:grid-cols-[minmax(0,1.6fr)_minmax(240px,1fr)_180px] xl:items-center' : ''}`}>
       <div className="min-w-0">
@@ -27,6 +28,7 @@ export function ClaimRowView({ claim, canManage, showBill, expanded, detailId, b
         <h3 className="break-words text-sm font-semibold leading-6">{claim.description}</h3>
         <p className="mt-1 break-words text-xs leading-5 text-muted-foreground">{claim.part_reference && <><span className="font-medium text-foreground">{claim.part_reference}</span> · </>}{claim.return_reference ? `Return ${claim.return_reference}` : 'No return reference'}{claim.job_reference && <> · {claim.job_reference}</>}</p>
         <p className="mt-1 text-xs text-muted-foreground">Quantity {claim.quantity} · Received {claim.received_quantity}{Number.isInteger(claim.original_line_ref) && <> · Bill line {claim.original_line_ref + 1}</>}</p>
+        <div className="mt-3 rounded-lg border border-dashed px-3 py-2 text-xs" aria-label="Credit follow-up guidance"><p><span className="font-medium">{followUp.priority}</span> · {followUp.ageLabel}</p><p className="mt-1 text-muted-foreground">Suggested next step: {followUp.next}. No reminder is sent from this tracker.</p></div>
       </div>
       <dl className="grid grid-cols-3 gap-3 rounded-xl bg-muted/40 px-3 py-3 text-sm">
         {[['Expected', claim.expected?.gross_pence], ['Received', claim.received?.gross_pence], ['Still waiting', claim.remaining?.gross_pence]].map(([label, amount]) => <div key={label} className="min-w-0"><dt className="text-[11px] text-muted-foreground">{label}</dt><dd className={`mt-1 break-words tabular-nums ${label === 'Still waiting' ? 'font-semibold text-primary' : 'font-medium'}`}><Money value={amount} /></dd></div>)}

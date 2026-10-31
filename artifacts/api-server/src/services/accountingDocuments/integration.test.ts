@@ -1076,3 +1076,52 @@ test('captured supplier credits retain original source rates and native settleme
   const report=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-12-31')).data;
   assert.equal(report.open_items[0].open_minor,'6000');assert.equal(report.vat.box4_pence,'1000');assert.equal(report.balance_sheet.balanced,true);
 });
+
+test('paid supplier and customer credits atomically release allocations, preserve cash, replay and rollback',async()=>{
+  const {reviewPaidCredit,commitPaidCredit}=await import('./paidCredit');
+  for(const kind of ['purchase_bill','sales_invoice']) {
+    const f=await fixture(),original=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,original);
+    const payment=await recordPayment(f,paymentIntent(f,original,'12000','12000'));
+    const credit=await creditDoc(f,original,'0.1','2026-10-22');
+    const intent={request_id:randomUUID(),reason:'Return after full payment'};
+    const reviewed=await reviewPaidCredit(f.company,actor,credit.id,credit.revision,intent);
+    assert.equal(reviewed.credit_minor,'1200');assert.equal(reviewed.released_minor,'1200');assert.equal(reviewed.offset_minor,'0');
+    const body={...intent,review_token:reviewed.review_token,releases:reviewed.releases};
+    const before=(await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 ORDER BY id',[f.company])).rows;
+    const journalCount=async()=>Number((await admin.query('SELECT count(*) n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n);
+    const n=await journalCount();
+    await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,body,async(tx)=>{await queryAdapter(tx).query('SELECT 1/0');}));
+    assert.equal(await journalCount(),n);assert.deepEqual((await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 ORDER BY id',[f.company])).rows,before);
+    await assert.rejects(()=>commitPaidCredit(f.company,readOnly,credit.id,credit.revision,body));
+    await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,{...body,releases:[]}), (e:any)=>e.code==='PAID_CREDIT_REVIEW_STALE');
+    const simultaneous=await Promise.all([commitPaidCredit(f.company,actor,credit.id,credit.revision,body),commitPaidCredit(f.company,actor,credit.id,credit.revision,body)]);
+    assert.deepEqual(simultaneous.map(r=>r.status).sort(),['duplicate','posted']);
+    assert.equal((await commitPaidCredit(f.company,actor,credit.id,credit.revision,body)).status,'duplicate');
+    await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,{...body,reason:'Changed'}),(e:any)=>e.code==='IDEMPOTENCY_CONFLICT');
+    assert.equal(await journalCount(),n+2);
+    const beforeRelease=await reports(f.company,actor,'2026-10-01','2026-10-21'),afterRelease=await reports(f.company,actor,'2026-10-01','2026-10-22');
+    assert.equal(beforeRelease.open_items[0].paid_minor,'12000');assert.equal(beforeRelease.open_items[0].credited_minor,'0');
+    assert.equal(afterRelease.open_items[0].paid_minor,'10800');assert.equal(afterRelease.open_items[0].credited_minor,'1200');assert.equal(afterRelease.balance_sheet.balanced,true);
+    const foreign=await fixture();await assert.rejects(()=>commitPaidCredit(foreign.company,actor,credit.id,credit.revision,body));
+    const payments=(await request(f.company,'/accounting-payments')).data;
+    assert.equal(payments[0].amount_minor,'12000');assert.equal(payments[0].unapplied_minor,'1200');assert.equal(payments[0].allocated_minor,'10800');
+    assert.deepEqual((await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[f.company,payment.id])).rows[0],before[0]);
+    await assert.rejects(()=>pool.query('DELETE FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company]));
+    await assert.rejects(()=>admin.query('UPDATE accounting_paid_credit_operations SET actor_id=$2 WHERE company_id=$1',[f.company,'changed']));
+  }
+});
+
+
+test('competing paid credits and multiple payment releases retain cumulative capacity and stable order',async()=>{
+ const {reviewPaidCredit,commitPaidCredit}=await import('./paidCredit');
+ const f=await fixture(),original=await create(f,'purchase_bill',source(f.supplier));await post(f,original);
+ const first=await recordPayment(f,paymentIntent(f,original,'5000','5000'));
+ const second=await recordPayment(f,paymentIntent(f,original,'7000','7000'));
+ const credits=await Promise.all([creditDoc(f,original,'0.6','2026-10-22'),creditDoc(f,original,'0.6','2026-10-22')]);
+ const reviews:Awaited<ReturnType<typeof reviewPaidCredit>>[]=[];
+ for(const c of credits)reviews.push(await reviewPaidCredit(f.company,actor,c.id,c.revision,{request_id:randomUUID(),reason:'Returned items'}));
+ assert.deepEqual(reviews[0].releases.map(r=>[r.payment_id,r.amount_minor]),[[first.id,'5000'],[second.id,'2200']]);
+ const results=await Promise.allSettled(credits.map((c,i)=>commitPaidCredit(f.company,actor,c.id,c.revision,{...reviews[i].intent,review_token:reviews[i].review_token,releases:reviews[i].releases})));
+ assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+ const data=await reports(f.company,actor,'2026-10-01','2026-10-22');assert.equal(data.open_items[0].credited_minor,'7200');assert.equal(data.open_items[0].paid_minor,'4800');assert.equal(data.balance_sheet.balanced,true);
+});
