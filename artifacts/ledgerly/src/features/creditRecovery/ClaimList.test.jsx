@@ -84,3 +84,9 @@ test('cancelled and reversed-receipt history remains visible without misleading 
   assert.ok(reversed.includes('Needs review'));
   assert.ok(!reversed.includes('Cancel tracking'));
 });
+
+test('row shows age and suggested follow-up without implying a sent reminder or changing amounts', () => {
+  const html = renderToStaticMarkup(<MemoryRouter><ClaimRowView claim={{ ...fixture, candidates: [], returned_on: '2026-10-01', expected_by: '2026-10-20' }} canManage={false} showBill date="2026-10-30" /></MemoryRouter>);
+  for (const text of ['29 days since return', '10 days past expected date', 'contact the supplier', 'No reminder is sent from this tracker', 'SYNTHETIC-B1', '£10.00']) assert.ok(html.includes(text), text);
+  assert.ok(!html.includes('Send reminder'));
+});

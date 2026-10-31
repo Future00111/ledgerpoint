@@ -200,3 +200,78 @@ test("generic entity reads bind explicit workspace context and recheck active me
     await new Promise<void>(resolve => server.close(() => resolve()));
   }
 });
+
+test("generic lists and deletes honor selected company without broadening malformed context", async () => {
+  const { createEntitiesRouter } = await import("../routes/entities");
+  const { db } = await import("@workspace/db");
+  const { customersTable, companiesTable, companyUsersTable } = await import("@workspace/db/schema");
+  const { PgDialect } = await import("drizzle-orm/pg-core");
+  const dialect = new PgDialect();
+  const originalSelect = db.select, originalDelete = db.delete;
+  let role = "owner", membership = true, deletes = 0, reads = 0;
+  let listScope: unknown[] = [];
+  db.select = (() => ({ from(table: unknown) {
+    if (table === companyUsersTable) return { where: async (condition: any) => {
+      if (!membership) return [];
+      const params = dialect.sqlToQuery(condition).params;
+      const selected = params.includes("company-a") ? "company-a" : params.includes("company-b") ? "company-b" : null;
+      return (selected ? [selected] : ["company-a", "company-b"]).map(company_id => ({ company_id, user_id: "synthetic-owner", role, is_active: true }));
+    } };
+    assert.ok(table === customersTable || table === companiesTable);
+    return {
+      where: () => ({ limit: async () => [{ id: "customer", company_id: "company-a", name: "Synthetic" }] }),
+      $dynamic() {
+        const query = {
+          where(condition: any) { listScope = dialect.sqlToQuery(condition).params; return query; },
+          orderBy() { return query; },
+          limit: async () => { reads++; return []; },
+        };
+        return query;
+      },
+    };
+  } })) as unknown as typeof db.select;
+  db.delete = (() => ({ where: async () => { deletes++; } })) as unknown as typeof db.delete;
+  const app = express();
+  app.use(createEntitiesRouter((req, res, next) => {
+    if (!req.get("x-test-actor")) { res.sendStatus(401); return; }
+    (req as any).userId = "synthetic-owner"; next();
+  }));
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise<void>(resolve => server.once("listening", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const request = (path: string, method = "GET") => fetch(`http://127.0.0.1:${address.port}${path}`, { method, headers: { "x-test-actor": "synthetic-owner" } });
+  try {
+    for (const entity of ["Company", "Customer"]) {
+      assert.equal((await request(`/${entity}`)).status, 200);
+      assert.deepEqual(listScope, ["company-a", "company-b"], "omission preserves authorized multi-company compatibility");
+      for (const company of ["company-a", "company-b"]) {
+        assert.equal((await request(`/${entity}?company_id=${company}`)).status, 200);
+        assert.deepEqual(listScope, [company], "only selected company may be listed");
+      }
+      for (const query of ["?company_id=", "?company_id=company-a&company_id=company-b"]) {
+        const before = reads;
+        assert.equal((await request(`/${entity}${query}`)).status, 400);
+        assert.equal(reads, before, "malformed list scope never reads entity data");
+      }
+      membership = false;
+      assert.equal((await request(`/${entity}?company_id=company-a`)).status, 403);
+      membership = true;
+    }
+    for (const [query, status] of [["?company_id=company-b", 403], ["?company_id=", 400], ["?company_id=company-a&company_id=company-b", 400]] as const) {
+      assert.equal((await request(`/Customer/customer${query}`, "DELETE")).status, status);
+      assert.equal(deletes, 0, "both-company owner cannot delete through a contradictory workspace");
+    }
+    role = "read_only";
+    assert.equal((await request("/Customer?company_id=company-a")).status, 200);
+    assert.equal((await request("/Customer/customer?company_id=company-a", "DELETE")).status, 403);
+    role = "owner"; membership = false;
+    assert.equal((await request("/Customer/customer", "DELETE")).status, 403);
+    assert.equal(deletes, 0);
+    membership = true;
+    for (const query of ["", "?company_id=company-a"]) assert.equal((await request(`/Customer/customer${query}`, "DELETE")).status, 200);
+    assert.equal(deletes, 2, "only valid owner paths reached the synthetic deletion adapter");
+  } finally {
+    db.select = originalSelect; db.delete = originalDelete;
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  }
+});
