@@ -11,6 +11,19 @@ import { canEditDrafts, documentActionLabel } from '@/features/documentDiscounts
 import PageHeader from '@/components/workspace/PageHeader';
 import EmptyState from '@/components/workspace/EmptyState';
 
+/** Failed refreshes may retain cached ledger data: do not present it as current settlement. */
+export function documentSettlement(ledger, id) {
+  if (ledger.loading || ledger.error || !ledger.data) return null;
+  return ledger.data.open_items.find(item => item.id === id) ?? null;
+}
+
+export function SettlementFilterNotice({ loading, onShowAll }) {
+  return <div className="space-y-3 border-t p-5" role="status">
+    <p className="text-sm">{loading ? 'Loading payment status…' : 'Payment status is unavailable. This filtered view cannot be checked yet.'}</p>
+    <Button type="button" variant="outline" onClick={onShowAll}>Show all documents</Button>
+  </div>;
+}
+
 export function DocumentStatusFilters({ tabs, filter, counts, title, onChange }) {
   return <div className="workspace-segmented" role="group" aria-label={`${title} status`}>
     {tabs.map(([value, label]) => <button key={value} type="button" aria-pressed={filter === value} data-testid={`tab-${value}`} onClick={() => onChange(value)}>{label}<span className="ml-2 rounded-md bg-muted px-1.5 py-0.5 text-xs">{counts[value] ?? '—'}</span></button>)}
@@ -63,7 +76,9 @@ function CompanyDocumentList({ kind, legacyLink, activeCompany }) {
   const setFilter = value => { const next = new URLSearchParams(params); next.set('status',value); setParams(next,{replace:true}); };
   const [search, setSearch] = useState('');
   const ledger = useLedgerSnapshot(activeCompany?.id, undefined, undefined, !meta.credit);
-  const remaining = d => ledger.data?.open_items.find(o => o.id === d.id);
+  const remaining = d => documentSettlement(ledger, d.id);
+  const settlementUnavailable = !meta.credit && (ledger.loading || ledger.error || !ledger.data);
+  const filterUnavailable = settlementUnavailable && !['all', 'draft'].includes(filter);
 
   const load = useCallback((signal) => {
     if (!activeCompany) return;
@@ -90,7 +105,7 @@ function CompanyDocumentList({ kind, legacyLink, activeCompany }) {
   const searched = (docs ?? []).filter(d => `${d.source?.invoice_number ?? ''} ${d.party_name ?? ''} ${d.source?.reference ?? ''}`.toLowerCase().includes(search.trim().toLowerCase()));
   const shown = searched.filter(d => matches(d, filter));
 
-  const sumOpen = selected => !ledger.data || ledger.error ? null : (docs ?? []).filter(d => matches(d,selected)).reduce((total,d) => total + BigInt(remaining(d)?.open_minor ?? '0'), 0n).toString();
+  const sumOpen = selected => settlementUnavailable ? null : (docs ?? []).filter(d => matches(d,selected)).reduce((total,d) => total + BigInt(remaining(d)?.open_minor ?? '0'), 0n).toString();
   const title = {sales_invoice:'Invoices',purchase_bill:'Bills',sales_credit_note:'Customer credits',supplier_credit_note:'Supplier credits'}[kind];
   return (
     <div className="workspace-page">
@@ -109,12 +124,13 @@ function CompanyDocumentList({ kind, legacyLink, activeCompany }) {
       {accessError && <Button type="button" variant="outline" onClick={() => load()}>Retry permissions</Button>}
       {!meta.credit && <ErrorBox error={ledger.error} onRetry={ledger.refresh} />}
       <section className="workspace-panel" aria-label={title}>
-        <div className="workspace-panel-header"><div className="flex items-center gap-2"><ListFilter className="h-4 w-4 text-muted-foreground" aria-hidden="true" /><h2 className="workspace-section-title">All {title.toLowerCase()}</h2></div><span className="text-xs text-muted-foreground">{docs ? `${shown.length} ${shown.length === 1 ? 'document' : 'documents'}` : 'Loading…'}</span></div>
+        <div className="workspace-panel-header"><div className="flex items-center gap-2"><ListFilter className="h-4 w-4 text-muted-foreground" aria-hidden="true" /><h2 className="workspace-section-title">All {title.toLowerCase()}</h2></div><span className="text-xs text-muted-foreground">{filterUnavailable ? (ledger.loading ? 'Loading payment status…' : 'Count unavailable') : docs ? `${shown.length} ${shown.length === 1 ? 'document' : 'documents'}` : 'Loading…'}</span></div>
         <div className="px-5 pt-4"><DocumentStatusFilters tabs={tabs} filter={filter} title={title} onChange={setFilter}
-          counts={Object.fromEntries(tabs.map(([value]) => [value, !docs || (!meta.credit && !['all', 'draft'].includes(value) && (ledger.loading || ledger.error)) ? null : searched.filter(doc => matches(doc, value)).length]))} /></div>
+          counts={Object.fromEntries(tabs.map(([value]) => [value, !docs || (settlementUnavailable && !['all', 'draft'].includes(value)) ? null : searched.filter(doc => matches(doc, value)).length]))} /></div>
         <div className="flex flex-wrap items-center justify-between gap-3 p-5"><div className="relative w-full sm:max-w-sm"><Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input aria-label={`Search ${meta.plural.toLowerCase()}`} placeholder="Search name, number or reference…" value={search} onChange={e=>setSearch(e.target.value)} className="min-h-11 bg-background pl-9" /></div><span className="text-xs text-muted-foreground">Open a document to review its details</span></div>
         {!docs && !error && <div className="p-5"><SkeletonRows /></div>}
-        {docs && shown.length === 0 && (meta.credit || !ledger.loading) && <EmptyState icon={FileText}
+        {docs && filterUnavailable && <SettlementFilterNotice loading={ledger.loading} onShowAll={() => setFilter('all')} />}
+        {docs && !filterUnavailable && shown.length === 0 && <EmptyState icon={FileText}
           title={search || filter !== 'all' ? 'Nothing matches this view' : `Your ${title.toLowerCase()} will appear here`}
           description={search || filter !== 'all' ? 'Try another search or choose a different status.' : 'Create your first draft. You can review it before posting it to your accounts.'}
           action={search || filter !== 'all' ? <Button type="button" variant="outline" className="min-h-11" onClick={() => { setSearch(''); setFilter('all'); }}>Show all documents</Button> : canEdit && <Button variant="outline" asChild className="min-h-11"><Link to={`${meta.path}/new`}>Create a draft</Link></Button>} />}

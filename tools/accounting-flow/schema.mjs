@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { loadMigrationInputs } from '../development/migrations/registry.mjs';
 
 export const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const selected=new Set(['companies','company_users','customers','suppliers','sales_invoices','purchase_bills',
@@ -16,9 +17,14 @@ export function exportSchema() {
 }
 export async function installSchema(admin,sql,{includeAmendments=false}={}) {
   // Caller has already proved its Unix-socket identity. This never opens a connection.
-  if(includeAmendments) {
-    const existing=await admin.query("SELECT count(*)::int n FROM pg_tables WHERE schemaname='public'");
-    if(existing.rows[0].n!==0) throw Error('Amendment overlay is restricted to a newly created empty disposable database');
+  const migrationInputs = loadMigrationInputs(root); // Verify every source before BEGIN; use these exact bytes below.
+  {
+    const existing=await admin.query(`SELECT count(*)::int n FROM (
+      SELECT oid FROM pg_class WHERE relnamespace='public'::regnamespace
+      UNION ALL SELECT oid FROM pg_proc WHERE pronamespace='public'::regnamespace
+      UNION ALL SELECT oid FROM pg_type WHERE typnamespace='public'::regnamespace
+    ) objects`);
+    if(existing.rows[0].n!==0) throw Error('Schema installation is restricted to a newly created empty disposable database');
   }
   const tables=[...sql.matchAll(/CREATE TABLE "([^"]+)" \([\s\S]*?\n\);/g)];
   if(!tables.some(m=>m[1]==='canonical_journal_lines')) throw Error('Full canonical export missing');
@@ -50,15 +56,15 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
       if(target && !selected.has(target)) throw Error('Unexpected canonical FK dependency '+target);
       if(!(await admin.query('SELECT 1 FROM pg_constraint WHERE conname=$1',[match[2]])).rowCount) await admin.query(match[0]);
     }
-    await admin.query(readFileSync(path.join(root,'lib/db/migrations/accounting-documents.review.sql'),'utf8'));
-    await admin.query(readFileSync(path.join(root,'lib/db/migrations/accounting-chart.review.sql'),'utf8'));
-    await admin.query(readFileSync(path.join(root,'lib/db/migrations/accounting-payments.review.sql'),'utf8'));
-    await admin.query(readFileSync(path.join(root,'lib/db/migrations/credit-tracking.review.sql'),'utf8'));
-    await admin.query(readFileSync(path.join(root,'lib/db/migrations/document-intake.review.sql'),'utf8'));
-    await admin.query(readFileSync(path.join(root,'lib/db/migrations/paid-credit-operations.review.sql'),'utf8'));
-    if(includeAmendments) await admin.query(readFileSync(path.join(root,'lib/db/migrations/accounting-document-amendments.review.sql'),'utf8'));
+    await admin.query(migrationInputs['accounting-documents']);
+    await admin.query(migrationInputs['accounting-chart']);
+    await admin.query(migrationInputs['accounting-payments']);
+    await admin.query(migrationInputs['credit-tracking']);
+    await admin.query(migrationInputs['document-intake']);
+    await admin.query(migrationInputs['paid-credit-operations']);
+    if(includeAmendments) await admin.query(migrationInputs['accounting-document-amendments']);
     const legacy=(await admin.query("SELECT to_regclass('public.w03_invoice_drafts') present")).rows[0].present;
-    if(!legacy) await admin.query(readFileSync(path.join(root,'lib/db/migrations/w03-invoice-drafts.review.sql'),'utf8')
+    if(!legacy) await admin.query(migrationInputs['w03-invoice-drafts']
       .replace(/^BEGIN;$/m,'').replace(/^COMMIT;$/m,''));
     // Reuse the EXACT canonical ownership, immutable guards and finalization
     // transition guards; omit unrelated external-CI attestation functionality.

@@ -105,9 +105,37 @@ test('real PostgreSQL: repeated overlay installation refuses the nonempty dispos
   const { installSchema } = await import(moduleUrl);
   const sql = readFileSync(path.join(process.cwd(), 'lib/db/migrations/accounting-document-amendments.review.sql'), 'utf8');
   const before = await fingerprintDatabase(admin);
-  for (let repeat = 0; repeat < 2; repeat++) {
-    await assert.rejects(() => installSchema(admin, sql, { includeAmendments: true }),
+  for (const includeAmendments of [false, true]) {
+    await assert.rejects(() => installSchema(admin, sql, { includeAmendments }),
       /restricted to a newly created empty disposable database/);
     assertSameFingerprint(before, await fingerprintDatabase(admin));
+  }
+});
+
+test('real PostgreSQL: object-only public schemas cannot bypass the empty-database gate', async () => {
+  const database = 'ledgerly_migration_empty_gate_test';
+  await admin.query(`CREATE DATABASE ${database}`);
+  const candidate = new pg.Client({ host: socket, port: 55441, user: 'w03_bootstrap',
+    database, password: '', ssl: false, options: '-c timezone=UTC' });
+  try {
+    await candidate.connect();
+    const { installSchema } = await import(pathToFileURL(path.join(process.cwd(), 'tools/accounting-flow/schema.mjs')).href);
+    for (const ddl of [
+      'CREATE VIEW public.only_view AS SELECT 1 value',
+      'CREATE SEQUENCE public.only_sequence',
+      'CREATE FUNCTION public.only_function() RETURNS integer LANGUAGE SQL AS $$ SELECT 1 $$',
+      "CREATE TYPE public.only_type AS ENUM ('synthetic')",
+    ]) {
+      await candidate.query('BEGIN');
+      try {
+        await candidate.query(ddl);
+        await assert.rejects(() => installSchema(candidate, ''), /restricted to a newly created empty disposable database/);
+      } finally { await candidate.query('ROLLBACK'); }
+    }
+    // All objects rolled back; an empty schema proceeds to input validation, not DDL.
+    await assert.rejects(() => installSchema(candidate, ''), /Full canonical export missing/);
+  } finally {
+    await candidate.end();
+    await admin.query(`DROP DATABASE ${database}`);
   }
 });

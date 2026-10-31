@@ -17,6 +17,24 @@ function officialSource(source) {
       && (url.hostname === 'gov.uk' || url.hostname.endsWith('.gov.uk'));
   } catch { return false; }
 }
+function validReference(row) {
+  if (!Object.hasOwn(row, 'referenceFixtures')) return true;
+  const ref = row.referenceFixtures;
+  if (!plain(ref) || row.selector.domain !== 'payroll' || row.selector.entity !== 'employer'
+    || row.selector.income !== 'employment' || row.selector.scheme !== 'none'
+    || ref.qualification !== 'reference_only_engine_not_implemented'
+    || !Number.isSafeInteger(ref.caseCount) || ref.caseCount <= 0
+    || typeof ref.path !== 'string'
+    || !/^artifacts\/api-server\/src\/services\/payroll\/contracts\/fixtures\/[a-z0-9.-]+\.json$/.test(ref.path)) return false;
+  const loan = Object.hasOwn(ref, 'plan');
+  const dimension = loan ? 'plan' : 'region';
+  const allowed = loan ? ['plan_1', 'plan_2', 'plan_4', 'plan_5', 'postgraduate'] : ['rest_of_uk', 'scotland', 'wales'];
+  const keys = ['path', dimension, 'caseCount', 'qualification', ...(loan ? ['frequencies'] : [])];
+  return Object.keys(ref).length === keys.length && keys.every(key => Object.hasOwn(ref, key))
+    && allowed.includes(ref[dimension])
+    && row.selector.employment === `employee_${loan ? 'loan' : 'paye'}_${ref[dimension]}`
+    && (!loan || names(ref.frequencies) && ref.frequencies.every(f => ['weekly', 'fortnightly', 'four_weekly', 'monthly'].includes(f)));
+}
 export function validateCaseRegistry(registry) {
   if (!plain(registry) || registry.version !== 1 || registry.enginePolicy !== 'in_house_only'
     || !plain(registry.sources) || !Array.isArray(registry.cases) || registry.cases.length === 0
@@ -29,6 +47,7 @@ export function validateCaseRegistry(registry) {
       || selectors.has(signature(row.selector)) || !['supported', 'unsupported'].includes(row.status)
       || !Array.isArray(row.backlogTasks) || row.backlogTasks.length === 0 || typeof row.owner !== 'string' || !row.owner
       || !plain(row.ruleProvenance) || !Object.hasOwn(registry.sources, row.ruleProvenance.sourceId)) throw new Error('INVALID_CASE_REGISTRY');
+    if (!validReference(row)) throw new Error('INVALID_CASE_REGISTRY');
     // This initial contract intentionally cannot authorize future engines from metadata.
     // Promotion requires a separately reviewed adapter tying fixtures to executable rules.
     if (row.status === 'supported') throw new Error('SUPPORTED_CASE_ADAPTER_REQUIRED');

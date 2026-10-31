@@ -48,7 +48,8 @@ export function SavedDiscountSummary({ money }) {
 }
 
 export function DiscountBalanceReview({ original, item, money, dirty, loading, error, onRetry }) {
-  const after = balanceAfterSavedCredit(item, money, dirty);
+  const after = loading || error ? null : balanceAfterSavedCredit(item, money, dirty);
+  const excess = after !== null && BigInt(after) < 0n ? (-BigInt(after)).toString() : null;
   return <section className="workspace-card order-2 space-y-3 p-5" aria-label="Discount balance review">
     <h2 className="text-sm font-semibold">Effect on the original balance</h2>
     <ErrorBox error={error} onRetry={onRetry} />
@@ -57,9 +58,9 @@ export function DiscountBalanceReview({ original, item, money, dirty, loading, e
       <div className="flex justify-between"><dt>Payments received / made</dt><dd><Money value={item?.paid_minor} /></dd></div>
       <div className="flex justify-between"><dt>Current remaining balance</dt><dd><Money value={item?.open_minor} /></dd></div>
       <div className="flex justify-between"><dt>Saved discount credit</dt><dd><Money value={!dirty ? money?.gross_pence : null} /></dd></div>
-      {after !== null && <div className="flex justify-between border-t pt-2 font-semibold"><dt>Balance if posted</dt><dd><Money value={after} /></dd></div>}
+      {after !== null && <div className="flex justify-between border-t pt-2 font-semibold"><dt>Balance if posted</dt><dd><Money value={excess ? '0' : after} /></dd></div>}
     </dl>}
-    {after !== null && BigInt(after) < 0n && <p role="alert" className="text-xs text-red-700">This discount exceeds the current remaining balance. Reduce it before posting.</p>}
-    <p className="text-xs text-muted-foreground">{dirty || !money ? 'Save the draft to calculate the discount and its effect. ' : ''}This is a preview from the displayed balance. Posting checks the current outstanding amount again.</p>
+    {excess && <p className="text-sm">This credit includes <Money value={excess} /> beyond the remaining balance. Review &amp; post will check whether that amount can be released from existing payment allocations into an unapplied balance. Allocation to another document or a refund requires a separate review; posting this credit does not move cash.</p>}
+    <p className="text-xs text-muted-foreground">{dirty || !money ? 'Save the draft to calculate the discount and its effect. ' : ''}This is a preview from the displayed balance. Posting checks cumulative credit limits and current payment allocations again.</p>
   </section>;
 }
