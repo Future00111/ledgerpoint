@@ -37,6 +37,7 @@ export async function linkedCreditDocuments(q:Queryable,company:string,original:
     FROM accounting_document_sources d LEFT JOIN canonical_journal_entries j
       ON j.id=d.journal_id AND j.company_id=d.company_id AND j.source_id=d.id::text
       AND j.source_type=d.kind AND j.status='posted'
+      AND j.source_revision=d.revision::text AND j.currency_code=d.source->>'currency'
     WHERE d.company_id=$1 AND d.original_id=$2 AND d.status='posted' ORDER BY d.id`,[company,original.id])).rows;
   const expectedKind=original.kind==='sales_invoice'?'sales_credit_note':'supplier_credit_note';
   const result:any[]=[];
