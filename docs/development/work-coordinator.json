@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "revision": 25,
+  "revision": 27,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "799b7f7c02acd0dedf5eeab2815d0264a9782cbe",
+  "codeHead": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261031-0003",
     "token": "33afe71d-967c-4268-8df1-ce44466c9bae",
     "acquiredAt": 1793405084528,
-    "expiresAt": 1793407423547
+    "expiresAt": 1793407598690
   },
   "lastOwner": {
     "runId": "hosted-20261030-2333",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 2,
-    "revision": 148,
+    "revision": 151,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -1110,16 +1110,16 @@
         ]
       },
       "P14-04": {
-        "status": "running",
+        "status": "review",
         "priority": 1404,
         "discoveredDependencies": [],
-        "checkpoint": "Worker6 clean stopped at e40e23c3fc28c7e839cac7487b924dd4682a8fc4; durable codex/lp-0003-worker6; review correction only.",
+        "checkpoint": "Clean stopped codex/lp-0003-worker6 at 6f89fbdce34f4f158dbae4f1a03fb5fdcf66a67a. Corrected source-linked AI data inventory covers all current aiService.complete callers and server-generated financial/counterparty context; 4 contract tests pass. Runtime qualification remains pending; no more claims.",
         "evidence": {
-          "commit": "e40e23c3fc28c7e839cac7487b924dd4682a8fc4",
-          "summary": "PARTIAL P14-04: source-linked Clerk/OpenAI adapter and planned OCR/bank/HMRC/email boundaries; all destination/scopes/retention/consent qualification explicitly unresolved. Executable recovery contract denies unknown/unqualified services/destinations and preserves original operation identity without grants or network calls. Not runtime enforcement; full operational qualification pending.",
+          "commit": "6f89fbdce34f4f158dbae4f1a03fb5fdcf66a67a",
+          "summary": "PARTIAL P14-04 corrected after review: inventory now explicitly includes bank identifiers/descriptions/references/directions/amounts/chart names, reconciliation matched records, company/customer/invoice/due/balance reminder context, financial aggregates, and askAI review counts plus caller prompts. Call-site coverage test detects missing current AI callers. Destinations/scopes/retention/consent remain unqualified; no runtime enforcement or provider connection claimed.",
           "tests": [
             {
-              "command": "node --test artifacts/api-server/src/services/integrationPolicy/recovery.test.mjs (3 passed)",
+              "command": "node --test artifacts/api-server/src/services/integrationPolicy/recovery.test.mjs (4 passed)",
               "passed": true
             },
             {
@@ -1131,7 +1131,7 @@
         "owner": "worker6",
         "token": "fbb14ca3-0423-489b-8cf7-8476eadde7a2",
         "leaseUntil": 1793406519918,
-        "workStarted": false
+        "workStarted": true
       },
       "P14-80": {
         "status": "blocked",
@@ -2930,37 +2930,64 @@
         "type": "claim",
         "taskId": "P14-04",
         "token": "fbb14ca3-0423-489b-8cf7-8476eadde7a2"
+      },
+      {
+        "at": 1793405642737,
+        "actor": "worker6",
+        "type": "checkpoint",
+        "taskId": "P14-04",
+        "checkpoint": "Before correction: clean e40e23c3fc28c7e839cac7487b924dd4682a8fc4 on codex/lp-0003-worker6 (prior remote saved by coordinator). Independently reviewed omitted financial AI call-site payloads; add complete source-linked outbound field groups and caller-coverage test. No runtime changes."
+      },
+      {
+        "at": 1793405656025,
+        "actor": "worker6",
+        "type": "checkpoint",
+        "taskId": "P14-04",
+        "checkpoint": "Clean stopped codex/lp-0003-worker6 at 6f89fbdce34f4f158dbae4f1a03fb5fdcf66a67a. Corrected source-linked AI data inventory covers all current aiService.complete callers and server-generated financial/counterparty context; 4 contract tests pass. Runtime qualification remains pending; no more claims."
+      },
+      {
+        "at": 1793405656116,
+        "actor": "worker6",
+        "type": "submit",
+        "taskId": "P14-04",
+        "evidence": {
+          "commit": "6f89fbdce34f4f158dbae4f1a03fb5fdcf66a67a",
+          "summary": "PARTIAL P14-04 corrected after review: inventory now explicitly includes bank identifiers/descriptions/references/directions/amounts/chart names, reconciliation matched records, company/customer/invoice/due/balance reminder context, financial aggregates, and askAI review counts plus caller prompts. Call-site coverage test detects missing current AI callers. Destinations/scopes/retention/consent remain unqualified; no runtime enforcement or provider connection claimed.",
+          "tests": [
+            {
+              "command": "node --test artifacts/api-server/src/services/integrationPolicy/recovery.test.mjs (4 passed)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check",
+              "passed": true
+            }
+          ]
+        }
       }
     ],
     "catalogDigest": "37580ba0a586c6493ee62ad8e8a5682f79cdced7e8c5e5e02c77b4bb1b3e4392"
   },
   "checkpoint": {
     "ref": "refs/heads/codex/whole-product-first-sprint",
-    "sha": "799b7f7c02acd0dedf5eeab2815d0264a9782cbe",
+    "sha": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
     "evidence": [
       {
         "ref": "refs/heads/codex/whole-product-first-sprint",
-        "sha": "799b7f7c02acd0dedf5eeab2815d0264a9782cbe",
-        "path": "docs/development/work-backlog.json"
+        "sha": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
+        "path": "tools/development/check.mjs"
       }
     ],
     "runId": "hosted-20261031-0003",
-    "at": 1793405623554,
-    "codeHead": "799b7f7c02acd0dedf5eeab2815d0264a9782cbe"
+    "at": 1793405798711,
+    "codeHead": "4b488369b9edb8c4912d26e1c31e236ee6c0310a"
   },
-  "updatedAt": 1793405623554,
+  "updatedAt": 1793405798711,
   "validation": {
-    "sourceCommit": "799b7f7c02acd0dedf5eeab2815d0264a9782cbe",
-    "sourceTree": "2ceb99e8a7e1e3336760b3daa697233ddcf8f0ea",
-    "ciRun": "https://github.com/Future00111/ledgerpoint/actions/runs/41146394405",
-    "sourceTests": 708,
-    "disposablePostgresTests": 68,
-    "tests": 776,
-    "failed": 0,
-    "skipped": 0,
-    "buildTypecheckPassed": true,
-    "restorePassed": true,
-    "isolatedCleanupPassed": true
+    "sourceCommit": "4b488369b9edb8c4912d26e1c31e236ee6c0310a",
+    "status": "CI_pending",
+    "localSourceTests": 724,
+    "localBuildPassed": true
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -3002,12 +3029,13 @@
       },
       {
         "branch": "codex/lp-0003-worker6",
-        "local": "e40e23c3fc28c7e839cac7487b924dd4682a8fc4",
-        "remote": "097f56694f64331f27df6771df369166d2021915",
-        "tree": "11791bcab3ef6578617264f7e83512aed9283420"
+        "local": "6f89fbdce34f4f158dbae4f1a03fb5fdcf66a67a",
+        "remote": "7e56658db85a5a4b14b1d6c9f1bd8c8e9914a7f8",
+        "tree": "358e8a168162732a11e3897309705667ec218bbd"
       }
     ],
-    "workersStopped": false,
-    "review": "Worker6 correcting material AI data inventory omission; other workers stopped; reviewed product slices locally integrated, not yet published"
+    "workersStopped": true,
+    "worktreesClean": true,
+    "integratedTree": "14ef1303f8eb56f3c4503f24e5d7346342a63727"
   }
 }
