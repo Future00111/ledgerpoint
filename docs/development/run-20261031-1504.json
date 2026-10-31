@@ -54,10 +54,23 @@
   "localExtraTests": 18,
   "buildPassed": true,
   "ciRun": 41214196277,
-  "ciStatus": "pending",
+  "ciStatus": "passed",
   "priorPublicationFailure": {
     "commit": "5fe6a9e19f5c62c93440a1cc0114266628a2eb3f",
     "reason": "Text transfer omitted integration-test bytes; corrected using base64 blob; final Git tree equals locally reviewed dead996066708567f99c14f00f652504768897e6."
   },
-  "productionActions": false
+  "productionActions": false,
+  "ciJob": 124575197361,
+  "tests": 843,
+  "failed": 0,
+  "skipped": 0,
+  "ciMergeHead": "32222b6a86a80144b5fb5a6e1100adf3c6bd2ee5",
+  "ciTreeMatchesPublished": true,
+  "disposablePostgres": true,
+  "restorePassed": true,
+  "encryptedRecoveryPassed": true,
+  "cleanupPassed": true,
+  "liveBrowserQualified": false,
+  "productionQualified": false,
+  "partialTasksRemainPending": true
 }
