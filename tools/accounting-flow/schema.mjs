@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { loadMigrationInputs } from '../development/migrations/registry.mjs';
+import { loadMigrationInputs, recordInstalledMigrationHistory } from '../development/migrations/registry.mjs';
 
 export const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const selected=new Set(['companies','company_users','customers','suppliers','sales_invoices','purchase_bills',
@@ -99,6 +99,7 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
       'ledgerly_canonical_journal_relations_guard','ledgerly_accounting_audit_events_guard',
       'ledgerly_accounting_posting_effects_guard') AND tgenabled='A'`);
     if(immutable.rows[0].n!==5) throw Error('Canonical immutable guards not intact');
+    await recordInstalledMigrationHistory(admin, migrationInputs, { includeAmendments });
     await admin.query('COMMIT');
   } catch(error) {await admin.query('ROLLBACK');throw error;}
 }

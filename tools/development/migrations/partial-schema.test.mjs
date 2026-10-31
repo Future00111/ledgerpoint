@@ -268,3 +268,72 @@ for (const includeAmendments of [false, true]) {
     });
   }
 }
+
+async function historyAPI() {
+  const api = await import(pathToFileURL(path.join(process.cwd(), 'tools/development/migrations/registry.mjs')).href);
+  return { ...api, inputs: api.loadMigrationInputs(process.cwd()) };
+}
+test('real PostgreSQL: applied migration history is readable but never mutable by runtime', async () => {
+  const { checkInstalledMigrationHistory, inputs } = await historyAPI();
+  await unchangedAfterRollback(async () => {
+    await restricted();
+    assert.equal(await checkInstalledMigrationHistory(admin, inputs, { includeAmendments: true }), true);
+  });
+  for (const sql of [
+    "INSERT INTO schema_migrations(id,sha256,contract_version,dependencies) VALUES('unexpected',repeat('0',64),1,'[]')",
+    "UPDATE schema_migrations SET contract_version=2", 'DELETE FROM schema_migrations', 'TRUNCATE schema_migrations',
+  ]) await unchangedAfterRollback(async () => {
+    await restricted(); await assert.rejects(() => admin.query(sql), error => error.code === '42501');
+  });
+});
+for (const [name, sql] of [
+  ['checksum', "UPDATE schema_migrations SET sha256=repeat('0',64) WHERE id='accounting-documents'"],
+  ['newer version', "UPDATE schema_migrations SET contract_version=2 WHERE id='accounting-documents'"],
+  ['dependency', "UPDATE schema_migrations SET dependencies='[\"unknown\"]' WHERE id='accounting-documents'"],
+  ['missing entry', "DELETE FROM schema_migrations WHERE id='accounting-documents'"],
+  ['unknown entry', "INSERT INTO schema_migrations(id,sha256,contract_version,dependencies) VALUES('unknown',repeat('0',64),1,'[]')"],
+]) test(`real PostgreSQL: ${name} history corruption fails compatibility without automatic repair`, async () => {
+  const { checkInstalledMigrationHistory, inputs } = await historyAPI();
+  await unchangedAfterRollback(async () => {
+    await admin.query('ALTER TABLE schema_migrations DISABLE TRIGGER ledgerly_migration_history_immutable');
+    await admin.query(sql);
+    await restricted();
+    await assert.rejects(() => checkInstalledMigrationHistory(admin, inputs, { includeAmendments: true }),
+      { code: 'MIGRATION_HISTORY_INCOMPATIBLE' });
+  });
+});
+test('real PostgreSQL: absent migration history fails closed with no automatic creation', async () => {
+  const { checkInstalledMigrationHistory, inputs } = await historyAPI();
+  await unchangedAfterRollback(async () => {
+    await admin.query('ALTER TABLE schema_migrations RENAME TO held_migration_history');
+    await restricted();
+    await assert.rejects(() => checkInstalledMigrationHistory(admin, inputs, { includeAmendments: true }),
+      { code: 'MIGRATION_HISTORY_UNAVAILABLE' });
+  });
+});
+test('real PostgreSQL: interrupted migration-history recording leaves no DDL or version rows', async () => {
+  const { recordInstalledMigrationHistory, inputs } = await historyAPI();
+  const database = 'ledgerly_history_failure_test';
+  await admin.query(`CREATE DATABASE ${database}`);
+  const candidate = new pg.Client({ host: socket, port: 55441, user: 'w03_bootstrap',
+    database, password: '', ssl: false, options: '-c timezone=UTC' });
+  try {
+    await candidate.connect();
+    await candidate.query('BEGIN');
+    let inserts = 0;
+    const interrupted = { query: async (sql, params) => {
+      if (sql.startsWith('INSERT INTO public.schema_migrations') && ++inserts === 2)
+        throw Object.assign(new Error('Synthetic interruption'), { code: 'SYNTHETIC_INTERRUPTION' });
+      return candidate.query(sql, params);
+    } };
+    await assert.rejects(() => recordInstalledMigrationHistory(interrupted, inputs, { includeAmendments: true }),
+      { code: 'SYNTHETIC_INTERRUPTION' });
+    await candidate.query('ROLLBACK');
+    assert.equal((await candidate.query("SELECT to_regclass('public.schema_migrations') present")).rows[0].present, null);
+    assert.equal((await candidate.query("SELECT count(*)::int n FROM pg_proc WHERE pronamespace='public'::regnamespace")).rows[0].n, 0);
+    await candidate.query('BEGIN');
+    await recordInstalledMigrationHistory(candidate, inputs, { includeAmendments: true });
+    await candidate.query('COMMIT');
+    assert.equal((await candidate.query('SELECT count(*)::int n FROM schema_migrations')).rows[0].n, 9);
+  } finally { await candidate.end(); await admin.query(`DROP DATABASE ${database}`); }
+});

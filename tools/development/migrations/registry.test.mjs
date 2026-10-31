@@ -97,3 +97,18 @@ for (const includeAmendments of [false, true]) test(`schema created after prefli
   assert.equal(calls[4], 'ROLLBACK');
   assert.equal(calls.length, 5, 'no role, table or other DDL is allowed after losing the race');
 });
+
+import { expectedMigrationHistory, validateInstalledMigrationHistory } from './registry.mjs';
+for (const includeAmendments of [false, true]) test(`installed history matches exact selected input versions, amendments=${includeAmendments}`, () => {
+  const expected = expectedMigrationHistory(loadMigrationInputs(root), { includeAmendments });
+  assert.equal(expected.some(row => row.id === 'accounting-document-amendments'), includeAmendments);
+  assert.equal(validateInstalledMigrationHistory([...expected].reverse(), expected), true);
+  for (const mutate of [
+    rows => rows.pop(), rows => rows.push({ ...rows[0], id: 'unknown-newer' }),
+    rows => rows[0].sha256 = '0'.repeat(64), rows => rows[0].contract_version++,
+    rows => rows[0].dependencies = ['unknown'], rows => rows[1] = rows[0],
+  ]) {
+    const altered = structuredClone(expected); mutate(altered);
+    assert.throws(() => validateInstalledMigrationHistory(altered, expected), { code: 'MIGRATION_HISTORY_INCOMPATIBLE' });
+  }
+});
