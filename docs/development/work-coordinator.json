@@ -1,23 +1,18 @@
 {
   "version": 1,
-  "revision": 50,
+  "revision": 52,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "854c4c5478a0dacb79701f1c62ca49512d5b5c4e",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261031-1504",
     "token": "11d8f231-76fc-4f4c-bf08-ba69610004a1",
     "acquiredAt": 1793459135653,
     "expiresAt": 1793461797198
-  },
-  "lastOwner": {
-    "runId": "hosted-20261031-0148",
-    "token": "76db14a2-daa3-4247-b0b9-1470005b7b48",
-    "acquiredAt": 1793411344919,
-    "expiresAt": 1793413144919
   },
   "queueState": {
     "version": 2,
@@ -4821,33 +4816,36 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "e408a7e718de9bc2a089a73aad0a5e4a9887441f",
+    "sha": "d1df68d6b6bfcff8c4372c4792bbf4d914581a32",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e408a7e718de9bc2a089a73aad0a5e4a9887441f",
+        "sha": "d1df68d6b6bfcff8c4372c4792bbf4d914581a32",
         "path": "docs/development/run-20261031-1504.json"
       }
     ],
     "runId": "hosted-20261031-1504",
-    "at": 1793459997186,
+    "at": 1793460101979,
     "codeHead": "854c4c5478a0dacb79701f1c62ca49512d5b5c4e"
   },
-  "updatedAt": 1793459997198,
+  "updatedAt": 1793460101992,
   "validation": {
-    "sourceCommit": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
+    "sourceCommit": "854c4c5478a0dacb79701f1c62ca49512d5b5c4e",
     "status": "passed",
-    "ciRun": 41153389575,
-    "ciJob": 124394750472,
-    "tests": 821,
+    "ciRun": 41214196277,
+    "ciJob": 124575197361,
+    "tests": 843,
     "failed": 0,
     "skipped": 0,
-    "localSourceTests": 740,
-    "localBackupTests": 4,
+    "localSourceTests": 746,
+    "localExtraTests": 18,
     "buildPassed": true,
     "disposablePostgres": true,
     "restorePassed": true,
+    "encryptedRecoveryPassed": true,
     "cleanupPassed": true,
+    "ciMergeHead": "32222b6a86a80144b5fb5a6e1100adf3c6bd2ee5",
+    "ciTree": "dead996066708567f99c14f00f652504768897e6",
     "liveBrowserQualified": false,
     "productionQualified": false
   },
@@ -4858,65 +4856,81 @@
     "firstRunVerified": true
   },
   "runEvidence": {
-    "workerCheckpoints": [
+    "runId": "hosted-20261031-1504",
+    "codeHead": "854c4c5478a0dacb79701f1c62ca49512d5b5c4e",
+    "tree": "dead996066708567f99c14f00f652504768897e6",
+    "workers": [
       {
-        "branch": "codex/lp-0043-worker2",
-        "local": "9b00421067ce804c0ef76d0d484bf5d062c8e1c8",
-        "remote": "83597f32048c226ffc15a85dbada8902795ea9ae",
-        "tree": "2d90f037171c428e8d6e09daec70c913111fec7a"
+        "worker": 1,
+        "local": "c49070cd6ffb126ce3ffe7d2de7d7cf4e63e1ea8",
+        "remote": "3800f136e2085cce0952aca67690f54b6bf92023",
+        "tree": "f8c44daf159b2cfad7f238ab2e224da28788fa07"
       },
       {
-        "branch": "codex/lp-0043-worker3",
-        "local": "24d8fb1630d135c99ba7c0e470a9e2f2c425ba28",
-        "remote": "77a11a436eccfa97f2db60fe588cbd62ae21bd4f",
-        "tree": "af80819a1bcd07b353c82f0c495509e37f5c487e"
+        "worker": 2,
+        "local": "1ad8b508aa9760daf2e814774916e7e545073443",
+        "remote": "5517f3c9690e44c08806dd92c841401273d613ef",
+        "tree": "8ce19de1bd79037ac07650f0e0496b1eb9d2f6f8"
       },
       {
-        "branch": "codex/lp-0043-worker4",
-        "local": "2bdc3054ee1831b6e9623a6d9661c7f1a8d59cf2",
-        "remote": "e1a415d6eaa0eb7c2bcfb219a203e7da14f269c3",
-        "tree": "cc9f48667db1c17167349833e309194dae129fbe"
+        "worker": 3,
+        "local": "4f8c21d89056c4116796f071a55e5165325c39bb",
+        "remote": "532a0d00297903ecd1366608c00bb3fb89183ce9",
+        "tree": "78cd1abc2f83a7893789a354bead08bc1fa50ba1"
       },
       {
-        "branch": "codex/lp-0043-worker1",
-        "local": "732bc5ddb93ff5b64605ed00c5435968c36221dd",
-        "remote": "78aaa0267ab1a37add8d7fb4b80d8287a7174a13",
-        "tree": "c3133e17d6010bfd4f5dbc90408028c70a881fc5"
+        "worker": 4,
+        "local": "205f230f2353716e3789409d71d00eb60b2cc39e",
+        "remote": "334b84fe5edcb25a8d0ae7b0ef4b9a4498fae416",
+        "tree": "bb614808f8e0e7476048ef932505ee0e4cbc2cc5"
       },
       {
-        "branch": "codex/lp-0043-worker5",
-        "local": "385133bbe5276c6f34578aa2e08f5da5e4da3181",
-        "remote": "deec641dbec859701642c67c8173af1f1bda96cc",
-        "tree": "21c63e1b541a4595e6a786a9024feb65121db215"
+        "worker": 5,
+        "local": "eeeb64b7beb3107fd40745e18d9034b7f933c323",
+        "remote": "50844a84997bb8c749f1ec94fc0790bce744a837",
+        "tree": "56bb63e0e5aca2b7ec296364c79f4f639405d845"
       },
       {
-        "branch": "codex/lp-0043-worker6",
-        "local": "d2daf15b451fe19a7fd63fbb400d08d996ff3aaa",
-        "remote": "7752d4574334188b303139ed9087b71131096cab",
-        "tree": "bd143cc15e0169e443a0ad02f9f119eefc0cb26f"
-      },
-      {
-        "branch": "codex/lp-0043-worker1-final",
-        "local": "ab0e75fa467c41be31c028547487b6abfc149dec",
-        "remote": "31d424a9731b2b770815100311c76e49041ea406",
-        "tree": "25c44c85af18b5cbac788ead4e73d73ed6149979"
+        "worker": 6,
+        "local": "f82b51f9fbc03d68519369a1b3457dad3d9b0e4b",
+        "remote": "d483db5b307c3bf3437cf3638957b915a25a1fcb",
+        "tree": "40ab18516c24832d9df49c10f4f30f10f30a509b"
       }
     ],
     "workersStopped": true,
     "worktreesClean": true,
-    "integratedTree": "25c44c85af18b5cbac788ead4e73d73ed6149979",
-    "newlyAccepted": [
-      "P01-02"
-    ],
-    "partialTasksRemainPending": [
+    "partialTasks": [
+      "P01-03",
       "P02-01",
+      "P03-03",
       "P03-04",
       "P04-01",
-      "P07-03",
-      "P07-04",
-      "P13-04",
-      "P17-02"
+      "P07-03"
     ],
+    "sourceTests": 746,
+    "localExtraTests": 18,
+    "buildPassed": true,
+    "ciRun": 41214196277,
+    "ciStatus": "passed",
+    "priorPublicationFailure": {
+      "commit": "5fe6a9e19f5c62c93440a1cc0114266628a2eb3f",
+      "reason": "Text transfer omitted integration-test bytes; corrected using base64 blob; final Git tree equals locally reviewed dead996066708567f99c14f00f652504768897e6."
+    },
+    "productionActions": false,
+    "ciJob": 124575197361,
+    "tests": 843,
+    "failed": 0,
+    "skipped": 0,
+    "ciMergeHead": "32222b6a86a80144b5fb5a6e1100adf3c6bd2ee5",
+    "ciTreeMatchesPublished": true,
+    "disposablePostgres": true,
+    "restorePassed": true,
+    "encryptedRecoveryPassed": true,
+    "cleanupPassed": true,
+    "liveBrowserQualified": false,
+    "productionQualified": false,
+    "partialTasksRemainPending": true,
+    "newlyAccepted": [],
     "environment": {
       "shell": true,
       "coding": true,
@@ -4926,22 +4940,6 @@
       "localPostgreSQL": false,
       "disposablePostgreSQL": "PR27 CI",
       "productionActions": false
-    },
-    "recovery": {
-      "priorRunId": "hosted-20261031-0148",
-      "workersStopped": true,
-      "worktreesClean": true,
-      "codeChanges": false,
-      "recoveredClaims": [
-        "P01-03",
-        "P02-01"
-      ],
-      "sourceTestsPassed": 740,
-      "receipt": {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "36a1349132ed95cc1b86d5c1d984bc0157672738",
-        "path": "docs/development/recovery-20261031-1454.json"
-      }
     }
   },
   "recovery": {
