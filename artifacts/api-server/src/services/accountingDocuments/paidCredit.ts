@@ -3,7 +3,7 @@ import { fail, uuid } from '../financialDrafts/contract';
 import { withCanonicalPostingTransaction, roleHasAccountingCapability, type DatabaseTransaction } from '../accounting/canonicalPosting';
 import { document, scope, transact, queryAdapter, exactFields, hash, credit, sales, type Queryable } from './core';
 import { assertUncorrectedOriginal } from './amendments';
-import { documentOpen, paymentEvents, appliedTo } from './settlement';
+import { documentOpen, paymentEvents, appliedTo, unappliedEffect } from './settlement';
 import { postPayment, previewPaymentInTransaction } from './payments';
 import { postDocument } from './posting';
 
@@ -55,7 +55,11 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
     const applied=appliedTo(events,original.id,payment.id);
     if(applied<=0n||remaining===0n) continue;
     const n=applied<remaining?applied:remaining;
-    releases.push({id:childId(b.request_id,payment.id),payment_id:payment.id,amount_minor:n.toString(),pool_account_id:payment.source.pool_account_id});
+    const unapplied=events.filter(e=>e.id===payment.id||e.payment_id===payment.id).reduce((sum,e)=>sum+unappliedEffect(e),0n);
+    if(unapplied<0n)fail(503,'SETTLEMENT_LEDGER_MISMATCH');
+    releases.push({id:childId(b.request_id,payment.id),payment_id:payment.id,payment_reference:payment.reference,
+      payment_journal_id:payment.journal_id,amount_minor:n.toString(),pool_account_id:payment.source.pool_account_id,
+      before_unapplied_minor:unapplied.toString(),after_unapplied_minor:(unapplied+n).toString()});
     remaining-=n;
   }
   if(remaining) fail(503,'SETTLEMENT_LEDGER_MISMATCH');
@@ -64,7 +68,7 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
   for(const release of releases) if(events.some(e=>(e.id===release.payment_id||e.payment_id===release.payment_id)&&e.effective_date>row.source.issue_date)) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
   if(events.some(e=>e.effective_date>row.source.issue_date&&e.allocations.some((a:any)=>a.document_id===original.id))) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
   const configurations=(await q.query('SELECT * FROM accounting_payment_configuration WHERE company_id=$1',[company])).rows;
-  const review={intent:b,document_id:id,revision:expected,original_id:original.id,date:row.source.issue_date,
+  const review={intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
     credit_minor:value.toString(),offset_minor:(value-excess).toString(),released_minor:excess.toString(),remaining_minor:(BigInt(open.open_minor)-(value-excess)).toString(),releases};
   return {...review,review_token:hash({company,actor,review,row,original,events,periods,configurations})};
 }

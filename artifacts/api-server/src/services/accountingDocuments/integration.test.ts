@@ -1125,3 +1125,47 @@ test('competing paid credits and multiple payment releases retain cumulative cap
  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
  const data=await reports(f.company,actor,'2026-10-01','2026-10-22');assert.equal(data.open_items[0].credited_minor,'7200');assert.equal(data.open_items[0].paid_minor,'4800');assert.equal(data.balance_sheet.balanced,true);
 });
+
+test('part-paid excess review includes prior unapplied/refunded money and denies revoked-member replay',async()=>{
+ const {reviewPaidCredit,commitPaidCredit}=await import('./paidCredit');
+ const f=await fixture(),original=await create(f,'sales_invoice',source(f.customer));await post(f,original);
+ const payment=await recordPayment(f,paymentIntent(f,original,'12000','10000'));
+ await recordPayment(f,paymentIntent(f,original,'500','0',{kind:'refund',payment_id:payment.id,date:'2026-10-21'}));
+ const credit=await creditDoc(f,original,'0.25','2026-10-22');
+ const r=await reviewPaidCredit(f.company,actor,credit.id,credit.revision,{request_id:randomUUID(),reason:'Part return'});
+ assert.equal(r.credit_minor,'3000');assert.equal(r.offset_minor,'2000');assert.equal(r.released_minor,'1000');assert.equal(r.remaining_minor,'0');
+ assert.equal(r.releases[0].before_unapplied_minor,'1500');assert.equal(r.releases[0].after_unapplied_minor,'2500');
+ assert.equal(r.releases[0].payment_journal_id,payment.journal_id);assert.equal(r.original_id,original.id);
+ const body={...r.intent,review_token:r.review_token,releases:r.releases};await commitPaidCredit(f.company,actor,credit.id,credit.revision,body);
+ const payments=(await request(f.company,'/accounting-payments')).data;assert.equal(payments[0].unapplied_minor,'2500');assert.equal(payments[0].refunded_minor,'500');
+ await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+ try {await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,body),(e:any)=>e.code==='RESOURCE_NOT_FOUND');}
+ finally {await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,actor]);}
+});
+
+test('paid-credit stale setup, closed period and absent/partial schema commit no effects',async()=>{
+ const {reviewPaidCredit,commitPaidCredit}=await import('./paidCredit');
+ const f=await fixture(),original=await create(f,'purchase_bill',source(f.supplier));await post(f,original);
+ await recordPayment(f,paymentIntent(f,original,'12000','12000'));
+ const credit=await creditDoc(f,original,'0.1','2026-10-22');
+ const r=await reviewPaidCredit(f.company,actor,credit.id,credit.revision,{request_id:randomUUID(),reason:'Return'});
+ const body={...r.intent,review_token:r.review_token,releases:r.releases};
+ const snapshot=async()=>({journals:(await admin.query('SELECT id FROM canonical_journal_entries WHERE company_id=$1 ORDER BY id',[f.company])).rows,
+   payments:(await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 ORDER BY id',[f.company])).rows,
+   credit:(await admin.query('SELECT * FROM accounting_document_sources WHERE company_id=$1 AND id=$2',[f.company,credit.id])).rows});
+ const before=await snapshot();
+ await admin.query("UPDATE accounting_document_periods SET status='CLOSED' WHERE company_id=$1",[f.company]);
+ try {await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,body),(e:any)=>e.code==='PERIOD_NOT_WRITABLE');}
+ finally {await admin.query("UPDATE accounting_document_periods SET status='OPEN' WHERE company_id=$1",[f.company]);}
+ const config=(await request(f.company,'/accounting-payments/context')).data.configuration;
+ assert.equal((await request(f.company,'/accounting-payments/configuration','PUT',{revision:config.revision,mappings:config.mappings})).status,200);
+ await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,body),(e:any)=>e.code==='PAID_CREDIT_REVIEW_STALE');
+ await admin.query('ALTER TABLE accounting_paid_credit_operations RENAME TO absent_paid_credit_fixture');
+ try {await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,body),(e:any)=>e.code==='PAID_CREDIT_SCHEMA_UNAVAILABLE');}
+ finally {await admin.query('ALTER TABLE absent_paid_credit_fixture RENAME TO accounting_paid_credit_operations');}
+ await admin.query('ALTER TABLE accounting_paid_credit_operations DISABLE TRIGGER accounting_paid_credit_immutable');
+ try {await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,body),(e:any)=>e.code==='PAID_CREDIT_SCHEMA_INCOMPLETE');}
+ finally {await admin.query('ALTER TABLE accounting_paid_credit_operations ENABLE ALWAYS TRIGGER accounting_paid_credit_immutable');}
+ assert.deepEqual(await snapshot(),before);
+ assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,0);
+});

@@ -3,9 +3,13 @@ const amount = value => {const n=BigInt(value);return `£${n/100n}.${(n%100n).to
 export default function PaidCreditReview({review}) {
   return <section aria-label="Credit settlement review" className="space-y-2 rounded-lg border p-4 text-sm">
     <h3 className="font-semibold">How this credit will be applied</h3>
+    <a className="underline" target="_blank" rel="noopener noreferrer" href={`${review.original_kind==='sales_invoice'?'/invoices':'/bills'}/${encodeURIComponent(review.original_id)}`}>Original {review.original_number || 'document'}</a>
     <dl><dt>Full credit</dt><dd>{amount(review.credit_minor)}</dd><dt>Offsets outstanding balance</dt><dd>{amount(review.offset_minor)}</dd>
       <dt>Released to reusable or refundable payment balances</dt><dd>{amount(review.released_minor)}</dd><dt>Original balance remaining</dt><dd>{amount(review.remaining_minor)}</dd></dl>
-    {review.releases.map(r=><div key={r.id}><p>{amount(r.amount_minor)} released from payment {r.payment_id}</p><p className="break-all text-xs">Original pool account: {r.pool_account_id}</p></div>)}
+    {review.releases.map(r=><div key={r.id}><p>{amount(r.amount_minor)} released from payment {r.payment_reference || r.payment_id}</p>
+      <p>Unapplied balance: {amount(r.before_unapplied_minor)} → {amount(r.after_unapplied_minor)}</p>
+      <a className="underline" target="_blank" rel="noopener noreferrer" href={`/accounting/journals/${encodeURIComponent(r.payment_journal_id)}`}>View original payment journal</a>
+      <p className="break-all text-xs">Payment ID: {r.payment_id}</p><p className="break-all text-xs">Original pool account: {r.pool_account_id}</p></div>)}
     <p>Original cash payments remain unchanged. This posts the credit and releases the listed allocations together. It does not send a refund.</p>
   </section>;
 }
