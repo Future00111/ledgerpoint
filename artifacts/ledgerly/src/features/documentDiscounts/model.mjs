@@ -11,8 +11,19 @@ export function discountCreditPath(kind, id) {
   return path && id ? `${path}/new?original=${encodeURIComponent(id)}&discount=1` : null;
 }
 
+export function isValidSettlementSnapshot(openItem) {
+  if (!openItem) return false;
+  const amounts = ['gross_minor', 'credited_minor', 'paid_minor', 'open_minor'].map(field => openItem[field]);
+  if (amounts.some(value => typeof value !== 'string' || value.length > 12 || !/^(?:0|[1-9]\d*)$/.test(value))) return false;
+  const [gross, credited, paid, open] = amounts.map(BigInt);
+  return gross > 0n && gross === credited + paid + open;
+}
+
 export function canApplyDiscount(kind, openItem, capabilities) {
-  return Boolean(discountCreditPath(kind, 'id') && canEditDrafts(capabilities) && openItem && BigInt(openItem.open_minor) > 0n);
+  if (!discountCreditPath(kind, 'id') || !canEditDrafts(capabilities) || !isValidSettlementSnapshot(openItem)) return false;
+  // Payment does not consume credit capacity. This only admits draft preparation;
+  // protected posting rechecks capacity and explicitly reviews allocation release.
+  return BigInt(openItem.gross_minor) > BigInt(openItem.credited_minor);
 }
 
 /** Only subtract saved, server-calculated pence for an explicitly labelled preview. */

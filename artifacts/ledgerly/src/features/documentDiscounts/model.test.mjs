@@ -19,7 +19,7 @@ test('late discount uses existing credit workflow for original invoices and bill
   assert.equal(discountCreditPath('sales_invoice', 'a/b'), '/sales-credit-notes/new?original=a%2Fb&discount=1');
   assert.equal(discountCreditPath('purchase_bill', 'bill'), '/supplier-credit-notes/new?original=bill&discount=1');
   assert.equal(discountCreditPath('supplier_credit_note', 'credit'), null);
-  const partial = { gross_minor: '12000', paid_minor: '5000', open_minor: '7000' };
+  const partial = { gross_minor: '12000', credited_minor: '0', paid_minor: '5000', open_minor: '7000' };
   assert.equal(canApplyDiscount('purchase_bill', partial, { edit_drafts: true }), true);
   assert.equal(canApplyDiscount('purchase_bill', { ...partial, open_minor: '0' }, { edit_drafts: true }), false);
   assert.equal(canApplyDiscount('purchase_bill', partial, {}), false);
@@ -45,4 +45,31 @@ test('old company, document, or load generation cannot apply mutation result to 
   assert.equal(isCurrentDocumentRequest(started, { scope: 'company-b:bill-1', generation: 1 }), false);
   assert.equal(isCurrentDocumentRequest(started, { scope: 'company-a:bill-2', generation: 1 }), false);
   assert.equal(isCurrentDocumentRequest(started, { ...started, generation: 2 }), false);
+});
+
+
+test('paid-discount entry uses remaining original credit capacity, independently of remaining cash due', () => {
+  const capabilities = { edit_drafts: true };
+  for (const kind of ['sales_invoice', 'purchase_bill']) {
+    for (const [credited, paid, open, expected] of [
+      ['0', '0', '12000', true], ['0', '5000', '7000', true],
+      ['0', '12000', '0', true], ['1200', '10800', '0', true],
+      ['12000', '0', '0', false],
+    ]) assert.equal(canApplyDiscount(kind, { gross_minor: '12000', credited_minor: credited, paid_minor: paid, open_minor: open }, capabilities), expected);
+  }
+});
+
+test('discount entry rejects missing, malformed or inconsistent settlement without throwing', () => {
+  const valid = { gross_minor: '12000', credited_minor: '0', paid_minor: '12000', open_minor: '0' };
+  for (const field of Object.keys(valid)) {
+    for (const value of [undefined, null, '', '01', '-1', '1.2', 0, '1e2', '1000000000000', 'garbage']) {
+      assert.equal(canApplyDiscount('sales_invoice', { ...valid, [field]: value }, { edit_drafts: true }), false, `${field}:${value}`);
+    }
+  }
+  for (const item of [null, {}, { ...valid, gross_minor: '0' }, { ...valid, paid_minor: '1' }, { ...valid, credited_minor: '12001' }])
+    assert.equal(canApplyDiscount('purchase_bill', item, { edit_drafts: true }), false);
+  for (const capabilities of [undefined, null, {}, { edit_drafts: 'true' }, { post_documents: true }])
+    assert.equal(canApplyDiscount('sales_invoice', valid, capabilities), false);
+  for (const kind of ['supplier_credit_note', 'sales_credit_note', 'unknown'])
+    assert.equal(canApplyDiscount(kind, valid, { edit_drafts: true }), false);
 });

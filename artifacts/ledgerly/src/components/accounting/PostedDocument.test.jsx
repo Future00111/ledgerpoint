@@ -58,7 +58,7 @@ test('apply discount is available on partially settled originals only with verif
     assert.ok(!readonly.includes('Create credit note'));
     assert.ok(!readonly.includes('Record payment'));
     assert.ok(readonly.includes('View journal'));
-    assert.ok(!render(kind, { openItem: { gross_minor: '14400', paid_minor: '14400', credited_minor: '0', open_minor: '0', history: [] } }).includes('Apply discount'));
+    assert.ok(render(kind, { openItem: { gross_minor: '14400', paid_minor: '14400', credited_minor: '0', open_minor: '0', history: [] } }).includes('Apply discount'));
   }
 });
 
@@ -77,4 +77,48 @@ test('normal return from discounted original explains inherited pricing without 
   assert.ok(html.includes('Credit amounts use the original discounted prices.'));
   assert.ok(html.includes('Unit price before original discount'));
   assert.ok(!html.includes('Original total less discount'));
+});
+
+
+test('fully paid originals prepare discount drafts while preserving unavailable and exhausted guards', () => {
+  const paid = { gross_minor: '14400', paid_minor: '14400', credited_minor: '0', open_minor: '0', history: [] };
+  for (const kind of ['sales_invoice', 'purchase_bill']) {
+    const html = render(kind, { openItem: paid, capabilities: { edit_drafts: true } });
+    assert.ok(html.includes('Apply discount'));
+    assert.ok(html.includes('original=synthetic-bill&amp;discount=1'));
+    assert.ok(!html.includes('Record payment'));
+    assert.ok(!html.includes('Record refund'));
+    const overrides = [
+      { openItem: null },
+      { openItem: { ...paid, paid_minor: '0', credited_minor: '14400' } },
+      { settlement: { loading: true } },
+      { settlement: { loading: false, error: new Error('Unavailable') } },
+      { error: new Error('Document unavailable') },
+      { capabilities: null },
+      { capabilities: { edit_drafts: 'true' } },
+      ...[{ correction_count: 1 }, { status: 'cancelled' }, { status: 'draft' }, { kind: 'supplier_credit_note' }, { id: '' }]
+        .map(patch => ({ doc: { ...doc, kind, ...patch } })),
+    ];
+    for (const override of overrides) assert.ok(!render(kind, { openItem: paid, ...override }).includes('Apply discount'), JSON.stringify(override));
+  }
+});
+
+
+test('malformed settlement renders an unavailable state rather than money, status or write actions', () => {
+  const valid = { gross_minor: '14400', paid_minor: '14400', credited_minor: '0', open_minor: '0', history: [] };
+  for (const kind of ['sales_invoice', 'purchase_bill']) {
+    for (const field of ['gross_minor', 'paid_minor', 'credited_minor', 'open_minor']) {
+      for (const value of [undefined, null, '', 'garbage', '-1', '1.5', '01', 0, '1000000000000']) {
+        const html = render(kind, { openItem: { ...valid, [field]: value } });
+        assert.ok(html.includes('Settlement balance is unavailable'), `${kind}:${field}:${value}`);
+        for (const label of ['Apply discount', 'Record payment', 'Create credit note', 'data-testid="settlement-status"'])
+          assert.ok(!html.includes(label), label);
+      }
+    }
+    for (const settlement of [{ loading: true }, { loading: false, error: new Error('Unavailable') }]) {
+      const html = render(kind, { openItem: valid, settlement });
+      assert.ok(!html.includes('data-testid="settlement-status"'));
+      assert.ok(!html.includes('Apply discount'));
+    }
+  }
 });
