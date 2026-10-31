@@ -1,27 +1,22 @@
 {
   "version": 1,
-  "revision": 41,
+  "revision": 43,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261031-0043",
     "token": "161e5aeb-dbd3-45e6-a0f2-a8cdb844b0f9",
     "acquiredAt": 1793407428143,
     "expiresAt": 1793410386098
   },
-  "lastOwner": {
-    "runId": "hosted-20261031-0003",
-    "token": "33afe71d-967c-4268-8df1-ce44466c9bae",
-    "acquiredAt": 1793405084528,
-    "expiresAt": 1793407771228
-  },
   "queueState": {
     "version": 2,
-    "revision": 255,
+    "revision": 262,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -66,32 +61,38 @@
         ]
       },
       "P01-02": {
-        "status": "review",
+        "status": "done",
         "priority": 102,
         "discoveredDependencies": [],
-        "checkpoint": "Clean stopped codex/lp-0043-worker1-final ab0e75fa467c41be31c028547487b6abfc149dec; final competing credit/payment fixture added; API tsc/bundle pass; independent reviewer2 and exact CI pending",
+        "checkpoint": "No edits; detached exact published32511cec52d6dab6627c9fc44bf1fa235a9546a3 equals reviewed ab0e75f tree25c44c85af18b5cbac788ead4e73d73ed6149979; local source740/archive4/build logs inspected; CI41153389575 job124394750472 logs independently fetched:821 pass0fail0skip, race/negative controls and restore passed; clean/stopped",
         "evidence": {
-          "commit": "ab0e75fa467c41be31c028547487b6abfc149dec",
-          "summary": "Final paid-credit candidate includes exact source links/result pools and part-paid/role/period/config/schema coverage, now also competing paid-credit versus independently reviewed payment unallocation. Asserts one stale loser, branch-specific balances, unchanged cash, single release and atomic parent/document outcomes. Independent review and exact final PostgreSQL CI remain required before acceptance.",
+          "commit": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
+          "summary": "Accepted P01-02 development implementation: synthetic fully paid supplier/customer credits retain cash and create reusable/refundable payment pools. Atomic posting/replay, caps, competing credits and payment race, permissions, period/setup/schema failures, historical reporting and rollback verified on exact published source. Independently reviewed by worker2 and coordinator. Corrected-original expansion remains P01-04; live browser and existing-schema activation/production remain separately gated.",
           "tests": [
             {
-              "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json",
+              "command": "Exact published local node tools/development/check.mjs:740 passed,0fail,0skip; logs inspected",
               "passed": true
             },
             {
-              "command": "esbuild accountingDocuments/integration.test.ts bundle passed; race execution pending disposable CI",
+              "command": "Exact published encrypted archive rehearsal tests:4 passed; logs inspected",
               "passed": true
             },
             {
-              "command": "git diff --check",
+              "command": "Exact published full workspace build/typecheck:passed; logs inspected",
+              "passed": true
+            },
+            {
+              "command": "PR27 CI41153389575 job124394750472 on published32511cec:821 passed,0failed,0skipped; job logs independently fetched incl paid-credit race/negative controls, disposable PostgreSQL, restore and cleanup",
+              "passed": true
+            },
+            {
+              "command": "Published32511cec and independently reviewed ab0e75f tree equality:25c44c85af18b5cbac788ead4e73d73ed6149979",
               "passed": true
             }
-          ]
-        },
-        "owner": "worker1",
-        "token": "8137591e-5ba1-402e-ab52-9ad6d784b474",
-        "leaseUntil": 1793409040955,
-        "workStarted": true
+          ],
+          "reviewed": true,
+          "reviewer": "worker2-and-coordinator"
+        }
       },
       "P01-03": {
         "status": "blocked",
@@ -4108,6 +4109,107 @@
             }
           ]
         }
+      },
+      {
+        "at": 1793408695297,
+        "actor": "coordinator",
+        "type": "reject",
+        "taskId": "P01-02",
+        "reason": "Implementation independently approved and exact published CI passed; refresh submitted evidence to exact published SHA before acceptance."
+      },
+      {
+        "at": 1793408695387,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P01-02",
+        "checkpoint": "Worker1 clean stopped ab0e75fa467c41be31c028547487b6abfc149dec, durable31d424a9731b2b770815100311c76e49041ea406; tree identical published32511cec52d6dab6627c9fc44bf1fa235a9546a3 verified by CI41153389575. No edits; matching evidence refresh only."
+      },
+      {
+        "at": 1793408706701,
+        "actor": "worker1",
+        "type": "claim",
+        "taskId": "P01-02",
+        "token": "0d1cbe2c-ed41-4757-a769-a97602f0519e"
+      },
+      {
+        "at": 1793408712937,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-02",
+        "checkpoint": "No edits; clean final candidate ab0e75fa467c41be31c028547487b6abfc149dec; refreshing submission onto exact published 32511cec52d6dab6627c9fc44bf1fa235a9546a3 after CI success"
+      },
+      {
+        "at": 1793408755554,
+        "actor": "worker1",
+        "type": "checkpoint",
+        "taskId": "P01-02",
+        "checkpoint": "No edits; detached exact published32511cec52d6dab6627c9fc44bf1fa235a9546a3 equals reviewed ab0e75f tree25c44c85af18b5cbac788ead4e73d73ed6149979; local source740/archive4/build logs inspected; CI41153389575 job124394750472 logs independently fetched:821 pass0fail0skip, race/negative controls and restore passed; clean/stopped"
+      },
+      {
+        "at": 1793408755644,
+        "actor": "worker1",
+        "type": "submit",
+        "taskId": "P01-02",
+        "evidence": {
+          "commit": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
+          "summary": "Verified development paid-credit workflow for uncorrected supplier/customer originals: atomic reviewed allocation release plus credit, immutable payment/cash and parent evidence, exact replay and stale-vector concurrency protection, cumulative line caps, historical cutoffs and permission/schema controls. Actual review shows source links and resulting unapplied pools. Published tree equals independently reviewed ab0e75f. No production migration, deployment, live-browser or statutory acceptance implied; corrected-original work remains P01-04.",
+          "tests": [
+            {
+              "command": "Exact published local node tools/development/check.mjs:740 passed,0fail,0skip; logs inspected",
+              "passed": true
+            },
+            {
+              "command": "Exact published encrypted archive rehearsal tests:4 passed; logs inspected",
+              "passed": true
+            },
+            {
+              "command": "Exact published full workspace build/typecheck:passed; logs inspected",
+              "passed": true
+            },
+            {
+              "command": "PR27 CI41153389575 job124394750472 on published32511cec:821 passed,0failed,0skipped; job logs independently fetched incl paid-credit race/negative controls, disposable PostgreSQL, restore and cleanup",
+              "passed": true
+            },
+            {
+              "command": "Published32511cec and independently reviewed ab0e75f tree equality:25c44c85af18b5cbac788ead4e73d73ed6149979",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793408771824,
+        "actor": "coordinator",
+        "type": "accept",
+        "taskId": "P01-02",
+        "evidence": {
+          "commit": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
+          "summary": "Accepted P01-02 development implementation: synthetic fully paid supplier/customer credits retain cash and create reusable/refundable payment pools. Atomic posting/replay, caps, competing credits and payment race, permissions, period/setup/schema failures, historical reporting and rollback verified on exact published source. Independently reviewed by worker2 and coordinator. Corrected-original expansion remains P01-04; live browser and existing-schema activation/production remain separately gated.",
+          "tests": [
+            {
+              "command": "Exact published local node tools/development/check.mjs:740 passed,0fail,0skip; logs inspected",
+              "passed": true
+            },
+            {
+              "command": "Exact published encrypted archive rehearsal tests:4 passed; logs inspected",
+              "passed": true
+            },
+            {
+              "command": "Exact published full workspace build/typecheck:passed; logs inspected",
+              "passed": true
+            },
+            {
+              "command": "PR27 CI41153389575 job124394750472 on published32511cec:821 passed,0failed,0skipped; job logs independently fetched incl paid-credit race/negative controls, disposable PostgreSQL, restore and cleanup",
+              "passed": true
+            },
+            {
+              "command": "Published32511cec and independently reviewed ab0e75f tree equality:25c44c85af18b5cbac788ead4e73d73ed6149979",
+              "passed": true
+            }
+          ],
+          "reviewed": true,
+          "reviewer": "worker2-and-coordinator"
+        }
       }
     ],
     "catalogDigest": "c708e672a6e57c01d6295ebe136604b411bb429d0b2b9010f3ff52fd62eda137"
@@ -4123,16 +4225,26 @@
       }
     ],
     "runId": "hosted-20261031-0043",
-    "at": 1793408586109,
+    "at": 1793408794106,
     "codeHead": "32511cec52d6dab6627c9fc44bf1fa235a9546a3"
   },
-  "updatedAt": 1793408586109,
+  "updatedAt": 1793408794117,
   "validation": {
     "sourceCommit": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
-    "status": "CI_pending",
+    "status": "passed",
+    "ciRun": 41153389575,
+    "ciJob": 124394750472,
+    "tests": 821,
+    "failed": 0,
+    "skipped": 0,
     "localSourceTests": 740,
     "localBackupTests": 4,
-    "localBuildPassed": true
+    "buildPassed": true,
+    "disposablePostgres": true,
+    "restorePassed": true,
+    "cleanupPassed": true,
+    "liveBrowserQualified": false,
+    "productionQualified": false
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -4187,6 +4299,28 @@
     ],
     "workersStopped": true,
     "worktreesClean": true,
-    "integratedTree": "25c44c85af18b5cbac788ead4e73d73ed6149979"
+    "integratedTree": "25c44c85af18b5cbac788ead4e73d73ed6149979",
+    "newlyAccepted": [
+      "P01-02"
+    ],
+    "partialTasksRemainPending": [
+      "P02-01",
+      "P03-04",
+      "P04-01",
+      "P07-03",
+      "P07-04",
+      "P13-04",
+      "P17-02"
+    ],
+    "environment": {
+      "shell": true,
+      "coding": true,
+      "githubGitObjects": true,
+      "concurrencySlots": 7,
+      "workersUsed": 6,
+      "localPostgreSQL": false,
+      "disposablePostgreSQL": "PR27 CI",
+      "productionActions": false
+    }
   }
 }
