@@ -1,27 +1,22 @@
 {
   "version": 1,
-  "revision": 44,
+  "revision": 45,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261031-0148",
     "token": "76db14a2-daa3-4247-b0b9-1470005b7b48",
     "acquiredAt": 1793411344919,
     "expiresAt": 1793413144919
   },
-  "lastOwner": {
-    "runId": "hosted-20261031-0043",
-    "token": "161e5aeb-dbd3-45e6-a0f2-a8cdb844b0f9",
-    "acquiredAt": 1793407428143,
-    "expiresAt": 1793410386098
-  },
   "queueState": {
     "version": 2,
-    "revision": 262,
+    "revision": 266,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,16 +95,11 @@
         }
       },
       "P01-03": {
-        "status": "blocked",
+        "status": "pending",
         "priority": 103,
-        "blockers": [
-          {
-            "type": "task",
-            "id": "P01-02",
-            "source": "dependency",
-            "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
-          }
-        ]
+        "discoveredDependencies": [],
+        "blockers": [],
+        "checkpoint": "Interrupted run stopped. Restored worktree clean at published32511cec52d6dab6627c9fc44bf1fa235a9546a3; claims only, no code changes. Recovery receipt awaits authorized remote publication."
       },
       "P01-04": {
         "status": "pending",
@@ -174,7 +164,7 @@
         "status": "pending",
         "priority": 201,
         "discoveredDependencies": [],
-        "checkpoint": "All workers stopped clean; branches durable; integrated source 91342fc16c964d6a5e7d6c423fa2a14dd9607bbd passed CI41152585945. Integrated explicit selected context in list/delete; wider route audit and client migration remain unfinished.",
+        "checkpoint": "Interrupted run stopped. Restored worktree clean at published32511cec52d6dab6627c9fc44bf1fa235a9546a3; claims only, no code changes. Recovery receipt awaits authorized remote publication.",
         "evidence": {
           "commit": "7e6bcb621bf8be72652479cb99a03a6d27197f38",
           "summary": "PARTIAL P02-01: generic Company/entity lists now scope explicit company consistently, reject malformed context instead of broadening; generic DELETE rejects contradictory/malformed company before writes. Viewer reads, omitted authorized list and valid owner deletion preserved.",
@@ -4215,25 +4205,65 @@
           "reviewed": true,
           "reviewer": "worker2-and-coordinator"
         }
+      },
+      {
+        "at": 1793411415747,
+        "actor": "worker1",
+        "type": "claim",
+        "taskId": "P01-03",
+        "token": "bf6ed9c1-d8b9-48ac-ba5d-779fbc1b7bb1"
+      },
+      {
+        "at": 1793411424033,
+        "actor": "worker2",
+        "type": "claim",
+        "taskId": "P02-01",
+        "token": "3a2011d8-fbc3-42fe-9b6f-70c3a44065e7"
+      },
+      {
+        "at": 1793458570332,
+        "actor": "scheduler",
+        "type": "lease_expired",
+        "taskId": "P01-03"
+      },
+      {
+        "at": 1793458570332,
+        "actor": "scheduler",
+        "type": "lease_expired",
+        "taskId": "P02-01"
+      },
+      {
+        "at": 1793458570332,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P01-03",
+        "checkpoint": "Interrupted run stopped. Restored worktree clean at published32511cec52d6dab6627c9fc44bf1fa235a9546a3; claims only, no code changes. Recovery receipt awaits authorized remote publication."
+      },
+      {
+        "at": 1793458570335,
+        "actor": "coordinator",
+        "type": "recover",
+        "taskId": "P02-01",
+        "checkpoint": "Interrupted run stopped. Restored worktree clean at published32511cec52d6dab6627c9fc44bf1fa235a9546a3; claims only, no code changes. Recovery receipt awaits authorized remote publication."
       }
     ],
     "catalogDigest": "c708e672a6e57c01d6295ebe136604b411bb429d0b2b9010f3ff52fd62eda137"
   },
   "checkpoint": {
-    "ref": "refs/heads/codex/whole-product-first-sprint",
-    "sha": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "36a1349132ed95cc1b86d5c1d984bc0157672738",
     "evidence": [
       {
-        "ref": "refs/heads/codex/whole-product-first-sprint",
-        "sha": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
-        "path": "tools/development/check.mjs"
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "36a1349132ed95cc1b86d5c1d984bc0157672738",
+        "path": "docs/development/recovery-20261031-1454.json"
       }
     ],
-    "runId": "hosted-20261031-0043",
-    "at": 1793408794106,
+    "runId": "hosted-20261031-0148",
+    "at": 1793458794938,
     "codeHead": "32511cec52d6dab6627c9fc44bf1fa235a9546a3"
   },
-  "updatedAt": 1793411344919,
+  "updatedAt": 1793458794938,
   "validation": {
     "sourceCommit": "32511cec52d6dab6627c9fc44bf1fa235a9546a3",
     "status": "passed",
@@ -4326,6 +4356,31 @@
       "localPostgreSQL": false,
       "disposablePostgreSQL": "PR27 CI",
       "productionActions": false
+    },
+    "recovery": {
+      "priorRunId": "hosted-20261031-0148",
+      "workersStopped": true,
+      "worktreesClean": true,
+      "codeChanges": false,
+      "recoveredClaims": [
+        "P01-03",
+        "P02-01"
+      ],
+      "sourceTestsPassed": 740,
+      "receipt": {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "36a1349132ed95cc1b86d5c1d984bc0157672738",
+        "path": "docs/development/recovery-20261031-1454.json"
+      }
     }
+  },
+  "recovery": {
+    "priorRunId": "hosted-20261031-0148",
+    "stoppedEvidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "36a1349132ed95cc1b86d5c1d984bc0157672738",
+      "path": "docs/development/recovery-20261031-1454.json"
+    },
+    "at": 1793458794938
   }
 }
