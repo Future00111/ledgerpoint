@@ -17,18 +17,24 @@ export function exportSchema() {
 export async function installSchema(admin,sql,{includeAmendments=false}={}) {
   // Caller has already proved its Unix-socket identity. This never opens a connection.
   const migrationInputs = loadMigrationInputs(root); // Verify every source before BEGIN; use these exact bytes below.
-  {
+  const requireEmptySchema = async () => {
     const existing=await admin.query(`SELECT count(*)::int n FROM (
       SELECT oid FROM pg_class WHERE relnamespace='public'::regnamespace
       UNION ALL SELECT oid FROM pg_proc WHERE pronamespace='public'::regnamespace
       UNION ALL SELECT oid FROM pg_type WHERE typnamespace='public'::regnamespace
     ) objects`);
     if(existing.rows[0].n!==0) throw Error('Schema installation is restricted to a newly created empty disposable database');
-  }
+  };
+  await requireEmptySchema();
   const tables=[...sql.matchAll(/CREATE TABLE "([^"]+)" \([\s\S]*?\n\);/g)];
   if(!tables.some(m=>m[1]==='canonical_journal_lines')) throw Error('Full canonical export missing');
   await admin.query('BEGIN');
   try {
+    // Dedicated disposable-installer namespace/key; transaction release covers
+    // COMMIT and ROLLBACK. Recheck after waiting so a competing migrator cannot
+    // turn the preflight's empty snapshot into permission to touch its schema.
+    await admin.query('SELECT pg_advisory_xact_lock(17428, 3003)');
+    await requireEmptySchema();
     await admin.query(`DO $$ BEGIN IF NOT EXISTS(SELECT FROM pg_roles WHERE rolname='ledgerly_api') THEN
       CREATE ROLE ledgerly_api LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
       END IF;

@@ -81,3 +81,19 @@ for (const includeAmendments of [false, true]) test(`tampered overlay stops inst
     assert.deepEqual(calls, []);
   } finally { rmSync(fixture, { recursive: true, force: true }); }
 });
+
+for (const includeAmendments of [false, true]) test(`schema created after preflight is refused under migration lock, amendments=${includeAmendments}`, async () => {
+  const calls = []; let checks = 0;
+  const admin = { query: async sql => {
+    calls.push(sql);
+    if (sql.includes('SELECT count(*)::int n')) return { rows: [{ n: checks++ === 0 ? 0 : 1 }] };
+    return { rows: [] };
+  } };
+  await assert.rejects(() => installSchema(admin, 'CREATE TABLE "canonical_journal_lines" (\n);', { includeAmendments }),
+    /restricted to a newly created empty disposable database/);
+  assert.equal(checks, 2);
+  assert.deepEqual(calls.slice(1, 3), ['BEGIN', 'SELECT pg_advisory_xact_lock(17428, 3003)']);
+  assert.match(calls[3], /SELECT count/);
+  assert.equal(calls[4], 'ROLLBACK');
+  assert.equal(calls.length, 5, 'no role, table or other DDL is allowed after losing the race');
+});
