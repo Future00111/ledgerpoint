@@ -21,8 +21,21 @@
   "ci": {
     "run": 41676853546,
     "job": 126059687792,
-    "status": "in_progress"
+    "status": "passed",
+    "tests": 920,
+    "pass": 920,
+    "fail": 0,
+    "skipped": 0,
+    "logsIndependentlyFetched": true,
+    "mergeHead": "f801e99f1de8dc94c4f3fa25f1f674fc85663cf1",
+    "mergeTreeMatchesPublished": true,
+    "disposablePostgres": true,
+    "restorePassed": true,
+    "encryptedRecoveryPassed": true,
+    "cleanupPassed": true
   },
   "shutdownIntent": "Checkpoint successful exact-source CI then release existing live run using SHA256-retired-owner representation; no new acquire or active token rewrite.",
-  "observedAt": "2026-11-03T16:43:12.573Z"
+  "observedAt": "2026-11-03T16:44:03.455Z",
+  "workersStopped": true,
+  "worktreesClean": true
 }
