@@ -1,0 +1,50 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+index edaf5af..a598097 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+@@ -5,7 +5,8 @@ import {randomUUID} from 'node:crypto';
+ import {realpathSync} from 'node:fs';
+ import path from 'node:path';
+ import pg from 'pg';
+-import {db,pool} from '@workspace/db';
++import {pool} from '@workspace/db';
++import {withCanonicalPostingTransaction} from '../accounting/canonicalPosting';
+ import {queryAdapter} from './core';
+ import {saveConfiguration,addPeriod} from './configuration';
+ import {savePaymentConfiguration,previewPayment,postPayment} from './payments';
+@@ -45,7 +46,7 @@ async function insertWitness(q:any,f:any){
+ }
+ for(const mode of ['parent','unreleased savepoint','released savepoint']) test(`real PostgreSQL: ${mode} cannot witness before top commit`,async()=>{
+  const f=await fixture();
+- await db.transaction(async tx=>{
++ await withCanonicalPostingTransaction(async tx=>{
+   const q=queryAdapter(tx);
+   if(mode!=='parent') await q.query('SAVEPOINT payment_child');
+   await postPayment(f.company,actor,f.body,undefined,tx);
+@@ -64,7 +65,7 @@ for(const mode of ['parent','unreleased savepoint','released savepoint']) test(`
+ });
+ test('real PostgreSQL: rollback removes both source and transaction receipt',async()=>{
+  const f=await fixture();
+- await assert.rejects(()=>db.transaction(async tx=>{await postPayment(f.company,actor,f.body,undefined,tx);throw Error('synthetic rollback');}),/synthetic rollback/);
++ await assert.rejects(()=>withCanonicalPostingTransaction(async tx=>{await postPayment(f.company,actor,f.body,undefined,tx);throw Error('synthetic rollback');}),/synthetic rollback/);
+  for(const table of ['accounting_payment_events','conditional_discount_payment_transactions'])
+   assert.equal((await pool.query(`SELECT count(*)::int n FROM public.${table} WHERE ${table==='accounting_payment_events'?'id':'event_id'}=$1`,[f.body.id])).rows[0].n,0);
+ });
+@@ -84,7 +85,7 @@ test('real PostgreSQL: runtime cannot forge, update, delete or truncate transact
+  }finally{await c.query('ROLLBACK');c.release();}
+ });
+ test('real PostgreSQL: missing trigger rejects schema; foreign origin cannot certify an unwitnessed event',async()=>{
+- const f=await fixture();await db.transaction(tx=>postPayment(f.company,actor,f.body,undefined,tx));
++ const f=await fixture();await withCanonicalPostingTransaction(tx=>postPayment(f.company,actor,f.body,undefined,tx));
+  const c=await admin.connect();try{
+   await c.query('BEGIN');await c.query('ALTER TABLE public.conditional_discount_payment_transactions DISABLE TRIGGER conditional_discount_transaction_immutable');
+   await c.query("UPDATE public.conditional_discount_payment_transactions SET cluster_id='foreign-cluster' WHERE event_id=$1",[f.body.id]);
+@@ -99,7 +100,7 @@ test('real PostgreSQL: missing trigger rejects schema; foreign origin cannot cer
+  assert.equal((await captureCommittedPaymentWitness(f.company,actor,f.body.id)).status,'recorded');
+ });
+ test('real PostgreSQL: fabricated clocks are replaced and the first observation survives retries',async()=>{
+- const f=await fixture();await db.transaction(tx=>postPayment(f.company,actor,f.body,undefined,tx));
++ const f=await fixture();await withCanonicalPostingTransaction(tx=>postPayment(f.company,actor,f.body,undefined,tx));
+  const floor=(await pool.query('SELECT clock_timestamp()::text floor')).rows[0].floor;
+  await pool.query(`INSERT INTO public.conditional_discount_commit_witnesses(company_id,event_id,journal_id,event_source_hash,actor_id,event_created_at,observed_at)
+  SELECT e.company_id,e.id,e.journal_id,j.source_revision,$3,'1900-01-01','1901-01-01' FROM public.accounting_payment_events e

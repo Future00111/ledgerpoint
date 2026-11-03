@@ -1,0 +1,36 @@
+{
+  "runId": "hosted-20261103-1956",
+  "base": "47e006c73f4f44af2a8f15e14167616c272f596a",
+  "authorCommit": "4fa84aa2d12d556f3fccb10dd9344043d98cc799",
+  "publishedCommit": "9df78847698ae3344de11fabb696078546e471fe",
+  "tree": "4510621b4ea2aaba946af71743fb82475768c499",
+  "patchSha256": "953adf7a2d2a40071009a85103c7e64df5174509560ebddc7f3738daebd01d11",
+  "files": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts"
+  ],
+  "reviewer": "root",
+  "reviewed": true,
+  "stopped": true,
+  "worktreeClean": true,
+  "observedAt": "2026-11-03T20:14:01.896842+00:00",
+  "sourceTests": {
+    "pass": 788,
+    "fail": 0,
+    "skip": 0
+  },
+  "fullBuild": "passed",
+  "focused": [
+    "API noEmit passed",
+    "referenced library builds passed",
+    "integration esbuild passed",
+    "diff check passed"
+  ],
+  "actualPostgreSQL": "pending exact CI",
+  "restore": "pending exact CI",
+  "acceptedOriginalBullets": 0,
+  "fullConditionalJourneyAccepted": false,
+  "remaining": [
+    "Full agreement capture/binding/admission/redemption/reversal/UI",
+    "Cross-cluster application restore and privilege provisioning"
+  ]
+}
