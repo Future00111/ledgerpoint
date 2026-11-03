@@ -1,0 +1,105 @@
+{
+  "runId": "hosted-20261103-1617",
+  "source": "4b6b5317a853c7163b0711be58bc6c5bd3434434",
+  "validation": {
+    "sourceCommit": "4b6b5317a853c7163b0711be58bc6c5bd3434434",
+    "tree": "a78b080d410e40581a06a83434d0b95a55f66b93",
+    "status": "passed",
+    "localSourceTests": 776,
+    "localSourcePass": 776,
+    "localSourceFail": 0,
+    "buildPassed": true,
+    "run": 41674233366,
+    "liveBrowserQualified": false,
+    "productionQualified": false,
+    "mergeHead": "56e64efbf66090b11f97e3fb5aa4fd51f38ab7e3",
+    "treeMatchesPublished": true,
+    "job": 126050408928,
+    "tests": 916,
+    "pass": 916,
+    "fail": 0,
+    "skipped": 0,
+    "disposablePostgres": true,
+    "restorePassed": true,
+    "encryptedRecoveryPassed": true,
+    "cleanupPassed": true,
+    "logsIndependentlyFetched": true
+  },
+  "migration": {
+    "sourceHead": "126d25b87f76e374c3ed80293356140ace460b85",
+    "originalBulletCount": 92,
+    "originalTaskCount": 112,
+    "preservedFields": [
+      "id",
+      "title",
+      "description",
+      "priority",
+      "dependencies",
+      "acceptance",
+      "kind",
+      "approval"
+    ],
+    "allWorkersStopped": true,
+    "oldRevision": 529,
+    "newRevision": 530,
+    "oldDigest": "c2b0d82d94d1895124eb24fb38582e316c954065eff5baa4953ef17636d43e12",
+    "newDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
+    "priorEventsPreserved": 537,
+    "priorTaskRecordsUnchanged": true,
+    "onlyOwnershipChanged": "P01-03",
+    "reviewer": "/root",
+    "reviewNote": "Approved with payment AND allocation server chronology requirement; correction applied."
+  },
+  "finalQueue": {
+    "revision": 531,
+    "priorEventsPreserved": 537,
+    "events": 539,
+    "onlyTaskRecordChanged": "P01-03",
+    "status": "pending",
+    "highestEligible": true
+  },
+  "independentReviewer": "/root",
+  "originalBulletsNewlyAccepted": [],
+  "journeysNewlyVerified": [],
+  "resolvedInternalBlockers": [
+    "P01-03 conditional-discount engineering contract and exact connected file ownership"
+  ],
+  "activities": [
+    "Exact126d25b restored; root independently reviewed conditional agreement trusted evidence/threshold/reversal contract and exact ownership",
+    "Root requested both payment AND allocation trusted deadline check; applied",
+    "Stopped-worker catalogue migration preserves all112tasks,92source bullets,all original fields and529prior queue state; new digest and migration event appended locally",
+    "Queue CLI resolve cleared only reviewed P01-03 internal blocker; local revision531; actual next select is P01-03",
+    "40scheduler tests pass; full source running; candidate publication pending",
+    "Root final independent review approved3path candidate; all537prior events preserved, only P01-03 record changed, twoevents appended",
+    "776source0fail; fullbuild passed after local pnpm cache symlink correction",
+    "Reviewed4b6b531 published to PR27 using expected-head fast-forward after live token re-read; exactCI41674233366 running",
+    "CI41674233366/job126050408928 succeeded; full logs fetched and inspected:916pass0fail0skip; disposablePostgres, populated restore, encrypted recovery and cleanup passed",
+    "CI merge56e64ef and published4b6b531 share exact treea78b080d; clean checkout; no runtime functionality enabled"
+  ],
+  "nextTask": {
+    "id": "P01-03",
+    "status": "pending",
+    "highestEligible": true,
+    "scope": "Native text-evidence agreement capture, frozen original binding, explicit conditional-credit transaction and all qualifying-allocation writer guards; implement as connected slice under reviewed contract",
+    "remainingParentGates": [
+      "Atomic reversal compensation including downstream allocation/refund and periods",
+      "Prior-credit/corrected-original combinations with per-line capacity",
+      "Independent financial review, exact-source PostgreSQL race/rollback/history and browser qualification"
+    ],
+    "existingAllocationRefundMustNotBeDuplicated": true
+  },
+  "creditEfficiency": {
+    "policyDate": "2026-11-03",
+    "implementers": 0,
+    "reviewers": 1,
+    "coordinators": 1,
+    "creditsPerAcceptedWorkflow": "unknown",
+    "reviewWait": "unknown",
+    "rework": "One reviewed chronology clarification and local pnpm dependency task-state symlink repair; no product rework",
+    "focus": "Conditional discount contract and ownership prerequisite"
+  },
+  "workersStarted": 0,
+  "workersStopped": true,
+  "worktreesClean": true,
+  "observedAt": 1793723354554
+}
