@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "task": "P01-03",
+  "actor": "worker1",
+  "status": "STOPPED_UNINTEGRATED_PARTIAL_NOT_ACCEPTED",
+  "base": "1e02fcda32f1be5ddcdf417b1810c5a6e84f10e4",
+  "commit": "27afbc849d52c1b4094a8811692e7e8df0dbfc51",
+  "tree": "86be5dc93f92a32904b6dc07202a37aa2c8eb804",
+  "branch": "codex/lp-1823-worker1",
+  "worktree": "/workspace/scratch/b4d6a4379808/run-1823-worker1",
+  "confirmedStoppedAt": "2026-11-03T18:37:36Z",
+  "cleanWorktree": true,
+  "paths": [
+    {
+      "path": "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+      "sha256": "2b1fa36b0d481f8d0ed1fe49bb48e85b03d244f993002f97a57f0b938f8854cf"
+    },
+    {
+      "path": "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+      "sha256": "a74bd3ae4eaae8b48b6e4df234c2fcd8b6b803e875583dcf655d792d81a905f1"
+    },
+    {
+      "path": "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+      "sha256": "c39adbae6ab171e3d13e29b33f13ebfc0984bcfc610ac1520d618795a390e61d"
+    },
+    {
+      "path": "docs/development/credit-capacity-contract.md",
+      "sha256": "d9d823ce3d47c4737d34b364612876d24df7d04c3dad60fd5f7888f1053441ea"
+    },
+    {
+      "path": "lib/db/migrations/conditional-discount-agreements.review.sql",
+      "sha256": "66df0eb01597be85e37f15fcae64a58764bd0236cbccf2438fb857a83e7fbaf0"
+    }
+  ],
+  "patch": "/tmp/lp-1823-worker1.patch",
+  "patchSha256": "35232c5cec653a374bb7a2cde42024409e58576b01985e65ca2a2c2efbf6eb74",
+  "tests": [
+    {
+      "command": "esbuild conditionalDiscount.test.ts --bundle --platform=node --format=cjs --external:pg --alias:@workspace/db=./lib/db/src/index.ts; isolated unused DB URL node --test /tmp/lp-1823-conditional-test.cjs",
+      "result": "14 passed, 0 failed; mocked service control flow only",
+      "log": "/tmp/lp-1823-conditional-test.log"
+    },
+    {
+      "command": "node_modules/.bin/tsc --project artifacts/api-server/tsconfig.json --noEmit --incremental false",
+      "result": "passed exit0",
+      "log": "/tmp/lp-1823-typecheck.log"
+    },
+    {
+      "command": "git diff --cached --check",
+      "result": "passed before commit"
+    }
+  ],
+  "remainingGates": [
+    "SQL has not been compiled/executed: PostgreSQL binaries unavailable. Same-tx xmin guard does not prove subtransactions/wraparound/frozen rows; no untested epoch algorithm added.",
+    "Actual PostgreSQL parent/savepoint, concurrent invisible commit/rollback, delayed cutoff, immutable permissions/partial schema and source-tampering tests required. Trigger/constraint name counts are not complete structural attestation.",
+    "Fresh binding witness, exact evidence capture and binding, parser/API/UI original and conditional review/commit, paid-credit consumption and redeemed allocation guard remain absent; conditional admission stays disabled.",
+    "Migration registry registration/installation, full connected postPayment success/retry and client response compatibility, combined build/current-source/disposable restore and independent review remain.",
+    "Parent P01-03 full acceptance, compensation, prior credits/corrections and live browser qualification remain."
+  ],
+  "creditsPerAcceptedWorkflow": "unknown",
+  "acceptedWorkflows": 0,
+  "notes": [
+    "No deployment/push/merge/provider/existing database actions.",
+    "Known source created_at is insertion clock, not commit evidence. A fresh observation can conservatively prove source was committed earlier; late retry cannot backdate proof.",
+    "Payment result preserved on optional observer failure; supplied posting transaction and nonqualifying events skip observer."
+  ]
+}

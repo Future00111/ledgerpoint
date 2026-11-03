@@ -1,0 +1,305 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
+new file mode 100644
+index 0000000..2f76454
+--- /dev/null
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
+@@ -0,0 +1,94 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { db } from '@workspace/db';
++import { PgDialect } from 'drizzle-orm/pg-core';
++import { captureCommittedPaymentWitness, observePaymentOutcome } from './conditionalDiscount';
++import { hash } from './core';
++
++const company='10000000-0000-4000-8000-000000000001',eventId='20000000-0000-4000-8000-000000000001';
++const journal='30000000-0000-4000-8000-000000000001',actor='synthetic-owner';
++const source={intent:{id:eventId,kind:'payment',payment_id:null,party_id:company,party_type:'customer',date:'2026-11-03',reference:'Test',amount_minor:'10800',allocations:[]}};
++const event={id:eventId,kind:'payment',payment_id:null,party_id:company,party_type:'customer',reference:'Test',amount_minor:'10800',allocations:[],source,
++ journal_id:journal,source_revision:hash(source),verified_journal_id:journal,verified_effect_id:'effect',event_effective_date:'2026-11-03',event_created_at:'2026-11-03 12:00:00.000001+00'};
++const witness={company_id:company,event_id:eventId,journal_id:journal,event_source_hash:hash(source),
++ event_created_at:event.event_created_at,observed_at:'2026-11-03 12:00:01.000001+00'};
++const dialect=new PgDialect();
++function fake(t:any,{installed=true,guards=3,constraints=5,member=true,row=event,receipt=witness,insertFailure=false}:any={}) {
++ const calls:string[]=[];let transactions=0;
++ t.mock.method(db,'transaction',async(fn:any)=>{
++   transactions++;
++   return fn({execute:async(statement:any)=>{
++     const {sql}=dialect.sqlToQuery(statement);calls.push(sql);
++     let rows:any[]=[];
++     if(sql.includes('FROM companies')) rows=[{id:company}];
++     else if(sql.includes('FROM company_users')) rows=member?[{role:'owner',is_active:true}]:[];
++     else if(sql.includes('to_regclass')) rows=[{present:installed?'conditional_discount_commit_witnesses':null}];
++     else if(sql.includes('FROM pg_trigger')) rows=[{n:guards}];
++     else if(sql.includes('FROM pg_constraint')) rows=[{n:constraints}];
++     else if(sql.includes('FROM accounting_payment_events e')) rows=[typeof row==='function'?row(sql,calls):row];
++     else if(sql.includes('INSERT INTO conditional_discount')) {if(insertFailure)throw Error('synthetic write failure');}
++     else if(sql.includes('FROM conditional_discount_commit_witnesses')) rows=[receipt];
++     else throw Error('Unexpected SQL: '+sql);
++     return {rows,rowCount:rows.length};
++   }});
++ });
++ return {calls,transactions:()=>transactions};
++}
++test('mocked service opens a fresh transaction and validates identity before receipt insertion',async t=>{
++ const f=fake(t);const r=await captureCommittedPaymentWitness(company,actor,eventId);
++ assert.equal(r.status,'recorded');assert.equal(f.transactions(),1);
++ assert.ok(f.calls.findIndex(s=>s.includes('FROM accounting_payment_events e'))<f.calls.findIndex(s=>s.includes('INSERT INTO conditional_discount')));
++ assert.match(f.calls.find(s=>s.includes('INSERT INTO conditional_discount'))!,/ON CONFLICT\(company_id,event_id\) DO NOTHING/);
++ assert.doesNotMatch(f.calls.find(s=>s.includes('INSERT INTO conditional_discount'))!,/observed_at/);
++});
++test('missing schema reports witness unavailable',async t=>{
++ fake(t,{installed:false});assert.deepEqual(await captureCommittedPaymentWitness(company,actor,eventId),{status:'unavailable'});
++});
++test('partial schema fails closed before any receipt insertion',async t=>{
++ const f=fake(t,{guards:2});await assert.rejects(()=>captureCommittedPaymentWitness(company,actor,eventId),/CONDITIONAL_WITNESS_SCHEMA_INCOMPLETE/);
++ assert.equal(f.calls.some(s=>s.includes('INSERT INTO')),false);
++});
++test('membership removal cannot obtain or replay a witness',async t=>{
++ const f=fake(t,{member:false});await assert.rejects(()=>captureCommittedPaymentWitness(company,actor,eventId),/RESOURCE_NOT_FOUND/);
++ assert.equal(f.calls.some(s=>s.includes('FROM accounting_payment_events')),false);
++});
++for(const [name,patch] of [
++ ['changed source bytes',{source:{...source,tampered:true}}],
++ ['missing protected posting effect',{verified_effect_id:null}],
++ ['changed effective date',{event_effective_date:'2026-11-04'}],
++ ['changed cash amount',{amount_minor:'10799'}],
++] as const) test(name+' rejects before persistence',async t=>{
++ const f=fake(t,{row:{...event,...patch}});await assert.rejects(()=>captureCommittedPaymentWitness(company,actor,eventId),/PAYMENT_HISTORY_INVALID/);
++ assert.equal(f.calls.some(s=>s.includes('INSERT INTO')),false);
++});
++test('replaced persisted receipt conflicts',async t=>{
++ fake(t,{receipt:{...witness,event_source_hash:'sha256:'+'0'.repeat(64)}});
++ await assert.rejects(()=>captureCommittedPaymentWitness(company,actor,eventId),/CONDITIONAL_WITNESS_INVALID/);
++});
++test('observer failure preserves the committed payment result and reports unavailable',async t=>{
++ fake(t,{insertFailure:true});const result={status:'posted',id:eventId,journal_id:journal};
++ assert.deepEqual(await observePaymentOutcome(result,company,actor,eventId,'payment',false),{...result,conditional_discount_witness:'unavailable'});
++});
++test('existing parent transaction and nonqualifying events never open observer transaction',async t=>{
++ const f=fake(t),result={status:'posted'};
++ assert.equal(await observePaymentOutcome(result,company,actor,eventId,'allocation',true),result);
++ assert.equal(await observePaymentOutcome(result,company,actor,eventId,'unallocation',false),result);
++ assert.equal(f.transactions(),0);
++});
++
++test('missing foreign-key or validated-clock constraint rejects witness',async t=>{
++ const f=fake(t,{constraints:4});await assert.rejects(()=>captureCommittedPaymentWitness(company,actor,eventId),/CONDITIONAL_WITNESS_SCHEMA_INCOMPLETE/);
++ assert.equal(f.calls.some(s=>s.includes('INSERT INTO')),false);
++});
++test('allocation also verifies its immutable parent payment before observing',async t=>{
++ const allocationSource={intent:{...source.intent,kind:'allocation',payment_id:company}};let reads=0;
++ const f=fake(t,{row:()=>++reads===1?{...event,kind:'allocation',payment_id:company,source:allocationSource,source_revision:hash(allocationSource)}:{...event,id:company,verified_effect_id:null}});
++ await assert.rejects(()=>captureCommittedPaymentWitness(company,actor,eventId),/PAYMENT_HISTORY_INVALID/);
++ assert.equal(reads,2);assert.equal(f.calls.some(s=>s.includes('INSERT INTO')),false);
++});
++test('exact retry returns first persisted observation without replacing its clock',async t=>{
++ const f=fake(t);const first=await captureCommittedPaymentWitness(company,actor,eventId);
++ const second=await captureCommittedPaymentWitness(company,actor,eventId);
++ assert.deepEqual(second,first);assert.equal(f.transactions(),2);
++ assert.equal(f.calls.some(s=>/^UPDATE|^DELETE/.test(s)),false);
++});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
+new file mode 100644
+index 0000000..d59a4ed
+--- /dev/null
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
+@@ -0,0 +1,80 @@
++import { fail, uuid } from '../financialDrafts/contract';
++import { hash, scope, transact } from './core';
++
++/** A receipt of observation, not the payment's actual commit timestamp. Only a
++ * fresh transaction can establish that the source was already committed. Never
++ * accept an injected transaction, connection, timestamp, hash or source row. */
++export async function captureCommittedPaymentWitness(company:string, actor:string, eventId:string) {
++  uuid(eventId);
++  return transact(async q=>{
++    await scope(q,company,actor,true,true);
++    const installed=(await q.query("SELECT to_regclass('public.conditional_discount_commit_witnesses') present")).rows[0]?.present;
++    if(!installed) return {status:'unavailable' as const};
++    const guards=(await q.query(`SELECT count(*)::int n FROM pg_trigger
++      WHERE tgrelid='conditional_discount_commit_witnesses'::regclass AND NOT tgisinternal
++      AND tgenabled='A' AND tgname IN ('conditional_discount_witness_immutable','conditional_discount_witness_no_truncate','conditional_discount_witness_observe')`)).rows[0];
++    if(guards?.n!==3) fail(503,'CONDITIONAL_WITNESS_SCHEMA_INCOMPLETE');
++    const constraints=(await q.query(`SELECT count(*)::int n FROM pg_constraint
++      WHERE conrelid='conditional_discount_commit_witnesses'::regclass AND convalidated
++      AND conname IN ('conditional_discount_witness_pk','conditional_discount_witness_event_fk',
++        'conditional_discount_witness_journal_fk','conditional_discount_witness_hash','conditional_discount_witness_clock')`)).rows[0];
++    if(constraints?.n!==5) fail(503,'CONDITIONAL_WITNESS_SCHEMA_INCOMPLETE');
++    const read=async(id:string)=>{
++      const e=(await q.query(`SELECT e.*,e.effective_date::text event_effective_date,e.created_at::text event_created_at,
++        j.id verified_journal_id,j.source_revision,p.id verified_effect_id
++        FROM accounting_payment_events e
++        LEFT JOIN canonical_journal_entries j ON j.id=e.journal_id AND j.company_id=e.company_id
++          AND j.source_id=e.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
++          AND j.currency_code='GBP' AND j.posting_kind='party_'||e.kind
++          AND j.posting_date=e.effective_date AND j.reference=e.reference
++          AND j.economic_effect_id='payment-event:'||e.id::text
++        LEFT JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
++          AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
++          AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text
++          AND p.status='posted' AND p.source_revision=j.source_revision
++        WHERE e.company_id=$1 AND e.id=$2`,[company,id])).rows[0];
++      if(!e) fail(404,'RESOURCE_NOT_FOUND');
++      if(!e.verified_journal_id || !e.verified_effect_id || e.source_revision!==hash(e.source)) fail(503,'PAYMENT_HISTORY_INVALID');
++      const intent=e.source?.intent;
++      if(!intent || intent.id!==e.id || intent.kind!==e.kind || intent.payment_id!==e.payment_id ||
++        intent.party_id!==e.party_id || intent.party_type!==e.party_type ||
++        intent.date!==e.event_effective_date || intent.reference!==e.reference ||
++        hash(intent.allocations)!==hash(e.allocations) || intent.amount_minor!==String(e.amount_minor)) fail(503,'PAYMENT_HISTORY_INVALID');
++      return e;
++    };
++    const event=await read(eventId);
++    if(!['payment','allocation'].includes(event.kind)) return {status:'not_applicable' as const};
++    if(event.kind==='allocation') {
++      const parent=await read(event.payment_id);
++      if(parent.kind!=='payment'||parent.party_id!==event.party_id||parent.party_type!==event.party_type) fail(503,'PAYMENT_HISTORY_INVALID');
++    }
++    // The trigger obtains the database clock AFTER these identity reads and
++    // rejects top-level same-transaction inserts (SQL subtransaction proof is
++    // still unqualified; see the review migration). ON CONFLICT preserves the
++    // first observation; a later retry can never backdate a missing receipt.
++    await q.query(`INSERT INTO conditional_discount_commit_witnesses
++      (company_id,event_id,journal_id,event_source_hash,actor_id)
++      VALUES($1,$2,$3,$4,$5) ON CONFLICT(company_id,event_id) DO NOTHING`,
++      [company,event.id,event.journal_id,event.source_revision,actor]);
++    const witness=(await q.query(`SELECT company_id,event_id,journal_id,event_source_hash,
++      observed_at::text, event_created_at::text FROM conditional_discount_commit_witnesses
++      WHERE company_id=$1 AND event_id=$2`,[company,event.id])).rows[0];
++    if(!witness || witness.journal_id!==event.journal_id || witness.event_source_hash!==event.source_revision ||
++      witness.event_created_at!==event.event_created_at) fail(503,'CONDITIONAL_WITNESS_INVALID');
++    return {status:'recorded' as const,witness};
++  });
++}
++
++/** A post-commit observer must never turn an already committed payment into an
++ * apparent failure. Admission will require a verified persisted witness, never
++ * this response status. In-transaction paid-credit children are not observable. */
++export async function observePaymentOutcome<T>(result:T, company:string, actor:string, eventId:string,
++  kind:string, existingTransaction:boolean) {
++  if(existingTransaction || !['payment','allocation'].includes(kind)) return result;
++  try {
++    const receipt=await captureCommittedPaymentWitness(company,actor,eventId);
++    return {...result,conditional_discount_witness:receipt.status};
++  } catch {
++    return {...result,conditional_discount_witness:'unavailable'};
++  }
++}
+diff --git a/artifacts/api-server/src/services/accountingDocuments/payments.ts b/artifacts/api-server/src/services/accountingDocuments/payments.ts
+index 0816909..8c1c8b2 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/payments.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/payments.ts
+@@ -1,4 +1,5 @@
+ import { randomUUID } from 'node:crypto';
++import { observePaymentOutcome } from './conditionalDiscount';
+ import { isCompanyRole } from '../../security/roles';
+ import { canWriteDraft, fail, uuid } from '../financialDrafts/contract';
+ import { postCanonicalJournal, postCanonicalJournalInTransaction, roleHasAccountingCapability, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
+@@ -196,7 +197,7 @@ export async function postPayment(company:string,actor:string,body:unknown,testH
+     const p=await plan(q,company,actor,b);if(p.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');return {plan:p};
+   };
+   const initial=existingTransaction?await admission(queryAdapter(existingTransaction)):await transact(admission);
+-  if(initial.replayed) return {status:'duplicate',id:b.id,journal_id:initial.replayed.journal_id};
++  if(initial.replayed) return observePaymentOutcome({status:'duplicate',id:b.id,journal_id:initial.replayed.journal_id},company,actor,b.id,b.kind,!!existingTransaction);
+   const first=initial.plan!;let current=first,transaction:DatabaseTransaction;
+   const authority=<T>(value:T,keys:string[],token:string):LockedAuthority<T>=>({authority:value,recordKeys:keys,
+     capturedToken:{revision:token},lockMode:'FOR UPDATE',transactionBound:true,
+@@ -234,6 +235,6 @@ export async function postPayment(company:string,actor:string,body:unknown,testH
+       postingKind:`party_${b.kind}`,economicEffectId:`payment-event:${b.id}`,idempotencyKey:`payment-event:${b.id}`,
+       accountIds:[...new Set(first.lines.map(l=>l.accountId))],postingDate:b.date,configurationVersionId:first.configuration.revision,
+       currencyCode:'GBP',description:`${b.party_type} ${b.kind}: ${b.reference}`,reference:b.reference},deps);
+-    return {status:result.status,id:b.id,journal_id:result.journalId};
+-  } catch(error){if(error instanceof Replayed)return error.data;throw error;}
++    return observePaymentOutcome({status:result.status,id:b.id,journal_id:result.journalId},company,actor,b.id,b.kind,!!existingTransaction);
++  } catch(error){if(error instanceof Replayed)return observePaymentOutcome(error.data,company,actor,b.id,b.kind,!!existingTransaction);throw error;}
+ }
+diff --git a/docs/development/credit-capacity-contract.md b/docs/development/credit-capacity-contract.md
+index b6ed7a8..8e2df5b 100644
+--- a/docs/development/credit-capacity-contract.md
++++ b/docs/development/credit-capacity-contract.md
+@@ -310,3 +310,31 @@ commercial acceptance (including live browser qualification) is evidenced.
+ Those remaining financial interfaces require coordinator review before their
+ implementation; they are explicit next gates, not reasons to duplicate already
+ implemented ordinary allocation/refund workflows or remove scope.
++
++### Unqualified commitment-witness prerequisite (3 November 2026)
++
++A payment event's `created_at` is its insertion time, not its transaction's commit
++clock. It cannot prove that cash committed before the inclusive UTC cutoff. The
++unfinished witness candidate therefore observes an already visible native payment
++or allocation in a fresh server transaction after the posting transaction has
++finished, validates its source/journal/posting-effect identities and records a
++server-clock receipt. A receipt created on a late retry stays late. A later
++receipt commit does not change the fact that the source was already committed at
++the observation clock. Both the payment and its qualifying allocation need this
++proof; agreement binding also needs a separately reviewed committed-observation
++boundary before either event. No client clock or insertion timestamp substitutes.
++
++This candidate does not enable conditional terms, evidence capture, agreement
++binding, conditional-credit admission or redeemed-allocation protection. Its
++review SQL is not registered or installed. The optional observer preserves an
++already committed payment outcome when unavailable; eligibility must eventually
++read and validate the persisted receipt, never trust that response status.
++
++The fresh-transaction service boundary is implemented. The draft SQL's direct
++same-transaction `xmin` check is only a partial defense: subtransactions, XID
++wraparound and frozen rows are not qualified. Before integration, require actual
++disposable PostgreSQL tests for parent/savepoint inserts, concurrent invisible
++rows and commit/rollback, delayed cutoff crossings, exact retries, immutable
++permissions, partial schema and source tampering. Mocked service tests are not
++commit-visibility evidence. No existing database or production activation is
++permitted by this candidate, and all earlier P01-03 acceptance gates remain.
+diff --git a/lib/db/migrations/conditional-discount-agreements.review.sql b/lib/db/migrations/conditional-discount-agreements.review.sql
+new file mode 100644
+index 0000000..806b36e
+--- /dev/null
++++ b/lib/db/migrations/conditional-discount-agreements.review.sql
+@@ -0,0 +1,49 @@
++-- Partial prerequisite ONLY: no agreement admission or conditional credit.
++-- Review/disposable installation only; not in the executable registry yet.
++CREATE TABLE conditional_discount_commit_witnesses (
++  company_id uuid NOT NULL,
++  event_id uuid NOT NULL,
++  journal_id uuid NOT NULL CONSTRAINT conditional_discount_witness_journal_fk REFERENCES canonical_journal_entries(id),
++  event_source_hash text NOT NULL CONSTRAINT conditional_discount_witness_hash CHECK(event_source_hash ~ '^sha256:[a-f0-9]{64}$'),
++  actor_id text NOT NULL,
++  event_created_at timestamptz NOT NULL,
++  observed_at timestamptz NOT NULL,
++  CONSTRAINT conditional_discount_witness_pk PRIMARY KEY(company_id,event_id),
++  CONSTRAINT conditional_discount_witness_event_fk FOREIGN KEY(company_id,event_id) REFERENCES accounting_payment_events(company_id,id),
++  CONSTRAINT conditional_discount_witness_clock CHECK(observed_at > event_created_at)
++);
++CREATE FUNCTION conditional_discount_witness_immutable() RETURNS trigger LANGUAGE plpgsql AS $$
++BEGIN RAISE EXCEPTION 'Conditional discount commitment witnesses are immutable'; END $$;
++-- The xmin check below rejects a top-level same-transaction insert ONLY. It is
++-- NOT qualified against subtransactions, XID wraparound or frozen old rows.
++-- The service fresh-transaction boundary remains mandatory; this review SQL
++-- cannot authorize conditional admission until disposable PostgreSQL tests pass.
++CREATE FUNCTION conditional_discount_witness_observe() RETURNS trigger LANGUAGE plpgsql AS $$
++DECLARE source_row accounting_payment_events%ROWTYPE; source_xid bigint;
++BEGIN
++  SELECT e.* INTO source_row FROM accounting_payment_events e
++    WHERE e.company_id=NEW.company_id AND e.id=NEW.event_id;
++  IF NOT FOUND THEN RAISE EXCEPTION 'Native payment event required'; END IF;
++  SELECT xmin::text::bigint INTO source_xid FROM accounting_payment_events
++    WHERE company_id=NEW.company_id AND id=NEW.event_id;
++  IF source_xid = txid_current() % 4294967296 OR
++     source_row.journal_id <> NEW.journal_id OR source_row.kind NOT IN ('payment','allocation') THEN
++    RAISE EXCEPTION 'A separately committed native payment or allocation is required';
++  END IF;
++  -- Ignore caller timestamps; the observed source already exists at this clock.
++  NEW.event_created_at := source_row.created_at;
++  NEW.observed_at := clock_timestamp();
++  RETURN NEW;
++END $$;
++CREATE TRIGGER conditional_discount_witness_observe BEFORE INSERT ON conditional_discount_commit_witnesses
++ FOR EACH ROW EXECUTE FUNCTION conditional_discount_witness_observe();
++CREATE TRIGGER conditional_discount_witness_immutable BEFORE UPDATE OR DELETE ON conditional_discount_commit_witnesses
++ FOR EACH ROW EXECUTE FUNCTION conditional_discount_witness_immutable();
++CREATE TRIGGER conditional_discount_witness_no_truncate BEFORE TRUNCATE ON conditional_discount_commit_witnesses
++ FOR EACH STATEMENT EXECUTE FUNCTION conditional_discount_witness_immutable();
++ALTER TABLE conditional_discount_commit_witnesses ENABLE ALWAYS TRIGGER conditional_discount_witness_observe;
++ALTER TABLE conditional_discount_commit_witnesses ENABLE ALWAYS TRIGGER conditional_discount_witness_immutable;
++ALTER TABLE conditional_discount_commit_witnesses ENABLE ALWAYS TRIGGER conditional_discount_witness_no_truncate;
++REVOKE ALL ON conditional_discount_commit_witnesses FROM PUBLIC;
++GRANT SELECT,INSERT ON conditional_discount_commit_witnesses TO ledgerly_api;
++REVOKE UPDATE,DELETE,TRUNCATE ON conditional_discount_commit_witnesses FROM ledgerly_api;

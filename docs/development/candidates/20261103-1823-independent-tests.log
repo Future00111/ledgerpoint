@@ -1,0 +1,22 @@
+✔ mocked service opens a fresh transaction and validates identity before receipt insertion (6.531534ms)
+✔ missing schema reports witness unavailable (0.885948ms)
+✔ partial schema fails closed before any receipt insertion (0.701199ms)
+✔ membership removal cannot obtain or replay a witness (0.36406ms)
+✔ changed source bytes rejects before persistence (0.557803ms)
+✔ missing protected posting effect rejects before persistence (0.319753ms)
+✔ changed effective date rejects before persistence (0.366363ms)
+✔ changed cash amount rejects before persistence (0.355818ms)
+✔ replaced persisted receipt conflicts (0.637713ms)
+✔ observer failure preserves the committed payment result and reports unavailable (0.547147ms)
+✔ existing parent transaction and nonqualifying events never open observer transaction (0.15227ms)
+✔ missing foreign-key or validated-clock constraint rejects witness (0.37036ms)
+✔ allocation also verifies its immutable parent payment before observing (0.535609ms)
+✔ exact retry returns first persisted observation without replacing its clock (1.060351ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 184.800231
