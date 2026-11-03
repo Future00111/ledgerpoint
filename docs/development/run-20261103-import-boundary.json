@@ -49,5 +49,7 @@
     "Synthetic original payment request recovery and permission lock-race regressions on exact source",
     "Synthetic populated encrypted application restore and CommonJS partial-schema import boundary"
   ],
-  "remaining": "Broad P02-02 identity lifecycle, P03-01 other operation families/browser discovery, and P03-04 offsite/operating-target qualification remain pending; no source bullet accepted"
+  "remaining": "Broad P02-02 identity lifecycle, P03-01 other operation families/browser discovery, and P03-04 offsite/operating-target qualification remain pending; no source bullet accepted",
+  "endedAt": 1793719707756,
+  "stopReason": "Requested narrow import-boundary repair completed and exact-source CI passed; durable publication and clean stop; no unrelated work started."
 }
