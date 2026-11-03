@@ -1294,7 +1294,7 @@ test('original payment request recovery survives new sessions without reposting 
     const conflict=await request(f.company,'/accounting-payments','POST',{...reviewed,reference:'Different intent'});assert.equal(conflict.status,409);
     assert.deepEqual((await request(f.company,path)).data,recovered.data);
   }
-  assert.equal((await request(f.company,'/accounting-payments/operations/not-a-uuid')).status,422);
+  assert.equal((await request(f.company,'/accounting-payments/operations/not-a-uuid')).status,400);
 });
 
 test('rolled-back payment command remains unknown and a same-identity retry recovers its one committed result',async()=>{
