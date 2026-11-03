@@ -69,3 +69,14 @@ test('updateAccount PATCHes with quoted sha256 revision; no delete method exists
   assert.ok(seen.url.endsWith('/accounting-accounts/a'));
   assert.equal(c.deleteAccount, undefined);
 });
+
+
+test('original payment identity recovery is a scoped read and sends no frozen financial payload', async () => {
+  let seen;
+  const client=createAccountingClient(async (url,init)=>{seen={url,init};return {ok:true,json:async()=>({data:{status:'unknown',id:'request/id'}})};});
+  const signal=new AbortController().signal;
+  const result=await client.recoverPayment('company/id','request/id',signal);
+  assert.equal(seen.url,'/api/companies/company%2Fid/accounting-payments/operations/request%2Fid');
+  assert.equal(seen.init.method,'GET');assert.equal(seen.init.body,undefined);assert.equal(seen.init.signal,signal);
+  assert.deepEqual(result,{status:'unknown',id:'request/id'});
+});

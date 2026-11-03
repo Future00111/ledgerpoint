@@ -139,3 +139,41 @@ test("company mass assignment is rejected and provider failures redact logs and 
     assert.match(result.body, /Unable to complete/);
   } finally { providerFailure = false; }
 });
+
+
+test("company detail updates recheck authority after concurrent removal or demotion wins the company lock", async () => {
+  for (const change of ["revoke", "demote"] as const) {
+    const f = await fixture(), editor = `synthetic-editor-${randomUUID()}`;
+    await addMember(f.company, editor, "accountant");
+    assert.equal((await request(`/${f.company}`, "PUT", { name: "Before concurrent change" }, editor)).status, 200);
+    const blocker = await admin.connect();
+    let pending: Promise<{ status: number; body: string }> | undefined;
+    try {
+      await blocker.query("BEGIN");
+      const { rows: [{ pid }] } = await blocker.query("SELECT pg_backend_pid() pid");
+      await blocker.query("SELECT id FROM companies WHERE id=$1 FOR UPDATE", [f.company]);
+      pending = request(`/${f.company}`, "PUT", { name: "Unauthorised delayed edit" }, editor);
+      // Observe the real request waiting on this transaction, rather than racing
+      // arbitrary sleeps. The previous implementation waited only at its UPDATE.
+      const deadline = Date.now() + 5000;
+      let waiting = false;
+      while (Date.now() < deadline) {
+        waiting = (await admin.query("SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE usename='ledgerly_api' AND $1::int=ANY(pg_blocking_pids(pid))) waiting", [pid])).rows[0].waiting;
+        if (waiting) break;
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      assert.equal(waiting, true, "the authenticated update must reach the company lock");
+      if (change === "revoke") await blocker.query("UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2", [f.company, editor]);
+      else await blocker.query("UPDATE company_users SET role='read_only' WHERE company_id=$1 AND user_id=$2", [f.company, editor]);
+      await blocker.query("COMMIT");
+      const response = await pending;
+      assert.equal(response.status, 403, response.body);
+      assert.equal((await admin.query("SELECT name FROM companies WHERE id=$1", [f.company])).rows[0].name, "Before concurrent change");
+      assert.equal((await activeOwners(f.company)).length, 1);
+    } finally {
+      await blocker.query("ROLLBACK");
+      blocker.release();
+      if (pending) await pending;
+    }
+  }
+});

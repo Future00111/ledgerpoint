@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { isCompanyRole } from '../../security/roles';
 import { canWriteDraft, fail, uuid } from '../financialDrafts/contract';
 import { postCanonicalJournal, postCanonicalJournalInTransaction, roleHasAccountingCapability, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
 import { scope, transact, exactFields, supportedCompany, hash, queryAdapter, type Queryable } from './core';
@@ -73,6 +74,25 @@ export async function listPayments(company:string,actor:string) {
         reversed:related.some(e=>e.kind==='reversal'),
         allocation_balances:[...allocationBalances].map(([document_id,n])=>({document_id,amount_minor:n.toString()})),events:related};
     });
+  },true);
+}
+/** Existing immutable payment events are the command/outcome authority. This
+ * read never retries a command; an absent row may still be an in-flight commit. */
+export async function recoverPayment(company:string,actor:string,requestId:string) {
+  const id=uuid(requestId);
+  return transact(async q=>{
+    await scope(q,company,actor);
+    const membership=(await q.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2',[company,actor])).rows[0];
+    if(!isCompanyRole(membership?.role)) fail(403,'CAPABILITY_DENIED');
+    const event=(await q.query(`SELECT e.id,e.source,j.source_revision,j.id verified_journal_id FROM accounting_payment_events e
+      LEFT JOIN canonical_journal_entries j ON j.id=e.journal_id AND j.company_id=e.company_id
+        AND j.source_id=e.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
+        AND j.currency_code='GBP' AND j.posting_kind='party_'||e.kind
+        AND j.economic_effect_id='payment-event:'||e.id::text AND j.idempotency_key='payment-event:'||e.id::text
+      WHERE e.company_id=$1 AND e.id=$2`,[company,id])).rows[0];
+    if(!event) return {status:'unknown',id};
+    if(!event.verified_journal_id || event.source_revision!==hash(event.source)) fail(503,'PAYMENT_HISTORY_INVALID');
+    return {status:'recorded',id,journal_id:event.verified_journal_id};
   },true);
 }
 function intent(body:unknown) {

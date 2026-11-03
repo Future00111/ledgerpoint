@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
 import path from 'node:path';
+import { recoverApplicationArchive } from '../operations/backup-restore/application-recovery.mjs';
 
 const SOURCE = 'ledgerly_accounting_flow_test';
 const RESTORED = 'ledgerly_accounting_flow_restore_test';
@@ -117,7 +118,8 @@ export async function runRestoreDrill({ Client, directory, socket, port }) {
     catch(error) {if(error.code!=='42501') throw error;denied=true;}
     finally {await runtime.query('ROLLBACK');}
     if(!denied) throw new Error('Restored runtime unexpectedly permits source content changes.');
-    return { syntheticOnly: true, sourceUnchanged: true, restoredTables: before.tables.length,
+    const encryptedApplicationRecovery = await recoverApplicationArchive({ Client, directory, archive, source, before, fingerprintDatabase, assertSameFingerprint });
+    return { encryptedApplicationRecovery, syntheticOnly: true, sourceUnchanged: true, restoredTables: before.tables.length,
       restoredRows: before.tables.reduce((sum, table) => sum + table.rows, 0),
       sourceFingerprint: digest(before), restoredFingerprint: digest(after), runtimeRestricted: true,
       controlsPreserved: true, runtimeMutationDenied: true, ambientDatabaseCredentialsUsed: false, productionContact: false };

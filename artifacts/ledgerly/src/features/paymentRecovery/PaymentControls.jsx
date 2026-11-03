@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Money, JournalLink } from '@/components/accounting/AccountingUI';
 import { canConfigurePayments, canPostPayments, recoveryBusy } from './model.mjs';
@@ -36,6 +37,8 @@ export function PaymentRecoveryPanel({ state, capabilities, closing, onCheck, on
     {state.phase !== 'posting' && <p>The payment may already be recorded. Check its status before creating another payment. A retry uses the same reviewed payment and cannot create a second event with this reference.</p>}
     {state.check === 'not_found' && <p>Not found in the latest history. The original request may still finish; its outcome remains unknown.</p>}
     {state.error && <p>The latest request did not confirm the outcome{state.error.code ? ` (${state.error.code})` : ''}. This does not establish whether the original recording succeeded.</p>}
+    <Link className="underline" to={`/payments?event=${encodeURIComponent(state.body.id)}`}>Open this event in payment history</Link>
+    <p className="text-xs">Keep this event reference to check its recorded history after reloading or signing in again. An absent event remains unconfirmed; do not create a replacement payment.</p>
     <p className="text-xs">The reviewed details stay frozen while this view is open. Leaving, reloading or switching company clears this recovery view; it does not cancel a payment.</p>
     {closing ? <div role="alert" className="space-y-3 border-t border-amber-300 pt-3">
       <p className="font-medium">Close this view with the outcome still unknown?</p>

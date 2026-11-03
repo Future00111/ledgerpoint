@@ -12,7 +12,8 @@ const input = (kind = 'payment') => ({ id: 'synthetic-event', kind, party_type: 
   amount_minor: '9007199254740993', allocations: ['refund', 'reversal'].includes(kind) ? [] : [{ document_id: 'synthetic-bill', amount_minor: '12345' }] });
 const review = (kind = 'payment', company = 'company-a') => bindPaymentReview(company, input(kind), { review_token: 'reviewed-token' });
 const event = (kind = 'payment') => ({ ...input(kind), effective_date: '2026-10-30', journal_id: `journal-${kind}` });
-const rows = (kind = 'payment') => [{ id: kind === 'payment' ? 'synthetic-event' : 'original-payment', events: [event(kind)] }];
+const outcome = (kind = 'payment') => ({status:'recorded',id:'synthetic-event',journal_id:`journal-${kind}`});
+const unknown = () => ({status:'unknown',id:'synthetic-event'});
 const json = data => ({ ok: true, status: 200, json: async () => ({ data }) });
 const deferred = () => {
   let resolve, reject;
@@ -28,7 +29,7 @@ test('a lost response after a committed request resolves through a read without 
       stored.push({ id: 'synthetic-event', events: [event()] });
       throw new TypeError('Connection lost after recording');
     }
-    return json(stored);
+    return json(outcome());
   });
   const recovery = createPaymentRecovery('company-a', api);
   await recovery.record(review(), owner);
@@ -39,7 +40,7 @@ test('a lost response after a committed request resolves through a read without 
   assert.deepEqual(recovery.getSnapshot().result, { status: 'recorded', id: 'synthetic-event', journal_id: 'journal-payment' });
   assert.deepEqual(calls, [
     { url: '/api/companies/company-a/accounting-payments', method: 'POST' },
-    { url: '/api/companies/company-a/accounting-payments', method: 'GET' },
+    { url: '/api/companies/company-a/accounting-payments/operations/synthetic-event', method: 'GET' },
   ]);
   assert.equal(await recovery.retry(owner), false);
   assert.equal(stored.length, 1);
@@ -48,7 +49,7 @@ test('a lost response after a committed request resolves through a read without 
 test('not found remains unknown and retry sends identical ID, body, precision and review token', async () => {
   const sent = [], recordedIds = new Set();
   const api = createAccountingClient(async (_url, options) => {
-    if (options.method === 'GET') return json([]);
+    if (options.method === 'GET') return json(unknown());
     sent.push(options.body);
     const body = JSON.parse(options.body), duplicate = recordedIds.has(body.id);
     recordedIds.add(body.id);
@@ -76,7 +77,7 @@ test('a stale, denied or failed retry never erases an earlier uncertain outcome'
     let posts = 0;
     const recovery = createPaymentRecovery('company-a', {
       postPayment: async () => { if (++posts === 1) throw new TypeError('Lost response'); throw Object.assign(new Error('Latest request rejected'), { status, code }); },
-      payments: async () => [],
+      recoverPayment: async () => unknown(),
     });
     await recovery.record(review(), owner);
     const retained = recovery.getSnapshot().body;
@@ -101,12 +102,11 @@ test('empty, malformed or mismatched recording responses never claim a successfu
 test('status lookup resolves payment, allocation, unallocation, refund and reversal by event ID', async () => {
   for (const kind of ['payment', 'allocation', 'unallocation', 'refund', 'reversal']) {
     const recovery = createPaymentRecovery('company-a', {
-      postPayment: async () => { throw new Error('Unknown'); }, payments: async () => rows(kind),
+      postPayment: async () => { throw new Error('Unknown'); }, recoverPayment: async () => outcome(kind),
     });
     await recovery.record(review(kind), owner);
     await recovery.check();
     assert.equal(recovery.getSnapshot().result.journal_id, `journal-${kind}`);
-    assert.equal(recovery.getSnapshot().payment.id, kind === 'payment' ? 'synthetic-event' : 'original-payment');
   }
 });
 
@@ -114,7 +114,7 @@ test('failed and malformed history reads retain the recovery request and do not 
   for (const read of [async () => { throw new Error('Read unavailable'); }, async () => undefined, async () => [{ events: [{ id: 'synthetic-event' }] }]]) {
     let posts = 0;
     const recovery = createPaymentRecovery('company-a', {
-      postPayment: async () => { posts++; throw new Error('Unknown'); }, payments: read,
+      postPayment: async () => { posts++; throw new Error('Unknown'); }, recoverPayment: read,
     });
     await recovery.record(review(), owner);
     const retained = recovery.getSnapshot().body;
@@ -130,7 +130,7 @@ test('double clicks cannot overlap recording, checking or retry requests', async
   const post = deferred(), check = deferred();
   let posts = 0, reads = 0;
   const recovery = createPaymentRecovery('company-a', {
-    postPayment: () => { posts++; return post.promise; }, payments: () => { reads++; return check.promise; },
+    postPayment: () => { posts++; return post.promise; }, recoverPayment: () => { reads++; return check.promise; },
   });
   const recording = recovery.record(review(), owner);
   assert.equal(recoveryBusy(recovery.getSnapshot()), true);
@@ -143,7 +143,7 @@ test('double clicks cannot overlap recording, checking or retry requests', async
   assert.equal(recoveryBusy(recovery.getSnapshot()), true);
   assert.equal(await recovery.check(), false);
   assert.equal(await recovery.retry(owner), false);
-  check.resolve([]); await checking;
+  check.resolve(unknown()); await checking;
   assert.equal(posts, 1); assert.equal(reads, 1);
 });
 
@@ -152,7 +152,7 @@ test('company switch clears recovery and ignores late recording and history resp
     const late = deferred(), notifications = [];
     const a = createPaymentRecovery('company-a', {
       postPayment: operation === 'post' ? () => late.promise : async () => { throw new Error('Unknown'); },
-      payments: () => late.promise,
+      recoverPayment: () => late.promise,
     });
     a.subscribe(() => notifications.push(a.getSnapshot()?.phase ?? null));
     let pending = a.record(review(), owner);
@@ -160,7 +160,7 @@ test('company switch clears recovery and ignores late recording and history resp
     a.reset();
     const b = createPaymentRecovery('company-b', {});
     const count = notifications.length;
-    late.resolve(operation === 'post' ? { status: 'posted', id: 'synthetic-event', journal_id: 'old-journal' } : rows());
+    late.resolve(operation === 'post' ? { status: 'posted', id: 'synthetic-event', journal_id: 'old-journal' } : outcome());
     await pending;
     assert.equal(a.getSnapshot(), null); assert.equal(b.getSnapshot(), null);
     assert.equal(notifications.length, count);
@@ -173,7 +173,7 @@ test('permissions fail closed for writes while status reads remain available aft
   let writes = 0, reads = 0;
   const recovery = createPaymentRecovery('company-a', {
     postPayment: async () => { writes++; throw new Error('Unknown'); },
-    payments: async () => { reads++; return rows(); },
+    recoverPayment: async () => { reads++; return outcome(); },
   });
   for (const capabilities of [undefined, {}, viewer, admin, { post_payments: 'true' }]) {
     assert.equal(await recovery.record(review(), capabilities), false);

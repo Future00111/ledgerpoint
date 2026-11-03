@@ -134,8 +134,19 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     const parsed = updateCompanyBody.safeParse(req.body);
     if (!parsed.success) { res.status(400).json({ error: "Provide valid editable company details only" }); return; }
-    const [company] = await db.update(companiesTable).set({ ...parsed.data, updated_at: new Date() })
-      .where(eq(companiesTable.id, companyId)).returning();
+    const company = await db.transaction(async tx => {
+      // Use the same company-then-members lock order as membership changes.
+      // The preflight lookup is not authority after waiting for another writer.
+      const members = await lockedMembers(tx, companyId);
+      const actors = members.filter(member => member.user_id === userId);
+      if (actors.length !== 1 || actors[0]?.is_active !== true ||
+        !["owner", "accountant"].includes(actors[0]?.role ?? "")) {
+        throw new CompanyPolicyError("access_denied");
+      }
+      const [updated] = await tx.update(companiesTable).set({ ...parsed.data, updated_at: new Date() })
+        .where(eq(companiesTable.id, companyId)).returning();
+      return updated;
+    });
     if (!company) { res.status(404).json({ error: "Company not found" }); return; }
     res.json(company);
   } catch (err: unknown) {

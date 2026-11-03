@@ -9,10 +9,10 @@ implied by a queue entry.
 
 ## Run and resume
 
-One coordinator dispatches up to six interchangeable workers in the current
-seven-slot Work host. Six is a starting ceiling, not a permanent staffing map or
-a proved optimum. Only dispatch the number of independent, approved claims and
-resources actually available. A worker may move between any product areas.
+One coordinator normally dispatches at most two implementers and one independent
+reviewer. Expand to six workers only for named ready independent tasks with a
+documented expected benefit and sufficient verification/publication capacity.
+Use the smallest useful team; workers remain interchangeable across product areas.
 
 Before a new session, read `docs/development/work-coordinator.json` from branch
 `codex/ledgerly-work-queue-state` in `Future00111/ledgerpoint`. It is the durable
@@ -69,8 +69,8 @@ not shell interpolation. Tokens and runtime state contain no service secrets.
    tree, and accepts only independently reviewed, matching-commit evidence. Reopen
    invalidates affected dependents. Quarantined work retains its files until the
    old worker is confirmed stopped and recovery is reviewed.
-6. Refill free worker slots after completion, block, acceptance, reopening or
-   reprioritization. If no claim is available, report concrete blockers. Request
+6. Reassess useful capacity after completion, block, acceptance, reopening or
+   reprioritization; do not fill slots automatically. Report concrete blockers. Request
    only genuinely missing owner decisions or permissions; do not invent work.
 
 The queue prevents overlapping exact paths and directory-prefix leases. It also
@@ -115,38 +115,38 @@ with authenticated Codex CLI/SDK and the same queue/CAS protocol. That runner an
 credentials are not installed by this change. Eight concurrent workers also
 exceed this Work session's seven total slots and require another execution host.
 
-## Completion-focused coordination (owner approved 31 October 2026)
+## Credit-efficient coordination (owner approved 3 November 2026)
 
-Keep all six interchangeable workers productive whenever safe approved work is
-available. Review, acceptance testing and prerequisite resolution count as work;
-there is no fixed developer/reviewer split. Claims still select the original
-highest-priority eligible task. Do not use focus targets to skip dependencies or
-higher-priority independent work.
+Focus on one priority customer workflow at a time, continuing until accepted or
+concretely blocked. First recover and independently review existing payment
+recovery, populated restore and permission-race candidates before replacement
+work. Claims still select the original highest-priority eligible task; focus
+never skips dependencies or changes priorities. Inspect existing implementation
+and resolve internal contracts and exact file ownership before dispatch.
 
-Select at most two primary end-to-end targets, continuing them across runs until
-accepted or concretely blocked. Initially these are excess-credit/conditional
-discounts and connected persistence/migration. Inspect existing implementation
-first: repeat tests for qualification when needed, but do not rebuild completed
-allocation/refund behavior or substitute polish for unfinished acceptance.
-Resolve internal interfaces, period-close rules and file ownership first.
+Use compact briefs with exact source, owned paths, acceptance and known blockers.
+Run focused checks for each change, then one combined full source/build/typecheck
+and exact PR27 disposable PostgreSQL/restore CI after integration. Reuse prior
+reviews only when they cover the exact unchanged source; financial/security
+changes retain independent review. Authors cannot self-approve.
+
 A stopped task's reviewed environment/decision blocker can be cleared using
-`resolve` with `resolvedBlockers` indices, a concrete `reason`, and the
-`expectedRevision` from a fresh status read. This preserves
-partial evidence and discovered dependencies, unlike reopening accepted work.
-It cannot clear task dependencies, active leases, unknown rules or owner gates.
-Catalogue ownership changes still require reviewed, durable migration.
+`resolve` with blocker indices, a concrete reason and fresh expectedRevision.
+Do not clear task dependencies, active leases, unknown rules or owner gates.
+Catalogue ownership changes require stopped affected workers, independently
+reviewed migration and durable preservation of events and partial evidence.
 
-Split a broad bullet only when useful: children retain original priority and
-explicit parent linkage, dependencies, acceptance scenario, exact files and
-review requirements. A child's completion never accepts its parent. Retain all
-92 original bullets, priorities and acceptance criteria. Every partial submission
-records remaining work, the next executable task and exact parent-closing evidence.
-Review continuously; submitted files remain leased and authors cannot self-approve.
-Free workers immediately take eligible independent review, testing or implementation.
+Retain all 92 original source bullets, priorities, acceptance criteria and full
+in-house accounting, tax and payroll scope. Children retain parent linkage and
+never accept the parent. Every partial submission records remaining work, next
+executable step and the exact evidence needed to close its parent.
 
-Every five minutes record observed worker activity, progress, blocker and next
-action; leases alone are not activity evidence. Save a compact run handoff with
-original bullets accepted, journeys verified, internal blockers resolved/remaining
-(age and next action), measured review wait, regressions, utilisation/idle reasons,
-next tasks and exact-commit checks. Mark unmeasured values unknown. Compare after
-three runs and adapt assignments without reducing capacity, scope or quality.
+At least every five minutes persist observed activity, blockers and next actions.
+Reserve time and capacity for review, durable publication and clean shutdown;
+there is no requirement to fill all six slots or consume the whole run window.
+Do not begin work that cannot be checkpointed. Record actual start/end timestamps,
+accepted source bullets, verified journeys, resolved/remaining blockers, review
+wait and rework. Record credits per accepted workflow only if measured; unknown
+measurements remain unknown. Compare three runs and adjust concurrency using
+observed completion and cost without reducing scope or quality. This policy does
+not imply continuous execution between hosted hourly resumptions.

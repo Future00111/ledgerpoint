@@ -1267,3 +1267,45 @@ test('paid-credit released pools support later allocation, refund and undo witho
   assert.deepEqual((await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=ANY($2::uuid[]) ORDER BY id',[f.company,frozen.map((e:any)=>e.id)])).rows,frozen);
  }
 });
+
+test('original payment request recovery survives new sessions without reposting and denies revoked or foreign membership',async()=>{
+  const f=await fixture(),other=await fixture();
+  for(const kind of ['sales_invoice','purchase_bill']) {
+    const original=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,original);
+    const reviewed=await reviewPayment(f,paymentIntent(f,original));
+    const path=`/accounting-payments/operations/${reviewed.id}`;
+    const missing=await request(f.company,path);
+    assert.deepEqual(missing.data,{status:'unknown',id:reviewed.id});
+    const posted=await request(f.company,'/accounting-payments','POST',reviewed);assert.equal(posted.status,200);
+    const before=(await admin.query(`SELECT (SELECT count(*) FROM accounting_payment_events WHERE company_id=$1) events,
+      (SELECT count(*) FROM canonical_journal_entries WHERE company_id=$1) journals`,[f.company])).rows;
+    // A new authenticated reader/session needs only the original identity, not the reviewed payload.
+    const recovered=await request(f.company,path,'GET',undefined,undefined,readOnly);
+    assert.equal(recovered.status,200);assert.deepEqual(recovered.data,{status:'recorded',id:reviewed.id,journal_id:posted.data.journal_id});
+    assert.equal((await request(f.company,path,'GET',undefined,undefined,null)).status,401);
+    assert.deepEqual((await request(other.company,path)).data,{status:'unknown',id:reviewed.id});
+    assert.equal((await request(f.company,path,'GET',undefined,undefined,'foreign-user')).status,404);
+    await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,readOnly]);
+    assert.equal((await request(f.company,path,'GET',undefined,undefined,readOnly)).status,404);
+    await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,readOnly]);
+    assert.deepEqual((await admin.query(`SELECT (SELECT count(*) FROM accounting_payment_events WHERE company_id=$1) events,
+      (SELECT count(*) FROM canonical_journal_entries WHERE company_id=$1) journals`,[f.company])).rows,before);
+    const replay=await request(f.company,'/accounting-payments','POST',reviewed);assert.equal(replay.data.journal_id,posted.data.journal_id);
+    const conflict=await request(f.company,'/accounting-payments','POST',{...reviewed,reference:'Different intent'});assert.equal(conflict.status,409);
+    assert.deepEqual((await request(f.company,path)).data,recovered.data);
+  }
+  assert.equal((await request(f.company,'/accounting-payments/operations/not-a-uuid')).status,422);
+});
+
+test('rolled-back payment command remains unknown and a same-identity retry recovers its one committed result',async()=>{
+  const f=await fixture(),original=await create(f,'sales_invoice',source(f.customer));await post(f,original);
+  const reviewed=await reviewPayment(f,paymentIntent(f,original));
+  failNext=true;
+  assert.equal((await request(f.company,'/accounting-payments','POST',reviewed)).status,500);
+  const path=`/accounting-payments/operations/${reviewed.id}`;
+  assert.deepEqual((await request(f.company,path)).data,{status:'unknown',id:reviewed.id});
+  assert.equal((await admin.query('SELECT id FROM accounting_payment_events WHERE id=$1',[reviewed.id])).rowCount,0);
+  const posted=await request(f.company,'/accounting-payments','POST',reviewed);assert.equal(posted.status,200);
+  assert.deepEqual((await request(f.company,path)).data,{status:'recorded',id:reviewed.id,journal_id:posted.data.journal_id});
+  assert.equal((await admin.query('SELECT id FROM accounting_payment_events WHERE id=$1',[reviewed.id])).rowCount,1);
+});

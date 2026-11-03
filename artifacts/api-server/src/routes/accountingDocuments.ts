@@ -12,7 +12,7 @@ import { chart, AccountSelectionError } from "../services/accountingDocuments/ac
 import { saveAccount } from "../services/accountingDocuments/chart";
 import { correctionContext, reviewCorrection, commitCorrection, correctionHistory } from "../services/accountingDocuments/corrections";
 
-import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment } from '../services/accountingDocuments/payments';
+import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment, recoverPayment } from '../services/accountingDocuments/payments';
 import { createClaims, listClaims, confirmReceipt, cancelClaim } from '../services/creditTracking/service';
 import type { Queryable } from '../services/accountingDocuments/core';
 
@@ -49,6 +49,7 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
   });
   router.get('/accounting-payments/context',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await paymentContext(company,actor)});});
   router.put('/accounting-payments/configuration',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await savePaymentConfiguration(company,actor,req.body)});});
+  router.get('/accounting-payments/operations/:requestId',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await recoverPayment(company,actor,String(req.params.requestId))});});
   router.get('/accounting-payments',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await listPayments(company,actor)});});
   router.post('/accounting-payments/review',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await previewPayment(company,actor,req.body)});});
   router.post('/accounting-payments',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await postPayment(company,actor,req.body,testPostHook)});});

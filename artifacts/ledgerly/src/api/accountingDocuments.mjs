@@ -72,6 +72,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
   const docs = c => `${base(c)}/accounting-documents`;
   return {
     paymentContext: (c, signal) => call(`${base(c)}/accounting-payments/context`, { signal }),
+    recoverPayment: (c, id, signal) => call(`${base(c)}/accounting-payments/operations/${encodeURIComponent(id)}`, { signal }),
     payments: (c, signal) => call(`${base(c)}/accounting-payments`, { signal }),
     savePaymentConfiguration: (c, body) => call(`${base(c)}/accounting-payments/configuration`, { method: 'PUT', body }),
     reviewPayment: (c, body) => call(`${base(c)}/accounting-payments/review`, { method: 'POST', body }),

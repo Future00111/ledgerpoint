@@ -58,19 +58,14 @@ export function createPaymentRecovery(companyId, api) {
       const attempt = state, current = ++generation;
       publish({ ...attempt, phase: 'checking', error: null });
       try {
-        const payments = await api.payments(companyId);
+        const result = await api.recoverPayment(companyId, attempt.body.id);
         if (current !== generation) return false;
-        if (!Array.isArray(payments)) throw new Error('Payment history could not be verified.');
-        const payment = payments.find(row => row.events?.some(event => event.id === attempt.body.id));
-        const event = payment?.events.find(row => row.id === attempt.body.id);
-        if (event) {
-          const result = { status: 'recorded', id: event.id, journal_id: event.journal_id };
-          if (!recorded(result, attempt.body.id)) throw new Error('The recorded event has no available journal. Check its history again.');
-          publish({ ...attempt, phase: 'recorded', result, payment, payments, error: null });
-        } else {
+        if (recorded(result, attempt.body.id)) {
+          publish({ ...attempt, phase: 'recorded', result, error: null });
+        } else if (result?.status === 'unknown' && result.id === attempt.body.id) {
           // Absence at one read is not proof of failure: the first request may still commit.
           publish({ ...attempt, phase: 'unknown', check: 'not_found', error: null });
-        }
+        } else throw new Error('Payment outcome could not be verified.');
       } catch (error) {
         if (current === generation) publish({ ...attempt, phase: 'unknown', error });
       }
