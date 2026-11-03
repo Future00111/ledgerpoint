@@ -1,0 +1,77 @@
+{
+  "runId": "replit-smoke-20261103",
+  "startedAt": 1793725792409,
+  "observedAt": 1793726071252,
+  "scope": "User-authorized bounded Replit connection smoke test only; no source changes or feature task claims",
+  "sourceCommit": "127001fb9fbe9f7bb24f730ebf40430b80bcbea1",
+  "queueRevision": 531,
+  "sourceUnchanged": true,
+  "queueUnchanged": true,
+  "featureTaskClaims": 0,
+  "sourceBulletsAccepted": [],
+  "journeysVerified": [],
+  "provider": "Replit",
+  "browserApp": "https://replit.com/t/team-workspace-gztb9zd7ed/repls/ledgerpoint",
+  "observer": "root",
+  "result": "BASIC_CONNECTION_PASSED_IMPLEMENTATION_PREFLIGHT_REMAINS",
+  "stopControl": {
+    "acknowledgement": "REPLIT-CONNECTION-STOP-TEST",
+    "operation": "20-second no-op",
+    "method": "Agent Stop button, not demo workflow Stop",
+    "stoppedUiAt": "2026-11-03T17:11:13.420Z",
+    "observedUi": "Send disabled; Worked17seconds",
+    "finalNoopProcessReport": "Previous sleep20 absent"
+  },
+  "finalRequest": {
+    "dispatchedAt": "2026-11-03T17:11:53.629Z",
+    "boundMinutes": 3,
+    "completionObservedAt": "2026-11-03T17:13:09.861Z",
+    "observedUi": "Worked29seconds; Send disabled; no Agent Stop",
+    "stoppedReport": "Preflight finished; no follow-on work started"
+  },
+  "identity": {
+    "rootHead": "220de653ba349c7016da5bc52f0332c2d30fea4a",
+    "rootBranch": "dev/w03-draft-invoice-slice",
+    "existingDirtyPaths": [
+      ".agents/memory/invoice-development-boundaries.md",
+      "artifacts/api-server/.replit-artifact/artifact.toml",
+      "artifacts/ledgerly/.replit-artifact/artifact.toml"
+    ],
+    "dirtyPathsWereNotModifiedByTest": true,
+    "demoSeparateHead": "126d25b87f76e374c3ed80293356140ace460b85",
+    "requiredCurrentSource": "127001fb9fbe9f7bb24f730ebf40430b80bcbea1",
+    "requiredSourceAvailableInReplitObjects": false,
+    "fetchOrCheckoutPerformed": false
+  },
+  "artifact": {
+    "replitPath": ".local/share/ledgerly/connection-test-20261103-1711/connection.txt",
+    "bytes": 87,
+    "sha256": "b9588cb7d5bffcad40c68e7a005020f0bea79ca56902dba158fd64fe00082a30",
+    "route": "Base64 code copied through browser clipboard and independently decoded; file also visible in Replit editor",
+    "rootVerifiedAt": "2026-11-03T17:13:09.861Z",
+    "rootExactExpectedThreeLfLines": true,
+    "bulkDownloadOrImplementationPatchTransferVerified": false,
+    "coordinatorIndependentByteVerification": {
+      "passed": true,
+      "bytes": 87,
+      "sha256": "b9588cb7d5bffcad40c68e7a005020f0bea79ca56902dba158fd64fe00082a30",
+      "exactExpectedThreeLfLines": true,
+      "verifiedAt": "2026-11-03T17:14:40.928733+00:00"
+    }
+  },
+  "cleanStop": {
+    "replitAgentStopped": true,
+    "providerOperationStopped": true,
+    "localCoordinatorCheckoutClean": true,
+    "noFeatureWorktreesCreated": true,
+    "preExistingReplitDirtyRootPreserved": true,
+    "demoStartupAndDatabaseUnchanged": true
+  },
+  "remainingPrerequisites": [
+    "Create fresh isolated checkout at current durable codeHead without changing existing Replit dirty root/demo; current127001fb object absent",
+    "Verify actual immutable implementation patch/base/tree/author-commit transfer at required size before feature dispatch; small87byte clipboard transfer alone is insufficient"
+  ],
+  "nextAction": "Keep P01-03 prepared and unclaimed; validate isolation/current source and implementation patch handoff under fresh coordinator before implementation",
+  "providerCost": "unknown",
+  "endedAt": 1793726080928
+}

@@ -1,0 +1,3 @@
+LedgerPoint coordinator connection test
+run=replit-smoke-20261103
+scope=synthetic-only
