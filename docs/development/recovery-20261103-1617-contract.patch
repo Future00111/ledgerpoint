@@ -1,0 +1,824 @@
+diff --git a/docs/development/credit-capacity-contract.md b/docs/development/credit-capacity-contract.md
+index fc5b74d..b6ed7a8 100644
+--- a/docs/development/credit-capacity-contract.md
++++ b/docs/development/credit-capacity-contract.md
+@@ -114,3 +114,199 @@ of an already applied/refunded credit remains rejected until its explicit
+ recovery operation can restore all affected balances; never silently reclaim
+ cash or a downstream allocation. Contract acceptance alone is not completion
+ of those implementation tasks, migration approval or live UI acceptance.
++
++## Conditional prompt-payment agreement: implementation contract
++
++Coordinator decision for P01-03, 3 November 2026; reviewed source baseline
++`126d25b87f76e374c3ed80293356140ace460b85`. This is an engineering
++prerequisite, not an enabled feature or a claim of statutory qualification.
++Existing later-discount and ordinary-credit flows remain distinct. Conditional
++terms must never be reconstructed from a free-text reason or added retrospectively
++to a posted original. Preserve current posting guards until the scenarios below
++pass against the connected implementation.
++
++The invoice/bill draft may carry optional versioned `conditional_discount` terms:
++an agreement ID, explicit agreement date, inclusive payment deadline, fixed gross
++discount in integer-pence string, and a server-issued evidence receipt ID. A client URL or typed reference alone
++is not evidence. The saved review retains
++the original company, party, currency, financial revision, original gross and
++per-line net/VAT/gross discount allocation. These terms become immutable with
++posting. Absence remains absence for old source hashes. Terms require explicit
++prepayment agreement evidence and a deadline on/after agreement and original
++issue date; they cannot coexist with an ordinary draft discount. Unknown versions,
++extra fields, invalid dates, zero/negative discount or discount at/above original
++gross fail closed. A percentage offer must be resolved to a reviewed fixed gross
++amount before posting, using the existing deterministic line allocation engine.
++
++For original gross G and promised gross discount D, threshold T = G - D.
++Eligibility requires net active native cash allocations to this original of at
++least T by the inclusive deadline, and at least T still active at credit commit.
++Count only validated payment/allocation events with effective dates on/before the
++deadline; subtract their unallocations/reversals, including later reversals known
++at review/commit. Unapplied pools, refunds, other credits, bank-import status and
++drafts are not qualifying cash. Retain the exact event IDs, journal IDs, amounts,
++dates and financial revision in review evidence. Later allocations cannot cure a
++missed deadline. Effective-date eligibility is separate from evidence that the
++agreement existed before the qualifying payment; neither client timestamps nor
++backdated issue dates prove an agreement. Missing evidence prevents admission.
++
++Initial admission requires an uncorrected original and no prior posted linked
++credit, including another discount. Existing combinations remain blocked until
++their cumulative line-capacity and terms-amendment scenarios are independently
++qualified. This is a staged implementation gate, not removal of those cases from
++the commercial scope. Exactly one conditional-credit operation may consume an
++agreement, with unique `(company_id, original_document_id, agreement_id)` enforced in
++persistence under the same original-document lock used by
++payment and credit commands. Persist agreement identity and canonical terms hash
++in the credit source and parent operation; a duplicate with identical request
++returns its original outcome, changed intent conflicts. The credit is exactly D,
++using frozen original line tax evidence; it never counts toward T itself.
++Ordinary later-discount entry cannot reference, copy or consume a conditional
++agreement. While an agreement is bound, ordinary discount posting is blocked
++until separately reviewed coexistence rules exist; changing the request route or
++reason cannot obtain the promised discount twice. Ordinary genuine returns retain
++their commercial scope but combinations remain blocked initially.
++
++Posting remains an explicit reviewed credit operation. No automatic credit,
++payment, refund or VAT-return amendment occurs at the deadline. Use the existing
++paid-credit transaction when a full payment requires release of excess to its
++original payment pool. Recheck membership, terms, event vector, period, revision,
++line capacity and exclusive consumption inside that transaction; every effect and
++agreement-consumption record rolls back together. Earlier report cutoffs retain
++their previous balances and journals.
++
++After discount posting, a reversal/unallocation that would reduce qualifying cash
++below T must be rejected until a separately reviewed atomic compensation workflow
++exists. That workflow must append an explicit linked discount reversal/correction
++and restore outstanding balances without modifying past terms, credits or cash.
++It must also resolve any downstream allocation/refund and writable-period effects;
++do not silently reclaim a refund or call several independent endpoints. Qualifying
++cash above T may be released only to the extent eligibility remains satisfied.
++All payment-entry paths must enforce this guard under the common lock; an isolated
++credit-only eligibility check is insufficient.
++
++
++### Trusted evidence and immutable persistence boundary
++
++Before posting the original, an active authorized company member must record the
++actual agreement evidence bytes and explicitly attest that both parties agreed
++the stated terms. The protected server validates bounded UTF-8 evidence (maximum
++64 KiB for this initial native text-evidence path), computes SHA-256 over those
++exact bytes and records immutable evidence version, company, actor, party,
++currency, canonical terms hash and server-observed timestamp. It returns a
++receipt ID; client-provided hashes, timestamps, URLs, dates or opaque references
++cannot substitute for stored bytes. Evidence capture is an explicit audited
++operation; it neither posts a document nor sends anything to the other party.
++This proves what was recorded and when, not independent legal verification of
++assent. Uploaded/imported/backdated agreement evidence remains unsupported until
++its separate verification and retention path is qualified.
++
++Use an additive reviewed migration with immutable `conditional_discount_evidence`,
++`conditional_discount_agreements` and `conditional_discount_redemptions` rows.
++Evidence stores exact bytes/hash/version and the server receipt above. Agreement
++binding stores the evidence receipt plus company/original/journal/party/currency,
++original source/financial hash and revision, canonical terms hash/version, G, D,
++deadline and each original line's net/VAT/gross discount vector. Redemptions link
++the scoped agreement identity to the existing immutable paid-credit parent
++operation and credit document, with a database unique constraint on
++`(company_id, original_document_id, agreement_id)`. Composite foreign keys bind
++company and original throughout; uniqueness is never only a client request ID.
++Reject update/delete/truncate for all three tables and reject direct runtime
++mutations outside the protected service. Missing/partial/mismatched schema fails
++closed; install only in the disposable runner until separately authorized.
++Do not create a second cash, allocation, journal or recovery authority.
++
++The agreement binding and its evidence receipt must be committed before the
++creation/commit of every native payment counted toward T, and before its
++qualifying allocation. Check trusted server timestamps and committed immutable
++payment/journal identities under the shared company/document lock; equal or
++ambiguous timestamps fail closed. Client effective dates are not causal proof.
++Existing prepaid pools created before the binding do not qualify even if later
++allocated before the deadline. The payment effective date AND allocation
++effective date must be on/before the deadline, with agreement bound beforehand.
++Later-created backdated payments or allocations cannot establish timeliness:
++each payment AND each qualifying allocation must have a trusted server-observed
++commitment timestamp strictly before 00:00 UTC on the day after the deadline,
++in addition to both effective dates being on/before the deadline and the binding
++being committed before both events. This is the inclusive UTC date boundary
++for the initial date-only contract. The review shows that
++UTC cutoff explicitly. No new client-controlled date can change this boundary.
++
++Read evidence bytes and recompute their hash at draft admission, original review
++and posting, conditional-credit review/commit and guard validation. Match the
++stored canonical terms hash and immutable original identity; replaced bytes,
++unknown versions, missing evidence or changed source invalidate review. Bind
++terms atomically with original posting; an unposted draft may edit/reselect
++terms, but a posted original may never acquire or replace an agreement.
++An exact authorized retry returns the existing evidence/binding/redemption;
++changed evidence or terms under the same scoped request identity conflicts.
++
++The per-line net, VAT and gross commercial-capacity checks earlier in this
++contract remain mandatory. The aggregate G-D threshold does not replace them
++or reallocate VAT capacity between lines. Reuse existing exact-pence rounding;
++unsupported mixed-tax/fractional combinations fail explicitly, retaining scope.
++A source correction, credit correction, payment reversal, unallocation, pool
++refund or alternate native write that can change qualifying allocations must
++check all affected redeemed agreements in the same transaction and lock order.
++A refund of an already released surplus pool does not reduce qualifying active
++cash; use the existing guarded pool service and do not duplicate that workflow.
++
++Required both-party scenarios for the first connected implementation:
++
++| Scenario (pence) | Expected result |
++| --- | --- |
++| G=12000, D=1200; 6000 then 4800 allocated by deadline | Reviewed credit 1200; outstanding zero; cash 10800 |
++| Same terms, only 10799 allocated by deadline | Reject conditional credit; outstanding 1201 |
++| 10800 allocated on deadline / one day later | Deadline payment qualifies; late payment does not |
++| 12000 paid by deadline | Credit 1200 releases 1200 to original pool; cash unchanged; active qualifying cash 10800 |
++| 10800 qualifying payment reversed before credit | Reject; no credit, consumption marker or partial journal |
++| Credit posted, then reversal below threshold | Reject atomically until compensation workflow is qualified |
++| Competing credits or changed terms/request | One immutable consumption only; stale review/conflict has no effects |
++| Prior credit/corrected source/missing agreement evidence | Explicit blocked case; ordinary credit path cannot masquerade as conditional |
++| Client evidence hash/date only, replaced bytes, foreign receipt or unknown evidence version | Reject before admission or mutation |
++| Evidence/binding recorded after payment, prepaid pool, equal timestamp, late-created backdated payment, or predeadline cash allocated late with a backdated allocation | Reject as nonqualifying; no chronology inferred from client dates |
++| Same agreement submitted through conditional and ordinary later-discount routes | One consumption at most; ordinary route cannot bypass entitlement checks |
++| Mixed VAT line vector exceeds one line while total D fits | Reject; no borrowing another line's net/VAT/gross capacity |
++| Failure after evidence binding/redemption insert or concurrent payment release | Entire transaction rolls back; stale reviewed vector cannot commit |
++
++The matching P01-03 catalogue ownership includes the exact connected parser,
++review, persistence, posting, payment guard, UI and disposable test paths.
++Other tasks keep their existing paths; the scheduler prevents concurrent overlaps.
++The coordinator owns schema/financial interfaces and must review the migration
++and source hash changes before implementation publication. Keep the original
++acceptance and priority; this contract does not accept P01-03.
++Parent acceptance additionally requires reversal compensation and remaining
++prior-credit/correction combinations, exact-commit PostgreSQL rollback/replay and
++historical tests, independent financial review and live browser qualification.
++
++### Next connected implementation and remaining gates
++
++The next queue claim is P01-03. Its first connected implementation is the native
++text-evidence path for an uncorrected GBP original with no prior credits: capture
++and review the evidence, bind the frozen terms at original posting, admit the
++explicit conditional-credit review/commit using the existing paid-credit
++transaction, and enforce eligibility-preserving guards on every payment/allocation
++mutation. Deliver these together; parsing terms, installing tables or rendering
++a form alone must not enable admission. Reuse the existing paid-credit recovery,
++excess-pool allocation and refund services. Start by tracing and testing all
++qualifying-allocation writers under their existing company lock, then add the
++reviewed immutable schema/evidence service and connected native UI/API paths.
++
++Before enabling that slice, independent review must verify the actual migration
++checks/permissions, immutable evidence and canonical source hashes, the complete
++writer inventory and common lock order, server chronology/deadline vectors,
++review/replay conflicts, and both-party examples above. Require focused tests,
++combined current-source/typecheck/build checks, exact published-source disposable
++PostgreSQL/restore CI including partial-schema, rollback and race scenarios, and
++browser review of visible agreement terms/evidence, errors and explicit posting.
++No existing/shared database migration or live/demo activation is authorized here.
++
++The initial guard deliberately rejects reversals below T; guarded rejection is
++not compensation. P01-03 stays pending until an independently reviewed atomic
++compensation operation resolves downstream allocation/refund and open-period
++requirements, corrected originals and prior-credit combinations have reviewed
++cumulative per-line rules and passing connected tests, and the original full
++commercial acceptance (including live browser qualification) is evidenced.
++Those remaining financial interfaces require coordinator review before their
++implementation; they are explicit next gates, not reasons to duplicate already
++implemented ordinary allocation/refund workflows or remove scope.
+diff --git a/docs/development/work-backlog.json b/docs/development/work-backlog.json
+index c51aef2..4f23dfe 100644
+--- a/docs/development/work-backlog.json
++++ b/docs/development/work-backlog.json
+@@ -107,7 +107,38 @@
+         "artifacts/ledgerly/src/features/documentDiscounts/model.mjs",
+         "artifacts/ledgerly/src/features/documentDiscounts/model.test.mjs",
+         "artifacts/ledgerly/src/components/accounting/PostedDocument.jsx",
+-        "artifacts/ledgerly/src/components/accounting/PostedDocument.test.jsx"
++        "artifacts/ledgerly/src/components/accounting/PostedDocument.test.jsx",
++        "docs/development/credit-capacity-contract.md",
++        "artifacts/api-server/src/services/financialDrafts/contract.ts",
++        "artifacts/api-server/src/services/financialDrafts/contract.test.ts",
++        "artifacts/api-server/src/services/financialDrafts/discounts.ts",
++        "artifacts/api-server/src/services/financialDrafts/discounts.test.ts",
++        "artifacts/api-server/src/services/financialDrafts/invoiceService.ts",
++        "artifacts/api-server/src/services/financialDrafts/productionAuthority.ts",
++        "artifacts/api-server/src/services/financialDrafts/invoice.integration.test.ts",
++        "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
++        "artifacts/api-server/src/services/accountingDocuments/posting.ts",
++        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
++        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
++        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
++        "artifacts/api-server/src/routes/accountingDocuments.ts",
++        "artifacts/ledgerly/src/api/accountingDocuments.mjs",
++        "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
++        "artifacts/ledgerly/src/api/invoiceDrafts.mjs",
++        "artifacts/ledgerly/src/api/invoiceDrafts.test.mjs",
++        "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
++        "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
++        "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
++        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
++        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
++        "lib/db/migrations/conditional-discount-agreements.review.sql",
++        "lib/db/schema-change-registry.json",
++        "lib/db/migration-registry.json",
++        "tools/accounting-flow/schema.mjs",
++        "tools/accounting-flow/test.mjs",
++        "tools/development/migrations/registry.mjs",
++        "tools/development/migrations/registry.test.mjs",
++        "tools/development/migrations/partial-schema.test.mjs"
+       ],
+       "kind": "implementation",
+       "approval": "approved"
+diff --git a/docs/development/work-state.json b/docs/development/work-state.json
+index 8b765db..b967228 100644
+--- a/docs/development/work-state.json
++++ b/docs/development/work-state.json
+@@ -1,6 +1,6 @@
+ {
+   "version": 2,
+-  "revision": 498,
++  "revision": 531,
+   "tasks": {
+     "P01-00": {
+       "status": "done",
+@@ -79,7 +79,7 @@
+       }
+     },
+     "P01-03": {
+-      "status": "blocked",
++      "status": "pending",
+       "priority": 103,
+       "discoveredDependencies": [],
+       "checkpoint": "Clean/stopped codex/lp-1847-worker1 at existing durable aa45af5cd82a676b4851e5cbab873cd70bcf5c04; no edits or processes. Existing full both-party released-pool allocation/refund/undo journey independently confirmed by worker4. Coordinator requested explicit internal blocker and ownership repair.",
+@@ -101,12 +101,7 @@
+           }
+         ]
+       },
+-      "blockers": [
+-        {
+-          "type": "decision",
+-          "reason": "Internal coordinator prerequisite: define persisted immutable conditional-discount terms/evidence contract (prepayment agreement, inclusive deadline, net active allocation threshold original gross less promised discount, reversal compensation and prior-credit policy), then expand exact ownership to financialDrafts parser/types, paidCredit posting guard, frontend form, contract and integration tests. Current task excludes these connected files and existing doc explicitly excludes conditional terms. Next executable task: reviewed schema/evidence contract and safe lease migration; responsible coordinator. Existing allocation/refund implementation must not be duplicated; parent remains pending until conditional acceptance verified."
+-        }
+-      ]
++      "blockers": []
+     },
+     "P01-04": {
+       "status": "blocked",
+@@ -175,10 +170,10 @@
+       ]
+     },
+     "P02-01": {
+-      "status": "pending",
++      "status": "blocked",
+       "priority": 201,
+       "discoveredDependencies": [],
+-      "checkpoint": "All workers confirmed stopped clean with committed branches; local reviewed candidate0874316. Partial evidence preserved; exact CI and durable publication pending.",
++      "checkpoint": "Clean isolated codex/lp-2027-worker1 at durable fcfddf8; no edits/processes. Native export audit integration already tests role/tenant/inactive/revocation; capture integration already tests authenticated exact bytes and foreign source. Avoided duplicate coverage. Mounted AI HTTP test prerequisite identified.",
+       "evidence": {
+         "commit": "6816da0fcd1b615d7124dfb870b0d8f8d1f1699f",
+         "summary": "PARTIAL P02-01: complete current legacy inventory now exercises 27 entity aliases across eight HTTP CRUD forms, preserves viewer reads and denies inactive/foreign/stale-context reads and viewer/inactive/foreign/invalid-role writes with mutation tripwires; ten active function labels authenticate, eight company-scoped actions reject inactive/foreign context, retired/unavailable actions stay closed. No runtime functionality changed. Remaining: independently qualify AI router, native download/export and delayed old-company browser responses. Next executable task: extend P02-01 ownership to dedicated security inventory/browser test paths with AI/download/export fixtures; parent closes only after those scenarios plus this matrix pass on integrated source.",
+@@ -197,11 +192,41 @@
+           }
+         ]
+       },
+-      "blockers": []
++      "blockers": [
++        {
++          "type": "environment",
++          "reason": "Coordinator must extend P02-01 ownership to routes/aiAccountant.ts for a safe injected-auth router factory (default requireAuth unchanged), and browser company-switch test files. Existing current Clerk privately brands req.auth; do not forge auth internals or bypass real middleware. Add full mounted AI endpoint capability matrix and actual delayed-response qualification; preserve existing native export/download tests. Responsible coordinator ownership/interface review."
++        }
++      ]
+     },
+     "P02-02": {
+       "status": "pending",
+-      "priority": 202
++      "priority": 202,
++      "discoveredDependencies": [],
++      "checkpoint": "Stopped previous worker; complete candidate patch and queue archived on state commit c3a4629c09e557dc2b9c0652d128b86149d941d0 docs/development/recovery-20261103-evidence.json. Partial evidence retained; broad parent not accepted.",
++      "evidence": {
++        "commit": "408e75224d574dbbf41f460c243e01be44094848",
++        "summary": "PARTIAL P02-02: company edit now locks company then membership and rechecks active owner/accountant after concurrent revocation/demotion; deterministic PostgreSQL regression observes real lock wait and proves denied delayed write preserves name and last owner. Remaining parent: signed identity event ordering/replay and full invitation/removal reconciliation; next requires durable identity event schema/runtime ownership and coordinator contract. Actual race execution pending exact disposable CI.",
++        "tests": [
++          {
++            "command": "API tsc --noEmit passed",
++            "passed": true
++          },
++          {
++            "command": "Exact worktree DB alias companyRoutes.test.ts esbuild plus node --test:12 passed0failed0skipped",
++            "passed": true
++          },
++          {
++            "command": "security/integration.test.ts esbuild bundle passed; actual PostgreSQL execution pending CI",
++            "passed": true
++          },
++          {
++            "command": "git diff --check passed",
++            "passed": true
++          }
++        ]
++      },
++      "blockers": []
+     },
+     "P02-03": {
+       "status": "blocked",
+@@ -287,7 +312,29 @@
+       "status": "pending",
+       "priority": 301,
+       "discoveredDependencies": [],
+-      "checkpoint": "No edits; stopped clean at durable refs/heads/codex/whole-product-first-sprint 1e0d6bada4d14c2042544f9ce910567749466e84.",
++      "checkpoint": "Stopped previous worker; complete candidate patch and queue archived on state commit c3a4629c09e557dc2b9c0652d128b86149d941d0 docs/development/recovery-20261103-evidence.json. Partial evidence retained; broad parent not accepted.",
++      "evidence": {
++        "commit": "5627b81",
++        "summary": "PARTIAL connected payment recovery: exact original request ID reads immutable existing payment outcome through current tenant membership/role and validated canonical journal identity/review hash; absent remains unknown. Native recovery model uses endpoint and panel links existing event history after reload. No new effect store or browser financial payload. Remaining: other operation families, unknown command discovery after lost page identity and browser acceptance. Next executable task: independently qualify this exact HTTP/PG recovery and design durable pending command admission without duplicating existing authorities. Parent closes only after all operation families and reload/re-login/company-switch cases pass.",
++        "tests": [
++          {
++            "command": "node --test paymentRecovery/model.test.mjs api/accountingDocuments.test.mjs:22passed0failed0skipped",
++            "passed": true
++          },
++          {
++            "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json:passed",
++            "passed": true
++          },
++          {
++            "command": "esbuild accountingDocuments/integration.test.ts bundle:passed; PostgreSQL runtime awaits exact CI",
++            "passed": true
++          },
++          {
++            "command": "git diff --check:passed",
++            "passed": true
++          }
++        ]
++      },
+       "blockers": []
+     },
+     "P03-02": {
+@@ -326,17 +373,17 @@
+       "status": "pending",
+       "priority": 304,
+       "discoveredDependencies": [],
+-      "checkpoint": "Clean stopped codex/lp-1847-worker4 at durable baseline aa45af5cd82a676b4851e5cbab873cd70bcf5c04; no edits/processes; archive/control baseline tests8 passed0failed0skipped. Switching to coordinator-directed independent review of worker3 migration submission.",
++      "checkpoint": "Stopped previous worker; complete candidate patch and queue archived on state commit c3a4629c09e557dc2b9c0652d128b86149d941d0 docs/development/recovery-20261103-evidence.json. Partial evidence retained; broad parent not accepted.",
+       "evidence": {
+-        "commit": "1fb763ed78ca7b99ccac11336634cebc61d1778a",
+-        "summary": "PARTIAL: encrypted fresh-cluster rehearsal now fingerprints column type/nullability/default/generation/collation and sequence configuration plus consumed state. Deleted synthetic job retains consumed identity; five rollback-contained corruption controls cover nullability/default/type/sequence rewind/increment. Actual PostgreSQL execution awaits exact CI; full application/offsite/operating target qualification remains unfinished.",
++        "commit": "df35ce5c84cc05bee80ee2824bca1b25b21be3c7",
++        "summary": "PARTIAL connected application recovery: actual populated accounting regression dump is encrypted/authenticated and restored into a new isolated cluster with explicit ledgerly roles, full existing application fingerprint comparison, source-unchanged and restricted runtime mutation denial. Hook executes before source test cleanup. Independent review and real PostgreSQL exact CI pending. Parent remains incomplete for offsite ownership/operating-target qualification; next executable step verify exact PR27 disposable run plus application-recovery cleanup receipt, then reconcile full app/jobs recovery scope and target evidence.",
+         "tests": [
+           {
+-            "command": "node --test tools/operations/backup-restore/*.test.mjs:8 passed,0 failed/skipped on1fb763e",
++            "command": "node --test tools/operations/backup-restore/*.test.mjs tools/accounting-flow/restore-drill.test.mjs:12passed0failed0skipped",
+             "passed": true
+           },
+           {
+-            "command": "node --check tools/operations/backup-restore/rehearsal.mjs",
++            "command": "node --check tools/accounting-flow/restore-drill.mjs",
+             "passed": true
+           },
+           {
+@@ -363,13 +410,13 @@
+       "status": "pending",
+       "priority": 401,
+       "discoveredDependencies": [],
+-      "checkpoint": "All workers confirmed stopped clean with committed branches; local reviewed candidate0874316. Partial evidence preserved; exact CI and durable publication pending.",
++      "checkpoint": "Stopped previous worker; complete candidate patch and queue archived on state commit c3a4629c09e557dc2b9c0652d128b86149d941d0 docs/development/recovery-20261103-evidence.json. Partial evidence retained; broad parent not accepted.",
+       "evidence": {
+-        "commit": "23cc717b69c094baa5006aa49709e6852e1b8422",
+-        "summary": "PARTIAL P04-01: connected payroll prerequisite matrix covers all ten original P09 engine/workflow bullets, detailed variants, inputs/outputs and acceptance scenarios. Register acceptance explicitly distinct from engine qualification; P04-03 independent fixtures and P04-02 deterministic calculations have concrete next inputs. All 44 original cases preserved and unqualified; unknown interactions still rejected. Remaining: complete VAT/income/corporation detailed matrix and review/pin required scenario evidence before P04-01 acceptance.",
++        "commit": "c2245dc8bd779299ded7d3703e73ba904ddcb53e",
++        "summary": "PARTIAL P04-01: all19 original VAT/income/corporation workflow bullets now have retained prerequisite families, required inputs/outputs and acceptance scenarios, completing domain-family coverage alongside payroll. Original44 calculation cases remain unchanged and unqualified. Remaining: concrete year/combination eligibility and reviewed scenario/rule evidence before parent acceptance. Next executable task: review those declared variants into explicit selectors and pin year-specific official/independent input-output fixtures; retain fail-closed engine boundary and all commercial scope.",
+         "tests": [
+           {
+-            "command": "node --test artifacts/api-server/src/services/payroll/contracts/*.test.mjs artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs:70passed0failed0skipped",
++            "command": "node --test artifacts/api-server/src/services/payroll/contracts/*.test.mjs artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs:73passed0failed0skipped",
+             "passed": true
+           },
+           {
+@@ -430,7 +477,10 @@
+     },
+     "P05-05": {
+       "status": "pending",
+-      "priority": 505
++      "priority": 505,
++      "discoveredDependencies": [],
++      "checkpoint": "Stopped previous worker; complete candidate patch and queue archived on state commit c3a4629c09e557dc2b9c0652d128b86149d941d0 docs/development/recovery-20261103-evidence.json. Partial evidence retained; broad parent not accepted.",
++      "blockers": []
+     },
+     "P06-00": {
+       "status": "done",
+@@ -497,18 +547,12 @@
+     "P06-03": {
+       "status": "blocked",
+       "priority": 603,
++      "discoveredDependencies": [],
++      "checkpoint": "No edits; clean isolated codex/lp-2027-worker5 at durable fcfddf8. Customer migration service/route/frontend absent. Inspected real routes/index.ts; no connected preview entry exists.",
+       "blockers": [
+         {
+-          "type": "task",
+-          "id": "P03-00",
+-          "source": "dependency",
+-          "reason": "Dependency reopened: Reviewed file ownership repair resolves internal catalogue blocker; all workers stopped and durable. Acceptance unchanged."
+-        },
+-        {
+-          "type": "task",
+-          "id": "P06-00",
+-          "source": "dependency",
+-          "reason": "Dependency reopened: Independently reviewed ownership repair supplies actual mounted UI/test files; all workers stopped and durable; acceptance unchanged."
++          "type": "environment",
++          "reason": "Connected migration preview needs routes/index.ts mount and frontend navigation/API ownership absent from current lease; source format and financial opening/outstanding mapping contract also unreviewed. Coordinator next: define supported source schemas and exact no-silent-drop financial mapping contract, add narrow callable preview entry ownership, then implement and test preview. No standalone unused parser created; no external source/customer data accessed."
+         }
+       ]
+     },
+@@ -1414,7 +1458,7 @@
+       "status": "pending",
+       "priority": 1702,
+       "discoveredDependencies": [],
+-      "checkpoint": "Coordinator requested clean stop after independent6816da0 review; w1847-5 clean at65df877, no P17 edits or processes. Commercial pricing/support remain draft, launch app absent; next run can prepare concrete offer/launch draft and qualify browser help. No new owner decision requested for reversible draft work.",
++      "checkpoint": "Stopped previous worker; complete candidate patch and queue archived on state commit c3a4629c09e557dc2b9c0652d128b86149d941d0 docs/development/recovery-20261103-evidence.json. Partial evidence retained; broad parent not accepted.",
+       "evidence": {
+         "commit": "738db0aa11292340cec0b858a583fcb5add8791d",
+         "summary": "PARTIAL: paid-credit help now describes ordinary credit entry from fully paid originals and remaining-capacity/permission/settlement guards, pinned to fa55598. Separate posting/refund and browser/publication/support gates preserved. Full commercial offer remains pending.",
+@@ -6731,7 +6775,366 @@
+           "reason": "Connected encrypted recovery of populated accounting/capture source requires ownership of tools/accounting-flow/restore-drill.mjs (currently unowned) to call fresh-cluster recovery before test runner cleanup. Coordinator must add reviewed lease and checkpoint catalogue. Next implementation: backup-restore module restores encrypted real regression dump and explicit runtime roles into new cluster; hook existing restore drill; retain full application/offsite qualification gates. Coordinator directs independent migration review this batch."
+         }
+       ]
++    },
++    {
++      "at": 1793478576786,
++      "actor": "worker1",
++      "type": "claim",
++      "taskId": "P02-01",
++      "token": "8aa79bde-8d83-4e22-99a5-c11c8651354e"
++    },
++    {
++      "at": 1793478583803,
++      "actor": "worker1",
++      "type": "checkpoint",
++      "taskId": "P02-01",
++      "checkpoint": "Fresh isolated worktree codex/lp-2027-worker1 at fcfddf8; before editing inspect existing legacy role matrix and remaining download/export/AI acceptance."
++    },
++    {
++      "at": 1793478586102,
++      "actor": "worker2",
++      "type": "claim",
++      "taskId": "P03-01",
++      "token": "23d3d2b1-c7a2-4405-92bc-08a3e8fa9a18"
++    },
++    {
++      "at": 1793478592935,
++      "actor": "worker3",
++      "type": "claim",
++      "taskId": "P03-04",
++      "token": "5a10a372-d63d-419f-9250-4e4c211a452e"
++    },
++    {
++      "at": 1793478595806,
++      "actor": "worker2",
++      "type": "checkpoint",
++      "taskId": "P03-01",
++      "checkpoint": "Clean isolated worktree lp2027-w2 atfcfddf8; inspecting connected payment recovery and persistence contract before editing; no databases or processes started."
++    },
++    {
++      "at": 1793478602207,
++      "actor": "worker4",
++      "type": "claim",
++      "taskId": "P04-01",
++      "token": "e863c795-c0cb-41ee-96ab-31b21b37f6aa"
++    },
++    {
++      "at": 1793478603404,
++      "actor": "worker3",
++      "type": "checkpoint",
++      "taskId": "P03-04",
++      "checkpoint": "Before edit: clean isolated lp2027-w3 at fcfddf8; inspect populated application restore path; no database or process started."
++    },
++    {
++      "at": 1793478604947,
++      "actor": "worker5",
++      "type": "claim",
++      "taskId": "P06-03",
++      "token": "2b327acd-4113-49b8-ac99-ab04fcc24140"
++    },
++    {
++      "at": 1793478610705,
++      "actor": "worker6",
++      "type": "claim",
++      "taskId": "P17-02",
++      "token": "bc75a84f-8938-4afc-b5eb-d4eb444aac7e"
++    },
++    {
++      "at": 1793478613702,
++      "actor": "worker5",
++      "type": "checkpoint",
++      "taskId": "P06-03",
++      "checkpoint": "Before edits: restored exact fcfddf8 in isolated lp2027-w5; inspecting existing customer migration mapping and outstanding acceptance, no production or external connections."
++    },
++    {
++      "at": 1793478616191,
++      "actor": "worker4",
++      "type": "checkpoint",
++      "taskId": "P04-01",
++      "checkpoint": "Fresh isolated lp2027-w4 at fcfddf8; inspect current supported register and missing VAT/income/corporation prerequisite matrix before edits; no external filing/provider action."
++    },
++    {
++      "at": 1793478624172,
++      "actor": "worker6",
++      "type": "checkpoint",
++      "taskId": "P17-02",
++      "checkpoint": "Clean isolated lp2027-w6 fcfddf8; inspected existing commercial offer and connected accounting/persistence contracts. P17 offer is unapproved draft with null price/support; no edits. Taking coordinator-directed independent primary-target contract/policy review before any low-priority incidental changes."
++    },
++    {
++      "at": 1793478631087,
++      "actor": "worker5",
++      "type": "block",
++      "taskId": "P06-03",
++      "checkpoint": "No edits; clean isolated codex/lp-2027-worker5 at durable fcfddf8. Customer migration service/route/frontend absent. Inspected real routes/index.ts; no connected preview entry exists.",
++      "blockers": [
++        {
++          "type": "environment",
++          "reason": "Connected migration preview needs routes/index.ts mount and frontend navigation/API ownership absent from current lease; source format and financial opening/outstanding mapping contract also unreviewed. Coordinator next: define supported source schemas and exact no-silent-drop financial mapping contract, add narrow callable preview entry ownership, then implement and test preview. No standalone unused parser created; no external source/customer data accessed."
++        }
++      ]
++    },
++    {
++      "at": 1793478638763,
++      "actor": "worker1",
++      "type": "block",
++      "taskId": "P02-01",
++      "checkpoint": "Clean isolated codex/lp-2027-worker1 at durable fcfddf8; no edits/processes. Native export audit integration already tests role/tenant/inactive/revocation; capture integration already tests authenticated exact bytes and foreign source. Avoided duplicate coverage. Mounted AI HTTP test prerequisite identified.",
++      "blockers": [
++        {
++          "type": "environment",
++          "reason": "Coordinator must extend P02-01 ownership to routes/aiAccountant.ts for a safe injected-auth router factory (default requireAuth unchanged), and browser company-switch test files. Existing current Clerk privately brands req.auth; do not forge auth internals or bypass real middleware. Add full mounted AI endpoint capability matrix and actual delayed-response qualification; preserve existing native export/download tests. Responsible coordinator ownership/interface review."
++        }
++      ]
++    },
++    {
++      "at": 1793478638856,
++      "actor": "worker1",
++      "type": "claim",
++      "taskId": "P02-02",
++      "token": "7fcbde07-a9d5-4f17-914c-365bb1cbe0de"
++    },
++    {
++      "at": 1793478668421,
++      "actor": "worker1",
++      "type": "checkpoint",
++      "taskId": "P02-02",
++      "checkpoint": "Before edits at fcfddf8: company update authorizes outside transaction unlike membership writers. Coordinator approved lockedMembers transactional authority recheck and deterministic revoked-member race integration regression. Full identity event lifecycle remains unfinished."
++    },
++    {
++      "at": 1793478690017,
++      "actor": "worker3",
++      "type": "checkpoint",
++      "taskId": "P03-04",
++      "checkpoint": "Implemented populated encrypted restore hook in isolated worker3 branch; 12 archive/role/target/control tests pass and diff clean. Independent worker5 review requested; actual PostgreSQL requires exact PR27 CI; no local DB/process started. Parent offsite/operating-target qualification remains pending."
++    },
++    {
++      "at": 1793478707409,
++      "actor": "worker6",
++      "type": "checkpoint",
++      "taskId": "P17-02",
++      "checkpoint": "lp2027-w6 clean at3c19b5f50f9f18a0908220516373bfb9c27fd816. Coordinator-delegated AGENTS/queue README utilisation clarification committed; existing scheduler40/40pass0fail0skip. Independent conditional terms review sent: pre-agreement immutable evidence, deadline net-active allocations, atomic redemption/reversal, source identity and owned-file expansion. No P17 edits. Worker-branch push rejected by automatic approval review; no retry; root will preserve reviewed content through allowed PR27 integration."
++    },
++    {
++      "at": 1793478714758,
++      "actor": "worker3",
++      "type": "submit",
++      "taskId": "P03-04",
++      "evidence": {
++        "commit": "df35ce5c84cc05bee80ee2824bca1b25b21be3c7",
++        "summary": "PARTIAL connected application recovery: actual populated accounting regression dump is encrypted/authenticated and restored into a new isolated cluster with explicit ledgerly roles, full existing application fingerprint comparison, source-unchanged and restricted runtime mutation denial. Hook executes before source test cleanup. Independent review and real PostgreSQL exact CI pending. Parent remains incomplete for offsite ownership/operating-target qualification; next executable step verify exact PR27 disposable run plus application-recovery cleanup receipt, then reconcile full app/jobs recovery scope and target evidence.",
++        "tests": [
++          {
++            "command": "node --test tools/operations/backup-restore/*.test.mjs tools/accounting-flow/restore-drill.test.mjs:12passed0failed0skipped",
++            "passed": true
++          },
++          {
++            "command": "node --check tools/accounting-flow/restore-drill.mjs",
++            "passed": true
++          },
++          {
++            "command": "git diff --check",
++            "passed": true
++          }
++        ]
++      }
++    },
++    {
++      "at": 1793478721887,
++      "actor": "worker1",
++      "type": "submit",
++      "taskId": "P02-02",
++      "evidence": {
++        "commit": "408e75224d574dbbf41f460c243e01be44094848",
++        "summary": "PARTIAL P02-02: company edit now locks company then membership and rechecks active owner/accountant after concurrent revocation/demotion; deterministic PostgreSQL regression observes real lock wait and proves denied delayed write preserves name and last owner. Remaining parent: signed identity event ordering/replay and full invitation/removal reconciliation; next requires durable identity event schema/runtime ownership and coordinator contract. Actual race execution pending exact disposable CI.",
++        "tests": [
++          {
++            "command": "API tsc --noEmit passed",
++            "passed": true
++          },
++          {
++            "command": "Exact worktree DB alias companyRoutes.test.ts esbuild plus node --test:12 passed0failed0skipped",
++            "passed": true
++          },
++          {
++            "command": "security/integration.test.ts esbuild bundle passed; actual PostgreSQL execution pending CI",
++            "passed": true
++          },
++          {
++            "command": "git diff --check passed",
++            "passed": true
++          }
++        ]
++      }
++    },
++    {
++      "at": 1793478731213,
++      "actor": "worker4",
++      "type": "checkpoint",
++      "taskId": "P04-01",
++      "checkpoint": "Tax prerequisite matrix implemented for 19 original VAT/income/corporation bullets; 44 calculation selectors unchanged/unqualified. Focused payroll/tax contracts73passed0failed0skipped; diff clean. Preparing independent review and durable publication; no engine qualification claimed."
++    },
++    {
++      "at": 1793478743896,
++      "actor": "worker4",
++      "type": "submit",
++      "taskId": "P04-01",
++      "evidence": {
++        "commit": "c2245dc8bd779299ded7d3703e73ba904ddcb53e",
++        "summary": "PARTIAL P04-01: all19 original VAT/income/corporation workflow bullets now have retained prerequisite families, required inputs/outputs and acceptance scenarios, completing domain-family coverage alongside payroll. Original44 calculation cases remain unchanged and unqualified. Remaining: concrete year/combination eligibility and reviewed scenario/rule evidence before parent acceptance. Next executable task: review those declared variants into explicit selectors and pin year-specific official/independent input-output fixtures; retain fail-closed engine boundary and all commercial scope.",
++        "tests": [
++          {
++            "command": "node --test artifacts/api-server/src/services/payroll/contracts/*.test.mjs artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs:73passed0failed0skipped",
++            "passed": true
++          },
++          {
++            "command": "git diff --check:passed",
++            "passed": true
++          }
++        ]
++      }
++    },
++    {
++      "at": 1793478743978,
++      "actor": "worker4",
++      "type": "claim",
++      "taskId": "P05-05",
++      "token": "583c20bc-5af3-4eff-9df4-5cb2a5507081"
++    },
++    {
++      "at": 1793478750993,
++      "actor": "worker2",
++      "type": "submit",
++      "taskId": "P03-01",
++      "evidence": {
++        "commit": "5627b81",
++        "summary": "PARTIAL connected payment recovery: exact original request ID reads immutable existing payment outcome through current tenant membership/role and validated canonical journal identity/review hash; absent remains unknown. Native recovery model uses endpoint and panel links existing event history after reload. No new effect store or browser financial payload. Remaining: other operation families, unknown command discovery after lost page identity and browser acceptance. Next executable task: independently qualify this exact HTTP/PG recovery and design durable pending command admission without duplicating existing authorities. Parent closes only after all operation families and reload/re-login/company-switch cases pass.",
++        "tests": [
++          {
++            "command": "node --test paymentRecovery/model.test.mjs api/accountingDocuments.test.mjs:22passed0failed0skipped",
++            "passed": true
++          },
++          {
++            "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json:passed",
++            "passed": true
++          },
++          {
++            "command": "esbuild accountingDocuments/integration.test.ts bundle:passed; PostgreSQL runtime awaits exact CI",
++            "passed": true
++          },
++          {
++            "command": "git diff --check:passed",
++            "passed": true
++          }
++        ]
++      }
++    },
++    {
++      "at": 1793478753977,
++      "actor": "worker4",
++      "type": "checkpoint",
++      "taskId": "P05-05",
++      "checkpoint": "Claimed after P04-01 submission; inspect current stable contact/account identity and historical evidence before any P05 changes; c2245dc tree clean, awaiting independent review assignment."
++    },
++    {
++      "at": 1793718036491,
++      "actor": "scheduler",
++      "type": "lease_expired",
++      "taskId": "P02-02"
++    },
++    {
++      "at": 1793718036491,
++      "actor": "scheduler",
++      "type": "lease_expired",
++      "taskId": "P03-01"
++    },
++    {
++      "at": 1793718036491,
++      "actor": "scheduler",
++      "type": "lease_expired",
++      "taskId": "P03-04"
++    },
++    {
++      "at": 1793718036491,
++      "actor": "scheduler",
++      "type": "lease_expired",
++      "taskId": "P04-01"
++    },
++    {
++      "at": 1793718036491,
++      "actor": "scheduler",
++      "type": "lease_expired",
++      "taskId": "P05-05"
++    },
++    {
++      "at": 1793718036491,
++      "actor": "scheduler",
++      "type": "lease_expired",
++      "taskId": "P17-02"
++    },
++    {
++      "at": 1793718036491,
++      "actor": "coordinator",
++      "type": "recover",
++      "taskId": "P02-02",
++      "checkpoint": "Stopped previous worker; complete candidate patch and queue archived on state commit c3a4629c09e557dc2b9c0652d128b86149d941d0 docs/development/recovery-20261103-evidence.json. Partial evidence retained; broad parent not accepted."
++    },
++    {
++      "at": 1793718036599,
++      "actor": "coordinator",
++      "type": "recover",
++      "taskId": "P03-01",
++      "checkpoint": "Stopped previous worker; complete candidate patch and queue archived on state commit c3a4629c09e557dc2b9c0652d128b86149d941d0 docs/development/recovery-20261103-evidence.json. Partial evidence retained; broad parent not accepted."
++    },
++    {
++      "at": 1793718036695,
++      "actor": "coordinator",
++      "type": "recover",
++      "taskId": "P03-04",
++      "checkpoint": "Stopped previous worker; complete candidate patch and queue archived on state commit c3a4629c09e557dc2b9c0652d128b86149d941d0 docs/development/recovery-20261103-evidence.json. Partial evidence retained; broad parent not accepted."
++    },
++    {
++      "at": 1793718036794,
++      "actor": "coordinator",
++      "type": "recover",
++      "taskId": "P04-01",
++      "checkpoint": "Stopped previous worker; complete candidate patch and queue archived on state commit c3a4629c09e557dc2b9c0652d128b86149d941d0 docs/development/recovery-20261103-evidence.json. Partial evidence retained; broad parent not accepted."
++    },
++    {
++      "at": 1793718036895,
++      "actor": "coordinator",
++      "type": "recover",
++      "taskId": "P05-05",
++      "checkpoint": "Stopped previous worker; complete candidate patch and queue archived on state commit c3a4629c09e557dc2b9c0652d128b86149d941d0 docs/development/recovery-20261103-evidence.json. Partial evidence retained; broad parent not accepted."
++    },
++    {
++      "at": 1793718036988,
++      "actor": "coordinator",
++      "type": "recover",
++      "taskId": "P17-02",
++      "checkpoint": "Stopped previous worker; complete candidate patch and queue archived on state commit c3a4629c09e557dc2b9c0652d128b86149d941d0 docs/development/recovery-20261103-evidence.json. Partial evidence retained; broad parent not accepted."
++    },
++    {
++      "at": 1793722997654,
++      "actor": "coordinator",
++      "type": "catalogue_migration",
++      "taskId": "P01-03",
++      "reason": "All workers stopped. Root independently reviewed conditional agreement contract and exact connected ownership; original92bullets,task priorities,dependencies,descriptions,acceptance and prior evidence unchanged.",
++      "oldDigest": "c2b0d82d94d1895124eb24fb38582e316c954065eff5baa4953ef17636d43e12",
++      "newDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366"
++    },
++    {
++      "at": 1793722997877,
++      "actor": "coordinator",
++      "type": "resolve",
++      "taskId": "P01-03",
++      "reason": "Root independently reviewed conditional terms/evidence/reversal engineering contract and exact stopped-worker ownership migration on 2026-11-03. Actual implementation, guarded compensation and prior-credit/correction combinations remain pending; no commercial acceptance claimed.",
++      "resolvedBlockers": [
++        {
++          "type": "decision",
++          "reason": "Internal coordinator prerequisite: define persisted immutable conditional-discount terms/evidence contract (prepayment agreement, inclusive deadline, net active allocation threshold original gross less promised discount, reversal compensation and prior-credit policy), then expand exact ownership to financialDrafts parser/types, paidCredit posting guard, frontend form, contract and integration tests. Current task excludes these connected files and existing doc explicitly excludes conditional terms. Next executable task: reviewed schema/evidence contract and safe lease migration; responsible coordinator. Existing allocation/refund implementation must not be duplicated; parent remains pending until conditional acceptance verified."
++        }
++      ]
+     }
+   ],
+-  "catalogDigest": "c2b0d82d94d1895124eb24fb38582e316c954065eff5baa4953ef17636d43e12"
++  "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366"
+ }

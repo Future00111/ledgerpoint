@@ -1,0 +1,25 @@
+{
+  "sourceHead": "126d25b87f76e374c3ed80293356140ace460b85",
+  "originalBulletCount": 92,
+  "originalTaskCount": 112,
+  "preservedFields": [
+    "id",
+    "title",
+    "description",
+    "priority",
+    "dependencies",
+    "acceptance",
+    "kind",
+    "approval"
+  ],
+  "allWorkersStopped": true,
+  "oldRevision": 529,
+  "newRevision": 530,
+  "oldDigest": "c2b0d82d94d1895124eb24fb38582e316c954065eff5baa4953ef17636d43e12",
+  "newDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
+  "priorEventsPreserved": 537,
+  "priorTaskRecordsUnchanged": true,
+  "onlyOwnershipChanged": "P01-03",
+  "reviewer": "/root",
+  "reviewNote": "Approved with payment AND allocation server chronology requirement; correction applied."
+}
