@@ -1,0 +1,26 @@
+{
+  "version": 3,
+  "sourceArchive": {
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "88c66f0376055850b5149083457e72656c62f484",
+    "path": "docs/development/candidates/20261103-1924-queue.json"
+  },
+  "sourceCode": "0fd8a61b75ebcd163f6b3192aab8370b805d0fcc",
+  "authorCommit": "9d575f29dc201dff22568319947d888887fe9364",
+  "publishedCommit": "47e006c73f4f44af2a8f15e14167616c272f596a",
+  "tree": "b9453952279a00ba3f8bc6925ed8b30fe626238c",
+  "coreSha256": "b942bc36ca20ea971133889568b98a1d4bd3070e7e1f055324e1f4d6eea9c469",
+  "reviewer": "root",
+  "reviewed": true,
+  "sourceStateSha256": "e2b586ea9877b2df7dc8287ffd70c82740e9c85b3eb9b7596731ca8ae09fbd31",
+  "sourceRevision": 552,
+  "eventCount": 560,
+  "claimCount": 113,
+  "taskMetadataUnchanged": true,
+  "knownRawTokensAbsent": true,
+  "tests": {
+    "scheduler52": "passed",
+    "finalToken4": "passed",
+    "actualQueueSemantics": "independently passed"
+  }
+}

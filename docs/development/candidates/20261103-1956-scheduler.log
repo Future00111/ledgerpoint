@@ -1,0 +1,72 @@
+✔ acquisition is exclusive; transitions do not mutate caller state (10.080659ms)
+✔ wrong token/run cannot renew, save or release; stale renewal is refused (1.337661ms)
+✔ clean release needs a current durable checkpoint and preserves it for the next owner (6.308714ms)
+✔ expiry quarantines all normal actions without granting new ownership (7.411457ms)
+✔ explicit recovery requires stopped prior run evidence and a durable checkpoint (4.315451ms)
+✔ invalid time, TTL, arbitrary commands and unsafe checkpoint data fail closed (2.172135ms)
+✔ malformed persisted evidence and invalid repository paths cannot acquire ownership (1.105606ms)
+✔ release retires plaintext token but still rejects previous token and run reuse (2.836843ms)
+✔ expired recovery retires plaintext token and preserves the same reuse guard (3.104218ms)
+✔ legacy retired tokens normalize without changing live fences or caller history (4.578754ms)
+✔ malformed or mixed retired token representations fail closed (6.828238ms)
+✔ active version-2 lease stores only a digest; publishing the digest does not grant ownership (0.676076ms)
+✔ version-1 active ownership migrates only with the existing fence and preserves times/history (1.35987ms)
+✔ malformed, mixed, version-2 plaintext and unknown-version active states fail closed (1.598119ms)
+✔ catalogue rejects cycles, unknown rules/authority, unsafe paths and missing acceptance (5.722445ms)
+✔ state version 3 fails closed for old/new unsupported states without silently migrating (4.62717ms)
+✔ automatic selection follows priority and dependencies, not fixed team/category assignments (6.931944ms)
+✔ exact/prefix leases block overlap through review while unrelated files run simultaneously (5.757123ms)
+✔ one running task per worker; review permits another independent task (6.646428ms)
+✔ block releases ownership with checkpoint and task blockers automatically clear after acceptance (7.823974ms)
+✔ decision/environment blockers need explicit coordinator resolution and never self-unlock (1.778344ms)
+✔ expired running/review leases are quarantined and cannot be silently stolen (5.865676ms)
+✔ workers cannot accept their own work; acceptance needs independent matching-commit passing evidence (22.357002ms)
+✔ reopening a dependency invalidates accepted descendants and quarantines active descendants transitively (39.761582ms)
+✔ reject retains lease until stopped-worker recovery; approve requires actual scoped owner record (13.966446ms)
+✔ coordinator priority overrides, worker capabilities and unresolved rules control eligible selection (1.173913ms)
+✔ transitions are immutable, revisioned, auditable and reject stale tokens (1.051829ms)
+✔ renewal is scoped and bounded, while invalid task blocker names cannot reference object properties (1.158169ms)
+✔ discovered dependencies survive resumption, review and acceptance then invalidate work when reopened (52.525744ms)
+✔ dynamically discovered cycles are rejected atomically across static and discovered dependencies (1.311502ms)
+✔ reopening a prerequisite preserves downstream environment, decision and other task blockers (6.050026ms)
+✔ stopped-worker recovery clears quarantine causes but preserves independent blockers (0.746643ms)
+✔ worker blockers cannot impersonate scheduler-owned quarantine causes (0.479484ms)
+✔ explicit blocker resolution preserves evidence and dependencies without reopening descendants (3.920715ms)
+✔ read-only inspection does not create runtime state or locks (8.145107ms)
+✔ initialisation restores a checkpoint but never overwrites existing runtime (30.671165ms)
+✔ state revision CAS and atomic checkpoint export preserve newer work (58.125798ms)
+✔ revision cannot be skipped or changed without an increment; true no-op is allowed (29.794824ms)
+✔ corrupt state, wrong schema and broken symlinks fail closed instead of reinitialising (50.360369ms)
+✔ parallel processes share one atomic queue: no double claims or overlapping files (20063.641653ms)
+✔ a crashed process leaves a lock requiring explicit token-matched dead-owner recovery (2207.159607ms)
+✔ live or foreign lock owners are never evicted by age or a recovery request (76.03331ms)
+✔ separate Git worktrees resolve the same runtime store while retaining their own checkpoint path (156.365059ms)
+✔ real CLI and core enforce automatic claims, configured coordinator and reviewed dependency release (740.208568ms)
+✔ CLI command parsing rejects authority injection, actor mismatch, malformed and oversized JSON (107.948883ms)
+✔ a changed catalogue cannot reinterpret shared state or file leases and init never resets it (206.620858ms)
+✔ CLI blocker resolution requires current revision and preserves evidence, dependencies and separate acceptance (1913.478623ms)
+✔ real CLI exports verifier-only leases and fences digest-as-command without persisting raw tokens (1041.064382ms)
+✔ v3 claim result alone contains raw token; persisted state and all owned transitions contain only verifiers (19.308639ms)
+✔ explicit stopped v2 migration preserves task and event meaning, order, revision, source provenance and input (9.593352ms)
+✔ migration rejects held, mixed, malformed, unknown and missing-provenance input without mutating it (5.828399ms)
+✔ v3 refuses plaintext, mixed, malformed and misplaced verifiers including nested evidence (4.191097ms)
+ℹ tests 52
+ℹ suites 0
+ℹ pass 52
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 27249.709177
+✔ v3 claim result alone contains raw token; persisted state and all owned transitions contain only verifiers (7.407304ms)
+✔ explicit stopped v2 migration preserves task and event meaning, order, revision, source provenance and input (2.700775ms)
+✔ migration rejects held, mixed, malformed, unknown and missing-provenance input without mutating it (3.592336ms)
+✔ v3 refuses plaintext, mixed, malformed and misplaced verifiers including nested evidence (2.631777ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 189.63645
