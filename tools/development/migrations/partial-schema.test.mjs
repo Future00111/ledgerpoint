@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import pg from 'pg';
 import { amendmentSchema, amendmentHistory } from '../../../artifacts/api-server/src/services/accountingDocuments/amendments.ts';
-import { fingerprintDatabase, assertSameFingerprint } from '../../accounting-flow/restore-drill.mjs';
+import { fingerprintDatabase, assertSameFingerprint } from '../../accounting-flow/database-fingerprint.mjs';
 
 const socket = process.env.ACCOUNTING_FLOW_TEST_SOCKET ?? '';
 if (!/^\/tmp\/ledgerly-accounting-flow-tests-[A-Za-z0-9]{6}\/socket$/.test(socket))
