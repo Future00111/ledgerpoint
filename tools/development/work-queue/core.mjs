@@ -1,9 +1,12 @@
+import { createHash } from 'node:crypto';
 // Pure scheduling policy. The caller authenticates actors, supplies the trusted
 // coordinator identity and persists returned states atomically. No task is executed here.
 const KINDS = new Set(['implementation', 'contract', 'verification', 'external']);
 const STATUSES = new Set(['pending', 'running', 'review', 'blocked', 'done', 'quarantined']);
 const HELD = new Set(['running', 'review', 'quarantined']);
 const COORDINATOR = new Set(['accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
+const tokenDigest = value => createHash('sha256').update(value, 'utf8').digest('hex');
+const digestValid = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 const text = value => typeof value === 'string' && value.trim().length > 0;
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 const requireValue = (condition, code, message) => { if (!condition) fail(code, message); };
@@ -37,23 +40,63 @@ export function validateCatalog(catalog) {
 
 export function initialState(catalog) {
   validateCatalog(catalog);
-  // Version 2 makes old workers fail closed: version 1 did not retain discovered dependencies.
-  return { version: 2, revision: 0, tasks: Object.fromEntries(catalog.tasks.map(task => [task.id, { status: task.status === 'done' ? 'done' : 'pending', priority: task.priority }])), events: [] };
+  // Version 3 makes plaintext-token readers fail closed; only verifiers persist.
+  return { version: 3, revision: 0, tasks: Object.fromEntries(catalog.tasks.map(task => [task.id, { status: task.status === 'done' ? 'done' : 'pending', priority: task.priority }])), events: [] };
 }
 
-export function validateState(catalog, state) {
+function validateStateVersion(catalog, state, version) {
   validateCatalog(catalog);
-  requireValue(state?.version === 2 && Number.isSafeInteger(state.revision) && state.revision >= 0 && state.tasks && Array.isArray(state.events), 'INVALID_STATE', 'Expected queue state version 2; older states need explicit reviewed migration.');
+  requireValue(state?.version === version && Number.isSafeInteger(state.revision) && state.revision >= 0 && state.tasks && Array.isArray(state.events), 'INVALID_STATE', 'Unsupported queue state version; explicit reviewed migration is required.');
   requireValue(Object.keys(state.tasks).length === catalog.tasks.length && catalog.tasks.every(task => Object.hasOwn(state.tasks, task.id) && STATUSES.has(state.tasks[task.id]?.status)), 'INVALID_STATE', 'State must contain exactly the catalogue tasks.');
   for (const task of catalog.tasks) {
     const entry = state.tasks[task.id];
     requireValue(priorityValid(entry.priority ?? task.priority), 'INVALID_STATE', 'Invalid priority override.');
-    if (HELD.has(entry.status)) requireValue(text(entry.owner) && text(entry.token) && Number.isSafeInteger(entry.leaseUntil) && entry.leaseUntil >= 0, 'INVALID_STATE', `Missing held lease for ${task.id}.`);
+    if (HELD.has(entry.status)) requireValue(text(entry.owner) && (version === 2 ? text(entry.token) : digestValid(entry.tokenSha256)) && Number.isSafeInteger(entry.leaseUntil) && entry.leaseUntil >= 0, 'INVALID_STATE', `Missing held lease for ${task.id}.`);
     requireValue(entry.blockers === undefined || Array.isArray(entry.blockers) && entry.blockers.every(blocker => ['task', 'decision', 'environment'].includes(blocker?.type) && text(blocker.reason) && (blocker.type !== 'task' || text(blocker.id) && Object.hasOwn(state.tasks, blocker.id))), 'INVALID_STATE', `Invalid blockers for ${task.id}.`);
     requireValue(entry.discoveredDependencies === undefined || Array.isArray(entry.discoveredDependencies) && new Set(entry.discoveredDependencies).size === entry.discoveredDependencies.length && entry.discoveredDependencies.every(id => text(id) && id !== task.id && Object.hasOwn(state.tasks, id)), 'INVALID_STATE', `Invalid discovered dependencies for ${task.id}.`);
   }
+  for (const entry of Object.values(state.tasks)) {
+    requireValue(version === 2 ? !Object.hasOwn(entry, 'tokenSha256') : !Object.hasOwn(entry, 'token'), 'INVALID_STATE', 'Mixed lease token representations.');
+    if (!HELD.has(entry.status)) requireValue(!Object.hasOwn(entry, 'token') && !Object.hasOwn(entry, 'tokenSha256'), 'INVALID_STATE', 'Stopped tasks cannot retain lease tokens.');
+  }
+  for (const item of state.events) {
+    requireValue(item && typeof item === 'object', 'INVALID_STATE', 'Invalid event.');
+    if (item.type === 'claim') requireValue(version === 2
+      ? text(item.token) && item.token.length >= 8 && !Object.hasOwn(item, 'tokenSha256')
+      : digestValid(item.tokenSha256) && !Object.hasOwn(item, 'token'), 'INVALID_STATE', 'Invalid claim verifier.');
+    else requireValue(!Object.hasOwn(item, 'token') && !Object.hasOwn(item, 'tokenSha256'), 'INVALID_STATE', 'Unexpected event token.');
+  }
+  // Reject plaintext token fields in nested evidence or extension data. This is not an arbitrary secret-string detector.
+  function inspect(value, parent, key) {
+    if (!value || typeof value !== 'object') return;
+    for (const [name, child] of Object.entries(value)) {
+      if (name === 'token') requireValue(version === 2 && ((parent === 'events' && value.type === 'claim') || parent === 'tasks'), 'INVALID_STATE', 'Plaintext token outside legacy claim event.');
+      if (name === 'tokenSha256') requireValue(version === 3 && ((parent === 'events' && value.type === 'claim') || parent === 'tasks'), 'INVALID_STATE', 'Unexpected token verifier.');
+      inspect(child, key, name);
+    }
+  }
+  inspect(state, null, null);
   validateDependencyGraph(catalog, state, 'INVALID_STATE');
   return state;
+}
+export function validateState(catalog, state) { return validateStateVersion(catalog, state, 3); }
+
+/** Explicit stopped-state migration. The source archive remains unchanged.
+ * sourceStateSha256 hashes JSON.stringify(input), not the original file bytes. */
+export function migrateV2State(catalog, state, { source } = {}) {
+  validateStateVersion(catalog, state, 2);
+  requireValue(!Object.values(state.tasks).some(entry => HELD.has(entry.status)), 'STOPPED_STATE_REQUIRED', 'Stop and recover every held task before migration.');
+  requireValue(source && /^refs\/heads\/[A-Za-z0-9_./-]+$/.test(source.ref) && !source.ref.includes('..')
+    && source.ref.slice(11).split('/').every(part => part && !part.startsWith('.') && !part.endsWith('.') && !part.endsWith('.lock'))
+    && /^[a-f0-9]{40}$/.test(source.sha)
+    && typeof source.path === 'string' && /^[A-Za-z0-9_./-]+$/.test(source.path) && !source.path.split('/').some(part => !part || part === '.' || part === '..'), 'MIGRATION_SOURCE_REQUIRED', 'An immutable archived source is required.');
+  requireValue(!Object.hasOwn(state, 'workerTokenMigration'), 'INVALID_STATE', 'Migration metadata already exists.');
+  const next = structuredClone(state);
+  for (const item of next.events) if (item.type === 'claim') { item.tokenSha256 = tokenDigest(item.token); delete item.token; }
+  next.version = 3;
+  next.workerTokenMigration = { fromVersion: 2, source: { ref: source.ref, sha: source.sha, path: source.path },
+    sourceStateSha256: tokenDigest(JSON.stringify(state)), sourceRevision: state.revision, sourceEventCount: state.events.length };
+  return validateState(catalog, next);
 }
 
 function dependencies(task, state) {
@@ -138,7 +181,7 @@ function evidenceValid(evidence, review = false) {
   return evidence && text(evidence.commit) && text(evidence.summary) && Array.isArray(evidence.tests) && evidence.tests.length > 0 &&
     evidence.tests.every(test => text(test?.command) && test.passed === true) && (!review || evidence.reviewed === true && text(evidence.reviewer));
 }
-function clearLease(entry) { for (const key of ['owner', 'token', 'leaseUntil', 'workStarted']) delete entry[key]; }
+function clearLease(entry) { for (const key of ['owner', 'tokenSha256', 'leaseUntil', 'workStarted']) delete entry[key]; }
 function leaseDuration(value, now) { requireValue(Number.isSafeInteger(value) && value >= 1000 && value <= 24 * 60 * 60 * 1000 && Number.isSafeInteger(now + value), 'INVALID_LEASE', 'Lease must be between one second and 24 hours with a safe expiry.'); }
 function descendants(catalog, state, id) {
   const found = new Set([id]);
@@ -157,20 +200,20 @@ export function transition(catalog, state, command, { now, coordinator } = {}) {
   let claim = null, resolvedBlockers;
   if (type === 'claim') {
     leaseDuration(command.leaseMs, now);
-    requireValue(text(command.token) && command.token.length >= 8 && !next.events.some(item => item.token === command.token) && !Object.values(next.tasks).some(entry => entry.token === command.token), 'INVALID_TOKEN', 'A new unique lease token of at least eight characters is required.');
+    requireValue(text(command.token) && command.token.length >= 8 && !next.events.some(item => item.tokenSha256 === tokenDigest(command.token)) && !Object.values(next.tasks).some(entry => text(command.token) && entry.tokenSha256 === tokenDigest(command.token)), 'INVALID_TOKEN', 'A new unique lease token of at least eight characters is required.');
     const task = selectNext(catalog, next, { worker: actor, now, capabilities: command.capabilities });
     if (task) {
       const entry = next.tasks[task.id];
       entry.discoveredDependencies = dependencies(task, next).filter(id => !task.dependencies.includes(id));
-      Object.assign(entry, { status: 'running', owner: actor, token: command.token, leaseUntil: now + command.leaseMs, workStarted: false });
+      Object.assign(entry, { status: 'running', owner: actor, tokenSha256: tokenDigest(command.token), leaseUntil: now + command.leaseMs, workStarted: false });
       delete entry.blockers;
       claim = { taskId: task.id, token: command.token, leaseUntil: entry.leaseUntil, files: [...task.files] };
-      event(next, now, actor, type, task.id, { token: command.token });
+      event(next, now, actor, type, task.id, { tokenSha256: tokenDigest(command.token) });
     }
   } else {
     const task = catalog.tasks.find(item => item.id === command.taskId), entry = next.tasks[command.taskId];
     requireValue(task && entry, 'UNKNOWN_TASK', 'A catalogue task is required.');
-    if (['renew', 'checkpoint', 'block', 'submit'].includes(type)) requireValue(entry.status === 'running' && entry.owner === actor && entry.token === command.token && entry.leaseUntil > now, 'LEASE_REQUIRED', 'An active matching worker lease is required.');
+    if (['renew', 'checkpoint', 'block', 'submit'].includes(type)) requireValue(entry.status === 'running' && entry.owner === actor && text(command.token) && entry.tokenSha256 === tokenDigest(command.token) && entry.leaseUntil > now, 'LEASE_REQUIRED', 'An active matching worker lease is required.');
     switch (type) {
       case 'renew':
         leaseDuration(command.leaseMs, now); entry.leaseUntil = now + command.leaseMs;

@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { validateCatalog, initialState, selectNext, transition, explainTask, validateState } from './core.mjs';
 
@@ -27,10 +28,10 @@ test('catalogue rejects cycles, unknown rules/authority, unsafe paths and missin
   }
 });
 
-test('state version 2 fails closed for old/new unsupported states without silently migrating', () => {
+test('state version 3 fails closed for old/new unsupported states without silently migrating', () => {
   const c = catalog([task('a')]), state = initialState(c);
-  assert.equal(c.version, 1); assert.equal(state.version, 2);
-  for (const version of [undefined, 1, 3, '2']) {
+  assert.equal(c.version, 1); assert.equal(state.version, 3);
+  for (const version of [undefined, 1, 2, 4, '3']) {
     const incompatible = { ...state, version }, before = structuredClone(incompatible);
     assert.throws(() => validateState(c, incompatible), { code: 'INVALID_STATE' });
     assert.throws(() => selectNext(c, incompatible, { worker: 'worker', now: NOW }), { code: 'INVALID_STATE' });
@@ -116,7 +117,7 @@ test('reopening a dependency invalidates accepted descendants and quarantines ac
   const active = h.claim('worker-c'); assert.equal(active.taskId, 'c');
   h.run({ type: 'reopen', actor: 'coordinator', taskId: 'a', reason: 'Review found historical calculation error.' });
   assert.equal(h.state.tasks.b.status, 'blocked'); assert.equal(h.state.tasks.c.status, 'quarantined');
-  assert.equal(h.state.tasks.c.token, active.token);
+  assert.equal(h.state.tasks.c.tokenSha256, createHash('sha256').update(active.token).digest('hex'));
   assert.equal(h.claim('worker-c'), null);
   const rework = h.claim('worker-a'); assert.equal(rework.taskId, 'a');
   h.submit('worker-a', rework); h.accept('a');

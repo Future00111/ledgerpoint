@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "revision": 531,
   "tasks": {
     "P01-00": {
@@ -1824,7 +1824,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-00",
-      "token": "df98d191-0b29-402e-a588-f73ab8fc1d1e"
+      "tokenSha256": "95b16fe9d5a54a18de23ccefac58f8d50177dc27cd7a2d490ce1f196d916201c"
     },
     {
       "at": 1793402337123,
@@ -1838,7 +1838,7 @@
       "actor": "worker2",
       "type": "claim",
       "taskId": "P02-01",
-      "token": "db04e091-32a4-4e70-9a52-a6cb1abad022"
+      "tokenSha256": "5cdc8694d48b20a92c45b6b9606b8d18fb561290c1176a6b09b87f54c009ec6f"
     },
     {
       "at": 1793402351613,
@@ -1852,7 +1852,7 @@
       "actor": "worker3",
       "type": "claim",
       "taskId": "P02-03",
-      "token": "6883c5a8-c612-4240-ab03-a9ab1fff0def"
+      "tokenSha256": "db3faba087616aef10493d872208eafd19867885f1756d81dea74b0337fc63be"
     },
     {
       "at": 1793402360366,
@@ -1866,14 +1866,14 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P03-00",
-      "token": "1ffcf950-5526-4aa3-a601-73e5c043b23d"
+      "tokenSha256": "963dabb22b898c03e1ecbf38552bd62f37e135afbf821b90db4e8d0f99b68e0b"
     },
     {
       "at": 1793402368425,
       "actor": "worker5",
       "type": "claim",
       "taskId": "P04-01",
-      "token": "22b75133-b91c-4509-9a90-8b64a785689e"
+      "tokenSha256": "cf7a6a918b4059279ad085743085c61e9e2795c407c6c09b6123c4475c4affa9"
     },
     {
       "at": 1793402368833,
@@ -1887,7 +1887,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P07-01",
-      "token": "faf7d005-b537-49cf-9cb2-8214016d22b3"
+      "tokenSha256": "be7fda3001f8ad25a21341b015c444d9a15a004ef9ad9a8bbdba1e9a9133fd6d"
     },
     {
       "at": 1793402384614,
@@ -1921,7 +1921,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P07-02",
-      "token": "79129ca7-a9a4-4144-8122-e9dd34920066"
+      "tokenSha256": "1fa7481a5df2911543214cf05272af341524f37992ddfe865d09ed533b1d6baf"
     },
     {
       "at": 1793402422783,
@@ -2104,7 +2104,7 @@
       "actor": "worker3",
       "type": "claim",
       "taskId": "P02-03",
-      "token": "cd4ed689-1146-4011-936e-0bc0f6a3a793"
+      "tokenSha256": "159d803c8571983a7b231d0fe0af5a08e0b7f94e1584c991b2cfb97a163a1347"
     },
     {
       "at": 1793402557573,
@@ -2156,7 +2156,7 @@
       "actor": "worker2",
       "type": "claim",
       "taskId": "P02-01",
-      "token": "638e08e0-fa47-4e67-a73e-612a8aa9c9c4"
+      "tokenSha256": "a3bac6b7c02308728df57ac0b7b7b0ad6cea87a23a2f2cd451267370abcf610f"
     },
     {
       "at": 1793402728355,
@@ -2285,7 +2285,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-00",
-      "token": "5c0bb7a6-dfb2-47d4-8c7e-e17e497c4a25"
+      "tokenSha256": "5b9bd7179299280741662c7fbaa3b4492126d79934ff24404dd502add50a1ee0"
     },
     {
       "at": 1793402985194,
@@ -2349,21 +2349,21 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-02",
-      "token": "fee8749e-73ae-4ee4-8f12-fd642fc94793"
+      "tokenSha256": "efa40609c16799251e2a71c33ef1b50ffef1d9fe2db391d01752028e4964f483"
     },
     {
       "at": 1793403385160,
       "actor": "worker2",
       "type": "claim",
       "taskId": "P02-01",
-      "token": "1c3cb695-5c81-46f8-bd8e-9a0cb6671565"
+      "tokenSha256": "efc8a776f747c6c996ac4a18080cefd9e5bd7fd9cfaabfdafd3d5c6cb09f8a90"
     },
     {
       "at": 1793403389428,
       "actor": "worker3",
       "type": "claim",
       "taskId": "P02-03",
-      "token": "fa7c23b8-48d9-47ab-ba17-d9923d0d1765"
+      "tokenSha256": "63cab87fe06663c62437729af0b5b5e0324e608a7221b6823fbbc27be8aadda2"
     },
     {
       "at": 1793403390982,
@@ -2384,14 +2384,14 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P03-00",
-      "token": "52194a48-fa10-4448-9858-ec191cabe02c"
+      "tokenSha256": "3497f146e3bc7849ed7316b92c38f71b88c6fca01349b982ae993bcedebe20a1"
     },
     {
       "at": 1793403399673,
       "actor": "worker5",
       "type": "claim",
       "taskId": "P04-01",
-      "token": "517447d9-451c-4cd0-9fa6-81ab226c2d82"
+      "tokenSha256": "238784ebdfe4662d5ef3594f2c02ad5729bb11e6b8bbc8f3c640ac591260c015"
     },
     {
       "at": 1793403401199,
@@ -2405,7 +2405,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P05-03",
-      "token": "a97c0937-66da-400d-9033-2553d058e08b"
+      "tokenSha256": "9b5c7e4e28628809ff7c1439217c969cf589ca8048a83591a490ee0da3e77410"
     },
     {
       "at": 1793403413988,
@@ -2425,7 +2425,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-04",
-      "token": "9376c35d-c85b-413d-8867-f6c6a1ce6e59"
+      "tokenSha256": "808838fc910acc6a0a577ed75bde6bc3c1d85a055ca58489dae260a248411f83"
     },
     {
       "at": 1793403419908,
@@ -2466,7 +2466,7 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P06-00",
-      "token": "2e1a37d5-394a-4c62-aca7-b7d01cba3846"
+      "tokenSha256": "0f17bc09b67fd28b7b6acc8153ee6c3d1b45afe66bc4c76864467724d2d64abc"
     },
     {
       "at": 1793403450223,
@@ -2500,7 +2500,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P07-02",
-      "token": "7bac9a7f-c5ba-4341-b46b-3e9f7be6ce8d"
+      "tokenSha256": "c09fc8f09e5924c87cded2bd335f543d2d815e214de0481452e1f077e4b5bd93"
     },
     {
       "at": 1793403472100,
@@ -2602,7 +2602,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P07-03",
-      "token": "12089e61-f199-43b9-917a-8e49e705041f"
+      "tokenSha256": "232f1a424e9a6b0f14b39f8c6858fa8da7e6c916adb3a02d7a0df636c825923f"
     },
     {
       "at": 1793403510574,
@@ -2694,7 +2694,7 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P06-00",
-      "token": "8191f8bd-79ab-4967-b63b-ee8109cf3fd7"
+      "tokenSha256": "0530d930bd26e00cf44836f6b37435b23d4c4b1b1c84f7eef18057bb6a093f2d"
     },
     {
       "at": 1793403620695,
@@ -2826,21 +2826,21 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-04",
-      "token": "4e87368c-546f-4fe8-ae65-faf31d78151f"
+      "tokenSha256": "4844720428e09cfab4b2b0a9effbd7e88f2b70aaa3968f712ee25ece2f0255a9"
     },
     {
       "at": 1793405149487,
       "actor": "worker2",
       "type": "claim",
       "taskId": "P02-01",
-      "token": "f6f06ece-eb28-4f29-a236-e5ad3d975896"
+      "tokenSha256": "0aea6cae6a687ff58d786f2965152333ee0ac71b6d9d645732beab007352e107"
     },
     {
       "at": 1793405160586,
       "actor": "worker3",
       "type": "claim",
       "taskId": "P02-03",
-      "token": "9e96d70d-dbaf-42f9-9759-42beeecdc993"
+      "tokenSha256": "dac8a92f4fdb9e274d01850cd525660fdfefdb4fe6c57b0f7bdef163d07536cf"
     },
     {
       "at": 1793405168244,
@@ -2861,7 +2861,7 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P03-00",
-      "token": "96795798-1219-4574-ab60-8360fcd2e9c2"
+      "tokenSha256": "6915317f118a6377fc5c961005b0aca7f65702700388543f652e25e11aee6a73"
     },
     {
       "at": 1793405176861,
@@ -2875,14 +2875,14 @@
       "actor": "worker5",
       "type": "claim",
       "taskId": "P04-01",
-      "token": "2dd5b2d0-776d-4551-841b-54f449143357"
+      "tokenSha256": "39123314f18653814df11273890292f5cdd9e5d186326e8b86be09bb44470172"
     },
     {
       "at": 1793405196168,
       "actor": "worker6",
       "type": "claim",
       "taskId": "P06-00",
-      "token": "e9f2909d-b616-419c-993b-f36445968391"
+      "tokenSha256": "ebe45cc0f185c2526a02ddd12ef6d42fd6c16265333efa2d6a929f61721b1372"
     },
     {
       "at": 1793405211999,
@@ -2916,7 +2916,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P07-03",
-      "token": "a2a3324c-789b-4a32-b60d-044a173df53d"
+      "tokenSha256": "1b87915d8bc6fa2a6aebf86fb5e85cb7b2277042f871ca5a36e5384e6fbae049"
     },
     {
       "at": 1793405248565,
@@ -3061,7 +3061,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P07-04",
-      "token": "be78704a-481b-4267-8503-2ae1b3e34cf7"
+      "tokenSha256": "ef5bd691979ef418a3e48cd28e335a18b011c20db9b56a43d51ee9a3c232e7d2"
     },
     {
       "at": 1793405316260,
@@ -3099,14 +3099,14 @@
       "actor": "worker3",
       "type": "claim",
       "taskId": "P13-04",
-      "token": "15dc47c3-f95c-475e-9008-e74caa0c9bbb"
+      "tokenSha256": "9ca9073da128c02cd950d9c2257263a92783f14351bc3ef77cd98890d1ba5fe7"
     },
     {
       "at": 1793405327466,
       "actor": "worker6",
       "type": "claim",
       "taskId": "P14-04",
-      "token": "5c6ae2e2-a9c6-4d89-be99-b0143cbca11d"
+      "tokenSha256": "f80853dcf32e48b15fbfe9714b495d3e7a76098fc99a34309c5f88b3f67a732f"
     },
     {
       "at": 1793405370566,
@@ -3160,7 +3160,7 @@
       "actor": "worker3",
       "type": "claim",
       "taskId": "P15-02",
-      "token": "2aabed29-ae05-4234-95b6-60a8e54cc831"
+      "tokenSha256": "c9182db86e4eae31a9154ff3a3d2aba0812de7be2117676d34a73de5f0e7f6a4"
     },
     {
       "at": 1793405383172,
@@ -3277,7 +3277,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P14-04",
-      "token": "fbb14ca3-0423-489b-8cf7-8476eadde7a2"
+      "tokenSha256": "256266d68ea55a3f0e157cffd8afffd21ee99333b51047ed05fc725b8ed1d09c"
     },
     {
       "at": 1793405642737,
@@ -3332,7 +3332,7 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P03-00",
-      "token": "c4190343-991f-4f7a-a871-c488ed45de34"
+      "tokenSha256": "9bd819dbb29f85a66ec235c58def006767f7cc8702191830aadc106bce820764"
     },
     {
       "at": 1793405868852,
@@ -3508,42 +3508,42 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-02",
-      "token": "1df6acb7-76c0-4c80-bf32-8891ba5fa1fc"
+      "tokenSha256": "56449935f11c3ca71776ff37bcae51df6118d84e2ea647162f2d8d2708afb90d"
     },
     {
       "at": 1793407467580,
       "actor": "worker2",
       "type": "claim",
       "taskId": "P02-01",
-      "token": "1c6f29ba-446f-48bd-b93a-76ebda6dd729"
+      "tokenSha256": "19049f4701b9d4f04b9ab461ff122285e18b6d1a8a52e568140e41695f5b6c45"
     },
     {
       "at": 1793407473691,
       "actor": "worker3",
       "type": "claim",
       "taskId": "P02-03",
-      "token": "ca9a47cb-ff20-46e1-b869-968ea17099f8"
+      "tokenSha256": "e98f2a5d3843afde88e76086a616c769b0b7b3304cff58a2505c9b531e2e9924"
     },
     {
       "at": 1793407478191,
       "actor": "worker4",
       "type": "claim",
       "taskId": "P03-01",
-      "token": "5dc5ef1e-2039-46f2-bba1-56f734e42556"
+      "tokenSha256": "bf9284a4860e076cee92549d34f0acfd8f13be498581f795997b29c87fa2ab27"
     },
     {
       "at": 1793407487090,
       "actor": "worker5",
       "type": "claim",
       "taskId": "P03-02",
-      "token": "7abd6b28-ea97-490c-9081-e09669ab4608"
+      "tokenSha256": "dbbd85443641c42264928822d520581eec1774c6121aae10c64703bd550b5172"
     },
     {
       "at": 1793407491472,
       "actor": "worker6",
       "type": "claim",
       "taskId": "P03-04",
-      "token": "8132c433-a412-4c30-b690-239726c2b6f4"
+      "tokenSha256": "029e7aef5553bfa8540ea1d598c084eacb47e7c81827d979507a6f865b9a188a"
     },
     {
       "at": 1793407493223,
@@ -3591,7 +3591,7 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P04-01",
-      "token": "2c2f2b2f-ac2a-458c-ae64-14039485ca37"
+      "tokenSha256": "43db3b76a19022649934cc0e787bf1524cd0002beff30e74f1191142f07eab27"
     },
     {
       "at": 1793407521677,
@@ -3611,7 +3611,7 @@
       "actor": "worker3",
       "type": "claim",
       "taskId": "P07-03",
-      "token": "3619301d-d686-4787-af60-24f81ccd8716"
+      "tokenSha256": "3c0fe491a44636db19e6499e2460ef61783359b532c6609d682abe459a36cce0"
     },
     {
       "at": 1793407532012,
@@ -3645,7 +3645,7 @@
       "actor": "worker5",
       "type": "claim",
       "taskId": "P07-04",
-      "token": "9fa0f18c-10cd-4808-9772-f9edcf3a91fd"
+      "tokenSha256": "e180c990de3ceaf4ce1212027d7f481c2ea638c4ded84a9b5d555bb68357fe3c"
     },
     {
       "at": 1793407548027,
@@ -3690,7 +3690,7 @@
       "actor": "worker2",
       "type": "claim",
       "taskId": "P13-04",
-      "token": "c2f8a624-94c1-4d6f-8799-76d1e0ee9940"
+      "tokenSha256": "d640236adae7bfb38c64ab97639b75ce70a9548070aafe0305a66728f4fdfeac"
     },
     {
       "at": 1793407563238,
@@ -3742,7 +3742,7 @@
       "actor": "worker3",
       "type": "claim",
       "taskId": "P14-04",
-      "token": "7466a228-94a8-499e-8d1e-07f3a177c07d"
+      "tokenSha256": "2ab078e70cf21aabaeeffb7b100edb9a75b4dd2c82929042709ee5f47a1fcbb9"
     },
     {
       "at": 1793407592028,
@@ -3807,7 +3807,7 @@
       "actor": "worker3",
       "type": "claim",
       "taskId": "P15-02",
-      "token": "dd35d1d3-62e8-4b6d-9ff7-6cdfbb35c79e"
+      "tokenSha256": "fddc3266ec66796de24f2c708cc2ee5364f9fd2921f42af656b15107e25a41f0"
     },
     {
       "at": 1793407637580,
@@ -3882,7 +3882,7 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P15-03",
-      "token": "f43591db-fdc5-4a0b-976d-4c7f502b8a26"
+      "tokenSha256": "d27d78ffaacb3faaf1da143ec3429f5d194b75c085d00ded21059dd0b637d8fe"
     },
     {
       "at": 1793407661110,
@@ -3920,7 +3920,7 @@
       "actor": "worker5",
       "type": "claim",
       "taskId": "P17-02",
-      "token": "253726c6-119f-491a-969f-f16d7a4b1dfb"
+      "tokenSha256": "221768efbbf654d5b66151693a271af7b669a435c207746d83bcd878129be533"
     },
     {
       "at": 1793407689563,
@@ -3961,7 +3961,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P03-04",
-      "token": "ded17798-1628-4421-9eab-990be640bb92"
+      "tokenSha256": "1735bef33f24746b02754e31322ad19e25d424fa805d5601ccb94a20c0bc302e"
     },
     {
       "at": 1793407726574,
@@ -4208,7 +4208,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-02",
-      "token": "85953750-f21e-4683-833b-0ab71c89ae6f"
+      "tokenSha256": "2bb340f8a5b5f9151335dc709c9cc7a735a99ed652a3c669eb4ff9f90dfc0284"
     },
     {
       "at": 1793408161949,
@@ -4271,7 +4271,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-02",
-      "token": "8137591e-5ba1-402e-ab52-9ad6d784b474"
+      "tokenSha256": "576ad27dce22d1b85b006b6dca5e1a11165a59b671d6d4aec5407685a3e090af"
     },
     {
       "at": 1793408469779,
@@ -4330,7 +4330,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-02",
-      "token": "0d1cbe2c-ed41-4757-a769-a97602f0519e"
+      "tokenSha256": "22cbb02cc7a2e24dbee35ee6f451ec194f8061868e8a848a4a666b6677ebd4d1"
     },
     {
       "at": 1793408712937,
@@ -4417,14 +4417,14 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-03",
-      "token": "bf6ed9c1-d8b9-48ac-ba5d-779fbc1b7bb1"
+      "tokenSha256": "92093af9b8a91062bd4c51168efe0cb70f1e65fdda6c321e318a04840091901c"
     },
     {
       "at": 1793411424033,
       "actor": "worker2",
       "type": "claim",
       "taskId": "P02-01",
-      "token": "3a2011d8-fbc3-42fe-9b6f-70c3a44065e7"
+      "tokenSha256": "ccdc491c9ea771e1fd7cf4cb9c4e36b8e926921ee9d51dc8fb68bf06c4a57c92"
     },
     {
       "at": 1793458570332,
@@ -4457,21 +4457,21 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-03",
-      "token": "c6da3681-7122-46b6-be2f-301d1c4c2c92"
+      "tokenSha256": "1222c7255f2bdf7a555de68b95c4e492771bab7a933c539f461e477e02939842"
     },
     {
       "at": 1793459229904,
       "actor": "worker2",
       "type": "claim",
       "taskId": "P02-01",
-      "token": "f022401c-0dff-4411-b3db-5ed230cb98c6"
+      "tokenSha256": "caaf6ef9dab4f9931e2928d85cbd7bc2d1cde83dee19017f717297eef31b703e"
     },
     {
       "at": 1793459236113,
       "actor": "worker3",
       "type": "claim",
       "taskId": "P03-03",
-      "token": "fca9f0ea-8275-4a41-a94c-cd0a6dad95af"
+      "tokenSha256": "ea2d6e6e497fd0e4551e349c706fddc4c72689a8899978e2d23707dfe85cf219"
     },
     {
       "at": 1793459241619,
@@ -4485,14 +4485,14 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P03-04",
-      "token": "73ba7104-4c1b-4bf4-b3e2-444a5542b98b"
+      "tokenSha256": "04827cc5d24a6c78c65ef45c7a49bf536b90a5f3bf02556947ff8dde16c78659"
     },
     {
       "at": 1793459252932,
       "actor": "worker5",
       "type": "claim",
       "taskId": "P04-01",
-      "token": "df75e856-b613-4153-a809-461dc011b518"
+      "tokenSha256": "08039013bb79c156b334ad9dce17332b71db34f9907d4d57d5d00a2b134a7846"
     },
     {
       "at": 1793459262879,
@@ -4506,7 +4506,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P07-03",
-      "token": "d9c20311-6c67-41e6-8734-889bd18ab321"
+      "tokenSha256": "7c9a0bc849d0b0c24ba34b29dd148fe48c20066f67b129a82f7e856d58e33f84"
     },
     {
       "at": 1793459276352,
@@ -4576,7 +4576,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P07-04",
-      "token": "944453a7-b812-4635-a6d7-efd7e6330c4d"
+      "tokenSha256": "0a0d0bdb82450a96f3308f700a213d821a5c90a25d8a280da640772b385c63eb"
     },
     {
       "at": 1793459330597,
@@ -4607,7 +4607,7 @@
       "actor": "worker2",
       "type": "claim",
       "taskId": "P13-04",
-      "token": "4fe5f913-0218-4159-81df-fa09d16ca11f"
+      "tokenSha256": "ef73d38426ef24519466d3ca0b5be0bc3ce1a673c0b466b99b889a10c299162a"
     },
     {
       "at": 1793459351380,
@@ -4686,14 +4686,14 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P15-02",
-      "token": "5c8aa66f-e5a9-45dd-a1f3-96c6e60aed66"
+      "tokenSha256": "a5f168ba74160f756eda7d50a200a79d6450ecc4d9f77459122e1e6d83e3d518"
     },
     {
       "at": 1793459366784,
       "actor": "worker5",
       "type": "claim",
       "taskId": "P17-02",
-      "token": "9e452709-a483-4bab-932b-055476faaf5e"
+      "tokenSha256": "014aad267e5b3dcd061c77f0659b3fe20c700052ce5b49a44ff5e664d68b7b97"
     },
     {
       "at": 1793459377069,
@@ -4944,14 +4944,14 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-03",
-      "token": "6690dc6c-f710-4aed-8318-2bdd89463a12"
+      "tokenSha256": "eaa03aa5bcccc041d1e93241ff7ed1df09a38b3c53c55b177d7bb2b7ccd25d1a"
     },
     {
       "at": 1793463961618,
       "actor": "worker2",
       "type": "claim",
       "taskId": "P02-01",
-      "token": "005d0df3-fe66-4ca6-af8b-5b7bd49c8018"
+      "tokenSha256": "0deb0cd7e723701a4acd24dc4b90c06bf9d15f5b9b59cddb61255005d7876b19"
     },
     {
       "at": 1793463963107,
@@ -4965,7 +4965,7 @@
       "actor": "worker3",
       "type": "claim",
       "taskId": "P03-03",
-      "token": "c244e629-59f5-4d1f-8332-d3394c1ee78b"
+      "tokenSha256": "7cd6a43fd17a35a31c7bf9690e9a47232c00d5fe34fab63cb3ada19da819dcef"
     },
     {
       "at": 1793463972576,
@@ -4979,7 +4979,7 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P03-04",
-      "token": "69340b39-5fd6-4a07-995a-cfd79b47358e"
+      "tokenSha256": "444afad329333617dcf5d1544d99434d4baf2c874574e28a3629f1857b3d98d1"
     },
     {
       "at": 1793463975319,
@@ -4993,7 +4993,7 @@
       "actor": "worker5",
       "type": "claim",
       "taskId": "P04-01",
-      "token": "cfa90f44-5cf3-403e-956b-ad0fe8990811"
+      "tokenSha256": "47f0ca380e293b36220c9cd5564ba3792c90077607924944d279913ecb9e7b69"
     },
     {
       "at": 1793463981978,
@@ -5007,7 +5007,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P07-03",
-      "token": "9052c52e-4430-4906-85b8-d60a4e05c2b9"
+      "tokenSha256": "46fe3d84f58f8fcabfab1888f641107a5863f43d0272e2dc1bb8bdb90a92d8d1"
     },
     {
       "at": 1793463991122,
@@ -5041,7 +5041,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-04",
-      "token": "cd185776-4f40-4965-b938-e9b50c3d83c1"
+      "tokenSha256": "aa2016309a46f943155366655239957198ba06ee25f4a9fc27887acdd91d0e40"
     },
     {
       "at": 1793464024848,
@@ -5079,7 +5079,7 @@
       "actor": "worker3",
       "type": "claim",
       "taskId": "P06-00",
-      "token": "f5e81bad-5758-41fe-ac79-aa35e6a7584f"
+      "tokenSha256": "11575ed58e2b5729a2d6683e8c2d76d3eb99208aaf471e042993898abd690285"
     },
     {
       "at": 1793464065473,
@@ -5137,14 +5137,14 @@
       "actor": "worker5",
       "type": "claim",
       "taskId": "P07-04",
-      "token": "09d2fd32-770b-448e-868f-128108a0f13b"
+      "tokenSha256": "b66a7ed79a5abc5cdf90174ac3f6c0e54b9b8b3f67ff78e8eb75ac2eeff741a6"
     },
     {
       "at": 1793464079129,
       "actor": "worker6",
       "type": "claim",
       "taskId": "P15-02",
-      "token": "e94d85f8-954c-40aa-a664-d8c3c0250861"
+      "tokenSha256": "30c01a257b22e73a39de40879f1e1f0553966ff392492497d38f0648fde33f93"
     },
     {
       "at": 1793464079352,
@@ -5188,7 +5188,7 @@
       "actor": "worker2",
       "type": "claim",
       "taskId": "P17-02",
-      "token": "3bb43294-996b-4342-aead-158f5eb4162d"
+      "tokenSha256": "95b6ff9a28320b8f5da3c57ce4c7acbb2f682fa16a7f3559638b121ebb28b76f"
     },
     {
       "at": 1793464088956,
@@ -5495,7 +5495,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-03",
-      "token": "99dc05fe-60f1-4c08-8043-12fcd1e16ba0"
+      "tokenSha256": "e6bd4370fb05187344d59827954c5b95712635cecfc439059a6f4a778f3d2bfc"
     },
     {
       "at": 1793464807491,
@@ -5551,7 +5551,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-03",
-      "token": "a30f0dd7-9b38-46f9-aa17-79cc33dd0d40"
+      "tokenSha256": "2fd888f7c4d0da864599dcd755e3e4098572156f6f4b4cfc4ceb1bbc331f4279"
     },
     {
       "at": 1793464918499,
@@ -5607,21 +5607,21 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-03",
-      "token": "836f974d-bff2-437f-a4d2-893fd441b60e"
+      "tokenSha256": "6896af11526d87790d1059571f83cbdfb8ef65b112ad54437d8c2f92d2110094"
     },
     {
       "at": 1793466655563,
       "actor": "worker2",
       "type": "claim",
       "taskId": "P02-01",
-      "token": "89344655-c0f5-4667-9d8e-5652cc0ca271"
+      "tokenSha256": "02b659942bcba2c62015f64661dfe5546a12a69a497ad87d05a5fe7ea3b96d2f"
     },
     {
       "at": 1793466661099,
       "actor": "worker3",
       "type": "claim",
       "taskId": "P03-03",
-      "token": "42ac7d38-f085-4659-a64d-61e1a0a54b11"
+      "tokenSha256": "1cd83dc31e1921538c6466513f67e8f2fc2ce02314f6403d43212b7291923b89"
     },
     {
       "at": 1793466662219,
@@ -5635,14 +5635,14 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P03-04",
-      "token": "290fdf8f-f252-43bc-bb31-85db2a77f76f"
+      "tokenSha256": "42bc78466b0737cbb964c54f7b7b4694e376e50fc75db2f60413c3d8f039114c"
     },
     {
       "at": 1793466673802,
       "actor": "worker5",
       "type": "claim",
       "taskId": "P04-01",
-      "token": "e27510fe-0d35-4858-9602-39d7d6a82e78"
+      "tokenSha256": "37e6dc47a63a1d5b83b571ff1e78ae114e986c698b6677338dfc45eff61e4171"
     },
     {
       "at": 1793466677926,
@@ -5656,7 +5656,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P07-03",
-      "token": "ee285831-d233-4e0e-896b-a66c64cf2e52"
+      "tokenSha256": "4186758ebc41b4f5e5968e2579369d9fd89ebab32a57aa7cf31464ded4ece6a1"
     },
     {
       "at": 1793466698450,
@@ -5739,14 +5739,14 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P07-04",
-      "token": "6a0d4e64-db9b-40d0-be49-3d926db68e41"
+      "tokenSha256": "1411a07a7c6527f7062f224fe10f87901cf66f9307c0026617d5893f74d3b472"
     },
     {
       "at": 1793466738333,
       "actor": "worker2",
       "type": "claim",
       "taskId": "P17-02",
-      "token": "1ecaef48-65bc-489b-9508-aa29f907a973"
+      "tokenSha256": "adc8f1c88aa2fd4da7591bfbd50f00e9f890bac6a1db4e3d9e5ddea55199d2b0"
     },
     {
       "at": 1793466747555,
@@ -6000,35 +6000,35 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-03",
-      "token": "34199f07-fc8c-45c8-b26f-415b80289ca6"
+      "tokenSha256": "3986d8a36f35085e3ed6c6696bb491bf989b66b7b372bd633212b21fa0059b66"
     },
     {
       "at": 1793468740427,
       "actor": "worker2",
       "type": "claim",
       "taskId": "P02-01",
-      "token": "5ba855da-3c12-44f5-901c-40e8a944d0f1"
+      "tokenSha256": "3021e317f598be214b74485444152e3988bf8dde1052f14d0f9ad17a0051810b"
     },
     {
       "at": 1793468745631,
       "actor": "worker3",
       "type": "claim",
       "taskId": "P03-03",
-      "token": "dd5e4da9-a4d6-409f-9562-9d0e9707395d"
+      "tokenSha256": "95d69aa32215553fe66f815dfee311f88827af82e4157b3e7e2f3270ade7ff66"
     },
     {
       "at": 1793468750967,
       "actor": "worker4",
       "type": "claim",
       "taskId": "P03-04",
-      "token": "afc8a0b8-c55f-4293-bd58-d3b108c9ff1b"
+      "tokenSha256": "cb8c11072a609236c1e5fedcf721498f5ebd6ac5aa194bca7658ac18a95d609b"
     },
     {
       "at": 1793468756186,
       "actor": "worker5",
       "type": "claim",
       "taskId": "P04-01",
-      "token": "66295306-7077-4ea3-94e6-2c852c7bdadc"
+      "tokenSha256": "378a16ee02f7a57e050afc2e1ccff9e79f6d4fd193ce2be1d69c05dae1486781"
     },
     {
       "at": 1793468758769,
@@ -6042,7 +6042,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P07-03",
-      "token": "42d3f8da-74eb-434f-a125-bfa32c601676"
+      "tokenSha256": "80201cd9555c984ed73fa0267f149357cf841368e5eac731c182c45f6cfbc3cc"
     },
     {
       "at": 1793468779278,
@@ -6108,7 +6108,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P17-02",
-      "token": "f8151e31-7474-4645-96be-13bc6c4611ed"
+      "tokenSha256": "948e4b43bbe1f5d7c393b467cdd92987039e91a855537cbdee966e1723fbc2b6"
     },
     {
       "at": 1793468817828,
@@ -6356,35 +6356,35 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P01-03",
-      "token": "ffddfe6a-37ca-4589-a75f-e61bdc664441"
+      "tokenSha256": "bd2eb8341fb8c61eb802c8a38d919707b90b4b19d3a9565985806583e0262482"
     },
     {
       "at": 1793472547928,
       "actor": "worker2",
       "type": "claim",
       "taskId": "P02-01",
-      "token": "1f5bbd8c-7ec7-4433-a140-1bc26af54ba2"
+      "tokenSha256": "aea253dd5e1abfc409f7e17844e127698ec05b68b300c9a7fcb51311b30c07ea"
     },
     {
       "at": 1793472554358,
       "actor": "worker3",
       "type": "claim",
       "taskId": "P03-03",
-      "token": "9686c95a-15b3-4fb1-a31e-a8bc1f71e75b"
+      "tokenSha256": "acfa5a0302e09385b35bef87dc1d1495f0aff9b44de81c04b8e8abb032d01bae"
     },
     {
       "at": 1793472559300,
       "actor": "worker4",
       "type": "claim",
       "taskId": "P03-04",
-      "token": "7de4c6b3-b911-4f4e-91a7-2ecfc058af9b"
+      "tokenSha256": "1cf7429a558713f64848e26c1f50c0a806fb12d5b2e9eea287d41e5a5a72c376"
     },
     {
       "at": 1793472566718,
       "actor": "worker5",
       "type": "claim",
       "taskId": "P04-01",
-      "token": "f5e4fe3a-991d-4106-a441-d14d7eee447f"
+      "tokenSha256": "cbafbf69416fc3ddba3ad6cbfe1f638c3f1cef86acbe8c81e63e4ce87fb37d51"
     },
     {
       "at": 1793472566789,
@@ -6405,7 +6405,7 @@
       "actor": "worker6",
       "type": "claim",
       "taskId": "P07-03",
-      "token": "cf56f63d-396b-4aa0-b1e5-b4b6f60db93a"
+      "tokenSha256": "d904b8017db26f795bee2b261292ecb566c73d828c85c73687286c91d6fae15f"
     },
     {
       "at": 1793472576668,
@@ -6497,7 +6497,7 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P01-04",
-      "token": "39763278-16cd-4d44-8ce7-46ca1b2d283a"
+      "tokenSha256": "b88715fa8673bdb0a2cb60f8b5552af03818dcc9b8c72f0a864c459474d8fe54"
     },
     {
       "at": 1793472701404,
@@ -6555,14 +6555,14 @@
       "actor": "worker2",
       "type": "claim",
       "taskId": "P06-00",
-      "token": "fff43119-7165-4d17-8ce2-3e47cad7d122"
+      "tokenSha256": "27e8c47ab9568b6c91b5a4d0912c1c19332cbfe6a9c0856b2312b4edf331cc1d"
     },
     {
       "at": 1793472714210,
       "actor": "worker5",
       "type": "claim",
       "taskId": "P17-02",
-      "token": "e1feea35-6e87-4a73-97bf-ce2287cd72d9"
+      "tokenSha256": "f0a542ba2ccd5d94b4210b6a844d41ee75baf2473eb8cd60a2b7d8189756c42e"
     },
     {
       "at": 1793472723587,
@@ -6781,7 +6781,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P02-01",
-      "token": "8aa79bde-8d83-4e22-99a5-c11c8651354e"
+      "tokenSha256": "0d6c7dd2b68773dfe77d7f6462765c5888b2fd35d6413fc23e979ca6a4b4b3be"
     },
     {
       "at": 1793478583803,
@@ -6795,14 +6795,14 @@
       "actor": "worker2",
       "type": "claim",
       "taskId": "P03-01",
-      "token": "23d3d2b1-c7a2-4405-92bc-08a3e8fa9a18"
+      "tokenSha256": "dd1578e5428f18cabb918fa903f3ba48d79f6decaf8397d6b5da4156e26997d7"
     },
     {
       "at": 1793478592935,
       "actor": "worker3",
       "type": "claim",
       "taskId": "P03-04",
-      "token": "5a10a372-d63d-419f-9250-4e4c211a452e"
+      "tokenSha256": "3ee54a4e89ae8afc67e5f331448a0d0e941863bce93f451f7552066bb29b0662"
     },
     {
       "at": 1793478595806,
@@ -6816,7 +6816,7 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P04-01",
-      "token": "e863c795-c0cb-41ee-96ab-31b21b37f6aa"
+      "tokenSha256": "0f00690b89771c738d479113d67cb8c9699e49e9373aeba86632b66b67213774"
     },
     {
       "at": 1793478603404,
@@ -6830,14 +6830,14 @@
       "actor": "worker5",
       "type": "claim",
       "taskId": "P06-03",
-      "token": "2b327acd-4113-49b8-ac99-ab04fcc24140"
+      "tokenSha256": "c104fa98f3c61a0f51ef3191d0d166a19a6ec95d9c76a228c821ee7efeb7eb41"
     },
     {
       "at": 1793478610705,
       "actor": "worker6",
       "type": "claim",
       "taskId": "P17-02",
-      "token": "bc75a84f-8938-4afc-b5eb-d4eb444aac7e"
+      "tokenSha256": "4299a652448b1e4578765e0b1db02fc018cd2a5e7762fe25039f4c51ab65254a"
     },
     {
       "at": 1793478613702,
@@ -6891,7 +6891,7 @@
       "actor": "worker1",
       "type": "claim",
       "taskId": "P02-02",
-      "token": "7fcbde07-a9d5-4f17-914c-365bb1cbe0de"
+      "tokenSha256": "96fa49e1484d4e9bbfa68b31a11d9c67ad41bb2f42255e952894652fccf80343"
     },
     {
       "at": 1793478668421,
@@ -6998,7 +6998,7 @@
       "actor": "worker4",
       "type": "claim",
       "taskId": "P05-05",
-      "token": "583c20bc-5af3-4eff-9df4-5cb2a5507081"
+      "tokenSha256": "1ed3de21cd11067e439f728b76cc1a40082f3ea80952489de1eaa0c1a20da054"
     },
     {
       "at": 1793478750993,
@@ -7136,5 +7136,16 @@
       ]
     }
   ],
-  "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366"
+  "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
+  "workerTokenMigration": {
+    "fromVersion": 2,
+    "source": {
+      "ref": "refs/heads/codex/whole-product-first-sprint",
+      "sha": "0fd8a61b75ebcd163f6b3192aab8370b805d0fcc",
+      "path": "docs/development/work-state.json"
+    },
+    "sourceStateSha256": "d45956df5822c3f03dee2cc238d77e3f3eee1f16bae80533ea9b8fca4ee5ebf4",
+    "sourceRevision": 531,
+    "sourceEventCount": 539
+  }
 }

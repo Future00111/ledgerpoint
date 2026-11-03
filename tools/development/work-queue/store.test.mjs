@@ -269,3 +269,19 @@ test('CLI blocker resolution requires current revision and preserves evidence, d
   assert.equal(readJSON(statePath).tasks.dependent.status, 'running');
   assert.equal(readJSON(statePath).tasks.first.status, 'done');
 });
+
+test('real CLI exports verifier-only leases and fences digest-as-command without persisting raw tokens', async t => {
+  const { repository, run } = cliFixture(t);
+  await run({type:'init',actor:'coordinator'});
+  const {claim,revision}=await run({type:'claim',actor:'worker'});
+  const locations=resolveRepositoryPaths(repository), runtime=readJSON(path.join(locations.directory,'queue.json'));
+  assert.equal(runtime.version,3);assert.equal(typeof runtime.tasks.first.tokenSha256,'string');
+  assert.equal(JSON.stringify(runtime).includes(claim.token),false);
+  await assert.rejects(run({type:'checkpoint',actor:'worker',taskId:'first',token:runtime.tasks.first.tokenSha256,checkpoint:'Cannot use public verifier.'}),code('LEASE_REQUIRED'));
+  await assert.rejects(run({type:'checkpoint',actor:'worker',taskId:'first',token:'wrong-command-token',checkpoint:'Wrong token.'}),code('LEASE_REQUIRED'));
+  await run({type:'export',actor:'coordinator',expectedRevision:revision});
+  const exported=readJSON(locations.checkpoint);assert.deepEqual(exported,runtime);assert.equal(JSON.stringify(exported).includes(claim.token),false);
+  const result=await run({type:'checkpoint',actor:'worker',taskId:'first',token:claim.token,checkpoint:'Correct token retained locally.'});
+  assert.equal(JSON.stringify(result).includes(claim.token),false);
+  assert.equal(readFileSync(path.join(locations.directory,'queue.json'),'utf8').includes(claim.token),false);
+});

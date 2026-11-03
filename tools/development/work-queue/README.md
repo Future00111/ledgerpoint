@@ -61,7 +61,7 @@ An init command has `{"actor":"coordinator"}`. A claim has
 `{"actor":"worker-1","leaseMs":900000}`. Claim chooses the highest-priority
 eligible task and generates its lease token; callers cannot choose a lower
 priority task ID. `help` documents commands. Send command JSON through stdin,
-not shell interpolation. Tokens and runtime state contain no service secrets.
+not shell interpolation. Raw worker command tokens are returned only by the local claim call. Version-3 runtime states and exports contain only SHA-256 token verifiers, including historical claim events. A persisted verifier is never a valid command token. Local filesystem lock tokens remain local and are not exported.
 
 ## Worker and integration loop
 
@@ -182,3 +182,29 @@ Replit is unavailable, Codex may continue safe eligible work through the same qu
 The [prepared P01-03 packet](../../../docs/development/replit-first-assignment.json)
 holds no claim and must be refreshed from current durable state before dispatch.
 This procedure is not a new always-on provider integration.
+
+## Worker-token protocol version 3
+
+Version 3 persists only `tokenSha256` in held task leases and claim events.
+Claim returns its fresh raw token once to the local caller; keep it local and
+supply it for renew/checkpoint/block/submit. Those commands hash the supplied
+value before fencing. Reuse checks compare digests across historical claims.
+A lost token requires normal stopped-worker recovery; its digest cannot replace it.
+Older version-2 readers reject version 3 rather than acquiring competing leases.
+
+Migration is explicit coordinator work, never a side effect of `init`, `status`
+or a worker command. With every worker stopped and no held tasks, archive the
+unchanged version-2 state, independently review the migration, then call
+`migrateV2State(catalog, state, { source: { ref, sha, path } })` from `core.mjs`.
+The immutable source reference and `sourceStateSha256` record provenance. That
+hash covers `JSON.stringify(input)`; it is not a claim about original archive
+file bytes. Migration preserves revision, event count/order, task metadata,
+priorities, dependencies and evidence; only claim token representations and the
+explicit state version/provenance change. Mixed, malformed or unknown versions
+fail closed. Do not delete an existing runtime or silently rewrite its history.
+
+Migrate the source seed separately from the newer durable queue. Restore the
+current durable queue before runtime initialization, never an older source seed.
+When the coordinator checkpoint uses an external queue reference, fetch that
+exact archived JSON first. Persist reviewed protocol code and migrated authority
+before dispatching any worker; preserve the old archive as provenance.
