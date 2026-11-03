@@ -1,0 +1,24 @@
+{
+  "runId": "hosted-20261103-1956",
+  "base": "9df78847698ae3344de11fabb696078546e471fe",
+  "authorCommit": "603bf1c9f206e0232b21d15a80330a41691c9d61",
+  "publishedCommit": "402b7929ac3ba2709856ab3aa21e1e7a415949ee",
+  "tree": "8e90f85c7edb188a4892da3df22f0276f90791eb",
+  "patchSha256": "b60a9563861247dd47ca1e1c5e8b08563a016b769f2df382e161e9600263db30",
+  "files": [
+    "tools/development/migrations/partial-schema.test.mjs"
+  ],
+  "reviewer": "root",
+  "reviewed": true,
+  "stopped": true,
+  "worktreeClean": true,
+  "observedAt": "2026-11-03T20:20:46.467884+00:00",
+  "focused": [
+    "28 registry passed",
+    "partial-schema bundle passed",
+    "diff check passed"
+  ],
+  "actualPostgreSQL": "final exact CI pending",
+  "acceptedOriginalBullets": 0,
+  "fullConditionalJourneyAccepted": false
+}

@@ -1,0 +1,42 @@
+Source 9df78847698ae3344de11fabb696078546e471fe
+CI merge b7c0b451d8dfc831431dd7ec6015774d0269aebb; compare files=[]
+Run41710565505 job126177220886
+All eight commitment witness cases passed; sole remaining failure is stale migration-history count 9 vs 10; restore skipped; cleanup passed.
+2026-11-03T20:14:42.4569859Z ✔ real PostgreSQL: parent cannot witness before top commit (96.074875ms)
+2026-11-03T20:14:42.4962736Z ✔ real PostgreSQL: unreleased savepoint cannot witness before top commit (40.299465ms)
+2026-11-03T20:14:42.5358790Z ✔ real PostgreSQL: released savepoint cannot witness before top commit (39.389478ms)
+2026-11-03T20:14:42.5619283Z ✔ real PostgreSQL: rollback removes both source and transaction receipt (25.987151ms)
+2026-11-03T20:14:42.6134827Z ✔ real PostgreSQL: runtime cannot forge, update, delete or truncate transaction receipts (51.315304ms)
+2026-11-03T20:14:42.6651833Z ✔ real PostgreSQL: missing trigger rejects schema; foreign origin cannot certify an unwitnessed event (51.468678ms)
+2026-11-03T20:14:42.6981331Z ✔ real PostgreSQL: fabricated clocks are replaced and the first observation survives retries (33.19482ms)
+2026-11-03T20:14:42.7370195Z ✔ real PostgreSQL: existing valid witness remains readable after origin mismatch without recertification (36.292037ms)
+2026-11-03T20:15:02.2799287Z ✖ failing tests:
+2026-11-03T20:15:02.2799511Z 
+2026-11-03T20:15:02.2800005Z test at generated-artifacts/partial-schema-flow.test.cjs:20444:30
+2026-11-03T20:15:02.2801490Z ✖ real PostgreSQL: interrupted migration-history recording leaves no DDL or version rows (42.808594ms)
+2026-11-03T20:15:02.2802196Z   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+2026-11-03T20:15:02.2802576Z   
+2026-11-03T20:15:02.2802759Z   10 !== 9
+2026-11-03T20:15:02.2802937Z   
+2026-11-03T20:15:02.2803554Z       at TestContext.<anonymous> (/home/runner/work/ledgerpoint/ledgerpoint/generated-artifacts/partial-schema-flow.test.cjs:20476:27)
+2026-11-03T20:15:02.2804354Z       at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-11-03T20:15:02.2804881Z       at async Test.run (node:internal/test_runner/test:1409:7)
+2026-11-03T20:15:02.2805380Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+2026-11-03T20:15:02.2805806Z     generatedMessage: true,
+2026-11-03T20:15:02.2806053Z     code: 'ERR_ASSERTION',
+2026-11-03T20:15:02.2806278Z     actual: 10,
+2026-11-03T20:15:02.2806492Z     expected: 9,
+2026-11-03T20:15:02.2806707Z     operator: 'strictEqual',
+2026-11-03T20:15:02.2806936Z     diff: 'simple'
+2026-11-03T20:15:02.2807136Z   }
+2026-11-03T20:15:02.3901345Z ##[error]Process completed with exit code 1.
+2026-11-03T20:15:02.3984305Z ##[group]Run if [ 'skipped' != 'skipped' ]; then
+2026-11-03T20:15:02.3984696Z [36;1mif [ 'skipped' != 'skipped' ]; then[0m
+2026-11-03T20:15:02.3985632Z [36;1m  node -e 'const r=require("./generated-artifacts/encrypted-recovery.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'[0m
+2026-11-03T20:15:02.3986525Z [36;1mfi[0m
+2026-11-03T20:15:02.4006787Z shell: /usr/bin/bash -e {0}
+2026-11-03T20:15:02.4007042Z ##[endgroup]
+2026-11-03T20:15:02.4081182Z ##[group]Run if [ 'failure' != 'skipped' ]; then
+2026-11-03T20:15:02.4081563Z [36;1mif [ 'failure' != 'skipped' ]; then[0m
+2026-11-03T20:15:02.4082505Z [36;1m  node -e 'const r=require("./generated-artifacts/accounting-flow-cleanup.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'[0m
+
