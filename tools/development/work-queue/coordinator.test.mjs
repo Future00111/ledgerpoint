@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { initialCoordinatorState, transitionCoordinator as move } from './coordinator.mjs';
 const hash = 'a'.repeat(40), changed = 'b'.repeat(40);
@@ -75,4 +76,59 @@ test('malformed persisted evidence and invalid repository paths cannot acquire o
   fails(() => move(invalid, { type: 'renew', ...owner, leaseMs: 1000 }, { now: 201 }), 'INVALID_CHECKPOINT');
   const cycle = {}; cycle.self = cycle;
   fails(() => move(acquire(), { type: 'checkpoint', ...owner, ...saved, queueState: cycle }, { now: 200 }), 'INVALID_JSON');
+});
+
+const sha256 = value => createHash('sha256').update(value, 'utf8').digest('hex');
+const release = state => move(state, { type: 'release', ...owner, workersStopped: true, worktreesClean: true }, { now: 201 });
+function assertRetiredGuard(state, now) {
+  assert.equal(state.status, 'idle'); assert.equal(state.lease, null);
+  assert.equal(Object.hasOwn(state.lastOwner, 'token'), false);
+  assert.equal(state.lastOwner.tokenSha256, sha256(owner.token));
+  assert.equal(JSON.stringify(state).includes(owner.token), false);
+  fails(() => move(state, { type: 'acquire', runId: 'run-2', token: owner.token, leaseMs: 1000 }, { now }), 'INVALID_OWNER');
+  fails(() => move(state, { type: 'acquire', runId: owner.runId, token: 'fresh-token', leaseMs: 1000 }, { now }), 'INVALID_OWNER');
+  const fresh = move(state, { type: 'acquire', runId: 'run-2', token: 'fresh-token', leaseMs: 1000 }, { now });
+  assert.equal(fresh.lease.token, 'fresh-token');
+  fails(() => move(fresh, { type: 'renew', ...owner, leaseMs: 1000 }, { now: now + 1 }), 'OWNER_FENCED');
+}
+test('release retires plaintext token but still rejects previous token and run reuse', () => {
+  const active = save(acquire());
+  const idle = release(active);
+  assertRetiredGuard(idle, 202);
+  assert.equal(active.lease.token, owner.token);
+  assert.equal(idle.lastOwner.acquiredAt, active.lease.acquiredAt);
+  assert.equal(idle.lastOwner.expiresAt, active.lease.expiresAt);
+});
+test('expired recovery retires plaintext token and preserves the same reuse guard', () => {
+  const idle = move(save(acquire()), { type: 'recover', priorRunId: owner.runId, workersStopped: true,
+    stoppedEvidence: reference, ...saved }, { now: 1100 });
+  assertRetiredGuard(idle, 1101);
+  assert.deepEqual(idle.recovery.stoppedEvidence, reference);
+});
+test('legacy retired tokens normalize without changing live fences or caller history', () => {
+  const legacy = release(save(acquire()));
+  legacy.lastOwner.token = owner.token; delete legacy.lastOwner.tokenSha256;
+  fails(() => move(legacy, { type: 'acquire', runId: 'run-2', token: owner.token, leaseMs: 1000 }, { now: 202 }), 'INVALID_OWNER');
+  fails(() => move(legacy, { type: 'acquire', runId: owner.runId, token: 'fresh-token', leaseMs: 1000 }, { now: 202 }), 'INVALID_OWNER');
+  const active = move(legacy, { type: 'acquire', runId: 'run-2', token: 'fresh-token', leaseMs: 1000 }, { now: 202 });
+  assert.equal(Object.hasOwn(active.lastOwner, 'token'), false);
+  assert.equal(active.lastOwner.tokenSha256, sha256(owner.token));
+  assert.equal(legacy.lastOwner.token, owner.token);
+  assert.equal(active.lease.token, 'fresh-token');
+  const legacyWhileActive = { ...active, lastOwner: legacy.lastOwner };
+  const renewed = move(legacyWhileActive, { type: 'renew', runId: 'run-2', token: 'fresh-token', leaseMs: 2000 }, { now: 203 });
+  assert.equal(renewed.lease.token, active.lease.token);
+  assert.equal(renewed.lastOwner.tokenSha256, sha256(owner.token));
+  assert.equal(Object.hasOwn(renewed.lastOwner, 'token'), false);
+  fails(() => move(legacyWhileActive, { type: 'renew', runId: 'run-2', token: owner.token, leaseMs: 2000 }, { now: 203 }), 'OWNER_FENCED');
+});
+test('malformed or mixed retired token representations fail closed', () => {
+  const idle = release(save(acquire()));
+  for (const representation of [ {}, { tokenSha256: '' }, { tokenSha256: 'a'.repeat(63) },
+    { tokenSha256: 'G'.repeat(64) }, { tokenSha256: 42 }, { token: '' },
+    { token: owner.token, tokenSha256: sha256(owner.token) } ]) {
+    const { tokenSha256, ...identity } = idle.lastOwner;
+    const invalid = { ...idle, lastOwner: { ...identity, ...representation } };
+    fails(() => move(invalid, { type: 'acquire', runId: 'run-2', token: 'fresh-token', leaseMs: 1000 }, { now: 202 }), 'INVALID_STATE');
+  }
 });

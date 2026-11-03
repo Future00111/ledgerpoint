@@ -24,7 +24,12 @@ Acquire the single coordinator lease using `coordinator.mjs`, then commit the
 new state on the state branch with **expected previous head SHA**, fast-forward
 only. Re-read and verify the lease token before launching workers or publishing
 code. A failed compare-and-swap means stop and inspect; never force-push or
-blindly retry. Renew/checkpoint while active. An expired lease requires evidence
+blindly retry. Renew/checkpoint while active. Released/recovered `lastOwner` records store
+`tokenSha256` instead of the retired plaintext token. Acquisition hashes the
+proposed token to reject reuse; legacy plaintext history is normalized by the
+coordinator transition. Active lease token checks and previous run-ID rejection
+remain unchanged. Mixed or malformed retired representations fail closed.
+An expired lease requires evidence
 that the previous run and all its workers stopped, plus their durable checkpoints;
 expiry alone is never permission to take over.
 
