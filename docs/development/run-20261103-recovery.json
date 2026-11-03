@@ -57,7 +57,7 @@
     "cause": "journal idempotency_key does not exist; key lives on posting effect",
     "cleanup": "passed"
   },
-  "currentCI": "pending discovery",
+  "currentCI": 41660533974,
   "originalBulletsNewlyAccepted": [],
   "journeysNewlyVerified": [],
   "remaining": [
@@ -94,5 +94,9 @@
     }
   ],
   "startedAt": 1793717674261,
-  "observedAt": 1793718448694
+  "observedAt": 1793718448694,
+  "currentCIJob": 126002216412,
+  "currentCIStatus": "in progress; build and source passed; accounting/restore pending",
+  "endedAt": 1793718528823,
+  "stopReason": "Bounded recovery run complete; reserve durable handoff and clean shutdown. Exact CI result must be checked before acceptance; no new source bullets accepted."
 }
