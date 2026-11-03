@@ -1,0 +1,18 @@
+{
+  "runId": "hosted-20261103-1617",
+  "observedAt": "2026-11-03 16:32:45 UTC",
+  "sourceCommit": "4b6b5317a853c7163b0711be58bc6c5bd3434434",
+  "sourceTree": "a78b080d410e40581a06a83434d0b95a55f66b93",
+  "stateBeforeShutdown": "698690e84961ca044a6fb8e17b5d093605c3b496",
+  "coordinatorRevision": 97,
+  "coordinatorStatus": "leased",
+  "releaseConfirmed": false,
+  "workersStarted": 0,
+  "workersStopped": true,
+  "worktreesClean": true,
+  "validation": "916 passed,0 failed,0 skipped; exact-source full build/disposable PostgreSQL/restore/cleanup passed",
+  "finalEvidence": "docs/development/run-20261103-1617-evidence.json",
+  "blocker": "Automatic approval review rejected renewal and clean release because noncredential fencing UUID remains in coordinator/lastOwner. Historical token redaction was suggested but not applied because it changes previous-token reuse fencing. No bypass attempted.",
+  "requiredNextAction": "Authorized review of a protocol-preserving release or independently reviewed redacted-history protocol; do not steal this lease or claim it idle.",
+  "tokens": "omitted"
+}
