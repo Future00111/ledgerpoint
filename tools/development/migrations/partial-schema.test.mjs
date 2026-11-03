@@ -334,6 +334,6 @@ test('real PostgreSQL: interrupted migration-history recording leaves no DDL or 
     await candidate.query('BEGIN');
     await recordInstalledMigrationHistory(candidate, inputs, { includeAmendments: true });
     await candidate.query('COMMIT');
-    assert.equal((await candidate.query('SELECT count(*)::int n FROM schema_migrations')).rows[0].n, 9);
+    assert.deepEqual((await candidate.query('SELECT id FROM schema_migrations')).rows.map(row => row.id).sort(), Object.keys(inputs).sort());
   } finally { await candidate.end(); await admin.query(`DROP DATABASE ${database}`); }
 });
