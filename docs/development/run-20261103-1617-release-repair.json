@@ -1,0 +1,28 @@
+{
+  "runId": "hosted-20261103-1617",
+  "userAuthorizedShutdownRepair": true,
+  "sourceCommit": "f404aa55d97b010b37465410c6d6edf60736e368",
+  "sourceTree": "8781d7c1ea507fa431ca7d7879babff9c54057eb",
+  "priorCodeHead": "4b6b5317a853c7163b0711be58bc6c5bd3434434",
+  "reviewer": "/root",
+  "reviewed": true,
+  "localTests": {
+    "focused": 11,
+    "schedulerIndependent": 44,
+    "combined": 780,
+    "fail": 0
+  },
+  "buildPassed": true,
+  "actualAuthoritativeStateReleaseSimulation": {
+    "passed": true,
+    "plainRetiredTokenAbsent": true,
+    "queuePreserved": true
+  },
+  "ci": {
+    "run": 41676853546,
+    "job": 126059687792,
+    "status": "in_progress"
+  },
+  "shutdownIntent": "Checkpoint successful exact-source CI then release existing live run using SHA256-retired-owner representation; no new acquire or active token rewrite.",
+  "observedAt": "2026-11-03T16:43:12.573Z"
+}
