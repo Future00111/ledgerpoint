@@ -1,0 +1,72 @@
+{
+  "runId": "hybrid-setup-20261103",
+  "coordinatorAcquiredAt": 1793724954552,
+  "observedAt": 1793725341424,
+  "sourceCommit": "127001fb9fbe9f7bb24f730ebf40430b80bcbea1",
+  "tree": "c533ac1982244ca325da35e6d7a3f9152e983e8d",
+  "mergeHead": "9fd1ceff63351d6f516033b7677c4f39947a64cc",
+  "treeMatchesPublished": true,
+  "independentReviewer": "root",
+  "reviewedPaths": 7,
+  "validation": {
+    "status": "passed",
+    "localSourceTests": 783,
+    "localSourcePass": 783,
+    "localSourceFail": 0,
+    "localSourceSkipped": 0,
+    "schedulerTests": 47,
+    "buildPassed": true,
+    "run": 41679804963,
+    "job": 126070152618,
+    "tests": 923,
+    "pass": 923,
+    "fail": 0,
+    "skipped": 0,
+    "disposablePostgres": true,
+    "restorePassed": true,
+    "encryptedRecoveryPassed": true,
+    "cleanupPassed": true,
+    "logsIndependentlyFetched": true,
+    "independentLogCharacters": 185481,
+    "liveBrowserQualified": false,
+    "productionQualified": false
+  },
+  "hybridExecution": {
+    "status": "PREPARED",
+    "implementationRuns": 0,
+    "workersRunning": 0,
+    "taskClaimsCreated": 0,
+    "highestEligiblePreparedTask": "P01-03",
+    "provider": "Replit",
+    "dispatchCapabilityPreflight": "required",
+    "providerCost": "unknown",
+    "providerCredits": "unknown",
+    "creditsPerAcceptedWorkflow": "unknown"
+  },
+  "queueRevision": 531,
+  "queueUnchanged": true,
+  "all92OriginalBulletsUnchanged": true,
+  "originalBulletsNewlyAccepted": [],
+  "journeysNewlyVerified": [],
+  "automation": {
+    "id": "6ae5226d4a2081919e793919d9cafa1b",
+    "existingPromptUpdatedBy": "root",
+    "enabled": true,
+    "cadence": "hourly",
+    "newAutomationCreated": false
+  },
+  "cleanStop": {
+    "workersStopped": true,
+    "worktreesClean": true,
+    "sourceTreeClean": true,
+    "featureWorkersDispatched": false,
+    "runningDemoOrOriginalDatabaseChanged": false
+  },
+  "resolvedSetupBlockers": [
+    "Active plaintext coordinator state publication replaced by reviewed v2 digest-only proof; no plaintext retransmission."
+  ],
+  "remainingBlockers": [
+    "Before any Replit implementation dispatch, verify actual bounded control, stop acknowledgement and immutable allowed export with tools available to that run."
+  ],
+  "stopReason": "Reviewed hybrid plan, prepared connected P01-03 packet, v2 coordinator repair and exact-source verification complete; no Replit feature work launched."
+}
