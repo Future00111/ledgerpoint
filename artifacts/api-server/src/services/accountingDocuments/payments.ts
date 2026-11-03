@@ -84,14 +84,18 @@ export async function recoverPayment(company:string,actor:string,requestId:strin
     await scope(q,company,actor);
     const membership=(await q.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2',[company,actor])).rows[0];
     if(!isCompanyRole(membership?.role)) fail(403,'CAPABILITY_DENIED');
-    const event=(await q.query(`SELECT e.id,e.source,j.source_revision,j.id verified_journal_id FROM accounting_payment_events e
+    const event=(await q.query(`SELECT e.id,e.source,j.source_revision,j.id verified_journal_id,p.id verified_effect_id FROM accounting_payment_events e
       LEFT JOIN canonical_journal_entries j ON j.id=e.journal_id AND j.company_id=e.company_id
         AND j.source_id=e.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
         AND j.currency_code='GBP' AND j.posting_kind='party_'||e.kind
-        AND j.economic_effect_id='payment-event:'||e.id::text AND j.idempotency_key='payment-event:'||e.id::text
+        AND j.economic_effect_id='payment-event:'||e.id::text
+      LEFT JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
+        AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
+        AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text
+        AND p.status='posted' AND p.source_revision=j.source_revision
       WHERE e.company_id=$1 AND e.id=$2`,[company,id])).rows[0];
     if(!event) return {status:'unknown',id};
-    if(!event.verified_journal_id || event.source_revision!==hash(event.source)) fail(503,'PAYMENT_HISTORY_INVALID');
+    if(!event.verified_journal_id || !event.verified_effect_id || event.source_revision!==hash(event.source)) fail(503,'PAYMENT_HISTORY_INVALID');
     return {status:'recorded',id,journal_id:event.verified_journal_id};
   },true);
 }
