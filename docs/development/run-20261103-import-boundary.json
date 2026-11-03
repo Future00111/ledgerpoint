@@ -1,0 +1,40 @@
+{
+  "runId": "hosted-20261103-import-boundary",
+  "startedAt": 1793719310512,
+  "observedAt": 1793719581463,
+  "scope": "Only shared fingerprint/ESM restore import boundary",
+  "source": "126d25b87f76e374c3ed80293356140ace460b85",
+  "tree": "da325e92140aba0edf6c2927804d85c5e1af54c4",
+  "testEvidence": [
+    "New actual partial-schema CJS regression failed before fix with4warnings and passes after; no database contacted",
+    "13focused restore/archive tests pass",
+    "Independent reviewer final c8faa9a: unchanged fingerprint helper and runRestoreDrill bodies;5focused tests pass",
+    "776source checks pass0fail;fullworkspace build/typecheck passed"
+  ],
+  "review": {
+    "reviewer": "candidate_review",
+    "commit": "c8faa9a0ec94c46d28d1f3a3add12c1049250afd",
+    "result": "approved; actual PG gate pending"
+  },
+  "rework": "Reviewer caught deleted receipt digest before publication; retained helper/import",
+  "ci": {
+    "sourceCommit": "126d25b87f76e374c3ed80293356140ace460b85",
+    "tree": "da325e92140aba0edf6c2927804d85c5e1af54c4",
+    "mergeHead": "92093e8bdf78413d3056f94fc7685479087aeb92",
+    "treeMatchesPublished": true,
+    "run": 41663737225,
+    "job": 126013396803,
+    "status": "in_progress",
+    "localSourceTests": 776,
+    "localSourcePass": 776,
+    "localSourceFail": 0,
+    "buildPassed": true,
+    "liveBrowserQualified": false,
+    "productionQualified": false
+  },
+  "workersStopped": true,
+  "creditsPerAcceptedWorkflow": "unknown",
+  "reviewWait": "unknown",
+  "originalBulletsNewlyAccepted": [],
+  "journeysNewlyVerified": []
+}
