@@ -42,3 +42,10 @@ fill all slots or use the full run window. Record credits per accepted workflow
 only when measured, plus blockers, review wait and rework; mark unknown values.
 Compare three runs without reducing the 92 source bullets, original priorities,
 acceptance criteria or in-house accounting, tax and payroll scope.
+
+Prefer Replit for the first implementation slot under
+`docs/development/replit-worker-protocol.md`, replacing one Codex implementer;
+retain independent Codex review and the single authoritative coordinator.
+Verify actual control, immutable export and confirmed stop before dispatch.
+Replit must not initialise a competing queue or modify the running demo/database.
+Prepared packets hold no claim. All provider work stays within a bounded run.

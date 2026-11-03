@@ -4,8 +4,9 @@
  * Before every code publication, re-read state and verify a live matching run/token,
  * and CAS the code ref against its expected SHA. Never treat TTL as proof of shutdown.
  * Use a fresh fencing token per run (not a provider credential). Keep secrets out of
- * queueState/evidence. Retired tokens retain only SHA-256 reuse guards; live tokens
- * still fence every owned transition. Legacy retired tokens migrate on transition.
+ * queueState/evidence. Active and retired tokens persist only SHA-256 verifiers;
+ * raw command tokens stay local and still fence every owned transition. Version-1
+ * states migrate on transition; version-2 output makes old readers fail closed.
  * Verify evidence contents and validate the opaque queue schema
  * before calling; this module validates JSON/references, not their remote existence.
  * now is integer Unix milliseconds. Returned quarantine never grants ownership.
@@ -23,7 +24,7 @@ const branch = value => path(value) && !value.includes('..') && value.split('/')
 const ref = value => typeof value === 'string' && value.startsWith('refs/heads/') && branch(value.slice(11));
 const time = value => Number.isSafeInteger(value) && value >= 0;
 const tokenDigest = token => createHash('sha256').update(token, 'utf8').digest('hex');
-function retiredOwner(owner) {
+function ownerDigest(owner, allowPlaintext = false) {
   requireValue(owner && identifier(owner.runId), 'INVALID_STATE');
   const hasToken = Object.hasOwn(owner, 'token');
   const hasDigest = Object.hasOwn(owner, 'tokenSha256');
@@ -32,7 +33,7 @@ function retiredOwner(owner) {
     requireValue(typeof owner.tokenSha256 === 'string' && /^[a-f0-9]{64}$/.test(owner.tokenSha256), 'INVALID_STATE');
     return owner;
   }
-  requireValue(identifier(owner.token), 'INVALID_STATE');
+  requireValue(allowPlaintext && identifier(owner.token), 'INVALID_STATE');
   const { token, ...history } = owner;
   return { ...history, tokenSha256: tokenDigest(token) };
 }
@@ -73,27 +74,31 @@ function checkpoint(command, runId, now) {
 export function initialCoordinatorState({ repository, codeBranch, codeHead, catalogPath, statePath }) {
   requireValue(typeof repository === 'string' && /^[A-Za-z0-9][A-Za-z0-9_.-]*\/[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(repository)
     && branch(codeBranch) && sha(codeHead) && path(catalogPath) && path(statePath) && catalogPath !== statePath, 'INVALID_CONFIGURATION');
-  return { version: 1, revision: 0, repository, codeBranch, codeHead, catalogPath, statePath,
+  return { version: 2, revision: 0, repository, codeBranch, codeHead, catalogPath, statePath,
     status: 'idle', lease: null, lastOwner: null, queueState: null, checkpoint: null, updatedAt: null };
 }
 export function transitionCoordinator(state, command, { now }) {
   const next = json(state);
   initialCoordinatorState(next);
-  requireValue(next.version === 1 && Number.isSafeInteger(next.revision) && next.revision >= 0
+  requireValue([1, 2].includes(next.version) && Number.isSafeInteger(next.revision) && next.revision >= 0
     && next.revision < Number.MAX_SAFE_INTEGER && ['idle', 'leased', 'quarantined'].includes(next.status), 'INVALID_STATE');
   requireValue(time(now) && (next.updatedAt === null || time(next.updatedAt) && now >= next.updatedAt), 'INVALID_TIME');
   requireValue(command && ['acquire', 'renew', 'checkpoint', 'release', 'recover'].includes(command.type), 'INVALID_COMMAND');
+  const legacy = next.version === 1;
   if (next.status === 'idle') requireValue(next.lease === null, 'INVALID_STATE');
-  else requireValue(next.lease && identifier(next.lease.runId) && identifier(next.lease.token)
-    && time(next.lease.expiresAt) && time(next.lease.acquiredAt)
-    && next.lease.acquiredAt <= next.updatedAt && next.lease.expiresAt > next.lease.acquiredAt, 'INVALID_STATE');
+  else {
+    next.lease = ownerDigest(next.lease, legacy);
+    requireValue(time(next.lease.expiresAt) && time(next.lease.acquiredAt)
+      && next.lease.acquiredAt <= next.updatedAt && next.lease.expiresAt > next.lease.acquiredAt, 'INVALID_STATE');
+  }
   if (next.checkpoint !== null) {
     requireValue(identifier(next.checkpoint.runId) && time(next.checkpoint.at)
       && next.checkpoint.at <= next.updatedAt && next.checkpoint.codeHead === next.codeHead, 'INVALID_CHECKPOINT');
     checkpoint({ ...next, checkpoint: next.checkpoint }, next.checkpoint.runId, next.checkpoint.at);
   }
-  // Migrate only retired legacy identifiers; live owner fencing remains exact.
-  if (next.lastOwner !== null) next.lastOwner = retiredOwner(next.lastOwner);
+  // Normalize only explicitly versioned legacy states; never accept mixed representations.
+  if (next.lastOwner !== null) next.lastOwner = ownerDigest(next.lastOwner, legacy);
+  next.version = 2;
   next.revision++; next.updatedAt = now;
   if (next.lease && now >= next.lease.expiresAt && command.type !== 'recover') {
     next.status = 'quarantined';
@@ -104,7 +109,7 @@ export function transitionCoordinator(state, command, { now }) {
     requireValue(command.priorRunId === next.lease.runId && command.workersStopped === true, 'STOP_EVIDENCE_REQUIRED');
     const stoppedEvidence = durable(command.stoppedEvidence);
     Object.assign(next, checkpoint(command, next.lease.runId, now));
-    next.lastOwner = retiredOwner(next.lease);
+    next.lastOwner = ownerDigest(next.lease);
     next.recovery = { priorRunId: command.priorRunId, stoppedEvidence, at: now };
     next.lease = null; next.status = 'idle';
   } else {
@@ -115,10 +120,11 @@ export function transitionCoordinator(state, command, { now }) {
         && command.runId !== next.lastOwner?.runId && tokenDigest(command.token) !== next.lastOwner?.tokenSha256, 'INVALID_OWNER');
       requireValue(Number.isSafeInteger(command.leaseMs) && command.leaseMs >= 1000 && command.leaseMs <= MAX_TTL
         && time(now + command.leaseMs), 'INVALID_LEASE');
-      next.lease = { runId: command.runId, token: command.token, acquiredAt: now, expiresAt: now + command.leaseMs };
+      next.lease = { runId: command.runId, tokenSha256: tokenDigest(command.token), acquiredAt: now, expiresAt: now + command.leaseMs };
       next.status = 'leased';
     } else {
-      requireValue(next.status === 'leased' && command.runId === next.lease.runId && command.token === next.lease.token, 'OWNER_FENCED');
+      requireValue(next.status === 'leased' && command.runId === next.lease.runId
+        && identifier(command.token) && tokenDigest(command.token) === next.lease.tokenSha256, 'OWNER_FENCED');
       if (command.type === 'renew') {
         requireValue(Number.isSafeInteger(command.leaseMs) && command.leaseMs >= 1000 && command.leaseMs <= MAX_TTL
           && time(now + command.leaseMs), 'INVALID_LEASE');
@@ -128,7 +134,7 @@ export function transitionCoordinator(state, command, { now }) {
         requireValue(command.workersStopped === true && command.worktreesClean === true, 'CLEAN_STOP_REQUIRED');
         requireValue(next.checkpoint?.runId === command.runId && next.checkpoint.codeHead === next.codeHead, 'CHECKPOINT_REQUIRED');
         durable(next.checkpoint.evidence?.[0]);
-        next.lastOwner = retiredOwner(next.lease); next.lease = null; next.status = 'idle';
+        next.lastOwner = ownerDigest(next.lease); next.lease = null; next.status = 'idle';
       }
     }
   }

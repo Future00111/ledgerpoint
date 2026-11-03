@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "status": "PREPARED",
+  "provider": "Replit",
+  "dispatched": false,
+  "workerRunning": false,
+  "claim": null,
+  "preparedAt": "2026-11-03T16:50:00Z",
+  "repository": "Future00111/ledgerpoint",
+  "sourceBranch": "codex/whole-product-first-sprint",
+  "preparedBaseSha": "f404aa55d97b010b37465410c6d6edf60736e368",
+  "preparedStateHead": "cf36426dc24a0270a9d087fdef07c5fa1684d6fd",
+  "preparedQueueRevision": 531,
+  "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
+  "taskId": "P01-03",
+  "priority": 103,
+  "title": "Finish excess-credit and discount handling",
+  "parentAcceptance": [
+    "Unapplied excess credit can be allocated later or refunded with exact signed balance and cumulative-cap reconciliation.",
+    "Conditional and later-discount examples are reviewed; retries, partial settlement and reversals cannot double-allocate or rewrite earlier history."
+  ],
+  "ownedFiles": [
+    "artifacts/api-server/src/services/accountingDocuments/documents.ts",
+    "artifacts/api-server/src/services/accountingDocuments/settlement.ts",
+    "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+    "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+    "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx",
+    "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx",
+    "artifacts/ledgerly/src/features/documentDiscounts/model.mjs",
+    "artifacts/ledgerly/src/features/documentDiscounts/model.test.mjs",
+    "artifacts/ledgerly/src/components/accounting/PostedDocument.jsx",
+    "artifacts/ledgerly/src/components/accounting/PostedDocument.test.jsx",
+    "docs/development/credit-capacity-contract.md",
+    "artifacts/api-server/src/services/financialDrafts/contract.ts",
+    "artifacts/api-server/src/services/financialDrafts/contract.test.ts",
+    "artifacts/api-server/src/services/financialDrafts/discounts.ts",
+    "artifacts/api-server/src/services/financialDrafts/discounts.test.ts",
+    "artifacts/api-server/src/services/financialDrafts/invoiceService.ts",
+    "artifacts/api-server/src/services/financialDrafts/productionAuthority.ts",
+    "artifacts/api-server/src/services/financialDrafts/invoice.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+    "artifacts/api-server/src/services/accountingDocuments/posting.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/routes/accountingDocuments.ts",
+    "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+    "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+    "artifacts/ledgerly/src/api/invoiceDrafts.mjs",
+    "artifacts/ledgerly/src/api/invoiceDrafts.test.mjs",
+    "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
+    "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
+    "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
+    "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+    "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
+    "lib/db/migrations/conditional-discount-agreements.review.sql",
+    "lib/db/schema-change-registry.json",
+    "lib/db/migration-registry.json",
+    "tools/accounting-flow/schema.mjs",
+    "tools/accounting-flow/test.mjs",
+    "tools/development/migrations/registry.mjs",
+    "tools/development/migrations/registry.test.mjs",
+    "tools/development/migrations/partial-schema.test.mjs"
+  ],
+  "contract": "docs/development/credit-capacity-contract.md",
+  "contractSha256": "23f3542be808e0608bdc42afe62caef48f7a1194c946ee1869e55faec2b3c44d",
+  "branchTemplate": "replit/P01-03-RUN_ID",
+  "coordinator": "single existing durable coordinator; no local Replit queue",
+  "reviewer": "independent Codex reviewer, assigned before dispatch",
+  "connectedSlice": "Native text-evidence capture and review; frozen agreement binding at original posting; explicit conditional-credit review/commit through existing paid-credit transaction; eligibility-preserving guards on every qualifying-allocation writer. Initial admission: uncorrected GBP original without prior linked credit. Deliver together; no parser/table/form-only admission.",
+  "phaseOrder": [
+    "Trace all qualifying-allocation writers and common company/document lock order; add meaningful negative and race cases before changing financial admission. Known current writer is payments.ts postPayment, reached by accountingDocuments route and paidCredit internal releases; trace correction and alternate paths too.",
+    "Implement reviewed additive immutable evidence/agreement/redemption persistence, permission/partial-schema guards, exact stored-byte hashes and source binding. Coordinator reviews shared interface and migration before implementation publication.",
+    "Connect native form/evidence receipt, draft parser/source hash, original posting, explicit conditional-credit review/commit, ordinary-route anti-bypass and all mutation guards. Reuse existing pool allocation/refund and paid-credit recovery.",
+    "Qualify both customer and supplier cases with independent review, focused tests, full integrated checks, exact-source disposable PostgreSQL/restore CI, and isolated browser journey before enabling the slice."
+  ],
+  "firstSliceAcceptance": [
+    "G12000/D1200: 6000+4800 timely active cash yields reviewed1200credit/outstanding0;10799rejects;full12000payment releases1200to original pool with cash unchanged.",
+    "Binding must precede both payment and allocation; both effective dates and trusted commitment timestamps meet inclusive UTC deadline. Missing/foreign/replaced/equal-timestamp/late/backdated/prepaid evidence fails closed.",
+    "Exact immutable text bytes(max64KiB),canonical terms and per-line tax capacity are revalidated at every admission/review/commit/guard. Unknown versions, changed source or partial schema fail closed.",
+    "Explicit credit is atomically idempotent, consumes agreement once and preserves historical cutoffs; changed request/stale vector/concurrent release/failure rollback has no partial effect.",
+    "Every writer rejects cash reduction below G-D after redemption; ordinary credit/discount routes cannot bypass agreement or admit unqualified prior-credit/correction combinations.",
+    "Connected UI displays terms/evidence/deadline, guarded errors and explicit posting; authentication/company/role/period boundaries remain intact."
+  ],
+  "parentRemainingGates": [
+    "Atomic reversal compensation including downstream allocation/refund and writable-period effects; initial rejection is not compensation.",
+    "Prior-credit and corrected-original combinations with reviewed terms amendment and cumulative per-line net/VAT/gross capacity.",
+    "Full original parent acceptance including independent financial review, exact-source replay/race/rollback/history evidence and live browser qualification."
+  ],
+  "dispatchPrerequisites": [
+    "Fresh durable coordinator acquisition accepted and persisted; live fence re-read; expected-head fast-forward only.",
+    "Verified Replit control, bounded stop and immutable allowed export; current demo and original database isolated.",
+    "Current CLI claim still chooses P01-03; durable reservation contains actor/provider/base/branch/exact files; otherwise regenerate for actual highest eligible task.",
+    "Author acknowledgement of exact base/files/contract/deadline; independent reviewer assigned; no raw tokens or credentials in brief.",
+    "Refresh preparedBaseSha to current durable codeHead and exact catalog before claim; the pinned preparation source is historical, not permission to edit stale source."
+  ],
+  "observedSetupBlockers": [
+    "Replit implementation control, stop acknowledgement and exact artifact export have not been verified. Connector metadata exposes search/ask/update but no explicit stop or immutable export endpoint; verified browser/manual export may be used only if available and allowed."
+  ],
+  "runLimitMinutes": 30,
+  "checkpointMaxMinutes": 5,
+  "handoff": [
+    "local author commit and resulting tree SHA",
+    "exact binary Git diff from pinned base with SHA256",
+    "exact changed files",
+    "tests/logs tied to source",
+    "remaining scope/next step",
+    "explicit stopped and clean confirmation"
+  ],
+  "measurements": {
+    "implementationRuns": 0,
+    "providerCost": "unknown",
+    "providerCredits": "unknown",
+    "elapsedImplementationTime": "unknown",
+    "reviewWait": "unknown"
+  },
+  "authorityLimit": "Prepared plan only. No task claim, no Replit implementation, no feature activation, no scope/priority/catalogue mutation.",
+  "resolvedSetupBlockers": [
+    {
+      "issue": "Automatic review rejected outgoing active plaintext coordinator token; public repository confirmed.",
+      "resolution": "Independently reviewed version2 uses digest-only persisted coordinator proof; fresh acquisition accepted on state21cfd27e4d61235359282784c0b615a22fb8d4e5. Raw command token remains local; no rejected plaintext retransmission.",
+      "stateRevision": 100
+    }
+  ]
+}

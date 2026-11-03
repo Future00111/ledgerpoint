@@ -88,14 +88,15 @@ function assertRetiredGuard(state, now) {
   fails(() => move(state, { type: 'acquire', runId: 'run-2', token: owner.token, leaseMs: 1000 }, { now }), 'INVALID_OWNER');
   fails(() => move(state, { type: 'acquire', runId: owner.runId, token: 'fresh-token', leaseMs: 1000 }, { now }), 'INVALID_OWNER');
   const fresh = move(state, { type: 'acquire', runId: 'run-2', token: 'fresh-token', leaseMs: 1000 }, { now });
-  assert.equal(fresh.lease.token, 'fresh-token');
+  assert.equal(fresh.lease.tokenSha256, sha256('fresh-token'));
+  assert.equal(Object.hasOwn(fresh.lease, 'token'), false);
   fails(() => move(fresh, { type: 'renew', ...owner, leaseMs: 1000 }, { now: now + 1 }), 'OWNER_FENCED');
 }
 test('release retires plaintext token but still rejects previous token and run reuse', () => {
   const active = save(acquire());
   const idle = release(active);
   assertRetiredGuard(idle, 202);
-  assert.equal(active.lease.token, owner.token);
+  assert.equal(active.lease.tokenSha256, sha256(owner.token));
   assert.equal(idle.lastOwner.acquiredAt, active.lease.acquiredAt);
   assert.equal(idle.lastOwner.expiresAt, active.lease.expiresAt);
 });
@@ -107,6 +108,7 @@ test('expired recovery retires plaintext token and preserves the same reuse guar
 });
 test('legacy retired tokens normalize without changing live fences or caller history', () => {
   const legacy = release(save(acquire()));
+  legacy.version = 1;
   legacy.lastOwner.token = owner.token; delete legacy.lastOwner.tokenSha256;
   fails(() => move(legacy, { type: 'acquire', runId: 'run-2', token: owner.token, leaseMs: 1000 }, { now: 202 }), 'INVALID_OWNER');
   fails(() => move(legacy, { type: 'acquire', runId: owner.runId, token: 'fresh-token', leaseMs: 1000 }, { now: 202 }), 'INVALID_OWNER');
@@ -114,10 +116,10 @@ test('legacy retired tokens normalize without changing live fences or caller his
   assert.equal(Object.hasOwn(active.lastOwner, 'token'), false);
   assert.equal(active.lastOwner.tokenSha256, sha256(owner.token));
   assert.equal(legacy.lastOwner.token, owner.token);
-  assert.equal(active.lease.token, 'fresh-token');
-  const legacyWhileActive = { ...active, lastOwner: legacy.lastOwner };
+  assert.equal(active.lease.tokenSha256, sha256('fresh-token'));
+  const legacyWhileActive = { ...active, version: 1, lastOwner: legacy.lastOwner };
   const renewed = move(legacyWhileActive, { type: 'renew', runId: 'run-2', token: 'fresh-token', leaseMs: 2000 }, { now: 203 });
-  assert.equal(renewed.lease.token, active.lease.token);
+  assert.equal(renewed.lease.tokenSha256, active.lease.tokenSha256);
   assert.equal(renewed.lastOwner.tokenSha256, sha256(owner.token));
   assert.equal(Object.hasOwn(renewed.lastOwner, 'token'), false);
   fails(() => move(legacyWhileActive, { type: 'renew', runId: 'run-2', token: owner.token, leaseMs: 2000 }, { now: 203 }), 'OWNER_FENCED');
@@ -131,4 +133,49 @@ test('malformed or mixed retired token representations fail closed', () => {
     const invalid = { ...idle, lastOwner: { ...identity, ...representation } };
     fails(() => move(invalid, { type: 'acquire', runId: 'run-2', token: 'fresh-token', leaseMs: 1000 }, { now: 202 }), 'INVALID_STATE');
   }
+});
+
+
+test('active version-2 lease stores only a digest; publishing the digest does not grant ownership', () => {
+  const active = acquire();
+  assert.equal(active.version, 2);
+  assert.equal(Object.hasOwn(active.lease, 'token'), false);
+  assert.equal(active.lease.tokenSha256, sha256(owner.token));
+  assert.equal(JSON.stringify(active).includes(owner.token), false);
+  for (const type of ['renew', 'checkpoint', 'release']) {
+    fails(() => move(active, { type, ...owner, token: active.lease.tokenSha256,
+      ...saved, leaseMs: 1000, workersStopped: true, worktreesClean: true }, { now: 201 }), 'OWNER_FENCED');
+  }
+});
+
+test('version-1 active ownership migrates only with the existing fence and preserves times/history', () => {
+  const active = save(acquire());
+  const { tokenSha256, ...identity } = active.lease;
+  const legacy = { ...active, version: 1, lease: { ...identity, token: owner.token } };
+  fails(() => move(legacy, { type: 'renew', runId: owner.runId, token: 'wrong', leaseMs: 2000 }, { now: 201 }), 'OWNER_FENCED');
+  const migrated = move(legacy, { type: 'renew', ...owner, leaseMs: 2000 }, { now: 201 });
+  assert.equal(migrated.version, 2);
+  assert.equal(migrated.lease.tokenSha256, sha256(owner.token));
+  assert.equal(migrated.lease.acquiredAt, identity.acquiredAt);
+  assert.deepEqual(migrated.queueState, legacy.queueState);
+  assert.deepEqual(migrated.checkpoint, legacy.checkpoint);
+  assert.equal(legacy.lease.token, owner.token);
+  const expired = move(legacy, { type: 'acquire', runId: 'run-2', token: 'fresh', leaseMs: 1000 }, { now: 1100 });
+  assert.equal(expired.status, 'quarantined');
+  assert.equal(expired.version, 2);
+  assert.equal(Object.hasOwn(expired.lease, 'token'), false);
+  assert.equal(expired.lease.tokenSha256, sha256(owner.token));
+});
+
+test('malformed, mixed, version-2 plaintext and unknown-version active states fail closed', () => {
+  const active = acquire();
+  const { tokenSha256, ...identity } = active.lease;
+  for (const version of [1, 2]) for (const representation of [{}, { tokenSha256: '' },
+    { tokenSha256: 'a'.repeat(63) }, { tokenSha256: 'G'.repeat(64) }, { tokenSha256: 42 },
+    { token: '' }, { token: owner.token, tokenSha256 }]) {
+    const invalid = { ...active, version, lease: { ...identity, ...representation } };
+    fails(() => move(invalid, { type: 'renew', ...owner, leaseMs: 1000 }, { now: 201 }), 'INVALID_STATE');
+  }
+  for (const invalid of [{ ...active, lease: { ...identity, token: owner.token } }, { ...active, version: 3 }])
+    fails(() => move(invalid, { type: 'renew', ...owner, leaseMs: 1000 }, { now: 201 }), 'INVALID_STATE');
 });

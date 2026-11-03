@@ -24,11 +24,22 @@ Acquire the single coordinator lease using `coordinator.mjs`, then commit the
 new state on the state branch with **expected previous head SHA**, fast-forward
 only. Re-read and verify the lease token before launching workers or publishing
 code. A failed compare-and-swap means stop and inspect; never force-push or
-blindly retry. Renew/checkpoint while active. Released/recovered `lastOwner` records store
-`tokenSha256` instead of the retired plaintext token. Acquisition hashes the
-proposed token to reject reuse; legacy plaintext history is normalized by the
-coordinator transition. Active lease token checks and previous run-ID rejection
-remain unchanged. Mixed or malformed retired representations fail closed.
+blindly retry. Renew/checkpoint while active. Version 2 stores `tokenSha256`
+in both active leases and retired owners; raw command tokens stay local. Before
+publication compare the live run ID and SHA-256 of the locally held token, then
+use expected-head fast-forward. A persisted digest is not an accepted command
+token. Acquisition still rejects previous token/run reuse; every owned transition
+still requires the matching local token. Version-1 plaintext records normalize on
+transition; mixed/malformed records and version-2 plaintext fail closed. Older
+readers reject version 2 rather than acquire competing ownership.
+
+The first v2 acquisition is an independently reviewed idle-state migration. Its
+state-branch `protocolMigration` record identifies the exact source, module hash,
+non-executable patch and review evidence used before source publication. If a
+run stops before that source publishes, inspect and verify those exact bootstrap
+artifacts before loading the patched coordinator; do not run the old reader on
+v2, delete state or invent an owner. Losing the local token requires normal
+stopped-worker recovery evidence after expiry, not use of the public digest.
 An expired lease requires evidence
 that the previous run and all its workers stopped, plus their durable checkpoints;
 expiry alone is never permission to take over.
@@ -155,3 +166,13 @@ wait and rework. Record credits per accepted workflow only if measured; unknown
 measurements remain unknown. Compare three runs and adjust concurrency using
 observed completion and cost without reducing scope or quality. This policy does
 not imply continuous execution between hosted hourly resumptions.
+
+## Replit implementation slot
+
+Use [the hybrid execution protocol](../../../docs/development/replit-worker-protocol.md)
+for Replit assignment, bounded activity, immutable handoff, independent review and
+shutdown. Prefer one Replit implementer replacing one Codex slot; preserve the
+single coordinator, automatic highest-eligible claim and existing capacity ceiling.
+The [prepared P01-03 packet](../../../docs/development/replit-first-assignment.json)
+holds no claim and must be refreshed from current durable state before dispatch.
+This procedure is not a new always-on provider integration.
