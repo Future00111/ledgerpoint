@@ -1,0 +1,257 @@
+Z ✔ document capabilities match actual draft and protected posting permissions (319.311383ms)
+2026-11-03T15:26:34.3154279Z ✔ all four document drafts edit and reopen with revised totals, stale-write protection and source audit (220.286455ms)
+2026-11-03T15:26:35.0821714Z ✔ draft discounts allocate mixed VAT in both bases, clear on edit, post balanced, and allow exact full returns (766.664849ms)
+2026-11-03T15:26:35.5457481Z ✔ later percentage and fixed discounts preserve partial payments and original source for invoices and bills (463.639612ms)
+2026-11-03T15:26:35.6295942Z ✔ discount credits use original VAT evidence and adjustment date after tax rules change (83.596458ms)
+2026-11-03T15:26:35.7456884Z ✔ competing discounts cannot exceed the balance after a partial payment (115.990862ms)
+2026-11-03T15:26:35.8763937Z Accounting operation failed { code: '22012' }
+2026-11-03T15:26:35.9217553Z ✔ discount failures preserve journal, payments, audit and source; permissions, revisions and periods stay enforced (175.457608ms)
+2026-11-03T15:26:36.0648816Z ✔ discounted returned-item claims use the paid-for value and commercial discounts never satisfy those claims (143.79087ms)
+2026-11-03T15:26:36.0958812Z ✔ legacy draft discount is calculated, saved and reopened rather than silently ignored (30.842786ms)
+2026-11-03T15:26:36.1275088Z Accounting operation failed { code: 'P0001' }
+2026-11-03T15:26:36.1325229Z ✔ an audit insert failure atomically rolls back a discount edit and its compatibility projection (35.942941ms)
+2026-11-03T15:26:36.1648849Z ✔ isolated legacy journal history remains readable but cannot become a financial write bypass (32.664551ms)
+2026-11-03T15:26:36.3667582Z ✔ four native create/edit/reopen/review/post journeys reconcile ledger, parties, P&L, BS and VAT with idempotent retries (200.879367ms)
+2026-11-03T15:26:36.9143055Z ✔ demo 5% and zero-rated rules survive repeat setup and reconcile invoices, bills and credits in both price bases (548.569444ms)
+2026-11-03T15:26:36.9991267Z ✔ credit retains original tax point, selected original lines and own effective period; movements differ from closing balances (84.886677ms)
+2026-11-03T15:26:37.0796897Z ✔ concurrent excessive credits serialize; unallocated/refund/date-substitution credits fail closed (80.438245ms)
+2026-11-03T15:26:37.1135798Z Accounting operation failed { code: '22012' }
+2026-11-03T15:26:37.1629820Z ✔ failed posting rolls back journal, effect, status and audit; stale source/context and closed periods deny (83.163693ms)
+2026-11-03T15:26:37.2145258Z ✔ authorization, cross-company IDs, forged journal inputs and generic financial bypasses reject (51.617286ms)
+2026-11-03T15:26:37.3471117Z ✔ non-VAT and explicitly nonrecoverable purchase VAT never fabricate input VAT recovery (132.310416ms)
+2026-11-03T15:26:37.3739418Z ✔ full-schema legacy draft reopen defaults excluding without rewrite and still has no posting (26.89522ms)
+2026-11-03T15:26:37.4217212Z ✔ reports hold a repeatable-read snapshot while a real native posting commits between ledger and source reads (47.667415ms)
+2026-11-03T15:26:37.5065943Z ✔ explicit eligible UUIDv5 sales/purchase accounts save/reopen; defaults clear overrides; invalid choices have safe field errors (84.415428ms)
+2026-11-03T15:26:37.6712185Z ✔ native chart CRUD preserves UUID/history, serializes revisions/code uniqueness, locks classification and groups reports (164.452491ms)
+2026-11-03T15:26:38.0977107Z ✔ partial value credits preserve originals and agree across journals, reports, history and legacy balance readers (426.876845ms)
+2026-11-03T15:26:38.3386407Z ✔ bank status and matching metadata cannot settle documents or duplicate recovered payment commands (240.687595ms)
+2026-11-03T15:26:38.5606930Z ✔ W06 customer excess, refunds, later allocations and undo reconcile cash, statements and historical VAT (222.301966ms)
+2026-11-03T15:26:38.7367303Z ✔ W06 supplier prepayment and refund, full unallocation and reversal preserve profit and tax (176.094731ms)
+2026-11-03T15:26:38.8156660Z Accounting operation failed { code: '22012' }
+2026-11-03T15:26:38.8660261Z ✔ W06 rejects stale concurrent allocations, cross-party, read-only, closed-period and rollback failures (129.025547ms)
+2026-11-03T15:26:39.0439553Z ✔ credit tracking enforces authentication, membership, roles and company boundaries on every operation (177.788112ms)
+2026-11-03T15:26:39.0949963Z ✔ credit tracking allows existing draft-management roles without granting posting capability (51.150087ms)
+2026-11-03T15:26:39.1431223Z ✔ credit tracking retries are idempotent and bind body, actor and current permissions (47.874011ms)
+2026-11-03T15:26:39.2316773Z ✔ credit tracking races serialize and stale claim or credit revisions fail without duplicate receipts (88.601905ms)
+2026-11-03T15:26:39.2819503Z Accounting operation failed { code: '22012' }
+2026-11-03T15:26:39.3585970Z Accounting operation failed { code: '22012' }
+2026-11-03T15:26:39.3813092Z Accounting operation failed { code: '22012' }
+2026-11-03T15:26:39.4076249Z ✔ credit tracking rolls back claims, receipts, revisions and audit atomically without touching accounting (176.000123ms)
+2026-11-03T15:26:39.5051980Z ✔ a reduced-price credit leaves value outstanding and never satisfies a separate surcharge (97.362079ms)
+2026-11-03T15:26:39.6556760Z ✔ historical posted credits are excluded, drafts require posting, and multiple confirmed partial credits complete a claim (150.502789ms)
+2026-11-03T15:26:39.7596608Z ✔ fully paid bills can be tracked without changing their accounting or settled status (103.944797ms)
+2026-11-03T15:26:39.8563577Z ✔ tracking receipt and command history are immutable and claim financial snapshots cannot be edited by runtime role (96.423835ms)
+2026-11-03T15:26:39.9855585Z ✔ real canonical reversals invalidate confirmed tracking receipts and prevent reversed bill claims (129.274598ms)
+2026-11-03T15:26:40.0417714Z ✔ capture retains exact authenticated evidence and deduplicates concurrent uploads within a company (56.184036ms)
+2026-11-03T15:26:40.1253393Z ✔ capture creates exactly one reviewed draft under concurrent retries and never posts (83.518858ms)
+2026-11-03T15:26:40.1830842Z ✔ capture review rejects missing acknowledgements, stale intent, stale tax and foreign supplier (57.638977ms)
+2026-11-03T15:26:40.2140308Z Document intake operation failed { code: '22012' }
+2026-11-03T15:26:40.2246652Z ✔ capture draft, compatibility projection, source link and audits roll back together (41.722903ms)
+2026-11-03T15:26:40.2913295Z ✔ capture permissions are checked on upload, review and every idempotent retry (66.563092ms)
+2026-11-03T15:26:40.3769537Z ✔ capture evidence and audit are immutable and document links enforce tenant identity (85.268068ms)
+2026-11-03T15:26:40.4711280Z ✔ captured supplier credits retain original source rates and native settlement controls (94.1875ms)
+2026-11-03T15:26:40.8722105Z ✔ paid supplier and customer credits atomically release allocations, preserve cash, replay and rollback (398.919554ms)
+2026-11-03T15:26:41.0706716Z ✔ competing paid credits and multiple payment releases retain cumulative capacity and stable order (200.633691ms)
+2026-11-03T15:26:41.1896555Z ✔ part-paid excess review includes prior unapplied/refunded money and denies revoked-member replay (118.881835ms)
+2026-11-03T15:26:41.2791818Z ✔ paid-credit stale setup, closed period and absent/partial schema commit no effects (89.492047ms)
+2026-11-03T15:26:41.4463882Z ✔ paid credit and separately reviewed payment unallocation fence competing allocation vectors (165.789845ms)
+2026-11-03T15:26:41.8867862Z ✔ paid-credit released pools support later allocation, refund and undo without double use or rewriting history (441.693087ms)
+2026-11-03T15:26:42.0428249Z ✔ original payment request recovery survives new sessions without reposting and denies revoked or foreign membership (156.042201ms)
+2026-11-03T15:26:42.1017757Z Accounting operation failed { code: '22012' }
+2026-11-03T15:26:42.1290429Z ✔ rolled-back payment command remains unknown and a same-identity retry recovers its one committed result (84.963834ms)
+2026-11-03T15:26:42.1971344Z ℹ tests 52
+2026-11-03T15:26:42.1971632Z ℹ suites 0
+2026-11-03T15:26:42.1971864Z ℹ pass 52
+2026-11-03T15:26:42.1972083Z ℹ fail 0
+2026-11-03T15:26:42.1972315Z ℹ cancelled 0
+2026-11-03T15:26:42.1972560Z ℹ skipped 0
+2026-11-03T15:26:42.1972787Z ℹ todo 0
+2026-11-03T15:26:42.1973058Z ℹ duration_ms 8676.433919
+2026-11-03T15:26:42.6334033Z 
+2026-11-03T15:26:42.6346227Z   ../../generated-artifacts/security-flow.test.cjs  1.8mb ⚠️
+2026-11-03T15:26:42.6346558Z 
+2026-11-03T15:26:42.6346701Z ⚡ Done in 110ms
+2026-11-03T15:26:43.0007143Z ✔ concurrent owner self-demotions serialize and retain exactly one active owner (72.357072ms)
+2026-11-03T15:26:43.0104023Z ✔ unverified identities cannot become a substitute owner or permit self-demotion (12.123145ms)
+2026-11-03T15:26:43.0404568Z ✔ invalid roles are rejected before identity lookup or writes on add, edit and invite (28.021677ms)
+2026-11-03T15:26:43.1122495Z ✔ nonowners, inactive, unknown, null and cross-company memberships cannot escalate; active duplicates are rejected (73.680831ms)
+2026-11-03T15:26:43.1331222Z ✔ company mass assignment is rejected and provider failures redact logs and public errors (20.788029ms)
+2026-11-03T15:26:43.1749363Z ✔ company detail updates recheck authority after concurrent removal or demotion wins the company lock (37.889464ms)
+2026-11-03T15:26:43.1976856Z ℹ tests 6
+2026-11-03T15:26:43.1977283Z ℹ suites 0
+2026-11-03T15:26:43.1977576Z ℹ pass 6
+2026-11-03T15:26:43.1977798Z ℹ fail 0
+2026-11-03T15:26:43.1978028Z ℹ cancelled 0
+2026-11-03T15:26:43.1978276Z ℹ skipped 0
+2026-11-03T15:26:43.1978495Z ℹ todo 0
+2026-11-03T15:26:43.1978799Z ℹ duration_ms 509.058288
+2026-11-03T15:26:43.6333300Z 
+2026-11-03T15:26:43.6336503Z   ../../generated-artifacts/corrections-flow.test.cjs  2.0mb ⚠️
+2026-11-03T15:26:43.6336856Z 
+2026-11-03T15:26:43.6337012Z ⚡ Done in 117ms
+2026-11-03T15:26:44.2289621Z ✔ correction HTTP routes require authentication, company scope, capability and revision before posting an exact reviewed command (289.209919ms)
+2026-11-03T15:26:44.5338753Z ✔ posted invoice correction keeps original facts and partial cash immutable while every current/historical projection agrees (305.765791ms)
+2026-11-03T15:26:44.8727350Z ✔ inclusive/exclusive mixed-rate and discounted bills preserve native VAT precision and recoverability (338.821893ms)
+2026-11-03T15:26:45.0549688Z ✔ review authority, stale payments, settlement limits, replay identity and concurrent head changes fail safely (182.170614ms)
+2026-11-03T15:26:45.1638452Z ✔ atomic failure after journal, relation, amendment, head, projection and document audit leaves no partial correction (108.775436ms)
+2026-11-03T15:26:45.2947673Z ✔ dependent credits are blocked before and after correction; new account legs cannot enter through zero VAT origins (130.894736ms)
+2026-11-03T15:26:45.3820830Z ✔ active claims block correction, cancelled claims persist, and corrected bills reject new tracking (87.100379ms)
+2026-11-03T15:26:45.6121739Z ✔ SQL boundaries enforce runtime grants, owner immutable triggers, strict head succession and tenant FKs (230.143245ms)
+2026-11-03T15:26:45.7470023Z ✔ an inserted amendment without its head or relation fails closed even for an earlier report cutoff (134.664869ms)
+2026-11-03T15:26:45.8124755Z ✔ period closure and changed accounting authority invalidate an uncommitted review (65.55318ms)
+2026-11-03T15:26:45.9095922Z ✔ concurrent correction and payment cannot allocate more than the final corrected amount (97.001981ms)
+2026-11-03T15:26:46.0426467Z ✔ settlement and historical reports agree on linked credit cutoffs for both parties (132.373799ms)
+2026-11-03T15:26:46.0428378Z ✔ linked credit projection rejects missing journal, wrong party and kind even beyond cutoff (0.575356ms)
+2026-11-03T15:26:46.2354121Z ✔ receipt confirmation and claim listing fail closed on corrupt bill history without changing receipt evidence (192.628018ms)
+2026-11-03T15:26:46.3977560Z ✔ linked credit journal revision and currency mismatches fail closed before historical cutoff (159.982626ms)
+2026-11-03T15:26:46.4356894Z ℹ tests 15
+2026-11-03T15:26:46.4357192Z ℹ suites 0
+2026-11-03T15:26:46.4357420Z ℹ pass 15
+2026-11-03T15:26:46.4357639Z ℹ fail 0
+2026-11-03T15:26:46.4357885Z ℹ cancelled 0
+2026-11-03T15:26:46.4358133Z ℹ skipped 0
+2026-11-03T15:26:46.4358364Z ℹ todo 0
+2026-11-03T15:26:46.4358625Z ℹ duration_ms 2745.515254
+2026-11-03T15:26:46.8695575Z 
+2026-11-03T15:26:46.8696672Z   ../../generated-artifacts/vat-coverage-flow.test.cjs  2.0mb ⚠️
+2026-11-03T15:26:46.8697012Z 
+2026-11-03T15:26:46.8697164Z ⚡ Done in 112ms
+2026-11-03T15:26:47.5029921Z ✔ native mixed treatments, inclusive purchases, linked credits and nonrecoverable VAT reconcile all covered boxes (340.837896ms)
+2026-11-03T15:26:47.5416418Z ✔ non-VAT native documents report not-applicable instead of a reconciled filing-ready return (39.411982ms)
+2026-11-03T15:26:47.5599424Z ✔ unsupported VAT setups and foreign or missing actors cannot obtain apparently reconciled workings (16.811598ms)
+2026-11-03T15:26:47.5857943Z ℹ tests 3
+2026-11-03T15:26:47.5858386Z ℹ suites 0
+2026-11-03T15:26:47.5858718Z ℹ pass 3
+2026-11-03T15:26:47.5859043Z ℹ fail 0
+2026-11-03T15:26:47.5859371Z ℹ cancelled 0
+2026-11-03T15:26:47.5859725Z ℹ skipped 0
+2026-11-03T15:26:47.5860048Z ℹ todo 0
+2026-11-03T15:26:47.5860421Z ℹ duration_ms 663.473355
+2026-11-03T15:26:48.0245567Z 
+2026-11-03T15:26:48.0246584Z   ../../generated-artifacts/audit-review-flow.test.cjs  1.9mb ⚠️
+2026-11-03T15:26:48.0246927Z 
+2026-11-03T15:26:48.0247076Z ⚡ Done in 114ms
+2026-11-03T15:26:48.6070585Z ✔ real native draft, posted, payment and other existing audit sources are projected with verified links only (288.848613ms)
+2026-11-03T15:26:48.6514550Z ✔ keyset pagination retains microseconds and source tie-breakers, and rechecks access on every page (45.166218ms)
+2026-11-03T15:26:48.7420354Z ✔ tenant, membership, header and method boundaries fail closed without read-triggered writes (89.975204ms)
+2026-11-03T15:26:48.7980792Z ✔ correction, date and literal search filters work; CSV formula sanitisation and export cap are explicit (55.029021ms)
+2026-11-03T15:26:48.8264082Z ℹ tests 4
+2026-11-03T15:26:48.8264780Z ℹ suites 0
+2026-11-03T15:26:48.8265501Z ℹ pass 4
+2026-11-03T15:26:48.8265952Z ℹ fail 0
+2026-11-03T15:26:48.8266434Z ℹ cancelled 0
+2026-11-03T15:26:48.8266997Z ℹ skipped 0
+2026-11-03T15:26:48.8267430Z ℹ todo 0
+2026-11-03T15:26:48.8267932Z ℹ duration_ms 747.476564
+2026-11-03T15:26:49.2142503Z 
+2026-11-03T15:26:49.2176311Z   ../../generated-artifacts/partial-schema-flow.test.cjs  714.0kb
+2026-11-03T15:26:49.2176795Z 
+2026-11-03T15:26:49.2177158Z ⚡ Done in 65ms
+2026-11-03T15:26:49.6815602Z ✔ real PostgreSQL: missing accounting_document_amendments fails closed without repair or evidence changes (265.624968ms)
+2026-11-03T15:26:49.8966887Z ✔ real PostgreSQL: missing accounting_document_amendment_heads fails closed without repair or evidence changes (215.143937ms)
+2026-11-03T15:26:50.1178281Z ✔ real PostgreSQL: absent amendment pair preserves original projection and does not create tables (221.313978ms)
+2026-11-03T15:26:50.3427001Z ✔ real PostgreSQL: missing amendment lookup column aborts projection with no repair or writes (224.937655ms)
+2026-11-03T15:26:50.5515642Z ✔ real PostgreSQL: failed transactional DDL rolls back prior rename and all original evidence (208.770844ms)
+2026-11-03T15:26:50.7756473Z ✔ real PostgreSQL: complete amendment schema remains readable under restricted runtime role (221.591607ms)
+2026-11-03T15:26:51.1091648Z ✔ real PostgreSQL: repeated overlay installation refuses the nonempty disposable schema without changes (335.606993ms)
+2026-11-03T15:26:51.1762084Z ✔ real PostgreSQL: object-only public schemas cannot bypass the empty-database gate (66.83857ms)
+2026-11-03T15:26:52.4777352Z ✔ real PostgreSQL: late installer failure rolls back all migrations and permits clean retry, amendments=false (1300.951597ms)
+2026-11-03T15:26:53.7883371Z ✔ real PostgreSQL: late installer failure rolls back all migrations and permits clean retry, amendments=true (1310.880396ms)
+2026-11-03T15:26:54.9353434Z ✔ real PostgreSQL: installer serializes and rechecks after competing migration, amendments=false, commit=false (1147.427079ms)
+2026-11-03T15:26:55.9872526Z ✔ real PostgreSQL: installer serializes and rechecks after competing migration, amendments=false, commit=true (1051.791646ms)
+2026-11-03T15:26:57.1182358Z ✔ real PostgreSQL: installer serializes and rechecks after competing migration, amendments=true, commit=false (1130.892911ms)
+2026-11-03T15:26:58.1638727Z ✔ real PostgreSQL: installer serializes and rechecks after competing migration, amendments=true, commit=true (1044.199998ms)
+2026-11-03T15:26:59.2052305Z ✔ real PostgreSQL: applied migration history is readable but never mutable by runtime (1042.119344ms)
+2026-11-03T15:26:59.4010843Z ✔ real PostgreSQL: checksum history corruption fails compatibility without automatic repair (195.871269ms)
+2026-11-03T15:26:59.6212362Z ✔ real PostgreSQL: newer version history corruption fails compatibility without automatic repair (219.989203ms)
+2026-11-03T15:26:59.8166051Z ✔ real PostgreSQL: dependency history corruption fails compatibility without automatic repair (195.359328ms)
+2026-11-03T15:27:00.0217188Z ✔ real PostgreSQL: missing entry history corruption fails compatibility without automatic repair (205.03245ms)
+2026-11-03T15:27:00.2308735Z ✔ real PostgreSQL: unknown entry history corruption fails compatibility without automatic repair (208.943633ms)
+2026-11-03T15:27:00.4347050Z ✔ real PostgreSQL: absent migration history fails closed with no automatic creation (203.752107ms)
+2026-11-03T15:27:00.4783515Z ✔ real PostgreSQL: interrupted migration-history recording leaves no DDL or version rows (43.969302ms)
+2026-11-03T15:27:00.5235920Z ℹ tests 22
+2026-11-03T15:27:00.5236293Z ℹ suites 0
+2026-11-03T15:27:00.5236611Z ℹ pass 22
+2026-11-03T15:27:00.5236951Z ℹ fail 0
+2026-11-03T15:27:00.5237270Z ℹ cancelled 0
+2026-11-03T15:27:00.5237528Z ℹ skipped 0
+2026-11-03T15:27:00.5237748Z ℹ todo 0
+2026-11-03T15:27:00.5238010Z ℹ duration_ms 11258.35151
+2026-11-03T15:27:02.5344590Z Disposable backup/restore verified: original rows, restored evidence and restricted runtime match.
+2026-11-03T15:27:02.6658061Z ##[group]Run node --test tools/operations/backup-restore/*.test.mjs
+2026-11-03T15:27:02.6671086Z [36;1mnode --test tools/operations/backup-restore/*.test.mjs[0m
+2026-11-03T15:27:02.6694246Z shell: /usr/bin/bash -e {0}
+2026-11-03T15:27:02.6694524Z ##[endgroup]
+2026-11-03T15:27:02.7909131Z ✔ application recovery rejects existing/shared and redirected archive inputs (1.828534ms)
+2026-11-03T15:27:02.7910318Z ✔ restored application roles reject elevated flags, login owner and unexpected memberships (2.575575ms)
+2026-11-03T15:27:03.0155063Z ✔ fresh nonces, exact role/job/audit/attachment bytes and authenticated envelope (3.335926ms)
+2026-11-03T15:27:03.0160160Z ✔ file rehearsal restores a fresh output only and never overwrites evidence (8.349584ms)
+2026-11-03T15:27:03.0166833Z ✔ CLI performs explicit synthetic round trip without logging archive or key contents (130.204463ms)
+2026-11-03T15:27:03.0176159Z ✔ FIFO keys and inputs are rejected without waiting for a writer (85.474108ms)
+2026-11-03T15:27:03.0265790Z ✔ negative control detects changed fingerprint, never commits mutation and verifies rollback (1.950018ms)
+2026-11-03T15:27:03.0267315Z ✔ unchanged fingerprints fail the control and still roll back (0.572503ms)
+2026-11-03T15:27:03.0270511Z ✔ failed fingerprint inspection rolls back both savepoint and outer mutation (0.316307ms)
+2026-11-03T15:27:03.0271434Z ✔ restored fixture must match after rollback before the control can pass (0.288395ms)
+2026-11-03T15:27:03.0271946Z ℹ tests 10
+2026-11-03T15:27:03.0272173Z ℹ suites 0
+2026-11-03T15:27:03.0272389Z ℹ pass 10
+2026-11-03T15:27:03.0272610Z ℹ fail 0
+2026-11-03T15:27:03.0272842Z ℹ cancelled 0
+2026-11-03T15:27:03.0273081Z ℹ skipped 0
+2026-11-03T15:27:03.0273297Z ℹ todo 0
+2026-11-03T15:27:03.0273550Z ℹ duration_ms 319.013738
+2026-11-03T15:27:03.0374068Z ##[group]Run node tools/operations/backup-restore/rehearsal.mjs
+2026-11-03T15:27:03.0374610Z [36;1mnode tools/operations/backup-restore/rehearsal.mjs[0m
+2026-11-03T15:27:03.0397346Z shell: /usr/bin/bash -e {0}
+2026-11-03T15:27:03.0397625Z ##[endgroup]
+2026-11-03T15:27:05.3225529Z Synthetic encrypted recovery verified across fresh clusters; cleanup complete.
+2026-11-03T15:27:05.3367638Z ##[group]Run if [ 'success' != 'skipped' ]; then
+2026-11-03T15:27:05.3368055Z [36;1mif [ 'success' != 'skipped' ]; then[0m
+2026-11-03T15:27:05.3369016Z [36;1m  node -e 'const r=require("./generated-artifacts/encrypted-recovery.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'[0m
+2026-11-03T15:27:05.3369934Z [36;1mfi[0m
+2026-11-03T15:27:05.3391718Z shell: /usr/bin/bash -e {0}
+2026-11-03T15:27:05.3392009Z ##[endgroup]
+2026-11-03T15:27:05.3743398Z ##[group]Run node <<'NODE'
+2026-11-03T15:27:05.3743711Z [36;1mnode <<'NODE'[0m
+2026-11-03T15:27:05.3744080Z [36;1mconst r = require('./generated-artifacts/encrypted-recovery.json');[0m
+2026-11-03T15:27:05.3744662Z [36;1mif (r.sourceCommit !== process.env.GITHUB_SHA || !r.syntheticOnly || !r.verified ||[0m
+2026-11-03T15:27:05.3745722Z [36;1m    !r.separateClusters || !r.encryptedArchiveUsed || !r.runtimeMutationDenied ||[0m
+2026-11-03T15:27:05.3746262Z [36;1m    !r.schemaControlsPreserved || !r.roleMembershipsPreserved ||[0m
+2026-11-03T15:27:05.3747023Z [36;1m    JSON.stringify(r.negativeControls) !== JSON.stringify(["missing_source_foreign_key", "unexpected_role_membership", "unexpected_audit_delete_grant"]) ||[0m
+2026-11-03T15:27:05.3747722Z [36;1m    r.sourceFingerprint !== r.restoredFingerprint ||[0m
+2026-11-03T15:27:05.3748206Z [36;1m    r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);[0m
+2026-11-03T15:27:05.3748626Z [36;1mNODE[0m
+2026-11-03T15:27:05.3770190Z shell: /usr/bin/bash -e {0}
+2026-11-03T15:27:05.3770471Z ##[endgroup]
+2026-11-03T15:27:05.4176515Z ##[group]Run if [ 'success' != 'skipped' ]; then
+2026-11-03T15:27:05.4177075Z [36;1mif [ 'success' != 'skipped' ]; then[0m
+2026-11-03T15:27:05.4178011Z [36;1m  node -e 'const r=require("./generated-artifacts/accounting-flow-cleanup.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'[0m
+2026-11-03T15:27:05.4178922Z [36;1mfi[0m
+2026-11-03T15:27:05.4200215Z shell: /usr/bin/bash -e {0}
+2026-11-03T15:27:05.4200488Z ##[endgroup]
+2026-11-03T15:27:05.4551942Z ##[group]Run node <<'NODE'
+2026-11-03T15:27:05.4552264Z [36;1mnode <<'NODE'[0m
+2026-11-03T15:27:05.4552677Z [36;1mconst cleanup = require('./generated-artifacts/accounting-flow-cleanup.json');[0m
+2026-11-03T15:27:05.4553283Z [36;1mconst restore = require('./generated-artifacts/accounting-restore-drill.json');[0m
+2026-11-03T15:27:05.4554001Z [36;1mif (!cleanup.restoreVerified || cleanup.runId !== restore.runId || cleanup.sourceCommit !== restore.sourceCommit ||[0m
+2026-11-03T15:27:05.4554778Z [36;1m    restore.sourceCommit !== process.env.GITHUB_SHA || !restore.syntheticOnly || !restore.sourceUnchanged ||[0m
+2026-11-03T15:27:05.4556075Z [36;1m    !restore.controlsPreserved || !restore.runtimeRestricted || restore.sourceFingerprint !== restore.restoredFingerprint ||[0m
+2026-11-03T15:27:05.4556865Z [36;1m    restore.ambientDatabaseCredentialsUsed || restore.productionContact) process.exit(1);[0m
+2026-11-03T15:27:05.4557345Z [36;1mNODE[0m
+2026-11-03T15:27:05.4578881Z shell: /usr/bin/bash -e {0}
+2026-11-03T15:27:05.4579183Z ##[endgroup]
+2026-11-03T15:27:05.5059331Z Post job cleanup.
+2026-11-03T15:27:05.6395557Z (node:4620) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-03T15:27:05.6396894Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-03T15:27:05.6697013Z Post job cleanup.
+2026-11-03T15:27:05.7715882Z [command]/usr/bin/git version
+2026-11-03T15:27:05.7751605Z git version 2.56.0
+2026-11-03T15:27:05.7796601Z Temporarily overriding HOME='/home/runner/work/_temp/9ae2e095-bdf3-4dbf-bcc7-935c0a65ede1' before making global git config changes
+2026-11-03T15:27:05.7798604Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T15:27:05.7803249Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ledgerpoint/ledgerpoint
+2026-11-03T15:27:05.7852181Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T15:27:05.7896995Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T15:27:05.8237763Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T15:27:05.8304307Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T15:27:05.8887379Z Cleaning up orphan processes
+2026-11-03T15:27:05.9247999Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683, actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

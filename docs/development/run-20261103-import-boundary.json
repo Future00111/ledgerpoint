@@ -1,7 +1,7 @@
 {
   "runId": "hosted-20261103-import-boundary",
   "startedAt": 1793719310512,
-  "observedAt": 1793719581463,
+  "observedAt": 1793719674182,
   "scope": "Only shared fingerprint/ESM restore import boundary",
   "source": "126d25b87f76e374c3ed80293356140ace460b85",
   "tree": "da325e92140aba0edf6c2927804d85c5e1af54c4",
@@ -24,17 +24,30 @@
     "treeMatchesPublished": true,
     "run": 41663737225,
     "job": 126013396803,
-    "status": "in_progress",
+    "status": "passed",
     "localSourceTests": 776,
     "localSourcePass": 776,
     "localSourceFail": 0,
     "buildPassed": true,
     "liveBrowserQualified": false,
-    "productionQualified": false
+    "productionQualified": false,
+    "tests": 916,
+    "pass": 916,
+    "fail": 0,
+    "skipped": 0,
+    "disposablePostgres": true,
+    "restorePassed": true,
+    "encryptedRecoveryPassed": true,
+    "cleanupPassed": true,
+    "logsIndependentlyFetched": true
   },
   "workersStopped": true,
   "creditsPerAcceptedWorkflow": "unknown",
   "reviewWait": "unknown",
   "originalBulletsNewlyAccepted": [],
-  "journeysNewlyVerified": []
+  "journeysNewlyVerified": [
+    "Synthetic original payment request recovery and permission lock-race regressions on exact source",
+    "Synthetic populated encrypted application restore and CommonJS partial-schema import boundary"
+  ],
+  "remaining": "Broad P02-02 identity lifecycle, P03-01 other operation families/browser discovery, and P03-04 offsite/operating-target qualification remain pending; no source bullet accepted"
 }
