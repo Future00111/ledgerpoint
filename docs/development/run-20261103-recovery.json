@@ -1,0 +1,98 @@
+{
+  "runId": "hosted-20261103-recovery",
+  "policy": "At most two implementers plus one independent reviewer and coordinator; expand only named justified independent tasks; one workflow; no full-window/slot obligation",
+  "actualTeam": {
+    "coordinator": 1,
+    "implementers": 0,
+    "independentReviewer": 1,
+    "reviewerStopped": true
+  },
+  "source": "1048ad7b459b3375c5a438769e0559a9d40ab5f8",
+  "tree": "0c33e97663e8e6fb876c30a47ed41fcbf07dc3a3",
+  "localValidation": {
+    "sourceTests": 775,
+    "failed": 0,
+    "buildTypecheck": "passed",
+    "restoreUnitTests": 12,
+    "schedulerTests": 40,
+    "note": "Full775source/build passed on previous tree b2f1bc8; final tree changes only integration assertion and needs exact CI"
+  },
+  "reviews": [
+    {
+      "candidate": "408e75224d574dbbf41f460c243e01be44094848",
+      "reviewer": "candidate_review",
+      "result": "locked company authorization reviewed; actual PG pending"
+    },
+    {
+      "candidate": "5627b81917749c60c44a86e9e29bedafb9731c81",
+      "reviewer": "candidate_review",
+      "result": "22 focused pass; initial schema miss found by PG and superseded by fe56993 review"
+    },
+    {
+      "candidate": "3d50d18458efae0988e16487cedd31cda3c82864",
+      "reviewer": "candidate_review",
+      "result": "including df35ce5 reviewed;8focused pass"
+    },
+    {
+      "candidate": "d145124",
+      "reviewer": "root",
+      "result": "policy approved"
+    },
+    {
+      "candidate": "fe569936a96355a698701a933715724fa4a5cb88",
+      "reviewer": "candidate_review",
+      "result": "correct effect join checked against schema and grants; actual PG pending"
+    },
+    {
+      "candidate": "67db33b1fdd4baa574b12a224ef2d51c95212e20",
+      "reviewer": "candidate_review",
+      "result": "Assertion-only422to400 matches existing uuid validator; approved"
+    }
+  ],
+  "priorFailure": {
+    "run": 41659385938,
+    "job": 125998257696,
+    "code": "42703",
+    "tests": "50 accounting passed;2 payment recovery failed",
+    "cause": "journal idempotency_key does not exist; key lives on posting effect",
+    "cleanup": "passed"
+  },
+  "currentCI": "pending discovery",
+  "originalBulletsNewlyAccepted": [],
+  "journeysNewlyVerified": [],
+  "remaining": [
+    "P02-02 identity lifecycle remains pending",
+    "P03-01 other operations and lost command discovery/browser acceptance pending",
+    "P03-04 offsite ownership/operating-target recovery qualification pending",
+    "c2245dc tax candidate archived unintegrated",
+    "Conditional credit draft archived unreviewed; timestamp/hash evidence clarification pending"
+  ],
+  "creditsPerAcceptedWorkflow": "unknown",
+  "reviewWait": "unknown",
+  "rework": [
+    "Complete truncated recovery archive before recovery",
+    "Correct followup cherry-pick parent order",
+    "Replace symlink dependency root for pnpm",
+    "Correct SQL column through PostgreSQL failure"
+  ],
+  "compareAfterRuns": 3,
+  "priorFailures": [
+    {
+      "run": 41659385938,
+      "job": 125998257696,
+      "code": "42703",
+      "tests": "50 accounting passed;2 payment recovery failed",
+      "cause": "journal idempotency_key does not exist; key lives on posting effect",
+      "cleanup": "passed"
+    },
+    {
+      "run": 41660073445,
+      "job": 126000631990,
+      "tests": "51passed1failed",
+      "cause": "test expected422 instead of existing400 UUID validation",
+      "cleanup": "passed"
+    }
+  ],
+  "startedAt": 1793717674261,
+  "observedAt": 1793718448694
+}
