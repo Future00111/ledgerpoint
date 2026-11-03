@@ -1,0 +1,236 @@
+se original VAT evidence and adjustment date after tax rules change (69.335648ms)
+2026-11-03T15:08:25.7668457Z ✔ competing discounts cannot exceed the balance after a partial payment (111.844519ms)
+2026-11-03T15:08:25.9159548Z Accounting operation failed { code: '22012' }
+2026-11-03T15:08:25.9583542Z ✔ discount failures preserve journal, payments, audit and source; permissions, revisions and periods stay enforced (191.290973ms)
+2026-11-03T15:08:26.0770558Z ✔ discounted returned-item claims use the paid-for value and commercial discounts never satisfy those claims (118.578929ms)
+2026-11-03T15:08:26.1069087Z ✔ legacy draft discount is calculated, saved and reopened rather than silently ignored (29.949886ms)
+2026-11-03T15:08:26.1351881Z Accounting operation failed { code: 'P0001' }
+2026-11-03T15:08:26.1402264Z ✔ an audit insert failure atomically rolls back a discount edit and its compatibility projection (33.224766ms)
+2026-11-03T15:08:26.1720408Z ✔ isolated legacy journal history remains readable but cannot become a financial write bypass (30.908034ms)
+2026-11-03T15:08:26.3458912Z ✔ four native create/edit/reopen/review/post journeys reconcile ledger, parties, P&L, BS and VAT with idempotent retries (174.364047ms)
+2026-11-03T15:08:26.8456778Z ✔ demo 5% and zero-rated rules survive repeat setup and reconcile invoices, bills and credits in both price bases (499.94118ms)
+2026-11-03T15:08:26.9112784Z ✔ credit retains original tax point, selected original lines and own effective period; movements differ from closing balances (65.514266ms)
+2026-11-03T15:08:26.9901182Z ✔ concurrent excessive credits serialize; unallocated/refund/date-substitution credits fail closed (78.81326ms)
+2026-11-03T15:08:27.0254390Z Accounting operation failed { code: '22012' }
+2026-11-03T15:08:27.0774828Z ✔ failed posting rolls back journal, effect, status and audit; stale source/context and closed periods deny (87.307047ms)
+2026-11-03T15:08:27.1339992Z ✔ authorization, cross-company IDs, forged journal inputs and generic financial bypasses reject (56.487084ms)
+2026-11-03T15:08:27.2618535Z ✔ non-VAT and explicitly nonrecoverable purchase VAT never fabricate input VAT recovery (127.011438ms)
+2026-11-03T15:08:27.2862072Z ✔ full-schema legacy draft reopen defaults excluding without rewrite and still has no posting (25.098617ms)
+2026-11-03T15:08:27.3322647Z ✔ reports hold a repeatable-read snapshot while a real native posting commits between ledger and source reads (45.903934ms)
+2026-11-03T15:08:27.4285240Z ✔ explicit eligible UUIDv5 sales/purchase accounts save/reopen; defaults clear overrides; invalid choices have safe field errors (96.037999ms)
+2026-11-03T15:08:27.5906218Z ✔ native chart CRUD preserves UUID/history, serializes revisions/code uniqueness, locks classification and groups reports (160.047106ms)
+2026-11-03T15:08:27.9528062Z ✔ partial value credits preserve originals and agree across journals, reports, history and legacy balance readers (364.198028ms)
+2026-11-03T15:08:28.2081414Z ✔ bank status and matching metadata cannot settle documents or duplicate recovered payment commands (255.099049ms)
+2026-11-03T15:08:28.4321958Z ✔ W06 customer excess, refunds, later allocations and undo reconcile cash, statements and historical VAT (223.999437ms)
+2026-11-03T15:08:28.5844788Z ✔ W06 supplier prepayment and refund, full unallocation and reversal preserve profit and tax (152.499566ms)
+2026-11-03T15:08:28.6523305Z Accounting operation failed { code: '22012' }
+2026-11-03T15:08:28.6987988Z ✔ W06 rejects stale concurrent allocations, cross-party, read-only, closed-period and rollback failures (113.627852ms)
+2026-11-03T15:08:28.8852353Z ✔ credit tracking enforces authentication, membership, roles and company boundaries on every operation (187.043634ms)
+2026-11-03T15:08:28.9283088Z ✔ credit tracking allows existing draft-management roles without granting posting capability (42.994286ms)
+2026-11-03T15:08:28.9830348Z ✔ credit tracking retries are idempotent and bind body, actor and current permissions (54.545875ms)
+2026-11-03T15:08:29.0645004Z ✔ credit tracking races serialize and stale claim or credit revisions fail without duplicate receipts (81.180448ms)
+2026-11-03T15:08:29.1116698Z Accounting operation failed { code: '22012' }
+2026-11-03T15:08:29.1836694Z Accounting operation failed { code: '22012' }
+2026-11-03T15:08:29.2040388Z Accounting operation failed { code: '22012' }
+2026-11-03T15:08:29.2291414Z ✔ credit tracking rolls back claims, receipts, revisions and audit atomically without touching accounting (164.905032ms)
+2026-11-03T15:08:29.3154809Z ✔ a reduced-price credit leaves value outstanding and never satisfies a separate surcharge (86.149649ms)
+2026-11-03T15:08:29.4420552Z ✔ historical posted credits are excluded, drafts require posting, and multiple confirmed partial credits complete a claim (126.542407ms)
+2026-11-03T15:08:29.5308954Z ✔ fully paid bills can be tracked without changing their accounting or settled status (88.938224ms)
+2026-11-03T15:08:29.6188555Z ✔ tracking receipt and command history are immutable and claim financial snapshots cannot be edited by runtime role (87.650519ms)
+2026-11-03T15:08:29.7492797Z ✔ real canonical reversals invalidate confirmed tracking receipts and prevent reversed bill claims (130.390262ms)
+2026-11-03T15:08:29.8108374Z ✔ capture retains exact authenticated evidence and deduplicates concurrent uploads within a company (61.237194ms)
+2026-11-03T15:08:29.8944042Z ✔ capture creates exactly one reviewed draft under concurrent retries and never posts (83.880927ms)
+2026-11-03T15:08:29.9493408Z ✔ capture review rejects missing acknowledgements, stale intent, stale tax and foreign supplier (54.88363ms)
+2026-11-03T15:08:29.9768195Z Document intake operation failed { code: '22012' }
+2026-11-03T15:08:29.9898706Z ✔ capture draft, compatibility projection, source link and audits roll back together (40.507974ms)
+2026-11-03T15:08:30.0681957Z ✔ capture permissions are checked on upload, review and every idempotent retry (78.203857ms)
+2026-11-03T15:08:30.1448140Z ✔ capture evidence and audit are immutable and document links enforce tenant identity (76.380217ms)
+2026-11-03T15:08:30.2266343Z ✔ captured supplier credits retain original source rates and native settlement controls (81.934405ms)
+2026-11-03T15:08:30.6033325Z ✔ paid supplier and customer credits atomically release allocations, preserve cash, replay and rollback (375.935626ms)
+2026-11-03T15:08:30.7879459Z ✔ competing paid credits and multiple payment releases retain cumulative capacity and stable order (185.318512ms)
+2026-11-03T15:08:30.9232990Z ✔ part-paid excess review includes prior unapplied/refunded money and denies revoked-member replay (135.316168ms)
+2026-11-03T15:08:31.0151189Z ✔ paid-credit stale setup, closed period and absent/partial schema commit no effects (91.732545ms)
+2026-11-03T15:08:31.1827575Z ✔ paid credit and separately reviewed payment unallocation fence competing allocation vectors (167.460417ms)
+2026-11-03T15:08:31.6095508Z ✔ paid-credit released pools support later allocation, refund and undo without double use or rewriting history (426.792664ms)
+2026-11-03T15:08:31.7434313Z ✔ original payment request recovery survives new sessions without reposting and denies revoked or foreign membership (133.907121ms)
+2026-11-03T15:08:31.7864769Z Accounting operation failed { code: '22012' }
+2026-11-03T15:08:31.8095388Z ✔ rolled-back payment command remains unknown and a same-identity retry recovers its one committed result (61.575196ms)
+2026-11-03T15:08:31.8644588Z ℹ tests 52
+2026-11-03T15:08:31.8645643Z ℹ suites 0
+2026-11-03T15:08:31.8646176Z ℹ pass 52
+2026-11-03T15:08:31.8647190Z ℹ fail 0
+2026-11-03T15:08:31.8647529Z ℹ cancelled 0
+2026-11-03T15:08:31.8647852Z ℹ skipped 0
+2026-11-03T15:08:31.8648130Z ℹ todo 0
+2026-11-03T15:08:31.8648498Z ℹ duration_ms 8194.027045
+2026-11-03T15:08:32.2607346Z 
+2026-11-03T15:08:32.2608573Z   ../../generated-artifacts/security-flow.test.cjs  1.8mb ⚠️
+2026-11-03T15:08:32.2608883Z 
+2026-11-03T15:08:32.2609017Z ⚡ Done in 94ms
+2026-11-03T15:08:32.6048462Z ✔ concurrent owner self-demotions serialize and retain exactly one active owner (73.98118ms)
+2026-11-03T15:08:32.6203900Z ✔ unverified identities cannot become a substitute owner or permit self-demotion (16.452138ms)
+2026-11-03T15:08:32.6533722Z ✔ invalid roles are rejected before identity lookup or writes on add, edit and invite (32.279056ms)
+2026-11-03T15:08:32.7409111Z ✔ nonowners, inactive, unknown, null and cross-company memberships cannot escalate; active duplicates are rejected (88.121242ms)
+2026-11-03T15:08:32.7625542Z ✔ company mass assignment is rejected and provider failures redact logs and public errors (21.476785ms)
+2026-11-03T15:08:32.8066863Z ✔ company detail updates recheck authority after concurrent removal or demotion wins the company lock (38.445515ms)
+2026-11-03T15:08:32.8227440Z ℹ tests 6
+2026-11-03T15:08:32.8227913Z ℹ suites 0
+2026-11-03T15:08:32.8228303Z ℹ pass 6
+2026-11-03T15:08:32.8228749Z ℹ fail 0
+2026-11-03T15:08:32.8229235Z ℹ cancelled 0
+2026-11-03T15:08:32.8229621Z ℹ skipped 0
+2026-11-03T15:08:32.8230115Z ℹ todo 0
+2026-11-03T15:08:32.8230736Z ℹ duration_ms 514.960508
+2026-11-03T15:08:33.2347500Z 
+2026-11-03T15:08:33.2348613Z   ../../generated-artifacts/corrections-flow.test.cjs  2.0mb ⚠️
+2026-11-03T15:08:33.2349064Z 
+2026-11-03T15:08:33.2349244Z ⚡ Done in 107ms
+2026-11-03T15:08:33.7828297Z ✔ correction HTTP routes require authentication, company scope, capability and revision before posting an exact reviewed command (272.293451ms)
+2026-11-03T15:08:34.0725204Z ✔ posted invoice correction keeps original facts and partial cash immutable while every current/historical projection agrees (290.560814ms)
+2026-11-03T15:08:34.4049920Z ✔ inclusive/exclusive mixed-rate and discounted bills preserve native VAT precision and recoverability (332.64585ms)
+2026-11-03T15:08:34.5699133Z ✔ review authority, stale payments, settlement limits, replay identity and concurrent head changes fail safely (164.903796ms)
+2026-11-03T15:08:34.6708990Z ✔ atomic failure after journal, relation, amendment, head, projection and document audit leaves no partial correction (100.726162ms)
+2026-11-03T15:08:34.7848873Z ✔ dependent credits are blocked before and after correction; new account legs cannot enter through zero VAT origins (113.838966ms)
+2026-11-03T15:08:34.8511367Z ✔ active claims block correction, cancelled claims persist, and corrected bills reject new tracking (66.209078ms)
+2026-11-03T15:08:35.0544061Z ✔ SQL boundaries enforce runtime grants, owner immutable triggers, strict head succession and tenant FKs (203.245561ms)
+2026-11-03T15:08:35.1674634Z ✔ an inserted amendment without its head or relation fails closed even for an earlier report cutoff (113.00813ms)
+2026-11-03T15:08:35.2257317Z ✔ period closure and changed accounting authority invalidate an uncommitted review (58.12157ms)
+2026-11-03T15:08:35.3129405Z ✔ concurrent correction and payment cannot allocate more than the final corrected amount (87.182973ms)
+2026-11-03T15:08:35.4350600Z ✔ settlement and historical reports agree on linked credit cutoffs for both parties (121.575667ms)
+2026-11-03T15:08:35.4352265Z ✔ linked credit projection rejects missing journal, wrong party and kind even beyond cutoff (0.564452ms)
+2026-11-03T15:08:35.5901778Z ✔ receipt confirmation and claim listing fail closed on corrupt bill history without changing receipt evidence (154.927982ms)
+2026-11-03T15:08:35.7495342Z ✔ linked credit journal revision and currency mismatches fail closed before historical cutoff (155.166306ms)
+2026-11-03T15:08:35.7759011Z ℹ tests 15
+2026-11-03T15:08:35.7759390Z ℹ suites 0
+2026-11-03T15:08:35.7759621Z ℹ pass 15
+2026-11-03T15:08:35.7759834Z ℹ fail 0
+2026-11-03T15:08:35.7760055Z ℹ cancelled 0
+2026-11-03T15:08:35.7760292Z ℹ skipped 0
+2026-11-03T15:08:35.7760500Z ℹ todo 0
+2026-11-03T15:08:35.7760756Z ℹ duration_ms 2492.93047
+2026-11-03T15:08:36.1791505Z 
+2026-11-03T15:08:36.1828808Z   ../../generated-artifacts/vat-coverage-flow.test.cjs  2.0mb ⚠️
+2026-11-03T15:08:36.1829285Z 
+2026-11-03T15:08:36.1829474Z ⚡ Done in 103ms
+2026-11-03T15:08:36.7867030Z ✔ native mixed treatments, inclusive purchases, linked credits and nonrecoverable VAT reconcile all covered boxes (331.245992ms)
+2026-11-03T15:08:36.8273640Z ✔ non-VAT native documents report not-applicable instead of a reconciled filing-ready return (41.208567ms)
+2026-11-03T15:08:36.8472642Z ✔ unsupported VAT setups and foreign or missing actors cannot obtain apparently reconciled workings (18.051963ms)
+2026-11-03T15:08:36.8677214Z ℹ tests 3
+2026-11-03T15:08:36.8677596Z ℹ suites 0
+2026-11-03T15:08:36.8677871Z ℹ pass 3
+2026-11-03T15:08:36.8678193Z ℹ fail 0
+2026-11-03T15:08:36.8678451Z ℹ cancelled 0
+2026-11-03T15:08:36.8678757Z ℹ skipped 0
+2026-11-03T15:08:36.8679040Z ℹ todo 0
+2026-11-03T15:08:36.8679391Z ℹ duration_ms 639.932759
+2026-11-03T15:08:37.2670590Z 
+2026-11-03T15:08:37.2672033Z   ../../generated-artifacts/audit-review-flow.test.cjs  1.9mb ⚠️
+2026-11-03T15:08:37.2672769Z 
+2026-11-03T15:08:37.2673071Z ⚡ Done in 99ms
+2026-11-03T15:08:37.8302266Z ✔ real native draft, posted, payment and other existing audit sources are projected with verified links only (288.268261ms)
+2026-11-03T15:08:37.8724012Z ✔ keyset pagination retains microseconds and source tie-breakers, and rechecks access on every page (43.004014ms)
+2026-11-03T15:08:37.9620108Z ✔ tenant, membership, header and method boundaries fail closed without read-triggered writes (89.633529ms)
+2026-11-03T15:08:38.0179574Z ✔ correction, date and literal search filters work; CSV formula sanitisation and export cap are explicit (54.36698ms)
+2026-11-03T15:08:38.0384305Z ℹ tests 4
+2026-11-03T15:08:38.0385194Z ℹ suites 0
+2026-11-03T15:08:38.0385490Z ℹ pass 4
+2026-11-03T15:08:38.0385772Z ℹ fail 0
+2026-11-03T15:08:38.0386048Z ℹ cancelled 0
+2026-11-03T15:08:38.0386296Z ℹ skipped 0
+2026-11-03T15:08:38.0386661Z ℹ todo 0
+2026-11-03T15:08:38.0387128Z ℹ duration_ms 725.831808
+2026-11-03T15:08:38.3441648Z ▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+2026-11-03T15:08:38.3449210Z 
+2026-11-03T15:08:38.3450396Z     ../../tools/operations/backup-restore/application-recovery.mjs:32:88:
+2026-11-03T15:08:38.3451418Z       32 │ .../generated-artifacts/application-recovery.json', import.meta.url);
+2026-11-03T15:08:38.3451965Z          ╵                                                     ~~~~~~~~~~~
+2026-11-03T15:08:38.3452174Z 
+2026-11-03T15:08:38.3452423Z   You need to set the output format to "esm" for "import.meta" to work correctly.
+2026-11-03T15:08:38.3452708Z 
+2026-11-03T15:08:38.3453194Z ▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+2026-11-03T15:08:38.3453586Z 
+2026-11-03T15:08:38.3453813Z     ../../tools/operations/backup-restore/application-recovery.mjs:33:53:
+2026-11-03T15:08:38.3454415Z       33 │ .../../generated-artifacts/', import.meta.url), { recursive: true });
+2026-11-03T15:08:38.3455032Z          ╵                               ~~~~~~~~~~~
+2026-11-03T15:08:38.3455242Z 
+2026-11-03T15:08:38.3455491Z   You need to set the output format to "esm" for "import.meta" to work correctly.
+2026-11-03T15:08:38.3456076Z 
+2026-11-03T15:08:38.3456719Z ▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+2026-11-03T15:08:38.3457185Z 
+2026-11-03T15:08:38.3457418Z     ../../tools/operations/backup-restore/application-recovery.mjs:34:94:
+2026-11-03T15:08:38.3457965Z       34 │ ...cwd: new URL('../../../', import.meta.url), encoding: 'utf8' })...
+2026-11-03T15:08:38.3458389Z          ╵                              ~~~~~~~~~~~
+2026-11-03T15:08:38.3458593Z 
+2026-11-03T15:08:38.3458820Z   You need to set the output format to "esm" for "import.meta" to work correctly.
+2026-11-03T15:08:38.3459100Z 
+2026-11-03T15:08:38.4023320Z ▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+2026-11-03T15:08:38.4024209Z 
+2026-11-03T15:08:38.4047807Z     ../../tools/operations/backup-restore/archive.mjs:59:66:
+2026-11-03T15:08:38.4048928Z       59 │ ... && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+2026-11-03T15:08:38.4049663Z          ╵                                                   ~~~~~~~~~~~
+2026-11-03T15:08:38.4049987Z 
+2026-11-03T15:08:38.4050352Z   You need to set the output format to "esm" for "import.meta" to work correctly.
+2026-11-03T15:08:38.4050763Z 
+2026-11-03T15:08:38.4050933Z 4 warnings
+2026-11-03T15:08:38.4051209Z 
+2026-11-03T15:08:38.4051526Z   ../../generated-artifacts/partial-schema-flow.test.cjs  718.4kb
+2026-11-03T15:08:38.4051940Z 
+2026-11-03T15:08:38.4052190Z ⚡ Done in 61ms
+2026-11-03T15:08:38.5838445Z node:internal/url:1645
+2026-11-03T15:08:38.5839385Z     throw new ERR_INVALID_ARG_TYPE('path', ['string', 'URL'], path);
+2026-11-03T15:08:38.5839987Z     ^
+2026-11-03T15:08:38.5842361Z 
+2026-11-03T15:08:38.5843203Z TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string or an instance of URL. Received undefined
+2026-11-03T15:08:38.5844158Z     at fileURLToPath (node:internal/url:1645:11)
+2026-11-03T15:08:38.5845503Z     at Object.<anonymous> (/home/runner/work/ledgerpoint/ledgerpoint/generated-artifacts/partial-schema-flow.test.cjs:20122:109)
+2026-11-03T15:08:38.5846760Z     at Module._compile (node:internal/modules/cjs/loader:1929:14)
+2026-11-03T15:08:38.5847637Z     at Object..js (node:internal/modules/cjs/loader:2060:10)
+2026-11-03T15:08:38.5848213Z     at Module.load (node:internal/modules/cjs/loader:1651:32)
+2026-11-03T15:08:38.5848629Z     at Module._load (node:internal/modules/cjs/loader:1443:12)
+2026-11-03T15:08:38.5849061Z     at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+2026-11-03T15:08:38.5849939Z     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+2026-11-03T15:08:38.5850410Z     at node:internal/main/run_main_module:33:47 {
+2026-11-03T15:08:38.5850743Z   code: 'ERR_INVALID_ARG_TYPE'
+2026-11-03T15:08:38.5851000Z }
+2026-11-03T15:08:38.5851122Z 
+2026-11-03T15:08:38.5851227Z Node.js v24.22.1
+2026-11-03T15:08:38.5903427Z ✖ /home/runner/work/ledgerpoint/ledgerpoint/generated-artifacts/partial-schema-flow.test.cjs (137.40473ms)
+2026-11-03T15:08:38.5906022Z ℹ tests 1
+2026-11-03T15:08:38.5906383Z ℹ suites 0
+2026-11-03T15:08:38.5906888Z ℹ pass 0
+2026-11-03T15:08:38.5907207Z ℹ fail 1
+2026-11-03T15:08:38.5907543Z ℹ cancelled 0
+2026-11-03T15:08:38.5907880Z ℹ skipped 0
+2026-11-03T15:08:38.5908184Z ℹ todo 0
+2026-11-03T15:08:38.5908557Z ℹ duration_ms 145.455607
+2026-11-03T15:08:38.5911718Z 
+2026-11-03T15:08:38.5912165Z ✖ failing tests:
+2026-11-03T15:08:38.5912379Z 
+2026-11-03T15:08:38.5912846Z test at generated-artifacts/partial-schema-flow.test.cjs:1:1
+2026-11-03T15:08:38.5913993Z ✖ /home/runner/work/ledgerpoint/ledgerpoint/generated-artifacts/partial-schema-flow.test.cjs (137.40473ms)
+2026-11-03T15:08:38.5914745Z   'test failed'
+2026-11-03T15:08:38.7559034Z ##[error]Process completed with exit code 1.
+2026-11-03T15:08:38.7647546Z ##[group]Run if [ 'skipped' != 'skipped' ]; then
+2026-11-03T15:08:38.7647947Z [36;1mif [ 'skipped' != 'skipped' ]; then[0m
+2026-11-03T15:08:38.7648839Z [36;1m  node -e 'const r=require("./generated-artifacts/encrypted-recovery.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'[0m
+2026-11-03T15:08:38.7649729Z [36;1mfi[0m
+2026-11-03T15:08:38.7663555Z shell: /usr/bin/bash -e {0}
+2026-11-03T15:08:38.7663838Z ##[endgroup]
+2026-11-03T15:08:38.7734150Z ##[group]Run if [ 'failure' != 'skipped' ]; then
+2026-11-03T15:08:38.7734528Z [36;1mif [ 'failure' != 'skipped' ]; then[0m
+2026-11-03T15:08:38.7735442Z [36;1m  node -e 'const r=require("./generated-artifacts/accounting-flow-cleanup.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'[0m
+2026-11-03T15:08:38.7736288Z [36;1mfi[0m
+2026-11-03T15:08:38.7749824Z shell: /usr/bin/bash -e {0}
+2026-11-03T15:08:38.7750091Z ##[endgroup]
+2026-11-03T15:08:38.8193679Z Post job cleanup.
+2026-11-03T15:08:38.9031098Z [command]/usr/bin/git version
+2026-11-03T15:08:38.9071605Z git version 2.56.0
+2026-11-03T15:08:38.9104635Z Temporarily overriding HOME='/home/runner/work/_temp/3bc00d92-dd86-400a-9aa2-0edfe3efb0c3' before making global git config changes
+2026-11-03T15:08:38.9105933Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T15:08:38.9110067Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ledgerpoint/ledgerpoint
+2026-11-03T15:08:38.9151786Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T15:08:38.9188529Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T15:08:38.9417309Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T15:08:38.9459663Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T15:08:38.9857668Z Cleaning up orphan processes
+2026-11-03T15:08:39.0193710Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683, actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

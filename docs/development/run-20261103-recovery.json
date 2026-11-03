@@ -96,7 +96,32 @@
   "startedAt": 1793717674261,
   "observedAt": 1793718448694,
   "currentCIJob": 126002216412,
-  "currentCIStatus": "in progress; build and source passed; accounting/restore pending",
-  "endedAt": 1793718528823,
-  "stopReason": "Bounded recovery run complete; reserve durable handoff and clean shutdown. Exact CI result must be checked before acceptance; no new source bullets accepted."
+  "currentCIStatus": "failure observed after clean lease release",
+  "result": {
+    "paymentAccountingTests": {
+      "pass": 52,
+      "fail": 0
+    },
+    "securityTests": {
+      "pass": 6,
+      "fail": 0
+    },
+    "corrections": {
+      "pass": 15,
+      "fail": 0
+    },
+    "vat": {
+      "pass": 3,
+      "fail": 0
+    },
+    "audit": {
+      "pass": 4,
+      "fail": 0
+    },
+    "failure": "partial-schema-flow.test.cjs imports restore-drill -> application-recovery -> archive.mjs; CJS bundle strips import.meta.url, fileURLToPath(undefined) at archive module entry guard throws before partial-schema tests",
+    "cleanup": "passed",
+    "restore": "not reached",
+    "next": "Repair ESM/CJS import boundary without bypassing recovery controls, independently review and exact-source CI. No source bullet acceptance."
+  },
+  "postStopObservedAt": 1793718606121
 }
