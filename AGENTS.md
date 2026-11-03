@@ -43,9 +43,15 @@ only when measured, plus blockers, review wait and rework; mark unknown values.
 Compare three runs without reducing the 92 source bullets, original priorities,
 acceptance criteria or in-house accounting, tax and payroll scope.
 
-Prefer Replit for the first implementation slot under
-`docs/development/replit-worker-protocol.md`, replacing one Codex implementer;
-retain independent Codex review and the single authoritative coordinator.
-Verify actual control, immutable export and confirmed stop before dispatch.
+Plan for one Replit implementer and one Codex implementer working together under
+`docs/development/replit-worker-protocol.md`, plus an independent reviewer and
+the single authoritative coordinator, when named ready work can use both safely.
+Both providers can implement; Codex is not restricted to review. Keep at most two
+implementers by default, nonoverlapping file leases and highest-eligible claims.
+Prefer connected work on the same priority journey when the queue permits it;
+otherwise use the next eligible independent task, useful review/prerequisite work,
+or leave capacity idle. Never manufacture work or let an author self-approve.
+Verify Replit control, immutable export and confirmed stop before dispatch. If
+Replit is unavailable, Codex may continue safe eligible work under the same queue.
 Replit must not initialise a competing queue or modify the running demo/database.
 Prepared packets hold no claim. All provider work stays within a bounded run.

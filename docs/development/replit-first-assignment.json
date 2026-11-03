@@ -121,5 +121,19 @@
       "resolution": "Independently reviewed version2 uses digest-only persisted coordinator proof; fresh acquisition accepted on state21cfd27e4d61235359282784c0b615a22fb8d4e5. Raw command token remains local; no rejected plaintext retransmission.",
       "stateRevision": 100
     }
-  ]
+  ],
+  "coordination": {
+    "plannedImplementers": [
+      "Replit",
+      "Codex"
+    ],
+    "defaultMaximumImplementers": 2,
+    "independentReviewers": 1,
+    "coordinators": 1,
+    "activationCondition": "Named ready nonoverlapping work with useful expected contribution and enough review/publication capacity; prepared packet does not reserve either worker.",
+    "assignmentPolicy": "Same authoritative queue; automatic highest-priority eligible claim for each actor. Prefer same priority journey when actual ownership and eligibility permit; otherwise next eligible independent task, authorized review/tests/prerequisite work, or idle.",
+    "codexRole": "Implementation and review are both available; a separate reviewer must independently approve any change the Codex implementer authors.",
+    "overlapPolicy": "No provider edits another active file lease or splits P01-03 ownership without the existing stopped-worker reviewed migration procedure.",
+    "replitUnavailable": "Codex continues safe eligible work through the existing queue and gates; no competing authority or fabricated occupancy."
+  }
 }

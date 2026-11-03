@@ -171,8 +171,14 @@ not imply continuous execution between hosted hourly resumptions.
 
 Use [the hybrid execution protocol](../../../docs/development/replit-worker-protocol.md)
 for Replit assignment, bounded activity, immutable handoff, independent review and
-shutdown. Prefer one Replit implementer replacing one Codex slot; preserve the
-single coordinator, automatic highest-eligible claim and existing capacity ceiling.
+shutdown. Plan one Replit implementer and one Codex implementer together, plus
+an independent reviewer and one coordinator, when named ready nonoverlapping
+work makes both useful. Keep at most two implementers by default and the existing
+capacity ceiling. Both providers may implement; neither self-approves. Prefer the
+same priority journey when ownership/eligibility allow it, otherwise claim the
+next eligible independent task, do authorized review/prerequisite work or idle.
+Preserve automatic highest-eligible selection; do not manufacture occupancy. If
+Replit is unavailable, Codex may continue safe eligible work through the same queue.
 The [prepared P01-03 packet](../../../docs/development/replit-first-assignment.json)
 holds no claim and must be refreshed from current durable state before dispatch.
 This procedure is not a new always-on provider integration.

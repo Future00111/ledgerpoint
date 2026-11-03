@@ -8,18 +8,33 @@ in this document are coordinator responsibilities, not new automated code.
 
 ## Capacity and authority
 
-Prefer Replit for the first implementation slot, replacing one Codex implementer.
-Default to one Replit implementer, one independent Codex reviewer and the existing
-coordinator. Add a second implementer only for named, ready, nonoverlapping work
-with a measured expected benefit and enough review/publication capacity. The
-existing six-worker ceiling is unchanged. Providers are interchangeable: assign
-from the same highest-priority eligible queue, never a permanent product area.
+Plan a joint team of one Replit implementer and one Codex implementer, plus an
+independent reviewer and the existing coordinator, when named ready work can use
+both safely. Both providers can implement; Codex is not restricted to review.
+Keep at most two implementers by default. Each needs a separate nonoverlapping
+file lease, a useful expected contribution and enough review/publication capacity.
+The existing six-worker ceiling is unchanged; expansion still needs its existing
+justification. Providers are interchangeable: assign from the same highest-priority
+eligible queue, never a permanent product area.
+
+Prefer complementary connected work on the same priority journey when actual
+queue eligibility and file ownership permit it. The coordinator must not split or
+reinterpret an active lease just to occupy both providers. If the second provider
+cannot safely claim that journey, use the next highest eligible independent task,
+useful review/tests/prerequisite work within its authorization, or leave capacity
+idle. Do not manufacture work, change priorities or duplicate an existing slice.
+An implementing author never independently approves their own change; retain a
+separate reviewer for both providers. If Replit is unavailable or fails preflight,
+Codex can continue safe eligible implementation through the same queue and gates.
 
 The only authoritative coordinator record is `docs/development/work-coordinator.json`
-on `codex/ledgerly-work-queue-state` in `Future00111/ledgerpoint`. The coordinator
-alone runs the existing queue CLI and writes durable state. A separate Replit Git
-clone has a separate Git-common-directory store: do not initialise or mutate a
-second queue there. The Replit actor reports observations to its coordinator.
+on `codex/ledgerly-work-queue-state` in `Future00111/ledgerpoint`. Local Codex workers
+invoke the existing queue CLI themselves against the shared authoritative store
+and automatically claim the highest eligible task. The coordinator invokes that
+same CLI on behalf of the remote Replit actor; only the coordinator persists the
+remote durable state and integrates source. A separate Replit Git clone has a
+separate Git-common-directory store: do not initialise or mutate a second queue
+there. The Replit actor reports observations to its coordinator.
 Never put a coordinator token, task token, service credentials or database URL in
 a Replit prompt. Queue actor labels are orchestration identities, not credentials.
 
@@ -100,7 +115,7 @@ expired claim. A prepared packet has no claim and no running worker.
 
 ## Review and publication
 
-A Codex reviewer who did not author the change checks the actual diff, shared
+An independent reviewer who did not author the change checks the actual diff, shared
 financial interfaces, tests and original acceptance. The coordinator resolves
 findings, integrates serially and runs one combined `node tools/development/check.mjs`
 and full `pnpm run build` on the integrated tree. Publish only the reviewed
