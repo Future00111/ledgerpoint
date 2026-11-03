@@ -1,0 +1,84 @@
+{
+  "runId": "hosted-20261103-1924",
+  "startedAt": "2026-11-03T19:24:00Z",
+  "observedAt": "2026-11-03T19:48:46.480189+00:00",
+  "publishedCommit": "0fd8a61b75ebcd163f6b3192aab8370b805d0fcc",
+  "authorCommit": "0332c6b30a52b0094f6b1ab01021e449fc9ca7e7",
+  "tree": "0759fc9a2c8b756c0091f906b2295005c60eef1e",
+  "archiveCommit": "88c66f0376055850b5149083457e72656c62f484",
+  "independentReviewer": "root",
+  "developmentPublicationApproved": true,
+  "acceptedOriginalBullets": 0,
+  "verifiedFullJourneys": 0,
+  "creditUsage": "unknown",
+  "workersStopped": true,
+  "worktreesClean": true,
+  "queueRevision": 552,
+  "verification": {
+    "localSource": {
+      "pass": 783,
+      "fail": 0,
+      "skip": 0
+    },
+    "localBuild": "passed",
+    "focusedFinal": {
+      "pass": 14,
+      "fail": 0
+    },
+    "registry": {
+      "pass": 28,
+      "fail": 0
+    },
+    "ci": {
+      "runId": 41705924224,
+      "jobId": 126161088563,
+      "url": "https://github.com/Future00111/ledgerpoint/actions/runs/41705924224",
+      "mergeCommit": "fb376e92c834ae3f614a2b9e20ac3e7729ebca76",
+      "sourceEquality": "Root independently compared published source to CI merge: files[]",
+      "build": "passed",
+      "source": "passed",
+      "migration": "passed",
+      "existingAccountingPG": {
+        "pass": 52
+      },
+      "newWitnessPG": {
+        "pass": 2,
+        "fail": 6,
+        "total": 8
+      },
+      "failure": "Test harness supplied raw db.transaction; protected posting transaction guard correctly rejected six cases. No guard weakening.",
+      "restore": "skipped",
+      "encryptedRecovery": "skipped",
+      "cleanup": "passed"
+    }
+  },
+  "approvalBlock": {
+    "action": "Persist active repair task reservation on state branch",
+    "outcome": "rejected by automatic approval review",
+    "reason": "Raw active worker lease token interpreted as credential exposure contrary to SHA-only coordinator policy",
+    "coordinatorRawTokenAbsent": true,
+    "coordinatorDigestVerified": true,
+    "repairDispatched": false,
+    "repairEdits": false,
+    "response": "Stopped repair; no retry of raw tokens or alternate active reservation route. Token-free coordinator release references unchanged already archived durable queue552; local553/554 remain unpersisted, no worker dispatched."
+  },
+  "next": [
+    "Resolve active-worker reservation approval/persistence contract before new dispatch",
+    "Use withCanonicalPostingTransaction from services/accounting/canonicalPosting in conditionalDiscount.integration.test.ts instead of raw db.transaction; remove db import; preserve production guards",
+    "Independently review exact test fix, publish development-only and rerun exact PostgreSQL/restore CI",
+    "Full agreement capture/binding/admission/redemption/reversal/UI and cross-cluster application restore/provisioning remain pending"
+  ],
+  "localUnpersistedQueueRevisions": [
+    553,
+    554
+  ],
+  "queueReference": {
+    "kind": "durable-external-queue-reference",
+    "revision": 552,
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "88c66f0376055850b5149083457e72656c62f484",
+    "path": "docs/development/candidates/20261103-1924-queue.json",
+    "restoreInstruction": "Fetch this exact archived queue JSON before initializing scheduler. It is the unchanged durable revision552 with zero held task leases. Inline history omitted only to permit token-free coordinator shutdown; no history rewritten."
+  },
+  "endedAt": "2026-11-03T19:53:31.578Z"
+}
