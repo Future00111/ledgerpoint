@@ -114,3 +114,199 @@ of an already applied/refunded credit remains rejected until its explicit
 recovery operation can restore all affected balances; never silently reclaim
 cash or a downstream allocation. Contract acceptance alone is not completion
 of those implementation tasks, migration approval or live UI acceptance.
+
+## Conditional prompt-payment agreement: implementation contract
+
+Coordinator decision for P01-03, 3 November 2026; reviewed source baseline
+`126d25b87f76e374c3ed80293356140ace460b85`. This is an engineering
+prerequisite, not an enabled feature or a claim of statutory qualification.
+Existing later-discount and ordinary-credit flows remain distinct. Conditional
+terms must never be reconstructed from a free-text reason or added retrospectively
+to a posted original. Preserve current posting guards until the scenarios below
+pass against the connected implementation.
+
+The invoice/bill draft may carry optional versioned `conditional_discount` terms:
+an agreement ID, explicit agreement date, inclusive payment deadline, fixed gross
+discount in integer-pence string, and a server-issued evidence receipt ID. A client URL or typed reference alone
+is not evidence. The saved review retains
+the original company, party, currency, financial revision, original gross and
+per-line net/VAT/gross discount allocation. These terms become immutable with
+posting. Absence remains absence for old source hashes. Terms require explicit
+prepayment agreement evidence and a deadline on/after agreement and original
+issue date; they cannot coexist with an ordinary draft discount. Unknown versions,
+extra fields, invalid dates, zero/negative discount or discount at/above original
+gross fail closed. A percentage offer must be resolved to a reviewed fixed gross
+amount before posting, using the existing deterministic line allocation engine.
+
+For original gross G and promised gross discount D, threshold T = G - D.
+Eligibility requires net active native cash allocations to this original of at
+least T by the inclusive deadline, and at least T still active at credit commit.
+Count only validated payment/allocation events with effective dates on/before the
+deadline; subtract their unallocations/reversals, including later reversals known
+at review/commit. Unapplied pools, refunds, other credits, bank-import status and
+drafts are not qualifying cash. Retain the exact event IDs, journal IDs, amounts,
+dates and financial revision in review evidence. Later allocations cannot cure a
+missed deadline. Effective-date eligibility is separate from evidence that the
+agreement existed before the qualifying payment; neither client timestamps nor
+backdated issue dates prove an agreement. Missing evidence prevents admission.
+
+Initial admission requires an uncorrected original and no prior posted linked
+credit, including another discount. Existing combinations remain blocked until
+their cumulative line-capacity and terms-amendment scenarios are independently
+qualified. This is a staged implementation gate, not removal of those cases from
+the commercial scope. Exactly one conditional-credit operation may consume an
+agreement, with unique `(company_id, original_document_id, agreement_id)` enforced in
+persistence under the same original-document lock used by
+payment and credit commands. Persist agreement identity and canonical terms hash
+in the credit source and parent operation; a duplicate with identical request
+returns its original outcome, changed intent conflicts. The credit is exactly D,
+using frozen original line tax evidence; it never counts toward T itself.
+Ordinary later-discount entry cannot reference, copy or consume a conditional
+agreement. While an agreement is bound, ordinary discount posting is blocked
+until separately reviewed coexistence rules exist; changing the request route or
+reason cannot obtain the promised discount twice. Ordinary genuine returns retain
+their commercial scope but combinations remain blocked initially.
+
+Posting remains an explicit reviewed credit operation. No automatic credit,
+payment, refund or VAT-return amendment occurs at the deadline. Use the existing
+paid-credit transaction when a full payment requires release of excess to its
+original payment pool. Recheck membership, terms, event vector, period, revision,
+line capacity and exclusive consumption inside that transaction; every effect and
+agreement-consumption record rolls back together. Earlier report cutoffs retain
+their previous balances and journals.
+
+After discount posting, a reversal/unallocation that would reduce qualifying cash
+below T must be rejected until a separately reviewed atomic compensation workflow
+exists. That workflow must append an explicit linked discount reversal/correction
+and restore outstanding balances without modifying past terms, credits or cash.
+It must also resolve any downstream allocation/refund and writable-period effects;
+do not silently reclaim a refund or call several independent endpoints. Qualifying
+cash above T may be released only to the extent eligibility remains satisfied.
+All payment-entry paths must enforce this guard under the common lock; an isolated
+credit-only eligibility check is insufficient.
+
+
+### Trusted evidence and immutable persistence boundary
+
+Before posting the original, an active authorized company member must record the
+actual agreement evidence bytes and explicitly attest that both parties agreed
+the stated terms. The protected server validates bounded UTF-8 evidence (maximum
+64 KiB for this initial native text-evidence path), computes SHA-256 over those
+exact bytes and records immutable evidence version, company, actor, party,
+currency, canonical terms hash and server-observed timestamp. It returns a
+receipt ID; client-provided hashes, timestamps, URLs, dates or opaque references
+cannot substitute for stored bytes. Evidence capture is an explicit audited
+operation; it neither posts a document nor sends anything to the other party.
+This proves what was recorded and when, not independent legal verification of
+assent. Uploaded/imported/backdated agreement evidence remains unsupported until
+its separate verification and retention path is qualified.
+
+Use an additive reviewed migration with immutable `conditional_discount_evidence`,
+`conditional_discount_agreements` and `conditional_discount_redemptions` rows.
+Evidence stores exact bytes/hash/version and the server receipt above. Agreement
+binding stores the evidence receipt plus company/original/journal/party/currency,
+original source/financial hash and revision, canonical terms hash/version, G, D,
+deadline and each original line's net/VAT/gross discount vector. Redemptions link
+the scoped agreement identity to the existing immutable paid-credit parent
+operation and credit document, with a database unique constraint on
+`(company_id, original_document_id, agreement_id)`. Composite foreign keys bind
+company and original throughout; uniqueness is never only a client request ID.
+Reject update/delete/truncate for all three tables and reject direct runtime
+mutations outside the protected service. Missing/partial/mismatched schema fails
+closed; install only in the disposable runner until separately authorized.
+Do not create a second cash, allocation, journal or recovery authority.
+
+The agreement binding and its evidence receipt must be committed before the
+creation/commit of every native payment counted toward T, and before its
+qualifying allocation. Check trusted server timestamps and committed immutable
+payment/journal identities under the shared company/document lock; equal or
+ambiguous timestamps fail closed. Client effective dates are not causal proof.
+Existing prepaid pools created before the binding do not qualify even if later
+allocated before the deadline. The payment effective date AND allocation
+effective date must be on/before the deadline, with agreement bound beforehand.
+Later-created backdated payments or allocations cannot establish timeliness:
+each payment AND each qualifying allocation must have a trusted server-observed
+commitment timestamp strictly before 00:00 UTC on the day after the deadline,
+in addition to both effective dates being on/before the deadline and the binding
+being committed before both events. This is the inclusive UTC date boundary
+for the initial date-only contract. The review shows that
+UTC cutoff explicitly. No new client-controlled date can change this boundary.
+
+Read evidence bytes and recompute their hash at draft admission, original review
+and posting, conditional-credit review/commit and guard validation. Match the
+stored canonical terms hash and immutable original identity; replaced bytes,
+unknown versions, missing evidence or changed source invalidate review. Bind
+terms atomically with original posting; an unposted draft may edit/reselect
+terms, but a posted original may never acquire or replace an agreement.
+An exact authorized retry returns the existing evidence/binding/redemption;
+changed evidence or terms under the same scoped request identity conflicts.
+
+The per-line net, VAT and gross commercial-capacity checks earlier in this
+contract remain mandatory. The aggregate G-D threshold does not replace them
+or reallocate VAT capacity between lines. Reuse existing exact-pence rounding;
+unsupported mixed-tax/fractional combinations fail explicitly, retaining scope.
+A source correction, credit correction, payment reversal, unallocation, pool
+refund or alternate native write that can change qualifying allocations must
+check all affected redeemed agreements in the same transaction and lock order.
+A refund of an already released surplus pool does not reduce qualifying active
+cash; use the existing guarded pool service and do not duplicate that workflow.
+
+Required both-party scenarios for the first connected implementation:
+
+| Scenario (pence) | Expected result |
+| --- | --- |
+| G=12000, D=1200; 6000 then 4800 allocated by deadline | Reviewed credit 1200; outstanding zero; cash 10800 |
+| Same terms, only 10799 allocated by deadline | Reject conditional credit; outstanding 1201 |
+| 10800 allocated on deadline / one day later | Deadline payment qualifies; late payment does not |
+| 12000 paid by deadline | Credit 1200 releases 1200 to original pool; cash unchanged; active qualifying cash 10800 |
+| 10800 qualifying payment reversed before credit | Reject; no credit, consumption marker or partial journal |
+| Credit posted, then reversal below threshold | Reject atomically until compensation workflow is qualified |
+| Competing credits or changed terms/request | One immutable consumption only; stale review/conflict has no effects |
+| Prior credit/corrected source/missing agreement evidence | Explicit blocked case; ordinary credit path cannot masquerade as conditional |
+| Client evidence hash/date only, replaced bytes, foreign receipt or unknown evidence version | Reject before admission or mutation |
+| Evidence/binding recorded after payment, prepaid pool, equal timestamp, late-created backdated payment, or predeadline cash allocated late with a backdated allocation | Reject as nonqualifying; no chronology inferred from client dates |
+| Same agreement submitted through conditional and ordinary later-discount routes | One consumption at most; ordinary route cannot bypass entitlement checks |
+| Mixed VAT line vector exceeds one line while total D fits | Reject; no borrowing another line's net/VAT/gross capacity |
+| Failure after evidence binding/redemption insert or concurrent payment release | Entire transaction rolls back; stale reviewed vector cannot commit |
+
+The matching P01-03 catalogue ownership includes the exact connected parser,
+review, persistence, posting, payment guard, UI and disposable test paths.
+Other tasks keep their existing paths; the scheduler prevents concurrent overlaps.
+The coordinator owns schema/financial interfaces and must review the migration
+and source hash changes before implementation publication. Keep the original
+acceptance and priority; this contract does not accept P01-03.
+Parent acceptance additionally requires reversal compensation and remaining
+prior-credit/correction combinations, exact-commit PostgreSQL rollback/replay and
+historical tests, independent financial review and live browser qualification.
+
+### Next connected implementation and remaining gates
+
+The next queue claim is P01-03. Its first connected implementation is the native
+text-evidence path for an uncorrected GBP original with no prior credits: capture
+and review the evidence, bind the frozen terms at original posting, admit the
+explicit conditional-credit review/commit using the existing paid-credit
+transaction, and enforce eligibility-preserving guards on every payment/allocation
+mutation. Deliver these together; parsing terms, installing tables or rendering
+a form alone must not enable admission. Reuse the existing paid-credit recovery,
+excess-pool allocation and refund services. Start by tracing and testing all
+qualifying-allocation writers under their existing company lock, then add the
+reviewed immutable schema/evidence service and connected native UI/API paths.
+
+Before enabling that slice, independent review must verify the actual migration
+checks/permissions, immutable evidence and canonical source hashes, the complete
+writer inventory and common lock order, server chronology/deadline vectors,
+review/replay conflicts, and both-party examples above. Require focused tests,
+combined current-source/typecheck/build checks, exact published-source disposable
+PostgreSQL/restore CI including partial-schema, rollback and race scenarios, and
+browser review of visible agreement terms/evidence, errors and explicit posting.
+No existing/shared database migration or live/demo activation is authorized here.
+
+The initial guard deliberately rejects reversals below T; guarded rejection is
+not compensation. P01-03 stays pending until an independently reviewed atomic
+compensation operation resolves downstream allocation/refund and open-period
+requirements, corrected originals and prior-credit combinations have reviewed
+cumulative per-line rules and passing connected tests, and the original full
+commercial acceptance (including live browser qualification) is evidenced.
+Those remaining financial interfaces require coordinator review before their
+implementation; they are explicit next gates, not reasons to duplicate already
+implemented ordinary allocation/refund workflows or remove scope.
