@@ -1,0 +1,91 @@
+{
+  "format": "exact-queue-delta-v1",
+  "base": {
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "ffb61b8df7318df07cd231f6e7b6b882a1e15056",
+    "path": "docs/development/work-coordinator.json",
+    "jsonKey": "queueState",
+    "revision": 560
+  },
+  "revision": 564,
+  "taskReplacements": {
+    "P01-03": {
+      "status": "pending",
+      "priority": 103,
+      "discoveredDependencies": [],
+      "checkpoint": "STOPPED clean603bf1c9f206e0232b21d15a80330a41691c9d61 tree8e90f85c7edb188a4892da3df22f0276f90791eb; published402b7929ac3ba2709856ab3aa21e1e7a415949ee same tree. Root independently reviewed exactIDset test-only repair;28registry+bundle passed. Prior9df CI passed8witnessPG+14unit+52baseline; final exact CI pending for whole source/restore. Full conditional journey not accepted. Next: prove committed binding identity frozen at payment/allocation admission and delayed-observation negativecase; separately verify restored new-payment permissions/observer. No further claims during shutdown.",
+      "evidence": {
+        "commit": "603bf1c9f206e0232b21d15a80330a41691c9d61",
+        "summary": "PARTIAL P01-03 migration test compatibility repair only: successful interrupted-history recovery now verifies exact installed registry IDs rather than stale hardcoded count9. All rollback assertions and production preserved. Exact-source PG CI pending; full parent remains pending. Worker stopped clean.",
+        "tests": [
+          {
+            "command": "node --test tools/development/migrations/registry.test.mjs:28passed0failed",
+            "passed": true
+          },
+          {
+            "command": "esbuild tools/development/migrations/partial-schema.test.mjs --bundle --platform=node --format=cjs --external:pg:passed compile only",
+            "passed": true
+          },
+          {
+            "command": "git diff --check:passed",
+            "passed": true
+          }
+        ]
+      },
+      "blockers": []
+    }
+  },
+  "appendEvents": [
+    {
+      "at": 1793737109848,
+      "actor": "worker-1956-1",
+      "type": "checkpoint",
+      "taskId": "P01-03",
+      "checkpoint": "STOPPED CLEAN worker1b 603bf1c9f206e0232b21d15a80330a41691c9d61. Exactly one assertion changed to exact sorted migration input identity set; rollback assertions unchanged. Registry28 and partial-schema bundle and diffcheck passed. Logs /tmp/lp1956-history-{registry,bundle}.log patch /tmp/lp1956-history-fix.patch. RealPGCI pending for this revision. No further processes or edits."
+    },
+    {
+      "at": 1793737110029,
+      "actor": "worker-1956-1",
+      "type": "submit",
+      "taskId": "P01-03",
+      "evidence": {
+        "commit": "603bf1c9f206e0232b21d15a80330a41691c9d61",
+        "summary": "PARTIAL P01-03 migration test compatibility repair only: successful interrupted-history recovery now verifies exact installed registry IDs rather than stale hardcoded count9. All rollback assertions and production preserved. Exact-source PG CI pending; full parent remains pending. Worker stopped clean.",
+        "tests": [
+          {
+            "command": "node --test tools/development/migrations/registry.test.mjs:28passed0failed",
+            "passed": true
+          },
+          {
+            "command": "esbuild tools/development/migrations/partial-schema.test.mjs --bundle --platform=node --format=cjs --external:pg:passed compile only",
+            "passed": true
+          },
+          {
+            "command": "git diff --check:passed",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1793737246040,
+      "actor": "coordinator-1956",
+      "type": "reject",
+      "taskId": "P01-03",
+      "reason": "Withhold whole-parent acceptance only: root independently reviewed and approved both test-only repairs. Prior exact CI already passed8witnessPG; final corrected migrationID assertion published for full exact CI. Full agreement capture/binding/admission/redemption/reversal/UI and restored new-payment qualification remain pending. Not a failed code review."
+    },
+    {
+      "at": 1793737246208,
+      "actor": "coordinator-1956",
+      "type": "recover",
+      "taskId": "P01-03",
+      "checkpoint": "STOPPED clean603bf1c9f206e0232b21d15a80330a41691c9d61 tree8e90f85c7edb188a4892da3df22f0276f90791eb; published402b7929ac3ba2709856ab3aa21e1e7a415949ee same tree. Root independently reviewed exactIDset test-only repair;28registry+bundle passed. Prior9df CI passed8witnessPG+14unit+52baseline; final exact CI pending for whole source/restore. Full conditional journey not accepted. Next: prove committed binding identity frozen at payment/allocation admission and delayed-observation negativecase; separately verify restored new-payment permissions/observer. No further claims during shutdown."
+    }
+  ],
+  "baseEventCount": 568,
+  "finalEventCount": 572,
+  "baseStateSha256": "7f2b659f90765af772181ab35b64a897421d77a1665e00278e32068cf072dc67",
+  "reconstructedStateSha256": "a26bb1252aa19883917f084afe9cbdd63f1d8007cb0ecf1803218355fb30fdf4",
+  "hashEncoding": "SHA256 of UTF-8 JSON.stringify(parsed queue), not original archive bytes",
+  "restoreInstruction": "Fetch immutable base JSON and select queueState; verify baseStateSha256 and revision560/event count, replace only listed task records, append these four events in order, set revision564, verify reconstructedStateSha256/final event count and validateState against unchanged catalogue using reviewed v3core. No held task leases remain. Do not initialize from the base alone."
+}

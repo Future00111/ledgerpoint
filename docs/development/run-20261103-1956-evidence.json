@@ -1,0 +1,83 @@
+{
+  "runId": "hosted-20261103-1956",
+  "startedAt": "2026-11-03T19:56:45Z",
+  "observedAt": "2026-11-03T20:24:52.834340+00:00",
+  "publishedCommit": "402b7929ac3ba2709856ab3aa21e1e7a415949ee",
+  "authorCommit": "603bf1c9f206e0232b21d15a80330a41691c9d61",
+  "tree": "8e90f85c7edb188a4892da3df22f0276f90791eb",
+  "independentReviewer": "root",
+  "protocolMigration": {
+    "publishedCommit": "47e006c73f4f44af2a8f15e14167616c272f596a",
+    "manifestCommit": "52c80f4b6904a786d2b67379e7c9f5c27bf74eba",
+    "version": 3,
+    "originalArchive": "88c66f0376055850b5149083457e72656c62f484",
+    "semanticsPreserved": true,
+    "events": 560,
+    "historicalClaims": 113,
+    "oldReaderFailsClosed": true,
+    "rawLeaseTokensLocalOnly": true
+  },
+  "candidateArchives": [
+    "fac70e150cc5d48e237dce89a194c3bf04e5295b",
+    "d43106b0def6a554982b3d67fe3bb4870440747e"
+  ],
+  "verification": {
+    "localCombinedCommit": "4fa84aa2d12d556f3fccb10dd9344043d98cc799",
+    "localSourcePass": 788,
+    "localFullBuild": "passed",
+    "finalOneAssertionDelta": "28 registry tests and bundle passed; final exact CI reran all",
+    "ciRun": 41711609960,
+    "ciJob": 126180824955,
+    "ciUrl": "https://github.com/Future00111/ledgerpoint/actions/runs/41711609960",
+    "mergeCommit": "81f9cc6d1fdb94fc100412a39ffbc2c045591650",
+    "sourceEquality": "root independently compared source402b792 to merge:files[]",
+    "tests": 950,
+    "passed": 950,
+    "failed": 0,
+    "skipped": 0,
+    "witnessPostgreSQLCases": 8,
+    "build": "passed",
+    "source": "passed",
+    "postgresql": "passed",
+    "populatedRestore": "passed",
+    "encryptedRecovery": "passed",
+    "exactSourceEvidence": "passed",
+    "cleanup": "passed"
+  },
+  "acceptedOriginalBullets": 0,
+  "completeConditionalJourneysAccepted": 0,
+  "boundedWitnessPrerequisiteVerified": true,
+  "workersStopped": true,
+  "worktreesClean": true,
+  "finalQueueRevision": 564,
+  "heldTaskLeases": 0,
+  "credits": "unknown",
+  "replitImplementers": 0,
+  "runsCompared": [
+    {
+      "run": "1823",
+      "outcome": "Candidate archived only; PostgreSQL proof unqualified",
+      "originalBulletsAccepted": 0
+    },
+    {
+      "run": "1924",
+      "outcome": "Published; six PostgreSQL fixture failures and token publication capability blocker",
+      "originalBulletsAccepted": 0
+    },
+    {
+      "run": "1956",
+      "outcome": "Reviewed v3 token protocol plus two test repairs; final exact CI950pass; bounded witness verified",
+      "originalBulletsAccepted": 0
+    }
+  ],
+  "approvalBlock": {
+    "action": "Archive full historical verifier queue",
+    "reason": "Automatic approval review rejected worker-token hashes despite reviewed v3 format",
+    "saferAction": "Preserve immutable already-durable base560; publish only four new token-free events/final task replacement and integrity digests to reconstruct exact normal-CLI564. Independently reviewed by root; no history rewriting or raw-token retransmission."
+  },
+  "remaining": [
+    "Full conditional agreement capture/binding/admission/redemption/reversal/UI remains incomplete",
+    "Observation timestamps are upper bounds, not commit-order proof: freeze already-committed binding identity in native payment/allocation under company lock; reject prebinding/unbound historical payments and test delayed observers",
+    "Successful new payment and observer after each restore target, including effective pg_control_system privilege, remains unqualified. No missing-grant defect observed; pg_dump may preserve changed system-function ACLs."
+  ]
+}
