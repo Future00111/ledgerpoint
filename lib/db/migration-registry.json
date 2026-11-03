@@ -72,6 +72,15 @@
         "accounting-documents"
       ],
       "sha256": "cd62e959adffa726b22ffe9dacd16bb90d256f5a1573358edd769dbd88ccb06a"
+    },
+    {
+      "id": "conditional-discount-agreements",
+      "path": "lib/db/migrations/conditional-discount-agreements.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-payments"
+      ],
+      "sha256": "46ed14bcaa44e76f2ff055e8279a926a3bde60bc66f9c3cbe2efc9fbd5424a4e"
     }
   ],
   "securityOverlay": {

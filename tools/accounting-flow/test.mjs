@@ -47,6 +47,8 @@ try {
     DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_test?host=${encodeURIComponent(socket)}&port=${port}`};
   for(const [entry,output] of [
     ['src/services/accountingDocuments/integration.test.ts','accounting-flow.test.cjs'],
+    ['src/services/accountingDocuments/conditionalDiscount.integration.test.ts','conditional-discount-flow.test.cjs'],
+    ['src/services/accountingDocuments/conditionalDiscount.test.ts','conditional-discount-unit.test.cjs'],
     ['src/security/integration.test.ts','security-flow.test.cjs'],
     ['src/services/accountingDocuments/corrections.integration.test.ts','corrections-flow.test.cjs'],
     ['src/services/accountingDocuments/vatCoverage.integration.test.ts','vat-coverage-flow.test.cjs'],

@@ -310,3 +310,45 @@ commercial acceptance (including live browser qualification) is evidenced.
 Those remaining financial interfaces require coordinator review before their
 implementation; they are explicit next gates, not reasons to duplicate already
 implemented ordinary allocation/refund workflows or remove scope.
+
+### Unqualified commitment-witness prerequisite (3 November 2026)
+
+A payment event's `created_at` is its insertion time, not its transaction's commit
+clock. It cannot prove that cash committed before the inclusive UTC cutoff. The
+unfinished witness candidate therefore observes an already visible native payment
+or allocation in a fresh server transaction after the posting transaction has
+finished, validates its source/journal/posting-effect identities and records a
+server-clock receipt. A receipt created on a late retry stays late. A later
+receipt commit does not change the fact that the source was already committed at
+the observation clock. Both the payment and its qualifying allocation need this
+proof; agreement binding also needs a separately reviewed committed-observation
+boundary before either event. No client clock or insertion timestamp substitutes.
+
+This candidate does not enable conditional terms, evidence capture, agreement
+binding, conditional-credit admission or redeemed-allocation protection. The
+migration is checksum-registered for the fresh disposable installer only. The
+optional observer preserves an already committed payment outcome when unavailable;
+eligibility must eventually validate the persisted receipt, never its response status.
+
+An ALWAYS AFTER INSERT trigger writes an immutable transaction receipt containing
+`pg_current_xact_id()` (the full top-level xid, including savepoint inserts) and
+the cluster system identifier. Only its pinned-search-path SECURITY DEFINER
+function, owned by the non-runtime canonical owner, may insert this map. The
+runtime cannot insert, update, delete or truncate it. No historical backfill is
+permitted. A new witness requires matching origin and `pg_xact_status(xid8)`
+exactly `committed`; absent, expired/unknown or unavailable status fails closed.
+The witness trigger replaces caller clocks with the source insertion clock and a
+fresh database observation clock. Existing identity-validated immutable witnesses
+are returned before insertion, preserving their historical observation on restore.
+
+Focused service mocks and registry checks run locally. Actual disposable PostgreSQL
+cases are wired into `tools/accounting-flow/test.mjs`: parent/unreleased/released
+savepoints, concurrent invisibility and postcommit observation, atomic rollback,
+first-clock preservation, forged clock replacement, restricted mutations, origin
+mismatch and partial schema. Their execution awaits exact-source CI; bundling
+these tests is not transaction-visibility evidence. A real cross-cluster restore,
+including provisioning the canonical owner's narrow `pg_control_system()` execute
+grant in that target, remains unqualified. Same-cluster restore is not that proof.
+Deadline crossing, agreement binding and complete admission/redemption/reversal
+and connected UI workflows remain pending. No existing/shared database or
+production activation is authorized, and all earlier P01-03 acceptance gates remain.

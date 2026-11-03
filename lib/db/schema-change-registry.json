@@ -78,6 +78,15 @@
       "tables": [
         "accounting_paid_credit_operations"
       ]
+    },
+    {
+      "path": "lib/db/migrations/conditional-discount-agreements.review.sql",
+      "sha256": "46ed14bcaa44e76f2ff055e8279a926a3bde60bc66f9c3cbe2efc9fbd5424a4e",
+      "status": "review_sql_only",
+      "tables": [
+        "conditional_discount_payment_transactions",
+        "conditional_discount_commit_witnesses"
+      ]
     }
   ],
   "reservedChanges": [

@@ -67,6 +67,7 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
     await admin.query(migrationInputs['credit-tracking']);
     await admin.query(migrationInputs['document-intake']);
     await admin.query(migrationInputs['paid-credit-operations']);
+    await admin.query(migrationInputs['conditional-discount-agreements']);
     if(includeAmendments) await admin.query(migrationInputs['accounting-document-amendments']);
     const legacy=(await admin.query("SELECT to_regclass('public.w03_invoice_drafts') present")).rows[0].present;
     if(!legacy) await admin.query(migrationInputs['w03-invoice-drafts']

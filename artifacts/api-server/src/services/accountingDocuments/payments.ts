@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { observePaymentOutcome } from './conditionalDiscount';
 import { isCompanyRole } from '../../security/roles';
 import { canWriteDraft, fail, uuid } from '../financialDrafts/contract';
 import { postCanonicalJournal, postCanonicalJournalInTransaction, roleHasAccountingCapability, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
@@ -196,7 +197,7 @@ export async function postPayment(company:string,actor:string,body:unknown,testH
     const p=await plan(q,company,actor,b);if(p.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');return {plan:p};
   };
   const initial=existingTransaction?await admission(queryAdapter(existingTransaction)):await transact(admission);
-  if(initial.replayed) return {status:'duplicate',id:b.id,journal_id:initial.replayed.journal_id};
+  if(initial.replayed) return observePaymentOutcome({status:'duplicate',id:b.id,journal_id:initial.replayed.journal_id},company,actor,b.id,b.kind,!!existingTransaction);
   const first=initial.plan!;let current=first,transaction:DatabaseTransaction;
   const authority=<T>(value:T,keys:string[],token:string):LockedAuthority<T>=>({authority:value,recordKeys:keys,
     capturedToken:{revision:token},lockMode:'FOR UPDATE',transactionBound:true,
@@ -234,6 +235,6 @@ export async function postPayment(company:string,actor:string,body:unknown,testH
       postingKind:`party_${b.kind}`,economicEffectId:`payment-event:${b.id}`,idempotencyKey:`payment-event:${b.id}`,
       accountIds:[...new Set(first.lines.map(l=>l.accountId))],postingDate:b.date,configurationVersionId:first.configuration.revision,
       currencyCode:'GBP',description:`${b.party_type} ${b.kind}: ${b.reference}`,reference:b.reference},deps);
-    return {status:result.status,id:b.id,journal_id:result.journalId};
-  } catch(error){if(error instanceof Replayed)return error.data;throw error;}
+    return observePaymentOutcome({status:result.status,id:b.id,journal_id:result.journalId},company,actor,b.id,b.kind,!!existingTransaction);
+  } catch(error){if(error instanceof Replayed)return observePaymentOutcome(error.data,company,actor,b.id,b.kind,!!existingTransaction);throw error;}
 }
