@@ -1,0 +1,40 @@
+{
+  "runId": "hosted-20261103-1924",
+  "base": "1e02fcda32f1be5ddcdf417b1810c5a6e84f10e4",
+  "authorCommit": "0332c6b30a52b0094f6b1ab01021e449fc9ca7e7",
+  "priorAuthorCommit": "974aadd4e0fae5d6a2a4dc97449a4ac6d2a42ac0",
+  "publishedCommit": "0fd8a61b75ebcd163f6b3192aab8370b805d0fcc",
+  "tree": "0759fc9a2c8b756c0091f906b2295005c60eef1e",
+  "patchSha256": "6567df8d08cff5f748d9b630d88f718d2f7a8bfa4d5ce72d3a034f947617b3c0",
+  "independentReviewer": "root",
+  "integrationApproved": true,
+  "stopped": true,
+  "worktreeClean": true,
+  "acceptedOriginalBullets": 0,
+  "fullP0103Accepted": false,
+  "tests": {
+    "source783": true,
+    "fullBuild": true,
+    "focused14FinalSource": true,
+    "migration28": true,
+    "postgres9": "pending exact CI",
+    "restore": "pending exact CI"
+  },
+  "limits": [
+    "Full conditional agreement capture/binding/admission/redemption/reversal/UI pending",
+    "Cross-cluster application restore and pg_control_system privilege provisioning unqualified"
+  ],
+  "files": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+    "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+    "docs/development/credit-capacity-contract.md",
+    "lib/db/migration-registry.json",
+    "lib/db/migrations/conditional-discount-agreements.review.sql",
+    "lib/db/schema-change-registry.json",
+    "tools/accounting-flow/schema.mjs",
+    "tools/accounting-flow/test.mjs",
+    "tools/development/migrations/registry.mjs"
+  ]
+}
