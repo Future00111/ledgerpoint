@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "runId": "hosted-20261103-1823",
+  "startedAt": 1793730310060,
+  "observedAt": 1793731437145,
+  "sourceCommit": "1e02fcda32f1be5ddcdf417b1810c5a6e84f10e4",
+  "sourceUnchanged": true,
+  "queueRevision": 538,
+  "candidate": {
+    "status": "UNINTEGRATED_PARTIAL_NOT_ACCEPTED",
+    "commit": "27afbc849d52c1b4094a8811692e7e8df0dbfc51",
+    "tree": "86be5dc93f92a32904b6dc07202a37aa2c8eb804",
+    "patchSha256": "35232c5cec653a374bb7a2cde42024409e58576b01985e65ca2a2c2efbf6eb74",
+    "patchPath": "docs/development/candidates/20261103-1823-worker1.patch",
+    "manifestPath": "docs/development/candidates/20261103-1823-worker1-manifest.json",
+    "independentReviewer": "root",
+    "reviewScope": "Archive only; no integration approval",
+    "focusedTests": 14,
+    "apiTypecheckPassed": true,
+    "fullBuild": "not run on unintegrated candidate",
+    "disposablePostgres": "pending; local binaries unavailable",
+    "restoration": "pending on candidate",
+    "acceptedWorkflows": 0,
+    "archiveCommit": "60dde2a107b2bb2383f60c1cb4cf8744ddfe0d03",
+    "partialPreserved": true,
+    "independentCandidateReviewComplete": true,
+    "integrationApproved": false
+  },
+  "workerStoppedAt": "2026-11-03T18:42:45Z",
+  "allWorktreesClean": true,
+  "noActiveTaskLeases": true,
+  "originalBulletsNewlyAccepted": [],
+  "journeysNewlyVerified": [],
+  "tests": {
+    "mockedService": {
+      "passed": 14,
+      "failed": 0,
+      "independentlyRebuilt": true,
+      "limits": "No real PostgreSQL visibility, SQL compilation, concurrency or savepoint qualification"
+    },
+    "apiTypecheck": {
+      "passed": true,
+      "independentlyRun": true
+    },
+    "diffCheck": true,
+    "fullSourceBuild": "not run for unintegrated candidate",
+    "exactDisposablePostgreSQLRestore": "pending for candidate"
+  },
+  "independentReview": {
+    "reviewer": "root",
+    "commit": "27afbc849d52c1b4094a8811692e7e8df0dbfc51",
+    "result": "Approved archive only; no integration or acceptance"
+  },
+  "P0202": {
+    "status": "blocked",
+    "edits": 0,
+    "responsible": "coordinator",
+    "unownedExistingFiles": [
+      "artifacts/api-server/src/app.ts",
+      "artifacts/api-server/src/routes/index.ts",
+      "lib/db/schema-change-registry.json",
+      "lib/db/migration-registry.json"
+    ],
+    "missingProposedSchema": "Identity-event review migration and durable event data model; exact new path after contract review",
+    "nextContract": "Define signed payload byte verification and provider event identity, duplicate and out-of-order ordering, user deletion tombstones, and transactional membership/invitation reconciliation before exact stopped-worker ownership expansion. Preserve existing locked authorization race implementation."
+  },
+  "replit": {
+    "dispatched": false,
+    "blocker": "2026-11-03 18:24UTC Replit search_apps ledgerpoint returned apps[]; browser_js Unknown tool browser.js (MCP-32001); control/export/stop unavailable, no Replit dispatch"
+  },
+  "cost": {
+    "providerCredits": "unknown",
+    "creditsPerAcceptedWorkflow": "unknown",
+    "implementers": 1,
+    "independentReviewers": 1,
+    "coordinators": 1
+  },
+  "publication": {
+    "developmentSourcePublished": false,
+    "workerBranchPushAttempted": false,
+    "archiveOnly": true,
+    "acquisitionCorrection": "Initial update_ref used stale local393bed head while live state was919219; re-read112idle and correct expected-head fast-forward succeeded. Not an ongoing GitHub outage."
+  }
+}
