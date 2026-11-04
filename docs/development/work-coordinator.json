@@ -1,27 +1,22 @@
 {
   "version": 2,
-  "revision": 176,
+  "revision": 178,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261104-1452",
     "tokenSha256": "0eca6e0f49040ca35ddbe4761710198b4ad089e261047956a3b7bcf67d97a951",
     "acquiredAt": 1793804071394,
     "expiresAt": 1793806171394
   },
-  "lastOwner": {
-    "runId": "hosted-20261104-1355",
-    "tokenSha256": "d57a6f59a7ea420ab0d3a21dd474ea798262d3757f92750d47a1049dc438b32f",
-    "acquiredAt": 1793800659633,
-    "expiresAt": 1793803158969
-  },
   "queueState": {
     "version": 3,
-    "revision": 615,
+    "revision": 616,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +95,10 @@
         }
       },
       "P01-03": {
-        "status": "running",
+        "status": "pending",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "PRE-EDIT: Replit actor reserved exact211649c/f8; ACK-only brief pending; root verified browserAgent composer/control and immutable gzip export. Binding must prove same original journal transaction, server-source hash/vector and independent committed observation. Both publicpost rejects remain; no bypass flag. Hardstop15:10 implementation /15:20 all, isolatedignoredclone only; no demo/sharedDB/providers/queue/push.",
+        "checkpoint": "Reconnected root independently observed completed Replit ACK-only response: explicitly stopped,26seconds, noGO/noedits/tests. Shell15:17:45 verifies isolatedrun1452 HEAD211649c44564f73cdca79e5f5c00580d6783930c treef8cdde522c6603fe2b9e7f99117122d01012bb4a clean, originalmaincda92 clean, readable /proc cwd scopedisolatedrun activeprocesses[] and finalprompt RECONNECT_STOP_CHECK_COMPLETE. Normal expiredworker recovery with explicit stopped evidence, noexpiry-onlyclaim. P01-03 remains pending originalbinding/causalobservation, publicpostingrejects unchanged; no featureimplementation occurred. P03candidate dc5e3c52 preserved pendingexactPG.",
         "evidence": {
           "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
           "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
@@ -128,10 +123,7 @@
           "reviewed": true,
           "reviewer": "root-and-coordinator1355-technical-only"
         },
-        "owner": "replit-1452-1",
-        "tokenSha256": "fa51022340deb26908a58ee6a09abfd4587b05f86c18dabc559466fd7e6f5a44",
-        "leaseUntil": 1793805479375,
-        "workStarted": true
+        "blockers": []
       },
       "P01-04": {
         "status": "blocked",
@@ -7995,6 +7987,19 @@
         "type": "recover",
         "taskId": "P03-04",
         "checkpoint": "Codex author stoppedclean at aed6abd40f473e3475b31f8b0ea1d2df16110c03 tree40853fbe81c20b2e00ca9e02ed1becbf6cf23e17, localintegrated482a45d same tree, candidateobjectdc5e3c52 only no refupdate. Immutablepatchmanifest focused12 archivedstate6d7be6f; rootreview staticpassed. Combined790/fullbuild passed; actualPG/restore pending because browser_js Unknown tool(browser.js), exactReplitconnectorfoundfalse. Next verify exact preserved candidate on reconnected isolatedrunner; do not regenerate feature. Operational targets/ownership/key/retention/offsite and fullruntime parent remainpending."
+      },
+      {
+        "at": 1793805515807,
+        "actor": "scheduler",
+        "type": "lease_expired",
+        "taskId": "P01-03"
+      },
+      {
+        "at": 1793805515807,
+        "actor": "coordinator1452",
+        "type": "recover",
+        "taskId": "P01-03",
+        "checkpoint": "Reconnected root independently observed completed Replit ACK-only response: explicitly stopped,26seconds, noGO/noedits/tests. Shell15:17:45 verifies isolatedrun1452 HEAD211649c44564f73cdca79e5f5c00580d6783930c treef8cdde522c6603fe2b9e7f99117122d01012bb4a clean, originalmaincda92 clean, readable /proc cwd scopedisolatedrun activeprocesses[] and finalprompt RECONNECT_STOP_CHECK_COMPLETE. Normal expiredworker recovery with explicit stopped evidence, noexpiry-onlyclaim. P01-03 remains pending originalbinding/causalobservation, publicpostingrejects unchanged; no featureimplementation occurred. P03candidate dc5e3c52 preserved pendingexactPG."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8012,8 +8017,13 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "557320f2e6a2417ee19c5baa93d83178838ca102",
+    "sha": "abc704e4ef8a312b90e8e39b55a0f3b47469c512",
     "evidence": [
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "abc704e4ef8a312b90e8e39b55a0f3b47469c512",
+        "path": "docs/development/candidates/20261104-1452-replit-reconnect-stop-evidence.json"
+      },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
         "sha": "557320f2e6a2417ee19c5baa93d83178838ca102",
@@ -8041,10 +8051,10 @@
       }
     ],
     "runId": "hosted-20261104-1452",
-    "at": 1793805005494,
+    "at": 1793805574005,
     "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c"
   },
-  "updatedAt": 1793805005494,
+  "updatedAt": 1793805574028,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -8104,48 +8114,20 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [
-    {
-      "actor": "replit-1452-1",
-      "provider": "Replit",
-      "task": "P01-03",
-      "status": "reserved-readonly-ack-requested-stop-unverified",
-      "base": "211649c44564f73cdca79e5f5c00580d6783930c",
-      "implementationAuthorized": false,
-      "goSent": false,
-      "ackObserved": false,
-      "implementationObserved": false,
-      "lastObserved": "Fresh isolated211/f8 clean shellprompt before ACK-only brief at~15:01; browser control Unknown tool(browser.js), finalretry15:07:47",
-      "stopBy": "2026-11-04T15:10:00Z"
-    }
-  ],
+  "activeWorkers": [],
   "run": {
     "startedAt": "2026-11-04T14:54:31.418Z",
     "stopBy": "2026-11-04T15:20:00Z",
-    "activity": "Local author/coordinator implementation and verification stopped clean. P03-04 preserved candidate dc5e3c52/40853f staticreview+focused12/source790/fullbuildpass, actualPG/restore unavailable, NO SOURCE REF UPDATE, parent pending. P01-03 held reservation received ACK-only read-only brief, NO GO/edits authorized, noACK observed; remote stop unknown after browser tool failure. Retain coordinator/remote task ownership; cannot release or recover without confirmed stop.",
-    "activeWorkers": [
-      {
-        "actor": "replit-1452-1",
-        "provider": "Replit",
-        "task": "P01-03",
-        "status": "reserved-readonly-ack-requested-stop-unverified",
-        "base": "211649c44564f73cdca79e5f5c00580d6783930c",
-        "implementationAuthorized": false,
-        "goSent": false,
-        "ackObserved": false,
-        "implementationObserved": false,
-        "lastObserved": "Fresh isolated211/f8 clean shellprompt before ACK-only brief at~15:01; browser control Unknown tool(browser.js), finalretry15:07:47",
-        "stopBy": "2026-11-04T15:10:00Z"
-      }
-    ],
+    "activity": "Shutdown block resolved after browser reconnect. Root observed Replit ACK-only actor explicitly stopped,26seconds,noGO/noedits/tests, exact211/f8 isolatedcheckoutclean and originalmaincda92clean; scopedreadable/proc isolatedprocesses[] and shellprompt. Expired P01 reservation recovered through normalCLI with stoppedproof, all tasksunheld. Localcandidate dc5e3c52 preserved; staticreview/focused12/source790/fullbuildpassed, actualPG remains pending. No featurework or sourcepublication during reconnect.",
+    "activeWorkers": [],
     "credits": "unknown",
-    "status": "local-stopped-remote-readonly-stop-unverified",
-    "observedAt": "2026-11-04T15:10:05.519Z",
+    "status": "stopped",
+    "observedAt": "2026-11-04T15:19:34.028Z",
     "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
     "candidateTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
     "publicationBlocked": true,
-    "blocker": "Actual isolated PostgreSQL/restore unavailable after browser tool failure; source ref unchanged211. Replit read-only ACK/stop remains unverified; cannot release or reassign its claim.",
-    "endedAt": "2026-11-04T15:10:05.518Z",
+    "blocker": "Exact preserved P03 candidate still needs actual disposable PostgreSQL/restore; remote monitoring/shutdown blocker now resolved.",
+    "endedAt": "2026-11-04T15:19:34.028Z",
     "newlyAcceptedOriginalBullets": [],
     "newCompleteJourneys": [],
     "providerUsage": "unknown"
@@ -8167,10 +8149,6 @@
   },
   "nextTasks": [
     {
-      "task": "P01-03",
-      "next": "FIRST reestablish permitted Replit control and inspect ACK-only agent; obtain explicit stopped confirmation and clean isolated211 checkout evidence. No GO was sent, no implementation authorized/observed. Do not reassign or steal expiry. After lease expiry use normal coordinator recovery with stopped evidence and preserved queue, then recover held P01reservation."
-    },
-    {
       "task": "P03-04",
       "next": "Exact preserved candidateobjectdc5e3c52c2cbe323fbbea5aae0fca52597cc82d7/tree40853fbe81c20b2e00ca9e02ed1becbf6cf23e17 requires actual isolatedPostgreSQL populated/encrypted restore+nativecapture bytes/authdenials. Staticreview/focused12/source790/fullbuild passed. Archiveoriginal authoraed6abd/state6d7be6f; do notregenerate. Afterpassinggates sourceexpectedheadFF211 then exactCI; originalparentremainsincomplete."
     },
@@ -8186,8 +8164,8 @@
     "priorBlocker": "Explicit user approval now received; verify publication before worker edits.",
     "publicationVerified": true
   },
-  "workersStopped": false,
-  "worktreesClean": false,
+  "workersStopped": true,
+  "worktreesClean": true,
   "reusableRunner": {
     "evidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -8198,9 +8176,14 @@
     "availabilityMustBeReverified": true,
     "notAlwaysOn": true,
     "noReplitAgentLLMDispatched": false,
-    "currentAvailability": "blocked: browser_js Unknown tool(browser.js); exactReplitconnectorfoundfalse",
+    "currentAvailability": "Browser control reconnected and read-only ACK/clean/process checks verified; reverify before next implementation/test dispatch",
     "lastVerifiedRun": "hosted-20261104-1355",
-    "currentDispatch": "ACK-only read-only no-edit request; no GO or observed ACK/implementation"
+    "currentDispatch": "ACK-only actor confirmed stopped; no GO or featureimplementation",
+    "reconnectEvidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "abc704e4ef8a312b90e8e39b55a0f3b47469c512",
+      "path": "docs/development/candidates/20261104-1452-replit-reconnect-stop-evidence.json"
+    }
   },
   "threeRunComparison": {
     "runs": [
@@ -8216,19 +8199,25 @@
       "Native restored capturebytes/permission candidate archived; remotecontrol failure prevented primary implementation and exactPG"
     ],
     "decision": "Preserve211 and pendingdc5e3c52. First reconnect/verify remote ACK-only actor stop, recover ownership explicitly; run exact candidatePG/restore without regeneration. Resume originalbinding/causalobservation contract with verified provider control; reserve enough implementation time, retain all admission/writer/browser gates. No more witnesspolish or repeatedoldPGsetup.",
-    "credits": "unknown"
+    "credits": "unknown",
+    "shutdownResolution": "Reconnection independently confirmed stopped/clean actor; queue ownership released safely. Exact preserved P03 candidate still pending runtime qualification."
   },
   "localShutdown": {
     "workerStopped": true,
     "worktreesClean": true,
     "knownExecSessionsCompleted": true,
     "localPostgreSQLLaunched": false,
-    "remoteStop": "unknown",
+    "remoteStop": "confirmed by root UI ACK and independent scoped shell evidence",
     "processInventory": "Root ps unavailable: fatal library error, lookup self; no broad OS enumeration claim",
     "evidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
       "sha": "557320f2e6a2417ee19c5baa93d83178838ca102",
       "path": "docs/development/candidates/20261104-1452-final-evidence.json"
+    },
+    "reconnectEvidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "abc704e4ef8a312b90e8e39b55a0f3b47469c512",
+      "path": "docs/development/candidates/20261104-1452-replit-reconnect-stop-evidence.json"
     }
   },
   "shutdownBlocker": {
@@ -8236,6 +8225,14 @@
     "reason": "Cannot truthfully assert workersStopped=true while remote ACK-only actor stop is unverified. Lease retained for normal explicit recovery; raw command token remains local. Browser runtime/tool failure, not automatic approval denial.",
     "lastAttempt": "2026-11-04T15:07:47Z",
     "expectedRemoteStopBy": "2026-11-04T15:10:00Z",
-    "expiryDoesNotProveStop": true
+    "expiryDoesNotProveStop": true,
+    "resolved": true,
+    "resolvedAt": "2026-11-04T15:19:34.028Z",
+    "resolution": "Actual remote ACK and independent scoped clean/process verification obtained; expiredworker recovered; live matching coordinator checkpoint/release through module.",
+    "evidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "abc704e4ef8a312b90e8e39b55a0f3b47469c512",
+      "path": "docs/development/candidates/20261104-1452-replit-reconnect-stop-evidence.json"
+    }
   }
 }
