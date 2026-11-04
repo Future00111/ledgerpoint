@@ -1,0 +1,111 @@
+{
+  "basePublished": "6912f9d0fd75aef26fbaea6fe56fb6cee4b0310a",
+  "baseLocal": "6912f9d0fd75aef26fbaea6fe56fb6cee4b0310a",
+  "baseTree": "49d6dc7ca50c43a8f0c6e897572b6e5c667cecca",
+  "commit": "f9fdf51d408fdfa690403fc7511d4e0d3d93f5c8",
+  "tree": "aa395e1629efc664ee119e1b55a45c7998c68b3e",
+  "files": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+    "artifacts/api-server/src/services/accountingDocuments/documents.ts",
+    "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+    "docs/development/credit-capacity-contract.md"
+  ],
+  "patchBytes": 32569,
+  "patchSha256": "b6c82eb8baf3db0926eb838082f298729580ebc20d9632334692cf78b3e5c0ec",
+  "rawCommitBytes": 279,
+  "rawCommitSha256": "ac03f462b6a6843deee5582a2a579656ee4c0ccab5efbfb911777d7f109fd057",
+  "createdAt": "2026-11-04T20:31:57.965Z",
+  "publicPostingEnabled": false,
+  "parentAccepted": false,
+  "authorCommit": "ce251328e0bf78055dd74d9e3cef1d9b1c772a46",
+  "review": {
+    "reviewer": "/root",
+    "approved": "Bounded development integration only",
+    "scope": "Internal unmounted readonly paidCredit admission with native recalculation, exact frozen vector and original causal snapshots, canonical payment/allocation journals and committed witnesses, strict UTCmicrosecond causal/deadline comparisons, threshold and perparent qualified-first plannedrelease; surplusrefund allowed, ambiguous unallocation/reversal failclosed; public paidCredit and direct posting conditional guards remain closed.",
+    "parentAccepted": false
+  },
+  "tests": {
+    "focused": 59,
+    "sourceScheduler": 790,
+    "failed": 0,
+    "skipped": 0,
+    "fullBuildTypecheck": "passed",
+    "apiTypecheck": "passed",
+    "integrationBundle": "passed",
+    "actualPostgreSQL": "pending exact PR27CI; localuid0/noPGbinaries",
+    "newNativeScenarios": 26
+  },
+  "worker": {
+    "actor": "worker2019",
+    "stopped": true,
+    "clean": true,
+    "activeCommands": 0,
+    "queueRevision": 661
+  },
+  "rework": [
+    "Initial worker bundle dependency externalization/absent DATABASE_URL and freshlib declaration issues corrected before final59/APItypecheck pass",
+    "Coordinator fullbuild initially rejected symlink task state directories; real local task state established, exact source unchanged; finalbuild passed",
+    "Postsubmission worker checkpoint rejected LEASE_REQUIRED by reviewstate; submission and priorEvidence retained"
+  ],
+  "limitations": [
+    "Read-only admission only; no redemption or public HTTP activation",
+    "Parent atomicconsumption/all-writer guards/compensation/priorcredit/corrections/nativeUI/browser remain pending",
+    "Complete conditional schema required for public creditwriters; no existingDB activation/migration authorized",
+    "Dedicated populated conditional binding/snapshot/witness recovery pending; generic existingCI restore is not this acceptance"
+  ],
+  "cost": "unknown",
+  "artifacts": [
+    {
+      "name": "candidate.patch",
+      "bytes": 32569,
+      "sha256": "b6c82eb8baf3db0926eb838082f298729580ebc20d9632334692cf78b3e5c0ec"
+    },
+    {
+      "name": "raw-commit.txt",
+      "bytes": 279,
+      "sha256": "ac03f462b6a6843deee5582a2a579656ee4c0ccab5efbfb911777d7f109fd057"
+    },
+    {
+      "name": "worker-raw-commit.txt",
+      "bytes": 279,
+      "sha256": "807713d5ed191f84448e4ec14dd53f2f9572b1adb6a76fa738a5de2ba7830c0d"
+    },
+    {
+      "name": "manifest.json",
+      "bytes": 1110,
+      "sha256": "7fb1b304e03f5b4e3b273b8624a60137ad07428df597518793fde285837e0017"
+    },
+    {
+      "name": "focused.log",
+      "bytes": 5316,
+      "sha256": "b3449de9d57921cbcb2c7f43cef0ae24f7e19493097e65feae254d7ae1954ceb"
+    },
+    {
+      "name": "source.log",
+      "bytes": 83738,
+      "sha256": "dca18c0c791d60be2b2b7e046497dd96f0002491e1cd6d77e9c641dec83a307a"
+    },
+    {
+      "name": "build.log",
+      "bytes": 15457,
+      "sha256": "95e5d18d85f3155e3fa79074785cc82a0cb60517e456b0ece418f7cbb615102d"
+    },
+    {
+      "name": "api-typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "worker-evidence.json",
+      "bytes": 6115,
+      "sha256": "24f2bf7884439287ac9c2589b9591cc86096d6353f81557457ca80d1b9b065e3"
+    },
+    {
+      "name": "dependency-failure.log",
+      "bytes": 524,
+      "sha256": "02593a7766c36d8194bc39d449c77f643755df6cd8ac669f805382f61c39c42c"
+    }
+  ]
+}

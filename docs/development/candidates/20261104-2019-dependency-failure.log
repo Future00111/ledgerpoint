@@ -1,0 +1,7 @@
+$ pnpm run typecheck && pnpm -r --if-present run build
+$ pnpm run typecheck:libs && pnpm -r --filter "./artifacts/**" --filter "./scripts" --if-present run typecheck
+$ tsc --build
+Scope: 4 of 9 workspace projects
+[ERR_PNPM_UNSAFE_TASK_RUN_STATE_PATH] Refusing to use task run state directory at "/workspace/scratch/e138348659fc/ledgerpoint-2019/node_modules/.pnpm-task-run-state-v1" because it is a symbolic link or not a directory
+[ELIFECYCLE] Command failed with exit code 1.
+[ELIFECYCLE] Command failed with exit code 1.

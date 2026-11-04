@@ -1,0 +1,386 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+index 25e6d35..d3ee3d0 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+@@ -268,9 +268,9 @@ import {calculateDocument} from './documents';
+ import {journalLines} from './documentJournal';
+ import {hash,scope,document} from './core';
+ import {bindConditionalOriginal,observeConditionalOriginal,prepareConditionalOriginal,canonicalConditionalPayload} from './conditionalDiscount';
+-async function conditionalOriginalFixture(partyType:'customer'|'supplier'='customer') {
++async function conditionalOriginalFixture(partyType:'customer'|'supplier'='customer',deadline='2026-11-30') {
+  const f=await ordinaryOriginalFixture(partyType);
+- const terms={version:1,party_type:partyType,party_id:f.body.party_id,currency:'GBP',agreement_id:randomUUID(),agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
++ const terms={version:1,party_type:partyType,party_id:f.body.party_id,currency:'GBP',agreement_id:randomUUID(),agreement_date:'2026-11-01',payment_deadline:deadline,discount_gross_pence:'1200'};
+  const evidence=await captureConditionalEvidence(f.company,actor,{request_id:randomUUID(),terms,evidence_text:'Synthetic original binding agreement',attested:true});
+  const draft=await saveDocument(f.company,actor,{kind:partyType==='customer'?'sales_invoice':'purchase_bill',source:{...f.draft.source,conditional_discount:{...terms,evidence_receipt_id:evidence.id}}},f.draft.id,f.draft.revision);
+  await assert.rejects(()=>postDocument(f.company,actor,draft.id,draft.revision),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
+@@ -509,3 +509,80 @@ test('real PostgreSQL: retained original observation survives foreign historical
+   assert.deepEqual(await conditionalPaymentSnapshot(c,f.company,'customer',f.body.party_id,'payment',null,[]),before.source.conditional_binding_snapshot);
+  } finally {await c.query('ROLLBACK');c.release();}
+ });
++
++import {reviewConditionalCredit,reviewPaidCredit,commitPaidCredit} from './paidCredit';
++async function admissionFixture(partyType:'customer'|'supplier') {
++ const f=await conditionalOriginalFixture(partyType,'2199-11-30');
++ await addPeriod(f.company,actor,{start_date:'2199-01-01',end_date:'2199-12-31',financial_year_label:'Synthetic future deadline'});
++ return f;
++}
++async function conditionalCreditDraft(f:any,partyType:'customer'|'supplier') {
++ const {conditional_discount,...source}=f.draft.source;
++ return saveDocument(f.company,actor,{kind:partyType==='customer'?'sales_credit_note':'supplier_credit_note',
++  original_id:f.draft.id,reason:'Explicit conditional admission scenario',adjustment_method:'offset_outstanding',effective_adjustment_date:'2199-12-02',
++  source:{...source,invoice_number:'CONDITIONAL-CREDIT-'+randomUUID(),issue_date:'2199-12-02',due_date:'2199-12-02',payment_terms:0,
++   line_items:source.line_items.map((line:any)=>({...line,unit_price:'12'}))}});
++}
++async function nativeCash(f:any,amount:string,allocated:string,date='2026-11-03',witness=true) {
++ const body={...f.body,id:randomUUID(),amount_minor:amount,date,allocations:allocated==='0'?[]:[{document_id:f.draft.id,amount_minor:allocated}]};
++ const review=await previewPayment(f.company,actor,body);
++ return witness?postPayment(f.company,actor,{...body,review_token:review.review_token}):
++  withCanonicalPostingTransaction(tx=>postPayment(f.company,actor,{...body,review_token:review.review_token},undefined,tx));
++}
++for(const partyType of ['customer','supplier'] as const) {
++ for(const amount of ['10800','10799','12000']) test(`real PostgreSQL: ${partyType} internal admission threshold ${amount} with closed public credit routes`,async()=>{
++  const f=await admissionFixture(partyType);
++  await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
++  await observeConditionalOriginal(f.company,actor,f.draft.id);
++  await nativeCash(f,amount,amount);
++  const credit=await conditionalCreditDraft(f,partyType),body={request_id:randomUUID(),reason:'Explicit internal conditional review'};
++  const before=(await pool.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n;
++  if(amount==='10799') await assert.rejects(()=>reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body),/CONDITIONAL_PAYMENT_THRESHOLD_NOT_MET/);
++  else {
++   const review=await reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body);
++   assert.equal(review.conditional_admission?.threshold_minor,'10800');
++   assert.equal(review.conditional_admission?.qualifying_minor,'10800');
++   assert.equal(review.conditional_admission?.posting_available,false);
++   assert.equal(review.released_minor,amount==='12000'?'1200':'0');
++   assert.deepEqual(await reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body),review);
++   await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,{...body,review_token:review.review_token,releases:review.releases}),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
++  }
++  await assert.rejects(()=>reviewPaidCredit(f.company,actor,credit.id,credit.revision,body),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
++  await assert.rejects(()=>postDocument(f.company,actor,credit.id,credit.revision),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
++  assert.equal((await pool.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,before);
++  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,0);
++ });
++ for(const mode of ['old-pool','later-allocation','unwitnessed-allocation','unwitnessed','late-effective','unallocation','late-replenishment','surplus-refund','deadline-clock','cutoff-clock'] as const)
++ test(`real PostgreSQL: ${partyType} conditional admission ${mode}`,async()=>{
++  const f=await admissionFixture(partyType);
++  let cash:any;
++  if(mode==='old-pool') cash=await nativeCash(f,'10800','0');
++  await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
++  await observeConditionalOriginal(f.company,actor,f.draft.id);
++  if(mode==='old-pool' || mode==='later-allocation' || mode==='unwitnessed-allocation') {
++   if(mode!=='old-pool') cash=await nativeCash(f,'10800','0');
++   const body={...f.body,id:randomUUID(),kind:'allocation',payment_id:cash.id,amount_minor:'10800',allocations:[{document_id:f.draft.id,amount_minor:'10800'}]};
++   const review=await previewPayment(f.company,actor,body);
++   if(mode==='unwitnessed-allocation') await withCanonicalPostingTransaction(tx=>postPayment(f.company,actor,{...body,review_token:review.review_token},undefined,tx));
++   else await postPayment(f.company,actor,{...body,review_token:review.review_token});
++  } else cash=await nativeCash(f,mode==='surplus-refund'?'12000':'10800','10800',mode==='late-effective'?'2199-12-01':'2026-11-03',mode!=='unwitnessed');
++  if(mode==='unallocation' || mode==='surplus-refund') {
++   const body={...f.body,id:randomUUID(),kind:mode==='unallocation'?'unallocation':'refund',payment_id:cash.id,amount_minor:'1200',
++    allocations:mode==='unallocation'?[{document_id:f.draft.id,amount_minor:'1200'}]:[]};
++   const review=await previewPayment(f.company,actor,body);await postPayment(f.company,actor,{...body,review_token:review.review_token});
++  }
++  if(mode==='late-replenishment') await nativeCash(f,'1200','1200','2199-12-01');
++  if(mode==='deadline-clock' || mode==='cutoff-clock') {
++   // Administrator-only clock fixture in the disposable database; service never accepts caller clocks.
++   const q=await admin.connect();try {
++    await q.query('BEGIN');await q.query('ALTER TABLE conditional_discount_commit_witnesses DISABLE TRIGGER conditional_discount_witness_immutable');
++    await q.query('UPDATE conditional_discount_commit_witnesses SET observed_at=$2 WHERE event_id=$1',[cash.id,mode==='deadline-clock'?'2199-11-30T23:59:59.999999Z':'2199-12-01T00:00:00.000000Z']);
++    await q.query('ALTER TABLE conditional_discount_commit_witnesses ENABLE ALWAYS TRIGGER conditional_discount_witness_immutable');await q.query('COMMIT');
++   }catch(e){await q.query('ROLLBACK');throw e;}finally{q.release();}
++  }
++  const credit=await conditionalCreditDraft(f,partyType),body={request_id:randomUUID(),reason:'Explicit internal conditional review'};
++  if(['surplus-refund','later-allocation','deadline-clock'].includes(mode)) assert.equal((await reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body)).conditional_admission?.qualifying_minor,'10800');
++  else await assert.rejects(()=>reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body),
++   mode==='unallocation'?/CONDITIONAL_RELEASE_HISTORY_UNSUPPORTED/:/CONDITIONAL_PAYMENT_THRESHOLD_NOT_MET/);
++ });
++}
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
+index e6b7fa9..46f85eb 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
+@@ -282,3 +282,18 @@ for(const prior of [null,{version:2,bindings:[]},{version:1,bindings:[null]}]) t
+  const f=originalFake(t,{snapshot:true});
+  await assert.rejects(()=>conditionalPaymentSnapshot(f.q,company,'customer',company,'allocation',{id:eventId,journal_id:journal,source:{conditional_binding_snapshot:prior}},[]),/CONDITIONAL_PAYMENT_SNAPSHOT_INVALID/);
+ });
++
++import {conditionalClock,conditionalEventTimely,assertNoConditionalCredit} from './conditionalDiscount';
++test('conditional deadline and causal comparisons preserve all six UTC fractional digits',()=>{
++ const binding='2026-11-01T00:00:00.000001Z',created='2026-11-01T00:00:00.000002Z';
++ assert.equal(conditionalEventTimely(created,'2026-11-30T23:59:59.999999Z',binding,'2026-11-30','2026-11-30'),true);
++ assert.equal(conditionalEventTimely(created,'2026-12-01T00:00:00.000000Z',binding,'2026-11-30','2026-11-30'),false);
++ assert.equal(conditionalEventTimely(binding,'2026-11-30T23:59:59.999999Z',binding,'2026-11-30','2026-11-30'),false);
++ assert.equal(conditionalEventTimely(created,'2026-11-30T23:59:59.999999Z',binding,'2026-12-01','2026-11-30'),false);
++ for(const clock of ['2026-11-01T00:00:00.001Z','2026-11-01 00:00:00.000001+00','2026-02-30T00:00:00.000001Z']) assert.throws(()=>conditionalClock(clock),/CONDITIONAL_CLOCK_INVALID/);
++});
++test('public credit guard rejects source terms and incomplete schema independently',async()=>{
++ const q:any={query:async()=>({rows:[]})};
++ await assert.rejects(()=>assertNoConditionalCredit(q,company,{id:eventId,source:{conditional_discount:{}}}),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
++ await assert.rejects(()=>assertNoConditionalCredit(q,company,{id:eventId,source:{}}),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);
++});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
+index 1a0bc4e..4dab588 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
+@@ -336,3 +336,146 @@ export async function validateConditionalDraft(q:Queryable,company:string,source
+   const evidence=await readConditionalEvidence(q,company,terms.evidence_receipt_id);
+   if(evidence.terms_hash!==conditionalTermsHash(terms) || evidence.party_type!==partyType || evidence.party_id!==source.customer_id.toLowerCase()) fail(409,'CONDITIONAL_EVIDENCE_TERMS_MISMATCH');
+ }
++
++/** Public credit writers remain closed for bound originals until redemption and
++ * every settlement writer share atomic consumption/compensation protection. */
++export async function assertNoConditionalCredit(q:Queryable,company:string,original:any) {
++  if(original.source?.conditional_discount) fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
++  await conditionalOriginalSchema(q);
++  if((await q.query('SELECT document_id FROM conditional_discount_original_bindings WHERE company_id=$1 AND document_id=$2',[company,original.id])).rows.length)
++    fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
++}
++
++/** Strict UTC microseconds: Date milliseconds must never erase causal equality. */
++export function conditionalClock(value:unknown):string {
++  if(typeof value!=='string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/.test(value) ||
++    !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0,19)!==value.slice(0,19)) fail(503,'CONDITIONAL_CLOCK_INVALID');
++  return value;
++}
++export function conditionalEventTimely(created:string,observed:string,bindingObserved:string,effective:string,deadline:string) {
++  const cutoff=new Date(Date.parse(deadline+'T00:00:00Z')+86400000).toISOString().slice(0,19)+'.000000Z';
++  return conditionalClock(bindingObserved)<conditionalClock(created) && conditionalClock(created)<=conditionalClock(observed) &&
++    conditionalClock(observed)<cutoff && effective<=deadline;
++}
++
++/** INTERNAL, read-only admission. No witness creation, redemption or posting.
++ * Caller holds the native company/original locks and validates the credit draft. */
++export async function conditionalCreditAdmission(q:Queryable,company:string,original:any,credit:any,releases:{payment_id:string,amount_minor:string}[]=[]) {
++  if(!original.source?.conditional_discount) fail(409,'CONDITIONAL_AGREEMENT_REQUIRED');
++  const partyType=original.kind==='sales_invoice'?'customer':'supplier';
++  const current=await conditionalPaymentSnapshot(q,company,partyType,original.party_id,'payment',null,[]);
++  const binding=current.bindings.find(b=>b.document_id===original.id);
++  if(!binding) fail(409,'CONDITIONAL_AGREEMENT_REQUIRED');
++  const prepared=await prepareConditionalOriginal(q,company,original),frozen=prepared.binding;
++  if(binding.binding_hash!==prepared.bindingHash || credit.money.gross_pence!==frozen.discount_gross_pence ||
++    credit.tax_context.original_revision!==original.revision ||
++    credit.tax_context.original_evidence_hash!==frozen.financial_hash ||
++    credit.money.lines.length!==frozen.vector.length || frozen.vector.some((v,i)=>
++      credit.tax_context.original_line_refs[i]!==Number(v.line_ref) ||
++      ['net_pence','vat_pence','gross_pence'].some(k=>credit.money.lines[i][k]!==v[k as keyof typeof v])))
++    fail(409,'CONDITIONAL_CREDIT_VECTOR_MISMATCH');
++  if((await q.query("SELECT id FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND status='posted'",[company,original.id])).rows.length)
++    fail(409,'CONDITIONAL_PRIOR_CREDIT_UNSUPPORTED');
++  const installed=(await q.query("SELECT to_regclass('public.conditional_discount_commit_witnesses') present")).rows[0]?.present;
++  if(!installed) fail(503,'CONDITIONAL_WITNESS_SCHEMA_INCOMPLETE');
++  const integrity=(await q.query(`SELECT count(*)::int n,
++    bool_and(pg_get_userbyid(relowner)='ledgerly_canonical_owner') owned,
++    bool_or(has_table_privilege('ledgerly_api',oid,'UPDATE,DELETE,TRUNCATE') OR
++      (relname='conditional_discount_payment_transactions' AND has_table_privilege('ledgerly_api',oid,'INSERT'))) writable
++    FROM pg_class WHERE oid IN ('public.conditional_discount_commit_witnesses'::regclass,'public.conditional_discount_payment_transactions'::regclass)`)).rows[0];
++  if(integrity?.n!==2 || integrity.owned!==true || integrity.writable!==false) fail(503,'CONDITIONAL_WITNESS_SCHEMA_INCOMPLETE');
++  const guards=(await q.query(`SELECT count(*)::int n FROM pg_trigger
++    WHERE tgrelid IN ('public.conditional_discount_commit_witnesses'::regclass,
++      'public.conditional_discount_payment_transactions'::regclass,'public.accounting_payment_events'::regclass) AND NOT tgisinternal
++      AND tgenabled='A' AND tgname IN ('conditional_discount_witness_immutable','conditional_discount_witness_no_truncate','conditional_discount_witness_observe',
++      'conditional_discount_payment_transaction','conditional_discount_transaction_immutable','conditional_discount_transaction_no_truncate')`)).rows[0];
++  const constraints=(await q.query(`SELECT count(*)::int n FROM pg_constraint
++    WHERE conrelid IN ('public.conditional_discount_commit_witnesses'::regclass,'public.conditional_discount_payment_transactions'::regclass)
++      AND convalidated AND conname IN ('conditional_discount_witness_pk','conditional_discount_witness_event_fk',
++      'conditional_discount_witness_journal_fk','conditional_discount_witness_hash','conditional_discount_witness_clock',
++      'conditional_discount_transaction_pk','conditional_discount_transaction_event_fk')`)).rows[0];
++  if(guards?.n!==6 || constraints?.n!==7) fail(503,'CONDITIONAL_WITNESS_SCHEMA_INCOMPLETE');
++  const events=(await q.query(`SELECT e.*,e.effective_date::text event_date,
++    to_char(e.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') event_clock,
++    j.id verified_journal_id,j.source_revision,p.id verified_effect_id,
++    w.journal_id witness_journal,w.event_source_hash witness_hash,
++    to_char(w.event_created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') witness_created,
++    to_char(w.observed_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') witness_clock
++    FROM accounting_payment_events e
++    LEFT JOIN canonical_journal_entries j ON j.company_id=e.company_id AND j.id=e.journal_id
++      AND j.source_type='accounting_payment_event' AND j.source_id=e.id::text AND j.status='posted'
++      AND j.posting_kind='party_'||e.kind AND j.currency_code='GBP' AND j.posting_date=e.effective_date
++      AND j.reference=e.reference AND j.economic_effect_id='payment-event:'||e.id::text AND j.source_evidence_hash=j.source_revision
++    LEFT JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
++      AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.source_revision=j.source_revision
++      AND p.source_evidence_hash=j.source_evidence_hash AND p.posting_kind=j.posting_kind
++      AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text AND p.status='posted'
++    LEFT JOIN conditional_discount_commit_witnesses w ON w.company_id=e.company_id AND w.event_id=e.id
++    WHERE e.company_id=$1 AND e.party_id=$2 AND e.party_type=$3 ORDER BY e.created_at,e.id`,[company,original.party_id,partyType])).rows;
++  const verify=(e:any)=>{
++    const intent=e.source?.intent;
++    if(!['payment','allocation','unallocation','refund','reversal'].includes(e.kind) ||
++      !/^[1-9][0-9]{0,15}$/.test(String(e.amount_minor)) ||
++      !e.verified_journal_id || !e.verified_effect_id || e.source_revision!==hash(e.source) || !intent ||
++      intent.id!==e.id || intent.kind!==e.kind || intent.payment_id!==e.payment_id || intent.party_id!==e.party_id ||
++      intent.party_type!==e.party_type || intent.date!==e.event_date || intent.reference!==e.reference ||
++      intent.amount_minor!==String(e.amount_minor) || hash(intent.allocations)!==hash(e.allocations) ||
++      !Array.isArray(e.allocations) || new Set(e.allocations.map((a:any)=>a.document_id)).size!==e.allocations.length ||
++      e.allocations.some((a:any)=>!a || !/^[1-9][0-9]{0,15}$/.test(a.amount_minor)) ||
++      (e.kind==='payment' && e.payment_id!==null) ||
++      (e.kind!=='payment' && !e.payment_id)) fail(503,'PAYMENT_HISTORY_INVALID');
++  };
++  const timely=(e:any)=>{
++    const snapshot=e.source.conditional_binding_snapshot;
++    if(snapshot===undefined) return false;
++    if(snapshot?.version!==1 || !Array.isArray(snapshot.bindings) || Object.keys(snapshot).sort().join(',')!=='bindings,version')
++      fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
++    const selected=snapshot.bindings.filter((b:any)=>b?.document_id===original.id);
++    if(selected.length===0) return false;
++    if(selected.length!==1 || hash(selected[0])!==hash(binding)) fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
++    if(!e.witness_clock) return false;
++    if(e.witness_journal!==e.journal_id || e.witness_hash!==e.source_revision || e.witness_created!==e.event_clock)
++      fail(503,'CONDITIONAL_WITNESS_INVALID');
++    return conditionalEventTimely(e.event_clock,e.witness_clock,binding.observed_at,e.event_date,frozen.deadline);
++  };
++  const qualifying:any[]=[];let total=0n;
++  for(const e of events) {
++    if(!Array.isArray(e.allocations)) fail(503,'PAYMENT_HISTORY_INVALID');
++    const allocation=e.allocations.find((a:any)=>a.document_id===original.id);
++    if(!allocation || !['payment','allocation'].includes(e.kind)) continue;
++    verify(e);
++    const parent=e.kind==='payment'?e:events.find(p=>p.id===e.payment_id && p.kind==='payment');
++    if(!parent) fail(503,'PAYMENT_HISTORY_INVALID');
++    verify(parent);
++    const related=events.filter(x=>x.id===parent.id || x.payment_id===parent.id);
++    let pool=0n;
++    for(const child of related) {
++      verify(child);
++      if(['unallocation','reversal'].includes(child.kind)) fail(409,'CONDITIONAL_RELEASE_HISTORY_UNSUPPORTED');
++      const allocated=child.allocations.reduce((n:bigint,a:any)=>n+BigInt(a.amount_minor),0n);
++      if(child.kind==='refund' && allocated!==0n) fail(503,'PAYMENT_HISTORY_INVALID');
++      if((child.kind==='payment' && allocated>BigInt(child.amount_minor)) ||
++        (child.kind==='allocation' && allocated!==BigInt(child.amount_minor))) fail(503,'PAYMENT_HISTORY_INVALID');
++      pool+=child.kind==='payment'?BigInt(child.amount_minor)-allocated:-BigInt(child.amount_minor);
++    }
++    if(pool<0n) fail(503,'SETTLEMENT_LEDGER_MISMATCH');
++    if(!timely(parent) || !timely(e)) continue;
++    const amount=BigInt(allocation.amount_minor);
++    if(amount<=0n) fail(503,'PAYMENT_HISTORY_INVALID');
++    total+=amount;
++    qualifying.push({event_id:e.id,journal_id:e.journal_id,payment_id:parent.id,payment_journal_id:parent.journal_id,
++      payment_source_hash:parent.source_revision,amount_minor:amount.toString(),
++      effective_date:e.event_date,event_source_hash:e.source_revision,observed_at:e.witness_clock,payment_observed_at:parent.witness_clock});
++  }
++  const threshold=BigInt(frozen.gross_pence)-BigInt(frozen.discount_gross_pence);
++  const remainingByParent=new Map<string,bigint>();
++  for(const event of qualifying) remainingByParent.set(event.payment_id,(remainingByParent.get(event.payment_id)??0n)+BigInt(event.amount_minor));
++  for(const release of releases) {
++    const eligible=remainingByParent.get(release.payment_id)??0n,removed=BigInt(release.amount_minor);
++    const decrease=removed<eligible?removed:eligible;
++    remainingByParent.set(release.payment_id,eligible-decrease);total-=decrease;
++  }
++  if(total<threshold) fail(409,'CONDITIONAL_PAYMENT_THRESHOLD_NOT_MET');
++  return {version:1,binding,terms_hash:frozen.terms_hash,threshold_minor:threshold.toString(),qualifying_minor:total.toString(),
++    deadline:frozen.deadline,qualifying_events:qualifying,posting_available:false};
++}
+diff --git a/artifacts/api-server/src/services/accountingDocuments/documents.ts b/artifacts/api-server/src/services/accountingDocuments/documents.ts
+index 7187d8c..ded4000 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/documents.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/documents.ts
+@@ -1,4 +1,4 @@
+-import { validateConditionalDraft } from './conditionalDiscount';
++import { assertNoConditionalCredit, validateConditionalDraft } from './conditionalDiscount';
+ import { appliedTo, documentOpen, paymentEvents } from './settlement';
+ import { amendmentHistory, assertUncorrectedOriginal } from './amendments';
+ import { randomUUID } from "node:crypto";
+@@ -121,6 +121,7 @@ export async function assertCreditAvailable(q:Queryable, company:string, row:any
+   if(!credit(row.kind)) return;
+   const original=await document(q,company,row.original_id,true);
+   await assertUncorrectedOriginal(q,company,original);
++  await assertNoConditionalCredit(q,company,original);
+   if(original.status!=="posted" || !original.journal_id ||
+     row.tax_context.original_revision!==original.revision ||
+     row.tax_context.original_evidence_hash!==hash({source:original.source,money:original.money,tax_context:original.tax_context,accounts:original.posting_accounts}))
+diff --git a/artifacts/api-server/src/services/accountingDocuments/paidCredit.ts b/artifacts/api-server/src/services/accountingDocuments/paidCredit.ts
+index c365b8b..45e3c67 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/paidCredit.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/paidCredit.ts
+@@ -6,6 +6,8 @@ import { assertUncorrectedOriginal } from './amendments';
+ import { documentOpen, paymentEvents, appliedTo, unappliedEffect } from './settlement';
+ import { postPayment, previewPaymentInTransaction } from './payments';
+ import { postDocument } from './posting';
++import { assertNoConditionalCredit, conditionalCreditAdmission } from './conditionalDiscount';
++import { calculateDocument } from './documents';
+ 
+ async function authority(q:Queryable,company:string,actor:string) {
+   await scope(q,company,actor,true,true);
+@@ -27,13 +29,21 @@ function childId(request:string,payment:string) {
+   const h=createHash('sha256').update(`paid-credit:${request}:${payment}`).digest('hex');
+   return `${h.slice(0,8)}-${h.slice(8,12)}-4${h.slice(13,16)}-a${h.slice(17,20)}-${h.slice(20,32)}`;
+ }
+-async function plan(q:Queryable,company:string,actor:string,id:string,expected:string,b:ReturnType<typeof intent>) {
++async function plan(q:Queryable,company:string,actor:string,id:string,expected:string,b:ReturnType<typeof intent>,conditional=false) {
+   await authority(q,company,actor);
+   const row=await document(q,company,id,true);
+   if(!credit(row.kind)||row.status!=='draft') fail(409,'CREDIT_DRAFT_REQUIRED');
+   if(row.revision!==expected) fail(409,'REVISION_CONFLICT');
+   const original=await document(q,company,row.original_id,true);
+   await assertUncorrectedOriginal(q,company,original);
++  if(!conditional) await assertNoConditionalCredit(q,company,original);
++  if(conditional) {
++    for(const saved of [original,row]) {
++      const fresh=await calculateDocument(q,company,saved.kind,{},saved);
++      for(const field of ['source','money','tax_context','posting_accounts'])
++        if(hash(fresh[field as keyof typeof fresh])!==hash(saved[field])) fail(409,'SOURCE_CONTEXT_CHANGED');
++    }
++  }
+   if(row.source.issue_date<original.source.issue_date) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
+   const linked=(await q.query("SELECT d.*,j.posting_date::text FROM accounting_document_sources d JOIN canonical_journal_entries j ON j.id=d.journal_id AND j.company_id=d.company_id WHERE d.company_id=$1 AND d.original_id=$2 AND d.status='posted'",[company,original.id])).rows;
+   if(linked.some(c=>c.posting_date>row.source.issue_date)) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
+@@ -68,19 +78,26 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
+   for(const release of releases) if(events.some(e=>(e.id===release.payment_id||e.payment_id===release.payment_id)&&e.effective_date>row.source.issue_date)) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
+   if(events.some(e=>e.effective_date>row.source.issue_date&&e.allocations.some((a:any)=>a.document_id===original.id))) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
+   const configurations=(await q.query('SELECT * FROM accounting_payment_configuration WHERE company_id=$1',[company])).rows;
+-  const review={intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
++  const admission=conditional?await conditionalCreditAdmission(q,company,original,row,releases):undefined;
++  const review={...(admission?{conditional_admission:admission}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
+     credit_minor:value.toString(),offset_minor:(value-excess).toString(),released_minor:excess.toString(),remaining_minor:(BigInt(open.open_minor)-(value-excess)).toString(),releases};
+   return {...review,review_token:hash({company,actor,review,row,original,events,periods,configurations})};
+ }
+ export async function reviewPaidCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
+   const b=intent(body);return transact(q=>plan(q,company,actor,id,expected,b));
+ }
++/** Internal calculation only; deliberately not mounted on any HTTP route. */
++export async function reviewConditionalCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
++  const b=intent(body);return transact(q=>plan(q,company,actor,id,expected,b,true));
++}
+ export async function commitPaidCredit(company:string,actor:string,id:string,expected:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+   const b=intent(body),input=body as any;
+   if(typeof input.review_token!=='string'||!/^sha256:[a-f0-9]{64}$/.test(input.review_token)||!Array.isArray(input.releases)) fail(428,'PAID_CREDIT_REVIEW_REQUIRED');
+   const requestHash=hash({company,actor,id,expected,...b,review_token:input.review_token,releases:input.releases});
+   return withCanonicalPostingTransaction(async tx=>{
+     const q=queryAdapter(tx);await authority(q,company,actor);
++    const creditRow=await document(q,company,id,true);
++    if(credit(creditRow.kind)) await assertNoConditionalCredit(q,company,await document(q,company,creditRow.original_id,true));
+     const prior=(await q.query('SELECT * FROM accounting_paid_credit_operations WHERE company_id=$1 AND request_id=$2',[company,b.request_id])).rows[0];
+     if(prior){if(prior.request_hash!==requestHash) fail(409,'IDEMPOTENCY_CONFLICT');return {...prior.result,status:'duplicate'};}
+     const reviewed=await plan(q,company,actor,id,expected,b);
+diff --git a/docs/development/credit-capacity-contract.md b/docs/development/credit-capacity-contract.md
+index 21d4840..437849c 100644
+--- a/docs/development/credit-capacity-contract.md
++++ b/docs/development/credit-capacity-contract.md
+@@ -463,3 +463,28 @@ This proves causal capture only. Public conditional posting remains disabled;
+ redemption, deadline and payment-witness admission, all-writer protection,
+ compensation, corrected originals and full customer/supplier/browser acceptance
+ remain pending. The broader P01-03 parent is not accepted by this slice.
++
++### Internal connected admission review (bounded development slice)
++
++`reviewConditionalCredit` is an internal, unmounted, read-only calculation using
++paid-credit authority, locks, native recalculation, line capacity and release
++planning. Its explicit entry point validates the exact frozen original vector and
++committed native cash/allocation witnesses, including both effective dates and
++strict UTC microsecond cutoff/causal comparisons. It creates no witness, credit,
++redemption or journal. Its review token cannot be used with public paid-credit or
++ordinary document posting: both reject conditional terms or a persisted binding.
++Public credit writers require the complete protected binding schema before proving
++absence; existing database activation remains separately gated.
++
++The bounded admission rejects any relevant payment parent with an unallocation or
++reversal history, avoiding ambiguous reassignment of qualifying cash after late
++replenishment. A valid refund of an unapplied surplus remains allowed and does not
++reduce the original's active allocation. A proposed paid-credit release subtracts
++from that parent's qualifying amount first; late cash cannot replace released
++timely cash. Both original payment and later allocation require their own retained
++committed witness and original frozen binding entry. Missing/late evidence does
++not qualify. The exact review retains qualifying events and their clocks.
++
++This is admission evidence only. Atomic agreement consumption/redemption, all
++writer guards, compensation, prior-credit/correction combinations, native API/UI
++and browser acceptance remain pending before activation or parent acceptance.
