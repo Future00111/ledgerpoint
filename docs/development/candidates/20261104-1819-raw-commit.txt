@@ -1,0 +1,6 @@
+tree 324e7748ef6e7d5b61758ebcc944e7e19a051001
+parent 4bc53ce885af7cc9de2b9c8b0ffd9e1e5a44693c
+author Codex <codex@openai.com> 1793817019 +0000
+committer Codex <codex@openai.com> 1793817019 +0000
+
+Serialize restricted conditional observers with membership changes

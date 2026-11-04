@@ -1,0 +1,95 @@
+{
+  "base": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+  "commit": "1d14f671e9503dc7d6233382aff80dbeb7f140da",
+  "tree": "324e7748ef6e7d5b61758ebcc944e7e19a051001",
+  "preservedPredecessor": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
+  "files": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+    "docs/development/credit-capacity-contract.md",
+    "lib/db/migration-registry.json",
+    "lib/db/migrations/conditional-discount-agreements.review.sql",
+    "lib/db/schema-change-registry.json",
+    "tools/development/migrations/registry.test.mjs"
+  ],
+  "patchBytes": 65742,
+  "patchSha256": "463d2603b0cc2d90f92a4af70c8e554114090f0ceb62239411a8d369504c9f18",
+  "rawCommitBytes": 263,
+  "rawCommitSha256": "f277594a49cf93acd682c16926b4f152643d9af8d06241f66e8cd82081f24df0",
+  "createdAt": "2026-11-04T18:30:34.833Z",
+  "publicPostingEnabled": false,
+  "parentAccepted": false,
+  "review": {
+    "reviewer": "/root",
+    "approved": "bounded development integration only",
+    "source": "exact1d14/tree324e full preserved chain vsdc5e; full8filedelta vs76; SQLmembership lockorder and narrowSELECTid; closed public gates",
+    "parentAccepted": false
+  },
+  "tests": {
+    "focused": 47,
+    "registry": 29,
+    "source": 790,
+    "failed": 0,
+    "skipped": 0,
+    "fullBuildTypecheck": "passed",
+    "apiTypecheck": "passed",
+    "integrationBundle": "passed",
+    "actualPostgreSQL": "not run locally: uid0 and PostgreSQL binaries absent; existing PR27 CI qualification next",
+    "populatedBindingRecovery": "pending dedicated evidence"
+  },
+  "worker": {
+    "actor": "worker1819",
+    "stopped": true,
+    "clean": true,
+    "activeCommands": 0,
+    "queueCheckpoint": 640
+  },
+  "limitations": [
+    "Conditional admission/redemption/all-writer guards/compensation/corrections and supplier/customer complete journeys/browser remain pending",
+    "No merge/deploy/demo/existing database/provider/HMRC or external messages"
+  ],
+  "cost": "unknown",
+  "artifacts": [
+    {
+      "name": "candidate.patch",
+      "bytes": 65742,
+      "sha256": "463d2603b0cc2d90f92a4af70c8e554114090f0ceb62239411a8d369504c9f18"
+    },
+    {
+      "name": "raw-commit.txt",
+      "bytes": 263,
+      "sha256": "f277594a49cf93acd682c16926b4f152643d9af8d06241f66e8cd82081f24df0"
+    },
+    {
+      "name": "manifest.json",
+      "bytes": 1107,
+      "sha256": "286f0bd9f27b0c643a5d3b76805490e60785d43e01d7ff2116f9d4c02884e4bb"
+    },
+    {
+      "name": "focused.log",
+      "bytes": 4353,
+      "sha256": "b9156d2741448aa5ee4a43ed1a93c6972785c15604766321c67043205e4b5bfe"
+    },
+    {
+      "name": "registry.log",
+      "bytes": 2068,
+      "sha256": "4ea4fbf68965f2e583f32b120bee911e183aa6c3d723a567bc43c026c439dcda"
+    },
+    {
+      "name": "source.log",
+      "bytes": 83825,
+      "sha256": "d93217b2f8ad36f1eb56d988f946896b7d820b7bdc8970d7d71b30f3f5983ef6"
+    },
+    {
+      "name": "build.log",
+      "bytes": 15459,
+      "sha256": "3b99ebfeebeb2bb927bb09116005bab0297431e47a504aed6a2e7b0888ac9184"
+    },
+    {
+      "name": "api-typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}
