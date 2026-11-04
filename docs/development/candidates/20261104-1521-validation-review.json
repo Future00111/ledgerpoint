@@ -1,0 +1,25 @@
+{
+  "reviewer": "/root",
+  "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+  "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+  "authorCommit": "aed6abd40f473e3475b31f8b0ea1d2df16110c03",
+  "priorIndependentReview": "docs/development/candidates/20261104-1452-independent-review.json",
+  "evidenceSha256": "0f6a61a6d6bd880c7ecf44a9ea7e24d6567d2bc5251a966cfd650caa1df1d138",
+  "evidenceBytes": 24238,
+  "transport": "Observed Replit Shell execution in separate fresh validation checkout; exported exact JSON through visible editor clipboard; outer and all nested hashes independently verified locally",
+  "verdict": "bounded-native-attachment-restore-scenario-passed",
+  "financialAndSecurityChecks": [
+    "Actual accounting/security/migration suites: 133 passed, zero failures/skips.",
+    "Backup unit controls: 12 passed, zero failures/skips.",
+    "Populated restore: 40 tables, 6325 rows; source and restored fingerprints equal.",
+    "Encrypted application recovery on a separate cluster: exact native captured-source bytes and metadata, read-only access, inactive/foreign actors and cross-company denials all verified.",
+    "Existing native payment, commitment witness, single-effect retry and privilege checks all preserved and passed.",
+    "Encrypted representative recovery and negative controls verified.",
+    "All receipts identify exact candidate dc5e3c52; synthetic-only, no ambient database credentials or production contact; PostgreSQL stopped and directories removed.",
+    "Before/after disposable directory inventories empty; validation and original main checkout clean and unchanged."
+  ],
+  "stillRequired": ["Exact published-source PR27 CI"],
+  "parentAccepted": false,
+  "liveBrowserAcceptanceClaimed": false,
+  "statutoryOrProductionReadinessClaimed": false
+}
