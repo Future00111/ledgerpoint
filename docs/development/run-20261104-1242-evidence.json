@@ -1,0 +1,104 @@
+{
+  "runId": "hosted-20261104-1242",
+  "startedAt": "2026-11-04T12:41:52Z",
+  "endedAt": "2026-11-04T13:02:02.656363+00:00",
+  "ownerApproval": "Explicit approval to publish SHA-256 worker lease verifiers/history while retaining raw tokens locally; archive and fresh reservations published successfully before edits",
+  "publishedCommit": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
+  "tree": "f34f607c9458695eb18b5c45482a484298fa8c83",
+  "localIntegrationCommit": "f39837c2e60eaea1ad48e2cf363af9fc4d7ff583",
+  "workerCommits": [
+    "d7a74b958291cf9ce32e7c46de69035fc3bdb997",
+    "07f858ad4f9224605bf524dc04646c91d6a3815b"
+  ],
+  "independentReviewers": [
+    "review1223",
+    "root"
+  ],
+  "independentFileEqualityVerified": true,
+  "verification": {
+    "ciRun": 41833220601,
+    "job": 126585423567,
+    "mergeCommit": "9749b639b7e8977a72d24904e4e257a982486f4e",
+    "publishedToMergeFileDiff": [],
+    "tests": 954,
+    "pass": 954,
+    "fail": 0,
+    "skipped": 0,
+    "localSourceTests": 788,
+    "localBuildTypecheck": "passed",
+    "disposablePostgreSQL": "passed",
+    "populatedRestore": "passed",
+    "encryptedRecovery": "passed",
+    "cleanup": "passed",
+    "logsIndependentlyFetched": true
+  },
+  "newlyVerifiedScenarios": [
+    "Restricted runtime cannot poison first payment witness with false source hash, mismatched journal/effect or unauthorized observer; legitimate later observation/retry remains valid",
+    "Actual encrypted fresh-cluster restore supports new native payment and committed witness; retry has one event/journal/effect/transaction/witness; historical witness unchanged; foreign-origin unwitnessed source rejected; effective permissions preserved; source database unchanged"
+  ],
+  "originalBulletsNewlyAccepted": [],
+  "commercialJourneysNewlyAccepted": [],
+  "parentAcceptance": "P01-03/P03-04 pending. CLI reject/recover records partial submission release, not failed independent review.",
+  "nextTasks": [
+    {
+      "task": "P01-03",
+      "next": "Deliver connected native evidence capture and original binding, freeze committed binding identity at payment and allocation, admit reviewed conditional credit with immutable redemption and eligibility-preserving guards/UI; then full reversal compensation/prior-credit cases and browser acceptance",
+      "requiredEvidence": "Exact-source both-party financial chronology/deadline/retry/rollback/race/history cases and isolated browser journey; no observation-clock order inference"
+    },
+    {
+      "task": "P03-04",
+      "next": "Complete remaining full application/jobs recovery coverage and operating-target/ownership evidence; preserve successful runtime restore scenario; external destination remains explicit ownergate",
+      "requiredEvidence": "Exact-source full recovery scope and target evidence, authorised external interface only if ownergate satisfied"
+    }
+  ],
+  "remainingInternalBlockers": [
+    {
+      "task": "P03-01",
+      "age": "first scoped previous run on Nov4",
+      "role": "coordinator",
+      "next": "Safely extend exact stopped-task ownership to Payments.jsx and PaymentControls tests for scoped opaque request identity discovery across reload; persist no financial payload/review tokens; no auto retry"
+    },
+    {
+      "task": "P01-03",
+      "age": "prior runs; exact elapsed unknown",
+      "role": "coordinator and implementers",
+      "next": "Bound connected implementation into linked children only where needed without parent autoacceptance; use preserved causal financial contract, avoid restarting discovery"
+    }
+  ],
+  "workers": {
+    "implementers": 2,
+    "independentReviewers": 1,
+    "coordinators": 1,
+    "implementationStopped": true,
+    "worktreesClean": true,
+    "noUnattendedWork": true,
+    "idleReason": "Remaining connected features exceed safe remaining implementation/review/exact-CI window; current bounded scenarios completed and clean handoff reserved"
+  },
+  "queueRevision": 586,
+  "heldTaskLeases": 0,
+  "credits": "unknown",
+  "providerCost": "unknown",
+  "reviewWaitingTime": "unknown",
+  "integrationRework": "none",
+  "regressions": [],
+  "replit": {
+    "implementationWorkers": 0,
+    "observed": "Exact app resolver found false; app list empty; no verified monitoring/stop/export capabilities, no dispatch"
+  },
+  "candidatePersistence": {
+    "format": "Exact immutable patches plus author/base/tree identities on state branch; integrated code on approved PR27 branch",
+    "workerBranchPush": "Automatic approval rejected optional worker-branch archival as outside integration-only publication. No workaround/retry. Read-only remote check confirmed branches absent; both exact patches already archived before that attempt."
+  },
+  "automation": {
+    "id": "6ae5226d4a2081919e793919d9cafa1b",
+    "enabled": true,
+    "cadence": "existing hourly schedule unchanged",
+    "promptUpdated": "Explicit verifier approval and full launch milestone policy preserved; worker branch pushes prohibited"
+  },
+  "threeRunComparison": {
+    "policyRunsSinceNov4": 1,
+    "nextReviewAfter": 3,
+    "metric": "Accepted scenarios and completed customer journeys, launch dependencies, rework and measured credits; not occupancy"
+  },
+  "stopReason": "Completed reviewed bounded scenarios with exact-source acceptance; preserve full connected next work for next bounded run with sufficient review/CI capacity. No further owner permission needed for verifier publication."
+}
