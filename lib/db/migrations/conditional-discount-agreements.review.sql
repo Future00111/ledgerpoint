@@ -347,3 +347,111 @@ GRANT SELECT ON public.accounting_document_sources,public.canonical_journal_entr
 GRANT SELECT(id,company_id,status) ON public.customers,public.suppliers TO ledgerly_canonical_owner;
 GRANT SELECT(id,country,base_currency), UPDATE(id) ON public.companies TO ledgerly_canonical_owner;
 GRANT UPDATE(id) ON public.company_users,public.customers,public.suppliers TO ledgerly_canonical_owner;
+
+-- Consumption is the existing immutable native paid-credit operation.
+CREATE UNIQUE INDEX conditional_credit_one_consumption ON public.accounting_paid_credit_operations
+ (company_id,(intent->>'original_id'),(intent#>>'{conditional_admission,binding,binding_hash}'))
+ WHERE intent ? 'conditional_admission';
+CREATE FUNCTION public.conditional_credit_consumption() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
+DECLARE d public.accounting_document_sources%ROWTYPE;
+ b public.conditional_discount_original_bindings%ROWTYPE;
+ a jsonb; v jsonb; e jsonb; released numeric:=0; qualified numeric:=0; threshold numeric; parent_qualified numeric;
+BEGIN
+ PERFORM id FROM public.companies WHERE id=NEW.company_id FOR UPDATE;
+ SELECT * INTO d FROM public.accounting_document_sources WHERE company_id=NEW.company_id AND id=NEW.credit_id;
+ SELECT * INTO b FROM public.conditional_discount_original_bindings WHERE company_id=NEW.company_id AND document_id=d.original_id;
+ IF NOT FOUND THEN
+  IF NEW.intent ? 'conditional_admission' THEN RAISE EXCEPTION 'Conditional consumption has no bound original'; END IF;
+  RETURN NEW;
+ END IF;
+ a=NEW.intent->'conditional_admission';
+ IF a IS NULL OR jsonb_typeof(a)<>'object' OR a->>'version' IS DISTINCT FROM '1'
+   OR NEW.intent->>'original_id' IS DISTINCT FROM b.document_id::text
+   OR a#>>'{binding,company_id}' IS DISTINCT FROM NEW.company_id::text
+   OR a#>>'{binding,document_id}' IS DISTINCT FROM b.document_id::text
+   OR a#>>'{binding,journal_id}' IS DISTINCT FROM b.journal_id::text
+   OR a#>>'{binding,binding_hash}' IS DISTINCT FROM b.binding_hash
+   OR a->>'terms_hash' IS DISTINCT FROM b.binding->>'terms_hash'
+   OR a->>'deadline' IS DISTINCT FROM b.binding->>'deadline'
+   OR d.status<>'posted' OR d.kind NOT IN ('sales_credit_note','supplier_credit_note')
+   OR d.money->>'gross_pence' IS DISTINCT FROM b.binding->>'discount_gross_pence'
+   OR d.tax_context->>'original_revision' IS DISTINCT FROM b.binding->>'revision'
+   OR d.tax_context->>'original_evidence_hash' IS DISTINCT FROM b.binding->>'financial_hash'
+   OR jsonb_typeof(NEW.intent->'conditional_credit_payload') IS DISTINCT FROM 'string'
+   OR (NEW.intent->>'conditional_credit_payload')::jsonb IS DISTINCT FROM jsonb_build_object('source',d.source,'money',d.money,'tax_context',d.tax_context,'accounts',d.posting_accounts)
+   OR NEW.intent->>'document_id' IS DISTINCT FROM d.id::text
+   OR NEW.intent->>'revision' IS DISTINCT FROM d.revision::text
+   OR NEW.result->>'document_id' IS DISTINCT FROM d.id::text
+   OR NEW.result->>'journal_id' IS DISTINCT FROM d.journal_id::text
+   OR NEW.result->>'request_id' IS DISTINCT FROM NEW.request_id::text
+   OR NEW.result->>'status' IS DISTINCT FROM 'posted'
+   OR jsonb_typeof(a->'qualifying_events') IS DISTINCT FROM 'array'
+   OR jsonb_typeof(NEW.intent->'releases') IS DISTINCT FROM 'array'
+   OR jsonb_array_length(d.money->'lines')<>jsonb_array_length(b.binding->'vector')
+   OR NOT EXISTS(SELECT 1 FROM public.canonical_journal_entries j JOIN public.accounting_posting_effects p
+     ON p.company_id=j.company_id AND p.journal_id=j.id WHERE j.company_id=NEW.company_id AND j.id=d.journal_id
+       AND j.source_type=d.kind AND j.source_id=d.id::text AND j.source_revision=d.revision::text
+       AND j.status='posted' AND j.posting_kind='ordinary_document' AND j.currency_code='GBP'
+       AND j.source_evidence_hash='sha256:'||encode(sha256(convert_to(NEW.intent->>'conditional_credit_payload','UTF8')),'hex')
+       AND j.economic_effect_id='document:'||d.id::text AND p.source_type=j.source_type AND p.source_id=j.source_id
+       AND p.source_revision=j.source_revision AND p.source_evidence_hash=j.source_evidence_hash
+       AND p.economic_effect_id=j.economic_effect_id AND p.posting_kind=j.posting_kind AND p.status='posted')
+ THEN RAISE EXCEPTION 'Conditional consumption identity invalid'; END IF;
+ FOR v IN SELECT value FROM jsonb_array_elements(b.binding->'vector') LOOP
+  IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(d.money->'lines') WITH ORDINALITY l(value,n)
+    WHERE d.tax_context->'original_line_refs'->>((l.n-1)::integer)=v->>'line_ref'
+      AND l.value->>'net_pence'=v->>'net_pence' AND l.value->>'vat_pence'=v->>'vat_pence'
+      AND l.value->>'gross_pence'=v->>'gross_pence') THEN RAISE EXCEPTION 'Conditional consumption vector invalid'; END IF;
+ END LOOP;
+ IF (SELECT count(*)<>count(DISTINCT value->>'event_id') FROM jsonb_array_elements(a->'qualifying_events')) THEN
+  RAISE EXCEPTION 'Conditional consumption duplicate event'; END IF;
+ FOR e IN SELECT value FROM jsonb_array_elements(a->'qualifying_events') LOOP
+  IF NOT EXISTS(SELECT 1 FROM public.accounting_payment_events pe
+    JOIN public.conditional_discount_commit_witnesses w ON w.company_id=pe.company_id AND w.event_id=pe.id
+    JOIN public.accounting_payment_events parent ON parent.company_id=pe.company_id AND parent.id=COALESCE(pe.payment_id,pe.id) AND parent.kind='payment'
+    JOIN public.conditional_discount_commit_witnesses pw ON pw.company_id=parent.company_id AND pw.event_id=parent.id
+    JOIN public.conditional_discount_original_observations o ON o.company_id=b.company_id AND o.document_id=b.document_id
+    WHERE pe.company_id=NEW.company_id AND pe.id::text=e->>'event_id' AND pe.kind IN ('payment','allocation')
+      AND pe.journal_id::text=e->>'journal_id' AND w.event_source_hash=e->>'event_source_hash'
+      AND parent.id::text=e->>'payment_id' AND parent.journal_id::text=e->>'payment_journal_id'
+      AND pw.event_source_hash=e->>'payment_source_hash'
+      AND pe.created_at>o.observed_at AND parent.created_at>o.observed_at
+      AND w.observed_at<(((b.binding->>'deadline')::date+1)::timestamp AT TIME ZONE 'UTC')
+      AND pw.observed_at<(((b.binding->>'deadline')::date+1)::timestamp AT TIME ZONE 'UTC')
+      AND pe.effective_date<=(b.binding->>'deadline')::date AND parent.effective_date<=(b.binding->>'deadline')::date
+      AND pe.source#>'{conditional_binding_snapshot,bindings}' @> jsonb_build_array(a->'binding')
+      AND parent.source#>'{conditional_binding_snapshot,bindings}' @> jsonb_build_array(a->'binding')
+      AND EXISTS(SELECT 1 FROM jsonb_array_elements(pe.allocations) al WHERE al->>'document_id'=b.document_id::text AND al->>'amount_minor'=e->>'amount_minor'))
+    THEN RAISE EXCEPTION 'Conditional consumption witness invalid'; END IF;
+  qualified=qualified+(e->>'amount_minor')::numeric;
+ END LOOP;
+ IF (SELECT count(*)<>count(DISTINCT value->>'payment_id') OR count(*)<>count(DISTINCT value->>'id') FROM jsonb_array_elements(NEW.intent->'releases')) THEN RAISE EXCEPTION 'Conditional consumption duplicate release'; END IF;
+ IF EXISTS(SELECT 1 FROM public.accounting_payment_events pe WHERE pe.company_id=NEW.company_id
+   AND pe.kind IN ('unallocation','reversal') AND EXISTS(SELECT 1 FROM jsonb_array_elements(a->'qualifying_events') x WHERE x->>'payment_id'=pe.payment_id::text)
+   AND NOT EXISTS(SELECT 1 FROM jsonb_array_elements(NEW.intent->'releases') x WHERE x->>'id'=pe.id::text AND pe.kind='unallocation'))
+ THEN RAISE EXCEPTION 'Conditional consumption release history invalid'; END IF;
+ FOR e IN SELECT value FROM jsonb_array_elements(NEW.intent->'releases') LOOP
+  IF NOT EXISTS(SELECT 1 FROM public.accounting_payment_events pe JOIN public.canonical_journal_entries j
+    ON j.company_id=pe.company_id AND j.id=pe.journal_id
+    WHERE pe.company_id=NEW.company_id AND pe.id::text=e->>'id' AND pe.kind='unallocation'
+      AND pe.payment_id::text=e->>'payment_id' AND pe.amount_minor::text=e->>'amount_minor'
+      AND pe.allocations=jsonb_build_array(jsonb_build_object('document_id',b.document_id::text,'amount_minor',e->>'amount_minor'))
+      AND j.status='posted' AND j.source_id=pe.id::text AND j.source_type='accounting_payment_event'
+      AND j.posting_kind='party_unallocation') THEN RAISE EXCEPTION 'Conditional consumption release invalid'; END IF;
+  SELECT COALESCE(sum((x->>'amount_minor')::numeric),0) INTO parent_qualified FROM jsonb_array_elements(a->'qualifying_events') x WHERE x->>'payment_id'=e->>'payment_id';
+  qualified=qualified-LEAST(parent_qualified,(e->>'amount_minor')::numeric);
+  released=released+(e->>'amount_minor')::numeric;
+ END LOOP;
+ threshold=(b.binding->>'gross_pence')::numeric-(b.binding->>'discount_gross_pence')::numeric;
+ IF threshold<=0 OR qualified<threshold OR (a->>'threshold_minor')::numeric IS DISTINCT FROM threshold
+   OR (a->>'qualifying_minor')::numeric IS DISTINCT FROM qualified
+   OR NEW.intent->>'released_minor' IS DISTINCT FROM released::text THEN RAISE EXCEPTION 'Conditional consumption threshold invalid'; END IF;
+ RETURN NEW;
+END $$;
+ALTER FUNCTION public.conditional_credit_consumption() OWNER TO ledgerly_canonical_owner;
+REVOKE ALL ON FUNCTION public.conditional_credit_consumption() FROM PUBLIC,ledgerly_api;
+GRANT SELECT ON public.accounting_payment_events,public.accounting_paid_credit_operations TO ledgerly_canonical_owner;
+CREATE TRIGGER conditional_credit_consumption BEFORE INSERT ON public.accounting_paid_credit_operations
+ FOR EACH ROW EXECUTE FUNCTION public.conditional_credit_consumption();
+ALTER TABLE public.accounting_paid_credit_operations ENABLE ALWAYS TRIGGER conditional_credit_consumption;

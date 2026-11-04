@@ -1,3 +1,5 @@
+import { hasConditionalCreditAuthority } from './paidCredit';
+import type { DatabaseTransaction } from '../accounting/canonicalPosting';
 import { assertNoConditionalCredit, validateConditionalDraft } from './conditionalDiscount';
 import { appliedTo, documentOpen, paymentEvents } from './settlement';
 import { amendmentHistory, assertUncorrectedOriginal } from './amendments';
@@ -117,11 +119,11 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
       purchase_vat_eligible:eligible,business_accounting_basis:"accrual"},
     posting_accounts:accounts,mapping_revision:config.revision,unit_net_prices:tax.unitNetPrices};
 }
-export async function assertCreditAvailable(q:Queryable, company:string, row:any) {
+export async function assertCreditAvailable(q:Queryable, company:string, row:any, tx?:DatabaseTransaction, actor?:string) {
   if(!credit(row.kind)) return;
   const original=await document(q,company,row.original_id,true);
   await assertUncorrectedOriginal(q,company,original);
-  await assertNoConditionalCredit(q,company,original);
+  if(!hasConditionalCreditAuthority(tx,company,actor,row)) await assertNoConditionalCredit(q,company,original);
   if(original.status!=="posted" || !original.journal_id ||
     row.tax_context.original_revision!==original.revision ||
     row.tax_context.original_evidence_hash!==hash({source:original.source,money:original.money,tax_context:original.tax_context,accounts:original.posting_accounts}))

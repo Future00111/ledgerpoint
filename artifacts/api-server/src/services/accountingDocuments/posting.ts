@@ -1,3 +1,5 @@
+import { hasConditionalCreditAuthority } from './paidCredit';
+import { assertNoConditionalCredit } from './conditionalDiscount';
 import { journalLines } from './documentJournal';
 export { journalLines } from './documentJournal';
 import { randomUUID } from "node:crypto";
@@ -42,7 +44,12 @@ export async function postDocument(company:string,actor:string,id:string,expecte
   testHook?: (tx:DatabaseTransaction)=>Promise<void>, existingTransaction?:DatabaseTransaction) {
   // Read admission is advisory; all authorities and capabilities are locked and
   // checked again inside postCanonicalJournal's one transaction.
-  const admission=async(q:Queryable)=>{await scope(q,company,actor);return document(q,company,id);};
+  const admission=async(q:Queryable)=>{
+    await scope(q,company,actor);const row=await document(q,company,id);
+    if(credit(row.kind) && !hasConditionalCreditAuthority(existingTransaction,company,actor,row))
+      await assertNoConditionalCredit(q,company,await document(q,company,row.original_id));
+    return row;
+  };
   const initial=existingTransaction?await admission(queryAdapter(existingTransaction)):await transact(admission,true);
   if(initial.source?.conditional_discount) fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
   if(initial.revision!==expected) fail(409,"REVISION_CONFLICT");
@@ -69,7 +76,7 @@ export async function postDocument(company:string,actor:string,id:string,expecte
       for(const field of ["source","money","tax_context","posting_accounts"]) {
         if(hash(fresh[field as keyof typeof fresh])!==hash(current[field])) fail(409,"SOURCE_CONTEXT_CHANGED");
       }
-      await assertCreditAvailable(q,company,current);
+      await assertCreditAvailable(q,company,current,tx,actor);
       const snapshot={companyId:company,sourceType:current.kind,sourceId:id,status:"draft",isPostable:true,
         sourceRevision:expected,evidenceHash:hash({source:current.source,money:current.money,
           tax_context:current.tax_context,accounts:current.posting_accounts})};

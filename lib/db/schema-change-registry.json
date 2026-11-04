@@ -81,7 +81,7 @@
     },
     {
       "path": "lib/db/migrations/conditional-discount-agreements.review.sql",
-      "sha256": "4a27b8d4840324bb3ed249b44988a99045a01c3626d827c723042cc5732fd0df",
+      "sha256": "0023c3e11a2ee056aedd67b695e980a1b6cd3202bdd692a42b3f7cb5488906fb",
       "status": "review_sql_only",
       "tables": [
         "conditional_discount_payment_transactions",

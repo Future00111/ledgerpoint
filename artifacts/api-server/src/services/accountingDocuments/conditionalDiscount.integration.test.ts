@@ -586,3 +586,103 @@ for(const partyType of ['customer','supplier'] as const) {
    mode==='unallocation'?/CONDITIONAL_RELEASE_HISTORY_UNSUPPORTED/:/CONDITIONAL_PAYMENT_THRESHOLD_NOT_MET/);
  });
 }
+
+import {commitConditionalCredit} from './paidCredit';
+import {reviewCorrection} from './corrections';
+for(const partyType of ['customer','supplier'] as const) {
+ for(const amount of ['10800','12000']) test(`real PostgreSQL: ${partyType} atomic conditional redemption ${amount}, replay and protected settlement`,async()=>{
+  const f=await admissionFixture(partyType);
+  await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
+  await observeConditionalOriginal(f.company,actor,f.draft.id);
+  const cash=await nativeCash(f,amount,amount);
+  const credit=await conditionalCreditDraft(f,partyType),body={request_id:randomUUID(),reason:'Internal redemption'};
+  const review=await reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body);
+  const input={...body,review_token:review.review_token,releases:review.releases};
+  const staleUndo={...f.body,id:randomUUID(),date:'2199-12-02',kind:'unallocation',payment_id:cash.id,amount_minor:'1',allocations:[{document_id:f.draft.id,amount_minor:'1'}]};
+  const staleUndoReview=await previewPayment(f.company,actor,staleUndo);
+  const results=await Promise.all([commitConditionalCredit(f.company,actor,credit.id,credit.revision,input),commitConditionalCredit(f.company,actor,credit.id,credit.revision,input)]);
+  assert.deepEqual(results.map(x=>x.status).sort(),['duplicate','posted']);
+  assert.equal(results[0].journal_id,results[1].journal_id);
+  const totals=(await pool.query(`SELECT amount_paid::text,balance_due::text FROM ${partyType==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[f.draft.id])).rows[0];
+  assert.deepEqual(totals,{amount_paid:'108.00',balance_due:'0.00'});
+  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,1);
+  const op=(await pool.query('SELECT * FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0];
+  assert.equal(op.intent.conditional_admission.binding.document_id,f.draft.id);
+  assert.equal(op.credit_id,credit.id);
+  assert.equal(op.intent.released_minor,amount==='12000'?'1200':'0');
+  const altered=(await pool.query('SELECT * FROM accounting_document_sources WHERE company_id=$1 AND id=$2',[f.company,credit.id])).rows[0];
+  altered.source={...altered.source,invoice_number:'FORGED POSTED SOURCE'};
+  const forgedIntent={...op.intent,conditional_credit_payload:canonicalConditionalPayload({source:altered.source,money:altered.money,tax_context:altered.tax_context,accounts:altered.posting_accounts})};
+  const forgedRequest=randomUUID(),connection=await admin.connect();
+  try {
+   await connection.query('BEGIN');
+   await connection.query('UPDATE accounting_document_sources SET source=$3 WHERE company_id=$1 AND id=$2',[f.company,credit.id,altered.source]);
+   await connection.query('SET LOCAL ROLE ledgerly_api');
+   await assert.rejects(()=>connection.query(`INSERT INTO accounting_paid_credit_operations(company_id,request_id,credit_id,actor_id,request_hash,intent,result) VALUES($1,$2,$3,$4,$5,$6,$7)`,[f.company,forgedRequest,credit.id,actor,op.request_hash,forgedIntent,{...op.result,request_id:forgedRequest}]),/Conditional consumption identity invalid/);
+  } finally {await connection.query('ROLLBACK');connection.release();}
+
+  await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,input),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
+  await assert.rejects(()=>postDocument(f.company,actor,credit.id,credit.revision),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
+  await assert.rejects(()=>reviewCorrection(f.company,actor,f.draft.id,f.draft.revision,{request_id:randomUUID(),reason:'Consumed original',effective_date:'2199-12-02',line_items:f.draft.source.line_items.map((x:any)=>({quantity:x.quantity,unit_price:'110'}))}),/CORRECTION_CHILD_CREDITS/);
+  const undo={...f.body,id:randomUUID(),date:'2199-12-02',kind:'unallocation',payment_id:cash.id,amount_minor:'1',allocations:[{document_id:f.draft.id,amount_minor:'1'}]};
+  await assert.rejects(()=>previewPayment(f.company,actor,undo),/CONDITIONAL_CONSUMED_PAYMENT_PROTECTED/);
+  await assert.rejects(()=>postPayment(f.company,actor,{...staleUndo,review_token:staleUndoReview.review_token}),/CONDITIONAL_CONSUMED_PAYMENT_PROTECTED/);
+  const reverse={...undo,id:randomUUID(),kind:'reversal',amount_minor:amount,allocations:[]};
+  await assert.rejects(()=>previewPayment(f.company,actor,reverse),/CONDITIONAL_CONSUMED_PAYMENT_PROTECTED/);
+  if(amount==='12000') {
+   const refund={...undo,id:randomUUID(),kind:'refund',amount_minor:'1200',allocations:[]};
+   const r=await previewPayment(f.company,actor,refund);await postPayment(f.company,actor,{...refund,review_token:r.review_token});
+   assert.deepEqual((await pool.query(`SELECT amount_paid::text,balance_due::text FROM ${partyType==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[f.draft.id])).rows[0],totals);
+  }
+ });
+ test(`real PostgreSQL: ${partyType} conditional redemption rollback and competing identities`,async()=>{
+  const f=await admissionFixture(partyType);
+  await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
+  await observeConditionalOriginal(f.company,actor,f.draft.id);await nativeCash(f,'12000','12000');
+  const c1=await conditionalCreditDraft(f,partyType),c2=await conditionalCreditDraft(f,partyType);
+  const b1={request_id:randomUUID(),reason:'Rollback and race'},b2={request_id:randomUUID(),reason:'Competing identity'};
+  const r1=await reviewConditionalCredit(f.company,actor,c1.id,c1.revision,b1),r2=await reviewConditionalCredit(f.company,actor,c2.id,c2.revision,b2);
+  const i1={...b1,review_token:r1.review_token,releases:r1.releases},i2={...b2,review_token:r2.review_token,releases:r2.releases};
+  const before=(await pool.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n;
+  await assert.rejects(()=>commitConditionalCredit(f.company,actor,c1.id,c1.revision,i1,async tx=>{assert.equal((await queryAdapter(tx).query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,1);throw Error('redemption rollback');}),/redemption rollback/);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,before);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,0);
+  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,0);
+  await assert.rejects(()=>postDocument(f.company,actor,c1.id,c1.revision),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
+  // Even the restricted SQL writer cannot manufacture consumption for a draft.
+  await assert.rejects(()=>pool.query(`INSERT INTO accounting_paid_credit_operations(company_id,request_id,credit_id,actor_id,request_hash,intent,result) VALUES($1,$2,$3,$4,$5,$6,$7)`,[f.company,randomUUID(),c1.id,actor,'sha256:'+'a'.repeat(64),r1,{status:'posted',document_id:c1.id,journal_id:randomUUID(),request_id:randomUUID()}]),/Conditional consumption identity invalid/);
+  const race=await Promise.allSettled([commitConditionalCredit(f.company,actor,c1.id,c1.revision,i1),commitConditionalCredit(f.company,actor,c2.id,c2.revision,i2)]);
+  assert.equal(race.filter(x=>x.status==='fulfilled').length,1);
+  assert.equal(race.filter(x=>x.status==='rejected').length,1);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,1);
+ });
+}
+for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL: ${partyType} redemption races eligibility loss under the same company lock`,async()=>{
+ const f=await admissionFixture(partyType);
+ await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));await observeConditionalOriginal(f.company,actor,f.draft.id);
+ const cash=await nativeCash(f,'10800','10800'),credit=await conditionalCreditDraft(f,partyType);
+ const body={request_id:randomUUID(),reason:'Race eligibility loss'},review=await reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body);
+ const undo={...f.body,id:randomUUID(),date:'2199-12-02',kind:'unallocation',payment_id:cash.id,amount_minor:'100',allocations:[{document_id:f.draft.id,amount_minor:'100'}]};
+ const ur=await previewPayment(f.company,actor,undo);
+ const race=await Promise.allSettled([
+  commitConditionalCredit(f.company,actor,credit.id,credit.revision,{...body,review_token:review.review_token,releases:review.releases}),
+  postPayment(f.company,actor,{...undo,review_token:ur.review_token})]);
+ assert.equal(race.filter(x=>x.status==='fulfilled').length,1);
+ const operations=(await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n;
+ const paid=(await pool.query(`SELECT amount_paid::text FROM ${partyType==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[f.draft.id])).rows[0].amount_paid;
+ assert.equal(paid,operations===1?'108.00':'107.00');
+});
+for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL: ${partyType} redemption releases old nonqualifying pool before qualifying cash`,async()=>{
+ const f=await admissionFixture(partyType),old=await nativeCash(f,'1200','0');
+ await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));await observeConditionalOriginal(f.company,actor,f.draft.id);
+ const allocation={...f.body,id:randomUUID(),kind:'allocation',payment_id:old.id,amount_minor:'1200',allocations:[{document_id:f.draft.id,amount_minor:'1200'}]};
+ const ar=await previewPayment(f.company,actor,allocation);await postPayment(f.company,actor,{...allocation,review_token:ar.review_token});
+ await nativeCash(f,'10800','10800');
+ const credit=await conditionalCreditDraft(f,partyType),body={request_id:randomUUID(),reason:'Qualified-first per-parent release'};
+ const review=await reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body);
+ assert.equal(review.conditional_admission?.qualifying_minor,'10800');assert.equal(review.releases[0].payment_id,old.id);
+ assert.equal(review.releases[0].amount_minor,'1200');
+ const result=await commitConditionalCredit(f.company,actor,credit.id,credit.revision,{...body,review_token:review.review_token,releases:review.releases});
+ assert.equal(result.status,'posted');
+ assert.deepEqual((await pool.query(`SELECT amount_paid::text,balance_due::text FROM ${partyType==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[f.draft.id])).rows[0],{amount_paid:'108.00',balance_due:'0.00'});
+});

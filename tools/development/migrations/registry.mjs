@@ -16,7 +16,7 @@ export function validateMigrationInputs(registry, readBytes) {
   for (const [index, id] of migrationOrder.entries()) {
     const item = registry.migrations[index];
     const expectedPath = `lib/db/migrations/${id}.review.sql`;
-    const dependencies = id === 'conditional-discount-agreements' ? ['accounting-payments'] : id === 'w03-invoice-drafts' ? ['accounting-documents']
+    const dependencies = id === 'conditional-discount-agreements' ? ['accounting-payments', 'paid-credit-operations'] : id === 'w03-invoice-drafts' ? ['accounting-documents']
       : index === 0 ? [] : [migrationOrder[index - 1]];
     if (!item || item.id !== id || item.path !== expectedPath || item.contractVersion !== 1
         || JSON.stringify(item.dependencies) !== JSON.stringify(dependencies)
@@ -52,7 +52,7 @@ export function expectedMigrationHistory(inputs, { includeAmendments = false } =
   return [...migrationOrder.filter(id => includeAmendments || id !== 'accounting-document-amendments'),
     'canonical-security-overlay'].map(id => ({ id, sha256: sha256(Buffer.from(inputs[id])), contract_version: 1,
       dependencies: id === 'canonical-security-overlay' ? ['w03-invoice-drafts']
-        : id === 'conditional-discount-agreements' ? ['accounting-payments'] : id === 'w03-invoice-drafts' ? ['accounting-documents']
+        : id === 'conditional-discount-agreements' ? ['accounting-payments', 'paid-credit-operations'] : id === 'w03-invoice-drafts' ? ['accounting-documents']
         : migrationOrder.indexOf(id) === 0 ? [] : [migrationOrder[migrationOrder.indexOf(id) - 1]] }));
 }
 export function validateInstalledMigrationHistory(rows, expected) {

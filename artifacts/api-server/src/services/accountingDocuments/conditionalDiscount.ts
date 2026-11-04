@@ -479,3 +479,32 @@ export async function conditionalCreditAdmission(q:Queryable,company:string,orig
   return {version:1,binding,terms_hash:frozen.terms_hash,threshold_minor:threshold.toString(),qualifying_minor:total.toString(),
     deadline:frozen.deadline,qualifying_events:qualifying,posting_available:false};
 }
+
+/** Consumption is the immutable native paid-credit operation, not a second ledger. */
+export async function conditionalConsumptionSchema(q:Queryable) {
+  const row=(await q.query(`SELECT
+    EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='accounting_paid_credit_operations'::regclass
+      AND tgname='conditional_credit_consumption' AND tgenabled='A' AND NOT tgisinternal) guarded,
+    EXISTS(SELECT 1 FROM pg_index WHERE indexrelid=to_regclass('public.conditional_credit_one_consumption')
+      AND indisunique AND indisvalid) unique_consumption`)).rows[0];
+  if(row?.guarded!==true || row?.unique_consumption!==true) fail(503,'CONDITIONAL_CONSUMPTION_SCHEMA_INCOMPLETE');
+}
+/** All native payment writers call this under the existing company lock.
+ * Positive payment/allocation cannot remove qualifying cash. Refunds use only
+ * the native unapplied pool. Compensation is intentionally unavailable: reject
+ * unallocation of consumed originals and reversal of their qualifying parents. */
+export async function assertConditionalPaymentMutation(q:Queryable,company:string,b:any) {
+  if(!['unallocation','reversal'].includes(b.kind)) return;
+  const installed=(await q.query("SELECT to_regclass('public.accounting_paid_credit_operations') present")).rows[0]?.present;
+  if(!installed) fail(503,'CONDITIONAL_CONSUMPTION_SCHEMA_INCOMPLETE');
+  await conditionalConsumptionSchema(q);
+  const records=(await q.query(`SELECT intent FROM accounting_paid_credit_operations
+    WHERE company_id=$1 AND intent ? 'conditional_admission'`,[company])).rows;
+  for(const {intent} of records) {
+    const admission=intent.conditional_admission;
+    if(!admission || admission.version!==1 || !/^[a-f0-9-]{36}$/.test(intent.original_id??'') || admission.binding?.company_id!==company || admission.binding?.document_id!==intent.original_id || !/^sha256:[a-f0-9]{64}$/.test(admission.binding?.binding_hash??'') || !Array.isArray(admission.qualifying_events) || admission.qualifying_events.length===0 || admission.qualifying_events.some((e:any)=>!e || !/^[a-f0-9-]{36}$/.test(e.payment_id??'') || !/^[a-f0-9-]{36}$/.test(e.event_id??''))) fail(503,'CONDITIONAL_CONSUMPTION_INVALID');
+    if((b.kind==='unallocation' && b.allocations.some((a:any)=>a.document_id===intent.original_id)) ||
+      (b.kind==='reversal' && admission.qualifying_events.some((e:any)=>e.payment_id===b.payment_id)))
+      fail(409,'CONDITIONAL_CONSUMED_PAYMENT_PROTECTED');
+  }
+}

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { conditionalPaymentSnapshot, observePaymentOutcome } from './conditionalDiscount';
+import { conditionalPaymentSnapshot, observePaymentOutcome, assertConditionalPaymentMutation } from './conditionalDiscount';
 import { isCompanyRole } from '../../security/roles';
 import { canWriteDraft, fail, uuid } from '../financialDrafts/contract';
 import { postCanonicalJournal, postCanonicalJournalInTransaction, roleHasAccountingCapability, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
@@ -126,6 +126,7 @@ async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof 
     WHERE company_id=$1 AND start_date<=$2::date AND end_date>=$2::date ORDER BY id FOR UPDATE`,[company,b.date])).rows;
   if(periods.length!==1||periods[0].status!=='OPEN') fail(409,'PERIOD_NOT_WRITABLE');
   const events=await paymentEvents(q,company);
+  await assertConditionalPaymentMutation(q,company,b);
   const parent=b.payment_id?events.find(e=>e.id===b.payment_id&&e.kind==='payment'):null;
   const related=parent?events.filter(e=>e.id===parent.id||e.payment_id===parent.id):[];
   if(b.payment_id && (!parent||parent.party_id!==b.party_id||parent.party_type!==b.party_type)) fail(404,'RESOURCE_NOT_FOUND');

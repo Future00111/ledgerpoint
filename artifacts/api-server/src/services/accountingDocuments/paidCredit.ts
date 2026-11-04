@@ -6,9 +6,17 @@ import { assertUncorrectedOriginal } from './amendments';
 import { documentOpen, paymentEvents, appliedTo, unappliedEffect } from './settlement';
 import { postPayment, previewPaymentInTransaction } from './payments';
 import { postDocument } from './posting';
-import { assertNoConditionalCredit, conditionalCreditAdmission } from './conditionalDiscount';
+import { assertNoConditionalCredit, conditionalCreditAdmission, conditionalConsumptionSchema, canonicalConditionalPayload } from './conditionalDiscount';
 import { calculateDocument } from './documents';
 
+// Only the internal command below can create this transaction-bound capability.
+// Exporting its predicate does not expose a constructor or a caller-supplied flag.
+const conditionalTransactions=new WeakMap<DatabaseTransaction,{company:string,actor:string,original:string,credit:string,revision:string,rowHash:string}>();
+export function hasConditionalCreditAuthority(tx:DatabaseTransaction|undefined,company:string,actor:string|undefined,row:any) {
+  const held=tx?conditionalTransactions.get(tx):undefined;
+  return !!held && held.company===company && held.actor===actor && held.original===row.original_id &&
+    held.credit===row.id && held.revision===row.revision && held.rowHash===hash(row);
+}
 async function authority(q:Queryable,company:string,actor:string) {
   await scope(q,company,actor,true,true);
   const role=(await q.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2',[company,actor])).rows[0]?.role;
@@ -79,7 +87,7 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
   if(events.some(e=>e.effective_date>row.source.issue_date&&e.allocations.some((a:any)=>a.document_id===original.id))) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
   const configurations=(await q.query('SELECT * FROM accounting_payment_configuration WHERE company_id=$1',[company])).rows;
   const admission=conditional?await conditionalCreditAdmission(q,company,original,row,releases):undefined;
-  const review={...(admission?{conditional_admission:admission}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
+  const review={...(admission?{conditional_admission:admission,conditional_credit_payload:canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts})}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
     credit_minor:value.toString(),offset_minor:(value-excess).toString(),released_minor:excess.toString(),remaining_minor:(BigInt(open.open_minor)-(value-excess)).toString(),releases};
   return {...review,review_token:hash({company,actor,review,row,original,events,periods,configurations})};
 }
@@ -90,17 +98,18 @@ export async function reviewPaidCredit(company:string,actor:string,id:string,exp
 export async function reviewConditionalCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
   const b=intent(body);return transact(q=>plan(q,company,actor,id,expected,b,true));
 }
-export async function commitPaidCredit(company:string,actor:string,id:string,expected:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+async function commitCredit(company:string,actor:string,id:string,expected:string,body:unknown,conditional:boolean,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
   const b=intent(body),input=body as any;
   if(typeof input.review_token!=='string'||!/^sha256:[a-f0-9]{64}$/.test(input.review_token)||!Array.isArray(input.releases)) fail(428,'PAID_CREDIT_REVIEW_REQUIRED');
-  const requestHash=hash({company,actor,id,expected,...b,review_token:input.review_token,releases:input.releases});
+  const requestHash=hash({company,actor,id,expected,...b,review_token:input.review_token,releases:input.releases,...(conditional?{conditional:true}:{})});
   return withCanonicalPostingTransaction(async tx=>{
     const q=queryAdapter(tx);await authority(q,company,actor);
     const creditRow=await document(q,company,id,true);
-    if(credit(creditRow.kind)) await assertNoConditionalCredit(q,company,await document(q,company,creditRow.original_id,true));
+    if(!conditional && credit(creditRow.kind)) await assertNoConditionalCredit(q,company,await document(q,company,creditRow.original_id,true));
+    if(conditional) await conditionalConsumptionSchema(q);
     const prior=(await q.query('SELECT * FROM accounting_paid_credit_operations WHERE company_id=$1 AND request_id=$2',[company,b.request_id])).rows[0];
     if(prior){if(prior.request_hash!==requestHash) fail(409,'IDEMPOTENCY_CONFLICT');return {...prior.result,status:'duplicate'};}
-    const reviewed=await plan(q,company,actor,id,expected,b);
+    const reviewed=await plan(q,company,actor,id,expected,b,conditional);
     if(reviewed.review_token!==input.review_token||hash(reviewed.releases)!==hash(input.releases)) fail(409,'PAID_CREDIT_REVIEW_STALE');
     const row=await document(q,company,id,true),results=[];
     for(const release of reviewed.releases) {
@@ -110,10 +119,22 @@ export async function commitPaidCredit(company:string,actor:string,id:string,exp
       const r=await previewPaymentInTransaction(q,company,actor,payment);
       results.push(await postPayment(company,actor,{...payment,review_token:r.review_token},undefined,tx));
     }
-    await testHook?.(tx);
-    const posted=await postDocument(company,actor,id,expected,undefined,tx);
+    if(!conditional) await testHook?.(tx);
+    let posted;
+    if(conditional) conditionalTransactions.set(tx,{company,actor,original:row.original_id,credit:id,revision:expected,rowHash:hash(row)});
+    try { posted=await postDocument(company,actor,id,expected,undefined,tx); }
+    finally { conditionalTransactions.delete(tx); }
     const result={status:'posted',document_id:id,journal_id:posted.journal_id,releases:results,request_id:b.request_id};
     await q.query('INSERT INTO accounting_paid_credit_operations(company_id,request_id,credit_id,actor_id,request_hash,intent,result) VALUES($1,$2,$3,$4,$5,$6,$7)',[company,b.request_id,id,actor,requestHash,reviewed,result]);
+    if(conditional) await testHook?.(tx);
     return result;
   });
+}
+
+export async function commitPaidCredit(company:string,actor:string,id:string,expected:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+  return commitCredit(company,actor,id,expected,body,false,testHook);
+}
+/** Internal server command. Deliberately not mounted on an HTTP route. */
+export async function commitConditionalCredit(company:string,actor:string,id:string,expected:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+  return commitCredit(company,actor,id,expected,body,true,testHook);
 }
