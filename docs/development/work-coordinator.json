@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 237,
+  "revision": 239,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 667,
+    "revision": 669,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "review",
+        "status": "pending",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Stopped clean381ab815/treebd95f557 tenfiles; focused59 registry29 libs/APItypecheck integrationbundle diffcheckpass. ActualPG pendingPR27CI. Candidate patch/rawcommit locally preserved. Parent pending UI/browser/compensation/corrections. No active editing or commands; no moreclaims.",
+        "checkpoint": "Stopped clean author381ab815678ad20d9271a21729d2674ce9ae867d/integrator17e4051c5a850d568910ffbb4b36884ba22e7fdf same treebd95f5578824de7e0b13015af4dfd0273cb4c384 archivedf99c7a616e079903fa7d4641c15eac6959853f8a. Root exact reviewed10files. Focused59 registry29 source790 fullbuild/typecheck passed. Development publication CAS rejected by automaticreview misclassified authorized integrationbranch as prohibitedworkerbranch; livePR27/source stillde140. No retry/bypass. Next resolve publication approval and publish this existing reviewedcandidate then exactPG/restoreCI, not redo admission/redemption implementation. Fullparent UI/browser/compensation/priorcredits/corrections pending.",
         "evidence": {
           "commit": "381ab815678ad20d9271a21729d2674ce9ae867d",
           "summary": "PARTIAL internal atomic conditional redemption uses native paidCredit posting/releases and immutable unique consumption in existing operation. Exact transaction-only private capability; public conditional paths remain closed. All native eligibility-loss unallocation/reversal guard consumed original/parents; ordinary credits remainclosed and correction childcreditguard retained. Bothparty threshold10800/12000release, duplicate and competing credits, eligibilityloss race, postconsumption rollback, surplusrefund, stale unallocation commit and forgedsource evidence cases added. ActualPG pending exactPR27CI; parent stillpending completeUI/browser, compensation/correction/priorcredit expansion. Worker stoppedclean.",
@@ -222,10 +222,7 @@
             }
           }
         },
-        "owner": "worker2121",
-        "tokenSha256": "88b043f692412c4f12074b60cd42bfda0023f87f3d5e1f59bac5c7ac5e0578ea",
-        "leaseUntil": 1793829208272,
-        "workStarted": true
+        "blockers": []
       },
       "P01-04": {
         "status": "blocked",
@@ -8857,6 +8854,20 @@
             }
           }
         }
+      },
+      {
+        "at": 1793828339671,
+        "actor": "coordinator2121",
+        "type": "reject",
+        "taskId": "P01-03",
+        "reason": "Queue lease release only: independently reviewed bounded internal redemption candidate381ab815/treebd95 archivedf99c7; exact local59focused29registry790source/fullbuild passed. Development source ref update to authorized PR27 integrationbranch was blocked by automatic approval review misclassifying it as workerbranch. No code ref moved, no alternative/retry. Fullparent pending, exactnativeCI pending, no review defect asserted."
+      },
+      {
+        "at": 1793828339712,
+        "actor": "coordinator2121",
+        "type": "recover",
+        "taskId": "P01-03",
+        "checkpoint": "Stopped clean author381ab815678ad20d9271a21729d2674ce9ae867d/integrator17e4051c5a850d568910ffbb4b36884ba22e7fdf same treebd95f5578824de7e0b13015af4dfd0273cb4c384 archivedf99c7a616e079903fa7d4641c15eac6959853f8a. Root exact reviewed10files. Focused59 registry29 source790 fullbuild/typecheck passed. Development publication CAS rejected by automaticreview misclassified authorized integrationbranch as prohibitedworkerbranch; livePR27/source stillde140. No retry/bypass. Next resolve publication approval and publish this existing reviewedcandidate then exactPG/restoreCI, not redo admission/redemption implementation. Fullparent UI/browser/compensation/priorcredits/corrections pending."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8874,19 +8885,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "27104a4c3d25fb3161207309ccf572d52501db0f",
+    "sha": "f99c7a616e079903fa7d4641c15eac6959853f8a",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "27104a4c3d25fb3161207309ccf572d52501db0f",
-        "path": "docs/development/candidates/20261104-2019-final-verification.json"
+        "sha": "f99c7a616e079903fa7d4641c15eac6959853f8a",
+        "path": "docs/development/candidates/20261104-2121-verification.json"
       }
     ],
     "runId": "hosted-20261104-2121",
-    "at": 1793828130981,
+    "at": 1793828339797,
     "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
   },
-  "updatedAt": 1793828130981,
+  "updatedAt": 1793828339797,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9219,75 +9230,16 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [
-    {
-      "actor": "worker2121",
-      "task": "P01-03",
-      "provider": "Codex",
-      "branch": "codex/lp-2121-worker",
-      "base": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
-      "localBase": "f9fdf51d408fdfa690403fc7511d4e0d3d93f5c8",
-      "sourceTree": "aa395e1629efc664ee119e1b55a45c7998c68b3e",
-      "status": "stopped-clean-in-review",
-      "lastObservedAt": "2026-11-04T21:36:05.720Z",
-      "fileLease": [
-        "artifacts/api-server/src/services/accountingDocuments/documents.ts",
-        "artifacts/api-server/src/services/accountingDocuments/settlement.ts",
-        "artifacts/api-server/src/services/accountingDocuments/payments.ts",
-        "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
-        "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx",
-        "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx",
-        "artifacts/ledgerly/src/features/documentDiscounts/model.mjs",
-        "artifacts/ledgerly/src/features/documentDiscounts/model.test.mjs",
-        "artifacts/ledgerly/src/components/accounting/PostedDocument.jsx",
-        "artifacts/ledgerly/src/components/accounting/PostedDocument.test.jsx",
-        "docs/development/credit-capacity-contract.md",
-        "artifacts/api-server/src/services/financialDrafts/contract.ts",
-        "artifacts/api-server/src/services/financialDrafts/contract.test.ts",
-        "artifacts/api-server/src/services/financialDrafts/discounts.ts",
-        "artifacts/api-server/src/services/financialDrafts/discounts.test.ts",
-        "artifacts/api-server/src/services/financialDrafts/invoiceService.ts",
-        "artifacts/api-server/src/services/financialDrafts/productionAuthority.ts",
-        "artifacts/api-server/src/services/financialDrafts/invoice.integration.test.ts",
-        "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
-        "artifacts/api-server/src/services/accountingDocuments/posting.ts",
-        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
-        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
-        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
-        "artifacts/api-server/src/routes/accountingDocuments.ts",
-        "artifacts/ledgerly/src/api/accountingDocuments.mjs",
-        "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
-        "artifacts/ledgerly/src/api/invoiceDrafts.mjs",
-        "artifacts/ledgerly/src/api/invoiceDrafts.test.mjs",
-        "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
-        "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
-        "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
-        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
-        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
-        "lib/db/migrations/conditional-discount-agreements.review.sql",
-        "lib/db/schema-change-registry.json",
-        "lib/db/migration-registry.json",
-        "tools/accounting-flow/schema.mjs",
-        "tools/accounting-flow/test.mjs",
-        "tools/development/migrations/registry.mjs",
-        "tools/development/migrations/registry.test.mjs",
-        "tools/development/migrations/partial-schema.test.mjs"
-      ],
-      "contract": "Internal atomic conditional redemption same uncorrected GBP no priorcredit G12000 D1200; rederive admission under companylock, immutable unique company/original/binding consumption linked exact postedcredit operation vector. Native paidCredit posting/pool transaction only; private transaction-scoped capability no public body mode. All writer eligibility loss rejected under companylock, valid surplusrefund allowed. Retry/race/rollback closingbalance tests. Public gatesclosed; parentpending. Coordinator delegates schema/paidCredit/posting/payment guard paths within existing P01-03 lease; no catalogue changes.",
-      "editsStopBy": "2026-11-04T21:39:00Z",
-      "commit": "381ab815678ad20d9271a21729d2674ce9ae867d",
-      "tree": "bd95f5578824de7e0b13015af4dfd0273cb4c384"
-    }
-  ],
+  "activeWorkers": [],
   "run": {
     "startedAt": "2026-11-04T21:22:41.155Z",
     "stopBy": "2026-11-04T21:49:00Z",
     "implementationStopBy": "2026-11-04T21:39:00Z",
-    "status": "publication",
-    "activity": "Exact author381ab815 integrated17e4051 samebd95tree independently approved root; focused59 registry29 source790 fullbuild/typecheck passed; author stoppedclean queue667; archive before sourcepublication.",
+    "status": "stopped-clean-publication-blocked",
+    "activity": "Implemented and independently reviewed actual internal atomic conditional redemption; frozen381ab815/treebd95 archivedf99c7,59focused29registry790source and fullbuild/typecheck passed. Automaticreview rejected intended authorizedintegrationref update, misclassifying workerbranch; no sourcepublication/retry/bypass. Current source remainsde140, candidate nativePG/restore unrun. Allworkers/ownedcommands stoppedclean, parentpending; continuation paused byroot21:38:54 pendingreviewresolution.",
     "credits": "unknown",
     "providerUsage": "unknown",
-    "observedAt": "2026-11-04T21:35:30.997Z",
+    "observedAt": "2026-11-04T21:40:01.767Z",
     "replitCapability": {
       "found": false,
       "dispatch": false,
@@ -9297,27 +9249,109 @@
     "workerCandidate": "381ab815678ad20d9271a21729d2674ce9ae867d",
     "primaryCandidateTree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
     "newlyAcceptedOriginalBullets": [],
-    "newCompleteJourneys": []
+    "newCompleteJourneys": [],
+    "archiveCommit": "f99c7a616e079903fa7d4641c15eac6959853f8a",
+    "activeWorkers": [],
+    "endedAt": "2026-11-04T21:40:01.767Z",
+    "endReason": "Hard automatic publication approval rejection; preserve reviewed candidate and pause repeated blocked attempts. Remaining run window cannot resolve review boundary noninteractively; no further claims.",
+    "reviewWait": "not measured",
+    "newVerifiedBoundedScenarios": [],
+    "rework": [
+      "API fresh libraries required tsc build; initial esbuild path and duplicate test import fixed before final passingchecks",
+      "Registry accidental unrelated dependency repaired before final exact29 checks",
+      "Initial fullbuild returned0 and produced freshdist but log omitted finalchildoutput; repeated fullbuild passed with complete log unchanged source"
+    ],
+    "resolvedBlockers": [
+      "Actual internal atomic redemption and all-writer contract implemented/reviewed locally; publicgatesclosed",
+      "Exact schema nativecredit commitment/perparentrelease/lockedwriter guards reviewed; localfullgates passed"
+    ],
+    "idleReasons": [
+      "No Replit dispatch: fresh exact resolver foundfalse, control/stop/export unproven",
+      "No second author: primary financial integration/review and boundedCI/shutdown capacity; no manufactured occupancy",
+      "No further sourcepublication after automaticapproval rejection; no retry/bypass"
+    ]
   },
   "continuation": {
-    "automationId": "6ae5226d4a2081919e793919d9cafa1b",
-    "cadence": "hourly",
-    "enabled": true,
-    "reason": "Explicit verifier approval received and publication verified; existing hourly automation resumed"
+    "id": "6ae5226d4a2081919e793919d9cafa1b",
+    "is_enabled": false,
+    "confirmedAt": "2026-11-04T21:38:54Z",
+    "by": "/root",
+    "reason": "Hard publication approval blocker; paused to avoid repeated blocked-publication cost; prompt and cadence unchanged"
   },
   "publicationBlocker": {
-    "resolved": true,
-    "action": "expected-head fast-forward update codex/whole-product-first-sprint to211649c44564f73cdca79e5f5c00580d6783930c",
-    "reason": "Automatic approval review rejected partial conditional candidate publication without exact PostgreSQL/restore evidence and incomplete parent gates. Do not retry through another transport.",
-    "safeNext": "Provision fresh isolated PostgreSQL under a non-root user, reconstruct exact archived candidate without regenerating implementation, run existing accounting/restore gates, then obtain fresh independent acceptance/publication review. Never weaken fullparent or financial/security/browser gates. No alternate publication transport.",
-    "resolvedAt": "2026-11-04T14:18:01.028Z",
-    "resolution": "Exact211 actual PostgreSQL/restore evidence + independent boundeddevelopmentreview, then expectedheadFF sourcepublication succeeded. Parent remainspending; no financialadmission or launchgate waived.",
-    "evidenceCommit": "2212d699393a9c57984ff9eb4f1e174161d94260"
+    "recordedAt": "2026-11-04T21:40:01.761Z",
+    "reviewer": "/root",
+    "sourcePublished": false,
+    "sourceHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+    "candidateCommit": "381ab815678ad20d9271a21729d2674ce9ae867d",
+    "integratorCommit": "17e4051c5a850d568910ffbb4b36884ba22e7fdf",
+    "candidateTree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+    "archiveCommit": "f99c7a616e079903fa7d4641c15eac6959853f8a",
+    "unreferencedRemoteCommit": "2ce3b050135b0852f60474190c11e4c00c63263e",
+    "blockedAction": {
+      "tool": "mcp__codex_apps__github_update_ref",
+      "args": {
+        "repository_full_name": "Future00111/ledgerpoint",
+        "branch_name": "codex/whole-product-first-sprint",
+        "expected_sha": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+        "sha": "2ce3b050135b0852f60474190c11e4c00c63263e",
+        "force": false
+      }
+    },
+    "rejection": "This action was rejected due to unacceptable risk. Reason: This moves a remote ref on the explicitly prohibited worker branch, rather than the authorized integration or durable state branch; force-false fencing does not cure the scope violation.",
+    "followup": "Read-only checks established requested ref is approved existing draft PR27 integration branch and still unchanged; parent instructed no retry or alternate transport in this noninteractive run. No worker branch publication attempted. Pause continuation pending automatic approval misclassification resolution.",
+    "readOnlyProof": {
+      "observedAt": "2026-11-04T21:38:19Z",
+      "pr": 27,
+      "state": "open",
+      "draft": true,
+      "head": "codex/whole-product-first-sprint",
+      "headSha": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+      "base": "dev/w03-draft-invoice-slice",
+      "ref": "refs/heads/codex/whole-product-first-sprint",
+      "refSha": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
+    },
+    "localGates": {
+      "focused": 59,
+      "registry": 29,
+      "sourceScheduler": 790,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "fullBuildTypecheck": "passed",
+      "apiTypecheck": "passed",
+      "integrationBundle": "passed",
+      "newNativePostgreSQLScenarios": 10,
+      "actualPostgreSQL": "not run; exact PR27 source publication blocked",
+      "restore": "not run for this candidate",
+      "independentReview": "root exact candidate approved bounded development only"
+    },
+    "shutdown": {
+      "workerStopped": true,
+      "workerClean": true,
+      "activeAuthorCommands": 0,
+      "coordinatorChecksCompleted": true,
+      "ownedLocalTestSessions": 0,
+      "coordinatorClean": true,
+      "localPostgresLaunched": false,
+      "allWorkersStopped": true
+    },
+    "parentAccepted": false,
+    "originalBulletsAccepted": 0,
+    "completeCommercialJourneys": 0,
+    "cost": "unknown",
+    "continuation": {
+      "id": "6ae5226d4a2081919e793919d9cafa1b",
+      "is_enabled": false,
+      "confirmedAt": "2026-11-04T21:38:54Z",
+      "by": "/root",
+      "reason": "Hard publication approval blocker; paused to avoid repeated blocked-publication cost; prompt and cadence unchanged"
+    }
   },
   "nextTasks": [
     {
       "task": "P01-03",
-      "next": "Continue P01-03 actual atomic INTERNAL conditional redemption on preservedde140ea/ce2513 (do not redo witness/admission proof). Same uncorrected GBP no-priorcredit G12000/D1200 nativebothparty scenario:10800 qualifies or12000 releases1200 via existing paidCredit transaction/nativeposting/pool engine. Coordinator first settle immutable unique(company,original,binding) consumption linked exactcredit/paidCreditoperation/retainedadmissionvector; trusted server-only transaction admission to closedcreditguard with no publicbodyboolean/testauthority bypass. Inventory and enforce all affected payment/allocation/unallocation/reversal/refund/ordinarycredit/correction writers under same locks before effects; preserve qualified-first provenance and valid unappliedsurplusrefund. Test oneconsumption under retry/conflict/race, rollback ofcredit/journal/release/consumption, actualclosingbalance/cash/excesspool and historicalcutoffs, then nativeUI/browser. Public gates remain closed until connected workflow accepted. Compensation/priorcredit/correctedoriginal/fullbrowser and dedicated populated conditional recovery remain pending; no existingDB activation/migration."
+      "next": "Resolve automatic approval misclassification for existing authorized integration branch codex/whole-product-first-sprint/PR27. Then reconstruct and publish ALREADY REVIEWED atomic redemption candidate381ab815/integrator17e4051 treebd95 from immutable archivef99c7 (base de140 treeaa395), verify exact published disposablePG10newnative scenarios/fullbuild/source/restore/encryptedrecovery and cleanup. Do not redo witness/admission/redemption implementation. If exactCI fails, fix only demonstrated failure and rerunreview/gates. Continue nativeUI/browser and parent compensation/priorcredit/correctedoriginal interactions after bounded engine qualification; no public activation or existingDB migration until authorized completeworkflow."
     },
     {
       "task": "P03-01",
@@ -9372,34 +9406,29 @@
   },
   "threeRunComparison": {
     "runs": [
-      "hosted-20261104-1819",
       "hosted-20261104-1917",
-      "hosted-20261104-2019"
+      "hosted-20261104-2019",
+      "hosted-20261104-2121"
     ],
     "originalBulletsAccepted": 0,
     "completeCommercialJourneys": 0,
     "progress": [
-      "1819 committed originalpayload/SQLauthority actualCI1005",
-      "1917 nativecash causal snapshot/original-only allocation actualCI1019",
-      "2019 connected internalread-only admission withnativebothparty threshold/deadline/committedwitnesses and publiccredit guards actualCI1047 including26newPGscenarios"
+      "1917 nativecash causal snapshot qualified CI1019",
+      "2019 connected internal read-only admission qualified CI1047",
+      "2121 actual atomic internal redemption implemented/rootreviewed/localgatespassed with10native scenarios, publication blocked automaticreview misclassification; actualPG pending"
     ],
-    "decision": "Changed from proof-only prerequisites to actual internal admission calculation using existingpaidCredit planning; meaningful boundedprogress but no fulljourney. Next must implement atomic redemption/consumption with everywriterguard and then nativeUI/browser, not another admission-only proof iteration. One implementer plus independentreview useful; Replitcontinuity remains unqualified.",
+    "decision": "Changed assignment from prerequisites to actual atomic redemption as requested. Preserve candidate; no reimplementation. Pause continuation until publication approval issue resolved, then exactCI before nativeUI/browser. One author+independentreview useful, Replitfoundfalse.",
     "usage": "unknown"
   },
   "localShutdown": {
-    "coordinatorStopped": true,
-    "checkoutClean": true,
-    "knownLocalCommandsCompleted": true,
-    "ownedLocalTestSessions": 0,
-    "localPostgresLaunched": false,
     "workerStopped": true,
-    "workerWorktreeClean": true,
-    "workerWorktreeRemoved": true,
-    "globalProcessEnumeration": "not claimed",
-    "exactAuthorCommit": "ce251328e0bf78055dd74d9e3cef1d9b1c772a46",
-    "integratorCommit": "f9fdf51d408fdfa690403fc7511d4e0d3d93f5c8",
-    "archive": "6c060911a44c0e8920b1243af95cc3830f6e34cb",
-    "ciArchive": "27104a4c3d25fb3161207309ccf572d52501db0f"
+    "workerClean": true,
+    "activeAuthorCommands": 0,
+    "coordinatorChecksCompleted": true,
+    "ownedLocalTestSessions": 0,
+    "coordinatorClean": true,
+    "localPostgresLaunched": false,
+    "allWorkersStopped": true
   },
   "shutdownBlocker": {
     "resolved": true,
@@ -9598,6 +9627,25 @@
       ],
       "matchingCommitQualification": true,
       "ciRun": 41907994948
+    },
+    {
+      "task": "P01-03",
+      "commit": "17e4051c5a850d568910ffbb4b36884ba22e7fdf",
+      "authorCommit": "381ab815678ad20d9271a21729d2674ce9ae867d",
+      "tree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+      "base": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+      "sourcePublished": false,
+      "qualified": false,
+      "publicPostingEnabled": false,
+      "parentAccepted": false,
+      "publicationBlocked": true,
+      "evidence": [
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "f99c7a616e079903fa7d4641c15eac6959853f8a",
+          "path": "docs/development/candidates/20261104-2121-verification.json"
+        }
+      ]
     }
   ],
   "providerBlocker": {
@@ -9922,5 +9970,19 @@
         }
       }
     }
+  },
+  "candidateValidation": {
+    "sourcePublished": false,
+    "authorCommit": "381ab815678ad20d9271a21729d2674ce9ae867d",
+    "integratorCommit": "17e4051c5a850d568910ffbb4b36884ba22e7fdf",
+    "tree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+    "unreferencedRemoteCommit": "2ce3b050135b0852f60474190c11e4c00c63263e",
+    "exactPublishedCI": "not run; sourcepublication blocked",
+    "localSource": 790,
+    "localFocused": 59,
+    "localRegistry": 29,
+    "fullBuildTypecheck": "passed",
+    "independentReview": "/root",
+    "archiveCommit": "f99c7a616e079903fa7d4641c15eac6959853f8a"
   }
 }

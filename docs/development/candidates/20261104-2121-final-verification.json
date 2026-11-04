@@ -1,0 +1,70 @@
+{
+  "recordedAt": "2026-11-04T21:40:01.761Z",
+  "reviewer": "/root",
+  "sourcePublished": false,
+  "sourceHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+  "candidateCommit": "381ab815678ad20d9271a21729d2674ce9ae867d",
+  "integratorCommit": "17e4051c5a850d568910ffbb4b36884ba22e7fdf",
+  "candidateTree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+  "archiveCommit": "f99c7a616e079903fa7d4641c15eac6959853f8a",
+  "unreferencedRemoteCommit": "2ce3b050135b0852f60474190c11e4c00c63263e",
+  "blockedAction": {
+    "tool": "mcp__codex_apps__github_update_ref",
+    "args": {
+      "repository_full_name": "Future00111/ledgerpoint",
+      "branch_name": "codex/whole-product-first-sprint",
+      "expected_sha": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+      "sha": "2ce3b050135b0852f60474190c11e4c00c63263e",
+      "force": false
+    }
+  },
+  "rejection": "This action was rejected due to unacceptable risk. Reason: This moves a remote ref on the explicitly prohibited worker branch, rather than the authorized integration or durable state branch; force-false fencing does not cure the scope violation.",
+  "followup": "Read-only checks established requested ref is approved existing draft PR27 integration branch and still unchanged; parent instructed no retry or alternate transport in this noninteractive run. No worker branch publication attempted. Pause continuation pending automatic approval misclassification resolution.",
+  "readOnlyProof": {
+    "observedAt": "2026-11-04T21:38:19Z",
+    "pr": 27,
+    "state": "open",
+    "draft": true,
+    "head": "codex/whole-product-first-sprint",
+    "headSha": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+    "base": "dev/w03-draft-invoice-slice",
+    "ref": "refs/heads/codex/whole-product-first-sprint",
+    "refSha": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
+  },
+  "localGates": {
+    "focused": 59,
+    "registry": 29,
+    "sourceScheduler": 790,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "fullBuildTypecheck": "passed",
+    "apiTypecheck": "passed",
+    "integrationBundle": "passed",
+    "newNativePostgreSQLScenarios": 10,
+    "actualPostgreSQL": "not run; exact PR27 source publication blocked",
+    "restore": "not run for this candidate",
+    "independentReview": "root exact candidate approved bounded development only"
+  },
+  "shutdown": {
+    "workerStopped": true,
+    "workerClean": true,
+    "activeAuthorCommands": 0,
+    "coordinatorChecksCompleted": true,
+    "ownedLocalTestSessions": 0,
+    "coordinatorClean": true,
+    "localPostgresLaunched": false,
+    "allWorkersStopped": true
+  },
+  "parentAccepted": false,
+  "originalBulletsAccepted": 0,
+  "completeCommercialJourneys": 0,
+  "cost": "unknown",
+  "continuation": {
+    "id": "6ae5226d4a2081919e793919d9cafa1b",
+    "is_enabled": false,
+    "confirmedAt": "2026-11-04T21:38:54Z",
+    "by": "/root",
+    "reason": "Hard publication approval blocker; paused to avoid repeated blocked-publication cost; prompt and cadence unchanged"
+  }
+}
