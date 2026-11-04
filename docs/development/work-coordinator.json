@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 187,
+  "revision": 188,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 629,
+    "revision": 631,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Recovered only after independently observed stop at 2026-11-04T17:20:43Z and immutable archive bb40f6e0c503bcb08ad4599f8e8013aa086be152. Replit candidate d789e8eb329bbcca137f8e034101d5ff1d27c828 tree615d0b4755e37590513571aff6518ac7d190eda0 base211, eight leased paths and patch hashes verified; remote candidate/main clean, scoped processes and disposable directories empty. Logs139PG/21unit/29registry passed but receipts base211; no exactcommit qualification. Missing positive binding/observer/replay/firstclock/populated restore and independent review; both public gates remain disabled. Parent pending. Provider transport continuity blocker is separate; no unattended Replit writes until monitoring, bounded stop and exact artifact return qualified.",
+        "checkpoint": "Pre-edit: exact recovered d789/tree615d restored and combined with published dc5 restore-only change at850c077. Root reviewed trust gaps in SQL caller-supplied binding authority/observer. Single Codex narrow fix plus positive tests; both public posting gates stay closed. Local PG unavailable, exact acceptance remains pending. Stop edits17:51 and all work18:00.",
         "evidence": {
           "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
           "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
@@ -128,7 +128,10 @@
           "reviewed": true,
           "reviewer": "root-and-coordinator1355-technical-only"
         },
-        "blockers": []
+        "owner": "codex-1732-1",
+        "tokenSha256": "23e2d7bdbe6e0fc84f1035d733a00cda5c95e77b593dd30a595d413abcffb526",
+        "leaseUntil": 1793815563172,
+        "workStarted": true
       },
       "P01-04": {
         "status": "blocked",
@@ -8127,6 +8130,20 @@
         "type": "recover",
         "taskId": "P01-03",
         "checkpoint": "Recovered only after independently observed stop at 2026-11-04T17:20:43Z and immutable archive bb40f6e0c503bcb08ad4599f8e8013aa086be152. Replit candidate d789e8eb329bbcca137f8e034101d5ff1d27c828 tree615d0b4755e37590513571aff6518ac7d190eda0 base211, eight leased paths and patch hashes verified; remote candidate/main clean, scoped processes and disposable directories empty. Logs139PG/21unit/29registry passed but receipts base211; no exactcommit qualification. Missing positive binding/observer/replay/firstclock/populated restore and independent review; both public gates remain disabled. Parent pending. Provider transport continuity blocker is separate; no unattended Replit writes until monitoring, bounded stop and exact artifact return qualified."
+      },
+      {
+        "at": 1793813763172,
+        "actor": "codex-1732-1",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "23e2d7bdbe6e0fc84f1035d733a00cda5c95e77b593dd30a595d413abcffb526"
+      },
+      {
+        "at": 1793813798625,
+        "actor": "codex-1732-1",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Pre-edit: exact recovered d789/tree615d restored and combined with published dc5 restore-only change at850c077. Root reviewed trust gaps in SQL caller-supplied binding authority/observer. Single Codex narrow fix plus positive tests; both public posting gates stay closed. Local PG unavailable, exact acceptance remains pending. Stop edits17:51 and all work18:00."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8192,11 +8209,11 @@
         "path": "docs/development/candidates/20261104-1521-replit-validation-evidence.json"
       }
     ],
-    "runId": "hosted-20261104-1521",
-    "at": 1793813338528,
+    "runId": "hosted-20261104-1732",
+    "at": 1793813798701,
     "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7"
   },
-  "updatedAt": 1793813715954,
+  "updatedAt": 1793813798701,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -8260,14 +8277,32 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [],
+  "activeWorkers": [
+    {
+      "actor": "codex-1732-1",
+      "task": "P01-03",
+      "provider": "Codex",
+      "status": "claimed-pre-edit-not-launched",
+      "candidate": "850c077",
+      "implementationStopBy": "2026-11-04T17:51:00Z"
+    }
+  ],
   "run": {
     "startedAt": "2026-11-04T17:32:47Z",
     "stopBy": "2026-11-04T18:00:00Z",
     "implementationStopBy": "2026-11-04T17:51:00Z",
-    "activity": "Restoring exact source and preserved candidate; no workers launched",
+    "activity": "Pre-edit checkpoint for single Codex worker: DB binding authority and positive acceptance tests; local PG absent; no code publication",
     "status": "active",
-    "activeWorkers": [],
+    "activeWorkers": [
+      {
+        "actor": "codex-1732-1",
+        "task": "P01-03",
+        "provider": "Codex",
+        "status": "claimed-pre-edit-not-launched",
+        "candidate": "850c077",
+        "implementationStopBy": "2026-11-04T17:51:00Z"
+      }
+    ],
     "credits": "unknown",
     "providerUsage": "unknown"
   },
