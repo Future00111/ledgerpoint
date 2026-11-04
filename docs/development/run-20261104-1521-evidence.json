@@ -1,0 +1,116 @@
+{
+  "runId": "hosted-20261104-1521",
+  "startedAt": "2026-11-04T15:21:18Z",
+  "capturedAt": "2026-11-04T15:39:30.134Z",
+  "sourcePublished": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+  "sourceTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+  "boundedScenario": "Native captured-source byte/hash/metadata and owner/readOnly/inactive/foreign/company denial preserved after encryptedfreshcluster restoration; existingpayment/witness checks preserved",
+  "publication": {
+    "expectedPrior": "211649c44564f73cdca79e5f5c00580d6783930c",
+    "method": "Expected-head fast-forward integration branch afterlivefence andactualPG+independentreview",
+    "pr": 27,
+    "draft": true,
+    "merged": false,
+    "deployed": false
+  },
+  "validation": {
+    "actualPrepublication": {
+      "source": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+      "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+      "accountingTests": 133,
+      "backupTests": 12,
+      "fail": 0,
+      "skip": 0,
+      "restoredTables": 40,
+      "restoredRows": 6325,
+      "allNativeCaptureAndPaymentWitnessFlags": true,
+      "populatedAndEncryptedRestore": true,
+      "cleanupVerified": true,
+      "beforeAfterDirectories": [],
+      "evidenceCommit": "4369f93e4462c40a57685a252f4bf685e7a121d9",
+      "rawExportSha256": "0f6a61a6d6bd880c7ecf44a9ea7e24d6567d2bc5251a966cfd650caa1df1d138"
+    },
+    "publishedCI": {
+      "run": 41858631375,
+      "job": 126673994650,
+      "status": "success",
+      "tests": 963,
+      "pass": 963,
+      "fail": 0,
+      "skip": 0,
+      "cancelled": 0,
+      "buildTypecheck": true,
+      "postgresRestoreCleanup": true,
+      "merge": "9f2d3c3f9439865859d9c206ffc08958dd4cae51",
+      "sourceToMergeFiles": [],
+      "logsIndependentlyFetched": true,
+      "evidenceCommit": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260",
+      "logSha256": "1ef8dc84d0ef8fd5e47f1027537ff712f7a0499d89f7797a36eb3adf5bb0fcc3"
+    }
+  },
+  "primary": {
+    "actor": "replit-1521-1",
+    "task": "P01-03",
+    "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+    "baseTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
+    "path": "/home/runner/workspace/.local/share/ledgerly/run-20261104-1521/source",
+    "ackObservedAt": "2026-11-04T15:26:50Z",
+    "goSentAt": "2026-11-04T15:27:20Z",
+    "implementationAuthorized": true,
+    "lastActualObservation": "15:34 Replit reports21focused/29registry/APItsc pass and runningprescribed sanitized tools/accounting-flow/test.mjs; mutable211base, not exactcandidatequalification",
+    "lastReportedImplementation": "DB-owned originaljournal transactionreceipt, originalbinding andcommittedobserver, nativeallocation/taxhelpers, bothpublicpostinggatesreportedunchanged",
+    "stopInstruction": "Implementationstop15:38; candidate15:37; all15:49, acknowledged",
+    "monitoringFailureAt": "2026-11-04T15:35:39Z",
+    "finalRetry": "2026-11-04T15:36:50Z",
+    "failure": "browser_js Unknown tool(browser.js) despiteworkingconnectionbefore; runtimecapabilityloss, notautomaticapprovalrejection",
+    "candidateExported": false,
+    "authorCommit": "unknown",
+    "candidateTree": "unknown",
+    "patch": "unavailable until permittedreconnection",
+    "testOutcome": "unknown",
+    "stopVerified": false,
+    "cleanVerified": false,
+    "postgresStopVerified": false,
+    "noFurtherDispatch": true
+  },
+  "localShutdown": {
+    "coordinatorCheckout": "/workspace/scratch/b4d6a4379808/run-20261104-1521",
+    "head": "211649c44564f73cdca79e5f5c00580d6783930c",
+    "clean": true,
+    "ownedLocalTestSessions": 0,
+    "localPostgresLaunched": false,
+    "scope": "Known commands completed; no globalOSprocessenumeration claim"
+  },
+  "ownership": {
+    "coordinatorLeaseRetained": true,
+    "primaryClaimRetained": true,
+    "expiryIsNotStopProof": true,
+    "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+    "queueRevision": 628
+  },
+  "outcomes": {
+    "originalBulletsAccepted": [],
+    "completeCommercialJourneys": [],
+    "boundedRecoveryScenarioVerified": true,
+    "scopeReduced": false,
+    "accountingTaxPayrollInHouse": true,
+    "providerUsage": "unknown",
+    "credits": "unknown"
+  },
+  "threeRunComparison": {
+    "runs": [
+      "hosted-20261104-1355",
+      "hosted-20261104-1452",
+      "hosted-20261104-1521"
+    ],
+    "originalBulletsAccepted": 0,
+    "completeCommercialJourneys": 0,
+    "progress": [
+      "Published immutableagreementcapture/draft afteractualPGqualification",
+      "Archivednativecapturerecoverycandidate, remoteACK-only monitoringlost thenrecoveredclean",
+      "Publishednativecapturerecovery afteractualPG+CI963; primaryReplit implementationbegan, monitoringlostbeforeimmutablehandoff"
+    ],
+    "decision": "Next reestablishsamepermittedconnection, stopandinspectprimaryactor/PG, archiveexactexistingcandidate+logs andcontinuethatchain afterreview; do notregenerate or repeat resolveddc5e qualification. Prioritise originalbinding/causalqualification andalllaterconnectedadmissionguards/UI, preservefullscope. No newdispatch whileheldactor stopunknown; no cadencechange.",
+    "usage": "unknown"
+  }
+}
