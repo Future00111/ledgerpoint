@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 180,
+  "revision": 181,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 620,
+    "revision": 622,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -103,7 +103,7 @@
         "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "PRE-EDIT reserved Replit primary; exact211/f8 freshisolatedrun1521/source, ACK-onlypending. SameoriginaljournaltopXIDbinding+source/financialhash/frozenlinevector+freshcommittedobserver, bothpublicpostgatesretained, nobypassflag. Exactsame reviewedfilecontract as1452, independentrootreview. Implementstop15:38/all15:49; no demo/sharedDB/providers/queue/sourcepush.",
+        "checkpoint": "15:26:50 root observedactualReplitACK exactfreshrun1521/source211/f8 clean all13ownedpaths accepted stop15:38, noedits/tests; stoppedawaitGO. Root sending reviewedimplementationGO, noPG untiltestslotreleased. SameoriginaljournaltopXID and bothpublicgates unchanged; no callerhash/clock trust.",
         "evidence": {
           "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
           "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
@@ -408,7 +408,7 @@
         "status": "running",
         "priority": 304,
         "discoveredDependencies": [],
-        "checkpoint": "PRE-EDIT coordinator validation actor only, immutableexistingcandidate dc5e3c52/tree40853f authored aed6abd, no newimplementation. Root supervises actual disposableReplit PG16+populated/encryptedrestore in freshseparate run1521-validation/source. Staticreview/focused12/source790/build passed unchangedtree, require exactcandidatePG+cleanup before publication, parentpending. No service/schema/feature edits.",
+        "checkpoint": "Root observed exactdc5e3c52/tree40853f cleanisolatedrun1521-validation/source, actualsanitizedPG testactor began15:26:35 existingaccountingflow+backuprestore12+rehearsal,3receipts/logexport. No sourceedits/sharedDB/demo; testsactivelyrunning andresultsnotyetverified.",
         "evidence": {
           "commit": "aed6abd40f473e3475b31f8b0ea1d2df16110c03",
           "summary": "PARTIAL P03-04 candidate native captured-source recovery: independent original bytes/hash and metadata read by current native service for owner and read-only actor before/after encrypted fresh-cluster restore; exact inactive/foreign actor and cross-company source denials. Existing fixture reused without new source/membership mutations; all native payment/witness checks preserved. Actual PostgreSQL execution and independent review pending. Parent remains incomplete: operational recovery targets/ownership/key-retention/offsite gate and remaining full runtime/job recovery scope. Next exact combined accounting/restore run then evaluate remaining operational scope; no self-approval.",
@@ -8039,6 +8039,20 @@
         "type": "checkpoint",
         "taskId": "P03-04",
         "checkpoint": "PRE-EDIT coordinator validation actor only, immutableexistingcandidate dc5e3c52/tree40853f authored aed6abd, no newimplementation. Root supervises actual disposableReplit PG16+populated/encryptedrestore in freshseparate run1521-validation/source. Staticreview/focused12/source790/build passed unchangedtree, require exactcandidatePG+cleanup before publication, parentpending. No service/schema/feature edits."
+      },
+      {
+        "at": 1793806075805,
+        "actor": "replit-1521-1",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "15:26:50 root observedactualReplitACK exactfreshrun1521/source211/f8 clean all13ownedpaths accepted stop15:38, noedits/tests; stoppedawaitGO. Root sending reviewedimplementationGO, noPG untiltestslotreleased. SameoriginaljournaltopXID and bothpublicgates unchanged; no callerhash/clock trust."
+      },
+      {
+        "at": 1793806075851,
+        "actor": "codex-validation-1521",
+        "type": "checkpoint",
+        "taskId": "P03-04",
+        "checkpoint": "Root observed exactdc5e3c52/tree40853f cleanisolatedrun1521-validation/source, actualsanitizedPG testactor began15:26:35 existingaccountingflow+backuprestore12+rehearsal,3receipts/logexport. No sourceedits/sharedDB/demo; testsactivelyrunning andresultsnotyetverified."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8093,7 +8107,7 @@
     "at": 1793805574005,
     "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c"
   },
-  "updatedAt": 1793805836133,
+  "updatedAt": 1793806075875,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -8158,46 +8172,50 @@
       "actor": "replit-1521-1",
       "provider": "Replit",
       "task": "P01-03",
-      "status": "reserved-ack-pending",
+      "status": "actual-acknowledged-before-go",
       "base": "211649c44564f73cdca79e5f5c00580d6783930c",
-      "implementationStopBy": "2026-11-04T15:38:00Z"
+      "implementationStopBy": "2026-11-04T15:38:00Z",
+      "ackObservedAt": "2026-11-04T15:26:50Z"
     },
     {
       "actor": "codex-validation-1521",
       "provider": "Codex coordinator plus root supervisedReplitShell",
       "task": "P03-04",
-      "status": "reserved-exact-existingcandidate-testonly",
+      "status": "actual-exactcandidate-pg-testing",
       "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
-      "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17"
+      "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+      "startedAt": "2026-11-04T15:26:35Z"
     }
   ],
   "run": {
     "startedAt": "2026-11-04T15:21:18Z",
     "stopBy": "2026-11-04T15:49:00Z",
     "implementationStopBy": "2026-11-04T15:38:00Z",
-    "activity": "Primary and highesteligible independent existingcandidate validation reserved before GO; bindingcontract unchanged/reviewed; no featureedits or testsstarted",
+    "activity": "Root observedReplitACK exactbase/files/stop; GOready after persistedACK. ExactpreservedP03actualPG in separateisolatedclone running; no resultsclaimed. Hashserialization advisory supplied: recursive sortedJSONstringify, notjsonbtext.",
     "activeWorkers": [
       {
         "actor": "replit-1521-1",
         "provider": "Replit",
         "task": "P01-03",
-        "status": "reserved-ack-pending",
+        "status": "actual-acknowledged-before-go",
         "base": "211649c44564f73cdca79e5f5c00580d6783930c",
-        "implementationStopBy": "2026-11-04T15:38:00Z"
+        "implementationStopBy": "2026-11-04T15:38:00Z",
+        "ackObservedAt": "2026-11-04T15:26:50Z"
       },
       {
         "actor": "codex-validation-1521",
         "provider": "Codex coordinator plus root supervisedReplitShell",
         "task": "P03-04",
-        "status": "reserved-exact-existingcandidate-testonly",
+        "status": "actual-exactcandidate-pg-testing",
         "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
-        "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17"
+        "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+        "startedAt": "2026-11-04T15:26:35Z"
       }
     ],
     "credits": "unknown",
     "providerUsage": "unknown",
     "status": "active",
-    "observedAt": "2026-11-04T15:23:41.349Z"
+    "observedAt": "2026-11-04T15:27:55.893Z"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
