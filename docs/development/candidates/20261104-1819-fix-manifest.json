@@ -1,0 +1,24 @@
+{
+  "base": "008e5d718fbedd41130c7449beb9898305bb8ed8",
+  "equivalentLocalBase": "1d14f671e9503dc7d6233382aff80dbeb7f140da",
+  "commit": "f3ea03d74cb6ef8000972381c4fd47364f1f2399",
+  "tree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
+  "patchBytes": 2323,
+  "patchSha256": "0e799dda2de815436cb982a0280ce353410419f52a839c81baa18dc2565262c6",
+  "rawCommitSha256": "58e385b537eccee24de9d7b5d060f633b557ba8a03d405cfb72939bde8d7e65f",
+  "reviewer": "/root",
+  "review": "Exact two true-to-false fixture literals approved; runtime and active membership unique index unchanged",
+  "tests": [
+    "API typecheck passed",
+    "Integration test bundle passed"
+  ],
+  "failedCI": {
+    "run": 41888378747,
+    "job": 126778862467,
+    "reviewedIndependentlyByRoot": true,
+    "reason": "New active duplicate fixture rows violate existing w03_active_membership_identity; inactive duplicate exercises all-row cardinality guard",
+    "cleanupPassed": true
+  },
+  "parentAccepted": false,
+  "credits": "unknown"
+}

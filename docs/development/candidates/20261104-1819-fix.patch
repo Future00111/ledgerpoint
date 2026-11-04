@@ -1,0 +1,22 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+index 78365de..b46bb0b 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+@@ -382,7 +382,7 @@ test('real PostgreSQL: restricted SQL cannot replace the pre-journal native payl
+    {binding:b,payload:prepared.canonicalPayload+' '}, {binding:b,hash:hash('forged')},
+   ];
+   await q.query('SAVEPOINT duplicate_binding_member');
+-  await q.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',true)",[randomUUID(),f.company,actor]);
++  await q.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',false)",[randomUUID(),f.company,actor]);
+   await assert.rejects(()=>q.query('SELECT bind_conditional_discount_original($1,$2,$3,$4,$5,$6,$7)',
+    [f.company,f.draft.id,journalId,JSON.stringify(b),prepared.bindingHash,actor,prepared.canonicalPayload]),
+    (error:any)=>/source or posting identity invalid/.test(error.cause?.message??error.message));
+@@ -410,7 +410,7 @@ test('real PostgreSQL: restricted SQL cannot replace the pre-journal native payl
+ test('real PostgreSQL: direct observer rejects duplicate identity and rechecks a locked concurrent revocation',async()=>{
+  const f=await conditionalOriginalFixture();await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
+  const duplicate=randomUUID();
+- await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',true)",[duplicate,f.company,actor]);
++ await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',false)",[duplicate,f.company,actor]);
+  try{await assert.rejects(()=>pool.query('SELECT observe_conditional_discount_original($1,$2,$3)',[f.company,f.draft.id,actor]),/Active writable company membership required/);}
+  finally{await admin.query('DELETE FROM company_users WHERE id=$1',[duplicate]);}
+  const revoker=await admin.connect(),observer=await pool.connect();let pending:Promise<any>|undefined;
