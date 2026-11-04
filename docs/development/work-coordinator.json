@@ -1,27 +1,22 @@
 {
   "version": 2,
-  "revision": 185,
+  "revision": 186,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261104-1521",
     "tokenSha256": "59efc37a62c79045bf3165888275b03800311e1de82757b1816cc5396ae9ba88",
     "acquiredAt": 1793805762552,
     "expiresAt": 1793807862552
   },
-  "lastOwner": {
-    "runId": "hosted-20261104-1452",
-    "tokenSha256": "0eca6e0f49040ca35ddbe4761710198b4ad089e261047956a3b7bcf67d97a951",
-    "acquiredAt": 1793804071394,
-    "expiresAt": 1793806171394
-  },
   "queueState": {
     "version": 3,
-    "revision": 628,
+    "revision": 629,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +95,10 @@
         }
       },
       "P01-03": {
-        "status": "running",
+        "status": "pending",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "CRITICAL root15:35:39 browser_js again Unknown tool(browser.js) aftercontinuationsteering despiteworking15:34. Lastactualprimaryobservation authorizedimplementation21focused/29registry/APItscpassreported, runningprescribedisolatedaccountingPG test on mutable211base. CandidateNOTexported, authorcommit/patch/tree/testoutcome/stop nowUNVERIFIED. Explicitstop15:38 was acknowledged, but elapsedtime doesnotprove stop. No alternate transport, no reassignment/recovery/release until root independentlyreconnects/stops/verifies. PublishedP03dc5eCI963 unaffected.",
+        "checkpoint": "Recovered only after independently observed stop at 2026-11-04T17:20:43Z and immutable archive bb40f6e0c503bcb08ad4599f8e8013aa086be152. Replit candidate d789e8eb329bbcca137f8e034101d5ff1d27c828 tree615d0b4755e37590513571aff6518ac7d190eda0 base211, eight leased paths and patch hashes verified; remote candidate/main clean, scoped processes and disposable directories empty. Logs139PG/21unit/29registry passed but receipts base211; no exactcommit qualification. Missing positive binding/observer/replay/firstclock/populated restore and independent review; both public gates remain disabled. Parent pending. Provider transport continuity blocker is separate; no unattended Replit writes until monitoring, bounded stop and exact artifact return qualified.",
         "evidence": {
           "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
           "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
@@ -128,10 +123,7 @@
           "reviewed": true,
           "reviewer": "root-and-coordinator1355-technical-only"
         },
-        "owner": "replit-1521-1",
-        "tokenSha256": "1dfd61c795d3d489a79fe8ff06e6e9d184407ce2a10a25a11a9b09bdf0c363df",
-        "leaseUntil": 1793807621170,
-        "workStarted": true
+        "blockers": []
       },
       "P01-04": {
         "status": "blocked",
@@ -8117,6 +8109,19 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "CRITICAL root15:35:39 browser_js again Unknown tool(browser.js) aftercontinuationsteering despiteworking15:34. Lastactualprimaryobservation authorizedimplementation21focused/29registry/APItscpassreported, runningprescribedisolatedaccountingPG test on mutable211base. CandidateNOTexported, authorcommit/patch/tree/testoutcome/stop nowUNVERIFIED. Explicitstop15:38 was acknowledged, but elapsedtime doesnotprove stop. No alternate transport, no reassignment/recovery/release until root independentlyreconnects/stops/verifies. PublishedP03dc5eCI963 unaffected."
+      },
+      {
+        "at": 1793813298090,
+        "actor": "scheduler",
+        "type": "lease_expired",
+        "taskId": "P01-03"
+      },
+      {
+        "at": 1793813298090,
+        "actor": "recovery1717",
+        "type": "recover",
+        "taskId": "P01-03",
+        "checkpoint": "Recovered only after independently observed stop at 2026-11-04T17:20:43Z and immutable archive bb40f6e0c503bcb08ad4599f8e8013aa086be152. Replit candidate d789e8eb329bbcca137f8e034101d5ff1d27c828 tree615d0b4755e37590513571aff6518ac7d190eda0 base211, eight leased paths and patch hashes verified; remote candidate/main clean, scoped processes and disposable directories empty. Logs139PG/21unit/29registry passed but receipts base211; no exactcommit qualification. Missing positive binding/observer/replay/firstclock/populated restore and independent review; both public gates remain disabled. Parent pending. Provider transport continuity blocker is separate; no unattended Replit writes until monitoring, bounded stop and exact artifact return qualified."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8134,8 +8139,33 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "e20b86c7290c11565f8d6a14c8d791f45f9193fd",
+    "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
     "evidence": [
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+        "path": "docs/development/candidates/20261104-1521-replit-verification.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+        "path": "docs/development/candidates/20261104-1521-replit-bundle.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+        "path": "docs/development/candidates/20261104-1521-replit-candidate.patch"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+        "path": "docs/development/candidates/20261104-1521-replit-manifest.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+        "path": "docs/development/candidates/20261104-1521-replit-raw-commit.txt"
+      },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
         "sha": "e20b86c7290c11565f8d6a14c8d791f45f9193fd",
@@ -8158,18 +8188,18 @@
       }
     ],
     "runId": "hosted-20261104-1521",
-    "at": 1793806856950,
+    "at": 1793813338528,
     "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7"
   },
-  "updatedAt": 1793806856950,
+  "updatedAt": 1793813338528,
   "recovery": {
-    "priorRunId": "hosted-20261103-1956",
+    "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "7afd31dc6faade40a8225166003653b971e90086",
-      "path": "docs/development/run-20261103-1956-evidence.json"
+      "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+      "path": "docs/development/candidates/20261104-1521-replit-verification.json"
     },
-    "at": 1793795095997
+    "at": 1793813338528
   },
   "historyReference": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -8203,12 +8233,14 @@
     "ciEvidenceCommit": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260"
   },
   "shutdownResolution": {
-    "at": "2026-11-04T12:24:56.016Z",
-    "userAuthorized": true,
-    "method": "Existing coordinator recover transition; exact durable queue reconstructed and validated; old workers stopped; historical metadata preserved by immutable reference.",
-    "observedAgents": "Only root active; collaboration.list_agents 2026-11-04",
-    "oldWorktrees": "run-1956-isolated and run-1956-worker1 clean",
-    "activeWorkers": []
+    "at": "2026-11-04T17:28:58.528Z",
+    "method": "Existing worker CLI recover and transitionCoordinator recover with observed stop evidence; no expiry-only ownership steal.",
+    "activeWorkers": [],
+    "evidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+      "path": "docs/development/candidates/20261104-1521-replit-verification.json"
+    }
   },
   "deliveryPolicy": {
     "approved": "2026-11-04",
@@ -8223,54 +8255,30 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [
-    {
-      "actor": "replit-1521-1",
-      "provider": "Replit",
-      "task": "P01-03",
-      "status": "authorized-implementation-and-pg-lastobserved15:34-monitoring-unavailable",
-      "base": "211649c44564f73cdca79e5f5c00580d6783930c",
-      "implementationStopBy": "2026-11-04T15:38:00Z",
-      "ackObservedAt": "2026-11-04T15:26:50Z",
-      "goSentAt": "2026-11-04T15:27:20Z",
-      "lastObservedAt": "2026-11-04T15:34:00Z",
-      "stopVerified": false,
-      "candidateExported": false
-    }
-  ],
+  "activeWorkers": [],
   "run": {
     "startedAt": "2026-11-04T15:21:18Z",
     "stopBy": "2026-11-04T15:49:00Z",
     "implementationStopBy": "2026-11-04T15:38:00Z",
-    "activity": "Localcoordinationstopped afterdurablehandoff. PublishedP03dc5e/40853f exactactual133PG+12unit/populated40tables6325/encryptednativecapture+paymentrestore andCI963/fullbuild/cleanup passed, PR27draftupdated. PrimaryReplitauthorizedimplementation onisolated211base lastobserved15:34 runningPG; browserfailure15:35:39/finalretry15:36:50 preventsimmutablecandidateexport/testoutcome/stopverification. Acknowledgedstop15:38 haspassed but isnotproof. Retainlivecoordinator+P01reservation, no release/recovery/reassignment/newwork; first reconnectstopinspectarchiveexistingwork.",
-    "activeWorkers": [
-      {
-        "actor": "replit-1521-1",
-        "provider": "Replit",
-        "task": "P01-03",
-        "status": "authorized-implementation-and-pg-lastobserved15:34-monitoring-unavailable",
-        "base": "211649c44564f73cdca79e5f5c00580d6783930c",
-        "implementationStopBy": "2026-11-04T15:38:00Z",
-        "ackObservedAt": "2026-11-04T15:26:50Z",
-        "goSentAt": "2026-11-04T15:27:20Z",
-        "lastObservedAt": "2026-11-04T15:34:00Z",
-        "stopVerified": false,
-        "candidateExported": false
-      }
-    ],
+    "activity": "Recovered stopped Replit partial candidate after restored interactive connection. Immutable archive and independent stop proof precede normal expired ownership recovery. No feature edits or source publication in recovery.",
+    "activeWorkers": [],
     "credits": "unknown",
     "providerUsage": "unknown",
-    "status": "local-stopped-remote-implementation-pg-stop-unverified",
+    "status": "stopped-clean-recovered",
     "observedAt": "2026-11-04T15:40:56.969Z",
     "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
     "candidateTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
-    "blocker": "Active Replit implementation/PG actor monitoring lost; exactcandidate/export/testoutcome/stop unverified. Acknowledged15:38stop not proof; retain ownership until independentlyverified.",
+    "blocker": null,
     "endedAt": "2026-11-04T15:40:56.969Z",
     "newlyAcceptedOriginalBullets": [],
     "newCompleteJourneys": [],
     "publicationBlocked": false,
     "primaryPublicationBlocked": true,
-    "primaryCandidate": "unexported-unknown"
+    "primaryCandidate": "d789e8eb329bbcca137f8e034101d5ff1d27c828",
+    "primaryCandidateTree": "615d0b4755e37590513571aff6518ac7d190eda0",
+    "recoveryCompletedAt": "2026-11-04T17:28:58.528Z",
+    "remoteReportedStoppedAt": "2026-11-04T15:36:13.678065+00:00",
+    "remoteStopVerifiedAt": "2026-11-04T17:20:43.813779+00:00"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -8290,11 +8298,7 @@
   "nextTasks": [
     {
       "task": "P01-03",
-      "next": "FIRST reestablishsamepermittedReplitcontrol for /home/runner/workspace/.local/share/ledgerly/run-20261104-1521/source. AuthorizedGO15:27:20; lastactual15:34 implementation+PG, expectedbase211/f8; stop15:38acknowledged butunverified. InspectAgent/runstate, stopandconfirmactor+ownedPG, preserve allcandidatefiles/logs; exportlocalcommit/binarypatch/manifestauthor/base/tree/exactpaths+hashes, independentlyverify andarchiveBEFORErecovery. Do notdiscard/regenerate work. No expiry-onlyreassignment; use liveowner or normalexpiredcoordinatorrecovery withstoppedproof."
-    },
-    {
-      "task": "P01-03",
-      "next": "Afterverifiedstop/ownership: independentreview archivedexistingoriginalbinding/committedobserver; sameoriginaljournaltopXID preventsretroactivebinding, nativecanonicalsource/financialhash+taxlinevector, bothpublicpostgatesretained/nobypassflags. Serialintegrate onpublisheddc5e (two nonoverlaprestorefiles), exactcombinedsource/build/PG/restore andapplicablebrowser gates beforepublication. Admission/redemption/allwriterguards/compensation/priorcredit/correction/nativeUI remainfullparentpending."
+      "next": "Inspect preserved candidate d789e8eb329bbcca137f8e034101d5ff1d27c828 at archive bb40f6e0c503bcb08ad4599f8e8013aa086be152; do not regenerate. Independent review of DB authority, original-journal top-XID, native financial hash/vector and causal observer. Complete positive binding/observation, tamper/replay/first-clock/rollback and populated-binding restore cases. Rebase/combine with published dc5e and obtain exact combined tests/build/PG/restore before publication. Both public gates remain disabled and full parent remains pending."
     },
     {
       "task": "P03-04",
@@ -8312,8 +8316,8 @@
     "priorBlocker": "Explicit user approval now received; verify publication before worker edits.",
     "publicationVerified": true
   },
-  "workersStopped": false,
-  "worktreesClean": false,
+  "workersStopped": true,
+  "worktreesClean": true,
   "reusableRunner": {
     "evidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -8324,9 +8328,9 @@
     "availabilityMustBeReverified": true,
     "notAlwaysOn": true,
     "noReplitAgentLLMDispatched": false,
-    "currentAvailability": "Blocked: browser_js Unknown tool(browser.js) afterworkingnewruncontrol; finalretry15:36:50. Replitprimaryimplementation/PGstopunknown.",
+    "currentAvailability": "Interactive recovery and stop/export verified; unattended provider transport continuity remains blocked.",
     "lastVerifiedRun": "hosted-20261104-1355",
-    "currentDispatch": "ActualReplitimplementation GO15:27:20, lastobserved15:34; candidateunexported; stopnotverified",
+    "currentDispatch": "None; prior Replit actor independently verified stopped and candidate archived.",
     "reconnectEvidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
       "sha": "abc704e4ef8a312b90e8e39b55a0f3b47469c512",
@@ -8335,7 +8339,13 @@
     "latestSuccessfulValidation": {
       "source": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
       "evidenceCommit": "4369f93e4462c40a57685a252f4bf685e7a121d9"
-    }
+    },
+    "recoveryEvidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+      "path": "docs/development/candidates/20261104-1521-replit-verification.json"
+    },
+    "providerContinuityQualified": false
   },
   "threeRunComparison": {
     "runs": [
@@ -8350,7 +8360,7 @@
       "Archivednativecapturerecoverycandidate, remoteACK-only monitoringlost thenrecoveredclean",
       "Publishednativecapturerecovery afteractualPG+CI963; primaryReplit implementationbegan, monitoringlostbeforeimmutablehandoff"
     ],
-    "decision": "Next reestablishsamepermittedconnection, stopandinspectprimaryactor/PG, archiveexactexistingcandidate+logs andcontinuethatchain afterreview; do notregenerate or repeat resolveddc5e qualification. Prioritise originalbinding/causalqualification andalllaterconnectedadmissionguards/UI, preservefullscope. No newdispatch whileheldactor stopunknown; no cadencechange.",
+    "decision": "Recovered and preserved existing partial original-binding/observer candidate; next authorized work continues this chain after independent review and missing acceptance tests. No repeat of resolved dc5e qualification. Provider continuity remains separately gated; no cadence or staffing change.",
     "usage": "unknown"
   },
   "localShutdown": {
@@ -8359,17 +8369,22 @@
     "knownLocalCommandsCompleted": true,
     "ownedLocalTestSessions": 0,
     "localPostgresLaunched": false,
-    "remoteActorStop": "unknown",
-    "remotePGStop": "unknown",
+    "remoteActorStop": "verified completed",
+    "remotePGStop": "verified scoped inventory and disposable directories empty",
     "globalProcessEnumeration": "not claimed",
     "evidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
       "sha": "e20b86c7290c11565f8d6a14c8d791f45f9193fd",
       "path": "docs/development/run-20261104-1521-evidence.json"
+    },
+    "recoveryEvidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+      "path": "docs/development/candidates/20261104-1521-replit-verification.json"
     }
   },
   "shutdownBlocker": {
-    "resolved": false,
+    "resolved": true,
     "action": "P01 worker recovery and coordinator release",
     "reason": "Actual remote implementation and isolatedPG actor stop cannot be verified afterruntimebrowserconnectionloss. Cannot truthfully releasecoordinator/workertask. Retain ownership, archiveexactexistingcandidate afterreconnect; no alternate transport or expiry-basedsteal. This is toolcapabilityloss, notautomaticapprovalrejection.",
     "firstObservedAt": "2026-11-04T15:35:39Z",
@@ -8378,11 +8393,78 @@
     "finalRetry": "2026-11-04T15:36:50Z",
     "stopInstruction": "2026-11-04T15:38:00Z",
     "implementationAuthorized": true,
-    "remoteCandidateExported": false,
+    "remoteCandidateExported": true,
     "evidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "e20b86c7290c11565f8d6a14c8d791f45f9193fd",
-      "path": "docs/development/run-20261104-1521-evidence.json"
+      "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+      "path": "docs/development/candidates/20261104-1521-replit-verification.json"
+    },
+    "resolvedAt": "2026-11-04T17:28:58.528Z",
+    "resolution": "Observed completed Replit agent; independently verified clean candidate and original checkout, readable scoped process inventory empty, disposable directories empty and shell prompt returned. Candidate archived before existing worker/coordinator expired-recovery transitions."
+  },
+  "pendingCandidates": [
+    {
+      "task": "P01-03",
+      "commit": "d789e8eb329bbcca137f8e034101d5ff1d27c828",
+      "tree": "615d0b4755e37590513571aff6518ac7d190eda0",
+      "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+      "author": "Ciro Gargiulo <62146537-cirogargiulo@users.noreply.replit.com>",
+      "patchBytes": 29238,
+      "patchSha256": "fd1344f74d2da7b7bb1999768dbdb512ac810eff1cda3c9d826d579010e8eb43",
+      "evidence": [
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+          "path": "docs/development/candidates/20261104-1521-replit-verification.json"
+        },
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+          "path": "docs/development/candidates/20261104-1521-replit-bundle.json"
+        },
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+          "path": "docs/development/candidates/20261104-1521-replit-candidate.patch"
+        },
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+          "path": "docs/development/candidates/20261104-1521-replit-manifest.json"
+        },
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+          "path": "docs/development/candidates/20261104-1521-replit-raw-commit.txt"
+        }
+      ],
+      "qualified": false,
+      "matchingCommitQualification": false,
+      "remaining": [
+        "Positive same-original-transaction conditional binding fixture and financial/evidence/vector tampering cases",
+        "Real PostgreSQL successful fresh binding observation, same/uncommitted transaction rejection, exact replay/first-clock checks",
+        "Populated binding/observation rollback/immutability/restore acceptance and schema-partial checks",
+        "Independent review of DB function authority, canonical hash/source linkage and observer trust boundary",
+        "Parent redemption/all-writer guards/reversal compensation/corrections/UI remain pending"
+      ],
+      "publicPostingEnabled": false,
+      "sourcePublished": false
     }
+  ],
+  "providerBlocker": {
+    "type": "provider-transport",
+    "provider": "Replit",
+    "resolved": false,
+    "observedAt": "2026-11-04T17:26:00Z",
+    "observations": [
+      "Browser control twice returned Unknown tool(browser.js) during active runs after verified interaction; later interactive connection returned and Replit had stopped correctly.",
+      "Direct Replit connector resolve_app_by_name ledgerpoint returned found:false; exact team workspace URL search returned apps:[] while browser could see workspace."
+    ],
+    "cause": "Unproven; no underlying platform cause or prior-week comparison asserted.",
+    "dispatchGate": "No unattended Replit write dispatch until reliable monitoring, bounded stop and exact artifact return are demonstrated. Interactive tab reconnection alone does not qualify continuity.",
+    "taskDependency": false,
+    "codexContinuationAllowed": "A later authorized eligible Codex run may continue the preserved candidate under normal ownership, review and exact-source test gates.",
+    "policyChange": false,
+    "scheduleChange": false
   }
 }
