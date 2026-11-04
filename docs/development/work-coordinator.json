@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 162,
+  "revision": 164,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261104-1355",
     "tokenSha256": "d57a6f59a7ea420ab0d3a21dd474ea798262d3757f92750d47a1049dc438b32f",
     "acquiredAt": 1793800659633,
-    "expiresAt": 1793802459633
+    "expiresAt": 1793802717899
   },
   "lastOwner": {
     "runId": "hosted-20261104-1319",
@@ -7875,24 +7875,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "fb712c93f11ee93f8423139e96adec887ab3f624",
+    "sha": "6ad2c6946938dfed2dc271a23342c7341c1f89f2",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "fb712c93f11ee93f8423139e96adec887ab3f624",
-        "path": "docs/development/run-20261104-1319-evidence.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "fb712c93f11ee93f8423139e96adec887ab3f624",
-        "path": "docs/development/candidates/20261104-1319-final-manifest.json"
+        "sha": "6ad2c6946938dfed2dc271a23342c7341c1f89f2",
+        "path": "docs/development/run-20261104-1355-evidence.json"
       }
     ],
-    "runId": "hosted-20261104-1319",
-    "at": 1793799877840,
+    "runId": "hosted-20261104-1355",
+    "at": 1793800917899,
     "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c"
   },
-  "updatedAt": 1793800659633,
+  "updatedAt": 1793800917899,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -7949,9 +7944,10 @@
   "run": {
     "startedAt": "2026-11-04T13:57:39.652Z",
     "stopBy": "2026-11-04T14:23:00Z",
-    "activity": "Restoring exact archived candidate for PostgreSQL/restore validation; root independent review and host setup; no implementers",
+    "activity": "Exact archived candidate980c115 reconstructed clean; local nonroot/PostgreSQL unavailable. Root performing bounded Replit browser shell preflight. No workers/claims, queue600 unchanged, prior publication blocker unresolved.",
     "activeWorkers": [],
-    "credits": "unknown"
+    "credits": "unknown",
+    "observedAt": "2026-11-04T14:01:57.899Z"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
