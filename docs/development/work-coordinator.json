@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 184,
+  "revision": 185,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
@@ -8134,8 +8134,13 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260",
+    "sha": "e20b86c7290c11565f8d6a14c8d791f45f9193fd",
     "evidence": [
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "e20b86c7290c11565f8d6a14c8d791f45f9193fd",
+        "path": "docs/development/run-20261104-1521-evidence.json"
+      },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
         "sha": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260",
@@ -8153,10 +8158,10 @@
       }
     ],
     "runId": "hosted-20261104-1521",
-    "at": 1793806653023,
+    "at": 1793806856950,
     "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7"
   },
-  "updatedAt": 1793806653023,
+  "updatedAt": 1793806856950,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -8237,7 +8242,7 @@
     "startedAt": "2026-11-04T15:21:18Z",
     "stopBy": "2026-11-04T15:49:00Z",
     "implementationStopBy": "2026-11-04T15:38:00Z",
-    "activity": "Publisheddc5e exactCI963/fullbuild/PG/restores/cleanup durable andPR27draftupdated. Primary implementation monitoring unavailable afterbrowser_js Unknown tool(browser.js)15:35:39; lastactual15:34 prescribedPG onmutable211base, candidateunexported, stopunknown. Root retrying same permitted connection; no newwork/publication/reassignment.",
+    "activity": "Localcoordinationstopped afterdurablehandoff. PublishedP03dc5e/40853f exactactual133PG+12unit/populated40tables6325/encryptednativecapture+paymentrestore andCI963/fullbuild/cleanup passed, PR27draftupdated. PrimaryReplitauthorizedimplementation onisolated211base lastobserved15:34 runningPG; browserfailure15:35:39/finalretry15:36:50 preventsimmutablecandidateexport/testoutcome/stopverification. Acknowledgedstop15:38 haspassed but isnotproof. Retainlivecoordinator+P01reservation, no release/recovery/reassignment/newwork; first reconnectstopinspectarchiveexistingwork.",
     "activeWorkers": [
       {
         "actor": "replit-1521-1",
@@ -8255,11 +8260,17 @@
     ],
     "credits": "unknown",
     "providerUsage": "unknown",
-    "status": "active",
-    "observedAt": "2026-11-04T15:37:33.043Z",
+    "status": "local-stopped-remote-implementation-pg-stop-unverified",
+    "observedAt": "2026-11-04T15:40:56.969Z",
     "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
     "candidateTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
-    "blocker": "Active Replit implementation/PG actor monitoring lost; exactcandidate/export/testoutcome/stop unverified. Acknowledged15:38stop not proof; retain ownership until independentlyverified."
+    "blocker": "Active Replit implementation/PG actor monitoring lost; exactcandidate/export/testoutcome/stop unverified. Acknowledged15:38stop not proof; retain ownership until independentlyverified.",
+    "endedAt": "2026-11-04T15:40:56.969Z",
+    "newlyAcceptedOriginalBullets": [],
+    "newCompleteJourneys": [],
+    "publicationBlocked": false,
+    "primaryPublicationBlocked": true,
+    "primaryCandidate": "unexported-unknown"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -8278,12 +8289,20 @@
   },
   "nextTasks": [
     {
-      "task": "P03-04",
-      "next": "Exact preserved candidateobjectdc5e3c52c2cbe323fbbea5aae0fca52597cc82d7/tree40853fbe81c20b2e00ca9e02ed1becbf6cf23e17 requires actual isolatedPostgreSQL populated/encrypted restore+nativecapture bytes/authdenials. Staticreview/focused12/source790/fullbuild passed. Archiveoriginal authoraed6abd/state6d7be6f; do notregenerate. Afterpassinggates sourceexpectedheadFF211 then exactCI; originalparentremainsincomplete."
+      "task": "P01-03",
+      "next": "FIRST reestablishsamepermittedReplitcontrol for /home/runner/workspace/.local/share/ledgerly/run-20261104-1521/source. AuthorizedGO15:27:20; lastactual15:34 implementation+PG, expectedbase211/f8; stop15:38acknowledged butunverified. InspectAgent/runstate, stopandconfirmactor+ownedPG, preserve allcandidatefiles/logs; exportlocalcommit/binarypatch/manifestauthor/base/tree/exactpaths+hashes, independentlyverify andarchiveBEFORErecovery. Do notdiscard/regenerate work. No expiry-onlyreassignment; use liveowner or normalexpiredcoordinatorrecovery withstoppedproof."
     },
     {
       "task": "P01-03",
-      "next": "Resume reviewed originalbinding plus causalcommittedobservation contract aftersafeownership: original journal insertion transaction must match binding, server source/financialhash/frozenlinevector, no retroactivebinding; both publicpostingrejects remain until connected admission/allwriterguards/UI/browser qualified."
+      "next": "Afterverifiedstop/ownership: independentreview archivedexistingoriginalbinding/committedobserver; sameoriginaljournaltopXID preventsretroactivebinding, nativecanonicalsource/financialhash+taxlinevector, bothpublicpostgatesretained/nobypassflags. Serialintegrate onpublisheddc5e (two nonoverlaprestorefiles), exactcombinedsource/build/PG/restore andapplicablebrowser gates beforepublication. Admission/redemption/allwriterguards/compensation/priorcredit/correction/nativeUI remainfullparentpending."
+    },
+    {
+      "task": "P03-04",
+      "next": "Publisheddc5e/40853f exactCI41858631375/job126673994650 passed963, source→merge9f2d3cfiles[]. Exactprepublication133PG/12unit/populated/encryptedcapture recovery evidence4369f93e andCIc64a7ff accepted boundedscenario. Do NOT redo/regenerate thiscandidate or treat olderqueueevidenceCIpending ascurrent. Remainingparent: operationaltargets/ownership/keyretention/offsiteowner gate andfullruntime/job acceptance."
+    },
+    {
+      "task": "P04-01",
+      "next": "Onlywhenhighesteligible/capacityafterprimarysafeownership: recover/inspect retainedcandidate c2245dc8bd779299ded7d3703e73ba904ddcb53e and archivec3a4629c beforeselectors/officialfixture work; current211/dc5e register has44cases+payrollfamilies, do not duplicate priorunintegrated taxfamilies. No P04worker dispatchedthisrun."
     }
   ],
   "workerVerifierApproval": {
@@ -8305,56 +8324,65 @@
     "availabilityMustBeReverified": true,
     "notAlwaysOn": true,
     "noReplitAgentLLMDispatched": false,
-    "currentAvailability": "Browser control reconnected and read-only ACK/clean/process checks verified; reverify before next implementation/test dispatch",
+    "currentAvailability": "Blocked: browser_js Unknown tool(browser.js) afterworkingnewruncontrol; finalretry15:36:50. Replitprimaryimplementation/PGstopunknown.",
     "lastVerifiedRun": "hosted-20261104-1355",
-    "currentDispatch": "ACK-only actor confirmed stopped; no GO or featureimplementation",
+    "currentDispatch": "ActualReplitimplementation GO15:27:20, lastobserved15:34; candidateunexported; stopnotverified",
     "reconnectEvidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
       "sha": "abc704e4ef8a312b90e8e39b55a0f3b47469c512",
       "path": "docs/development/candidates/20261104-1452-replit-reconnect-stop-evidence.json"
+    },
+    "latestSuccessfulValidation": {
+      "source": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+      "evidenceCommit": "4369f93e4462c40a57685a252f4bf685e7a121d9"
     }
   },
   "threeRunComparison": {
     "runs": [
-      "hosted-20261104-1319",
       "hosted-20261104-1355",
-      "hosted-20261104-1452"
+      "hosted-20261104-1452",
+      "hosted-20261104-1521"
     ],
     "originalBulletsAccepted": 0,
-    "completeJourneys": 0,
-    "results": [
-      "Immutable agreement capture/draft candidate archived",
-      "Exact actualPostgreSQL/restore qualification resolved blocker and published211",
-      "Native restored capturebytes/permission candidate archived; remotecontrol failure prevented primary implementation and exactPG"
+    "completeCommercialJourneys": 0,
+    "progress": [
+      "Published immutableagreementcapture/draft afteractualPGqualification",
+      "Archivednativecapturerecoverycandidate, remoteACK-only monitoringlost thenrecoveredclean",
+      "Publishednativecapturerecovery afteractualPG+CI963; primaryReplit implementationbegan, monitoringlostbeforeimmutablehandoff"
     ],
-    "decision": "Preserve211 and pendingdc5e3c52. First reconnect/verify remote ACK-only actor stop, recover ownership explicitly; run exact candidatePG/restore without regeneration. Resume originalbinding/causalobservation contract with verified provider control; reserve enough implementation time, retain all admission/writer/browser gates. No more witnesspolish or repeatedoldPGsetup.",
-    "credits": "unknown",
-    "shutdownResolution": "Reconnection independently confirmed stopped/clean actor; queue ownership released safely. Exact preserved P03 candidate still pending runtime qualification."
+    "decision": "Next reestablishsamepermittedconnection, stopandinspectprimaryactor/PG, archiveexactexistingcandidate+logs andcontinuethatchain afterreview; do notregenerate or repeat resolveddc5e qualification. Prioritise originalbinding/causalqualification andalllaterconnectedadmissionguards/UI, preservefullscope. No newdispatch whileheldactor stopunknown; no cadencechange.",
+    "usage": "unknown"
   },
   "localShutdown": {
-    "workerStopped": true,
-    "worktreesClean": true,
-    "knownExecSessionsCompleted": true,
-    "localPostgreSQLLaunched": false,
-    "remoteStop": "confirmed by root UI ACK and independent scoped shell evidence",
-    "processInventory": "Root ps unavailable: fatal library error, lookup self; no broad OS enumeration claim",
+    "coordinatorStopped": true,
+    "checkoutClean": true,
+    "knownLocalCommandsCompleted": true,
+    "ownedLocalTestSessions": 0,
+    "localPostgresLaunched": false,
+    "remoteActorStop": "unknown",
+    "remotePGStop": "unknown",
+    "globalProcessEnumeration": "not claimed",
     "evidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "557320f2e6a2417ee19c5baa93d83178838ca102",
-      "path": "docs/development/candidates/20261104-1452-final-evidence.json"
-    },
-    "reconnectEvidence": {
-      "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "abc704e4ef8a312b90e8e39b55a0f3b47469c512",
-      "path": "docs/development/candidates/20261104-1452-replit-reconnect-stop-evidence.json"
+      "sha": "e20b86c7290c11565f8d6a14c8d791f45f9193fd",
+      "path": "docs/development/run-20261104-1521-evidence.json"
     }
   },
   "shutdownBlocker": {
     "resolved": false,
     "action": "P01 worker recovery and coordinator release",
-    "reason": "Active Replit implementation/PG actor monitoring lost; exactcandidate/export/testoutcome/stop unverified. Acknowledged15:38stop not proof; retain ownership until independentlyverified.",
+    "reason": "Actual remote implementation and isolatedPG actor stop cannot be verified afterruntimebrowserconnectionloss. Cannot truthfully releasecoordinator/workertask. Retain ownership, archiveexactexistingcandidate afterreconnect; no alternate transport or expiry-basedsteal. This is toolcapabilityloss, notautomaticapprovalrejection.",
     "firstObservedAt": "2026-11-04T15:35:39Z",
     "lastObserved": "Root15:34 activeReplitimplementation/test; no candidate exported",
-    "expiryDoesNotProveStop": true
+    "expiryDoesNotProveStop": true,
+    "finalRetry": "2026-11-04T15:36:50Z",
+    "stopInstruction": "2026-11-04T15:38:00Z",
+    "implementationAuthorized": true,
+    "remoteCandidateExported": false,
+    "evidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "e20b86c7290c11565f8d6a14c8d791f45f9193fd",
+      "path": "docs/development/run-20261104-1521-evidence.json"
+    }
   }
 }
