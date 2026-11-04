@@ -1,0 +1,150 @@
+From d7a74b958291cf9ce32e7c46de69035fc3bdb997 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Wed, 4 Nov 2026 12:48:29 +0000
+Subject: [PATCH] Reject forged identities in payment commitment witnesses
+
+---
+ .../conditionalDiscount.integration.test.ts   | 51 +++++++++++++++++--
+ lib/db/migration-registry.json                |  2 +-
+ ...conditional-discount-agreements.review.sql | 29 ++++++++++-
+ 3 files changed, 77 insertions(+), 5 deletions(-)
+
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+index a598097..64f5042 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+@@ -39,10 +39,10 @@ async function fixture(){
+  const review=await previewPayment(company,actor,body);
+  return {company,body:{...body,review_token:review.review_token}};
+ }
+-async function insertWitness(q:any,f:any){
++async function insertWitness(q:any,f:any,overrides:{hash?:string,actor?:string,journal?:string}={}){
+  return q.query(`INSERT INTO public.conditional_discount_commit_witnesses(company_id,event_id,journal_id,event_source_hash,actor_id)
+- SELECT e.company_id,e.id,e.journal_id,j.source_revision,$3 FROM public.accounting_payment_events e
+- JOIN public.canonical_journal_entries j ON j.id=e.journal_id WHERE e.company_id=$1 AND e.id=$2`,[f.company,f.body.id,actor]);
++ SELECT e.company_id,e.id,COALESCE($5::uuid,e.journal_id),COALESCE($4::text,j.source_revision),$3 FROM public.accounting_payment_events e
++ JOIN public.canonical_journal_entries j ON j.id=e.journal_id WHERE e.company_id=$1 AND e.id=$2`,[f.company,f.body.id,overrides.actor??actor,overrides.hash??null,overrides.journal??null]);
+ }
+ for(const mode of ['parent','unreleased savepoint','released savepoint']) test(`real PostgreSQL: ${mode} cannot witness before top commit`,async()=>{
+  const f=await fixture();
+@@ -123,3 +123,48 @@ test('real PostgreSQL: existing valid witness remains readable after origin mism
+  try{await change('synthetic-restored-origin');assert.deepEqual(await captureCommittedPaymentWitness(f.company,actor,f.body.id),first);}
+  finally{await change(original);}
+ });
++
++test('real PostgreSQL: restricted runtime cannot poison the first receipt hash, journal or observer',async()=>{
++ const f=await fixture();
++ // Commit the source without automatic observation, leaving the first receipt available.
++ await withCanonicalPostingTransaction(tx=>postPayment(f.company,actor,f.body,undefined,tx));
++ const foreign=await fixture();
++ await withCanonicalPostingTransaction(tx=>postPayment(foreign.company,actor,foreign.body,undefined,tx));
++ const foreignJournal=(await pool.query('SELECT journal_id FROM public.accounting_payment_events WHERE id=$1',[foreign.body.id])).rows[0].journal_id;
++ const inactive=`inactive-${randomUUID()}`,readonly=`readonly-${randomUUID()}`,foreignActor=`foreign-${randomUUID()}`,observer=`observer-${randomUUID()}`;
++ for(const [company,user,role,active] of [[f.company,inactive,'owner',false],[f.company,readonly,'read_only',true],
++   [foreign.company,foreignActor,'owner',true],[f.company,observer,'admin',true]])
++  await admin.query('INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,$4,$5)',[randomUUID(),company,user,role,active]);
++ const cases=[
++  {overrides:{hash:'sha256:'+'0'.repeat(64)},message:/Matching canonical payment identity/},
++  {overrides:{journal:foreignJournal},message:/separately committed/},
++  ...[inactive,readonly,foreignActor,`missing-${randomUUID()}`].map(actor=>({overrides:{actor},message:/Active writable company observer/})),
++ ];
++ for(const candidate of cases){
++  await assert.rejects(()=>insertWitness(pool,f,candidate.overrides),candidate.message);
++  assert.equal((await pool.query('SELECT count(*)::int n FROM public.conditional_discount_commit_witnesses WHERE company_id=$1 AND event_id=$2',[f.company,f.body.id])).rows[0].n,0);
++ }
++ // The observer may be another authorized member, rather than the payment creator.
++ const first=await captureCommittedPaymentWitness(f.company,observer,f.body.id);
++ assert.equal(first.status,'recorded');
++ assert.equal((await pool.query('SELECT actor_id FROM public.conditional_discount_commit_witnesses WHERE company_id=$1 AND event_id=$2',[f.company,f.body.id])).rows[0].actor_id,observer);
++ assert.deepEqual(await captureCommittedPaymentWitness(f.company,actor,f.body.id),first);
++});
++test('real PostgreSQL: inconsistent canonical posting effect cannot certify a receipt',async()=>{
++ const f=await fixture();
++ await withCanonicalPostingTransaction(tx=>postPayment(f.company,actor,f.body,undefined,tx));
++ const c=await admin.connect();
++ try{
++  await c.query('BEGIN');
++  // Simulate damaged immutable history only inside this rolled-back disposable transaction.
++  await c.query('ALTER TABLE public.accounting_posting_effects DISABLE TRIGGER ledgerly_accounting_posting_effects_guard');
++  await c.query("UPDATE public.accounting_posting_effects SET source_revision=$2 WHERE company_id=$1 AND source_id=$3",[f.company,'sha256:'+'0'.repeat(64),f.body.id]);
++  await c.query('ALTER TABLE public.accounting_posting_effects ENABLE ALWAYS TRIGGER ledgerly_accounting_posting_effects_guard');
++  await c.query('SET LOCAL ROLE ledgerly_api');
++  await assert.rejects(()=>insertWitness(c,f),/Matching canonical payment identity/);
++ }finally{await c.query('ROLLBACK');c.release();}
++ assert.equal((await pool.query('SELECT count(*)::int n FROM public.conditional_discount_commit_witnesses WHERE company_id=$1 AND event_id=$2',[f.company,f.body.id])).rows[0].n,0);
++ const first=await captureCommittedPaymentWitness(f.company,actor,f.body.id);
++ assert.equal(first.status,'recorded');
++ assert.deepEqual(await captureCommittedPaymentWitness(f.company,actor,f.body.id),first);
++});
+diff --git a/lib/db/migration-registry.json b/lib/db/migration-registry.json
+index db82ae9..2763f24 100644
+--- a/lib/db/migration-registry.json
++++ b/lib/db/migration-registry.json
+@@ -80,7 +80,7 @@
+       "dependencies": [
+         "accounting-payments"
+       ],
+-      "sha256": "46ed14bcaa44e76f2ff055e8279a926a3bde60bc66f9c3cbe2efc9fbd5424a4e"
++      "sha256": "e677ca90da80a212d6574229a2e1b2d5b41881c89c3cd9b6b35745a10a1bc44e"
+     }
+   ],
+   "securityOverlay": {
+diff --git a/lib/db/migrations/conditional-discount-agreements.review.sql b/lib/db/migrations/conditional-discount-agreements.review.sql
+index e5757e5..e13398a 100644
+--- a/lib/db/migrations/conditional-discount-agreements.review.sql
++++ b/lib/db/migrations/conditional-discount-agreements.review.sql
+@@ -26,6 +26,7 @@ END $$;
+ ALTER FUNCTION public.conditional_discount_payment_transaction() OWNER TO ledgerly_canonical_owner;
+ REVOKE ALL ON FUNCTION public.conditional_discount_payment_transaction() FROM PUBLIC,ledgerly_api;
+ GRANT SELECT ON public.accounting_payment_events TO ledgerly_canonical_owner;
++GRANT SELECT (company_id,user_id,role,is_active) ON public.company_users TO ledgerly_canonical_owner;
+ GRANT EXECUTE ON FUNCTION pg_catalog.pg_control_system() TO ledgerly_canonical_owner;
+ CREATE TRIGGER conditional_discount_payment_transaction AFTER INSERT ON public.accounting_payment_events
+  FOR EACH ROW EXECUTE FUNCTION public.conditional_discount_payment_transaction();
+@@ -55,6 +56,7 @@ ALTER TABLE public.conditional_discount_commit_witnesses OWNER TO ledgerly_canon
+ CREATE FUNCTION public.conditional_discount_witness_observe() RETURNS trigger
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog AS $$
+ DECLARE source_row public.accounting_payment_events%ROWTYPE; source_xid xid8; source_cluster text;
++  trusted_hash text; observer_count bigint; observer_allowed boolean;
+ BEGIN
+   SELECT e.* INTO source_row FROM public.accounting_payment_events e
+     WHERE e.company_id=NEW.company_id AND e.id=NEW.event_id;
+@@ -64,9 +66,34 @@ BEGIN
+   -- Unknown/expired status and absent pre-migration receipts fail closed.
+   IF source_cluster IS DISTINCT FROM (SELECT system_identifier::text FROM pg_catalog.pg_control_system()) OR
+      source_xid IS NULL OR pg_catalog.pg_xact_status(source_xid) IS DISTINCT FROM 'committed' OR
+-     source_row.journal_id <> NEW.journal_id OR source_row.kind NOT IN ('payment','allocation') THEN
++     source_row.journal_id IS DISTINCT FROM NEW.journal_id OR source_row.kind NOT IN ('payment','allocation') THEN
+     RAISE EXCEPTION 'A separately committed native payment or allocation is required';
+   END IF;
++  -- Runtime INSERT privilege must not permit a false immutable first receipt.
++  -- Resolve the same canonical journal/effect identity as the protected reader.
++  SELECT j.source_revision INTO trusted_hash
++    FROM public.canonical_journal_entries j
++    JOIN public.accounting_posting_effects p ON p.company_id=j.company_id AND p.journal_id=j.id
++      AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
++      AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||source_row.id::text
++      AND p.status='posted' AND p.source_revision=j.source_revision
++    WHERE j.id=source_row.journal_id AND j.company_id=source_row.company_id
++      AND j.source_id=source_row.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
++      AND j.currency_code='GBP' AND j.posting_kind='party_'||source_row.kind
++      AND j.posting_date=source_row.effective_date AND j.reference=source_row.reference
++      AND j.economic_effect_id='payment-event:'||source_row.id::text;
++  IF NOT FOUND OR trusted_hash IS NULL OR NEW.event_source_hash IS DISTINCT FROM trusted_hash THEN
++    RAISE EXCEPTION 'Matching canonical payment identity and source hash required';
++  END IF;
++  -- This validates the named observer's membership, not Clerk authentication or
++  -- nonrepudiation under the shared database role. The protected API owns those.
++  -- Count every matching membership so a duplicate inactive row also fails closed.
++  SELECT count(*),bool_and(m.is_active AND m.role IN ('owner','admin','accountant'))
++    INTO observer_count,observer_allowed FROM public.company_users m
++    WHERE m.company_id=source_row.company_id AND m.user_id=NEW.actor_id;
++  IF observer_count<>1 OR observer_allowed IS DISTINCT FROM true THEN
++    RAISE EXCEPTION 'Active writable company observer membership required';
++  END IF;
+   NEW.event_created_at := source_row.created_at;
+   NEW.observed_at := pg_catalog.clock_timestamp();
+   RETURN NEW;
+-- 
+2.51.1
+

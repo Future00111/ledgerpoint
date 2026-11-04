@@ -1,0 +1,306 @@
+From 07f858ad4f9224605bf524dc04646c91d6a3815b Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Wed, 4 Nov 2026 12:50:29 +0000
+Subject: [PATCH] Exercise native payment and witness operations after
+ application restore
+
+---
+ tools/accounting-flow/restore-drill.mjs       |  6 +-
+ .../backup-restore/application-recovery.mjs   | 38 +++++++-
+ .../runtime-acceptance.test.mjs               | 50 ++++++++++
+ .../backup-restore/runtime-acceptance.ts      | 93 +++++++++++++++++++
+ .../backup-restore/runtime-target.mjs         | 15 +++
+ 5 files changed, 198 insertions(+), 4 deletions(-)
+ create mode 100644 tools/operations/backup-restore/runtime-acceptance.test.mjs
+ create mode 100644 tools/operations/backup-restore/runtime-acceptance.ts
+ create mode 100644 tools/operations/backup-restore/runtime-target.mjs
+
+diff --git a/tools/accounting-flow/restore-drill.mjs b/tools/accounting-flow/restore-drill.mjs
+index 8c0aa9c..fb55171 100644
+--- a/tools/accounting-flow/restore-drill.mjs
++++ b/tools/accounting-flow/restore-drill.mjs
+@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
+ import { execFileSync } from 'node:child_process';
+ import { realpathSync } from 'node:fs';
+ import path from 'node:path';
+-import { recoverApplicationArchive } from '../operations/backup-restore/application-recovery.mjs';
++import { recoverApplicationArchive, prepareApplicationRuntime } from '../operations/backup-restore/application-recovery.mjs';
+ import { fingerprintDatabase, assertSameFingerprint } from './database-fingerprint.mjs';
+ export { fingerprintDatabase, assertSameFingerprint } from './database-fingerprint.mjs';
+ 
+@@ -38,6 +38,8 @@ export async function runRestoreDrill({ Client, directory, socket, port }) {
+     await source.connect(); await identity(source, target, SOURCE, 'w03_bootstrap');
+     const exists = await source.query('SELECT 1 FROM pg_database WHERE datname=$1', [RESTORED]);
+     if (exists.rowCount) throw new Error('Restore target already exists; refusing to replace it.');
++    // Prepare real native payment evidence before taking the immutable dump baseline.
++    const nativeRuntime = prepareApplicationRuntime({ directory, socket, port });
+     const before = await fingerprintDatabase(source);
+     for (const name of ['accounting_document_sources', 'canonical_journal_entries', 'canonical_journal_lines',
+       'accounting_audit_events', 'document_intake_sources', 'document_intake_audit']) {
+@@ -83,7 +85,7 @@ export async function runRestoreDrill({ Client, directory, socket, port }) {
+     catch(error) {if(error.code!=='42501') throw error;denied=true;}
+     finally {await runtime.query('ROLLBACK');}
+     if(!denied) throw new Error('Restored runtime unexpectedly permits source content changes.');
+-    const encryptedApplicationRecovery = await recoverApplicationArchive({ Client, directory, archive, source, before, fingerprintDatabase, assertSameFingerprint });
++    const encryptedApplicationRecovery = await recoverApplicationArchive({ Client, directory, archive, source, before, fingerprintDatabase, assertSameFingerprint, nativeRuntime });
+     return { encryptedApplicationRecovery, syntheticOnly: true, sourceUnchanged: true, restoredTables: before.tables.length,
+       restoredRows: before.tables.reduce((sum, table) => sum + table.rows, 0),
+       sourceFingerprint: digest(before), restoredFingerprint: digest(after), runtimeRestricted: true,
+diff --git a/tools/operations/backup-restore/application-recovery.mjs b/tools/operations/backup-restore/application-recovery.mjs
+index e860a0d..53025c2 100644
+--- a/tools/operations/backup-restore/application-recovery.mjs
++++ b/tools/operations/backup-restore/application-recovery.mjs
+@@ -4,8 +4,35 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, realpathSy
+ import { execFileSync } from 'node:child_process';
+ import { randomBytes } from 'node:crypto';
+ import { performance } from 'node:perf_hooks';
++import { createRequire } from 'node:module';
++import { fileURLToPath } from 'node:url';
+ import path from 'node:path';
+ import { transformFile } from './archive.mjs';
++import { applicationRuntimeTarget } from './runtime-target.mjs';
++
++const root = fileURLToPath(new URL('../../../', import.meta.url));
++function runApplicationRuntime({ phase, socket, bundle, fixture }) {
++  const target = applicationRuntimeTarget(phase, socket);
++  if (realpathSync(target.directory) !== target.directory || realpathSync(socket) !== socket)
++    throw new Error('Application runtime target must not use symlinks.');
++  return JSON.parse(execFileSync(process.execPath, [bundle, phase], {
++    cwd: root, encoding: 'utf8', timeout: 60000, input: JSON.stringify(fixture ?? {}),
++    env: { PATH: process.env.PATH, HOME: target.directory, LANG: 'C', LC_ALL: 'C', NODE_ENV: 'test',
++      NODE_PATH: path.join(root, 'artifacts/api-server/node_modules'),
++      APPLICATION_RECOVERY_SOCKET: socket, DATABASE_URL: target.url },
++  }));
++}
++export function prepareApplicationRuntime({ directory, socket, port }) {
++  const target = applicationRuntimeTarget('prepare', socket);
++  if (target.directory !== directory || target.port !== port) throw new Error('Disposable source runtime identity mismatch.');
++  if (realpathSync(directory) !== directory || realpathSync(socket) !== socket)
++    throw new Error('Application runtime target must not use symlinks.');
++  const bundle = path.join(directory, 'application-runtime.cjs');
++  const { buildSync } = createRequire(path.join(root, 'artifacts/api-server/package.json'))('esbuild');
++  buildSync({ absWorkingDir: root, entryPoints: [path.join(root, 'tools/operations/backup-restore/runtime-acceptance.ts')],
++    outfile: bundle, bundle: true, platform: 'node', format: 'cjs', external: ['pg', '@clerk/express'], logLevel: 'silent' });
++  return { bundle, fixture: runApplicationRuntime({ phase: 'prepare', socket, bundle }) };
++}
+ 
+ const roleSQL = `SELECT rolname,rolsuper,rolinherit,rolcreaterole,rolcreatedb,rolcanlogin,rolreplication,rolbypassrls
+   FROM pg_roles WHERE rolname IN ('ledgerly_api','ledgerly_canonical_owner') ORDER BY rolname`;
+@@ -25,7 +52,7 @@ export function assertApplicationRoles(roles, memberships) {
+   if (JSON.stringify(roles) !== JSON.stringify(expected) || memberships.length !== 0)
+     throw new Error('Application recovery requires the exact restricted role contract.');
+ }
+-export async function recoverApplicationArchive({ Client, directory, archive, source, before, fingerprintDatabase, assertSameFingerprint }) {
++export async function recoverApplicationArchive({ Client, directory, archive, source, before, fingerprintDatabase, assertSameFingerprint, nativeRuntime }) {
+   assertApplicationArchive({ directory, archive });
+   if (realpathSync(directory) !== directory || realpathSync(archive) !== archive) throw new Error('Recovery source must not use symlinks.');
+   assertApplicationRoles((await source.query(roleSQL)).rows, (await source.query(membershipSQL)).rows);
+@@ -37,7 +64,7 @@ export async function recoverApplicationArchive({ Client, directory, archive, so
+   const env = { PATH: process.env.PATH, HOME: base, LANG: 'C', LC_ALL: 'C' };
+   const run = (command, args) => execFileSync(command, args, { env, stdio: 'pipe', timeout: 60000 });
+   const clients = [], started = performance.now();
+-  let startupAttempted = false, stopped = true, removed = false, verified = false, failure;
++  let startupAttempted = false, stopped = true, removed = false, verified = false, failure, nativeRuntimeAcceptance = null;
+   try {
+     mkdirSync(socket, { mode: 0o700 });
+     const keyFile = path.join(base, 'key'), encrypted = path.join(base, 'application.enc'), recovered = path.join(base, 'authenticated.dump');
+@@ -72,6 +99,12 @@ export async function recoverApplicationArchive({ Client, directory, archive, so
+     catch (error) { if (error.code !== '42501') throw error; denied = true; }
+     finally { await runtime.query('ROLLBACK'); }
+     if (!denied) throw new Error('Recovered runtime can mutate original source content.');
++    if (nativeRuntime?.bundle !== path.join(directory, 'application-runtime.cjs') || !nativeRuntime.fixture)
++      throw new Error('Prepared native application runtime acceptance fixture is required.');
++    nativeRuntimeAcceptance = runApplicationRuntime({ phase: 'verify', socket,
++      bundle: nativeRuntime.bundle, fixture: nativeRuntime.fixture });
++    // Runtime writes are restricted to the new cluster; the archive source stays intact.
++    assertSameFingerprint(before, await fingerprintDatabase(source));
+     verified = true;
+   } catch (error) { failure = error; }
+   finally {
+@@ -84,6 +117,7 @@ export async function recoverApplicationArchive({ Client, directory, archive, so
+     writeFileSync(receiptPath, JSON.stringify({ sourceCommit, syntheticOnly: true, verified,
+       separateCluster: true, encryptedArchiveUsed: verified, applicationFingerprintMatched: verified,
+       sourceUnchanged: verified, runtimeRestricted: verified, runtimeMutationDenied: verified,
++      nativeRuntimeAcceptance,
+       postgresStopped: stopped, directoryRemoved: removed, elapsedMilliseconds: Math.round(performance.now() - started),
+       ambientDatabaseCredentialsUsed: false, productionContact: false,
+       fixtureScope: 'Populated accounting regression schema, source attachments and audit; not production/offsite recovery qualification' }, null, 2) + '\n');
+diff --git a/tools/operations/backup-restore/runtime-acceptance.test.mjs b/tools/operations/backup-restore/runtime-acceptance.test.mjs
+new file mode 100644
+index 0000000..d0572f2
+--- /dev/null
++++ b/tools/operations/backup-restore/runtime-acceptance.test.mjs
+@@ -0,0 +1,50 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { createRequire } from 'node:module';
++import { mkdtempSync, rmSync, mkdirSync } from 'node:fs';
++import { spawnSync } from 'node:child_process';
++import { fileURLToPath } from 'node:url';
++import path from 'node:path';
++import { applicationRuntimeTarget } from './runtime-target.mjs';
++
++test('native acceptance binds each phase to its fixed disposable socket, database and restricted role', () => {
++  const source = '/tmp/ledgerly-accounting-flow-tests-Ab1234/socket';
++  const restored = '/tmp/ledgerpoint-application-recovery-Ab1234/socket';
++  assert.equal(applicationRuntimeTarget('prepare', source).port, 55441);
++  const target = applicationRuntimeTarget('verify', restored);
++  assert.equal(target.port, 55443);
++  assert.equal(target.database, 'postgres');
++  assert.equal(new URL(target.url).username, 'ledgerly_api');
++  for (const [phase, socket] of [
++    ['verify', source], ['prepare', restored], ['unknown', restored], ['verify', 'localhost'],
++    ['verify', '/tmp/production/socket'], ['verify', restored.replace('/socket', '/../socket')],
++  ]) assert.throws(() => applicationRuntimeTarget(phase, socket), /Fresh disposable/);
++});
++
++test('actual native acceptance bundle rejects inherited database URLs before loading the runtime', () => {
++  const root = fileURLToPath(new URL('../../../', import.meta.url));
++  const api = path.join(root, 'artifacts/api-server');
++  const { buildSync } = createRequire(path.join(api, 'package.json'))('esbuild');
++  const directory = mkdtempSync('/tmp/ledgerpoint-application-recovery-');
++  try {
++    const socket = path.join(directory, 'socket'), outfile = path.join(directory, 'acceptance.cjs');
++    mkdirSync(socket);
++    const result = buildSync({ absWorkingDir: root, entryPoints: [path.join(root, 'tools/operations/backup-restore/runtime-acceptance.ts')],
++      outfile, bundle: true, platform: 'node', format: 'cjs', external: ['pg', '@clerk/express'], metafile: true, logLevel: 'silent' });
++    assert.equal(result.warnings.length, 0);
++    for (const input of Object.keys(result.metafile.inputs)) {
++      const resolved = path.resolve(root, input);
++      if (!resolved.includes(`${path.sep}node_modules${path.sep}`))
++        assert.ok(resolved.startsWith(root), `Native source resolved outside the current worktree: ${input}`);
++    }
++    assert.ok(Object.keys(result.metafile.inputs).includes('lib/db/src/index.ts'));
++    for (const service of ['payments.ts', 'conditionalDiscount.ts', 'canonicalPosting.ts'])
++      assert.ok(Object.keys(result.metafile.inputs).some(name => name.endsWith('/' + service)), `Missing native ${service}`);
++    const run = spawnSync(process.execPath, [outfile, 'verify'], { encoding: 'utf8', cwd: root, timeout: 5000,
++      env: { PATH: process.env.PATH, NODE_ENV: 'test', NODE_PATH: path.join(api, 'node_modules'),
++        APPLICATION_RECOVERY_SOCKET: socket, DATABASE_URL: 'postgresql://unused@127.0.0.1:1/no_database' } });
++    assert.equal(run.status, 1);
++    assert.match(run.stderr, /AssertionError/);
++    assert.doesNotMatch(run.stderr, /ECONNREFUSED|ENOTFOUND|ERR_MODULE_NOT_FOUND|MODULE_NOT_FOUND/);
++  } finally { rmSync(directory, { recursive: true, force: true }); }
++});
+diff --git a/tools/operations/backup-restore/runtime-acceptance.ts b/tools/operations/backup-restore/runtime-acceptance.ts
+new file mode 100644
+index 0000000..a7b42df
+--- /dev/null
++++ b/tools/operations/backup-restore/runtime-acceptance.ts
+@@ -0,0 +1,93 @@
++// Executed only by the disposable restore runner, against its guarded socket.
++import assert from 'node:assert/strict';
++import { randomUUID } from 'node:crypto';
++import { readFileSync, realpathSync } from 'node:fs';
++import { applicationRuntimeTarget } from './runtime-target.mjs';
++
++async function main() {
++  const phase = process.argv[2];
++  const target = applicationRuntimeTarget(phase, process.env.APPLICATION_RECOVERY_SOCKET);
++  assert.equal(realpathSync(target.directory), target.directory);
++  assert.equal(realpathSync(target.socket), target.socket);
++  assert.equal(process.env.NODE_ENV, 'test');
++  assert.equal(process.env.DATABASE_URL, target.url);
++  assert.equal(process.env.W03_INVOICE_DEMO_MODE, undefined);
++  // Validate the target before loading the native database/runtime modules.
++  const { pool } = await import('../../../lib/db/src/index');
++  const { previewPayment, postPayment } = await import('../../../artifacts/api-server/src/services/accountingDocuments/payments');
++  const { captureCommittedPaymentWitness } = await import('../../../artifacts/api-server/src/services/accountingDocuments/conditionalDiscount');
++  const { withCanonicalPostingTransaction } = await import('../../../artifacts/api-server/src/services/accounting/canonicalPosting');
++  try {
++    assert.deepEqual((await pool.query(`SELECT current_database() database,current_user actor,
++      inet_server_addr() address,current_setting('port') port`)).rows[0],
++      { database: target.database, actor: 'ledgerly_api', address: null, port: String(target.port) });
++    const permissions = (await pool.query(`SELECT
++      has_function_privilege('ledgerly_canonical_owner','pg_catalog.pg_control_system()','EXECUTE') owner_execute,
++      has_function_privilege(current_user,'pg_catalog.pg_control_system()','EXECUTE') runtime_execute,
++      pg_has_role(current_user,'ledgerly_canonical_owner','MEMBER') owner_member`)).rows[0];
++    assert.equal(permissions.owner_execute, true);
++    assert.equal(permissions.owner_member, false);
++    const witnesses = async (id: string) => Number((await pool.query(
++      'SELECT count(*)::int n FROM conditional_discount_commit_witnesses WHERE event_id=$1', [id])).rows[0].n);
++    const reviewed = async (company: string, actor: string, template: any) => {
++      const body = { ...template, id: randomUUID(), reference: 'Synthetic restore acceptance', amount_minor: '100', allocations: [] };
++      const review = await previewPayment(company, actor, body);
++      return { ...body, review_token: review.review_token };
++    };
++    if (phase === 'prepare') {
++      // Reuse the dedicated fixture's valid configuration and single owner.
++      // Create this event through the native transaction before the dump baseline.
++      const fixture = (await pool.query(`SELECT e.company_id,e.id,e.source,e.actor_id
++        FROM accounting_payment_events e JOIN conditional_discount_commit_witnesses w ON w.event_id=e.id AND w.company_id=e.company_id
++        WHERE e.actor_id='synthetic-witness-owner' AND e.kind='payment' AND e.party_type='customer'
++        AND (SELECT count(*) FROM company_users u WHERE u.company_id=e.company_id AND u.user_id=e.actor_id)=1
++        AND EXISTS(SELECT 1 FROM company_users u WHERE u.company_id=e.company_id AND u.user_id=e.actor_id AND u.is_active AND u.role='owner')
++        ORDER BY e.id LIMIT 1`)).rows[0];
++      assert.ok(fixture, 'Populated native witness fixture is required before restore.');
++      const historical = await captureCommittedPaymentWitness(fixture.company_id, fixture.actor_id, fixture.id);
++      assert.equal(historical.status, 'recorded');
++      const body = await reviewed(fixture.company_id, fixture.actor_id, fixture.source.intent);
++      const posted = await withCanonicalPostingTransaction(tx => postPayment(fixture.company_id, fixture.actor_id, body, undefined, tx));
++      assert.equal(posted.status, 'posted');
++      assert.equal(await witnesses(body.id), 0);
++      const transaction = (await pool.query('SELECT cluster_id FROM conditional_discount_payment_transactions WHERE event_id=$1', [body.id])).rows[0];
++      assert.ok(transaction?.cluster_id);
++      return { company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
++        unwitnessedEvent: body.id, sourceCluster: transaction.cluster_id, template: fixture.source.intent, permissions };
++    }
++    const fixture = JSON.parse(readFileSync(0, 'utf8'));
++    assert.deepEqual(permissions, fixture.permissions, 'Effective function permissions changed during restore.');
++    assert.deepEqual(await captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.historicalEvent), fixture.historical);
++    assert.equal(await witnesses(fixture.unwitnessedEvent), 0);
++    await assert.rejects(() => captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.unwitnessedEvent),
++      (error: any) => /separately committed native payment/.test(error.cause?.message ?? error.message));
++    assert.equal(await witnesses(fixture.unwitnessedEvent), 0, 'Foreign-origin event must remain unwitnessed.');
++    const body = await reviewed(fixture.company, fixture.actor, fixture.template);
++    const posted = await postPayment(fixture.company, fixture.actor, body);
++    assert.equal(posted.status, 'posted');
++    assert.equal((posted as any).conditional_discount_witness, 'recorded');
++    const observed = await captureCommittedPaymentWitness(fixture.company, fixture.actor, body.id);
++    assert.equal(observed.status, 'recorded');
++    const retry = await postPayment(fixture.company, fixture.actor, body);
++    assert.equal(retry.status, 'duplicate');
++    assert.equal(retry.journal_id, posted.journal_id);
++    assert.deepEqual(await captureCommittedPaymentWitness(fixture.company, fixture.actor, body.id), observed);
++    const counts = (await pool.query(`SELECT
++      (SELECT count(*)::int FROM accounting_payment_events WHERE id=$1) events,
++      (SELECT count(*)::int FROM canonical_journal_entries WHERE source_type='accounting_payment_event' AND source_id=$1::text) journals,
++      (SELECT count(*)::int FROM accounting_posting_effects WHERE source_type='accounting_payment_event' AND source_id=$1::text) effects,
++      (SELECT count(*)::int FROM conditional_discount_payment_transactions WHERE event_id=$1) transactions,
++      (SELECT count(*)::int FROM conditional_discount_commit_witnesses WHERE event_id=$1) witnesses`, [body.id])).rows[0];
++    assert.deepEqual(counts, { events: 1, journals: 1, effects: 1, transactions: 1, witnesses: 1 });
++    const origin = (await pool.query('SELECT cluster_id FROM conditional_discount_payment_transactions WHERE event_id=$1', [body.id])).rows[0];
++    assert.notEqual(origin.cluster_id, fixture.sourceCluster, 'Restored cluster must have a different transaction origin.');
++    assert.deepEqual(await captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.historicalEvent), fixture.historical);
++    return { newNativePaymentPosted: true, newCommittedWitnessRecorded: true, retrySingleEffect: true,
++      historicalWitnessPreserved: true, foreignUnwitnessedRejected: true, distinctClusterOrigin: true,
++      effectiveFunctionPermissionsPreserved: true };
++  } finally { await pool.end(); }
++}
++
++main().then(result => process.stdout.write(JSON.stringify(result) + '\n')).catch(error => {
++  console.error(error); process.exitCode = 1;
++});
+diff --git a/tools/operations/backup-restore/runtime-target.mjs b/tools/operations/backup-restore/runtime-target.mjs
+new file mode 100644
+index 0000000..482d8cd
+--- /dev/null
++++ b/tools/operations/backup-restore/runtime-target.mjs
+@@ -0,0 +1,15 @@
++import path from 'node:path';
++
++// Only the two disposable clusters created by the accounting restore runner.
++// Never accept a caller's database URL, role, port or database name.
++export function applicationRuntimeTarget(phase, socket) {
++  const prepare = phase === 'prepare';
++  const pattern = prepare ? /^\/tmp\/ledgerly-accounting-flow-tests-[A-Za-z0-9]{6}\/socket$/ :
++    /^\/tmp\/ledgerpoint-application-recovery-[A-Za-z0-9]{6}\/socket$/;
++  if (!['prepare', 'verify'].includes(phase) || typeof socket !== 'string' || !pattern.test(socket))
++    throw new Error('Fresh disposable application runtime socket required.');
++  const port = prepare ? 55441 : 55443;
++  const database = prepare ? 'ledgerly_accounting_flow_test' : 'postgres';
++  return { directory: path.dirname(socket), socket, port, database,
++    url: `postgresql://ledgerly_api@localhost/${database}?host=${encodeURIComponent(socket)}&port=${port}&options=-c%20timezone%3DUTC` };
++}
+-- 
+2.51.1
+
