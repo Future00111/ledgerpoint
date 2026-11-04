@@ -1,0 +1,153 @@
+{
+  "reviewer": "root",
+  "verifiedAt": "2026-11-04T20:37:37Z",
+  "sourceCommit": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+  "sourceTree": "aa395e1629efc664ee119e1b55a45c7998c68b3e",
+  "candidateCommit": "ce251328e0bf78055dd74d9e3cef1d9b1c772a46",
+  "workflowRunId": 41907994948,
+  "jobId": 126847691388,
+  "ciCheckout": "7e8a4bd3e7421fc85837428b292dc6d746dba4e3",
+  "sourceToCheckoutFiles": [],
+  "result": "success",
+  "tests": 1047,
+  "pass": 1047,
+  "fail": 0,
+  "skip": 0,
+  "cancelled": 0,
+  "newPostgresScenarios": 26,
+  "verifiedGates": [
+    "workspace build and typecheck",
+    "source and scheduler regression",
+    "native PostgreSQL accounting/security/atomicity",
+    "native populated restore",
+    "encrypted disposable PostgreSQL recovery",
+    "current-source evidence and cleanup"
+  ],
+  "acceptance": "Bounded internal read-only conditional-discount admission only. Parent P01-03 remains pending; atomic redemption, all-writer protections and complete browser journey not accepted.",
+  "jobs": [
+    {
+      "id": 126847691388,
+      "name": "Current source and disposable accounting checks",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41907994948,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Use pinned pnpm",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Install the locked workspace",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Build and typecheck",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Unit, permission, precision and UI regression",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Validate pinned migration inputs",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Prepare disposable PostgreSQL binaries",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Accounting API, security, atomicity and restore regression",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Encrypted recovery unit controls",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Encrypted disposable PostgreSQL recovery rehearsal",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Verify encrypted recovery cleanup",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Verify exact-source encrypted recovery evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Verify isolated cleanup",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        },
+        {
+          "name": "Verify current-run restore evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31
+        },
+        {
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 32
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33
+        }
+      ]
+    }
+  ]
+}
