@@ -1,23 +1,18 @@
 {
   "version": 2,
-  "revision": 239,
+  "revision": 241,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261104-2121",
     "tokenSha256": "a803e353112738ed446ee96d77db574326bef16fda25f422fb5799be2d091dd6",
     "acquiredAt": 1793827361114,
     "expiresAt": 1793829930964
-  },
-  "lastOwner": {
-    "runId": "hosted-20261104-2019",
-    "tokenSha256": "5cac27c1f7120e3a061c4b9f415a0d5bcf689fff542800485ac6e30ed6fa8bdf",
-    "acquiredAt": 1793823674332,
-    "expiresAt": 1793826155267
   },
   "queueState": {
     "version": 3,
@@ -8885,19 +8880,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "f99c7a616e079903fa7d4641c15eac6959853f8a",
+    "sha": "e1206f80c8cfd25d1857f59471970ee6e525aec4",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "f99c7a616e079903fa7d4641c15eac6959853f8a",
-        "path": "docs/development/candidates/20261104-2121-verification.json"
+        "sha": "e1206f80c8cfd25d1857f59471970ee6e525aec4",
+        "path": "docs/development/candidates/20261104-2121-final-verification.json"
       }
     ],
     "runId": "hosted-20261104-2121",
-    "at": 1793828339797,
+    "at": 1793828457763,
     "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
   },
-  "updatedAt": 1793828339797,
+  "updatedAt": 1793828457790,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9346,6 +9341,11 @@
       "confirmedAt": "2026-11-04T21:38:54Z",
       "by": "/root",
       "reason": "Hard publication approval blocker; paused to avoid repeated blocked-publication cost; prompt and cadence unchanged"
+    },
+    "evidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "e1206f80c8cfd25d1857f59471970ee6e525aec4",
+      "path": "docs/development/candidates/20261104-2121-final-verification.json"
     }
   },
   "nextTasks": [
@@ -9644,6 +9644,11 @@
           "ref": "refs/heads/codex/ledgerly-work-queue-state",
           "sha": "f99c7a616e079903fa7d4641c15eac6959853f8a",
           "path": "docs/development/candidates/20261104-2121-verification.json"
+        },
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "e1206f80c8cfd25d1857f59471970ee6e525aec4",
+          "path": "docs/development/candidates/20261104-2121-final-verification.json"
         }
       ]
     }
@@ -9983,6 +9988,11 @@
     "localRegistry": 29,
     "fullBuildTypecheck": "passed",
     "independentReview": "/root",
-    "archiveCommit": "f99c7a616e079903fa7d4641c15eac6959853f8a"
+    "archiveCommit": "f99c7a616e079903fa7d4641c15eac6959853f8a",
+    "blockerEvidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "e1206f80c8cfd25d1857f59471970ee6e525aec4",
+      "path": "docs/development/candidates/20261104-2121-final-verification.json"
+    }
   }
 }
