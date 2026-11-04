@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 218,
+  "revision": 220,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "6912f9d0fd75aef26fbaea6fe56fb6cee4b0310a",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261104-2019",
     "tokenSha256": "5cac27c1f7120e3a061c4b9f415a0d5bcf689fff542800485ac6e30ed6fa8bdf",
     "acquiredAt": 1793823674332,
-    "expiresAt": 1793825474332
+    "expiresAt": 1793825598487
   },
   "lastOwner": {
     "runId": "hosted-20261104-1917",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 656,
+    "revision": 658,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Stopped clean e9d330/tree49d6; coordinator67bc0c6 same tree archivedb657b689 and published6912f9d. Root independently reviewed 5files, focused57/source790/fullbuild passed; exactCI pending. Fullparent pending; next connected deadline/witness admission/redemption plus allwriter guards. No active worker commands or furtherclaims.",
+        "checkpoint": "Read only pre-edit: exact base67bc0/tree49d6 equals live6912; scoped conditionalDiscount.ts/.test/.integration,paidCredit.ts,credit-capacity-contract; internal read-only admission only; public posting closed; editstop20:35UTC no push. Waiting durable coordinator acknowledgment.",
         "evidence": {
           "commit": "e9d3307b74b7ea66f3a20de742f6cb3e8113cf28",
           "summary": "PARTIAL native original-cash conditional binding snapshot and later-allocation original-parent-only subset. Explicit empty and legacy absence cannot gain later bindings; native canonical source/effect and retained observation identity validated. Public conditional posting gates closed. Exact PostgreSQL/restore pending PR27CI. Parent admission/redemption/deadline witnesses/all-writer guards/compensation/corrections/full customer-supplier-browser journeys remain pending; next connect admission to immutable snapshot plus committed payment/allocation witnesses. Worker stopped clean.",
@@ -174,7 +174,10 @@
             }
           }
         },
-        "blockers": []
+        "owner": "worker2019",
+        "tokenSha256": "f390d48f2897c47fa2d222814398f42fe7b7eee5111be36fdcda9b2991261acf",
+        "leaseUntil": 1793824680119,
+        "workStarted": true
       },
       "P01-04": {
         "status": "blocked",
@@ -8522,6 +8525,20 @@
         "type": "recover",
         "taskId": "P01-03",
         "checkpoint": "Stopped clean e9d330/tree49d6; coordinator67bc0c6 same tree archivedb657b689 and published6912f9d. Root independently reviewed 5files, focused57/source790/fullbuild passed; exactCI pending. Fullparent pending; next connected deadline/witness admission/redemption plus allwriter guards. No active worker commands or furtherclaims."
+      },
+      {
+        "at": 1793823780119,
+        "actor": "worker2019",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "f390d48f2897c47fa2d222814398f42fe7b7eee5111be36fdcda9b2991261acf"
+      },
+      {
+        "at": 1793823780185,
+        "actor": "worker2019",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Read only pre-edit: exact base67bc0/tree49d6 equals live6912; scoped conditionalDiscount.ts/.test/.integration,paidCredit.ts,credit-capacity-contract; internal read-only admission only; public posting closed; editstop20:35UTC no push. Waiting durable coordinator acknowledgment."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8547,11 +8564,11 @@
         "path": "docs/development/candidates/20261104-1917-final-verification.json"
       }
     ],
-    "runId": "hosted-20261104-1917",
-    "at": 1793820895386,
+    "runId": "hosted-20261104-2019",
+    "at": 1793823798504,
     "codeHead": "6912f9d0fd75aef26fbaea6fe56fb6cee4b0310a"
   },
-  "updatedAt": 1793823674332,
+  "updatedAt": 1793823798504,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -8702,15 +8719,78 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [],
+  "activeWorkers": [
+    {
+      "actor": "worker2019",
+      "task": "P01-03",
+      "provider": "Codex",
+      "branch": "codex/lp-2019-worker",
+      "base": "6912f9d0fd75aef26fbaea6fe56fb6cee4b0310a",
+      "localBase": "6912f9d0fd75aef26fbaea6fe56fb6cee4b0310a",
+      "sourceTree": "49d6dc7ca50c43a8f0c6e897572b6e5c667cecca",
+      "status": "implementing-observed",
+      "lastObservedAt": "2026-11-04T20:23:18.528Z",
+      "fileLease": [
+        "artifacts/api-server/src/services/accountingDocuments/documents.ts",
+        "artifacts/api-server/src/services/accountingDocuments/settlement.ts",
+        "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+        "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+        "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx",
+        "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx",
+        "artifacts/ledgerly/src/features/documentDiscounts/model.mjs",
+        "artifacts/ledgerly/src/features/documentDiscounts/model.test.mjs",
+        "artifacts/ledgerly/src/components/accounting/PostedDocument.jsx",
+        "artifacts/ledgerly/src/components/accounting/PostedDocument.test.jsx",
+        "docs/development/credit-capacity-contract.md",
+        "artifacts/api-server/src/services/financialDrafts/contract.ts",
+        "artifacts/api-server/src/services/financialDrafts/contract.test.ts",
+        "artifacts/api-server/src/services/financialDrafts/discounts.ts",
+        "artifacts/api-server/src/services/financialDrafts/discounts.test.ts",
+        "artifacts/api-server/src/services/financialDrafts/invoiceService.ts",
+        "artifacts/api-server/src/services/financialDrafts/productionAuthority.ts",
+        "artifacts/api-server/src/services/financialDrafts/invoice.integration.test.ts",
+        "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+        "artifacts/api-server/src/services/accountingDocuments/posting.ts",
+        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+        "artifacts/api-server/src/routes/accountingDocuments.ts",
+        "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+        "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+        "artifacts/ledgerly/src/api/invoiceDrafts.mjs",
+        "artifacts/ledgerly/src/api/invoiceDrafts.test.mjs",
+        "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
+        "lib/db/migrations/conditional-discount-agreements.review.sql",
+        "lib/db/schema-change-registry.json",
+        "lib/db/migration-registry.json",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs",
+        "tools/development/migrations/registry.mjs",
+        "tools/development/migrations/registry.test.mjs",
+        "tools/development/migrations/partial-schema.test.mjs"
+      ],
+      "contract": "Root approved dedicated internal read-only reviewConditionalCredit with explicitmode; ordinary paidCredit review/commit reject source terms or persistedbinding. Native binding/source/journal/witness validation, UTCmicrosecond causal/deadline threshold10800vs10799, failclosed negative allocation/reversal, valid surplusrefund allowed. No route/commit activation or bodyboolean. Fullparent pending",
+      "editsStopBy": "2026-11-04T20:35:00Z"
+    }
+  ],
   "run": {
     "startedAt": "2026-11-04T20:21:14.365Z",
     "stopBy": "2026-11-04T20:47:00Z",
     "implementationStopBy": "2026-11-04T20:35:00Z",
     "status": "active",
-    "activity": "Exact live6912 tree49d6 clone; connected paidCredit witness/deadline admission contract review before dispatch",
+    "activity": "Worker automatic P01-03 claim r658 and preedit checkpoint observed; root explicit internal admission hook approved; awaiting durable grant",
     "credits": "unknown",
-    "providerUsage": "unknown"
+    "providerUsage": "unknown",
+    "observedAt": "2026-11-04T20:23:18.528Z",
+    "replitCapability": {
+      "found": false,
+      "dispatch": false,
+      "boundedCheck": "Root actual exact name resolve returned found:false; no verified stop/monitor/export transport; no browser retries"
+    }
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
