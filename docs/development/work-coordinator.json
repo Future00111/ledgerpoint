@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 168,
+  "revision": 169,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
+  "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 605,
+    "revision": 608,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,40 +100,35 @@
         }
       },
       "P01-03": {
-        "status": "running",
+        "status": "pending",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Root observed all three exact211/f8 test commands completed normally before14:11; visible output confirms disposable populated backup/restore and encrypted recovery, cleanup complete, TEST_RUN_STOPPED with idle shell prompt. Full logs, three source-pinned receipts, before/after temp-directory inventory, exact identity and unchanged original checkout are being exported as gzippedJSON for independent byte/hash verification. Results are reported, not yet independently decoded; no publication approval or parent acceptance.",
+        "checkpoint": "Root confirmed test commands, PostgreSQL clusters and export process stopped; idle shellprompt, beforeafterdirectory inventoryequal, source211/f8 clean and originalReplitcda92 cleanunchanged. Exactfull evidence independently decoded/hashverified and durable2212d699. Published211 via expectedheadFF after rootreview; sourceCIpending. P01-03 partial remainspending, nextoriginalbinding/causalobservation; no outstandingactor or sourceedits.",
         "evidence": {
-          "commit": "980c11578967caf13b40a3e1a783b95441b097a4",
-          "summary": "PARTIAL P01-03 candidate: immutable scoped actual UTF8 evidence capture/read, protected database function computes bytes/terms hashes and timestamp, same-intent replay, optional draft terms/receipt editing and clearing for both parties, mutually exclusive ordinary discount, unchanged absent hashes. Conditional financial posting explicitly rejects. Parent NOT complete: immutable original posting binding with source/financial hash and line vector, committed binding observation, admission/redemption/every allocation writer guards, compensation, prior-credit/correction cases and native UI/browser journey remain. Next connect original binding and causal committed observation; qualify actual PG rollback/race/restore and independent review before accepting candidate. No existing/shared DB or provider writes. Worker stopped clean; no task reclaim. Root review UUID correction now canonicalizes conditional IDs and SQL terms identity while preserving historical source bytes; uppercase A-F fixtures added. Actual PostgreSQL still pending.",
+          "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
+          "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
           "tests": [
             {
-              "command": "Exact980c115 current-source esbuild bundles conditionalDiscount.test.ts and financialDrafts/contract.test.ts with explicit worktree db/schema aliases; NODE_ENV=test unusable DB node --test:28 passed,0fail",
+              "command": "Exact211/f8 node tools/accounting-flow/test.mjs on isolated UID1000 PostgreSQL16.10:133 pass0fail0skip across8 suites, populated40tables6325rows matchingfingerprints and encrypted freshcluster nativepayment/witness recovery; allcleanup pass",
               "passed": true
             },
             {
-              "command": "Exact980c115 node --test migration registry and native accounting client:42 passed (28+14),0fail",
+              "command": "Exact211/f8 node --test tools/operations/backup-restore/*.test.mjs:12pass0fail0skip",
               "passed": true
             },
             {
-              "command": "Exact980c115 node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit:passed",
+              "command": "Exact211/f8 node tools/operations/backup-restore/rehearsal.mjs:verified equal fingerprints, negative/RLS/schema/sequence controls andcleanup",
               "passed": true
             },
             {
-              "command": "Exact980c115 esbuild conditionalDiscount.integration.test.ts with explicit worktree aliases:COMPILATION ONLY passed; actual disposable PostgreSQL/restore NOT RUN locally (no PostgreSQL binaries)",
-              "passed": true
-            },
-            {
-              "command": "git diff --check:passed; worktree clean",
+              "command": "Same unchanged treef8 prior run source790/fullworkspacebuild/typecheck passed; preserved exact evidence, not rerun in this run",
               "passed": true
             }
-          ]
+          ],
+          "reviewed": true,
+          "reviewer": "root-and-coordinator1355-technical-only"
         },
-        "owner": "replit-test-1355",
-        "tokenSha256": "f77f4f9351e41b881cd6887bc1c045c4c33512221e44fe3e9b0e297d09869b35",
-        "leaseUntil": 1793802258709,
-        "workStarted": true
+        "blockers": []
       },
       "P01-04": {
         "status": "blocked",
@@ -7895,6 +7890,50 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "Root observed all three exact211/f8 test commands completed normally before14:11; visible output confirms disposable populated backup/restore and encrypted recovery, cleanup complete, TEST_RUN_STOPPED with idle shell prompt. Full logs, three source-pinned receipts, before/after temp-directory inventory, exact identity and unchanged original checkout are being exported as gzippedJSON for independent byte/hash verification. Results are reported, not yet independently decoded; no publication approval or parent acceptance."
+      },
+      {
+        "at": 1793801880541,
+        "actor": "replit-test-1355",
+        "type": "submit",
+        "taskId": "P01-03",
+        "evidence": {
+          "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
+          "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
+          "tests": [
+            {
+              "command": "Exact211/f8 node tools/accounting-flow/test.mjs on isolated UID1000 PostgreSQL16.10:133 pass0fail0skip across8 suites, populated40tables6325rows matchingfingerprints and encrypted freshcluster nativepayment/witness recovery; allcleanup pass",
+              "passed": true
+            },
+            {
+              "command": "Exact211/f8 node --test tools/operations/backup-restore/*.test.mjs:12pass0fail0skip",
+              "passed": true
+            },
+            {
+              "command": "Exact211/f8 node tools/operations/backup-restore/rehearsal.mjs:verified equal fingerprints, negative/RLS/schema/sequence controls andcleanup",
+              "passed": true
+            },
+            {
+              "command": "Same unchanged treef8 prior run source790/fullworkspacebuild/typecheck passed; preserved exact evidence, not rerun in this run",
+              "passed": true
+            }
+          ],
+          "reviewed": true,
+          "reviewer": "root-and-coordinator1355-technical-only"
+        }
+      },
+      {
+        "at": 1793801880692,
+        "actor": "coordinator1355",
+        "type": "reject",
+        "taskId": "P01-03",
+        "reason": "Technical bounded development increment is reviewed and tested, but original parent P01-03 acceptance is incomplete. Keep binding/admission/redemption/reversal/UI/browser and applicable launch gates pending; do not count parent or complete customer journey."
+      },
+      {
+        "at": 1793801880846,
+        "actor": "coordinator1355",
+        "type": "recover",
+        "taskId": "P01-03",
+        "checkpoint": "Root confirmed test commands, PostgreSQL clusters and export process stopped; idle shellprompt, beforeafterdirectory inventoryequal, source211/f8 clean and originalReplitcda92 cleanunchanged. Exactfull evidence independently decoded/hashverified and durable2212d699. Published211 via expectedheadFF after rootreview; sourceCIpending. P01-03 partial remainspending, nextoriginalbinding/causalobservation; no outstandingactor or sourceedits."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -7912,19 +7951,24 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "b9f2e5fd84dce9fd418433a7401ab1d1f1dc9c01",
+    "sha": "2212d699393a9c57984ff9eb4f1e174161d94260",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "b9f2e5fd84dce9fd418433a7401ab1d1f1dc9c01",
+        "sha": "2212d699393a9c57984ff9eb4f1e174161d94260",
+        "path": "docs/development/candidates/20261104-1355-replit-evidence.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "2212d699393a9c57984ff9eb4f1e174161d94260",
         "path": "docs/development/run-20261104-1355-evidence.json"
       }
     ],
     "runId": "hosted-20261104-1355",
-    "at": 1793801544074,
-    "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c"
+    "at": 1793801881028,
+    "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c"
   },
-  "updatedAt": 1793801544074,
+  "updatedAt": 1793801881028,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -7940,21 +7984,19 @@
     "path": "docs/development/work-coordinator.json"
   },
   "validation": {
-    "ciRun": 41833220601,
-    "job": 126585423567,
-    "mergeCommit": "9749b639b7e8977a72d24904e4e257a982486f4e",
-    "publishedToMergeFileDiff": [],
-    "tests": 954,
-    "pass": 954,
+    "sourceCommit": "211649c44564f73cdca79e5f5c00580d6783930c",
+    "sourceTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
+    "exactCandidatePostgreSQL": "passed",
+    "accountingTests": 133,
+    "backupUnitTests": 12,
     "fail": 0,
     "skipped": 0,
-    "localSourceTests": 788,
-    "localBuildTypecheck": "passed",
-    "disposablePostgreSQL": "passed",
     "populatedRestore": "passed",
+    "encryptedApplicationRecovery": "passed",
     "encryptedRecovery": "passed",
     "cleanup": "passed",
-    "logsIndependentlyFetched": true
+    "exactPublishedCI": "pending",
+    "evidenceCommit": "2212d699393a9c57984ff9eb4f1e174161d94260"
   },
   "shutdownResolution": {
     "at": "2026-11-04T12:24:56.016Z",
@@ -7977,36 +8019,17 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [
-    {
-      "actor": "replit-test-1355",
-      "provider": "Replit shell directly controlled by root",
-      "task": "P01-03",
-      "scope": "Exact candidate tests only",
-      "status": "test process stopped; exporting exact evidence",
-      "candidate": "211649c44564f73cdca79e5f5c00580d6783930c",
-      "isolatedPath": ".local/share/ledgerly/run-20261104-1355/source",
-      "stopBy": "2026-11-04T14:20:00Z"
-    }
-  ],
+  "activeWorkers": [],
   "run": {
     "startedAt": "2026-11-04T13:57:39.652Z",
     "stopBy": "2026-11-04T14:23:00Z",
-    "activity": "Root observed all three exact211/f8 test commands completed normally before14:11; visible output confirms disposable populated backup/restore and encrypted recovery, cleanup complete, TEST_RUN_STOPPED with idle shell prompt. Full logs, three source-pinned receipts, before/after temp-directory inventory, exact identity and unchanged original checkout are being exported as gzippedJSON for independent byte/hash verification. Results are reported, not yet independently decoded; no publication approval or parent acceptance.",
-    "activeWorkers": [
-      {
-        "actor": "replit-test-1355",
-        "provider": "Replit shell directly controlled by root",
-        "task": "P01-03",
-        "scope": "Exact candidate tests only",
-        "status": "test process stopped; exporting exact evidence",
-        "candidate": "211649c44564f73cdca79e5f5c00580d6783930c",
-        "isolatedPath": ".local/share/ledgerly/run-20261104-1355/source",
-        "stopBy": "2026-11-04T14:20:00Z"
-      }
-    ],
+    "activity": "Exact211 developmentincrement published after verified actualPostgreSQL/populated/encrypted recovery and independentreview; originalparent pending. Remote test/export/PG processes stopped, queuesubmit/reject/stoppedrecovery preserved partial evidence and clearedownership. PR27 draft/open, exactpublishedCI pending root observation.",
+    "activeWorkers": [],
     "credits": "unknown",
-    "observedAt": "2026-11-04T14:12:24.074Z"
+    "observedAt": "2026-11-04T14:18:01.028Z",
+    "candidate": "211649c44564f73cdca79e5f5c00580d6783930c",
+    "candidateTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
+    "publicationBlocked": false
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -8015,10 +8038,13 @@
     "reason": "Explicit verifier approval received and publication verified; existing hourly automation resumed"
   },
   "publicationBlocker": {
-    "resolved": false,
+    "resolved": true,
     "action": "expected-head fast-forward update codex/whole-product-first-sprint to211649c44564f73cdca79e5f5c00580d6783930c",
     "reason": "Automatic approval review rejected partial conditional candidate publication without exact PostgreSQL/restore evidence and incomplete parent gates. Do not retry through another transport.",
-    "safeNext": "Provision fresh isolated PostgreSQL under a non-root user, reconstruct exact archived candidate without regenerating implementation, run existing accounting/restore gates, then obtain fresh independent acceptance/publication review. Never weaken fullparent or financial/security/browser gates. No alternate publication transport."
+    "safeNext": "Provision fresh isolated PostgreSQL under a non-root user, reconstruct exact archived candidate without regenerating implementation, run existing accounting/restore gates, then obtain fresh independent acceptance/publication review. Never weaken fullparent or financial/security/browser gates. No alternate publication transport.",
+    "resolvedAt": "2026-11-04T14:18:01.028Z",
+    "resolution": "Exact211 actual PostgreSQL/restore evidence + independent boundeddevelopmentreview, then expectedheadFF sourcepublication succeeded. Parent remainspending; no financialadmission or launchgate waived.",
+    "evidenceCommit": "2212d699393a9c57984ff9eb4f1e174161d94260"
   },
   "nextTasks": [
     {
