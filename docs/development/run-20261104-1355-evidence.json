@@ -1,6 +1,6 @@
 {
   "runId": "hosted-20261104-1355",
-  "observedAt": "2026-11-04T14:03:36.970Z",
+  "observedAt": "2026-11-04T14:09:18.969Z",
   "sourceHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
   "candidate": "980c11578967caf13b40a3e1a783b95441b097a4",
   "candidateTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
@@ -20,8 +20,8 @@
     "clean": true
   },
   "queue": {
-    "revision": 602,
-    "eventCount": 610,
+    "revision": 604,
+    "eventCount": 612,
     "validatedWithCurrentModule": true,
     "nextEligible": "P01-03",
     "claims": 1,
@@ -65,7 +65,9 @@
     "existingCheckoutClean": true,
     "existingCheckoutMustRemainUnchanged": true,
     "stopBy": "2026-11-04T14:20:00Z",
-    "dispatched": false
+    "dispatched": true,
+    "observedAt": "2026-11-04T14:08:05Z",
+    "activity": "14:08:05UTC root observed isolated Replit clone clean at existing candidate211649c44564f73cdca79e5f5c00580d6783930c treef8cdde522c6603fe2b9e7f99117122d01012bb4a, archivepatch digest matched; independent local coordinator verified exacttreeequals980c115 and parentb481. Fresh pnpm offline frozen ignore-scripts install active with150s timeout; no old workspace dependency symlinks; no PG yet, no shared/demo modifications. Hardstop14:20UTC."
   },
   "workflowInspection": {
     "development": "pull_request only; no workflow_dispatch or candidate archive inputs",
@@ -201,5 +203,11 @@
     "candidate": "980c11578967caf13b40a3e1a783b95441b097a4",
     "candidateTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
     "sourceHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c"
+  },
+  "integrationCandidate": {
+    "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
+    "parent": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
+    "tree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
+    "independentLocalFetchAndDiffVerified": true
   }
 }
