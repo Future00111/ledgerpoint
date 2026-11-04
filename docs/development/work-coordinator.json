@@ -1,23 +1,18 @@
 {
   "version": 2,
-  "revision": 139,
+  "revision": 141,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "402b7929ac3ba2709856ab3aa21e1e7a415949ee",
+  "codeHead": "d4cd6d625330d353ff85390c9950f66dc9ae49ca",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261104-1223",
     "tokenSha256": "11b98c6216178ccf4e1a487b04a208d43682d173e8df9a9acc1737ba0eb71bc6",
     "acquiredAt": 1793795193942,
     "expiresAt": 1793797553438
-  },
-  "lastOwner": {
-    "runId": "hosted-20261103-1956",
-    "tokenSha256": "733fb34d92bf924498d28a950fd55270899daf6d90417bdb4a8b358947b775e0",
-    "acquiredAt": 1793735908523,
-    "expiresAt": 1793737708523
   },
   "queueState": {
     "format": "exact-queue-delta-v1",
@@ -32,24 +27,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "7afd31dc6faade40a8225166003653b971e90086",
+    "sha": "58ceadef54208ec64dcc64811eb5ba13607b8a1c",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "7afd31dc6faade40a8225166003653b971e90086",
-        "path": "docs/development/run-20261103-1956-evidence.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "7afd31dc6faade40a8225166003653b971e90086",
-        "path": "docs/development/run-20261103-1956-queue-delta.json"
+        "sha": "58ceadef54208ec64dcc64811eb5ba13607b8a1c",
+        "path": "docs/development/run-20261104-1223-evidence.json"
       }
     ],
-    "runId": "hosted-20261103-1956",
-    "at": 1793795095997,
-    "codeHead": "402b7929ac3ba2709856ab3aa21e1e7a415949ee"
+    "runId": "hosted-20261104-1223",
+    "at": 1793796018877,
+    "codeHead": "d4cd6d625330d353ff85390c9950f66dc9ae49ca"
   },
-  "updatedAt": 1793795753438,
+  "updatedAt": 1793796018879,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -65,27 +55,24 @@
     "path": "docs/development/work-coordinator.json"
   },
   "validation": {
-    "localCombinedCommit": "4fa84aa2d12d556f3fccb10dd9344043d98cc799",
-    "localSourcePass": 788,
-    "localFullBuild": "passed",
-    "finalOneAssertionDelta": "28 registry tests and bundle passed; final exact CI reran all",
-    "ciRun": 41711609960,
-    "ciJob": 126180824955,
-    "ciUrl": "https://github.com/Future00111/ledgerpoint/actions/runs/41711609960",
-    "mergeCommit": "81f9cc6d1fdb94fc100412a39ffbc2c045591650",
-    "sourceEquality": "root independently compared source402b792 to merge:files[]",
-    "tests": 950,
-    "passed": 950,
-    "failed": 0,
-    "skipped": 0,
-    "witnessPostgreSQLCases": 8,
-    "build": "passed",
-    "source": "passed",
-    "postgresql": "passed",
-    "populatedRestore": "passed",
-    "encryptedRecovery": "passed",
-    "exactSourceEvidence": "passed",
-    "cleanup": "passed"
+    "scheduler": {
+      "passed": 52,
+      "failed": 0,
+      "skipped": 0
+    },
+    "workerReadOnlyModels": {
+      "passed": 19,
+      "failed": 0
+    },
+    "exactCI": 41830848238,
+    "exactCIStatus": "passed",
+    "exactCIJob": 126577335246,
+    "sourceComparedToMerge": "b55585db1c4fca557055d010d5badfe22598262a; GitHub compare files empty",
+    "buildTypecheck": "passed",
+    "postgresqlRestoreEncryptedRecoveryCleanup": "passed",
+    "ciTests": 950,
+    "ciFailed": 0,
+    "ciSkipped": 0
   },
   "shutdownResolution": {
     "at": "2026-11-04T12:24:56.016Z",
@@ -116,6 +103,52 @@
     "purpose": "Resolve shutdown and resume completion-driven launch delivery",
     "observedAt": "2026-11-04T12:35:53.439Z",
     "activity": "Both implementers stopped clean without edits: worker reservations rejected by automatic approval; independent reviewer accepted three delivery-policy documents. No feature implementation dispatched.",
-    "blocker": "Automatic approval rejects SHA-256 worker token verifier publication, including minimal delta. Do not bypass; no raw worker tokens were proposed."
-  }
+    "blocker": "Automatic approval rejects SHA-256 worker token verifier publication, including minimal delta. Do not bypass; no raw worker tokens were proposed.",
+    "endedAt": "2026-11-04T12:40:18.880Z",
+    "stopReason": "Worker publication uniformly blocked; complete unaffected policy publication and exact CI, then clean release",
+    "workerAttemptHistory": {
+      "durableRevision": 564,
+      "durableReference": {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "7afd31dc6faade40a8225166003653b971e90086",
+        "path": "docs/development/run-20261103-1956-queue-delta.json"
+      },
+      "localAttemptedRevisions": [
+        565,
+        566,
+        567,
+        568,
+        569,
+        570,
+        571,
+        572
+      ],
+      "localFinalRevision": 572,
+      "localHeldLeases": 0,
+      "publication": "Rejected before any worker edit. These attempted claims were never durably authorised. Exact local queue cannot be archived while verifier publication remains rejected; immutable canonical queue564 retained. This is a diagnostic summary, not a replacement/rewrite of queue events."
+    }
+  },
+  "continuation": {
+    "automationId": "6ae5226d4a2081919e793919d9cafa1b",
+    "cadence": "hourly",
+    "enabled": false,
+    "reason": "Automatic approval rejected both full history and smaller active reservation delta, explicitly forbidding transport workaround. Raw tokens were not submitted."
+  },
+  "publicationBlocker": {
+    "type": "environment",
+    "action": "GitHub publication of worker SHA-256 lease verifiers",
+    "reason": "Automatic approval rejected both full history and smaller active reservation delta, explicitly forbidding transport workaround. Raw tokens were not submitted.",
+    "responsibleRole": "Owner explicit approval of non-secret worker-verifier persistence; platform approval capability if rejection persists",
+    "next": "Resolve verifier publication permission before any fresh worker claim; never delete or weaken fences"
+  },
+  "nextTasks": [
+    {
+      "task": "P01-03",
+      "next": "Harden immutable payment witness insertion against false source hash/journal/effect/observer membership; real restricted-role PostgreSQL negatives then valid capture; full conditional evidence/binding/admission/guards/UI still required"
+    },
+    {
+      "task": "P03-04",
+      "next": "On fresh actual restored DB prove unchanged historical witness, reject old unwitnessed foreign-origin event, and native new payment+witness succeeds; no speculative catalog ACL changes"
+    }
+  ]
 }
