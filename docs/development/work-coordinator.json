@@ -1,23 +1,18 @@
 {
   "version": 2,
-  "revision": 169,
+  "revision": 171,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261104-1355",
     "tokenSha256": "d57a6f59a7ea420ab0d3a21dd474ea798262d3757f92750d47a1049dc438b32f",
     "acquiredAt": 1793800659633,
     "expiresAt": 1793803158969
-  },
-  "lastOwner": {
-    "runId": "hosted-20261104-1319",
-    "tokenSha256": "1fa8005d8776cb47b53f46864a1fca8dcd0eb2d7934c7cd15656e263bbb79a0a",
-    "acquiredAt": 1793798449569,
-    "expiresAt": 1793801435589
   },
   "queueState": {
     "version": 3,
@@ -7951,24 +7946,29 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "2212d699393a9c57984ff9eb4f1e174161d94260",
+    "sha": "29d67b1a13c3f457e6cff58bd554ac2e404a30b6",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2212d699393a9c57984ff9eb4f1e174161d94260",
+        "sha": "29d67b1a13c3f457e6cff58bd554ac2e404a30b6",
+        "path": "docs/development/run-20261104-1355-evidence.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "29d67b1a13c3f457e6cff58bd554ac2e404a30b6",
         "path": "docs/development/candidates/20261104-1355-replit-evidence.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2212d699393a9c57984ff9eb4f1e174161d94260",
-        "path": "docs/development/run-20261104-1355-evidence.json"
+        "sha": "29d67b1a13c3f457e6cff58bd554ac2e404a30b6",
+        "path": "docs/development/candidates/20261104-1355-published-ci.log"
       }
     ],
     "runId": "hosted-20261104-1355",
-    "at": 1793801881028,
+    "at": 1793802116918,
     "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c"
   },
-  "updatedAt": 1793801881028,
+  "updatedAt": 1793802116918,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -7995,8 +7995,17 @@
     "encryptedApplicationRecovery": "passed",
     "encryptedRecovery": "passed",
     "cleanup": "passed",
-    "exactPublishedCI": "pending",
-    "evidenceCommit": "2212d699393a9c57984ff9eb4f1e174161d94260"
+    "exactPublishedCI": "passed",
+    "evidenceCommit": "29d67b1a13c3f457e6cff58bd554ac2e404a30b6",
+    "ciRun": 41845973184,
+    "job": 126629447144,
+    "mergeCommit": "498f75b04179307e7c38c6058b3490f5334ad366",
+    "publishedToMergeFileDiff": [],
+    "tests": 963,
+    "pass": 963,
+    "cancelled": 0,
+    "buildTypecheck": "passed",
+    "logsIndependentlyFetched": true
   },
   "shutdownResolution": {
     "at": "2026-11-04T12:24:56.016Z",
@@ -8023,13 +8032,18 @@
   "run": {
     "startedAt": "2026-11-04T13:57:39.652Z",
     "stopBy": "2026-11-04T14:23:00Z",
-    "activity": "Exact211 developmentincrement published after verified actualPostgreSQL/populated/encrypted recovery and independentreview; originalparent pending. Remote test/export/PG processes stopped, queuesubmit/reject/stoppedrecovery preserved partial evidence and clearedownership. PR27 draft/open, exactpublishedCI pending root observation.",
+    "activity": "Published exact211 after actual isolated PostgreSQL/populated/encrypted restore and independent review; exact published CI41845973184/job126629447144 passed963tests0fail0skip plusfullbuild/typecheck/cleanup. All remote test/export/PG processes stopped; queue608 pendingP01-03 with no heldtasks. PR27 remainsdraft/open, bodyupdated. No originalparent or completejourney accepted.",
     "activeWorkers": [],
     "credits": "unknown",
-    "observedAt": "2026-11-04T14:18:01.028Z",
+    "observedAt": "2026-11-04T14:21:56.918Z",
     "candidate": "211649c44564f73cdca79e5f5c00580d6783930c",
     "candidateTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
-    "publicationBlocked": false
+    "publicationBlocked": false,
+    "status": "stopped",
+    "endedAt": "2026-11-04T14:21:56.918Z",
+    "newlyAcceptedOriginalBullets": [],
+    "newCompleteJourneys": [],
+    "providerUsage": "unknown"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -8049,15 +8063,15 @@
   "nextTasks": [
     {
       "task": "P01-03",
-      "next": "Preserved exact candidate980c115 requires actual fresh disposable PostgreSQL/restore gates before publication review. Then connect immutable original binding and prepayment causal observation, guarded redemption/compensation and UI/browser."
+      "next": "Continue same preserved published211 chain: implement immutable original posting binding with financial sourcehash/linevector and trusted causal committed observation; then guarded admission/redemption/allwriter protection, compensation/reversal/priorcredit/correction andnativeUI/browser. Exact currentcandidate PG/restore gate is resolved; do not regenerate capture/draft or repeat oldhostsetup."
     },
     {
       "task": "P03-04",
-      "next": "Next eligible automatic claim; reconcile remaining recovery acceptance without duplicating completed restored-native-payment coverage."
+      "next": "Next automatic eligible independent claim only if nonoverlapping and useful; reconcile remaining operational recovery scope, preserving completed restored-native-payment coverage."
     },
     {
       "task": "P04-01",
-      "next": "Genuinely eligible engine prerequisite following P03-04. Next run evaluate second safe claim alongside primary journey while preserving automatic priority."
+      "next": "Genuinely eligible in-house engine prerequisite after dependencies; secondtrack only with reviewed ownership/capacity."
     }
   ],
   "workerVerifierApproval": {
@@ -8068,5 +8082,32 @@
     "publicationVerified": true
   },
   "workersStopped": true,
-  "worktreesClean": true
+  "worktreesClean": true,
+  "reusableRunner": {
+    "evidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "29d67b1a13c3f457e6cff58bd554ac2e404a30b6",
+      "path": "docs/development/run-20261104-1355-evidence.json"
+    },
+    "route": "Supervised connected-browser LedgerPoint team ReplitShell UID1000/PostgreSQL16.10; freshignored exactsource checkout/frozendeps/sanitizedexistingrunners/hashedexport andconfirmedstop",
+    "availabilityMustBeReverified": true,
+    "notAlwaysOn": true,
+    "noReplitAgentLLMDispatched": true
+  },
+  "threeRunComparison": {
+    "runs": [
+      "hosted-20261104-1242",
+      "hosted-20261104-1319",
+      "hosted-20261104-1355"
+    ],
+    "originalBulletsAccepted": 0,
+    "completeJourneys": 0,
+    "decision": "Prerequisites advanced; next executable assignment must implement original binding/causal observation on same chain, using reverified isolated runner. Keep primary focused, only useful nonoverlapping secondtrack; no scope/gate reduction.",
+    "usage": "unknown",
+    "evidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "29d67b1a13c3f457e6cff58bd554ac2e404a30b6",
+      "path": "docs/development/run-20261104-1355-evidence.json"
+    }
+  }
 }
