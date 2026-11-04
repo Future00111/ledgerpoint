@@ -1,0 +1,64 @@
+{
+  "runId": "hosted-20261104-1732",
+  "startedAt": "2026-11-04T17:32:47Z",
+  "endedAt": "2026-11-04T17:50:45.760Z",
+  "sourceUnchanged": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+  "candidate": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
+  "candidateTree": "3eb48956179fae2d3cedde0f7d23ae4f1184609f",
+  "archiveCommit": "c2646f8861149a43c0126c9b37590e6581d244d1",
+  "archiveVerification": {
+    "reviewer": "/root",
+    "archiveCommit": "c2646f8861149a43c0126c9b37590e6581d244d1",
+    "patchAppliedToPublishedBase": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+    "reconstructedTree": "3eb48956179fae2d3cedde0f7d23ae4f1184609f",
+    "rawCommitSha": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
+    "artifactChecks": 12,
+    "artifactHashes": "all byte lengths and SHA256 matched",
+    "temporaryIndexRemoved": true
+  },
+  "localChecks": {
+    "focused46": "passed",
+    "sourceScheduler790": "passed",
+    "fullBuildTypecheck": "passed",
+    "actualPostgreSQL": "not executed",
+    "actualPopulatedBindingRestore": "not executed",
+    "exactPublishedCI": "not executed; source not published"
+  },
+  "publicationDecision": "Independent review permits archival only: unresolved restricted-role SQL binding/observation authority plus incomplete acceptance. Local PG unavailable; existing draft PR27 CI remains an authorized qualification route for a safe reviewed integration.",
+  "queueRevision": 636,
+  "taskStatus": "blocked",
+  "nextEligible": {
+    "eligibleNext": "P03-01",
+    "readyTasks": [
+      "P03-01",
+      "P03-02",
+      "P03-03",
+      "P03-04",
+      "P04-01",
+      "P05-05",
+      "P17-02"
+    ],
+    "reason": "Implementation stop17:51 and clean-shutdown reserve. Primary candidate preserved; new migration-pipeline work or native-authority contract design cannot safely finish implementation, independent review and publication verification in the remaining edit window. No need to manufacture workflow orchestration; existing PR27 CI is authorized."
+  },
+  "shutdown": {
+    "coordinatorStopped": true,
+    "checkoutClean": true,
+    "knownLocalCommandsCompleted": true,
+    "ownedLocalTestSessions": 0,
+    "localPostgresLaunched": false,
+    "workerStopped": true,
+    "workerWorktreeClean": true,
+    "globalProcessEnumeration": "not claimed",
+    "evidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
+      "path": "docs/development/candidates/20261104-1732-verification.json"
+    }
+  },
+  "coordinatorRevision": 194,
+  "coordinatorStatus": "idle",
+  "coordinatorLease": null,
+  "newlyAcceptedOriginalBullets": [],
+  "newCompleteJourneys": [],
+  "credits": "unknown"
+}

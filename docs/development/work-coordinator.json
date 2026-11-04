@@ -1,27 +1,22 @@
 {
   "version": 2,
-  "revision": 192,
+  "revision": 194,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261104-1732",
     "tokenSha256": "3c5b9596a5afcbb789bb40e7a7b9046b8f31ecdeb1e1e77e84f2fdb66837ed74",
     "acquiredAt": 1793813715954,
     "expiresAt": 1793816495987
   },
-  "lastOwner": {
-    "runId": "hosted-20261104-1521",
-    "tokenSha256": "59efc37a62c79045bf3165888275b03800311e1de82757b1816cc5396ae9ba88",
-    "acquiredAt": 1793805762552,
-    "expiresAt": 1793807862552
-  },
   "queueState": {
     "version": 3,
-    "revision": 635,
+    "revision": 636,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +95,10 @@
         }
       },
       "P01-03": {
-        "status": "running",
+        "status": "blocked",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Worker stopped clean at final76a45fbd tree3eb4895. Root independently reviewed archival-only. Exact focused46/source790/fullbuild-typecheck passed; PG fixtures unrun, directSQL immutable-binding/observer authority gap remains. Both public gates closed; preparing immutable archive then normal stopped CLI block. No source publication or parent acceptance.",
+        "checkpoint": "Stopped clean final76a45fbd/tree3eb4895 archivedc2646f8861149a43c0126c9b37590e6581d244d1; root archival-only review, exact source790/focused46/fullbuildtypecheck passed. Restricted-role SQL binding/observer authority remains unresolved; public gates closed, parent pending. PG fixtures unrun here; existing draft PR27 CI remains permitted qualification route after safe reviewed integration, no universal prepublication PG rule.",
         "evidence": {
           "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
           "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
@@ -128,10 +123,12 @@
           "reviewed": true,
           "reviewer": "root-and-coordinator1355-technical-only"
         },
-        "owner": "codex-1732-1",
-        "tokenSha256": "23e2d7bdbe6e0fc84f1035d733a00cda5c95e77b593dd30a595d413abcffb526",
-        "leaseUntil": 1793816195919,
-        "workStarted": true
+        "blockers": [
+          {
+            "type": "decision",
+            "reason": "Coordinator-owned internal engineering contract, first identified hosted-20261104-1732: bind one native canonical frozen payload/hash to protected posting authority before journal INSERT, with journal linkage separate, then reject direct restricted-role SQL altered vector/hash/evidence binding and first-clock attempts. Preserve one financial calculator and both public gates. Root permits only archival of current candidate; no external owner decision required. Exact PostgreSQL/restore acceptance remains unrun; existing PR27 CI route is authorized for a safe reviewed integration."
+          }
+        ]
       },
       "P01-04": {
         "status": "blocked",
@@ -8170,6 +8167,19 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "Worker stopped clean at final76a45fbd tree3eb4895. Root independently reviewed archival-only. Exact focused46/source790/fullbuild-typecheck passed; PG fixtures unrun, directSQL immutable-binding/observer authority gap remains. Both public gates closed; preparing immutable archive then normal stopped CLI block. No source publication or parent acceptance."
+      },
+      {
+        "at": 1793814576292,
+        "actor": "codex-1732-1",
+        "type": "block",
+        "taskId": "P01-03",
+        "checkpoint": "Stopped clean final76a45fbd/tree3eb4895 archivedc2646f8861149a43c0126c9b37590e6581d244d1; root archival-only review, exact source790/focused46/fullbuildtypecheck passed. Restricted-role SQL binding/observer authority remains unresolved; public gates closed, parent pending. PG fixtures unrun here; existing draft PR27 CI remains permitted qualification route after safe reviewed integration, no universal prepublication PG rule.",
+        "blockers": [
+          {
+            "type": "decision",
+            "reason": "Coordinator-owned internal engineering contract, first identified hosted-20261104-1732: bind one native canonical frozen payload/hash to protected posting authority before journal INSERT, with journal linkage separate, then reject direct restricted-role SQL altered vector/hash/evidence binding and first-clock attempts. Preserve one financial calculator and both public gates. Root permits only archival of current candidate; no external owner decision required. Exact PostgreSQL/restore acceptance remains unrun; existing PR27 CI route is authorized for a safe reviewed integration."
+          }
+        ]
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8187,59 +8197,29 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+    "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
-        "path": "docs/development/candidates/20261104-1521-replit-verification.json"
+        "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
+        "path": "docs/development/candidates/20261104-1732-verification.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
-        "path": "docs/development/candidates/20261104-1521-replit-bundle.json"
+        "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
+        "path": "docs/development/candidates/20261104-1732-manifest.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
-        "path": "docs/development/candidates/20261104-1521-replit-candidate.patch"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
-        "path": "docs/development/candidates/20261104-1521-replit-manifest.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
-        "path": "docs/development/candidates/20261104-1521-replit-raw-commit.txt"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e20b86c7290c11565f8d6a14c8d791f45f9193fd",
-        "path": "docs/development/run-20261104-1521-evidence.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260",
-        "path": "docs/development/candidates/20261104-1521-published-ci.log"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260",
-        "path": "docs/development/candidates/20261104-1521-validation-review.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "4369f93e4462c40a57685a252f4bf685e7a121d9",
-        "path": "docs/development/candidates/20261104-1521-replit-validation-evidence.json"
+        "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
+        "path": "docs/development/candidates/20261104-1732-candidate.patch"
       }
     ],
     "runId": "hosted-20261104-1732",
-    "at": 1793814396004,
+    "at": 1793814576627,
     "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7"
   },
-  "updatedAt": 1793814396004,
+  "updatedAt": 1793814645760,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -8303,43 +8283,37 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [
-    {
-      "actor": "codex-1732-1",
-      "task": "P01-03",
-      "provider": "Codex",
-      "status": "stopped-clean",
-      "candidate": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
-      "implementationStopBy": "2026-11-04T17:51:00Z",
-      "lastObservedAt": "2026-11-04T17:46:36.018Z",
-      "stopVerified": true
-    }
-  ],
+  "activeWorkers": [],
   "run": {
     "startedAt": "2026-11-04T17:32:47Z",
     "stopBy": "2026-11-04T18:00:00Z",
     "implementationStopBy": "2026-11-04T17:51:00Z",
-    "activity": "Worker stopped clean at final76a45fbd tree3eb4895. Root independently reviewed archival-only. Exact focused46/source790/fullbuild-typecheck passed; PG fixtures unrun, directSQL immutable-binding/observer authority gap remains. Both public gates closed; preparing immutable archive then normal stopped CLI block. No source publication or parent acceptance.",
-    "status": "active",
-    "activeWorkers": [
-      {
-        "actor": "codex-1732-1",
-        "task": "P01-03",
-        "provider": "Codex",
-        "status": "stopped-clean",
-        "candidate": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
-        "implementationStopBy": "2026-11-04T17:51:00Z",
-        "lastObservedAt": "2026-11-04T17:46:36.018Z",
-        "stopVerified": true
-      }
-    ],
+    "activity": "Stopped clean final76a45fbd/tree3eb4895 archivedc2646f8861149a43c0126c9b37590e6581d244d1; root archival-only review, exact source790/focused46/fullbuildtypecheck passed. Restricted-role SQL binding/observer authority remains unresolved; public gates closed, parent pending. PG fixtures unrun here; existing draft PR27 CI remains permitted qualification route after safe reviewed integration, no universal prepublication PG rule.",
+    "status": "stopped-clean-candidate-pending",
+    "activeWorkers": [],
     "credits": "unknown",
     "providerUsage": "unknown",
     "observedAt": "2026-11-04T17:46:36.018Z",
     "publicationBlocked": true,
     "blocker": "Independent review permits archival only: unresolved restricted-role SQL binding/observation authority plus incomplete acceptance. Local PG unavailable; existing draft PR27 CI remains an authorized qualification route for a safe reviewed integration.",
     "primaryCandidate": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
-    "primaryCandidateTree": "3eb48956179fae2d3cedde0f7d23ae4f1184609f"
+    "primaryCandidateTree": "3eb48956179fae2d3cedde0f7d23ae4f1184609f",
+    "endedAt": "2026-11-04T17:50:45.760Z",
+    "newlyAcceptedOriginalBullets": [],
+    "newCompleteJourneys": [],
+    "newWorkDeclined": {
+      "eligibleNext": "P03-01",
+      "readyTasks": [
+        "P03-01",
+        "P03-02",
+        "P03-03",
+        "P03-04",
+        "P04-01",
+        "P05-05",
+        "P17-02"
+      ],
+      "reason": "Implementation stop17:51 and clean-shutdown reserve. Primary candidate preserved; new migration-pipeline work or native-authority contract design cannot safely finish implementation, independent review and publication verification in the remaining edit window. No need to manufacture workflow orchestration; existing PR27 CI is authorized."
+    }
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -8359,7 +8333,11 @@
   "nextTasks": [
     {
       "task": "P01-03",
-      "next": "Inspect preserved candidate d789e8eb329bbcca137f8e034101d5ff1d27c828 at archive bb40f6e0c503bcb08ad4599f8e8013aa086be152; do not regenerate. Independent review of DB authority, original-journal top-XID, native financial hash/vector and causal observer. Complete positive binding/observation, tamper/replay/first-clock/rollback and populated-binding restore cases. Rebase/combine with published dc5e and obtain exact combined tests/build/PG/restore before publication. Both public gates remain disabled and full parent remains pending."
+      "next": "Continue archived76a45fb candidate chain, resolve coordinator-owned single native canonical payload/hash authority before journal insertion plus separate journal link; add direct restricted-role SQL altered vector/hash/evidence and first-clock rejection tests. Do not duplicate financial calculators. Root accepts current source for archival only. Existing draft PR27 CI remains allowed disposable qualification for safe reviewed integration; localPG absence does not itself prohibit development publication."
+    },
+    {
+      "task": "P03-01",
+      "next": "Actual automatic next after P01 stopped block. Inspect existing recoverPayment in accountingDocuments/payments.ts and GET accounting-payments/operations/:requestId, plus documentIntake.createIntakeDraft persisted document_id/review_fingerprint and authorized retries before any new framework. Missing operationRecovery directory does not mean payment/capture persistence absent. Bound remaining correction/payroll/filing operation identity work to dependencies and exact file ownership; too broad to start in shutdown reserve. No invented preintegration runner prerequisite."
     },
     {
       "task": "P03-04",
@@ -8430,18 +8408,13 @@
     "knownLocalCommandsCompleted": true,
     "ownedLocalTestSessions": 0,
     "localPostgresLaunched": false,
-    "remoteActorStop": "verified completed",
-    "remotePGStop": "verified scoped inventory and disposable directories empty",
+    "workerStopped": true,
+    "workerWorktreeClean": true,
     "globalProcessEnumeration": "not claimed",
     "evidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "e20b86c7290c11565f8d6a14c8d791f45f9193fd",
-      "path": "docs/development/run-20261104-1521-evidence.json"
-    },
-    "recoveryEvidence": {
-      "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
-      "path": "docs/development/candidates/20261104-1521-replit-verification.json"
+      "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
+      "path": "docs/development/candidates/20261104-1732-verification.json"
     }
   },
   "shutdownBlocker": {
@@ -8509,7 +8482,45 @@
         "Parent redemption/all-writer guards/reversal compensation/corrections/UI remain pending"
       ],
       "publicPostingEnabled": false,
-      "sourcePublished": false
+      "sourcePublished": false,
+      "continuedBy": "76a45fbd4d5caad69fdfdf420c3b61df3af958da"
+    },
+    {
+      "task": "P01-03",
+      "commit": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
+      "tree": "3eb48956179fae2d3cedde0f7d23ae4f1184609f",
+      "base": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+      "preservedPredecessor": "d789e8eb329bbcca137f8e034101d5ff1d27c828",
+      "evidence": [
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
+          "path": "docs/development/candidates/20261104-1732-verification.json"
+        },
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
+          "path": "docs/development/candidates/20261104-1732-manifest.json"
+        },
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
+          "path": "docs/development/candidates/20261104-1732-candidate.patch"
+        }
+      ],
+      "qualified": false,
+      "matchingCommitQualification": false,
+      "sourcePublished": false,
+      "publicPostingEnabled": false,
+      "localFocused": 46,
+      "localSourceScheduler": 790,
+      "localBuildTypecheck": "passed",
+      "independentReview": "root-archive-only",
+      "remaining": [
+        "Restricted-role SQL immutable binding/observer authority contract and direct abuse rejection tests",
+        "Actual matching candidate PostgreSQL fixtures and populated binding restore",
+        "Supplier and complete conditional accounting customer journey; parent pending"
+      ]
     }
   ],
   "providerBlocker": {
@@ -8527,5 +8538,15 @@
     "codexContinuationAllowed": "A later authorized eligible Codex run may continue the preserved candidate under normal ownership, review and exact-source test gates.",
     "policyChange": false,
     "scheduleChange": false
+  },
+  "archiveVerification": {
+    "reviewer": "/root",
+    "archiveCommit": "c2646f8861149a43c0126c9b37590e6581d244d1",
+    "patchAppliedToPublishedBase": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+    "reconstructedTree": "3eb48956179fae2d3cedde0f7d23ae4f1184609f",
+    "rawCommitSha": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
+    "artifactChecks": 12,
+    "artifactHashes": "all byte lengths and SHA256 matched",
+    "temporaryIndexRemoved": true
   }
 }
