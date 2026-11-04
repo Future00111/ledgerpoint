@@ -1,1 +1,64 @@
-cat: /workspace/scratch/b4d6a4379808/recovery1717-control/verification.json: No such file or directory
+{
+  "recoveryAt": "2026-11-04T17:25:30.821340+00:00",
+  "observer": "root-and-coordinator",
+  "mode": "archive-and-expired-ownership-recovery-only",
+  "sourceHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+  "candidate": "d789e8eb329bbcca137f8e034101d5ff1d27c828",
+  "candidateTree": "615d0b4755e37590513571aff6518ac7d190eda0",
+  "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+  "author": "Ciro Gargiulo <62146537-cirogargiulo@users.noreply.replit.com>",
+  "patchBytes": 29238,
+  "patchSha256": "fd1344f74d2da7b7bb1999768dbdb512ac810eff1cda3c9d826d579010e8eb43",
+  "bundleSha256": "62848a66faa3463a07bd65b557b6d23722a6bd9e2ebf3d4c8221f28c38674a1d",
+  "rawCommitObjectVerified": true,
+  "reconstructedTreeVerified": true,
+  "allEightPathsLeased": true,
+  "allNestedFileHashesAndLengthsVerified": true,
+  "publicPostingAndCanonicalPostingBytesUnchanged": true,
+  "logsIndependentlyRead": {
+    "accounting": 139,
+    "unit": 21,
+    "registry": 29,
+    "fail": 0,
+    "skip": 0,
+    "apiTypecheck": "pass log retained"
+  },
+  "testedSourceHashMapMatchesFinalCandidate": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+    "docs/development/credit-capacity-contract.md",
+    "lib/db/migration-registry.json",
+    "lib/db/migrations/conditional-discount-agreements.review.sql",
+    "lib/db/schema-change-registry.json",
+    "tools/development/migrations/registry.test.mjs"
+  ],
+  "matchingCommitQualification": false,
+  "reason": "Runner receipts name base211 because edits were uncommitted. Recorded tested-source hash map matches all eight finalcandidate files; manifest says documentation changed after PG, so do not infer exact timing from this map. No exactcommitCI qualification. Missing positivebinding/observer/replay/firstclock/populatedbindingrestore and independentfinancialreview remain.",
+  "stopProof": {
+    "agentReportedStop": "2026-11-04T15:36:13.678065+00:00",
+    "rootObservedAt": "2026-11-04T17:20:43.813779+00:00",
+    "agentUI": "Completed Worked8min noqueuedmessages",
+    "candidateClean": true,
+    "originalCheckout": "cda92bd715948c9109e8b47203693c8d620d9689",
+    "originalClean": true,
+    "readableScopedCwdProcesses": [],
+    "disposableDirectories": [],
+    "shellReturnedPrompt": true,
+    "scope": "Readable /proc cwd scoped candidate checkout and descendants, not globalprocessproof"
+  },
+  "remaining": [
+    "Positive same-original-transaction conditional binding fixture and financial/evidence/vector tampering cases",
+    "Real PostgreSQL successful fresh binding observation, same/uncommitted transaction rejection, exact replay/first-clock checks",
+    "Populated binding/observation rollback/immutability/restore acceptance and schema-partial checks",
+    "Independent review of DB function authority, canonical hash/source linkage and observer trust boundary",
+    "Parent redemption/all-writer guards/reversal compensation/corrections/UI remain pending"
+  ],
+  "nextStep": "Coordinator review this partial checkpoint; reserve a later bounded run for missing positive binding/observer tests before any admission decision. Do not enable either public gate.",
+  "candidateExecutedLocally": false,
+  "sourcePublished": false,
+  "scheduleChanged": false,
+  "staffPolicyChanged": false,
+  "orchestratorCodeChanged": false,
+  "archiveCorrection": "This valid JSON supersedes the missing-file diagnostic accidentally archived at the samepath in e2454a922d1c69ddb8f79e4768bde5afb80b1d58. Original bundle, patch, manifest andrawcommit in thatarchive are valid and unchanged."
+}
