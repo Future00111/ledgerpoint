@@ -1,6 +1,6 @@
 {
   "runId": "hosted-20261104-1355",
-  "observedAt": "2026-11-04T14:01:13.333Z",
+  "observedAt": "2026-11-04T14:03:36.970Z",
   "sourceHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
   "candidate": "980c11578967caf13b40a3e1a783b95441b097a4",
   "candidateTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
@@ -20,18 +20,19 @@
     "clean": true
   },
   "queue": {
-    "revision": 600,
-    "eventCount": 608,
+    "revision": 602,
+    "eventCount": 610,
     "validatedWithCurrentModule": true,
     "nextEligible": "P01-03",
-    "claims": 0,
-    "changes": 0
+    "claims": 1,
+    "changes": 2
   },
   "team": {
     "coordinator": "coordinator1355",
     "independentReviewerAndHostSetup": "root",
     "implementers": [],
-    "replitWorkers": []
+    "replitWorkers": [],
+    "remoteTestActor": "replit-test-1355"
   },
   "hostSetup": {
     "reportedBy": "root",
@@ -47,10 +48,24 @@
   },
   "replit": {
     "reportedBy": "root",
-    "resolveLedgerPoint": false,
-    "approvedProjectAvailable": false,
-    "dispatched": false,
-    "browserPreflight": "Root observed LedgerPoint team workspace and shell through connected browser; bounded read-only nonroot/PostgreSQL/output/stop preflight in progress. No dispatch or claim yet."
+    "connectorApprovedProjectAvailable": false,
+    "browserVerifiedProject": "LedgerPoint team workspace",
+    "shellUid": 1000,
+    "postgresVersion": "16.10",
+    "nodeVersion": "22.2.1",
+    "pnpmVersion": "10.26.1",
+    "binariesAvailable": true,
+    "control": "Direct browser shell under root; idle prompt observed; Ctrl-C and KillShell available",
+    "export": "Exact shell bytes/base64 preflight verified; logs and receipts via gzip/base64 with checksum",
+    "actor": "replit-test-1355",
+    "scope": "Test only; no Replit LLM implementation",
+    "reservation": "P01-03 highesteligible claim revision601 and pretest checkpoint602; durable reservation before execution",
+    "isolatedPath": ".local/share/ledgerly/run-20261104-1355/source",
+    "existingCheckoutHead": "cda92bd715948c9109e8b47203693c8d620d9689",
+    "existingCheckoutClean": true,
+    "existingCheckoutMustRemainUnchanged": true,
+    "stopBy": "2026-11-04T14:20:00Z",
+    "dispatched": false
   },
   "workflowInspection": {
     "development": "pull_request only; no workflow_dispatch or candidate archive inputs",
@@ -59,7 +74,7 @@
     "safeExistingCandidateRunner": false
   },
   "validation": {
-    "actualPostgreSQL": "NOT RUN: no safe runner",
+    "actualPostgreSQL": "NOT RUN YET: reserved verified isolated remote shell",
     "populatedRestore": "NOT RUN",
     "encryptedRecovery": "NOT RUN",
     "priorUnchangedExactSourceEvidence": "Preserved in immutable candidate archive; no new passing PostgreSQL evidence claimed"
@@ -103,5 +118,88 @@
   "usage": {
     "credits": "unknown",
     "providerUsage": "unknown"
+  },
+  "reservation": {
+    "reportedBy": "root",
+    "connectorApprovedProjectAvailable": false,
+    "browserVerifiedProject": "LedgerPoint team workspace",
+    "shellUid": 1000,
+    "postgresVersion": "16.10",
+    "nodeVersion": "22.2.1",
+    "pnpmVersion": "10.26.1",
+    "binariesAvailable": true,
+    "control": "Direct browser shell under root; idle prompt observed; Ctrl-C and KillShell available",
+    "export": "Exact shell bytes/base64 preflight verified; logs and receipts via gzip/base64 with checksum",
+    "actor": "replit-test-1355",
+    "scope": "Test only; no Replit LLM implementation",
+    "reservation": "P01-03 highesteligible claim revision601 and pretest checkpoint602; durable reservation before execution",
+    "isolatedPath": ".local/share/ledgerly/run-20261104-1355/source",
+    "existingCheckoutHead": "cda92bd715948c9109e8b47203693c8d620d9689",
+    "existingCheckoutClean": true,
+    "existingCheckoutMustRemainUnchanged": true,
+    "stopBy": "2026-11-04T14:20:00Z",
+    "dispatched": false,
+    "task": {
+      "id": "P01-03",
+      "title": "Finish excess-credit and discount handling",
+      "description": "Finish excess-credit and discount handling. Support unapplied balances, later allocation and refunds with clear cumulative limits; define conditional discounts. Do not cap a genuine credit solely by the remaining cash amount due.",
+      "priority": 103,
+      "dependencies": [
+        "P01-02"
+      ],
+      "acceptance": [
+        "Unapplied excess credit can be allocated later or refunded with exact signed balance and cumulative-cap reconciliation.",
+        "Conditional and later-discount examples are reviewed; retries, partial settlement and reversals cannot double-allocate or rewrite earlier history."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/accountingDocuments/documents.ts",
+        "artifacts/api-server/src/services/accountingDocuments/settlement.ts",
+        "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+        "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+        "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx",
+        "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx",
+        "artifacts/ledgerly/src/features/documentDiscounts/model.mjs",
+        "artifacts/ledgerly/src/features/documentDiscounts/model.test.mjs",
+        "artifacts/ledgerly/src/components/accounting/PostedDocument.jsx",
+        "artifacts/ledgerly/src/components/accounting/PostedDocument.test.jsx",
+        "docs/development/credit-capacity-contract.md",
+        "artifacts/api-server/src/services/financialDrafts/contract.ts",
+        "artifacts/api-server/src/services/financialDrafts/contract.test.ts",
+        "artifacts/api-server/src/services/financialDrafts/discounts.ts",
+        "artifacts/api-server/src/services/financialDrafts/discounts.test.ts",
+        "artifacts/api-server/src/services/financialDrafts/invoiceService.ts",
+        "artifacts/api-server/src/services/financialDrafts/productionAuthority.ts",
+        "artifacts/api-server/src/services/financialDrafts/invoice.integration.test.ts",
+        "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+        "artifacts/api-server/src/services/accountingDocuments/posting.ts",
+        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+        "artifacts/api-server/src/routes/accountingDocuments.ts",
+        "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+        "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+        "artifacts/ledgerly/src/api/invoiceDrafts.mjs",
+        "artifacts/ledgerly/src/api/invoiceDrafts.test.mjs",
+        "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
+        "lib/db/migrations/conditional-discount-agreements.review.sql",
+        "lib/db/schema-change-registry.json",
+        "lib/db/migration-registry.json",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs",
+        "tools/development/migrations/registry.mjs",
+        "tools/development/migrations/registry.test.mjs",
+        "tools/development/migrations/partial-schema.test.mjs"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    "leaseUntil": 1793801866535,
+    "candidate": "980c11578967caf13b40a3e1a783b95441b097a4",
+    "candidateTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
+    "sourceHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c"
   }
 }
