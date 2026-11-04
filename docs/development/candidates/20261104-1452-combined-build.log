@@ -1,0 +1,18 @@
+$ pnpm run typecheck && pnpm -r --if-present run build
+$ pnpm run typecheck:libs && pnpm -r --filter "./artifacts/**" --filter "./scripts" --if-present run typecheck
+$ tsc --build
+Scope: 4 of 9 workspace projects
+artifacts/api-server typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/ledgerly typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/mockup-sandbox typecheck$ tsc -p tsconfig.json --noEmit
+scripts typecheck$ tsc -p tsconfig.json --noEmit
+scripts typecheck: error TS2688: Cannot find type definition file for 'node'.
+scripts typecheck:   The file is in the program because:
+scripts typecheck:     Entry point of type library 'node' specified in compilerOptions
+scripts typecheck: Failed
+[WARN]  Local package.json exists, but node_modules missing, did you mean to install?
+/workspace/scratch/b4d6a4379808/run-20261104-1452/scripts:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/scripts@0.0.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2
+[ELIFECYCLE] Command failed with exit code 2.
+[ELIFECYCLE] Command failed with exit code 2.

@@ -1,0 +1,27 @@
+{
+  "reviewer": "/root",
+  "author": "/root/coordinator1452/restore1452",
+  "reviewedAt": "2026-11-04T15:06:26Z",
+  "commit": "aed6abd40f473e3475b31f8b0ea1d2df16110c03",
+  "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+  "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+  "verdict": "static-review-passed-runtime-acceptance-pending",
+  "findings": [],
+  "reviewed": [
+    "Full two-file candidate diff; no financial service or schema mutations.",
+    "Existing capture permission fixture provides linked source, active creator, active read-only member, inactive owner and separate permitted company.",
+    "Native getIntakeContent performs current membership scoping, company-scoped lookup and stored-byte/hash verification.",
+    "Acceptance compares independent pre-dump stored bytes, SHA-256 and selected metadata through native reader before and after restore.",
+    "Inactive and foreign actors and cross-company source access must return RESOURCE_NOT_FOUND/404.",
+    "Existing native payment, commitment witness, retry and database privilege checks remain present.",
+    "Bundle test requires current-checkout intake service and evidence imports. Author focused log reports 12 passing tests and zero failures/skips."
+  ],
+  "remainingGates": [
+    "Actual exact-candidate disposable PostgreSQL populated/encrypted restore execution and cleanup evidence.",
+    "Combined source/scheduler regression and full build/typecheck.",
+    "Exact published-source CI if integration is subsequently authorised by passing gates."
+  ],
+  "parentAccepted": false,
+  "browserAcceptanceClaimed": false,
+  "statutoryOrProductionReadinessClaimed": false
+}

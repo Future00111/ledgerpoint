@@ -1,0 +1,98 @@
+{
+  "runId": "hosted-20261104-1452",
+  "startedAt": "2026-11-04T14:51:54Z",
+  "endedAt": "2026-11-04T15:08:53.616Z",
+  "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c",
+  "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+  "candidateTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+  "authorCommit": "aed6abd40f473e3475b31f8b0ea1d2df16110c03",
+  "integrationLocalCommit": "482a45d65057f5e1d0a0a880a282e38176724da2",
+  "published": false,
+  "checks": {
+    "focused": {
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "combinedSource": {
+      "tests": 790,
+      "pass": 790,
+      "fail": 0,
+      "skipped": 0
+    },
+    "fullBuildTypecheck": "passed",
+    "initialBuildAttempt": "Failed missing local scripts @types/node cache; same-lockfile missing package cache restored, unchanged source full build retry passed",
+    "actualPostgreSQL": "NOT RUN: supervised browser tool unavailable",
+    "populatedEncryptedRestore": "NOT RUN on candidate",
+    "independentReview": "root-and-coordinator staticpass; parent incomplete"
+  },
+  "artifacts": [
+    {
+      "path": "combined-check.log",
+      "sha256": "d377cb62dbfd804fa0f066118dc78b5759dad11ea6aa6263aa2d6d0f1a09816e"
+    },
+    {
+      "path": "combined-build.log",
+      "sha256": "56e204e8e74e732522488a619b75143466a64cedb9d2e35717f0561f53b20c2e"
+    },
+    {
+      "path": "combined-build-retry.log",
+      "sha256": "b7ae5cb20c948d56a907ad4c221ddb058c445a54b6b31bc4d56dc7d5878d8c3c"
+    }
+  ],
+  "local": {
+    "coordinatorCheckout": {
+      "path": "/workspace/scratch/b4d6a4379808/run-20261104-1452",
+      "commit": "482a45d65057f5e1d0a0a880a282e38176724da2",
+      "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+      "clean": true
+    },
+    "workerCheckout": {
+      "path": "/workspace/scratch/b4d6a4379808/run1452-restore",
+      "clean": true
+    },
+    "workerStopped": true,
+    "checksExited": true,
+    "ownedPostgresProcesses": 0,
+    "externalProvidersChanged": false
+  },
+  "replit": {
+    "actor": "replit-1452-1",
+    "task": "P01-03",
+    "briefMode": "ACK-only read-only NO EDIT",
+    "goSent": false,
+    "ackObserved": false,
+    "implementationAuthorized": false,
+    "implementationObserved": false,
+    "stopped": "unknown",
+    "lastVerified": "Root observed fresh isolated exact211/f8 clone clean shell prompt before ACK-only brief at~15:01",
+    "workspace": "/home/runner/workspace/.local/share/ledgerly/run-20261104-1452/source",
+    "blocker": "browser_js read calls return Unknown tool(browser.js) despite registry exposure; final retry15:07:47 same; exact Replit connector resolve found false",
+    "shutdown": "Cannot confirm remote read-only ACK actor stopped; retain task/coordinator ownership, no reassignment/recovery/release until explicit stopped evidence. No GO ever sent."
+  },
+  "outcomes": {
+    "originalBulletsAccepted": [],
+    "completeJourneys": [],
+    "sourceChangesPublished": [],
+    "scopeReduced": false,
+    "credits": "unknown",
+    "providerUsage": "unknown"
+  },
+  "threeRunComparison": {
+    "runs": [
+      "hosted-20261104-1319",
+      "hosted-20261104-1355",
+      "hosted-20261104-1452"
+    ],
+    "originalBulletsAccepted": 0,
+    "completeJourneys": 0,
+    "results": [
+      "Immutable agreement capture/draft candidate archived",
+      "Exact actualPostgreSQL/restore qualification resolved blocker and published211",
+      "Native restored capturebytes/permission candidate archived; remotecontrol failure prevented primary implementation and exactPG"
+    ],
+    "decision": "Preserve211 and pendingdc5e3c52. First reconnect/verify remote ACK-only actor stop, recover ownership explicitly; run exact candidatePG/restore without regeneration. Resume originalbinding/causalobservation contract with verified provider control; reserve enough implementation time, retain all admission/writer/browser gates. No more witnesspolish or repeatedoldPGsetup.",
+    "credits": "unknown"
+  }
+}

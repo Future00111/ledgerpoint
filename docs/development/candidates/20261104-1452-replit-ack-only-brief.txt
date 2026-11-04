@@ -1,0 +1,19 @@
+Coordinator-authorized READ-ONLY ACK phase. Actor replit-1452-1, task P01-03, reservation persisted in Future00111/ledgerpoint queue state. Do not edit yet; inspect and ACK then STOP for my follow-up.
+Exact isolated checkout already prepared: /home/runner/workspace/.local/share/ledgerly/run-20261104-1452/source, local branch replit/P01-03-1452, HEAD 211649c44564f73cdca79e5f5c00580d6783930c, tree f8cdde522c6603fe2b9e7f99117122d01012bb4a. Fresh dependencies installed. Confirm those identities and clean status; read AGENTS.md and docs/development/credit-capacity-contract.md there. Do not modify /home/runner/workspace source, demo/startup pointers, prior checkouts or any existing database. No Git pushes, queue initialization, credentials/environment dumps, provider connections, deployment or external actions.
+Proposed bounded pending candidate: immutable original discount agreement binding (original revision, source/financial hashes, journal, party/currency, verified evidence/terms, G/D/deadline, original tax line vector) and trustworthy fresh committed observation. MUST prove SAME ORIGINAL journal/post transaction, not simply a later binding insert's transaction; use protected DB-owned origin receipt/trigger or equivalent, reject retroactive binding. No trusting caller clocks/hashes. Existing BOTH public conditional-posting hard-reject gates remain unchanged; no bypass flags or public alternative admission. Full parent stays pending for redemption/all-writer guards/reversal/corrections/UI.
+Owned paths ONLY (relative to isolated checkout):
+artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
+artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
+artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+artifacts/api-server/src/services/accountingDocuments/posting.ts
+lib/db/migrations/conditional-discount-agreements.review.sql
+lib/db/schema-change-registry.json
+lib/db/migration-registry.json
+tools/accounting-flow/schema.mjs
+tools/accounting-flow/test.mjs
+tools/development/migrations/registry.mjs
+tools/development/migrations/registry.test.mjs
+tools/development/migrations/partial-schema.test.mjs
+docs/development/credit-capacity-contract.md
+Intended tests: real PostgreSQL same-transaction/savepoint/uncommitted rejection, fresh postcommit observation/retry, rollback/immutability/foreign-company denial/nonconditional behavior unchanged. Candidate checkpoint by 15:09 UTC today; all implementation STOP by 15:10 UTC, no unattended continuation. Exact local commit + binary patch, SHA256, author/base/tree, owned-file diff, actual tests and explicit clean stopped manifest required for independent review.
+Now reply ONLY after inspection with exact HEAD/tree/path, accepted file scope and isolation/stop boundaries, and any blocking contract issue. No edits until next explicit coordinator instruction.
