@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 155,
+  "revision": 157,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261104-1319",
     "tokenSha256": "1fa8005d8776cb47b53f46864a1fca8dcd0eb2d7934c7cd15656e263bbb79a0a",
     "acquiredAt": 1793798449569,
-    "expiresAt": 1793800708405
+    "expiresAt": 1793801121847
   },
   "lastOwner": {
     "runId": "hosted-20261104-1242",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 590,
+    "revision": 596,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -103,32 +103,36 @@
         "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Active 13:31 UTC: exact candidate evidence SQL protected function, bounded UTF8 capture/read, noncircular terms hash, optional draft receipt validation, explicit posting rejection implemented in isolated run-1319-worker1. Registry28 passes; adding focused and PG scenarios/UI native client. No admission, no DB writes. Next review exact diff then tests; stop edits13:39.",
+        "checkpoint": "Pre-edit rework: clean07e1047bb512cb2d80dee8cb9171caceb5d8aee5; rootreview found uppercase conditional UUIDs would mismatch PostgreSQL lowercase. Narrow fix conditional-only normalization, case-insensitive party comparisons, protected SQL canonicalization and A-F uppercase regression. Global uuid/legacy source untouched. Awaiting durable ACK.",
         "evidence": {
-          "commit": "d7a74b958291cf9ce32e7c46de69035fc3bdb997",
-          "summary": "PARTIAL P01-03: protect existing commitment witness first insertion from forged hash/journal/effect and invalid observer membership; exact canonical identity checks, narrow column SELECT, pinned checksum, restricted-runtime PG negative cases with valid recapture/replay. Independent code review no blocker; actual disposable PostgreSQL CI pending. Does not enable conditional admission. Remaining full parent: evidence+prepayment committed binding, admission/redemption, all-writer guards, compensation, prior-credit/correction and connected UI/browser qualification. Next executable: causal binding identities frozen under company lock before payment/allocation, followed by complete first conditional slice. Worker stopped clean; no background processes.",
+          "commit": "07e1047bb512cb2d80dee8cb9171caceb5d8aee5",
+          "summary": "PARTIAL P01-03 candidate: immutable scoped actual UTF8 evidence capture/read, protected database function computes bytes/terms hashes and timestamp, same-intent replay, optional draft terms/receipt editing and clearing for both parties, mutually exclusive ordinary discount, unchanged absent hashes. Conditional financial posting explicitly rejects. Parent NOT complete: immutable original posting binding with source/financial hash and line vector, committed binding observation, admission/redemption/every allocation writer guards, compensation, prior-credit/correction cases and native UI/browser journey remain. Next connect original binding and causal committed observation; qualify actual PG rollback/race/restore and independent review before accepting candidate. No existing/shared DB or provider writes. Worker stopped clean; no task reclaim.",
           "tests": [
             {
-              "command": "node --test tools/development/migrations/registry.test.mjs: 28 passed, 0 failed",
+              "command": "Exact07e1047 current-source esbuild bundles conditionalDiscount.test.ts and financialDrafts/contract.test.ts with explicit worktree db/schema aliases; NODE_ENV=test unusable DB node --test:27 passed,0fail",
               "passed": true
             },
             {
-              "command": "Current-source esbuild bundle of conditionalDiscount.test.ts plus NODE_ENV=test DATABASE_URL=unusable-loopback node --test: 14 passed, 0 failed",
+              "command": "Exact07e1047 node --test migration registry and native accounting client:42 passed (28+14),0fail",
               "passed": true
             },
             {
-              "command": "Current-source esbuild bundle conditionalDiscount.integration.test.ts: passed compilation only; actual PostgreSQL execution pending CI",
+              "command": "Exact07e1047 node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit:passed",
               "passed": true
             },
             {
-              "command": "git diff --check: passed",
+              "command": "Exact07e1047 esbuild conditionalDiscount.integration.test.ts with explicit worktree aliases:COMPILATION ONLY passed; actual disposable PostgreSQL/restore NOT RUN locally (no PostgreSQL binaries)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check:passed; worktree clean",
               "passed": true
             }
           ]
         },
         "owner": "worker-1319-1",
-        "tokenSha256": "92f41bc3c66f965c08f61950f6cbc0c02c2618a036a6157bf3780f3dac3b218a",
-        "leaseUntil": 1793799739435,
+        "tokenSha256": "cb6f3b274a8d1860aa3c9ef27fc5110e2cfe73595b6c5eb7c0cb629b6b074209",
+        "leaseUntil": 1793800206787,
         "workStarted": true
       },
       "P01-04": {
@@ -7737,6 +7741,73 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "Active 13:31 UTC: exact candidate evidence SQL protected function, bounded UTF8 capture/read, noncircular terms hash, optional draft receipt validation, explicit posting rejection implemented in isolated run-1319-worker1. Registry28 passes; adding focused and PG scenarios/UI native client. No admission, no DB writes. Next review exact diff then tests; stop edits13:39."
+      },
+      {
+        "at": 1793799259665,
+        "actor": "worker-1319-1",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Stopped edits at actual 2026-11-04 13:32:56 UTC; clean codex/lp-1319-worker1 07e1047bb512cb2d80dee8cb9171caceb5d8aee5 tree5cb93615. Prior checkpoint590 wall-clock estimate was inaccurate; authoritative clock observation is this timestamp. Immutable evidence capture/read and conditional draft prepare/change/clear candidate; post explicitly disabled. Tests focused27/client14/registry28/API tsc pass; exact PG bundle compiles only, runtime pending. No external/provider/database writes. Next immutable original source/financial hash+line binding and committed observation, redemption/all-writer guards, UI, compensation/corrected/prior-credit gates."
+      },
+      {
+        "at": 1793799259791,
+        "actor": "worker-1319-1",
+        "type": "submit",
+        "taskId": "P01-03",
+        "evidence": {
+          "commit": "07e1047bb512cb2d80dee8cb9171caceb5d8aee5",
+          "summary": "PARTIAL P01-03 candidate: immutable scoped actual UTF8 evidence capture/read, protected database function computes bytes/terms hashes and timestamp, same-intent replay, optional draft terms/receipt editing and clearing for both parties, mutually exclusive ordinary discount, unchanged absent hashes. Conditional financial posting explicitly rejects. Parent NOT complete: immutable original posting binding with source/financial hash and line vector, committed binding observation, admission/redemption/every allocation writer guards, compensation, prior-credit/correction cases and native UI/browser journey remain. Next connect original binding and causal committed observation; qualify actual PG rollback/race/restore and independent review before accepting candidate. No existing/shared DB or provider writes. Worker stopped clean; no task reclaim.",
+          "tests": [
+            {
+              "command": "Exact07e1047 current-source esbuild bundles conditionalDiscount.test.ts and financialDrafts/contract.test.ts with explicit worktree db/schema aliases; NODE_ENV=test unusable DB node --test:27 passed,0fail",
+              "passed": true
+            },
+            {
+              "command": "Exact07e1047 node --test migration registry and native accounting client:42 passed (28+14),0fail",
+              "passed": true
+            },
+            {
+              "command": "Exact07e1047 node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit:passed",
+              "passed": true
+            },
+            {
+              "command": "Exact07e1047 esbuild conditionalDiscount.integration.test.ts with explicit worktree aliases:COMPILATION ONLY passed; actual disposable PostgreSQL/restore NOT RUN locally (no PostgreSQL binaries)",
+              "passed": true
+            },
+            {
+              "command": "git diff --check:passed; worktree clean",
+              "passed": true
+            }
+          ]
+        }
+      },
+      {
+        "at": 1793799286675,
+        "actor": "coordinator-1319",
+        "type": "reject",
+        "taskId": "P01-03",
+        "reason": "Independent exact review found uppercase conditional UUID canonicalization mismatch; bounded amendment required; original parent remains incomplete."
+      },
+      {
+        "at": 1793799286827,
+        "actor": "coordinator-1319",
+        "type": "recover",
+        "taskId": "P01-03",
+        "checkpoint": "Worker observed stopped clean at 07e1047bb512cb2d80dee8cb9171caceb5d8aee5 tree5cb93615c2cb20e815dcb6067abab0074532f7de; preserved local patch/evidence; independent uppercase UUID correction requested. No background processes. Author will automatically reclaim highest eligible task with fresh token before edits."
+      },
+      {
+        "at": 1793799306787,
+        "actor": "worker-1319-1",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "cb6f3b274a8d1860aa3c9ef27fc5110e2cfe73595b6c5eb7c0cb629b6b074209"
+      },
+      {
+        "at": 1793799306950,
+        "actor": "worker-1319-1",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Pre-edit rework: clean07e1047bb512cb2d80dee8cb9171caceb5d8aee5; rootreview found uppercase conditional UUIDs would mismatch PostgreSQL lowercase. Narrow fix conditional-only normalization, case-insensitive party comparisons, protected SQL canonicalization and A-F uppercase regression. Global uuid/legacy source untouched. Awaiting durable ACK."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -7754,19 +7825,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "4db191d56f49daf27ac2ccd7720b5961b8bc45fb",
+    "sha": "5c6085d475a29665138035c7fd05e0723482fc98",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "4db191d56f49daf27ac2ccd7720b5961b8bc45fb",
+        "sha": "5c6085d475a29665138035c7fd05e0723482fc98",
         "path": "docs/development/work-coordinator.json"
       }
     ],
     "runId": "hosted-20261104-1319",
-    "at": 1793798908405,
+    "at": 1793799321847,
     "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c"
   },
-  "updatedAt": 1793798908405,
+  "updatedAt": 1793799321847,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -7831,16 +7902,18 @@
     "startedAt": "2026-11-04T13:20:49.595Z",
     "stopBy": "2026-11-04T13:47:00Z",
     "credits": "unknown",
-    "activity": "Worker observed changing eight leased files at 13:27:55; evidence capture/read, draft association and conditional posting rejection implemented. Focused tests and isolated PostgreSQL scenarios being added. Independent root review in progress. Replit lookup found false/apps empty; no dispatch.",
-    "observedAt": "2026-11-04T13:28:28.405Z",
+    "activity": "Immutable candidate07e1047 stopped clean; source/scheduler regression and full workspace build passed same tree. Independent review found uppercase UUID case mismatch, queue reject/recover explicit stopped proof; highest-priority reclaim before bounded amendment. First-pass review required one issue rework. Usage unknown. Local PostgreSQL unavailable; exact published CI pending. No second implementation started.",
+    "observedAt": "2026-11-04T13:35:21.847Z",
     "activeWorkers": [
       {
         "actor": "worker-1319-1",
         "task": "P01-03",
-        "status": "implementing tests; actual eight-file diff observed",
+        "status": "running",
         "source": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c"
       }
-    ]
+    ],
+    "candidate": "07e1047bb512cb2d80dee8cb9171caceb5d8aee5",
+    "candidateTree": "5cb93615c2cb20e815dcb6067abab0074532f7de"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",

@@ -1,0 +1,26 @@
+{
+  "commit": "07e1047bb512cb2d80dee8cb9171caceb5d8aee5",
+  "summary": "PARTIAL P01-03 candidate: immutable scoped actual UTF8 evidence capture/read, protected database function computes bytes/terms hashes and timestamp, same-intent replay, optional draft terms/receipt editing and clearing for both parties, mutually exclusive ordinary discount, unchanged absent hashes. Conditional financial posting explicitly rejects. Parent NOT complete: immutable original posting binding with source/financial hash and line vector, committed binding observation, admission/redemption/every allocation writer guards, compensation, prior-credit/correction cases and native UI/browser journey remain. Next connect original binding and causal committed observation; qualify actual PG rollback/race/restore and independent review before accepting candidate. No existing/shared DB or provider writes. Worker stopped clean; no task reclaim.",
+  "tests": [
+    {
+      "command": "Exact07e1047 current-source esbuild bundles conditionalDiscount.test.ts and financialDrafts/contract.test.ts with explicit worktree db/schema aliases; NODE_ENV=test unusable DB node --test:27 passed,0fail",
+      "passed": true
+    },
+    {
+      "command": "Exact07e1047 node --test migration registry and native accounting client:42 passed (28+14),0fail",
+      "passed": true
+    },
+    {
+      "command": "Exact07e1047 node node_modules/typescript/bin/tsc -p artifacts/api-server/tsconfig.json --noEmit:passed",
+      "passed": true
+    },
+    {
+      "command": "Exact07e1047 esbuild conditionalDiscount.integration.test.ts with explicit worktree aliases:COMPILATION ONLY passed; actual disposable PostgreSQL/restore NOT RUN locally (no PostgreSQL binaries)",
+      "passed": true
+    },
+    {
+      "command": "git diff --check:passed; worktree clean",
+      "passed": true
+    }
+  ]
+}
