@@ -1,27 +1,22 @@
 {
   "version": 2,
-  "revision": 159,
+  "revision": 161,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261104-1319",
     "tokenSha256": "1fa8005d8776cb47b53f46864a1fca8dcd0eb2d7934c7cd15656e263bbb79a0a",
     "acquiredAt": 1793798449569,
     "expiresAt": 1793801435589
   },
-  "lastOwner": {
-    "runId": "hosted-20261104-1242",
-    "tokenSha256": "24b661ed30011912589430d2edaf2a8654538181b453a3fd1ab51a5eb99dc8a1",
-    "acquiredAt": 1793796198477,
-    "expiresAt": 1793798705358
-  },
   "queueState": {
     "version": 3,
-    "revision": 598,
+    "revision": 600,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +95,10 @@
         }
       },
       "P01-03": {
-        "status": "review",
+        "status": "pending",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Stopped clean after root-requested UUID correction at 980c11578967caf13b40a3e1a783b95441b097a4 treef8cdde522c6603fe2b9e7f99117122d01012bb4a; no running background work. Canonicalize conditional party/agreement/receipt UUID only, retain old customer source bytes and use case-insensitive comparisons, SQL canonicalizes terms before hash/replay. Deterministic A-F uppercase tests. Focused28/client14/registry28/APItsc passed; PG bundle compilation only. Full parent and posting binding/admission/guard/UI/compensation gates pending.",
+        "checkpoint": "Stopped clean exact980c11578967caf13b40a3e1a783b95441b097a4 treef8cdde522c6603fe2b9e7f99117122d01012bb4a; immutable full patch and authorchain archived state8286a9caf09067a3c6005dc7f8a235fc384205ce docs/development/candidates/20261104-1319-final.patch and final-manifest.json. Technical root review passed after UUID correction. Combined790/fullbuild/typecheck passed. Publication211649c rejected automatically for missing actual PG/restore and fullparent gates; sourceb481unchanged. Next provision fresh isolated PostgreSQL under nonroot, replay exact preserved candidate, run existing accounting/restore gates, resolve publication gate; do not regenerate feature. FullP01-03 still pending binding/admission/paymentguards/redemption/reversal/UI/browser.",
         "evidence": {
           "commit": "980c11578967caf13b40a3e1a783b95441b097a4",
           "summary": "PARTIAL P01-03 candidate: immutable scoped actual UTF8 evidence capture/read, protected database function computes bytes/terms hashes and timestamp, same-intent replay, optional draft terms/receipt editing and clearing for both parties, mutually exclusive ordinary discount, unchanged absent hashes. Conditional financial posting explicitly rejects. Parent NOT complete: immutable original posting binding with source/financial hash and line vector, committed binding observation, admission/redemption/every allocation writer guards, compensation, prior-credit/correction cases and native UI/browser journey remain. Next connect original binding and causal committed observation; qualify actual PG rollback/race/restore and independent review before accepting candidate. No existing/shared DB or provider writes. Worker stopped clean; no task reclaim. Root review UUID correction now canonicalizes conditional IDs and SQL terms identity while preserving historical source bytes; uppercase A-F fixtures added. Actual PostgreSQL still pending.",
@@ -130,10 +125,7 @@
             }
           ]
         },
-        "owner": "worker-1319-1",
-        "tokenSha256": "cb6f3b274a8d1860aa3c9ef27fc5110e2cfe73595b6c5eb7c0cb629b6b074209",
-        "leaseUntil": 1793800206787,
-        "workStarted": true
+        "blockers": []
       },
       "P01-04": {
         "status": "blocked",
@@ -7847,6 +7839,20 @@
             }
           ]
         }
+      },
+      {
+        "at": 1793799759584,
+        "actor": "coordinator-1319",
+        "type": "reject",
+        "taskId": "P01-03",
+        "reason": "Technical review passed exact980c115; integration publication was rejected automatically because actual PostgreSQL/restore and fullparent gates missing. Preserve candidate, do not discard or regenerate; stop review hold for bounded shutdown."
+      },
+      {
+        "at": 1793799759689,
+        "actor": "coordinator-1319",
+        "type": "recover",
+        "taskId": "P01-03",
+        "checkpoint": "Stopped clean exact980c11578967caf13b40a3e1a783b95441b097a4 treef8cdde522c6603fe2b9e7f99117122d01012bb4a; immutable full patch and authorchain archived state8286a9caf09067a3c6005dc7f8a235fc384205ce docs/development/candidates/20261104-1319-final.patch and final-manifest.json. Technical root review passed after UUID correction. Combined790/fullbuild/typecheck passed. Publication211649c rejected automatically for missing actual PG/restore and fullparent gates; sourceb481unchanged. Next provision fresh isolated PostgreSQL under nonroot, replay exact preserved candidate, run existing accounting/restore gates, resolve publication gate; do not regenerate feature. FullP01-03 still pending binding/admission/paymentguards/redemption/reversal/UI/browser."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -7864,19 +7870,24 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "8286a9caf09067a3c6005dc7f8a235fc384205ce",
+    "sha": "fb712c93f11ee93f8423139e96adec887ab3f624",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "8286a9caf09067a3c6005dc7f8a235fc384205ce",
+        "sha": "fb712c93f11ee93f8423139e96adec887ab3f624",
+        "path": "docs/development/run-20261104-1319-evidence.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "fb712c93f11ee93f8423139e96adec887ab3f624",
         "path": "docs/development/candidates/20261104-1319-final-manifest.json"
       }
     ],
     "runId": "hosted-20261104-1319",
-    "at": 1793799635589,
+    "at": 1793799877840,
     "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c"
   },
-  "updatedAt": 1793799635589,
+  "updatedAt": 1793799877840,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -7929,24 +7940,22 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [
-    {
-      "actor": "worker-1319-1",
-      "task": "P01-03",
-      "status": "claimed inspected checkpointed; no edits awaiting durableACK",
-      "source": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c"
-    }
-  ],
+  "activeWorkers": [],
   "run": {
     "startedAt": "2026-11-04T13:20:49.595Z",
     "stopBy": "2026-11-04T13:47:00Z",
     "credits": "unknown",
-    "activity": "Worker stopped clean submitted598. Root independent review passed revised980c115, combined790 and fullbuild/typecheck passed same treef8cdde52. Automatic review rejected integration ref advance to211649c: partial conditional candidate missing actual PostgreSQL/restore evidence and incomplete parent gates. No retry or transport workaround. Source remainsb481. Exactpatch/authorchain/manifest durable; shutdown preparation.",
-    "observedAt": "2026-11-04T13:40:35.589Z",
+    "activity": "Stopped clean, no held queue ownership. Exact candidate980c115/treef8cdde52 archived with independent technical review and matching source790/fullbuild. Automatic integration publication rejected for missing actual PostgreSQL/restore and incomplete parent gates; sourceb481 unchanged. No retry or transport workaround. See compact durable handoff for precise remaining gates and next execution.",
+    "observedAt": "2026-11-04T13:44:37.840Z",
     "activeWorkers": [],
     "candidate": "980c11578967caf13b40a3e1a783b95441b097a4",
     "candidateTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
-    "publicationBlocked": true
+    "publicationBlocked": true,
+    "endedAt": "2026-11-04T13:44:37.840Z",
+    "status": "stopped",
+    "newlyAcceptedOriginalBullets": [],
+    "newCompleteJourneys": [],
+    "providerUsage": "unknown"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -7958,18 +7967,20 @@
     "resolved": false,
     "action": "expected-head fast-forward update codex/whole-product-first-sprint to211649c44564f73cdca79e5f5c00580d6783930c",
     "reason": "Automatic approval review rejected partial conditional candidate publication without exact PostgreSQL/restore evidence and incomplete parent gates. Do not retry through another transport.",
-    "safeNext": "Obtain actual isolated PostgreSQL/restore evidence against preserved exact candidate using an authorized execution environment, then independent acceptance review; or explicit user approval of exact blocked candidate publication. Current host lacks PostgreSQL binaries; approved PR CI requires source publication. No alternate publication route attempted."
+    "safeNext": "Provision fresh isolated PostgreSQL under a non-root user, reconstruct exact archived candidate without regenerating implementation, run existing accounting/restore gates, then obtain fresh independent acceptance/publication review. Never weaken fullparent or financial/security/browser gates. No alternate publication transport."
   },
   "nextTasks": [
     {
       "task": "P01-03",
-      "next": "Deliver connected native evidence capture and original binding, freeze committed binding identity at payment and allocation, admit reviewed conditional credit with immutable redemption and eligibility-preserving guards/UI; then full reversal compensation/prior-credit cases and browser acceptance",
-      "requiredEvidence": "Exact-source both-party financial chronology/deadline/retry/rollback/race/history cases and isolated browser journey; no observation-clock order inference"
+      "next": "Preserved exact candidate980c115 requires actual fresh disposable PostgreSQL/restore gates before publication review. Then connect immutable original binding and prepayment causal observation, guarded redemption/compensation and UI/browser."
     },
     {
       "task": "P03-04",
-      "next": "Complete remaining full application/jobs recovery coverage and operating-target/ownership evidence; preserve successful runtime restore scenario; external destination remains explicit ownergate",
-      "requiredEvidence": "Exact-source full recovery scope and target evidence, authorised external interface only if ownergate satisfied"
+      "next": "Next eligible automatic claim; reconcile remaining recovery acceptance without duplicating completed restored-native-payment coverage."
+    },
+    {
+      "task": "P04-01",
+      "next": "Genuinely eligible engine prerequisite following P03-04. Next run evaluate second safe claim alongside primary journey while preserving automatic priority."
     }
   ],
   "workerVerifierApproval": {
@@ -7978,5 +7989,7 @@
     "scope": "Publish SHA-256 worker lease verifiers and claim history to Future00111/ledgerpoint; raw command tokens remain local. Explicit approval follows exact question and automatic rejection explanation.",
     "priorBlocker": "Explicit user approval now received; verify publication before worker edits.",
     "publicationVerified": true
-  }
+  },
+  "workersStopped": true,
+  "worktreesClean": true
 }
