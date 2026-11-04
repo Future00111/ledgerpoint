@@ -1,0 +1,104 @@
+{
+  "runId": "hosted-20261104-1319",
+  "startedAt": "2026-11-04T13:19:00Z",
+  "handoffAt": "2026-11-04T13:43:22.929Z",
+  "sourceBefore": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
+  "sourceAfter": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
+  "newlyAcceptedOriginalBullets": [],
+  "newCompleteJourneys": [],
+  "candidate": {
+    "base": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
+    "authorCommits": [
+      "07e1047bb512cb2d80dee8cb9171caceb5d8aee5",
+      "980c11578967caf13b40a3e1a783b95441b097a4"
+    ],
+    "tree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
+    "unpublishedObject": "211649c44564f73cdca79e5f5c00580d6783930c",
+    "status": "preserved unintegrated; technical review passed; actual PostgreSQL/restore acceptance not run",
+    "archive": "docs/development/candidates/20261104-1319-final.patch",
+    "boundedScenario": "Immutable scoped UTF8 agreement evidence capture/read/replay and invoice/bill draft association/edit/clear; financial conditional posting explicitly blocked"
+  },
+  "checks": {
+    "focused": 28,
+    "client": 14,
+    "migrationRegistry": 28,
+    "combinedSourceAndScheduler": 790,
+    "fullBuildAndTypecheck": "passed",
+    "actualPostgreSQL": "not run: no postgres/initdb/pg_ctl/psql/container binaries or standard installations; package installation not attempted during shutdown reserve",
+    "restore": "not run on candidate; prior published source gates remain unchanged",
+    "browser": "not run",
+    "run1319-check-final.log": {
+      "sha256": "b287bb173783c3d8eab5452a921f68d0eca56efc11e395877b4b75daf85d16c2",
+      "exitCode": 0
+    },
+    "run1319-build-final.log": {
+      "sha256": "bffcd77aecba1d864139a35ed795425ced65b872adbf7ec062dc68506dfcaa93",
+      "exitCode": 0
+    }
+  },
+  "review": {
+    "reviewer": "root",
+    "commit": "980c11578967caf13b40a3e1a783b95441b097a4",
+    "blockingFindingsRemaining": 0,
+    "rework": "One uppercase UUID canonicalization issue found on first-pass; corrected conditional-only and independently rereviewed",
+    "waitingTime": "unknown"
+  },
+  "publication": {
+    "accepted": false,
+    "action": "expected-head fast-forward codex/whole-product-first-sprint",
+    "rejection": "Automatic approval review rejected partial conditional candidate publication without exact PostgreSQL/restore evidence and incomplete parent gates",
+    "workaroundAttempted": false
+  },
+  "workers": {
+    "implementersLaunched": 1,
+    "independentReviewer": "root",
+    "coordinator": "coordinator1319",
+    "replit": "unavailable: name resolver false; app list empty; no dispatch",
+    "secondImplementerIdleReason": "Reserved single coordinator/reviewer capacity for connected schema/API candidate review, complete build/exact-CI attempt and durable shutdown. P03-04 and P04-01 were genuinely eligible; not misrepresented as blocked.",
+    "stopped": true,
+    "cleanWorktrees": true
+  },
+  "internalBlockers": {
+    "resolved": [
+      "New evidence/draft contract and exact file ownership settled",
+      "Noncircular scoped terms hash and conditional-only UUID identity normalized"
+    ],
+    "remaining": [
+      {
+        "issue": "Local disposable PostgreSQL gate unavailable; integration publication rejected",
+        "age": "new this run",
+        "responsibleRole": "coordinator/environment execution",
+        "next": "Provision fresh isolated PostgreSQL under a non-root user; reconstruct exact saved candidate and run existing accounting/restore gates before renewed independent acceptance/publication review"
+      },
+      {
+        "issue": "Full P01-03 original binding, committed observation, redemption/allocation guards, compensation, prior-credit/correction and native UI/browser",
+        "age": "unknown; pre-existing parent",
+        "responsibleRole": "primary implementer with coordinator contract review",
+        "next": "Preserve evidence candidate and connect immutable original financial/source identity binding and committed prepayment observation; never enable partial admission"
+      }
+    ]
+  },
+  "regressions": "No source regression observed; one review issue corrected. Actual PostgreSQL unknown.",
+  "nextTasks": [
+    {
+      "task": "P01-03",
+      "next": "Execute exact preserved candidate on fresh disposable PostgreSQL/restore; do not regenerate completed implementation. Then original binding/causality chain."
+    },
+    {
+      "task": "P03-04",
+      "next": "Next independently eligible queue task; reconcile genuine remaining recovery acceptance without repeating completed native restored-payment work."
+    },
+    {
+      "task": "P04-01",
+      "next": "Genuinely eligible engine prerequisite after P03-04 in automatic selection; next run evaluate second safe claim alongside conditional work, preserving priority."
+    }
+  ],
+  "metrics": {
+    "providerUsage": "unknown",
+    "creditsPerAcceptedWorkflow": "unknown",
+    "reviewWaiting": "unknown",
+    "integrationWaiting": "unknown",
+    "acceptedWorkflows": 0
+  },
+  "endReason": "Implementation stopped for matching verification and durable shutdown; automatic publication rejection prevents exact PR CI. Preserved reusable candidate and all queue history; no unsafe retry."
+}
