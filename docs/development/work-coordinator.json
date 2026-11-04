@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 137,
+  "revision": 138,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "402b7929ac3ba2709856ab3aa21e1e7a415949ee",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261104-1223",
+    "tokenSha256": "11b98c6216178ccf4e1a487b04a208d43682d173e8df9a9acc1737ba0eb71bc6",
+    "acquiredAt": 1793795193942,
+    "expiresAt": 1793796993942
+  },
   "lastOwner": {
     "runId": "hosted-20261103-1956",
     "tokenSha256": "733fb34d92bf924498d28a950fd55270899daf6d90417bdb4a8b358947b775e0",
@@ -44,7 +49,7 @@
     "at": 1793795095997,
     "codeHead": "402b7929ac3ba2709856ab3aa21e1e7a415949ee"
   },
-  "updatedAt": 1793795095997,
+  "updatedAt": 1793795193942,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -89,5 +94,25 @@
     "observedAgents": "Only root active; collaboration.list_agents 2026-11-04",
     "oldWorktrees": "run-1956-isolated and run-1956-worker1 clean",
     "activeWorkers": []
+  },
+  "deliveryPolicy": {
+    "approved": "2026-11-04",
+    "objective": "Minimise time and cost to full-scope launch through accepted end-to-end workflows",
+    "defaultImplementers": 2,
+    "maxWorkers": 6,
+    "independentReview": true,
+    "primaryTarget": "P01-03 conditional-discount accounting journey",
+    "secondaryTrack": "Next highest eligible independent launch dependency; resolve internal contracts before dispatch; tax/payroll engines remain full scope",
+    "milestoneAcceptance": "Matching-source focused, combined/build/typecheck and disposable PostgreSQL/restore checks plus applicable isolated browser journey. No parent autoacceptance.",
+    "threeRunReview": "Accepted workflows, launch dependencies, waiting/rework and measured credits; unknown usage stays unknown",
+    "noOccupancyTarget": true,
+    "noScopeReduction": true
+  },
+  "activeWorkers": [],
+  "run": {
+    "startedAt": "2026-11-04T12:26:33.943Z",
+    "stopBy": "2026-11-04T12:52:00Z",
+    "credits": "unknown",
+    "purpose": "Resolve shutdown and resume completion-driven launch delivery"
   }
 }
