@@ -1,0 +1,25 @@
+{
+  "base": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
+  "authorCommits": [
+    "07e1047bb512cb2d80dee8cb9171caceb5d8aee5",
+    "980c11578967caf13b40a3e1a783b95441b097a4"
+  ],
+  "author": "Codex <codex@openai.com>",
+  "tree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
+  "task": "P01-03",
+  "scope": "Bounded immutable agreement evidence capture/read and draft receipt association; financial conditional posting blocked; full parent pending",
+  "review": {
+    "reviewer": "root",
+    "commit": "980c11578967caf13b40a3e1a783b95441b097a4",
+    "outcome": "No remaining blocking defect; one first-pass UUID issue corrected and independently rereviewed",
+    "actualPG": "pending exact-source CI"
+  },
+  "tests": {
+    "focused": 28,
+    "client": 14,
+    "registry": 28,
+    "apiTypecheck": "passed",
+    "PG": "compilation only"
+  },
+  "patchSha256": "cf61e5e47b4f074b4b31ce1f7f711c7d2af8c0d0d6ee31058714076fb50aa7e2"
+}

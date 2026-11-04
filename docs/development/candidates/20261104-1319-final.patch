@@ -1,0 +1,517 @@
+diff --git a/artifacts/api-server/src/routes/accountingDocuments.ts b/artifacts/api-server/src/routes/accountingDocuments.ts
+index 58885a7..906b912 100644
+--- a/artifacts/api-server/src/routes/accountingDocuments.ts
++++ b/artifacts/api-server/src/routes/accountingDocuments.ts
+@@ -1,3 +1,4 @@
++import { captureConditionalEvidence, getConditionalEvidence } from '../services/accountingDocuments/conditionalDiscount';
+ import { reviewPaidCredit, commitPaidCredit } from '../services/accountingDocuments/paidCredit';
+ import { Router, type RequestHandler, type Request } from "express";
+ import { requireAuth } from "../middlewares/requireAuth";
+@@ -33,6 +34,8 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
+     if(!value || !/^"[0-9a-f-]{36}"$/.test(value)) fail(428,"REVISION_REQUIRED");
+     return value.slice(1,-1);
+   };
++  router.post('/conditional-discount-evidence',async(req,res)=>{const {company,actor}=ids(req);res.status(201).json({data:await captureConditionalEvidence(company,actor,req.body)});});
++  router.get('/conditional-discount-evidence/:id',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await getConditionalEvidence(company,actor,id)});});
+   router.get('/credit-claims',async(req,res)=>{
+     const {company,actor}=ids(req);
+     if(req.query.bill_id!==undefined && typeof req.query.bill_id!=='string') fail(400,'INVALID_REQUEST_SHAPE');
+@@ -128,6 +131,8 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
+         "/discount":"Discount","/discount_adjustment":"Discount adjustment"};
+       const field=labels[error.path]??(error.path?.startsWith("/line_items/")?"Invoice or bill line":"Submitted field");
+       const guidance:Record<string,string>={
++        CONDITIONAL_POSTING_NOT_AVAILABLE:"Conditional agreement drafts can be prepared, but posting is not available yet. Your draft remains unchanged.",
++        CONDITIONAL_EVIDENCE_TERMS_MISMATCH:"The receipt belongs to different agreement terms. Capture or select matching evidence before saving.",
+         CORRECTION_REVIEW_STALE:"This document, its payments or accounting setup changed after review. Refresh and review the correction again.",
+         CORRECTION_BELOW_PAID:"The corrected total cannot be less than payments already applied. Review the payment and refund history first.",
+         CORRECTION_CHILD_CREDITS:"This document already has a linked credit. Corrections are not yet supported for this case.",
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+index 64f5042..1933f5a 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+@@ -168,3 +168,44 @@ test('real PostgreSQL: inconsistent canonical posting effect cannot certify a re
+  assert.equal(first.status,'recorded');
+  assert.deepEqual(await captureCommittedPaymentWitness(f.company,actor,f.body.id),first);
+ });
++
++import {captureConditionalEvidence,getConditionalEvidence} from './conditionalDiscount';
++import {conditionalTermsHash} from '../financialDrafts/contract';
++import {createHash} from 'node:crypto';
++import {saveDocument,getDocument} from './documents';
++import {postDocument} from './posting';
++for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL: ${partyType} evidence capture/replay/read/draft/clear and disabled posting`,async()=>{
++ const f=await fixture(),party=('abcdefab'+randomUUID().slice(8)).toUpperCase();
++ await admin.query(`INSERT INTO ${partyType==='customer'?'customers':'suppliers'}(id,company_id,name,status) VALUES($1,$2,'Synthetic conditional party','active')`,[party.toLowerCase(),f.company]);
++ await admin.query(`INSERT INTO vat_tax_rules(id,company_id,code,label,rate,treatment,effective_from,is_active)
++ VALUES($1,$2,'NONE','No VAT',0,'no_vat','2026-01-01',true)`,[randomUUID(),f.company]);
++ const terms={version:1 as const,party_type:partyType,party_id:party,currency:'GBP' as const,agreement_id:('abcdefab'+randomUUID().slice(8)).toUpperCase(),agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
++ const body={request_id:randomUUID(),terms,evidence_text:'Agreed £12; café 😀\n"quoted" / \\ bytes',attested:true};
++ const [receipt,replayed]=await Promise.all([captureConditionalEvidence(f.company,actor,body),captureConditionalEvidence(f.company,actor,body)]);
++ assert.equal(receipt.id,replayed.id);
++ assert.equal((await admin.query('SELECT count(*)::int n FROM conditional_discount_evidence WHERE company_id=$1 AND request_id=$2',[f.company,body.request_id])).rows[0].n,1);
++ assert.equal(receipt.terms_hash,conditionalTermsHash(terms));
++ assert.equal(receipt.evidence_hash,'sha256:'+createHash('sha256').update(body.evidence_text,'utf8').digest('hex'));
++ assert.equal((await captureConditionalEvidence(f.company,actor,body)).id,receipt.id);
++ assert.equal((await getConditionalEvidence(f.company,actor,receipt.id)).evidence_text,body.evidence_text);
++ await assert.rejects(()=>captureConditionalEvidence(f.company,actor,{...body,evidence_text:'changed'}),/CONDITIONAL_EVIDENCE_REQUEST_CONFLICT/);
++ const source={contract:'w03.draft.v1',currency:'GBP',customer_id:party,invoice_number:'COND-'+randomUUID(),issue_date:'2026-11-01',due_date:'2026-11-30',payment_terms:29,reference:'',notes:'',line_items:[{description:'Synthetic',quantity:'1',unit_price:'120',tax_code:'NONE'}],conditional_discount:{...terms,evidence_receipt_id:receipt.id}};
++ const draft=await saveDocument(f.company,actor,{kind:partyType==='customer'?'sales_invoice':'purchase_bill',source});
++ await assert.rejects(()=>postDocument(f.company,actor,draft.id,draft.revision),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
++ assert.equal((await getDocument(f.company,actor,draft.id)).status,'draft');
++ assert.equal((await admin.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2',[f.company,draft.id])).rows[0].n,0);
++ await assert.rejects(()=>saveDocument(f.company,actor,{source:{contract:'w03.draft.v1',conditional_discount:{...source.conditional_discount,discount_gross_pence:'1199'}}},draft.id,draft.revision),/CONDITIONAL_EVIDENCE_TERMS_MISMATCH/);
++ const cleared=await saveDocument(f.company,actor,{source:{contract:'w03.draft.v1',conditional_discount:null}},draft.id,draft.revision);
++ assert.equal(cleared.source.conditional_discount,undefined);
++ for(const statement of ['INSERT INTO conditional_discount_evidence SELECT * FROM conditional_discount_evidence','UPDATE conditional_discount_evidence SET evidence_text=evidence_text','DELETE FROM conditional_discount_evidence','TRUNCATE conditional_discount_evidence']) await assert.rejects(()=>pool.query(statement));
++ const foreign=await fixture();
++ await assert.rejects(()=>getConditionalEvidence(foreign.company,actor,receipt.id),/RESOURCE_NOT_FOUND/);
++ await assert.rejects(()=>captureConditionalEvidence(f.company,actor,{...body,request_id:randomUUID(),terms:{...terms,party_id:foreign.body.party_id}}));
++ const direct=await pool.query('SELECT capture_conditional_discount_evidence($1,$2,$3,$4,$5,true) id',[f.company,actor,body.request_id,JSON.stringify(terms),body.evidence_text]);
++ assert.equal(direct.rows[0].id,receipt.id);
++ await assert.rejects(()=>pool.query('SELECT capture_conditional_discount_evidence($1,$2,$3,$4,$5,false)',[f.company,actor,randomUUID(),JSON.stringify(terms),body.evidence_text]),/Invalid agreement evidence/);
++ for(const patch of [{version:null},{currency:null},{party_type:null},{discount_gross_pence:null}]) await assert.rejects(()=>pool.query('SELECT capture_conditional_discount_evidence($1,$2,$3,$4,$5,true)',[f.company,actor,randomUUID(),JSON.stringify({...terms,...patch}),body.evidence_text]),/Invalid agreement evidence/);
++ await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
++ await assert.rejects(()=>getConditionalEvidence(f.company,actor,receipt.id),/RESOURCE_NOT_FOUND/);
++ await assert.rejects(()=>pool.query('SELECT capture_conditional_discount_evidence($1,$2,$3,$4,$5,true)',[f.company,actor,randomUUID(),JSON.stringify(terms),body.evidence_text]),/Evidence capability unavailable/);
++});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
+index e02f83a..09a629a 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
+@@ -92,3 +92,43 @@ test('exact retry returns first persisted observation without replacing its cloc
+  assert.deepEqual(second,first);assert.equal(f.transactions(),2);
+  assert.equal(f.calls.some(s=>/^UPDATE|^DELETE/.test(s)),false);
+ });
++
++import {evidenceBytes,validateConditionalDraft} from './conditionalDiscount';
++import {parseConditionalTerms,conditionalTermsHash,parseInvoice,draftSourceFingerprint} from '../financialDrafts/contract';
++const terms={version:1,party_type:'customer',party_id:company,currency:'GBP',agreement_id:eventId,agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
++const draft={contract:'w03.draft.v1',currency:'GBP',customer_id:company,invoice_number:'COND-1',issue_date:'2026-11-01',due_date:'2026-11-30',payment_terms:29,reference:'',notes:'',line_items:[{description:'Test',quantity:'1',unit_price:'120',tax_code:'NONE'}]};
++test('bounded UTF8 preserves exact Unicode/newline bytes and rejects malformed UTF16',()=>{
++ assert.equal(evidenceBytes('é😀\n"/\\').toString('utf8'),'é😀\n"/\\');
++ assert.equal(evidenceBytes('é'.repeat(32768)).length,65536);
++ for(const value of ['é'.repeat(32769),'\ud800','\udc00','\u0000','']) assert.throws(()=>evidenceBytes(value),/CONDITIONAL_EVIDENCE/);
++});
++test('conditional terms hash excludes receipt and rejects unknown versions/fields',()=>{
++ const t=parseConditionalTerms(terms);
++ assert.equal(conditionalTermsHash(t),conditionalTermsHash({...t,evidence_receipt_id:journal} as any));
++ assert.notEqual(conditionalTermsHash(t),conditionalTermsHash({...t,party_type:'supplier'}));
++ for(const patch of [{version:2},{discount_gross_pence:'0'},{payment_deadline:'2026-10-01'},{untrusted_hash:'x'}]) assert.throws(()=>parseConditionalTerms({...terms,...patch}));
++});
++test('draft terms can change or clear, ordinary discounts conflict and absent source hash stays identical',()=>{
++ const old=parseInvoice(draft),bound=parseInvoice({...draft,conditional_discount:{...terms,evidence_receipt_id:journal}});
++ assert.equal(draftSourceFingerprint(old),draftSourceFingerprint({...old,conditional_discount:undefined}));
++ assert.equal(parseInvoice({contract:'w03.draft.v1',conditional_discount:null},bound).conditional_discount,undefined);
++ assert.notEqual(draftSourceFingerprint(old),draftSourceFingerprint(bound));
++ assert.throws(()=>parseInvoice({...bound,discount:{type:'amount',value:'1.00'}}),/DISCOUNT_CONFLICT/);
++ assert.throws(()=>parseInvoice({...bound,customer_id:eventId}),/CONDITIONAL_TERMS_INVALID/);
++});
++test('zero net entitlement and wrong party reject before receipt access',async()=>{
++ const q={query:()=>{throw Error('Receipt must not be accessed')}} as any;
++ const source=parseInvoice({...draft,conditional_discount:{...terms,evidence_receipt_id:journal}});
++ await assert.rejects(()=>validateConditionalDraft(q,company,source,'customer','1200'),/CONDITIONAL_TERMS_INVALID/);
++ await assert.rejects(()=>validateConditionalDraft(q,company,source,'supplier','12000'),/CONDITIONAL_TERMS_INVALID/);
++});
++test('conditional UUIDs canonicalize uppercase A-F without changing legacy customer source bytes',()=>{
++ const upper='ABCDEFAB-CDEF-4ABC-8ABC-ABCDEFABCDEF',lower=upper.toLowerCase();
++ const raw={...terms,party_id:upper,agreement_id:upper,evidence_receipt_id:upper};
++ const parsed=parseConditionalTerms(raw,true) as any;
++ assert.equal(parsed.party_id,lower);assert.equal(parsed.agreement_id,lower);assert.equal(parsed.evidence_receipt_id,lower);
++ assert.equal(conditionalTermsHash(parsed),conditionalTermsHash({...parsed,party_id:upper,agreement_id:upper}));
++ const saved=parseInvoice({...draft,customer_id:upper,conditional_discount:raw});
++ assert.equal(saved.customer_id,upper);assert.equal(saved.conditional_discount?.party_id,lower);
++ assert.equal(parseInvoice({...draft,customer_id:upper}).customer_id,upper);
++});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
+index b67b473..ed80549 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
+@@ -1,5 +1,7 @@
++import { createHash } from 'node:crypto';
++import { conditionalTermsHash, parseConditionalTerms, type InvoiceSource } from '../financialDrafts/contract';
+ import { fail, uuid } from '../financialDrafts/contract';
+-import { hash, scope, transact } from './core';
++import { hash, scope, transact, exactFields, type Queryable } from './core';
+ 
+ /** A receipt of observation, not the payment's actual commit timestamp. Only a
+  * fresh transaction can establish that the source was already committed. Never
+@@ -88,3 +90,66 @@ export async function observePaymentOutcome<T>(result:T, company:string, actor:s
+     return {...result,conditional_discount_witness:'unavailable'};
+   }
+ }
++
++/** Native text evidence is immutable preparation only; it cannot admit posting. */
++export function evidenceBytes(value: unknown): Buffer {
++  if(typeof value!=='string' || !value.trim() || value.includes('\u0000') ||
++    /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/u.test(value)) fail(422,'CONDITIONAL_EVIDENCE_INVALID');
++  const bytes=Buffer.from(value,'utf8');
++  if(bytes.length>65536) fail(422,'CONDITIONAL_EVIDENCE_TOO_LARGE');
++  return bytes;
++}
++async function evidenceSchema(q:Queryable) {
++  const installed=(await q.query("SELECT to_regclass('public.conditional_discount_evidence') present")).rows[0]?.present;
++  if(!installed) fail(503,'CONDITIONAL_EVIDENCE_SCHEMA_UNAVAILABLE');
++  const guards=(await q.query(`SELECT count(*)::int n FROM pg_trigger WHERE tgrelid='public.conditional_discount_evidence'::regclass
++    AND tgenabled='A' AND NOT tgisinternal AND tgname IN ('conditional_discount_evidence_immutable','conditional_discount_evidence_no_truncate')`)).rows[0];
++  if(guards?.n!==2) fail(503,'CONDITIONAL_EVIDENCE_SCHEMA_INCOMPLETE');
++  const integrity=(await q.query(`SELECT (SELECT count(*)::int FROM pg_constraint WHERE conrelid='public.conditional_discount_evidence'::regclass AND convalidated) n,
++    pg_get_userbyid(relowner) owner,has_table_privilege('ledgerly_api',oid,'INSERT,UPDATE,DELETE,TRUNCATE') writable
++    FROM pg_class WHERE oid='public.conditional_discount_evidence'::regclass`)).rows[0];
++  if(integrity?.n!==11 || integrity.owner!=='ledgerly_canonical_owner' || integrity.writable) fail(503,'CONDITIONAL_EVIDENCE_SCHEMA_INCOMPLETE');
++}
++function verifyEvidence(row:any) {
++  if(!row || row.version!==1 || row.attested!==true || row.currency!=='GBP' ||
++    row.evidence_hash!==`sha256:${createHash('sha256').update(evidenceBytes(row.evidence_text)).digest('hex')}` ||
++    row.terms_hash!==conditionalTermsHash(row.terms) || row.party_id!==row.terms.party_id ||
++    row.party_type!==row.terms.party_type || row.currency!==row.terms.currency) fail(503,'CONDITIONAL_EVIDENCE_INVALID');
++  return row;
++}
++export async function readConditionalEvidence(q:Queryable,company:string,id:string) {
++  await evidenceSchema(q);
++  const row=(await q.query(`SELECT *,recorded_at::text AS recorded_at FROM conditional_discount_evidence
++    WHERE company_id=$1 AND id=$2`,[company,uuid(id)])).rows[0];
++  if(!row) fail(404,'RESOURCE_NOT_FOUND');
++  return verifyEvidence(row);
++}
++export async function getConditionalEvidence(company:string,actor:string,id:string) {
++  return transact(async q=>{await scope(q,company,actor,true);return readConditionalEvidence(q,company,id);},true);
++}
++export async function captureConditionalEvidence(company:string,actor:string,input:unknown) {
++  const body=exactFields(input,['request_id','terms','evidence_text','attested']);
++  const request=uuid(body.request_id),terms=parseConditionalTerms(body.terms);
++  evidenceBytes(body.evidence_text);
++  if(body.attested!==true) fail(422,'CONDITIONAL_ATTESTATION_REQUIRED');
++  return transact(async q=>{
++    await scope(q,company,actor,true,true);
++    await evidenceSchema(q);
++    const termsHash=conditionalTermsHash(terms);
++    const existing=(await q.query('SELECT * FROM conditional_discount_evidence WHERE company_id=$1 AND request_id=$2',[company,request])).rows[0];
++    if(existing) {
++      if(existing.actor_id!==actor || existing.evidence_text!==body.evidence_text || existing.terms_hash!==termsHash) fail(409,'CONDITIONAL_EVIDENCE_REQUEST_CONFLICT');
++      return readConditionalEvidence(q,company,existing.id);
++    }
++    const result=(await q.query(`SELECT public.capture_conditional_discount_evidence($1::uuid,$2::text,$3::uuid,$4::jsonb,$5::text,true) id`,
++      [company,actor,request,JSON.stringify(terms),body.evidence_text])).rows[0];
++    return readConditionalEvidence(q,company,result.id);
++  });
++}
++export async function validateConditionalDraft(q:Queryable,company:string,source:InvoiceSource,partyType:'customer'|'supplier',gross:string) {
++  const terms=source.conditional_discount;
++  if(!terms) return;
++  if(terms.party_type!==partyType || terms.party_id!==source.customer_id.toLowerCase() || BigInt(terms.discount_gross_pence)>=BigInt(gross)) fail(422,'CONDITIONAL_TERMS_INVALID');
++  const evidence=await readConditionalEvidence(q,company,terms.evidence_receipt_id);
++  if(evidence.terms_hash!==conditionalTermsHash(terms) || evidence.party_type!==partyType || evidence.party_id!==source.customer_id.toLowerCase()) fail(409,'CONDITIONAL_EVIDENCE_TERMS_MISMATCH');
++}
+diff --git a/artifacts/api-server/src/services/accountingDocuments/documents.ts b/artifacts/api-server/src/services/accountingDocuments/documents.ts
+index 848774a..7187d8c 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/documents.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/documents.ts
+@@ -1,3 +1,4 @@
++import { validateConditionalDraft } from './conditionalDiscount';
+ import { appliedTo, documentOpen, paymentEvents } from './settlement';
+ import { amendmentHistory, assertUncorrectedOriginal } from './amendments';
+ import { randomUUID } from "node:crypto";
+@@ -34,6 +35,7 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind,
+   let postingAccount=body.posting_account_id===undefined?previous?.posting_account_id??null:body.posting_account_id;
+   let tax:any;
+   if(credit(kind)) {
++    if(source.conditional_discount) fail(422,'CONDITIONAL_REQUIRES_ORIGINAL_DOCUMENT');
+     if(source.discount) fail(422,"DISCOUNT_REQUIRES_ORIGINAL_DOCUMENT");
+     if(!originalId || typeof reason!=="string" || !reason.trim() || reason.length>1000 ||
+       method!=="offset_outstanding" || effective!==source.issue_date) fail(422,"CREDIT_EFFECTIVE_DECREASE_REQUIRED");
+@@ -105,6 +107,7 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind,
+   const totals={...money(tax.netPence.map((v:string)=>BigInt(v)),tax.vatPence),
+     ...(source.discount?{discount:tax.context.discount}:{}),
+     ...(source.discount_adjustment?{discount_adjustment:tax.context.discount_adjustment}:{})};
++  await validateConditionalDraft(q,company,source,sales(kind)?'customer':'supplier',totals.gross_pence);
+   return {source,party_name:party.rows[0].name,party_id:source.customer_id,
+     original_id:originalId??null,reason:typeof reason==="string"?reason.trim():"",
+     adjustment_method:method,effective_adjustment_date:effective,
+diff --git a/artifacts/api-server/src/services/accountingDocuments/posting.ts b/artifacts/api-server/src/services/accountingDocuments/posting.ts
+index aa9d973..600a468 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/posting.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/posting.ts
+@@ -44,6 +44,7 @@ export async function postDocument(company:string,actor:string,id:string,expecte
+   // checked again inside postCanonicalJournal's one transaction.
+   const admission=async(q:Queryable)=>{await scope(q,company,actor);return document(q,company,id);};
+   const initial=existingTransaction?await admission(queryAdapter(existingTransaction)):await transact(admission,true);
++  if(initial.source?.conditional_discount) fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
+   if(initial.revision!==expected) fail(409,"REVISION_CONFLICT");
+   let current:any, transaction:DatabaseTransaction;
+   const dependencies:CanonicalPostingDependencies={
+@@ -51,6 +52,7 @@ export async function postDocument(company:string,actor:string,id:string,expecte
+       transaction=tx;const q=queryAdapter(tx);
+       await scope(q,company,actor,true,true);
+       current=await document(q,company,id,true);
++      if(current.source?.conditional_discount) fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
+       if(current.revision!==expected) fail(409,"REVISION_CONFLICT");
+       if(current.status==="posted") {
+         const linked=await q.query(`SELECT id FROM canonical_journal_entries
+diff --git a/artifacts/api-server/src/services/financialDrafts/contract.ts b/artifacts/api-server/src/services/financialDrafts/contract.ts
+index 2dea6ab..e106125 100644
+--- a/artifacts/api-server/src/services/financialDrafts/contract.ts
++++ b/artifacts/api-server/src/services/financialDrafts/contract.ts
+@@ -27,11 +27,12 @@ export interface InvoiceSource {
+   reference: string;
+   notes: string;
+   line_items: DraftLine[];
++  conditional_discount?: ConditionalDiscount;
+   discount?: Discount;
+   discount_adjustment?: DiscountAdjustment;
+ }
+ const fields = ["contract", "currency", "customer_id", "invoice_number", "issue_date",
+-  "due_date", "payment_terms", "reference", "notes", "line_items", "price_basis", "discount", "discount_adjustment"];
++  "due_date", "payment_terms", "reference", "notes", "line_items", "price_basis", "discount", "discount_adjustment", "conditional_discount"];
+ const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+ export function uuid(value: unknown): string {
+   if (typeof value !== "string" || !uuidPattern.test(value)) fail(400, "INVALID_REQUEST_SHAPE");
+@@ -88,6 +89,32 @@ export function parseDiscount(value: unknown, adjustment = false): Discount | Di
+   const result: Discount = { type: d.type as Discount['type'], value: d.value };
+   return adjustment ? { ...result, original_revision: uuid(d.original_revision) } : result;
+ }
++export interface ConditionalTerms {
++  version: 1;
++  party_type: 'customer' | 'supplier';
++  party_id: string;
++  currency: 'GBP';
++  agreement_id: string;
++  agreement_date: string;
++  payment_deadline: string;
++  discount_gross_pence: string;
++}
++export interface ConditionalDiscount extends ConditionalTerms { evidence_receipt_id: string }
++export function parseConditionalTerms(value: unknown, receipt = false): ConditionalTerms | ConditionalDiscount {
++  const d = object(value);
++  keys(d, ['version','party_type','party_id','currency','agreement_id','agreement_date','payment_deadline','discount_gross_pence', ...(receipt ? ['evidence_receipt_id'] : [])]);
++  if (d.version !== 1 || typeof d.party_type !== 'string' || !['customer','supplier'].includes(d.party_type) || d.currency !== 'GBP') fail(422,'CONDITIONAL_TERMS_INVALID');
++  const agreementDate = date(d.agreement_date,'/conditional_discount/agreement_date');
++  const deadline = date(d.payment_deadline,'/conditional_discount/payment_deadline');
++  if (deadline < agreementDate || typeof d.discount_gross_pence !== 'string' || !/^[1-9]\d{0,11}$/.test(d.discount_gross_pence)) fail(422,'CONDITIONAL_TERMS_INVALID');
++  const terms: ConditionalTerms = {version:1,party_type:d.party_type as ConditionalTerms['party_type'],party_id:uuid(d.party_id).toLowerCase(),currency:'GBP',agreement_id:uuid(d.agreement_id).toLowerCase(),agreement_date:agreementDate,payment_deadline:deadline,discount_gross_pence:d.discount_gross_pence};
++  return receipt ? {...terms,evidence_receipt_id:uuid(d.evidence_receipt_id).toLowerCase()} : terms;
++}
++/** Ordered versioned fields; receipt identity is deliberately not circular. */
++export function conditionalTermsHash(value: ConditionalTerms): string {
++  const {evidence_receipt_id: _receipt, ...rest} = value as ConditionalDiscount;
++  return `sha256:${createHash('sha256').update(JSON.stringify(Object.values(parseConditionalTerms(rest)).map(String))).digest('hex')}`;
++}
+ export function parseInvoice(body: unknown, previous?: InvoiceSource): InvoiceSource {
+   const input = object(body);
+   keys(input, previous ? fields.filter(k => k !== "currency") : fields);
+@@ -113,6 +140,9 @@ export function parseInvoice(body: unknown, previous?: InvoiceSource): InvoiceSo
+   });
+   const discount = parseDiscount(data.discount) as Discount | undefined;
+   const adjustment = parseDiscount(data.discount_adjustment, true) as DiscountAdjustment | undefined;
++  const conditional = data.conditional_discount == null ? undefined : parseConditionalTerms(data.conditional_discount,true) as ConditionalDiscount;
++  if (conditional && (conditional.party_id !== uuid(data.customer_id).toLowerCase() || conditional.payment_deadline < issue)) fail(422,'CONDITIONAL_TERMS_INVALID');
++  if (conditional && (discount || adjustment)) fail(422,'DISCOUNT_CONFLICT','/conditional_discount');
+   if (discount && adjustment) fail(422, 'DISCOUNT_CONFLICT', '/discount_adjustment');
+   return { contract: "w03.draft.v1", currency: "GBP", price_basis: basis, customer_id: uuid(data.customer_id),
+     invoice_number: text(data.invoice_number, 64, "/invoice_number", true),
+@@ -120,6 +150,7 @@ export function parseInvoice(body: unknown, previous?: InvoiceSource): InvoiceSo
+     reference: text(data.reference === undefined ? "" : data.reference, 200, "/reference"),
+     notes: text(data.notes === undefined ? "" : data.notes, 4000, "/notes", false, true),
+     line_items: lines.map(line => ({ ...line, tax_code: line.tax_code.toUpperCase() })),
++    ...(conditional ? { conditional_discount: conditional } : {}),
+     ...(discount ? { discount } : {}), ...(adjustment ? { discount_adjustment: adjustment } : {}) };
+ }
+ export function draftSourceFingerprint(source: InvoiceSource): string {
+diff --git a/artifacts/api-server/src/services/financialDrafts/invoiceService.ts b/artifacts/api-server/src/services/financialDrafts/invoiceService.ts
+index ee6fbe8..7bd29ff 100644
+--- a/artifacts/api-server/src/services/financialDrafts/invoiceService.ts
++++ b/artifacts/api-server/src/services/financialDrafts/invoiceService.ts
+@@ -169,6 +169,10 @@ export class InvoiceDraftService {
+         return BigInt(value);
+       });
+       const totals = { ...money(net, tax.vatPence), ...(discounted.summary ? { discount: discounted.summary } : {}) };
++      if(source.conditional_discount) {
++        const {validateConditionalDraft}=await import('../accountingDocuments/conditionalDiscount');
++        await validateConditionalDraft(tx,companyId,source,'customer',totals.gross_pence);
++      }
+       if (source.discount && JSON.stringify(tax.context.discount) !== JSON.stringify(discounted.summary)) fail(503, 'AUTHORITY_UNAVAILABLE');
+       const resolvedLines = tax.context.lines as Array<Record<string, unknown>>;
+       for (let index = 0; index < source.line_items.length; index++) {
+diff --git a/artifacts/ledgerly/src/api/accountingDocuments.mjs b/artifacts/ledgerly/src/api/accountingDocuments.mjs
+index 5352585..674e136 100644
+--- a/artifacts/ledgerly/src/api/accountingDocuments.mjs
++++ b/artifacts/ledgerly/src/api/accountingDocuments.mjs
+@@ -19,6 +19,7 @@ export function buildSource(form) {
+     invoice_number: form.invoice_number, issue_date: form.issue_date, due_date: form.due_date,
+     payment_terms: Number(form.payment_terms) || 0, reference: form.reference ?? '', notes: form.notes ?? '',
+     price_basis: form.price_basis ?? 'excluding_vat',
++    conditional_discount: form.conditional_discount ?? null,
+     discount: form.discount ? { type: form.discount.type, value: String(form.discount.value) } : null,
+     discount_adjustment: form.discount_adjustment ? { type: form.discount_adjustment.type, value: String(form.discount_adjustment.value), original_revision: form.discount_adjustment.original_revision } : null,
+     line_items: form.line_items.map(l => ({
+@@ -71,6 +72,8 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
+   const base = c => `/api/companies/${encodeURIComponent(c)}`;
+   const docs = c => `${base(c)}/accounting-documents`;
+   return {
++    captureConditionalEvidence: (c, body) => call(`${base(c)}/conditional-discount-evidence`, { method: 'POST', body }),
++    getConditionalEvidence: (c, id, signal) => call(`${base(c)}/conditional-discount-evidence/${encodeURIComponent(id)}`, { signal }),
+     paymentContext: (c, signal) => call(`${base(c)}/accounting-payments/context`, { signal }),
+     recoverPayment: (c, id, signal) => call(`${base(c)}/accounting-payments/operations/${encodeURIComponent(id)}`, { signal }),
+     payments: (c, signal) => call(`${base(c)}/accounting-payments`, { signal }),
+diff --git a/artifacts/ledgerly/src/api/accountingDocuments.test.mjs b/artifacts/ledgerly/src/api/accountingDocuments.test.mjs
+index cf95f3e..09282a8 100644
+--- a/artifacts/ledgerly/src/api/accountingDocuments.test.mjs
++++ b/artifacts/ledgerly/src/api/accountingDocuments.test.mjs
+@@ -80,3 +80,16 @@ test('original payment identity recovery is a scoped read and sends no frozen fi
+   assert.equal(seen.init.method,'GET');assert.equal(seen.init.body,undefined);assert.equal(seen.init.signal,signal);
+   assert.deepEqual(result,{status:'unknown',id:'request/id'});
+ });
++test('conditional draft receipt is preserved and explicit clear survives native envelope',()=>{
++ const terms={version:1,evidence_receipt_id:'receipt',discount_gross_pence:'1200'};
++ assert.deepEqual(buildSource({...form,conditional_discount:terms}).conditional_discount,terms);
++ assert.equal(buildSource({...form,conditional_discount:null}).conditional_discount,null);
++});
++test('conditional evidence capture/read use company scoped native endpoints',async()=>{
++ const calls=[],client=createAccountingClient(async(url,options)=>{calls.push([url,options]);return {ok:true,json:async()=>({data:{id:'receipt'}})};});
++ await client.captureConditionalEvidence('company',{attested:true,evidence_text:'Actual agreement'});
++ await client.getConditionalEvidence('company','receipt');
++ assert.equal(calls[0][0],'/api/companies/company/conditional-discount-evidence');
++ assert.equal(calls[0][1].method,'POST');
++ assert.equal(calls[1][0],'/api/companies/company/conditional-discount-evidence/receipt');
++});
+diff --git a/docs/development/credit-capacity-contract.md b/docs/development/credit-capacity-contract.md
+index 8baa597..bac8e6a 100644
+--- a/docs/development/credit-capacity-contract.md
++++ b/docs/development/credit-capacity-contract.md
+@@ -352,3 +352,25 @@ grant in that target, remains unqualified. Same-cluster restore is not that proo
+ Deadline crossing, agreement binding and complete admission/redemption/reversal
+ and connected UI workflows remain pending. No existing/shared database or
+ production activation is authorized, and all earlier P01-03 acceptance gates remain.
++
++### Bounded evidence and draft preparation candidate (4 November 2026)
++
++The candidate adds native text capture/read and draft receipt selection, editing
++and clearing for both parties. Evidence has a scoped request identity and immutable
++server hashes/time; the protected database function computes them and checks the
++current membership and party. Actor identity still relies on the authenticated
++service boundary; the shared database role is not independent proof of assent.
++Version 1 terms hash is SHA-256 over UTF-8 JSON of the ordered string array:
++version, party type, party ID, currency, agreement ID, agreement date, payment
++deadline, gross discount pence. Conditional UUIDs use lowercase canonical text.
++Receipt ID is excluded; stored evidence bytes
++have their own hash. Absent conditional terms preserve the legacy source hash.
++
++This is preparation, not original-document binding or conditional admission.
++Posting a conditional draft explicitly rejects without a journal. Next connect
++immutable posting-time source/financial-hash and line-vector binding, committed
++binding observation before qualifying payments, redemption and every affected
++allocation writer guard, then the native capture/review UI. Existing parent gates
++and compensation/prior-credit/correction scope remain unchanged. The new disposable
++PostgreSQL scenarios require exact-candidate execution and independent review;
++compiled scenarios and focused tests alone do not qualify persistence or the journey.
+diff --git a/lib/db/migration-registry.json b/lib/db/migration-registry.json
+index 2763f24..95015aa 100644
+--- a/lib/db/migration-registry.json
++++ b/lib/db/migration-registry.json
+@@ -80,7 +80,7 @@
+       "dependencies": [
+         "accounting-payments"
+       ],
+-      "sha256": "e677ca90da80a212d6574229a2e1b2d5b41881c89c3cd9b6b35745a10a1bc44e"
++      "sha256": "1d0030d13ee3ae382d486224b645997ada4fd1c8d6eccdc8e04870df0a563aaa"
+     }
+   ],
+   "securityOverlay": {
+diff --git a/lib/db/migrations/conditional-discount-agreements.review.sql b/lib/db/migrations/conditional-discount-agreements.review.sql
+index e13398a..c57edb8 100644
+--- a/lib/db/migrations/conditional-discount-agreements.review.sql
++++ b/lib/db/migrations/conditional-discount-agreements.review.sql
+@@ -111,3 +111,75 @@ ALTER TABLE public.conditional_discount_commit_witnesses ENABLE ALWAYS TRIGGER c
+ ALTER TABLE public.conditional_discount_commit_witnesses ENABLE ALWAYS TRIGGER conditional_discount_witness_no_truncate;
+ REVOKE ALL ON public.conditional_discount_commit_witnesses FROM PUBLIC,ledgerly_api;
+ GRANT SELECT,INSERT ON public.conditional_discount_commit_witnesses TO ledgerly_api;
++
++-- Native agreement evidence preparation. Financial posting remains disabled.
++CREATE TABLE public.conditional_discount_evidence (
++ id uuid PRIMARY KEY,
++ company_id uuid NOT NULL REFERENCES public.companies(id),
++ request_id uuid NOT NULL,
++ actor_id text NOT NULL,
++ version integer NOT NULL CHECK(version=1),
++ party_type text NOT NULL CHECK(party_type IN ('customer','supplier')),
++ party_id uuid NOT NULL,
++ currency text NOT NULL CHECK(currency='GBP'),
++ terms jsonb NOT NULL,
++ terms_hash text NOT NULL CHECK(terms_hash ~ '^sha256:[a-f0-9]{64}$'),
++ evidence_text text NOT NULL CHECK(octet_length(evidence_text) BETWEEN 1 AND 65536),
++ evidence_hash text NOT NULL CHECK(evidence_hash='sha256:'||encode(sha256(convert_to(evidence_text,'UTF8')),'hex')),
++ attested boolean NOT NULL CHECK(attested),
++ recorded_at timestamptz NOT NULL,
++ UNIQUE(company_id,id), UNIQUE(company_id,request_id)
++);
++ALTER TABLE public.conditional_discount_evidence OWNER TO ledgerly_canonical_owner;
++CREATE TRIGGER conditional_discount_evidence_immutable BEFORE UPDATE OR DELETE ON public.conditional_discount_evidence
++ FOR EACH ROW EXECUTE FUNCTION public.conditional_discount_witness_immutable();
++CREATE TRIGGER conditional_discount_evidence_no_truncate BEFORE TRUNCATE ON public.conditional_discount_evidence
++ FOR EACH STATEMENT EXECUTE FUNCTION public.conditional_discount_witness_immutable();
++ALTER TABLE public.conditional_discount_evidence ENABLE ALWAYS TRIGGER conditional_discount_evidence_immutable;
++ALTER TABLE public.conditional_discount_evidence ENABLE ALWAYS TRIGGER conditional_discount_evidence_no_truncate;
++REVOKE ALL ON public.conditional_discount_evidence FROM PUBLIC,ledgerly_api;
++GRANT SELECT ON public.conditional_discount_evidence TO ledgerly_api;
++CREATE FUNCTION public.capture_conditional_discount_evidence(c uuid,a text,r uuid,t jsonb,e text,b boolean) RETURNS uuid
++ LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
++DECLARE result uuid; old public.conditional_discount_evidence%ROWTYPE; term_hash text;
++BEGIN
++ PERFORM 1 FROM public.companies WHERE id=c AND country='GB' AND base_currency='GBP' FOR UPDATE;
++ IF NOT FOUND THEN RAISE EXCEPTION 'Evidence scope unavailable'; END IF;
++ IF (SELECT count(*) FROM public.company_users WHERE company_id=c AND user_id=a)<>1 THEN RAISE EXCEPTION 'Evidence membership unavailable'; END IF;
++ PERFORM 1 FROM public.company_users WHERE company_id=c AND user_id=a AND is_active AND role IN ('owner','admin','accountant') FOR UPDATE;
++ IF NOT FOUND THEN RAISE EXCEPTION 'Evidence capability unavailable'; END IF;
++ IF b IS DISTINCT FROM true OR r IS NULL OR e IS NULL OR btrim(e)='' OR octet_length(e)>65536 OR jsonb_typeof(t) IS DISTINCT FROM 'object' OR
++   (SELECT count(*) FROM jsonb_object_keys(t))<>8 OR
++   NOT (t ?& ARRAY['version','party_type','party_id','currency','agreement_id','agreement_date','payment_deadline','discount_gross_pence']) OR
++   t->'version'<>'1'::jsonb OR t->>'currency'<>'GBP' OR t->>'party_type' NOT IN ('customer','supplier') OR
++   EXISTS(SELECT 1 FROM jsonb_each(t) WHERE key<>'version' AND jsonb_typeof(value)<>'string') OR
++   t->>'discount_gross_pence' !~ '^[1-9][0-9]{0,11}$' OR
++   t->>'agreement_date' !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR t->>'payment_deadline' !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR
++   (t->>'agreement_date')::date NOT BETWEEN DATE '1900-01-01' AND DATE '2199-12-31' OR
++   (t->>'payment_deadline')::date NOT BETWEEN (t->>'agreement_date')::date AND DATE '2199-12-31'
++ THEN RAISE EXCEPTION 'Invalid agreement evidence'; END IF;
++ -- UUID identity is case insensitive; canonical terms and retries use lowercase.
++ t=jsonb_set(jsonb_set(t,'{party_id}',to_jsonb((t->>'party_id')::uuid::text)),'{agreement_id}',to_jsonb((t->>'agreement_id')::uuid::text));
++ IF t->>'party_type'='customer' THEN
++   PERFORM 1 FROM public.customers WHERE company_id=c AND id=(t->>'party_id')::uuid AND status='active' FOR SHARE;
++ ELSE
++   PERFORM 1 FROM public.suppliers WHERE company_id=c AND id=(t->>'party_id')::uuid AND status='active' FOR SHARE;
++ END IF;
++ IF NOT FOUND THEN RAISE EXCEPTION 'Evidence party unavailable'; END IF;
++ term_hash='sha256:'||encode(sha256(convert_to(array_to_json(ARRAY['1',t->>'party_type',t->>'party_id',t->>'currency',t->>'agreement_id',t->>'agreement_date',t->>'payment_deadline',t->>'discount_gross_pence'])::text,'UTF8')),'hex');
++ SELECT * INTO old FROM public.conditional_discount_evidence WHERE company_id=c AND request_id=r;
++ IF FOUND THEN
++   IF old.actor_id<>a OR old.terms<>t OR old.evidence_text<>e THEN RAISE EXCEPTION 'Evidence request conflict'; END IF;
++   RETURN old.id;
++ END IF;
++ result=gen_random_uuid();
++ INSERT INTO public.conditional_discount_evidence(id,company_id,request_id,actor_id,version,party_type,party_id,currency,terms,terms_hash,evidence_text,evidence_hash,attested,recorded_at)
++ VALUES(result,c,r,a,1,t->>'party_type',(t->>'party_id')::uuid,'GBP',t,term_hash,e,'sha256:'||encode(sha256(convert_to(e,'UTF8')),'hex'),true,clock_timestamp());
++ RETURN result;
++END $$;
++ALTER FUNCTION public.capture_conditional_discount_evidence(uuid,text,uuid,jsonb,text,boolean) OWNER TO ledgerly_canonical_owner;
++REVOKE ALL ON FUNCTION public.capture_conditional_discount_evidence(uuid,text,uuid,jsonb,text,boolean) FROM PUBLIC;
++GRANT EXECUTE ON FUNCTION public.capture_conditional_discount_evidence(uuid,text,uuid,jsonb,text,boolean) TO ledgerly_api;
++GRANT SELECT(id,company_id,status) ON public.customers,public.suppliers TO ledgerly_canonical_owner;
++GRANT SELECT(id,country,base_currency), UPDATE(id) ON public.companies TO ledgerly_canonical_owner;
++GRANT UPDATE(id) ON public.company_users,public.customers,public.suppliers TO ledgerly_canonical_owner;
+diff --git a/lib/db/schema-change-registry.json b/lib/db/schema-change-registry.json
+index f7c05f4..36f7e88 100644
+--- a/lib/db/schema-change-registry.json
++++ b/lib/db/schema-change-registry.json
+@@ -81,11 +81,12 @@
+     },
+     {
+       "path": "lib/db/migrations/conditional-discount-agreements.review.sql",
+-      "sha256": "46ed14bcaa44e76f2ff055e8279a926a3bde60bc66f9c3cbe2efc9fbd5424a4e",
++      "sha256": "1d0030d13ee3ae382d486224b645997ada4fd1c8d6eccdc8e04870df0a563aaa",
+       "status": "review_sql_only",
+       "tables": [
+         "conditional_discount_payment_transactions",
+-        "conditional_discount_commit_witnesses"
++        "conditional_discount_commit_witnesses",
++        "conditional_discount_evidence"
+       ]
+     }
+   ],
