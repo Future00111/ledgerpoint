@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 207,
+  "revision": 209,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "33b35cc70971f6d8bf01149149f8905bf783e05c",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261104-1917",
     "tokenSha256": "f53f467c3246039f7aacecbdd93a0e592bf7cc3422c0c5a5f430bfe520abb58b",
     "acquiredAt": 1793819946176,
-    "expiresAt": 1793821746176
+    "expiresAt": 1793821873423
   },
   "lastOwner": {
     "runId": "hosted-20261104-1819",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 648,
+    "revision": 650,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Stopped cleanf3ea/treee6ee, archive375a9536, published33b35cc. Native prejournal commitment, SQL poison/clock/membership guards reviewed. Final exactCI pending; fullparent remains pending with no fake blocker. Next causal binding snapshot/payment writer guard integration under native revalidation; public gates closed.",
+        "checkpoint": "Exact source tree e6ee; isolated codex/lp-1917-worker; approved causal payment source snapshot contract; no edits, awaiting durable coordinator file lease acknowledgment",
         "evidence": {
           "commit": "33b35cc70971f6d8bf01149149f8905bf783e05c",
           "summary": "PARTIAL conditional commitment development slice. Root reviewed unchanged runtime1d14 plus two inactive-duplicate fixture fixesf3ea; originalCI actualPG23 conditionalpass2 fixturefail. Fixed exactpublished CI pending. All original parent implementation/UI gates remain pending; previous evidence preserved.",
@@ -152,7 +152,10 @@
             }
           }
         },
-        "blockers": []
+        "owner": "worker1917",
+        "tokenSha256": "d09019b6c4ad4515815329282eef47f935e25d95e99be53ef725b67466155152",
+        "leaseUntil": 1793820940356,
+        "workStarted": true
       },
       "P01-04": {
         "status": "blocked",
@@ -8376,6 +8379,20 @@
         "type": "recover",
         "taskId": "P01-03",
         "checkpoint": "Stopped cleanf3ea/treee6ee, archive375a9536, published33b35cc. Native prejournal commitment, SQL poison/clock/membership guards reviewed. Final exactCI pending; fullparent remains pending with no fake blocker. Next causal binding snapshot/payment writer guard integration under native revalidation; public gates closed."
+      },
+      {
+        "at": 1793820040356,
+        "actor": "worker1917",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "d09019b6c4ad4515815329282eef47f935e25d95e99be53ef725b67466155152"
+      },
+      {
+        "at": 1793820040736,
+        "actor": "worker1917",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Exact source tree e6ee; isolated codex/lp-1917-worker; approved causal payment source snapshot contract; no edits, awaiting durable coordinator file lease acknowledgment"
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8401,11 +8418,11 @@
         "path": "docs/development/candidates/20261104-1819-fix-manifest.json"
       }
     ],
-    "runId": "hosted-20261104-1819",
-    "at": 1793817788249,
+    "runId": "hosted-20261104-1917",
+    "at": 1793820073441,
     "codeHead": "33b35cc70971f6d8bf01149149f8905bf783e05c"
   },
-  "updatedAt": 1793819946176,
+  "updatedAt": 1793820073441,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -8514,15 +8531,35 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [],
+  "activeWorkers": [
+    {
+      "actor": "worker1917",
+      "task": "P01-03",
+      "provider": "Codex",
+      "branch": "codex/lp-1917-worker",
+      "base": "33b35cc70971f6d8bf01149149f8905bf783e05c",
+      "localBase": "f3ea03d74cb6ef8000972381c4fd47364f1f2399",
+      "sourceTree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
+      "status": "claimed-checkpointed",
+      "lastObservedAt": "2026-11-04T19:21:13.459Z",
+      "contract": "Root approved versioned source snapshot of all scoped native-validated committed-observed bindings at original cashpayment creation, including unallocated pool; explicit empty vs missing; later allocation only originalsnapshot subset/currentmatch; historicalreceipts not recertified with cluster xact; own uncommitted observation cannot assert causalproof; no conditionalpublicgate opens",
+      "editsStopBy": "2026-11-04T19:33:00Z"
+    }
+  ],
   "run": {
     "startedAt": "2026-11-04T19:19:06.216Z",
     "stopBy": "2026-11-04T19:45:00Z",
     "implementationStopBy": "2026-11-04T19:33:00Z",
     "status": "active",
-    "activity": "Exact33b35 source checkout; native payment binding snapshot contract review before dispatch",
+    "activity": "Claimed P01-03 with root-reviewed causal snapshot contract; worker waiting for durable acknowledgment",
     "credits": "unknown",
-    "providerUsage": "unknown"
+    "providerUsage": "unknown",
+    "observedAt": "2026-11-04T19:21:13.459Z",
+    "replitCapability": {
+      "found": false,
+      "dispatch": false,
+      "boundedCheck": "Root actual exact name resolve returned found:false; no verified stop/monitor/export transport; no browser retries"
+    }
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
