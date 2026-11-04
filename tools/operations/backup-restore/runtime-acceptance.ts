@@ -1,6 +1,6 @@
 // Executed only by the disposable restore runner, against its guarded socket.
 import assert from 'node:assert/strict';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { readFileSync, realpathSync } from 'node:fs';
 import { applicationRuntimeTarget } from './runtime-target.mjs';
 
@@ -16,6 +16,7 @@ async function main() {
   const { pool } = await import('../../../lib/db/src/index');
   const { previewPayment, postPayment } = await import('../../../artifacts/api-server/src/services/accountingDocuments/payments');
   const { captureCommittedPaymentWitness } = await import('../../../artifacts/api-server/src/services/accountingDocuments/conditionalDiscount');
+  const { getIntakeContent } = await import('../../../artifacts/api-server/src/services/documentIntake/service');
   const { withCanonicalPostingTransaction } = await import('../../../artifacts/api-server/src/services/accounting/canonicalPosting');
   try {
     assert.deepEqual((await pool.query(`SELECT current_database() database,current_user actor,
@@ -34,6 +35,35 @@ async function main() {
       const review = await previewPayment(company, actor, body);
       return { ...body, review_token: review.review_token };
     };
+    const sourceMetadata = (row: any) => Object.fromEntries(
+      ['id', 'revision', 'sha256', 'media_type', 'filename', 'byte_length', 'document_id'].map(key => [key, row[key]]));
+    const verifyCapture = async (capture: any) => {
+      const expectedBytes = Buffer.from(capture.contentBase64, 'base64');
+      assert.equal(createHash('sha256').update(expectedBytes).digest('hex'), capture.metadata.sha256);
+      assert.equal(expectedBytes.length, capture.metadata.byte_length);
+      for (const [actor, active, role] of [[capture.actor, true, 'owner'],
+        [capture.reader, true, 'read_only'], [capture.inactive, false, 'owner']] as const) {
+        const membership = await pool.query('SELECT role,is_active FROM company_users WHERE company_id=$1 AND user_id=$2',
+          [capture.company, actor]);
+        assert.deepEqual(membership.rows, [{ role, is_active: active }]);
+      }
+      assert.deepEqual((await pool.query('SELECT role,is_active FROM company_users WHERE company_id=$1 AND user_id=$2',
+        [capture.foreignCompany, capture.actor])).rows, [{ role: 'owner', is_active: true }]);
+      assert.equal((await pool.query('SELECT id FROM company_users WHERE company_id=$1 AND user_id=$2',
+        [capture.company, capture.foreignActor])).rowCount, 0);
+      // Compare the native reader against bytes taken independently from storage
+      // before the dump, including the originally captured document association.
+      for (const actor of [capture.actor, capture.reader]) {
+        const result = await getIntakeContent(capture.company, actor, capture.metadata.id);
+        assert.deepEqual(result.content, expectedBytes);
+        assert.deepEqual(sourceMetadata(result.source), capture.metadata);
+      }
+      for (const [company, actor] of [[capture.foreignCompany, capture.actor],
+        [capture.company, capture.inactive], [capture.company, capture.foreignActor]]) {
+        await assert.rejects(() => getIntakeContent(company, actor, capture.metadata.id),
+          (error: any) => error.status === 404 && error.code === 'RESOURCE_NOT_FOUND');
+      }
+    };
     if (phase === 'prepare') {
       // Reuse the dedicated fixture's valid configuration and single owner.
       // Create this event through the native transaction before the dump baseline.
@@ -44,6 +74,25 @@ async function main() {
         AND EXISTS(SELECT 1 FROM company_users u WHERE u.company_id=e.company_id AND u.user_id=e.actor_id AND u.is_active AND u.role='owner')
         ORDER BY e.id LIMIT 1`)).rows[0];
       assert.ok(fixture, 'Populated native witness fixture is required before restore.');
+      // Reuse the capture permission fixture; no source or membership mutation.
+      const source = (await pool.query(`SELECT s.*,inactive.user_id inactive_actor,reader.user_id reader_actor
+        FROM document_intake_sources s
+        JOIN company_users creator ON creator.company_id=s.company_id AND creator.user_id=s.created_by
+          AND creator.is_active AND creator.role='owner'
+        JOIN company_users inactive ON inactive.company_id=s.company_id AND NOT inactive.is_active
+          AND inactive.role='owner' AND inactive.user_id LIKE 'capture-role-%'
+        JOIN company_users reader ON reader.company_id=s.company_id AND reader.is_active AND reader.role='read_only'
+        WHERE s.document_id IS NOT NULL
+        ORDER BY s.company_id,s.id,inactive.user_id,reader.user_id LIMIT 1`)).rows[0];
+      assert.ok(source, 'Populated capture permission fixture is required before restore.');
+      const foreignCompany = (await pool.query(`SELECT company_id FROM company_users
+        WHERE company_id<>$1 AND user_id=$2 AND is_active AND role='owner'
+        ORDER BY company_id LIMIT 1`, [source.company_id, source.created_by])).rows[0]?.company_id;
+      assert.ok(foreignCompany, 'A second permitted company is required for scoped source denial.');
+      const capture = { company: source.company_id, actor: source.created_by, reader: source.reader_actor,
+        inactive: source.inactive_actor, foreignActor: fixture.actor_id, foreignCompany,
+        metadata: sourceMetadata(source), contentBase64: source.content.toString('base64') };
+      await verifyCapture(capture);
       const historical = await captureCommittedPaymentWitness(fixture.company_id, fixture.actor_id, fixture.id);
       assert.equal(historical.status, 'recorded');
       const body = await reviewed(fixture.company_id, fixture.actor_id, fixture.source.intent);
@@ -53,10 +102,11 @@ async function main() {
       const transaction = (await pool.query('SELECT cluster_id FROM conditional_discount_payment_transactions WHERE event_id=$1', [body.id])).rows[0];
       assert.ok(transaction?.cluster_id);
       return { company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
-        unwitnessedEvent: body.id, sourceCluster: transaction.cluster_id, template: fixture.source.intent, permissions };
+        unwitnessedEvent: body.id, sourceCluster: transaction.cluster_id, template: fixture.source.intent, permissions, capture };
     }
     const fixture = JSON.parse(readFileSync(0, 'utf8'));
     assert.deepEqual(permissions, fixture.permissions, 'Effective function permissions changed during restore.');
+    await verifyCapture(fixture.capture);
     assert.deepEqual(await captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.historicalEvent), fixture.historical);
     assert.equal(await witnesses(fixture.unwitnessedEvent), 0);
     await assert.rejects(() => captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.unwitnessedEvent),
@@ -84,7 +134,9 @@ async function main() {
     assert.deepEqual(await captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.historicalEvent), fixture.historical);
     return { newNativePaymentPosted: true, newCommittedWitnessRecorded: true, retrySingleEffect: true,
       historicalWitnessPreserved: true, foreignUnwitnessedRejected: true, distinctClusterOrigin: true,
-      effectiveFunctionPermissionsPreserved: true };
+      effectiveFunctionPermissionsPreserved: true, nativeCaptureBytesAndMetadataPreserved: true,
+      nativeCaptureReadOnlyAccessPreserved: true, nativeCaptureForeignCompanyDenied: true,
+      nativeCaptureInactiveAndForeignActorsDenied: true };
   } finally { await pool.end(); }
 }
 

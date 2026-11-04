@@ -38,6 +38,8 @@ test('actual native acceptance bundle rejects inherited database URLs before loa
         assert.ok(resolved.startsWith(root), `Native source resolved outside the current worktree: ${input}`);
     }
     assert.ok(Object.keys(result.metafile.inputs).includes('lib/db/src/index.ts'));
+    assert.ok(Object.keys(result.metafile.inputs).includes('artifacts/api-server/src/services/documentIntake/service.ts'));
+    assert.ok(Object.keys(result.metafile.inputs).includes('artifacts/api-server/src/services/documentIntake/evidence.ts'));
     for (const service of ['payments.ts', 'conditionalDiscount.ts', 'canonicalPosting.ts'])
       assert.ok(Object.keys(result.metafile.inputs).some(name => name.endsWith('/' + service)), `Missing native ${service}`);
     const run = spawnSync(process.execPath, [outfile, 'verify'], { encoding: 'utf8', cwd: root, timeout: 5000,
