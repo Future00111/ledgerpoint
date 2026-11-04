@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 172,
+  "revision": 173,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 608,
+    "revision": 610,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Root confirmed test commands, PostgreSQL clusters and export process stopped; idle shellprompt, beforeafterdirectory inventoryequal, source211/f8 clean and originalReplitcda92 cleanunchanged. Exactfull evidence independently decoded/hashverified and durable2212d699. Published211 via expectedheadFF after rootreview; sourceCIpending. P01-03 partial remainspending, nextoriginalbinding/causalobservation; no outstandingactor or sourceedits.",
+        "checkpoint": "PRE-EDIT: Replit actor reserved exact211649c/f8; ACK-only brief pending; root verified browserAgent composer/control and immutable gzip export. Binding must prove same original journal transaction, server-source hash/vector and independent committed observation. Both publicpost rejects remain; no bypass flag. Hardstop15:10 implementation /15:20 all, isolatedignoredclone only; no demo/sharedDB/providers/queue/push.",
         "evidence": {
           "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
           "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
@@ -128,7 +128,10 @@
           "reviewed": true,
           "reviewer": "root-and-coordinator1355-technical-only"
         },
-        "blockers": []
+        "owner": "replit-1452-1",
+        "tokenSha256": "fa51022340deb26908a58ee6a09abfd4587b05f86c18dabc559466fd7e6f5a44",
+        "leaseUntil": 1793805479375,
+        "workStarted": true
       },
       "P01-04": {
         "status": "blocked",
@@ -7934,6 +7937,20 @@
         "type": "recover",
         "taskId": "P01-03",
         "checkpoint": "Root confirmed test commands, PostgreSQL clusters and export process stopped; idle shellprompt, beforeafterdirectory inventoryequal, source211/f8 clean and originalReplitcda92 cleanunchanged. Exactfull evidence independently decoded/hashverified and durable2212d699. Published211 via expectedheadFF after rootreview; sourceCIpending. P01-03 partial remainspending, nextoriginalbinding/causalobservation; no outstandingactor or sourceedits."
+      },
+      {
+        "at": 1793804279375,
+        "actor": "replit-1452-1",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "fa51022340deb26908a58ee6a09abfd4587b05f86c18dabc559466fd7e6f5a44"
+      },
+      {
+        "at": 1793804279509,
+        "actor": "replit-1452-1",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "PRE-EDIT: Replit actor reserved exact211649c/f8; ACK-only brief pending; root verified browserAgent composer/control and immutable gzip export. Binding must prove same original journal transaction, server-source hash/vector and independent committed observation. Both publicpost rejects remain; no bypass flag. Hardstop15:10 implementation /15:20 all, isolatedignoredclone only; no demo/sharedDB/providers/queue/push."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -7973,7 +7990,7 @@
     "at": 1793802116918,
     "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c"
   },
-  "updatedAt": 1793804071394,
+  "updatedAt": 1793804297892,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -8033,14 +8050,33 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [],
+  "activeWorkers": [
+    {
+      "actor": "replit-1452-1",
+      "provider": "Replit",
+      "task": "P01-03",
+      "status": "reserved-awaiting-ack",
+      "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+      "stopBy": "2026-11-04T15:10:00Z"
+    }
+  ],
   "run": {
     "startedAt": "2026-11-04T14:54:31.418Z",
     "stopBy": "2026-11-04T15:20:00Z",
-    "activity": "Inspecting current implementation/financial contract; no worker dispatched",
-    "activeWorkers": [],
+    "activity": "Root reviewed bounded binding/original-journal transaction identity contract; Replit reserved, ACK pending; no edits",
+    "activeWorkers": [
+      {
+        "actor": "replit-1452-1",
+        "provider": "Replit",
+        "task": "P01-03",
+        "status": "reserved-awaiting-ack",
+        "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+        "stopBy": "2026-11-04T15:10:00Z"
+      }
+    ],
     "credits": "unknown",
-    "status": "active"
+    "status": "active",
+    "observedAt": "2026-11-04T14:58:17.913Z"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
