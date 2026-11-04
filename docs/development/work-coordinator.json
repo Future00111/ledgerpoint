@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 171,
+  "revision": 172,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261104-1452",
+    "tokenSha256": "0eca6e0f49040ca35ddbe4761710198b4ad089e261047956a3b7bcf67d97a951",
+    "acquiredAt": 1793804071394,
+    "expiresAt": 1793806171394
+  },
   "lastOwner": {
     "runId": "hosted-20261104-1355",
     "tokenSha256": "d57a6f59a7ea420ab0d3a21dd474ea798262d3757f92750d47a1049dc438b32f",
@@ -7968,7 +7973,7 @@
     "at": 1793802116918,
     "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c"
   },
-  "updatedAt": 1793802116918,
+  "updatedAt": 1793804071394,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -8030,20 +8035,12 @@
   },
   "activeWorkers": [],
   "run": {
-    "startedAt": "2026-11-04T13:57:39.652Z",
-    "stopBy": "2026-11-04T14:23:00Z",
-    "activity": "Published exact211 after actual isolated PostgreSQL/populated/encrypted restore and independent review; exact published CI41845973184/job126629447144 passed963tests0fail0skip plusfullbuild/typecheck/cleanup. All remote test/export/PG processes stopped; queue608 pendingP01-03 with no heldtasks. PR27 remainsdraft/open, bodyupdated. No originalparent or completejourney accepted.",
+    "startedAt": "2026-11-04T14:54:31.418Z",
+    "stopBy": "2026-11-04T15:20:00Z",
+    "activity": "Inspecting current implementation/financial contract; no worker dispatched",
     "activeWorkers": [],
     "credits": "unknown",
-    "observedAt": "2026-11-04T14:21:56.918Z",
-    "candidate": "211649c44564f73cdca79e5f5c00580d6783930c",
-    "candidateTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
-    "publicationBlocked": false,
-    "status": "stopped",
-    "endedAt": "2026-11-04T14:21:56.918Z",
-    "newlyAcceptedOriginalBullets": [],
-    "newCompleteJourneys": [],
-    "providerUsage": "unknown"
+    "status": "active"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
