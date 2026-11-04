@@ -1,6 +1,6 @@
 # Ledgerly product completion plan
 
-Updated 30 October 2026. This is the execution backlog beneath the
+Updated 4 November 2026; historical baseline and batch records below remain evidence for their dates. This is the execution backlog beneath the
 [active product plan](../ledgerly-active-product-plan.md), not a replacement
 for accounting decisions or a declaration of release readiness. Repository:
 LedgerPoint; the application currently uses Ledgerly branding.
@@ -236,3 +236,42 @@ source/test work, verify the demo's running source through authorised checks,
 and explicitly keep visual acceptance pending until permitted. No production
 data changes, production migrations, provider connections, filing, merge,
 publication or deployment are authorised by this plan.
+
+## Current launch delivery map — 4 November 2026
+
+This is the execution view of the existing 92-bullet catalogue, not a reduced MVP
+or another readiness review. Catalogue priority/dependencies remain authoritative.
+No calendar launch date is supported yet: complete engine and filing work is not
+estimated and accepted end-to-end throughput is too sparse. Record scenario-level
+estimates after inspection and update a range from completed milestones; do not
+derive dates from commit/test counts. No new owner decisions are needed for
+reversible internal engineering already authorised.
+
+| Complete milestone | Existing priorities | Closing evidence and major remaining work |
+| --- | --- | --- |
+| Correct, settle and recover daily accounting | P01, P02, P03, P05 | Conditional agreements/credits/reversals, durable command discovery, correction interactions and period close; exact financial/security/restore tests and isolated browser journeys |
+| Import, capture, reconcile and recover credits | P06, P07, P12, P13, P14 | Native statement reconciliation, source-to-draft review, repeat return cycles, empty-business setup and authorised interfaces; source-to-ledger outcomes reconcile |
+| Complete in-house tax and payroll | P04, P08, P09, P10, P11 | Supported case contracts, deterministic engines, payroll cycles/year end, all promised VAT/SA/CT/account/filing journeys with official and independent evidence; no fixture-only completion |
+| Operate and sell the full product | P15, P16, P17 | Accessible responsive journeys, volume/restart/recovery evidence, operational/support/privacy/commercial package; external approvals remain explicit |
+| Launch acceptance | P18 | Exact integrated full journey pack, independent acceptance, authorised pilot and owner release gates; no deployment or real-user admission from this plan |
+
+Primary target remains P01-03. Existing paid-credit/allocation/refund and payment
+commit-witness implementations are preserved, not rebuilt. The next connected
+conditional slice must capture immutable agreement evidence, bind it at original
+posting, freeze an already-committed binding identity at native payment creation
+and allocation, and connect admission/redemption/payment guards/UI before enabling
+conditional use. Observation timestamps alone never prove binding-before-payment.
+A payment without a relevant binding snapshot cannot qualify retroactively.
+
+The second track uses the highest eligible independent task; P03-04 restore
+qualification is currently independent of the primary's shared financial paths.
+P04 case/engine prerequisites remain a launch-critical next track once earlier
+eligible work and dependencies permit it. Do not silently skip the queue to reach
+tax/payroll; coordinator must clear genuine internal prerequisites promptly.
+
+Three-run comparison starts from the recorded 1823/1924/1956 runs: zero original
+bullets accepted and one bounded witness prerequisite verified. The response is
+to preserve that code, avoid repeated discovery, finish connected scenarios and
+advance independent launch dependencies. Costs and active review time are unknown.
+Report accepted workflows and cost evidence after the next three bounded runs.
+The coordinator must explain and change assignment if only prerequisites advance.

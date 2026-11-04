@@ -31,7 +31,10 @@ Checkpoint/release blocked work and claim again. Never steal expired work leases
 Accounting, tax and payroll calculation engines are built in-house. Direct HMRC
 and necessary external interfaces remain permitted within their existing authority.
 
-Focus on one priority customer workflow at a time. Resolve internal contracts and
+Focus the primary implementer on one priority customer workflow through acceptance.
+Use a second implementer for the next highest eligible independent launch dependency
+when that contribution shortens delivery; do not defer all engines indefinitely
+behind accounting polish. Resolve internal contracts and
 file ownership before dispatch; recover and review existing candidates before
 starting replacement work. Use compact task briefs and focused checks per change,
 then one combined exact-source/build/typecheck and disposable PostgreSQL/restore
@@ -55,3 +58,22 @@ Verify Replit control, immutable export and confirmed stop before dispatch. If
 Replit is unavailable, Codex may continue safe eligible work under the same queue.
 Replit must not initialise a competing queue or modify the running demo/database.
 Prepared packets hold no claim. All provider work stays within a bounded run.
+
+## Launch completion policy (owner approved 4 November 2026)
+
+Optimise elapsed time and measured cost to the full launch, not agent occupancy,
+commit count or test count. Use the milestone map in
+`docs/development/product-completion-plan.md`; it groups the existing catalogue
+and does not change its 92 bullets, original priority, dependencies or acceptance.
+Before dispatch, settle internal engineering contracts and exact file ownership.
+Bound large work into linked executable children only when necessary; partial
+code stays pending and must identify the next step and parent closing evidence.
+A launch milestone requires the connected customer workflow on the integrated
+source, independent review, financial/security/recovery gates and applicable
+isolated browser demonstration. Do not call contracts or fixtures complete engines.
+After three runs compare accepted workflows, remaining launch dependencies,
+rework and measured usage. If only prerequisites advanced, record why and change
+the next executable assignment. Unknown cost and duration remain unknown.
+Replit capability checks have a five-minute limit per run unless new evidence
+justifies more; unavailable Replit never stalls ready Codex work. No demo changes,
+external actions, owner gates or release authority are added by this policy.

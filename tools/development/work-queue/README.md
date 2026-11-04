@@ -133,8 +133,9 @@ exceed this Work session's seven total slots and require another execution host.
 
 ## Credit-efficient coordination (owner approved 3 November 2026)
 
-Focus on one priority customer workflow at a time, continuing until accepted or
-concretely blocked. First recover and independently review existing payment
+Focus the primary track on one priority customer workflow, continuing until accepted
+or concretely blocked. A second track may advance the next highest-priority eligible
+independent launch dependency; original claim ordering and dependencies still govern. First recover and independently review existing payment
 recovery, populated restore and permission-race candidates before replacement
 work. Claims still select the original highest-priority eligible task; focus
 never skips dependencies or changes priorities. Inspect existing implementation
@@ -208,3 +209,32 @@ current durable queue before runtime initialization, never an older source seed.
 When the coordinator checkpoint uses an external queue reference, fetch that
 exact archived JSON first. Persist reviewed protocol code and migrated authority
 before dispatching any worker; preserve the old archive as provenance.
+
+## Completion-driven launch delivery (4 November 2026)
+
+Use the existing catalogue and highest-eligible CLI selection. The milestone map
+in `docs/development/product-completion-plan.md` is a delivery view, not a new
+scheduler or a priority override. Default to two useful implementation tracks plus
+independent review and the coordinator; leave capacity idle when overlap or
+dependencies prevent safe work. Expand only for named ready independent tasks.
+
+Before dispatch, coordinator resolves internal contracts and file ownership.
+For multi-run work, preserve one candidate chain with explicit next steps rather
+than restart discovery. A child must name its original parent, acceptance scenario,
+dependencies, exact files and independent review/tests; it cannot close the parent.
+Preserve completed prerequisites when reopening or splitting work. Never bypass
+real dependencies to move a lower-priority engine task ahead of the ready queue.
+
+Each handoff records accepted journeys, launch-blocking dependencies, actual
+observed activity, review/rework, next task and matching-source evidence. Compare
+three runs using outcomes and measured credits, not occupied slots. Unknowns stay
+unknown. An isolated browser journey is required where the milestone needs it;
+source checks alone do not establish launch readiness. This scheduling policy is
+instructions, not a claim of new automated enforcement.
+
+A checkpoint may reference an immutable `exact-queue-delta-v1` artifact. Rebuild
+the exact archived base, verify its digest, apply only task replacements and ordered
+appended events, set the recorded revision, verify the resulting digest and validate
+with the current queue module before init. Never initialise the stale base alone.
+Normal coordinator recovery requires stopped evidence and preserves lastOwner's
+SHA-256 reuse fence; do not remove fencing fields to resolve publication failures.
