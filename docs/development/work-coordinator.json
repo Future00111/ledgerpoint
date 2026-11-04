@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 202,
+  "revision": 204,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "008e5d718fbedd41130c7449beb9898305bb8ed8",
+  "codeHead": "33b35cc70971f6d8bf01149149f8905bf783e05c",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 644,
+    "revision": 648,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,50 +100,59 @@
         }
       },
       "P01-03": {
-        "status": "running",
+        "status": "pending",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Stopped clean1d14/tree324e; immutablearchive51342745; reviewed published008e5d7 same tree after47focused29registry790source/fullbuild. No active worker commands. Fullparent pending; exactCI pending; next integrate committed conditional binding identity into payment snapshots/guards, preserve publicclosed gates.",
+        "checkpoint": "Stopped cleanf3ea/treee6ee, archive375a9536, published33b35cc. Native prejournal commitment, SQL poison/clock/membership guards reviewed. Final exactCI pending; fullparent remains pending with no fake blocker. Next causal binding snapshot/payment writer guard integration under native revalidation; public gates closed.",
         "evidence": {
-          "commit": "008e5d718fbedd41130c7449beb9898305bb8ed8",
-          "summary": "PARTIAL independently reviewed pre-journal conditional original payload commitment and SQL binding/observer authority; archived51342745 candidate1d14/tree324e. Public gates closed. Full parent admission/redemption/all-writer guards/reversal compensation/corrections/native UI/browser remain pending. Exact published CI disposablePG/restore pending. Prior partial evidence preserved below.",
+          "commit": "33b35cc70971f6d8bf01149149f8905bf783e05c",
+          "summary": "PARTIAL conditional commitment development slice. Root reviewed unchanged runtime1d14 plus two inactive-duplicate fixture fixesf3ea; originalCI actualPG23 conditionalpass2 fixturefail. Fixed exactpublished CI pending. All original parent implementation/UI gates remain pending; previous evidence preserved.",
           "tests": [
             {
-              "command": "Exact candidate focused47 registry29 source790 all passed; full workspace build/typecheck and integration bundle passed",
+              "command": "Exact f3ea API typecheck and integration test bundle passed; runtime unchanged from reviewed1d14 focused47/registry29/source790/fullbuild",
               "passed": true
             }
           ],
           "reviewed": true,
           "reviewer": "/root",
           "priorEvidence": {
-            "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
-            "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
+            "commit": "008e5d718fbedd41130c7449beb9898305bb8ed8",
+            "summary": "PARTIAL independently reviewed pre-journal conditional original payload commitment and SQL binding/observer authority; archived51342745 candidate1d14/tree324e. Public gates closed. Full parent admission/redemption/all-writer guards/reversal compensation/corrections/native UI/browser remain pending. Exact published CI disposablePG/restore pending. Prior partial evidence preserved below.",
             "tests": [
               {
-                "command": "Exact211/f8 node tools/accounting-flow/test.mjs on isolated UID1000 PostgreSQL16.10:133 pass0fail0skip across8 suites, populated40tables6325rows matchingfingerprints and encrypted freshcluster nativepayment/witness recovery; allcleanup pass",
-                "passed": true
-              },
-              {
-                "command": "Exact211/f8 node --test tools/operations/backup-restore/*.test.mjs:12pass0fail0skip",
-                "passed": true
-              },
-              {
-                "command": "Exact211/f8 node tools/operations/backup-restore/rehearsal.mjs:verified equal fingerprints, negative/RLS/schema/sequence controls andcleanup",
-                "passed": true
-              },
-              {
-                "command": "Same unchanged treef8 prior run source790/fullworkspacebuild/typecheck passed; preserved exact evidence, not rerun in this run",
+                "command": "Exact candidate focused47 registry29 source790 all passed; full workspace build/typecheck and integration bundle passed",
                 "passed": true
               }
             ],
             "reviewed": true,
-            "reviewer": "root-and-coordinator1355-technical-only"
+            "reviewer": "/root",
+            "priorEvidence": {
+              "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
+              "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
+              "tests": [
+                {
+                  "command": "Exact211/f8 node tools/accounting-flow/test.mjs on isolated UID1000 PostgreSQL16.10:133 pass0fail0skip across8 suites, populated40tables6325rows matchingfingerprints and encrypted freshcluster nativepayment/witness recovery; allcleanup pass",
+                  "passed": true
+                },
+                {
+                  "command": "Exact211/f8 node --test tools/operations/backup-restore/*.test.mjs:12pass0fail0skip",
+                  "passed": true
+                },
+                {
+                  "command": "Exact211/f8 node tools/operations/backup-restore/rehearsal.mjs:verified equal fingerprints, negative/RLS/schema/sequence controls andcleanup",
+                  "passed": true
+                },
+                {
+                  "command": "Same unchanged treef8 prior run source790/fullworkspacebuild/typecheck passed; preserved exact evidence, not rerun in this run",
+                  "passed": true
+                }
+              ],
+              "reviewed": true,
+              "reviewer": "root-and-coordinator1355-technical-only"
+            }
           }
         },
-        "owner": "coordinator1819-fix",
-        "tokenSha256": "273233440e6e13c81ec75b1959a4a62b46354973cfc4dba78a4db774cb6d2024",
-        "leaseUntil": 1793817959626,
-        "workStarted": false
+        "blockers": []
       },
       "P01-04": {
         "status": "blocked",
@@ -8292,6 +8301,81 @@
         "type": "claim",
         "taskId": "P01-03",
         "tokenSha256": "273233440e6e13c81ec75b1959a4a62b46354973cfc4dba78a4db774cb6d2024"
+      },
+      {
+        "at": 1793817627577,
+        "actor": "coordinator1819-fix",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Stopped cleanf3ea03d/treee6ee; two fixture true-to-false literals only; root independently reviewed; APItsc/bundle passed; archived375a9536 and published33b35cc expected008FF; no commands active. CI qualification pending."
+      },
+      {
+        "at": 1793817627641,
+        "actor": "coordinator1819-fix",
+        "type": "submit",
+        "taskId": "P01-03",
+        "evidence": {
+          "commit": "33b35cc70971f6d8bf01149149f8905bf783e05c",
+          "summary": "PARTIAL conditional commitment development slice. Root reviewed unchanged runtime1d14 plus two inactive-duplicate fixture fixesf3ea; originalCI actualPG23 conditionalpass2 fixturefail. Fixed exactpublished CI pending. All original parent implementation/UI gates remain pending; previous evidence preserved.",
+          "tests": [
+            {
+              "command": "Exact f3ea API typecheck and integration test bundle passed; runtime unchanged from reviewed1d14 focused47/registry29/source790/fullbuild",
+              "passed": true
+            }
+          ],
+          "reviewed": true,
+          "reviewer": "/root",
+          "priorEvidence": {
+            "commit": "008e5d718fbedd41130c7449beb9898305bb8ed8",
+            "summary": "PARTIAL independently reviewed pre-journal conditional original payload commitment and SQL binding/observer authority; archived51342745 candidate1d14/tree324e. Public gates closed. Full parent admission/redemption/all-writer guards/reversal compensation/corrections/native UI/browser remain pending. Exact published CI disposablePG/restore pending. Prior partial evidence preserved below.",
+            "tests": [
+              {
+                "command": "Exact candidate focused47 registry29 source790 all passed; full workspace build/typecheck and integration bundle passed",
+                "passed": true
+              }
+            ],
+            "reviewed": true,
+            "reviewer": "/root",
+            "priorEvidence": {
+              "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
+              "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
+              "tests": [
+                {
+                  "command": "Exact211/f8 node tools/accounting-flow/test.mjs on isolated UID1000 PostgreSQL16.10:133 pass0fail0skip across8 suites, populated40tables6325rows matchingfingerprints and encrypted freshcluster nativepayment/witness recovery; allcleanup pass",
+                  "passed": true
+                },
+                {
+                  "command": "Exact211/f8 node --test tools/operations/backup-restore/*.test.mjs:12pass0fail0skip",
+                  "passed": true
+                },
+                {
+                  "command": "Exact211/f8 node tools/operations/backup-restore/rehearsal.mjs:verified equal fingerprints, negative/RLS/schema/sequence controls andcleanup",
+                  "passed": true
+                },
+                {
+                  "command": "Same unchanged treef8 prior run source790/fullworkspacebuild/typecheck passed; preserved exact evidence, not rerun in this run",
+                  "passed": true
+                }
+              ],
+              "reviewed": true,
+              "reviewer": "root-and-coordinator1355-technical-only"
+            }
+          }
+        }
+      },
+      {
+        "at": 1793817627680,
+        "actor": "coordinator1819",
+        "type": "reject",
+        "taskId": "P01-03",
+        "reason": "Queue release only: independently approved bounded development slice and exact CI fixture correction; full parent still unfinished. No failed security review. Durable375a9536 worker stoppedclean."
+      },
+      {
+        "at": 1793817627722,
+        "actor": "coordinator1819",
+        "type": "recover",
+        "taskId": "P01-03",
+        "checkpoint": "Stopped cleanf3ea/treee6ee, archive375a9536, published33b35cc. Native prejournal commitment, SQL poison/clock/membership guards reviewed. Final exactCI pending; fullparent remains pending with no fake blocker. Next causal binding snapshot/payment writer guard integration under native revalidation; public gates closed."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8309,19 +8393,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "5134274538f972b11e4b3790fee1e43f4453e5a5",
+    "sha": "375a9536ab492dac918804e75f7945c747f33de4",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "5134274538f972b11e4b3790fee1e43f4453e5a5",
-        "path": "docs/development/candidates/20261104-1819-verification.json"
+        "sha": "375a9536ab492dac918804e75f7945c747f33de4",
+        "path": "docs/development/candidates/20261104-1819-fix-manifest.json"
       }
     ],
     "runId": "hosted-20261104-1819",
-    "at": 1793817359764,
-    "codeHead": "008e5d718fbedd41130c7449beb9898305bb8ed8"
+    "at": 1793817627807,
+    "codeHead": "33b35cc70971f6d8bf01149149f8905bf783e05c"
   },
-  "updatedAt": 1793817359764,
+  "updatedAt": 1793817627807,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -8337,44 +8421,51 @@
     "path": "docs/development/work-coordinator.json"
   },
   "validation": {
-    "sourceCommit": "008e5d718fbedd41130c7449beb9898305bb8ed8",
-    "sourceTree": "324e7748ef6e7d5b61758ebcc944e7e19a051001",
-    "exactPublishedCI": "failed",
-    "localSource": 790,
-    "localFocused": 47,
-    "localRegistry": 29,
-    "fullBuildTypecheck": "passed",
+    "sourceCommit": "33b35cc70971f6d8bf01149149f8905bf783e05c",
+    "sourceTree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
+    "exactPublishedCI": "pending",
     "independentReview": "/root",
-    "archiveCommit": "5134274538f972b11e4b3790fee1e43f4453e5a5",
-    "priorAcceptedValidation": {
-      "sourceCommit": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
-      "sourceTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
-      "exactCandidatePostgreSQL": "passed",
-      "accountingTests": 133,
-      "backupUnitTests": 12,
-      "fail": 0,
-      "skipped": 0,
-      "populatedRestore": "passed",
-      "encryptedApplicationRecovery": "passed",
-      "nativeCapturedSourceRecovery": "passed",
-      "encryptedRecovery": "passed",
-      "cleanup": "passed",
-      "exactPublishedCI": "passed",
-      "evidenceCommit": "4369f93e4462c40a57685a252f4bf685e7a121d9",
-      "ciRun": 41858631375,
-      "job": 126673994650,
-      "mergeCommit": "9f2d3c3f9439865859d9c206ffc08958dd4cae51",
-      "publishedToMergeFileDiff": [],
-      "tests": 963,
-      "pass": 963,
-      "cancelled": 0,
-      "buildTypecheck": "passed",
-      "logsIndependentlyFetched": true,
-      "ciEvidenceCommit": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260"
-    },
-    "ciRun": 41888378747,
-    "job": 126778862467,
-    "failure": "Two new fixture duplicate-active membership INSERTs violate existing w03_active_membership_identity unique index; first52 and23conditionalPG pass, restore skipped"
+    "fixArchive": "375a9536ab492dac918804e75f7945c747f33de4",
+    "priorFailedValidation": {
+      "sourceCommit": "008e5d718fbedd41130c7449beb9898305bb8ed8",
+      "sourceTree": "324e7748ef6e7d5b61758ebcc944e7e19a051001",
+      "exactPublishedCI": "failed",
+      "localSource": 790,
+      "localFocused": 47,
+      "localRegistry": 29,
+      "fullBuildTypecheck": "passed",
+      "independentReview": "/root",
+      "archiveCommit": "5134274538f972b11e4b3790fee1e43f4453e5a5",
+      "priorAcceptedValidation": {
+        "sourceCommit": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+        "sourceTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+        "exactCandidatePostgreSQL": "passed",
+        "accountingTests": 133,
+        "backupUnitTests": 12,
+        "fail": 0,
+        "skipped": 0,
+        "populatedRestore": "passed",
+        "encryptedApplicationRecovery": "passed",
+        "nativeCapturedSourceRecovery": "passed",
+        "encryptedRecovery": "passed",
+        "cleanup": "passed",
+        "exactPublishedCI": "passed",
+        "evidenceCommit": "4369f93e4462c40a57685a252f4bf685e7a121d9",
+        "ciRun": 41858631375,
+        "job": 126673994650,
+        "mergeCommit": "9f2d3c3f9439865859d9c206ffc08958dd4cae51",
+        "publishedToMergeFileDiff": [],
+        "tests": 963,
+        "pass": 963,
+        "cancelled": 0,
+        "buildTypecheck": "passed",
+        "logsIndependentlyFetched": true,
+        "ciEvidenceCommit": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260"
+      },
+      "ciRun": 41888378747,
+      "job": 126778862467,
+      "failure": "Two new fixture duplicate-active membership INSERTs violate existing w03_active_membership_identity unique index; first52 and23conditionalPG pass, restore skipped"
+    }
   },
   "shutdownResolution": {
     "at": "2026-11-04T17:28:58.528Z",
@@ -8399,31 +8490,27 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [
-    {
-      "actor": "coordinator1819-fix",
-      "task": "P01-03",
-      "status": "reserved-not-editing",
-      "reason": "ExactPG CI shows two active-duplicate test setups violate preexisting unique index; fix synthetic secondmembership to inactive while retaining count2 guard test"
-    }
-  ],
+  "activeWorkers": [],
   "run": {
     "startedAt": "2026-11-04T18:20:49.299Z",
     "stopBy": "2026-11-04T18:47:00Z",
     "implementationStopBy": "2026-11-04T18:37:00Z",
     "status": "verification",
-    "activity": "ExactPG CI shows two active-duplicate test setups violate preexisting unique index; fix synthetic secondmembership to inactive while retaining count2 guard test",
+    "activity": "Exact fixture correction published33b35cc/treee6ee; original CI runtimepositive23pass and two bad active-duplicate setups corrected withoutchangingruntime/index. All workers stoppedclean and leases released; waiting final exactCI. No furtherimplementation.",
     "credits": "unknown",
     "providerUsage": "unknown",
-    "observedAt": "2026-11-04T18:35:59.793Z",
+    "observedAt": "2026-11-04T18:40:27.832Z",
     "activeWorkers": [],
     "publicationBlocked": false,
     "primaryCandidate": "1d14f671e9503dc7d6233382aff80dbeb7f140da",
     "primaryCandidateTree": "324e7748ef6e7d5b61758ebcc944e7e19a051001",
-    "publishedSource": "008e5d718fbedd41130c7449beb9898305bb8ed8",
+    "publishedSource": "33b35cc70971f6d8bf01149149f8905bf783e05c",
     "archiveCommit": "5134274538f972b11e4b3790fee1e43f4453e5a5",
     "newlyAcceptedOriginalBullets": [],
-    "newCompleteJourneys": []
+    "newCompleteJourneys": [],
+    "finalAuthorCommit": "f3ea03d74cb6ef8000972381c4fd47364f1f2399",
+    "finalTree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
+    "fixArchive": "375a9536ab492dac918804e75f7945c747f33de4"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -8443,7 +8530,7 @@
   "nextTasks": [
     {
       "task": "P01-03",
-      "next": "Continue archived76a45fb candidate chain, resolve coordinator-owned single native canonical payload/hash authority before journal insertion plus separate journal link; add direct restricted-role SQL altered vector/hash/evidence and first-clock rejection tests. Do not duplicate financial calculators. Root accepts current source for archival only. Existing draft PR27 CI remains allowed disposable qualification for safe reviewed integration; localPG absence does not itself prohibit development publication."
+      "next": "Continue reviewed canonical commitment chain at33b35cc, first inspect final matchingCI. Prepare native binding only after existing calculateDocument/source/context revalidation under same posting locks; test-only LockedAuthority must not become productionbypass. Next causal binding snapshot at payment creation/allocation, exact guards/admission/redemption/reversal/correction contracts; preserve closed public gates until completejourney. Dedicated populated binding recovery and supplier/customer/browser acceptance remain pending."
     },
     {
       "task": "P03-01",
@@ -8648,6 +8735,23 @@
           "ref": "refs/heads/codex/ledgerly-work-queue-state",
           "sha": "5134274538f972b11e4b3790fee1e43f4453e5a5",
           "path": "docs/development/candidates/20261104-1819-verification.json"
+        }
+      ],
+      "continuedBy": "33b35cc70971f6d8bf01149149f8905bf783e05c"
+    },
+    {
+      "task": "P01-03",
+      "commit": "33b35cc70971f6d8bf01149149f8905bf783e05c",
+      "authorCommit": "f3ea03d74cb6ef8000972381c4fd47364f1f2399",
+      "tree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
+      "sourcePublished": true,
+      "qualified": false,
+      "publicPostingEnabled": false,
+      "evidence": [
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "375a9536ab492dac918804e75f7945c747f33de4",
+          "path": "docs/development/candidates/20261104-1819-fix-manifest.json"
         }
       ]
     }
