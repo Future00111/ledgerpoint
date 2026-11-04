@@ -80,7 +80,7 @@
       "dependencies": [
         "accounting-payments"
       ],
-      "sha256": "e677ca90da80a212d6574229a2e1b2d5b41881c89c3cd9b6b35745a10a1bc44e"
+      "sha256": "1d0030d13ee3ae382d486224b645997ada4fd1c8d6eccdc8e04870df0a563aaa"
     }
   ],
   "securityOverlay": {

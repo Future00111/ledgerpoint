@@ -169,6 +169,10 @@ export class InvoiceDraftService {
         return BigInt(value);
       });
       const totals = { ...money(net, tax.vatPence), ...(discounted.summary ? { discount: discounted.summary } : {}) };
+      if(source.conditional_discount) {
+        const {validateConditionalDraft}=await import('../accountingDocuments/conditionalDiscount');
+        await validateConditionalDraft(tx,companyId,source,'customer',totals.gross_pence);
+      }
       if (source.discount && JSON.stringify(tax.context.discount) !== JSON.stringify(discounted.summary)) fail(503, 'AUTHORITY_UNAVAILABLE');
       const resolvedLines = tax.context.lines as Array<Record<string, unknown>>;
       for (let index = 0; index < source.line_items.length; index++) {

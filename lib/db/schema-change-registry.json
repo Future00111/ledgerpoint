@@ -81,11 +81,12 @@
     },
     {
       "path": "lib/db/migrations/conditional-discount-agreements.review.sql",
-      "sha256": "46ed14bcaa44e76f2ff055e8279a926a3bde60bc66f9c3cbe2efc9fbd5424a4e",
+      "sha256": "1d0030d13ee3ae382d486224b645997ada4fd1c8d6eccdc8e04870df0a563aaa",
       "status": "review_sql_only",
       "tables": [
         "conditional_discount_payment_transactions",
-        "conditional_discount_commit_witnesses"
+        "conditional_discount_commit_witnesses",
+        "conditional_discount_evidence"
       ]
     }
   ],

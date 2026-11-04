@@ -44,6 +44,7 @@ export async function postDocument(company:string,actor:string,id:string,expecte
   // checked again inside postCanonicalJournal's one transaction.
   const admission=async(q:Queryable)=>{await scope(q,company,actor);return document(q,company,id);};
   const initial=existingTransaction?await admission(queryAdapter(existingTransaction)):await transact(admission,true);
+  if(initial.source?.conditional_discount) fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
   if(initial.revision!==expected) fail(409,"REVISION_CONFLICT");
   let current:any, transaction:DatabaseTransaction;
   const dependencies:CanonicalPostingDependencies={
@@ -51,6 +52,7 @@ export async function postDocument(company:string,actor:string,id:string,expecte
       transaction=tx;const q=queryAdapter(tx);
       await scope(q,company,actor,true,true);
       current=await document(q,company,id,true);
+      if(current.source?.conditional_discount) fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
       if(current.revision!==expected) fail(409,"REVISION_CONFLICT");
       if(current.status==="posted") {
         const linked=await q.query(`SELECT id FROM canonical_journal_entries

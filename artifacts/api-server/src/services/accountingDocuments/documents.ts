@@ -1,3 +1,4 @@
+import { validateConditionalDraft } from './conditionalDiscount';
 import { appliedTo, documentOpen, paymentEvents } from './settlement';
 import { amendmentHistory, assertUncorrectedOriginal } from './amendments';
 import { randomUUID } from "node:crypto";
@@ -34,6 +35,7 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
   let postingAccount=body.posting_account_id===undefined?previous?.posting_account_id??null:body.posting_account_id;
   let tax:any;
   if(credit(kind)) {
+    if(source.conditional_discount) fail(422,'CONDITIONAL_REQUIRES_ORIGINAL_DOCUMENT');
     if(source.discount) fail(422,"DISCOUNT_REQUIRES_ORIGINAL_DOCUMENT");
     if(!originalId || typeof reason!=="string" || !reason.trim() || reason.length>1000 ||
       method!=="offset_outstanding" || effective!==source.issue_date) fail(422,"CREDIT_EFFECTIVE_DECREASE_REQUIRED");
@@ -105,6 +107,7 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
   const totals={...money(tax.netPence.map((v:string)=>BigInt(v)),tax.vatPence),
     ...(source.discount?{discount:tax.context.discount}:{}),
     ...(source.discount_adjustment?{discount_adjustment:tax.context.discount_adjustment}:{})};
+  await validateConditionalDraft(q,company,source,sales(kind)?'customer':'supplier',totals.gross_pence);
   return {source,party_name:party.rows[0].name,party_id:source.customer_id,
     original_id:originalId??null,reason:typeof reason==="string"?reason.trim():"",
     adjustment_method:method,effective_adjustment_date:effective,

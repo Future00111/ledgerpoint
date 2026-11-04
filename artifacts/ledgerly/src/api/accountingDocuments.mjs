@@ -19,6 +19,7 @@ export function buildSource(form) {
     invoice_number: form.invoice_number, issue_date: form.issue_date, due_date: form.due_date,
     payment_terms: Number(form.payment_terms) || 0, reference: form.reference ?? '', notes: form.notes ?? '',
     price_basis: form.price_basis ?? 'excluding_vat',
+    conditional_discount: form.conditional_discount ?? null,
     discount: form.discount ? { type: form.discount.type, value: String(form.discount.value) } : null,
     discount_adjustment: form.discount_adjustment ? { type: form.discount_adjustment.type, value: String(form.discount_adjustment.value), original_revision: form.discount_adjustment.original_revision } : null,
     line_items: form.line_items.map(l => ({
@@ -71,6 +72,8 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
   const base = c => `/api/companies/${encodeURIComponent(c)}`;
   const docs = c => `${base(c)}/accounting-documents`;
   return {
+    captureConditionalEvidence: (c, body) => call(`${base(c)}/conditional-discount-evidence`, { method: 'POST', body }),
+    getConditionalEvidence: (c, id, signal) => call(`${base(c)}/conditional-discount-evidence/${encodeURIComponent(id)}`, { signal }),
     paymentContext: (c, signal) => call(`${base(c)}/accounting-payments/context`, { signal }),
     recoverPayment: (c, id, signal) => call(`${base(c)}/accounting-payments/operations/${encodeURIComponent(id)}`, { signal }),
     payments: (c, signal) => call(`${base(c)}/accounting-payments`, { signal }),

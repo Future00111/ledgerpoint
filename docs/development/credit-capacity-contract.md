@@ -352,3 +352,25 @@ grant in that target, remains unqualified. Same-cluster restore is not that proo
 Deadline crossing, agreement binding and complete admission/redemption/reversal
 and connected UI workflows remain pending. No existing/shared database or
 production activation is authorized, and all earlier P01-03 acceptance gates remain.
+
+### Bounded evidence and draft preparation candidate (4 November 2026)
+
+The candidate adds native text capture/read and draft receipt selection, editing
+and clearing for both parties. Evidence has a scoped request identity and immutable
+server hashes/time; the protected database function computes them and checks the
+current membership and party. Actor identity still relies on the authenticated
+service boundary; the shared database role is not independent proof of assent.
+Version 1 terms hash is SHA-256 over UTF-8 JSON of the ordered string array:
+version, party type, party ID, currency, agreement ID, agreement date, payment
+deadline, gross discount pence. Conditional UUIDs use lowercase canonical text.
+Receipt ID is excluded; stored evidence bytes
+have their own hash. Absent conditional terms preserve the legacy source hash.
+
+This is preparation, not original-document binding or conditional admission.
+Posting a conditional draft explicitly rejects without a journal. Next connect
+immutable posting-time source/financial-hash and line-vector binding, committed
+binding observation before qualifying payments, redemption and every affected
+allocation writer guard, then the native capture/review UI. Existing parent gates
+and compensation/prior-credit/correction scope remain unchanged. The new disposable
+PostgreSQL scenarios require exact-candidate execution and independent review;
+compiled scenarios and focused tests alone do not qualify persistence or the journey.

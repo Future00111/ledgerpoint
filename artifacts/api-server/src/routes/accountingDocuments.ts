@@ -1,3 +1,4 @@
+import { captureConditionalEvidence, getConditionalEvidence } from '../services/accountingDocuments/conditionalDiscount';
 import { reviewPaidCredit, commitPaidCredit } from '../services/accountingDocuments/paidCredit';
 import { Router, type RequestHandler, type Request } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
@@ -33,6 +34,8 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     if(!value || !/^"[0-9a-f-]{36}"$/.test(value)) fail(428,"REVISION_REQUIRED");
     return value.slice(1,-1);
   };
+  router.post('/conditional-discount-evidence',async(req,res)=>{const {company,actor}=ids(req);res.status(201).json({data:await captureConditionalEvidence(company,actor,req.body)});});
+  router.get('/conditional-discount-evidence/:id',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await getConditionalEvidence(company,actor,id)});});
   router.get('/credit-claims',async(req,res)=>{
     const {company,actor}=ids(req);
     if(req.query.bill_id!==undefined && typeof req.query.bill_id!=='string') fail(400,'INVALID_REQUEST_SHAPE');
@@ -128,6 +131,8 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
         "/discount":"Discount","/discount_adjustment":"Discount adjustment"};
       const field=labels[error.path]??(error.path?.startsWith("/line_items/")?"Invoice or bill line":"Submitted field");
       const guidance:Record<string,string>={
+        CONDITIONAL_POSTING_NOT_AVAILABLE:"Conditional agreement drafts can be prepared, but posting is not available yet. Your draft remains unchanged.",
+        CONDITIONAL_EVIDENCE_TERMS_MISMATCH:"The receipt belongs to different agreement terms. Capture or select matching evidence before saving.",
         CORRECTION_REVIEW_STALE:"This document, its payments or accounting setup changed after review. Refresh and review the correction again.",
         CORRECTION_BELOW_PAID:"The corrected total cannot be less than payments already applied. Review the payment and refund history first.",
         CORRECTION_CHILD_CREDITS:"This document already has a linked credit. Corrections are not yet supported for this case.",

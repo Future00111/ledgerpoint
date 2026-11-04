@@ -168,3 +168,44 @@ test('real PostgreSQL: inconsistent canonical posting effect cannot certify a re
  assert.equal(first.status,'recorded');
  assert.deepEqual(await captureCommittedPaymentWitness(f.company,actor,f.body.id),first);
 });
+
+import {captureConditionalEvidence,getConditionalEvidence} from './conditionalDiscount';
+import {conditionalTermsHash} from '../financialDrafts/contract';
+import {createHash} from 'node:crypto';
+import {saveDocument,getDocument} from './documents';
+import {postDocument} from './posting';
+for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL: ${partyType} evidence capture/replay/read/draft/clear and disabled posting`,async()=>{
+ const f=await fixture(),party=('abcdefab'+randomUUID().slice(8)).toUpperCase();
+ await admin.query(`INSERT INTO ${partyType==='customer'?'customers':'suppliers'}(id,company_id,name,status) VALUES($1,$2,'Synthetic conditional party','active')`,[party.toLowerCase(),f.company]);
+ await admin.query(`INSERT INTO vat_tax_rules(id,company_id,code,label,rate,treatment,effective_from,is_active)
+ VALUES($1,$2,'NONE','No VAT',0,'no_vat','2026-01-01',true)`,[randomUUID(),f.company]);
+ const terms={version:1 as const,party_type:partyType,party_id:party,currency:'GBP' as const,agreement_id:('abcdefab'+randomUUID().slice(8)).toUpperCase(),agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
+ const body={request_id:randomUUID(),terms,evidence_text:'Agreed £12; café 😀\n"quoted" / \\ bytes',attested:true};
+ const [receipt,replayed]=await Promise.all([captureConditionalEvidence(f.company,actor,body),captureConditionalEvidence(f.company,actor,body)]);
+ assert.equal(receipt.id,replayed.id);
+ assert.equal((await admin.query('SELECT count(*)::int n FROM conditional_discount_evidence WHERE company_id=$1 AND request_id=$2',[f.company,body.request_id])).rows[0].n,1);
+ assert.equal(receipt.terms_hash,conditionalTermsHash(terms));
+ assert.equal(receipt.evidence_hash,'sha256:'+createHash('sha256').update(body.evidence_text,'utf8').digest('hex'));
+ assert.equal((await captureConditionalEvidence(f.company,actor,body)).id,receipt.id);
+ assert.equal((await getConditionalEvidence(f.company,actor,receipt.id)).evidence_text,body.evidence_text);
+ await assert.rejects(()=>captureConditionalEvidence(f.company,actor,{...body,evidence_text:'changed'}),/CONDITIONAL_EVIDENCE_REQUEST_CONFLICT/);
+ const source={contract:'w03.draft.v1',currency:'GBP',customer_id:party,invoice_number:'COND-'+randomUUID(),issue_date:'2026-11-01',due_date:'2026-11-30',payment_terms:29,reference:'',notes:'',line_items:[{description:'Synthetic',quantity:'1',unit_price:'120',tax_code:'NONE'}],conditional_discount:{...terms,evidence_receipt_id:receipt.id}};
+ const draft=await saveDocument(f.company,actor,{kind:partyType==='customer'?'sales_invoice':'purchase_bill',source});
+ await assert.rejects(()=>postDocument(f.company,actor,draft.id,draft.revision),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
+ assert.equal((await getDocument(f.company,actor,draft.id)).status,'draft');
+ assert.equal((await admin.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2',[f.company,draft.id])).rows[0].n,0);
+ await assert.rejects(()=>saveDocument(f.company,actor,{source:{contract:'w03.draft.v1',conditional_discount:{...source.conditional_discount,discount_gross_pence:'1199'}}},draft.id,draft.revision),/CONDITIONAL_EVIDENCE_TERMS_MISMATCH/);
+ const cleared=await saveDocument(f.company,actor,{source:{contract:'w03.draft.v1',conditional_discount:null}},draft.id,draft.revision);
+ assert.equal(cleared.source.conditional_discount,undefined);
+ for(const statement of ['INSERT INTO conditional_discount_evidence SELECT * FROM conditional_discount_evidence','UPDATE conditional_discount_evidence SET evidence_text=evidence_text','DELETE FROM conditional_discount_evidence','TRUNCATE conditional_discount_evidence']) await assert.rejects(()=>pool.query(statement));
+ const foreign=await fixture();
+ await assert.rejects(()=>getConditionalEvidence(foreign.company,actor,receipt.id),/RESOURCE_NOT_FOUND/);
+ await assert.rejects(()=>captureConditionalEvidence(f.company,actor,{...body,request_id:randomUUID(),terms:{...terms,party_id:foreign.body.party_id}}));
+ const direct=await pool.query('SELECT capture_conditional_discount_evidence($1,$2,$3,$4,$5,true) id',[f.company,actor,body.request_id,JSON.stringify(terms),body.evidence_text]);
+ assert.equal(direct.rows[0].id,receipt.id);
+ await assert.rejects(()=>pool.query('SELECT capture_conditional_discount_evidence($1,$2,$3,$4,$5,false)',[f.company,actor,randomUUID(),JSON.stringify(terms),body.evidence_text]),/Invalid agreement evidence/);
+ for(const patch of [{version:null},{currency:null},{party_type:null},{discount_gross_pence:null}]) await assert.rejects(()=>pool.query('SELECT capture_conditional_discount_evidence($1,$2,$3,$4,$5,true)',[f.company,actor,randomUUID(),JSON.stringify({...terms,...patch}),body.evidence_text]),/Invalid agreement evidence/);
+ await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+ await assert.rejects(()=>getConditionalEvidence(f.company,actor,receipt.id),/RESOURCE_NOT_FOUND/);
+ await assert.rejects(()=>pool.query('SELECT capture_conditional_discount_evidence($1,$2,$3,$4,$5,true)',[f.company,actor,randomUUID(),JSON.stringify(terms),body.evidence_text]),/Evidence capability unavailable/);
+});

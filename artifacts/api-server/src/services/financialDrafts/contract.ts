@@ -27,11 +27,12 @@ export interface InvoiceSource {
   reference: string;
   notes: string;
   line_items: DraftLine[];
+  conditional_discount?: ConditionalDiscount;
   discount?: Discount;
   discount_adjustment?: DiscountAdjustment;
 }
 const fields = ["contract", "currency", "customer_id", "invoice_number", "issue_date",
-  "due_date", "payment_terms", "reference", "notes", "line_items", "price_basis", "discount", "discount_adjustment"];
+  "due_date", "payment_terms", "reference", "notes", "line_items", "price_basis", "discount", "discount_adjustment", "conditional_discount"];
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export function uuid(value: unknown): string {
   if (typeof value !== "string" || !uuidPattern.test(value)) fail(400, "INVALID_REQUEST_SHAPE");
@@ -88,6 +89,32 @@ export function parseDiscount(value: unknown, adjustment = false): Discount | Di
   const result: Discount = { type: d.type as Discount['type'], value: d.value };
   return adjustment ? { ...result, original_revision: uuid(d.original_revision) } : result;
 }
+export interface ConditionalTerms {
+  version: 1;
+  party_type: 'customer' | 'supplier';
+  party_id: string;
+  currency: 'GBP';
+  agreement_id: string;
+  agreement_date: string;
+  payment_deadline: string;
+  discount_gross_pence: string;
+}
+export interface ConditionalDiscount extends ConditionalTerms { evidence_receipt_id: string }
+export function parseConditionalTerms(value: unknown, receipt = false): ConditionalTerms | ConditionalDiscount {
+  const d = object(value);
+  keys(d, ['version','party_type','party_id','currency','agreement_id','agreement_date','payment_deadline','discount_gross_pence', ...(receipt ? ['evidence_receipt_id'] : [])]);
+  if (d.version !== 1 || typeof d.party_type !== 'string' || !['customer','supplier'].includes(d.party_type) || d.currency !== 'GBP') fail(422,'CONDITIONAL_TERMS_INVALID');
+  const agreementDate = date(d.agreement_date,'/conditional_discount/agreement_date');
+  const deadline = date(d.payment_deadline,'/conditional_discount/payment_deadline');
+  if (deadline < agreementDate || typeof d.discount_gross_pence !== 'string' || !/^[1-9]\d{0,11}$/.test(d.discount_gross_pence)) fail(422,'CONDITIONAL_TERMS_INVALID');
+  const terms: ConditionalTerms = {version:1,party_type:d.party_type as ConditionalTerms['party_type'],party_id:uuid(d.party_id).toLowerCase(),currency:'GBP',agreement_id:uuid(d.agreement_id).toLowerCase(),agreement_date:agreementDate,payment_deadline:deadline,discount_gross_pence:d.discount_gross_pence};
+  return receipt ? {...terms,evidence_receipt_id:uuid(d.evidence_receipt_id).toLowerCase()} : terms;
+}
+/** Ordered versioned fields; receipt identity is deliberately not circular. */
+export function conditionalTermsHash(value: ConditionalTerms): string {
+  const {evidence_receipt_id: _receipt, ...rest} = value as ConditionalDiscount;
+  return `sha256:${createHash('sha256').update(JSON.stringify(Object.values(parseConditionalTerms(rest)).map(String))).digest('hex')}`;
+}
 export function parseInvoice(body: unknown, previous?: InvoiceSource): InvoiceSource {
   const input = object(body);
   keys(input, previous ? fields.filter(k => k !== "currency") : fields);
@@ -113,6 +140,9 @@ export function parseInvoice(body: unknown, previous?: InvoiceSource): InvoiceSo
   });
   const discount = parseDiscount(data.discount) as Discount | undefined;
   const adjustment = parseDiscount(data.discount_adjustment, true) as DiscountAdjustment | undefined;
+  const conditional = data.conditional_discount == null ? undefined : parseConditionalTerms(data.conditional_discount,true) as ConditionalDiscount;
+  if (conditional && (conditional.party_id !== uuid(data.customer_id).toLowerCase() || conditional.payment_deadline < issue)) fail(422,'CONDITIONAL_TERMS_INVALID');
+  if (conditional && (discount || adjustment)) fail(422,'DISCOUNT_CONFLICT','/conditional_discount');
   if (discount && adjustment) fail(422, 'DISCOUNT_CONFLICT', '/discount_adjustment');
   return { contract: "w03.draft.v1", currency: "GBP", price_basis: basis, customer_id: uuid(data.customer_id),
     invoice_number: text(data.invoice_number, 64, "/invoice_number", true),
@@ -120,6 +150,7 @@ export function parseInvoice(body: unknown, previous?: InvoiceSource): InvoiceSo
     reference: text(data.reference === undefined ? "" : data.reference, 200, "/reference"),
     notes: text(data.notes === undefined ? "" : data.notes, 4000, "/notes", false, true),
     line_items: lines.map(line => ({ ...line, tax_code: line.tax_code.toUpperCase() })),
+    ...(conditional ? { conditional_discount: conditional } : {}),
     ...(discount ? { discount } : {}), ...(adjustment ? { discount_adjustment: adjustment } : {}) };
 }
 export function draftSourceFingerprint(source: InvoiceSource): string {

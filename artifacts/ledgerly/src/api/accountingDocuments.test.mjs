@@ -80,3 +80,16 @@ test('original payment identity recovery is a scoped read and sends no frozen fi
   assert.equal(seen.init.method,'GET');assert.equal(seen.init.body,undefined);assert.equal(seen.init.signal,signal);
   assert.deepEqual(result,{status:'unknown',id:'request/id'});
 });
+test('conditional draft receipt is preserved and explicit clear survives native envelope',()=>{
+ const terms={version:1,evidence_receipt_id:'receipt',discount_gross_pence:'1200'};
+ assert.deepEqual(buildSource({...form,conditional_discount:terms}).conditional_discount,terms);
+ assert.equal(buildSource({...form,conditional_discount:null}).conditional_discount,null);
+});
+test('conditional evidence capture/read use company scoped native endpoints',async()=>{
+ const calls=[],client=createAccountingClient(async(url,options)=>{calls.push([url,options]);return {ok:true,json:async()=>({data:{id:'receipt'}})};});
+ await client.captureConditionalEvidence('company',{attested:true,evidence_text:'Actual agreement'});
+ await client.getConditionalEvidence('company','receipt');
+ assert.equal(calls[0][0],'/api/companies/company/conditional-discount-evidence');
+ assert.equal(calls[0][1].method,'POST');
+ assert.equal(calls[1][0],'/api/companies/company/conditional-discount-evidence/receipt');
+});

@@ -1,5 +1,7 @@
+import { createHash } from 'node:crypto';
+import { conditionalTermsHash, parseConditionalTerms, type InvoiceSource } from '../financialDrafts/contract';
 import { fail, uuid } from '../financialDrafts/contract';
-import { hash, scope, transact } from './core';
+import { hash, scope, transact, exactFields, type Queryable } from './core';
 
 /** A receipt of observation, not the payment's actual commit timestamp. Only a
  * fresh transaction can establish that the source was already committed. Never
@@ -87,4 +89,67 @@ export async function observePaymentOutcome<T>(result:T, company:string, actor:s
   } catch {
     return {...result,conditional_discount_witness:'unavailable'};
   }
+}
+
+/** Native text evidence is immutable preparation only; it cannot admit posting. */
+export function evidenceBytes(value: unknown): Buffer {
+  if(typeof value!=='string' || !value.trim() || value.includes('\u0000') ||
+    /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/u.test(value)) fail(422,'CONDITIONAL_EVIDENCE_INVALID');
+  const bytes=Buffer.from(value,'utf8');
+  if(bytes.length>65536) fail(422,'CONDITIONAL_EVIDENCE_TOO_LARGE');
+  return bytes;
+}
+async function evidenceSchema(q:Queryable) {
+  const installed=(await q.query("SELECT to_regclass('public.conditional_discount_evidence') present")).rows[0]?.present;
+  if(!installed) fail(503,'CONDITIONAL_EVIDENCE_SCHEMA_UNAVAILABLE');
+  const guards=(await q.query(`SELECT count(*)::int n FROM pg_trigger WHERE tgrelid='public.conditional_discount_evidence'::regclass
+    AND tgenabled='A' AND NOT tgisinternal AND tgname IN ('conditional_discount_evidence_immutable','conditional_discount_evidence_no_truncate')`)).rows[0];
+  if(guards?.n!==2) fail(503,'CONDITIONAL_EVIDENCE_SCHEMA_INCOMPLETE');
+  const integrity=(await q.query(`SELECT (SELECT count(*)::int FROM pg_constraint WHERE conrelid='public.conditional_discount_evidence'::regclass AND convalidated) n,
+    pg_get_userbyid(relowner) owner,has_table_privilege('ledgerly_api',oid,'INSERT,UPDATE,DELETE,TRUNCATE') writable
+    FROM pg_class WHERE oid='public.conditional_discount_evidence'::regclass`)).rows[0];
+  if(integrity?.n!==11 || integrity.owner!=='ledgerly_canonical_owner' || integrity.writable) fail(503,'CONDITIONAL_EVIDENCE_SCHEMA_INCOMPLETE');
+}
+function verifyEvidence(row:any) {
+  if(!row || row.version!==1 || row.attested!==true || row.currency!=='GBP' ||
+    row.evidence_hash!==`sha256:${createHash('sha256').update(evidenceBytes(row.evidence_text)).digest('hex')}` ||
+    row.terms_hash!==conditionalTermsHash(row.terms) || row.party_id!==row.terms.party_id ||
+    row.party_type!==row.terms.party_type || row.currency!==row.terms.currency) fail(503,'CONDITIONAL_EVIDENCE_INVALID');
+  return row;
+}
+export async function readConditionalEvidence(q:Queryable,company:string,id:string) {
+  await evidenceSchema(q);
+  const row=(await q.query(`SELECT *,recorded_at::text AS recorded_at FROM conditional_discount_evidence
+    WHERE company_id=$1 AND id=$2`,[company,uuid(id)])).rows[0];
+  if(!row) fail(404,'RESOURCE_NOT_FOUND');
+  return verifyEvidence(row);
+}
+export async function getConditionalEvidence(company:string,actor:string,id:string) {
+  return transact(async q=>{await scope(q,company,actor,true);return readConditionalEvidence(q,company,id);},true);
+}
+export async function captureConditionalEvidence(company:string,actor:string,input:unknown) {
+  const body=exactFields(input,['request_id','terms','evidence_text','attested']);
+  const request=uuid(body.request_id),terms=parseConditionalTerms(body.terms);
+  evidenceBytes(body.evidence_text);
+  if(body.attested!==true) fail(422,'CONDITIONAL_ATTESTATION_REQUIRED');
+  return transact(async q=>{
+    await scope(q,company,actor,true,true);
+    await evidenceSchema(q);
+    const termsHash=conditionalTermsHash(terms);
+    const existing=(await q.query('SELECT * FROM conditional_discount_evidence WHERE company_id=$1 AND request_id=$2',[company,request])).rows[0];
+    if(existing) {
+      if(existing.actor_id!==actor || existing.evidence_text!==body.evidence_text || existing.terms_hash!==termsHash) fail(409,'CONDITIONAL_EVIDENCE_REQUEST_CONFLICT');
+      return readConditionalEvidence(q,company,existing.id);
+    }
+    const result=(await q.query(`SELECT public.capture_conditional_discount_evidence($1::uuid,$2::text,$3::uuid,$4::jsonb,$5::text,true) id`,
+      [company,actor,request,JSON.stringify(terms),body.evidence_text])).rows[0];
+    return readConditionalEvidence(q,company,result.id);
+  });
+}
+export async function validateConditionalDraft(q:Queryable,company:string,source:InvoiceSource,partyType:'customer'|'supplier',gross:string) {
+  const terms=source.conditional_discount;
+  if(!terms) return;
+  if(terms.party_type!==partyType || terms.party_id!==source.customer_id.toLowerCase() || BigInt(terms.discount_gross_pence)>=BigInt(gross)) fail(422,'CONDITIONAL_TERMS_INVALID');
+  const evidence=await readConditionalEvidence(q,company,terms.evidence_receipt_id);
+  if(evidence.terms_hash!==conditionalTermsHash(terms) || evidence.party_type!==partyType || evidence.party_id!==source.customer_id.toLowerCase()) fail(409,'CONDITIONAL_EVIDENCE_TERMS_MISMATCH');
 }

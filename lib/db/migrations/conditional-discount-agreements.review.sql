@@ -111,3 +111,75 @@ ALTER TABLE public.conditional_discount_commit_witnesses ENABLE ALWAYS TRIGGER c
 ALTER TABLE public.conditional_discount_commit_witnesses ENABLE ALWAYS TRIGGER conditional_discount_witness_no_truncate;
 REVOKE ALL ON public.conditional_discount_commit_witnesses FROM PUBLIC,ledgerly_api;
 GRANT SELECT,INSERT ON public.conditional_discount_commit_witnesses TO ledgerly_api;
+
+-- Native agreement evidence preparation. Financial posting remains disabled.
+CREATE TABLE public.conditional_discount_evidence (
+ id uuid PRIMARY KEY,
+ company_id uuid NOT NULL REFERENCES public.companies(id),
+ request_id uuid NOT NULL,
+ actor_id text NOT NULL,
+ version integer NOT NULL CHECK(version=1),
+ party_type text NOT NULL CHECK(party_type IN ('customer','supplier')),
+ party_id uuid NOT NULL,
+ currency text NOT NULL CHECK(currency='GBP'),
+ terms jsonb NOT NULL,
+ terms_hash text NOT NULL CHECK(terms_hash ~ '^sha256:[a-f0-9]{64}$'),
+ evidence_text text NOT NULL CHECK(octet_length(evidence_text) BETWEEN 1 AND 65536),
+ evidence_hash text NOT NULL CHECK(evidence_hash='sha256:'||encode(sha256(convert_to(evidence_text,'UTF8')),'hex')),
+ attested boolean NOT NULL CHECK(attested),
+ recorded_at timestamptz NOT NULL,
+ UNIQUE(company_id,id), UNIQUE(company_id,request_id)
+);
+ALTER TABLE public.conditional_discount_evidence OWNER TO ledgerly_canonical_owner;
+CREATE TRIGGER conditional_discount_evidence_immutable BEFORE UPDATE OR DELETE ON public.conditional_discount_evidence
+ FOR EACH ROW EXECUTE FUNCTION public.conditional_discount_witness_immutable();
+CREATE TRIGGER conditional_discount_evidence_no_truncate BEFORE TRUNCATE ON public.conditional_discount_evidence
+ FOR EACH STATEMENT EXECUTE FUNCTION public.conditional_discount_witness_immutable();
+ALTER TABLE public.conditional_discount_evidence ENABLE ALWAYS TRIGGER conditional_discount_evidence_immutable;
+ALTER TABLE public.conditional_discount_evidence ENABLE ALWAYS TRIGGER conditional_discount_evidence_no_truncate;
+REVOKE ALL ON public.conditional_discount_evidence FROM PUBLIC,ledgerly_api;
+GRANT SELECT ON public.conditional_discount_evidence TO ledgerly_api;
+CREATE FUNCTION public.capture_conditional_discount_evidence(c uuid,a text,r uuid,t jsonb,e text,b boolean) RETURNS uuid
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE result uuid; old public.conditional_discount_evidence%ROWTYPE; term_hash text;
+BEGIN
+ PERFORM 1 FROM public.companies WHERE id=c AND country='GB' AND base_currency='GBP' FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Evidence scope unavailable'; END IF;
+ IF (SELECT count(*) FROM public.company_users WHERE company_id=c AND user_id=a)<>1 THEN RAISE EXCEPTION 'Evidence membership unavailable'; END IF;
+ PERFORM 1 FROM public.company_users WHERE company_id=c AND user_id=a AND is_active AND role IN ('owner','admin','accountant') FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Evidence capability unavailable'; END IF;
+ IF b IS DISTINCT FROM true OR r IS NULL OR e IS NULL OR btrim(e)='' OR octet_length(e)>65536 OR jsonb_typeof(t) IS DISTINCT FROM 'object' OR
+   (SELECT count(*) FROM jsonb_object_keys(t))<>8 OR
+   NOT (t ?& ARRAY['version','party_type','party_id','currency','agreement_id','agreement_date','payment_deadline','discount_gross_pence']) OR
+   t->'version'<>'1'::jsonb OR t->>'currency'<>'GBP' OR t->>'party_type' NOT IN ('customer','supplier') OR
+   EXISTS(SELECT 1 FROM jsonb_each(t) WHERE key<>'version' AND jsonb_typeof(value)<>'string') OR
+   t->>'discount_gross_pence' !~ '^[1-9][0-9]{0,11}$' OR
+   t->>'agreement_date' !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR t->>'payment_deadline' !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR
+   (t->>'agreement_date')::date NOT BETWEEN DATE '1900-01-01' AND DATE '2199-12-31' OR
+   (t->>'payment_deadline')::date NOT BETWEEN (t->>'agreement_date')::date AND DATE '2199-12-31'
+ THEN RAISE EXCEPTION 'Invalid agreement evidence'; END IF;
+ -- UUID identity is case insensitive; canonical terms and retries use lowercase.
+ t=jsonb_set(jsonb_set(t,'{party_id}',to_jsonb((t->>'party_id')::uuid::text)),'{agreement_id}',to_jsonb((t->>'agreement_id')::uuid::text));
+ IF t->>'party_type'='customer' THEN
+   PERFORM 1 FROM public.customers WHERE company_id=c AND id=(t->>'party_id')::uuid AND status='active' FOR SHARE;
+ ELSE
+   PERFORM 1 FROM public.suppliers WHERE company_id=c AND id=(t->>'party_id')::uuid AND status='active' FOR SHARE;
+ END IF;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Evidence party unavailable'; END IF;
+ term_hash='sha256:'||encode(sha256(convert_to(array_to_json(ARRAY['1',t->>'party_type',t->>'party_id',t->>'currency',t->>'agreement_id',t->>'agreement_date',t->>'payment_deadline',t->>'discount_gross_pence'])::text,'UTF8')),'hex');
+ SELECT * INTO old FROM public.conditional_discount_evidence WHERE company_id=c AND request_id=r;
+ IF FOUND THEN
+   IF old.actor_id<>a OR old.terms<>t OR old.evidence_text<>e THEN RAISE EXCEPTION 'Evidence request conflict'; END IF;
+   RETURN old.id;
+ END IF;
+ result=gen_random_uuid();
+ INSERT INTO public.conditional_discount_evidence(id,company_id,request_id,actor_id,version,party_type,party_id,currency,terms,terms_hash,evidence_text,evidence_hash,attested,recorded_at)
+ VALUES(result,c,r,a,1,t->>'party_type',(t->>'party_id')::uuid,'GBP',t,term_hash,e,'sha256:'||encode(sha256(convert_to(e,'UTF8')),'hex'),true,clock_timestamp());
+ RETURN result;
+END $$;
+ALTER FUNCTION public.capture_conditional_discount_evidence(uuid,text,uuid,jsonb,text,boolean) OWNER TO ledgerly_canonical_owner;
+REVOKE ALL ON FUNCTION public.capture_conditional_discount_evidence(uuid,text,uuid,jsonb,text,boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.capture_conditional_discount_evidence(uuid,text,uuid,jsonb,text,boolean) TO ledgerly_api;
+GRANT SELECT(id,company_id,status) ON public.customers,public.suppliers TO ledgerly_canonical_owner;
+GRANT SELECT(id,country,base_currency), UPDATE(id) ON public.companies TO ledgerly_canonical_owner;
+GRANT UPDATE(id) ON public.company_users,public.customers,public.suppliers TO ledgerly_canonical_owner;

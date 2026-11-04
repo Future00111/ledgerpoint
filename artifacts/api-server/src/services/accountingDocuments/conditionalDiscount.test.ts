@@ -92,3 +92,43 @@ test('exact retry returns first persisted observation without replacing its cloc
  assert.deepEqual(second,first);assert.equal(f.transactions(),2);
  assert.equal(f.calls.some(s=>/^UPDATE|^DELETE/.test(s)),false);
 });
+
+import {evidenceBytes,validateConditionalDraft} from './conditionalDiscount';
+import {parseConditionalTerms,conditionalTermsHash,parseInvoice,draftSourceFingerprint} from '../financialDrafts/contract';
+const terms={version:1,party_type:'customer',party_id:company,currency:'GBP',agreement_id:eventId,agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
+const draft={contract:'w03.draft.v1',currency:'GBP',customer_id:company,invoice_number:'COND-1',issue_date:'2026-11-01',due_date:'2026-11-30',payment_terms:29,reference:'',notes:'',line_items:[{description:'Test',quantity:'1',unit_price:'120',tax_code:'NONE'}]};
+test('bounded UTF8 preserves exact Unicode/newline bytes and rejects malformed UTF16',()=>{
+ assert.equal(evidenceBytes('é😀\n"/\\').toString('utf8'),'é😀\n"/\\');
+ assert.equal(evidenceBytes('é'.repeat(32768)).length,65536);
+ for(const value of ['é'.repeat(32769),'\ud800','\udc00','\u0000','']) assert.throws(()=>evidenceBytes(value),/CONDITIONAL_EVIDENCE/);
+});
+test('conditional terms hash excludes receipt and rejects unknown versions/fields',()=>{
+ const t=parseConditionalTerms(terms);
+ assert.equal(conditionalTermsHash(t),conditionalTermsHash({...t,evidence_receipt_id:journal} as any));
+ assert.notEqual(conditionalTermsHash(t),conditionalTermsHash({...t,party_type:'supplier'}));
+ for(const patch of [{version:2},{discount_gross_pence:'0'},{payment_deadline:'2026-10-01'},{untrusted_hash:'x'}]) assert.throws(()=>parseConditionalTerms({...terms,...patch}));
+});
+test('draft terms can change or clear, ordinary discounts conflict and absent source hash stays identical',()=>{
+ const old=parseInvoice(draft),bound=parseInvoice({...draft,conditional_discount:{...terms,evidence_receipt_id:journal}});
+ assert.equal(draftSourceFingerprint(old),draftSourceFingerprint({...old,conditional_discount:undefined}));
+ assert.equal(parseInvoice({contract:'w03.draft.v1',conditional_discount:null},bound).conditional_discount,undefined);
+ assert.notEqual(draftSourceFingerprint(old),draftSourceFingerprint(bound));
+ assert.throws(()=>parseInvoice({...bound,discount:{type:'amount',value:'1.00'}}),/DISCOUNT_CONFLICT/);
+ assert.throws(()=>parseInvoice({...bound,customer_id:eventId}),/CONDITIONAL_TERMS_INVALID/);
+});
+test('zero net entitlement and wrong party reject before receipt access',async()=>{
+ const q={query:()=>{throw Error('Receipt must not be accessed')}} as any;
+ const source=parseInvoice({...draft,conditional_discount:{...terms,evidence_receipt_id:journal}});
+ await assert.rejects(()=>validateConditionalDraft(q,company,source,'customer','1200'),/CONDITIONAL_TERMS_INVALID/);
+ await assert.rejects(()=>validateConditionalDraft(q,company,source,'supplier','12000'),/CONDITIONAL_TERMS_INVALID/);
+});
+test('conditional UUIDs canonicalize uppercase A-F without changing legacy customer source bytes',()=>{
+ const upper='ABCDEFAB-CDEF-4ABC-8ABC-ABCDEFABCDEF',lower=upper.toLowerCase();
+ const raw={...terms,party_id:upper,agreement_id:upper,evidence_receipt_id:upper};
+ const parsed=parseConditionalTerms(raw,true) as any;
+ assert.equal(parsed.party_id,lower);assert.equal(parsed.agreement_id,lower);assert.equal(parsed.evidence_receipt_id,lower);
+ assert.equal(conditionalTermsHash(parsed),conditionalTermsHash({...parsed,party_id:upper,agreement_id:upper}));
+ const saved=parseInvoice({...draft,customer_id:upper,conditional_discount:raw});
+ assert.equal(saved.customer_id,upper);assert.equal(saved.conditional_discount?.party_id,lower);
+ assert.equal(parseInvoice({...draft,customer_id:upper}).customer_id,upper);
+});
