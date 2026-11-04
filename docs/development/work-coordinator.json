@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 164,
+  "revision": 165,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 600,
+    "revision": 602,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Stopped clean exact980c11578967caf13b40a3e1a783b95441b097a4 treef8cdde522c6603fe2b9e7f99117122d01012bb4a; immutable full patch and authorchain archived state8286a9caf09067a3c6005dc7f8a235fc384205ce docs/development/candidates/20261104-1319-final.patch and final-manifest.json. Technical root review passed after UUID correction. Combined790/fullbuild/typecheck passed. Publication211649c rejected automatically for missing actual PG/restore and fullparent gates; sourceb481unchanged. Next provision fresh isolated PostgreSQL under nonroot, replay exact preserved candidate, run existing accounting/restore gates, resolve publication gate; do not regenerate feature. FullP01-03 still pending binding/admission/paymentguards/redemption/reversal/UI/browser.",
+        "checkpoint": "BEFORE TEST EXECUTION: remote actor replit-test-1355 controlled by root in verified LedgerPoint shell UID1000/PostgreSQL16.10. Restore exact immutable archive candidate980c115/treef8cdde52 into unique disposable clone; no source edits, demo/sharedDB/provider changes, remote queue or branch push. Only existing accounting/restore runners; hard stop14:20UTC. Exact logs/receipts export via verified shell UTF8/base64; root independent reviewer. P01-03 partial and financial conditional posting remains rejected.",
         "evidence": {
           "commit": "980c11578967caf13b40a3e1a783b95441b097a4",
           "summary": "PARTIAL P01-03 candidate: immutable scoped actual UTF8 evidence capture/read, protected database function computes bytes/terms hashes and timestamp, same-intent replay, optional draft terms/receipt editing and clearing for both parties, mutually exclusive ordinary discount, unchanged absent hashes. Conditional financial posting explicitly rejects. Parent NOT complete: immutable original posting binding with source/financial hash and line vector, committed binding observation, admission/redemption/every allocation writer guards, compensation, prior-credit/correction cases and native UI/browser journey remain. Next connect original binding and causal committed observation; qualify actual PG rollback/race/restore and independent review before accepting candidate. No existing/shared DB or provider writes. Worker stopped clean; no task reclaim. Root review UUID correction now canonicalizes conditional IDs and SQL terms identity while preserving historical source bytes; uppercase A-F fixtures added. Actual PostgreSQL still pending.",
@@ -130,7 +130,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "replit-test-1355",
+        "tokenSha256": "f77f4f9351e41b881cd6887bc1c045c4c33512221e44fe3e9b0e297d09869b35",
+        "leaseUntil": 1793801866535,
+        "workStarted": true
       },
       "P01-04": {
         "status": "blocked",
@@ -7858,6 +7861,20 @@
         "type": "recover",
         "taskId": "P01-03",
         "checkpoint": "Stopped clean exact980c11578967caf13b40a3e1a783b95441b097a4 treef8cdde522c6603fe2b9e7f99117122d01012bb4a; immutable full patch and authorchain archived state8286a9caf09067a3c6005dc7f8a235fc384205ce docs/development/candidates/20261104-1319-final.patch and final-manifest.json. Technical root review passed after UUID correction. Combined790/fullbuild/typecheck passed. Publication211649c rejected automatically for missing actual PG/restore and fullparent gates; sourceb481unchanged. Next provision fresh isolated PostgreSQL under nonroot, replay exact preserved candidate, run existing accounting/restore gates, resolve publication gate; do not regenerate feature. FullP01-03 still pending binding/admission/paymentguards/redemption/reversal/UI/browser."
+      },
+      {
+        "at": 1793800966535,
+        "actor": "replit-test-1355",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "f77f4f9351e41b881cd6887bc1c045c4c33512221e44fe3e9b0e297d09869b35"
+      },
+      {
+        "at": 1793800987534,
+        "actor": "replit-test-1355",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "BEFORE TEST EXECUTION: remote actor replit-test-1355 controlled by root in verified LedgerPoint shell UID1000/PostgreSQL16.10. Restore exact immutable archive candidate980c115/treef8cdde52 into unique disposable clone; no source edits, demo/sharedDB/provider changes, remote queue or branch push. Only existing accounting/restore runners; hard stop14:20UTC. Exact logs/receipts export via verified shell UTF8/base64; root independent reviewer. P01-03 partial and financial conditional posting remains rejected."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -7875,19 +7892,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "6ad2c6946938dfed2dc271a23342c7341c1f89f2",
+    "sha": "b9f2e5fd84dce9fd418433a7401ab1d1f1dc9c01",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6ad2c6946938dfed2dc271a23342c7341c1f89f2",
+        "sha": "b9f2e5fd84dce9fd418433a7401ab1d1f1dc9c01",
         "path": "docs/development/run-20261104-1355-evidence.json"
       }
     ],
     "runId": "hosted-20261104-1355",
-    "at": 1793800917899,
+    "at": 1793801068722,
     "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c"
   },
-  "updatedAt": 1793800917899,
+  "updatedAt": 1793801068722,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -7940,14 +7957,36 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [],
+  "activeWorkers": [
+    {
+      "actor": "replit-test-1355",
+      "provider": "Replit shell directly controlled by root",
+      "task": "P01-03",
+      "scope": "Exact candidate tests only",
+      "status": "reserved before execution",
+      "candidate": "980c11578967caf13b40a3e1a783b95441b097a4",
+      "isolatedPath": ".local/share/ledgerly/run-20261104-1355/source",
+      "stopBy": "2026-11-04T14:20:00Z"
+    }
+  ],
   "run": {
     "startedAt": "2026-11-04T13:57:39.652Z",
     "stopBy": "2026-11-04T14:23:00Z",
-    "activity": "Exact archived candidate980c115 reconstructed clean; local nonroot/PostgreSQL unavailable. Root performing bounded Replit browser shell preflight. No workers/claims, queue600 unchanged, prior publication blocker unresolved.",
-    "activeWorkers": [],
+    "activity": "Verified nonroot isolated Replit shell; highesteligible P01-03 reserved/checkpointed queue602; exact archived candidate validation only, no source edits; root independently controls and reviews logs/receipts. Awaiting durable reservation ACK before execution.",
+    "activeWorkers": [
+      {
+        "actor": "replit-test-1355",
+        "provider": "Replit shell directly controlled by root",
+        "task": "P01-03",
+        "scope": "Exact candidate tests only",
+        "status": "reserved before execution",
+        "candidate": "980c11578967caf13b40a3e1a783b95441b097a4",
+        "isolatedPath": ".local/share/ledgerly/run-20261104-1355/source",
+        "stopBy": "2026-11-04T14:20:00Z"
+      }
+    ],
     "credits": "unknown",
-    "observedAt": "2026-11-04T14:01:57.899Z"
+    "observedAt": "2026-11-04T14:04:28.746Z"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
