@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 201,
+  "revision": 202,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "008e5d718fbedd41130c7449beb9898305bb8ed8",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 643,
+    "revision": 644,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,7 +100,7 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
         "checkpoint": "Stopped clean1d14/tree324e; immutablearchive51342745; reviewed published008e5d7 same tree after47focused29registry790source/fullbuild. No active worker commands. Fullparent pending; exactCI pending; next integrate committed conditional binding identity into payment snapshots/guards, preserve publicclosed gates.",
@@ -140,7 +140,10 @@
             "reviewer": "root-and-coordinator1355-technical-only"
           }
         },
-        "blockers": []
+        "owner": "coordinator1819-fix",
+        "tokenSha256": "273233440e6e13c81ec75b1959a4a62b46354973cfc4dba78a4db774cb6d2024",
+        "leaseUntil": 1793817959626,
+        "workStarted": false
       },
       "P01-04": {
         "status": "blocked",
@@ -8282,6 +8285,13 @@
         "type": "recover",
         "taskId": "P01-03",
         "checkpoint": "Stopped clean1d14/tree324e; immutablearchive51342745; reviewed published008e5d7 same tree after47focused29registry790source/fullbuild. No active worker commands. Fullparent pending; exactCI pending; next integrate committed conditional binding identity into payment snapshots/guards, preserve publicclosed gates."
+      },
+      {
+        "at": 1793817359626,
+        "actor": "coordinator1819-fix",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "273233440e6e13c81ec75b1959a4a62b46354973cfc4dba78a4db774cb6d2024"
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8308,10 +8318,10 @@
       }
     ],
     "runId": "hosted-20261104-1819",
-    "at": 1793817279977,
+    "at": 1793817359764,
     "codeHead": "008e5d718fbedd41130c7449beb9898305bb8ed8"
   },
-  "updatedAt": 1793817279977,
+  "updatedAt": 1793817359764,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -8329,7 +8339,7 @@
   "validation": {
     "sourceCommit": "008e5d718fbedd41130c7449beb9898305bb8ed8",
     "sourceTree": "324e7748ef6e7d5b61758ebcc944e7e19a051001",
-    "exactPublishedCI": "pending",
+    "exactPublishedCI": "failed",
     "localSource": 790,
     "localFocused": 47,
     "localRegistry": 29,
@@ -8361,7 +8371,10 @@
       "buildTypecheck": "passed",
       "logsIndependentlyFetched": true,
       "ciEvidenceCommit": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260"
-    }
+    },
+    "ciRun": 41888378747,
+    "job": 126778862467,
+    "failure": "Two new fixture duplicate-active membership INSERTs violate existing w03_active_membership_identity unique index; first52 and23conditionalPG pass, restore skipped"
   },
   "shutdownResolution": {
     "at": "2026-11-04T17:28:58.528Z",
@@ -8386,16 +8399,23 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [],
+  "activeWorkers": [
+    {
+      "actor": "coordinator1819-fix",
+      "task": "P01-03",
+      "status": "reserved-not-editing",
+      "reason": "ExactPG CI shows two active-duplicate test setups violate preexisting unique index; fix synthetic secondmembership to inactive while retaining count2 guard test"
+    }
+  ],
   "run": {
     "startedAt": "2026-11-04T18:20:49.299Z",
     "stopBy": "2026-11-04T18:47:00Z",
     "implementationStopBy": "2026-11-04T18:37:00Z",
     "status": "verification",
-    "activity": "Published reviewed008e5d7/tree324e via expectedheadFF after exactlocalgates and archive51342745; worker cleanstopped lease released to pending via submit/reject/recover, fullparent notaccepted. Waiting exactPR27 CI disposablePG/restore.",
+    "activity": "ExactPG CI shows two active-duplicate test setups violate preexisting unique index; fix synthetic secondmembership to inactive while retaining count2 guard test",
     "credits": "unknown",
     "providerUsage": "unknown",
-    "observedAt": "2026-11-04T18:34:40.003Z",
+    "observedAt": "2026-11-04T18:35:59.793Z",
     "activeWorkers": [],
     "publicationBlocked": false,
     "primaryCandidate": "1d14f671e9503dc7d6233382aff80dbeb7f140da",
