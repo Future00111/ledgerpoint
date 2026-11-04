@@ -1,0 +1,125 @@
+{
+  "runId": "hosted-20261104-1223",
+  "startedAt": "2026-11-04T12:23:51Z",
+  "observedAt": "2026-11-04T12:38:35.598680+00:00",
+  "previousShutdownResolved": {
+    "stateCommit": "b377a2d9be18317b7b51510042d61416dcb17cff",
+    "method": "Existing coordinator.mjs recover after immutable stopped evidence and verified final queue reconstruction. Retired verifier fence preserved."
+  },
+  "publishedSource": "d4cd6d625330d353ff85390c9950f66dc9ae49ca",
+  "sourceTree": "978461fdda9fa9044d3921da67baf55248cf216f",
+  "authorCommit": "32ca12eda224fe8eeedc26791b8b64f41dbf1a28",
+  "changes": [
+    "AGENTS.md",
+    "tools/development/work-queue/README.md",
+    "docs/development/product-completion-plan.md"
+  ],
+  "independentReview": {
+    "reviewer": "review1223",
+    "result": "Accepted exact three-document diff; no product milestone accepted; instructions only, not automated staffing enforcement"
+  },
+  "tests": {
+    "scheduler": {
+      "passed": 52,
+      "failed": 0,
+      "skipped": 0
+    },
+    "workerReadOnlyModels": {
+      "passed": 19,
+      "failed": 0
+    },
+    "exactCI": 41830848238,
+    "exactCIStatus": "passed",
+    "exactCIJob": 126577335246,
+    "sourceComparedToMerge": "b55585db1c4fca557055d010d5badfe22598262a; GitHub compare files empty",
+    "buildTypecheck": "passed",
+    "postgresqlRestoreEncryptedRecoveryCleanup": "passed",
+    "ciTests": 950,
+    "ciFailed": 0,
+    "ciSkipped": 0
+  },
+  "originalBulletsAccepted": [],
+  "customerJourneysAccepted": [],
+  "codeFeaturesChanged": false,
+  "workers": [
+    {
+      "actor": "worker-1223-1",
+      "task": "P01-03",
+      "status": "stopped clean, no edits; inspected and19modeltests",
+      "source": "402b7929ac3ba2709856ab3aa21e1e7a415949ee",
+      "next": "Harden immutable payment witness insertion against false source hash/journal/effect/observer membership; real restricted-role PostgreSQL negatives then valid capture; full conditional evidence/binding/admission/guards/UI still required"
+    },
+    {
+      "actor": "worker-1223-2",
+      "task": "P03-04",
+      "status": "stopped clean, no edits; native restore test design",
+      "source": "402b7929ac3ba2709856ab3aa21e1e7a415949ee",
+      "next": "On fresh actual restored DB prove unchanged historical witness, reject old unwitnessed foreign-origin event, and native new payment+witness succeeds; no speculative catalog ACL changes"
+    }
+  ],
+  "queue": {
+    "durableRevision": 564,
+    "durableReference": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "7afd31dc6faade40a8225166003653b971e90086",
+      "path": "docs/development/run-20261103-1956-queue-delta.json"
+    },
+    "localAttemptedRevisions": [
+      565,
+      566,
+      567,
+      568,
+      569,
+      570,
+      571,
+      572
+    ],
+    "localFinalRevision": 572,
+    "localHeldLeases": 0,
+    "publication": "Rejected before any worker edit. These attempted claims were never durably authorised. Exact local queue cannot be archived while verifier publication remains rejected; immutable canonical queue564 retained. This is a diagnostic summary, not a replacement/rewrite of queue events."
+  },
+  "blocker": {
+    "type": "environment",
+    "action": "GitHub publication of worker SHA-256 lease verifiers",
+    "reason": "Automatic approval rejected both full history and smaller active reservation delta, explicitly forbidding transport workaround. Raw tokens were not submitted.",
+    "responsibleRole": "Owner explicit approval of non-secret worker-verifier persistence; platform approval capability if rejection persists",
+    "next": "Resolve verifier publication permission before any fresh worker claim; never delete or weaken fences"
+  },
+  "internalDecisionsResolved": [
+    "Retained proof-of-possession and retired reuse fence in coordinator recovery",
+    "Causal agreement binding must be committed before native payment and allocation; snapshot binding at creation, no retroactive qualification",
+    "P03 reload recovery requires actor/company-scoped opaque IDs and visible check-only state, no financial payload/review token or automatic retry; Payments.jsx/test ownership remains next coordinator repair"
+  ],
+  "remainingInternalBlockers": [
+    {
+      "task": "P01-03",
+      "age": "known since prior runs; exact elapsed unknown",
+      "next": "Implement connected evidence/binding/admission/redemption/reversal/UI in staged candidate chain; never infer order from observation clocks",
+      "role": "coordinator and implementation/review"
+    },
+    {
+      "task": "P03-01",
+      "age": "first scoped here",
+      "next": "Reviewed stopped-worker ownership expansion for Payments.jsx and PaymentControls.test.jsx; per-event opaque request identities across reload, unknown stays unknown",
+      "role": "coordinator"
+    }
+  ],
+  "replit": {
+    "implementationWorkers": 0,
+    "observed": "search_apps ledgerpoint returned apps[]; no verified dispatch/monitor/stop/export capability; no work sent"
+  },
+  "utilisation": {
+    "implementers": 2,
+    "reviewers": 1,
+    "implementationEdits": 0,
+    "idleReason": "Mandatory durable reservation blocked; workers stopped rather than speculative edits"
+  },
+  "cost": "unknown",
+  "reviewWait": "unknown",
+  "integrationRework": "none for instructions-only diff",
+  "continuation": "Existing hourly cadence retained, automation paused due worker publication blocker",
+  "endReason": "Worker publication uniformly blocked; complete unaffected policy publication and exact CI, then clean release",
+  "workersStopped": true,
+  "worktreesClean": true,
+  "endedAt": "2026-11-04T12:39:21.733046+00:00"
+}
