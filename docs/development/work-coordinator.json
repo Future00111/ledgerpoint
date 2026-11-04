@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 217,
+  "revision": 218,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "6912f9d0fd75aef26fbaea6fe56fb6cee4b0310a",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261104-2019",
+    "tokenSha256": "5cac27c1f7120e3a061c4b9f415a0d5bcf689fff542800485ac6e30ed6fa8bdf",
+    "acquiredAt": 1793823674332,
+    "expiresAt": 1793825474332
+  },
   "lastOwner": {
     "runId": "hosted-20261104-1917",
     "tokenSha256": "f53f467c3246039f7aacecbdd93a0e592bf7cc3422c0c5a5f430bfe520abb58b",
@@ -8546,7 +8551,7 @@
     "at": 1793820895386,
     "codeHead": "6912f9d0fd75aef26fbaea6fe56fb6cee4b0310a"
   },
-  "updatedAt": 1793820895416,
+  "updatedAt": 1793823674332,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -8699,47 +8704,13 @@
   },
   "activeWorkers": [],
   "run": {
-    "startedAt": "2026-11-04T19:19:06.216Z",
-    "stopBy": "2026-11-04T19:45:00Z",
-    "implementationStopBy": "2026-11-04T19:33:00Z",
-    "status": "stopped-clean-bounded-scenario-verified",
-    "activity": "Exact published6912f9/tree49d6 independently reviewed and CI41897621016/job126811258044 passed1019 zero failures/skips with build/typecheck, native bothparty cash/oldpool/newpool allocation, stale/replay/rollback/timezone/schemafailclosed/historicalreceiptread and full disposablePG/restore/encryptedrecovery/cleanup. Worker stoppedclean and queuepending; fullparent notaccepted.",
+    "startedAt": "2026-11-04T20:21:14.365Z",
+    "stopBy": "2026-11-04T20:47:00Z",
+    "implementationStopBy": "2026-11-04T20:35:00Z",
+    "status": "active",
+    "activity": "Exact live6912 tree49d6 clone; connected paidCredit witness/deadline admission contract review before dispatch",
     "credits": "unknown",
-    "providerUsage": "unknown",
-    "observedAt": "2026-11-04T19:34:55.386Z",
-    "replitCapability": {
-      "found": false,
-      "dispatch": false,
-      "boundedCheck": "Root actual exact name resolve returned found:false; no verified stop/monitor/export transport; no browser retries"
-    },
-    "primaryCandidate": "67bc0c675ce1ae77904d8473dd43c4bb0f5b53af",
-    "workerCandidate": "e9d3307b74b7ea66f3a20de742f6cb3e8113cf28",
-    "primaryCandidateTree": "49d6dc7ca50c43a8f0c6e897572b6e5c667cecca",
-    "newlyAcceptedOriginalBullets": [],
-    "newCompleteJourneys": [],
-    "publishedSource": "6912f9d0fd75aef26fbaea6fe56fb6cee4b0310a",
-    "archiveCommit": "b657b6895d7d320198187becb8910cc1cfb4cf60",
-    "activeWorkers": [],
-    "endedAt": "2026-11-04T19:34:55.386Z",
-    "endReason": "Frozen bounded scenario completed before edit cutoff with exactCI and durable shutdown reserve. Remaining admission/redemption/all-writer contracts cannot safely implement, independently review and qualify within remaining bounded window; next task remains eligible P01-03, no invented blocker.",
-    "newVerifiedBoundedScenarios": [
-      "Native customer and supplier causal cash/payment binding snapshots and later original-only allocation"
-    ],
-    "resolvedBlockers": [
-      "Internal original-versus-observation transaction commitment contract clarified; original must be committed, retained observation need not independently commit",
-      "Causal snapshot capture and immutable parent allocation subset implemented and exactPG verified"
-    ],
-    "rework": [
-      "Offline frozen install unavailable metadata; normal frozen install passed supply-chain policies",
-      "Initial TS7034/7005 implicit array types fixed before freeze; initial log preserved",
-      "Initial unit53/54: no-write test substring INSERT falsely matched schema privilege introspection; changed to anchored actual mutation query regex; final57/57",
-      "Initial integration bundle DBschema alias resolution corrected by explicit db/schema alias; final bundle passed"
-    ],
-    "reviewWait": "not measured",
-    "newWorkDeclined": {
-      "eligibleNext": "P01-03",
-      "reason": "Next connected admission/redemption/all-writer guard contract needs another bounded implementation/review/CI window; do not duplicate snapshot qualification"
-    }
+    "providerUsage": "unknown"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
