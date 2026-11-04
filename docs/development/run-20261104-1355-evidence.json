@@ -1,6 +1,6 @@
 {
   "runId": "hosted-20261104-1355",
-  "observedAt": "2026-11-04T14:09:18.969Z",
+  "observedAt": "2026-11-04T14:12:24.074Z",
   "sourceHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
   "candidate": "980c11578967caf13b40a3e1a783b95441b097a4",
   "candidateTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
@@ -20,8 +20,8 @@
     "clean": true
   },
   "queue": {
-    "revision": 604,
-    "eventCount": 612,
+    "revision": 605,
+    "eventCount": 613,
     "validatedWithCurrentModule": true,
     "nextEligible": "P01-03",
     "claims": 1,
@@ -67,7 +67,8 @@
     "stopBy": "2026-11-04T14:20:00Z",
     "dispatched": true,
     "observedAt": "2026-11-04T14:08:05Z",
-    "activity": "14:08:05UTC root observed isolated Replit clone clean at existing candidate211649c44564f73cdca79e5f5c00580d6783930c treef8cdde522c6603fe2b9e7f99117122d01012bb4a, archivepatch digest matched; independent local coordinator verified exacttreeequals980c115 and parentb481. Fresh pnpm offline frozen ignore-scripts install active with150s timeout; no old workspace dependency symlinks; no PG yet, no shared/demo modifications. Hardstop14:20UTC."
+    "activity": "Root observed all three exact211/f8 test commands completed normally before14:11; visible output confirms disposable populated backup/restore and encrypted recovery, cleanup complete, TEST_RUN_STOPPED with idle shell prompt. Full logs, three source-pinned receipts, before/after temp-directory inventory, exact identity and unchanged original checkout are being exported as gzippedJSON for independent byte/hash verification. Results are reported, not yet independently decoded; no publication approval or parent acceptance.",
+    "testProcessesStopped": true
   },
   "workflowInspection": {
     "development": "pull_request only; no workflow_dispatch or candidate archive inputs",
@@ -76,9 +77,9 @@
     "safeExistingCandidateRunner": false
   },
   "validation": {
-    "actualPostgreSQL": "NOT RUN YET: reserved verified isolated remote shell",
-    "populatedRestore": "NOT RUN",
-    "encryptedRecovery": "NOT RUN",
+    "actualPostgreSQL": "Reported PASS; pending independent full-byte evidence verification",
+    "populatedRestore": "Reported PASS; pending independent full-byte evidence verification",
+    "encryptedRecovery": "Reported PASS; pending independent full-byte evidence verification",
     "priorUnchangedExactSourceEvidence": "Preserved in immutable candidate archive; no new passing PostgreSQL evidence claimed"
   },
   "next": {

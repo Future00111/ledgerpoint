@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 167,
+  "revision": 168,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 604,
+    "revision": 605,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -103,7 +103,7 @@
         "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "14:08:05UTC root observed isolated Replit clone clean at existing candidate211649c44564f73cdca79e5f5c00580d6783930c treef8cdde522c6603fe2b9e7f99117122d01012bb4a, archivepatch digest matched; independent local coordinator verified exacttreeequals980c115 and parentb481. Fresh pnpm offline frozen ignore-scripts install active with150s timeout; no old workspace dependency symlinks; no PG yet, no shared/demo modifications. Hardstop14:20UTC.",
+        "checkpoint": "Root observed all three exact211/f8 test commands completed normally before14:11; visible output confirms disposable populated backup/restore and encrypted recovery, cleanup complete, TEST_RUN_STOPPED with idle shell prompt. Full logs, three source-pinned receipts, before/after temp-directory inventory, exact identity and unchanged original checkout are being exported as gzippedJSON for independent byte/hash verification. Results are reported, not yet independently decoded; no publication approval or parent acceptance.",
         "evidence": {
           "commit": "980c11578967caf13b40a3e1a783b95441b097a4",
           "summary": "PARTIAL P01-03 candidate: immutable scoped actual UTF8 evidence capture/read, protected database function computes bytes/terms hashes and timestamp, same-intent replay, optional draft terms/receipt editing and clearing for both parties, mutually exclusive ordinary discount, unchanged absent hashes. Conditional financial posting explicitly rejects. Parent NOT complete: immutable original posting binding with source/financial hash and line vector, committed binding observation, admission/redemption/every allocation writer guards, compensation, prior-credit/correction cases and native UI/browser journey remain. Next connect original binding and causal committed observation; qualify actual PG rollback/race/restore and independent review before accepting candidate. No existing/shared DB or provider writes. Worker stopped clean; no task reclaim. Root review UUID correction now canonicalizes conditional IDs and SQL terms identity while preserving historical source bytes; uppercase A-F fixtures added. Actual PostgreSQL still pending.",
@@ -7888,6 +7888,13 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "14:08:05UTC root observed isolated Replit clone clean at existing candidate211649c44564f73cdca79e5f5c00580d6783930c treef8cdde522c6603fe2b9e7f99117122d01012bb4a, archivepatch digest matched; independent local coordinator verified exacttreeequals980c115 and parentb481. Fresh pnpm offline frozen ignore-scripts install active with150s timeout; no old workspace dependency symlinks; no PG yet, no shared/demo modifications. Hardstop14:20UTC."
+      },
+      {
+        "at": 1793801543926,
+        "actor": "replit-test-1355",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Root observed all three exact211/f8 test commands completed normally before14:11; visible output confirms disposable populated backup/restore and encrypted recovery, cleanup complete, TEST_RUN_STOPPED with idle shell prompt. Full logs, three source-pinned receipts, before/after temp-directory inventory, exact identity and unchanged original checkout are being exported as gzippedJSON for independent byte/hash verification. Results are reported, not yet independently decoded; no publication approval or parent acceptance."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -7914,10 +7921,10 @@
       }
     ],
     "runId": "hosted-20261104-1355",
-    "at": 1793801358969,
+    "at": 1793801544074,
     "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c"
   },
-  "updatedAt": 1793801358969,
+  "updatedAt": 1793801544074,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -7976,7 +7983,7 @@
       "provider": "Replit shell directly controlled by root",
       "task": "P01-03",
       "scope": "Exact candidate tests only",
-      "status": "observed installing isolated dependencies",
+      "status": "test process stopped; exporting exact evidence",
       "candidate": "211649c44564f73cdca79e5f5c00580d6783930c",
       "isolatedPath": ".local/share/ledgerly/run-20261104-1355/source",
       "stopBy": "2026-11-04T14:20:00Z"
@@ -7985,21 +7992,21 @@
   "run": {
     "startedAt": "2026-11-04T13:57:39.652Z",
     "stopBy": "2026-11-04T14:23:00Z",
-    "activity": "14:08:05UTC root observed isolated Replit clone clean at existing candidate211649c44564f73cdca79e5f5c00580d6783930c treef8cdde522c6603fe2b9e7f99117122d01012bb4a, archivepatch digest matched; independent local coordinator verified exacttreeequals980c115 and parentb481. Fresh pnpm offline frozen ignore-scripts install active with150s timeout; no old workspace dependency symlinks; no PG yet, no shared/demo modifications. Hardstop14:20UTC.",
+    "activity": "Root observed all three exact211/f8 test commands completed normally before14:11; visible output confirms disposable populated backup/restore and encrypted recovery, cleanup complete, TEST_RUN_STOPPED with idle shell prompt. Full logs, three source-pinned receipts, before/after temp-directory inventory, exact identity and unchanged original checkout are being exported as gzippedJSON for independent byte/hash verification. Results are reported, not yet independently decoded; no publication approval or parent acceptance.",
     "activeWorkers": [
       {
         "actor": "replit-test-1355",
         "provider": "Replit shell directly controlled by root",
         "task": "P01-03",
         "scope": "Exact candidate tests only",
-        "status": "observed installing isolated dependencies",
+        "status": "test process stopped; exporting exact evidence",
         "candidate": "211649c44564f73cdca79e5f5c00580d6783930c",
         "isolatedPath": ".local/share/ledgerly/run-20261104-1355/source",
         "stopBy": "2026-11-04T14:20:00Z"
       }
     ],
     "credits": "unknown",
-    "observedAt": "2026-11-04T14:08:05Z"
+    "observedAt": "2026-11-04T14:12:24.074Z"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
