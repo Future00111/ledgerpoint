@@ -1,0 +1,26 @@
+{
+  "basePublished": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+  "baseLocal": "f9fdf51d408fdfa690403fc7511d4e0d3d93f5c8",
+  "baseTree": "aa395e1629efc664ee119e1b55a45c7998c68b3e",
+  "commit": "17e4051c5a850d568910ffbb4b36884ba22e7fdf",
+  "tree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+  "files": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+    "artifacts/api-server/src/services/accountingDocuments/documents.ts",
+    "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+    "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+    "artifacts/api-server/src/services/accountingDocuments/posting.ts",
+    "lib/db/migration-registry.json",
+    "lib/db/migrations/conditional-discount-agreements.review.sql",
+    "lib/db/schema-change-registry.json",
+    "tools/development/migrations/registry.mjs"
+  ],
+  "patchBytes": 40971,
+  "patchSha256": "227234a4d351994ff473a6c90752323a4e6a7cb71a7b5d08667cff8e3fbe08f0",
+  "rawCommitBytes": 272,
+  "rawCommitSha256": "5d70d2e37a493319877839b32a24815d655be0bc5b5b6430b4f39984dcba6e05",
+  "createdAt": "2026-11-04T21:34:22.373Z",
+  "publicPostingEnabled": false,
+  "parentAccepted": false
+}

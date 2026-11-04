@@ -1,0 +1,131 @@
+{
+  "basePublished": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+  "baseLocal": "f9fdf51d408fdfa690403fc7511d4e0d3d93f5c8",
+  "baseTree": "aa395e1629efc664ee119e1b55a45c7998c68b3e",
+  "commit": "17e4051c5a850d568910ffbb4b36884ba22e7fdf",
+  "tree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+  "files": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+    "artifacts/api-server/src/services/accountingDocuments/documents.ts",
+    "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+    "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+    "artifacts/api-server/src/services/accountingDocuments/posting.ts",
+    "lib/db/migration-registry.json",
+    "lib/db/migrations/conditional-discount-agreements.review.sql",
+    "lib/db/schema-change-registry.json",
+    "tools/development/migrations/registry.mjs"
+  ],
+  "patchBytes": 40971,
+  "patchSha256": "227234a4d351994ff473a6c90752323a4e6a7cb71a7b5d08667cff8e3fbe08f0",
+  "rawCommitBytes": 272,
+  "rawCommitSha256": "5d70d2e37a493319877839b32a24815d655be0bc5b5b6430b4f39984dcba6e05",
+  "createdAt": "2026-11-04T21:34:22.373Z",
+  "publicPostingEnabled": false,
+  "parentAccepted": false,
+  "authorCommit": "381ab815678ad20d9271a21729d2674ce9ae867d",
+  "review": {
+    "reviewer": "/root",
+    "approved": "Exact381ab815/treebd95 bounded development integration after combinedchecks",
+    "scope": "Native atomic internal conditional redemption with existing paidCredit operations, immutable unique company/original/binding consumption; exact native credit canonical payload bytes bound to journal/effect hash, perparent qualified-first releases, unsupported history/forged source guards. Private exacttx/company/actor/original/credit/revision/rowhash capability clearedfinally; public conditional gatesclosed, every native eligibilityloss writer guarded undercompanylock; existing corrections childcreditguard. Root reviewed ten changedfiles and ten new native scenarios.",
+    "parentAccepted": false
+  },
+  "tests": {
+    "focused": 59,
+    "registry": 29,
+    "sourceScheduler": 790,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "fullBuildTypecheck": "passed",
+    "apiTypecheck": "passed",
+    "integrationBundle": "passed",
+    "actualPostgreSQL": "pending exact PR27CI",
+    "newNativeScenarios": 10
+  },
+  "worker": {
+    "actor": "worker2121",
+    "stopped": true,
+    "clean": true,
+    "activeCommands": 0,
+    "queueRevision": 667
+  },
+  "rework": [
+    "API fresh libraries required tsc build; initial esbuild path and duplicate test import fixed before final passingchecks",
+    "Registry accidental unrelated dependency repaired before final exact29 checks",
+    "Initial fullbuild returned0 and produced freshdist but log omitted finalchildoutput; repeated fullbuild passed with complete log unchanged source"
+  ],
+  "limitations": [
+    "Internal command only, not mounted on HTTP; original publicconditional posting and nativeUI/browser acceptance remainpending",
+    "Parent compensation/priorcredit/corrections/nativeUI/browser and dedicated conditional populatedrestore remainpending",
+    "Unallocation/reversal now requires complete consumption schema; existing-schema activation remains owner-gated; no existingDB was touched"
+  ],
+  "cost": "unknown",
+  "artifacts": [
+    {
+      "name": "candidate.patch",
+      "bytes": 40971,
+      "sha256": "227234a4d351994ff473a6c90752323a4e6a7cb71a7b5d08667cff8e3fbe08f0"
+    },
+    {
+      "name": "raw-commit.txt",
+      "bytes": 272,
+      "sha256": "5d70d2e37a493319877839b32a24815d655be0bc5b5b6430b4f39984dcba6e05"
+    },
+    {
+      "name": "worker-raw-commit.txt",
+      "bytes": 272,
+      "sha256": "d47af7894f64b5788811301f5f5c8555569e7f298f84af747cfb428ed00c9f7c"
+    },
+    {
+      "name": "manifest.json",
+      "bytes": 1311,
+      "sha256": "8e1030823f20b2c37c6cde4be26c497ea1b0e7334f29eefd2fe5844ec7099da4"
+    },
+    {
+      "name": "worker-manifest.json",
+      "bytes": 2513,
+      "sha256": "d9887b1acdd00370995866378440c612068918ce267fbdd11ab2e0be34e47f52"
+    },
+    {
+      "name": "worker-evidence.json",
+      "bytes": 7751,
+      "sha256": "1a02fd6c3fc6a393a0a9d919afedc72c2fde721c9a034b4c11809867671e3b20"
+    },
+    {
+      "name": "focused.log",
+      "bytes": 5312,
+      "sha256": "8caea75a5f791be0d54e961a2a9910ac23e2a4fd4e02d8b9c9285b27dfbf10f2"
+    },
+    {
+      "name": "registry.log",
+      "bytes": 2068,
+      "sha256": "fc4442a3858cce99aea1a1b0d4cc77b8ac0ece1c8317a7450b196a03aca09f13"
+    },
+    {
+      "name": "source.log",
+      "bytes": 83788,
+      "sha256": "499e05b1cef5f6e9727c99e25443200490c65e93a30096efdecb76561b472034"
+    },
+    {
+      "name": "build.log",
+      "bytes": 15457,
+      "sha256": "ad1b54ad5476adb37042155fe95d54b6c46899ef6fd1d0d3963343f6aa6ee1c9"
+    },
+    {
+      "name": "initial-build-incomplete.log",
+      "bytes": 2346,
+      "sha256": "f0102813c9f65140b6b32b770c0487b6884e3bcccd3b4fcf48f352b43c2c2007"
+    },
+    {
+      "name": "api-typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "integration-bundle.log",
+      "bytes": 71,
+      "sha256": "2fd6128bd7d95752da30555613324cde06da50585d8055292f29f49480c955a9"
+    }
+  ]
+}

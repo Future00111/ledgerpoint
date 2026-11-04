@@ -1,0 +1,39 @@
+$ pnpm run typecheck && pnpm -r --if-present run build
+$ pnpm run typecheck:libs && pnpm -r --filter "./artifacts/**" --filter "./scripts" --if-present run typecheck
+$ tsc --build
+Scope: 4 of 9 workspace projects
+artifacts/api-server typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/ledgerly typecheck$ tsc -p tsconfig.json --noEmit
+scripts typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/mockup-sandbox typecheck$ tsc -p tsconfig.json --noEmit
+scripts typecheck: Done
+artifacts/ledgerly typecheck: Done
+artifacts/mockup-sandbox typecheck: Done
+artifacts/api-server typecheck: Done
+Scope: 8 of 9 workspace projects
+artifacts/mockup-sandbox build$ vite build
+artifacts/ledgerly build$ vite build --config vite.config.ts
+artifacts/api-server build$ node ./build.mjs
+artifacts/mockup-sandbox build: vite v7.3.6 building client environment for production...
+artifacts/api-server build:   dist/index.mjs                       3.6mb ⚠️
+artifacts/api-server build:   dist/pino-worker.mjs               154.8kb
+artifacts/api-server build:   dist/pino-file.mjs                 143.3kb
+artifacts/api-server build:   dist/pino-pretty.mjs               116.0kb
+artifacts/api-server build:   dist/thread-stream-worker.mjs        7.5kb
+artifacts/api-server build:   dist/index.mjs.map                   8.5mb
+artifacts/api-server build:   dist/pino-worker.mjs.map           257.6kb
+artifacts/api-server build:   dist/pino-file.mjs.map             229.7kb
+artifacts/api-server build:   dist/pino-pretty.mjs.map           204.4kb
+artifacts/api-server build:   dist/thread-stream-worker.mjs.map   12.1kb
+artifacts/api-server build: ⚡ Done in 409ms
+artifacts/mockup-sandbox build: transforming...
+artifacts/api-server build: Done
+artifacts/ledgerly build: vite v7.3.6 building client environment for production...
+artifacts/ledgerly build: transforming...
+artifacts/mockup-sandbox build: ✓ 30 modules transformed.
+artifacts/mockup-sandbox build: rendering chunks...
+artifacts/mockup-sandbox build: computing gzip size...
+artifacts/mockup-sandbox build: dist/index.html                   4.42 kB │ gzip:  1.23 kB
+artifacts/mockup-sandbox build: dist/assets/index-C4GxwS3y.css   88.37 kB │ gzip: 14.82 kB
+artifacts/mockup-sandbox build: dist/assets/index-CqOx4XgY.js   187.72 kB │ gzip: 59.51 kB
+artifacts/mockup-sandbox build: ✓ built in 1.15s

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 235,
+  "revision": 237,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261104-2121",
     "tokenSha256": "a803e353112738ed446ee96d77db574326bef16fda25f422fb5799be2d091dd6",
     "acquiredAt": 1793827361114,
-    "expiresAt": 1793829710593
+    "expiresAt": 1793829930964
   },
   "lastOwner": {
     "runId": "hosted-20261104-2019",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 665,
+    "revision": 667,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,24 +100,28 @@
         }
       },
       "P01-03": {
-        "status": "running",
+        "status": "review",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Before edits: fresh isolated exact remote treeaa395/source de140; implement internal atomic conditional redemption, immutable consumption unique(company,original,binding) linked exact credit/operation/vector; native paidCredit posting/pool only. All writer eligibility-loss guards same company lock; public conditional gates remain closed. Root independent review; edit freeze21:39 stop21:49. No source edits yet.",
+        "checkpoint": "Stopped clean381ab815/treebd95f557 tenfiles; focused59 registry29 libs/APItypecheck integrationbundle diffcheckpass. ActualPG pendingPR27CI. Candidate patch/rawcommit locally preserved. Parent pending UI/browser/compensation/corrections. No active editing or commands; no moreclaims.",
         "evidence": {
-          "commit": "ce251328e0bf78055dd74d9e3cef1d9b1c772a46",
-          "summary": "PARTIAL connected internal conditional credit admission from native original binding, frozen cash/allocation snapshot and committed witnesses; exact threshold/deadline/vector and qualified-first plannedrelease checks; ordinarycredit routes closed on conditionaloriginal. No redemption/posting/API/UI activation. Nativebothparty26 newscenario cases bundled; actualPostgreSQL pending existingPRCI. Parent still pending atomicconsumption/allwriter guards/compensation/corrections/UI/browser; no acceptance. Worker stopped clean.",
+          "commit": "381ab815678ad20d9271a21729d2674ce9ae867d",
+          "summary": "PARTIAL internal atomic conditional redemption uses native paidCredit posting/releases and immutable unique consumption in existing operation. Exact transaction-only private capability; public conditional paths remain closed. All native eligibility-loss unallocation/reversal guard consumed original/parents; ordinary credits remainclosed and correction childcreditguard retained. Bothparty threshold10800/12000release, duplicate and competing credits, eligibilityloss race, postconsumption rollback, surplusrefund, stale unallocation commit and forgedsource evidence cases added. ActualPG pending exactPR27CI; parent stillpending completeUI/browser, compensation/correction/priorcredit expansion. Worker stoppedclean.",
           "tests": [
             {
-              "command": "Exact esbuild conditionalDiscount.test.ts with explicit current @workspace/db and /schema aliases; DATABASE_URL synthetic localhost1 node --test:59passed0fail0skip",
+              "command": "Exact esbuild conditionalDiscount.test.ts and synthetic localhost1 DATABASE_URL node --test:59passed0fail0skip",
               "passed": true
             },
             {
-              "command": "Exact current libs tsc --build and API tsc --noEmit:passed",
+              "command": "node --test tools/development/migrations/registry.test.mjs:29passed0fail0skip",
               "passed": true
             },
             {
-              "command": "Exact conditionalDiscount.integration.test.ts esbuild fullbundle:passed; actualPostgreSQL NOT executed locally",
+              "command": "Exact libs tsc --build and API tsc --noEmit:passed",
+              "passed": true
+            },
+            {
+              "command": "Exact conditionalDiscount.integration.test.ts esbuild fullbundle:passed; actualPG notrun",
               "passed": true
             },
             {
@@ -126,19 +130,19 @@
             }
           ],
           "priorEvidence": {
-            "commit": "e9d3307b74b7ea66f3a20de742f6cb3e8113cf28",
-            "summary": "PARTIAL native original-cash conditional binding snapshot and later-allocation original-parent-only subset. Explicit empty and legacy absence cannot gain later bindings; native canonical source/effect and retained observation identity validated. Public conditional posting gates closed. Exact PostgreSQL/restore pending PR27CI. Parent admission/redemption/deadline witnesses/all-writer guards/compensation/corrections/full customer-supplier-browser journeys remain pending; next connect admission to immutable snapshot plus committed payment/allocation witnesses. Worker stopped clean.",
+            "commit": "ce251328e0bf78055dd74d9e3cef1d9b1c772a46",
+            "summary": "PARTIAL connected internal conditional credit admission from native original binding, frozen cash/allocation snapshot and committed witnesses; exact threshold/deadline/vector and qualified-first plannedrelease checks; ordinarycredit routes closed on conditionaloriginal. No redemption/posting/API/UI activation. Nativebothparty26 newscenario cases bundled; actualPostgreSQL pending existingPRCI. Parent still pending atomicconsumption/allwriter guards/compensation/corrections/UI/browser; no acceptance. Worker stopped clean.",
             "tests": [
               {
-                "command": "Exact worker esbuild conditionalDiscount.test.ts with explicit @workspace/db and /schema aliases then node --test:57 pass0fail0skip",
+                "command": "Exact esbuild conditionalDiscount.test.ts with explicit current @workspace/db and /schema aliases; DATABASE_URL synthetic localhost1 node --test:59passed0fail0skip",
                 "passed": true
               },
               {
-                "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json:passed",
+                "command": "Exact current libs tsc --build and API tsc --noEmit:passed",
                 "passed": true
               },
               {
-                "command": "Exact worker esbuild conditionalDiscount.integration.test.ts with explicit DB aliases:passed; actualPostgreSQL execution pending",
+                "command": "Exact conditionalDiscount.integration.test.ts esbuild fullbundle:passed; actualPostgreSQL NOT executed locally",
                 "passed": true
               },
               {
@@ -147,50 +151,72 @@
               }
             ],
             "priorEvidence": {
-              "commit": "33b35cc70971f6d8bf01149149f8905bf783e05c",
-              "summary": "PARTIAL conditional commitment development slice. Root reviewed unchanged runtime1d14 plus two inactive-duplicate fixture fixesf3ea; originalCI actualPG23 conditionalpass2 fixturefail. Fixed exactpublished CI pending. All original parent implementation/UI gates remain pending; previous evidence preserved.",
+              "commit": "e9d3307b74b7ea66f3a20de742f6cb3e8113cf28",
+              "summary": "PARTIAL native original-cash conditional binding snapshot and later-allocation original-parent-only subset. Explicit empty and legacy absence cannot gain later bindings; native canonical source/effect and retained observation identity validated. Public conditional posting gates closed. Exact PostgreSQL/restore pending PR27CI. Parent admission/redemption/deadline witnesses/all-writer guards/compensation/corrections/full customer-supplier-browser journeys remain pending; next connect admission to immutable snapshot plus committed payment/allocation witnesses. Worker stopped clean.",
               "tests": [
                 {
-                  "command": "Exact f3ea API typecheck and integration test bundle passed; runtime unchanged from reviewed1d14 focused47/registry29/source790/fullbuild",
+                  "command": "Exact worker esbuild conditionalDiscount.test.ts with explicit @workspace/db and /schema aliases then node --test:57 pass0fail0skip",
+                  "passed": true
+                },
+                {
+                  "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json:passed",
+                  "passed": true
+                },
+                {
+                  "command": "Exact worker esbuild conditionalDiscount.integration.test.ts with explicit DB aliases:passed; actualPostgreSQL execution pending",
+                  "passed": true
+                },
+                {
+                  "command": "git diff --check:passed",
                   "passed": true
                 }
               ],
-              "reviewed": true,
-              "reviewer": "/root",
               "priorEvidence": {
-                "commit": "008e5d718fbedd41130c7449beb9898305bb8ed8",
-                "summary": "PARTIAL independently reviewed pre-journal conditional original payload commitment and SQL binding/observer authority; archived51342745 candidate1d14/tree324e. Public gates closed. Full parent admission/redemption/all-writer guards/reversal compensation/corrections/native UI/browser remain pending. Exact published CI disposablePG/restore pending. Prior partial evidence preserved below.",
+                "commit": "33b35cc70971f6d8bf01149149f8905bf783e05c",
+                "summary": "PARTIAL conditional commitment development slice. Root reviewed unchanged runtime1d14 plus two inactive-duplicate fixture fixesf3ea; originalCI actualPG23 conditionalpass2 fixturefail. Fixed exactpublished CI pending. All original parent implementation/UI gates remain pending; previous evidence preserved.",
                 "tests": [
                   {
-                    "command": "Exact candidate focused47 registry29 source790 all passed; full workspace build/typecheck and integration bundle passed",
+                    "command": "Exact f3ea API typecheck and integration test bundle passed; runtime unchanged from reviewed1d14 focused47/registry29/source790/fullbuild",
                     "passed": true
                   }
                 ],
                 "reviewed": true,
                 "reviewer": "/root",
                 "priorEvidence": {
-                  "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
-                  "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
+                  "commit": "008e5d718fbedd41130c7449beb9898305bb8ed8",
+                  "summary": "PARTIAL independently reviewed pre-journal conditional original payload commitment and SQL binding/observer authority; archived51342745 candidate1d14/tree324e. Public gates closed. Full parent admission/redemption/all-writer guards/reversal compensation/corrections/native UI/browser remain pending. Exact published CI disposablePG/restore pending. Prior partial evidence preserved below.",
                   "tests": [
                     {
-                      "command": "Exact211/f8 node tools/accounting-flow/test.mjs on isolated UID1000 PostgreSQL16.10:133 pass0fail0skip across8 suites, populated40tables6325rows matchingfingerprints and encrypted freshcluster nativepayment/witness recovery; allcleanup pass",
-                      "passed": true
-                    },
-                    {
-                      "command": "Exact211/f8 node --test tools/operations/backup-restore/*.test.mjs:12pass0fail0skip",
-                      "passed": true
-                    },
-                    {
-                      "command": "Exact211/f8 node tools/operations/backup-restore/rehearsal.mjs:verified equal fingerprints, negative/RLS/schema/sequence controls andcleanup",
-                      "passed": true
-                    },
-                    {
-                      "command": "Same unchanged treef8 prior run source790/fullworkspacebuild/typecheck passed; preserved exact evidence, not rerun in this run",
+                      "command": "Exact candidate focused47 registry29 source790 all passed; full workspace build/typecheck and integration bundle passed",
                       "passed": true
                     }
                   ],
                   "reviewed": true,
-                  "reviewer": "root-and-coordinator1355-technical-only"
+                  "reviewer": "/root",
+                  "priorEvidence": {
+                    "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
+                    "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
+                    "tests": [
+                      {
+                        "command": "Exact211/f8 node tools/accounting-flow/test.mjs on isolated UID1000 PostgreSQL16.10:133 pass0fail0skip across8 suites, populated40tables6325rows matchingfingerprints and encrypted freshcluster nativepayment/witness recovery; allcleanup pass",
+                        "passed": true
+                      },
+                      {
+                        "command": "Exact211/f8 node --test tools/operations/backup-restore/*.test.mjs:12pass0fail0skip",
+                        "passed": true
+                      },
+                      {
+                        "command": "Exact211/f8 node tools/operations/backup-restore/rehearsal.mjs:verified equal fingerprints, negative/RLS/schema/sequence controls andcleanup",
+                        "passed": true
+                      },
+                      {
+                        "command": "Same unchanged treef8 prior run source790/fullworkspacebuild/typecheck passed; preserved exact evidence, not rerun in this run",
+                        "passed": true
+                      }
+                    ],
+                    "reviewed": true,
+                    "reviewer": "root-and-coordinator1355-technical-only"
+                  }
                 }
               }
             }
@@ -8700,6 +8726,137 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "Before edits: fresh isolated exact remote treeaa395/source de140; implement internal atomic conditional redemption, immutable consumption unique(company,original,binding) linked exact credit/operation/vector; native paidCredit posting/pool only. All writer eligibility-loss guards same company lock; public conditional gates remain closed. Root independent review; edit freeze21:39 stop21:49. No source edits yet."
+      },
+      {
+        "at": 1793828076422,
+        "actor": "worker2121",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Stopped clean381ab815/treebd95f557 tenfiles; focused59 registry29 libs/APItypecheck integrationbundle diffcheckpass. ActualPG pendingPR27CI. Candidate patch/rawcommit locally preserved. Parent pending UI/browser/compensation/corrections. No active editing or commands; no moreclaims."
+      },
+      {
+        "at": 1793828076561,
+        "actor": "worker2121",
+        "type": "submit",
+        "taskId": "P01-03",
+        "evidence": {
+          "commit": "381ab815678ad20d9271a21729d2674ce9ae867d",
+          "summary": "PARTIAL internal atomic conditional redemption uses native paidCredit posting/releases and immutable unique consumption in existing operation. Exact transaction-only private capability; public conditional paths remain closed. All native eligibility-loss unallocation/reversal guard consumed original/parents; ordinary credits remainclosed and correction childcreditguard retained. Bothparty threshold10800/12000release, duplicate and competing credits, eligibilityloss race, postconsumption rollback, surplusrefund, stale unallocation commit and forgedsource evidence cases added. ActualPG pending exactPR27CI; parent stillpending completeUI/browser, compensation/correction/priorcredit expansion. Worker stoppedclean.",
+          "tests": [
+            {
+              "command": "Exact esbuild conditionalDiscount.test.ts and synthetic localhost1 DATABASE_URL node --test:59passed0fail0skip",
+              "passed": true
+            },
+            {
+              "command": "node --test tools/development/migrations/registry.test.mjs:29passed0fail0skip",
+              "passed": true
+            },
+            {
+              "command": "Exact libs tsc --build and API tsc --noEmit:passed",
+              "passed": true
+            },
+            {
+              "command": "Exact conditionalDiscount.integration.test.ts esbuild fullbundle:passed; actualPG notrun",
+              "passed": true
+            },
+            {
+              "command": "git diff --check:passed",
+              "passed": true
+            }
+          ],
+          "priorEvidence": {
+            "commit": "ce251328e0bf78055dd74d9e3cef1d9b1c772a46",
+            "summary": "PARTIAL connected internal conditional credit admission from native original binding, frozen cash/allocation snapshot and committed witnesses; exact threshold/deadline/vector and qualified-first plannedrelease checks; ordinarycredit routes closed on conditionaloriginal. No redemption/posting/API/UI activation. Nativebothparty26 newscenario cases bundled; actualPostgreSQL pending existingPRCI. Parent still pending atomicconsumption/allwriter guards/compensation/corrections/UI/browser; no acceptance. Worker stopped clean.",
+            "tests": [
+              {
+                "command": "Exact esbuild conditionalDiscount.test.ts with explicit current @workspace/db and /schema aliases; DATABASE_URL synthetic localhost1 node --test:59passed0fail0skip",
+                "passed": true
+              },
+              {
+                "command": "Exact current libs tsc --build and API tsc --noEmit:passed",
+                "passed": true
+              },
+              {
+                "command": "Exact conditionalDiscount.integration.test.ts esbuild fullbundle:passed; actualPostgreSQL NOT executed locally",
+                "passed": true
+              },
+              {
+                "command": "git diff --check:passed",
+                "passed": true
+              }
+            ],
+            "priorEvidence": {
+              "commit": "e9d3307b74b7ea66f3a20de742f6cb3e8113cf28",
+              "summary": "PARTIAL native original-cash conditional binding snapshot and later-allocation original-parent-only subset. Explicit empty and legacy absence cannot gain later bindings; native canonical source/effect and retained observation identity validated. Public conditional posting gates closed. Exact PostgreSQL/restore pending PR27CI. Parent admission/redemption/deadline witnesses/all-writer guards/compensation/corrections/full customer-supplier-browser journeys remain pending; next connect admission to immutable snapshot plus committed payment/allocation witnesses. Worker stopped clean.",
+              "tests": [
+                {
+                  "command": "Exact worker esbuild conditionalDiscount.test.ts with explicit @workspace/db and /schema aliases then node --test:57 pass0fail0skip",
+                  "passed": true
+                },
+                {
+                  "command": "node node_modules/typescript/bin/tsc --noEmit -p artifacts/api-server/tsconfig.json:passed",
+                  "passed": true
+                },
+                {
+                  "command": "Exact worker esbuild conditionalDiscount.integration.test.ts with explicit DB aliases:passed; actualPostgreSQL execution pending",
+                  "passed": true
+                },
+                {
+                  "command": "git diff --check:passed",
+                  "passed": true
+                }
+              ],
+              "priorEvidence": {
+                "commit": "33b35cc70971f6d8bf01149149f8905bf783e05c",
+                "summary": "PARTIAL conditional commitment development slice. Root reviewed unchanged runtime1d14 plus two inactive-duplicate fixture fixesf3ea; originalCI actualPG23 conditionalpass2 fixturefail. Fixed exactpublished CI pending. All original parent implementation/UI gates remain pending; previous evidence preserved.",
+                "tests": [
+                  {
+                    "command": "Exact f3ea API typecheck and integration test bundle passed; runtime unchanged from reviewed1d14 focused47/registry29/source790/fullbuild",
+                    "passed": true
+                  }
+                ],
+                "reviewed": true,
+                "reviewer": "/root",
+                "priorEvidence": {
+                  "commit": "008e5d718fbedd41130c7449beb9898305bb8ed8",
+                  "summary": "PARTIAL independently reviewed pre-journal conditional original payload commitment and SQL binding/observer authority; archived51342745 candidate1d14/tree324e. Public gates closed. Full parent admission/redemption/all-writer guards/reversal compensation/corrections/native UI/browser remain pending. Exact published CI disposablePG/restore pending. Prior partial evidence preserved below.",
+                  "tests": [
+                    {
+                      "command": "Exact candidate focused47 registry29 source790 all passed; full workspace build/typecheck and integration bundle passed",
+                      "passed": true
+                    }
+                  ],
+                  "reviewed": true,
+                  "reviewer": "/root",
+                  "priorEvidence": {
+                    "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
+                    "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
+                    "tests": [
+                      {
+                        "command": "Exact211/f8 node tools/accounting-flow/test.mjs on isolated UID1000 PostgreSQL16.10:133 pass0fail0skip across8 suites, populated40tables6325rows matchingfingerprints and encrypted freshcluster nativepayment/witness recovery; allcleanup pass",
+                        "passed": true
+                      },
+                      {
+                        "command": "Exact211/f8 node --test tools/operations/backup-restore/*.test.mjs:12pass0fail0skip",
+                        "passed": true
+                      },
+                      {
+                        "command": "Exact211/f8 node tools/operations/backup-restore/rehearsal.mjs:verified equal fingerprints, negative/RLS/schema/sequence controls andcleanup",
+                        "passed": true
+                      },
+                      {
+                        "command": "Same unchanged treef8 prior run source790/fullworkspacebuild/typecheck passed; preserved exact evidence, not rerun in this run",
+                        "passed": true
+                      }
+                    ],
+                    "reviewed": true,
+                    "reviewer": "root-and-coordinator1355-technical-only"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8726,10 +8883,10 @@
       }
     ],
     "runId": "hosted-20261104-2121",
-    "at": 1793827910607,
+    "at": 1793828130981,
     "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
   },
-  "updatedAt": 1793827910607,
+  "updatedAt": 1793828130981,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9071,8 +9228,8 @@
       "base": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
       "localBase": "f9fdf51d408fdfa690403fc7511d4e0d3d93f5c8",
       "sourceTree": "aa395e1629efc664ee119e1b55a45c7998c68b3e",
-      "status": "implementing-observed",
-      "lastObservedAt": "2026-11-04T21:31:50.621Z",
+      "status": "stopped-clean-in-review",
+      "lastObservedAt": "2026-11-04T21:36:05.720Z",
       "fileLease": [
         "artifacts/api-server/src/services/accountingDocuments/documents.ts",
         "artifacts/api-server/src/services/accountingDocuments/settlement.ts",
@@ -9117,23 +9274,30 @@
         "tools/development/migrations/partial-schema.test.mjs"
       ],
       "contract": "Internal atomic conditional redemption same uncorrected GBP no priorcredit G12000 D1200; rederive admission under companylock, immutable unique company/original/binding consumption linked exact postedcredit operation vector. Native paidCredit posting/pool transaction only; private transaction-scoped capability no public body mode. All writer eligibility loss rejected under companylock, valid surplusrefund allowed. Retry/race/rollback closingbalance tests. Public gatesclosed; parentpending. Coordinator delegates schema/paidCredit/posting/payment guard paths within existing P01-03 lease; no catalogue changes.",
-      "editsStopBy": "2026-11-04T21:39:00Z"
+      "editsStopBy": "2026-11-04T21:39:00Z",
+      "commit": "381ab815678ad20d9271a21729d2674ce9ae867d",
+      "tree": "bd95f5578824de7e0b13015af4dfd0273cb4c384"
     }
   ],
   "run": {
     "startedAt": "2026-11-04T21:22:41.155Z",
     "stopBy": "2026-11-04T21:49:00Z",
     "implementationStopBy": "2026-11-04T21:39:00Z",
-    "status": "active",
-    "activity": "Observed 10-file connected redemption implementation and six native scenario tests; root reviewed capability and writer inventory, required perparent release arithmetic and exact credit canonical payload in SQL. Author resolving those review findings; focused59 and registry29 passed, integrationbundle passed; API duplicate import repair pending; candidate target21:34. Full parent/UI/browser pending.",
+    "status": "publication",
+    "activity": "Exact author381ab815 integrated17e4051 samebd95tree independently approved root; focused59 registry29 source790 fullbuild/typecheck passed; author stoppedclean queue667; archive before sourcepublication.",
     "credits": "unknown",
     "providerUsage": "unknown",
-    "observedAt": "2026-11-04T21:31:50.621Z",
+    "observedAt": "2026-11-04T21:35:30.997Z",
     "replitCapability": {
       "found": false,
       "dispatch": false,
       "boundedCheck": "Root actual exact name resolve returned found:false; no verified stop/monitor/export transport; no browser retries"
-    }
+    },
+    "primaryCandidate": "17e4051c5a850d568910ffbb4b36884ba22e7fdf",
+    "workerCandidate": "381ab815678ad20d9271a21729d2674ce9ae867d",
+    "primaryCandidateTree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+    "newlyAcceptedOriginalBullets": [],
+    "newCompleteJourneys": []
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",

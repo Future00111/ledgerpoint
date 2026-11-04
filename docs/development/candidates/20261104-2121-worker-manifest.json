@@ -1,0 +1,70 @@
+{
+  "source": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+  "localBase": "f9fdf51d408fdfa690403fc7511d4e0d3d93f5c8",
+  "commit": "381ab815678ad20d9271a21729d2674ce9ae867d",
+  "tree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+  "branch": "codex/lp-2121-worker",
+  "files": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+    "artifacts/api-server/src/services/accountingDocuments/documents.ts",
+    "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+    "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+    "artifacts/api-server/src/services/accountingDocuments/posting.ts",
+    "lib/db/migration-registry.json",
+    "lib/db/migrations/conditional-discount-agreements.review.sql",
+    "lib/db/schema-change-registry.json",
+    "tools/development/migrations/registry.mjs"
+  ],
+  "stopped": true,
+  "clean": true,
+  "activeCommands": 0,
+  "endedAt": "2026-11-04T21:34:36.613Z",
+  "queueRevision": 667,
+  "artifacts": [
+    {
+      "path": "candidate-2121-worker.patch",
+      "bytes": 40971,
+      "sha256": "227234a4d351994ff473a6c90752323a4e6a7cb71a7b5d08667cff8e3fbe08f0"
+    },
+    {
+      "path": "candidate-2121-worker-raw-commit.txt",
+      "bytes": 272,
+      "sha256": "d47af7894f64b5788811301f5f5c8555569e7f298f84af747cfb428ed00c9f7c"
+    },
+    {
+      "path": "worker-2121-evidence.json",
+      "bytes": 7751,
+      "sha256": "1a02fd6c3fc6a393a0a9d919afedc72c2fde721c9a034b4c11809867671e3b20"
+    },
+    {
+      "path": "conditional-2121-unit.log",
+      "bytes": 5312,
+      "sha256": "8caea75a5f791be0d54e961a2a9910ac23e2a4fd4e02d8b9c9285b27dfbf10f2"
+    },
+    {
+      "path": "registry-2121.log",
+      "bytes": 2068,
+      "sha256": "fc4442a3858cce99aea1a1b0d4cc77b8ac0ece1c8317a7450b196a03aca09f13"
+    },
+    {
+      "path": "typecheck-2121-worker.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "bundle-2121-integration.log",
+      "bytes": 71,
+      "sha256": "2fd6128bd7d95752da30555613324cde06da50585d8055292f29f49480c955a9"
+    },
+    {
+      "path": "typecheck-libs-2121-worker.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "actualPostgreSQL": "pending exact PR27 CI",
+  "originalBulletsAccepted": 0,
+  "parentAccepted": false,
+  "cost": "unknown"
+}
