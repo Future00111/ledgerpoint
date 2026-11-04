@@ -1,0 +1,32 @@
+{
+  "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+  "authorCommit": "aed6abd40f473e3475b31f8b0ea1d2df16110c03",
+  "author": "Codex <codex@openai.com>",
+  "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+  "branch": "codex/lp-1452-restore",
+  "paths": [
+    "tools/operations/backup-restore/runtime-acceptance.test.mjs",
+    "tools/operations/backup-restore/runtime-acceptance.ts"
+  ],
+  "patchSha256": "c8d27a0ed44f21cac422e70cf71905c5aa1f5fdfdea2df241531424d2ba65014",
+  "evidence": {
+    "commit": "aed6abd40f473e3475b31f8b0ea1d2df16110c03",
+    "summary": "PARTIAL P03-04 candidate native captured-source recovery: independent original bytes/hash and metadata read by current native service for owner and read-only actor before/after encrypted fresh-cluster restore; exact inactive/foreign actor and cross-company source denials. Existing fixture reused without new source/membership mutations; all native payment/witness checks preserved. Actual PostgreSQL execution and independent review pending. Parent remains incomplete: operational recovery targets/ownership/key-retention/offsite gate and remaining full runtime/job recovery scope. Next exact combined accounting/restore run then evaluate remaining operational scope; no self-approval.",
+    "tests": [
+      {
+        "command": "node --test tools/operations/backup-restore/*.test.mjs on exact aed6abd40f473e3475b31f8b0ea1d2df16110c03:12 passed,0failed,0skipped; source-boundary bundling includes exact-worktree intake service/evidence and rejects ambient DB before runtime load",
+        "passed": true
+      },
+      {
+        "command": "git diff --check:passed; actual PostgreSQL not run locally",
+        "passed": true
+      }
+    ]
+  },
+  "startedAt": "2026-11-04T15:00:00Z",
+  "stoppedAt": "2026-11-04T15:03:25.057Z",
+  "stopped": true,
+  "clean": true,
+  "activeProcesses": [],
+  "providerUsage": "unknown"
+}

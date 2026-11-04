@@ -1,0 +1,20 @@
+✔ application recovery rejects existing/shared and redirected archive inputs (1.722838ms)
+✔ restored application roles reject elevated flags, login owner and unexpected memberships (0.761308ms)
+✔ fresh nonces, exact role/job/audit/attachment bytes and authenticated envelope (3.453458ms)
+✔ file rehearsal restores a fresh output only and never overwrites evidence (5.898841ms)
+✔ CLI performs explicit synthetic round trip without logging archive or key contents (254.270425ms)
+✔ FIFO keys and inputs are rejected without waiting for a writer (145.854147ms)
+✔ negative control detects changed fingerprint, never commits mutation and verifies rollback (2.21447ms)
+✔ unchanged fingerprints fail the control and still roll back (0.766046ms)
+✔ failed fingerprint inspection rolls back both savepoint and outer mutation (0.388757ms)
+✔ restored fixture must match after rollback before the control can pass (0.39747ms)
+✔ native acceptance binds each phase to its fixed disposable socket, database and restricted role (1.712993ms)
+✔ actual native acceptance bundle rejects inherited database URLs before loading the runtime (283.533787ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 523.631102
