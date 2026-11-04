@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 194,
+  "revision": 195,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261104-1819",
+    "tokenSha256": "72e41f1c895ac7f6cc3d464742d9ff615863140f718b92a36cc29b02423e4488",
+    "acquiredAt": 1793816449238,
+    "expiresAt": 1793818249238
+  },
   "lastOwner": {
     "runId": "hosted-20261104-1732",
     "tokenSha256": "3c5b9596a5afcbb789bb40e7a7b9046b8f31ecdeb1e1e77e84f2fdb66837ed74",
@@ -408,7 +413,7 @@
         "checkpoint": "Root confirmed validationPG/export stopped, source dc5e/40853f clean andmaincda92clean, beforeaftertmp[]; fullhashcheckedproof4369f93e durable. Publishedexactdc5e viaexpectedheadFF211; independenttechnicalreview+133PG/12unit/restores passed. SourceCIpending, parentpending operationaltargets/ownership/keyretention/offsite/fullruntime; no newimplementation or duplicatevalidationnext.",
         "evidence": {
           "commit": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
-          "summary": "PARTIAL P03-04 native captured-source recovery. Exactpublished40853f tree independentlyreviewedroot+coordinator; actualReplitisolatedPG133accounting/12backup andpopulated40tables6325rows encryptedfreshcluster restore nativecapture bytesmetadata/readOnly/foreigncompany/inactiveforeignactors allpass, previousnativepayment/witness preserved. Fullhashcheckedlogs3receipts archived4369f93e docs/development/candidates/20261104-1521-replit-validation-evidence.json. SourceexpectedheadFF211\u2192dc5e succeeded. ExactpublishedCIpending. Parentincomplete: operationaltargets/ownership/keyretention/offsite andfullruntime/job qualification; no commercialjourneyacceptance.",
+          "summary": "PARTIAL P03-04 native captured-source recovery. Exactpublished40853f tree independentlyreviewedroot+coordinator; actualReplitisolatedPG133accounting/12backup andpopulated40tables6325rows encryptedfreshcluster restore nativecapture bytesmetadata/readOnly/foreigncompany/inactiveforeignactors allpass, previousnativepayment/witness preserved. Fullhashcheckedlogs3receipts archived4369f93e docs/development/candidates/20261104-1521-replit-validation-evidence.json. SourceexpectedheadFF211→dc5e succeeded. ExactpublishedCIpending. Parentincomplete: operationaltargets/ownership/keyretention/offsite andfullruntime/job qualification; no commercialjourneyacceptance.",
           "tests": [
             {
               "command": "Exactdc5e/40853f isolatedReplit PostgreSQL16 existing accounting-flow:133pass0fail0skip; populated/encryptedrestore nativecapture+payment/witness flagsalltrue, cleanupandbeforeaftertmp[]",
@@ -520,7 +525,7 @@
         "status": "done",
         "priority": 600,
         "discoveredDependencies": [],
-        "checkpoint": "At clean6816da0 (only prior P02-01 test addition); P06-00 files unchanged from aa45af5. Inspected complete native-bank contract and existing both-party \u00a3120 less \u00a310 credit less \u00a320 payment fixture with unchanged reports/journals/payment counts and original-command replay. Prior queue evidence says CI pending but checkpoint72 records exact aa45af5 CI passed891; coordinator should revalidate named fixture logs and accept contract if matching. No duplicate fixture planned. Focused bank/payment recovery model tests rerun.",
+        "checkpoint": "At clean6816da0 (only prior P02-01 test addition); P06-00 files unchanged from aa45af5. Inspected complete native-bank contract and existing both-party £120 less £10 credit less £20 payment fixture with unchanged reports/journals/payment counts and original-command replay. Prior queue evidence says CI pending but checkpoint72 records exact aa45af5 CI passed891; coordinator should revalidate named fixture logs and accept contract if matching. No duplicate fixture planned. Focused bank/payment recovery model tests rerun.",
         "evidence": {
           "commit": "aa45af5cd82a676b4851e5cbab873cd70bcf5c04",
           "summary": "Accepted contract only: exact aa45af5 source, original bank-status/payment-identity fixture verified in CI41226519311 job124611701175, matching tree and model tests; native import implementation remains pending.",
@@ -5338,7 +5343,7 @@
         "taskId": "P06-00",
         "evidence": {
           "commit": "a53af951984939c165cd0684d87b3237684bfd16",
-          "summary": "P06-00 contract qualification candidate: explicit customer/supplier \u00a3120 less \u00a310 credit and \u00a320 payment stays \u00a390 open through bank status/matching mutation; exact report/document and journal/payment counts unchanged; original paid command replay duplicate and changed intent conflicts. Fixture compiled but PostgreSQL execution and coordinator acceptance still pending. No new bank runtime functionality claimed.",
+          "summary": "P06-00 contract qualification candidate: explicit customer/supplier £120 less £10 credit and £20 payment stays £90 open through bank status/matching mutation; exact report/document and journal/payment counts unchanged; original paid command replay duplicate and changed intent conflicts. Fixture compiled but PostgreSQL execution and coordinator acceptance still pending. No new bank runtime functionality claimed.",
           "tests": [
             {
               "command": "node --test artifacts/ledgerly/src/features/bankImport/model.test.mjs artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs: 23 passed,0 failed/skipped",
@@ -6623,7 +6628,7 @@
         "actor": "worker2",
         "type": "checkpoint",
         "taskId": "P06-00",
-        "checkpoint": "At clean6816da0 (only prior P02-01 test addition); P06-00 files unchanged from aa45af5. Inspected complete native-bank contract and existing both-party \u00a3120 less \u00a310 credit less \u00a320 payment fixture with unchanged reports/journals/payment counts and original-command replay. Prior queue evidence says CI pending but checkpoint72 records exact aa45af5 CI passed891; coordinator should revalidate named fixture logs and accept contract if matching. No duplicate fixture planned. Focused bank/payment recovery model tests rerun."
+        "checkpoint": "At clean6816da0 (only prior P02-01 test addition); P06-00 files unchanged from aa45af5. Inspected complete native-bank contract and existing both-party £120 less £10 credit less £20 payment fixture with unchanged reports/journals/payment counts and original-command replay. Prior queue evidence says CI pending but checkpoint72 records exact aa45af5 CI passed891; coordinator should revalidate named fixture logs and accept contract if matching. No duplicate fixture planned. Focused bank/payment recovery model tests rerun."
       },
       {
         "at": 1793472750123,
@@ -7670,11 +7675,11 @@
           "summary": "PARTIAL P03-04: Native runtime acceptance added around actual populated encrypted fresh-cluster restore. Prepares a native unwitnessed source event before baseline; restored restricted runtime must preserve historical witness, reject foreign-origin unwitnessed event without a row, post fresh payment with committed witness and retry exactly once across five authorities, preserve effective function permissions, and leave source fingerprint unchanged. No grants or schema changes. Independent exact review and combined existing disposable PostgreSQL CI required before acceptance. Remaining parent: offsite ownership/provisioning and full application/jobs recovery and target qualification; next executable step exact combined CI with nativeRuntimeAcceptance receipt and successful cleanup.",
           "tests": [
             {
-              "command": "node --test tools/operations/backup-restore/*.test.mjs tools/accounting-flow/restore-drill.test.mjs \u2014 15 passed, 0 failed, 0 skipped",
+              "command": "node --test tools/operations/backup-restore/*.test.mjs tools/accounting-flow/restore-drill.test.mjs — 15 passed, 0 failed, 0 skipped",
               "passed": true
             },
             {
-              "command": "node --test tools/operations/backup-restore/runtime-acceptance.test.mjs \u2014 final exact-source/target guard checks 2 passed",
+              "command": "node --test tools/operations/backup-restore/runtime-acceptance.test.mjs — final exact-source/target guard checks 2 passed",
               "passed": true
             },
             {
@@ -8068,7 +8073,7 @@
         "taskId": "P03-04",
         "evidence": {
           "commit": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
-          "summary": "PARTIAL P03-04 native captured-source recovery. Exactpublished40853f tree independentlyreviewedroot+coordinator; actualReplitisolatedPG133accounting/12backup andpopulated40tables6325rows encryptedfreshcluster restore nativecapture bytesmetadata/readOnly/foreigncompany/inactiveforeignactors allpass, previousnativepayment/witness preserved. Fullhashcheckedlogs3receipts archived4369f93e docs/development/candidates/20261104-1521-replit-validation-evidence.json. SourceexpectedheadFF211\u2192dc5e succeeded. ExactpublishedCIpending. Parentincomplete: operationaltargets/ownership/keyretention/offsite andfullruntime/job qualification; no commercialjourneyacceptance.",
+          "summary": "PARTIAL P03-04 native captured-source recovery. Exactpublished40853f tree independentlyreviewedroot+coordinator; actualReplitisolatedPG133accounting/12backup andpopulated40tables6325rows encryptedfreshcluster restore nativecapture bytesmetadata/readOnly/foreigncompany/inactiveforeignactors allpass, previousnativepayment/witness preserved. Fullhashcheckedlogs3receipts archived4369f93e docs/development/candidates/20261104-1521-replit-validation-evidence.json. SourceexpectedheadFF211→dc5e succeeded. ExactpublishedCIpending. Parentincomplete: operationaltargets/ownership/keyretention/offsite andfullruntime/job qualification; no commercialjourneyacceptance.",
           "tests": [
             {
               "command": "Exactdc5e/40853f isolatedReplit PostgreSQL16 existing accounting-flow:133pass0fail0skip; populated/encryptedrestore nativecapture+payment/witness flagsalltrue, cleanupandbeforeaftertmp[]",
@@ -8219,7 +8224,7 @@
     "at": 1793814576627,
     "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7"
   },
-  "updatedAt": 1793814645760,
+  "updatedAt": 1793816449238,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -8285,35 +8290,13 @@
   },
   "activeWorkers": [],
   "run": {
-    "startedAt": "2026-11-04T17:32:47Z",
-    "stopBy": "2026-11-04T18:00:00Z",
-    "implementationStopBy": "2026-11-04T17:51:00Z",
-    "activity": "Stopped clean final76a45fbd/tree3eb4895 archivedc2646f8861149a43c0126c9b37590e6581d244d1; root archival-only review, exact source790/focused46/fullbuildtypecheck passed. Restricted-role SQL binding/observer authority remains unresolved; public gates closed, parent pending. PG fixtures unrun here; existing draft PR27 CI remains permitted qualification route after safe reviewed integration, no universal prepublication PG rule.",
-    "status": "stopped-clean-candidate-pending",
-    "activeWorkers": [],
+    "startedAt": "2026-11-04T18:20:49.299Z",
+    "stopBy": "2026-11-04T18:47:00Z",
+    "implementationStopBy": "2026-11-04T18:37:00Z",
+    "status": "active",
+    "activity": "Reconstructed exact durable source and inspecting canonical binding authority before compact implementation claim",
     "credits": "unknown",
-    "providerUsage": "unknown",
-    "observedAt": "2026-11-04T17:46:36.018Z",
-    "publicationBlocked": true,
-    "blocker": "Independent review permits archival only: unresolved restricted-role SQL binding/observation authority plus incomplete acceptance. Local PG unavailable; existing draft PR27 CI remains an authorized qualification route for a safe reviewed integration.",
-    "primaryCandidate": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
-    "primaryCandidateTree": "3eb48956179fae2d3cedde0f7d23ae4f1184609f",
-    "endedAt": "2026-11-04T17:50:45.760Z",
-    "newlyAcceptedOriginalBullets": [],
-    "newCompleteJourneys": [],
-    "newWorkDeclined": {
-      "eligibleNext": "P03-01",
-      "readyTasks": [
-        "P03-01",
-        "P03-02",
-        "P03-03",
-        "P03-04",
-        "P04-01",
-        "P05-05",
-        "P17-02"
-      ],
-      "reason": "Implementation stop17:51 and clean-shutdown reserve. Primary candidate preserved; new migration-pipeline work or native-authority contract design cannot safely finish implementation, independent review and publication verification in the remaining edit window. No need to manufacture workflow orchestration; existing PR27 CI is authorized."
-    }
+    "providerUsage": "unknown"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -8341,7 +8324,7 @@
     },
     {
       "task": "P03-04",
-      "next": "Publisheddc5e/40853f exactCI41858631375/job126673994650 passed963, source\u2192merge9f2d3cfiles[]. Exactprepublication133PG/12unit/populated/encryptedcapture recovery evidence4369f93e andCIc64a7ff accepted boundedscenario. Do NOT redo/regenerate thiscandidate or treat olderqueueevidenceCIpending ascurrent. Remainingparent: operationaltargets/ownership/keyretention/offsiteowner gate andfullruntime/job acceptance."
+      "next": "Publisheddc5e/40853f exactCI41858631375/job126673994650 passed963, source→merge9f2d3cfiles[]. Exactprepublication133PG/12unit/populated/encryptedcapture recovery evidence4369f93e andCIc64a7ff accepted boundedscenario. Do NOT redo/regenerate thiscandidate or treat olderqueueevidenceCIpending ascurrent. Remainingparent: operationaltargets/ownership/keyretention/offsiteowner gate andfullruntime/job acceptance."
     },
     {
       "task": "P04-01",
