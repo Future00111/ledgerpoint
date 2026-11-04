@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 183,
+  "revision": 184,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 627,
+    "revision": 628,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -103,7 +103,7 @@
         "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "15:34 rootactualprimaryobservation21focused+29registryreportedpass; APItypecheckpassed aftermissingbuiltshareddeclarations resolved (TS6305 environment). PGslot deliveryactuallyacknowledged15:32:45; now prescribedexistingaccountingflow sanitizedrunner active withlogs/receipts. Mutable211base: preliminarytests only, not exactauthor/combinedqualification. Candidateexport15:37/stop15:38 reaffirmed; bothpublicgatesreportedunchanged, awaitingimmutablepatch/rootreview.",
+        "checkpoint": "CRITICAL root15:35:39 browser_js again Unknown tool(browser.js) aftercontinuationsteering despiteworking15:34. Lastactualprimaryobservation authorizedimplementation21focused/29registry/APItscpassreported, runningprescribedisolatedaccountingPG test on mutable211base. CandidateNOTexported, authorcommit/patch/tree/testoutcome/stop nowUNVERIFIED. Explicitstop15:38 was acknowledged, but elapsedtime doesnotprove stop. No alternate transport, no reassignment/recovery/release until root independentlyreconnects/stops/verifies. PublishedP03dc5eCI963 unaffected.",
         "evidence": {
           "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
           "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
@@ -8110,6 +8110,13 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "15:34 rootactualprimaryobservation21focused+29registryreportedpass; APItypecheckpassed aftermissingbuiltshareddeclarations resolved (TS6305 environment). PGslot deliveryactuallyacknowledged15:32:45; now prescribedexistingaccountingflow sanitizedrunner active withlogs/receipts. Mutable211base: preliminarytests only, not exactauthor/combinedqualification. Candidateexport15:37/stop15:38 reaffirmed; bothpublicgatesreportedunchanged, awaitingimmutablepatch/rootreview."
+      },
+      {
+        "at": 1793806652993,
+        "actor": "replit-1521-1",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "CRITICAL root15:35:39 browser_js again Unknown tool(browser.js) aftercontinuationsteering despiteworking15:34. Lastactualprimaryobservation authorizedimplementation21focused/29registry/APItscpassreported, runningprescribedisolatedaccountingPG test on mutable211base. CandidateNOTexported, authorcommit/patch/tree/testoutcome/stop nowUNVERIFIED. Explicitstop15:38 was acknowledged, but elapsedtime doesnotprove stop. No alternate transport, no reassignment/recovery/release until root independentlyreconnects/stops/verifies. PublishedP03dc5eCI963 unaffected."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8146,10 +8153,10 @@
       }
     ],
     "runId": "hosted-20261104-1521",
-    "at": 1793806532018,
+    "at": 1793806653023,
     "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7"
   },
-  "updatedAt": 1793806532018,
+  "updatedAt": 1793806653023,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -8216,36 +8223,43 @@
       "actor": "replit-1521-1",
       "provider": "Replit",
       "task": "P01-03",
-      "status": "implementing-and-preliminary-isolated-PG-testing-observed15:34",
+      "status": "authorized-implementation-and-pg-lastobserved15:34-monitoring-unavailable",
       "base": "211649c44564f73cdca79e5f5c00580d6783930c",
       "implementationStopBy": "2026-11-04T15:38:00Z",
       "ackObservedAt": "2026-11-04T15:26:50Z",
-      "goSentAt": "2026-11-04T15:27:20Z"
+      "goSentAt": "2026-11-04T15:27:20Z",
+      "lastObservedAt": "2026-11-04T15:34:00Z",
+      "stopVerified": false,
+      "candidateExported": false
     }
   ],
   "run": {
     "startedAt": "2026-11-04T15:21:18Z",
     "stopBy": "2026-11-04T15:49:00Z",
     "implementationStopBy": "2026-11-04T15:38:00Z",
-    "activity": "Publisheddc5e exactCI41858631375 passed963/fullbuild/PG/restores/cleanup; mergefiles[] independentlyverified; durablelogs c64a7ff. Primaryreported21focused/29registry/APItscpassed, actualisolatedaccountingrunner onmutable211base underway; immutablecandidate15:37 stop15:38 required beforeexactreview/integration. No primaryacceptance.",
+    "activity": "Publisheddc5e exactCI963/fullbuild/PG/restores/cleanup durable andPR27draftupdated. Primary implementation monitoring unavailable afterbrowser_js Unknown tool(browser.js)15:35:39; lastactual15:34 prescribedPG onmutable211base, candidateunexported, stopunknown. Root retrying same permitted connection; no newwork/publication/reassignment.",
     "activeWorkers": [
       {
         "actor": "replit-1521-1",
         "provider": "Replit",
         "task": "P01-03",
-        "status": "implementing-and-preliminary-isolated-PG-testing-observed15:34",
+        "status": "authorized-implementation-and-pg-lastobserved15:34-monitoring-unavailable",
         "base": "211649c44564f73cdca79e5f5c00580d6783930c",
         "implementationStopBy": "2026-11-04T15:38:00Z",
         "ackObservedAt": "2026-11-04T15:26:50Z",
-        "goSentAt": "2026-11-04T15:27:20Z"
+        "goSentAt": "2026-11-04T15:27:20Z",
+        "lastObservedAt": "2026-11-04T15:34:00Z",
+        "stopVerified": false,
+        "candidateExported": false
       }
     ],
     "credits": "unknown",
     "providerUsage": "unknown",
     "status": "active",
-    "observedAt": "2026-11-04T15:35:32.061Z",
+    "observedAt": "2026-11-04T15:37:33.043Z",
     "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
-    "candidateTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17"
+    "candidateTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+    "blocker": "Active Replit implementation/PG actor monitoring lost; exactcandidate/export/testoutcome/stop unverified. Acknowledged15:38stop not proof; retain ownership until independentlyverified."
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -8280,7 +8294,7 @@
     "publicationVerified": true
   },
   "workersStopped": false,
-  "worktreesClean": true,
+  "worktreesClean": false,
   "reusableRunner": {
     "evidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -8336,18 +8350,11 @@
     }
   },
   "shutdownBlocker": {
-    "action": "coordinator release and remote task recovery",
-    "reason": "Cannot truthfully assert workersStopped=true while remote ACK-only actor stop is unverified. Lease retained for normal explicit recovery; raw command token remains local. Browser runtime/tool failure, not automatic approval denial.",
-    "lastAttempt": "2026-11-04T15:07:47Z",
-    "expectedRemoteStopBy": "2026-11-04T15:10:00Z",
-    "expiryDoesNotProveStop": true,
-    "resolved": true,
-    "resolvedAt": "2026-11-04T15:19:34.028Z",
-    "resolution": "Actual remote ACK and independent scoped clean/process verification obtained; expiredworker recovered; live matching coordinator checkpoint/release through module.",
-    "evidence": {
-      "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "abc704e4ef8a312b90e8e39b55a0f3b47469c512",
-      "path": "docs/development/candidates/20261104-1452-replit-reconnect-stop-evidence.json"
-    }
+    "resolved": false,
+    "action": "P01 worker recovery and coordinator release",
+    "reason": "Active Replit implementation/PG actor monitoring lost; exactcandidate/export/testoutcome/stop unverified. Acknowledged15:38stop not proof; retain ownership until independentlyverified.",
+    "firstObservedAt": "2026-11-04T15:35:39Z",
+    "lastObserved": "Root15:34 activeReplitimplementation/test; no candidate exported",
+    "expiryDoesNotProveStop": true
   }
 }
