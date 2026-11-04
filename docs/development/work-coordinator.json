@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 182,
+  "revision": 183,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 626,
+    "revision": 627,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -103,7 +103,7 @@
         "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Root GO15:27:20 afteractualACK15:26:50 and durablepreeditreservation. Root15:30observed10Agentactions DBownedoriginaljournaloriginreceipt/binding/freshobservation, nativeallocation/taxhelpers, bothpublicgatesretained; sourcecandidateunreviewed. ValidationPGslotreleased15:30 afterconfirmedcleanup, primary may runexistingisolatedtests. Hardstop15:38, checkpoint15:37, no remotequeue/push/demo/sharedDB.",
+        "checkpoint": "15:34 rootactualprimaryobservation21focused+29registryreportedpass; APItypecheckpassed aftermissingbuiltshareddeclarations resolved (TS6305 environment). PGslot deliveryactuallyacknowledged15:32:45; now prescribedexistingaccountingflow sanitizedrunner active withlogs/receipts. Mutable211base: preliminarytests only, not exactauthor/combinedqualification. Candidateexport15:37/stop15:38 reaffirmed; bothpublicgatesreportedunchanged, awaitingimmutablepatch/rootreview.",
         "evidence": {
           "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
           "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
@@ -8103,6 +8103,13 @@
         "type": "recover",
         "taskId": "P03-04",
         "checkpoint": "Root confirmed validationPG/export stopped, source dc5e/40853f clean andmaincda92clean, beforeaftertmp[]; fullhashcheckedproof4369f93e durable. Publishedexactdc5e viaexpectedheadFF211; independenttechnicalreview+133PG/12unit/restores passed. SourceCIpending, parentpending operationaltargets/ownership/keyretention/offsite/fullruntime; no newimplementation or duplicatevalidationnext."
+      },
+      {
+        "at": 1793806531977,
+        "actor": "replit-1521-1",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "15:34 rootactualprimaryobservation21focused+29registryreportedpass; APItypecheckpassed aftermissingbuiltshareddeclarations resolved (TS6305 environment). PGslot deliveryactuallyacknowledged15:32:45; now prescribedexistingaccountingflow sanitizedrunner active withlogs/receipts. Mutable211base: preliminarytests only, not exactauthor/combinedqualification. Candidateexport15:37/stop15:38 reaffirmed; bothpublicgatesreportedunchanged, awaitingimmutablepatch/rootreview."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8120,8 +8127,18 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "4369f93e4462c40a57685a252f4bf685e7a121d9",
+    "sha": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260",
     "evidence": [
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260",
+        "path": "docs/development/candidates/20261104-1521-published-ci.log"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260",
+        "path": "docs/development/candidates/20261104-1521-validation-review.json"
+      },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
         "sha": "4369f93e4462c40a57685a252f4bf685e7a121d9",
@@ -8129,10 +8146,10 @@
       }
     ],
     "runId": "hosted-20261104-1521",
-    "at": 1793806354784,
+    "at": 1793806532018,
     "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7"
   },
-  "updatedAt": 1793806354784,
+  "updatedAt": 1793806532018,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -8160,8 +8177,18 @@
     "nativeCapturedSourceRecovery": "passed",
     "encryptedRecovery": "passed",
     "cleanup": "passed",
-    "exactPublishedCI": "pending",
-    "evidenceCommit": "4369f93e4462c40a57685a252f4bf685e7a121d9"
+    "exactPublishedCI": "passed",
+    "evidenceCommit": "4369f93e4462c40a57685a252f4bf685e7a121d9",
+    "ciRun": 41858631375,
+    "job": 126673994650,
+    "mergeCommit": "9f2d3c3f9439865859d9c206ffc08958dd4cae51",
+    "publishedToMergeFileDiff": [],
+    "tests": 963,
+    "pass": 963,
+    "cancelled": 0,
+    "buildTypecheck": "passed",
+    "logsIndependentlyFetched": true,
+    "ciEvidenceCommit": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260"
   },
   "shutdownResolution": {
     "at": "2026-11-04T12:24:56.016Z",
@@ -8189,7 +8216,7 @@
       "actor": "replit-1521-1",
       "provider": "Replit",
       "task": "P01-03",
-      "status": "implementing-observed15:30",
+      "status": "implementing-and-preliminary-isolated-PG-testing-observed15:34",
       "base": "211649c44564f73cdca79e5f5c00580d6783930c",
       "implementationStopBy": "2026-11-04T15:38:00Z",
       "ackObservedAt": "2026-11-04T15:26:50Z",
@@ -8200,13 +8227,13 @@
     "startedAt": "2026-11-04T15:21:18Z",
     "stopBy": "2026-11-04T15:49:00Z",
     "implementationStopBy": "2026-11-04T15:38:00Z",
-    "activity": "Publisheddc5e nativecapturerecovery testincrement afterexactactualPG/restore+independentreview; CIpending. P03validationactorstopped/recoveredpending parentincomplete. PrimaryReplit implementingbase211 observed10actions15:30, PGslotreleased, checkpoint15:37/stop15:38.",
+    "activity": "Publisheddc5e exactCI41858631375 passed963/fullbuild/PG/restores/cleanup; mergefiles[] independentlyverified; durablelogs c64a7ff. Primaryreported21focused/29registry/APItscpassed, actualisolatedaccountingrunner onmutable211base underway; immutablecandidate15:37 stop15:38 required beforeexactreview/integration. No primaryacceptance.",
     "activeWorkers": [
       {
         "actor": "replit-1521-1",
         "provider": "Replit",
         "task": "P01-03",
-        "status": "implementing-observed15:30",
+        "status": "implementing-and-preliminary-isolated-PG-testing-observed15:34",
         "base": "211649c44564f73cdca79e5f5c00580d6783930c",
         "implementationStopBy": "2026-11-04T15:38:00Z",
         "ackObservedAt": "2026-11-04T15:26:50Z",
@@ -8216,7 +8243,7 @@
     "credits": "unknown",
     "providerUsage": "unknown",
     "status": "active",
-    "observedAt": "2026-11-04T15:32:34.815Z",
+    "observedAt": "2026-11-04T15:35:32.061Z",
     "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
     "candidateTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17"
   },
