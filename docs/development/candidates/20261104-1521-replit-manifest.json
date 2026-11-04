@@ -1,0 +1,86 @@
+{
+  "actor": "replit-1521-1",
+  "task": "P01-03",
+  "state": "STOPPED_PARTIAL_CANDIDATE_PENDING_INDEPENDENT_REVIEW",
+  "recordedAt": "2026-11-04T15:36:13.678065+00:00",
+  "checkout": "/home/runner/workspace/.local/share/ledgerly/run-20261104-1521/source",
+  "branch": "replit/P01-03-1521",
+  "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+  "commit": "d789e8eb329bbcca137f8e034101d5ff1d27c828",
+  "tree": "615d0b4755e37590513571aff6518ac7d190eda0",
+  "orderedParents": [
+    "211649c44564f73cdca79e5f5c00580d6783930c"
+  ],
+  "author": "Ciro Gargiulo <62146537-cirogargiulo@users.noreply.replit.com>",
+  "changedPaths": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+    "docs/development/credit-capacity-contract.md",
+    "lib/db/migration-registry.json",
+    "lib/db/migrations/conditional-discount-agreements.review.sql",
+    "lib/db/schema-change-registry.json",
+    "tools/development/migrations/registry.test.mjs"
+  ],
+  "diffStat": ".../conditionalDiscount.integration.test.ts        |  49 ++++++++\n .../conditionalDiscount.test.ts                    |  17 +++\n .../accountingDocuments/conditionalDiscount.ts     |  72 +++++++++++\n docs/development/credit-capacity-contract.md       |  27 +++++\n lib/db/migration-registry.json                     |   2 +-\n .../conditional-discount-agreements.review.sql     | 134 +++++++++++++++++++++\n lib/db/schema-change-registry.json                 |   7 +-\n tools/development/migrations/registry.test.mjs     |  12 ++\n 8 files changed, 317 insertions(+), 3 deletions(-)",
+  "patch": "/home/runner/workspace/.local/share/ledgerly/run-20261104-1521/evidence/candidate.patch",
+  "patchBytes": 29238,
+  "patchSha256": "fd1344f74d2da7b7bb1999768dbdb512ac810eff1cda3c9d826d579010e8eb43",
+  "tests": {
+    "focusedUnit": {
+      "pass": 21,
+      "fail": 0
+    },
+    "registry": {
+      "pass": 29,
+      "fail": 0
+    },
+    "apiTypecheck": "PASS after building missing shared reference declarations",
+    "disposableRunner": {
+      "tests": 139,
+      "pass": 139,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cleanup": {
+      "runId": "cf5669ec-dfdc-4d0a-8628-4b465e28e28d",
+      "sourceCommit": "211649c44564f73cdca79e5f5c00580d6783930c",
+      "startedAt": "2026-11-04T15:33:19.717Z",
+      "syntheticOnly": true,
+      "postgresStopped": true,
+      "directoryRemoved": true,
+      "ambientDatabaseCredentialsUsed": false,
+      "productionContact": false,
+      "restoreVerified": true
+    },
+    "restore": {
+      "syntheticOnly": true,
+      "sourceUnchanged": true,
+      "runtimeRestricted": true,
+      "controlsPreserved": true,
+      "runtimeMutationDenied": true,
+      "ambientDatabaseCredentialsUsed": false,
+      "productionContact": false
+    },
+    "sourceProvenance": "Runner reported base HEAD because implementation was uncommitted. tested-source-files.json plus final patch identify tested implementation bytes; only documentation changed after PG pass. No exact-commit CI claim."
+  },
+  "gates": {
+    "publicPostingRejections": "BOTH UNCHANGED; posting.ts byte unchanged",
+    "canonicalPosting": "UNCHANGED",
+    "publicAdmission": "DISABLED",
+    "existingDatabases": "NOT ACCESSED",
+    "demoStartupAndMainWorkspace": "UNCHANGED",
+    "push": "NOT PERFORMED"
+  },
+  "remaining": [
+    "Positive same-original-transaction conditional binding fixture and financial/evidence/vector tampering cases",
+    "Real PostgreSQL successful fresh binding observation, same/uncommitted transaction rejection, exact replay/first-clock checks",
+    "Populated binding/observation rollback/immutability/restore acceptance and schema-partial checks",
+    "Independent review of DB function authority, canonical hash/source linkage and observer trust boundary",
+    "Parent redemption/all-writer guards/reversal compensation/corrections/UI remain pending"
+  ],
+  "nextStep": "Coordinator review this partial checkpoint; reserve a later bounded run for missing positive binding/observer tests before any admission decision. Do not enable either public gate.",
+  "stopped": true,
+  "clean": true,
+  "noUnattendedWork": true
+}
