@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 228,
+  "revision": 229,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261104-2121",
+    "tokenSha256": "a803e353112738ed446ee96d77db574326bef16fda25f422fb5799be2d091dd6",
+    "acquiredAt": 1793827361114,
+    "expiresAt": 1793829161114
+  },
   "lastOwner": {
     "runId": "hosted-20261104-2019",
     "tokenSha256": "5cac27c1f7120e3a061c4b9f415a0d5bcf689fff542800485ac6e30ed6fa8bdf",
@@ -8707,7 +8712,7 @@
     "at": 1793824785606,
     "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
   },
-  "updatedAt": 1793824785640,
+  "updatedAt": 1793827361114,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9042,43 +9047,13 @@
   },
   "activeWorkers": [],
   "run": {
-    "startedAt": "2026-11-04T20:21:14.365Z",
-    "stopBy": "2026-11-04T20:47:00Z",
-    "implementationStopBy": "2026-11-04T20:35:00Z",
-    "status": "stopped-clean-bounded-admission-verified",
-    "activity": "Exact publishedde140ea/treeaa395 independently reviewed and CI41907994948/job126847691388 passed1047 zero failures/skips/cancelled with fullbuild/typecheck/source/scheduler, actual disposablePG26 newbothparty native admission scenarios and populated/encryptedrestore/cleanup. Internal read-only admission only; publiccredit routes closed. Worker stoppedclean and queuepending; fullparent notaccepted.",
+    "startedAt": "2026-11-04T21:22:41.155Z",
+    "stopBy": "2026-11-04T21:49:00Z",
+    "implementationStopBy": "2026-11-04T21:39:00Z",
+    "status": "active",
+    "activity": "Exact live de140 treeaa395 restored; internal atomic redemption implementation",
     "credits": "unknown",
-    "providerUsage": "unknown",
-    "observedAt": "2026-11-04T20:39:45.606Z",
-    "replitCapability": {
-      "found": false,
-      "dispatch": false,
-      "boundedCheck": "Root actual exact name resolve returned found:false; no verified stop/monitor/export transport; no browser retries"
-    },
-    "primaryCandidate": "f9fdf51d408fdfa690403fc7511d4e0d3d93f5c8",
-    "workerCandidate": "ce251328e0bf78055dd74d9e3cef1d9b1c772a46",
-    "primaryCandidateTree": "aa395e1629efc664ee119e1b55a45c7998c68b3e",
-    "newlyAcceptedOriginalBullets": [],
-    "newCompleteJourneys": [],
-    "publishedSource": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
-    "archiveCommit": "6c060911a44c0e8920b1243af95cc3830f6e34cb",
-    "activeWorkers": [],
-    "endedAt": "2026-11-04T20:39:45.606Z",
-    "endReason": "Meaningful bounded connected admission implemented, independently reviewed and exactCI qualified; no further atomic redemption/allwriter task can safely complete implementation/review/qualification/shutdown in remaining run window.",
-    "newVerifiedBoundedScenarios": [
-      "Internal customer/supplier conditional credit admission over native committed cash/allocation witnesses:10800 qualifies,10799 rejected,12000 projects safe1200release; old/unwitnessed/late evidence rejected, surplusrefund retained, fullmicrosecondcutoff enforced"
-    ],
-    "reviewWait": "not measured",
-    "rework": [
-      "Initial worker bundle dependency externalization/absent DATABASE_URL and freshlib declaration issues corrected before final59/APItypecheck pass",
-      "Coordinator fullbuild initially rejected symlink task state directories; real local task state established, exact source unchanged; finalbuild passed",
-      "Postsubmission worker checkpoint rejected LEASE_REQUIRED by reviewstate; submission and priorEvidence retained"
-    ],
-    "resolvedBlockers": [
-      "Connected deadline/payment+allocation witness admission contract settled and actualnative scenarios qualified",
-      "Public credit bypass through ordinarycredit and paidCredit routes closed for conditional originals"
-    ],
-    "queueCheckpointCorrection": "Queue663 human recoverycheckpoint retained an old short archiveb657b689 and fivefiles label from template. Correct exact archive6c060911a44c0e8920b1243af95cc3830f6e34cb, sixchangedfiles, authorce251328e0bf78055dd74d9e3cef1d9b1c772a46, integratorf9fdf51d408fdfa690403fc7511d4e0d3d93f5c8, publishedde140ea97eed9cccb01a6dccc2edc79638da6c91/treeaa395e1629efc664ee119e1b55a45c7998c68b3e. Structured authoritative refs/evidence always correct; queueevent history preserved."
+    "providerUsage": "unknown"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
