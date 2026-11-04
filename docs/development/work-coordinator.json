@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 186,
+  "revision": 187,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261104-1732",
+    "tokenSha256": "3c5b9596a5afcbb789bb40e7a7b9046b8f31ecdeb1e1e77e84f2fdb66837ed74",
+    "acquiredAt": 1793813715954,
+    "expiresAt": 1793815815954
+  },
   "lastOwner": {
     "runId": "hosted-20261104-1521",
     "tokenSha256": "59efc37a62c79045bf3165888275b03800311e1de82757b1816cc5396ae9ba88",
@@ -8191,7 +8196,7 @@
     "at": 1793813338528,
     "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7"
   },
-  "updatedAt": 1793813338528,
+  "updatedAt": 1793813715954,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -8257,28 +8262,14 @@
   },
   "activeWorkers": [],
   "run": {
-    "startedAt": "2026-11-04T15:21:18Z",
-    "stopBy": "2026-11-04T15:49:00Z",
-    "implementationStopBy": "2026-11-04T15:38:00Z",
-    "activity": "Recovered stopped Replit partial candidate after restored interactive connection. Immutable archive and independent stop proof precede normal expired ownership recovery. No feature edits or source publication in recovery.",
+    "startedAt": "2026-11-04T17:32:47Z",
+    "stopBy": "2026-11-04T18:00:00Z",
+    "implementationStopBy": "2026-11-04T17:51:00Z",
+    "activity": "Restoring exact source and preserved candidate; no workers launched",
+    "status": "active",
     "activeWorkers": [],
     "credits": "unknown",
-    "providerUsage": "unknown",
-    "status": "stopped-clean-recovered",
-    "observedAt": "2026-11-04T15:40:56.969Z",
-    "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
-    "candidateTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
-    "blocker": null,
-    "endedAt": "2026-11-04T15:40:56.969Z",
-    "newlyAcceptedOriginalBullets": [],
-    "newCompleteJourneys": [],
-    "publicationBlocked": false,
-    "primaryPublicationBlocked": true,
-    "primaryCandidate": "d789e8eb329bbcca137f8e034101d5ff1d27c828",
-    "primaryCandidateTree": "615d0b4755e37590513571aff6518ac7d190eda0",
-    "recoveryCompletedAt": "2026-11-04T17:28:58.528Z",
-    "remoteReportedStoppedAt": "2026-11-04T15:36:13.678065+00:00",
-    "remoteStopVerifiedAt": "2026-11-04T17:20:43.813779+00:00"
+    "providerUsage": "unknown"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
