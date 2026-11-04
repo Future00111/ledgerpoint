@@ -4,8 +4,35 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, realpathSy
 import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { transformFile } from './archive.mjs';
+import { applicationRuntimeTarget } from './runtime-target.mjs';
+
+const root = fileURLToPath(new URL('../../../', import.meta.url));
+function runApplicationRuntime({ phase, socket, bundle, fixture }) {
+  const target = applicationRuntimeTarget(phase, socket);
+  if (realpathSync(target.directory) !== target.directory || realpathSync(socket) !== socket)
+    throw new Error('Application runtime target must not use symlinks.');
+  return JSON.parse(execFileSync(process.execPath, [bundle, phase], {
+    cwd: root, encoding: 'utf8', timeout: 60000, input: JSON.stringify(fixture ?? {}),
+    env: { PATH: process.env.PATH, HOME: target.directory, LANG: 'C', LC_ALL: 'C', NODE_ENV: 'test',
+      NODE_PATH: path.join(root, 'artifacts/api-server/node_modules'),
+      APPLICATION_RECOVERY_SOCKET: socket, DATABASE_URL: target.url },
+  }));
+}
+export function prepareApplicationRuntime({ directory, socket, port }) {
+  const target = applicationRuntimeTarget('prepare', socket);
+  if (target.directory !== directory || target.port !== port) throw new Error('Disposable source runtime identity mismatch.');
+  if (realpathSync(directory) !== directory || realpathSync(socket) !== socket)
+    throw new Error('Application runtime target must not use symlinks.');
+  const bundle = path.join(directory, 'application-runtime.cjs');
+  const { buildSync } = createRequire(path.join(root, 'artifacts/api-server/package.json'))('esbuild');
+  buildSync({ absWorkingDir: root, entryPoints: [path.join(root, 'tools/operations/backup-restore/runtime-acceptance.ts')],
+    outfile: bundle, bundle: true, platform: 'node', format: 'cjs', external: ['pg', '@clerk/express'], logLevel: 'silent' });
+  return { bundle, fixture: runApplicationRuntime({ phase: 'prepare', socket, bundle }) };
+}
 
 const roleSQL = `SELECT rolname,rolsuper,rolinherit,rolcreaterole,rolcreatedb,rolcanlogin,rolreplication,rolbypassrls
   FROM pg_roles WHERE rolname IN ('ledgerly_api','ledgerly_canonical_owner') ORDER BY rolname`;
@@ -25,7 +52,7 @@ export function assertApplicationRoles(roles, memberships) {
   if (JSON.stringify(roles) !== JSON.stringify(expected) || memberships.length !== 0)
     throw new Error('Application recovery requires the exact restricted role contract.');
 }
-export async function recoverApplicationArchive({ Client, directory, archive, source, before, fingerprintDatabase, assertSameFingerprint }) {
+export async function recoverApplicationArchive({ Client, directory, archive, source, before, fingerprintDatabase, assertSameFingerprint, nativeRuntime }) {
   assertApplicationArchive({ directory, archive });
   if (realpathSync(directory) !== directory || realpathSync(archive) !== archive) throw new Error('Recovery source must not use symlinks.');
   assertApplicationRoles((await source.query(roleSQL)).rows, (await source.query(membershipSQL)).rows);
@@ -37,7 +64,7 @@ export async function recoverApplicationArchive({ Client, directory, archive, so
   const env = { PATH: process.env.PATH, HOME: base, LANG: 'C', LC_ALL: 'C' };
   const run = (command, args) => execFileSync(command, args, { env, stdio: 'pipe', timeout: 60000 });
   const clients = [], started = performance.now();
-  let startupAttempted = false, stopped = true, removed = false, verified = false, failure;
+  let startupAttempted = false, stopped = true, removed = false, verified = false, failure, nativeRuntimeAcceptance = null;
   try {
     mkdirSync(socket, { mode: 0o700 });
     const keyFile = path.join(base, 'key'), encrypted = path.join(base, 'application.enc'), recovered = path.join(base, 'authenticated.dump');
@@ -72,6 +99,12 @@ export async function recoverApplicationArchive({ Client, directory, archive, so
     catch (error) { if (error.code !== '42501') throw error; denied = true; }
     finally { await runtime.query('ROLLBACK'); }
     if (!denied) throw new Error('Recovered runtime can mutate original source content.');
+    if (nativeRuntime?.bundle !== path.join(directory, 'application-runtime.cjs') || !nativeRuntime.fixture)
+      throw new Error('Prepared native application runtime acceptance fixture is required.');
+    nativeRuntimeAcceptance = runApplicationRuntime({ phase: 'verify', socket,
+      bundle: nativeRuntime.bundle, fixture: nativeRuntime.fixture });
+    // Runtime writes are restricted to the new cluster; the archive source stays intact.
+    assertSameFingerprint(before, await fingerprintDatabase(source));
     verified = true;
   } catch (error) { failure = error; }
   finally {
@@ -84,6 +117,7 @@ export async function recoverApplicationArchive({ Client, directory, archive, so
     writeFileSync(receiptPath, JSON.stringify({ sourceCommit, syntheticOnly: true, verified,
       separateCluster: true, encryptedArchiveUsed: verified, applicationFingerprintMatched: verified,
       sourceUnchanged: verified, runtimeRestricted: verified, runtimeMutationDenied: verified,
+      nativeRuntimeAcceptance,
       postgresStopped: stopped, directoryRemoved: removed, elapsedMilliseconds: Math.round(performance.now() - started),
       ambientDatabaseCredentialsUsed: false, productionContact: false,
       fixtureScope: 'Populated accounting regression schema, source attachments and audit; not production/offsite recovery qualification' }, null, 2) + '\n');

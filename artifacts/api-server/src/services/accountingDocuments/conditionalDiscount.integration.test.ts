@@ -39,10 +39,10 @@ async function fixture(){
  const review=await previewPayment(company,actor,body);
  return {company,body:{...body,review_token:review.review_token}};
 }
-async function insertWitness(q:any,f:any){
+async function insertWitness(q:any,f:any,overrides:{hash?:string,actor?:string,journal?:string}={}){
  return q.query(`INSERT INTO public.conditional_discount_commit_witnesses(company_id,event_id,journal_id,event_source_hash,actor_id)
- SELECT e.company_id,e.id,e.journal_id,j.source_revision,$3 FROM public.accounting_payment_events e
- JOIN public.canonical_journal_entries j ON j.id=e.journal_id WHERE e.company_id=$1 AND e.id=$2`,[f.company,f.body.id,actor]);
+ SELECT e.company_id,e.id,COALESCE($5::uuid,e.journal_id),COALESCE($4::text,j.source_revision),$3 FROM public.accounting_payment_events e
+ JOIN public.canonical_journal_entries j ON j.id=e.journal_id WHERE e.company_id=$1 AND e.id=$2`,[f.company,f.body.id,overrides.actor??actor,overrides.hash??null,overrides.journal??null]);
 }
 for(const mode of ['parent','unreleased savepoint','released savepoint']) test(`real PostgreSQL: ${mode} cannot witness before top commit`,async()=>{
  const f=await fixture();
@@ -122,4 +122,49 @@ test('real PostgreSQL: existing valid witness remains readable after origin mism
  }catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}};
  try{await change('synthetic-restored-origin');assert.deepEqual(await captureCommittedPaymentWitness(f.company,actor,f.body.id),first);}
  finally{await change(original);}
+});
+
+test('real PostgreSQL: restricted runtime cannot poison the first receipt hash, journal or observer',async()=>{
+ const f=await fixture();
+ // Commit the source without automatic observation, leaving the first receipt available.
+ await withCanonicalPostingTransaction(tx=>postPayment(f.company,actor,f.body,undefined,tx));
+ const foreign=await fixture();
+ await withCanonicalPostingTransaction(tx=>postPayment(foreign.company,actor,foreign.body,undefined,tx));
+ const foreignJournal=(await pool.query('SELECT journal_id FROM public.accounting_payment_events WHERE id=$1',[foreign.body.id])).rows[0].journal_id;
+ const inactive=`inactive-${randomUUID()}`,readonly=`readonly-${randomUUID()}`,foreignActor=`foreign-${randomUUID()}`,observer=`observer-${randomUUID()}`;
+ for(const [company,user,role,active] of [[f.company,inactive,'owner',false],[f.company,readonly,'read_only',true],
+   [foreign.company,foreignActor,'owner',true],[f.company,observer,'admin',true]])
+  await admin.query('INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,$4,$5)',[randomUUID(),company,user,role,active]);
+ const cases=[
+  {overrides:{hash:'sha256:'+'0'.repeat(64)},message:/Matching canonical payment identity/},
+  {overrides:{journal:foreignJournal},message:/separately committed/},
+  ...[inactive,readonly,foreignActor,`missing-${randomUUID()}`].map(actor=>({overrides:{actor},message:/Active writable company observer/})),
+ ];
+ for(const candidate of cases){
+  await assert.rejects(()=>insertWitness(pool,f,candidate.overrides),candidate.message);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM public.conditional_discount_commit_witnesses WHERE company_id=$1 AND event_id=$2',[f.company,f.body.id])).rows[0].n,0);
+ }
+ // The observer may be another authorized member, rather than the payment creator.
+ const first=await captureCommittedPaymentWitness(f.company,observer,f.body.id);
+ assert.equal(first.status,'recorded');
+ assert.equal((await pool.query('SELECT actor_id FROM public.conditional_discount_commit_witnesses WHERE company_id=$1 AND event_id=$2',[f.company,f.body.id])).rows[0].actor_id,observer);
+ assert.deepEqual(await captureCommittedPaymentWitness(f.company,actor,f.body.id),first);
+});
+test('real PostgreSQL: inconsistent canonical posting effect cannot certify a receipt',async()=>{
+ const f=await fixture();
+ await withCanonicalPostingTransaction(tx=>postPayment(f.company,actor,f.body,undefined,tx));
+ const c=await admin.connect();
+ try{
+  await c.query('BEGIN');
+  // Simulate damaged immutable history only inside this rolled-back disposable transaction.
+  await c.query('ALTER TABLE public.accounting_posting_effects DISABLE TRIGGER ledgerly_accounting_posting_effects_guard');
+  await c.query("UPDATE public.accounting_posting_effects SET source_revision=$2 WHERE company_id=$1 AND source_id=$3",[f.company,'sha256:'+'0'.repeat(64),f.body.id]);
+  await c.query('ALTER TABLE public.accounting_posting_effects ENABLE ALWAYS TRIGGER ledgerly_accounting_posting_effects_guard');
+  await c.query('SET LOCAL ROLE ledgerly_api');
+  await assert.rejects(()=>insertWitness(c,f),/Matching canonical payment identity/);
+ }finally{await c.query('ROLLBACK');c.release();}
+ assert.equal((await pool.query('SELECT count(*)::int n FROM public.conditional_discount_commit_witnesses WHERE company_id=$1 AND event_id=$2',[f.company,f.body.id])).rows[0].n,0);
+ const first=await captureCommittedPaymentWitness(f.company,actor,f.body.id);
+ assert.equal(first.status,'recorded');
+ assert.deepEqual(await captureCommittedPaymentWitness(f.company,actor,f.body.id),first);
 });
