@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 174,
+  "revision": 175,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 612,
+    "revision": 613,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -405,24 +405,20 @@
         "blockers": []
       },
       "P03-04": {
-        "status": "running",
+        "status": "review",
         "priority": 304,
         "discoveredDependencies": [],
         "checkpoint": "PRE-EDIT ACK exactbase211649c44564f73cdca79e5f5c00580d6783930c worktree codex/lp-1452-restore. P03-04 tools/operations/backup-restore runtime-acceptance only plus focused bundle test/docs if warranted. Add native getIntakeContent original bytes/hash and cross-company/inactive denial after encrypted fresh-cluster restore; no service/schema writes. Stop edits15:09 all15:20 UTC. Waiting durable coordinator ACK before edits.",
         "evidence": {
-          "commit": "07f858ad4f9224605bf524dc04646c91d6a3815b",
-          "summary": "PARTIAL P03-04: Native runtime acceptance added around actual populated encrypted fresh-cluster restore. Prepares a native unwitnessed source event before baseline; restored restricted runtime must preserve historical witness, reject foreign-origin unwitnessed event without a row, post fresh payment with committed witness and retry exactly once across five authorities, preserve effective function permissions, and leave source fingerprint unchanged. No grants or schema changes. Independent exact review and combined existing disposable PostgreSQL CI required before acceptance. Remaining parent: offsite ownership/provisioning and full application/jobs recovery and target qualification; next executable step exact combined CI with nativeRuntimeAcceptance receipt and successful cleanup.",
+          "commit": "aed6abd40f473e3475b31f8b0ea1d2df16110c03",
+          "summary": "PARTIAL P03-04 candidate native captured-source recovery: independent original bytes/hash and metadata read by current native service for owner and read-only actor before/after encrypted fresh-cluster restore; exact inactive/foreign actor and cross-company source denials. Existing fixture reused without new source/membership mutations; all native payment/witness checks preserved. Actual PostgreSQL execution and independent review pending. Parent remains incomplete: operational recovery targets/ownership/key-retention/offsite gate and remaining full runtime/job recovery scope. Next exact combined accounting/restore run then evaluate remaining operational scope; no self-approval.",
           "tests": [
             {
-              "command": "node --test tools/operations/backup-restore/*.test.mjs tools/accounting-flow/restore-drill.test.mjs — 15 passed, 0 failed, 0 skipped",
+              "command": "node --test tools/operations/backup-restore/*.test.mjs on exact aed6abd40f473e3475b31f8b0ea1d2df16110c03:12 passed,0failed,0skipped; source-boundary bundling includes exact-worktree intake service/evidence and rejects ambient DB before runtime load",
               "passed": true
             },
             {
-              "command": "node --test tools/operations/backup-restore/runtime-acceptance.test.mjs — final exact-source/target guard checks 2 passed",
-              "passed": true
-            },
-            {
-              "command": "node --check tools/operations/backup-restore/application-recovery.mjs; node --check tools/accounting-flow/restore-drill.mjs; git diff --check",
+              "command": "git diff --check:passed; actual PostgreSQL not run locally",
               "passed": true
             }
           ]
@@ -7968,6 +7964,26 @@
         "type": "checkpoint",
         "taskId": "P03-04",
         "checkpoint": "PRE-EDIT ACK exactbase211649c44564f73cdca79e5f5c00580d6783930c worktree codex/lp-1452-restore. P03-04 tools/operations/backup-restore runtime-acceptance only plus focused bundle test/docs if warranted. Add native getIntakeContent original bytes/hash and cross-company/inactive denial after encrypted fresh-cluster restore; no service/schema writes. Stop edits15:09 all15:20 UTC. Waiting durable coordinator ACK before edits."
+      },
+      {
+        "at": 1793804605082,
+        "actor": "codex-1452-2",
+        "type": "submit",
+        "taskId": "P03-04",
+        "evidence": {
+          "commit": "aed6abd40f473e3475b31f8b0ea1d2df16110c03",
+          "summary": "PARTIAL P03-04 candidate native captured-source recovery: independent original bytes/hash and metadata read by current native service for owner and read-only actor before/after encrypted fresh-cluster restore; exact inactive/foreign actor and cross-company source denials. Existing fixture reused without new source/membership mutations; all native payment/witness checks preserved. Actual PostgreSQL execution and independent review pending. Parent remains incomplete: operational recovery targets/ownership/key-retention/offsite gate and remaining full runtime/job recovery scope. Next exact combined accounting/restore run then evaluate remaining operational scope; no self-approval.",
+          "tests": [
+            {
+              "command": "node --test tools/operations/backup-restore/*.test.mjs on exact aed6abd40f473e3475b31f8b0ea1d2df16110c03:12 passed,0failed,0skipped; source-boundary bundling includes exact-worktree intake service/evidence and rejects ambient DB before runtime load",
+              "passed": true
+            },
+            {
+              "command": "git diff --check:passed; actual PostgreSQL not run locally",
+              "passed": true
+            }
+          ]
+        }
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8007,7 +8023,7 @@
     "at": 1793802116918,
     "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c"
   },
-  "updatedAt": 1793804438769,
+  "updatedAt": 1793804787988,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -8072,46 +8088,56 @@
       "actor": "replit-1452-1",
       "provider": "Replit",
       "task": "P01-03",
-      "status": "reserved-awaiting-ack",
+      "status": "read-only-ack-requested-monitoring-unavailable-stop-unverified",
       "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+      "noGoSent": true,
+      "lastObserved": "Fresh isolated exact211 checkout clean at shell prompt before ACK-only/read-only brief around15:01; no implementation authorized",
       "stopBy": "2026-11-04T15:10:00Z"
     },
     {
       "actor": "codex-1452-2",
       "provider": "Codex",
       "task": "P03-04",
-      "status": "acknowledged-awaiting-durable-edit-release",
+      "status": "submitted-clean-stopped-review-held",
       "base": "211649c44564f73cdca79e5f5c00580d6783930c",
-      "worktree": "/workspace/scratch/b4d6a4379808/run1452-restore",
-      "stopBy": "2026-11-04T15:09:00Z"
+      "authorCommit": "aed6abd40f473e3475b31f8b0ea1d2df16110c03",
+      "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+      "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17"
     }
   ],
   "run": {
     "startedAt": "2026-11-04T14:54:31.418Z",
     "stopBy": "2026-11-04T15:20:00Z",
-    "activity": "Replit reserved awaiting read-only ACK; Codex highesteligible P03-04 claimed and acknowledged native restored capture-byte/permission qualification; no edits before durable release",
+    "activity": "Root independent P03 staticreview passed, author12 focusedpassed; candidateobject only, actualPG pending. Primary received ACK-only read-only no-edit request, NO GO; browser control disappeared after steering; two browser_js reads return Unknown tool(browser.js), exactReplit connectorfoundfalse. No remote implementation claimed and stop unverified; heldreservation retained.",
     "activeWorkers": [
       {
         "actor": "replit-1452-1",
         "provider": "Replit",
         "task": "P01-03",
-        "status": "reserved-awaiting-ack",
+        "status": "read-only-ack-requested-monitoring-unavailable-stop-unverified",
         "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+        "noGoSent": true,
+        "lastObserved": "Fresh isolated exact211 checkout clean at shell prompt before ACK-only/read-only brief around15:01; no implementation authorized",
         "stopBy": "2026-11-04T15:10:00Z"
       },
       {
         "actor": "codex-1452-2",
         "provider": "Codex",
         "task": "P03-04",
-        "status": "acknowledged-awaiting-durable-edit-release",
+        "status": "submitted-clean-stopped-review-held",
         "base": "211649c44564f73cdca79e5f5c00580d6783930c",
-        "worktree": "/workspace/scratch/b4d6a4379808/run1452-restore",
-        "stopBy": "2026-11-04T15:09:00Z"
+        "authorCommit": "aed6abd40f473e3475b31f8b0ea1d2df16110c03",
+        "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+        "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17"
       }
     ],
     "credits": "unknown",
     "status": "active",
-    "observedAt": "2026-11-04T15:00:38.789Z"
+    "observedAt": "2026-11-04T15:06:28.009Z",
+    "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+    "candidateTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+    "publicationBlocked": true,
+    "blocker": "Actual isolated PostgreSQL/restore unavailable after browser tool failure; source ref unchanged211. Replit read-only ACK/stop remains unverified; cannot release or reassign its claim."
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
