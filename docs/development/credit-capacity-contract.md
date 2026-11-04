@@ -427,3 +427,39 @@ reconstruct the complete core. Payload/hash replacement therefore cannot qualify
 against an already committed original. Binding/observation stays an internal
 prerequisite; payment admission/redemption, all writers, compensation, corrections,
 complete supplier/customer journey and browser acceptance remain pending.
+
+
+### Native payment causal snapshot (bounded development slice)
+
+Every new native cash payment freezes a version-1 `conditional_binding_snapshot`
+in its immutable source and reviewed canonical journal hash. It contains all
+validated observed originals for that company and party, including when cash is
+fully unapplied. An explicit empty binding list means none qualified at cash
+creation; an absent historical field never acquires bindings retroactively.
+New payment and allocation planning requires the complete protected binding
+schema and fails closed on a missing or partial installation. Existing exact
+payment retries return their prior immutable outcome before replanning. Activation
+on an existing database still requires the separately reviewed migration; this
+slice does not migrate an existing environment.
+
+Each entry retains company, original document and journal IDs, the committed
+native binding hash and the immutable observation clock formatted as UTC with
+microsecond precision. Native source/evidence reconstruction and canonical
+journal/effect identities are revalidated under the existing company lock. The
+observation proves that the **original binding** was already committed; the
+observation receipt itself need not have committed in an earlier transaction.
+Planning never creates an observation or recertifies a historical original XID.
+A restored valid observation remains evidence of that original commitment.
+
+A later allocation can copy only matching entries from its original cash
+payment's frozen snapshot, after validating that payment source against its
+canonical journal and posting effect. Current bindings cannot add eligibility to
+an old pool. Changed binding identity or receipt and corrupted parent source fail
+closed. Preview-to-post changes invalidate the existing review token. Capture,
+allocation event and their source hashes use the existing atomic payment writer;
+no second cash or recovery authority is introduced.
+
+This proves causal capture only. Public conditional posting remains disabled;
+redemption, deadline and payment-witness admission, all-writer protection,
+compensation, corrected originals and full customer/supplier/browser acceptance
+remain pending. The broader P01-03 parent is not accepted by this slice.

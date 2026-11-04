@@ -133,6 +133,59 @@ export async function observeConditionalOriginal(company:string,actor:string,id:
   });
 }
 
+/** Frozen causal evidence, not conditional-discount eligibility. An existing
+ * observation proves the ORIGINAL binding committed before this calculation;
+ * the observation itself need not be a separately committed transaction. Never
+ * manufacture an observation here or recertify historical transaction IDs. */
+export async function conditionalPaymentSnapshot(q:Queryable,company:string,partyType:string,partyId:string,
+  kind:string,parent:any,allocations:{document_id:string}[]) {
+  await conditionalOriginalSchema(q);
+  const prior=parent?.source?.conditional_binding_snapshot;
+  if(kind==='allocation' && prior===undefined) return {version:1,bindings:[]};
+  if(kind==='allocation') {
+    if(prior?.version!==1 || !Array.isArray(prior.bindings) || Object.keys(prior).sort().join(',')!=='bindings,version')
+      fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
+    const verified=(await q.query(`SELECT j.id FROM canonical_journal_entries j
+      JOIN accounting_posting_effects p ON p.company_id=j.company_id AND p.journal_id=j.id
+      WHERE j.company_id=$1 AND j.id=$2 AND j.source_type='accounting_payment_event'
+        AND j.source_id=$3 AND j.posting_kind='party_payment' AND j.status='posted' AND j.currency_code='GBP'
+        AND j.economic_effect_id='payment-event:'||$3 AND j.source_revision=$4 AND j.source_evidence_hash=$4
+        AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.source_revision=j.source_revision
+        AND p.source_evidence_hash=j.source_evidence_hash AND p.posting_kind=j.posting_kind
+        AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||$3 AND p.status='posted'`,
+      [company,parent.journal_id,parent.id,hash(parent.source)])).rows[0];
+    if(!verified) fail(503,'PAYMENT_HISTORY_INVALID');
+    if(prior.bindings.some((b:any)=>!b || typeof b!=='object' || Array.isArray(b) ||
+      Object.keys(b).sort().join(',')!=='binding_hash,company_id,document_id,journal_id,observed_at' ||
+      b.company_id!==company || !/^[a-f0-9-]{36}$/.test(b.document_id) || !/^[a-f0-9-]{36}$/.test(b.journal_id) ||
+      !/^sha256:[a-f0-9]{64}$/.test(b.binding_hash) || typeof b.observed_at!=='string') ||
+      new Set(prior.bindings.map((b:any)=>b.document_id)).size!==prior.bindings.length)
+      fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
+  }
+  const selected=kind==='allocation'?prior.bindings.filter((b:any)=>allocations.some(a=>a.document_id===b.document_id)):null;
+  const rows=(await q.query(`SELECT b.*,to_char(o.observed_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') observed_at FROM conditional_discount_original_bindings b
+    JOIN conditional_discount_original_observations o ON o.company_id=b.company_id AND o.document_id=b.document_id
+    JOIN accounting_document_sources d ON d.company_id=b.company_id AND d.id=b.document_id
+    WHERE b.company_id=$1 AND d.party_id=$2 AND d.kind=$3
+      AND ($4::uuid[] IS NULL OR b.document_id=ANY($4::uuid[])) ORDER BY b.document_id`,
+    [company,partyId,partyType==='customer'?'sales_invoice':'purchase_bill',selected?.map((b:any)=>b.document_id)??null])).rows;
+  const bindings:{company_id:string,document_id:string,journal_id:string,binding_hash:string,observed_at:string}[]=[];
+  for(const row of rows) {
+    if(!row.binding || row.binding_hash!==hash(row.binding) || canonicalConditionalPayload(row.binding)!==row.canonical_payload ||
+      typeof row.observed_at!=='string' || !Number.isFinite(Date.parse(row.observed_at))) fail(503,'CONDITIONAL_BINDING_INVALID');
+    const original=await verifiedOriginal(q,company,row.document_id,row.binding_hash);
+    if(!original || original.journal_id!==row.journal_id || original.party_id!==partyId ||
+      original.kind!==(partyType==='customer'?'sales_invoice':'purchase_bill')) fail(503,'CONDITIONAL_BINDING_INVALID');
+    const expected=await prepareConditionalOriginal(q,company,original);
+    if(expected.bindingHash!==row.binding_hash || expected.canonicalPayload!==row.canonical_payload) fail(503,'CONDITIONAL_BINDING_INVALID');
+    bindings.push({company_id:company,document_id:row.document_id,journal_id:row.journal_id,
+      binding_hash:row.binding_hash,observed_at:row.observed_at});
+  }
+  if(selected && (selected.length!==bindings.length || selected.some((b:any)=>!bindings.some(x=>hash(x)===hash(b)))))
+    fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
+  return {version:1,bindings};
+}
+
 /** A receipt of observation, not the payment's actual commit timestamp. Only a
  * fresh transaction can establish that the source was already committed. Never
  * accept an injected transaction, connection, timestamp, hash or source row. */

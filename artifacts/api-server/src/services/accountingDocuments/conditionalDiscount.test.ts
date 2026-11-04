@@ -162,7 +162,7 @@ const originalBinding={version:1,company_id:company,document_id:eventId,revision
  financial_hash:hash({source:originalSource,money:originalRow.money,tax_context:originalRow.tax_context,accounts:originalRow.posting_accounts}),
  party_id:company,currency:'GBP',evidence_id:journal,terms_hash:evidenceRow.terms_hash,
  gross_pence:'12000',discount_gross_pence:'1200',deadline:'2026-11-30',vector:frozenConditionalVector(originalRow)};
-function originalFake(t:any,{binding=originalBinding,bindingHash=hash(binding),missing=false,guards=9,constraints=10,owned=true,writable=false,members=1,existing=false,bound=true}:any={}) {
+function originalFake(t:any,{binding=originalBinding,bindingHash=hash(binding),missing=false,guards=9,constraints=10,owned=true,writable=false,members=1,existing=false,bound=true,snapshot=false,parentValid=true}:any={}) {
  const calls:string[]=[];let observed=existing;let transactions=0;let passedBinding:any;
  const receipt={observed_at:'2026-11-04 17:00:00.000001+00'};
  const query=async(sql:string,params:any[]=[])=>{
@@ -177,7 +177,8 @@ function originalFake(t:any,{binding=originalBinding,bindingHash=hash(binding),m
   else if(sql.includes('FROM pg_trigger')) rows=[{n:2}];
   else if(sql.includes('pg_get_userbyid(relowner) owner')) rows=[{n:11,owner:'ledgerly_canonical_owner',writable:false}];
   else if(sql.includes('FROM conditional_discount_evidence')) rows=[evidenceRow];
-  else if(sql.includes('FROM conditional_discount_original_bindings')) rows=bound?[{journal_id:journal,binding,binding_hash:bindingHash,canonical_payload:canonicalConditionalPayload(binding)}]:[];
+  else if(sql.includes('FROM conditional_discount_original_bindings')) rows=bound?[{company_id:company,document_id:eventId,journal_id:journal,binding,binding_hash:bindingHash,canonical_payload:canonicalConditionalPayload(binding),...(snapshot?receipt:{})}]:[];
+  else if(sql.includes('FROM canonical_journal_entries j')) rows=parentValid?[{id:journal}]:[];
   else if(sql.includes('FROM accounting_document_sources')) rows=[originalRow];
   else if(sql.includes('public.bind_conditional_discount_original')) passedBinding={binding:JSON.parse(params[3]),hash:params[4],payload:params[6]};
   else if(sql.includes('public.observe_conditional_discount_original')) observed=true;
@@ -246,4 +247,38 @@ test('native pre-journal commitment excludes journal linkage and equals existing
  const unicode={z:'é😀\n"/\\',a:[{y:1,x:'0'}]};
  assert.equal('sha256:'+createHash('sha256').update(canonicalConditionalPayload(unicode),'utf8').digest('hex'),hash(unicode));
  assert.throws(()=>canonicalConditionalPayload({value:'x'.repeat(1048576)}),/CONDITIONAL_BINDING_INVALID/);
+});
+
+import {conditionalPaymentSnapshot} from './conditionalDiscount';
+test('payment snapshot includes validated observed originals and hashes the exact receipt identity',async t=>{
+ const f=originalFake(t,{snapshot:true});
+ const result=await conditionalPaymentSnapshot(f.q,company,'customer',company,'payment',null,[]);
+ assert.deepEqual(result,{version:1,bindings:[{company_id:company,document_id:eventId,journal_id:journal,binding_hash:hash(originalBinding),observed_at:f.receipt.observed_at}]});
+ assert.equal(f.calls.some(s=>/^\s*(INSERT|SELECT public\.observe_)/.test(s)),false);
+});
+test('explicit empty payment snapshot differs from missing or partial schema',async t=>{
+ const f=originalFake(t,{snapshot:true,bound:false});
+ assert.deepEqual(await conditionalPaymentSnapshot(f.q,company,'customer',company,'payment',null,[]),{version:1,bindings:[]});
+ const broken=originalFake(t,{missing:true});
+ await assert.rejects(()=>conditionalPaymentSnapshot(broken.q,company,'customer',company,'payment',null,[]),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);
+});
+test('legacy payment cannot acquire new bindings at later allocation',async t=>{
+ const f=originalFake(t,{snapshot:true});
+ assert.deepEqual(await conditionalPaymentSnapshot(f.q,company,'customer',company,'allocation',{source:{}},[{document_id:eventId}]),{version:1,bindings:[]});
+ assert.equal(f.calls.some(s=>s.includes('FROM conditional_discount_original_bindings')),false);
+});
+for(const defect of ['hash','receipt','extra','parent-journal']) test(`allocation rejects changed frozen ${defect}`,async t=>{
+ const f=originalFake(t,{snapshot:true,parentValid:defect!=='parent-journal'});
+ const snapshot=await conditionalPaymentSnapshot(f.q,company,'customer',company,'payment',null,[]);
+ const item=snapshot.bindings[0]!;
+ if(defect==='hash') item.binding_hash=hash('changed');
+ if(defect==='receipt') item.observed_at='2026-11-05 17:00:00+00';
+ if(defect==='extra') (item as any).untrusted=true;
+ const parent={id:eventId,journal_id:journal,source:{conditional_binding_snapshot:snapshot}};
+ await assert.rejects(()=>conditionalPaymentSnapshot(f.q,company,'customer',company,'allocation',parent,[{document_id:eventId}]),/CONDITIONAL_PAYMENT_SNAPSHOT_INVALID|PAYMENT_HISTORY_INVALID/);
+});
+
+for(const prior of [null,{version:2,bindings:[]},{version:1,bindings:[null]}]) test('malformed persisted snapshot rejects with explicit integrity error',async t=>{
+ const f=originalFake(t,{snapshot:true});
+ await assert.rejects(()=>conditionalPaymentSnapshot(f.q,company,'customer',company,'allocation',{id:eventId,journal_id:journal,source:{conditional_binding_snapshot:prior}},[]),/CONDITIONAL_PAYMENT_SNAPSHOT_INVALID/);
 });

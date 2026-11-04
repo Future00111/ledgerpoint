@@ -173,11 +173,16 @@ import {captureConditionalEvidence,getConditionalEvidence} from './conditionalDi
 import {conditionalTermsHash} from '../financialDrafts/contract';
 import {saveDocument,getDocument} from './documents';
 import {postDocument} from './posting';
-async function ordinaryOriginalFixture() {
+async function ordinaryOriginalFixture(partyType:'customer'|'supplier'='customer') {
  const f=await fixture();
+ if(partyType==='supplier') {
+  const supplier=randomUUID();
+  await admin.query("INSERT INTO suppliers(id,company_id,name,status) VALUES($1,$2,'Synthetic binding supplier','active')",[supplier,f.company]);
+  f.body={...f.body,party_type:partyType,party_id:supplier};
+ }
  await admin.query(`INSERT INTO vat_tax_rules(id,company_id,code,label,rate,treatment,effective_from,is_active)
  VALUES($1,$2,'NONE','Synthetic no VAT',0,'no_vat','2000-01-01',true)`,[randomUUID(),f.company]);
- const draft=await saveDocument(f.company,actor,{kind:'sales_invoice',source:{
+ const draft=await saveDocument(f.company,actor,{kind:partyType==='customer'?'sales_invoice':'purchase_bill',source:{
   contract:'w03.draft.v1',currency:'GBP',customer_id:f.body.party_id,invoice_number:'ORIGIN-'+randomUUID(),
   issue_date:'2026-11-01',due_date:'2026-11-30',payment_terms:29,reference:'',notes:'',
   line_items:[{description:'Synthetic original',quantity:'1',unit_price:'120',tax_code:'NONE'}]}});
@@ -263,11 +268,11 @@ import {calculateDocument} from './documents';
 import {journalLines} from './documentJournal';
 import {hash,scope,document} from './core';
 import {bindConditionalOriginal,observeConditionalOriginal,prepareConditionalOriginal,canonicalConditionalPayload} from './conditionalDiscount';
-async function conditionalOriginalFixture() {
- const f=await ordinaryOriginalFixture();
- const terms={version:1,party_type:'customer',party_id:f.body.party_id,currency:'GBP',agreement_id:randomUUID(),agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
+async function conditionalOriginalFixture(partyType:'customer'|'supplier'='customer') {
+ const f=await ordinaryOriginalFixture(partyType);
+ const terms={version:1,party_type:partyType,party_id:f.body.party_id,currency:'GBP',agreement_id:randomUUID(),agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
  const evidence=await captureConditionalEvidence(f.company,actor,{request_id:randomUUID(),terms,evidence_text:'Synthetic original binding agreement',attested:true});
- const draft=await saveDocument(f.company,actor,{kind:'sales_invoice',source:{...f.draft.source,conditional_discount:{...terms,evidence_receipt_id:evidence.id}}},f.draft.id,f.draft.revision);
+ const draft=await saveDocument(f.company,actor,{kind:partyType==='customer'?'sales_invoice':'purchase_bill',source:{...f.draft.source,conditional_discount:{...terms,evidence_receipt_id:evidence.id}}},f.draft.id,f.draft.revision);
  await assert.rejects(()=>postDocument(f.company,actor,draft.id,draft.revision),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
  return {...f,draft};
 }
@@ -300,7 +305,7 @@ async function bindInOriginalTransaction(f:any,tx:DatabaseTransaction,beforeBind
   }},lineBuilder:{async build(){return journalLines(row);}},
  });
  await q.query("UPDATE accounting_document_sources SET status='posted',journal_id=$3 WHERE company_id=$1 AND id=$2",[f.company,row.id,result.journalId]);
- await q.query("UPDATE sales_invoices SET status='posted' WHERE company_id=$1 AND id=$2",[f.company,row.id]);
+ await q.query(`UPDATE ${row.kind==='sales_invoice'?'sales_invoices':'purchase_bills'} SET status='posted' WHERE company_id=$1 AND id=$2`,[f.company,row.id]);
  if(beforeBind) await beforeBind(q,prepared,result.journalId);
  const binding=await bindConditionalOriginal(q,f.company,actor,row.id);
  return {binding,journalId:result.journalId};
@@ -435,4 +440,72 @@ test('real PostgreSQL: direct observer rejects duplicate identity and rechecks a
   await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
  }
  assert.ok((await observeConditionalOriginal(f.company,actor,f.draft.id)).observed_at);
+});
+
+import {conditionalPaymentSnapshot} from './conditionalDiscount';
+for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL: ${partyType} native cash freezes bindings before allocation and never backfills old pools`,async()=>{
+ const f=await conditionalOriginalFixture(partyType);
+ const oldBody={...f.body,id:randomUUID(),amount_minor:'100'};
+ const oldPreview=await previewPayment(f.company,actor,oldBody);
+ assert.deepEqual(oldPreview.source.conditional_binding_snapshot,{version:1,bindings:[]});
+ const old=await postPayment(f.company,actor,{...oldBody,review_token:oldPreview.review_token});
+ await withCanonicalPostingTransaction(async tx=>{
+  await bindInOriginalTransaction(f,tx);
+  assert.deepEqual(await conditionalPaymentSnapshot(queryAdapter(tx),f.company,partyType,f.body.party_id,'payment',null,[]),{version:1,bindings:[]});
+ });
+ const body={...f.body,id:randomUUID(),amount_minor:'10800'};
+ const unobserved=await previewPayment(f.company,actor,body);
+ assert.deepEqual(unobserved.source.conditional_binding_snapshot,{version:1,bindings:[]});
+ const receipt=await observeConditionalOriginal(f.company,actor,f.draft.id);
+ await assert.rejects(()=>postPayment(f.company,actor,{...body,review_token:unobserved.review_token}),/PAYMENT_REVIEW_STALE/);
+ const fresh=await previewPayment(f.company,actor,body),snapshot=fresh.source.conditional_binding_snapshot!;
+ assert.equal(snapshot.bindings.length,1);assert.equal(snapshot.bindings[0]!.document_id,f.draft.id);
+ assert.equal(Date.parse(snapshot.bindings[0]!.observed_at),Date.parse(receipt.observed_at));
+ assert.match(snapshot.bindings[0]!.observed_at,/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/);
+ await withCanonicalPostingTransaction(async tx=>{
+  const q=queryAdapter(tx);await q.query("SET LOCAL TIME ZONE 'Pacific/Auckland'");
+  assert.deepEqual(await conditionalPaymentSnapshot(q,f.company,partyType,f.body.party_id,'payment',null,[]),snapshot);
+ });
+ const payment=await postPayment(f.company,actor,{...body,review_token:fresh.review_token});
+ const saved=(await pool.query('SELECT source FROM accounting_payment_events WHERE id=$1',[body.id])).rows[0].source;
+ assert.deepEqual(saved.conditional_binding_snapshot,snapshot);
+ assert.equal((await postPayment(f.company,actor,{...body,review_token:fresh.review_token})).journal_id,payment.journal_id);
+ for(const [parent,value,expected] of [[old.id,'100',0],[payment.id,'10800',1]] as const) {
+  const allocation={...body,id:randomUUID(),kind:'allocation',payment_id:parent,amount_minor:value,allocations:[{document_id:f.draft.id,amount_minor:value}]};
+  const review=await previewPayment(f.company,actor,allocation);
+  assert.equal(review.source.conditional_binding_snapshot!.bindings.length,expected);
+  await postPayment(f.company,actor,{...allocation,review_token:review.review_token});
+ }
+ const direct={...body,id:randomUUID(),amount_minor:'100',allocations:[{document_id:f.draft.id,amount_minor:'100'}]};
+ const directReview=await previewPayment(f.company,actor,direct);
+ assert.deepEqual(directReview.source.conditional_binding_snapshot,snapshot);
+ await assert.rejects(()=>postPayment(f.company,actor,{...direct,review_token:directReview.review_token},async()=>{throw Error('snapshot rollback');}),/snapshot rollback/);
+ assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_payment_events WHERE id=$1',[direct.id])).rows[0].n,0);
+ await postPayment(f.company,actor,{...direct,review_token:directReview.review_token});
+ assert.equal((await pool.query('SELECT source FROM accounting_payment_events WHERE id=$1',[old.id])).rows[0].source.conditional_binding_snapshot.bindings.length,0);
+});
+
+test('real PostgreSQL: new payment planning rejects a partial binding schema before any financial write',async()=>{
+ const f=await fixture();
+ await admin.query('ALTER TABLE conditional_discount_original_observations DISABLE TRIGGER conditional_original_immutable');
+ try {
+  await assert.rejects(()=>previewPayment(f.company,actor,f.body),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);
+  await assert.rejects(()=>postPayment(f.company,actor,f.body),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,0);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,0);
+ } finally {await admin.query('ALTER TABLE conditional_discount_original_observations ENABLE ALWAYS TRIGGER conditional_original_immutable');}
+});
+test('real PostgreSQL: retained original observation survives foreign historical transaction origin without recertification',async()=>{
+ const f=await conditionalOriginalFixture();
+ await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
+ await observeConditionalOriginal(f.company,actor,f.draft.id);
+ const before=await previewPayment(f.company,actor,f.body);
+ const c=await admin.connect();try {
+  await c.query('BEGIN');
+  await c.query('ALTER TABLE conditional_discount_original_bindings DISABLE TRIGGER conditional_original_immutable');
+  await c.query("UPDATE conditional_discount_original_bindings SET cluster_id='synthetic-restored-origin' WHERE company_id=$1 AND document_id=$2",[f.company,f.draft.id]);
+  await c.query('ALTER TABLE conditional_discount_original_bindings ENABLE ALWAYS TRIGGER conditional_original_immutable');
+  await c.query('SET LOCAL ROLE ledgerly_api');
+  assert.deepEqual(await conditionalPaymentSnapshot(c,f.company,'customer',f.body.party_id,'payment',null,[]),before.source.conditional_binding_snapshot);
+ } finally {await c.query('ROLLBACK');c.release();}
 });

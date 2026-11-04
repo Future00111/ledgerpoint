@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { observePaymentOutcome } from './conditionalDiscount';
+import { conditionalPaymentSnapshot, observePaymentOutcome } from './conditionalDiscount';
 import { isCompanyRole } from '../../security/roles';
 import { canWriteDraft, fail, uuid } from '../financialDrafts/contract';
 import { postCanonicalJournal, postCanonicalJournalInTransaction, roleHasAccountingCapability, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
@@ -171,7 +171,9 @@ async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof 
   const ids=[...new Set(lines.map(l=>l.accountId))];
   const accounts=(await q.query('SELECT id,company_id,code,name,account_type,is_active FROM chart_of_accounts WHERE company_id=$1 AND id=ANY($2::uuid[]) ORDER BY id FOR UPDATE',[company,ids])).rows;
   if(accounts.length!==ids.length||accounts.some(a=>a.is_active!==true)) fail(422,'PAYMENT_ACCOUNT_INVALID');
-  const source={intent:b,lines,bank_account_id:bankAccount,pool_account_id:poolAccount,party_name:party.name,
+  const conditionalSnapshot=['payment','allocation'].includes(b.kind)
+    ?{conditional_binding_snapshot:await conditionalPaymentSnapshot(q,company,b.party_type,b.party_id,b.kind,parent,b.allocations)}:{};
+  const source={...conditionalSnapshot,intent:b,lines,bank_account_id:bankAccount,pool_account_id:poolAccount,party_name:party.name,
     configuration_revision:config.revision,period_id:periods[0].id,open_states:openStates,
     parent_remainder_minor:remainder.toString(),parent_events:related.map(e=>e.id),accounts};
   return {source,review_token:hash(source),lines,period:periods[0],configuration:config,party_name:party.name,
