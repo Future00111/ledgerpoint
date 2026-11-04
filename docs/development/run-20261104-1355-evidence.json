@@ -1,6 +1,6 @@
 {
   "runId": "hosted-20261104-1355",
-  "observedAt": "2026-11-04T14:15:29.305Z",
+  "observedAt": "2026-11-04T14:20:27.141Z",
   "sourceHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
   "candidate": "980c11578967caf13b40a3e1a783b95441b097a4",
   "candidateTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
@@ -20,12 +20,11 @@
     "clean": true
   },
   "queue": {
-    "revision": 605,
-    "eventCount": 613,
-    "validatedWithCurrentModule": true,
-    "nextEligible": "P01-03",
-    "claims": 1,
-    "changes": 2
+    "revision": 608,
+    "eventCount": 614,
+    "heldTasks": [],
+    "P01_03": "pending",
+    "partialEvidencePreserved": true
   },
   "team": {
     "coordinator": "coordinator1355",
@@ -123,11 +122,15 @@
     "afterPassing": "Independent matching-source review before any renewed publication request; full P01-03 remains pending."
   },
   "publication": {
-    "attempted": false,
-    "priorRejectionUnresolved": "Awaiting fresh reviewed bounded publication request; fullparent remains pending",
-    "integrationHeadUnchanged": true,
+    "attempted": true,
+    "succeeded": true,
+    "publishedCommit": "211649c44564f73cdca79e5f5c00580d6783930c",
+    "expectedPriorHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
+    "fastForwardOnly": true,
+    "priorRejectionMissingPGResolved": true,
     "transportBypass": false,
-    "priorRejectionMissingPGResolved": true
+    "PR": 27,
+    "draft": true
   },
   "acceptance": {
     "newOriginalBullets": [],
@@ -234,5 +237,79 @@
     "publication": "Approved expected-head fast-forward to211 only after durable evidence and live fence, then exact published CI; stop on any renewed rejection",
     "parentAcceptance": "P01-03 remains pending: binding/admission/redemption/reversal/UI/browser; no statutory or launch qualification",
     "coordinatorVerification": "Nestedfile hashes/bytes, source/tree/cleanliness, exits0, suite summary133+12pass0fail0skip, receipts and directory inventories independently inspected"
+  },
+  "endedAt": "2026-11-04T14:20:27.141Z",
+  "publishedCI": {
+    "runId": 41845973184,
+    "jobId": 126629447144,
+    "status": "completed",
+    "conclusion": "success",
+    "mergeCommit": "498f75b04179307e7c38c6058b3490f5334ad366",
+    "publishedToMergeFileDiff": [],
+    "independentReviewer": "root",
+    "tests": 963,
+    "pass": 963,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "buildTypecheck": "passed",
+    "sourceSecurityFinancial": "passed",
+    "disposablePostgreSQL": "passed",
+    "populatedRestore": "passed",
+    "encryptedRecovery": "passed",
+    "cleanup": "passed",
+    "logPath": "docs/development/candidates/20261104-1355-published-ci.log",
+    "logSha256": "80184d4c2ebceaf6c37090a23a4cc9d00ea6e88e8498f5f4c6dd484d2c585894",
+    "logBytes": 195063
+  },
+  "shutdown": {
+    "remoteActorStopped": true,
+    "exportStopped": true,
+    "postgresStopped": true,
+    "ownedDirectoriesRemoved": true,
+    "remoteAndOriginalCheckoutsClean": true,
+    "localCheckoutClean": true,
+    "activeWorkers": []
+  },
+  "reusableRunner": {
+    "route": "Connected local browser to verified LedgerPoint team Replit Shell, supervised directly; no Replit LLM dispatched",
+    "steps": [
+      "Recheck actual app, UID1000, PostgreSQL16 tools, isolated output export and confirmed stop; connector may expose wrong app scope",
+      "Acquire coordinator and highesteligible remoteactor reservation; never create competing remote queue",
+      "Fresh ignored unique checkout; read-only exact GitHub source/immutable archive fetch; verify commit/tree/patch hash",
+      "Fresh frozen offline dependencies, no symlinks to old workspace source; sanitized env with no ambient database credentials",
+      "Existing accounting/restore runners only; observe at most5min; bounded hardstop; cleanup only exact owned newcluster if forced",
+      "Export full logs/receipts/identity/originalcheckout cleanliness as hashed gzip JSON; independently decode/check bytes before archival/publication"
+    ],
+    "notAlwaysOn": true,
+    "availabilityMustBeReverified": true,
+    "doNotRepeatFailedRootNamespaceSetup": true
+  },
+  "threeRunComparison": {
+    "runs": [
+      {
+        "runId": "hosted-20261104-1242",
+        "originalBulletsAccepted": 0,
+        "completeJourneys": 0,
+        "outcome": "Payment witness and encrypted restored native payment safeguards verified; launch prerequisites only"
+      },
+      {
+        "runId": "hosted-20261104-1319",
+        "originalBulletsAccepted": 0,
+        "completeJourneys": 0,
+        "outcome": "Evidence capture/draft partial candidate reviewed; UUID defect fixed; publication blocked by missing actual PostgreSQL/restore"
+      },
+      {
+        "runId": "hosted-20261104-1355",
+        "originalBulletsAccepted": 0,
+        "completeJourneys": 0,
+        "outcome": "Preserved exact candidate qualified in isolated real PostgreSQL, published as bounded draft increment; matching published CI963pass"
+      }
+    ],
+    "decision": "Keep one focused implementer on P01-03 original posting binding and causal committed observation next; reuse verified supervised runner after fresh preflight instead of repeating candidate recovery. Add independent second eligible track only with nonoverlapping ownership and review capacity. No scope or gate reduction.",
+    "credits": "unknown",
+    "providerCost": "unknown",
+    "rework": "No new feature implementation this run; original candidate reused unchanged",
+    "reviewWait": "not separately measured"
   }
 }
