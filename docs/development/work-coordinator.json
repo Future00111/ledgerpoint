@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 161,
+  "revision": 162,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261104-1355",
+    "tokenSha256": "d57a6f59a7ea420ab0d3a21dd474ea798262d3757f92750d47a1049dc438b32f",
+    "acquiredAt": 1793800659633,
+    "expiresAt": 1793802459633
+  },
   "lastOwner": {
     "runId": "hosted-20261104-1319",
     "tokenSha256": "1fa8005d8776cb47b53f46864a1fca8dcd0eb2d7934c7cd15656e263bbb79a0a",
@@ -7887,7 +7892,7 @@
     "at": 1793799877840,
     "codeHead": "b4813e3c1d34bd1f47decec84e33cbe73e565a7c"
   },
-  "updatedAt": 1793799877840,
+  "updatedAt": 1793800659633,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -7942,20 +7947,11 @@
   },
   "activeWorkers": [],
   "run": {
-    "startedAt": "2026-11-04T13:20:49.595Z",
-    "stopBy": "2026-11-04T13:47:00Z",
-    "credits": "unknown",
-    "activity": "Stopped clean, no held queue ownership. Exact candidate980c115/treef8cdde52 archived with independent technical review and matching source790/fullbuild. Automatic integration publication rejected for missing actual PostgreSQL/restore and incomplete parent gates; sourceb481 unchanged. No retry or transport workaround. See compact durable handoff for precise remaining gates and next execution.",
-    "observedAt": "2026-11-04T13:44:37.840Z",
+    "startedAt": "2026-11-04T13:57:39.652Z",
+    "stopBy": "2026-11-04T14:23:00Z",
+    "activity": "Restoring exact archived candidate for PostgreSQL/restore validation; root independent review and host setup; no implementers",
     "activeWorkers": [],
-    "candidate": "980c11578967caf13b40a3e1a783b95441b097a4",
-    "candidateTree": "f8cdde522c6603fe2b9e7f99117122d01012bb4a",
-    "publicationBlocked": true,
-    "endedAt": "2026-11-04T13:44:37.840Z",
-    "status": "stopped",
-    "newlyAcceptedOriginalBullets": [],
-    "newCompleteJourneys": [],
-    "providerUsage": "unknown"
+    "credits": "unknown"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
