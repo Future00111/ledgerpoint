@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 206,
+  "revision": 207,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "33b35cc70971f6d8bf01149149f8905bf783e05c",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261104-1917",
+    "tokenSha256": "f53f467c3246039f7aacecbdd93a0e592bf7cc3422c0c5a5f430bfe520abb58b",
+    "acquiredAt": 1793819946176,
+    "expiresAt": 1793821746176
+  },
   "lastOwner": {
     "runId": "hosted-20261104-1819",
     "tokenSha256": "72e41f1c895ac7f6cc3d464742d9ff615863140f718b92a36cc29b02423e4488",
@@ -8400,7 +8405,7 @@
     "at": 1793817788249,
     "codeHead": "33b35cc70971f6d8bf01149149f8905bf783e05c"
   },
-  "updatedAt": 1793817788329,
+  "updatedAt": 1793819946176,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -8511,36 +8516,13 @@
   },
   "activeWorkers": [],
   "run": {
-    "startedAt": "2026-11-04T18:20:49.299Z",
-    "stopBy": "2026-11-04T18:47:00Z",
-    "implementationStopBy": "2026-11-04T18:37:00Z",
-    "status": "stopped-clean-bounded-slice-verified",
-    "activity": "Final33b35cc/treee6ee independently reviewed; exactPR27 CI41889350801/job126782275148 passes1005 zero failures/skips, fullbuild/typecheck, actual isolatedPG positivebinding/poison/membershiprace, restore/encryptedrecovery/cleanup. All workers stoppedclean and P01 pending, no originalparent acceptance.",
+    "startedAt": "2026-11-04T19:19:06.216Z",
+    "stopBy": "2026-11-04T19:45:00Z",
+    "implementationStopBy": "2026-11-04T19:33:00Z",
+    "status": "active",
+    "activity": "Exact33b35 source checkout; native payment binding snapshot contract review before dispatch",
     "credits": "unknown",
-    "providerUsage": "unknown",
-    "observedAt": "2026-11-04T18:43:08.249Z",
-    "activeWorkers": [],
-    "publicationBlocked": false,
-    "primaryCandidate": "1d14f671e9503dc7d6233382aff80dbeb7f140da",
-    "primaryCandidateTree": "324e7748ef6e7d5b61758ebcc944e7e19a051001",
-    "publishedSource": "33b35cc70971f6d8bf01149149f8905bf783e05c",
-    "archiveCommit": "5134274538f972b11e4b3790fee1e43f4453e5a5",
-    "newlyAcceptedOriginalBullets": [],
-    "newCompleteJourneys": [],
-    "finalAuthorCommit": "f3ea03d74cb6ef8000972381c4fd47364f1f2399",
-    "finalTree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
-    "fixArchive": "375a9536ab492dac918804e75f7945c747f33de4",
-    "endedAt": "2026-11-04T18:43:08.249Z",
-    "endReason": "Bounded source slice integrated and exact CI verified; stop with sufficient durable shutdown reserve, no new task after implementation deadline.",
-    "resolvedBlockers": [
-      "Internal native canonical payload/SQL authority contract resolved with independently reviewed implementation and exact CI"
-    ],
-    "rework": "Two active-duplicate fixture inserts conflicted with existing unique index; corrected to inactive duplicates, exactCI rerun passed.",
-    "reviewWait": "not measured",
-    "newWorkDeclined": {
-      "eligibleNext": "P01-03",
-      "reason": "Continue next bounded run with remaining parent workflow; no fresh implementation after18:37 except explicitly bounded existingCI fixture correction completed18:38."
-    }
+    "providerUsage": "unknown"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
