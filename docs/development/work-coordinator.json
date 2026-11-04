@@ -1,23 +1,18 @@
 {
   "version": 2,
-  "revision": 204,
+  "revision": 206,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "33b35cc70971f6d8bf01149149f8905bf783e05c",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261104-1819",
     "tokenSha256": "72e41f1c895ac7f6cc3d464742d9ff615863140f718b92a36cc29b02423e4488",
     "acquiredAt": 1793816449238,
     "expiresAt": 1793818249238
-  },
-  "lastOwner": {
-    "runId": "hosted-20261104-1732",
-    "tokenSha256": "3c5b9596a5afcbb789bb40e7a7b9046b8f31ecdeb1e1e77e84f2fdb66837ed74",
-    "acquiredAt": 1793813715954,
-    "expiresAt": 1793816495987
   },
   "queueState": {
     "version": 3,
@@ -8402,10 +8397,10 @@
       }
     ],
     "runId": "hosted-20261104-1819",
-    "at": 1793817627807,
+    "at": 1793817788249,
     "codeHead": "33b35cc70971f6d8bf01149149f8905bf783e05c"
   },
-  "updatedAt": 1793817627807,
+  "updatedAt": 1793817788329,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -8423,48 +8418,72 @@
   "validation": {
     "sourceCommit": "33b35cc70971f6d8bf01149149f8905bf783e05c",
     "sourceTree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
-    "exactPublishedCI": "pending",
-    "independentReview": "/root",
-    "fixArchive": "375a9536ab492dac918804e75f7945c747f33de4",
-    "priorFailedValidation": {
-      "sourceCommit": "008e5d718fbedd41130c7449beb9898305bb8ed8",
-      "sourceTree": "324e7748ef6e7d5b61758ebcc944e7e19a051001",
-      "exactPublishedCI": "failed",
-      "localSource": 790,
-      "localFocused": 47,
-      "localRegistry": 29,
-      "fullBuildTypecheck": "passed",
+    "exactPublishedCI": "passed",
+    "ciRun": 41889350801,
+    "job": 126782275148,
+    "mergeCommit": "15755210486a53c36885b3831c519b352031e9cb",
+    "publishedToMergeFileDiff": [],
+    "tests": 1005,
+    "pass": 1005,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "buildTypecheck": "passed",
+    "disposablePostgreSQL": "passed",
+    "restore": "passed",
+    "encryptedRecovery": "passed",
+    "cleanup": "passed",
+    "logsIndependentlyFetched": true,
+    "independentReviewer": "/root",
+    "evidencePath": "docs/development/candidates/20261104-1819-final-verification.json",
+    "logPath": "docs/development/candidates/20261104-1819-final-ci.log",
+    "scope": "Bounded original binding/observation authority; no parent/journey/launch approval",
+    "priorValidation": {
+      "sourceCommit": "33b35cc70971f6d8bf01149149f8905bf783e05c",
+      "sourceTree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
+      "exactPublishedCI": "pending",
       "independentReview": "/root",
-      "archiveCommit": "5134274538f972b11e4b3790fee1e43f4453e5a5",
-      "priorAcceptedValidation": {
-        "sourceCommit": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
-        "sourceTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
-        "exactCandidatePostgreSQL": "passed",
-        "accountingTests": 133,
-        "backupUnitTests": 12,
-        "fail": 0,
-        "skipped": 0,
-        "populatedRestore": "passed",
-        "encryptedApplicationRecovery": "passed",
-        "nativeCapturedSourceRecovery": "passed",
-        "encryptedRecovery": "passed",
-        "cleanup": "passed",
-        "exactPublishedCI": "passed",
-        "evidenceCommit": "4369f93e4462c40a57685a252f4bf685e7a121d9",
-        "ciRun": 41858631375,
-        "job": 126673994650,
-        "mergeCommit": "9f2d3c3f9439865859d9c206ffc08958dd4cae51",
-        "publishedToMergeFileDiff": [],
-        "tests": 963,
-        "pass": 963,
-        "cancelled": 0,
-        "buildTypecheck": "passed",
-        "logsIndependentlyFetched": true,
-        "ciEvidenceCommit": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260"
-      },
-      "ciRun": 41888378747,
-      "job": 126778862467,
-      "failure": "Two new fixture duplicate-active membership INSERTs violate existing w03_active_membership_identity unique index; first52 and23conditionalPG pass, restore skipped"
+      "fixArchive": "375a9536ab492dac918804e75f7945c747f33de4",
+      "priorFailedValidation": {
+        "sourceCommit": "008e5d718fbedd41130c7449beb9898305bb8ed8",
+        "sourceTree": "324e7748ef6e7d5b61758ebcc944e7e19a051001",
+        "exactPublishedCI": "failed",
+        "localSource": 790,
+        "localFocused": 47,
+        "localRegistry": 29,
+        "fullBuildTypecheck": "passed",
+        "independentReview": "/root",
+        "archiveCommit": "5134274538f972b11e4b3790fee1e43f4453e5a5",
+        "priorAcceptedValidation": {
+          "sourceCommit": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+          "sourceTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+          "exactCandidatePostgreSQL": "passed",
+          "accountingTests": 133,
+          "backupUnitTests": 12,
+          "fail": 0,
+          "skipped": 0,
+          "populatedRestore": "passed",
+          "encryptedApplicationRecovery": "passed",
+          "nativeCapturedSourceRecovery": "passed",
+          "encryptedRecovery": "passed",
+          "cleanup": "passed",
+          "exactPublishedCI": "passed",
+          "evidenceCommit": "4369f93e4462c40a57685a252f4bf685e7a121d9",
+          "ciRun": 41858631375,
+          "job": 126673994650,
+          "mergeCommit": "9f2d3c3f9439865859d9c206ffc08958dd4cae51",
+          "publishedToMergeFileDiff": [],
+          "tests": 963,
+          "pass": 963,
+          "cancelled": 0,
+          "buildTypecheck": "passed",
+          "logsIndependentlyFetched": true,
+          "ciEvidenceCommit": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260"
+        },
+        "ciRun": 41888378747,
+        "job": 126778862467,
+        "failure": "Two new fixture duplicate-active membership INSERTs violate existing w03_active_membership_identity unique index; first52 and23conditionalPG pass, restore skipped"
+      }
     }
   },
   "shutdownResolution": {
@@ -8495,11 +8514,11 @@
     "startedAt": "2026-11-04T18:20:49.299Z",
     "stopBy": "2026-11-04T18:47:00Z",
     "implementationStopBy": "2026-11-04T18:37:00Z",
-    "status": "verification",
-    "activity": "Exact fixture correction published33b35cc/treee6ee; original CI runtimepositive23pass and two bad active-duplicate setups corrected withoutchangingruntime/index. All workers stoppedclean and leases released; waiting final exactCI. No furtherimplementation.",
+    "status": "stopped-clean-bounded-slice-verified",
+    "activity": "Final33b35cc/treee6ee independently reviewed; exactPR27 CI41889350801/job126782275148 passes1005 zero failures/skips, fullbuild/typecheck, actual isolatedPG positivebinding/poison/membershiprace, restore/encryptedrecovery/cleanup. All workers stoppedclean and P01 pending, no originalparent acceptance.",
     "credits": "unknown",
     "providerUsage": "unknown",
-    "observedAt": "2026-11-04T18:40:27.832Z",
+    "observedAt": "2026-11-04T18:43:08.249Z",
     "activeWorkers": [],
     "publicationBlocked": false,
     "primaryCandidate": "1d14f671e9503dc7d6233382aff80dbeb7f140da",
@@ -8510,7 +8529,18 @@
     "newCompleteJourneys": [],
     "finalAuthorCommit": "f3ea03d74cb6ef8000972381c4fd47364f1f2399",
     "finalTree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
-    "fixArchive": "375a9536ab492dac918804e75f7945c747f33de4"
+    "fixArchive": "375a9536ab492dac918804e75f7945c747f33de4",
+    "endedAt": "2026-11-04T18:43:08.249Z",
+    "endReason": "Bounded source slice integrated and exact CI verified; stop with sufficient durable shutdown reserve, no new task after implementation deadline.",
+    "resolvedBlockers": [
+      "Internal native canonical payload/SQL authority contract resolved with independently reviewed implementation and exact CI"
+    ],
+    "rework": "Two active-duplicate fixture inserts conflicted with existing unique index; corrected to inactive duplicates, exactCI rerun passed.",
+    "reviewWait": "not measured",
+    "newWorkDeclined": {
+      "eligibleNext": "P01-03",
+      "reason": "Continue next bounded run with remaining parent workflow; no fresh implementation after18:37 except explicitly bounded existingCI fixture correction completed18:38."
+    }
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -8530,7 +8560,7 @@
   "nextTasks": [
     {
       "task": "P01-03",
-      "next": "Continue reviewed canonical commitment chain at33b35cc, first inspect final matchingCI. Prepare native binding only after existing calculateDocument/source/context revalidation under same posting locks; test-only LockedAuthority must not become productionbypass. Next causal binding snapshot at payment creation/allocation, exact guards/admission/redemption/reversal/correction contracts; preserve closed public gates until completejourney. Dedicated populated binding recovery and supplier/customer/browser acceptance remain pending."
+      "next": "Exact33b35cc/treee6ee CI41889350801 passed1005 and independent review; do not repeat authority investigation or prior dc5e qualification. Continue guarded causal binding snapshot at payment creation/allocation, admission/redemption/all-writer compensation/corrections contracts and native journeys. Production prepareConditionalOriginal only after existing calculateDocument/source/context revalidation under same native locks; never copy test-only LockedAuthority as bypass. Preserve ordinary document hashes and public conditional gates until complete accepted workflow. Dedicated populated-binding recovery and full supplier/customer/browser cases remain pending."
     },
     {
       "task": "P03-01",
@@ -8585,18 +8615,18 @@
   },
   "threeRunComparison": {
     "runs": [
-      "hosted-20261104-1355",
-      "hosted-20261104-1452",
-      "hosted-20261104-1521"
+      "hosted-20261104-1521",
+      "hosted-20261104-1732",
+      "hosted-20261104-1819"
     ],
     "originalBulletsAccepted": 0,
     "completeCommercialJourneys": 0,
     "progress": [
-      "Published immutableagreementcapture/draft afteractualPGqualification",
-      "Archivednativecapturerecoverycandidate, remoteACK-only monitoringlost thenrecoveredclean",
-      "Publishednativecapturerecovery afteractualPG+CI963; primaryReplit implementationbegan, monitoringlostbeforeimmutablehandoff"
+      "1521 published native capture recovery after actualPG/CI963; primary provider transport lost and recovered later",
+      "1732 preserved and reviewed native binding candidate; unresolved SQL authority blocked integration",
+      "1819 resolved internal canonical authority, integrated preserved chain and verified exactCI1005 including actual binding/SQL abuse/race tests"
     ],
-    "decision": "Recovered and preserved existing partial original-binding/observer candidate; next authorized work continues this chain after independent review and missing acceptance tests. No repeat of resolved dc5e qualification. Provider continuity remains separately gated; no cadence or staffing change.",
+    "decision": "Continue one primary connected payment-binding/guard implementation from qualified33b35cc; avoid repeating discovery. Independent next-highest eligible work remains available only under nonoverlapping ownership and bounded verification capacity. Provider continuity still unavailable and not a Codex task dependency.",
     "usage": "unknown"
   },
   "localShutdown": {
@@ -8608,11 +8638,8 @@
     "workerStopped": true,
     "workerWorktreeClean": true,
     "globalProcessEnumeration": "not claimed",
-    "evidence": {
-      "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
-      "path": "docs/development/candidates/20261104-1732-verification.json"
-    }
+    "exactAuthorCommit": "f3ea03d74cb6ef8000972381c4fd47364f1f2399",
+    "archive": "375a9536ab492dac918804e75f7945c747f33de4"
   },
   "shutdownBlocker": {
     "resolved": true,
@@ -8745,7 +8772,7 @@
       "authorCommit": "f3ea03d74cb6ef8000972381c4fd47364f1f2399",
       "tree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
       "sourcePublished": true,
-      "qualified": false,
+      "qualified": true,
       "publicPostingEnabled": false,
       "evidence": [
         {
@@ -8753,7 +8780,10 @@
           "sha": "375a9536ab492dac918804e75f7945c747f33de4",
           "path": "docs/development/candidates/20261104-1819-fix-manifest.json"
         }
-      ]
+      ],
+      "matchingCommitQualification": true,
+      "ciRun": 41889350801,
+      "parentAccepted": false
     }
   ],
   "providerBlocker": {
@@ -8781,5 +8811,78 @@
     "artifactChecks": 12,
     "artifactHashes": "all byte lengths and SHA256 matched",
     "temporaryIndexRemoved": true
+  },
+  "latestTaskEvidence": {
+    "P01-03": {
+      "sourceCommit": "33b35cc70971f6d8bf01149149f8905bf783e05c",
+      "sourceTree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
+      "exactPublishedCI": "passed",
+      "ciRun": 41889350801,
+      "job": 126782275148,
+      "mergeCommit": "15755210486a53c36885b3831c519b352031e9cb",
+      "publishedToMergeFileDiff": [],
+      "tests": 1005,
+      "pass": 1005,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "buildTypecheck": "passed",
+      "disposablePostgreSQL": "passed",
+      "restore": "passed",
+      "encryptedRecovery": "passed",
+      "cleanup": "passed",
+      "logsIndependentlyFetched": true,
+      "independentReviewer": "/root",
+      "evidencePath": "docs/development/candidates/20261104-1819-final-verification.json",
+      "logPath": "docs/development/candidates/20261104-1819-final-ci.log",
+      "scope": "Bounded original binding/observation authority; no parent/journey/launch approval",
+      "priorValidation": {
+        "sourceCommit": "33b35cc70971f6d8bf01149149f8905bf783e05c",
+        "sourceTree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
+        "exactPublishedCI": "pending",
+        "independentReview": "/root",
+        "fixArchive": "375a9536ab492dac918804e75f7945c747f33de4",
+        "priorFailedValidation": {
+          "sourceCommit": "008e5d718fbedd41130c7449beb9898305bb8ed8",
+          "sourceTree": "324e7748ef6e7d5b61758ebcc944e7e19a051001",
+          "exactPublishedCI": "failed",
+          "localSource": 790,
+          "localFocused": 47,
+          "localRegistry": 29,
+          "fullBuildTypecheck": "passed",
+          "independentReview": "/root",
+          "archiveCommit": "5134274538f972b11e4b3790fee1e43f4453e5a5",
+          "priorAcceptedValidation": {
+            "sourceCommit": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+            "sourceTree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17",
+            "exactCandidatePostgreSQL": "passed",
+            "accountingTests": 133,
+            "backupUnitTests": 12,
+            "fail": 0,
+            "skipped": 0,
+            "populatedRestore": "passed",
+            "encryptedApplicationRecovery": "passed",
+            "nativeCapturedSourceRecovery": "passed",
+            "encryptedRecovery": "passed",
+            "cleanup": "passed",
+            "exactPublishedCI": "passed",
+            "evidenceCommit": "4369f93e4462c40a57685a252f4bf685e7a121d9",
+            "ciRun": 41858631375,
+            "job": 126673994650,
+            "mergeCommit": "9f2d3c3f9439865859d9c206ffc08958dd4cae51",
+            "publishedToMergeFileDiff": [],
+            "tests": 963,
+            "pass": 963,
+            "cancelled": 0,
+            "buildTypecheck": "passed",
+            "logsIndependentlyFetched": true,
+            "ciEvidenceCommit": "c64a7ff784bcfa3c8728e63e9bdee8ac7b8d2260"
+          },
+          "ciRun": 41888378747,
+          "job": 126778862467,
+          "failure": "Two new fixture duplicate-active membership INSERTs violate existing w03_active_membership_identity unique index; first52 and23conditionalPG pass, restore skipped"
+        }
+      }
+    }
   }
 }
