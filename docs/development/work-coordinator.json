@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 141,
+  "revision": 142,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "d4cd6d625330d353ff85390c9950f66dc9ae49ca",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261104-1242",
+    "tokenSha256": "24b661ed30011912589430d2edaf2a8654538181b453a3fd1ab51a5eb99dc8a1",
+    "acquiredAt": 1793796198477,
+    "expiresAt": 1793797998477
+  },
   "lastOwner": {
     "runId": "hosted-20261104-1223",
     "tokenSha256": "11b98c6216178ccf4e1a487b04a208d43682d173e8df9a9acc1737ba0eb71bc6",
@@ -39,7 +44,7 @@
     "at": 1793796018877,
     "codeHead": "d4cd6d625330d353ff85390c9950f66dc9ae49ca"
   },
-  "updatedAt": 1793796018879,
+  "updatedAt": 1793796198477,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -97,36 +102,10 @@
   },
   "activeWorkers": [],
   "run": {
-    "startedAt": "2026-11-04T12:26:33.943Z",
-    "stopBy": "2026-11-04T12:52:00Z",
+    "startedAt": "2026-11-04T12:43:18.480Z",
+    "stopBy": "2026-11-04T13:10:00Z",
     "credits": "unknown",
-    "purpose": "Resolve shutdown and resume completion-driven launch delivery",
-    "observedAt": "2026-11-04T12:35:53.439Z",
-    "activity": "Both implementers stopped clean without edits: worker reservations rejected by automatic approval; independent reviewer accepted three delivery-policy documents. No feature implementation dispatched.",
-    "blocker": "Automatic approval rejects SHA-256 worker token verifier publication, including minimal delta. Do not bypass; no raw worker tokens were proposed.",
-    "endedAt": "2026-11-04T12:40:18.880Z",
-    "stopReason": "Worker publication uniformly blocked; complete unaffected policy publication and exact CI, then clean release",
-    "workerAttemptHistory": {
-      "durableRevision": 564,
-      "durableReference": {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "7afd31dc6faade40a8225166003653b971e90086",
-        "path": "docs/development/run-20261103-1956-queue-delta.json"
-      },
-      "localAttemptedRevisions": [
-        565,
-        566,
-        567,
-        568,
-        569,
-        570,
-        571,
-        572
-      ],
-      "localFinalRevision": 572,
-      "localHeldLeases": 0,
-      "publication": "Rejected before any worker edit. These attempted claims were never durably authorised. Exact local queue cannot be archived while verifier publication remains rejected; immutable canonical queue564 retained. This is a diagnostic summary, not a replacement/rewrite of queue events."
-    }
+    "activity": "Fresh exact source; reconcile stopped prior local attempts with durable queue; publish approval and acquire before workers."
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -150,5 +129,11 @@
       "task": "P03-04",
       "next": "On fresh actual restored DB prove unchanged historical witness, reject old unwitnessed foreign-origin event, and native new payment+witness succeeds; no speculative catalog ACL changes"
     }
-  ]
+  ],
+  "workerVerifierApproval": {
+    "approvedAt": "2026-11-04T12:43:18.480Z",
+    "userResponse": "I approve",
+    "scope": "Publish SHA-256 worker lease verifiers and claim history to Future00111/ledgerpoint; raw command tokens remain local. Explicit approval follows exact question and automatic rejection explanation.",
+    "priorBlocker": "Explicit user approval now received; verify publication before worker edits."
+  }
 }
