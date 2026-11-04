@@ -1,0 +1,37 @@
+✔ original binding candidate keeps both public posting gates and a database-owned original xid prerequisite (1.690672ms)
+✔ all registered review migrations are pinned and returned as the exact verified bytes (3.503707ms)
+✔ unknown version fails closed (0.471322ms)
+✔ legacy unpinned version fails closed (0.207694ms)
+✔ missing overlay fails closed (0.606085ms)
+✔ overlay traversal fails closed (0.425062ms)
+✔ wrong overlay identity fails closed (0.477972ms)
+✔ unsupported overlay contract fails closed (0.614838ms)
+✔ malformed overlay checksum fails closed (0.520486ms)
+✔ production authority fails closed (0.263258ms)
+✔ missing migration fails closed (0.146761ms)
+✔ unknown migration fails closed (0.174203ms)
+✔ duplicate identity fails closed (0.270639ms)
+✔ wrong order fails closed (0.174504ms)
+✔ missing dependency fails closed (0.191899ms)
+✔ unsupported contract fails closed (0.132239ms)
+✔ traversal path fails closed (0.199982ms)
+✔ changed SQL bytes fail checksum validation without leaking SQL (0.26481ms)
+✔ missing SQL fails with bounded diagnostic (0.154653ms)
+✔ nonempty database is rejected before BEGIN, amendments=false (1.57687ms)
+✔ nonempty database is rejected before BEGIN, amendments=true (0.472633ms)
+✔ altered overlay fails with bounded diagnostic (0.765285ms)
+✔ missing overlay fails with bounded diagnostic (0.408166ms)
+✔ tampered overlay stops installer before any database query, amendments=false (5.325176ms)
+✔ tampered overlay stops installer before any database query, amendments=true (3.409685ms)
+✔ schema created after preflight is refused under migration lock, amendments=false (0.621408ms)
+✔ schema created after preflight is refused under migration lock, amendments=true (0.666536ms)
+✔ installed history matches exact selected input versions, amendments=false (1.121753ms)
+✔ installed history matches exact selected input versions, amendments=true (0.792346ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 132.125604

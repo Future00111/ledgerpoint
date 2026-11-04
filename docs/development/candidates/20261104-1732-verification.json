@@ -1,0 +1,81 @@
+{
+  "runId": "hosted-20261104-1732",
+  "sourceCommit": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
+  "sourceTree": "3eb48956179fae2d3cedde0f7d23ae4f1184609f",
+  "base": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+  "observedAt": "2026-11-04T17:46:35.811872+00:00",
+  "independentReview": {
+    "reviewer": "/root",
+    "commit": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
+    "tree": "3eb48956179fae2d3cedde0f7d23ae4f1184609f",
+    "result": "Approved archival only as pending prerequisite; not integration or parent acceptance. Reviewed all three worker source/test files and literal-only followup. Both public posting gates unchanged."
+  },
+  "tests": [
+    {
+      "command": "node tools/development/check.mjs",
+      "commit": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
+      "pass": 790,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "command": "Exact esbuild conditionalDiscount.test.ts then inert-loopback DATABASE_URL node --test",
+      "commit": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
+      "pass": 46,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "command": "PORT=5179 BASE_PATH=/ pnpm_config_verify_deps_before_run=false pnpm run build",
+      "commit": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
+      "result": "passed full workspace build and typecheck"
+    },
+    {
+      "command": "conditionalDiscount.integration.test.ts esbuild",
+      "result": "bundled only; PostgreSQL scenarios not executed"
+    },
+    {
+      "command": "node --test tools/development/migrations/registry.test.mjs",
+      "commit": "83857fcbc5c505ccf9e0652f38ef9dbd2c8e36b0",
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0,
+      "finalRelevantFilesUnchanged": true
+    },
+    {
+      "command": "node --test tools/operations/backup-restore/*.test.mjs",
+      "commit": "83857fcbc5c505ccf9e0652f38ef9dbd2c8e36b0",
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0,
+      "finalRelevantFilesUnchanged": true
+    }
+  ],
+  "rework": {
+    "failedBuildCommit": "83857fcbc5c505ccf9e0652f38ef9dbd2c8e36b0",
+    "failure": "Synthetic ConditionalTerms version inferred number instead of literal1",
+    "fix": "Separate literal-only test annotation commit76a45fb, final full build passed"
+  },
+  "remaining": [
+    "Actual matching-commit disposable PostgreSQL original-binding/observation fixtures have not run: no postgres/initdb/pg_config/docker binaries, UID0 and nonroot setgroups denied; no install retry.",
+    "Restricted-role SQL bind accepts caller-controlled immutable binding payload/hash; SQL observer can bypass TypeScript validation. Full reconstructed service reads now reject poisoning, but DB write authority is not resolved.",
+    "Schema checks cover relation/name guard pairs, owner/runtime write grants and constraint counts, not complete definitions.",
+    "Populated binding/observation restore, supplier positive workflow, redemption/all-writer guards/reversal/corrections/UI and parent acceptance remain pending.",
+    "Exact published CI absent because source was not published."
+  ],
+  "nextExecutable": "Continue preserved candidate under P01 ownership with a narrowly reviewed DB write-authority contract that prevents caller-controlled immutable binding/observation poisoning while preserving the native financial engine and closed public gates. Existing draft PR27 development workflow is an authorized disposable PostgreSQL/restore qualification route after safe development integration; absence of local PostgreSQL is an execution limitation, not a universal prohibition on development publication. No source publication this run because independent review approved archival only and the DB authority gap remains.",
+  "provider": "No Replit/browser retry; provider continuity blocker unchanged",
+  "shutdown": {
+    "workerStopped": true,
+    "workerWorktreeClean": true,
+    "ownedLocalTestSessions": 0,
+    "localPostgresLaunched": false,
+    "globalProcessEnumeration": "not claimed"
+  },
+  "newlyAcceptedOriginalBullets": [],
+  "newCompleteJourneys": [],
+  "credits": "unknown",
+  "sourcePublished": false,
+  "publicPostingEnabled": false,
+  "optionalRunnerAssessment": "An edited-event candidate validation route was considered, but no existing PR workflow failure was found. No workflow/cataloque change or new orchestration prerequisite is required or implemented."
+}

@@ -1,0 +1,6 @@
+tree 58de5a14ed77315a4e34923e02e43dda3632bcb0
+parent d789e8eb329bbcca137f8e034101d5ff1d27c828
+author Future00111 <lee@crautomotivegroup.com> 1793804745 +0000
+committer Codex <codex@openai.com> 1793813773 +0000
+
+Verify native captured source access after encrypted recovery

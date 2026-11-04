@@ -1,0 +1,6 @@
+tree 3eb48956179fae2d3cedde0f7d23ae4f1184609f
+parent 83857fcbc5c505ccf9e0652f38ef9dbd2c8e36b0
+author Codex <codex@openai.com> 1793814291 +0000
+committer Codex <codex@openai.com> 1793814291 +0000
+
+Keep conditional agreement test terms literal typed

@@ -1,0 +1,20 @@
+$ pnpm run typecheck && pnpm -r --if-present run build
+$ pnpm run typecheck:libs && pnpm -r --filter "./artifacts/**" --filter "./scripts" --if-present run typecheck
+$ tsc --build
+Scope: 4 of 9 workspace projects
+artifacts/api-server typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/ledgerly typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/mockup-sandbox typecheck$ tsc -p tsconfig.json --noEmit
+scripts typecheck$ tsc -p tsconfig.json --noEmit
+scripts typecheck: Done
+artifacts/ledgerly typecheck: Done
+artifacts/mockup-sandbox typecheck: Done
+artifacts/api-server typecheck: src/services/accountingDocuments/conditionalDiscount.test.ts(159,34): error TS2345: Argument of type '{ version: number; party_type: string; party_id: string; currency: string; agreement_id: string; agreement_date: string; payment_deadline: string; discount_gross_pence: string; }' is not assignable to parameter of type 'ConditionalTerms'.
+artifacts/api-server typecheck:   Types of property 'version' are incompatible.
+artifacts/api-server typecheck:     Type 'number' is not assignable to type '1'.
+artifacts/api-server typecheck: Failed
+/workspace/scratch/e138348659fc/ledgerpoint-1732-candidate/artifacts/api-server:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/api-server@0.0.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2
+[ELIFECYCLE] Command failed with exit code 2.
+[ELIFECYCLE] Command failed with exit code 2.

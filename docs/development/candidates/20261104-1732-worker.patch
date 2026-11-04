@@ -1,0 +1,339 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+index a9485b9..fed8457 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+@@ -258,3 +258,111 @@ for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL:
+  await assert.rejects(()=>getConditionalEvidence(f.company,actor,receipt.id),/RESOURCE_NOT_FOUND/);
+  await assert.rejects(()=>pool.query('SELECT capture_conditional_discount_evidence($1,$2,$3,$4,$5,true)',[f.company,actor,randomUUID(),JSON.stringify(terms),body.evidence_text]),/Evidence capability unavailable/);
+ });
++
++import {postCanonicalJournalInTransaction,type DatabaseTransaction,type LockedAuthority} from '../accounting/canonicalPosting';
++import {calculateDocument} from './documents';
++import {journalLines} from './documentJournal';
++import {hash,scope,document} from './core';
++import {bindConditionalOriginal,observeConditionalOriginal} from './conditionalDiscount';
++async function conditionalOriginalFixture() {
++ const f=await ordinaryOriginalFixture();
++ const terms={version:1,party_type:'customer',party_id:f.body.party_id,currency:'GBP',agreement_id:randomUUID(),agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
++ const evidence=await captureConditionalEvidence(f.company,actor,{request_id:randomUUID(),terms,evidence_text:'Synthetic original binding agreement',attested:true});
++ const draft=await saveDocument(f.company,actor,{kind:'sales_invoice',source:{...f.draft.source,conditional_discount:{...terms,evidence_receipt_id:evidence.id}}},f.draft.id,f.draft.revision);
++ await assert.rejects(()=>postDocument(f.company,actor,draft.id,draft.revision),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
++ return {...f,draft};
++}
++// Internal test harness for the prerequisite: the existing canonical engine and
++// native calculation/line builder supply financial authority. Public admission
++// remains disabled; no production bypass flag or alternate writer is added.
++async function bindInOriginalTransaction(f:any,tx:DatabaseTransaction) {
++ const q=queryAdapter(tx);await scope(q,f.company,actor,true,true);
++ const row=await document(q,f.company,f.draft.id,true);
++ const fresh=await calculateDocument(q,f.company,row.kind,{},row);
++ for(const field of ['source','money','tax_context','posting_accounts']) assert.equal(hash(fresh[field as keyof typeof fresh]),hash(row[field]));
++ const financialHash=hash({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts});
++ const locked=<T>(authority:T,key:string):LockedAuthority<T>=>({authority,recordKeys:[key],capturedToken:{revision:row.revision},lockMode:'FOR UPDATE',transactionBound:true,
++  validateCurrent:({command})=>command.sourceRevision===row.revision&&command.sourceEvidenceHash===financialHash?{ok:true}:{ok:false,code:'transaction_contract_invalid',message:'Synthetic source changed'}});
++ const result=await postCanonicalJournalInTransaction(tx,{
++  principal:{kind:'user',userId:actor,requestedCompanyId:f.company},requestedCompanyId:f.company,
++  sourceType:row.kind,sourceId:row.id,sourceRevision:row.revision,sourceStatus:'draft',sourceEvidenceHash:financialHash,
++  postingKind:'ordinary_document',economicEffectId:`document:${row.id}`,idempotencyKey:`document:${row.id}`,
++  accountIds:Object.values(row.posting_accounts) as string[],postingDate:row.source.issue_date,configurationVersionId:row.mapping_revision,
++  currencyCode:'GBP',description:row.source.invoice_number,reference:row.source.reference,
++ },{
++  sourceProvider:{async lockForPosting(){return locked({companyId:f.company,sourceType:row.kind,sourceId:row.id,status:'draft',isPostable:true,sourceRevision:row.revision,evidenceHash:financialHash},`accounting_document_sources:${row.id}`);}},
++  contextProvider:{async lockForPosting(input){
++   const p=(await q.query(`SELECT * FROM accounting_document_periods WHERE company_id=$1 AND start_date<=$2 AND end_date>=$2 FOR UPDATE`,[f.company,row.source.issue_date])).rows[0];
++   assert.equal(p.status,'OPEN');
++   const accounts=(await q.query('SELECT * FROM chart_of_accounts WHERE company_id=$1 AND id=ANY($2::uuid[]) ORDER BY id FOR UPDATE',[f.company,input.accountIds])).rows;
++   return locked({companyId:f.company,financialYearId:p.financial_year_id,accountingPeriodId:p.id,periodStatus:'OPEN' as const,configurationVersionId:row.mapping_revision,currencyCode:'GBP',
++    accounts:Object.fromEntries(accounts.map(a=>[a.id,{id:a.id,companyId:f.company,isActive:a.is_active,isEligible:true,currencyCode:'GBP'}]))},`accounting_document_periods:${p.id}`);
++  }},lineBuilder:{async build(){return journalLines(row);}},
++ });
++ await q.query("UPDATE accounting_document_sources SET status='posted',journal_id=$3 WHERE company_id=$1 AND id=$2",[f.company,row.id,result.journalId]);
++ await q.query("UPDATE sales_invoices SET status='posted' WHERE company_id=$1 AND id=$2",[f.company,row.id]);
++ const binding=await bindConditionalOriginal(q,f.company,actor,row.id);
++ return {binding,journalId:result.journalId};
++}
++for(const savepoint of ['parent','unreleased','released']) test(`real PostgreSQL: successful conditional binding and committed observation / ${savepoint}`,async()=>{
++ const f=await conditionalOriginalFixture();
++ await withCanonicalPostingTransaction(async tx=>{
++  const q=queryAdapter(tx);
++  if(savepoint!=='parent') await q.query('SAVEPOINT conditional_original');
++  const {binding,journalId}=await bindInOriginalTransaction(f,tx);
++  if(savepoint==='released') await q.query('RELEASE SAVEPOINT conditional_original');
++  assert.equal(binding.journal_id,journalId);assert.equal(binding.vector[0].gross_pence,'1200');
++  assert.deepEqual(await bindConditionalOriginal(q,f.company,actor,f.draft.id),binding);
++  await q.query('SAVEPOINT cannot_observe');
++  await assert.rejects(()=>q.query('SELECT observe_conditional_discount_original($1,$2,$3)',[f.company,f.draft.id,actor]),/not committed/);
++  await q.query('ROLLBACK TO SAVEPOINT cannot_observe');
++  assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_bindings WHERE document_id=$1',[f.draft.id])).rows[0].n,0);
++ });
++ const floor=(await pool.query('SELECT clock_timestamp()::text floor')).rows[0].floor;
++ const first=await observeConditionalOriginal(f.company,actor,f.draft.id);
++ assert.ok(first?.observed_at);
++ assert.equal((await pool.query('SELECT $1::timestamptz >= $2::timestamptz fresh',[first.observed_at,floor])).rows[0].fresh,true);
++ assert.deepEqual(await observeConditionalOriginal(f.company,actor,f.draft.id),first);
++ assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_observations WHERE document_id=$1',[f.draft.id])).rows[0].n,1);
++ await assert.rejects(()=>observeConditionalOriginal(randomUUID(),actor,f.draft.id),/RESOURCE_NOT_FOUND/);
++});
++test('real PostgreSQL: binding rolls back with its native journal and source',async()=>{
++ const f=await conditionalOriginalFixture();
++ await assert.rejects(()=>withCanonicalPostingTransaction(async tx=>{await bindInOriginalTransaction(f,tx);throw Error('synthetic binding rollback');}),/synthetic binding rollback/);
++ for(const table of ['conditional_discount_original_bindings','conditional_discount_original_observations']) assert.equal((await pool.query(`SELECT count(*)::int n FROM ${table} WHERE document_id=$1`,[f.draft.id])).rows[0].n,0);
++ assert.equal((await pool.query('SELECT status FROM accounting_document_sources WHERE id=$1',[f.draft.id])).rows[0].status,'draft');
++ assert.equal((await pool.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE source_id=$1',[f.draft.id])).rows[0].n,0);
++});
++test('real PostgreSQL: original observer rejects a disabled immutable guard before reading evidence',async()=>{
++ const f=await conditionalOriginalFixture();await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
++ await admin.query('ALTER TABLE conditional_discount_original_bindings DISABLE TRIGGER conditional_original_immutable');
++ try{await assert.rejects(()=>observeConditionalOriginal(f.company,actor,f.draft.id),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);}
++ finally{await admin.query('ALTER TABLE conditional_discount_original_bindings ENABLE ALWAYS TRIGGER conditional_original_immutable');}
++ assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_observations WHERE document_id=$1',[f.draft.id])).rows[0].n,0);
++ assert.ok((await observeConditionalOriginal(f.company,actor,f.draft.id)).observed_at);
++});
++
++for(const existing of [false,true]) test(`real PostgreSQL: poisoned SQL binding payload rejects service ${existing?'replay':'first observation'}`,async()=>{
++ const f=await conditionalOriginalFixture();await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
++ const first=existing?await observeConditionalOriginal(f.company,actor,f.draft.id):undefined;
++ const original=(await admin.query('SELECT binding,binding_hash FROM conditional_discount_original_bindings WHERE document_id=$1',[f.draft.id])).rows[0];
++ const replace=async(binding:any,bindingHash:string)=>{
++  const q=await admin.connect();try{
++   await q.query('BEGIN');await q.query('ALTER TABLE conditional_discount_original_bindings DISABLE TRIGGER conditional_original_immutable');
++   await q.query('UPDATE conditional_discount_original_bindings SET binding=$2,binding_hash=$3 WHERE document_id=$1',[f.draft.id,JSON.stringify(binding),bindingHash]);
++   await q.query('ALTER TABLE conditional_discount_original_bindings ENABLE ALWAYS TRIGGER conditional_original_immutable');await q.query('COMMIT');
++  }catch(e){await q.query('ROLLBACK');throw e;}finally{q.release();}
++ };
++ try{
++  // Administrator-only corruption is confined to this disposable fixture and
++  // restored after every case. A self-consistent payload hash is insufficient.
++  for(const patch of [{journal_id:randomUUID()},{evidence_id:randomUUID()},{terms_hash:hash('forged')},{source_hash:hash('forged')},{vector:[]},{deadline:'2026-12-01'}]){
++   const poisoned={...original.binding,...patch};await replace(poisoned,hash(poisoned));
++   await assert.rejects(()=>observeConditionalOriginal(f.company,actor,f.draft.id),/CONDITIONAL_BINDING_INVALID/);
++   assert.deepEqual((await pool.query('SELECT observed_at::text FROM conditional_discount_original_observations WHERE document_id=$1',[f.draft.id])).rows[0],first);
++   await replace(original.binding,original.binding_hash);
++  }
++ }finally{await replace(original.binding,original.binding_hash);}
++ const restored=await observeConditionalOriginal(f.company,actor,f.draft.id);
++ if(existing) assert.deepEqual(restored,first);else assert.ok(restored.observed_at);
++});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
+index 97fd820..e39823f 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
+@@ -112,7 +112,7 @@ test('exact retry returns first persisted observation without replacing its cloc
+ 
+ import {evidenceBytes,validateConditionalDraft} from './conditionalDiscount';
+ import {parseConditionalTerms,conditionalTermsHash,parseInvoice,draftSourceFingerprint} from '../financialDrafts/contract';
+-const terms={version:1,party_type:'customer',party_id:company,currency:'GBP',agreement_id:eventId,agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
++const terms={version:1,party_type:'customer',party_id:company,currency:'GBP',agreement_id:eventId,agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'} as const;
+ const draft={contract:'w03.draft.v1',currency:'GBP',customer_id:company,invoice_number:'COND-1',issue_date:'2026-11-01',due_date:'2026-11-30',payment_terms:29,reference:'',notes:'',line_items:[{description:'Test',quantity:'1',unit_price:'120',tax_code:'NONE'}]};
+ test('bounded UTF8 preserves exact Unicode/newline bytes and rejects malformed UTF16',()=>{
+  assert.equal(evidenceBytes('é😀\n"/\\').toString('utf8'),'é😀\n"/\\');
+@@ -149,3 +149,88 @@ test('conditional UUIDs canonicalize uppercase A-F without changing legacy custo
+  assert.equal(saved.customer_id,upper);assert.equal(saved.conditional_discount?.party_id,lower);
+  assert.equal(parseInvoice({...draft,customer_id:upper}).customer_id,upper);
+ });
++
++import {bindConditionalOriginal,observeConditionalOriginal,conditionalOriginalSchema} from './conditionalDiscount';
++const originalSource={...draft,conditional_discount:{...terms,evidence_receipt_id:journal}};
++const originalRow={id:eventId,kind:'sales_invoice',status:'posted',revision:'synthetic-original-revision',journal_id:journal,party_id:company,
++ source:originalSource,money:{gross_pence:'12000',net_pence:'12000',vat_pence:'0',lines:[{net_pence:'12000',vat_pence:'0',gross_pence:'12000'}]},
++ tax_context:{lines:[{rate:'0.00',code:'NONE'}]},posting_accounts:{receivables:company,revenue:eventId}};
++const evidenceRow={id:journal,version:1,attested:true,currency:'GBP',party_id:company,party_type:'customer',terms,
++ terms_hash:conditionalTermsHash(terms),evidence_text:'Synthetic agreement',evidence_hash:'sha256:'+createHash('sha256').update('Synthetic agreement').digest('hex')};
++import {createHash} from 'node:crypto';
++const originalBinding={revision:originalRow.revision,source_hash:hash(originalSource),
++ financial_hash:hash({source:originalSource,money:originalRow.money,tax_context:originalRow.tax_context,accounts:originalRow.posting_accounts}),
++ journal_id:journal,party_id:company,currency:'GBP',evidence_id:journal,terms_hash:evidenceRow.terms_hash,
++ gross_pence:'12000',discount_gross_pence:'1200',deadline:'2026-11-30',vector:frozenConditionalVector(originalRow)};
++function originalFake(t:any,{binding=originalBinding,bindingHash=hash(binding),missing=false,guards=9,constraints=9,owned=true,writable=false,members=1,existing=false,bound=true}:any={}) {
++ const calls:string[]=[];let observed=existing;let transactions=0;let passedBinding:any;
++ const receipt={observed_at:'2026-11-04 17:00:00.000001+00'};
++ const query=async(sql:string,params:any[]=[])=>{
++  calls.push(sql);let rows:any[]=[];
++  if(sql.includes('FROM companies')) rows=[{id:company}];
++  else if(sql.includes('FROM company_users')) rows=Array.from({length:members},()=>({role:'owner',is_active:true}));
++  else if(sql.includes('FROM unnest')) rows=['origins','bindings','observations'].map(present=>({present:missing?null:present}));
++  else if(sql.includes('bool_and(pg_get_userbyid')) rows=[{n:3,owned,writable}];
++  else if(sql.includes('FROM pg_trigger t JOIN')) rows=[{n:guards}];
++  else if(sql.includes('conrelid=ANY')) rows=[{n:constraints}];
++  else if(sql.includes('to_regclass')) rows=[{present:'conditional_discount_evidence'}];
++  else if(sql.includes('FROM pg_trigger')) rows=[{n:2}];
++  else if(sql.includes('pg_get_userbyid(relowner) owner')) rows=[{n:11,owner:'ledgerly_canonical_owner',writable:false}];
++  else if(sql.includes('FROM conditional_discount_evidence')) rows=[evidenceRow];
++  else if(sql.includes('FROM conditional_discount_original_bindings')) rows=bound?[{journal_id:journal,binding,binding_hash:bindingHash}]:[];
++  else if(sql.includes('FROM accounting_document_sources')) rows=[originalRow];
++  else if(sql.includes('public.bind_conditional_discount_original')) passedBinding={binding:JSON.parse(params[3]),hash:params[4]};
++  else if(sql.includes('public.observe_conditional_discount_original')) observed=true;
++  else if(sql.includes('FROM conditional_discount_original_observations')) rows=observed?[receipt]:[];
++  else throw Error('Unexpected original SQL: '+sql);
++  return {rows,rowCount:rows.length};
++ };
++ t.mock.method(db,'transaction',async(fn:any)=>{transactions++;return fn({execute:async(statement:any)=>{const {sql,params}=dialect.sqlToQuery(statement);return query(sql,params);}});});
++ return {q:{query} as any,calls,transactions:()=>transactions,passed:()=>passedBinding,receipt};
++}
++test('original binder persists the complete native snapshot in its supplied transaction',async t=>{
++ const f=originalFake(t,{bound:false});assert.deepEqual(await bindConditionalOriginal(f.q,company,actor,eventId),originalBinding);
++ assert.deepEqual(f.passed(),{binding:originalBinding,hash:hash(originalBinding)});
++ assert.equal(f.transactions(),0);
++});
++test('original observer opens fresh transaction and exact replay retains first DB clock',async t=>{
++ const f=originalFake(t);
++ assert.deepEqual(await observeConditionalOriginal(company,actor,eventId),f.receipt);
++ assert.deepEqual(await observeConditionalOriginal(company,actor,eventId),f.receipt);
++ assert.equal(f.transactions(),2);
++ assert.equal(f.calls.filter(s=>s.includes('public.observe_conditional_discount_original')).length,1);
++});
++for(const [name,options] of Object.entries({absent:{missing:true},guard:{guards:8},constraint:{constraints:8},owner:{owned:false},grant:{writable:true}}))
++ test(`original ${name} schema defect rejects before binding or observing`,async t=>{
++  const f=originalFake(t,options);
++  await assert.rejects(()=>bindConditionalOriginal(f.q,company,actor,eventId),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);
++  await assert.rejects(()=>observeConditionalOriginal(company,actor,eventId),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);
++  assert.equal(f.calls.some(s=>s.includes('public.bind_conditional')||s.includes('public.observe_conditional')),false);
++ });
++for(const [field,value] of Object.entries({revision:'changed',source_hash:hash('changed'),financial_hash:hash('changed'),journal_id:eventId,party_id:eventId,
++ currency:'EUR',evidence_id:eventId,terms_hash:hash('changed'),gross_pence:'12001',discount_gross_pence:'1199',deadline:'2026-12-01',vector:[],extra:'untrusted'}))
++ test(`self-consistent poisoned original ${field} cannot obtain or replay observation`,async t=>{
++  const f=originalFake(t,{binding:{...originalBinding,[field]:value},existing:true});
++  await assert.rejects(()=>observeConditionalOriginal(company,actor,eventId),/CONDITIONAL_BINDING_INVALID/);
++  assert.equal(f.calls.some(s=>s.includes('FROM conditional_discount_original_observations')||s.includes('public.observe_conditional')),false);
++ });
++test('original binding hash tamper rejects before canonical source lookup',async t=>{
++ const f=originalFake(t,{bindingHash:hash('forged')});
++ await assert.rejects(()=>observeConditionalOriginal(company,actor,eventId),/CONDITIONAL_BINDING_INVALID/);
++ assert.equal(f.calls.some(s=>s.includes('FROM accounting_document_sources')),false);
++});
++for(const members of [0,2]) test(`original observer refuses ${members} matching memberships before evidence access`,async t=>{
++ const f=originalFake(t,{members});
++ await assert.rejects(()=>observeConditionalOriginal(company,actor,eventId),/RESOURCE_NOT_FOUND/);
++ assert.equal(f.calls.some(s=>s.includes('FROM conditional_discount_original_bindings')),false);
++});
++
++test('exact original binding retry reads immutable snapshot without a second insertion',async t=>{
++ const f=originalFake(t);assert.deepEqual(await bindConditionalOriginal(f.q,company,actor,eventId),originalBinding);
++ assert.equal(f.passed(),undefined);
++});
++test('binding retry rejects poisoned self-consistent existing snapshot',async t=>{
++ const f=originalFake(t,{binding:{...originalBinding,deadline:'2026-12-01'}});
++ await assert.rejects(()=>bindConditionalOriginal(f.q,company,actor,eventId),/CONDITIONAL_BINDING_INVALID/);
++ assert.equal(f.passed(),undefined);
++});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
+index 34f962d..5444140 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
+@@ -5,6 +5,33 @@ import { hash, scope, transact, exactFields, type Queryable } from './core';
+ import { allocateDiscount, creditFromGross } from '../financialDrafts/discounts';
+ import { decimal } from '../financialDrafts/contract';
+ 
++/** Original evidence is usable only with the complete protected schema. */
++export async function conditionalOriginalSchema(q:Queryable) {
++  const names=['conditional_discount_journal_origins','conditional_discount_original_bindings','conditional_discount_original_observations'];
++  const tables=await q.query(`SELECT name,to_regclass('public.'||name) present FROM unnest($1::text[]) name`,[names]);
++  if(tables.rows.length!==3 || tables.rows.some((r:any)=>!r.present)) fail(503,'CONDITIONAL_BINDING_SCHEMA_INCOMPLETE');
++  const integrity=(await q.query(`SELECT count(*)::int n,
++    bool_and(pg_get_userbyid(relowner)='ledgerly_canonical_owner') owned,
++    bool_or(has_table_privilege('ledgerly_api',oid,'INSERT,UPDATE,DELETE,TRUNCATE')) writable
++    FROM pg_class WHERE oid=ANY($1::regclass[])`,[names.map(n=>'public.'+n)])).rows[0];
++  const guards=(await q.query(`SELECT count(*)::int n FROM pg_trigger t JOIN
++    (VALUES ('canonical_journal_entries','conditional_discount_journal_origin'),
++      ('conditional_discount_original_bindings','conditional_discount_original_bind'),
++      ('conditional_discount_original_observations','conditional_discount_original_observe'),
++      ('conditional_discount_journal_origins','conditional_original_immutable'),
++      ('conditional_discount_journal_origins','conditional_original_no_truncate'),
++      ('conditional_discount_original_bindings','conditional_original_immutable'),
++      ('conditional_discount_original_bindings','conditional_original_no_truncate'),
++      ('conditional_discount_original_observations','conditional_original_immutable'),
++      ('conditional_discount_original_observations','conditional_original_no_truncate')) expected(rel,name)
++      ON t.tgrelid=to_regclass('public.'||expected.rel) AND t.tgname=expected.name
++    WHERE t.tgenabled='A' AND NOT t.tgisinternal`)).rows[0];
++  const constraints=(await q.query(`SELECT count(*)::int n FROM pg_constraint
++    WHERE conrelid=ANY($1::regclass[]) AND convalidated`,[names.map(n=>'public.'+n)])).rows[0];
++  if(integrity?.n!==3 || integrity.owned!==true || integrity.writable!==false || guards?.n!==9 || constraints?.n!==9)
++    fail(503,'CONDITIONAL_BINDING_SCHEMA_INCOMPLETE');
++}
++
+ /** Internal prerequisite only. Neither public posting admission gate calls this. */
+ export function frozenConditionalVector(row:any) {
+   const terms=row.source?.conditional_discount;
+@@ -27,45 +54,63 @@ export function frozenConditionalVector(row:any) {
+  * with the journal's DB-owned INSERT receipt, including released savepoints. */
+ export async function bindConditionalOriginal(q:Queryable,company:string,actor:string,id:string) {
+   await scope(q,company,actor,true,true);
++  await conditionalOriginalSchema(q);
+   const row=(await q.query(`SELECT * FROM accounting_document_sources WHERE company_id=$1 AND id=$2 FOR UPDATE`,[company,uuid(id)])).rows[0];
+   if(!row || row.status!=='posted') fail(409,'CONDITIONAL_ORIGINAL_NOT_POSTED');
++  const binding=await originalBinding(q,company,row);
++  const existing=(await q.query(`SELECT * FROM conditional_discount_original_bindings
++    WHERE company_id=$1 AND document_id=$2`,[company,id])).rows[0];
++  if(existing) {
++    if(existing.journal_id!==row.journal_id || existing.binding_hash!==hash(binding) ||
++      hash(existing.binding)!==existing.binding_hash) fail(503,'CONDITIONAL_BINDING_INVALID');
++    if(!(await verifiedOriginal(q,company,id,binding.financial_hash))) fail(503,'CONDITIONAL_BINDING_INVALID');
++    return binding; // Exact immutable retry; never insert a new historical binding.
++  }
++  await q.query(`SELECT public.bind_conditional_discount_original($1::uuid,$2::uuid,$3::uuid,$4::jsonb,$5::text,$6::text)`,
++    [company,id,row.journal_id,JSON.stringify(binding),hash(binding),actor]);
++  return binding;
++}
++async function originalBinding(q:Queryable,company:string,row:any) {
+   await validateConditionalDraft(q,company,row.source,row.kind==='sales_invoice'?'customer':'supplier',row.money.gross_pence);
+   const vector=frozenConditionalVector(row);
+   const evidence=await readConditionalEvidence(q,company,row.source.conditional_discount.evidence_receipt_id);
+   const snapshot={source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts};
+-  const binding={revision:row.revision,source_hash:hash(row.source),financial_hash:hash(snapshot),
++  return {revision:row.revision,source_hash:hash(row.source),financial_hash:hash(snapshot),
+     journal_id:row.journal_id,party_id:row.party_id,currency:'GBP',evidence_id:evidence.id,
+     terms_hash:evidence.terms_hash,gross_pence:row.money.gross_pence,
+     discount_gross_pence:row.source.conditional_discount.discount_gross_pence,
+     deadline:row.source.conditional_discount.payment_deadline,vector};
+-  await q.query(`SELECT public.bind_conditional_discount_original($1::uuid,$2::uuid,$3::uuid,$4::jsonb,$5::text,$6::text)`,
+-    [company,id,row.journal_id,JSON.stringify(binding),hash(binding),actor]);
+-  return binding;
+ }
+ 
+-/** A separately opened transaction observes an already committed original.
+- * Retry returns the first DB clock, never a caller-selected replacement clock. */
+-export async function observeConditionalOriginal(company:string,actor:string,id:string) {
+-  return transact(async q=>{
+-    await scope(q,company,actor,true,true);
+-    const row=(await q.query(`SELECT * FROM conditional_discount_original_bindings WHERE company_id=$1 AND document_id=$2`,[company,uuid(id)])).rows[0];
+-    if(!row) fail(404,'RESOURCE_NOT_FOUND');
+-    if(row.binding_hash!==hash(row.binding)) fail(503,'CONDITIONAL_BINDING_INVALID');
+-    const original=(await q.query(`SELECT d.* FROM accounting_document_sources d
++async function verifiedOriginal(q:Queryable,company:string,id:string,financialHash:string) {
++  return (await q.query(`SELECT d.* FROM accounting_document_sources d
+       JOIN canonical_journal_entries j ON j.company_id=d.company_id AND j.id=d.journal_id
+       JOIN accounting_posting_effects p ON p.company_id=j.company_id AND p.journal_id=j.id
+       WHERE d.company_id=$1 AND d.id=$2 AND d.status='posted' AND j.status='posted'
++        AND j.posting_kind='ordinary_document' AND j.economic_effect_id='document:'||d.id::text AND j.currency_code='GBP'
+         AND j.source_type=d.kind AND j.source_id=d.id::text AND j.source_revision=d.revision::text
+         AND j.source_evidence_hash=$3 AND p.source_evidence_hash=j.source_evidence_hash
+         AND p.source_revision=j.source_revision AND p.source_type=j.source_type
+         AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
+         AND p.economic_effect_id=j.economic_effect_id AND p.status='posted'`,
+-      [company,id,row.binding.financial_hash])).rows[0];
+-    if(!original || original.journal_id!==row.journal_id || original.revision!==row.binding.revision ||
+-      hash(original.source)!==row.binding.source_hash ||
+-      hash({source:original.source,money:original.money,tax_context:original.tax_context,accounts:original.posting_accounts})!==row.binding.financial_hash ||
+-      hash(frozenConditionalVector(original))!==hash(row.binding.vector)) fail(503,'CONDITIONAL_BINDING_INVALID');
+-    await validateConditionalDraft(q,company,original.source,original.kind==='sales_invoice'?'customer':'supplier',original.money.gross_pence);
++      [company,id,financialHash])).rows[0];
++}
++
++/** A separately opened transaction observes an already committed original.
++ * Retry returns the first DB clock, never a caller-selected replacement clock. */
++export async function observeConditionalOriginal(company:string,actor:string,id:string) {
++  return transact(async q=>{
++    await scope(q,company,actor,true,true);
++    await conditionalOriginalSchema(q);
++    const row=(await q.query(`SELECT * FROM conditional_discount_original_bindings WHERE company_id=$1 AND document_id=$2`,[company,uuid(id)])).rows[0];
++    if(!row) fail(404,'RESOURCE_NOT_FOUND');
++    if(!row.binding || row.binding_hash!==hash(row.binding)) fail(503,'CONDITIONAL_BINDING_INVALID');
++    const original=await verifiedOriginal(q,company,id,row.binding.financial_hash);
++    if(!original || original.journal_id!==row.journal_id) fail(503,'CONDITIONAL_BINDING_INVALID');
++    // Reconstruct every field from native source and immutable evidence. A caller
++    // recomputing the hash of a poisoned snapshot cannot make it authoritative.
++    const expected=await originalBinding(q,company,original);
++    if(hash(expected)!==row.binding_hash) fail(503,'CONDITIONAL_BINDING_INVALID');
+     const existing=(await q.query(`SELECT observed_at::text FROM conditional_discount_original_observations
+       WHERE company_id=$1 AND document_id=$2`,[company,id])).rows[0];
+     if(existing) return existing;

@@ -1,0 +1,124 @@
+{
+  "runId": "hosted-20261104-1732",
+  "task": "P01-03",
+  "commit": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
+  "tree": "3eb48956179fae2d3cedde0f7d23ae4f1184609f",
+  "parent": "83857fcbc5c505ccf9e0652f38ef9dbd2c8e36b0",
+  "publishedBase": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+  "originalCandidate": "d789e8eb329bbcca137f8e034101d5ff1d27c828",
+  "originalCandidateTree": "615d0b4755e37590513571aff6518ac7d190eda0",
+  "originalCandidateArchive": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
+  "author": "Codex <codex@openai.com>",
+  "authorDate": "2026-11-04T17:44:51Z",
+  "committer": "Codex <codex@openai.com>",
+  "commitDate": "2026-11-04T17:44:51Z",
+  "files": [
+    {
+      "path": "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+      "sha256": "1e39585706471a3cfe5d43cb27a14906fbae124bd38869b67ba1c73258db32a5",
+      "bytes": 33365
+    },
+    {
+      "path": "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+      "sha256": "e270f70bf6e39f32d21762a53e4dc94db99d3e2637578ea440c1e8dd4be642b4",
+      "bytes": 18688
+    },
+    {
+      "path": "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+      "sha256": "b812d610c8e1e1adc2d3d5f15f6e3723102af21af00603190bfbec1255888668",
+      "bytes": 19402
+    },
+    {
+      "path": "docs/development/credit-capacity-contract.md",
+      "sha256": "33883c601f2e43a49deacdbf9dc83962309cad743030110f926b5efa1e63afeb",
+      "bytes": 28507
+    },
+    {
+      "path": "lib/db/migration-registry.json",
+      "sha256": "bbb3a7610f591600f80e5e5c3f9439f9d8167eb6282a84fb9951f70d1eb4c4da",
+      "bytes": 3107
+    },
+    {
+      "path": "lib/db/migrations/conditional-discount-agreements.review.sql",
+      "sha256": "3184eea3425f21635cad328088e57b971d10469fe0ffec3e21e2d03da5c9c8d8",
+      "bytes": 23586
+    },
+    {
+      "path": "lib/db/schema-change-registry.json",
+      "sha256": "f7b934f507abbef863c6e63375e42c599221c89b0f9a0ab00516da0e3cfa94bf",
+      "bytes": 5359
+    },
+    {
+      "path": "tools/development/migrations/registry.test.mjs",
+      "sha256": "3c6c74f2abc68b1055cfbbd7167723b85387e214d6be4affe16903727af65c7f",
+      "bytes": 8226
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "verification.json",
+      "sha256": "f9fb9c76db23aa3c50801ef6c7dcfa08b0376224a488f2ad5caeb0afbbaa5645",
+      "bytes": 4330
+    },
+    {
+      "name": "raw-commit.txt",
+      "sha256": "80c248d1927c9da63331934ec552632efe75f0b90fd8cc0227d2e27da7b128ff",
+      "bytes": 248
+    },
+    {
+      "name": "registry-83857fc.log",
+      "sha256": "3c3bfdd4c201130d2f8026cbc737fb4056273ef1def6829835bae6c444069cae",
+      "bytes": 2069
+    },
+    {
+      "name": "focused.log",
+      "sha256": "2b22b98a40a6845aab68dd4153f8823a7f0387e471ce9ecf8f0546d9c1bca9f7",
+      "bytes": 4243
+    },
+    {
+      "name": "backup-unit-83857fc.log",
+      "sha256": "8fccd8514bb828ba111acef451ea6bb1115c08d91c90ef09df41457e6020c9f2",
+      "bytes": 1273
+    },
+    {
+      "name": "source-scheduler.log",
+      "sha256": "1961529659f217df91428cc0d6062deb6049816878ebb0a264da93129c039f74",
+      "bytes": 83720
+    },
+    {
+      "name": "candidate.patch",
+      "sha256": "e035dfbe17030123fcd36f45055599113a7d4c04db420443b5ca3c110d2803a5",
+      "bytes": 51491
+    },
+    {
+      "name": "build.log",
+      "sha256": "0e32a2d2aba161c7edcd077b4c7951323d6661ee869f396be8993cad616282a7",
+      "bytes": 15457
+    },
+    {
+      "name": "build-83857fc-failed.log",
+      "sha256": "27faab3b158ce106605a60e2797eb2e8b083cc4b8cb2d56ac316ae1ec3cd023c",
+      "bytes": 1417
+    },
+    {
+      "name": "combined-base-raw-commit.txt",
+      "sha256": "29bc68534dfc54c0dd620862e5b60b6ec642b75e1ecc30cb7c503242c67faf7c",
+      "bytes": 272
+    },
+    {
+      "name": "worker-initial-raw-commit.txt",
+      "sha256": "fafc734d372ec1de3fec09fce7fd6d726212465e7de27f7763e0d4900b722d0a",
+      "bytes": 264
+    },
+    {
+      "name": "worker.patch",
+      "sha256": "b5349f65cd1677cdfafbb851da9aa4167f55070af6eba470d2028cb4782fae45",
+      "bytes": 29322
+    }
+  ],
+  "workerStopped": true,
+  "worktreeClean": true,
+  "matchingCommitPostgreSQL": false,
+  "sourcePublished": false,
+  "publicPostingEnabled": false
+}
