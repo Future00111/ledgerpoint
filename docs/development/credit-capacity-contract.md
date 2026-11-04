@@ -463,3 +463,28 @@ This proves causal capture only. Public conditional posting remains disabled;
 redemption, deadline and payment-witness admission, all-writer protection,
 compensation, corrected originals and full customer/supplier/browser acceptance
 remain pending. The broader P01-03 parent is not accepted by this slice.
+
+### Internal connected admission review (bounded development slice)
+
+`reviewConditionalCredit` is an internal, unmounted, read-only calculation using
+paid-credit authority, locks, native recalculation, line capacity and release
+planning. Its explicit entry point validates the exact frozen original vector and
+committed native cash/allocation witnesses, including both effective dates and
+strict UTC microsecond cutoff/causal comparisons. It creates no witness, credit,
+redemption or journal. Its review token cannot be used with public paid-credit or
+ordinary document posting: both reject conditional terms or a persisted binding.
+Public credit writers require the complete protected binding schema before proving
+absence; existing database activation remains separately gated.
+
+The bounded admission rejects any relevant payment parent with an unallocation or
+reversal history, avoiding ambiguous reassignment of qualifying cash after late
+replenishment. A valid refund of an unapplied surplus remains allowed and does not
+reduce the original's active allocation. A proposed paid-credit release subtracts
+from that parent's qualifying amount first; late cash cannot replace released
+timely cash. Both original payment and later allocation require their own retained
+committed witness and original frozen binding entry. Missing/late evidence does
+not qualify. The exact review retains qualifying events and their clocks.
+
+This is admission evidence only. Atomic agreement consumption/redemption, all
+writer guards, compensation, prior-credit/correction combinations, native API/UI
+and browser acceptance remain pending before activation or parent acceptance.

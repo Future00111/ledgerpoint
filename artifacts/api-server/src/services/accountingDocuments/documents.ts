@@ -1,4 +1,4 @@
-import { validateConditionalDraft } from './conditionalDiscount';
+import { assertNoConditionalCredit, validateConditionalDraft } from './conditionalDiscount';
 import { appliedTo, documentOpen, paymentEvents } from './settlement';
 import { amendmentHistory, assertUncorrectedOriginal } from './amendments';
 import { randomUUID } from "node:crypto";
@@ -121,6 +121,7 @@ export async function assertCreditAvailable(q:Queryable, company:string, row:any
   if(!credit(row.kind)) return;
   const original=await document(q,company,row.original_id,true);
   await assertUncorrectedOriginal(q,company,original);
+  await assertNoConditionalCredit(q,company,original);
   if(original.status!=="posted" || !original.journal_id ||
     row.tax_context.original_revision!==original.revision ||
     row.tax_context.original_evidence_hash!==hash({source:original.source,money:original.money,tax_context:original.tax_context,accounts:original.posting_accounts}))

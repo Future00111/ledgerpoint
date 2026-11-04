@@ -268,9 +268,9 @@ import {calculateDocument} from './documents';
 import {journalLines} from './documentJournal';
 import {hash,scope,document} from './core';
 import {bindConditionalOriginal,observeConditionalOriginal,prepareConditionalOriginal,canonicalConditionalPayload} from './conditionalDiscount';
-async function conditionalOriginalFixture(partyType:'customer'|'supplier'='customer') {
+async function conditionalOriginalFixture(partyType:'customer'|'supplier'='customer',deadline='2026-11-30') {
  const f=await ordinaryOriginalFixture(partyType);
- const terms={version:1,party_type:partyType,party_id:f.body.party_id,currency:'GBP',agreement_id:randomUUID(),agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
+ const terms={version:1,party_type:partyType,party_id:f.body.party_id,currency:'GBP',agreement_id:randomUUID(),agreement_date:'2026-11-01',payment_deadline:deadline,discount_gross_pence:'1200'};
  const evidence=await captureConditionalEvidence(f.company,actor,{request_id:randomUUID(),terms,evidence_text:'Synthetic original binding agreement',attested:true});
  const draft=await saveDocument(f.company,actor,{kind:partyType==='customer'?'sales_invoice':'purchase_bill',source:{...f.draft.source,conditional_discount:{...terms,evidence_receipt_id:evidence.id}}},f.draft.id,f.draft.revision);
  await assert.rejects(()=>postDocument(f.company,actor,draft.id,draft.revision),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
@@ -509,3 +509,80 @@ test('real PostgreSQL: retained original observation survives foreign historical
   assert.deepEqual(await conditionalPaymentSnapshot(c,f.company,'customer',f.body.party_id,'payment',null,[]),before.source.conditional_binding_snapshot);
  } finally {await c.query('ROLLBACK');c.release();}
 });
+
+import {reviewConditionalCredit,reviewPaidCredit,commitPaidCredit} from './paidCredit';
+async function admissionFixture(partyType:'customer'|'supplier') {
+ const f=await conditionalOriginalFixture(partyType,'2199-11-30');
+ await addPeriod(f.company,actor,{start_date:'2199-01-01',end_date:'2199-12-31',financial_year_label:'Synthetic future deadline'});
+ return f;
+}
+async function conditionalCreditDraft(f:any,partyType:'customer'|'supplier') {
+ const {conditional_discount,...source}=f.draft.source;
+ return saveDocument(f.company,actor,{kind:partyType==='customer'?'sales_credit_note':'supplier_credit_note',
+  original_id:f.draft.id,reason:'Explicit conditional admission scenario',adjustment_method:'offset_outstanding',effective_adjustment_date:'2199-12-02',
+  source:{...source,invoice_number:'CONDITIONAL-CREDIT-'+randomUUID(),issue_date:'2199-12-02',due_date:'2199-12-02',payment_terms:0,
+   line_items:source.line_items.map((line:any)=>({...line,unit_price:'12'}))}});
+}
+async function nativeCash(f:any,amount:string,allocated:string,date='2026-11-03',witness=true) {
+ const body={...f.body,id:randomUUID(),amount_minor:amount,date,allocations:allocated==='0'?[]:[{document_id:f.draft.id,amount_minor:allocated}]};
+ const review=await previewPayment(f.company,actor,body);
+ return witness?postPayment(f.company,actor,{...body,review_token:review.review_token}):
+  withCanonicalPostingTransaction(tx=>postPayment(f.company,actor,{...body,review_token:review.review_token},undefined,tx));
+}
+for(const partyType of ['customer','supplier'] as const) {
+ for(const amount of ['10800','10799','12000']) test(`real PostgreSQL: ${partyType} internal admission threshold ${amount} with closed public credit routes`,async()=>{
+  const f=await admissionFixture(partyType);
+  await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
+  await observeConditionalOriginal(f.company,actor,f.draft.id);
+  await nativeCash(f,amount,amount);
+  const credit=await conditionalCreditDraft(f,partyType),body={request_id:randomUUID(),reason:'Explicit internal conditional review'};
+  const before=(await pool.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n;
+  if(amount==='10799') await assert.rejects(()=>reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body),/CONDITIONAL_PAYMENT_THRESHOLD_NOT_MET/);
+  else {
+   const review=await reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body);
+   assert.equal(review.conditional_admission?.threshold_minor,'10800');
+   assert.equal(review.conditional_admission?.qualifying_minor,'10800');
+   assert.equal(review.conditional_admission?.posting_available,false);
+   assert.equal(review.released_minor,amount==='12000'?'1200':'0');
+   assert.deepEqual(await reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body),review);
+   await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,{...body,review_token:review.review_token,releases:review.releases}),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
+  }
+  await assert.rejects(()=>reviewPaidCredit(f.company,actor,credit.id,credit.revision,body),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
+  await assert.rejects(()=>postDocument(f.company,actor,credit.id,credit.revision),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,before);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,0);
+ });
+ for(const mode of ['old-pool','later-allocation','unwitnessed-allocation','unwitnessed','late-effective','unallocation','late-replenishment','surplus-refund','deadline-clock','cutoff-clock'] as const)
+ test(`real PostgreSQL: ${partyType} conditional admission ${mode}`,async()=>{
+  const f=await admissionFixture(partyType);
+  let cash:any;
+  if(mode==='old-pool') cash=await nativeCash(f,'10800','0');
+  await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
+  await observeConditionalOriginal(f.company,actor,f.draft.id);
+  if(mode==='old-pool' || mode==='later-allocation' || mode==='unwitnessed-allocation') {
+   if(mode!=='old-pool') cash=await nativeCash(f,'10800','0');
+   const body={...f.body,id:randomUUID(),kind:'allocation',payment_id:cash.id,amount_minor:'10800',allocations:[{document_id:f.draft.id,amount_minor:'10800'}]};
+   const review=await previewPayment(f.company,actor,body);
+   if(mode==='unwitnessed-allocation') await withCanonicalPostingTransaction(tx=>postPayment(f.company,actor,{...body,review_token:review.review_token},undefined,tx));
+   else await postPayment(f.company,actor,{...body,review_token:review.review_token});
+  } else cash=await nativeCash(f,mode==='surplus-refund'?'12000':'10800','10800',mode==='late-effective'?'2199-12-01':'2026-11-03',mode!=='unwitnessed');
+  if(mode==='unallocation' || mode==='surplus-refund') {
+   const body={...f.body,id:randomUUID(),kind:mode==='unallocation'?'unallocation':'refund',payment_id:cash.id,amount_minor:'1200',
+    allocations:mode==='unallocation'?[{document_id:f.draft.id,amount_minor:'1200'}]:[]};
+   const review=await previewPayment(f.company,actor,body);await postPayment(f.company,actor,{...body,review_token:review.review_token});
+  }
+  if(mode==='late-replenishment') await nativeCash(f,'1200','1200','2199-12-01');
+  if(mode==='deadline-clock' || mode==='cutoff-clock') {
+   // Administrator-only clock fixture in the disposable database; service never accepts caller clocks.
+   const q=await admin.connect();try {
+    await q.query('BEGIN');await q.query('ALTER TABLE conditional_discount_commit_witnesses DISABLE TRIGGER conditional_discount_witness_immutable');
+    await q.query('UPDATE conditional_discount_commit_witnesses SET observed_at=$2 WHERE event_id=$1',[cash.id,mode==='deadline-clock'?'2199-11-30T23:59:59.999999Z':'2199-12-01T00:00:00.000000Z']);
+    await q.query('ALTER TABLE conditional_discount_commit_witnesses ENABLE ALWAYS TRIGGER conditional_discount_witness_immutable');await q.query('COMMIT');
+   }catch(e){await q.query('ROLLBACK');throw e;}finally{q.release();}
+  }
+  const credit=await conditionalCreditDraft(f,partyType),body={request_id:randomUUID(),reason:'Explicit internal conditional review'};
+  if(['surplus-refund','later-allocation','deadline-clock'].includes(mode)) assert.equal((await reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body)).conditional_admission?.qualifying_minor,'10800');
+  else await assert.rejects(()=>reviewConditionalCredit(f.company,actor,credit.id,credit.revision,body),
+   mode==='unallocation'?/CONDITIONAL_RELEASE_HISTORY_UNSUPPORTED/:/CONDITIONAL_PAYMENT_THRESHOLD_NOT_MET/);
+ });
+}

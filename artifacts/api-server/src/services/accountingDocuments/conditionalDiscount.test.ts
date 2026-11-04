@@ -282,3 +282,18 @@ for(const prior of [null,{version:2,bindings:[]},{version:1,bindings:[null]}]) t
  const f=originalFake(t,{snapshot:true});
  await assert.rejects(()=>conditionalPaymentSnapshot(f.q,company,'customer',company,'allocation',{id:eventId,journal_id:journal,source:{conditional_binding_snapshot:prior}},[]),/CONDITIONAL_PAYMENT_SNAPSHOT_INVALID/);
 });
+
+import {conditionalClock,conditionalEventTimely,assertNoConditionalCredit} from './conditionalDiscount';
+test('conditional deadline and causal comparisons preserve all six UTC fractional digits',()=>{
+ const binding='2026-11-01T00:00:00.000001Z',created='2026-11-01T00:00:00.000002Z';
+ assert.equal(conditionalEventTimely(created,'2026-11-30T23:59:59.999999Z',binding,'2026-11-30','2026-11-30'),true);
+ assert.equal(conditionalEventTimely(created,'2026-12-01T00:00:00.000000Z',binding,'2026-11-30','2026-11-30'),false);
+ assert.equal(conditionalEventTimely(binding,'2026-11-30T23:59:59.999999Z',binding,'2026-11-30','2026-11-30'),false);
+ assert.equal(conditionalEventTimely(created,'2026-11-30T23:59:59.999999Z',binding,'2026-12-01','2026-11-30'),false);
+ for(const clock of ['2026-11-01T00:00:00.001Z','2026-11-01 00:00:00.000001+00','2026-02-30T00:00:00.000001Z']) assert.throws(()=>conditionalClock(clock),/CONDITIONAL_CLOCK_INVALID/);
+});
+test('public credit guard rejects source terms and incomplete schema independently',async()=>{
+ const q:any={query:async()=>({rows:[]})};
+ await assert.rejects(()=>assertNoConditionalCredit(q,company,{id:eventId,source:{conditional_discount:{}}}),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
+ await assert.rejects(()=>assertNoConditionalCredit(q,company,{id:eventId,source:{}}),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);
+});

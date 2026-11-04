@@ -336,3 +336,146 @@ export async function validateConditionalDraft(q:Queryable,company:string,source
   const evidence=await readConditionalEvidence(q,company,terms.evidence_receipt_id);
   if(evidence.terms_hash!==conditionalTermsHash(terms) || evidence.party_type!==partyType || evidence.party_id!==source.customer_id.toLowerCase()) fail(409,'CONDITIONAL_EVIDENCE_TERMS_MISMATCH');
 }
+
+/** Public credit writers remain closed for bound originals until redemption and
+ * every settlement writer share atomic consumption/compensation protection. */
+export async function assertNoConditionalCredit(q:Queryable,company:string,original:any) {
+  if(original.source?.conditional_discount) fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
+  await conditionalOriginalSchema(q);
+  if((await q.query('SELECT document_id FROM conditional_discount_original_bindings WHERE company_id=$1 AND document_id=$2',[company,original.id])).rows.length)
+    fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
+}
+
+/** Strict UTC microseconds: Date milliseconds must never erase causal equality. */
+export function conditionalClock(value:unknown):string {
+  if(typeof value!=='string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/.test(value) ||
+    !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0,19)!==value.slice(0,19)) fail(503,'CONDITIONAL_CLOCK_INVALID');
+  return value;
+}
+export function conditionalEventTimely(created:string,observed:string,bindingObserved:string,effective:string,deadline:string) {
+  const cutoff=new Date(Date.parse(deadline+'T00:00:00Z')+86400000).toISOString().slice(0,19)+'.000000Z';
+  return conditionalClock(bindingObserved)<conditionalClock(created) && conditionalClock(created)<=conditionalClock(observed) &&
+    conditionalClock(observed)<cutoff && effective<=deadline;
+}
+
+/** INTERNAL, read-only admission. No witness creation, redemption or posting.
+ * Caller holds the native company/original locks and validates the credit draft. */
+export async function conditionalCreditAdmission(q:Queryable,company:string,original:any,credit:any,releases:{payment_id:string,amount_minor:string}[]=[]) {
+  if(!original.source?.conditional_discount) fail(409,'CONDITIONAL_AGREEMENT_REQUIRED');
+  const partyType=original.kind==='sales_invoice'?'customer':'supplier';
+  const current=await conditionalPaymentSnapshot(q,company,partyType,original.party_id,'payment',null,[]);
+  const binding=current.bindings.find(b=>b.document_id===original.id);
+  if(!binding) fail(409,'CONDITIONAL_AGREEMENT_REQUIRED');
+  const prepared=await prepareConditionalOriginal(q,company,original),frozen=prepared.binding;
+  if(binding.binding_hash!==prepared.bindingHash || credit.money.gross_pence!==frozen.discount_gross_pence ||
+    credit.tax_context.original_revision!==original.revision ||
+    credit.tax_context.original_evidence_hash!==frozen.financial_hash ||
+    credit.money.lines.length!==frozen.vector.length || frozen.vector.some((v,i)=>
+      credit.tax_context.original_line_refs[i]!==Number(v.line_ref) ||
+      ['net_pence','vat_pence','gross_pence'].some(k=>credit.money.lines[i][k]!==v[k as keyof typeof v])))
+    fail(409,'CONDITIONAL_CREDIT_VECTOR_MISMATCH');
+  if((await q.query("SELECT id FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND status='posted'",[company,original.id])).rows.length)
+    fail(409,'CONDITIONAL_PRIOR_CREDIT_UNSUPPORTED');
+  const installed=(await q.query("SELECT to_regclass('public.conditional_discount_commit_witnesses') present")).rows[0]?.present;
+  if(!installed) fail(503,'CONDITIONAL_WITNESS_SCHEMA_INCOMPLETE');
+  const integrity=(await q.query(`SELECT count(*)::int n,
+    bool_and(pg_get_userbyid(relowner)='ledgerly_canonical_owner') owned,
+    bool_or(has_table_privilege('ledgerly_api',oid,'UPDATE,DELETE,TRUNCATE') OR
+      (relname='conditional_discount_payment_transactions' AND has_table_privilege('ledgerly_api',oid,'INSERT'))) writable
+    FROM pg_class WHERE oid IN ('public.conditional_discount_commit_witnesses'::regclass,'public.conditional_discount_payment_transactions'::regclass)`)).rows[0];
+  if(integrity?.n!==2 || integrity.owned!==true || integrity.writable!==false) fail(503,'CONDITIONAL_WITNESS_SCHEMA_INCOMPLETE');
+  const guards=(await q.query(`SELECT count(*)::int n FROM pg_trigger
+    WHERE tgrelid IN ('public.conditional_discount_commit_witnesses'::regclass,
+      'public.conditional_discount_payment_transactions'::regclass,'public.accounting_payment_events'::regclass) AND NOT tgisinternal
+      AND tgenabled='A' AND tgname IN ('conditional_discount_witness_immutable','conditional_discount_witness_no_truncate','conditional_discount_witness_observe',
+      'conditional_discount_payment_transaction','conditional_discount_transaction_immutable','conditional_discount_transaction_no_truncate')`)).rows[0];
+  const constraints=(await q.query(`SELECT count(*)::int n FROM pg_constraint
+    WHERE conrelid IN ('public.conditional_discount_commit_witnesses'::regclass,'public.conditional_discount_payment_transactions'::regclass)
+      AND convalidated AND conname IN ('conditional_discount_witness_pk','conditional_discount_witness_event_fk',
+      'conditional_discount_witness_journal_fk','conditional_discount_witness_hash','conditional_discount_witness_clock',
+      'conditional_discount_transaction_pk','conditional_discount_transaction_event_fk')`)).rows[0];
+  if(guards?.n!==6 || constraints?.n!==7) fail(503,'CONDITIONAL_WITNESS_SCHEMA_INCOMPLETE');
+  const events=(await q.query(`SELECT e.*,e.effective_date::text event_date,
+    to_char(e.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') event_clock,
+    j.id verified_journal_id,j.source_revision,p.id verified_effect_id,
+    w.journal_id witness_journal,w.event_source_hash witness_hash,
+    to_char(w.event_created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') witness_created,
+    to_char(w.observed_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') witness_clock
+    FROM accounting_payment_events e
+    LEFT JOIN canonical_journal_entries j ON j.company_id=e.company_id AND j.id=e.journal_id
+      AND j.source_type='accounting_payment_event' AND j.source_id=e.id::text AND j.status='posted'
+      AND j.posting_kind='party_'||e.kind AND j.currency_code='GBP' AND j.posting_date=e.effective_date
+      AND j.reference=e.reference AND j.economic_effect_id='payment-event:'||e.id::text AND j.source_evidence_hash=j.source_revision
+    LEFT JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
+      AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.source_revision=j.source_revision
+      AND p.source_evidence_hash=j.source_evidence_hash AND p.posting_kind=j.posting_kind
+      AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text AND p.status='posted'
+    LEFT JOIN conditional_discount_commit_witnesses w ON w.company_id=e.company_id AND w.event_id=e.id
+    WHERE e.company_id=$1 AND e.party_id=$2 AND e.party_type=$3 ORDER BY e.created_at,e.id`,[company,original.party_id,partyType])).rows;
+  const verify=(e:any)=>{
+    const intent=e.source?.intent;
+    if(!['payment','allocation','unallocation','refund','reversal'].includes(e.kind) ||
+      !/^[1-9][0-9]{0,15}$/.test(String(e.amount_minor)) ||
+      !e.verified_journal_id || !e.verified_effect_id || e.source_revision!==hash(e.source) || !intent ||
+      intent.id!==e.id || intent.kind!==e.kind || intent.payment_id!==e.payment_id || intent.party_id!==e.party_id ||
+      intent.party_type!==e.party_type || intent.date!==e.event_date || intent.reference!==e.reference ||
+      intent.amount_minor!==String(e.amount_minor) || hash(intent.allocations)!==hash(e.allocations) ||
+      !Array.isArray(e.allocations) || new Set(e.allocations.map((a:any)=>a.document_id)).size!==e.allocations.length ||
+      e.allocations.some((a:any)=>!a || !/^[1-9][0-9]{0,15}$/.test(a.amount_minor)) ||
+      (e.kind==='payment' && e.payment_id!==null) ||
+      (e.kind!=='payment' && !e.payment_id)) fail(503,'PAYMENT_HISTORY_INVALID');
+  };
+  const timely=(e:any)=>{
+    const snapshot=e.source.conditional_binding_snapshot;
+    if(snapshot===undefined) return false;
+    if(snapshot?.version!==1 || !Array.isArray(snapshot.bindings) || Object.keys(snapshot).sort().join(',')!=='bindings,version')
+      fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
+    const selected=snapshot.bindings.filter((b:any)=>b?.document_id===original.id);
+    if(selected.length===0) return false;
+    if(selected.length!==1 || hash(selected[0])!==hash(binding)) fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
+    if(!e.witness_clock) return false;
+    if(e.witness_journal!==e.journal_id || e.witness_hash!==e.source_revision || e.witness_created!==e.event_clock)
+      fail(503,'CONDITIONAL_WITNESS_INVALID');
+    return conditionalEventTimely(e.event_clock,e.witness_clock,binding.observed_at,e.event_date,frozen.deadline);
+  };
+  const qualifying:any[]=[];let total=0n;
+  for(const e of events) {
+    if(!Array.isArray(e.allocations)) fail(503,'PAYMENT_HISTORY_INVALID');
+    const allocation=e.allocations.find((a:any)=>a.document_id===original.id);
+    if(!allocation || !['payment','allocation'].includes(e.kind)) continue;
+    verify(e);
+    const parent=e.kind==='payment'?e:events.find(p=>p.id===e.payment_id && p.kind==='payment');
+    if(!parent) fail(503,'PAYMENT_HISTORY_INVALID');
+    verify(parent);
+    const related=events.filter(x=>x.id===parent.id || x.payment_id===parent.id);
+    let pool=0n;
+    for(const child of related) {
+      verify(child);
+      if(['unallocation','reversal'].includes(child.kind)) fail(409,'CONDITIONAL_RELEASE_HISTORY_UNSUPPORTED');
+      const allocated=child.allocations.reduce((n:bigint,a:any)=>n+BigInt(a.amount_minor),0n);
+      if(child.kind==='refund' && allocated!==0n) fail(503,'PAYMENT_HISTORY_INVALID');
+      if((child.kind==='payment' && allocated>BigInt(child.amount_minor)) ||
+        (child.kind==='allocation' && allocated!==BigInt(child.amount_minor))) fail(503,'PAYMENT_HISTORY_INVALID');
+      pool+=child.kind==='payment'?BigInt(child.amount_minor)-allocated:-BigInt(child.amount_minor);
+    }
+    if(pool<0n) fail(503,'SETTLEMENT_LEDGER_MISMATCH');
+    if(!timely(parent) || !timely(e)) continue;
+    const amount=BigInt(allocation.amount_minor);
+    if(amount<=0n) fail(503,'PAYMENT_HISTORY_INVALID');
+    total+=amount;
+    qualifying.push({event_id:e.id,journal_id:e.journal_id,payment_id:parent.id,payment_journal_id:parent.journal_id,
+      payment_source_hash:parent.source_revision,amount_minor:amount.toString(),
+      effective_date:e.event_date,event_source_hash:e.source_revision,observed_at:e.witness_clock,payment_observed_at:parent.witness_clock});
+  }
+  const threshold=BigInt(frozen.gross_pence)-BigInt(frozen.discount_gross_pence);
+  const remainingByParent=new Map<string,bigint>();
+  for(const event of qualifying) remainingByParent.set(event.payment_id,(remainingByParent.get(event.payment_id)??0n)+BigInt(event.amount_minor));
+  for(const release of releases) {
+    const eligible=remainingByParent.get(release.payment_id)??0n,removed=BigInt(release.amount_minor);
+    const decrease=removed<eligible?removed:eligible;
+    remainingByParent.set(release.payment_id,eligible-decrease);total-=decrease;
+  }
+  if(total<threshold) fail(409,'CONDITIONAL_PAYMENT_THRESHOLD_NOT_MET');
+  return {version:1,binding,terms_hash:frozen.terms_hash,threshold_minor:threshold.toString(),qualifying_minor:total.toString(),
+    deadline:frozen.deadline,qualifying_events:qualifying,posting_available:false};
+}
