@@ -81,12 +81,15 @@
     },
     {
       "path": "lib/db/migrations/conditional-discount-agreements.review.sql",
-      "sha256": "1d0030d13ee3ae382d486224b645997ada4fd1c8d6eccdc8e04870df0a563aaa",
+      "sha256": "4a27b8d4840324bb3ed249b44988a99045a01c3626d827c723042cc5732fd0df",
       "status": "review_sql_only",
       "tables": [
         "conditional_discount_payment_transactions",
         "conditional_discount_commit_witnesses",
-        "conditional_discount_evidence"
+        "conditional_discount_evidence",
+        "conditional_discount_journal_origins",
+        "conditional_discount_original_bindings",
+        "conditional_discount_original_observations"
       ]
     }
   ],

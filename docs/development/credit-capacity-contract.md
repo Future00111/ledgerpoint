@@ -374,3 +374,56 @@ allocation writer guard, then the native capture/review UI. Existing parent gate
 and compensation/prior-credit/correction scope remain unchanged. The new disposable
 PostgreSQL scenarios require exact-candidate execution and independent review;
 compiled scenarios and focused tests alone do not qualify persistence or the journey.
+
+### Bounded original-origin/binding candidate (4 November 2026)
+
+The isolated candidate adds an ALWAYS journal INSERT trigger recording the
+database-owned top-level xid and cluster identity, with no backfill. Its internal
+binding operation requires that SAME original journal transaction, a scoped
+posted original and matching canonical journal/posting-effect revision and
+source evidence hash. Native canonical `hash()` and native discount allocation/
+original-tax helpers build the frozen vector; JSONB text is not a hash authority.
+A separately opened observer validates native source identity and requires the
+original xid committed before recording a database clock. Direct runtime table
+mutations are denied; protected functions retain current membership checks.
+
+Neither public conditional-posting hard rejection is removed or bypassed.
+This code is NOT accepted implementation or enabled conditional posting.
+After the coordinator released the test slot, the unchanged disposable runner
+passed 139 tests (including its unit suite), zero failures/skips, plus populated
+restore/encrypted-recovery verification and cluster cleanup. The added real
+PostgreSQL cases prove original-journal top-xid receipts across released and
+unreleased savepoints, concurrent invisibility, rollback, rejection of later
+attachment/foreign-company attachment and denied direct runtime table writes.
+Positive end-to-end binding/observation, replay/rollback/immutability and restore
+acceptance for populated AGREEMENT BINDINGS still require real PostgreSQL
+validation and independent review; the restore fixture did not populate those.
+Do not infer those guarantees from pure mocks, SQL compilation or passing unit
+checks. Redemption, all-writer guards, reversal compensation, corrections and
+connected UI remain pending under the parent contract.
+
+
+### Native original payload commitment (4 November 2026 continuation)
+
+The internal original binding core is version 1 and includes company/document,
+revision, source and financial hashes, party/currency, immutable evidence/terms,
+gross/discount/deadline and the existing native frozen line vector. It excludes
+the journal ID. Before canonical journal INSERT, the native preparer recursively
+sorts object keys, retains array order and serializes JSON to exact UTF8 bytes.
+The canonical journal and posting effect commit the SHA256 of those bytes as
+`sourceEvidenceHash`; the financial snapshot hash remains inside the core.
+Ordinary-document public posting remains unchanged and conditional public gates
+remain closed.
+
+The protected binding stores the core, its exact `canonical_payload` text and
+hash, with journal linkage in a separate column. SQL requires parsed payload/core
+equality and hashes the exact bounded UTF8 text; that digest must equal both
+immutable canonical posting identities. SQL does not serialize JSON or duplicate
+VAT/discount calculation. Original-transaction linkage, immutable evidence,
+source/terms/party checks and no-backfill rules still apply. The SQL observer
+rechecks payload commitment and canonical identity before any first-clock insert,
+including direct restricted-role calls and conflict retries. Native reads also
+reconstruct the complete core. Payload/hash replacement therefore cannot qualify
+against an already committed original. Binding/observation stays an internal
+prerequisite; payment admission/redemption, all writers, compensation, corrections,
+complete supplier/customer journey and browser acceptance remain pending.

@@ -4,6 +4,23 @@ import { db } from '@workspace/db';
 import { PgDialect } from 'drizzle-orm/pg-core';
 import { captureCommittedPaymentWitness, observePaymentOutcome } from './conditionalDiscount';
 import { hash } from './core';
+import { canonicalConditionalPayload,prepareConditionalOriginal,frozenConditionalVector } from './conditionalDiscount';
+
+test('frozen conditional vector uses native deterministic gross allocation and original tax capacity',()=>{
+ const row={kind:'sales_invoice',source:{conditional_discount:{discount_gross_pence:'1200'}},
+   money:{gross_pence:'12000',lines:[{net_pence:'10000',vat_pence:'2000',gross_pence:'12000'}]},
+   tax_context:{lines:[{rate:'20.00',code:'STANDARD'}]}};
+ assert.deepEqual(frozenConditionalVector(row),[{line_ref:'0',net_pence:'1000',vat_pence:'200',
+   gross_pence:'1200',original:row.money.lines[0],tax:row.tax_context.lines[0]}]);
+ assert.deepEqual(frozenConditionalVector({...row,kind:'purchase_bill'}),frozenConditionalVector(row));
+ assert.throws(()=>frozenConditionalVector({...row,original_id:'corrected'}),/CONDITIONAL_BINDING_INVALID/);
+ assert.throws(()=>frozenConditionalVector({...row,kind:'sales_credit_note'}),/CONDITIONAL_BINDING_INVALID/);
+ assert.throws(()=>frozenConditionalVector({...row,money:{...row.money,gross_pence:'12001'}}),/CONDITIONAL_BINDING_INVALID/);
+});
+test('canonical agreement binding hashes recursively sort keys, unlike jsonb text',()=>{
+ assert.equal(hash({z:[{b:2,a:1}],a:0}),hash({a:0,z:[{a:1,b:2}]}));
+ assert.notEqual(hash({a:1}),hash({a:'1'}));
+});
 
 const company='10000000-0000-4000-8000-000000000001',eventId='20000000-0000-4000-8000-000000000001';
 const journal='30000000-0000-4000-8000-000000000001',actor='synthetic-owner';
@@ -95,7 +112,7 @@ test('exact retry returns first persisted observation without replacing its cloc
 
 import {evidenceBytes,validateConditionalDraft} from './conditionalDiscount';
 import {parseConditionalTerms,conditionalTermsHash,parseInvoice,draftSourceFingerprint} from '../financialDrafts/contract';
-const terms={version:1,party_type:'customer',party_id:company,currency:'GBP',agreement_id:eventId,agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
+const terms={version:1,party_type:'customer',party_id:company,currency:'GBP',agreement_id:eventId,agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'} as const;
 const draft={contract:'w03.draft.v1',currency:'GBP',customer_id:company,invoice_number:'COND-1',issue_date:'2026-11-01',due_date:'2026-11-30',payment_terms:29,reference:'',notes:'',line_items:[{description:'Test',quantity:'1',unit_price:'120',tax_code:'NONE'}]};
 test('bounded UTF8 preserves exact Unicode/newline bytes and rejects malformed UTF16',()=>{
  assert.equal(evidenceBytes('é😀\n"/\\').toString('utf8'),'é😀\n"/\\');
@@ -131,4 +148,102 @@ test('conditional UUIDs canonicalize uppercase A-F without changing legacy custo
  const saved=parseInvoice({...draft,customer_id:upper,conditional_discount:raw});
  assert.equal(saved.customer_id,upper);assert.equal(saved.conditional_discount?.party_id,lower);
  assert.equal(parseInvoice({...draft,customer_id:upper}).customer_id,upper);
+});
+
+import {bindConditionalOriginal,observeConditionalOriginal,conditionalOriginalSchema} from './conditionalDiscount';
+const originalSource={...draft,conditional_discount:{...terms,evidence_receipt_id:journal}};
+const originalRow={id:eventId,kind:'sales_invoice',status:'posted',revision:'synthetic-original-revision',journal_id:journal,party_id:company,
+ source:originalSource,money:{gross_pence:'12000',net_pence:'12000',vat_pence:'0',lines:[{net_pence:'12000',vat_pence:'0',gross_pence:'12000'}]},
+ tax_context:{lines:[{rate:'0.00',code:'NONE'}]},posting_accounts:{receivables:company,revenue:eventId}};
+const evidenceRow={id:journal,version:1,attested:true,currency:'GBP',party_id:company,party_type:'customer',terms,
+ terms_hash:conditionalTermsHash(terms),evidence_text:'Synthetic agreement',evidence_hash:'sha256:'+createHash('sha256').update('Synthetic agreement').digest('hex')};
+import {createHash} from 'node:crypto';
+const originalBinding={version:1,company_id:company,document_id:eventId,revision:originalRow.revision,source_hash:hash(originalSource),
+ financial_hash:hash({source:originalSource,money:originalRow.money,tax_context:originalRow.tax_context,accounts:originalRow.posting_accounts}),
+ party_id:company,currency:'GBP',evidence_id:journal,terms_hash:evidenceRow.terms_hash,
+ gross_pence:'12000',discount_gross_pence:'1200',deadline:'2026-11-30',vector:frozenConditionalVector(originalRow)};
+function originalFake(t:any,{binding=originalBinding,bindingHash=hash(binding),missing=false,guards=9,constraints=10,owned=true,writable=false,members=1,existing=false,bound=true}:any={}) {
+ const calls:string[]=[];let observed=existing;let transactions=0;let passedBinding:any;
+ const receipt={observed_at:'2026-11-04 17:00:00.000001+00'};
+ const query=async(sql:string,params:any[]=[])=>{
+  calls.push(sql);let rows:any[]=[];
+  if(sql.includes('FROM companies')) rows=[{id:company}];
+  else if(sql.includes('FROM company_users')) rows=Array.from({length:members},()=>({role:'owner',is_active:true}));
+  else if(sql.includes('FROM unnest')) rows=['origins','bindings','observations'].map(present=>({present:missing?null:present}));
+  else if(sql.includes('bool_and(pg_get_userbyid')) rows=[{n:3,owned,writable}];
+  else if(sql.includes('FROM pg_trigger t JOIN')) rows=[{n:guards}];
+  else if(sql.includes('conrelid=ANY')) rows=[{n:constraints}];
+  else if(sql.includes('to_regclass')) rows=[{present:'conditional_discount_evidence'}];
+  else if(sql.includes('FROM pg_trigger')) rows=[{n:2}];
+  else if(sql.includes('pg_get_userbyid(relowner) owner')) rows=[{n:11,owner:'ledgerly_canonical_owner',writable:false}];
+  else if(sql.includes('FROM conditional_discount_evidence')) rows=[evidenceRow];
+  else if(sql.includes('FROM conditional_discount_original_bindings')) rows=bound?[{journal_id:journal,binding,binding_hash:bindingHash,canonical_payload:canonicalConditionalPayload(binding)}]:[];
+  else if(sql.includes('FROM accounting_document_sources')) rows=[originalRow];
+  else if(sql.includes('public.bind_conditional_discount_original')) passedBinding={binding:JSON.parse(params[3]),hash:params[4],payload:params[6]};
+  else if(sql.includes('public.observe_conditional_discount_original')) observed=true;
+  else if(sql.includes('FROM conditional_discount_original_observations')) rows=observed?[receipt]:[];
+  else throw Error('Unexpected original SQL: '+sql);
+  return {rows,rowCount:rows.length};
+ };
+ t.mock.method(db,'transaction',async(fn:any)=>{transactions++;return fn({execute:async(statement:any)=>{const {sql,params}=dialect.sqlToQuery(statement);return query(sql,params);}});});
+ return {q:{query} as any,calls,transactions:()=>transactions,passed:()=>passedBinding,receipt};
+}
+test('original binder persists the complete native snapshot in its supplied transaction',async t=>{
+ const f=originalFake(t,{bound:false});assert.deepEqual(await bindConditionalOriginal(f.q,company,actor,eventId),originalBinding);
+ assert.deepEqual(f.passed(),{binding:originalBinding,hash:hash(originalBinding),payload:canonicalConditionalPayload(originalBinding)});
+ assert.equal(f.transactions(),0);
+});
+test('original observer opens fresh transaction and exact replay retains first DB clock',async t=>{
+ const f=originalFake(t);
+ assert.deepEqual(await observeConditionalOriginal(company,actor,eventId),f.receipt);
+ assert.deepEqual(await observeConditionalOriginal(company,actor,eventId),f.receipt);
+ assert.equal(f.transactions(),2);
+ assert.equal(f.calls.filter(s=>s.includes('public.observe_conditional_discount_original')).length,1);
+});
+for(const [name,options] of Object.entries({absent:{missing:true},guard:{guards:8},constraint:{constraints:8},owner:{owned:false},grant:{writable:true}}))
+ test(`original ${name} schema defect rejects before binding or observing`,async t=>{
+  const f=originalFake(t,options);
+  await assert.rejects(()=>bindConditionalOriginal(f.q,company,actor,eventId),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);
+  await assert.rejects(()=>observeConditionalOriginal(company,actor,eventId),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);
+  assert.equal(f.calls.some(s=>s.includes('public.bind_conditional')||s.includes('public.observe_conditional')),false);
+ });
+for(const [field,value] of Object.entries({revision:'changed',source_hash:hash('changed'),financial_hash:hash('changed'),journal_id:eventId,party_id:eventId,
+ currency:'EUR',evidence_id:eventId,terms_hash:hash('changed'),gross_pence:'12001',discount_gross_pence:'1199',deadline:'2026-12-01',vector:[],extra:'untrusted'}))
+ test(`self-consistent poisoned original ${field} cannot obtain or replay observation`,async t=>{
+  const f=originalFake(t,{binding:{...originalBinding,[field]:value},existing:true});
+  await assert.rejects(()=>observeConditionalOriginal(company,actor,eventId),/CONDITIONAL_BINDING_INVALID/);
+  assert.equal(f.calls.some(s=>s.includes('FROM conditional_discount_original_observations')||s.includes('public.observe_conditional')),false);
+ });
+test('original binding hash tamper rejects before canonical source lookup',async t=>{
+ const f=originalFake(t,{bindingHash:hash('forged')});
+ await assert.rejects(()=>observeConditionalOriginal(company,actor,eventId),/CONDITIONAL_BINDING_INVALID/);
+ assert.equal(f.calls.some(s=>s.includes('FROM accounting_document_sources')),false);
+});
+for(const members of [0,2]) test(`original observer refuses ${members} matching memberships before evidence access`,async t=>{
+ const f=originalFake(t,{members});
+ await assert.rejects(()=>observeConditionalOriginal(company,actor,eventId),/RESOURCE_NOT_FOUND/);
+ assert.equal(f.calls.some(s=>s.includes('FROM conditional_discount_original_bindings')),false);
+});
+
+test('exact original binding retry reads immutable snapshot without a second insertion',async t=>{
+ const f=originalFake(t);assert.deepEqual(await bindConditionalOriginal(f.q,company,actor,eventId),originalBinding);
+ assert.equal(f.passed(),undefined);
+});
+test('binding retry rejects poisoned self-consistent existing snapshot',async t=>{
+ const f=originalFake(t,{binding:{...originalBinding,deadline:'2026-12-01'}});
+ await assert.rejects(()=>bindConditionalOriginal(f.q,company,actor,eventId),/CONDITIONAL_BINDING_INVALID/);
+ assert.equal(f.passed(),undefined);
+});
+
+test('native pre-journal commitment excludes journal linkage and equals existing canonical hash',async t=>{
+ const f=originalFake(t);
+ const prepared=await prepareConditionalOriginal(f.q,company,{...originalRow,status:'draft',journal_id:null});
+ assert.deepEqual(prepared.binding,originalBinding);
+ assert.equal(Object.hasOwn(prepared.binding,'journal_id'),false);
+ assert.equal(prepared.bindingHash,hash(originalBinding));
+ assert.equal(prepared.bindingHash,'sha256:'+createHash('sha256').update(prepared.canonicalPayload,'utf8').digest('hex'));
+ assert.deepEqual(JSON.parse(prepared.canonicalPayload),originalBinding);
+ const unicode={z:'é😀\n"/\\',a:[{y:1,x:'0'}]};
+ assert.equal('sha256:'+createHash('sha256').update(canonicalConditionalPayload(unicode),'utf8').digest('hex'),hash(unicode));
+ assert.throws(()=>canonicalConditionalPayload({value:'x'.repeat(1048576)}),/CONDITIONAL_BINDING_INVALID/);
 });

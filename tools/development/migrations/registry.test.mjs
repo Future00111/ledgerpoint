@@ -10,6 +10,22 @@ import { installSchema } from '../../accounting-flow/schema.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const registry = () => JSON.parse(readFileSync(path.join(root, 'lib/db/migration-registry.json'), 'utf8'));
 const read = relative => readFileSync(path.join(root, relative));
+test('original binding candidate keeps both public posting gates and a database-owned original xid prerequisite',()=>{
+  const posting=read('artifacts/api-server/src/services/accountingDocuments/posting.ts').toString();
+  assert.equal((posting.match(/fail\(422,'CONDITIONAL_POSTING_NOT_AVAILABLE'\)/g)??[]).length,2);
+  assert.doesNotMatch(posting,/bindConditionalOriginal|observeConditionalOriginal/);
+  const sql=read('lib/db/migrations/conditional-discount-agreements.review.sql').toString();
+  assert.match(sql,/origin\.source_xid<>pg_current_xact_id\(\)/);
+  assert.match(sql,/pg_xact_status\(origin\.source_xid\) IS DISTINCT FROM 'committed'/);
+  assert.match(sql,/p\.source_evidence_hash=j\.source_evidence_hash/);
+  assert.match(sql,/p\.source_revision=j\.source_revision/);
+  assert.match(sql,/NEW\.canonical_payload::jsonb IS DISTINCT FROM NEW\.binding/);
+  assert.match(sql,/sha256\(convert_to\(NEW\.canonical_payload,'UTF8'\)\)/);
+  assert.match(sql,/j\.source_evidence_hash=NEW\.binding_hash/);
+  assert.match(sql,/j\.source_evidence_hash=origin\.binding_hash/);
+  assert.match(sql,/ENABLE ALWAYS TRIGGER conditional_discount_journal_origin/);
+  assert.doesNotMatch(sql,/GRANT INSERT ON public\.conditional_discount_(?:journal_origins|original_bindings|original_observations)/);
+});
 test('all registered review migrations are pinned and returned as the exact verified bytes', () => {
   const inputs = loadMigrationInputs(root);
   assert.deepEqual(Object.keys(inputs), [...migrationOrder, 'canonical-security-overlay']);
