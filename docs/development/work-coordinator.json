@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 195,
+  "revision": 197,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 636,
+    "revision": 638,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,7 +100,7 @@
         }
       },
       "P01-03": {
-        "status": "blocked",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
         "checkpoint": "Stopped clean final76a45fbd/tree3eb4895 archivedc2646f8861149a43c0126c9b37590e6581d244d1; root archival-only review, exact source790/focused46/fullbuildtypecheck passed. Restricted-role SQL binding/observer authority remains unresolved; public gates closed, parent pending. PG fixtures unrun here; existing draft PR27 CI remains permitted qualification route after safe reviewed integration, no universal prepublication PG rule.",
@@ -128,12 +128,10 @@
           "reviewed": true,
           "reviewer": "root-and-coordinator1355-technical-only"
         },
-        "blockers": [
-          {
-            "type": "decision",
-            "reason": "Coordinator-owned internal engineering contract, first identified hosted-20261104-1732: bind one native canonical frozen payload/hash to protected posting authority before journal INSERT, with journal linkage separate, then reject direct restricted-role SQL altered vector/hash/evidence binding and first-clock attempts. Preserve one financial calculator and both public gates. Root permits only archival of current candidate; no external owner decision required. Exact PostgreSQL/restore acceptance remains unrun; existing PR27 CI route is authorized for a safe reviewed integration."
-          }
-        ]
+        "owner": "worker1819",
+        "tokenSha256": "ef4b5712de9ca32ba83d22fe9dff4e95e7e7a0189db72c3a0840db78eedaab83",
+        "leaseUntil": 1793817785235,
+        "workStarted": false
       },
       "P01-04": {
         "status": "blocked",
@@ -8185,6 +8183,26 @@
             "reason": "Coordinator-owned internal engineering contract, first identified hosted-20261104-1732: bind one native canonical frozen payload/hash to protected posting authority before journal INSERT, with journal linkage separate, then reject direct restricted-role SQL altered vector/hash/evidence binding and first-clock attempts. Preserve one financial calculator and both public gates. Root permits only archival of current candidate; no external owner decision required. Exact PostgreSQL/restore acceptance remains unrun; existing PR27 CI route is authorized for a safe reviewed integration."
           }
         ]
+      },
+      {
+        "at": 1793816585035,
+        "actor": "coordinator1819",
+        "type": "resolve",
+        "taskId": "P01-03",
+        "reason": "Root independently approved exact UTF8 native canonical payload committed before journal INSERT; protected SQL checks parsed core equality and exact SHA256 against journal/effect sourceEvidenceHash, separate journal linkage, preserved native calculator and closed public gates. Bounded implementation and final review/tests pending.",
+        "resolvedBlockers": [
+          {
+            "type": "decision",
+            "reason": "Coordinator-owned internal engineering contract, first identified hosted-20261104-1732: bind one native canonical frozen payload/hash to protected posting authority before journal INSERT, with journal linkage separate, then reject direct restricted-role SQL altered vector/hash/evidence binding and first-clock attempts. Preserve one financial calculator and both public gates. Root permits only archival of current candidate; no external owner decision required. Exact PostgreSQL/restore acceptance remains unrun; existing PR27 CI route is authorized for a safe reviewed integration."
+          }
+        ]
+      },
+      {
+        "at": 1793816585235,
+        "actor": "worker1819",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "ef4b5712de9ca32ba83d22fe9dff4e95e7e7a0189db72c3a0840db78eedaab83"
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8202,29 +8220,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
+    "sha": "4a816e70df4583479478a74e5f6a3486752a3e1e",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
         "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
-        "path": "docs/development/candidates/20261104-1732-verification.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
         "path": "docs/development/candidates/20261104-1732-manifest.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "c2646f8861149a43c0126c9b37590e6581d244d1",
-        "path": "docs/development/candidates/20261104-1732-candidate.patch"
       }
     ],
-    "runId": "hosted-20261104-1732",
-    "at": 1793814576627,
+    "runId": "hosted-20261104-1819",
+    "at": 1793816604585,
     "codeHead": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7"
   },
-  "updatedAt": 1793816449238,
+  "updatedAt": 1793816604585,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -8288,15 +8296,26 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [],
+  "activeWorkers": [
+    {
+      "actor": "worker1819",
+      "task": "P01-03",
+      "provider": "Codex",
+      "base": "76a45fbd4d5caad69fdfdf420c3b61df3af958da",
+      "paths": "Exact catalog P01-03 ownership; compact binding/schema/tests only",
+      "implementationStopBy": "2026-11-04T18:37:00Z",
+      "status": "reserved-not-dispatched"
+    }
+  ],
   "run": {
     "startedAt": "2026-11-04T18:20:49.299Z",
     "stopBy": "2026-11-04T18:47:00Z",
     "implementationStopBy": "2026-11-04T18:37:00Z",
     "status": "active",
-    "activity": "Reconstructed exact durable source and inspecting canonical binding authority before compact implementation claim",
+    "activity": "Root approved concrete native UTF8 canonical payload commitment before journal INSERT; automatic P01-03 claim reserved for worker1819; implementation stop18:37 and hardstop18:47",
     "credits": "unknown",
-    "providerUsage": "unknown"
+    "providerUsage": "unknown",
+    "observedAt": "2026-11-04T18:23:24.616Z"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
