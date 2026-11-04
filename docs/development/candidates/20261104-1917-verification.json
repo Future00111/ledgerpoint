@@ -1,0 +1,110 @@
+{
+  "basePublished": "33b35cc70971f6d8bf01149149f8905bf783e05c",
+  "baseLocal": "f3ea03d74cb6ef8000972381c4fd47364f1f2399",
+  "baseTree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
+  "commit": "67bc0c675ce1ae77904d8473dd43c4bb0f5b53af",
+  "tree": "49d6dc7ca50c43a8f0c6e897572b6e5c667cecca",
+  "files": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+    "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+    "docs/development/credit-capacity-contract.md"
+  ],
+  "patchBytes": 26202,
+  "patchSha256": "675c268ed361b6d93155d628a8a12cbfb5bfc788c6de5dcbe78af4da0fcb8b9a",
+  "rawCommitBytes": 271,
+  "rawCommitSha256": "769c058b009be1bd3ea9c56e591b2f6a08a22cdcb26246c03dfef0f9ad5f7cfd",
+  "createdAt": "2026-11-04T19:27:30.051Z",
+  "publicPostingEnabled": false,
+  "parentAccepted": false,
+  "workerCommit": "e9d3307b74b7ea66f3a20de742f6cb3e8113cf28",
+  "review": {
+    "reviewer": "/root",
+    "approved": "bounded development integration only",
+    "source": "Exacte9d330/tree49d6 and coordinator67bc0c6 same tree; all5files210+/11-. Native paymenthash includes allparty observedbindings beforecash, allocations originalsubset+immutable parent/journal/effect/idempotency, explicit legacyempty/schemafailclosed, UTCmicroseconds; public gates unchanged.",
+    "parentAccepted": false
+  },
+  "tests": {
+    "focused": 57,
+    "sourceScheduler": 790,
+    "failed": 0,
+    "skipped": 0,
+    "fullBuildTypecheck": "passed",
+    "apiTypecheck": "passed",
+    "integrationBundle": "passed",
+    "actualPostgreSQL": "pending exactPR27 CI; localuid0/noPGbinaries",
+    "dedicatedPopulatedBindingRecovery": "pending explicit scenario"
+  },
+  "rework": [
+    "Offline frozen install unavailable metadata; normal frozen install passed supply-chain policies",
+    "Initial TS7034/7005 implicit array types fixed before freeze; initial log preserved",
+    "Initial unit53/54: no-write test substring INSERT falsely matched schema privilege introspection; changed to anchored actual mutation query regex; final57/57",
+    "Initial integration bundle DBschema alias resolution corrected by explicit db/schema alias; final bundle passed"
+  ],
+  "worker": {
+    "actor": "worker1917",
+    "stopped": true,
+    "clean": true,
+    "activeCommands": 0,
+    "queueRevision": 654
+  },
+  "limitations": [
+    "Parent conditional admission/redemption/all-writer guards/compensation/corrections and native UI/browser remain pending; public gates closed",
+    "New payment/allocation requires complete conditional schema; no existing-database activation/migration authorized; exact historical replay preserved",
+    "Historical foreigncluster retainedreceipt test is read proof, not dedicated populated-binding restore acceptance"
+  ],
+  "cost": "unknown",
+  "artifacts": [
+    {
+      "name": "candidate.patch",
+      "bytes": 26202,
+      "sha256": "675c268ed361b6d93155d628a8a12cbfb5bfc788c6de5dcbe78af4da0fcb8b9a"
+    },
+    {
+      "name": "raw-commit.txt",
+      "bytes": 271,
+      "sha256": "769c058b009be1bd3ea9c56e591b2f6a08a22cdcb26246c03dfef0f9ad5f7cfd"
+    },
+    {
+      "name": "worker-raw-commit.txt",
+      "bytes": 271,
+      "sha256": "d8b716153514cc9b5f1eca08114fb45c155771a046c4c7d3b34725974a26f842"
+    },
+    {
+      "name": "manifest.json",
+      "bytes": 1034,
+      "sha256": "8e001a8b8725bd328597d7e5e6b8c525f144fa12648e38f47a53a92efd8e850f"
+    },
+    {
+      "name": "focused.log",
+      "bytes": 5116,
+      "sha256": "d5c88d49fbff99eb451d09f52b34eef3ef32b5070194a0f8c26b3a5794d29dfe"
+    },
+    {
+      "name": "source.log",
+      "bytes": 83771,
+      "sha256": "99d320e806adf27a3583236188283bfd43261fcfb23f34065c3ba0ed34c0bf67"
+    },
+    {
+      "name": "build.log",
+      "bytes": 15458,
+      "sha256": "60ba1d5a795068a33022256db6b7377ac153fedb3b9636c4cc4a6209dd1ed26e"
+    },
+    {
+      "name": "api-typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "initial-typecheck-failure.log",
+      "bytes": 354,
+      "sha256": "31c725c8984d62a23c5dc5dc17c59cac4c3fde63a9dee5ebc8ec177fcebdac71"
+    },
+    {
+      "name": "offline-dependency-failure.log",
+      "bytes": 528,
+      "sha256": "a0cf7e3ee67f26059c22db29724fa254d248c51c8669d7875dc63eca03ddef6d"
+    }
+  ]
+}

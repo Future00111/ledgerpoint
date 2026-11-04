@@ -1,0 +1,311 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+index b46bb0b..25e6d35 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+@@ -173,11 +173,16 @@ import {captureConditionalEvidence,getConditionalEvidence} from './conditionalDi
+ import {conditionalTermsHash} from '../financialDrafts/contract';
+ import {saveDocument,getDocument} from './documents';
+ import {postDocument} from './posting';
+-async function ordinaryOriginalFixture() {
++async function ordinaryOriginalFixture(partyType:'customer'|'supplier'='customer') {
+  const f=await fixture();
++ if(partyType==='supplier') {
++  const supplier=randomUUID();
++  await admin.query("INSERT INTO suppliers(id,company_id,name,status) VALUES($1,$2,'Synthetic binding supplier','active')",[supplier,f.company]);
++  f.body={...f.body,party_type:partyType,party_id:supplier};
++ }
+  await admin.query(`INSERT INTO vat_tax_rules(id,company_id,code,label,rate,treatment,effective_from,is_active)
+  VALUES($1,$2,'NONE','Synthetic no VAT',0,'no_vat','2000-01-01',true)`,[randomUUID(),f.company]);
+- const draft=await saveDocument(f.company,actor,{kind:'sales_invoice',source:{
++ const draft=await saveDocument(f.company,actor,{kind:partyType==='customer'?'sales_invoice':'purchase_bill',source:{
+   contract:'w03.draft.v1',currency:'GBP',customer_id:f.body.party_id,invoice_number:'ORIGIN-'+randomUUID(),
+   issue_date:'2026-11-01',due_date:'2026-11-30',payment_terms:29,reference:'',notes:'',
+   line_items:[{description:'Synthetic original',quantity:'1',unit_price:'120',tax_code:'NONE'}]}});
+@@ -263,11 +268,11 @@ import {calculateDocument} from './documents';
+ import {journalLines} from './documentJournal';
+ import {hash,scope,document} from './core';
+ import {bindConditionalOriginal,observeConditionalOriginal,prepareConditionalOriginal,canonicalConditionalPayload} from './conditionalDiscount';
+-async function conditionalOriginalFixture() {
+- const f=await ordinaryOriginalFixture();
+- const terms={version:1,party_type:'customer',party_id:f.body.party_id,currency:'GBP',agreement_id:randomUUID(),agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
++async function conditionalOriginalFixture(partyType:'customer'|'supplier'='customer') {
++ const f=await ordinaryOriginalFixture(partyType);
++ const terms={version:1,party_type:partyType,party_id:f.body.party_id,currency:'GBP',agreement_id:randomUUID(),agreement_date:'2026-11-01',payment_deadline:'2026-11-30',discount_gross_pence:'1200'};
+  const evidence=await captureConditionalEvidence(f.company,actor,{request_id:randomUUID(),terms,evidence_text:'Synthetic original binding agreement',attested:true});
+- const draft=await saveDocument(f.company,actor,{kind:'sales_invoice',source:{...f.draft.source,conditional_discount:{...terms,evidence_receipt_id:evidence.id}}},f.draft.id,f.draft.revision);
++ const draft=await saveDocument(f.company,actor,{kind:partyType==='customer'?'sales_invoice':'purchase_bill',source:{...f.draft.source,conditional_discount:{...terms,evidence_receipt_id:evidence.id}}},f.draft.id,f.draft.revision);
+  await assert.rejects(()=>postDocument(f.company,actor,draft.id,draft.revision),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
+  return {...f,draft};
+ }
+@@ -300,7 +305,7 @@ async function bindInOriginalTransaction(f:any,tx:DatabaseTransaction,beforeBind
+   }},lineBuilder:{async build(){return journalLines(row);}},
+  });
+  await q.query("UPDATE accounting_document_sources SET status='posted',journal_id=$3 WHERE company_id=$1 AND id=$2",[f.company,row.id,result.journalId]);
+- await q.query("UPDATE sales_invoices SET status='posted' WHERE company_id=$1 AND id=$2",[f.company,row.id]);
++ await q.query(`UPDATE ${row.kind==='sales_invoice'?'sales_invoices':'purchase_bills'} SET status='posted' WHERE company_id=$1 AND id=$2`,[f.company,row.id]);
+  if(beforeBind) await beforeBind(q,prepared,result.journalId);
+  const binding=await bindConditionalOriginal(q,f.company,actor,row.id);
+  return {binding,journalId:result.journalId};
+@@ -436,3 +441,71 @@ test('real PostgreSQL: direct observer rejects duplicate identity and rechecks a
+  }
+  assert.ok((await observeConditionalOriginal(f.company,actor,f.draft.id)).observed_at);
+ });
++
++import {conditionalPaymentSnapshot} from './conditionalDiscount';
++for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL: ${partyType} native cash freezes bindings before allocation and never backfills old pools`,async()=>{
++ const f=await conditionalOriginalFixture(partyType);
++ const oldBody={...f.body,id:randomUUID(),amount_minor:'100'};
++ const oldPreview=await previewPayment(f.company,actor,oldBody);
++ assert.deepEqual(oldPreview.source.conditional_binding_snapshot,{version:1,bindings:[]});
++ const old=await postPayment(f.company,actor,{...oldBody,review_token:oldPreview.review_token});
++ await withCanonicalPostingTransaction(async tx=>{
++  await bindInOriginalTransaction(f,tx);
++  assert.deepEqual(await conditionalPaymentSnapshot(queryAdapter(tx),f.company,partyType,f.body.party_id,'payment',null,[]),{version:1,bindings:[]});
++ });
++ const body={...f.body,id:randomUUID(),amount_minor:'10800'};
++ const unobserved=await previewPayment(f.company,actor,body);
++ assert.deepEqual(unobserved.source.conditional_binding_snapshot,{version:1,bindings:[]});
++ const receipt=await observeConditionalOriginal(f.company,actor,f.draft.id);
++ await assert.rejects(()=>postPayment(f.company,actor,{...body,review_token:unobserved.review_token}),/PAYMENT_REVIEW_STALE/);
++ const fresh=await previewPayment(f.company,actor,body),snapshot=fresh.source.conditional_binding_snapshot!;
++ assert.equal(snapshot.bindings.length,1);assert.equal(snapshot.bindings[0]!.document_id,f.draft.id);
++ assert.equal(Date.parse(snapshot.bindings[0]!.observed_at),Date.parse(receipt.observed_at));
++ assert.match(snapshot.bindings[0]!.observed_at,/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/);
++ await withCanonicalPostingTransaction(async tx=>{
++  const q=queryAdapter(tx);await q.query("SET LOCAL TIME ZONE 'Pacific/Auckland'");
++  assert.deepEqual(await conditionalPaymentSnapshot(q,f.company,partyType,f.body.party_id,'payment',null,[]),snapshot);
++ });
++ const payment=await postPayment(f.company,actor,{...body,review_token:fresh.review_token});
++ const saved=(await pool.query('SELECT source FROM accounting_payment_events WHERE id=$1',[body.id])).rows[0].source;
++ assert.deepEqual(saved.conditional_binding_snapshot,snapshot);
++ assert.equal((await postPayment(f.company,actor,{...body,review_token:fresh.review_token})).journal_id,payment.journal_id);
++ for(const [parent,value,expected] of [[old.id,'100',0],[payment.id,'10800',1]] as const) {
++  const allocation={...body,id:randomUUID(),kind:'allocation',payment_id:parent,amount_minor:value,allocations:[{document_id:f.draft.id,amount_minor:value}]};
++  const review=await previewPayment(f.company,actor,allocation);
++  assert.equal(review.source.conditional_binding_snapshot!.bindings.length,expected);
++  await postPayment(f.company,actor,{...allocation,review_token:review.review_token});
++ }
++ const direct={...body,id:randomUUID(),amount_minor:'100',allocations:[{document_id:f.draft.id,amount_minor:'100'}]};
++ const directReview=await previewPayment(f.company,actor,direct);
++ assert.deepEqual(directReview.source.conditional_binding_snapshot,snapshot);
++ await assert.rejects(()=>postPayment(f.company,actor,{...direct,review_token:directReview.review_token},async()=>{throw Error('snapshot rollback');}),/snapshot rollback/);
++ assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_payment_events WHERE id=$1',[direct.id])).rows[0].n,0);
++ await postPayment(f.company,actor,{...direct,review_token:directReview.review_token});
++ assert.equal((await pool.query('SELECT source FROM accounting_payment_events WHERE id=$1',[old.id])).rows[0].source.conditional_binding_snapshot.bindings.length,0);
++});
++
++test('real PostgreSQL: new payment planning rejects a partial binding schema before any financial write',async()=>{
++ const f=await fixture();
++ await admin.query('ALTER TABLE conditional_discount_original_observations DISABLE TRIGGER conditional_original_immutable');
++ try {
++  await assert.rejects(()=>previewPayment(f.company,actor,f.body),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);
++  await assert.rejects(()=>postPayment(f.company,actor,f.body),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);
++  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,0);
++  assert.equal((await pool.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,0);
++ } finally {await admin.query('ALTER TABLE conditional_discount_original_observations ENABLE ALWAYS TRIGGER conditional_original_immutable');}
++});
++test('real PostgreSQL: retained original observation survives foreign historical transaction origin without recertification',async()=>{
++ const f=await conditionalOriginalFixture();
++ await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
++ await observeConditionalOriginal(f.company,actor,f.draft.id);
++ const before=await previewPayment(f.company,actor,f.body);
++ const c=await admin.connect();try {
++  await c.query('BEGIN');
++  await c.query('ALTER TABLE conditional_discount_original_bindings DISABLE TRIGGER conditional_original_immutable');
++  await c.query("UPDATE conditional_discount_original_bindings SET cluster_id='synthetic-restored-origin' WHERE company_id=$1 AND document_id=$2",[f.company,f.draft.id]);
++  await c.query('ALTER TABLE conditional_discount_original_bindings ENABLE ALWAYS TRIGGER conditional_original_immutable');
++  await c.query('SET LOCAL ROLE ledgerly_api');
++  assert.deepEqual(await conditionalPaymentSnapshot(c,f.company,'customer',f.body.party_id,'payment',null,[]),before.source.conditional_binding_snapshot);
++ } finally {await c.query('ROLLBACK');c.release();}
++});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
+index 5e64c9c..e6b7fa9 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts
+@@ -162,7 +162,7 @@ const originalBinding={version:1,company_id:company,document_id:eventId,revision
+  financial_hash:hash({source:originalSource,money:originalRow.money,tax_context:originalRow.tax_context,accounts:originalRow.posting_accounts}),
+  party_id:company,currency:'GBP',evidence_id:journal,terms_hash:evidenceRow.terms_hash,
+  gross_pence:'12000',discount_gross_pence:'1200',deadline:'2026-11-30',vector:frozenConditionalVector(originalRow)};
+-function originalFake(t:any,{binding=originalBinding,bindingHash=hash(binding),missing=false,guards=9,constraints=10,owned=true,writable=false,members=1,existing=false,bound=true}:any={}) {
++function originalFake(t:any,{binding=originalBinding,bindingHash=hash(binding),missing=false,guards=9,constraints=10,owned=true,writable=false,members=1,existing=false,bound=true,snapshot=false,parentValid=true}:any={}) {
+  const calls:string[]=[];let observed=existing;let transactions=0;let passedBinding:any;
+  const receipt={observed_at:'2026-11-04 17:00:00.000001+00'};
+  const query=async(sql:string,params:any[]=[])=>{
+@@ -177,7 +177,8 @@ function originalFake(t:any,{binding=originalBinding,bindingHash=hash(binding),m
+   else if(sql.includes('FROM pg_trigger')) rows=[{n:2}];
+   else if(sql.includes('pg_get_userbyid(relowner) owner')) rows=[{n:11,owner:'ledgerly_canonical_owner',writable:false}];
+   else if(sql.includes('FROM conditional_discount_evidence')) rows=[evidenceRow];
+-  else if(sql.includes('FROM conditional_discount_original_bindings')) rows=bound?[{journal_id:journal,binding,binding_hash:bindingHash,canonical_payload:canonicalConditionalPayload(binding)}]:[];
++  else if(sql.includes('FROM conditional_discount_original_bindings')) rows=bound?[{company_id:company,document_id:eventId,journal_id:journal,binding,binding_hash:bindingHash,canonical_payload:canonicalConditionalPayload(binding),...(snapshot?receipt:{})}]:[];
++  else if(sql.includes('FROM canonical_journal_entries j')) rows=parentValid?[{id:journal}]:[];
+   else if(sql.includes('FROM accounting_document_sources')) rows=[originalRow];
+   else if(sql.includes('public.bind_conditional_discount_original')) passedBinding={binding:JSON.parse(params[3]),hash:params[4],payload:params[6]};
+   else if(sql.includes('public.observe_conditional_discount_original')) observed=true;
+@@ -247,3 +248,37 @@ test('native pre-journal commitment excludes journal linkage and equals existing
+  assert.equal('sha256:'+createHash('sha256').update(canonicalConditionalPayload(unicode),'utf8').digest('hex'),hash(unicode));
+  assert.throws(()=>canonicalConditionalPayload({value:'x'.repeat(1048576)}),/CONDITIONAL_BINDING_INVALID/);
+ });
++
++import {conditionalPaymentSnapshot} from './conditionalDiscount';
++test('payment snapshot includes validated observed originals and hashes the exact receipt identity',async t=>{
++ const f=originalFake(t,{snapshot:true});
++ const result=await conditionalPaymentSnapshot(f.q,company,'customer',company,'payment',null,[]);
++ assert.deepEqual(result,{version:1,bindings:[{company_id:company,document_id:eventId,journal_id:journal,binding_hash:hash(originalBinding),observed_at:f.receipt.observed_at}]});
++ assert.equal(f.calls.some(s=>/^\s*(INSERT|SELECT public\.observe_)/.test(s)),false);
++});
++test('explicit empty payment snapshot differs from missing or partial schema',async t=>{
++ const f=originalFake(t,{snapshot:true,bound:false});
++ assert.deepEqual(await conditionalPaymentSnapshot(f.q,company,'customer',company,'payment',null,[]),{version:1,bindings:[]});
++ const broken=originalFake(t,{missing:true});
++ await assert.rejects(()=>conditionalPaymentSnapshot(broken.q,company,'customer',company,'payment',null,[]),/CONDITIONAL_BINDING_SCHEMA_INCOMPLETE/);
++});
++test('legacy payment cannot acquire new bindings at later allocation',async t=>{
++ const f=originalFake(t,{snapshot:true});
++ assert.deepEqual(await conditionalPaymentSnapshot(f.q,company,'customer',company,'allocation',{source:{}},[{document_id:eventId}]),{version:1,bindings:[]});
++ assert.equal(f.calls.some(s=>s.includes('FROM conditional_discount_original_bindings')),false);
++});
++for(const defect of ['hash','receipt','extra','parent-journal']) test(`allocation rejects changed frozen ${defect}`,async t=>{
++ const f=originalFake(t,{snapshot:true,parentValid:defect!=='parent-journal'});
++ const snapshot=await conditionalPaymentSnapshot(f.q,company,'customer',company,'payment',null,[]);
++ const item=snapshot.bindings[0]!;
++ if(defect==='hash') item.binding_hash=hash('changed');
++ if(defect==='receipt') item.observed_at='2026-11-05 17:00:00+00';
++ if(defect==='extra') (item as any).untrusted=true;
++ const parent={id:eventId,journal_id:journal,source:{conditional_binding_snapshot:snapshot}};
++ await assert.rejects(()=>conditionalPaymentSnapshot(f.q,company,'customer',company,'allocation',parent,[{document_id:eventId}]),/CONDITIONAL_PAYMENT_SNAPSHOT_INVALID|PAYMENT_HISTORY_INVALID/);
++});
++
++for(const prior of [null,{version:2,bindings:[]},{version:1,bindings:[null]}]) test('malformed persisted snapshot rejects with explicit integrity error',async t=>{
++ const f=originalFake(t,{snapshot:true});
++ await assert.rejects(()=>conditionalPaymentSnapshot(f.q,company,'customer',company,'allocation',{id:eventId,journal_id:journal,source:{conditional_binding_snapshot:prior}},[]),/CONDITIONAL_PAYMENT_SNAPSHOT_INVALID/);
++});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
+index 7ae0cd7..1a0bc4e 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts
+@@ -133,6 +133,59 @@ export async function observeConditionalOriginal(company:string,actor:string,id:
+   });
+ }
+ 
++/** Frozen causal evidence, not conditional-discount eligibility. An existing
++ * observation proves the ORIGINAL binding committed before this calculation;
++ * the observation itself need not be a separately committed transaction. Never
++ * manufacture an observation here or recertify historical transaction IDs. */
++export async function conditionalPaymentSnapshot(q:Queryable,company:string,partyType:string,partyId:string,
++  kind:string,parent:any,allocations:{document_id:string}[]) {
++  await conditionalOriginalSchema(q);
++  const prior=parent?.source?.conditional_binding_snapshot;
++  if(kind==='allocation' && prior===undefined) return {version:1,bindings:[]};
++  if(kind==='allocation') {
++    if(prior?.version!==1 || !Array.isArray(prior.bindings) || Object.keys(prior).sort().join(',')!=='bindings,version')
++      fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
++    const verified=(await q.query(`SELECT j.id FROM canonical_journal_entries j
++      JOIN accounting_posting_effects p ON p.company_id=j.company_id AND p.journal_id=j.id
++      WHERE j.company_id=$1 AND j.id=$2 AND j.source_type='accounting_payment_event'
++        AND j.source_id=$3 AND j.posting_kind='party_payment' AND j.status='posted' AND j.currency_code='GBP'
++        AND j.economic_effect_id='payment-event:'||$3 AND j.source_revision=$4 AND j.source_evidence_hash=$4
++        AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.source_revision=j.source_revision
++        AND p.source_evidence_hash=j.source_evidence_hash AND p.posting_kind=j.posting_kind
++        AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||$3 AND p.status='posted'`,
++      [company,parent.journal_id,parent.id,hash(parent.source)])).rows[0];
++    if(!verified) fail(503,'PAYMENT_HISTORY_INVALID');
++    if(prior.bindings.some((b:any)=>!b || typeof b!=='object' || Array.isArray(b) ||
++      Object.keys(b).sort().join(',')!=='binding_hash,company_id,document_id,journal_id,observed_at' ||
++      b.company_id!==company || !/^[a-f0-9-]{36}$/.test(b.document_id) || !/^[a-f0-9-]{36}$/.test(b.journal_id) ||
++      !/^sha256:[a-f0-9]{64}$/.test(b.binding_hash) || typeof b.observed_at!=='string') ||
++      new Set(prior.bindings.map((b:any)=>b.document_id)).size!==prior.bindings.length)
++      fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
++  }
++  const selected=kind==='allocation'?prior.bindings.filter((b:any)=>allocations.some(a=>a.document_id===b.document_id)):null;
++  const rows=(await q.query(`SELECT b.*,to_char(o.observed_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') observed_at FROM conditional_discount_original_bindings b
++    JOIN conditional_discount_original_observations o ON o.company_id=b.company_id AND o.document_id=b.document_id
++    JOIN accounting_document_sources d ON d.company_id=b.company_id AND d.id=b.document_id
++    WHERE b.company_id=$1 AND d.party_id=$2 AND d.kind=$3
++      AND ($4::uuid[] IS NULL OR b.document_id=ANY($4::uuid[])) ORDER BY b.document_id`,
++    [company,partyId,partyType==='customer'?'sales_invoice':'purchase_bill',selected?.map((b:any)=>b.document_id)??null])).rows;
++  const bindings:{company_id:string,document_id:string,journal_id:string,binding_hash:string,observed_at:string}[]=[];
++  for(const row of rows) {
++    if(!row.binding || row.binding_hash!==hash(row.binding) || canonicalConditionalPayload(row.binding)!==row.canonical_payload ||
++      typeof row.observed_at!=='string' || !Number.isFinite(Date.parse(row.observed_at))) fail(503,'CONDITIONAL_BINDING_INVALID');
++    const original=await verifiedOriginal(q,company,row.document_id,row.binding_hash);
++    if(!original || original.journal_id!==row.journal_id || original.party_id!==partyId ||
++      original.kind!==(partyType==='customer'?'sales_invoice':'purchase_bill')) fail(503,'CONDITIONAL_BINDING_INVALID');
++    const expected=await prepareConditionalOriginal(q,company,original);
++    if(expected.bindingHash!==row.binding_hash || expected.canonicalPayload!==row.canonical_payload) fail(503,'CONDITIONAL_BINDING_INVALID');
++    bindings.push({company_id:company,document_id:row.document_id,journal_id:row.journal_id,
++      binding_hash:row.binding_hash,observed_at:row.observed_at});
++  }
++  if(selected && (selected.length!==bindings.length || selected.some((b:any)=>!bindings.some(x=>hash(x)===hash(b)))))
++    fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
++  return {version:1,bindings};
++}
++
+ /** A receipt of observation, not the payment's actual commit timestamp. Only a
+  * fresh transaction can establish that the source was already committed. Never
+  * accept an injected transaction, connection, timestamp, hash or source row. */
+diff --git a/artifacts/api-server/src/services/accountingDocuments/payments.ts b/artifacts/api-server/src/services/accountingDocuments/payments.ts
+index 8c1c8b2..4703569 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/payments.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/payments.ts
+@@ -1,5 +1,5 @@
+ import { randomUUID } from 'node:crypto';
+-import { observePaymentOutcome } from './conditionalDiscount';
++import { conditionalPaymentSnapshot, observePaymentOutcome } from './conditionalDiscount';
+ import { isCompanyRole } from '../../security/roles';
+ import { canWriteDraft, fail, uuid } from '../financialDrafts/contract';
+ import { postCanonicalJournal, postCanonicalJournalInTransaction, roleHasAccountingCapability, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
+@@ -171,7 +171,9 @@ async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof
+   const ids=[...new Set(lines.map(l=>l.accountId))];
+   const accounts=(await q.query('SELECT id,company_id,code,name,account_type,is_active FROM chart_of_accounts WHERE company_id=$1 AND id=ANY($2::uuid[]) ORDER BY id FOR UPDATE',[company,ids])).rows;
+   if(accounts.length!==ids.length||accounts.some(a=>a.is_active!==true)) fail(422,'PAYMENT_ACCOUNT_INVALID');
+-  const source={intent:b,lines,bank_account_id:bankAccount,pool_account_id:poolAccount,party_name:party.name,
++  const conditionalSnapshot=['payment','allocation'].includes(b.kind)
++    ?{conditional_binding_snapshot:await conditionalPaymentSnapshot(q,company,b.party_type,b.party_id,b.kind,parent,b.allocations)}:{};
++  const source={...conditionalSnapshot,intent:b,lines,bank_account_id:bankAccount,pool_account_id:poolAccount,party_name:party.name,
+     configuration_revision:config.revision,period_id:periods[0].id,open_states:openStates,
+     parent_remainder_minor:remainder.toString(),parent_events:related.map(e=>e.id),accounts};
+   return {source,review_token:hash(source),lines,period:periods[0],configuration:config,party_name:party.name,
+diff --git a/docs/development/credit-capacity-contract.md b/docs/development/credit-capacity-contract.md
+index 0905605..21d4840 100644
+--- a/docs/development/credit-capacity-contract.md
++++ b/docs/development/credit-capacity-contract.md
+@@ -427,3 +427,39 @@ reconstruct the complete core. Payload/hash replacement therefore cannot qualify
+ against an already committed original. Binding/observation stays an internal
+ prerequisite; payment admission/redemption, all writers, compensation, corrections,
+ complete supplier/customer journey and browser acceptance remain pending.
++
++
++### Native payment causal snapshot (bounded development slice)
++
++Every new native cash payment freezes a version-1 `conditional_binding_snapshot`
++in its immutable source and reviewed canonical journal hash. It contains all
++validated observed originals for that company and party, including when cash is
++fully unapplied. An explicit empty binding list means none qualified at cash
++creation; an absent historical field never acquires bindings retroactively.
++New payment and allocation planning requires the complete protected binding
++schema and fails closed on a missing or partial installation. Existing exact
++payment retries return their prior immutable outcome before replanning. Activation
++on an existing database still requires the separately reviewed migration; this
++slice does not migrate an existing environment.
++
++Each entry retains company, original document and journal IDs, the committed
++native binding hash and the immutable observation clock formatted as UTC with
++microsecond precision. Native source/evidence reconstruction and canonical
++journal/effect identities are revalidated under the existing company lock. The
++observation proves that the **original binding** was already committed; the
++observation receipt itself need not have committed in an earlier transaction.
++Planning never creates an observation or recertifies a historical original XID.
++A restored valid observation remains evidence of that original commitment.
++
++A later allocation can copy only matching entries from its original cash
++payment's frozen snapshot, after validating that payment source against its
++canonical journal and posting effect. Current bindings cannot add eligibility to
++an old pool. Changed binding identity or receipt and corrupted parent source fail
++closed. Preview-to-post changes invalidate the existing review token. Capture,
++allocation event and their source hashes use the existing atomic payment writer;
++no second cash or recovery authority is introduced.
++
++This proves causal capture only. Public conditional posting remains disabled;
++redemption, deadline and payment-witness admission, all-writer protection,
++compensation, corrected originals and full customer/supplier/browser acceptance
++remain pending. The broader P01-03 parent is not accepted by this slice.

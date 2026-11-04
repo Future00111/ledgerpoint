@@ -1,0 +1,2 @@
+artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts(168,9): error TS7034: Variable 'bindings' implicitly has type 'any[]' in some locations where its type cannot be determined.
+artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts(180,80): error TS7005: Variable 'bindings' implicitly has an 'any[]' type.

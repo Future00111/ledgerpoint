@@ -1,0 +1,8 @@
+Scope: all 9 workspace projects
+? Verifying lockfile against supply-chain policies (640 entries)...
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +639
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+✗ Lockfile failed supply-chain policy check (640 entries in 476ms)
+[ERR_PNPM_NO_OFFLINE_META] Failed to resolve @alloc/quick-lru in package mirror /root/.cache/pnpm/v11/metadata-full/registry.npmjs.org/@alloc/quick-lru.jsonl

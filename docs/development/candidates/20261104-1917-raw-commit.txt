@@ -1,0 +1,6 @@
+tree 49d6dc7ca50c43a8f0c6e897572b6e5c667cecca
+parent f3ea03d74cb6ef8000972381c4fd47364f1f2399
+author Codex <codex@openai.com> 1793820416 +0000
+committer Codex <codex@openai.com> 1793820432 +0000
+
+Freeze conditional binding identity at native cash creation and allocation

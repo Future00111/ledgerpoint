@@ -1,0 +1,21 @@
+{
+  "basePublished": "33b35cc70971f6d8bf01149149f8905bf783e05c",
+  "baseLocal": "f3ea03d74cb6ef8000972381c4fd47364f1f2399",
+  "baseTree": "e6ee5d8cbda07b62b812bd3069e2a128294b8d4c",
+  "commit": "67bc0c675ce1ae77904d8473dd43c4bb0f5b53af",
+  "tree": "49d6dc7ca50c43a8f0c6e897572b6e5c667cecca",
+  "files": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+    "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+    "docs/development/credit-capacity-contract.md"
+  ],
+  "patchBytes": 26202,
+  "patchSha256": "675c268ed361b6d93155d628a8a12cbfb5bfc788c6de5dcbe78af4da0fcb8b9a",
+  "rawCommitBytes": 271,
+  "rawCommitSha256": "769c058b009be1bd3ea9c56e591b2f6a08a22cdcb26246c03dfef0f9ad5f7cfd",
+  "createdAt": "2026-11-04T19:27:30.051Z",
+  "publicPostingEnabled": false,
+  "parentAccepted": false
+}
