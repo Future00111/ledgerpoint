@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 173,
+  "revision": 174,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 610,
+    "revision": 612,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -405,10 +405,10 @@
         "blockers": []
       },
       "P03-04": {
-        "status": "pending",
+        "status": "running",
         "priority": 304,
         "discoveredDependencies": [],
-        "checkpoint": "Worker-1242-2 stopped clean07f858ad4f9224605bf524dc04646c91d6a3815b; exact5ownedfiles integrated b4813e3c1d34bd1f47decec84e33cbe73e565a7c. CI41833220601 all954pass, actual restored native payment/witness plus same-command retry singleeffect, historicalwitness unchanged, foreign-origin unwitnessed rejected, effectivepermissions andsourceunchanged verified. No speculative grant changes. Next: remaining full application/durablejob coverage and operational recovery targets; external offsite connection remains ownergateP03-80.",
+        "checkpoint": "PRE-EDIT ACK exactbase211649c44564f73cdca79e5f5c00580d6783930c worktree codex/lp-1452-restore. P03-04 tools/operations/backup-restore runtime-acceptance only plus focused bundle test/docs if warranted. Add native getIntakeContent original bytes/hash and cross-company/inactive denial after encrypted fresh-cluster restore; no service/schema writes. Stop edits15:09 all15:20 UTC. Waiting durable coordinator ACK before edits.",
         "evidence": {
           "commit": "07f858ad4f9224605bf524dc04646c91d6a3815b",
           "summary": "PARTIAL P03-04: Native runtime acceptance added around actual populated encrypted fresh-cluster restore. Prepares a native unwitnessed source event before baseline; restored restricted runtime must preserve historical witness, reject foreign-origin unwitnessed event without a row, post fresh payment with committed witness and retry exactly once across five authorities, preserve effective function permissions, and leave source fingerprint unchanged. No grants or schema changes. Independent exact review and combined existing disposable PostgreSQL CI required before acceptance. Remaining parent: offsite ownership/provisioning and full application/jobs recovery and target qualification; next executable step exact combined CI with nativeRuntimeAcceptance receipt and successful cleanup.",
@@ -427,7 +427,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "codex-1452-2",
+        "tokenSha256": "f13393bd105cd7f3fe2e2ed71ca78465614d0857753e268871543ac16142c26e",
+        "leaseUntil": 1793805609763,
+        "workStarted": true
       },
       "P03-80": {
         "status": "blocked",
@@ -7951,6 +7954,20 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "PRE-EDIT: Replit actor reserved exact211649c/f8; ACK-only brief pending; root verified browserAgent composer/control and immutable gzip export. Binding must prove same original journal transaction, server-source hash/vector and independent committed observation. Both publicpost rejects remain; no bypass flag. Hardstop15:10 implementation /15:20 all, isolatedignoredclone only; no demo/sharedDB/providers/queue/push."
+      },
+      {
+        "at": 1793804409763,
+        "actor": "codex-1452-2",
+        "type": "claim",
+        "taskId": "P03-04",
+        "tokenSha256": "f13393bd105cd7f3fe2e2ed71ca78465614d0857753e268871543ac16142c26e"
+      },
+      {
+        "at": 1793804409815,
+        "actor": "codex-1452-2",
+        "type": "checkpoint",
+        "taskId": "P03-04",
+        "checkpoint": "PRE-EDIT ACK exactbase211649c44564f73cdca79e5f5c00580d6783930c worktree codex/lp-1452-restore. P03-04 tools/operations/backup-restore runtime-acceptance only plus focused bundle test/docs if warranted. Add native getIntakeContent original bytes/hash and cross-company/inactive denial after encrypted fresh-cluster restore; no service/schema writes. Stop edits15:09 all15:20 UTC. Waiting durable coordinator ACK before edits."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -7990,7 +8007,7 @@
     "at": 1793802116918,
     "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c"
   },
-  "updatedAt": 1793804297892,
+  "updatedAt": 1793804438769,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -8058,12 +8075,21 @@
       "status": "reserved-awaiting-ack",
       "base": "211649c44564f73cdca79e5f5c00580d6783930c",
       "stopBy": "2026-11-04T15:10:00Z"
+    },
+    {
+      "actor": "codex-1452-2",
+      "provider": "Codex",
+      "task": "P03-04",
+      "status": "acknowledged-awaiting-durable-edit-release",
+      "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+      "worktree": "/workspace/scratch/b4d6a4379808/run1452-restore",
+      "stopBy": "2026-11-04T15:09:00Z"
     }
   ],
   "run": {
     "startedAt": "2026-11-04T14:54:31.418Z",
     "stopBy": "2026-11-04T15:20:00Z",
-    "activity": "Root reviewed bounded binding/original-journal transaction identity contract; Replit reserved, ACK pending; no edits",
+    "activity": "Replit reserved awaiting read-only ACK; Codex highesteligible P03-04 claimed and acknowledged native restored capture-byte/permission qualification; no edits before durable release",
     "activeWorkers": [
       {
         "actor": "replit-1452-1",
@@ -8072,11 +8098,20 @@
         "status": "reserved-awaiting-ack",
         "base": "211649c44564f73cdca79e5f5c00580d6783930c",
         "stopBy": "2026-11-04T15:10:00Z"
+      },
+      {
+        "actor": "codex-1452-2",
+        "provider": "Codex",
+        "task": "P03-04",
+        "status": "acknowledged-awaiting-durable-edit-release",
+        "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+        "worktree": "/workspace/scratch/b4d6a4379808/run1452-restore",
+        "stopBy": "2026-11-04T15:09:00Z"
       }
     ],
     "credits": "unknown",
     "status": "active",
-    "observedAt": "2026-11-04T14:58:17.913Z"
+    "observedAt": "2026-11-04T15:00:38.789Z"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
