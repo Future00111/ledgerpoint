@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 179,
+  "revision": 180,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 616,
+    "revision": 620,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Reconnected root independently observed completed Replit ACK-only response: explicitly stopped,26seconds, noGO/noedits/tests. Shell15:17:45 verifies isolatedrun1452 HEAD211649c44564f73cdca79e5f5c00580d6783930c treef8cdde522c6603fe2b9e7f99117122d01012bb4a clean, originalmaincda92 clean, readable /proc cwd scopedisolatedrun activeprocesses[] and finalprompt RECONNECT_STOP_CHECK_COMPLETE. Normal expiredworker recovery with explicit stopped evidence, noexpiry-onlyclaim. P01-03 remains pending originalbinding/causalobservation, publicpostingrejects unchanged; no featureimplementation occurred. P03candidate dc5e3c52 preserved pendingexactPG.",
+        "checkpoint": "PRE-EDIT reserved Replit primary; exact211/f8 freshisolatedrun1521/source, ACK-onlypending. SameoriginaljournaltopXIDbinding+source/financialhash/frozenlinevector+freshcommittedobserver, bothpublicpostgatesretained, nobypassflag. Exactsame reviewedfilecontract as1452, independentrootreview. Implementstop15:38/all15:49; no demo/sharedDB/providers/queue/sourcepush.",
         "evidence": {
           "commit": "211649c44564f73cdca79e5f5c00580d6783930c",
           "summary": "PARTIAL P01-03 immutable actual-byte agreement evidence capture/read and draft terms/receipt association; conditional financial posting remains hard rejected. Exact211/f8 actual isolated Replit PostgreSQL16.10 and populated/encrypted/fresh-cluster native-payment recovery independently verified by root and coordinator; immutable full logs/receipts archived2212d699 docs/development/candidates/20261104-1355-replit-evidence.json SHA2569ffabf4a52ee04ea1d80b5c4580290a3d74f8c4d599ca9e1db1f52d1e328f82e. Bounded draft integration published after fresh evidence and root independent review; exact published CI pending. Fullparent remains incomplete: original binding/sourcehash/linevector and committed observation, admission/redemption/allwriter guards, compensation/reversal, priorcredit/correction and nativeUI/browser. Next connect original posting binding and causal observation in same preserved candidate chain.",
@@ -128,7 +128,10 @@
           "reviewed": true,
           "reviewer": "root-and-coordinator1355-technical-only"
         },
-        "blockers": []
+        "owner": "replit-1521-1",
+        "tokenSha256": "1dfd61c795d3d489a79fe8ff06e6e9d184407ce2a10a25a11a9b09bdf0c363df",
+        "leaseUntil": 1793807621170,
+        "workStarted": true
       },
       "P01-04": {
         "status": "blocked",
@@ -402,10 +405,10 @@
         "blockers": []
       },
       "P03-04": {
-        "status": "pending",
+        "status": "running",
         "priority": 304,
         "discoveredDependencies": [],
-        "checkpoint": "Codex author stoppedclean at aed6abd40f473e3475b31f8b0ea1d2df16110c03 tree40853fbe81c20b2e00ca9e02ed1becbf6cf23e17, localintegrated482a45d same tree, candidateobjectdc5e3c52 only no refupdate. Immutablepatchmanifest focused12 archivedstate6d7be6f; rootreview staticpassed. Combined790/fullbuild passed; actualPG/restore pending because browser_js Unknown tool(browser.js), exactReplitconnectorfoundfalse. Next verify exact preserved candidate on reconnected isolatedrunner; do not regenerate feature. Operational targets/ownership/key/retention/offsite and fullruntime parent remainpending.",
+        "checkpoint": "PRE-EDIT coordinator validation actor only, immutableexistingcandidate dc5e3c52/tree40853f authored aed6abd, no newimplementation. Root supervises actual disposableReplit PG16+populated/encryptedrestore in freshseparate run1521-validation/source. Staticreview/focused12/source790/build passed unchangedtree, require exactcandidatePG+cleanup before publication, parentpending. No service/schema/feature edits.",
         "evidence": {
           "commit": "aed6abd40f473e3475b31f8b0ea1d2df16110c03",
           "summary": "PARTIAL P03-04 candidate native captured-source recovery: independent original bytes/hash and metadata read by current native service for owner and read-only actor before/after encrypted fresh-cluster restore; exact inactive/foreign actor and cross-company source denials. Existing fixture reused without new source/membership mutations; all native payment/witness checks preserved. Actual PostgreSQL execution and independent review pending. Parent remains incomplete: operational recovery targets/ownership/key-retention/offsite gate and remaining full runtime/job recovery scope. Next exact combined accounting/restore run then evaluate remaining operational scope; no self-approval.",
@@ -420,7 +423,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "codex-validation-1521",
+        "tokenSha256": "d98308036d8ecd52ac360d3898defa7a188ae9beeb29d35d9c5672a5f3e04638",
+        "leaseUntil": 1793807621280,
+        "workStarted": true
       },
       "P03-80": {
         "status": "blocked",
@@ -8005,6 +8011,34 @@
         "type": "recover",
         "taskId": "P01-03",
         "checkpoint": "Reconnected root independently observed completed Replit ACK-only response: explicitly stopped,26seconds, noGO/noedits/tests. Shell15:17:45 verifies isolatedrun1452 HEAD211649c44564f73cdca79e5f5c00580d6783930c treef8cdde522c6603fe2b9e7f99117122d01012bb4a clean, originalmaincda92 clean, readable /proc cwd scopedisolatedrun activeprocesses[] and finalprompt RECONNECT_STOP_CHECK_COMPLETE. Normal expiredworker recovery with explicit stopped evidence, noexpiry-onlyclaim. P01-03 remains pending originalbinding/causalobservation, publicpostingrejects unchanged; no featureimplementation occurred. P03candidate dc5e3c52 preserved pendingexactPG."
+      },
+      {
+        "at": 1793805821170,
+        "actor": "replit-1521-1",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "1dfd61c795d3d489a79fe8ff06e6e9d184407ce2a10a25a11a9b09bdf0c363df"
+      },
+      {
+        "at": 1793805821236,
+        "actor": "replit-1521-1",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "PRE-EDIT reserved Replit primary; exact211/f8 freshisolatedrun1521/source, ACK-onlypending. SameoriginaljournaltopXIDbinding+source/financialhash/frozenlinevector+freshcommittedobserver, bothpublicpostgatesretained, nobypassflag. Exactsame reviewedfilecontract as1452, independentrootreview. Implementstop15:38/all15:49; no demo/sharedDB/providers/queue/sourcepush."
+      },
+      {
+        "at": 1793805821280,
+        "actor": "codex-validation-1521",
+        "type": "claim",
+        "taskId": "P03-04",
+        "tokenSha256": "d98308036d8ecd52ac360d3898defa7a188ae9beeb29d35d9c5672a5f3e04638"
+      },
+      {
+        "at": 1793805821326,
+        "actor": "codex-validation-1521",
+        "type": "checkpoint",
+        "taskId": "P03-04",
+        "checkpoint": "PRE-EDIT coordinator validation actor only, immutableexistingcandidate dc5e3c52/tree40853f authored aed6abd, no newimplementation. Root supervises actual disposableReplit PG16+populated/encryptedrestore in freshseparate run1521-validation/source. Staticreview/focused12/source790/build passed unchangedtree, require exactcandidatePG+cleanup before publication, parentpending. No service/schema/feature edits."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8059,7 +8093,7 @@
     "at": 1793805574005,
     "codeHead": "211649c44564f73cdca79e5f5c00580d6783930c"
   },
-  "updatedAt": 1793805762552,
+  "updatedAt": 1793805836133,
   "recovery": {
     "priorRunId": "hosted-20261103-1956",
     "stoppedEvidence": {
@@ -8119,16 +8153,51 @@
     "noOccupancyTarget": true,
     "noScopeReduction": true
   },
-  "activeWorkers": [],
+  "activeWorkers": [
+    {
+      "actor": "replit-1521-1",
+      "provider": "Replit",
+      "task": "P01-03",
+      "status": "reserved-ack-pending",
+      "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+      "implementationStopBy": "2026-11-04T15:38:00Z"
+    },
+    {
+      "actor": "codex-validation-1521",
+      "provider": "Codex coordinator plus root supervisedReplitShell",
+      "task": "P03-04",
+      "status": "reserved-exact-existingcandidate-testonly",
+      "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+      "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17"
+    }
+  ],
   "run": {
     "startedAt": "2026-11-04T15:21:18Z",
     "stopBy": "2026-11-04T15:49:00Z",
     "implementationStopBy": "2026-11-04T15:38:00Z",
-    "activity": "Fresh exact211 checkout and currentdurable616 restored; bindingcontract inspected unchanged; no workers/editsyet",
-    "activeWorkers": [],
+    "activity": "Primary and highesteligible independent existingcandidate validation reserved before GO; bindingcontract unchanged/reviewed; no featureedits or testsstarted",
+    "activeWorkers": [
+      {
+        "actor": "replit-1521-1",
+        "provider": "Replit",
+        "task": "P01-03",
+        "status": "reserved-ack-pending",
+        "base": "211649c44564f73cdca79e5f5c00580d6783930c",
+        "implementationStopBy": "2026-11-04T15:38:00Z"
+      },
+      {
+        "actor": "codex-validation-1521",
+        "provider": "Codex coordinator plus root supervisedReplitShell",
+        "task": "P03-04",
+        "status": "reserved-exact-existingcandidate-testonly",
+        "candidate": "dc5e3c52c2cbe323fbbea5aae0fca52597cc82d7",
+        "tree": "40853fbe81c20b2e00ca9e02ed1becbf6cf23e17"
+      }
+    ],
     "credits": "unknown",
     "providerUsage": "unknown",
-    "status": "active"
+    "status": "active",
+    "observedAt": "2026-11-04T15:23:41.349Z"
   },
   "continuation": {
     "automationId": "6ae5226d4a2081919e793919d9cafa1b",
@@ -8162,7 +8231,7 @@
     "priorBlocker": "Explicit user approval now received; verify publication before worker edits.",
     "publicationVerified": true
   },
-  "workersStopped": true,
+  "workersStopped": false,
   "worktreesClean": true,
   "reusableRunner": {
     "evidence": {
