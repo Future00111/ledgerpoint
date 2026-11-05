@@ -5,6 +5,8 @@ import {randomUUID,createHash} from 'node:crypto';
 import {realpathSync} from 'node:fs';
 import path from 'node:path';
 import pg from 'pg';
+import express from 'express';
+import {createAccountingRouter} from '../../routes/accountingDocuments';
 import {pool} from '@workspace/db';
 import {withCanonicalPostingTransaction} from '../accounting/canonicalPosting';
 import {queryAdapter} from './core';
@@ -15,12 +17,32 @@ const socket=process.env.ACCOUNTING_FLOW_TEST_SOCKET??'';
 if(!/^\/tmp\/ledgerly-accounting-flow-tests-[A-Za-z0-9]{6}\/socket$/.test(socket)||realpathSync(socket)!==socket) throw Error('Fresh disposable socket required');
 const admin=new pg.Pool({host:socket,port:55441,user:'w03_bootstrap',database:'ledgerly_accounting_flow_test',password:'',ssl:false});
 const actor='synthetic-witness-owner';
+let server:ReturnType<ReturnType<typeof express>['listen']>,base:string;
 before(async()=>{
  assert.deepEqual((await admin.query(`SELECT current_database() db,current_user actor,inet_server_addr() addr,current_setting('data_directory') dir`)).rows[0],
   {db:'ledgerly_accounting_flow_test',actor:'w03_bootstrap',addr:null,dir:path.join(path.dirname(socket),'data')});
  assert.equal((await pool.query('SELECT current_user actor')).rows[0].actor,'ledgerly_api');
+ const app=express();app.use(express.json());
+ app.use('/companies/:companyId',createAccountingRouter((req,res,next)=>{
+  const user=req.get('x-test-actor');if(!user){res.sendStatus(401);return;}
+  (req as any).userId=user;next();
+ }));
+ server=app.listen(0,'127.0.0.1');await new Promise<void>(resolve=>server.once('listening',resolve));
+ base=`http://127.0.0.1:${(server.address() as any).port}`;
 });
-after(async()=>{await pool.end();await admin.end();});
+after(async()=>{if(server)await new Promise<void>(resolve=>server.close(()=>resolve()));await pool.end();await admin.end();});
+async function conditionalHttp(company:string,id:string,body:unknown,revision?:string,user:string|null=actor,suffix='conditional-credit/review') {
+ const response=await fetch(`${base}/companies/${company}/accounting-documents/${id}/${suffix}`,{method:'POST',headers:{
+  'Content-Type':'application/json',...(user?{'x-test-actor':user}:{}),...(revision?{'If-Match':`"${revision}"`}:{})},body:JSON.stringify(body)});
+ const raw=await response.text();return {status:response.status,...(raw.startsWith('{')?JSON.parse(raw):{})};
+}
+async function financialSnapshot(company:string) {
+ const snapshot:Record<string,unknown>={};
+ for(const table of ['accounting_document_sources','canonical_journal_entries','canonical_journal_lines','accounting_posting_effects','sales_invoices','purchase_bills','accounting_payment_events','accounting_paid_credit_operations']) {
+  snapshot[table]=(await pool.query(`SELECT to_jsonb(t) row FROM ${table} t WHERE company_id=$1 ORDER BY to_jsonb(t)::text`,[company])).rows;
+ }
+ return snapshot;
+}
 async function fixture(){
  const company=randomUUID(),customer=randomUUID();
  await admin.query(`INSERT INTO companies(id,name,country,base_currency,vat_registered,vat_scheme,vat_accounting_basis,status)
@@ -697,4 +719,44 @@ for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL: 
  const result=await commitConditionalCredit(f.company,actor,credit.id,credit.revision,{...body,review_token:review.review_token,releases:review.releases});
  assert.equal(result.status,'posted');
  assert.deepEqual((await pool.query(`SELECT amount_paid::text,balance_due::text FROM ${partyType==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[f.draft.id])).rows[0],{amount_paid:'108.00',balance_due:'0.00'});
+});
+
+for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL HTTP: ${partyType} conditional eligibility is read-only, scoped and keeps public posting closed`,async()=>{
+ const f=await admissionFixture(partyType);
+ await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
+ await observeConditionalOriginal(f.company,actor,f.draft.id);await nativeCash(f,'12000','12000');
+ const credit=await conditionalCreditDraft(f,partyType),body={request_id:randomUUID(),reason:'Read-only HTTP eligibility'};
+ const viewer=`viewer-${randomUUID()}`,inactive=`inactive-${randomUUID()}`;
+ for(const [user,role,active] of [[viewer,'read_only',true],[inactive,'owner',false]])await admin.query(
+  'INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,$4,$5)',[randomUUID(),f.company,user,role,active]);
+ const before=await financialSnapshot(f.company);
+ const result=await conditionalHttp(f.company,credit.id,body,credit.revision);
+ assert.equal(result.status,200);assert.equal(result.data.readonly,true);assert.equal(result.data.posting_available,false);
+ assert.deepEqual(result.data.conditional_admission,{threshold_minor:'10800',qualifying_minor:'10800',deadline:'2199-11-30'});
+ assert.equal(result.data.released_minor,'1200');assert.equal(result.data.document_id,credit.id);assert.equal(result.data.revision,credit.revision);
+ for(const key of ['review_token','intent','conditional_credit_payload'])assert.equal(Object.hasOwn(result.data,key),false,key);
+ assert.deepEqual(await conditionalHttp(f.company,credit.id,body,credit.revision),result);
+ assert.equal((await conditionalHttp(f.company,credit.id,body,credit.revision,null)).status,401);
+ assert.equal((await conditionalHttp(f.company,credit.id,body,credit.revision,viewer)).status,403);
+ assert.equal((await conditionalHttp(f.company,credit.id,body,credit.revision,inactive)).status,404);
+ assert.equal((await conditionalHttp(f.company,credit.id,body,credit.revision,`foreign-${randomUUID()}`)).status,404);
+ const other=await fixture();
+ assert.equal((await conditionalHttp(other.company,credit.id,body,credit.revision)).status,404);
+ for(const [revision,status,code] of [[undefined,428,'REVISION_REQUIRED'],[randomUUID(),409,'REVISION_CONFLICT']] as const) {
+  const denied=await conditionalHttp(f.company,credit.id,body,revision);assert.equal(denied.status,status);assert.equal(denied.error.code,code);
+ }
+ for(const [suffix,input] of [['paid-credit/review',body],['post',{}],['paid-credit',{...body,review_token:'sha256:'+'a'.repeat(64),releases:result.data.releases}]] as const) {
+  const denied=await conditionalHttp(f.company,credit.id,input,credit.revision,actor,suffix);
+  assert.equal(denied.status,422);assert.equal(denied.error.code,'CONDITIONAL_POSTING_NOT_AVAILABLE');
+ }
+ assert.equal((await conditionalHttp(f.company,credit.id,body,credit.revision,actor,'conditional-credit')).status,404);
+ assert.deepEqual(await financialSnapshot(f.company),before);
+});
+test('real PostgreSQL HTTP: insufficient conditional payments return guidance without financial writes',async()=>{
+ const f=await admissionFixture('customer');await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
+ await observeConditionalOriginal(f.company,actor,f.draft.id);await nativeCash(f,'10799','10799');
+ const credit=await conditionalCreditDraft(f,'customer'),before=await financialSnapshot(f.company);
+ const result=await conditionalHttp(f.company,credit.id,{request_id:randomUUID(),reason:'Eligibility check'},credit.revision);
+ assert.equal(result.status,409);assert.equal(result.error.code,'CONDITIONAL_PAYMENT_THRESHOLD_NOT_MET');
+ assert.match(result.error.message,/Qualifying payments/);assert.deepEqual(await financialSnapshot(f.company),before);
 });

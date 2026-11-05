@@ -1,5 +1,5 @@
 import { captureConditionalEvidence, getConditionalEvidence } from '../services/accountingDocuments/conditionalDiscount';
-import { reviewPaidCredit, commitPaidCredit } from '../services/accountingDocuments/paidCredit';
+import { reviewPaidCredit, commitPaidCredit, reviewConditionalCredit } from '../services/accountingDocuments/paidCredit';
 import { Router, type RequestHandler, type Request } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import { DraftError, fail } from "../services/financialDrafts/contract";
@@ -100,6 +100,17 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     const {company,actor,id}=ids(req);
     res.json({data:await saveDocument(company,actor,req.body,id,revision(req))});
   });
+  router.post('/accounting-documents/:id/conditional-credit/review',async(req,res)=>{
+    const {company,actor,id}=ids(req);
+    const review=await reviewConditionalCredit(company,actor,id,revision(req),req.body);
+    const {document_id,revision:reviewedRevision,original_id,original_kind,original_number,date,
+      credit_minor,offset_minor,released_minor,remaining_minor,releases,conditional_admission}=review;
+    res.json({data:{document_id,revision:reviewedRevision,original_id,original_kind,original_number,date,
+      credit_minor,offset_minor,released_minor,remaining_minor,releases,
+      conditional_admission:conditional_admission && {threshold_minor:conditional_admission.threshold_minor,
+        qualifying_minor:conditional_admission.qualifying_minor,deadline:conditional_admission.deadline},
+      readonly:true,posting_available:false}});
+  });
   router.post('/accounting-documents/:id/paid-credit/review',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await reviewPaidCredit(company,actor,id,revision(req),req.body)});});
   router.post('/accounting-documents/:id/paid-credit',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await commitPaidCredit(company,actor,id,revision(req),req.body,testPostHook)});});
   router.post("/accounting-documents/:id/post",async(req,res)=>{
@@ -132,6 +143,10 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
       const field=labels[error.path]??(error.path?.startsWith("/line_items/")?"Invoice or bill line":"Submitted field");
       const guidance:Record<string,string>={
         CONDITIONAL_POSTING_NOT_AVAILABLE:"Conditional agreement drafts can be prepared, but posting is not available yet. Your draft remains unchanged.",
+        CONDITIONAL_PAYMENT_THRESHOLD_NOT_MET:"Qualifying payments have not reached the agreement threshold. Check the original document's payment history. This preview makes no changes.",
+        CONDITIONAL_AGREEMENT_REQUIRED:"A verified conditional agreement is required on the original document. Check its agreement evidence before reviewing again.",
+        CONDITIONAL_CREDIT_VECTOR_MISMATCH:"This saved credit does not match the original agreement discount. Reopen the original and check the credit amounts before reviewing again.",
+        REVISION_CONFLICT:"The saved draft changed. Reload it and review again. No changes were committed.",
         CONDITIONAL_EVIDENCE_TERMS_MISMATCH:"The receipt belongs to different agreement terms. Capture or select matching evidence before saving.",
         CORRECTION_REVIEW_STALE:"This document, its payments or accounting setup changed after review. Refresh and review the correction again.",
         CORRECTION_BELOW_PAID:"The corrected total cannot be less than payments already applied. Review the payment and refund history first.",

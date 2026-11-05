@@ -93,3 +93,12 @@ test('conditional evidence capture/read use company scoped native endpoints',asy
  assert.equal(calls[0][1].method,'POST');
  assert.equal(calls[1][0],'/api/companies/company/conditional-discount-evidence/receipt');
 });
+test('conditional credit review is scoped, revision-bound and exposes no commit method',async()=>{
+ const calls=[],preview={readonly:true,posting_available:false};
+ const client=createAccountingClient(async(url,init)=>{calls.push({url,init});return {ok:true,json:async()=>({data:preview})};});
+ const body={request_id:'request',reason:'Eligibility review'};
+ assert.equal(await client.reviewConditionalCredit('company/id','credit/id',body,'saved-revision'),preview);
+ assert.equal(calls.length,1);assert.equal(calls[0].url,'/api/companies/company%2Fid/accounting-documents/credit%2Fid/conditional-credit/review');
+ assert.equal(calls[0].init.method,'POST');assert.equal(calls[0].init.headers['If-Match'],'"saved-revision"');assert.deepEqual(JSON.parse(calls[0].init.body),body);
+ assert.equal(client.commitConditionalCredit,undefined);
+});

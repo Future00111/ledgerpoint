@@ -94,7 +94,7 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
 export async function reviewPaidCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
   const b=intent(body);return transact(q=>plan(q,company,actor,id,expected,b));
 }
-/** Internal calculation only; deliberately not mounted on any HTTP route. */
+/** Read-only calculation; HTTP previews project display fields without the internal commit token. */
 export async function reviewConditionalCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
   const b=intent(body);return transact(q=>plan(q,company,actor,id,expected,b,true));
 }

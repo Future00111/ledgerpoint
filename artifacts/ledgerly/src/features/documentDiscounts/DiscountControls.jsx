@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { balanceAfterSavedCredit, canEditDrafts, canPostDocuments, isValidSettlementSnapshot } from './model.mjs';
 import { useState } from 'react';
 
-export function DraftWriteActions({ capabilities, doc, editId, busy, dirty, creditInvalid, configurationErrors = [], onReview, compact = false }) {
+export function DraftWriteActions({ capabilities, doc, editId, busy, dirty, creditInvalid, configurationErrors = [], onReview, compact = false, reviewLabel = 'Review & post' }) {
   const zeroTotal = !dirty && doc?.money?.gross_pence === '0';
   const actionClass = compact ? 'min-h-11 w-full sm:w-auto' : 'min-h-11 w-full';
   const ready = Boolean(doc && !dirty && !zeroTotal && configurationErrors.length === 0);
   return <>
     {canEditDrafts(capabilities) && <Button type="submit" variant={ready && canPostDocuments(capabilities) ? 'outline' : 'default'} className={actionClass} disabled={busy || creditInvalid} data-testid="button-save">{busy ? 'Working…' : editId ? 'Save changes' : 'Save draft'}</Button>}
-    {canPostDocuments(capabilities) && <Button type="button" variant={ready ? 'default' : 'secondary'} className={actionClass} disabled={busy || !doc || dirty || zeroTotal || configurationErrors.length > 0} onClick={onReview} data-testid="button-post">Review & post</Button>}
+    {canPostDocuments(capabilities) && <Button type="button" variant={ready ? 'default' : 'secondary'} className={actionClass} disabled={busy || !doc || dirty || zeroTotal || configurationErrors.length > 0} onClick={onReview} data-testid="button-post">{reviewLabel}</Button>}
     {zeroTotal && <p className="text-xs text-muted-foreground">This draft totals £0.00. Zero-value documents cannot be posted yet.</p>}
     {canEditDrafts(capabilities) && !canPostDocuments(capabilities) && <p className="text-xs text-muted-foreground">You can prepare this draft. An owner or accountant must review and post it.</p>}
   </>;

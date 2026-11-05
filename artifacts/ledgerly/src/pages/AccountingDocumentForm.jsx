@@ -218,12 +218,12 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
     setBusy(true);setError(null);
     try {
-      const {paidCredit,paidCreditUnavailable}=meta.credit ? await prepareCreditReview(accounting,activeCompany.id,doc,crypto.randomUUID()) : {paidCredit:null,paidCreditUnavailable:false};
-      if(stillCurrent())setReview({companyId:activeCompany.id,id:doc.id,revision:doc.revision,number:doc.source.invoice_number,money:doc.money,paidCredit,paidCreditUnavailable});
+      const {paidCredit,paidCreditUnavailable,conditionalCredit}=meta.credit ? await prepareCreditReview(accounting,activeCompany.id,doc,crypto.randomUUID(),originalDoc) : {paidCredit:null,paidCreditUnavailable:false};
+      if(stillCurrent())setReview({companyId:activeCompany.id,id:doc.id,revision:doc.revision,number:doc.source.invoice_number,money:doc.money,paidCredit,paidCreditUnavailable,conditionalCredit});
     } catch(err) {if(stillCurrent())setError(err);} finally {if(stillCurrent())setBusy(false);}
   };
   const post = async () => {
-    if (!canPost || busy || !doc || dirty || doc.money?.gross_pence === '0' || posted || !review || configErrors.length > 0) return;
+    if (review?.conditionalCredit || originalDoc?.source?.conditional_discount || !canPost || busy || !doc || dirty || doc.money?.gross_pence === '0' || posted || !review || configErrors.length > 0) return;
     const started = { scope: scopeKey, generation: gen.current };
     const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
     if (review.companyId !== activeCompany.id || review.id !== doc.id || review.revision !== doc.revision) {
@@ -364,8 +364,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
             {!posted && (captureMode ? canEdit : canEdit || canPost) && <section id="document-actions" tabIndex={-1} className="workspace-card order-2 scroll-mt-6 space-y-3 p-5" aria-label="Save and review document">
               {captureMode ? <CaptureDraftActions capture={capture} canEdit={canEdit} invalid={creditInvalid || busy} /> : <>
                 <div className="flex flex-wrap items-center gap-3"><DraftWriteActions compact capabilities={capabilities} doc={doc} editId={editId} busy={busy} dirty={dirty} creditInvalid={creditInvalid} configurationErrors={configErrors}
-                  onReview={preparePostingReview} /></div>
-                <p className="text-sm text-muted-foreground">{doc && dirty ? 'Unsaved changes. Save to update the calculated totals before posting.' : doc ? 'Saved draft. Review and confirm posting when you are ready.' : 'Save a draft to calculate its totals. It will not affect your accounts until you post it.'}</p>
+                  onReview={preparePostingReview} reviewLabel={originalDoc?.source?.conditional_discount ? 'Check conditional eligibility' : undefined} /></div>
+                <p className="text-sm text-muted-foreground">{originalDoc?.source?.conditional_discount ? (dirty ? 'Save changes before checking conditional eligibility.' : 'Conditional credit eligibility is a read-only preview. Posting is unavailable.') : doc && dirty ? 'Unsaved changes. Save to update the calculated totals before posting.' : doc ? 'Saved draft. Review and confirm posting when you are ready.' : 'Save a draft to calculate its totals. It will not affect your accounts until you post it.'}</p>
               </>}
             </section>}
             <details className="workspace-card order-3 p-5" data-testid="panel-accounts">
@@ -421,27 +421,27 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
       <AlertDialog open={review !== null} onOpenChange={open => { if (!open && !busy) setReview(null); }}>
         <AlertDialogContent data-testid="dialog-review-posting" onEscapeKeyDown={event => { if (busy) event.preventDefault(); }}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Review posting · {review?.number}</AlertDialogTitle>
+            <AlertDialogTitle>{review?.conditionalCredit ? 'Conditional credit eligibility' : 'Review posting'} · {review?.number}</AlertDialogTitle>
             <AlertDialogDescription>
-              Posting creates a balanced, source-linked journal and makes this document read-only.
-              You cannot edit or delete its posted amounts here. Posting does not send the document or move cash.
+              {review?.conditionalCredit ? 'Read-only preview. Conditional credit posting is not available. Your saved draft and payment balances remain unchanged.' : 'Posting creates a balanced, source-linked journal and makes this document read-only. You cannot edit or delete its posted amounts here. Posting does not send the document or move cash.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {review?.paidCreditUnavailable && <p className="text-sm">Payment allocation release is unavailable in this environment. Only credits within the original outstanding balance can be posted here.</p>}
+          {review?.conditionalCredit && <PaidCreditReview review={review.conditionalCredit} conditional />}
           {review?.paidCredit && <PaidCreditReview review={review.paidCredit} />}
-          {review && <dl aria-label="Saved amounts to post" className="space-y-2 rounded-lg border p-4 text-sm">
+          {review && <dl aria-label={review?.conditionalCredit ? "Saved draft amounts" : "Saved amounts to post"} className="space-y-2 rounded-lg border p-4 text-sm">
             <div className="flex justify-between"><dt>Document number</dt><dd className="font-medium">{review.number}</dd></div>
             <div className="flex justify-between"><dt>Net</dt><dd><Money value={review.money.net_pence} /></dd></div>
             <div className="flex justify-between"><dt>VAT</dt><dd><Money value={review.money.vat_pence} /></dd></div>
             <div className="flex justify-between border-t pt-2 font-semibold"><dt>Total</dt><dd><Money value={review.money.gross_pence} /></dd></div>
           </dl>}
-          {meta.credit && <p className="text-sm text-muted-foreground">This credit offsets the linked outstanding document. No cash movement is recorded.</p>}
+          {meta.credit && !review?.conditionalCredit && <p className="text-sm text-muted-foreground">This credit offsets the linked outstanding document. No cash movement is recorded.</p>}
           {error && <ErrorBox error={error} />}
           <AlertDialogFooter>
             <AlertDialogCancel type="button" disabled={busy} data-testid="button-cancel-posting">Cancel</AlertDialogCancel>
-            <Button type="button" onClick={post} disabled={!canPost || busy || dirty || doc?.money?.gross_pence === '0' || posted || configErrors.length > 0} data-testid="button-confirm-posting">
+            {!review?.conditionalCredit && <Button type="button" onClick={post} disabled={!canPost || busy || dirty || doc?.money?.gross_pence === '0' || posted || configErrors.length > 0} data-testid="button-confirm-posting">
               {busy ? 'Posting…' : 'Confirm posting'}
-            </Button>
+            </Button>}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

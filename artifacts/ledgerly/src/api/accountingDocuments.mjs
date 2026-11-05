@@ -92,6 +92,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
     commitCorrection: (c, id, body, revision) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections`, { method: 'POST', body, revision }),
     create: (c, body) => call(docs(c), { method: 'POST', body }),
     update: (c, id, body, revision) => call(`${docs(c)}/${encodeURIComponent(id)}`, { method: 'PATCH', body, revision }),
+    reviewConditionalCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/conditional-credit/review`, {method:'POST',body,revision}),
     reviewPaidCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/paid-credit/review`, {method:'POST',body,revision}),
     commitPaidCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/paid-credit`, {method:'POST',body,revision}),
     post: (c, id, revision) => call(`${docs(c)}/${encodeURIComponent(id)}/post`, { method: 'POST', body: {}, revision }),
