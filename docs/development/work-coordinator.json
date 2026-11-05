@@ -1,23 +1,18 @@
 {
   "version": 2,
-  "revision": 244,
+  "revision": 246,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261105-1314-validation",
     "tokenSha256": "626a575d5a23ed255d4fdefc5d5590fa6098636257656fd0a9ca355e5621d003",
     "acquiredAt": 1793884618876,
     "expiresAt": 1793886418876
-  },
-  "lastOwner": {
-    "runId": "hosted-20261104-2121",
-    "tokenSha256": "a803e353112738ed446ee96d77db574326bef16fda25f422fb5799be2d091dd6",
-    "acquiredAt": 1793827361114,
-    "expiresAt": 1793829930964
   },
   "queueState": {
     "version": 3,
@@ -8885,19 +8880,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "e8e7e400dfe50d39bcd614a24ea559b5288e57c7",
+    "sha": "9e31e965e3a251d72022cc4bcd353fae38453ca6",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e8e7e400dfe50d39bcd614a24ea559b5288e57c7",
-        "path": "docs/development/candidates/20261105-1314-stability-verification.json"
+        "sha": "9e31e965e3a251d72022cc4bcd353fae38453ca6",
+        "path": "docs/development/candidates/20261105-1314-final-verification.json"
       }
     ],
     "runId": "hosted-20261105-1314-validation",
-    "at": 1793885231891,
+    "at": 1793885475137,
     "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
   },
-  "updatedAt": 1793885231891,
+  "updatedAt": 1793885475180,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9234,8 +9229,8 @@
   "run": {
     "startedAt": "2026-11-05T13:16:58.908Z",
     "stopBy": "2026-11-05T13:42:00Z",
-    "status": "active-validation-stabilization",
-    "activity": "Root independently approved exact maintenance c5935c5/tree db733d2; queue95 passed and actual fresh observation preflight passed on preserved remote2ce3, no source publication. Candidate patch/rawcommit/proof archived e8e7e400. Locked dependency installation nearing complete; source/build follow, PostgreSQL unavailable on host. Continuation remains paused.",
+    "status": "stopped-clean-reviewed-validation-fix-archived",
+    "activity": "Exact maintenance c5935c5/tree db733d2 reviewed by root; source833/queue95/registry29 and pinned fullbuild passed; fresh preflight proven on existing2ce remote parentde140/treebd95. Sourcepublication remains blocked/pending explicit action approval; no retry. Fresh financial381 restore verified. All owned processes stopped and worktrees clean; continuation remains paused.",
     "credits": "unknown",
     "activeWorkers": [],
     "maintenanceLease": {
@@ -9247,9 +9242,11 @@
         "tools/development/work-queue/README.md"
       ],
       "purpose": "Existing integration publication identity preflight and reproducible candidate validation instructions",
-      "backlogAcceptanceUnchanged": true
+      "backlogAcceptanceUnchanged": true,
+      "releasedAt": "2026-11-05T13:31:15.179Z",
+      "status": "released-clean"
     },
-    "archiveCommit": "e8e7e400dfe50d39bcd614a24ea559b5288e57c7",
+    "archiveCommit": "9e31e965e3a251d72022cc4bcd353fae38453ca6",
     "primaryCandidate": "c5935c548cf8c1caf66f7194fcb85665e99e1942",
     "primaryCandidateTree": "db733d26289b114714afedbf914d6fb3bb85d3a4",
     "independentReview": {
@@ -9258,7 +9255,10 @@
       "tree": "db733d26289b114714afedbf914d6fb3bb85d3a4",
       "result": "approved maintenance scope only",
       "sourcePublicationAuthorized": false
-    }
+    },
+    "endedAt": "2026-11-05T13:31:15.179Z",
+    "newlyAcceptedOriginalBullets": [],
+    "newCompleteJourneys": []
   },
   "continuation": {
     "id": "6ae5226d4a2081919e793919d9cafa1b",
@@ -9415,14 +9415,12 @@
     "usage": "unknown"
   },
   "localShutdown": {
-    "workerStopped": true,
-    "workerClean": true,
-    "activeAuthorCommands": 0,
-    "coordinatorChecksCompleted": true,
-    "ownedLocalTestSessions": 0,
-    "coordinatorClean": true,
-    "localPostgresLaunched": false,
-    "allWorkersStopped": true
+    "runId": "hosted-20261105-1314-validation",
+    "at": "2026-11-05T13:31:15.179Z",
+    "workersStopped": true,
+    "worktreesClean": true,
+    "activeCommands": 0,
+    "rawOwnerTokenPublished": false
   },
   "shutdownBlocker": {
     "resolved": true,
@@ -9988,5 +9986,26 @@
       "sha": "e1206f80c8cfd25d1857f59471970ee6e525aec4",
       "path": "docs/development/candidates/20261104-2121-final-verification.json"
     }
+  },
+  "validationStability": {
+    "commit": "c5935c548cf8c1caf66f7194fcb85665e99e1942",
+    "tree": "db733d26289b114714afedbf914d6fb3bb85d3a4",
+    "archiveCommit": "9e31e965e3a251d72022cc4bcd353fae38453ca6",
+    "evidencePath": "docs/development/candidates/20261105-1314-final-verification.json",
+    "reviewer": "/root",
+    "tests": {
+      "source": 833,
+      "queue": 95,
+      "preflight": 43,
+      "registry": 29,
+      "build": "passed"
+    },
+    "sourcePublished": false,
+    "approvalClassificationControlled": false,
+    "remainingBlockers": [
+      "Original integration update approval rejection remains unresolved; no retry authorized in this run",
+      "No supported non-root PostgreSQL runtime on this host; original candidate native PostgreSQL/restore require existing PR workflow after authorized publication"
+    ],
+    "continuationResumed": false
   }
 }
