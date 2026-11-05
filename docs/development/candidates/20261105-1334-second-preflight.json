@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 27,
+  "authorityCommit": "57fcea5b32d094baa4945a1585fa1262befa4642",
+  "authorityRevision": 250,
+  "coordinatorRunId": "hosted-20261105-1334-approved-publication",
+  "observedAt": 1793886854892,
+  "candidateTree": "1b54a35ce5224337bf0e611d79100f55ecfa3225",
+  "reviewedBy": "/root",
+  "authorOrigin": {
+    "actor": "validation-fixture",
+    "commit": "e8dc4bb86eb0820fab0e09c6332281dc79bbf152",
+    "branch": "detached/ci-fixture-fix"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "1ede9a1f65be8bdd6918bfb1fe48efcd4e63ba1e",
+    "sha": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}

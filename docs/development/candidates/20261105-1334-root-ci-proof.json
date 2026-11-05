@@ -1,0 +1,133 @@
+{
+  "sourceCommit": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
+  "tree": "1b54a35ce5224337bf0e611d79100f55ecfa3225",
+  "workflowRun": 42039946136,
+  "job": 127287819709,
+  "checkout": "ea4fe628c8c2c32fb72033e0c41b5b12d6898588",
+  "sourceToCheckoutFiles": [],
+  "totals": {
+    "tests": 1100,
+    "pass": 1100,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "steps": [
+    {
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 1
+    },
+    {
+      "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 2
+    },
+    {
+      "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 3
+    },
+    {
+      "name": "Use pinned pnpm",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 4
+    },
+    {
+      "name": "Install the locked workspace",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 5
+    },
+    {
+      "name": "Build and typecheck",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 6
+    },
+    {
+      "name": "Unit, permission, precision and UI regression",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 7
+    },
+    {
+      "name": "Validate pinned migration inputs",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 8
+    },
+    {
+      "name": "Prepare disposable PostgreSQL binaries",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 9
+    },
+    {
+      "name": "Accounting API, security, atomicity and restore regression",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 10
+    },
+    {
+      "name": "Encrypted recovery unit controls",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 11
+    },
+    {
+      "name": "Encrypted disposable PostgreSQL recovery rehearsal",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 12
+    },
+    {
+      "name": "Verify encrypted recovery cleanup",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 13
+    },
+    {
+      "name": "Verify exact-source encrypted recovery evidence",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 14
+    },
+    {
+      "name": "Verify isolated cleanup",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 15
+    },
+    {
+      "name": "Verify current-run restore evidence",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 16
+    },
+    {
+      "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 31
+    },
+    {
+      "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 32
+    },
+    {
+      "name": "Complete job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 33
+    }
+  ],
+  "independentReviewer": "/root",
+  "acceptance": "Internal conditional redemption bounded scenarios plus publication preflight. Full P01-03 parent/UI/original public activation remain pending. No merge/deploy."
+}
