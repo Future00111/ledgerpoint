@@ -1,0 +1,22 @@
+
+> workspace@0.0.0 build /workspace/scratch/b4d6a4379808/ledgerpoint-1536-worker
+> pnpm run typecheck && pnpm -r --if-present run build
+
+$ pnpm run typecheck:libs && pnpm -r --filter "./artifacts/**" --filter "./scripts" --if-present run typecheck
+$ tsc --build
+Scope: 4 of 9 workspace projects
+artifacts/api-server typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/ledgerly typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/mockup-sandbox typecheck$ tsc -p tsconfig.json --noEmit
+scripts typecheck$ tsc -p tsconfig.json --noEmit
+scripts typecheck: Done
+artifacts/ledgerly typecheck: Done
+artifacts/mockup-sandbox typecheck: Done
+artifacts/api-server typecheck: src/services/accounting/canonicalPosting.integration.test.ts(1095,5): error TS2352: Conversion of type '{ hooks: { afterTransactionStart(): Promise<void>; }; }' to type 'Pick<CanonicalPostingDependencies, "hooks" | "contextProvider">' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+artifacts/api-server typecheck:   Property 'contextProvider' is missing in type '{ hooks: { afterTransactionStart(): Promise<void>; }; }' but required in type 'Pick<CanonicalPostingDependencies, "hooks" | "contextProvider">'.
+artifacts/api-server typecheck: Failed
+/workspace/scratch/b4d6a4379808/ledgerpoint-1536-worker/artifacts/api-server:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/api-server@0.0.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2
+[ELIFECYCLE] Command failed with exit code 2.
+ ELIFECYCLE  Command failed with exit code 2.

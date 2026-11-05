@@ -1,0 +1,64 @@
+{
+  "runId": "hosted-20261105-1536",
+  "base": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+  "authorCommit": "f7c19458e888f9b217b4c0e99b6fc9784f96bf1e",
+  "priorAuthorCommit": "c15f51cab1a86d9dbfa70dee58bd401c9f7d659d",
+  "tree": "0f6066237a521115a83f64b35286a37c385853bb",
+  "oldUnpublishedRemoteCandidate": "4fc4f265e849252d2a60db32a901d8cade6593e7",
+  "oldRemoteCandidateTree": "ea4981039bea1ddef51f69c5e8e99468a1dba152",
+  "sourcePublished": false,
+  "entries": [
+    {
+      "path": "candidate-1536-final.patch",
+      "bytes": 9418,
+      "sha256": "eecdc59b44bf56d543ff7129c8e7be05ada620af36b9ce64ba1d3df6b9696e81"
+    },
+    {
+      "path": "raw-commit-1536-final.txt",
+      "bytes": 314,
+      "sha256": "7facceac374e5996e88814b752974a592130699e264c4d524c9bacf6e0c4b791"
+    },
+    {
+      "path": "build-1536.log",
+      "bytes": 1603,
+      "sha256": "4455d7fed2c577bc390276dda09c45411692fd68bc8a874d0d8f959ce526b309"
+    },
+    {
+      "path": "build-1536-final.log",
+      "bytes": 15540,
+      "sha256": "50a6c2a23af1633e7802f3681ed23f0016661674b26ca72a05bb525069941d40"
+    },
+    {
+      "path": "source-1536.log",
+      "bytes": 87458,
+      "sha256": "f55467a949dbc9eb2b9904eddcd5c5f5cd895ca68f9c5bfbb91b27bd430419cf"
+    },
+    {
+      "path": "registry-1536.log",
+      "bytes": 2067,
+      "sha256": "c3cf6e18a606d95a74f3bc6795fc960c414b67438922af65d15336695f5e299b"
+    }
+  ],
+  "reviewer": "/root",
+  "reviewed": true,
+  "reviewScope": "Runtime extraction and test reviewed at c15; root approved one-line unknowncast fixture correction, runtime unchanged.",
+  "tests": {
+    "source": "passed on c15 before fixture-only unknowncast correction",
+    "registry": "29passed",
+    "initialBuild": "failed TS2352 new deliberately invalid dependency fixture; corrected explicit unknowncast",
+    "finalBuildTypecheck": "passed exact f7c1945 before stop request arrived",
+    "nativePostgreSQL": "not run",
+    "exactPublishedCI": "not run, candidate not published"
+  },
+  "workerStopped": true,
+  "worktreesClean": true,
+  "activeCommands": 0,
+  "parentAccepted": false,
+  "publicPostingEnabled": false,
+  "stopReason": "User redirected scarce credits to future Replit implementation; stop Codex publication/new work and preserve concrete candidate.",
+  "next": "Restore final patch/rawcommit and verify tree; obtain exact nativePG/CI on authorized future publication. Do not reuse old4fc4 candidate because fixture correction changes tree. Whole compensation still absent: appendonly settlement AND reports projection, permanent consumption, atomic cash mutation, downstream refund/allocation, browser.",
+  "catalogMigration": "5277ec2aadd92d6055348c28ab2a195d04beb17e",
+  "ownershipRecovery": "Source6ebee still has old catalogue. Restore reviewed authority catalogue docs/development/work-backlog.json from statebranch migration before initializing queue4a4d6a7a34c9e133364ffbfbf4979a8ceacd73ef9436d0db7a7f5a7f00336058; do not reset runtime.",
+  "replitPrep": "Root observed stopped readonly Replit prep with reports.ts147-149+settlement.ts35-59 projection requirement, permanentconsumption, Chromium path present but unlaunched. No Replit implementation dispatched.",
+  "credits": "unknown"
+}
