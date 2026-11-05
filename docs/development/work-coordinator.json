@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 257,
+  "revision": 258,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261105-1444",
+    "tokenSha256": "368a573fd7164283328a4f1d27571573821a4909ecc89d741b0cc34f897f1bed",
+    "acquiredAt": 1793890123685,
+    "expiresAt": 1793891923685
+  },
   "lastOwner": {
     "runId": "hosted-20261105-1408",
     "tokenSha256": "c99a4cb57337c9ae5ef7b887c1869067617d5664c8590ee464ff629cffe4324b",
@@ -9130,7 +9135,7 @@
     "at": 1793889639055,
     "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec"
   },
-  "updatedAt": 1793889639055,
+  "updatedAt": 1793890123685,
   "recovery": {
     "priorRunId": "hosted-20261105-1408",
     "stoppedEvidence": {
@@ -10417,5 +10422,12 @@
     "exactPublishedCI": "passed",
     "ciRun": 42039946136,
     "evidenceCommit": "51c6404ecaa82e76b1121d46713917d4ac4fbf47"
+  },
+  "runActivity": {
+    "startedAt": "2026-11-05T14:44:00Z",
+    "lastObservedAt": "2026-11-05T14:48:43.712Z",
+    "activity": "Restoring exact reviewed read-only preview; no workers or edits",
+    "replit": "Root resolver foundfalse; no dispatch",
+    "workersStopped": true
   }
 }
