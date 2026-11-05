@@ -1,0 +1,69 @@
+{
+  "runId": "hosted-20261105-1334-approved-publication",
+  "base": "2ce3b050135b0852f60474190c11e4c00c63263e",
+  "commit": "eb5886e01dda8f5623ef24d0d2bff4b9f37d511c",
+  "tree": "3e712f71f6dfbebce5b846a8ef90e30de0c74b89",
+  "files": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "tools/development/work-queue/README.md",
+    "tools/development/work-queue/publication.mjs",
+    "tools/development/work-queue/publication.test.mjs"
+  ],
+  "artifacts": [
+    {
+      "path": "repair.patch",
+      "bytes": 21220,
+      "sha256": "8736fd76cbc223f93631c264a18168377b8dfcfd5bff4c8372253169ce4db072"
+    },
+    {
+      "path": "repair-raw-commit.txt",
+      "bytes": 341,
+      "sha256": "8c90e1f3de7f9dd5621b3c5d197c0fa2d3d450449efca08d749d4e01b7de1dae"
+    },
+    {
+      "path": "fix-source.log",
+      "bytes": 86762,
+      "sha256": "ae095cdf75cd0ce7f988b88249ac2f2becd9934e1c351d538a5ba3936c382803"
+    },
+    {
+      "path": "fix-build.log",
+      "bytes": 16016,
+      "sha256": "8486ca8fe361a1f04df9e749c6432c4e3a373ca936abeb688d12d96358fc965c"
+    },
+    {
+      "path": "fix-registry.log",
+      "bytes": 2066,
+      "sha256": "604c3c04732090bbfd10a8b42df378298a7b2494c9e963f4205d8cec338e3b73"
+    },
+    {
+      "path": "fix-integration-bundle.log",
+      "bytes": 415,
+      "sha256": "f0dfbbb1484c3a28d2dc696fcfca08e19b800496486c76cd8299225bed8d5c32"
+    }
+  ],
+  "scope": "Test-only immutable-source fixture correction plus unchanged independently reviewed publication preflight and runbook",
+  "runtimeChanges": false,
+  "sqlChanges": false,
+  "parentAccepted": false,
+  "tests": {
+    "source": {
+      "pass": 833,
+      "fail": 0,
+      "skip": 0
+    },
+    "registry": {
+      "pass": 29,
+      "fail": 0,
+      "skip": 0
+    },
+    "build": "passed",
+    "integrationBundle": "passed",
+    "nativePostgreSQL": "pending new exact PR27 CI"
+  },
+  "firstFailedCi": {
+    "run": 42037342334,
+    "job": 127278798776,
+    "reason": "Four posted source corruption fixture UPDATEs rejected immutable trigger before intended assertion; cleanup passed, restore skipped"
+  },
+  "sourcePublished": false
+}

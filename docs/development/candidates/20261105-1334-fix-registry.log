@@ -1,0 +1,37 @@
+✔ original binding candidate keeps both public posting gates and a database-owned original xid prerequisite (2.185024ms)
+✔ all registered review migrations are pinned and returned as the exact verified bytes (3.387752ms)
+✔ unknown version fails closed (0.502526ms)
+✔ legacy unpinned version fails closed (0.202044ms)
+✔ missing overlay fails closed (0.865681ms)
+✔ overlay traversal fails closed (0.519401ms)
+✔ wrong overlay identity fails closed (0.413331ms)
+✔ unsupported overlay contract fails closed (1.019663ms)
+✔ malformed overlay checksum fails closed (0.500613ms)
+✔ production authority fails closed (0.252219ms)
+✔ missing migration fails closed (0.182525ms)
+✔ unknown migration fails closed (0.184678ms)
+✔ duplicate identity fails closed (0.21969ms)
+✔ wrong order fails closed (0.169344ms)
+✔ missing dependency fails closed (0.195524ms)
+✔ unsupported contract fails closed (0.406731ms)
+✔ traversal path fails closed (0.254012ms)
+✔ changed SQL bytes fail checksum validation without leaking SQL (0.19948ms)
+✔ missing SQL fails with bounded diagnostic (0.992672ms)
+✔ nonempty database is rejected before BEGIN, amendments=false (0.942106ms)
+✔ nonempty database is rejected before BEGIN, amendments=true (0.393732ms)
+✔ altered overlay fails with bounded diagnostic (0.37242ms)
+✔ missing overlay fails with bounded diagnostic (0.291428ms)
+✔ tampered overlay stops installer before any database query, amendments=false (4.301926ms)
+✔ tampered overlay stops installer before any database query, amendments=true (3.687533ms)
+✔ schema created after preflight is refused under migration lock, amendments=false (0.61209ms)
+✔ schema created after preflight is refused under migration lock, amendments=true (0.44609ms)
+✔ installed history matches exact selected input versions, amendments=false (1.156569ms)
+✔ installed history matches exact selected input versions, amendments=true (0.877408ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.093578

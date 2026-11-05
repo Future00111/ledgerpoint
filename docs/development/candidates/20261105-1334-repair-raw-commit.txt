@@ -1,0 +1,6 @@
+tree 3e712f71f6dfbebce5b846a8ef90e30de0c74b89
+parent 2ce3b050135b0852f60474190c11e4c00c63263e
+author Development coordinator <development@example.invalid> 1793886218 +0000
+committer Development coordinator <development@example.invalid> 1793886218 +0000
+
+Fix immutable-source regression fixture and stabilize integration validation preflight
