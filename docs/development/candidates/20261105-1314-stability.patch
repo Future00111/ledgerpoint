@@ -1,0 +1,288 @@
+diff --git a/tools/development/work-queue/README.md b/tools/development/work-queue/README.md
+index cdf7bf6..d39d729 100644
+--- a/tools/development/work-queue/README.md
++++ b/tools/development/work-queue/README.md
+@@ -110,6 +110,105 @@ Check CI for that new revision. Keep required owner review, production migration
+ real filing/sends, connections, pilot admission and release gates. The scheduler
+ does not make these actions authorized. Do not merge, deploy or touch production.
+ 
++### Reproducible validation and publication preflight
++
++A worker's author branch is provenance, not the publication destination. Use
++`publication.mjs` before every source-publication attempt to construct the explicit existing integration-ref update from
++fresh GitHub observations. It accepts only `Future00111/ledgerpoint`, open draft
++PR 27, head `codex/whole-product-first-sprint`, and base
++`dev/w03-draft-invoice-slice`. It validates the full coordinator state through
++the existing fencing module, the observed head, reviewed candidate commit/tree,
++and the candidate's single actual parent. An equivalent author tree does not
++make an author commit's different parent a valid publication parent.
++
++The helper is read-only. It neither publishes nor grants approval, and cannot
++change the platform's approval classification. A previous automatic rejection
++remains a blocker until explicitly resolved; do not retry through another token,
++tool, branch, transport or workflow. State archival remains a separate operation.
++
++1. Read the current state-branch authority, then acquire/checkpoint the single
++   coordinator lease before edits. A fresh supported checkout is
++   `git clone https://github.com/Future00111/ledgerpoint.git ledgerpoint`.
++   Detach at the authority's `codeHead`; verify the actual tree and clean status.
++   Do not reuse scratch paths or assume a gateway credential exists.
++2. Recover an existing candidate from its immutable state-branch archive.
++   Verify the manifest's patch byte length and SHA-256, apply to its exact
++   `basePublished` in a separate detached worktree with `git apply --index`,
++   and require `git write-tree` to equal the recorded tree. Verify the raw
++   commit's byte length/hash and `git hash-object -t commit --stdin` against
++   the recorded commit before restoring it. Author and integrator identities
++   may differ while their verified trees match. Do not recreate financial work.
++3. Use Node 24 and CI's pinned pnpm **10.26.1**, then
++   `pnpm install --frozen-lockfile`. Check `pnpm --version` first: an ambient
++   newer pnpm can rewrite workspace configuration even when installation fails.
++   Revert any installation-only configuration changes before checking source;
++   use the pinned version instead of approving new scripts or changing the lock.
++4. Run `node tools/development/check.mjs`,
++   `node --test tools/development/migrations/registry.test.mjs`, and
++   `PORT=8080 BASE_PATH=/ pnpm run build` on the candidate to be reviewed.
++   Capture command status and complete logs against commit/tree identities.
++   `check.mjs` discovers the publication regression tests automatically.
++5. Before attempting local PostgreSQL, verify `id -u` and availability of
++   `initdb`, `postgres`, `pg_isready`, `pg_dump`, `pg_restore` and `psql`.
++   Use only the existing fresh disposable accounting/recovery runners on a
++   supported non-root runtime. A root-only host without PostgreSQL, or a denied
++   `runuser -u nobody -- id`, is an environment blocker, not a skipped passing
++   check. Do not bypass host restrictions or connect an existing database.
++   Where unavailable, the existing PR development workflow supplies these
++   gates after authorized publication; no new runner or dispatch is implied.
++6. After independent review, read the authority, destination ref, PR 27 and
++   actual remote candidate commit again. Supply observations no older than
++   60 seconds. Each has `repository` and local `observedAt` milliseconds;
++   `authority` has `sha` (state-branch commit) and `value` (state JSON),
++   `pullRequest.value` is the GitHub PR response, `candidate.value` is the Git
++   commit response, and `destination` has `ref` and `sha`. Keep the separately
++   reviewed intent fixed: `expectedHead`, `expectedBaseSha`, `candidateSha`,
++   `candidateTree`, `authorCommit`, `authorBranch`, `authorActor`,
++   `reviewed: true`, and an independent `reviewer` distinct from `authorActor`.
++   The local `owner` contains the current `runId` and raw fencing `token`.
++   Invoke `preflightPublication(input)`; persist only its result, never the
++   input/token. It emits `destination_kind: integration`, distinct author
++   provenance, and the exact `updateRef` arguments with `force: false`.
++   These are trusted read-only observations supplied by the coordinator; the
++   helper does not fetch GitHub or prove the review/CI itself. Run it from the
++   repository root, keeping the raw owner file outside the repository:
++
++   ```sh
++   node --input-type=module - <<'NODE'
++   import { readFileSync } from 'node:fs';
++   import { preflightPublication } from './tools/development/work-queue/publication.mjs';
++   const input = JSON.parse(readFileSync('../fresh-publication-observations.json', 'utf8'));
++   const owner = JSON.parse(readFileSync('../local-owner.json', 'utf8'));
++   try {
++     console.log(JSON.stringify(preflightPublication({ ...input, owner }), null, 2));
++   } catch (error) {
++     console.error(error.code || 'PREFLIGHT_FAILED');
++     process.exitCode = 1;
++   }
++   NODE
++   ```
++7. A preflight result is a short-lived review aid, not a remote lock or
++   permission. Immediately before an authorized update, repeat the reads and
++   preflight; call the existing GitHub `update_ref` with those exact arguments.
++   Stop on rejection or expected-head conflict. Do not blindly retry.
++8. Fetch the resulting PR workflow's actual checkout and verify tree equality
++   with the published candidate. Require successful source/build/typecheck,
++   native disposable PostgreSQL, populated restore, encrypted recovery,
++   current-run/source receipt matching and cleanup; inspect failures and skips.
++   Archive exact identities, full logs and receipts. Earlier green CI on a
++   different source does not qualify this candidate. Parent workflow acceptance
++   and browser journeys remain separate existing requirements.
++
++The preserved 4 November candidate is archived at
++`f99c7a616e079903fa7d4641c15eac6959853f8a`, under
++`docs/development/candidates/20261104-2121-*`: author
++`381ab815678ad20d9271a21729d2674ce9ae867d`, tree
++`bd95f5578824de7e0b13015af4dfd0273cb4c384`, published base
++`de140ea97eed9cccb01a6dccc2edc79638da6c91`. The unreferenced remote candidate
++`2ce3b050135b0852f60474190c11e4c00c63263e` must still be fetched and its actual
++tree/parent verified before preparing its update. Its blocked publication and
++unrun native PostgreSQL/restore gates are not resolved by a successful preflight.
++
+ Export the queue with its expected revision, publish worker checkpoints, then
+ save the queue and integrated source head to the state branch. Release the
+ coordinator lease only after all workers stop and all checkpoints are durable.
+diff --git a/tools/development/work-queue/publication.mjs b/tools/development/work-queue/publication.mjs
+new file mode 100644
+index 0000000..d0759fd
+--- /dev/null
++++ b/tools/development/work-queue/publication.mjs
+@@ -0,0 +1,72 @@
++// Read-only preflight for the existing draft integration PR. This does not publish,
++// grant approval, retry a rejected operation, or verify remote reads itself.
++import { transitionCoordinator } from './coordinator.mjs';
++
++const repository = 'Future00111/ledgerpoint';
++const branch = 'codex/whole-product-first-sprint';
++const baseBranch = 'dev/w03-draft-invoice-slice';
++const maxObservationAgeMs = 60_000;
++const sha = value => typeof value === 'string' && /^[a-f0-9]{40}$/.test(value);
++const requireValue = (ok, code) => { if (!ok) throw Object.assign(new Error(code), { code }); };
++
++/** Inputs are fresh read-only GitHub observations, plus a separately reviewed
++ * intent. Keep owner.token local. Do not persist inputs or log caught objects.
++ * The caller must repeat reads immediately before the expected-head update and
++ * stop on any approval rejection or CAS conflict; this result is not a lock.
++ */
++export function preflightPublication({ authority, pullRequest, destination, candidate, intent, owner }, { now = Date.now() } = {}) {
++  requireValue(Number.isSafeInteger(now) && now >= 0, 'INVALID_TIME');
++  for (const observation of [authority, pullRequest, destination, candidate]) {
++    requireValue(observation && Number.isSafeInteger(observation.observedAt) && observation.observedAt >= 0
++      && observation.observedAt <= now && now - observation.observedAt <= maxObservationAgeMs,
++    'STALE_OBSERVATION');
++    requireValue(observation.repository === repository, 'WRONG_REPOSITORY');
++  }
++  requireValue(intent && [intent.expectedHead, intent.expectedBaseSha, intent.candidateSha, intent.candidateTree,
++    intent.authorCommit].every(sha), 'INVALID_INTENT');
++  requireValue(typeof intent.authorBranch === 'string' && /^[A-Za-z0-9][A-Za-z0-9_./-]{0,200}$/.test(intent.authorBranch)
++    && !intent.authorBranch.includes('..'), 'INVALID_AUTHOR_ORIGIN');
++  requireValue(intent.reviewed === true && typeof intent.authorActor === 'string' && intent.authorActor.trim().length > 0
++    && typeof intent.reviewer === 'string' && intent.reviewer.trim().length > 0
++    && intent.authorActor.trim() !== intent.reviewer.trim(),
++    'REVIEW_REQUIRED');
++  const state = authority.value;
++  requireValue(state?.repository === repository && state?.codeBranch === branch, 'WRONG_INTEGRATION_TARGET');
++  requireValue(state.codeHead === intent.expectedHead, 'AUTHORITY_HEAD_CHANGED');
++  requireValue(state.status === 'leased' && state.lease && now < state.lease.expiresAt,
++    'LIVE_COORDINATOR_REQUIRED');
++  requireValue(authority.observedAt >= state.updatedAt && sha(authority.sha), 'INVALID_AUTHORITY_OBSERVATION');
++  // Existing transition validates all persisted state and fences the local token.
++  // Discard the result: preflight must not renew or mutate the durable lease.
++  const checked = transitionCoordinator(state, { type: 'renew', runId: owner?.runId, token: owner?.token, leaseMs: 1000 }, { now });
++  requireValue(checked.status === 'leased', 'LIVE_COORDINATOR_REQUIRED');
++  requireValue(destination.ref === `refs/heads/${branch}`, 'WRONG_INTEGRATION_TARGET');
++  requireValue(destination.sha === intent.expectedHead, 'DESTINATION_HEAD_CHANGED');
++  const pr = pullRequest.value;
++  requireValue(pr?.number === 27 && pr.state === 'open' && pr.draft === true && pr.merged === false,
++    'DRAFT_PR_REQUIRED');
++  requireValue(pr.head?.repo?.full_name === repository && pr.base?.repo?.full_name === repository
++    && pr.head.ref === branch && pr.base.ref === baseBranch, 'PR_TARGET_CHANGED');
++  requireValue(pr.head.sha === intent.expectedHead && pr.base.sha === intent.expectedBaseSha, 'PR_HEAD_CHANGED');
++  const commit = candidate.value;
++  requireValue(commit?.sha === intent.candidateSha && commit.tree?.sha === intent.candidateTree,
++    'CANDIDATE_IDENTITY_CHANGED');
++  requireValue(commit.sha !== intent.expectedHead && Array.isArray(commit.parents) && commit.parents.length === 1
++    && commit.parents[0]?.sha === intent.expectedHead, 'CANDIDATE_PARENT_CHANGED');
++  return {
++    version: 1,
++    destination_kind: 'integration',
++    pullRequest: 27,
++    authorityCommit: authority.sha,
++    authorityRevision: state.revision,
++    coordinatorRunId: state.lease.runId,
++    observedAt: now,
++    candidateTree: intent.candidateTree,
++    reviewedBy: intent.reviewer,
++    authorOrigin: { actor: intent.authorActor, commit: intent.authorCommit, branch: intent.authorBranch },
++    updateRef: { repository_full_name: repository, branch_name: branch,
++      expected_sha: intent.expectedHead, sha: intent.candidateSha, force: false },
++    approvalGranted: false,
++    sourcePublished: false,
++  };
++}
+diff --git a/tools/development/work-queue/publication.test.mjs b/tools/development/work-queue/publication.test.mjs
+new file mode 100644
+index 0000000..0d18efa
+--- /dev/null
++++ b/tools/development/work-queue/publication.test.mjs
+@@ -0,0 +1,94 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { initialCoordinatorState, transitionCoordinator } from './coordinator.mjs';
++import { preflightPublication } from './publication.mjs';
++
++const repository = 'Future00111/ledgerpoint', branch = 'codex/whole-product-first-sprint';
++const head = 'a'.repeat(40), next = 'b'.repeat(40), tree = 'c'.repeat(40), base = 'd'.repeat(40);
++const owner = { runId: 'test-coordinator', token: 'local-only-fencing-token' };
++function fixture() {
++  const state = transitionCoordinator(initialCoordinatorState({ repository, codeBranch: branch, codeHead: head,
++    catalogPath: 'docs/development/work-backlog.json', statePath: 'docs/development/work-state.json' }),
++  { type: 'acquire', ...owner, leaseMs: 120_000 }, { now: 1000 });
++  const snapshot = value => ({ repository, observedAt: 1000, value });
++  return {
++    authority: { ...snapshot(state), sha: 'e'.repeat(40) },
++    pullRequest: snapshot({ number: 27, state: 'open', draft: true, merged: false,
++      head: { repo: { full_name: repository }, ref: branch, sha: head },
++      base: { repo: { full_name: repository }, ref: 'dev/w03-draft-invoice-slice', sha: base } }),
++    destination: { repository, observedAt: 1000, ref: `refs/heads/${branch}`, sha: head },
++    candidate: snapshot({ sha: next, tree: { sha: tree }, parents: [{ sha: head }] }),
++    intent: { expectedHead: head, expectedBaseSha: base, candidateSha: next, candidateTree: tree,
++      authorCommit: 'f'.repeat(40), authorBranch: 'codex/lp-2121-worker', authorActor: 'worker', reviewed: true, reviewer: 'independent-root' },
++    owner: { ...owner },
++  };
++}
++const preflight = input => preflightPublication(input, { now: 1001 });
++test('worker provenance is distinct from the single permitted integration destination; no input mutation or token output', () => {
++  const input = fixture(), before = structuredClone(input), result = preflight(input);
++  assert.deepEqual(input, before);
++  assert.deepEqual(result.updateRef, { repository_full_name: repository, branch_name: branch,
++    expected_sha: head, sha: next, force: false });
++  assert.equal(result.destination_kind, 'integration');
++  assert.equal(result.authorOrigin.branch, 'codex/lp-2121-worker');
++  assert.equal(result.approvalGranted, false); assert.equal(result.sourcePublished, false);
++  assert.equal(JSON.stringify(result).includes(owner.token), false);
++  assert.equal(JSON.stringify(result).includes(input.authority.value.lease.tokenSha256), false);
++});
++const cases = [
++  ['worker destination', x => { x.destination.ref = 'refs/heads/codex/lp-2121-worker'; }, 'WRONG_INTEGRATION_TARGET'],
++  ['state destination', x => { x.destination.ref = 'refs/heads/codex/ledgerly-work-queue-state'; }, 'WRONG_INTEGRATION_TARGET'],
++  ['authority changed branch', x => { x.authority.value.codeBranch = 'codex/lp-worker'; }, 'WRONG_INTEGRATION_TARGET'],
++  ['authority changed head', x => { x.authority.value.codeHead = next; }, 'AUTHORITY_HEAD_CHANGED'],
++  ['destination changed head', x => { x.destination.sha = next; }, 'DESTINATION_HEAD_CHANGED'],
++  ['wrong PR', x => { x.pullRequest.value.number = 28; }, 'DRAFT_PR_REQUIRED'],
++  ['closed PR', x => { x.pullRequest.value.state = 'closed'; }, 'DRAFT_PR_REQUIRED'],
++  ['ready PR', x => { x.pullRequest.value.draft = false; }, 'DRAFT_PR_REQUIRED'],
++  ['merged PR', x => { x.pullRequest.value.merged = true; }, 'DRAFT_PR_REQUIRED'],
++  ['fork head', x => { x.pullRequest.value.head.repo.full_name = 'other/ledgerpoint'; }, 'PR_TARGET_CHANGED'],
++  ['fork base', x => { x.pullRequest.value.base.repo.full_name = 'other/ledgerpoint'; }, 'PR_TARGET_CHANGED'],
++  ['changed PR branch', x => { x.pullRequest.value.head.ref = 'codex/lp-worker'; }, 'PR_TARGET_CHANGED'],
++  ['changed PR base branch', x => { x.pullRequest.value.base.ref = 'main'; }, 'PR_TARGET_CHANGED'],
++  ['changed PR head', x => { x.pullRequest.value.head.sha = next; }, 'PR_HEAD_CHANGED'],
++  ['changed PR base SHA', x => { x.pullRequest.value.base.sha = next; }, 'PR_HEAD_CHANGED'],
++  ['changed candidate', x => { x.candidate.value.sha = head; }, 'CANDIDATE_IDENTITY_CHANGED'],
++  ['changed tree', x => { x.candidate.value.tree.sha = head; }, 'CANDIDATE_IDENTITY_CHANGED'],
++  ['author ancestry is not published ancestry', x => { x.candidate.value.parents[0].sha = x.intent.authorCommit; }, 'CANDIDATE_PARENT_CHANGED'],
++  ['merge candidate', x => { x.candidate.value.parents.push({ sha: base }); }, 'CANDIDATE_PARENT_CHANGED'],
++  ['missing review', x => { x.intent.reviewed = false; }, 'REVIEW_REQUIRED'],
++  ['self approval', x => { x.intent.reviewer = x.intent.authorActor; }, 'REVIEW_REQUIRED'],
++  ['padded self approval', x => { x.intent.reviewer = ` ${x.intent.authorActor} `; }, 'REVIEW_REQUIRED'],
++  ['missing author', x => { delete x.intent.authorActor; }, 'REVIEW_REQUIRED'],
++  ['empty author', x => { x.intent.authorActor = ' '; }, 'REVIEW_REQUIRED'],
++  ['wrong token', x => { x.owner.token = 'wrong'; }, 'OWNER_FENCED'],
++  ['digest used as token', x => { x.owner.token = x.authority.value.lease.tokenSha256; }, 'OWNER_FENCED'],
++  ['wrong run', x => { x.owner.runId = 'different'; }, 'OWNER_FENCED'],
++  ['idle authority', x => { x.authority.value.status = 'idle'; x.authority.value.lease = null; }, 'LIVE_COORDINATOR_REQUIRED'],
++  ['expired lease', x => { x.authority.value.lease.expiresAt = 1001; }, 'LIVE_COORDINATOR_REQUIRED'],
++  ['malformed authority', x => { x.authority.value.revision = -1; }, 'INVALID_STATE'],
++  ['mixed token state', x => { x.authority.value.lease.token = owner.token; }, 'INVALID_STATE'],
++  ['malformed intent', x => { x.intent.candidateSha = 'not-a-sha'; }, 'INVALID_INTENT'],
++  ['unsafe author origin', x => { x.intent.authorBranch = '../worker'; }, 'INVALID_AUTHOR_ORIGIN'],
++];
++for (const [name, change, code] of cases) test(`rejects ${name} without leaking local token`, () => {
++  const input = fixture(); change(input);
++  assert.throws(() => preflight(input), error => error.code === code && !String(error).includes(owner.token));
++});
++for (const key of ['authority', 'pullRequest', 'destination', 'candidate']) {
++  test(`rejects wrong repository in ${key}`, () => {
++    const input = fixture(); input[key].repository = 'other/ledgerpoint';
++    assert.throws(() => preflight(input), { code: 'WRONG_REPOSITORY' });
++  });
++  test(`requires fresh non-future ${key} observation`, () => {
++    for (const observedAt of [-1, null, 1002]) {
++      const input = fixture(); input[key].observedAt = observedAt;
++      assert.throws(() => preflight(input), { code: 'STALE_OBSERVATION' });
++    }
++    assert.throws(() => preflightPublication(fixture(), { now: 61_001 }), { code: 'STALE_OBSERVATION' });
++  });
++}
++test('rejects time before authority update and never mutates a lease to extend its life', () => {
++  const input = fixture(); input.authority.value.updatedAt = 1001;
++  assert.throws(() => preflight(input), { code: 'INVALID_AUTHORITY_OBSERVATION' });
++  for (const now of [-1, NaN, Infinity, 1.2]) assert.throws(() => preflightPublication(fixture(), { now }), { code: 'INVALID_TIME' });
++});

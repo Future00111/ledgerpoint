@@ -1,0 +1,59 @@
+{
+  "runId": "hosted-20261105-1314-validation",
+  "observedAt": "2026-11-05T13:25:53.389Z",
+  "sourcePublished": false,
+  "sourceHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+  "commit": "c5935c548cf8c1caf66f7194fcb85665e99e1942",
+  "tree": "db733d26289b114714afedbf914d6fb3bb85d3a4",
+  "files": [
+    "tools/development/work-queue/README.md",
+    "tools/development/work-queue/publication.mjs",
+    "tools/development/work-queue/publication.test.mjs"
+  ],
+  "artifactHashes": [
+    {
+      "path": "stability.patch",
+      "bytes": 19514,
+      "sha256": "3146297002eb8c996db3ea1fff33e26622a205e8421dfdcc2c8f454045ce4e9b"
+    },
+    {
+      "path": "stability-raw-commit.txt",
+      "bytes": 333,
+      "sha256": "6e5ea389251f320af4fe5ab4763bc5bea78c1cb20c159a47e25d8697016296c5"
+    },
+    {
+      "path": "queue-tests.log",
+      "bytes": 8527,
+      "sha256": "825f9f2082b2e14bf3475640e860668dfa48f313d4516f26db9afcc662745628"
+    },
+    {
+      "path": "actual-preflight.json",
+      "bytes": 820,
+      "sha256": "ae060f8fd168ebc457cfd2d2c29a2a038640ba6c9c5f0b70d62f8005b2675148"
+    }
+  ],
+  "tests": {
+    "queue": {
+      "pass": 95,
+      "fail": 0,
+      "skip": 0
+    },
+    "actualFreshPreflight": "passed; no publication",
+    "source": "pending locked install completion",
+    "build": "pending locked install completion",
+    "disposablePostgreSQL": "blocked: no PostgreSQL binaries; runuser -u nobody -- id denied setgroups"
+  },
+  "restoredFinancialCandidate": {
+    "archive": "f99c7a616e079903fa7d4641c15eac6959853f8a",
+    "author": "381ab815678ad20d9271a21729d2674ce9ae867d",
+    "tree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+    "patchSha256": "227234a4d351994ff473a6c90752323a4e6a7cb71a7b5d08667cff8e3fbe08f0",
+    "remoteCandidate": "2ce3b050135b0852f60474190c11e4c00c63263e",
+    "remoteParent": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
+  },
+  "review": "root reviewed working diff; frozen commit independent approval pending",
+  "originalBulletsAccepted": 0,
+  "parentAccepted": false,
+  "continuationEnabled": false,
+  "approvalBlockerUnchanged": true
+}

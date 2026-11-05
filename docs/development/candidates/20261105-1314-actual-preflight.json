@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 27,
+  "authorityCommit": "374468d22cd7182709d57373fdff8237b0956d48",
+  "authorityRevision": 243,
+  "coordinatorRunId": "hosted-20261105-1314-validation",
+  "observedAt": 1793885080803,
+  "candidateTree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+  "reviewedBy": "/root",
+  "authorOrigin": {
+    "actor": "worker-2121",
+    "commit": "381ab815678ad20d9271a21729d2674ce9ae867d",
+    "branch": "codex/lp-2121-worker"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+    "sha": "2ce3b050135b0852f60474190c11e4c00c63263e",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}

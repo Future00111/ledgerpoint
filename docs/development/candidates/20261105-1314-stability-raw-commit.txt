@@ -1,0 +1,6 @@
+tree db733d26289b114714afedbf914d6fb3bb85d3a4
+parent de140ea97eed9cccb01a6dccc2edc79638da6c91
+author Development coordinator <development@example.invalid> 1793885111 +0000
+committer Development coordinator <development@example.invalid> 1793885111 +0000
+
+Validate exact integration publication identity before candidate qualification
