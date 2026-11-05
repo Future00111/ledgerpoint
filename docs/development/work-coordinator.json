@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 253,
+  "revision": 254,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 677,
+    "revision": 679,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Stopped clean exactpublished5c60/tree1b54 authorlocal e8dc4; root reviewed corrections/preflight. CI42039946136 job127287819709 allgatespassed1100/0/0; financialruntime381 preserved. Parent pending next complete UI/browser/compensation/priorcredits/corrections; no publicactivation. Alllocalcommandsstopped; fullproof archived separately.",
+        "checkpoint": "Source5c60 qualified; rootreviewed nextcontract connects readonly conditionalcredit eligibility POSTreview endpoint to native client/existing savedcredit UI. Server persisted original governs eligibility; correctcompany/capability/revision and no financialeffects. Explicit previewonly no mutationbutton/fallback/publicconditionalpost. HTTP PostgreSQL/client/model/render tests; isolatedbrowser pending actualcapability. Freeze14:25/stop14:36.",
         "evidence": {
           "commit": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
           "summary": "PARTIAL bounded P01-03 internal atomic redemption now exact native PostgreSQL-qualified after two fixture-only corrections. Validation preflight integrated. Full parent UI/browser, compensation, priorcredits and correction expansion remain pending; conditional public posting closed. Next complete connected parent journey; no original bullet autoaccepted.",
@@ -238,7 +238,10 @@
             }
           }
         },
-        "blockers": []
+        "owner": "worker-1408",
+        "tokenSha256": "41476a974d5fd6323504c10805df7ff68d979da112092a027021a89a8d274fae",
+        "leaseUntil": 1793889462867,
+        "workStarted": true
       },
       "P01-04": {
         "status": "blocked",
@@ -9072,6 +9075,20 @@
         "type": "recover",
         "taskId": "P01-03",
         "checkpoint": "Stopped clean exactpublished5c60/tree1b54 authorlocal e8dc4; root reviewed corrections/preflight. CI42039946136 job127287819709 allgatespassed1100/0/0; financialruntime381 preserved. Parent pending next complete UI/browser/compensation/priorcredits/corrections; no publicactivation. Alllocalcommandsstopped; fullproof archived separately."
+      },
+      {
+        "at": 1793887962867,
+        "actor": "worker-1408",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "41476a974d5fd6323504c10805df7ff68d979da112092a027021a89a8d274fae"
+      },
+      {
+        "at": 1793887962922,
+        "actor": "worker-1408",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Source5c60 qualified; rootreviewed nextcontract connects readonly conditionalcredit eligibility POSTreview endpoint to native client/existing savedcredit UI. Server persisted original governs eligibility; correctcompany/capability/revision and no financialeffects. Explicit previewonly no mutationbutton/fallback/publicconditionalpost. HTTP PostgreSQL/client/model/render tests; isolatedbrowser pending actualcapability. Freeze14:25/stop14:36."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -9089,7 +9106,7 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "51c6404ecaa82e76b1121d46713917d4ac4fbf47",
+    "sha": "de1439f1e4e581fdf20049eb5a0364a46e13930a",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -9097,11 +9114,11 @@
         "path": "docs/development/candidates/20261105-1334-final-verification.json"
       }
     ],
-    "runId": "hosted-20261105-1334-approved-publication",
-    "at": 1793887212335,
+    "runId": "hosted-20261105-1408",
+    "at": 1793887962949,
     "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec"
   },
-  "updatedAt": 1793887772937,
+  "updatedAt": 1793887962949,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9472,9 +9489,28 @@
     "stopBy": "2026-11-05T14:36:00Z",
     "implementationStopBy": "2026-11-05T14:25:00Z",
     "status": "active",
-    "activity": "Continue next highesteligible P01-03 connected workflow from qualified5c60; inspect safe read-only UI/admission versus remaining compensation/correction prerequisites; no redo redemption/preflight. Replit exactresolver foundfalse, no providerdispatch.",
+    "activity": "Highesteligible P01-03 claimed for connected readonly conditional eligibility preview from savedcredit; rootapproved exactcontract. One Codex implementer, coordinatorindependentreview. Native posting and financialguards remainclosed. Replit unavailable. Freeze14:25.",
     "credits": "unknown",
-    "activeWorkers": [],
+    "activeWorkers": [
+      {
+        "actor": "worker-1408",
+        "task": "P01-03",
+        "files": [
+          "artifacts/api-server/src/routes/accountingDocuments.ts",
+          "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+          "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+          "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+          "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
+          "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
+          "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
+          "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+          "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx"
+        ],
+        "reviewer": "validation_stability",
+        "contract": "Readonly HTTPreview authenticates and validates company/capability/revision via existing internal service; UI explicit previewonly serverthreshold/cash/deadline/release, no mutationbutton/fallback; no server runtimefinancial changes",
+        "implementationStopBy": "2026-11-05T14:25:00Z"
+      }
+    ],
     "replitCapability": {
       "found": false,
       "dispatch": false
