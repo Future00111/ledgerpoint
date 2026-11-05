@@ -1,0 +1,37 @@
+{
+  "reviewer": "/root",
+  "published": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+  "ciRun": 42049132286,
+  "job": 127320152088,
+  "checkout": "8be8df8ab92a09ab4c109bf979c890150ec50c04",
+  "compare": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "base": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+    "head": "8be8df8ab92a09ab4c109bf979c890150ec50c04",
+    "status": "ahead",
+    "ahead_by": 1,
+    "behind_by": 0,
+    "total_commits": 1,
+    "too_large": null,
+    "base_commit": {
+      "sha": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+      "url": "https://api.github.com/repos/Future00111/ledgerpoint/commits/6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+      "html_url": "https://github.com/Future00111/ledgerpoint/commit/6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc"
+    },
+    "merge_base_commit": {
+      "sha": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+      "url": "https://api.github.com/repos/Future00111/ledgerpoint/commits/6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+      "html_url": "https://github.com/Future00111/ledgerpoint/commit/6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc"
+    },
+    "files": []
+  },
+  "counts": {
+    "tests": 1109,
+    "pass": 1109,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "result": "All job steps success, including full build/typecheck, source/scheduler regression, actual PostgreSQL customer/supplier readonly conditional eligibility and insufficient-payment no-writes HTTP tests, native/populated/encrypted restore and matching-source cleanup/evidence verification. Browser not verified, parent remains pending.",
+  "log": "ci-42049132286.log"
+}

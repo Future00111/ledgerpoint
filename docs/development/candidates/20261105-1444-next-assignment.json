@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "runId": "hosted-20261105-1444",
+  "source": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+  "parent": "P01-03",
+  "parentAccepted": false,
+  "publicConditionalPostingEnabled": false,
+  "nextExecutableAssignment": "Coordinator resolves transaction-scoped linked discount-reversal contract and exact file ownership, obtains independent engineering review, then highest-eligible P01-03 implementer delivers atomic compensation; do not create another readonly preview or enable public posting first.",
+  "responsible": "Coordinator engineering; no missing owner decision or additional publication authorization.",
+  "observedInterfaces": [
+    {
+      "path": "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
+      "finding": "reverseCanonicalJournal delegates to postLinkedJournal, which owns its canonical transaction. Existing exported function does not accept the current paid-credit/payment transaction. Never chain separate reversal and payment calls.",
+      "ownership": "Currently P01-02 only; P01-03 requires reviewed stopped-worker catalogue expansion before modifying."
+    },
+    {
+      "path": "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+      "finding": "assertConditionalPaymentMutation rejects consumed-original unallocations and qualifying-parent reversals; compensation is absent.",
+      "ownership": "P01-03 owned."
+    },
+    {
+      "path": "artifacts/api-server/src/services/accountingDocuments/settlement.ts",
+      "finding": "Compensation must enter current and historical balance projection with exact effective cutoff, without rewriting posted credit/source.",
+      "ownership": "P01-03 owned; overlapping P01-02/P01-04 remain stopped."
+    },
+    {
+      "path": "artifacts/api-server/src/services/accountingDocuments/corrections.ts",
+      "finding": "Existing corrections support posted invoices/bills only and block linked credits. Not a usable discount-credit compensation endpoint; removing guards is invalid.",
+      "ownership": "No exact or directory-prefix catalogue owner found; assign only if approved design needs changes."
+    }
+  ],
+  "contractToResolve": [
+    "Define one explicit reviewed server command bound to original agreement consumption, qualifying payment mutation, exact linked credit/journal, company/actor, request identity, effective writable period and exact compensation line vector.",
+    "Expose or reuse transaction-scoped canonical linked reversal under the same existing company/original lock; do not open nested or independent transactions. No caller flag may create financial authority.",
+    "Append immutable reversal/correction and unique compensation identity with the cash mutation atomically; preserve original terms, consumption and journal history. Determine how later projections distinguish compensated credit without making agreement redeemable twice.",
+    "Derive reversals from immutable frozen journal net/VAT/gross per-line evidence; no client sums or newly recomputed tax allocations.",
+    "Review downstream pool allocation/refund graph explicitly. Never reclaim a paid refund or undo another document silently; existing payment reversal restrictions cannot be bypassed.",
+    "Review role/capability, closed-period, stale review, schema authority, replay/conflict and lock ordering before implementation."
+  ],
+  "minimumAcceptance": [
+    "Both customer and supplier: G12000 D1200 qualifying10800, consumed discount1200 => open0. Proposed unallocation1000 with full discount compensation leaves active9800, restored credited0 and open2200; cash unchanged; the single command appends both effects or neither.",
+    "Repeat identical request returns same journals/outcome; changed payload conflicts; competing compensation/payment/credit commands cannot duplicate or partially commit.",
+    "Inject failure after compensation insert/journal and after cash-mutation journal: zero partial financial effects, original immutable history retained.",
+    "Prior cutoff keeps original discounted balance; after effective compensation cutoff shows exact restored receivable/payable and matching VAT/control lines.",
+    "Downstream refund/allocation and full-payment reversal cases have explicit reviewed outcomes; unsupported states reject with no effects, remain outstanding full-parent scope.",
+    "Actual disposable PostgreSQL/security/restore on exact published tree, independent financial review; connected native UI/browser journey required before parent acceptance or public activation."
+  ],
+  "ownershipPlan": {
+    "precondition": "All affected workers stopped, fresh coordinator lease, preserve 92 bullets/priorities/dependencies/acceptance/events/evidence.",
+    "existingP01_03": [
+      "paidCredit.ts",
+      "conditionalDiscount.ts",
+      "payments.ts",
+      "settlement.ts",
+      "posting.ts",
+      "conditionalDiscount.integration.test.ts",
+      "routes/accountingDocuments.ts",
+      "credit-capacity-contract.md"
+    ],
+    "conditionalExpansion": [
+      "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
+      "exact existing canonical posting test paths needed by chosen transaction API"
+    ],
+    "migration": "Independently review exact narrow paths, then atomically persist catalogue/runtime migration before claim. Do not dispatch into unowned canonicalPosting or corrections paths."
+  },
+  "remainingParentGates": [
+    "Atomic compensation/reversal",
+    "Prior-credit and corrected-original cumulative line-capacity combinations",
+    "Dedicated populated conditional binding/snapshot/witness recovery scenario",
+    "Connected customer/supplier browser journey",
+    "Explicit public posting only after original financial and security gates"
+  ],
+  "reusableEvidence": {
+    "ciRun": 42049132286,
+    "job": 127320152088,
+    "tests": 1109,
+    "fail": 0,
+    "skip": 0,
+    "cancelled": 0,
+    "sourceTree": "a4d25087c8a25d46bcf6ca22d6853d46aae61e12",
+    "author": "9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab",
+    "sourcePublished": true
+  },
+  "blockResolution": {
+    "publication": "Resolved: exact saved candidate restored by hashes/tree; fresh SHA256-fenced coordinator and expected-head force:false existing integration publication succeeded. Reuse this supported path, not readiness-only loops.",
+    "postgres": "Existing PR27 CI actually ran disposable native PostgreSQL/restore. Local PostgreSQL absence does not block authorized publication.",
+    "browser": "Chromium executable absent; no browser acceptance claimed.",
+    "replit": "Root exact LedgerPoint resolver foundfalse; no dispatch, no repeated check or Codex stall."
+  },
+  "credits": "unknown",
+  "newSourceImplementation": false
+}
