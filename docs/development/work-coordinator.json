@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 258,
+  "revision": 259,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
+  "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 681,
+    "revision": 683,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Worker stopped clean at frozen9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab/treea4d25087c8a25d46bcf6ca22d6853d46aae61e12. Archive2d5328ec9ba8af9a739293cd75ab209a28f39455 contains patch/rawcommit/review and passing source839/fullbuild/focused20/render9/typecheck. Remote unreferenced6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc not published; source stays5c60. Hardstop elapsed during context restoration; no publication attempt. Next restore exact candidate and fresh fenced preflight normal integration publication plus exactCI. Browser missing executable; parent remains pending.",
+        "checkpoint": "No new implementation. Before restoration: exact archived readonly preview author9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab/treea4d25087c8a25d46bcf6ca22d6853d46aae61e12; all7 artifact hashes verified. Integration restoration only under P01-03 files; independent review validation_stability and root retained.",
         "evidence": {
           "commit": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
           "summary": "PARTIAL bounded P01-03 internal atomic redemption now exact native PostgreSQL-qualified after two fixture-only corrections. Validation preflight integrated. Full parent UI/browser, compensation, priorcredits and correction expansion remain pending; conditional public posting closed. Next complete connected parent journey; no original bullet autoaccepted.",
@@ -238,7 +238,10 @@
             }
           }
         },
-        "blockers": []
+        "owner": "coordinator1444-integration",
+        "tokenSha256": "5638f4f1279e9b882fd838cc2d057995ce61d51ba42271e90cc106de409a448f",
+        "leaseUntil": 1793892032346,
+        "workStarted": true
       },
       "P01-04": {
         "status": "blocked",
@@ -9106,6 +9109,20 @@
         "type": "recover",
         "taskId": "P01-03",
         "checkpoint": "Worker stopped clean at frozen9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab/treea4d25087c8a25d46bcf6ca22d6853d46aae61e12. Archive2d5328ec9ba8af9a739293cd75ab209a28f39455 contains patch/rawcommit/review and passing source839/fullbuild/focused20/render9/typecheck. Remote unreferenced6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc not published; source stays5c60. Hardstop elapsed during context restoration; no publication attempt. Next restore exact candidate and fresh fenced preflight normal integration publication plus exactCI. Browser missing executable; parent remains pending."
+      },
+      {
+        "at": 1793890232346,
+        "actor": "coordinator1444-integration",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "5638f4f1279e9b882fd838cc2d057995ce61d51ba42271e90cc106de409a448f"
+      },
+      {
+        "at": 1793890261076,
+        "actor": "coordinator1444-integration",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "No new implementation. Before restoration: exact archived readonly preview author9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab/treea4d25087c8a25d46bcf6ca22d6853d46aae61e12; all7 artifact hashes verified. Integration restoration only under P01-03 files; independent review validation_stability and root retained."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -9123,7 +9140,7 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "2d5328ec9ba8af9a739293cd75ab209a28f39455",
+    "sha": "3b2d56b8052da0d20b502728dd194147038da6a8",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -9131,11 +9148,11 @@
         "path": "docs/development/candidates/20261105-1408-verification.json"
       }
     ],
-    "runId": "hosted-20261105-1408",
-    "at": 1793889639055,
-    "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec"
+    "runId": "hosted-20261105-1444",
+    "at": 1793890373574,
+    "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc"
   },
-  "updatedAt": 1793890123685,
+  "updatedAt": 1793890373574,
   "recovery": {
     "priorRunId": "hosted-20261105-1408",
     "stoppedEvidence": {
@@ -10307,7 +10324,7 @@
       "authorCommit": "9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab",
       "tree": "a4d25087c8a25d46bcf6ca22d6853d46aae61e12",
       "base": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
-      "sourcePublished": false,
+      "sourcePublished": true,
       "qualified": false,
       "parentAccepted": false,
       "publicPostingEnabled": false,
@@ -10323,9 +10340,10 @@
       "localFocused": 20,
       "localRender": 9,
       "fullBuildTypecheck": "passed",
-      "exactPublishedCI": "not run; candidate not published",
+      "exactPublishedCI": "pending",
       "browserJourney": "pending; Chromium executable absent",
-      "next": "Restore exact archived candidate, verify source remains expected5c60, fresh lease/preflight then normal integration publication and exact CI; do not recreate readonly preview."
+      "next": "Restore exact archived candidate, verify source remains expected5c60, fresh lease/preflight then normal integration publication and exact CI; do not recreate readonly preview.",
+      "ciRun": 42049132286
     }
   },
   "candidateValidation": {
@@ -10425,9 +10443,14 @@
   },
   "runActivity": {
     "startedAt": "2026-11-05T14:44:00Z",
-    "lastObservedAt": "2026-11-05T14:48:43.712Z",
-    "activity": "Restoring exact reviewed read-only preview; no workers or edits",
-    "replit": "Root resolver foundfalse; no dispatch",
-    "workersStopped": true
+    "lastObservedAt": "2026-11-05T14:52:53.611Z",
+    "activity": "Exact reviewed archived readonly preview published to existing draft PR27; waiting native disposable CI42049132286. No new implementation or workers.",
+    "workersStopped": true,
+    "sourcePublished": true,
+    "sourceCommit": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+    "allSevenArchiveHashesVerified": true,
+    "exactReconstructedTree": "a4d25087c8a25d46bcf6ca22d6853d46aae61e12",
+    "rootIndependentReview": true,
+    "credits": "unknown"
   }
 }
