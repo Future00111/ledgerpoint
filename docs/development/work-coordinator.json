@@ -1,27 +1,22 @@
 {
   "version": 2,
-  "revision": 256,
+  "revision": 257,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261105-1408",
     "tokenSha256": "c99a4cb57337c9ae5ef7b887c1869067617d5664c8590ee464ff629cffe4324b",
     "acquiredAt": 1793887772937,
     "expiresAt": 1793889572937
   },
-  "lastOwner": {
-    "runId": "hosted-20261105-1334-approved-publication",
-    "tokenSha256": "5575af59fb019c5f490906673a294879b82d45ef16dcbcd4183401517ad9a9f1",
-    "acquiredAt": 1793885734845,
-    "expiresAt": 1793887534845
-  },
   "queueState": {
     "version": 3,
-    "revision": 680,
+    "revision": 681,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +95,10 @@
         }
       },
       "P01-03": {
-        "status": "running",
+        "status": "pending",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Stopped clean9ee7d1/treea4d250, source5c60. Connected readonlyconditional review endpoint/client/UI; nofinancialengine/schema/publicposting changes. Independentcoordinator reviewapproved exact11files. Focused20 render9 APItypecheck/bundle source839/fullbuild passed. Three nativeHTTP scenarios pendingexactCI; browserblockedmissingChromium. Parentremainsunfinished.",
+        "checkpoint": "Worker stopped clean at frozen9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab/treea4d25087c8a25d46bcf6ca22d6853d46aae61e12. Archive2d5328ec9ba8af9a739293cd75ab209a28f39455 contains patch/rawcommit/review and passing source839/fullbuild/focused20/render9/typecheck. Remote unreferenced6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc not published; source stays5c60. Hardstop elapsed during context restoration; no publication attempt. Next restore exact candidate and fresh fenced preflight normal integration publication plus exactCI. Browser missing executable; parent remains pending.",
         "evidence": {
           "commit": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
           "summary": "PARTIAL bounded P01-03 internal atomic redemption now exact native PostgreSQL-qualified after two fixture-only corrections. Validation preflight integrated. Full parent UI/browser, compensation, priorcredits and correction expansion remain pending; conditional public posting closed. Next complete connected parent journey; no original bullet autoaccepted.",
@@ -238,10 +233,7 @@
             }
           }
         },
-        "owner": "worker-1408",
-        "tokenSha256": "41476a974d5fd6323504c10805df7ff68d979da112092a027021a89a8d274fae",
-        "leaseUntil": 1793889462867,
-        "workStarted": true
+        "blockers": []
       },
       "P01-04": {
         "status": "blocked",
@@ -9096,6 +9088,19 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "Stopped clean9ee7d1/treea4d250, source5c60. Connected readonlyconditional review endpoint/client/UI; nofinancialengine/schema/publicposting changes. Independentcoordinator reviewapproved exact11files. Focused20 render9 APItypecheck/bundle source839/fullbuild passed. Three nativeHTTP scenarios pendingexactCI; browserblockedmissingChromium. Parentremainsunfinished."
+      },
+      {
+        "at": 1793889639017,
+        "actor": "scheduler",
+        "type": "lease_expired",
+        "taskId": "P01-03"
+      },
+      {
+        "at": 1793889639017,
+        "actor": "hosted-20261105-1408",
+        "type": "recover",
+        "taskId": "P01-03",
+        "checkpoint": "Worker stopped clean at frozen9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab/treea4d25087c8a25d46bcf6ca22d6853d46aae61e12. Archive2d5328ec9ba8af9a739293cd75ab209a28f39455 contains patch/rawcommit/review and passing source839/fullbuild/focused20/render9/typecheck. Remote unreferenced6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc not published; source stays5c60. Hardstop elapsed during context restoration; no publication attempt. Next restore exact candidate and fresh fenced preflight normal integration publication plus exactCI. Browser missing executable; parent remains pending."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -9113,27 +9118,27 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "52b50ee1b4a3a06b9f8d2efd9669a6e91b11b798",
+    "sha": "2d5328ec9ba8af9a739293cd75ab209a28f39455",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "51c6404ecaa82e76b1121d46713917d4ac4fbf47",
-        "path": "docs/development/candidates/20261105-1334-final-verification.json"
+        "sha": "2d5328ec9ba8af9a739293cd75ab209a28f39455",
+        "path": "docs/development/candidates/20261105-1408-verification.json"
       }
     ],
     "runId": "hosted-20261105-1408",
-    "at": 1793888625885,
+    "at": 1793889639055,
     "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec"
   },
-  "updatedAt": 1793888625885,
+  "updatedAt": 1793889639055,
   "recovery": {
-    "priorRunId": "hosted-20261104-1521",
+    "priorRunId": "hosted-20261105-1408",
     "stoppedEvidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
-      "path": "docs/development/candidates/20261104-1521-replit-verification.json"
+      "sha": "2d5328ec9ba8af9a739293cd75ab209a28f39455",
+      "path": "docs/development/candidates/20261105-1408-verification.json"
     },
-    "at": 1793813338528
+    "at": 1793889639055
   },
   "historyReference": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -9468,13 +9473,13 @@
     }
   },
   "shutdownResolution": {
-    "at": "2026-11-04T17:28:58.528Z",
-    "method": "Existing worker CLI recover and transitionCoordinator recover with observed stop evidence; no expiry-only ownership steal.",
+    "at": "2026-11-05T14:40:39.055Z",
+    "method": "Worker completion and clean git observed; expired worker recovered via existing CLI; expired coordinator recovered with archived stopped evidence; source unchanged.",
     "activeWorkers": [],
     "evidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
-      "path": "docs/development/candidates/20261104-1521-replit-verification.json"
+      "sha": "2d5328ec9ba8af9a739293cd75ab209a28f39455",
+      "path": "docs/development/candidates/20261105-1408-verification.json"
     }
   },
   "deliveryPolicy": {
@@ -9495,36 +9500,10 @@
     "startedAt": "2026-11-05T14:09:32.959Z",
     "stopBy": "2026-11-05T14:36:00Z",
     "implementationStopBy": "2026-11-05T14:25:00Z",
-    "status": "active",
-    "activity": "Worker stoppedclean9ee7d1/treea4d250; coordinatorindependent exact11file reviewapproved. Focused20 renders9 APItypecheck/bundle source839/fullbuildpassed. Archive and normalexpected5c60 sourceupdate next; exactCI3newHTTPPGscenarios required. Browsermissingbinary pending; no fullparent acceptance.",
+    "status": "stopped-clean",
+    "activity": "Worker stopped clean at frozen9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab/treea4d25087c8a25d46bcf6ca22d6853d46aae61e12. Archive2d5328ec9ba8af9a739293cd75ab209a28f39455 contains patch/rawcommit/review and passing source839/fullbuild/focused20/render9/typecheck. Remote unreferenced6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc not published; source stays5c60. Hardstop elapsed during context restoration; no publication attempt. Next restore exact candidate and fresh fenced preflight normal integration publication plus exactCI. Browser missing executable; parent remains pending.",
     "credits": "unknown",
-    "activeWorkers": [
-      {
-        "actor": "worker-1408",
-        "task": "P01-03",
-        "files": [
-          "artifacts/api-server/src/routes/accountingDocuments.ts",
-          "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
-          "artifacts/ledgerly/src/api/accountingDocuments.mjs",
-          "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
-          "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
-          "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
-          "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
-          "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
-          "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
-          "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
-          "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx"
-        ],
-        "reviewer": "validation_stability",
-        "contract": "Readonly HTTPreview authenticates and validates company/capability/revision via existing internal service; UI explicit previewonly serverthreshold/cash/deadline/release, no mutationbutton/fallback; no server runtimefinancial changes",
-        "implementationStopBy": "2026-11-05T14:25:00Z",
-        "commentOnlyFile": "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
-        "commentOnlyReason": "Existing reviewConditionalCredit comment says deliberatelyunmounted; update commentonly for reviewed readonly route, no functionbodychange",
-        "presentationOnlyFile": "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx",
-        "presentationOnlyReason": "Shared DraftWriteActions takes optional reviewLabel defaulting to unchanged ordinary wording; conditional form supplies readonly eligibility label, no duplicate controls or authority changes",
-        "status": "stopped-clean-review-held"
-      }
-    ],
+    "activeWorkers": [],
     "replitCapability": {
       "found": false,
       "dispatch": false
@@ -9542,7 +9521,10 @@
       "author": "/root/validation_stability/conditional_preview",
       "approved": true,
       "scope": "Connected readonly conditionalcredit eligibility endpoint/client/savedcredit UI. Projection excludes internal tokens/payload; original+responseidentity/capability/tenant/revision gates retained; no publicposting route or fallback; financialservicebody andschema unchanged."
-    }
+    },
+    "endedAt": "2026-11-05T14:40:39.055Z",
+    "deadlineMissed": true,
+    "deadlineMissReason": "Context restoration returned after14:36; only explicit stopped-worker/lease recovery performed afterward."
   },
   "continuation": {
     "id": "6ae5226d4a2081919e793919d9cafa1b",
@@ -9642,7 +9624,7 @@
   "nextTasks": [
     {
       "task": "P01-03",
-      "next": "Continue from exact qualified source5c60b4729c5658e732b81fe496cdc8fd8ef219ec/tree1b54a35ce5224337bf0e611d79100f55ecfa3225. Internal atomic redemption, original binding/admission, all-writer guards and validation route now reviewed and exactCI42039946136 passed1100 tests including10new native redemption cases, restore/encrypted recovery/cleanup. Do NOT reimplement or republish previous381/2ce candidate or repeat resolved publicationapproval work. Highesteligible P01-03 remains pending full native UI/browser journey, compensation/reversal, priorcredit/correctedoriginal interactions. Resolve exactownership/contracts, then connected next bounded slice; no public activation or existingdatabase migration until authorized completeworkflow."
+      "next": "Restore exact archived candidate, verify source remains expected5c60, fresh lease/preflight then normal integration publication and exact CI; do not recreate readonly preview. Existing internal redemption is exactCI qualified. After readonly preview CI, remaining compensation/reversal/priorcredits/corrections and full native browser journey; no full parent acceptance or public activation."
     },
     {
       "task": "P03-01",
@@ -9712,32 +9694,14 @@
     "usage": "unknown"
   },
   "localShutdown": {
-    "runId": "hosted-20261105-1334-approved-publication",
-    "at": "2026-11-05T14:00:12.368Z",
+    "runId": "hosted-20261105-1408",
+    "at": "2026-11-05T14:40:39.055Z",
     "workersStopped": true,
     "worktreesClean": true,
     "activeCommands": 0,
     "rawOwnerTokenPublished": false
   },
-  "shutdownBlocker": {
-    "resolved": true,
-    "action": "P01 worker recovery and coordinator release",
-    "reason": "Actual remote implementation and isolatedPG actor stop cannot be verified afterruntimebrowserconnectionloss. Cannot truthfully releasecoordinator/workertask. Retain ownership, archiveexactexistingcandidate afterreconnect; no alternate transport or expiry-basedsteal. This is toolcapabilityloss, notautomaticapprovalrejection.",
-    "firstObservedAt": "2026-11-04T15:35:39Z",
-    "lastObserved": "Root15:34 activeReplitimplementation/test; no candidate exported",
-    "expiryDoesNotProveStop": true,
-    "finalRetry": "2026-11-04T15:36:50Z",
-    "stopInstruction": "2026-11-04T15:38:00Z",
-    "implementationAuthorized": true,
-    "remoteCandidateExported": true,
-    "evidence": {
-      "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "bb40f6e0c503bcb08ad4599f8e8013aa086be152",
-      "path": "docs/development/candidates/20261104-1521-replit-verification.json"
-    },
-    "resolvedAt": "2026-11-04T17:28:58.528Z",
-    "resolution": "Observed completed Replit agent; independently verified clean candidate and original checkout, readable scoped process inventory empty, disposable directories empty and shell prompt returned. Candidate archived before existing worker/coordinator expired-recovery transitions."
-  },
+  "shutdownBlocker": null,
   "pendingCandidates": [
     {
       "task": "P01-03",
@@ -9950,6 +9914,32 @@
       "qualifiedTree": "1b54a35ce5224337bf0e611d79100f55ecfa3225",
       "matchingCommitQualification": true,
       "ciRun": 42039946136
+    },
+    {
+      "task": "P01-03",
+      "commit": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+      "authorCommit": "9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab",
+      "tree": "a4d25087c8a25d46bcf6ca22d6853d46aae61e12",
+      "base": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
+      "sourcePublished": false,
+      "qualified": false,
+      "parentAccepted": false,
+      "publicPostingEnabled": false,
+      "independentReview": "/root/validation_stability",
+      "evidence": [
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "2d5328ec9ba8af9a739293cd75ab209a28f39455",
+          "path": "docs/development/candidates/20261105-1408-verification.json"
+        }
+      ],
+      "localSource": 839,
+      "localFocused": 20,
+      "localRender": 9,
+      "fullBuildTypecheck": "passed",
+      "exactPublishedCI": "not run; candidate not published",
+      "browserJourney": "pending; Chromium executable absent",
+      "next": "Restore exact archived candidate, verify source remains expected5c60, fresh lease/preflight then normal integration publication and exact CI; do not recreate readonly preview."
     }
   ],
   "providerBlocker": {
@@ -10305,6 +10295,32 @@
           }
         }
       }
+    },
+    "P01_03_readonlyPreview": {
+      "task": "P01-03",
+      "commit": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+      "authorCommit": "9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab",
+      "tree": "a4d25087c8a25d46bcf6ca22d6853d46aae61e12",
+      "base": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
+      "sourcePublished": false,
+      "qualified": false,
+      "parentAccepted": false,
+      "publicPostingEnabled": false,
+      "independentReview": "/root/validation_stability",
+      "evidence": [
+        {
+          "ref": "refs/heads/codex/ledgerly-work-queue-state",
+          "sha": "2d5328ec9ba8af9a739293cd75ab209a28f39455",
+          "path": "docs/development/candidates/20261105-1408-verification.json"
+        }
+      ],
+      "localSource": 839,
+      "localFocused": 20,
+      "localRender": 9,
+      "fullBuildTypecheck": "passed",
+      "exactPublishedCI": "not run; candidate not published",
+      "browserJourney": "pending; Chromium executable absent",
+      "next": "Restore exact archived candidate, verify source remains expected5c60, fresh lease/preflight then normal integration publication and exact CI; do not recreate readonly preview."
     }
   },
   "candidateValidation": {

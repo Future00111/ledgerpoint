@@ -1,0 +1,45 @@
+{
+  "at": "2026-11-05T14:40:39.055Z",
+  "sourceHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
+  "sourcePublished": false,
+  "sourcePublicationAttempted": false,
+  "candidate": {
+    "task": "P01-03",
+    "commit": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+    "authorCommit": "9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab",
+    "tree": "a4d25087c8a25d46bcf6ca22d6853d46aae61e12",
+    "base": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
+    "sourcePublished": false,
+    "qualified": false,
+    "parentAccepted": false,
+    "publicPostingEnabled": false,
+    "independentReview": "/root/validation_stability",
+    "evidence": [
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "2d5328ec9ba8af9a739293cd75ab209a28f39455",
+        "path": "docs/development/candidates/20261105-1408-verification.json"
+      }
+    ],
+    "localSource": 839,
+    "localFocused": 20,
+    "localRender": 9,
+    "fullBuildTypecheck": "passed",
+    "exactPublishedCI": "not run; candidate not published",
+    "browserJourney": "pending; Chromium executable absent",
+    "next": "Restore exact archived candidate, verify source remains expected5c60, fresh lease/preflight then normal integration publication and exact CI; do not recreate readonly preview."
+  },
+  "archiveCommit": "2d5328ec9ba8af9a739293cd75ab209a28f39455",
+  "workersStopped": true,
+  "worktreesClean": true,
+  "queueRevision": 681,
+  "deadline": "2026-11-05T14:36:00Z",
+  "deadlineMissed": true,
+  "continuation": {
+    "id": "6ae5226d4a2081919e793919d9cafa1b",
+    "is_enabled": true,
+    "confirmedAt": "2026-11-05T14:00:12.368Z",
+    "by": "/root",
+    "reason": "Root actual automations update success after exactCI allgates passed and all authors stoppedclean; original prompt/hourly cadence unchanged"
+  }
+}
