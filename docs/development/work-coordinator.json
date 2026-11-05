@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 243,
+  "revision": 244,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
@@ -8885,19 +8885,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "d817d7c96ab12f306563a967bbd67582e2cadc4f",
+    "sha": "e8e7e400dfe50d39bcd614a24ea559b5288e57c7",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e1206f80c8cfd25d1857f59471970ee6e525aec4",
-        "path": "docs/development/candidates/20261104-2121-final-verification.json"
+        "sha": "e8e7e400dfe50d39bcd614a24ea559b5288e57c7",
+        "path": "docs/development/candidates/20261105-1314-stability-verification.json"
       }
     ],
     "runId": "hosted-20261105-1314-validation",
-    "at": 1793884704166,
+    "at": 1793885231891,
     "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
   },
-  "updatedAt": 1793884704166,
+  "updatedAt": 1793885231891,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9235,7 +9235,7 @@
     "startedAt": "2026-11-05T13:16:58.908Z",
     "stopBy": "2026-11-05T13:42:00Z",
     "status": "active-validation-stabilization",
-    "activity": "Confirmed fresh ordinary GitHub clone; native PostgreSQL unavailable (no binaries and runuser setgroups denied). Narrow coordinator maintenance preflight + tested exact archive recovery, no source publication retry.",
+    "activity": "Root independently approved exact maintenance c5935c5/tree db733d2; queue95 passed and actual fresh observation preflight passed on preserved remote2ce3, no source publication. Candidate patch/rawcommit/proof archived e8e7e400. Locked dependency installation nearing complete; source/build follow, PostgreSQL unavailable on host. Continuation remains paused.",
     "credits": "unknown",
     "activeWorkers": [],
     "maintenanceLease": {
@@ -9248,6 +9248,16 @@
       ],
       "purpose": "Existing integration publication identity preflight and reproducible candidate validation instructions",
       "backlogAcceptanceUnchanged": true
+    },
+    "archiveCommit": "e8e7e400dfe50d39bcd614a24ea559b5288e57c7",
+    "primaryCandidate": "c5935c548cf8c1caf66f7194fcb85665e99e1942",
+    "primaryCandidateTree": "db733d26289b114714afedbf914d6fb3bb85d3a4",
+    "independentReview": {
+      "reviewer": "/root",
+      "commit": "c5935c548cf8c1caf66f7194fcb85665e99e1942",
+      "tree": "db733d26289b114714afedbf914d6fb3bb85d3a4",
+      "result": "approved maintenance scope only",
+      "sourcePublicationAuthorized": false
     }
   },
   "continuation": {
