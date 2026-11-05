@@ -1,23 +1,18 @@
 {
   "version": 2,
-  "revision": 261,
+  "revision": 263,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261105-1444",
     "tokenSha256": "368a573fd7164283328a4f1d27571573821a4909ecc89d741b0cc34f897f1bed",
     "acquiredAt": 1793890123685,
     "expiresAt": 1793891923685
-  },
-  "lastOwner": {
-    "runId": "hosted-20261105-1408",
-    "tokenSha256": "c99a4cb57337c9ae5ef7b887c1869067617d5664c8590ee464ff629cffe4324b",
-    "acquiredAt": 1793887772937,
-    "expiresAt": 1793889572937
   },
   "queueState": {
     "version": 3,
@@ -9323,19 +9318,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "2a61815c47402f7593217ce96c8af6122f641b04",
+    "sha": "2e8b567b793b3ec8e4218b12844dbe4476c93474",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2a61815c47402f7593217ce96c8af6122f641b04",
-        "path": "docs/development/candidates/20261105-1444-publication-preflight.json"
+        "sha": "2e8b567b793b3ec8e4218b12844dbe4476c93474",
+        "path": "docs/development/candidates/20261105-1444-final-verification.json"
       }
     ],
     "runId": "hosted-20261105-1444",
-    "at": 1793890829465,
+    "at": 1793890947869,
     "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc"
   },
-  "updatedAt": 1793890829465,
+  "updatedAt": 1793890947899,
   "recovery": {
     "priorRunId": "hosted-20261105-1408",
     "stoppedEvidence": {
@@ -9884,12 +9879,11 @@
     "usage": "unknown"
   },
   "localShutdown": {
-    "runId": "hosted-20261105-1408",
-    "at": "2026-11-05T14:40:39.055Z",
+    "runId": "hosted-20261105-1444",
+    "at": "2026-11-05T15:02:27.920Z",
     "workersStopped": true,
     "worktreesClean": true,
-    "activeCommands": 0,
-    "rawOwnerTokenPublished": false
+    "activeCommands": 0
   },
   "shutdownBlocker": null,
   "pendingCandidates": [
@@ -10567,7 +10561,8 @@
       },
       "browser": "not verified; Chromium absent",
       "workersStopped": true,
-      "worktreesClean": true
+      "worktreesClean": true,
+      "evidenceCommit": "2e8b567b793b3ec8e4218b12844dbe4476c93474"
     }
   },
   "candidateValidation": {
@@ -10703,7 +10698,8 @@
           "ciJob": 127278798776
         }
       }
-    }
+    },
+    "evidenceCommit": "2e8b567b793b3ec8e4218b12844dbe4476c93474"
   },
   "validationStability": {
     "commit": "c5935c548cf8c1caf66f7194fcb85665e99e1942",
@@ -10730,8 +10726,8 @@
   },
   "runActivity": {
     "startedAt": "2026-11-05T14:44:00Z",
-    "lastObservedAt": "2026-11-05T15:00:29.490Z",
-    "activity": "CI42049132286 allgates passed1109/0 independently verified by root; partial P01-03 evidence submitted and recovered to pending; no workers; archiving full CI log, proof and next atomic compensation contract/ownership assignment before release.",
+    "lastObservedAt": "2026-11-05T15:02:27.919Z",
+    "activity": "Exact readonly preview published and native CI qualified; all worktrees clean, no active commands or workers, queue686 P01-03 pending. Early clean shutdown.",
     "workersStopped": true,
     "sourcePublished": true,
     "sourceCommit": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
@@ -10741,6 +10737,8 @@
     "credits": "unknown",
     "ciRun": 42049132286,
     "job": 127320152088,
-    "remainingParentAcceptance": true
+    "remainingParentAcceptance": true,
+    "endedAt": "2026-11-05T15:02:27.920Z",
+    "evidenceCommit": "2e8b567b793b3ec8e4218b12844dbe4476c93474"
   }
 }
