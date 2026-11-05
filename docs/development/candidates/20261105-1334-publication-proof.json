@@ -1,0 +1,73 @@
+{
+  "runId": "hosted-20261105-1334-approved-publication",
+  "at": "2026-11-05T13:38:12.659Z",
+  "userApproval": {
+    "userReply": "Yes I approvew",
+    "approvedAt": "2026-11-05T13:34:00Z",
+    "repository": "Future00111/ledgerpoint",
+    "branch": "codex/whole-product-first-sprint",
+    "expectedSha": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+    "sha": "2ce3b050135b0852f60474190c11e4c00c63263e",
+    "force": false,
+    "followup": "Existing PR27 development CI; no merge or deployment",
+    "priorRejectionAcknowledged": true
+  },
+  "preflight": {
+    "version": 1,
+    "destination_kind": "integration",
+    "pullRequest": 27,
+    "authorityCommit": "ec82660d59b1f728428928b042876fb7efa76c74",
+    "authorityRevision": 247,
+    "coordinatorRunId": "hosted-20261105-1334-approved-publication",
+    "observedAt": 1793885791290,
+    "candidateTree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+    "reviewedBy": "/root",
+    "authorOrigin": {
+      "actor": "worker-2121",
+      "commit": "381ab815678ad20d9271a21729d2674ce9ae867d",
+      "branch": "codex/lp-2121-worker"
+    },
+    "updateRef": {
+      "repository_full_name": "Future00111/ledgerpoint",
+      "branch_name": "codex/whole-product-first-sprint",
+      "expected_sha": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+      "sha": "2ce3b050135b0852f60474190c11e4c00c63263e",
+      "force": false
+    },
+    "approvalGranted": false,
+    "sourcePublished": false
+  },
+  "action": {
+    "tool": "mcp__codex_apps__github_update_ref",
+    "arguments": {
+      "repository_full_name": "Future00111/ledgerpoint",
+      "branch_name": "codex/whole-product-first-sprint",
+      "expected_sha": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+      "sha": "2ce3b050135b0852f60474190c11e4c00c63263e",
+      "force": false
+    },
+    "result": {
+      "success": true
+    }
+  },
+  "observedSourceRef": "refs/heads/codex/whole-product-first-sprint",
+  "observedSourceHead": "2ce3b050135b0852f60474190c11e4c00c63263e",
+  "sourceTree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+  "independentReview": {
+    "reviewer": "/root",
+    "authorCommit": "381ab815678ad20d9271a21729d2674ce9ae867d",
+    "tree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+    "matchingTreeVerified": true
+  },
+  "ci": {
+    "runId": 42037342334,
+    "jobId": 127278798776,
+    "status": "in_progress"
+  },
+  "sourcePublished": true,
+  "parentAccepted": false,
+  "publicConditionalPostingEnabled": false,
+  "continuationResumed": false,
+  "alternateTransport": false,
+  "helperSourcePublished": false
+}
