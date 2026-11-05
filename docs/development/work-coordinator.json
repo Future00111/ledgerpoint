@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 254,
+  "revision": 255,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
@@ -9106,7 +9106,7 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "de1439f1e4e581fdf20049eb5a0364a46e13930a",
+    "sha": "5bcfcd7fd50dac52b15b734c6208683e13c4f3ab",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -9115,10 +9115,10 @@
       }
     ],
     "runId": "hosted-20261105-1408",
-    "at": 1793887962949,
+    "at": 1793888267790,
     "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec"
   },
-  "updatedAt": 1793887962949,
+  "updatedAt": 1793888267790,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9489,7 +9489,7 @@
     "stopBy": "2026-11-05T14:36:00Z",
     "implementationStopBy": "2026-11-05T14:25:00Z",
     "status": "active",
-    "activity": "Highesteligible P01-03 claimed for connected readonly conditional eligibility preview from savedcredit; rootapproved exactcontract. One Codex implementer, coordinatorindependentreview. Native posting and financialguards remainclosed. Replit unavailable. Freeze14:25.",
+    "activity": "Worker actual5file readonly route/client/model/form/component diff exists; coordinator earlyreview verified restricted projection omits reviewtoken/canonicalpayload, distinct readonly state and hardpostingguard. Tests being added; requested exactresponseidentity and conditionalactionlabels. Nofinancialruntime/schema edits. Chromium launch fails missing executable; fullbrowserjourney notclaimed.",
     "credits": "unknown",
     "activeWorkers": [
       {
@@ -9504,16 +9504,28 @@
           "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
           "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
           "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
-          "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx"
+          "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
+          "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+          "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx"
         ],
         "reviewer": "validation_stability",
         "contract": "Readonly HTTPreview authenticates and validates company/capability/revision via existing internal service; UI explicit previewonly serverthreshold/cash/deadline/release, no mutationbutton/fallback; no server runtimefinancial changes",
-        "implementationStopBy": "2026-11-05T14:25:00Z"
+        "implementationStopBy": "2026-11-05T14:25:00Z",
+        "commentOnlyFile": "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+        "commentOnlyReason": "Existing reviewConditionalCredit comment says deliberatelyunmounted; update commentonly for reviewed readonly route, no functionbodychange",
+        "presentationOnlyFile": "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx",
+        "presentationOnlyReason": "Shared DraftWriteActions takes optional reviewLabel defaulting to unchanged ordinary wording; conditional form supplies readonly eligibility label, no duplicate controls or authority changes"
       }
     ],
     "replitCapability": {
       "found": false,
       "dispatch": false
+    },
+    "browserCapability": {
+      "playwright": true,
+      "chromiumExecutable": false,
+      "probe": "browserType.launch: Executable does not exist",
+      "browserJourney": "pending"
     }
   },
   "continuation": {
