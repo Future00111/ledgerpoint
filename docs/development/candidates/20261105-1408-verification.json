@@ -1,0 +1,81 @@
+{
+  "runId": "hosted-20261105-1408",
+  "base": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
+  "commit": "9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab",
+  "tree": "a4d25087c8a25d46bcf6ca22d6853d46aae61e12",
+  "files": [
+    "artifacts/api-server/src/routes/accountingDocuments.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+    "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+    "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+    "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx",
+    "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+    "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
+    "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
+    "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
+    "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx"
+  ],
+  "artifacts": [
+    {
+      "path": "1408-candidate.patch",
+      "bytes": 37506,
+      "sha256": "4d2edd3482249cde4c3d8cdb918a70ef0208efeed09345cf676f54aeb226f900"
+    },
+    {
+      "path": "1408-raw-commit.txt",
+      "bytes": 248,
+      "sha256": "de83d828e5d7b3517c06d548933f165a8c73438d1872447d9f5b84bdf1c592e6"
+    },
+    {
+      "path": "1408-focused.log",
+      "bytes": 1827,
+      "sha256": "e6d8e60d1d8453989bdd76a0cada3d255619cf0a886cf4eed88b5f939eafca52"
+    },
+    {
+      "path": "1408-render.log",
+      "bytes": 1077,
+      "sha256": "7bf5aa13492f3fdc33b668c8fe6ee19cfd5990922fa3f418045c40381e94dcb6"
+    },
+    {
+      "path": "1408-typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "1408-source.log",
+      "bytes": 87408,
+      "sha256": "cd2e12aee6b58fbb273154718cbc31d15b3400bc328ec474d88b356450cb3ca5"
+    },
+    {
+      "path": "1408-build.log",
+      "bytes": 16025,
+      "sha256": "c947a3bac9c6f97905fc343b0da0dc75f9765b25ccd50448af4844a5149ab53e"
+    }
+  ],
+  "review": {
+    "reviewer": "/root/validation_stability",
+    "author": "/root/validation_stability/conditional_preview",
+    "approved": true,
+    "scope": "Connected readonly conditionalcredit eligibility endpoint/client/savedcredit UI. Projection excludes internal tokens/payload; original+responseidentity/capability/tenant/revision gates retained; no publicposting route or fallback; financialservicebody andschema unchanged."
+  },
+  "tests": {
+    "source": {
+      "pass": 839,
+      "fail": 0,
+      "skip": 0
+    },
+    "focused": 20,
+    "staticRenders": 9,
+    "apiTypecheck": "passed",
+    "integrationBundle": "passed",
+    "fullBuildTypecheck": "passed",
+    "nativePostgreSQL": "pending exact PR27 CI, three new mounted HTTP scenarios",
+    "browser": "not run; Playwright Chromium executable absent"
+  },
+  "parentAccepted": false,
+  "publicPostingEnabled": false,
+  "workerStopped": true,
+  "worktreeClean": true,
+  "activeCommands": 0
+}

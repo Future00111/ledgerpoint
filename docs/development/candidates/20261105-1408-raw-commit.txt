@@ -1,0 +1,6 @@
+tree a4d25087c8a25d46bcf6ca22d6853d46aae61e12
+parent 5c60b4729c5658e732b81fe496cdc8fd8ef219ec
+author Codex <codex@openai.com> 1793888482 +0000
+committer Codex <codex@openai.com> 1793888482 +0000
+
+Add read-only conditional credit eligibility review

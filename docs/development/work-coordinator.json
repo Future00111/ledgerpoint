@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 255,
+  "revision": 256,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 679,
+    "revision": 680,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -103,7 +103,7 @@
         "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Source5c60 qualified; rootreviewed nextcontract connects readonly conditionalcredit eligibility POSTreview endpoint to native client/existing savedcredit UI. Server persisted original governs eligibility; correctcompany/capability/revision and no financialeffects. Explicit previewonly no mutationbutton/fallback/publicconditionalpost. HTTP PostgreSQL/client/model/render tests; isolatedbrowser pending actualcapability. Freeze14:25/stop14:36.",
+        "checkpoint": "Stopped clean9ee7d1/treea4d250, source5c60. Connected readonlyconditional review endpoint/client/UI; nofinancialengine/schema/publicposting changes. Independentcoordinator reviewapproved exact11files. Focused20 render9 APItypecheck/bundle source839/fullbuild passed. Three nativeHTTP scenarios pendingexactCI; browserblockedmissingChromium. Parentremainsunfinished.",
         "evidence": {
           "commit": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
           "summary": "PARTIAL bounded P01-03 internal atomic redemption now exact native PostgreSQL-qualified after two fixture-only corrections. Validation preflight integrated. Full parent UI/browser, compensation, priorcredits and correction expansion remain pending; conditional public posting closed. Next complete connected parent journey; no original bullet autoaccepted.",
@@ -9089,6 +9089,13 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "Source5c60 qualified; rootreviewed nextcontract connects readonly conditionalcredit eligibility POSTreview endpoint to native client/existing savedcredit UI. Server persisted original governs eligibility; correctcompany/capability/revision and no financialeffects. Explicit previewonly no mutationbutton/fallback/publicconditionalpost. HTTP PostgreSQL/client/model/render tests; isolatedbrowser pending actualcapability. Freeze14:25/stop14:36."
+      },
+      {
+        "at": 1793888625852,
+        "actor": "worker-1408",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Stopped clean9ee7d1/treea4d250, source5c60. Connected readonlyconditional review endpoint/client/UI; nofinancialengine/schema/publicposting changes. Independentcoordinator reviewapproved exact11files. Focused20 render9 APItypecheck/bundle source839/fullbuild passed. Three nativeHTTP scenarios pendingexactCI; browserblockedmissingChromium. Parentremainsunfinished."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -9106,7 +9113,7 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "5bcfcd7fd50dac52b15b734c6208683e13c4f3ab",
+    "sha": "52b50ee1b4a3a06b9f8d2efd9669a6e91b11b798",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -9115,10 +9122,10 @@
       }
     ],
     "runId": "hosted-20261105-1408",
-    "at": 1793888267790,
+    "at": 1793888625885,
     "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec"
   },
-  "updatedAt": 1793888267790,
+  "updatedAt": 1793888625885,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9489,7 +9496,7 @@
     "stopBy": "2026-11-05T14:36:00Z",
     "implementationStopBy": "2026-11-05T14:25:00Z",
     "status": "active",
-    "activity": "Worker actual5file readonly route/client/model/form/component diff exists; coordinator earlyreview verified restricted projection omits reviewtoken/canonicalpayload, distinct readonly state and hardpostingguard. Tests being added; requested exactresponseidentity and conditionalactionlabels. Nofinancialruntime/schema edits. Chromium launch fails missing executable; fullbrowserjourney notclaimed.",
+    "activity": "Worker stoppedclean9ee7d1/treea4d250; coordinatorindependent exact11file reviewapproved. Focused20 renders9 APItypecheck/bundle source839/fullbuildpassed. Archive and normalexpected5c60 sourceupdate next; exactCI3newHTTPPGscenarios required. Browsermissingbinary pending; no fullparent acceptance.",
     "credits": "unknown",
     "activeWorkers": [
       {
@@ -9514,7 +9521,8 @@
         "commentOnlyFile": "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
         "commentOnlyReason": "Existing reviewConditionalCredit comment says deliberatelyunmounted; update commentonly for reviewed readonly route, no functionbodychange",
         "presentationOnlyFile": "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx",
-        "presentationOnlyReason": "Shared DraftWriteActions takes optional reviewLabel defaulting to unchanged ordinary wording; conditional form supplies readonly eligibility label, no duplicate controls or authority changes"
+        "presentationOnlyReason": "Shared DraftWriteActions takes optional reviewLabel defaulting to unchanged ordinary wording; conditional form supplies readonly eligibility label, no duplicate controls or authority changes",
+        "status": "stopped-clean-review-held"
       }
     ],
     "replitCapability": {
@@ -9526,6 +9534,14 @@
       "chromiumExecutable": false,
       "probe": "browserType.launch: Executable does not exist",
       "browserJourney": "pending"
+    },
+    "primaryCandidate": "9ee7d1ba2b852ab279f2c5980c94c46e43fb20ab",
+    "primaryCandidateTree": "a4d25087c8a25d46bcf6ca22d6853d46aae61e12",
+    "independentReview": {
+      "reviewer": "/root/validation_stability",
+      "author": "/root/validation_stability/conditional_preview",
+      "approved": true,
+      "scope": "Connected readonly conditionalcredit eligibility endpoint/client/savedcredit UI. Projection excludes internal tokens/payload; original+responseidentity/capability/tenant/revision gates retained; no publicposting route or fallback; financialservicebody andschema unchanged."
     }
   },
   "continuation": {

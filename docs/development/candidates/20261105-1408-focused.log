@@ -1,0 +1,28 @@
+✔ credit envelope forces offset_outstanding and keeps strings (1.48211ms)
+✔ purchase eligibility only true when explicitly true (0.233952ms)
+✔ copy preserves order (0.879984ms)
+✔ pence display (0.294774ms)
+✔ doc paths (0.228644ms)
+✔ discount inputs stay decimal strings and clearing sends explicit null for PATCH semantics (0.254243ms)
+✔ discount adjustment preserves original revision and full source lines in native credit envelope (0.254883ms)
+✔ post sends quoted If-Match and surfaces error code (0.939975ms)
+✔ ordinary invoice/bill always sends posting_account_id; default clears to null (0.412661ms)
+✔ error issues are preserved for field-level display (0.539872ms)
+✔ updateAccount PATCHes with quoted sha256 revision; no delete method exists (0.368034ms)
+✔ original payment identity recovery is a scoped read and sends no frozen financial payload (0.322005ms)
+✔ conditional draft receipt is preserved and explicit clear survives native envelope (0.152139ms)
+✔ conditional evidence capture/read use company scoped native endpoints (0.311609ms)
+✔ conditional credit review is scoped, revision-bound and exposes no commit method (0.663038ms)
+✔ only explicit absent-schema review falls back; no posting call or ambiguous error is retried (2.565942ms)
+✔ review preserves exact server allocation vector and request identity (0.280282ms)
+✔ persisted original selects the dedicated read-only conditional preview and preserves server values (1.005263ms)
+✔ missing or mismatched persisted original fails closed; draft terms cannot select conditional flow (0.555035ms)
+✔ source wiring: conditional form review hides confirmation and guards the posting handler (12.651402ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 134.328516

@@ -1,0 +1,1223 @@
+✔ company scope accepts an active membership for the resource company (1.848482ms)
+✔ company scope fails closed when membership is revoked (0.151118ms)
+✔ company scope rejects cross-company resource access (0.107532ms)
+✔ company scope rejects caller and resource company disagreement (0.129004ms)
+✔ company scope rejects missing authentication or company context (0.238099ms)
+✔ company scope rejects malformed context even when resource context exists (0.143036ms)
+✔ company scope allows a matching requested and resource company (0.416127ms)
+✔ resource-backed scope allows a missing caller company context (0.295284ms)
+✔ malformed or conflicting resource scope fails before membership lookup (0.210687ms)
+✔ both protected resource-backed routes invoke the conflict-aware scope guard before analysis (1.159946ms)
+✔ database lookup failures fail closed (0.28606ms)
+✔ each authorization decision rechecks membership after revocation (0.323898ms)
+✔ duplicate active memberships with the same role resolve deterministically (0.222816ms)
+✔ duplicate active memberships with conflicting roles fail closed (0.124577ms)
+✔ scope resolution invokes only the membership lookup (4.874086ms)
+✔ background jobs carry explicit system company context (0.409466ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 216.679976
+✔ price basis defaults for old drafts, validates strictly and binds canonical source fingerprints (4.188214ms)
+✔ finite draft capabilities deny unknown, legacy, inactive and unconfigured Manager (0.191278ms)
+✔ integer half-up line rounding and authoritative VAT composition preserve GBP pence (1.508851ms)
+✔ decimal grammar, bounds, dates, nulls and tenant/financial field injection reject (0.643379ms)
+✔ PATCH merges validated source but rejects currency, empty patch, unknown fields (0.528776ms)
+✔ duplicate JSON keys (including escaped and nested keys) fail closed (0.435806ms)
+✔ generic invoice writes blocked for every generic operation policy (0.123747ms)
+✔ shared single/batch settlement sink rejects draft invoice targets (0.311709ms)
+✔ absent authority refuses even a valid request without connecting a DB (0.913906ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96.907858
+✔ capture JSON rejects duplicate financial keys before JSON.parse loses them (1.504444ms)
+✔ capture raw body bounds separate upload bytes from review envelopes (35.137977ms)
+✔ capture malformed JSON fails closed and existing draft bounds remain active (0.328625ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 105.446646
+✔ discount parser preserves absent legacy fields, canonical fingerprints and explicit removal (11.55333ms)
+✔ discount input rejects hidden fields, invalid decimals, zero, over 100%, precision and conflicting intents (1.411455ms)
+✔ largest remainders allocate every penny deterministically, including ties and zero lines (7.282601ms)
+✔ percentage precision and amounts remain exact up to the supported money ceiling (1.198093ms)
+✔ positive percentages rounding to zero cannot create no-op discounts or unpostable zero credits (0.269305ms)
+✔ excluding_vat percentage discount is applied before authoritative mixed 20/5/0 VAT (1.878758ms)
+✔ excluding_vat amount discount is applied before authoritative mixed 20/5/0 VAT (0.435626ms)
+✔ including_vat percentage discount is applied before authoritative mixed 20/5/0 VAT (0.43798ms)
+✔ including_vat amount discount is applied before authoritative mixed 20/5/0 VAT (0.319912ms)
+✔ no-discount production authority keeps legacy amounts and context free of discount fields (0.603178ms)
+✔ legacy financial-draft service accepts and persists authoritative discounted totals and audit (1.989064ms)
+✔ later gross credit retains original VAT pennies including exact full reductions (12.801753ms)
+✔ partial returns on discounted originals prorate stored net/VAT and never use pre-discount prices (0.435706ms)
+✔ a zero-allocated discount line keeps its original partial-return VAT rounding (0.377118ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 193.367381
+✔ original document exists on its posting date, but no financial amount exists before it (6.349577ms)
+✔ £120 corrected to £108 with £50 paid has £58 due using existing settlement semantics (0.925242ms)
+✔ dated signed movements reconcile every historical net, VAT and gross projection (1.696093ms)
+✔ same-day corrections retain the validated revision order rather than sorting IDs (0.419031ms)
+✔ mixed VAT and penny snapshots retain authoritative per-line values with signed deltas (0.56432ms)
+✔ maximum native precision and a single-penny amendment never use floating point money (0.37858ms)
+✔ all document kinds retain positive own amounts; credit projection grants no parent capacity (1.425115ms)
+✔ complete frozen history yields deterministic detached deeply frozen results (0.872183ms)
+✔ money must be bounded canonical integer strings, not loose coercible values (4.098308ms)
+✔ zero or negative whole documents and inconsistent line/totals money reject (0.610889ms)
+✔ source, event and requested company/document scopes must all agree (0.513222ms)
+✔ identity fields validate UUID shape, while canonical casing cannot bypass identity checks (1.619868ms)
+✔ financial context is immutable and requires a canonical SHA-256 identity (0.453532ms)
+✔ invalid calendar dates and posting range reject; a valid leap date works (0.81704ms)
+✔ correction dates cannot precede the original or previous correction (0.549457ms)
+✔ duplicate event, replay request, journal or revision identity cannot enter a history (0.85711ms)
+✔ missing, reordered, stale or truncated history is rejected against its independent head (4.851592ms)
+✔ every before snapshot must exactly equal the preceding revision, including line amounts (0.699032ms)
+✔ declared differences must match every aggregate and line, not just balance in total (0.448344ms)
+✔ all snapshots retain original line references, ordering and count (1.059444ms)
+✔ invalid, repeated or missing line references and sparse arrays reject (0.569127ms)
+✔ corrupt future amendments still reject before original existence or financial cutoff (0.780755ms)
+✔ unchanged money and real line redistribution with zero aggregate have distinct blockers (0.424448ms)
+✔ only explicit posted financial schemas are accepted; metadata is not a financial event (0.757661ms)
+✔ snapshot line bounds match the native 200-line contract (1.085283ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 312.507708
+✔ all five supported boxes reconcile signed canonical evidence; unsupported boxes stay unknown (4.356196ms)
+✔ VAT and net amounts, zero/repayment direction and every supported box fail closed on disagreement (4.176151ms)
+✔ nonrecoverable supplier VAT is not inferred from gross minus net (0.461204ms)
+✔ dated corrections are differences and never rewrite historical VAT movements (0.622457ms)
+✔ mixed 20/5/0 line fixtures from the existing calculator reconcile in both price bases (0.661847ms)
+✔ penny and aggregate values above Number safe integer retain exact reconciliation (1.157612ms)
+✔ duplicate journals, malformed money, wrong signs, wrong boxes and impossible dates reject (0.701506ms)
+✔ non-VAT businesses are not applicable, never a reconciled or filing-ready return (0.231839ms)
+✔ coverage states are detached and immutable; engine cases do not claim actual period eligibility (0.347002ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 111.658901
+✔ difference journals preserve double entry, per-line VAT identity and direction for sales and recoverable/nonrecoverable bills (11.975625ms)
+✔ decimal precision remains integer exact and a zero delta emits no journal legs (0.941197ms)
+✔ frozen authority ignores only changed quantities/prices and derived tax amounts (2.100982ms)
+✔ line correction accepts only existing positions and exact decimal strings (1.750585ms)
+✔ request contract rejects injected fields, invalid dates and missing reasons (0.841707ms)
+✔ schema absence preserves originals; partial schema and detached amendment heads fail closed (1.288719ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 250.724492
+✔ sensitive audit and export roles fail closed (0.815427ms)
+✔ audit filters reject unsupported or unbounded values and preserve literal search (2.713004ms)
+✔ continuation preserves microseconds and binds company and every filter (2.348906ms)
+✔ fixed public projection excludes source, provider errors and unsafe fields (1.540078ms)
+✔ CSV neutralises spreadsheet formulas and controls, quotes delimiters and never silently truncates (3.342751ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 103.226685
+✔ legacy compatibility writes accept only the five known write roles (1.044652ms)
+✔ compatibility permission does not give staff or members native draft authority (0.200192ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 69.480792
+✔ last active owner cannot leave or be demoted; another active owner permits either (2.08627ms)
+✔ inactive, ambiguous and unknown memberships cannot supply owner authority or protection (0.524429ms)
+✔ nonowners may leave themselves but cannot remove others or grant any role (0.593914ms)
+✔ member mutations reject duplicate, missing, ambiguous and invalid-role targets (0.34546ms)
+✔ company request bodies admit current fields and reject mass assignment and malformed types (8.320583ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 206.28174
+✔ company endpoints reject unauthenticated requests and invalid roles before database or identity work (90.817367ms)
+✔ legacy settlement cannot mutate invoice or bill balances, regardless of role or supplied company (42.502231ms)
+✔ legacy bank mutations reject contradictory or malformed caller company before membership or writes (37.535936ms)
+✔ generic entity reads bind explicit workspace context and recheck active membership while preserving viewer reads (18.418823ms)
+✔ generic lists and deletes honor selected company without broadening malformed context (21.867413ms)
+✔ generic updates preserve tenant ownership and reject stale or malformed workspace context (37.350737ms)
+✔ generic creates reject malformed or contradictory company context before membership and insert (62.835805ms)
+✔ legacy AI rejects malformed explicit company and mismatched membership before company data or provider access (14.838113ms)
+✔ bank imports reject stale row companies atomically before access and preserve valid selected-company imports (23.221911ms)
+✔ complete legacy entity inventory denies every CRUD write to inactive, foreign and viewer actors (467.499977ms)
+✔ complete legacy entity inventory permits scoped viewer reads and denies inactive, foreign and stale-context reads (133.646805ms)
+✔ legacy function inventory authenticates every action and rejects inactive or foreign company access before effects (25.99083ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1456.198522
+✔ safe errors retain fixed business guidance and redact database/provider/auth diagnostics (1.446577ms)
+✔ unhandled async route failures expose neither stack traces nor raw diagnostics in response or log (58.558879ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 154.394573
+✔ admission limits repeated requests, ignores spoofed forwarding headers and resets at boundary (1.230081ms)
+✔ capacity is bounded without evicting live counters; expired clients free capacity (0.23965ms)
+✔ invalid admission settings fail closed and API responses are never cached (0.90318ms)
+✔ fetch metadata boundary preserves safe methods and rejects only explicit cross-site unsafe requests without Origin (0.167462ms)
+✔ fetch metadata comparison handles mixed-case cross-site values without reflecting them (0.207903ms)
+✔ outer error classification trusts only fixed origin and matching parser cases (0.427233ms)
+✔ actual app rejects malformed JSON before Clerk without echoing body or parser details (212.733054ms)
+✔ actual app rejects oversized JSON with fixed 413 and unsupported charset with fixed 415 (79.347859ms)
+✔ actual app rejects disallowed origins without reflecting origin or granting CORS access (5.517174ms)
+✔ allowed credentialed CORS preflight retains its existing response (4.285931ms)
+✔ actual app catches synchronous and async middleware failures without arbitrary diagnostic logs (7.901033ms)
+✔ existing draft parser response and explicitly handled business responses are preserved (7.72689ms)
+✔ an already-started response closes without headers, body, or raw errors reaching the default handler (0.3653ms)
+✔ actual app limits URL-encoded parameter counts before Clerk and suppresses server fingerprint (6.578661ms)
+✔ logger serializes errors as a fixed category and redacts bodies, session tokens and provider responses (1.791186ms)
+✔ actual app rejects cross-site browser writes without Origin before parsing or Clerk (10.089336ms)
+✔ allowed cross-site origins and non-browser clients still reach the parser (6.514166ms)
+✔ implicit error log messages cannot escape the structured error serializer (0.641065ms)
+✔ HTTP logs omit sensitive request targets, credentials, payloads and response bodies (3.558346ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 598.982089
+✔ discounted bill claims retain stored discounted pennies for full and partial returns (4.408095ms)
+✔ commercial discount credits are never returned-item credit candidates (0.283998ms)
+✔ claims on an original line with zero allocated discount keep legacy partial VAT rounding (0.536657ms)
+✔ expected credit retains original standard VAT evidence (0.197938ms)
+✔ inclusive standard claim extracts VAT using the original treatment (0.268083ms)
+✔ expected credit retains original reduced VAT evidence (0.105899ms)
+✔ inclusive reduced claim extracts VAT using the original treatment (0.128233ms)
+✔ expected credit retains original zero VAT evidence (0.22587ms)
+✔ inclusive zero claim extracts VAT using the original treatment (0.204968ms)
+✔ expected credit retains original exempt VAT evidence (0.301664ms)
+✔ inclusive exempt claim extracts VAT using the original treatment (0.132009ms)
+✔ expected credit retains original outside_scope VAT evidence (0.186611ms)
+✔ inclusive outside_scope claim extracts VAT using the original treatment (0.109635ms)
+✔ expected credit retains original no_vat VAT evidence (0.141603ms)
+✔ inclusive no_vat claim extracts VAT using the original treatment (0.157527ms)
+✔ partial quantities use the original exclusive rate with exact half-up rounding (0.163606ms)
+✔ inclusive input extracts VAT from rounded gross, including fractional quantities (0.12001ms)
+✔ full-quantity expectation preserves saved line totals instead of summing split rounding (0.09944ms)
+✔ large prices and quantities stay exact without floating point multiplication (0.090045ms)
+✔ drafts, wrong kinds and malformed source evidence cannot become claims (0.184387ms)
+✔ selection rejects nonexistent indices, invalid decimals and excessive quantities (0.387433ms)
+✔ stored totals and tax evidence must agree with original deterministic calculation (0.229736ms)
+✔ candidate identifies the exact source and accepts drafts only as suggestions (0.11947ms)
+✔ candidate rejects wrong company, supplier, bill, revision and document kind (0.467233ms)
+✔ part and surcharge remain independent even with identical descriptions (0.170526ms)
+✔ malformed candidate indices and mappings fail closed (0.157928ms)
+✔ a new claim awaits credit and has its full expected balance (0.265009ms)
+✔ partial and multiple receipts retain exact monetary and quantity remainders (0.205689ms)
+✔ a lower-price credit does not close the claim even if it covers the full quantity (0.11942ms)
+✔ matching gross with different net and VAT requires review (0.129545ms)
+✔ over-crediting is visible rather than clamped out of received totals (0.103857ms)
+✔ invalidated receipts do not satisfy a claim and explicitly require review (0.194342ms)
+✔ receipt quantities accumulate exactly to four decimal places (0.095313ms)
+✔ malformed money, inconsistent totals and numeric quantities are rejected (0.342656ms)
+✔ tracking functions leave source documents and receipt evidence unchanged (0.232189ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 91.779273
+✔ evidence is content-derived and immutable; duplicates survive new filenames and channels (2.034842ms)
+✔ source descriptors cannot be forged or copied from unverified JSON (0.920064ms)
+✔ source rejects unsupported media, bad signatures, unsafe names and oversized bytes (1.433377ms)
+✔ supported image signatures are accepted without claiming a successful image parse (0.185899ms)
+✔ transcripts are bounded, immutable and tied to the exact source (3.071954ms)
+✔ a coherent candidate remains unposted and requires explicit source, supplier and tax review (1.961702ms)
+✔ fabricated citations, offsets, quotes and sources are rejected (2.165068ms)
+✔ missing citations and absent identifiers become explicit review errors (0.455726ms)
+✔ unknown fields, instructions as commands, excessive lines and values fail shape validation (0.586332ms)
+✔ sparse provider arrays and non-numeric page references cannot bypass validation (0.587114ms)
+✔ prototype-bearing candidates and accessor fields are rejected without evaluation (0.548846ms)
+✔ invalid decimal strings and numeric JSON values never get rounded or coerced (1.590434ms)
+✔ invalid VAT, fractional-penny totals and inconsistent line/document totals are flagged (0.995258ms)
+✔ totals checks retain exact integer precision at the native money limit (0.442537ms)
+✔ invalid dates, unsupported currency and missing credit original are explicit errors (0.568926ms)
+✔ prompt-like instructions in a cited description remain inert text (1.186386ms)
+✔ reviewed native envelope is parsed and stays an unposted draft candidate (1.019925ms)
+✔ source, supplier and tax acknowledgements are mandatory and bound to the current payload (0.635697ms)
+✔ native strict contract rejects model totals, undeclared metadata and invalid decimals (0.269566ms)
+✔ draft adapters reject coercible kinds, source accessors and sparse source lines (0.247011ms)
+✔ credits require matching explicit original references, reason and effective date (1.061283ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 97.701569
+✔ native upload derives identity and SHA from bytes and rejects client identity fields (3.527639ms)
+✔ strict base64 rejects ignored whitespace, extra padding, URL alphabet and noncanonical trailing bits (0.374664ms)
+✔ upload caps the encoded allocation and decoded bytes at 5 MiB, accepting the exact limit (45.372582ms)
+✔ native upload rejects media mismatches, unsafe filenames and prototype-bearing payloads (0.83033ms)
+✔ verified storage reconstruction rejects tampered hash, bytes, length, format and channel (0.879754ms)
+✔ download disposition safely encodes quotes, unicode and header delimiters as attachment (0.467193ms)
+✔ review freshness changes with calculation, mapping, source revision and entered intent (2.716829ms)
+✔ replay intent remains source-bound and rejects caller totals (0.643098ms)
+✔ upload deduplicates within a company with one source and one audit while retaining original metadata (1.157843ms)
+✔ same bytes in another company create independent evidence without revealing the first source (0.722157ms)
+✔ current membership and write role are required even when the content is a duplicate (2.231749ms)
+✔ the in-transaction native save helper retains its own active membership and draft-write gate (0.781086ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 216.995819
+✔ job identity is stable, canonical and binds company, source bytes, recipe, request and retry policy (3.48809ms)
+✔ creation requires byte-verified evidence and bounded explicit recipe, identity and retry settings (1.406047ms)
+✔ a cited mixed-VAT invoice remains immutable evidence for explicit native supplier/tax review (5.109711ms)
+✔ supplier credit evidence requires original bill and line selection without matching or posting automatically (1.285145ms)
+✔ malformed candidate accounting values stay visible review errors using existing validators (1.891287ms)
+✔ incorrect source, hash, page, quote and offsets cannot become accepted citations (4.968118ms)
+✔ document instructions remain inert cited data and unsupported command fields are rejected (1.36868ms)
+✔ exact cloned completion is idempotent, changed raw payload conflicts even if sanitized reviews match (1.64146ms)
+✔ completion requires a verified result and matching company, source id and byte hash (3.47485ms)
+✔ transient failures wait for the bounded retry deadline and preserve prior immutable outcomes (1.863185ms)
+✔ retry budgets terminate repeated transient failures and permanent failures never retry (1.028147ms)
+✔ invalid clocks, revisions, unbounded retry hints and raw provider errors fail closed (0.981267ms)
+✔ cancellation is terminal, clears result availability and rejects late responses (0.88999ms)
+✔ supersession binds a different job to the same company/evidence and fences stale deliveries (1.159195ms)
+✔ page, transcript, result byte, node and depth bounds reject oversized provider output (28.838376ms)
+✔ non-JSON values, sparse arrays, getters and extra envelope fields are never evaluated or accepted (1.537334ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 137.540029
+✔ worker verifies source and adapts bounded cited output into review only, with immutable originals (10.887807ms)
+✔ enqueue is actor-bound/idempotent, prevents competing source requests, and requires current authority (2.178789ms)
+✔ source size, media, tenant, hash, revision and linked-document changes fail before dispatch (2.956796ms)
+✔ two workers race one job but dispatch exactly once (2.928357ms)
+✔ shared repository limits concurrent executions across multiple workers and different sources (14.033629ms)
+✔ timeout fences an uncooperative adapter and retains actual capacity until transport closure (18.249011ms)
+✔ cancel and supersede signal abort and late output cannot replace current state (4.673094ms)
+✔ expired abandoned leases are recoverable but cannot release execution slots or accept stale completion (1.117442ms)
+✔ revoked access, changed evidence or converted source at outcome time cannot retain an extraction result (2.808878ms)
+✔ lease expiry during the final authority check rejects a previously timely result (1.917826ms)
+✔ transient failures use bounded retry deadlines/budgets; raw failures never leak diagnostics (1.102159ms)
+✔ permanent unsupported/encrypted failures do not retry and missing adapters fail closed (2.056866ms)
+✔ output rejects oversized bytes, excessive chunks/pages, duplicate keys, deep JSON and invalid UTF-8 (19.713822ms)
+✔ transport byte mutation cannot rewrite source evidence and malformed candidate stays an explicit review issue (0.739383ms)
+✔ unconfirmed transport closure retains capacity even when its output has completed (5.152645ms)
+✔ a hung authority adapter is bounded and cannot accumulate unlimited orphan resolutions (10.888888ms)
+✔ queue and settings limits fail explicitly; external repository errors return only bounded status (0.798762ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 182.413173
+✔ retired chart bootstrap cannot reach a data handler for any authenticated caller or body (98.95892ms)
+✔ retirement leaves unrelated functions reachable and preserves generic financial write guards (18.428938ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 226.347555
+✔ exact invoice receipt keeps confidence below 100 and proposes full allocation (1.705918ms)
+✔ one receipt can match multiple invoices (0.274633ms)
+✔ partial payment records allocation separately from the remaining invoice balance (13.272167ms)
+✔ small excess against a strong invoice signal is an overpayment candidate (0.401395ms)
+✔ receipt with no invoice remains a no-match review result (0.467579ms)
+✔ incorrect reference can still match from amount, name, and date evidence (0.254052ms)
+✔ delayed payment can match when reference and party evidence are strong (0.225349ms)
+✔ multiple payments against one invoice can be reviewed as sequential allocations (0.52466ms)
+✔ slightly different customer names produce a reviewable close-name match (0.303537ms)
+✔ partially unexplained revenue leaves the unmatched receipt value visible (0.638962ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 76.535795
+✔ prioritises an old, high-value overdue invoice and includes actual payment evidence (1.488711ms)
+✔ excludes paid, cancelled and not-yet-due invoices from a collection queue (0.250988ms)
+✔ keeps customer totals separate while ranking independent overdue invoices (0.316516ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.65305
+✔ VAT scenario: standard-rate sales (1.790625ms)
+✔ VAT scenario: reduced-rate sales (0.203756ms)
+✔ VAT scenario: zero-rate sales (0.214353ms)
+✔ VAT scenario: exempt sales (0.153902ms)
+✔ VAT scenario: no-VAT purchase (0.101393ms)
+✔ VAT scenario: input VAT reclaim (0.10632ms)
+✔ VAT scenario: sales credit note (0.083536ms)
+✔ VAT scenario: supplier credit note (0.24571ms)
+✔ VAT scenario: mixed sales and purchase (0.088083ms)
+✔ VAT scenario: box 2 feeds box 3 (0.198259ms)
+✔ VAT scenario: box 8 retained (0.210947ms)
+✔ VAT scenario: box 9 retained (0.08622ms)
+✔ VAT scenario: positive manual box 1 adjustment (0.087251ms)
+✔ VAT scenario: negative manual box 4 adjustment (0.043936ms)
+✔ VAT scenario: manual box 6 adjustment (0.123255ms)
+✔ VAT scenario: manual box 7 adjustment (0.065248ms)
+✔ VAT scenario: rounding in pence (0.039099ms)
+✔ VAT scenario: multiple output sources (0.922649ms)
+✔ VAT scenario: multiple input sources (0.086971ms)
+✔ VAT scenario: output credit offsets invoice (0.036254ms)
+✔ VAT scenario: input credit offsets bill (0.032288ms)
+✔ VAT scenario: blank return (0.052129ms)
+✔ VAT scenario: all nine boxes can coexist (0.029424ms)
+✔ VAT scenario: derived boxes cannot be manual adjustments (0.075153ms)
+✔ VAT scenario: generic entity writes cannot bypass the VAT workflow (0.150386ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 75.607108
+✔ source inventory grants no unverified destination, scope or retention assurance (2.827356ms)
+✔ expiry, outage, revocation and unknown outcome never lose work or broaden unqualified access (0.408415ms)
+✔ unknown services, malformed operation identity and premature destination entries fail closed (0.408164ms)
+✔ every current AI completion caller is covered by explicit outbound data inventory (9.290283ms)
+✔ pinned HMRC bytes reproduce all extracted cases and logical spreadsheet row references (55.169065ms)
+✔ reference matrix covers all 130 exact amounts across five plans and four frequencies (1.009099ms)
+✔ reference coverage never promotes payroll calculation or another tax year (9.266548ms)
+✔ pinned PAYE v1.1 source reproduces all cells, provenance and published changes (89.081288ms)
+✔ PAYE references retain every regional sheet, exact signed money and sequence links (2.242285ms)
+✔ regional PAYE references remain unqualified and cannot enable another tax year (9.345506ms)
+✔ every registered payroll reference matches its pinned corpus without qualifying calculations (8.524601ms)
+✔ contradictory reference descriptors fail at the ordinary registry boundary (11.462732ms)
+✔ missing, wrong-year, reclassified and inconsistent corpus evidence fails closed (13.546074ms)
+✔ incorrect declared count and frequencies cannot pass as reference coverage (2.413513ms)
+✔ unregistered and malformed examples cannot be silently omitted from coverage (9.540399ms)
+✔ case identity is unique across all dimensions of a linked corpus (1.453648ms)
+✔ reference amounts and source coordinates must be complete exact values (34.398964ms)
+✔ PAYE reference coverage preserves ordered workbook sequence lineage (32.343031ms)
+✔ independent PAYE sequences can interleave without losing their own lineage (2.185159ms)
+✔ registered reference identity rejects substituted valid hashes and source versions (16.669779ms)
+✔ inventory remains in-house, unqualified and preserves all target domains and years (5.858748ms)
+✔ vat-standard-2025-26: explicit unqualified result matches registered example (1.167297ms)
+✔ vat-standard-2026-27: explicit unqualified result matches registered example (0.691881ms)
+✔ vat-standard-2027-28: explicit unqualified result matches registered example (0.899524ms)
+✔ vat-cash-2025-26: explicit unqualified result matches registered example (0.749578ms)
+✔ vat-cash-2026-27: explicit unqualified result matches registered example (0.610799ms)
+✔ vat-cash-2027-28: explicit unqualified result matches registered example (1.226125ms)
+✔ vat-flat-rate-2025-26: explicit unqualified result matches registered example (0.638952ms)
+✔ vat-flat-rate-2026-27: explicit unqualified result matches registered example (0.810289ms)
+✔ vat-flat-rate-2027-28: explicit unqualified result matches registered example (1.823364ms)
+✔ vat-annual-2025-26: explicit unqualified result matches registered example (0.887426ms)
+✔ vat-annual-2026-27: explicit unqualified result matches registered example (0.630219ms)
+✔ vat-annual-2027-28: explicit unqualified result matches registered example (1.359276ms)
+✔ income-trade-2025-26: explicit unqualified result matches registered example (0.602807ms)
+✔ income-trade-2026-27: explicit unqualified result matches registered example (0.752703ms)
+✔ income-trade-2027-28: explicit unqualified result matches registered example (0.578551ms)
+✔ income-property-2025-26: explicit unqualified result matches registered example (0.667695ms)
+✔ income-property-2026-27: explicit unqualified result matches registered example (0.601685ms)
+✔ income-property-2027-28: explicit unqualified result matches registered example (0.636368ms)
+✔ income-mixed-2025-26: explicit unqualified result matches registered example (1.442661ms)
+✔ income-mixed-2026-27: explicit unqualified result matches registered example (1.317413ms)
+✔ income-mixed-2027-28: explicit unqualified result matches registered example (0.880605ms)
+✔ corporation-trade-2025-26: explicit unqualified result matches registered example (0.533093ms)
+✔ corporation-trade-2026-27: explicit unqualified result matches registered example (0.465341ms)
+✔ corporation-trade-2027-28: explicit unqualified result matches registered example (0.498681ms)
+✔ payroll-employee-2025-26: explicit unqualified result matches registered example (1.184143ms)
+✔ payroll-employee-2026-27: explicit unqualified result matches registered example (0.893925ms)
+✔ payroll-employee-2027-28: explicit unqualified result matches registered example (0.914166ms)
+✔ payroll-director-2025-26: explicit unqualified result matches registered example (1.421219ms)
+✔ payroll-director-2026-27: explicit unqualified result matches registered example (0.89045ms)
+✔ payroll-director-2027-28: explicit unqualified result matches registered example (0.888728ms)
+✔ payroll-starter-leaver-2025-26: explicit unqualified result matches registered example (0.891632ms)
+✔ payroll-starter-leaver-2026-27: explicit unqualified result matches registered example (1.390693ms)
+✔ payroll-starter-leaver-2027-28: explicit unqualified result matches registered example (0.889438ms)
+✔ payroll-correction-2025-26: explicit unqualified result matches registered example (1.330873ms)
+✔ payroll-correction-2026-27: explicit unqualified result matches registered example (0.935618ms)
+✔ payroll-correction-2027-28: explicit unqualified result matches registered example (0.904902ms)
+✔ payroll-loan-plan_1-2026-27: explicit unqualified result matches registered example (1.047676ms)
+✔ payroll-loan-plan_2-2026-27: explicit unqualified result matches registered example (1.008568ms)
+✔ payroll-loan-plan_4-2026-27: explicit unqualified result matches registered example (1.482691ms)
+✔ payroll-loan-plan_5-2026-27: explicit unqualified result matches registered example (1.007556ms)
+✔ payroll-loan-postgraduate-2026-27: explicit unqualified result matches registered example (0.872182ms)
+✔ payroll-paye-rest_of_uk-2026-27: explicit unqualified result matches registered example (0.930901ms)
+✔ payroll-paye-scotland-2026-27: explicit unqualified result matches registered example (0.953735ms)
+✔ payroll-paye-wales-2026-27: explicit unqualified result matches registered example (0.984602ms)
+✔ missing, inherited, extra and non-string dimensions fail closed (4.460143ms)
+✔ unknown year and unknown combinations cannot inherit nearby qualification (1.546959ms)
+✔ duplicate identity or selectors, missing provenance and unsupported status tampering reject registry (3.362531ms)
+✔ payroll boundary rejects cross-domain case and does not mutate input (1.286866ms)
+✔ discovery provenance cannot silently become reviewed qualification (3.651306ms)
+✔ examples must exactly identify their case and explicitly reject calculation (3.800019ms)
+✔ incomplete traceability and invalid source metadata reject the registry (4.90322ms)
+✔ payroll scope covers every original engine/workflow bullet without promoting support (0.958242ms)
+✔ missing payroll families, years, scenarios and speculative qualification fail closed (12.416553ms)
+✔ malformed case rows retain the registry validation boundary (3.928424ms)
+✔ credit envelope forces offset_outstanding and keeps strings (1.664134ms)
+✔ purchase eligibility only true when explicitly true (0.213882ms)
+✔ copy preserves order (0.928718ms)
+✔ pence display (0.320773ms)
+✔ doc paths (0.204378ms)
+✔ discount inputs stay decimal strings and clearing sends explicit null for PATCH semantics (0.27261ms)
+✔ discount adjustment preserves original revision and full source lines in native credit envelope (0.296697ms)
+✔ post sends quoted If-Match and surfaces error code (1.031432ms)
+✔ ordinary invoice/bill always sends posting_account_id; default clears to null (0.368825ms)
+✔ error issues are preserved for field-level display (0.674686ms)
+✔ updateAccount PATCHes with quoted sha256 revision; no delete method exists (0.470098ms)
+✔ original payment identity recovery is a scoped read and sends no frozen financial payload (3.788352ms)
+✔ conditional draft receipt is preserved and explicit clear survives native envelope (0.18628ms)
+✔ conditional evidence capture/read use company scoped native endpoints (0.388174ms)
+✔ conditional credit review is scoped, revision-bound and exposes no commit method (0.475155ms)
+✔ list scopes and encodes company and optional bill, preserves abort signal and session credentials (2.372321ms)
+✔ create sends exact quantities, bill revision and request identity without posting fields (0.552401ms)
+✔ receipt confirmation and cancellation send quoted UUID revision and stable caller request identity (0.432751ms)
+✔ permission and stale revision failures keep server code, status and issues (0.719663ms)
+✔ malformed success and unavailable network are not treated as a saved claim (0.601596ms)
+✔ list/detail scope and content URLs encode company/source/document identifiers and include credentials (1.761681ms)
+✔ upload retry retains exact payload and returns duplicate source metadata (1.233567ms)
+✔ review and draft preserve native decimal strings, opaque fingerprint, confirmations and quoted capture revision (0.603728ms)
+✔ source download is authenticated binary, bounded, and failures preserve safe API errors (1.281258ms)
+✔ malformed success cannot authorize writes (0.256426ms)
+✔ native entity reads keep company filters and Clerk session cookies (41.297237ms)
+✔ native generic invoice writes surface the server's protected-workflow rejection (0.828256ms)
+✔ first-party function client sends authenticated JSON and returns its native response (44.192064ms)
+✔ first-party function client reports server failures instead of returning fake success (1.040747ms)
+✔ LLM integration fails explicitly when no provider is configured (1.438726ms)
+✔ file upload fails explicitly when persistent storage is not configured (0.473983ms)
+✔ synthetic demo uses the guarded native POST, cookie authentication and no caller-supplied identity (38.964095ms)
+✔ an HTML fallback becomes a helpful service message, not a JSON parser error (1.045153ms)
+✔ authentication, network failures and conflicting sample data remain explicit (0.970311ms)
+✔ malformed successful responses cannot select an unverified company (0.468966ms)
+✔ client sends selected basis, defaults legacy forms, and never converts typed amounts (1.259796ms)
+✔ explicit client DTO preserves source text and excludes financial/tenant/status authority (0.246791ms)
+✔ client create/edit/read round-trip consumes envelope, company and revision (37.770409ms)
+✔ safe typed failures preserve code/issues and never retry (1.072364ms)
+✔ company context uses the authenticated native invoice route and verifies tenant identity (1.173326ms)
+✔ wrong-company or malformed success is uncertain, not accepted as saved (0.609848ms)
+✔ new draft defaults use 30 calendar days, including month and leap boundaries (2.45824ms)
+✔ changing price basis retains all entered line text and dates (0.266782ms)
+✔ only an untouched new-draft due date follows terms and invoice date (0.230677ms)
+✔ invoice list uses authenticated native read endpoint scoped to one company (38.430137ms)
+✔ invoice list rejects cross-company and malformed responses (1.459137ms)
+✔ unissued drafts retain their row but never contribute to receivables or payment KPIs (1.434218ms)
+✔ dates, search and scope validation fail closed (2.712122ms)
+✔ all supported sources link to existing read views (0.229736ms)
+✔ old company and failed requests cannot display prior rows or recover export authority (1.429872ms)
+✔ late exports cannot download after company, filter or cancellation changes (0.904281ms)
+✔ native audit client uses selected company, credentials and safe CSV metadata (39.307112ms)
+✔ BOM, CRLF, escaped quotes and multiline quoted fields retain exact contents (4.932675ms)
+✔ malformed quoting, null bytes and missing CSV content are rejected (1.226466ms)
+✔ upload bytes, UTF-8 bytes, row, column and field limits are enforced before review (10.180282ms)
+✔ dates never guess a locale; day-first requires explicit selection (0.512752ms)
+✔ money uses exact pennies including grouped amounts and the existing numeric boundary (0.361904ms)
+✔ money never truncates, rounds or coerces malformed values to zero (0.229115ms)
+✔ duplicate mappings are blocked, including ambiguous automatically mapped headers (0.519622ms)
+✔ valid receipt/payment preview preserves typed exact amounts, company and bank scope (0.513703ms)
+✔ invalid rows block the entire file and identify the CSV row without partial import (1.025814ms)
+✔ missing balance stays unknown rather than a fabricated zero (0.523618ms)
+✔ same-value transactions are retained and flagged, never silently deduplicated (1.165655ms)
+✔ a newer file, another company and dialog cancellation fence late asynchronous reads (0.276786ms)
+✔ only a complete scoped import receipt can report success (0.645883ms)
+✔ new company starts with no inherited rows, suggestions, errors or selections (1.822713ms)
+✔ concurrent reads publish only verified rows and suggestions for their fixed company (1.891206ms)
+✔ late success and error after company switch cannot publish or trigger another old-company refresh (0.561255ms)
+✔ newer refresh wins independently for both requests, including an older rejected request (0.341343ms)
+✔ Strict Mode stop/start cannot revive an earlier request or action ticket (0.372541ms)
+✔ invalid, mixed-company and duplicate-id transaction responses fail closed and retries recover (1.316822ms)
+✔ suggestion failure clears stale suggestions, hides diagnostics, and does not remove verified transactions (0.427894ms)
+✔ malformed suggestion payloads are rejected rather than rendered or treated as an empty success (0.557108ms)
+✔ partial receipt stays open with the remaining server amount, cancelled and received amounts are excluded (1.471224ms)
+✔ totals retain precision beyond Number.MAX_SAFE_INTEGER (0.225419ms)
+✔ overdue applies only to open claims with a past expected date (0.203236ms)
+✔ search finds invoice, return note, part and vehicle/job independently (0.24569ms)
+✔ active receipts prevent cancelling tracking; inactive history does not count as received (0.162064ms)
+✔ confirmation controls require server capability and a posted, confirmable credit on an active claim (0.195013ms)
+✔ cancel control is unavailable to a viewer, cancelled claim, or claim with any receipt history (0.151147ms)
+✔ selected line indices and decimal strings remain exact; no browser calculated money is submitted (0.94368ms)
+✔ uncertain retry reuses its id; changed details or revision get a new id; success clears it (0.475095ms)
+✔ old company/refresh responses cannot replace a newer view and unmount invalidates pending results (0.30585ms)
+✔ ready-to-review is based on posted confirmable candidates, not drafts or arbitrary flags (1.98637ms)
+✔ overdue and ready filters retain multi-field search and original source identities (1.257883ms)
+✔ existing lifecycle filters retain cancelled, received and partial claim distinctions (9.00975ms)
+✔ summary aggregates server minor units exactly and never substitutes missing amounts with zero (0.456106ms)
+✔ follow-up priorities and UTC calendar ages preserve evidence and never infer sending (0.5846ms)
+✔ correction intent keeps decimal strings and stable line positions without performing accounting (4.479632ms)
+✔ invalid dates, blank reasons, oversized fields and invalid identity are rejected before review (0.64491ms)
+✔ reviewed amounts and existing partial payment come only from server and exact receipt completes once (1.09654ms)
+✔ unknown outcome keeps exact immutable request, token and revision for retry and blocks fresh edits (0.715186ms)
+✔ definitive permission failure clears review and requires fresh authoritative context (0.394774ms)
+✔ read-only and blocked context cannot initiate review or commit (0.394183ms)
+✔ foreign context and mismatched review identity never expose a commit (0.422596ms)
+✔ late load and review results cannot replace newer scope or revive a disposed page (0.69739ms)
+✔ an invalid or differently identified commit receipt remains an unknown outcome (0.76439ms)
+✔ disposing after a commit starts does not claim cancellation or invoke the old page callback (1.031582ms)
+✔ a UI refresh failure cannot change a confirmed posting into an uncertain outcome (0.466211ms)
+✔ editing and posting require independently explicit capabilities (0.868988ms)
+✔ late discount uses existing credit workflow for original invoices and bills, including partially paid (0.33176ms)
+✔ adjustment preparation captures source revision while preserving entered decimal values (2.367133ms)
+✔ balance preview uses canonical reconciled settlement and saved credit within remaining credit capacity (0.522817ms)
+✔ old company, document, or load generation cannot apply mutation result to a new view (0.150937ms)
+✔ paid-discount entry uses remaining original credit capacity, independently of remaining cash due (0.220201ms)
+✔ discount entry rejects missing, malformed or inconsistent settlement without throwing (0.307072ms)
+✔ capture accepts bounded PDFs/JPEGs/PNGs, rejects empty/oversize/unsupported and caps queue at ten (2.355195ms)
+✔ bounded FileReader preserves source bytes as base64 and never reads invalid files (1.455241ms)
+✔ duplicates open their existing capture or correct native bill/credit without creating another editor (0.196856ms)
+✔ save requires exact reviewed envelope, scope and three explicit acknowledgements (0.382315ms)
+✔ company and route changes, newer requests and unmount invalidate stale requests (0.319431ms)
+✔ source returns accept only source identifiers and construct an internal inbox URL (2.354754ms)
+✔ saved and duplicate captures preserve the native bill/credit route plus a safe source return (0.584289ms)
+✔ inbox filters only the supplied recent-source metadata and preserve original source identity (1.347007ms)
+✔ capture progress requires source review before save and does not imply posting (0.234303ms)
+✔ only PNG/JPEG previews pass type, exact size and binary signature validation (3.599458ms)
+✔ PNG IHDR dimensions are bounded before decoding, including product and individual-side limits (2.767004ms)
+✔ PNG animated, repeated or invalid header chunks remain download-only (2.129415ms)
+✔ JPEG baseline and progressive frames accept bounded dimensions; oversized and zero sizes fail (1.135009ms)
+✔ JPEG segment bounds reject truncated, invalid, duplicate and unknown frames without decoding (2.944632ms)
+✔ header reading and segment scanning are explicitly bounded; oversize previews allocate no URL (49.009946ms)
+✔ an explicit open uses the authenticated content boundary and releases the URL on close (1.762848ms)
+✔ close and source/company disposal fence late reads even if the loader ignores AbortSignal (0.460212ms)
+✔ late reads from a previous preview never replace the latest attempt (0.669517ms)
+✔ closing while signature bytes are read prevents URL creation (8.378ms)
+✔ denied reads and corrupt files never allocate URLs or expose raw failure details; retry can recover (0.847075ms)
+✔ image decode failures release their own URL but stale image events cannot fail a newer preview (0.493773ms)
+✔ missing identity and unsupported sources never request content; disposed viewers cannot reopen (0.463538ms)
+✔ viewer identity changes for company, source and immutable metadata, but not filename (0.207302ms)
+✔ create and saved-record edit submit only actual company schema fields (1.373357ms)
+✔ unknown and unsupported saved financial settings are never silently normalized (0.529938ms)
+✔ company save requires a usable receipt and reports safe structured validation errors (1.666689ms)
+✔ explicit supported tax choices retain exact treatment/rate pairs in native payloads (1.230532ms)
+✔ tax rules reject wrong registration, rate, calendar dates, missing reasons and overlaps (0.629998ms)
+✔ new tax rule effective dates stay within the native document date range (0.266611ms)
+✔ VAT settings preserve actual saved unsupported states and send only reviewed edits (0.704711ms)
+✔ blank company resumes from fresh server configuration rather than visited steps (4.720375ms)
+✔ an existing customer does not mask missing mappings, tax rules or unsupported business (1.912559ms)
+✔ current date must fall in one open period; draft permission stays separate from posting setup (0.71109ms)
+✔ inactive, ineligible and repeated mappings fail readiness even if server errors are empty (1.710555ms)
+✔ tax readiness needs valid effective unambiguous codes, rates, labels and non-VAT treatment (0.529788ms)
+✔ readiness date checks match the native document range including its boundaries (1.457584ms)
+✔ draft and posting permissions are independent server facts, and active parties are required (0.530117ms)
+✔ wrong-company, malformed and partial reads fail closed (0.645282ms)
+✔ late results after company switch, refresh or cancellation cannot restore readiness (0.622948ms)
+✔ concurrent configuration revisions require another fresh read (4.538972ms)
+✔ created-company entry uses only the freshly authorized record and switches before navigation (0.742027ms)
+✔ new business defaults to professional view and a reload restores either explicit choice (2.146841ms)
+✔ preferences are isolated by both authenticated account and company, including delimiter-like IDs (0.445511ms)
+✔ missing identity never reads or writes browser storage or creates a shared fallback key (0.329145ms)
+✔ corrupt, older and non-boolean values cannot enable explanations and can be replaced explicitly (0.371569ms)
+✔ blocked storage getter or read fails safely without exposing the underlying error (0.37833ms)
+✔ failed writes retain the explicit choice for this visit and a later successful write clears warning (0.220873ms)
+✔ only a boolean is accepted; no object or financial payload can be stored (0.600704ms)
+✔ only explicit absent-schema review falls back; no posting call or ambiguous error is retried (2.409166ms)
+✔ review preserves exact server allocation vector and request identity (1.401099ms)
+✔ persisted original selects the dedicated read-only conditional preview and preserves server values (0.893635ms)
+✔ missing or mismatched persisted original fails closed; draft terms cannot select conditional flow (0.41168ms)
+✔ source wiring: conditional form review hides confirmation and guards the posting handler (12.594521ms)
+✔ a lost response after a committed request resolves through a read without reposting (3.36135ms)
+✔ not found remains unknown and retry sends identical ID, body, precision and review token (1.220437ms)
+✔ a stale, denied or failed retry never erases an earlier uncertain outcome (0.622467ms)
+✔ empty, malformed or mismatched recording responses never claim a successful payment (0.534394ms)
+✔ status lookup resolves payment, allocation, unallocation, refund and reversal by event ID (0.477619ms)
+✔ failed and malformed history reads retain the recovery request and do not write (0.505962ms)
+✔ double clicks cannot overlap recording, checking or retry requests (1.161468ms)
+✔ company switch clears recovery and ignores late recording and history responses (0.741306ms)
+✔ permissions fail closed for writes while status reads remain available after role changes (0.738281ms)
+✔ explicit abandon clears only this view and never issues a cancellation or another write (0.404269ms)
+✔ payment filters combine party/reference, direction and exact unapplied pence without mutating rows (3.055128ms)
+✔ statement links require a party of the correct type in the currently loaded company context (0.287152ms)
+✔ payment shortcut waits for verified permission, setup and current ledger before one opening (0.39824ms)
+✔ unresolved outcomes, existing forms and denied roles consume shortcuts without creating a new payment (0.14589ms)
+✔ consumed shortcut URL cannot reopen after close, refresh or a remount and keeps existing deep-link parameters (0.679223ms)
+✔ statement dates reject incomplete, reversed and impossible ranges before a ledger read or export (0.960716ms)
+✔ statement links preserve a reports closing-date basis and later URL period changes (0.280022ms)
+✔ late party lookup success or failure is ignored on company switch and retry cancellation (0.647734ms)
+✔ party selection rejects old, loading, failed and out-of-company links (0.202725ms)
+✔ statement retry attempts both sources independently even when either fails (0.3521ms)
+✔ malformed party data becomes a retryable lookup error without publishing accounts (0.232961ms)
+✔ statement CSV retains exact signed amounts, opening balances and unapplied columns (0.638692ms)
+✔ dates retain all-history drilldown and reject empty, impossible and reversed periods (2.892823ms)
+✔ closing reports use As-at independently of movement ranges, including previous years (20.500976ms)
+✔ company/date/refresh changes and return to a previous scope immediately remove export authority (0.502356ms)
+✔ cancelled successes and errors cannot publish after scope changes even if abort is ignored (0.745352ms)
+✔ wrong-period and wrong-company journal responses fail closed; retries recover (0.849459ms)
+✔ ledger search intersects existing filters and CSV matches exact displayed source amounts (1.045163ms)
+✔ VAT exports retain repayment scope; non-VAT cannot export a zero-valued return (0.640694ms)
+✔ account-balance CSV discloses closing basis and does not imply transaction-history export (0.408224ms)
+✔ loading is lazy, concurrent reads share one import, and successful modules remain cached (1.228059ms)
+✔ a failed module is retried only on request and its sensitive error is not exposed (0.7641ms)
+✔ missing default exports fail safely and a subsequent corrected module can load (1.264353ms)
+✔ independent route failures do not reset a successfully loaded page (0.442276ms)
+✔ all existing paths retain their exact page, document-kind props, fallbacks and redirects (4.09936ms)
+✔ auth and company boundaries remain around the workspace; feature pages load only on demand (6.695287ms)
+✔ every box/search export selects exactly the visible evidence and retains company/period/filter context (7.817562ms)
+✔ filtered evidence retains original and correction journals separately with canonical signs (3.22258ms)
+✔ filtered CSV preserves huge money and neutralises formula text in evidence and filter metadata (0.787515ms)
+✔ unsupported boxes stay unknown and box 5 evidence does not claim a filtered net tax amount (1.211574ms)
+✔ empty and non-VAT evidence cannot manufacture monetary rows or broaden the full export (0.688717ms)
+✔ unverified company context and invalid snapshots cannot produce source evidence (0.394364ms)
+✔ company, date and refresh changes clear selected box/search before an effect runs (0.348975ms)
+✔ VAT links retain their exact dates and invalid explicit dates require correction (3.217622ms)
+✔ period input rejects impossible, unbounded, missing and reversed dates without rollover (0.34541ms)
+✔ source review keeps canonical signs, period scope and eligible VAT without inferring tax from gross (3.663614ms)
+✔ incomplete, mismatched or unreconciled server evidence cannot appear as verified workings (2.236416ms)
+✔ CSV preserves integer-string precision and neutralises formula-like source text (2.272151ms)
+✔ coverage validates all nine box statuses and never accepts zeros for unsupported boxes (0.815077ms)
+✔ correction movements retain original document links with distinct journals and signed dated CSV evidence (0.550027ms)
+✔ company, date, removal and refresh scope changes hide both old data and old errors immediately (0.37844ms)
+✔ cancelled success and error cannot replace a newer result even when transport ignores abort (1.817416ms)
+✔ load errors fail closed and a fresh retry can recover (0.588456ms)
+✔ non-VAT companies have no source rows or export even if response contains financial figures (0.19918ms)
+✔ tablet collapse and opening mobile navigation do not overwrite the saved desktop preference (1.88075ms)
+✔ storage denial is harmless to shell navigation (0.238168ms)
+✔ creation shortcuts use exact server capability facts, with payment setup independently gated (0.503418ms)
+✔ company, role and request changes fail closed before new permissions load (0.240752ms)
+✔ late permission reads are discarded after company change or abort; one failed capability domain does not grant it (1.041768ms)
+✔ feature search preserves all existing destinations and never reveals development routes without access (0.566523ms)
+✔ deep-link navigation matches the most specific existing route without sibling prefix confusion (0.84675ms)
+✔ keyboard widget movement preserves dimensions, hidden entries, pinned identities and other sections (0.645642ms)
+✔ closing navigation restores its real opener and falls back to the workspace after a responsive unmount (0.31239ms)
+✔ daily navigation keeps its seven direct routes and partitions the entire catalogue without loss or duplicates (0.80364ms)
+✔ navigation searches the whole catalogue and retains development and planned restrictions (0.497398ms)
+✔ new everyday names remain discoverable through feature search (0.633063ms)
+✔ audit navigation and search respect the active company role and hide while membership is unavailable (1.26896ms)
+✔ new draft dates follow issue date plus terms across months and leap years (1.917025ms)
+✔ manual and reopened saved due dates are not recalculated by issue/terms edits (1.709312ms)
+✔ save captures the displayed date even if a native input event has not updated React state (0.298059ms)
+✔ credit dates remain explicit and are never derived from payment terms (0.154863ms)
+✔ sales and purchase selectors use server eligible_roles strictly; credits inherit originals (1.096049ms)
+✔ ledger movement and closing-balance footers sum their own columns with integer precision (0.280812ms)
+✔ planned accounts: non-recoverable purchase has no input VAT line; explicit sales account wins (0.336958ms)
+✔ issueFor finds path issue (0.176626ms)
+✔ saved draft account list filters the six-role snapshot like the unsaved preview (0.547965ms)
+✔ a full reload restores the selected authorized No VAT company, not the first company (1.055618ms)
+✔ preferences are account-specific and revoked or forged IDs cannot grant company access (0.537499ms)
+✔ a statement carries opening invoices and credit through payment, allocation and refund movements (1.926841ms)
+✔ exact export handles large values, negative pennies, quoted text and spreadsheet formula prefixes (0.436167ms)
+✔ customer statement negatives remain numbers while formula-like references stay escaped (0.273261ms)
+✔ historical decimal strings convert to minor units exactly; invalid totals stay unavailable (1.386648ms)
+✔ displayed header totals sum exact pennies without inferring missing values or offsetting per-entry imbalances (3.843095ms)
+✔ account search uses stored line metadata and tolerates malformed legacy JSON (0.198329ms)
+✔ switching company or leaving the payment page discards late success and finally updates (1.724586ms)
+✔ late old failure cannot replace a new form error or release its pending state (0.332671ms)
+✔ post-refresh completion checks the same request lifetime after its second await (1.246686ms)
+✔ review captures the exact company, decimal strings, allocations and retry identity (0.84416ms)
+✔ event deep links choose the requested payment, including allocation and refund events (0.19251ms)
+✔ posted contribution uses saved account and actual journal including credit reversals (1.227788ms)
+✔ P&L category drilldown groups split lines, includes credits and excludes VAT and drafts (10.462899ms)
+✔ report navigation includes historic and future posting dates; filters intersect (1.626078ms)
+✔ original and correction journals retain separate movements and trace to the same document (0.500313ms)
+✔ legacy submitted or filed flags are presented as recorded status, not filing success (1.068157ms)
+✔ approved, locked, draft and missing records do not become submission notifications (0.183997ms)
+✔ restore refuses shared databases, TCP, altered ports, sibling directories and alternate database names (1.967742ms)
+✔ restore comparison detects changed amounts, missing source/audit records and changed protections (0.81715ms)
+✔ partial-schema CommonJS bundle has no restore orchestration dependency (331.685235ms)
+✔ acquisition is exclusive; transitions do not mutate caller state (3.357634ms)
+✔ wrong token/run cannot renew, save or release; stale renewal is refused (2.422937ms)
+✔ clean release needs a current durable checkpoint and preserves it for the next owner (2.207212ms)
+✔ expiry quarantines all normal actions without granting new ownership (1.025153ms)
+✔ explicit recovery requires stopped prior run evidence and a durable checkpoint (1.392917ms)
+✔ invalid time, TTL, arbitrary commands and unsafe checkpoint data fail closed (2.117247ms)
+✔ malformed persisted evidence and invalid repository paths cannot acquire ownership (1.28902ms)
+✔ release retires plaintext token but still rejects previous token and run reuse (2.006721ms)
+✔ expired recovery retires plaintext token and preserves the same reuse guard (1.227107ms)
+✔ legacy retired tokens normalize without changing live fences or caller history (1.589762ms)
+✔ malformed or mixed retired token representations fail closed (1.245534ms)
+✔ active version-2 lease stores only a digest; publishing the digest does not grant ownership (0.493483ms)
+✔ version-1 active ownership migrates only with the existing fence and preserves times/history (0.877601ms)
+✔ malformed, mixed, version-2 plaintext and unknown-version active states fail closed (2.108543ms)
+✔ catalogue rejects cycles, unknown rules/authority, unsafe paths and missing acceptance (4.095725ms)
+✔ state version 3 fails closed for old/new unsupported states without silently migrating (2.101433ms)
+✔ automatic selection follows priority and dependencies, not fixed team/category assignments (2.43177ms)
+✔ exact/prefix leases block overlap through review while unrelated files run simultaneously (1.471705ms)
+✔ one running task per worker; review permits another independent task (0.743559ms)
+✔ block releases ownership with checkpoint and task blockers automatically clear after acceptance (3.314639ms)
+✔ decision/environment blockers need explicit coordinator resolution and never self-unlock (1.233637ms)
+✔ expired running/review leases are quarantined and cannot be silently stolen (1.276291ms)
+✔ workers cannot accept their own work; acceptance needs independent matching-commit passing evidence (1.407489ms)
+✔ reopening a dependency invalidates accepted descendants and quarantines active descendants transitively (1.956254ms)
+✔ reject retains lease until stopped-worker recovery; approve requires actual scoped owner record (1.816825ms)
+✔ coordinator priority overrides, worker capabilities and unresolved rules control eligible selection (0.679173ms)
+✔ transitions are immutable, revisioned, auditable and reject stale tokens (0.513123ms)
+✔ renewal is scoped and bounded, while invalid task blocker names cannot reference object properties (0.402786ms)
+✔ discovered dependencies survive resumption, review and acceptance then invalidate work when reopened (6.700665ms)
+✔ dynamically discovered cycles are rejected atomically across static and discovered dependencies (1.440929ms)
+✔ reopening a prerequisite preserves downstream environment, decision and other task blockers (3.992079ms)
+✔ stopped-worker recovery clears quarantine causes but preserves independent blockers (0.499181ms)
+✔ worker blockers cannot impersonate scheduler-owned quarantine causes (0.423748ms)
+✔ explicit blocker resolution preserves evidence and dependencies without reopening descendants (2.660715ms)
+✔ worker provenance is distinct from the single permitted integration destination; no input mutation or token output (5.311795ms)
+✔ rejects worker destination without leaking local token (0.755998ms)
+✔ rejects state destination without leaking local token (0.433563ms)
+✔ rejects authority changed branch without leaking local token (0.284769ms)
+✔ rejects authority changed head without leaking local token (0.287663ms)
+✔ rejects destination changed head without leaking local token (0.313863ms)
+✔ rejects wrong PR without leaking local token (0.295795ms)
+✔ rejects closed PR without leaking local token (0.389376ms)
+✔ rejects ready PR without leaking local token (0.324177ms)
+✔ rejects merged PR without leaking local token (0.534655ms)
+✔ rejects fork head without leaking local token (0.308234ms)
+✔ rejects fork base without leaking local token (2.574084ms)
+✔ rejects changed PR branch without leaking local token (0.270407ms)
+✔ rejects changed PR base branch without leaking local token (0.215494ms)
+✔ rejects changed PR head without leaking local token (0.249806ms)
+✔ rejects changed PR base SHA without leaking local token (0.22586ms)
+✔ rejects changed candidate without leaking local token (0.211858ms)
+✔ rejects changed tree without leaking local token (0.203205ms)
+✔ rejects author ancestry is not published ancestry without leaking local token (0.304308ms)
+✔ rejects merge candidate without leaking local token (0.237458ms)
+✔ rejects missing review without leaking local token (0.158539ms)
+✔ rejects self approval without leaking local token (0.158959ms)
+✔ rejects padded self approval without leaking local token (0.158829ms)
+✔ rejects missing author without leaking local token (0.237608ms)
+✔ rejects empty author without leaking local token (0.154562ms)
+✔ rejects wrong token without leaking local token (0.287543ms)
+✔ rejects digest used as token without leaking local token (0.713103ms)
+✔ rejects wrong run without leaking local token (0.216777ms)
+✔ rejects idle authority without leaking local token (0.16633ms)
+✔ rejects expired lease without leaking local token (0.255194ms)
+✔ rejects malformed authority without leaking local token (0.190357ms)
+✔ rejects mixed token state without leaking local token (0.370047ms)
+✔ rejects malformed intent without leaking local token (0.253251ms)
+✔ rejects unsafe author origin without leaking local token (0.169896ms)
+✔ rejects wrong repository in authority (0.264658ms)
+✔ requires fresh non-future authority observation (1.596663ms)
+✔ rejects wrong repository in pullRequest (0.128304ms)
+✔ requires fresh non-future pullRequest observation (0.252631ms)
+✔ rejects wrong repository in destination (0.10682ms)
+✔ requires fresh non-future destination observation (0.276116ms)
+✔ rejects wrong repository in candidate (0.129284ms)
+✔ requires fresh non-future candidate observation (0.277278ms)
+✔ rejects time before authority update and never mutates a lease to extend its life (0.515315ms)
+✔ read-only inspection does not create runtime state or locks (3.246927ms)
+✔ initialisation restores a checkpoint but never overwrites existing runtime (18.805685ms)
+✔ state revision CAS and atomic checkpoint export preserve newer work (33.391708ms)
+✔ revision cannot be skipped or changed without an increment; true no-op is allowed (14.855098ms)
+✔ corrupt state, wrong schema and broken symlinks fail closed instead of reinitialising (21.687287ms)
+✔ parallel processes share one atomic queue: no double claims or overlapping files (160.080705ms)
+✔ a crashed process leaves a lock requiring explicit token-matched dead-owner recovery (66.667037ms)
+✔ live or foreign lock owners are never evicted by age or a recovery request (9.23547ms)
+✔ separate Git worktrees resolve the same runtime store while retaining their own checkpoint path (23.803352ms)
+✔ real CLI and core enforce automatic claims, configured coordinator and reviewed dependency release (114.183009ms)
+✔ CLI command parsing rejects authority injection, actor mismatch, malformed and oversized JSON (15.444996ms)
+✔ a changed catalogue cannot reinterpret shared state or file leases and init never resets it (50.236642ms)
+✔ CLI blocker resolution requires current revision and preserves evidence, dependencies and separate acceptance (249.822077ms)
+✔ real CLI exports verifier-only leases and fences digest-as-command without persisting raw tokens (54.459177ms)
+✔ v3 claim result alone contains raw token; persisted state and all owned transitions contain only verifiers (16.264431ms)
+✔ explicit stopped v2 migration preserves task and event meaning, order, revision, source provenance and input (3.083601ms)
+✔ migration rejects held, mixed, malformed, unknown and missing-provenance input without mutating it (2.194363ms)
+✔ v3 refuses plaintext, mixed, malformed and misplaced verifiers including nested evidence (2.183556ms)
+ℹ tests 427
+ℹ suites 0
+ℹ pass 427
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1615.557546
+✔ failed history is retryable and cannot imply an empty or balanced ledger or expose diagnostics (24.09061ms)
+✔ loading history never displays stale rows, zero counts or balance assertions (3.980221ms)
+✔ successful reads preserve journal rows and distinguish an actual empty result (16.361726ms)
+✔ opposite unbalanced entries cannot imply balance merely because their aggregate cancels out (7.302061ms)
+✔ missing or malformed historical header totals are unavailable, never inferred as zero (29.817028ms)
+✔ schema-shaped legacy details show header totals, line accounts and a valid source link (5.493168ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 300.155048
+✔ posted supplier invoice shows tracking at the heading and original lines while access loads, retaining accounting amounts (47.632507ms)
+✔ sales invoices and posted credit notes retain their original actions without supplier-return selectors (27.388953ms)
+✔ apply discount is available on partially settled originals only with verified edit permission (54.786101ms)
+✔ posted discount credit labels original prices and server allocated credit amounts (9.42841ms)
+✔ normal return from discounted original explains inherited pricing without claiming another full discount (8.479222ms)
+✔ fully paid originals prepare discount drafts while preserving unavailable and exhausted guards (188.671002ms)
+✔ malformed settlement renders an unavailable state rather than money, status or write actions (109.648003ms)
+✔ discount review hides stale or malformed balances and never suggests excess beyond credit capacity (4.508876ms)
+✔ ordinary credits use remaining original credit capacity even when cash is fully settled (46.952625ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 713.445431
+✔ draft document shows invoice date and totals, not issued or receivable/payment labels (18.327456ms)
+✔ inclusive document labels entered prices and percentage VAT without changing net fields (7.177864ms)
+✔ issued document retains payment labels and zero-day terms are preserved (2.580273ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 128.808021
+✔ audit workspace presents source and journal trace, UTC precision, actor and read-only scope (21.457075ms)
+✔ loading, errors and edited filters disable export and stale rows stay hidden during reads (19.97819ms)
+✔ empty history is a filter result and explains supported sources without inventing completeness (4.988548ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 218.289196
+✔ review exposes every source row, exact money and explicit duplicate acknowledgement (10.095935ms)
+✔ explicit exclusions update the count and a pending/uncertain import disables choices (4.988618ms)
+✔ history coverage advisory remains visible even when no duplicate candidates were found (1.390793ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 125.154433
+✔ company loading or missing access never renders the bank workspace or old company details (7.896225ms)
+✔ company identity gives the actual stateful workspace a new key and renders only the selected company (1.382271ms)
+✔ failed reads offer scoped retries; suggestion failure does not falsely declare the transaction list empty (1.455791ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 336.15283
+✔ original bill line control is an accessible checkbox and passes its exact source index (11.66657ms)
+✔ tracked source line renders its current status linked to history, with no duplicate selector (1.766308ms)
+✔ untracked read-only lines and header expose no selection controls (0.927145ms)
+✔ initial loading, failed lookup and unverified access never expose write controls (3.430834ms)
+✔ header action opens selection and remains usable when all lines already have claims (24.665774ms)
+✔ dialog form keeps source line selection and partial quantity, with normal date inputs (19.855841ms)
+✔ saving disables selection, submission and explicit close controls (9.887391ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 374.611981
+✔ collapsed queue preserves item and money context but requires review before confirmation (43.149715ms)
+✔ review disclosure and confirmation retain the exact selected candidate (6.590435ms)
+✔ busy review locks disclosure and confirmation while missing amounts stay unavailable (4.942173ms)
+✔ partial credit shows expected, received and remaining server amounts without settlement claims (6.237608ms)
+✔ view-only and draft candidate renders cannot expose confirmation controls (11.263438ms)
+✔ cancelled and reversed-receipt history remains visible without misleading actions (10.477479ms)
+✔ row shows age and suggested follow-up without implying a sent reminder or changing amounts (4.205379ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 293.042874
+✔ queue filters select their own stable status and expose pressed state (10.911903ms)
+✔ summary actions jump to filtered queues only when source evidence is available (9.901243ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 448.277812
+✔ review displays exact before/after balance, unchanged payments and bounded credit restrictions (39.588306ms)
+✔ blocked/read-only context exposes history and explanation without editing or posting controls (2.520133ms)
+✔ unknown outcome offers exact-request check and does not offer a fresh post (5.698106ms)
+✔ loading exposes no stale financial values or edit form (1.124071ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 435.51082
+✔ draft save actions distinguish new and edited drafts and fail closed for readers (21.777114ms)
+✔ ordinary discount amount labels follow price basis; adjustment amount always includes VAT (3.660809ms)
+✔ zero-total draft can be saved but cannot be reviewed for posting (0.651ms)
+✔ saved discount summary displays authoritative amounts without deriving VAT from user percentage (2.04649ms)
+✔ late discount original line fields are locked, while normal credit quantities and prices remain editable (4.852262ms)
+✔ discount review separates original total, payments, current remaining and saved discount (2.441795ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 163.096618
+✔ native workspace shows honest provider status and file limits, and gates upload/prepare by verified role (50.095713ms)
+✔ source cards only offer explicit downloads, and linked duplicates open their existing document (2.408364ms)
+✔ an older duplicate outside the recent list resolves a selected source and retains native preparation actions (9.137171ms)
+✔ reviewed capture line renders server money before a draft document exists, and stale review hides amounts (5.552035ms)
+✔ queue renders real reading progress, uncertain failure retry and duplicate links without pretending extraction (3.449852ms)
+✔ capture save requires current review plus explicit three confirmations, with no posting action (4.771572ms)
+✔ capture metadata failures and already-linked sources stay recoverable without showing new draft writes (2.51809ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 302.401246
+✔ uploaded files expose direct preparation links; duplicate linked files reopen with source return (24.854505ms)
+✔ status controls are real filter buttons with selected state and zero/loading counts (1.379346ms)
+✔ mobile cards retain all four document routes, precise money and role-aware draft actions (20.656888ms)
+✔ mobile supplier rows pass the exact original indices and server net values to line controls (3.147547ms)
+✔ posted payment and credit actions occur once in the header, only on permitted originals with valid capacity (90.919643ms)
+✔ capture keeps exactly two distinct submit intents and three unchecked acknowledgements (3.705336ms)
+✔ optional discount stays compact until needed, while existing discounts and draft safeguards remain visible (3.204623ms)
+✔ document totals disclose saved net and VAT precisely without inferring unavailable tax (10.047101ms)
+✔ settlement views discard stale cached balances after failed refresh and retain document access (8.146851ms)
+✔ desktop document tables preserve keyboard access, full references and named document actions (14.973646ms)
+✔ malformed settlement snapshots cannot crash document rows or masquerade as filtered zero balances (106.004691ms)
+✔ document sorting compares exact saved amounts, preserves ties and places missing values last (0.773654ms)
+✔ document date ordering is stable, rejects impossible dates and does not invent credit due dates (1.257924ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 587.5255
+✔ image preview is available on inbox rows, attached cards and draft review without edit authority (21.047794ms)
+✔ PDF and other file types offer an honest download explanation with no renderer (0.933265ms)
+✔ ready preview has accessible expansion, escaped source name, bounded image and no external-document frame (1.359386ms)
+✔ loading and failures remain closable and do not retain an image; retry is explicit (2.169595ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 198.171716
+✔ a file drop reaches the same native selection queue with original file objects and prevents navigation (0.839273ms)
+✔ read-only and busy drops prevent navigation without accepting files or starting a second queue (0.176516ms)
+✔ cancelling a picker or dropping text does not create an empty upload request (0.136526ms)
+✔ file and camera choices stay native, keyboard-operable and limited to the supported formats (15.668232ms)
+✔ active uploads disable both pickers, and unverified roles cannot access a file input (4.496137ms)
+✔ compact source rows retain explicit native bill/credit choice and only download original bytes (11.212886ms)
+✔ mixed source inbox groups preparation and linked records without losing an original source (9.709334ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 252.392665
+✔ professional and explained views preserve native first tasks and full accounting links (46.87013ms)
+✔ read-only users get browse paths without document create or manage-contact claims (7.496282ms)
+✔ loading or failed refresh hides previously supplied readiness and create actions (7.923205ms)
+✔ missing non-VAT rule is actionable and does not masquerade as successful setup (8.168815ms)
+✔ resume suggests the first missing saved prerequisite, then the first available real task (33.710828ms)
+✔ resume respects permissions, unresolved server requirements and failed fresh reads (19.283778ms)
+✔ optional state explanations distinguish saved work, ledger records and external evidence (11.937858ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 306.880049
+✔ saved guidance reaches the first render without showing another account or company preference (53.810911ms)
+✔ unavailable storage shows a recoverable preference message without blocking setup or native tasks (11.229582ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 249.105178
+✔ credit review distinguishes full credit, offset, released cash allocation and original pool evidence (9.138284ms)
+✔ conditional review renders server eligibility and potential release without promising posting (1.177011ms)
+✔ conditional draft action offers eligibility while ordinary action retains posting label (8.713355ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 113.558944
+✔ only owner/accountant posting capabilities expose recording and settlement write actions (21.351592ms)
+✔ settlement actions preserve existing unapplied, allocation, refund and reversal constraints (2.765227ms)
+✔ all payment event kinds retain dates, amounts and journal links for read-only history (5.009259ms)
+✔ unknown outcome offers explicit read and same-payment retry without edit or success claims (2.734015ms)
+✔ status can still be checked with read permission while retry requires posting permission (3.532006ms)
+✔ closing an uncertain result explicitly warns that history must be checked and nothing is cancelled (1.306005ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 244.005876
+✔ payment overview shortcuts use existing row filters and clear conflicting search (14.967247ms)
+✔ statement summary preserves server balances separately and retains exact large values (2.067301ms)
+✔ payment filters have named search/direction/unapplied controls and preserve selected view (11.311154ms)
+✔ payment history provides mobile cards and keyboard scrollable table with real amounts and named actions (6.325691ms)
+✔ empty and filtered payment results explain different next steps without inventing zero balances (5.101028ms)
+✔ payment status and detailed balances preserve refund/reversal distinctions and large pence precision (7.896765ms)
+✔ allocation rows retain original document links, exact amounts and accessible decimal inputs (4.607265ms)
+✔ statement movements preserve source/journal links and separate document and unapplied balances on both layouts (3.872979ms)
+✔ statement empty state retains opening-balance context without pretending the account is settled (1.165044ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 290.493691
+✔ navigation announces selection; closing date toolbar presents one As-at control (19.435628ms)
+✔ report shell shows company but has no export during loading or invalid input (29.754553ms)
+✔ ledger table retains exact money, source routes, captions and keyboard scrolling (8.672429ms)
+✔ journal review presents evidence and hides prior-scope links and amounts (7.011984ms)
+✔ correction ledger and journal links use verified original document identity without replacing journal evidence (5.761902ms)
+✔ report library leads to native VAT and historical status never implies verified filing (13.055669ms)
+✔ report hub retains every current report and historical tools without invented figures (7.699148ms)
+✔ profit overview keeps server totals exact and the statement keeps category and account drilldowns (6.549338ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 446.994387
+✔ loading and failure views are accessible and offer explicit retry without revealing errors (5.736824ms)
+✔ only import failures use the route retry boundary; runtime errors keep the application boundary (0.875698ms)
+✔ a lazy page resolves with its original route props and leaves the surrounding shell rendered (6.954789ms)
+✔ remounting a route after successful retry never resurrects its rejected lazy value (3.346356ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 100.259151
+✔ workings show five server boxes, signed credits, zero eligible VAT and document/journal routes (19.189072ms)
+✔ repayment direction uses server direction and does not turn box 5 negative (8.200042ms)
+✔ coverage separates reconciled workings from unsupported boxes, engine scope and filing authority (7.844707ms)
+✔ missing coverage is shown as unavailable and old data cannot leave a green reconciliation claim (8.920857ms)
+✔ correction row keeps its document and distinct journal links and is clearly a difference movement (10.412441ms)
+✔ non-VAT view hides boxes, monetary rows and CSV export (0.630709ms)
+✔ unsupported setup and load errors provide retry without misleading empty VAT figures (0.888988ms)
+✔ old scope and refresh loading render no stale money or source links (1.210221ms)
+✔ full workings and filtered evidence exports remain distinct with an explicit evidence-only label (7.658788ms)
+✔ filtered export is disabled without verified company context or source movements (18.893106ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 259.271634
+✔ email unavailable notice provides a working document-inbox alternative (8.861918ms)
+✔ email account screen cannot create a simulated connected account (6.468415ms)
+✔ saved rule notice distinguishes preferences from automation (0.402816ms)
+✔ saved workflow route explains that active metadata does not execute tasks (0.79715ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 230.520525
+✔ closed navigation sheet renders no hidden focusable menu entries (29.697879ms)
+✔ daily capture and awaiting-credit routes stay available without suggesting unauthorized writes (17.79278ms)
+✔ breadcrumbs retain document parent navigation and mark the current view (2.388526ms)
+✔ everyday destinations render as real links with one selected route and accessible collapsed labels (18.093112ms)
+✔ the daily task queue shows supplied counts and links without pretending tasks are complete (2.993545ms)
+✔ daily accounting shortcuts retain direct expert paths and only offer draft creation with permission (9.365256ms)
+✔ posted ledger retains exact amounts and evidence while descriptions use native keyboard disclosures (12.987814ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 350.014702

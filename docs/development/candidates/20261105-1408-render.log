@@ -1,0 +1,17 @@
+✔ draft save actions distinguish new and edited drafts and fail closed for readers (19.817668ms)
+✔ ordinary discount amount labels follow price basis; adjustment amount always includes VAT (3.591806ms)
+✔ zero-total draft can be saved but cannot be reviewed for posting (0.492441ms)
+✔ saved discount summary displays authoritative amounts without deriving VAT from user percentage (2.074753ms)
+✔ late discount original line fields are locked, while normal credit quantities and prices remain editable (5.064393ms)
+✔ discount review separates original total, payments, current remaining and saved discount (2.693864ms)
+✔ credit review distinguishes full credit, offset, released cash allocation and original pool evidence (8.887266ms)
+✔ conditional review renders server eligibility and potential release without promising posting (2.426883ms)
+✔ conditional draft action offers eligibility while ordinary action retains posting label (8.80901ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 166.924448
