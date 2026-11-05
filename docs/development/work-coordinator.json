@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 265,
+  "revision": 267,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
@@ -11,7 +11,7 @@
     "runId": "hosted-20261105-1536",
     "tokenSha256": "e75b23a42bc3e5762d19b08df051ee837fa85e2230b4fc4c75fdf7aa2b788d4b",
     "acquiredAt": 1793893049069,
-    "expiresAt": 1793894849069
+    "expiresAt": 1793895863699
   },
   "lastOwner": {
     "runId": "hosted-20261105-1444",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 686,
+    "revision": 688,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Published6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc/treea4d25087c8a25d46bcf6ca22d6853d46aae61e12. Exact CI42049132286/job127320152088 1109pass0fail0skip0cancel; root independent equal checkout+logs. No workers/processes/source edits. Next P01-03 coordinator-owned engineering: transaction-scoped linked reversal contract + stopped-worker ownership migration, then atomic compensation implementation. Publicposting closed; browser absent; parent pending.",
+        "checkpoint": "Before edit: source6ebee; reviewed2file ownership migration5277ec; bounded protected transaction-scoped reversal only, no public posting or schema. Freeze15:55UTC.",
         "evidence": {
           "commit": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
           "summary": "PARTIAL connected readonly conditional-credit eligibility endpoint and native saved-credit UI, independently reviewed exact tree; actual HTTP PostgreSQL qualified. Public posting remains closed; P01-03 compensation/prior-credit/correction and full browser journey remain pending. Next coordinator resolves transaction-scoped linked reversal contract/ownership then implements compensation; no owner decision required.",
@@ -254,7 +254,10 @@
             }
           }
         },
-        "blockers": []
+        "owner": "reversal1536",
+        "tokenSha256": "495915759fe5c29f5483a22a1331c2d441471fb44f202395d637dc5e582d9341",
+        "leaseUntil": 1793894798127,
+        "workStarted": true
       },
       "P01-04": {
         "status": "blocked",
@@ -9306,6 +9309,20 @@
         "type": "recover",
         "taskId": "P01-03",
         "checkpoint": "Published6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc/treea4d25087c8a25d46bcf6ca22d6853d46aae61e12. Exact CI42049132286/job127320152088 1109pass0fail0skip0cancel; root independent equal checkout+logs. No workers/processes/source edits. Next P01-03 coordinator-owned engineering: transaction-scoped linked reversal contract + stopped-worker ownership migration, then atomic compensation implementation. Publicposting closed; browser absent; parent pending."
+      },
+      {
+        "at": 1793893898127,
+        "actor": "reversal1536",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "495915759fe5c29f5483a22a1331c2d441471fb44f202395d637dc5e582d9341"
+      },
+      {
+        "at": 1793893898530,
+        "actor": "reversal1536",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Before edit: source6ebee; reviewed2file ownership migration5277ec; bounded protected transaction-scoped reversal only, no public posting or schema. Freeze15:55UTC."
       }
     ],
     "catalogDigest": "4a4d6a7a34c9e133364ffbfbf4979a8ceacd73ef9436d0db7a7f5a7f00336058",
@@ -9323,19 +9340,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "2a303d6079069dc95e0a83ed8542472f41e82717",
+    "sha": "5277ec2aadd92d6055348c28ab2a195d04beb17e",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2e8b567b793b3ec8e4218b12844dbe4476c93474",
-        "path": "docs/development/candidates/20261105-1444-next-assignment.json"
+        "sha": "5277ec2aadd92d6055348c28ab2a195d04beb17e",
+        "path": "docs/development/candidates/20261105-1536-ownership-migration.json"
       }
     ],
     "runId": "hosted-20261105-1536",
-    "at": 1793893130112,
+    "at": 1793894063756,
     "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc"
   },
-  "updatedAt": 1793893130112,
+  "updatedAt": 1793894063756,
   "recovery": {
     "priorRunId": "hosted-20261105-1408",
     "stoppedEvidence": {
@@ -10731,9 +10748,11 @@
   },
   "runActivity": {
     "startedAt": "2026-11-05T15:37:29.143Z",
-    "activity": "Root-reviewed two-file P01-03 ownership extension, preserved all states/events; no workers/implementation yet",
+    "activity": "Actual twofile shared protected transaction reversal implementation and PG tests written; root reviewing; pinned10.26.1 install downloading. Freeze15:55UTC, no publicconditionalposting/schema change.",
     "workersStopped": true,
-    "lastObservedAt": "2026-11-05T15:38:50.159Z"
+    "lastObservedAt": "2026-11-05T15:54:23.798Z",
+    "toolStall": "Ownership persistence orchestration blocked585sec then aborted; live reconciled264 unchanged; separate calls persisted5277ec safely.",
+    "replit": "Root observed stopped readonly prep report; found browser Chromium path not executed; reports and settlement require appendonly compensated-credit projection, permanentconsumption. No Replit work dispatched."
   },
   "catalogMigration": {
     "version": 1,
