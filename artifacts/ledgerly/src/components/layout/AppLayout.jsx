@@ -1,65 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopHeader from './TopHeader';
 import { AskProvider } from '@/components/ask/AskProvider';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { useCompany } from '@/lib/useCompany';
+import { WorkspaceCapabilities } from '@/features/workspaceNavigation/WorkspaceCapabilities';
+import { readCollapsed, rememberCollapsed, sidebarMode, restoreNavigationFocus, workspaceAvailabilityNotice } from '@/features/workspaceNavigation/model.mjs';
 import { findActiveItem } from './navConfig';
 import { pushRecent } from './recentItems';
 
-const COLLAPSED_KEY = 'lp.sidebar.collapsed';
-
 export default function AppLayout() {
-  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSED_KEY) === '1');
+  const [preference, setPreference] = useState(() => { try { return readCollapsed(window.localStorage); } catch { return false; } });
+  const [width, setWidth] = useState(() => typeof window === 'undefined' ? 0 : window.innerWidth);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [navigationSection, setNavigationSection] = useState(null);
+  const { selectionWarning } = useCompany();
   const location = useLocation();
+  const availability = workspaceAvailabilityNotice(location.pathname);
+  const returnFocus = useRef(null);
+  const main = useRef(null);
+  const mode = sidebarMode(width, preference);
+  const setCollapsed = value => setPreference(previous => typeof value === 'function' ? value(previous) : value);
+  const openNavigation = section => { returnFocus.current = document.activeElement; setNavigationSection(typeof section === 'string' ? section : null); setMobileOpen(true); };
 
-  // Tablet auto-collapse (768–1023px). Desktop respects the saved preference.
   useEffect(() => {
-    const onResize = () => {
-      if (window.innerWidth >= 768 && window.innerWidth < 1024) setCollapsed(true);
-    };
-    onResize();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    const resize = () => { setWidth(window.innerWidth); if (window.innerWidth >= 1024) setMobileOpen(false); };
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0');
-  }, [collapsed]);
-
-  // Track recently viewed + close mobile drawer on navigation.
+  useEffect(() => { try { rememberCollapsed(window.localStorage, preference); } catch { /* Storage can be unavailable. */ } }, [preference]);
   useEffect(() => {
     const item = findActiveItem(location.pathname);
-    if (item) pushRecent({ label: item.label, path: location.pathname });
+    if (item) { try { pushRecent({ label: item.label, path: location.pathname }); } catch { /* Recent-item storage must not prevent navigation. */ } }
     setMobileOpen(false);
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
-  return (
-    <AskProvider>
-      <div className="flex h-screen overflow-hidden bg-background">
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
-          onClick={() => setMobileOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      <Sidebar
-        collapsed={collapsed}
-        setCollapsed={setCollapsed}
-        mobileOpen={mobileOpen}
-        setMobileOpen={setMobileOpen}
-      />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <TopHeader onToggleMobile={() => { setCollapsed(false); setMobileOpen(true); }} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <Outlet />
-        </main>
+  return <AskProvider><WorkspaceCapabilities><Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+    <div className="flex h-dvh overflow-hidden bg-background">
+      <a href="#workspace-main" className="sr-only z-[100] rounded-lg bg-card px-4 py-3 text-sm font-medium focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to workspace</a>
+      {mode.rail && <Sidebar collapsed={mode.collapsed} setCollapsed={setCollapsed} tablet={mode.tablet} onOpenNavigation={openNavigation} />}
+      <SheetContent id="workspace-navigation" side="left" className="ledger-sidebar w-[min(320px,90vw)] border-0 p-0 [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:text-foreground"
+        onCloseAutoFocus={event => {
+          event.preventDefault();
+          restoreNavigationFocus(returnFocus.current, main.current);
+        }}>
+        <SheetTitle className="sr-only">Workspace navigation</SheetTitle>
+        <SheetDescription className="sr-only">Choose a company or an accounting workspace. Press Escape to close.</SheetDescription>
+        <Sidebar mobile collapsed={false} initialSection={navigationSection} onNavigate={() => setMobileOpen(false)} />
+      </SheetContent>
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <TopHeader onToggleMobile={openNavigation} mobileOpen={mobileOpen} showCompanyContext={mode.collapsed || !mode.rail} />
+        {selectionWarning && <div role="status" className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:px-6">{selectionWarning}</div>}
+        <main id="workspace-main" ref={main} tabIndex={-1} className="min-w-0 flex-1 overflow-y-auto p-4 outline-none sm:p-6 lg:px-9 lg:py-8">{availability && <section aria-label="Feature availability" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          <h2 className="font-semibold">{availability.title}</h2><p className="mt-1">{availability.message}</p>
+          <Link className="mt-2 inline-block font-medium underline" to={availability.path}>{availability.label}</Link>
+        </section>}<Outlet /></main>
       </div>
-
-      </div>
-    </AskProvider>
-  );
+    </div>
+  </Sheet></WorkspaceCapabilities></AskProvider>;
 }

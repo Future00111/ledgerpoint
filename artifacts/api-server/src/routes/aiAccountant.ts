@@ -1,3 +1,5 @@
+import { canWriteCompanyData } from "../security/roles";
+import { publicErrorMessage, safeErrorLog, safeRouteErrors } from "../security/publicErrors";
 /**
  * /api/ai — AI Accountant Phase 1 endpoints.
  *
@@ -75,7 +77,7 @@ import {
 const router: IRouter = Router();
 router.use(requireAuth);
 
-const WRITE_BLOCKED_ROLES = new Set(["read_only"]);
+
 
 async function getMembership(userId: string, companyId: string) {
   return findActiveMembership(userId, companyId);
@@ -107,7 +109,7 @@ async function requireWriteScope(
     ...context,
   });
   if (!scope) return null;
-  if (WRITE_BLOCKED_ROLES.has(scope.role ?? "")) {
+  if (!canWriteCompanyData(scope.role)) {
     res.status(403).json({ error: "Your role does not permit this operation" });
     return null;
   }
@@ -157,7 +159,7 @@ router.post("/reconciliation/analyse", async (req: Request, res: Response) => {
     });
     res.json({ analysed: txns.length, ...output });
   } catch (e) {
-    res.status(500).json({ error: e instanceof Error ? e.message : "Analysis failed" });
+    res.status(500).json({ error: publicErrorMessage(e, "Analysis failed") });
   }
 });
 
@@ -280,7 +282,7 @@ router.post("/accountant/transactions/:id/reject-analysis", async (req: Request,
     });
     return updated;
   }).catch((error) => {
-    res.status(409).json({ error: error instanceof Error ? error.message : "Could not reject analysis" });
+    res.status(409).json({ error: publicErrorMessage(error, "Could not reject analysis") });
     return null;
   });
   if (result) res.json({ success: true, analysis: result });
@@ -367,7 +369,7 @@ router.post("/reconciliation/approve", async (req: Request, res: Response) => {
     const result = await applyReconciliationApproval(bank_transaction_id, records, userId);
     res.json({ success: true, ...result });
   } catch (e) {
-    res.status(409).json({ error: e instanceof Error ? e.message : "Reconciliation failed" });
+    res.status(409).json({ error: publicErrorMessage(e, "Reconciliation failed") });
   }
 });
 
@@ -438,7 +440,7 @@ router.post("/reconciliation/approve-batch", async (req: Request, res: Response)
       });
       approved.push({ bank_transaction_id: id, label: result.label });
     } catch (error) {
-      skipped.push({ bank_transaction_id: id, reason: error instanceof Error ? error.message : "Approval could not be completed" });
+      skipped.push({ bank_transaction_id: id, reason: publicErrorMessage(error, "Approval could not be completed") });
     }
   }
   res.json({ success: true, approved, skipped, threshold });
@@ -576,7 +578,7 @@ router.post("/insights", async (req: Request, res: Response) => {
   try {
     res.json(await generateCompanyInsights(company_id));
   } catch (e) {
-    res.status(500).json({ error: e instanceof Error ? e.message : "Insights generation failed" });
+    res.status(500).json({ error: publicErrorMessage(e, "Insights generation failed") });
   }
 });
 
@@ -594,7 +596,7 @@ router.post("/accountant/refresh", async (req: Request, res: Response) => {
   try {
     res.json(await syncDetections(company_id, userId));
   } catch (e) {
-    res.status(500).json({ error: e instanceof Error ? e.message : "Detection run failed" });
+    res.status(500).json({ error: publicErrorMessage(e, "Detection run failed") });
   }
 });
 
@@ -640,7 +642,7 @@ router.post("/accountant/recommendations/:id/decision", async (req: Request, res
     const updated = await decideRecommendation(id, decision as Decision, userId, note, snoozed_until);
     res.json({ success: true, recommendation: updated });
   } catch (e) {
-    res.status(409).json({ error: e instanceof Error ? e.message : "Decision failed" });
+    res.status(409).json({ error: publicErrorMessage(e, "Decision failed") });
   }
 });
 
@@ -677,7 +679,7 @@ router.get("/accountant/explain", async (req: Request, res: Response) => {
   try {
     res.json(await explainTransaction(txnId));
   } catch (e) {
-    res.status(500).json({ error: e instanceof Error ? e.message : "Explanation failed" });
+    res.status(500).json({ error: publicErrorMessage(e, "Explanation failed") });
   }
 });
 
@@ -693,7 +695,7 @@ router.post("/accountant/tasks/refresh", async (req: Request, res: Response): Pr
   try {
     res.json(await runAITaskAnalysis(company_id, userId));
   } catch (e) {
-    req.log.error({ err: e }, "AI task refresh failed");
+    req.log.error(safeErrorLog(e), "AI task refresh failed");
     res.status(500).json({ error: "Task analysis failed" });
   }
 });
@@ -765,8 +767,8 @@ router.post("/accountant/tasks/:id/decision", async (req: Request, res: Response
   try {
     res.json({ success: true, task: await decideAITask(id, decision, userId) });
   } catch (e) {
-    req.log.warn({ err: e, task_id: id }, "AI task decision failed");
-    res.status(409).json({ error: e instanceof Error ? e.message : "Task decision failed" });
+    req.log.warn({ ...safeErrorLog(e), task_id: id }, "AI task decision failed");
+    res.status(409).json({ error: publicErrorMessage(e, "Task decision failed") });
   }
 });
 
@@ -782,7 +784,7 @@ router.get("/accountant/collections/overview", async (req: Request, res: Respons
   try {
     res.json(await getCollectionsOverview(companyId));
   } catch (error) {
-    req.log.error({ err: error, company_id: companyId }, "Collections overview failed");
+    req.log.error({ ...safeErrorLog(error), company_id: companyId }, "Collections overview failed");
     res.status(500).json({ error: "Could not load collections overview" });
   }
 });
@@ -797,7 +799,7 @@ router.post("/accountant/collections/refresh", async (req: Request, res: Respons
     // customer or invoice balances.
     res.json(await syncAITasks(companyId, userId));
   } catch (error) {
-    req.log.error({ err: error, company_id: companyId }, "Collections refresh failed");
+    req.log.error({ ...safeErrorLog(error), company_id: companyId }, "Collections refresh failed");
     res.status(500).json({ error: "Could not refresh collection tasks" });
   }
 });
@@ -814,7 +816,7 @@ router.post("/accountant/collections/reminders/draft", async (req: Request, res:
   try {
     res.json({ draft: await generateReminderDraft(companyId, invoiceId, tone, userId) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not generate reminder draft";
+    const message = publicErrorMessage(error, "Could not generate reminder draft");
     res.status(message.includes("not found") ? 404 : 400).json({ error: message });
   }
 });
@@ -831,7 +833,7 @@ router.post("/accountant/collections/reminders/approve", async (req: Request, re
   try {
     res.json({ handoff: await approveReminderForEmail(companyId, invoiceId, tone, subject, body, userId) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not approve reminder";
+    const message = publicErrorMessage(error, "Could not approve reminder");
     res.status(message.includes("not found") ? 404 : 400).json({ error: message });
   }
 });
@@ -849,7 +851,7 @@ router.post("/accountant/collections/reminders/sent", async (req: Request, res: 
     await recordReminderSent(companyId, invoiceId, tone, subject, body, approvalId, userId);
     res.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not record sent reminder";
+    const message = publicErrorMessage(error, "Could not record sent reminder");
     res.status(message.includes("not found") ? 404 : 400).json({ error: message });
   }
 });
@@ -868,7 +870,7 @@ router.get("/accountant/vat/overview", async (req: Request, res: Response): Prom
   try {
     res.json(await getVATOverview(companyId, start, end));
   } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : "Could not calculate VAT overview" });
+    res.status(400).json({ error: publicErrorMessage(error, "Could not calculate VAT overview") });
   }
 });
 
@@ -880,7 +882,7 @@ router.post("/accountant/vat/review/refresh", async (req: Request, res: Response
   try {
     res.json(await syncVATExceptions(companyId, userId, start, end));
   } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : "Could not refresh VAT review" });
+    res.status(400).json({ error: publicErrorMessage(error, "Could not refresh VAT review") });
   }
 });
 
@@ -903,7 +905,7 @@ router.post("/accountant/vat/exceptions/:id/resolve", async (req: Request, res: 
   try {
     res.json({ exception: await resolveVATException(companyId, String(req.params["id"]), userId, note.trim()) });
   } catch (error) {
-    res.status(404).json({ error: error instanceof Error ? error.message : "VAT exception not found" });
+    res.status(404).json({ error: publicErrorMessage(error, "VAT exception not found") });
   }
 });
 
@@ -916,7 +918,7 @@ router.post("/accountant/vat/explain", async (req: Request, res: Response): Prom
     const overview = await getVATOverview(companyId, start, end);
     res.json(explainVATOverview(overview, typeof question === "string" ? question.slice(0, 500) : undefined));
   } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : "Could not explain VAT position" });
+    res.status(400).json({ error: publicErrorMessage(error, "Could not explain VAT position") });
   }
 });
 
@@ -928,7 +930,7 @@ router.put("/accountant/vat/settings", async (req: Request, res: Response): Prom
   try {
     res.json({ company: await updateVATSettings(companyId, settings, userId) });
   } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : "Could not save VAT settings" });
+    res.status(400).json({ error: publicErrorMessage(error, "Could not save VAT settings") });
   }
 });
 
@@ -940,7 +942,7 @@ router.post("/accountant/vat/tax-rules", async (req: Request, res: Response): Pr
   try {
     res.json({ rule: await addVATTaxRule(companyId, rule, userId) });
   } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : "Could not create VAT tax rule" });
+    res.status(400).json({ error: publicErrorMessage(error, "Could not create VAT tax rule") });
   }
 });
 
@@ -952,7 +954,7 @@ router.post("/accountant/vat/returns", async (req: Request, res: Response): Prom
   try {
     res.status(201).json(await createVATReturn(companyId, start, end, userId));
   } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : "Could not create VAT return" });
+    res.status(400).json({ error: publicErrorMessage(error, "Could not create VAT return") });
   }
 });
 
@@ -964,7 +966,7 @@ router.get("/accountant/vat/returns/:id", async (req: Request, res: Response): P
   try {
     res.json(await getVATReturnDetail(companyId, String(req.params["id"])));
   } catch (error) {
-    res.status(404).json({ error: error instanceof Error ? error.message : "VAT return not found" });
+    res.status(404).json({ error: publicErrorMessage(error, "VAT return not found") });
   }
 });
 
@@ -976,7 +978,7 @@ router.post("/accountant/vat/returns/:id/recalculate", async (req: Request, res:
   try {
     res.json(await recalculateVATReturn(companyId, String(req.params["id"]), userId));
   } catch (error) {
-    res.status(409).json({ error: error instanceof Error ? error.message : "Could not recalculate VAT return" });
+    res.status(409).json({ error: publicErrorMessage(error, "Could not recalculate VAT return") });
   }
 });
 
@@ -986,7 +988,7 @@ router.post("/accountant/vat/returns/:id/ready", async (req: Request, res: Respo
   if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
   if (!(await assertWriteAccess(userId, companyId, res))) return;
   try { res.json({ vat_return: await markVATReturnReady(companyId, String(req.params["id"]), userId) }); }
-  catch (error) { res.status(409).json({ error: error instanceof Error ? error.message : "Could not mark VAT return ready" }); }
+  catch (error) { res.status(409).json({ error: publicErrorMessage(error, "Could not mark VAT return ready") }); }
 });
 
 router.post("/accountant/vat/returns/:id/approve", async (req: Request, res: Response): Promise<void> => {
@@ -996,7 +998,7 @@ router.post("/accountant/vat/returns/:id/approve", async (req: Request, res: Res
   if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
   if (!(await assertWriteAccess(userId, companyId, res))) return;
   try { res.json({ vat_return: await approveVATReturn(companyId, String(req.params["id"]), userId, note) }); }
-  catch (error) { res.status(409).json({ error: error instanceof Error ? error.message : "Could not approve VAT return" }); }
+  catch (error) { res.status(409).json({ error: publicErrorMessage(error, "Could not approve VAT return") }); }
 });
 
 router.post("/accountant/vat/returns/:id/revision", async (req: Request, res: Response): Promise<void> => {
@@ -1005,7 +1007,7 @@ router.post("/accountant/vat/returns/:id/revision", async (req: Request, res: Re
   if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
   if (!(await assertWriteAccess(userId, companyId, res))) return;
   try { res.status(201).json(await createVATRevision(companyId, String(req.params["id"]), userId)); }
-  catch (error) { res.status(409).json({ error: error instanceof Error ? error.message : "Could not create VAT return revision" }); }
+  catch (error) { res.status(409).json({ error: publicErrorMessage(error, "Could not create VAT return revision") }); }
 });
 
 router.post("/accountant/vat/adjustments", async (req: Request, res: Response): Promise<void> => {
@@ -1016,7 +1018,7 @@ router.post("/accountant/vat/adjustments", async (req: Request, res: Response): 
   if (!companyId || !period_start || !period_end || box_number == null || amount == null || !reason) { res.status(400).json({ error: "company_id, period, box_number, amount, and reason are required" }); return; }
   if (!(await assertWriteAccess(userId, companyId, res))) return;
   try { res.status(201).json({ adjustment: await createVATAdjustment(companyId, vatReturnId, { period_start, period_end, box_number, amount, reason }, userId) }); }
-  catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : "Could not create VAT adjustment" }); }
+  catch (error) { res.status(400).json({ error: publicErrorMessage(error, "Could not create VAT adjustment") }); }
 });
 
 router.post("/accountant/vat/adjustments/:id/approve", async (req: Request, res: Response): Promise<void> => {
@@ -1025,7 +1027,9 @@ router.post("/accountant/vat/adjustments/:id/approve", async (req: Request, res:
   if (!companyId) { res.status(400).json({ error: "company_id is required" }); return; }
   if (!(await assertWriteAccess(userId, companyId, res))) return;
   try { res.json({ adjustment: await approveVATAdjustment(companyId, String(req.params["id"]), userId) }); }
-  catch (error) { res.status(409).json({ error: error instanceof Error ? error.message : "Could not approve VAT adjustment" }); }
+  catch (error) { res.status(409).json({ error: publicErrorMessage(error, "Could not approve VAT adjustment") }); }
 });
+
+router.use(safeRouteErrors);
 
 export default router;

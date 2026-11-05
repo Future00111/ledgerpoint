@@ -10,7 +10,7 @@ export function postedAccountMovement(doc, lines, role, creditPositive = false) 
   return { amount: (creditPositive ? -amount : amount).toString(), account: matching[0] };
 }
 export function filterLedger(lines, accountId, documentId) {
-  return lines.filter(line => (!accountId || line.account_id === accountId) && (!documentId || line.source_id === documentId));
+  return lines.filter(line => (!accountId || line.account_id === accountId) && (!documentId || (line.document_id ?? line.source_id) === documentId));
 }
 
 const category = type => ({ revenue: 'income', expenses: 'expense' }[String(type).toLowerCase()] || String(type).toLowerCase());
@@ -22,9 +22,11 @@ export function pnlTransactions(data, { accountId, categoryId, groupName } = {})
   for (const l of data.general_ledger ?? []) {
     const cat = category(l.account_type);
     if (!['income', 'cost_of_sales', 'expense'].includes(cat) || (accountId && l.account_id !== accountId) || (categoryId && cat !== categoryId) || (groupName != null && (l.report_group ?? groupLabels[cat]) !== groupName)) continue;
-    const d = documents.get(l.source_id);
+    const documentId = l.document_id ?? l.source_id;
+    const documentKind = l.document_kind ?? l.source_type;
+    const d = documents.get(documentId);
     const key = `${l.journal_id}:${l.source_type}:${l.source_id}`;
-    const row = grouped.get(key) ?? { date: l.posting_date, id: l.source_id, kind: l.source_type, journal_id: l.journal_id, number: l.source_number || d?.number || 'Journal', party: d?.party_name || '—', description: l.description || '', accounts: [], amount_minor: '0' };
+    const row = grouped.get(key) ?? { date: l.posting_date, id: documentId, kind: documentKind, journal_id: l.journal_id, number: l.source_number || d?.number || 'Journal', party: d?.party_name || '—', description: l.description || '', accounts: [], amount_minor: '0' };
     const movement = (BigInt(l.credit_minor) - BigInt(l.debit_minor)) * (cat === 'income' ? 1n : -1n);
     row.amount_minor = (BigInt(row.amount_minor) + movement).toString();
     const account = `${l.account_code} · ${l.account_name}`;

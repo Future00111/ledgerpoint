@@ -15,8 +15,8 @@ import {
 // automatically render in the correct section — no layout edits needed.
 const groups = [
   {
-    key: 'dashboard', label: 'Overview', icon: LayoutDashboard,
-    items: [{ label: 'Overview', path: '/' }],
+    key: 'dashboard', label: 'Today', icon: LayoutDashboard,
+    items: [{ label: 'Today', path: '/' }],
   },
   {
     key: 'ai-accountant', label: 'AI Accountant', icon: Sparkles,
@@ -45,6 +45,7 @@ const groups = [
       { label: 'Suppliers', path: '/suppliers', icon: Truck },
       { label: 'Bills', path: '/bills', icon: Receipt },
       { label: 'Supplier credits', path: '/supplier-credit-notes', icon: RotateCcw },
+      { label: 'Awaiting credits', path: '/awaiting-credits', icon: ClipboardList },
     ],
   },
   {
@@ -72,7 +73,7 @@ const groups = [
     key: 'documents', label: 'Documents', icon: FolderOpen,
     items: [
       { label: 'Inbox', icon: Inbox, soon: true },
-      { label: 'Documents', path: '/documents', icon: FolderOpen },
+      { label: 'Document inbox', path: '/documents', icon: FolderOpen },
       { label: 'Email Capture', path: '/email-capture', icon: Mail },
       { label: 'Email Rules', path: '/email-rules', icon: Filter },
       { label: 'Document Templates', icon: FilePlus, soon: true },
@@ -103,7 +104,7 @@ const groups = [
       { label: 'AI Integrations', icon: Sparkles, soon: true },
       { label: 'Integrations', icon: Plug, soon: true },
       { label: 'Notifications', icon: Bell, soon: true },
-      { label: 'Audit Log', icon: History, soon: true },
+      { label: 'Audit history', path: '/audit-history', icon: History, roles: ['owner', 'admin', 'accountant'] },
       { label: 'User Profile', icon: UserCircle, soon: true },
       { label: 'Subscription', icon: CreditCard, soon: true },
     ],
@@ -119,6 +120,18 @@ const order = ['dashboard', 'sales', 'purchases', 'banking', 'reports', 'account
 export const SECTIONS = order.map(key => groups.find(s => s.key === key)).map(s => ({
   ...s, items: s.items.filter(i => !(s.key === 'reports' && i.path === '/insights')),
 }));
+
+// These existing routes are always one click away. The complete catalogue above
+// remains authoritative for breadcrumbs, search, permissions and deep links.
+export const EVERYDAY_ROUTES = [
+  { path: '/', label: 'Today', icon: LayoutDashboard },
+  { path: '/documents', label: 'Document inbox', icon: Inbox },
+  { path: '/invoices', label: 'Invoices', icon: FileText },
+  { path: '/bills', label: 'Bills', icon: Receipt },
+  { path: '/awaiting-credits', label: 'Awaiting credits', icon: RotateCcw },
+  { path: '/payments', label: 'Payments', icon: ArrowLeftRight },
+  { path: '/reports', label: 'Reports', icon: BarChart3 },
+];
 
 export function allItems() {
   return SECTIONS.flatMap((s) =>

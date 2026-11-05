@@ -1,0 +1,118 @@
+{
+  "started_at": "2026-10-30T22:33:16.977154+00:00",
+  "baseline": "aed1765ac048b97571cb5770692b333a1f9d770e",
+  "workers": 6,
+  "coordinator": 1,
+  "concurrency_slots": 7,
+  "worktrees": [
+    "integration",
+    "banking",
+    "capture",
+    "onboarding",
+    "security",
+    "vat",
+    "performance"
+  ],
+  "events": [
+    {
+      "at": "2026-10-30T22:36:09.480067+00:00",
+      "event": "six_workers_confirmed_running",
+      "agents": [
+        "trial_banking",
+        "trial_capture",
+        "trial_onboarding",
+        "trial_performance",
+        "trial_security",
+        "trial_vat"
+      ]
+    },
+    {
+      "at": "2026-10-30T22:39:04.776463+00:00",
+      "event": "first_integration_started",
+      "note": "Initial setup and preliminary reviews precede this timestamp."
+    }
+  ],
+  "host_limits": {
+    "cpu_quota": 8,
+    "memory_bytes": 8589934592,
+    "cli_codex_found": false,
+    "postgres_found_on_path": false
+  },
+  "phase_one": {
+    "first_worker_started_at": "2026-10-30T22:33:41Z",
+    "last_initial_worker_finished_at": "2026-10-30T22:39:59Z",
+    "combined_source_passed_at": "2026-10-30T22:43:51.689279Z",
+    "wall_seconds_setup_to_integrated_source_pass": 634.712125,
+    "integration_review_test_window_seconds": 286.912816,
+    "source_tests": 600,
+    "merge_conflicts": 0,
+    "note": "Six initial slices, including review fixes. Elapsed windows include overlap and waiting; not active reviewer labor or a four-versus-six benchmark."
+  },
+  "worker_initial_elapsed_seconds": {
+    "banking": 336,
+    "capture": 179,
+    "onboarding": 122,
+    "security": 249,
+    "vat": 179,
+    "performance": 303
+  },
+  "worker_reassignments": [
+    "onboarding: guidance -> capture review -> scheduler core",
+    "banking: CSV review -> persistent queue CLI/store",
+    "capture: preview -> onboarding/core/store review",
+    "security: HTTP boundary -> banking review -> company-scope fix",
+    "vat: evidence export -> source-checklist catalogue",
+    "performance: route loading -> hosted coordinator lease"
+  ],
+  "review_corrections": [
+    "Bound image dimensions before browser decoding.",
+    "Recover rejected lazy route across remount.",
+    "Clarify bounded duplicate-history coverage.",
+    "Fence bank workspace responses by company and request generation.",
+    "Narrow parsed unknown JSON for TypeScript.",
+    "Persist discovered task dependencies and preserve independent blockers.",
+    "Version scheduler state so old worktrees cannot ignore new dependency rules."
+  ],
+  "final_local_validation": {
+    "source_tests": 649,
+    "passed": 649,
+    "failed": 0,
+    "skipped": 0,
+    "scheduler_tests": 38,
+    "source_completed_at": "2026-10-30T23:00:39.305157Z",
+    "full_workspace_typecheck_build": "passed",
+    "build_completed_at": "2026-10-30T22:54:09.103082Z",
+    "note": "Later changes are scheduler JS, catalogue and docs; full source/scheduler regression rerun after those changes. PostgreSQL/restore qualification is delegated to the existing isolated PR CI and is not claimed locally."
+  },
+  "product_slices": [
+    "Exact and reviewed bank CSV import",
+    "Scoped bounded image preview",
+    "Scoped optional onboarding guidance",
+    "Safe outer HTTP errors",
+    "Filtered VAT source export",
+    "Lazy route loading and retry",
+    "Bank workspace stale-response protection"
+  ],
+  "catalogue": {
+    "priorities": 18,
+    "original_bullets": 92,
+    "tasks": 112,
+    "narrow_completed_slices": 7,
+    "original_bullets_marked_complete": 0,
+    "independent_ready_tasks": 16,
+    "catalogue_conflict_free_width": 13,
+    "note": "Readiness width from declared leases, not measured throughput. Six worker slots are available in this Work host."
+  },
+  "environment_problems": [
+    "pnpm11 attempted automatic dependency reconciliation and rejected symlinked module roots; used existing installed dependencies with a physical root modules directory and no manifest/lock changes. CI pins pnpm10.26.1.",
+    "Local host has root-only UID namespace and no working PostgreSQL runner; disposable PostgreSQL and restore tests must run in CI.",
+    "Codex CLI is not installed. Hosted resumptions need repository state; local workers are not an overnight daemon."
+  ],
+  "limits": [
+    "No controlled four-worker or eight-worker comparator; do not infer a speedup factor.",
+    "No billed token/cost telemetry was exposed.",
+    "No live browser/customer acceptance or production readiness claim.",
+    "Source/render checks do not complete tax or payroll engines.",
+    "No production data, provider connection, filing, migration, merge or deployment."
+  ]
+}

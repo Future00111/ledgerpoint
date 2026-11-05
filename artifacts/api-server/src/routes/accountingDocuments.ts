@@ -1,3 +1,5 @@
+import { captureConditionalEvidence, getConditionalEvidence } from '../services/accountingDocuments/conditionalDiscount';
+import { reviewPaidCredit, commitPaidCredit, reviewConditionalCredit } from '../services/accountingDocuments/paidCredit';
 import { Router, type RequestHandler, type Request } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import { DraftError, fail } from "../services/financialDrafts/contract";
@@ -9,10 +11,13 @@ import { journal, reports } from "../services/accountingDocuments/reports";
 import { CanonicalPostingError, type DatabaseTransaction } from "../services/accounting/canonicalPosting";
 import { chart, AccountSelectionError } from "../services/accountingDocuments/accounts";
 import { saveAccount } from "../services/accountingDocuments/chart";
+import { correctionContext, reviewCorrection, commitCorrection, correctionHistory } from "../services/accountingDocuments/corrections";
 
-import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment } from '../services/accountingDocuments/payments';
+import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment, recoverPayment } from '../services/accountingDocuments/payments';
+import { createClaims, listClaims, confirmReceipt, cancelClaim } from '../services/creditTracking/service';
+import type { Queryable } from '../services/accountingDocuments/core';
 
-export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostHook?:(tx:DatabaseTransaction)=>Promise<void>,testCreditHook?:(q:Queryable)=>Promise<void>) {
   const router=Router({mergeParams:true});
   router.use(auth);
   router.use((req,res,next)=>{
@@ -29,8 +34,25 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     if(!value || !/^"[0-9a-f-]{36}"$/.test(value)) fail(428,"REVISION_REQUIRED");
     return value.slice(1,-1);
   };
+  router.post('/conditional-discount-evidence',async(req,res)=>{const {company,actor}=ids(req);res.status(201).json({data:await captureConditionalEvidence(company,actor,req.body)});});
+  router.get('/conditional-discount-evidence/:id',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await getConditionalEvidence(company,actor,id)});});
+  router.get('/credit-claims',async(req,res)=>{
+    const {company,actor}=ids(req);
+    if(req.query.bill_id!==undefined && typeof req.query.bill_id!=='string') fail(400,'INVALID_REQUEST_SHAPE');
+    res.json({data:await listClaims(company,actor,req.query.bill_id as string|undefined)});
+  });
+  router.post('/credit-claims',async(req,res)=>{
+    const {company,actor}=ids(req);res.status(201).json({data:await createClaims(company,actor,req.body,testCreditHook)});
+  });
+  router.post('/credit-claims/:id/receipts',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await confirmReceipt(company,actor,id,revision(req),req.body,testCreditHook)});
+  });
+  router.post('/credit-claims/:id/cancel',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await cancelClaim(company,actor,id,revision(req),req.body,testCreditHook)});
+  });
   router.get('/accounting-payments/context',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await paymentContext(company,actor)});});
   router.put('/accounting-payments/configuration',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await savePaymentConfiguration(company,actor,req.body)});});
+  router.get('/accounting-payments/operations/:requestId',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await recoverPayment(company,actor,String(req.params.requestId))});});
   router.get('/accounting-payments',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await listPayments(company,actor)});});
   router.post('/accounting-payments/review',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await previewPayment(company,actor,req.body)});});
   router.post('/accounting-payments',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await postPayment(company,actor,req.body,testPostHook)});});
@@ -58,6 +80,18 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     const {company,actor,id}=ids(req);
     res.json({data:await getDocument(company,actor,id)});
   });
+  router.get('/accounting-documents/:id/correction-context',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await correctionContext(company,actor,id)});
+  });
+  router.get('/accounting-documents/:id/corrections',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await correctionHistory(company,actor,id)});
+  });
+  router.post('/accounting-documents/:id/corrections/review',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await reviewCorrection(company,actor,id,revision(req),req.body)});
+  });
+  router.post('/accounting-documents/:id/corrections',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await commitCorrection(company,actor,id,revision(req),req.body,testPostHook)});
+  });
   router.post("/accounting-documents",async(req,res)=>{
     const {company,actor}=ids(req);
     res.status(201).json({data:await saveDocument(company,actor,req.body)});
@@ -66,6 +100,19 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     const {company,actor,id}=ids(req);
     res.json({data:await saveDocument(company,actor,req.body,id,revision(req))});
   });
+  router.post('/accounting-documents/:id/conditional-credit/review',async(req,res)=>{
+    const {company,actor,id}=ids(req);
+    const review=await reviewConditionalCredit(company,actor,id,revision(req),req.body);
+    const {document_id,revision:reviewedRevision,original_id,original_kind,original_number,date,
+      credit_minor,offset_minor,released_minor,remaining_minor,releases,conditional_admission}=review;
+    res.json({data:{document_id,revision:reviewedRevision,original_id,original_kind,original_number,date,
+      credit_minor,offset_minor,released_minor,remaining_minor,releases,
+      conditional_admission:conditional_admission && {threshold_minor:conditional_admission.threshold_minor,
+        qualifying_minor:conditional_admission.qualifying_minor,deadline:conditional_admission.deadline},
+      readonly:true,posting_available:false}});
+  });
+  router.post('/accounting-documents/:id/paid-credit/review',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await reviewPaidCredit(company,actor,id,revision(req),req.body)});});
+  router.post('/accounting-documents/:id/paid-credit',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await commitPaidCredit(company,actor,id,revision(req),req.body,testPostHook)});});
   router.post("/accounting-documents/:id/post",async(req,res)=>{
     const {company,actor,id}=ids(req);exactFields(req.body,[]);
     res.json({data:await postDocument(company,actor,id,revision(req),testPostHook)});
@@ -91,12 +138,40 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     const databaseCode=error.cause?.code??error.code;
     if(error instanceof DraftError) {
       const labels:Record<string,string>={"/invoice_number":"Document number","/customer_id":"Customer or supplier",
-        "/due_date":"Due date","/issue_date":"Document date","/payment_terms":"Payment terms","/posting_account_id":"Document account"};
+        "/due_date":"Due date","/issue_date":"Document date","/payment_terms":"Payment terms","/posting_account_id":"Document account",
+        "/discount":"Discount","/discount_adjustment":"Discount adjustment"};
       const field=labels[error.path]??(error.path?.startsWith("/line_items/")?"Invoice or bill line":"Submitted field");
+      const guidance:Record<string,string>={
+        CONDITIONAL_POSTING_NOT_AVAILABLE:"Conditional agreement drafts can be prepared, but posting is not available yet. Your draft remains unchanged.",
+        CONDITIONAL_PAYMENT_THRESHOLD_NOT_MET:"Qualifying payments have not reached the agreement threshold. Check the original document's payment history. This preview makes no changes.",
+        CONDITIONAL_AGREEMENT_REQUIRED:"A verified conditional agreement is required on the original document. Check its agreement evidence before reviewing again.",
+        CONDITIONAL_CREDIT_VECTOR_MISMATCH:"This saved credit does not match the original agreement discount. Reopen the original and check the credit amounts before reviewing again.",
+        REVISION_CONFLICT:"The saved draft changed. Reload it and review again. No changes were committed.",
+        CONDITIONAL_EVIDENCE_TERMS_MISMATCH:"The receipt belongs to different agreement terms. Capture or select matching evidence before saving.",
+        CORRECTION_REVIEW_STALE:"This document, its payments or accounting setup changed after review. Refresh and review the correction again.",
+        CORRECTION_BELOW_PAID:"The corrected total cannot be less than payments already applied. Review the payment and refund history first.",
+        CORRECTION_CHILD_CREDITS:"This document already has a linked credit. Corrections are not yet supported for this case.",
+        CORRECTION_ACTIVE_CLAIMS:"This bill has items awaiting credit. Resolve those claims before reviewing a correction.",
+        CORRECTED_DOCUMENT_DEPENDENCY_UNSUPPORTED:"New credits, later discount credits and return-credit tracking are not yet available for corrected invoices or bills.",
+        CORRECTION_ZERO_CHANGE_UNSUPPORTED:"These edits do not change the financial totals. Metadata-only changes are not supported here yet.",
+        CORRECTION_POSITIVE_TOTAL_REQUIRED:"The corrected total must be greater than zero. Use the appropriate credit workflow for a full cancellation.",
+        CORRECTION_REASON_REQUIRED:"Enter a reason for the correction, up to 1,000 characters.",
+        CORRECTION_LINE_SHAPE_CHANGED:"Keep the existing items and line order. This correction can change only quantities and unit prices.",
+        DATE_PRECEDES_SETTLEMENT_ACTIVITY:"Choose a date on or after the document's latest payment or correction activity.",
+        DISCOUNT_INVALID:"Enter a positive discount: a percentage up to 100%, or an amount with at most two decimal places.",
+        DISCOUNT_CONFLICT:"Choose either a draft discount or a later discount adjustment, not both.",
+        DISCOUNT_EXCEEDS_TOTAL:"The discount cannot exceed the document value. No changes were committed.",
+        DISCOUNT_ROUNDS_TO_ZERO:"This discount rounds to £0.00. Enter a discount of at least one penny, or remove it.",
+        DISCOUNT_REQUIRES_ORIGINAL_DOCUMENT:"Draft discounts apply to invoices and bills. Use the linked discount adjustment for a posted document.",
+        DISCOUNT_ADJUSTMENT_REQUIRES_CREDIT:"A later discount must be recorded as a linked credit note.",
+        DISCOUNT_ORIGINAL_CHANGED:"The original document changed. Reopen it and prepare the discount again.",
+        DISCOUNT_ORIGINAL_LINES_REQUIRED:"A discount adjustment must retain the original items and quantities. Reopen the original document to prepare it again.",
+        CREDIT_EXCEEDS_OUTSTANDING:"This credit exceeds the remaining balance or the amount still creditable on an original line. Review existing payments and credits; an excess needs a separate refund or credit-balance workflow. No changes were committed.",
+      };
       const message=error instanceof AccountSelectionError?error.publicMessage:
-        error.code==="FIELD_INVALID"?`${field} is invalid. Check the value and try again.`:error.code.replaceAll("_"," ").toLowerCase()+
+        guidance[error.code]??(error.code==="FIELD_INVALID"?`${field} is invalid. Check the value and try again.`:error.code.replaceAll("_"," ").toLowerCase()+
         (["ACCOUNT_CONFIGURATION_REQUIRED","ACCOUNT_MAPPING_INVALID","ACCOUNT_MAPPING_REQUIRED","PERIOD_NOT_WRITABLE"].includes(error.code)
-          ?". Open Posting Setup to check account mappings and the document's open period.":". No changes were committed.");
+          ?". Open Posting Setup to check account mappings and the document's open period.":". No changes were committed."));
       res.status(error.status).json({error:{code:error.code,issues:[{path:error.path,code:error.code,message}],message}});return;
     }
     if(error instanceof CanonicalPostingError) {

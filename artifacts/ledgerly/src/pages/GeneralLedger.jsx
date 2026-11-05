@@ -1,19 +1,19 @@
-import { LedgerNotice } from '@/components/accounting/AccountingUI';
+import { LedgerNotice, Money } from '@/components/accounting/AccountingUI';
+import { Link } from 'react-router-dom';
+import { docPath } from '@/api/accountingDocuments.mjs';
+import { legacyMinor, displayedLegacyTotals, legacyLineAccounts } from '@/lib/legacyJournalHistory.mjs';
 import React, { useState, useEffect } from 'react';
 import * as nativeEntities from '@/api/entities';
 import { useCompany } from '@/lib/useCompany';
-import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Eye } from 'lucide-react';
+import { Search, Eye } from 'lucide-react';
 import moment from 'moment';
-import ManualJournalForm from '@/components/general_ledger/ManualJournalForm';
-import JournalDetail from '@/components/general_ledger/JournalDetail';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
 const typeLabels = {
   sales_invoice: 'Sales Invoice',
   purchase_bill: 'Purchase Bill',
@@ -25,132 +25,86 @@ const typeLabels = {
 
 export default function GeneralLedger() {
   const { activeCompany } = useCompany();
-  const [journals, setJournals] = useState([]);
-  const [loading, setLoading] = useState(true);
+  return activeCompany
+    ? <CompanyGeneralLedger key={activeCompany.id} companyId={activeCompany.id} />
+    : <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
+}
+
+function CompanyGeneralLedger({ companyId }) {
+  const [history, setHistory] = useState({ status: 'loading', rows: [] });
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let current = true;
+    setHistory({ status: 'loading', rows: [] });
+    nativeEntities.JournalEntry.filter({ company_id: companyId }, 'date')
+      .then(rows => {
+        if (!Array.isArray(rows)) throw new Error('Invalid journal response');
+        if (current) setHistory({ status: 'ready', rows });
+      })
+      .catch(() => {
+        // Backend diagnostics can contain SQL and identifiers. Keep the public
+        // failure neutral and never turn a failed read into a zero-balance claim.
+        if (current) setHistory({ status: 'error', rows: [] });
+      });
+    return () => { current = false; };
+  }, [companyId, attempt]);
+  return <GeneralLedgerView history={history} onRetry={() => setAttempt(value => value + 1)} />;
+}
+
+export function GeneralLedgerView({ history, onRetry }) {
+  const loaded = history.status === 'ready';
+  const journals = loaded ? history.rows : [];
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [formOpen, setFormOpen] = useState(false);
   const [viewing, setViewing] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    if (activeCompany) loadJournals();
-  }, [activeCompany]);
-
-  const loadJournals = async () => {
-    setLoading(true);
-    try {
-      const list = await nativeEntities.JournalEntry.filter({ company_id: activeCompany.id }, 'date');
-      setJournals(list);
-    } catch (e) {
-      console.error(e);
-      toast({ title: 'Error loading journals', description: e.message, variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleTestJournal = async () => {
-    try {
-      // Fetch accounts by code
-      const accounts = await nativeEntities.ChartOfAccount.filter({ company_id: activeCompany.id });
-      const bankAccount = accounts.find(a => a.code === '1000');
-      const salesAccount = accounts.find(a => a.code === '4000');
-      
-      if (!bankAccount || !salesAccount) {
-        toast({ title: 'Error', description: 'Required accounts not found. Please ensure default accounts are created.', variant: 'destructive' });
-        return;
-      }
-
-      await nativeEntities.JournalEntry.bulkCreate([
-        {
-          company_id: activeCompany.id,
-          date: new Date().toISOString().split('T')[0],
-          reference: 'TEST-001',
-          description: 'Test Journal Entry',
-          account_id: bankAccount.id,
-          account_code: '1000',
-          account_name: 'Bank Account',
-          debit: 100,
-          credit: 0,
-          source_type: 'manual_journal',
-          source_record_id: null,
-          is_system_generated: false,
-        },
-        {
-          company_id: activeCompany.id,
-          date: new Date().toISOString().split('T')[0],
-          reference: 'TEST-001',
-          description: 'Test Journal Entry',
-          account_id: salesAccount.id,
-          account_code: '4000',
-          account_name: 'Sales',
-          debit: 0,
-          credit: 100,
-          source_type: 'manual_journal',
-          source_record_id: null,
-          is_system_generated: false,
-        },
-      ]);
-      
-      toast({ title: 'Success', description: 'Test journal created: Debit 1000 Bank Account £100, Credit 4000 Sales £100' });
-      loadJournals();
-    } catch (e) {
-      toast({ title: 'Error creating test journal', description: e.message, variant: 'destructive' });
-    }
-  };
 
   const filtered = journals.filter(j => {
-    const matchSearch = j.reference?.includes(search) || j.description?.toLowerCase().includes(search.toLowerCase()) || j.account_name?.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = j.reference?.includes(search) || j.description?.toLowerCase().includes(search.toLowerCase()) || legacyLineAccounts(j).toLowerCase().includes(search.toLowerCase());
     const matchType = typeFilter === 'all' || j.source_type === typeFilter;
     const matchDateFrom = !dateFrom || j.date >= dateFrom;
     const matchDateTo = !dateTo || j.date <= dateTo;
     return matchSearch && matchType && matchDateFrom && matchDateTo;
   });
 
-  const totalDebits = filtered.reduce((sum, j) => sum + (j.debit || 0), 0);
-  const totalCredits = filtered.reduce((sum, j) => sum + (j.credit || 0), 0);
-  const isBalanced = Math.abs(totalDebits - totalCredits) < 0.01;
-
-  if (!activeCompany) {
-    return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
-  }
+  const totals = displayedLegacyTotals(filtered);
+  const matching = totals && totals.unbalancedEntries === 0;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <LedgerNotice tab="gl" text="Posted sales, purchase and credit documents appear in the authoritative general ledger" />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">General Ledger</h1>
-          <p className="text-muted-foreground text-sm mt-1">{journals.length} journal entry{journals.length !== 1 ? 'ies' : ''}</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Legacy journal history</h1>
+          <p className="text-muted-foreground text-sm mt-1">{loaded ? `${journals.length} journal ${journals.length === 1 ? 'entry' : 'entries'}` : 'Journal history'}</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setFormOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
+          <Button disabled aria-describedby="manual-journal-availability">
             Manual Journal
-          </Button>
-          <Button onClick={handleTestJournal} variant="outline" className="gap-2">
-            Test Journal
           </Button>
         </div>
       </div>
+      <p id="manual-journal-availability" className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+        Manual journal entry is not yet available. Existing journal history remains available below.
+        Record invoices, bills, credits and payments through their dedicated accounting screens.
+      </p>
 
-      {/* Balance Check */}
-      <Card className={`border-0 shadow-sm ${isBalanced ? 'bg-emerald-50' : 'bg-red-50'}`}>
-        <CardContent className="p-4 flex items-center justify-between">
-          <div>
-            <p className={`text-sm font-medium ${isBalanced ? 'text-emerald-900' : 'text-red-900'}`}>
-              {isBalanced ? '✓ Ledger is balanced' : '✗ Ledger is not balanced'}
-            </p>
-            <p className={`text-xs ${isBalanced ? 'text-emerald-700' : 'text-red-700'}`}>
-              Total Debits: {gbp.format(totalDebits)} | Total Credits: {gbp.format(totalCredits)} | Difference: {gbp.format(Math.abs(totalDebits - totalCredits))}
-            </p>
-          </div>
+      {/* This limited historical list is not the canonical general ledger. */}
+      {loaded && <Card className="border-0 bg-muted/40 shadow-sm">
+        <CardContent className="space-y-2 p-4">
+          <p className="text-sm font-medium">
+            {filtered.length === 0 ? 'No displayed legacy entries to total' : !totals ? 'Totals unavailable for displayed legacy entries'
+              : matching ? 'Displayed legacy entry totals match' : 'Some displayed legacy entries do not balance'}
+          </p>
+          {filtered.length > 0 && totals && <p className="text-xs text-muted-foreground">
+            Entry debits: <Money value={totals.debit} /> | Entry credits: <Money value={totals.credit} /> | Difference: <Money value={totals.difference} />
+          </p>}
+          {!totals && <p className="text-xs text-muted-foreground">One or more entries have missing or invalid totals.</p>}
+          <p className="text-xs text-muted-foreground">Totals cover displayed, filtered legacy entries only. This view loads up to 500 entries; use the posted general ledger above for current accounts.</p>
         </CardContent>
-      </Card>
+      </Card>}
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -174,9 +128,16 @@ export default function GeneralLedger() {
       </div>
 
       {/* Journal Table */}
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      {history.status === 'error' ? (
+        <div role="alert" className="rounded-lg border border-border bg-muted/40 p-5">
+          <p className="font-medium">Journal history could not be loaded.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Try again, or use the posted general ledger linked above.</p>
+          <Button onClick={onRetry} variant="outline" className="mt-3">Try again</Button>
+        </div>
+      ) : !loaded ? (
+        <div role="status" className="flex justify-center py-12">
+          <span className="sr-only">Loading journal history</span>
+          <div aria-hidden="true" className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
         <Card className="border-0 shadow-sm">
@@ -193,10 +154,10 @@ export default function GeneralLedger() {
                   <th className="px-4 py-3 text-left font-medium">Date</th>
                   <th className="px-4 py-3 text-left font-medium">Reference</th>
                   <th className="px-4 py-3 text-left font-medium">Description</th>
-                  <th className="px-4 py-3 text-left font-medium">Account</th>
-                  <th className="px-4 py-3 text-right font-medium">Debit</th>
-                  <th className="px-4 py-3 text-right font-medium">Credit</th>
-                  <th className="px-4 py-3 text-left font-medium">Type</th>
+                  <th className="px-4 py-3 text-left font-medium">Lines</th>
+                  <th className="px-4 py-3 text-right font-medium">Entry debit</th>
+                  <th className="px-4 py-3 text-right font-medium">Entry credit</th>
+                  <th className="px-4 py-3 text-left font-medium">Type / status</th>
                   <th className="px-4 py-3 text-center font-medium">Action</th>
                 </tr>
               </thead>
@@ -204,37 +165,35 @@ export default function GeneralLedger() {
                 {filtered.map(journal => (
                   <tr
                     key={journal.id}
-                    role={journal.source_record_id ? 'button' : undefined}
-                    tabIndex={journal.source_record_id ? 0 : undefined}
-                    aria-label={journal.source_record_id ? `Open journal ${journal.reference}` : undefined}
-                    onClick={journal.source_record_id ? () => { setViewing(journal); setDetailOpen(true); } : undefined}
-                    onKeyDown={journal.source_record_id ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setViewing(journal); setDetailOpen(true); } } : undefined}
-                    className={`hover:bg-muted/30 transition-colors ${journal.source_record_id ? 'cursor-pointer' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open legacy journal ${journal.reference || 'entry'}`}
+                    onClick={() => { setViewing(journal); setDetailOpen(true); }}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setViewing(journal); setDetailOpen(true); } }}
+                    className="cursor-pointer hover:bg-muted/30 transition-colors"
                   >
-                    <td className="px-4 py-3">{moment(journal.date).format('DD MMM YYYY')}</td>
+                    <td className="px-4 py-3">{journal.date ? moment(journal.date).format('DD MMM YYYY') : 'Unavailable'}</td>
                     <td className="px-4 py-3 font-mono text-xs">{journal.reference}</td>
                     <td className="px-4 py-3 text-sm truncate max-w-xs">{journal.description}</td>
                     <td className="px-4 py-3">
-                      <div className="text-sm font-medium">{journal.account_code}</div>
-                      <div className="text-xs text-muted-foreground">{journal.account_name}</div>
+                      {Array.isArray(journal.lines) ? journal.lines.length : 'Unavailable'}
                     </td>
                     <td className="px-4 py-3 text-right font-mono">
-                      {journal.debit > 0 ? gbp.format(journal.debit) : '—'}
+                      <LegacyAmount value={journal.total_debit} />
                     </td>
                     <td className="px-4 py-3 text-right font-mono">
-                      {journal.credit > 0 ? gbp.format(journal.credit) : '—'}
+                      <LegacyAmount value={journal.total_credit} />
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={journal.is_system_generated ? 'outline' : 'secondary'} className="text-xs">
-                        {typeLabels[journal.source_type] || journal.source_type}
+                      <Badge variant="outline" className="text-xs">
+                        {typeLabels[journal.source_type] || journal.source_type || 'Unknown type'}
                       </Badge>
+                      <p className="mt-1 text-xs text-muted-foreground">{journal.status || 'Status unavailable'}</p>
                     </td>
                     <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
-                      {journal.source_record_id && (
-                        <Button variant="ghost" size="icon" onClick={() => { setViewing(journal); setDetailOpen(true); }} title="View source">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      )}
+                      <Button variant="ghost" size="icon" onClick={() => { setViewing(journal); setDetailOpen(true); }} title="View journal details">
+                        <Eye className="w-4 h-4" />
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -244,8 +203,32 @@ export default function GeneralLedger() {
         </div>
       )}
 
-      <ManualJournalForm open={formOpen} onOpenChange={setFormOpen} onSave={loadJournals} />
-      <JournalDetail journal={viewing} open={detailOpen} onOpenChange={setDetailOpen} />
+      {loaded && <Dialog open={detailOpen} onOpenChange={setDetailOpen}><DialogContent className="max-h-[90vh] overflow-auto sm:max-w-3xl">
+        <DialogHeader><DialogTitle>Legacy journal details</DialogTitle><DialogDescription>Historical entry data; current posted accounts are shown in the canonical general ledger.</DialogDescription></DialogHeader>
+        {viewing && <LegacyJournalDetails journal={viewing} />}
+      </DialogContent></Dialog>}
     </div>
   );
+}
+
+function LegacyAmount({ value }) {
+  const minor = legacyMinor(value);
+  return minor === null ? <span className="text-muted-foreground">Unavailable</span> : <Money value={minor} />;
+}
+
+export function LegacyJournalDetails({ journal }) {
+  const sourcePath = journal.source_record_id ? docPath(journal.source_type, journal.source_record_id) : null;
+  const lines = Array.isArray(journal.lines) ? journal.lines : null;
+  return <div className="space-y-4">
+    <div><p className="font-medium">{journal.reference || 'Reference unavailable'}</p><p className="text-sm text-muted-foreground">{journal.description || 'Description unavailable'}</p></div>
+    <dl className="grid grid-cols-2 gap-3 text-sm">
+      <div><dt>Entry debit</dt><dd><LegacyAmount value={journal.total_debit} /></dd></div>
+      <div><dt>Entry credit</dt><dd><LegacyAmount value={journal.total_credit} /></dd></div>
+    </dl>
+    {lines?.length ? <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr><th className="p-2 text-left">Account</th><th className="p-2 text-right">Debit</th><th className="p-2 text-right">Credit</th></tr></thead>
+      <tbody>{lines.map((line, index) => <tr key={index} className="border-t"><td className="p-2">{typeof line?.account_code === 'string' ? line.account_code : ''} {typeof line?.account_name === 'string' ? line.account_name : 'Account unavailable'}</td><td className="p-2 text-right"><LegacyAmount value={line?.debit} /></td><td className="p-2 text-right"><LegacyAmount value={line?.credit} /></td></tr>)}</tbody>
+    </table></div> : <p className="text-sm text-muted-foreground">Line details unavailable.</p>}
+    {sourcePath ? <Link to={sourcePath} className="text-sm text-primary underline">View source document{journal.source_record_number ? ` · ${journal.source_record_number}` : ''}</Link>
+      : <p className="text-sm text-muted-foreground">{journal.source_record_number ? `Source reference: ${journal.source_record_number}. ` : ''}No supported source-document link is available for this historical entry.</p>}
+  </div>;
 }

@@ -19,6 +19,9 @@ export function buildSource(form) {
     invoice_number: form.invoice_number, issue_date: form.issue_date, due_date: form.due_date,
     payment_terms: Number(form.payment_terms) || 0, reference: form.reference ?? '', notes: form.notes ?? '',
     price_basis: form.price_basis ?? 'excluding_vat',
+    conditional_discount: form.conditional_discount ?? null,
+    discount: form.discount ? { type: form.discount.type, value: String(form.discount.value) } : null,
+    discount_adjustment: form.discount_adjustment ? { type: form.discount_adjustment.type, value: String(form.discount_adjustment.value), original_revision: form.discount_adjustment.original_revision } : null,
     line_items: form.line_items.map(l => ({
       description: String(l.description), quantity: String(l.quantity), unit_price: String(l.unit_price), tax_code: String(l.tax_code),
     })),
@@ -69,7 +72,10 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
   const base = c => `/api/companies/${encodeURIComponent(c)}`;
   const docs = c => `${base(c)}/accounting-documents`;
   return {
+    captureConditionalEvidence: (c, body) => call(`${base(c)}/conditional-discount-evidence`, { method: 'POST', body }),
+    getConditionalEvidence: (c, id, signal) => call(`${base(c)}/conditional-discount-evidence/${encodeURIComponent(id)}`, { signal }),
     paymentContext: (c, signal) => call(`${base(c)}/accounting-payments/context`, { signal }),
+    recoverPayment: (c, id, signal) => call(`${base(c)}/accounting-payments/operations/${encodeURIComponent(id)}`, { signal }),
     payments: (c, signal) => call(`${base(c)}/accounting-payments`, { signal }),
     savePaymentConfiguration: (c, body) => call(`${base(c)}/accounting-payments/configuration`, { method: 'PUT', body }),
     reviewPayment: (c, body) => call(`${base(c)}/accounting-payments/review`, { method: 'POST', body }),
@@ -80,8 +86,15 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
     updateAccount: (c, id, body, revision) => call(`${base(c)}/accounting-accounts/${encodeURIComponent(id)}`, { method: 'PATCH', body, revision }),
     context: (c, kind, signal) => call(`${docs(c)}/context?kind=${encodeURIComponent(kind)}`, { signal }),
     get: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}`, { signal }),
+    correctionContext: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/correction-context`, { signal }),
+    correctionHistory: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections`, { signal }),
+    reviewCorrection: (c, id, body, revision) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections/review`, { method: 'POST', body, revision }),
+    commitCorrection: (c, id, body, revision) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections`, { method: 'POST', body, revision }),
     create: (c, body) => call(docs(c), { method: 'POST', body }),
     update: (c, id, body, revision) => call(`${docs(c)}/${encodeURIComponent(id)}`, { method: 'PATCH', body, revision }),
+    reviewConditionalCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/conditional-credit/review`, {method:'POST',body,revision}),
+    reviewPaidCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/paid-credit/review`, {method:'POST',body,revision}),
+    commitPaidCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/paid-credit`, {method:'POST',body,revision}),
     post: (c, id, revision) => call(`${docs(c)}/${encodeURIComponent(id)}/post`, { method: 'POST', body: {}, revision }),
     journal: (c, id, signal) => call(`${base(c)}/accounting-journals/${encodeURIComponent(id)}`, { signal }),
     reports: (c, from, to, signal) => call(`${base(c)}/accounting-reports?from=${from}&to=${to}`, { signal }),

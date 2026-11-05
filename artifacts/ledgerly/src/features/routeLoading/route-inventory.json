@@ -1,0 +1,246 @@
+[
+  {
+    "path": "/sign-in/*",
+    "element": "<SignInPage />"
+  },
+  {
+    "path": "/sign-up/*",
+    "element": "<SignUpPage />"
+  },
+  {
+    "path": "/login",
+    "element": "<Navigate to=\"/sign-in\" replace />"
+  },
+  {
+    "path": "/register",
+    "element": "<Navigate to=\"/sign-up\" replace />"
+  },
+  {
+    "path": "/forgot-password",
+    "element": "<Navigate to=\"/sign-in\" replace />"
+  },
+  {
+    "path": "/reset-password",
+    "element": "<Navigate to=\"/sign-in\" replace />"
+  },
+  {
+    "path": "/setup",
+    "element": "<SetupWizard />"
+  },
+  {
+    "path": "/",
+    "element": "<Dashboard />"
+  },
+  {
+    "path": "/ai-accountant",
+    "element": "<AIAccountant />"
+  },
+  {
+    "path": "/ai-accountant/inbox",
+    "element": "<AIAccountantInbox />"
+  },
+  {
+    "path": "/ai-accountant/tasks",
+    "element": "<AIAccountantTasks />"
+  },
+  {
+    "path": "/ai-accountant/reviews",
+    "element": "<AIAccountantReviews />"
+  },
+  {
+    "path": "/ai-accountant/recommendations",
+    "element": "<AIAccountantRecommendations />"
+  },
+  {
+    "path": "/companies",
+    "element": "<Companies />"
+  },
+  {
+    "path": "/customers",
+    "element": "<Customers />"
+  },
+  {
+    "path": "/payments",
+    "element": "<Payments />"
+  },
+  {
+    "path": "/statements",
+    "element": "<Statements />"
+  },
+  {
+    "path": "/customers/:id",
+    "element": "<Customers />"
+  },
+  {
+    "path": "/suppliers",
+    "element": "<Suppliers />"
+  },
+  {
+    "path": "/invoices",
+    "element": "<AccountingDocumentList kind=\"sales_invoice\" legacyLink=\"/invoices/earlier-drafts\" />"
+  },
+  {
+    "path": "/invoices/earlier-drafts",
+    "element": "<Invoices />"
+  },
+  {
+    "path": "/invoices/new",
+    "element": "<AccountingDocumentForm kind=\"sales_invoice\" />"
+  },
+  {
+    "path": "/invoices/legacy/new",
+    "element": "<InvoiceForm />"
+  },
+  {
+    "path": "/invoices/:id",
+    "element": "<AccountingDocumentForm kind=\"sales_invoice\" legacyFallback={<InvoiceForm />} />"
+  },
+  {
+    "path": "/invoices/:id/view",
+    "element": "<AccountingDocumentForm kind=\"sales_invoice\" legacyFallback={<InvoiceDetail />} />"
+  },
+  {
+    "path": "/collections",
+    "element": "<Collections />"
+  },
+  {
+    "path": "/bills",
+    "element": "<AccountingDocumentList kind=\"purchase_bill\" />"
+  },
+  {
+    "path": "/awaiting-credits",
+    "element": "<AwaitingCreditsPage />"
+  },
+  {
+    "path": "/bills/earlier",
+    "element": "<Bills />"
+  },
+  {
+    "path": "/bills/new",
+    "element": "<AccountingDocumentForm kind=\"purchase_bill\" />"
+  },
+  {
+    "path": "/bills/:id",
+    "element": "<AccountingDocumentForm kind=\"purchase_bill\" />"
+  },
+  {
+    "path": "/sales-credit-notes",
+    "element": "<AccountingDocumentList kind=\"sales_credit_note\" />"
+  },
+  {
+    "path": "/sales-credit-notes/new",
+    "element": "<AccountingDocumentForm kind=\"sales_credit_note\" />"
+  },
+  {
+    "path": "/sales-credit-notes/:id",
+    "element": "<AccountingDocumentForm kind=\"sales_credit_note\" />"
+  },
+  {
+    "path": "/supplier-credit-notes",
+    "element": "<AccountingDocumentList kind=\"supplier_credit_note\" />"
+  },
+  {
+    "path": "/supplier-credit-notes/new",
+    "element": "<AccountingDocumentForm kind=\"supplier_credit_note\" />"
+  },
+  {
+    "path": "/supplier-credit-notes/:id",
+    "element": "<AccountingDocumentForm kind=\"supplier_credit_note\" />"
+  },
+  {
+    "path": "/accounting/journals/:id",
+    "element": "<AccountingJournal />"
+  },
+  {
+    "path": "/accounting/reports",
+    "element": "<AccountingReports />"
+  },
+  {
+    "path": "/accounting/setup",
+    "element": "<AccountingSetup />"
+  },
+  {
+    "path": "/audit-history",
+    "element": "<AuditHistory />"
+  },
+  {
+    "path": "/bank-accounts",
+    "element": "<BankAccounts />"
+  },
+  {
+    "path": "/transactions",
+    "element": "<BankTransactions />"
+  },
+  {
+    "path": "/reconciliation",
+    "element": "<Reconciliation />"
+  },
+  {
+    "path": "/vat",
+    "element": "<VATReturns />"
+  },
+  {
+    "path": "/vat/:id",
+    "element": "<VATReturnDetail />"
+  },
+  {
+    "path": "/documents",
+    "element": "<Documents />"
+  },
+  {
+    "path": "/email-capture",
+    "element": "<EmailCapture />"
+  },
+  {
+    "path": "/email-rules",
+    "element": "<EmailRules />"
+  },
+  {
+    "path": "/reports",
+    "element": "<ReportLibrary />"
+  },
+  {
+    "path": "/reports/legacy",
+    "element": "<Reports />"
+  },
+  {
+    "path": "/accountant",
+    "element": "<AccountantPortal />"
+  },
+  {
+    "path": "/chart-of-accounts",
+    "element": "<ChartOfAccounts />"
+  },
+  {
+    "path": "/general-ledger",
+    "element": "<AccountingReports defaultTab=\"gl\" />"
+  },
+  {
+    "path": "/general-ledger/manual-journals",
+    "element": "<GeneralLedger />"
+  },
+  {
+    "path": "/insights",
+    "element": "<Insights />"
+  },
+  {
+    "path": "/smart-suggestions",
+    "element": "<SmartSuggestions />"
+  },
+  {
+    "path": "/settings",
+    "element": "<Settings />"
+  },
+  {
+    "path": "/automation",
+    "element": "<Automation />"
+  },
+  {
+    "path": "/dev-tools",
+    "element": "<DevelopmentTools />"
+  },
+  {
+    "path": "*",
+    "element": "<PageNotFound />"
+  }
+]

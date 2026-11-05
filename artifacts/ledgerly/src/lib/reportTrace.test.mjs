@@ -34,3 +34,16 @@ test('report navigation includes historic and future posting dates; filters inte
   assert.deepEqual(filterLedger(lines, 'a', 'd'), [lines[0]]);
   assert.equal(filterLedger(lines, null, null).length, 3);
 });
+
+test('original and correction journals retain separate movements and trace to the same document', () => {
+  const original = { journal_id: 'original-journal', source_type: 'sales_invoice', source_id: 'invoice', source_number: 'INV-1', posting_date: '2026-10-21', account_type: 'income', account_id: 'sales', account_code: '4000', account_name: 'Sales', debit_minor: '0', credit_minor: '10000' };
+  const correction = { ...original, journal_id: 'correction-journal', source_type: 'canonical_journal', source_id: 'original-journal', document_id: 'invoice', document_kind: 'sales_invoice', posting_date: '2026-10-22', debit_minor: '1000', credit_minor: '0' };
+  const unrelated = { ...correction, document_id: 'another-invoice' };
+  assert.deepEqual(filterLedger([original, correction, unrelated], 'sales', 'invoice'), [original, correction]);
+  const rows = pnlTransactions({ posted_documents: [{ id: 'invoice', party_name: 'Example customer' }], general_ledger: [original, correction] });
+  assert.equal(rows.length, 2);
+  assert.ok(rows.every(row => row.id === 'invoice' && row.kind === 'sales_invoice' && row.party === 'Example customer'));
+  assert.deepEqual(new Set(rows.map(row => row.journal_id)), new Set(['original-journal', 'correction-journal']));
+  assert.equal(rows.reduce((sum, row) => sum + BigInt(row.amount_minor), 0n), 9000n);
+  assert.equal(correction.source_id, 'original-journal');
+});

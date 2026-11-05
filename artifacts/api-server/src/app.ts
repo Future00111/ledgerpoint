@@ -10,8 +10,10 @@ import {
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
-import { logger } from "./lib/logger";
+import { logger, httpLogSerializers } from "./lib/logger";
 import { verifyDraftBody, draftParserErrors } from "./services/financialDrafts/jsonBoundary";
+import { RejectedOriginError, safeAppErrors } from "./security/appErrors";
+import { apiResponseHeaders, rejectCrossSiteUnsafeRequest } from "./security/requestLimits";
 
 export interface ApiAppOptions {
   /**
@@ -23,24 +25,12 @@ export interface ApiAppOptions {
 
 export function createApp({ beforeClerkMiddleware }: ApiAppOptions = {}): Express {
 const app: Express = express();
+app.disable("x-powered-by");
 
 app.use(
   pinoHttp({
     logger,
-    serializers: {
-      req(req) {
-        return {
-          id: req.id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
-      },
-      res(res) {
-        return {
-          statusCode: res.statusCode,
-        };
-      },
-    },
+    serializers: httpLogSerializers,
   }),
 );
 
@@ -48,6 +38,11 @@ if (beforeClerkMiddleware) app.use(beforeClerkMiddleware);
 
 // Clerk proxy must come before body parsers (streams raw bytes)
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
+
+// Apply financial response headers after the Clerk streaming proxy so its session
+// and asset transport remain unchanged. Admission is not enabled until the trusted
+// edge/client identity and distributed quota policy are verified for deployment.
+app.use("/api", apiResponseHeaders);
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Allow only known Ledgerly origins. Never reflect arbitrary Origin headers for
@@ -58,8 +53,7 @@ const ALLOWED_ORIGINS = new Set<string>(
     process.env.REPLIT_DEV_DOMAIN
       ? `https://${process.env.REPLIT_DEV_DOMAIN}`
       : undefined,
-    "http://localhost:5173",
-    "http://localhost:3000",
+    ...(process.env.NODE_ENV === "production" ? [] : ["http://localhost:5173", "http://localhost:3000"]),
   ].filter(Boolean) as string[],
 );
 
@@ -70,31 +64,21 @@ app.use(
       // Same-origin / server-to-server requests have no Origin header — allow.
       if (!requestOrigin) return callback(null, true);
       if (ALLOWED_ORIGINS.has(requestOrigin)) return callback(null, requestOrigin);
-      callback(new Error(`CORS: origin '${requestOrigin}' not allowed`));
+      callback(new RejectedOriginError());
     },
   }),
 );
 
-// ── CSRF / origin check for unsafe methods ───────────────────────────────────
-// For state-changing requests from a browser the Origin header must be present
-// and must match an allowed origin. This prevents cross-site form submissions.
-app.use((req, res, next) => {
-  const unsafe = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
-  if (!unsafe) return next();
-  // Skip Clerk proxy path (handled above) and pre-flight OPTIONS
-  if (req.method === "OPTIONS") return next();
-  if (req.path.startsWith(CLERK_PROXY_PATH)) return next();
-  const origin = req.headers["origin"] as string | undefined;
-  // Non-browser (no Origin header) — allow (server-to-server, curl, etc.)
-  if (!origin) return next();
-  if (ALLOWED_ORIGINS.has(origin)) return next();
-  res.status(403).json({ error: "CSRF: origin not permitted" });
-});
+// CORS validates every supplied Origin above. Fetch Metadata also identifies
+// browser cross-site writes that arrive without an Origin header. Keep clients
+// without browser metadata supported; this is defence in depth, not a substitute
+// for Clerk authentication and protected financial action authorization.
+app.use(rejectCrossSiteUnsafeRequest);
 
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb", verify: verifyDraftBody }));
 app.use(draftParserErrors);
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false, limit: "100kb", parameterLimit: 100 }));
 
 // Resolve publishable key from request host (supports custom domains)
 app.use(
@@ -107,6 +91,7 @@ app.use(
 );
 
 app.use("/api", router);
+app.use(safeAppErrors);
 
 return app;
 }

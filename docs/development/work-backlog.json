@@ -1,0 +1,2454 @@
+{
+  "version": 1,
+  "source": {
+    "checklist_title": "Ledgerly remaining work in priority order",
+    "checklist_date": "2026-10-30",
+    "source_library_file_id": "libfile_4eaba390f8e08191aeced32dffc05633",
+    "source_bullet_count": 92,
+    "baseline_commit": "7268db79685227b40971f7667cb547f09f9d3e16",
+    "scope": "All 18 agreed commercial product priorities; accounting, tax and payroll calculations are built in-house. Direct HMRC and necessary service interfaces remain permitted.",
+    "catalogue_policy": "The original 92 bullet packages remain pending. Additional contract/external/narrow-trial tasks expose prerequisites and actual integrated evidence; six narrow trial completions do not complete broad source packages. Workers are reusable and have no permanent specialist ownership. Only exact paths and directory prefixes form file leases; future module paths are proposed work areas, not claims of existing functionality."
+  },
+  "tasks": [
+    {
+      "id": "P01-00",
+      "title": "Review shared financial correction and credit interfaces",
+      "description": "Coordinator review of the smallest money/event/credit-capacity contracts needed by the approved accounting backlog; no new owner approval cycle.",
+      "priority": 100,
+      "dependencies": [],
+      "acceptance": [
+        "Write exact examples for fully paid credits, unapplied excess and corrected originals using stable source/journal identities.",
+        "Document historical cutoffs, atomicity, precision and tenant/permission invariants before dependent financial code changes."
+      ],
+      "files": [
+        "docs/development/posted-document-corrections.md",
+        "docs/development/credit-capacity-contract.md"
+      ],
+      "kind": "contract",
+      "approval": "approved"
+    },
+    {
+      "id": "P01-01",
+      "title": "Activate tested corrections safely",
+      "description": "Activate tested corrections safely. Rehearse the amendment/head-table migration on a representative existing-data copy; verify backup, rollback and history before enabling corrections in the demo or customer environments. They are currently disabled in the reviewed demo. This task prepares and rehearses the migration only; applying it to an existing demo/customer environment is the separate owner-required P01-80 action.",
+      "priority": 101,
+      "dependencies": [
+        "P03-03",
+        "P01-00"
+      ],
+      "acceptance": [
+        "On an explicitly disposable representative database copy, install the amendment overlay and reconcile before/after source, journal and history fingerprints.",
+        "Prove complete absence, partial schema and failed-upgrade cases fail safely; archive restore and rollback evidence without writing the existing demo or customer database."
+      ],
+      "files": [
+        "lib/db/migrations/accounting-document-amendments.review.sql",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/correction-upgrade.test.mjs"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P01-02",
+      "title": "Allow credits after full payment",
+      "description": "Allow credits after full payment. Complete the missing workflow for a fully paid bill or invoice to receive a valid credit and create a refundable or reusable balance. Example: a \u00a3120 paid bill must be able to receive a \u00a312 supplier credit.",
+      "priority": 102,
+      "dependencies": [
+        "P01-00",
+        "P03-00"
+      ],
+      "acceptance": [
+        "A synthetic fully paid GBP120 bill can receive a valid GBP12 supplier credit, retaining the payment and producing a reusable/refundable balance.",
+        "Customer-credit counterpart, duplicate requests, concurrency and cumulative-credit caps preserve balanced journals, original evidence and company permissions."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/accountingDocuments/documents.ts",
+        "artifacts/api-server/src/services/accountingDocuments/settlement.ts",
+        "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+        "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+        "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx",
+        "artifacts/api-server/src/services/accountingDocuments/posting.ts",
+        "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+        "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
+        "artifacts/api-server/src/routes/accountingDocuments.ts",
+        "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+        "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+        "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
+        "lib/db/migrations/paid-credit-operations.review.sql",
+        "lib/db/schema-change-registry.json",
+        "tools/accounting-flow/schema.mjs"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P01-03",
+      "title": "Finish excess-credit and discount handling",
+      "description": "Finish excess-credit and discount handling. Support unapplied balances, later allocation and refunds with clear cumulative limits; define conditional discounts. Do not cap a genuine credit solely by the remaining cash amount due.",
+      "priority": 103,
+      "dependencies": [
+        "P01-02"
+      ],
+      "acceptance": [
+        "Unapplied excess credit can be allocated later or refunded with exact signed balance and cumulative-cap reconciliation.",
+        "Conditional and later-discount examples are reviewed; retries, partial settlement and reversals cannot double-allocate or rewrite earlier history."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/accountingDocuments/documents.ts",
+        "artifacts/api-server/src/services/accountingDocuments/settlement.ts",
+        "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+        "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+        "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx",
+        "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx",
+        "artifacts/ledgerly/src/features/documentDiscounts/model.mjs",
+        "artifacts/ledgerly/src/features/documentDiscounts/model.test.mjs",
+        "artifacts/ledgerly/src/components/accounting/PostedDocument.jsx",
+        "artifacts/ledgerly/src/components/accounting/PostedDocument.test.jsx",
+        "docs/development/credit-capacity-contract.md",
+        "artifacts/api-server/src/services/financialDrafts/contract.ts",
+        "artifacts/api-server/src/services/financialDrafts/contract.test.ts",
+        "artifacts/api-server/src/services/financialDrafts/discounts.ts",
+        "artifacts/api-server/src/services/financialDrafts/discounts.test.ts",
+        "artifacts/api-server/src/services/financialDrafts/invoiceService.ts",
+        "artifacts/api-server/src/services/financialDrafts/productionAuthority.ts",
+        "artifacts/api-server/src/services/financialDrafts/invoice.integration.test.ts",
+        "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+        "artifacts/api-server/src/services/accountingDocuments/posting.ts",
+        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+        "artifacts/api-server/src/routes/accountingDocuments.ts",
+        "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+        "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+        "artifacts/ledgerly/src/api/invoiceDrafts.mjs",
+        "artifacts/ledgerly/src/api/invoiceDrafts.test.mjs",
+        "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
+        "lib/db/migrations/conditional-discount-agreements.review.sql",
+        "lib/db/schema-change-registry.json",
+        "lib/db/migration-registry.json",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs",
+        "tools/development/migrations/registry.mjs",
+        "tools/development/migrations/registry.test.mjs",
+        "tools/development/migrations/partial-schema.test.mjs"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P01-04",
+      "title": "Complete correction interactions",
+      "description": "Complete correction interactions. Use one historical document-event calculation for balances, credit limits, reports, VAT and return claims. Then safely support credits and claims against corrected originals; retain the current blocks until those cases are proven.",
+      "priority": 104,
+      "dependencies": [
+        "P01-00"
+      ],
+      "acceptance": [
+        "The same signed event projection drives settlement, report/VAT totals, credit capacity and return eligibility for corrected originals.",
+        "Synthetic correction followed by credit/claim and historical-cutoff tests pass before existing safety blocks are removed; concurrent changes fail atomically."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/accountingDocuments/documentEvents.ts",
+        "artifacts/api-server/src/services/accountingDocuments/settlement.ts",
+        "artifacts/api-server/src/services/accountingDocuments/reports.ts",
+        "artifacts/api-server/src/services/accountingDocuments/amendments.ts",
+        "artifacts/api-server/src/services/creditTracking/domain.ts",
+        "artifacts/api-server/src/services/creditTracking/service.ts",
+        "artifacts/api-server/src/services/accountingDocuments/corrections.integration.test.ts"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P01-05",
+      "title": "Qualify difficult money cases",
+      "description": "Qualify difficult money cases. Obtain independent accounting review of partial payments, mixed VAT, inclusive/exclusive amounts, rounding, linked discounts, overpayments and concurrent actions. Prove balanced journals and unchanged historical reports at earlier dates.",
+      "priority": 105,
+      "dependencies": [
+        "P01-01",
+        "P01-02",
+        "P01-03",
+        "P01-04"
+      ],
+      "acceptance": [
+        "Independently reviewed examples cover partial payments, mixed VAT, inclusive/exclusive pricing, rounding, discounts and overpayments.",
+        "Every supported case has balanced journals, matching control balances, immutable evidence and unchanged prior-cutoff results, including rollback and concurrency tests."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+        "artifacts/api-server/src/services/accountingDocuments/corrections.integration.test.ts",
+        "artifacts/api-server/src/services/accountingDocuments/vatCoverage.integration.test.ts",
+        "docs/development/accounting-acceptance-cases.json"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P01-80",
+      "title": "Apply reviewed correction migration to an authorised existing environment",
+      "description": "Execute the concrete reviewed migration only after the owner names the existing demo/customer target and approves this action; never infer authority from coding approval.",
+      "priority": 180,
+      "dependencies": [
+        "P01-01"
+      ],
+      "acceptance": [
+        "Record explicit target-specific authority and verified backup immediately before the existing-data migration.",
+        "Reconcile source/history after migration and retain rollback/recovery evidence; abort on unapproved target or partial schema."
+      ],
+      "files": [
+        "lib/db/migrations/accounting-document-amendments.review.sql",
+        "docs/operations/correction-migration-receipt.json"
+      ],
+      "kind": "external",
+      "approval": "owner_required"
+    },
+    {
+      "id": "P02-01",
+      "title": "Review every remaining legacy route and action for explicit role/capability checks",
+      "description": "Review every remaining legacy route and action for explicit role/capability checks; test cross-company reads, writes, downloads and exports, inactive membership and stale company context.",
+      "priority": 201,
+      "dependencies": [],
+      "acceptance": [
+        "Inventory every remaining route/action and map it to explicit server capability checks; inactive members and viewers are rejected where appropriate.",
+        "Cross-company read/write/download/export and delayed old-company response tests pass without adding an authentication bypass."
+      ],
+      "files": [
+        "artifacts/api-server/src/routes/entities.ts",
+        "artifacts/api-server/src/routes/functions.ts",
+        "artifacts/api-server/src/security/companyPolicy.ts",
+        "artifacts/api-server/src/security/companyRoutes.test.ts",
+        "artifacts/api-server/src/security/integration.test.ts"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P02-02",
+      "title": "Complete invitations, removal, role changes and external identity reconciliation",
+      "description": "Complete invitations, removal, role changes and external identity reconciliation. Recheck permissions on every consequential action; preserve the implemented last-owner protection.",
+      "priority": 202,
+      "dependencies": [],
+      "acceptance": [
+        "Invites, role changes and removal are exercised against signed synthetic identity events, including duplicate and out-of-order delivery.",
+        "Consequential actions recheck current membership; stale identity state cannot regain access or remove the final active owner."
+      ],
+      "files": [
+        "artifacts/api-server/src/routes/companies.ts",
+        "artifacts/api-server/src/security/roles.ts",
+        "artifacts/api-server/src/security/companyPolicy.ts",
+        "artifacts/api-server/src/security/integration.test.ts",
+        "artifacts/api-server/src/services/identityLifecycle/",
+        "artifacts/ledgerly/src/pages/Companies.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P02-03",
+      "title": "Harden production sessions, secrets, transport/security headers, rate limits, upload limits and dependencies",
+      "description": "Harden production sessions, secrets, transport/security headers, rate limits, upload limits and dependencies; redact sensitive data from logs and error responses. The completed outer error boundary P02-90 is one slice only; session, header, rate-limit and dependency hardening remain open. Lockfile changes require coordinator review, not a new owner approval.",
+      "priority": 203,
+      "dependencies": [
+        "P02-90"
+      ],
+      "acceptance": [
+        "Production session/header/rate/input policies are explicit and exercised with malformed, oversized and repeated requests without breaking approved Clerk/origin flows.",
+        "Secret/dependency checks pass and HTTP/log tests prove request bodies, tokens, provider responses and arbitrary exception text are redacted."
+      ],
+      "files": [
+        "artifacts/api-server/src/app.ts",
+        "artifacts/api-server/src/lib/logger.ts",
+        "artifacts/api-server/src/security/appErrors.ts",
+        "artifacts/api-server/src/security/appErrors.test.ts",
+        "artifacts/api-server/src/security/requestLimits.ts",
+        "artifacts/api-server/src/security/requestLimits.test.ts",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P02-04",
+      "title": "Separate payroll and personal tax access from ordinary bookkeeping roles",
+      "description": "Separate payroll and personal tax access from ordinary bookkeeping roles; define who may see pay, identifiers and bank details, approve a run, or file a return. Audit access and changes.",
+      "priority": 204,
+      "dependencies": [
+        "P04-01"
+      ],
+      "acceptance": [
+        "Define and test separate rights for bookkeeping, payroll records, payroll approval, personal tax preparation and submission.",
+        "Negative tests prevent unauthorised salary/identifier/bank-data reads and exports, while recording allowed reads and consequential changes with the correct actor/company."
+      ],
+      "files": [
+        "artifacts/api-server/src/security/roles.ts",
+        "artifacts/api-server/src/security/companyPolicy.ts",
+        "artifacts/api-server/src/security/roles.test.ts",
+        "artifacts/api-server/src/security/integration.test.ts",
+        "artifacts/api-server/src/services/tax/access/",
+        "artifacts/api-server/src/services/payroll/access/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P02-90",
+      "title": "Fixed JSON boundary for unhandled application errors",
+      "description": "Completed bounded slice integrated in eb5af9f, with runner registration 7268db7: final Express error boundary returns safe fixed errors for parser/origin/unexpected failures. Broader hardening remains P02-03.",
+      "priority": 290,
+      "dependencies": [],
+      "acceptance": [
+        "Integrated HTTP tests cover malformed/oversized body, denied origin and unknown error cases with safe statuses and fixed JSON.",
+        "Unexpected messages/stacks/body/credentials do not reach clients or unsafe logs; existing handled financial responses and Clerk protections remain intact."
+      ],
+      "files": [
+        "artifacts/api-server/src/app.ts",
+        "artifacts/api-server/src/security/appErrors.ts",
+        "artifacts/api-server/src/security/appErrors.test.ts"
+      ],
+      "kind": "implementation",
+      "approval": "approved",
+      "status": "done"
+    },
+    {
+      "id": "P03-00",
+      "title": "Review additive persistence and migration interfaces",
+      "description": "Coordinator reviews schema versions, transaction boundaries and migration/recovery contracts before new persistence modules depend on them.",
+      "priority": 300,
+      "dependencies": [],
+      "acceptance": [
+        "Define reviewed additive tables, version guards and shared operation/job/filing identifiers without applying them to existing databases.",
+        "Migration tests use a new disposable database, preserve restricted runtime roles and prove partial schemas fail safely."
+      ],
+      "files": [
+        "docs/development/persistence-contracts.md",
+        "lib/db/schema-change-registry.json",
+        "tools/development/migrations/partial-schema.test.mjs",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs"
+      ],
+      "kind": "contract",
+      "approval": "approved"
+    },
+    {
+      "id": "P03-01",
+      "title": "Persist operation identities and outcomes on the server for payments, corrections, capture conversion, payroll and filing",
+      "description": "Persist operation identities and outcomes on the server for payments, corrections, capture conversion, payroll and filing. Reload, re-login, company switch and retry must resolve the same attempt without duplicate effects.",
+      "priority": 301,
+      "dependencies": [
+        "P03-00",
+        "P01-00"
+      ],
+      "acceptance": [
+        "Server-persisted actor/company operation identity resolves the same result after reload, re-login, company switch, timeout and duplicate delivery.",
+        "Transactions write outcome and accounting effects atomically; a removed member cannot recover another company result and no financial payload/token is placed in browser storage."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/operationRecovery/",
+        "lib/db/migrations/operation-recovery.review.sql",
+        "artifacts/ledgerly/src/features/paymentRecovery/model.mjs",
+        "artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx",
+        "artifacts/ledgerly/src/features/documentCorrections/model.mjs",
+        "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+        "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+        "artifacts/api-server/src/routes/accountingDocuments.ts",
+        "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+        "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+        "artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs",
+        "tools/development/migrations/registry.mjs",
+        "tools/development/migrations/registry.test.mjs",
+        "lib/db/migration-registry.json",
+        "lib/db/schema-change-registry.json"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P03-02",
+      "title": "Replace memory-only job/reference state with durable jobs, an outbox and a scheduler",
+      "description": "Replace memory-only job/reference state with durable jobs, an outbox and a scheduler. Add leases, bounded retries, cancellation and recovery after worker restarts.",
+      "priority": 302,
+      "dependencies": [
+        "P03-00"
+      ],
+      "acceptance": [
+        "Persistent jobs/outbox retain queued and in-flight work across process restart and support bounded retry, cancellation and lease expiry.",
+        "Duplicate delivery and stale worker completion have at most one committed effect; failed jobs retain source evidence and expose safe retry diagnostics."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/durableJobs/",
+        "lib/db/migrations/durable-jobs.review.sql",
+        "artifacts/api-server/src/services/documentIntake/extraction/worker/types.ts",
+        "artifacts/api-server/src/services/documentIntake/extraction/worker.ts",
+        "artifacts/api-server/src/services/documentIntake/extraction/contract.ts",
+        "artifacts/api-server/src/services/documentIntake/extraction/contract.test.ts",
+        "artifacts/api-server/src/services/documentIntake/extraction/worker.test.ts",
+        "artifacts/api-server/src/services/documentIntake/service.ts",
+        "artifacts/api-server/src/services/documentIntake/service.test.ts",
+        "artifacts/api-server/src/routes/documentIntake.ts",
+        "artifacts/api-server/src/index.ts",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs",
+        "tools/development/migrations/registry.mjs",
+        "tools/development/migrations/registry.test.mjs",
+        "lib/db/migration-registry.json",
+        "lib/db/schema-change-registry.json"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P03-03",
+      "title": "Create a reviewed migration pipeline for existing businesses, with version checks and rehearsal",
+      "description": "Create a reviewed migration pipeline for existing businesses, with version checks and rehearsal. Prove failed migrations and partial schemas stop safely; do not rely on startup to modify customer data.",
+      "priority": 303,
+      "dependencies": [
+        "P03-00"
+      ],
+      "acceptance": [
+        "Versioned migrations rehearse against fresh and representative existing-data disposable copies; startup never silently upgrades customer schemas.",
+        "Partial/failed migration, rollback/forward-fix and backup-restore cases produce machine-readable evidence and stop deployment on incompatible schema versions."
+      ],
+      "files": [
+        "tools/development/migrations/",
+        "tools/accounting-flow/schema.mjs",
+        "lib/db/migration-registry.json",
+        ".github/workflows/ledgerpoint-development.yml"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P03-04",
+      "title": "Establish off-site backup, encryption and restore ownership now",
+      "description": "Establish off-site backup, encryption and restore ownership now; prove restoration to a new environment including roles, attachments, jobs and audit evidence. Set measurable recovery time and data-loss targets. External backup-account provisioning or access grants require P03-80; local implementation and disposable rehearsals are approved.",
+      "priority": 304,
+      "dependencies": [
+        "P03-00"
+      ],
+      "acceptance": [
+        "Define recovery-time and recovery-point targets plus backup encryption/key/retention ownership; produce an encrypted synthetic backup with original attachments and audit.",
+        "Restore a new disposable environment including database roles and job/source records, compare fingerprints and record measured recovery time; no existing environment is overwritten."
+      ],
+      "files": [
+        "tools/operations/backup-restore/",
+        "docs/operations/recovery-targets.json",
+        "tools/accounting-flow/restore-drill.mjs"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P03-80",
+      "title": "Authorise external off-site backup destination",
+      "description": "Obtain action-specific authority before connecting/provisioning off-site backup storage or granting access; the approved rehearsal uses synthetic data.",
+      "priority": 380,
+      "dependencies": [
+        "P03-04"
+      ],
+      "acceptance": [
+        "Owner approves destination, cost/access scope, encryption/key ownership and retention for the concrete backup setup.",
+        "Record the connection/access outcome without exposing credentials and confirm synthetic-data-only rehearsal boundaries."
+      ],
+      "files": [
+        "docs/operations/offsite-backup-authorisation.json"
+      ],
+      "kind": "external",
+      "approval": "owner_required"
+    },
+    {
+      "id": "P04-01",
+      "title": "Freeze the supported entities, income types, VAT schemes, employments and tax years in a case register",
+      "description": "Freeze the supported entities, income types, VAT schemes, employments and tax years in a case register. Map every supported case to a rule, expected result, test and owner; reject unsupported cases visibly.",
+      "priority": 401,
+      "dependencies": [],
+      "acceptance": [
+        "Publish a machine-readable entity, income, scheme, employment and tax-year matrix with supported/unsupported status, official rule provenance and required input/output examples.",
+        "Every promised supported case has acceptance coverage; unknown cases fail explicitly and the register neither purchases an engine nor reduces the agreed product scope."
+      ],
+      "files": [
+        "docs/development/tax-payroll-supported-cases.json",
+        "artifacts/api-server/src/services/tax/contracts/",
+        "artifacts/api-server/src/services/payroll/contracts/"
+      ],
+      "kind": "contract",
+      "approval": "approved"
+    },
+    {
+      "id": "P04-02",
+      "title": "Implement deterministic calculations with explicit decimal precision and statutory rounding",
+      "description": "Implement deterministic calculations with explicit decimal precision and statutory rounding. Version effective dates, thresholds, allowances, schemas and calculation steps; preserve prior-year replay and explain every result.",
+      "priority": 402,
+      "dependencies": [
+        "P04-01",
+        "P04-03"
+      ],
+      "acceptance": [
+        "Implement shared deterministic amount/rounding/effective-date primitives with explicit precision and immutable rule-version identifiers.",
+        "Official boundary fixtures and prior-year replay reproduce the same inputs, intermediate steps and outputs; later rule changes never rewrite old calculations."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/core/",
+        "artifacts/api-server/src/services/payroll/calculationCore/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P04-03",
+      "title": "Create official-example and accountant-reviewed fixture packs before implementing rules",
+      "description": "Create official-example and accountant-reviewed fixture packs before implementing rules. Cover boundaries, losses, refunds, corrections and year changes; independently verify expected results rather than deriving them from our own code.",
+      "priority": 403,
+      "dependencies": [
+        "P04-01"
+      ],
+      "acceptance": [
+        "Expected results come from pinned official examples or independently reviewed calculations, with source dates and tax-year provenance.",
+        "Fixture coverage includes thresholds, negative/refund cases, losses, corrections and year transitions; expected outputs are not generated solely by the implementation under test."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/fixtures/",
+        "artifacts/api-server/src/services/payroll/fixtures/",
+        "docs/development/tax-payroll-fixture-review.json"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P04-04",
+      "title": "Build shared filing records: immutable reviewed payload, authorisation, submission identity, status, receipt and amendment lineage",
+      "description": "Build shared filing records: immutable reviewed payload, authorisation, submission identity, status, receipt and amendment lineage. Unknown responses must trigger status recovery, not blind resubmission.",
+      "priority": 404,
+      "dependencies": [
+        "P03-00",
+        "P04-01"
+      ],
+      "acceptance": [
+        "Reviewed payloads, authority, submission identity, receipt/status and amendment lineage are immutable and company-scoped.",
+        "Timeout/retry/duplicate/out-of-order response tests recover the original operation and require verified provider evidence before displaying accepted/submitted success."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/filingCore/",
+        "lib/db/migrations/filing-records.review.sql"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P04-05",
+      "title": "Assign ongoing ownership of tax-year updates and emergency rule fixes",
+      "description": "Assign ongoing ownership of tax-year updates and emergency rule fixes. Confirm HMRC production access and intended launch tax year early: its MTD guide currently says new 2026-27 quarterly-update product applications are closed. Check the next route directly. Read-only requirements research and maintenance assignments are approved. Credentials, applications that bind the business and live connections are handled by P08-80.",
+      "priority": 405,
+      "dependencies": [
+        "P04-01"
+      ],
+      "acceptance": [
+        "Assign tax-year/rule-update responsibility, review lead times and an emergency-fix protocol; identify the actual intended launch years and API versions.",
+        "Record current official HMRC production-access criteria and the route available for new MTD products, with unresolved external dependencies visible before date commitments."
+      ],
+      "files": [
+        "docs/operations/tax-rule-maintenance.json",
+        "docs/development/hmrc-access-register.json"
+      ],
+      "kind": "contract",
+      "approval": "approved"
+    },
+    {
+      "id": "P05-01",
+      "title": "Complete audited correction/reversal routes for posted credit documents, plus versioned changes to allowed metadata such as notes, reference and due date",
+      "description": "Complete audited correction/reversal routes for posted credit documents, plus versioned changes to allowed metadata such as notes, reference and due date. Keep original financial evidence immutable.",
+      "priority": 501,
+      "dependencies": [
+        "P01-04"
+      ],
+      "acceptance": [
+        "Posted credit corrections/reversals and permitted metadata edits retain original records, actor, reason and version history.",
+        "Corrected credits reconcile settlements and reports at old/new cutoffs; forbidden field edits and stale reviews are rejected atomically."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/accountingDocuments/documents.ts",
+        "artifacts/api-server/src/services/accountingDocuments/amendments.ts",
+        "artifacts/api-server/src/services/accountingDocuments/metadata.ts",
+        "artifacts/api-server/src/services/accountingDocuments/posted-credit-corrections.integration.test.ts",
+        "artifacts/ledgerly/src/features/documentCorrections/model.mjs",
+        "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.test.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P05-02",
+      "title": "Finish repeated return cycles, receipt corrections, cancellations and reopening rules in awaiting credits",
+      "description": "Finish repeated return cycles, receipt corrections, cancellations and reopening rules in awaiting credits. Distinguish expected, received, allocated and refunded amounts throughout.",
+      "priority": 502,
+      "dependencies": [
+        "P01-04"
+      ],
+      "acceptance": [
+        "Repeated return cycles, cancellation/reopening and receipt corrections preserve distinct expected, received, allocated and refunded balances.",
+        "Partial quantities, duplicate receipt claims, corrected originals and concurrent changes cannot exceed remaining capacity or fabricate a received credit."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/creditTracking/domain.ts",
+        "artifacts/api-server/src/services/creditTracking/service.ts",
+        "artifacts/api-server/src/services/creditTracking/domain.test.ts",
+        "artifacts/ledgerly/src/features/creditRecovery/model.mjs",
+        "artifacts/ledgerly/src/features/creditRecovery/ClaimList.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P05-03",
+      "title": "Complete real month-end and year-end workflows: journals and adjustments, control-account reconciliation, period close/reopen, lock dates and retained earnings",
+      "description": "Complete real month-end and year-end workflows: journals and adjustments, control-account reconciliation, period close/reopen, lock dates and retained earnings. Preserve existing closed-period guards.",
+      "priority": 503,
+      "dependencies": [
+        "P01-00"
+      ],
+      "acceptance": [
+        "A synthetic month/year closes after control-account checks, carries retained earnings correctly and can reopen only through a reviewed audited action.",
+        "Locked dates reject new/changed postings; close/reopen races and retries retain a balanced ledger and historical snapshots."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/accountingDocuments/periodClose.ts",
+        "artifacts/api-server/src/services/accountingDocuments/periodClose.integration.test.ts",
+        "artifacts/api-server/src/services/accountingDocuments/configuration.ts",
+        "lib/db/migrations/accounting-period-close.review.sql",
+        "artifacts/ledgerly/src/features/periodClose/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P05-04",
+      "title": "Reconcile the general ledger, trial balance, profit and loss, balance sheet, aged balances, statements and VAT after every supported correction/payment/credit combination",
+      "description": "Reconcile the general ledger, trial balance, profit and loss, balance sheet, aged balances, statements and VAT after every supported correction/payment/credit combination; finish drilldowns and consistent exports.",
+      "priority": 504,
+      "dependencies": [
+        "P01-04",
+        "P05-01",
+        "P05-02",
+        "P05-03"
+      ],
+      "acceptance": [
+        "Trial balance, general ledger, P&L, balance sheet, ageing, statements and VAT reconcile over the supported payment/credit/correction matrix.",
+        "Report-to-document-to-journal navigation and exported exact amounts retain company and period context; formula-like source text is neutralised."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/accountingDocuments/reports.ts",
+        "artifacts/api-server/src/services/accountingDocuments/report-reconciliation.integration.test.ts",
+        "artifacts/ledgerly/src/features/reporting/model.mjs",
+        "artifacts/ledgerly/src/features/reporting/LedgerTable.jsx",
+        "artifacts/ledgerly/src/lib/ledgerCsv.mjs"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P05-05",
+      "title": "Resolve remaining contact/account management edge cases: duplicate or archived parties, changed details, account mapping, tax status and historical documents",
+      "description": "Resolve remaining contact/account management edge cases: duplicate or archived parties, changed details, account mapping, tax status and historical documents. Preserve usable search and readable error recovery.",
+      "priority": 505,
+      "dependencies": [],
+      "acceptance": [
+        "Archived/duplicate-name parties, changed details, account mappings and tax-status changes are resolved using stable identifiers and readable validations.",
+        "Historical documents retain their original evidence and all edits/search/results remain company-scoped with stale-response tests."
+      ],
+      "files": [
+        "artifacts/api-server/src/routes/entities.ts",
+        "artifacts/api-server/src/services/accountingDocuments/accounts.ts",
+        "artifacts/ledgerly/src/pages/Customers.jsx",
+        "artifacts/ledgerly/src/pages/Suppliers.jsx",
+        "artifacts/ledgerly/src/pages/ChartOfAccounts.jsx",
+        "artifacts/ledgerly/src/features/contactManagement/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P06-00",
+      "title": "Freeze native bank transaction and import interfaces",
+      "description": "Define stable source identities and protected payment/allocation contracts for banking and migration while preserving current settlement guards.",
+      "priority": 600,
+      "dependencies": [
+        "P01-00"
+      ],
+      "acceptance": [
+        "Specify exact-money/date/duplicate identity and review contracts for splits, fees, reversal and repeated statements.",
+        "Prove in fixtures that bank status alone cannot change a document balance and unknown outcomes recover using the original command identity."
+      ],
+      "files": [
+        "docs/development/native-bank-import-contract.md",
+        "artifacts/api-server/src/services/accountingDocuments/integration.test.ts"
+      ],
+      "kind": "contract",
+      "approval": "approved"
+    },
+    {
+      "id": "P06-01",
+      "title": "Build native bank statement import and matching on the protected payment/allocation path",
+      "description": "Build native bank statement import and matching on the protected payment/allocation path. Finish duplicate detection, splits, partial matches, fees, unmatched items, undo and reconciled-period behaviour. The existing exact-CSV preview slice P06-90 does not complete native persistence or matching.",
+      "priority": 601,
+      "dependencies": [
+        "P06-00",
+        "P03-01"
+      ],
+      "acceptance": [
+        "Native statement identity and reviewed import/matching support splits, partial allocations, fees, unmatched items and undo on protected payment commands.",
+        "Repeated files/events and concurrent matches have one effect; ambiguous identical rows require reviewed identity, and no legacy write changes a document balance."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/bankImport/",
+        "artifacts/api-server/src/routes/bankImport.ts",
+        "lib/db/migrations/bank-import.review.sql",
+        "artifacts/ledgerly/src/features/bankImport/model.mjs",
+        "artifacts/ledgerly/src/features/bankImport/BankImportReview.jsx",
+        "artifacts/ledgerly/src/pages/BankTransactions.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P06-02",
+      "title": "Prove imported bank balance, reconciliation and ledger cash agree",
+      "description": "Prove imported bank balance, reconciliation and ledger cash agree; handle repeated imports and late transactions without double posting. Replace blocked legacy matching paths only after the native path is qualified.",
+      "priority": 602,
+      "dependencies": [
+        "P06-01"
+      ],
+      "acceptance": [
+        "Statement opening/closing balance, native bank transactions, settlements and ledger cash reconcile on a fixed synthetic import pack.",
+        "Late transactions, repeated imports, reversals and reconciled-period restrictions behave consistently before blocked legacy matching UI is replaced."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/bankImport/reconciliation.integration.test.ts",
+        "artifacts/ledgerly/src/pages/Reconciliation.jsx",
+        "artifacts/ledgerly/src/components/bank_transactions/ReconciliationWorkflow.jsx"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P06-03",
+      "title": "Deliver reviewed imports from Xero/QuickBooks exports and standard files: contacts, accounts, opening balances and outstanding items",
+      "description": "Deliver reviewed imports from Xero/QuickBooks exports and standard files: contacts, accounts, opening balances and outstanding items. Define supported history, attachments and mappings rather than silently dropping data.",
+      "priority": 603,
+      "dependencies": [
+        "P03-00",
+        "P06-00"
+      ],
+      "acceptance": [
+        "Preview supported Xero/QuickBooks/standard exports with explicit contact/account/opening-balance/outstanding-item mappings and documented history/attachment limits.",
+        "Unknown columns, tax treatments, currencies and duplicate identifiers surface before commit; no source row or attachment is silently dropped."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/customerMigration/",
+        "artifacts/api-server/src/routes/customerMigration.ts",
+        "lib/db/migrations/customer-migration.review.sql",
+        "artifacts/ledgerly/src/features/customerMigration/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P06-04",
+      "title": "Provide preview, validation, resumable import, duplicate prevention and a safe recovery route",
+      "description": "Provide preview, validation, resumable import, duplicate prevention and a safe recovery route. Test opening debtors/creditors, tax balances and bank balances against a signed migration reconciliation.",
+      "priority": 604,
+      "dependencies": [
+        "P06-03",
+        "P03-01"
+      ],
+      "acceptance": [
+        "An interrupted migration resumes without duplicate parties, balances or documents and provides a safe reviewed rollback/recovery route.",
+        "Signed reconciliation confirms opening debtors, creditors, tax controls and bank balances against the imported evidence before use."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/customerMigration/import.ts",
+        "artifacts/api-server/src/services/customerMigration/import.integration.test.ts",
+        "artifacts/ledgerly/src/features/customerMigration/ImportReview.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P06-05",
+      "title": "Qualify complete customer data export and attachments so a business can leave or switch accountant without losing records",
+      "description": "Qualify complete customer data export and attachments so a business can leave or switch accountant without losing records; retain stable references and usable formats.",
+      "priority": 605,
+      "dependencies": [
+        "P02-01"
+      ],
+      "acceptance": [
+        "Export all supported customer accounting records, stable references and original attachments in documented portable formats with count/hash checks.",
+        "Cross-company export/download attempts fail; interrupted exports recover without exposing temporary URLs or omitting evidence."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/customerExport/",
+        "artifacts/api-server/src/routes/customerExport.ts",
+        "artifacts/ledgerly/src/features/customerExport/"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P06-90",
+      "title": "Exact bank CSV validation and reviewed duplicate warnings",
+      "description": "Completed bounded slice integrated in 08c776d and clarified in 4d9aa6c: exact-pence/date/CSV checks, mapping/row errors, scoped async handling and duplicate-candidate warnings. Native persistence/matching remains P06-01.",
+      "priority": 690,
+      "dependencies": [],
+      "acceptance": [
+        "Integrated tests reject malformed CSV, invalid/ambiguous dates, invalid pennies, duplicate mappings and unsafe/stale import scope.",
+        "Duplicate warning coverage is honestly bounded; no ledger settlement path or production data changed."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/components/bank_transactions/ImportCSVDialog.jsx",
+        "artifacts/ledgerly/src/features/bankImport/model.mjs",
+        "artifacts/ledgerly/src/features/bankImport/model.test.mjs",
+        "artifacts/ledgerly/src/features/bankImport/BankImportReview.jsx",
+        "artifacts/ledgerly/src/features/bankImport/BankImportReview.test.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved",
+      "status": "done"
+    },
+    {
+      "id": "P07-01",
+      "title": "Test a genuinely empty business from signup through company/tax setup, first contact, first bill/invoice, review and posting",
+      "description": "Test a genuinely empty business from signup through company/tax setup, first contact, first bill/invoice, review and posting. The replacement setup flow exists; this complete customer journey still needs qualification.",
+      "priority": 701,
+      "dependencies": [],
+      "acceptance": [
+        "A fresh synthetic company completes signup/setup, contact creation, first bill/invoice, review and posting without inherited demo setup.",
+        "Record the exact journey and errors; a saved draft never implies posted/paid/filed status and viewers cannot complete restricted steps."
+      ],
+      "files": [
+        "tools/development/journeys/empty-business.test.mjs",
+        "artifacts/ledgerly/src/features/onboarding/SetupWorkspace.test.jsx",
+        "artifacts/ledgerly/src/features/onboarding/model.test.mjs"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P07-02",
+      "title": "Save setup progress and optional help preferences",
+      "description": "Save setup progress and optional help preferences; make the next useful action clear without forcing experienced users through a wizard. Explain draft, posted, paid, credited and filed states consistently. P07-90 completed only the boolean guidance preference; saved readiness, next-task clarity and consistent cross-product states remain to qualify.",
+      "priority": 702,
+      "dependencies": [
+        "P07-90"
+      ],
+      "acceptance": [
+        "Reload and resume identify saved setup and the next real task without forcing an expert through a wizard; optional help remains account/company scoped.",
+        "Draft, posted, paid, credited and filed states use consistent truthful labels across setup and first-task journeys; no financial payload is stored in browser preferences."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/pages/SetupWizard.jsx",
+        "artifacts/ledgerly/src/features/onboarding/SetupWorkspace.jsx",
+        "artifacts/ledgerly/src/features/onboarding/model.mjs",
+        "artifacts/ledgerly/src/features/onboarding/SetupWorkspace.test.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P07-03",
+      "title": "Preserve compact tables, familiar accounting terms, search, filters, detailed money/VAT information and direct expert tools",
+      "description": "Preserve compact tables, familiar accounting terms, search, filters, detailed money/VAT information and direct expert tools. Finish keyboard and useful bulk actions where appropriate.",
+      "priority": 703,
+      "dependencies": [],
+      "acceptance": [
+        "Representative daily tasks retain compact tables, searchable/filterable records, visible VAT/payment detail and direct expert access.",
+        "Keyboard and approved bulk actions preserve selection, confirmation and company permissions; existing routes and data remain reachable."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/features/workspaceNavigation/DailyWork.jsx",
+        "artifacts/ledgerly/src/features/reporting/LedgerTable.jsx",
+        "artifacts/ledgerly/src/features/workspaceNavigation/Navigation.test.jsx",
+        "artifacts/ledgerly/src/pages/AccountingDocumentList.jsx",
+        "artifacts/ledgerly/src/features/documentIntake/DocumentUsability.test.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P07-04",
+      "title": "Remove misleading customer-facing placeholders and clearly label unavailable functions",
+      "description": "Remove misleading customer-facing placeholders and clearly label unavailable functions; preserve the existing feature inventory, direct links and saved dashboard behaviour.",
+      "priority": 704,
+      "dependencies": [],
+      "acceptance": [
+        "Compare every current route and saved dashboard capability against the feature inventory and preserve access to implemented functions.",
+        "Unavailable/placeholder services are labelled accurately, with no false connected/filed/automated claims and no accidental feature deletion."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/components/layout/AppLayout.jsx",
+        "artifacts/ledgerly/src/features/workspaceNavigation/WorkspaceCapabilities.jsx",
+        "artifacts/ledgerly/src/features/workspaceNavigation/model.mjs",
+        "artifacts/ledgerly/src/features/routeLoading/route-inventory.json",
+        "artifacts/ledgerly/src/pages/EmailCapture.jsx",
+        "artifacts/ledgerly/src/pages/EmailRules.jsx",
+        "artifacts/ledgerly/src/components/email_capture/EmailAccountManager.jsx",
+        "artifacts/ledgerly/src/components/email_capture/ScanConfigForm.jsx",
+        "artifacts/ledgerly/src/components/email_capture/EmailRuleManager.jsx",
+        "artifacts/ledgerly/src/features/workspaceNavigation/EmailCapabilities.test.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P07-05",
+      "title": "Run two observed usability rounds with novices and experienced accounting users",
+      "description": "Run two observed usability rounds with novices and experienced accounting users. Measure completion, manual re-entry, errors and help requests on the same tasks; fix the largest obstacles before calling the interface ready. Prepare the task pack internally; participant invitations or messages are separate owner-authorised actions when requested.",
+      "priority": 705,
+      "dependencies": [
+        "P07-01",
+        "P07-02",
+        "P07-03",
+        "P07-04",
+        "P12-03"
+      ],
+      "acceptance": [
+        "Observe two rounds containing novice and experienced users on the same tasks; capture completion, re-entry, errors, help requests and elapsed time.",
+        "Resolve the largest observed obstacles and compare subsequent results against the same baseline; do not describe unobserved journeys as accepted."
+      ],
+      "files": [
+        "docs/development/usability-observations.json",
+        "tools/development/journeys/usability-pack.mjs"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P07-90",
+      "title": "Remember optional setup guidance per account and company",
+      "description": "Completed bounded slice integrated in fd3fa77: boolean-only guidance preference survives reload with account/company scoping and safe storage failures. Broader setup/next-action work remains P07-02.",
+      "priority": 790,
+      "dependencies": [],
+      "acceptance": [
+        "Integrated tests separate signed-in user/company preferences and recover defaults from corrupt or unavailable storage.",
+        "Only the guidance boolean is persisted; financial records and tokens are not stored and existing server-derived readiness is preserved."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/pages/SetupWizard.jsx",
+        "artifacts/ledgerly/src/features/onboarding/SetupWorkspace.jsx",
+        "artifacts/ledgerly/src/features/onboarding/preferences.mjs",
+        "artifacts/ledgerly/src/features/onboarding/preferences.test.mjs",
+        "artifacts/ledgerly/src/features/onboarding/useGuidancePreference.jsx",
+        "artifacts/ledgerly/src/features/onboarding/useGuidancePreference.test.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved",
+      "status": "done"
+    },
+    {
+      "id": "P08-01",
+      "title": "Implement a complete nine-box return model and supported transactions for boxes 2, 3, 8 and 9",
+      "description": "Implement a complete nine-box return model and supported transactions for boxes 2, 3, 8 and 9. Keep unsupported amounts blocked, rather than substituting zero. Link each figure to source transactions and adjustments.",
+      "priority": 801,
+      "dependencies": [
+        "P04-01",
+        "P04-02",
+        "P04-03"
+      ],
+      "acceptance": [
+        "Complete nine-box results for approved supported transaction types with source/adjustment traceability and exact rule-version evidence.",
+        "Unsupported schemes/transactions continue to block preparation with unknown values rather than invented zeroes; official examples and correction reconciliation pass."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/vat/returnModel/",
+        "artifacts/api-server/src/services/accountingDocuments/vatCoverage.ts",
+        "artifacts/api-server/src/services/accountingDocuments/vatCoverage.test.ts",
+        "artifacts/api-server/src/services/accountingDocuments/vatCoverage.integration.test.ts"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P08-02",
+      "title": "Approve scheme coverage: standard invoice accounting, and explicit decisions on cash accounting, flat rate, partial exemption, reverse charge and imports",
+      "description": "Approve scheme coverage: standard invoice accounting, and explicit decisions on cash accounting, flat rate, partial exemption, reverse charge and imports. Build and qualify each scheme promised at launch; expose exclusions before setup.",
+      "priority": 802,
+      "dependencies": [
+        "P04-01",
+        "P04-03"
+      ],
+      "acceptance": [
+        "Record explicit standard/cash/flat-rate/partial-exemption/reverse-charge/import coverage and official rules for each launch-promised case.",
+        "Implement and independently qualify every supported scheme, while showing unsupported exclusions before setup and preserving past rule-version results."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/vat/schemes/",
+        "docs/development/vat-supported-schemes.json"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P08-03",
+      "title": "Finish VAT period locking, late entries, adjustments and correction routes",
+      "description": "Finish VAT period locking, late entries, adjustments and correction routes; reconcile returns to the ledger and preserve the exact submitted snapshot.",
+      "priority": 803,
+      "dependencies": [
+        "P08-01",
+        "P08-02",
+        "P01-04",
+        "P04-04"
+      ],
+      "acceptance": [
+        "Late entries, period locks, adjustments and amended versions reconcile to the ledger and preserve the exact submitted snapshot.",
+        "Locked/submitted payloads cannot be rewritten; duplicate corrections and concurrent period edits are rejected or safely replayed with audit."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/vat/periods/",
+        "lib/db/migrations/vat-periods.review.sql",
+        "artifacts/ledgerly/src/features/tax/vatPeriods/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P08-04",
+      "title": "Implement direct HMRC authorisation, obligations, submission, liabilities/payment visibility where required, verified receipts and timeout recovery",
+      "description": "Implement direct HMRC authorisation, obligations, submission, liabilities/payment visibility where required, verified receipts and timeout recovery. Complete fraud-prevention headers, sandbox tests and production-access requirements.",
+      "priority": 804,
+      "dependencies": [
+        "P08-01",
+        "P04-04",
+        "P04-05"
+      ],
+      "acceptance": [
+        "Implement direct HMRC OAuth/obligation/return/status interfaces and required fraud headers using fixtures and authorised sandbox credentials only.",
+        "Accepted, rejected, expired-token, timeout and repeated-submit cases preserve authority and verified receipts; production connection remains behind P08-80."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/vat/hmrc/",
+        "artifacts/api-server/src/routes/taxVat.ts",
+        "artifacts/ledgerly/src/features/tax/vatFiling/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P08-05",
+      "title": "Provide a clear review/sign-off journey with warnings, submission evidence and amendment guidance",
+      "description": "Provide a clear review/sign-off journey with warnings, submission evidence and amendment guidance; never equate an internal status with an HMRC-accepted return.",
+      "priority": 805,
+      "dependencies": [
+        "P08-03",
+        "P08-04",
+        "P02-04",
+        "P08-90"
+      ],
+      "acceptance": [
+        "Customer review exposes return figures, source evidence, blockers, authority and exact submission package before explicit sign-off.",
+        "Receipt/status/amendment views distinguish internal preparation, unknown submission and HMRC acceptance; unauthorised users cannot file."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/features/tax/vatFiling/Review.jsx",
+        "artifacts/ledgerly/src/features/tax/vatFiling/Review.test.jsx",
+        "artifacts/ledgerly/src/features/vatPreparation/VatWorkingsReview.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P08-80",
+      "title": "Authorise required HMRC accounts and production credentials",
+      "description": "Prepare and obtain authority for account registration, credentials or business-binding HMRC applications for the approved VAT/Income Tax/Corporation Tax/RTI interfaces. This does not authorise filing an actual tax return.",
+      "priority": 880,
+      "dependencies": [
+        "P04-05",
+        "P14-04"
+      ],
+      "acceptance": [
+        "Owner approves each concrete application/account, tax year, scope and credential action after the access requirements are verified.",
+        "Credentials are stored with restricted access; no actual return is submitted, tax payment made or unverified filing success recorded."
+      ],
+      "files": [
+        "docs/operations/hmrc-connection-authorisations.json"
+      ],
+      "kind": "external",
+      "approval": "owner_required"
+    },
+    {
+      "id": "P08-90",
+      "title": "Filtered VAT source evidence CSV",
+      "description": "Completed bounded slice integrated in 4ec0b84: filtered CSV retains exact signed source/correction evidence, company/period/filter context and explicit non-return labels. Complete VAT calculation/filing remains P08-01 through P08-05.",
+      "priority": 890,
+      "dependencies": [],
+      "acceptance": [
+        "Integrated tests prove filter/export parity, correction signs, huge-money precision, formula-neutralisation and company/period reset.",
+        "Unsupported boxes stay unknown and no-VAT/empty/invalid contexts do not fabricate figures; full-workings export remains available."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/components/accounting/VatWorkingsPanel.jsx",
+        "artifacts/ledgerly/src/features/vatPreparation/model.mjs",
+        "artifacts/ledgerly/src/features/vatPreparation/filteredSources.test.mjs",
+        "artifacts/ledgerly/src/features/vatPreparation/VatWorkingsReview.jsx",
+        "artifacts/ledgerly/src/features/vatPreparation/VatWorkingsReview.test.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved",
+      "status": "done"
+    },
+    {
+      "id": "P09-01",
+      "title": "Create employer and employee records, payroll IDs, pay schedules, employment dates, tax/NI settings and prior year-to-date values",
+      "description": "Create employer and employee records, payroll IDs, pay schedules, employment dates, tax/NI settings and prior year-to-date values. Qualify migration into a live tax year and starter/leaver/rejoiner cases.",
+      "priority": 901,
+      "dependencies": [
+        "P04-01",
+        "P03-00",
+        "P02-04"
+      ],
+      "acceptance": [
+        "Employer/employee records capture stable payroll IDs, schedules, tax/NI settings, employment dates and verified prior YTD values.",
+        "Mid-year migration, starters/leavers/rejoiners and effective changes retain history and prevent cross-role/company access or duplicate employment identity."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/payroll/records/",
+        "artifacts/api-server/src/routes/payrollRecords.ts",
+        "lib/db/migrations/payroll-records.review.sql",
+        "artifacts/ledgerly/src/features/payroll/records/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P09-02",
+      "title": "Implement gross pay: salary, hours, overtime, bonuses, arrears, holiday/absence inputs, adjustments and supported benefits",
+      "description": "Implement gross pay: salary, hours, overtime, bonuses, arrears, holiday/absence inputs, adjustments and supported benefits. Define pay-period cutoffs and effective-dated changes.",
+      "priority": 902,
+      "dependencies": [
+        "P04-02",
+        "P04-03",
+        "P09-01"
+      ],
+      "acceptance": [
+        "Salary/hourly/overtime/bonus/arrears/absence/benefit fixtures produce reviewed exact gross components for supported schedules.",
+        "Cutoffs and effective-dated changes reject incomplete/unsupported input and preserve previous periods without silently rounding or altering approved pay."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/payroll/grossPay/",
+        "artifacts/ledgerly/src/features/payroll/grossPay/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P09-03",
+      "title": "Implement PAYE with official routines: cumulative and non-cumulative bases, relevant tax-code forms, Scottish/Welsh treatment, code changes, irregular pay and refunds",
+      "description": "Implement PAYE with official routines: cumulative and non-cumulative bases, relevant tax-code forms, Scottish/Welsh treatment, code changes, irregular pay and refunds. Retain a reproducible calculation breakdown.",
+      "priority": 903,
+      "dependencies": [
+        "P04-02",
+        "P04-03",
+        "P09-01"
+      ],
+      "acceptance": [
+        "Official PAYE cases cover cumulative/non-cumulative bases, supported tax-code forms, Scottish/Welsh treatment, irregular pay and refunds.",
+        "Each result retains rule-year/version and reproducible calculation steps; code changes and period/year boundaries reproduce independently reviewed outputs."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/payroll/paye/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P09-04",
+      "title": "Implement employee/employer National Insurance, relevant categories and director methods",
+      "description": "Implement employee/employer National Insurance, relevant categories and director methods; handle thresholds, age/status changes and period boundaries with independent fixtures.",
+      "priority": 904,
+      "dependencies": [
+        "P04-02",
+        "P04-03",
+        "P09-01"
+      ],
+      "acceptance": [
+        "Employee/employer NI categories and director methods match independently checked official examples for supported periods.",
+        "Threshold, age/status transition, irregular-pay and year-boundary fixtures preserve exact rounding and explain every category/method used."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/payroll/nationalInsurance/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P09-05",
+      "title": "Implement student/postgraduate loans, statutory payments and recoveries, supported deductions and salary sacrifice",
+      "description": "Implement student/postgraduate loans, statutory payments and recoveries, supported deductions and salary sacrifice. Test eligibility, limits, interactions, negative net pay and effective dates.",
+      "priority": 905,
+      "dependencies": [
+        "P04-02",
+        "P04-03",
+        "P09-01"
+      ],
+      "acceptance": [
+        "Supported student/postgraduate loans, statutory pay/recovery, deductions and salary-sacrifice cases match reviewed eligibility/limit/effective-date examples.",
+        "Interaction, negative-net and correction tests reject unsupported combinations explicitly and preserve prior period YTD evidence."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/payroll/statutoryPay/",
+        "artifacts/api-server/src/services/payroll/deductions/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P09-06",
+      "title": "Build pension assessment and calculations, enrolment/postponement/opt-out/re-enrolment workflows, contribution records and scheme-specific outputs",
+      "description": "Build pension assessment and calculations, enrolment/postponement/opt-out/re-enrolment workflows, contribution records and scheme-specific outputs. Validate applicable pension duties and supported schemes with a specialist.",
+      "priority": 906,
+      "dependencies": [
+        "P04-02",
+        "P04-03",
+        "P09-01"
+      ],
+      "acceptance": [
+        "Assessment, contribution, postponement, opt-out and re-enrolment cases match independently validated supported scheme rules.",
+        "Versioned scheme outputs reconcile contributions to employee/employer liabilities; no real enrolment or provider connection occurs without P09-80 approval."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/payroll/pensions/",
+        "artifacts/ledgerly/src/features/payroll/pensions/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P09-07",
+      "title": "Deliver preview, approval, finalisation, payroll locking and audited corrections",
+      "description": "Deliver preview, approval, finalisation, payroll locking and audited corrections. Reconcile employee net pay, employer costs, deductions, pension liabilities and payroll journals without duplicate posting.",
+      "priority": 907,
+      "dependencies": [
+        "P09-02",
+        "P09-03",
+        "P09-04",
+        "P09-05",
+        "P09-06",
+        "P03-01"
+      ],
+      "acceptance": [
+        "Preview-to-approval-to-finalisation reconciles gross/net pay, employer costs, deductions, pensions and canonical journals for the same immutable run.",
+        "Locking, correction, concurrent approval and repeated delivery have at most one financial effect and retain the original run plus signed amendments."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/payroll/runs/",
+        "artifacts/api-server/src/services/payroll/journalAdapter/",
+        "artifacts/ledgerly/src/features/payroll/runs/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P09-08",
+      "title": "Produce secure payslips, employer reports, P45/P60 outputs, payment files and year-end processing",
+      "description": "Produce secure payslips, employer reports, P45/P60 outputs, payment files and year-end processing. Test access separation, delivery, totals and opening values for the next tax year.",
+      "priority": 908,
+      "dependencies": [
+        "P09-07",
+        "P02-04"
+      ],
+      "acceptance": [
+        "Payslip, employer report, P45/P60 and payment-file fixtures agree with finalised runs and correctly seed the next tax year.",
+        "Authorisation, secure download/delivery preparation and correction-version tests prevent salary leakage and never imply payment or external delivery from file generation."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/payroll/outputs/",
+        "artifacts/ledgerly/src/features/payroll/outputs/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P09-09",
+      "title": "Build direct RTI FPS/EPS preparation, validation, transmission, receipts and rejection recovery, plus relevant HMRC notices",
+      "description": "Build direct RTI FPS/EPS preparation, validation, transmission, receipts and rejection recovery, plus relevant HMRC notices. Verify correction and late-reporting journeys; never mark an unverified request as filed.",
+      "priority": 909,
+      "dependencies": [
+        "P09-07",
+        "P04-04",
+        "P04-05"
+      ],
+      "acceptance": [
+        "FPS/EPS payloads and relevant notice handling validate against the correct official tax-year schemas and sandbox/local-test examples.",
+        "Rejection, late-reporting, correction, duplicate and unknown-response tests preserve submission identity and require verified evidence before filed status."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/payroll/rti/",
+        "artifacts/ledgerly/src/features/payroll/rti/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P09-10",
+      "title": "Run complete pay cycles and year rollover against official and independently checked expected results",
+      "description": "Run complete pay cycles and year rollover against official and independently checked expected results. Plan for the launch year: 2027-28 RTI specifications are already listed by HMRC.",
+      "priority": 910,
+      "dependencies": [
+        "P09-08",
+        "P09-09"
+      ],
+      "acceptance": [
+        "Complete supported pay cycles, amendments, leavers and year rollover against pinned official and independently reviewed expected results.",
+        "Record exact engine/rule/schema versions for launch years, including current availability of 2027-28 RTI specifications; reconcile YTD, journals, outputs and receipts."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/payroll/qualification/",
+        "docs/development/payroll-acceptance-evidence.json"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P09-80",
+      "title": "Authorise pension provider or scheme connection",
+      "description": "Connect a necessary pension submission interface only after the owner approves the concrete scheme/account and scope; Ledgerly retains its in-house calculations.",
+      "priority": 980,
+      "dependencies": [
+        "P09-06",
+        "P14-04"
+      ],
+      "acceptance": [
+        "Record scheme/account/scope authority and verify minimum permissions without purchasing a tax/payroll calculation engine.",
+        "Connection/revocation evidence excludes secrets and does not enrol employees or transmit live contributions without their separate required authority."
+      ],
+      "files": [
+        "docs/operations/pension-connection-authorisations.json"
+      ],
+      "kind": "external",
+      "approval": "owner_required"
+    },
+    {
+      "id": "P10-01",
+      "title": "Build the taxpayer/income case model and map accounting records to tax categories",
+      "description": "Build the taxpayer/income case model and map accounting records to tax categories. Define support for sole trade, property and other promised income sources, residency, multiple businesses and tax-year boundaries.",
+      "priority": 1001,
+      "dependencies": [
+        "P04-01",
+        "P03-00",
+        "P02-04"
+      ],
+      "acceptance": [
+        "Supported taxpayer, residency, trade/property/other income and multiple-business cases have explicit inputs, ledger mappings and period boundaries.",
+        "Unsupported income/residency combinations fail before calculations and personal records remain separate from company bookkeeping access."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/income/cases/",
+        "artifacts/api-server/src/services/tax/income/accountingMapping/",
+        "lib/db/migrations/income-tax-records.review.sql"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P10-02",
+      "title": "Implement our own taxable-profit and liability calculations for the agreed cases: disallowable expenses, allowances, losses, reliefs, relevant National Insurance, other income interactions and payments on account",
+      "description": "Implement our own taxable-profit and liability calculations for the agreed cases: disallowable expenses, allowances, losses, reliefs, relevant National Insurance, other income interactions and payments on account.",
+      "priority": 1002,
+      "dependencies": [
+        "P10-01",
+        "P04-02",
+        "P04-03"
+      ],
+      "acceptance": [
+        "Our own taxable-profit/liability engine matches reviewed allowances, disallowable costs, losses, reliefs, relevant NI and payments-on-account examples.",
+        "Boundary, cross-income, year-change and correction cases retain calculation steps/rule versions and reject unqualified combinations."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/income/calculation/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P10-03",
+      "title": "Separate bookkeeping profit, tax adjustments and personal tax",
+      "description": "Separate bookkeeping profit, tax adjustments and personal tax. Show how each result was calculated, retain evidence, and make unsupported income/relief combinations an explicit blocker.",
+      "priority": 1003,
+      "dependencies": [
+        "P10-02"
+      ],
+      "acceptance": [
+        "The review separates bookkeeping profit, tax adjustments and personal liability with source evidence and an explainable calculation breakdown.",
+        "Unsupported relief/income combinations visibly block finalisation and changed source records invalidate stale review rather than silently rewriting approved results."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/income/reconciliation/",
+        "artifacts/ledgerly/src/features/tax/incomeReview/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P10-04",
+      "title": "Maintain digital records and build obligation tracking, quarterly updates, annual adjustments, review, finalisation and amendment journeys through direct HMRC APIs, with correct taxpayer/agent authority",
+      "description": "Maintain digital records and build obligation tracking, quarterly updates, annual adjustments, review, finalisation and amendment journeys through direct HMRC APIs, with correct taxpayer/agent authority.",
+      "priority": 1004,
+      "dependencies": [
+        "P10-01",
+        "P04-04",
+        "P04-05"
+      ],
+      "acceptance": [
+        "Digital records, obligations, quarterly/annual updates, finalisation and amendment flows use direct HMRC contracts with correct taxpayer/agent authority.",
+        "Sandbox fixtures cover business/period mismatches, revoked consent, duplicate submissions and immutable status/receipt history without live filing."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/income/hmrc/",
+        "artifacts/ledgerly/src/features/tax/incomeFiling/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P10-05",
+      "title": "Reconcile the local engine with HMRC-returned calculations and statuses",
+      "description": "Reconcile the local engine with HMRC-returned calculations and statuses. Investigate discrepancies before finalisation; do not imply an internal estimate replaces the official filing flow.",
+      "priority": 1005,
+      "dependencies": [
+        "P10-02",
+        "P10-04"
+      ],
+      "acceptance": [
+        "Compare local calculations with HMRC-returned results using explicit input/version reconciliation and evidence for each discrepancy.",
+        "A mismatch or unknown official status blocks finalisation and cannot be presented as an accepted return or silently replaced by a local estimate."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/income/hmrcReconciliation/",
+        "artifacts/ledgerly/src/features/tax/incomeReview/Reconciliation.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P10-06",
+      "title": "Complete required headers, tests and production approval for the intended launch tax year",
+      "description": "Complete required headers, tests and production approval for the intended launch tax year. Resolve the current access-window constraint before committing to a launch date.",
+      "priority": 1006,
+      "dependencies": [
+        "P10-04",
+        "P04-05"
+      ],
+      "acceptance": [
+        "Required fraud headers, end-to-end tests and minimum functionality are checked for the intended launch tax year.",
+        "The production-access evidence explicitly resolves the relevant application window and pending external steps; credential/application actions remain P08-80."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/income/qualification/",
+        "docs/development/hmrc-income-access-evidence.json"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P10-07",
+      "title": "Qualify complete supported returns across year changes, non-aligned periods, losses, cessation and corrected bookkeeping",
+      "description": "Qualify complete supported returns across year changes, non-aligned periods, losses, cessation and corrected bookkeeping; include rejected/unknown submissions and immutable receipt history.",
+      "priority": 1007,
+      "dependencies": [
+        "P10-03",
+        "P10-05",
+        "P10-06"
+      ],
+      "acceptance": [
+        "Supported complete returns cover losses, cessation, non-aligned periods, corrected accounting and tax-year changes against independently reviewed results.",
+        "Rejected/unknown submissions and amendments retain immutable receipts, authority and source reconciliation before release qualification."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/income/qualification/returns.test.ts",
+        "docs/development/income-tax-acceptance-evidence.json"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P11-01",
+      "title": "Build the company and accounting-period model, accounting-to-tax reconciliation and our own taxable-profit calculation",
+      "description": "Build the company and accounting-period model, accounting-to-tax reconciliation and our own taxable-profit calculation. Cover supported disallowable costs, capital allowances, losses and reliefs.",
+      "priority": 1101,
+      "dependencies": [
+        "P04-01",
+        "P04-02",
+        "P04-03"
+      ],
+      "acceptance": [
+        "Company/period models reconcile bookkeeping profit to our own taxable-profit calculation for approved costs, allowances, losses and reliefs.",
+        "Unsupported company/period cases block computation and adjustments preserve source evidence, exact amounts and historical rule versions."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/corporation/profit/",
+        "artifacts/api-server/src/services/tax/corporation/periods/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P11-02",
+      "title": "Implement relevant rates, marginal relief, associated-company effects and period apportionment",
+      "description": "Implement relevant rates, marginal relief, associated-company effects and period apportionment. Handle short/long accounting periods and tax-year changes with versioned rules and independently verified examples.",
+      "priority": 1102,
+      "dependencies": [
+        "P11-01",
+        "P04-03"
+      ],
+      "acceptance": [
+        "Reviewed official examples cover supported rates, marginal relief, associated-company effects and short/long-period apportionment.",
+        "Tax-year boundary and rounding fixtures produce reproducible results without consulting a third-party calculation engine."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/corporation/liability/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P11-03",
+      "title": "Prepare CT600 and every supplementary page required by the supported company cases",
+      "description": "Prepare CT600 and every supplementary page required by the supported company cases. Make omitted cases clear before a business relies on the service; do not silently drop disclosures.",
+      "priority": 1103,
+      "dependencies": [
+        "P11-01",
+        "P11-02"
+      ],
+      "acceptance": [
+        "CT600 and required supplementary pages are generated for every supported company case with traceable field mappings.",
+        "Missing disclosures or unsupported supplements block preparation; schema/period/amount validation rejects incomplete packages."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/corporation/ct600/",
+        "artifacts/ledgerly/src/features/tax/corporationReturn/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P11-04",
+      "title": "Produce statutory accounts for the agreed company types and accounting framework, including disclosures, prior-year comparisons and approval details",
+      "description": "Produce statutory accounts for the agreed company types and accounting framework, including disclosures, prior-year comparisons and approval details. Reconcile them to the ledger and tax computation.",
+      "priority": 1104,
+      "dependencies": [
+        "P11-01",
+        "P05-03"
+      ],
+      "acceptance": [
+        "Statutory accounts for approved company types/frameworks include disclosures, comparatives and approval details reconciled to ledger and tax computation.",
+        "Prior-year figures and amendments retain source lineage; incomplete framework/disclosure cases are explicit blockers rather than omitted pages."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/accounts/",
+        "artifacts/ledgerly/src/features/tax/statutoryAccounts/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P11-05",
+      "title": "Build and validate iXBRL accounts and computations against the applicable taxonomy and HMRC requirements",
+      "description": "Build and validate iXBRL accounts and computations against the applicable taxonomy and HMRC requirements. Preserve tagging/version evidence and readable copies. This work is owned in-house.",
+      "priority": 1105,
+      "dependencies": [
+        "P11-03",
+        "P11-04"
+      ],
+      "acceptance": [
+        "In-house iXBRL generation produces readable accounts/computation packages valid against applicable taxonomies and HMRC rules.",
+        "Tagging, context, precision and taxonomy-version tests reconcile figures to CT600/accounts and retain immutable package evidence."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/ixbrl/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P11-06",
+      "title": "Implement direct Corporation Tax submission, validation, receipts, rejection handling, amendments and recovery",
+      "description": "Implement direct Corporation Tax submission, validation, receipts, rejection handling, amendments and recovery. Resolve the separate Companies House accounts-filing scope and requirements if promised.",
+      "priority": 1106,
+      "dependencies": [
+        "P11-05",
+        "P04-04",
+        "P04-05"
+      ],
+      "acceptance": [
+        "Direct Corporation Tax payload validation/submission/status/amendment adapters pass supported local/sandbox cases with receipt recovery.",
+        "Record whether Companies House accounts filing is promised and its distinct requirements; live credentials/submissions remain separately authorised."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/corporation/filing/",
+        "artifacts/ledgerly/src/features/tax/corporationFiling/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P11-07",
+      "title": "Test full accounts-to-tax-to-filing packages, including period/rounding edge cases, with independent professional review",
+      "description": "Test full accounts-to-tax-to-filing packages, including period/rounding edge cases, with independent professional review. Maintain rule, form and taxonomy updates after release.",
+      "priority": 1107,
+      "dependencies": [
+        "P11-02",
+        "P11-03",
+        "P11-04",
+        "P11-05",
+        "P11-06"
+      ],
+      "acceptance": [
+        "Independent professional review validates complete accounts-to-computation-to-filing packages including period and rounding edge cases.",
+        "Evidence records rule/form/taxonomy versions, amendments, rejected/unknown statuses and an ongoing update process for every supported case."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/tax/corporation/qualification/",
+        "docs/development/corporation-tax-acceptance-evidence.json"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P12-01",
+      "title": "Connect a real extraction/OCR implementation for supported PDFs and photos",
+      "description": "Connect a real extraction/OCR implementation for supported PDFs and photos; the current reviewed capture path still needs manual fields. Preserve originals, source hashes, tenant deduplication and provenance. No third-party tax/payroll engine is involved. Any external OCR data destination or provider connection must pass P14-04 and P14-82 before use.",
+      "priority": 1201,
+      "dependencies": [
+        "P03-02"
+      ],
+      "acceptance": [
+        "A real approved extraction implementation returns text/fields/evidence for representative PDF/PNG/JPEG inputs while retaining immutable source hash and provenance.",
+        "Unknown layouts and poor-quality sources preserve a manual route; output is an untrusted proposal and cannot post, choose authority or execute document instructions."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/documentIntake/extraction/engines/",
+        "artifacts/api-server/src/services/documentIntake/extraction/contract.ts",
+        "artifacts/api-server/src/services/documentIntake/extraction/contract.test.ts"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P12-02",
+      "title": "Run document parsing in isolated workers with page/size/time limits, malware controls and restricted permissions",
+      "description": "Run document parsing in isolated workers with page/size/time limits, malware controls and restricted permissions. Handle encrypted, corrupted, malformed and unsupported files safely.",
+      "priority": 1202,
+      "dependencies": [
+        "P03-02"
+      ],
+      "acceptance": [
+        "Parser execution runs under restricted permissions with enforced byte/page/dimension/time/resource bounds and malware/quarantine handling.",
+        "Encrypted, corrupt, malicious and unsupported inputs cannot execute code, access other tenants or bypass timeout/cancellation; original files remain recoverable."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/documentIntake/extraction/isolation/",
+        "artifacts/api-server/src/services/documentIntake/extraction/worker.ts",
+        "artifacts/api-server/src/services/documentIntake/extraction/worker.test.ts"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P12-03",
+      "title": "Complete field-evidence review: show supplier, dates, references, quantities, prices, VAT and totals beside the relevant source evidence",
+      "description": "Complete field-evidence review: show supplier, dates, references, quantities, prices, VAT and totals beside the relevant source evidence. Add a safe source viewer to reduce download/context switching.",
+      "priority": 1203,
+      "dependencies": [
+        "P12-01",
+        "P12-02",
+        "P12-90"
+      ],
+      "acceptance": [
+        "Supplier/date/reference/line/price/VAT/total proposals display adjacent to verifiable source/page evidence and a safe supported viewer.",
+        "Evidence mismatches, unsupported previews and stale company/source changes clear unsafe content and preserve download/manual review; PDF preview is not claimed from the image-only trial slice."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/features/documentIntake/CaptureReview.jsx",
+        "artifacts/ledgerly/src/features/documentIntake/SourcePreview.jsx",
+        "artifacts/ledgerly/src/features/documentIntake/fieldEvidence/",
+        "artifacts/api-server/src/services/documentIntake/evidence.ts"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P12-04",
+      "title": "Surface uncertain fields and total mismatches",
+      "description": "Surface uncertain fields and total mismatches; make corrections invalidate stale reviews. Keep explicit human review before conversion and preserve the atomic source-to-native-draft transaction.",
+      "priority": 1204,
+      "dependencies": [
+        "P12-03"
+      ],
+      "acceptance": [
+        "Uncertain fields and total mismatches require explicit correction/review; any source/form change invalidates prior acknowledgement and review identity.",
+        "One confirmed source converts atomically to at most one native draft with audit; stale review, duplicate delivery and permission change cannot post or create duplicate drafts."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/documentIntake/candidate.ts",
+        "artifacts/api-server/src/services/documentIntake/draft.ts",
+        "artifacts/api-server/src/services/documentIntake/service.test.ts",
+        "artifacts/ledgerly/src/features/documentIntake/useDocumentIntake.jsx",
+        "artifacts/ledgerly/src/features/documentIntake/CaptureReview.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P12-05",
+      "title": "Persist extraction jobs and show queued, processing, failed, cancelled and retry states",
+      "description": "Persist extraction jobs and show queued, processing, failed, cancelled and retry states. A failed worker must preserve the document and manual-entry route without creating a second draft.",
+      "priority": 1205,
+      "dependencies": [
+        "P03-02",
+        "P12-01"
+      ],
+      "acceptance": [
+        "Queued/processing/failed/cancelled/retry states survive worker/API restart and are visible against the correct company/source.",
+        "Lease expiry, duplicate jobs and interrupted conversion retain the original file and manual route without a second draft or misleading success."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/documentIntake/extraction/persistence/",
+        "artifacts/ledgerly/src/features/documentIntake/DocumentProgress.jsx",
+        "artifacts/ledgerly/src/features/documentIntake/IntakeWorkspace.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P12-06",
+      "title": "Test photos/PDFs of the same document, mixed VAT, credits, repeated descriptions and malicious instructions in documents",
+      "description": "Test photos/PDFs of the same document, mixed VAT, credits, repeated descriptions and malicious instructions in documents. Measure extraction accuracy and time saved; do not count a proposal as posted accounting.",
+      "priority": 1206,
+      "dependencies": [
+        "P12-04",
+        "P12-05"
+      ],
+      "acceptance": [
+        "Run the same synthetic photo/PDF/credit/mixed-VAT/repeated-description/malicious-instruction pack and record extraction errors plus manual re-entry time.",
+        "Compare accuracy and time against a measured manual baseline; verify proposals never count as posted documents or received credits."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/documentIntake/extraction/qualification/",
+        "tools/development/journeys/capture-pack.mjs"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P12-90",
+      "title": "Scoped and bounded PNG/JPEG source preview",
+      "description": "Completed bounded slice integrated in 276760c and dimension-limited in 4e1eb5d: authenticated image preview with signature/size/dimension checks and abort/revoke cleanup. PDF preview and field evidence remain P12-03.",
+      "priority": 1290,
+      "dependencies": [],
+      "acceptance": [
+        "Integrated tests enforce PNG/JPEG signature, size/dimension limits and supported-preview boundaries; PDF download remains available without claiming inline rendering.",
+        "Close/company/source switch and late responses abort/revoke image URLs and cannot expose stale-company content."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/features/documentIntake/SourceFiles.jsx",
+        "artifacts/ledgerly/src/features/documentIntake/SourcePreview.jsx",
+        "artifacts/ledgerly/src/features/documentIntake/sourcePreview.mjs",
+        "artifacts/ledgerly/src/features/documentIntake/sourcePreview.test.mjs",
+        "artifacts/ledgerly/src/features/documentIntake/SourcePreview.test.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved",
+      "status": "done"
+    },
+    {
+      "id": "P13-01",
+      "title": "Suggest credit matches using supplier, original bill/line, amounts, quantities, remaining capacity and evidence",
+      "description": "Suggest credit matches using supplier, original bill/line, amounts, quantities, remaining capacity and evidence. Require confirmation; a suggestion or draft never counts as a received credit.",
+      "priority": 1301,
+      "dependencies": [
+        "P12-04",
+        "P05-02"
+      ],
+      "acceptance": [
+        "Suggestions compare supplier, original line, quantities, amount, remaining capacity and source evidence with explainable match reasons.",
+        "Wrong supplier/repeated part/partial credit/discount cases cannot auto-confirm; only explicit authorised confirmation updates received-credit state."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/creditTracking/suggestions/",
+        "artifacts/ledgerly/src/features/creditRecovery/CreditSuggestions.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P13-02",
+      "title": "Finish partial, repeated and disputed return cases, credit receipt correction and customer-visible reasons for blocked actions, using the shared accounting rules from priorities 01 and 05",
+      "description": "Finish partial, repeated and disputed return cases, credit receipt correction and customer-visible reasons for blocked actions, using the shared accounting rules from priorities 01 and 05.",
+      "priority": 1302,
+      "dependencies": [
+        "P05-02",
+        "P01-04"
+      ],
+      "acceptance": [
+        "Partial/repeated/disputed returns and corrected receipts retain capacity and audit history using the same financial event projection.",
+        "Blocked operations explain their actual reason and allow safe next actions without removing credit/correction/tenant protections."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/creditTracking/domain.ts",
+        "artifacts/api-server/src/services/creditTracking/service.ts",
+        "artifacts/api-server/src/services/creditTracking/domain.test.ts",
+        "artifacts/ledgerly/src/features/creditRecovery/ClaimList.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/AwaitingCreditPanel.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P13-03",
+      "title": "Keep return, part, job and supplier references without retyping them",
+      "description": "Keep return, part, job and supplier references without retyping them. Make expected/received/remaining values and source links understandable in the queue, original bill and reports.",
+      "priority": 1303,
+      "dependencies": [
+        "P13-02"
+      ],
+      "acceptance": [
+        "Original return/part/job/supplier references flow into queue, bill and report views without re-entry.",
+        "Expected, received and remaining values reconcile with the confirmed source/journal after partial credit, correction and refund."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/features/creditRecovery/ClaimList.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/CreditQueue.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/queuePresentation.mjs",
+        "artifacts/api-server/src/services/accountingDocuments/reports.ts"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P13-04",
+      "title": "Add prioritisation, ageing and follow-up visibility for unresolved credits",
+      "description": "Add prioritisation, ageing and follow-up visibility for unresolved credits. Define any reminder-sending workflow and its explicit user controls before enabling it.",
+      "priority": 1304,
+      "dependencies": [],
+      "acceptance": [
+        "Unresolved claims expose priority, age, follow-up state and source context without changing accounting balances.",
+        "Any reminder path requires a reviewable recipient/content/action and permission check; this task prepares drafts only and external sending is P14-81."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/features/creditRecovery/queuePresentation.mjs",
+        "artifacts/api-server/src/services/creditTracking/followUp/",
+        "artifacts/ledgerly/src/features/creditRecovery/AwaitingCreditsPage.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/ClaimList.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/ClaimList.test.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/CreditQueue.test.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/queuePresentation.test.mjs"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P14-01",
+      "title": "Connect the chosen bank-feed route after native statement import/matching is reliable",
+      "description": "Connect the chosen bank-feed route after native statement import/matching is reliable. Complete authorisation, renewal, revoked access, duplicate events and disconnect-with-evidence behaviour. Implement and test the connection flow without connecting a live bank account during this task.",
+      "priority": 1401,
+      "dependencies": [
+        "P06-02",
+        "P14-04"
+      ],
+      "acceptance": [
+        "Bank-feed adapter maps stable provider events onto the qualified native import/match commands and preserves provenance.",
+        "Fixture/sandbox tests cover renewal, revocation, replay, duplicates and disconnect-with-evidence; production connection is gated by P14-80."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/bankFeeds/",
+        "artifacts/api-server/src/routes/bankFeeds.ts",
+        "artifacts/ledgerly/src/features/bankFeeds/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P14-02",
+      "title": "Build authorised email intake with message/attachment identity, provenance and safe attachment handling",
+      "description": "Build authorised email intake with message/attachment identity, provenance and safe attachment handling. Handle forwarding, replay and the same document arriving by email and upload.",
+      "priority": 1402,
+      "dependencies": [
+        "P12-02",
+        "P03-02",
+        "P14-04"
+      ],
+      "acceptance": [
+        "Authorised intake validates authenticated delivery and stable message/attachment identity with provenance and safe attachment processing.",
+        "Forwarding, replay, spoofed hints, revoked access and the same file arriving by upload/email cannot duplicate a draft or broaden mailbox access; live connection is P14-80."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/documentIntake/email/",
+        "artifacts/api-server/src/routes/emailIntake.ts",
+        "artifacts/ledgerly/src/pages/EmailCapture.jsx",
+        "artifacts/ledgerly/src/pages/EmailRules.jsx"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P14-03",
+      "title": "Complete reliable document/payslip delivery where promised: secure templates, correct recipients, retry/delivery status and audit",
+      "description": "Complete reliable document/payslip delivery where promised: secure templates, correct recipients, retry/delivery status and audit. Distinguish queued, sent and failed messages; protect confidential payroll content.",
+      "priority": 1403,
+      "dependencies": [
+        "P03-02",
+        "P14-04",
+        "P02-04"
+      ],
+      "acceptance": [
+        "Secure templates and recipient review prepare document/payslip delivery with actor/company authority and immutable audit identity.",
+        "Queued, attempted, confirmed-sent and failed statuses are distinct; retries do not double-send and no real message is sent without P14-81."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/documentDelivery/",
+        "artifacts/api-server/src/routes/documentDelivery.ts",
+        "artifacts/ledgerly/src/features/documentDelivery/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P14-04",
+      "title": "Define retention, permissions and data destinations for every connected service",
+      "description": "Define retention, permissions and data destinations for every connected service. Test token expiry, outages and manual fallback without losing work or silently broadening access.",
+      "priority": 1404,
+      "dependencies": [],
+      "acceptance": [
+        "Document allowed scopes, data destinations, retention, revocation and consent for each necessary connected service before implementation uses real data.",
+        "Contract tests cover expired credentials, outages and manual fallback without data loss or expanded access; unknown services/destinations fail closed."
+      ],
+      "files": [
+        "docs/development/service-data-boundaries.json",
+        "artifacts/api-server/src/services/integrationPolicy/"
+      ],
+      "kind": "contract",
+      "approval": "approved"
+    },
+    {
+      "id": "P14-80",
+      "title": "Authorise live bank or mailbox connection",
+      "description": "Approve each concrete bank-feed/mailbox account and consent scope before the implemented adapter connects to it.",
+      "priority": 1480,
+      "dependencies": [
+        "P14-01",
+        "P14-02",
+        "P14-04"
+      ],
+      "acceptance": [
+        "Owner verifies the selected bank/mail account, purpose, data scope and retention before connecting.",
+        "Connection and disconnect/revocation are audited; existing financial records are not posted/reconciled merely because a service is connected."
+      ],
+      "files": [
+        "docs/operations/bank-mail-connection-authorisations.json"
+      ],
+      "kind": "external",
+      "approval": "owner_required"
+    },
+    {
+      "id": "P14-81",
+      "title": "Authorise actual external document or reminder sending",
+      "description": "A real recipient-directed send requires explicit instruction identifying the recipient and message/document. Preparation, testing and drafts remain approved without this gate.",
+      "priority": 1481,
+      "dependencies": [
+        "P14-03",
+        "P13-04"
+      ],
+      "acceptance": [
+        "Record verified recipient, reviewed content/attachment and action-specific authority before a real send.",
+        "Store verified delivery outcome and replay identity; do not report queued/failed/unknown as sent or transmit payroll to an unverified recipient."
+      ],
+      "files": [
+        "docs/operations/delivery-authorisations.json"
+      ],
+      "kind": "external",
+      "approval": "owner_required"
+    },
+    {
+      "id": "P14-82",
+      "title": "Authorise any external extraction service data destination",
+      "description": "If OCR/extraction uses an external service, approve the specific connection and allowed data destination first; a local engine does not require this external action.",
+      "priority": 1482,
+      "dependencies": [
+        "P14-04"
+      ],
+      "acceptance": [
+        "Record owner-approved provider/account/data scope and retention, or explicitly record a local-only implementation that requires no connection.",
+        "No user document is transmitted before the applicable permission is present, and failure preserves the manual entry route."
+      ],
+      "files": [
+        "docs/operations/extraction-provider-authorisation.json"
+      ],
+      "kind": "external",
+      "approval": "owner_required"
+    },
+    {
+      "id": "P15-01",
+      "title": "Verify phone, desktop, keyboard and screen-reader journeys, labels/focus, long documents and readable contrast",
+      "description": "Verify phone, desktop, keyboard and screen-reader journeys, labels/focus, long documents and readable contrast. Complete empty/loading/error/permission states and recovery from failed actions.",
+      "priority": 1501,
+      "dependencies": [
+        "P07-03"
+      ],
+      "acceptance": [
+        "Phone/desktop/keyboard/screen-reader checks cover labels, focus, contrast, long content and complete task navigation on the integrated UI.",
+        "Empty/loading/error/permission cases expose useful recovery and do not hide financial evidence or trap keyboard focus."
+      ],
+      "files": [
+        "tools/development/journeys/accessibility-pack.mjs",
+        "artifacts/ledgerly/src/components/layout/AppLayout.jsx",
+        "artifacts/ledgerly/src/components/accounting/AccountingUI.jsx"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P15-02",
+      "title": "Test company switching and stale responses across every page and export",
+      "description": "Test company switching and stale responses across every page and export; retain period, filter and document context through report drilldowns.",
+      "priority": 1502,
+      "dependencies": [
+        "P15-04"
+      ],
+      "acceptance": [
+        "Switch company and period during delayed success/error responses on every reachable page and export; no old-company content is rendered or downloaded.",
+        "Report/account/document/journal navigation retains approved filters and scope, and fresh reads recover after stale requests are cancelled."
+      ],
+      "files": [
+        "tools/development/journeys/company-scope-pack.mjs",
+        "artifacts/ledgerly/src/features/reporting/useReportRead.jsx",
+        "artifacts/ledgerly/src/features/reporting/model.test.mjs",
+        "artifacts/ledgerly/src/features/vatPreparation/model.test.mjs"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P15-03",
+      "title": "Reduce the large frontend entry bundle with measured route/export loading improvements",
+      "description": "Reduce the large frontend entry bundle with measured route/export loading improvements; benchmark real navigation and large ledgers. Preserve sign-in, direct links and failed-chunk recovery. The route-splitting/retry trial is complete in P15-90; wider export loading and real large-ledger journey measurement remain open.",
+      "priority": 1503,
+      "dependencies": [
+        "P15-90"
+      ],
+      "acceptance": [
+        "Benchmark entry/route/export chunks and real navigation on representative large ledgers, comparing the same environment and baseline.",
+        "Sign-in, deep links, company switch, export, failed chunk retry and remount tests pass; no percentage improvement is inferred solely from agent count."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/App.jsx",
+        "artifacts/ledgerly/src/components/RouteLoadingBoundary.jsx",
+        "artifacts/ledgerly/src/features/routeLoading/loader.mjs",
+        "artifacts/ledgerly/src/lib/reportExports.js",
+        "tools/development/performance-benchmark.mjs"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P15-04",
+      "title": "Reject stale BankTransactions list and suggestion responses",
+      "description": "Completed bounded fix integrated in 04ac5b6: company-keyed bank workspace, generation-fenced list/suggestion reads and action-result callbacks. Verified in the combined 648-test source suite and full workspace build/typecheck; wider journey qualification remains open.",
+      "priority": 1504,
+      "dependencies": [],
+      "acceptance": [
+        "Delayed old-company success and failure cannot render transactions/suggestions or change the active company loading state.",
+        "Refresh races publish only the latest request; cancellation and retry never reintroduce stale rows and no financial write behavior is changed."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/pages/BankTransactions.jsx",
+        "artifacts/ledgerly/src/features/bankWorkspaceScope/"
+      ],
+      "kind": "implementation",
+      "approval": "approved",
+      "status": "done"
+    },
+    {
+      "id": "P15-90",
+      "title": "Lazy workspace route loading and retry recovery",
+      "description": "Completed bounded slice integrated in 2753b88 with remount recovery ea684df and assertion correction 852d3d3. All inventoried routes remain reachable; wider performance qualification remains P15-03.",
+      "priority": 1590,
+      "dependencies": [],
+      "acceptance": [
+        "Integrated tests retain the route inventory and verify lazy-load failure/retry/remount behavior without changing auth/company boundaries.",
+        "Build evidence records entry/chunk changes; no real-user latency or large-ledger performance claim is inferred from bundle size alone."
+      ],
+      "files": [
+        "artifacts/ledgerly/src/App.jsx",
+        "artifacts/ledgerly/src/components/RouteLoadingBoundary.jsx",
+        "artifacts/ledgerly/src/features/routeLoading/loader.mjs",
+        "artifacts/ledgerly/src/features/routeLoading/loader.test.mjs",
+        "artifacts/ledgerly/src/features/routeLoading/routes.test.mjs",
+        "artifacts/ledgerly/src/features/routeLoading/RouteLoading.test.jsx",
+        "artifacts/ledgerly/src/features/routeLoading/route-inventory.json"
+      ],
+      "kind": "implementation",
+      "approval": "approved",
+      "status": "done"
+    },
+    {
+      "id": "P16-01",
+      "title": "Complete the production deployment pipeline, reviewed schema rollout, environment separation and release rollback",
+      "description": "Complete the production deployment pipeline, reviewed schema rollout, environment separation and release rollback. Verify the deployed commit, configuration and schema match the qualified build.",
+      "priority": 1601,
+      "dependencies": [
+        "P03-03"
+      ],
+      "acceptance": [
+        "Build a pipeline that records exact commit, configuration and migration versions and isolates development/staging/production secrets.",
+        "Disposable/staging rollout and rollback rehearsals verify compatibility and fail closed on missing checks; production deployment is a separate P18-80 action."
+      ],
+      "files": [
+        ".github/workflows/ledgerpoint-development.yml",
+        "tools/operations/release/",
+        "docs/operations/release-checklist.json"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P16-02",
+      "title": "Add actionable monitoring for errors, financial mismatches, job backlog, filing failures, access events and capacity",
+      "description": "Add actionable monitoring for errors, financial mismatches, job backlog, filing failures, access events and capacity; redact sensitive diagnostics and assign alert/incident ownership.",
+      "priority": 1602,
+      "dependencies": [
+        "P03-01",
+        "P03-02",
+        "P04-04"
+      ],
+      "acceptance": [
+        "Instrument request errors, financial reconciliation anomalies, job lag, filing failures, access events and capacity with actionable redacted identifiers.",
+        "Synthetic incidents trigger the assigned alert/runbook path while tests prove logs exclude tokens, personal pay/tax data and raw document content."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/observability/",
+        "artifacts/api-server/src/lib/logger.ts",
+        "docs/operations/alerts.json"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P16-03",
+      "title": "Test realistic volumes, concurrent users, large imports and exports, slow/downstream outages and worker restarts",
+      "description": "Test realistic volumes, concurrent users, large imports and exports, slow/downstream outages and worker restarts. Set capacity limits and avoid queues that grow without bounds.",
+      "priority": 1603,
+      "dependencies": [
+        "P03-01",
+        "P03-02",
+        "P06-04",
+        "P12-05"
+      ],
+      "acceptance": [
+        "Run bounded synthetic concurrent-user/import/export/large-ledger tests and record latency, memory, queue growth and configured limits.",
+        "Slow/downstream outages and worker restarts demonstrate bounded retries/backpressure and recovery with no duplicate financial effects."
+      ],
+      "files": [
+        "tools/development/load/",
+        "docs/operations/capacity-limits.json"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P16-04",
+      "title": "Rehearse off-site recovery to a new environment against the agreed recovery targets, including files, keys, roles and background work",
+      "description": "Rehearse off-site recovery to a new environment against the agreed recovery targets, including files, keys, roles and background work. The disposable database drill alone does not close this gate.",
+      "priority": 1604,
+      "dependencies": [
+        "P03-04",
+        "P03-80",
+        "P03-02"
+      ],
+      "acceptance": [
+        "Restore approved encrypted synthetic off-site backups into a new isolated environment with roles, files, keys and background-job evidence.",
+        "Compare source/restored fingerprints, permissions and measured recovery targets; leave the source and all customer environments unchanged."
+      ],
+      "files": [
+        "tools/operations/backup-restore/offsite-rehearsal.mjs",
+        "docs/operations/recovery-evidence.json"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P16-05",
+      "title": "Complete independent security assessment, remediation and incident/support runbooks",
+      "description": "Complete independent security assessment, remediation and incident/support runbooks. Exercise a failed deployment, a lost response and a data-recovery incident before customer release.",
+      "priority": 1605,
+      "dependencies": [
+        "P02-01",
+        "P02-02",
+        "P02-03",
+        "P02-04",
+        "P16-01",
+        "P16-02",
+        "P16-04"
+      ],
+      "acceptance": [
+        "Independent review verifies tenant/auth/upload/parser/secret boundaries and tracks each finding through remediation/retest.",
+        "Exercise failed release, unknown financial response and disaster recovery using synthetic data with recorded incident ownership and support steps."
+      ],
+      "files": [
+        "docs/operations/security-review.json",
+        "docs/operations/incident-runbooks/",
+        "tools/development/security-exercises/"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P17-01",
+      "title": "Finish signup, invitations, subscription/billing, plan entitlements and cancellation",
+      "description": "Finish signup, invitations, subscription/billing, plan entitlements and cancellation; define what users can still view/export after suspension. Test account lifecycle without deleting accounting evidence accidentally.",
+      "priority": 1701,
+      "dependencies": [
+        "P02-02",
+        "P06-05"
+      ],
+      "acceptance": [
+        "Signup, invites, entitlements, suspension/cancellation and export access are exercised against sandbox billing fixtures.",
+        "Retries and account transitions cannot erase retained accounting evidence or grant unpaid/unauthorised access; live billing account/purchase configuration remains P17-80."
+      ],
+      "files": [
+        "artifacts/api-server/src/services/subscriptions/",
+        "artifacts/api-server/src/routes/subscriptions.ts",
+        "artifacts/ledgerly/src/features/subscriptions/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P17-02",
+      "title": "Set pricing, supported customer profile and accurate feature claims",
+      "description": "Set pricing, supported customer profile and accurate feature claims. Complete launch website/domain, help content, onboarding examples and a clear route to human support.",
+      "priority": 1702,
+      "dependencies": [],
+      "acceptance": [
+        "Prepare a concrete pricing/customer-profile offer, launch copy and help examples that match implemented supported capabilities.",
+        "Validate onboarding/support paths and remove unsupported compliance/automation claims; publishing, domain purchase and live pricing approval remain separate owner actions."
+      ],
+      "files": [
+        "docs/product/commercial-offer.json",
+        "docs/product/help/",
+        "artifacts/ledgerly-launch/"
+      ],
+      "kind": "implementation",
+      "approval": "approved"
+    },
+    {
+      "id": "P17-03",
+      "title": "Complete privacy/terms, processor arrangements, retention/deletion/export policy and appropriate customer consent with qualified review",
+      "description": "Complete privacy/terms, processor arrangements, retention/deletion/export policy and appropriate customer consent with qualified review. Align these documents with actual data flows and backup behaviour.",
+      "priority": 1703,
+      "dependencies": [
+        "P14-04",
+        "P06-05",
+        "P03-04"
+      ],
+      "acceptance": [
+        "Draft and obtain qualified review of privacy/terms/processor/retention/deletion/export requirements against the actual data-flow inventory.",
+        "Test retention/export consent behavior and backup implications; no contract is signed or new processor connected by preparing these documents."
+      ],
+      "files": [
+        "docs/product/privacy-terms/",
+        "docs/operations/retention-policy.json"
+      ],
+      "kind": "contract",
+      "approval": "approved"
+    },
+    {
+      "id": "P17-04",
+      "title": "Assign customer support, tax/payroll rule maintenance and incident cover",
+      "description": "Assign customer support, tax/payroll rule maintenance and incident cover; document response targets and escalation. Train support on failed filings, disputed balances and safe recovery.",
+      "priority": 1704,
+      "dependencies": [
+        "P04-05",
+        "P16-02"
+      ],
+      "acceptance": [
+        "Identify cover, response targets and escalation for support, tax/payroll rule updates and incidents with named accountable roles.",
+        "Rehearse support handling of rejected/unknown filing, disputed balance and safe recovery using synthetic cases; record unresolved coverage gaps."
+      ],
+      "files": [
+        "docs/operations/support-coverage.json",
+        "docs/operations/support-training/"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P17-80",
+      "title": "Approve live billing, commercial terms and purchases",
+      "description": "Owner reviews concrete pricing/terms and any live billing account, domain purchase or other charge before external activation; code and draft assets remain independently actionable.",
+      "priority": 1780,
+      "dependencies": [
+        "P17-01",
+        "P17-02",
+        "P17-03"
+      ],
+      "acceptance": [
+        "Record the exact offer, terms, account/domain/purchase and cost approved by the owner.",
+        "Do not charge customers, accept binding terms, publish assets or buy services without the required specific approval."
+      ],
+      "files": [
+        "docs/operations/commercial-authorisations.json"
+      ],
+      "kind": "external",
+      "approval": "owner_required"
+    },
+    {
+      "id": "P18-01",
+      "title": "Run the complete journey pack on the exact integrated build: import/setup, source-to-draft, post, pay, credit, correct, reconcile, report, tax/file, payroll, close and export",
+      "description": "Run the complete journey pack on the exact integrated build: import/setup, source-to-draft, post, pay, credit, correct, reconcile, report, tax/file, payroll, close and export.",
+      "priority": 1801,
+      "dependencies": [
+        "P01-05",
+        "P05-04",
+        "P06-02",
+        "P06-04",
+        "P07-01",
+        "P08-05",
+        "P09-10",
+        "P10-07",
+        "P11-07",
+        "P12-06",
+        "P13-03",
+        "P14-01",
+        "P14-02",
+        "P14-03"
+      ],
+      "acceptance": [
+        "Run import/setup, source-to-draft, posting, payment, credit, correction, reconciliation, reporting, tax filing simulation, payroll, close and export on one exact integrated build.",
+        "Each supported journey records source/commit/rule/schema evidence, reconciled outcomes and recovery checks; no test writes production or submits a live return."
+      ],
+      "files": [
+        "tools/development/journeys/commercial-product-pack.mjs",
+        "docs/development/commercial-journey-evidence.json"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P18-02",
+      "title": "Use a supervised pilot with clearly declared supported cases, real usability feedback and reconciled outcomes",
+      "description": "Use a supervised pilot with clearly declared supported cases, real usability feedback and reconciled outcomes. Fix issues and rerun affected journeys; do not treat a narrow pilot as completion of the full product.",
+      "priority": 1802,
+      "dependencies": [
+        "P18-01",
+        "P07-05",
+        "P16-05",
+        "P17-04",
+        "P18-81"
+      ],
+      "acceptance": [
+        "Within the separately authorised pilot scope, collect reconciled outcomes and observed usability feedback with declared supported boundaries.",
+        "Fix pilot defects and rerun affected integrated journeys; pilot scope does not remove any agreed commercial accounting/tax/payroll functionality."
+      ],
+      "files": [
+        "docs/operations/pilot-evidence.json",
+        "tools/development/journeys/pilot-regression.mjs"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P18-03",
+      "title": "Require evidence for all promised accounting, tax and payroll cases, permissions, recovery and operations",
+      "description": "Require evidence for all promised accounting, tax and payroll cases, permissions, recovery and operations. Independently review calculations and the user-facing results, not just the code.",
+      "priority": 1803,
+      "dependencies": [
+        "P18-01",
+        "P18-02",
+        "P15-01",
+        "P15-02",
+        "P15-03",
+        "P16-03",
+        "P16-04",
+        "P16-05",
+        "P17-01",
+        "P17-02",
+        "P17-03",
+        "P17-04"
+      ],
+      "acceptance": [
+        "Independent accounting/payroll/security reviewers examine the user-facing results and evidence for every supported product and operational case.",
+        "Open blockers, excluded cases and review limitations are explicit; passing a component/unit suite cannot substitute for integrated acceptance."
+      ],
+      "files": [
+        "docs/operations/commercial-acceptance-evidence.json"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P18-04",
+      "title": "Record the final release decision, known supported boundaries, exact version/migrations, monitoring and support ownership",
+      "description": "Record the final release decision, known supported boundaries, exact version/migrations, monitoring and support ownership. Resolve release blockers before opening self-service commercial use.",
+      "priority": 1804,
+      "dependencies": [
+        "P18-03"
+      ],
+      "acceptance": [
+        "Prepare a concrete release decision package containing exact commit/migrations/configuration, supported boundaries, resolved blockers and review evidence.",
+        "Monitoring, recovery and support ownership are confirmed; self-service release remains disabled until the action-specific P18-80 approval."
+      ],
+      "files": [
+        "docs/operations/release-decision.json"
+      ],
+      "kind": "verification",
+      "approval": "approved"
+    },
+    {
+      "id": "P18-80",
+      "title": "Authorise and execute commercial production release",
+      "description": "After the concrete release decision package passes, obtain explicit production deployment/publishing authority for the exact version and environment.",
+      "priority": 1880,
+      "dependencies": [
+        "P18-04",
+        "P17-80",
+        "P08-80"
+      ],
+      "acceptance": [
+        "Record exact approved commit, migrations, target, release window, recovery plan and accountable owner before production changes.",
+        "Verify deployed version/schema/configuration, monitoring and rollback readiness; do not force-push, bypass checks or deploy an unapproved version."
+      ],
+      "files": [
+        "docs/operations/production-release-receipt.json"
+      ],
+      "kind": "external",
+      "approval": "owner_required"
+    },
+    {
+      "id": "P18-81",
+      "title": "Authorise the concrete supervised pilot",
+      "description": "Prepare and approve pilot participants, supported cases, environment, data permissions and support before admitting real users or real financial records.",
+      "priority": 1881,
+      "dependencies": [
+        "P18-01",
+        "P16-05",
+        "P17-04"
+      ],
+      "acceptance": [
+        "Owner approves a reviewable participant/data/environment scope with declared boundaries and support ownership.",
+        "Pilot setup preserves production protections and does not authorise live filing, money movement or reduced commercial scope."
+      ],
+      "files": [
+        "docs/operations/pilot-authorisation.json"
+      ],
+      "kind": "external",
+      "approval": "owner_required"
+    }
+  ]
+}

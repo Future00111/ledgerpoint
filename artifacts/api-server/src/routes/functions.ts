@@ -1,3 +1,5 @@
+import { canWriteCompanyData } from "../security/roles";
+import { publicErrorMessage, safeErrorLog, safeRouteErrors } from "../security/publicErrors";
 /**
  * /api/functions/:name — server-side business logic functions.
  *
@@ -10,22 +12,19 @@
  * askAI uses the native AI service. Unavailable integrations fail explicitly.
  * suggestTransactionMatches uses the shared reconciliation analysis service.
  */
-import { Router, type Request, type Response } from "express";
+import { Router, type Request, type Response, type RequestHandler } from "express";
 import { db } from "@workspace/db";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
+import { retiredChartBootstrapBoundary } from "./legacyChartBootstrapPolicy";
 import {
-  findActiveMembership,
   requireCompanyScope,
 } from "../middlewares/companyScope";
 import { aiService, AIProviderError } from "../services/ai/index.js";
 import {
   companyUsersTable,
   companiesTable,
-  salesInvoicesTable,
-  purchaseBillsTable,
   bankTransactionsTable,
   bankAccountsTable,
-  chartOfAccountsTable,
   aiReconciliationResultsTable,
   bankAutomationSettingsTable,
 } from "@workspace/db/schema";
@@ -38,37 +37,34 @@ import {
   type NonPaymentMatchInput,
 } from "../services/ai-accountant/index.js";
 
+export function createFunctionsRouter(authenticate: RequestHandler = requireAuth) {
 const router = Router();
-router.use(requireAuth);
+router.use(authenticate);
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-const WRITE_BLOCKED_ROLES = new Set(["read_only"]);
 
-async function getMembership(
-  userId: string,
-  companyId: string,
-): Promise<{ company_id: string; role: string | null; is_active: boolean | null } | null> {
-  return findActiveMembership(userId, companyId);
-}
 
 /**
  * Assert read+write access: caller must be a member of companyId and must not
- * have the read_only role.  Returns 403 and ends the response on failure.
+ * have the read_only role. Explicit caller context must agree with the resource;
+ * an omitted context still uses the resource company. Failure ends the response.
  */
 async function assertWriteAccess(
   userId: string,
   companyId: string,
   res: Response,
+  requestedCompanyId?: unknown,
 ): Promise<boolean> {
   const scope = await requireCompanyScope(res, {
     userId,
-    requestedCompanyId: companyId,
+    requestedCompanyId,
+    resourceCompanyId: companyId,
   });
   if (!scope) {
     return false;
   }
-  if (WRITE_BLOCKED_ROLES.has(scope.role ?? "")) {
+  if (!canWriteCompanyData(scope.role)) {
     res.status(403).json({ error: "Your role does not permit this operation" });
     return false;
   }
@@ -84,12 +80,12 @@ const UNAVAILABLE_FUNCTIONS = new Set([
 ]);
 
 // ─── POST /api/functions/:name ────────────────────────────────────────────────
-router.post("/:name", async (req: Request, res: Response) => {
+router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: Response) => {
   const { userId } = req as AuthenticatedRequest;
   const funcName = req.params["name"] as string;
   const args = req.body as Record<string, unknown>;
   if (["postPurchaseBill","generateSalesInvoiceJournals","generatePurchaseBillJournals",
-    "postSalesInvoice","postSalesCreditNote","postSupplierCreditNote","applySalesCreditNote","applySupplierCreditNote"].includes(funcName)) {
+    "postSalesInvoice","postSalesCreditNote","postSupplierCreditNote","applySalesCreditNote","applySupplierCreditNote","updatePaymentStatus"].includes(funcName)) {
     res.status(403).json({error:"Use the protected native accounting document review/post workflow. Legacy financial effects are disabled."});
     return;
   }
@@ -103,6 +99,11 @@ router.post("/:name", async (req: Request, res: Response) => {
       error: `${funcName} requires additional implementation and is not yet available.`,
       notYetAvailable: true,
     });
+    return;
+  }
+
+  if (!args || typeof args !== "object" || Array.isArray(args)) {
+    res.status(400).json({ error: "A function arguments object is required" });
     return;
   }
 
@@ -147,13 +148,11 @@ router.post("/:name", async (req: Request, res: Response) => {
           prompt?: string;
         };
 
-        // Verify membership when a company is supplied.
-        if (company_id) {
-          const m = await getMembership(userId, company_id);
-          if (!m) {
-            res.status(403).json({ error: "Access denied" });
-            return;
-          }
+        // Omitted context permits general chat. Explicit malformed context must
+        // never downgrade a company request into an unscoped provider call.
+        if (company_id !== undefined) {
+          const scope = await requireCompanyScope(res, { userId, requestedCompanyId: company_id });
+          if (!scope) return;
         }
 
         // Accept either a pre-built messages array or a single prompt string.
@@ -224,79 +223,6 @@ router.post("/:name", async (req: Request, res: Response) => {
         return;
       }
 
-      // ── updatePaymentStatus ──────────────────────────────────────────────
-      case "updatePaymentStatus": {
-        const { entity_type, record_id, amount_paid_delta } = args as {
-          entity_type: string;
-          record_id: string;
-          amount_paid_delta: number;
-        };
-        if (entity_type === "sales_invoice") {
-          res.status(403).json({ error: "Invoice settlement requires the protected payment workflow" });
-          return;
-        }
-        const table =
-          entity_type === "sales_invoice" ? salesInvoicesTable :
-          entity_type === "purchase_bill" ? purchaseBillsTable : null;
-
-        if (!table) {
-          res.status(400).json({ error: `Unknown entity_type: ${entity_type}` });
-          return;
-        }
-
-        // Step 1: load the record to get its ACTUAL company_id
-        const rows = await db.select().from(table).where(eq(table["id"], record_id)).limit(1);
-        if (!rows[0]) { res.status(404).json({ error: "Record not found" }); return; }
-        const companyId = (rows[0] as Record<string, unknown>)["company_id"] as string;
-
-        // Step 2: verify membership AND write role on the record's actual company
-        if (!(await assertWriteAccess(userId, companyId, res))) return;
-
-        // Keep payment totals, the remaining balance, and the document status
-        // in sync. Numeric columns arrive from Postgres as strings, so operate
-        // in integer pence to avoid floating-point drift. The row lock prevents
-        // concurrent payments from both reading the same prior balance.
-        const updated = await db.transaction(async (tx) => {
-          const [current] = await tx
-            .select()
-            .from(table)
-            .where(eq(table["id"], record_id))
-            .for("update");
-          if (!current) throw new Error("Record not found");
-
-          const totalPence = Math.max(0, Math.round(Number(current.total ?? 0) * 100));
-          const paidPence = Math.max(0, Math.round(Number(current.amount_paid ?? 0) * 100));
-          const deltaPence = Math.round((Number(amount_paid_delta) || 0) * 100);
-          const nextPaidPence = Math.max(0, Math.min(totalPence, paidPence + deltaPence));
-          const balancePence = totalPence - nextPaidPence;
-
-          const currentStatus = String(current.status ?? "");
-          const status =
-            balancePence === 0 && totalPence > 0
-              ? "paid"
-              : nextPaidPence > 0
-                ? "part_paid"
-                : currentStatus === "paid" || currentStatus === "part_paid"
-                  ? (entity_type === "purchase_bill" ? "awaiting_payment" : "sent")
-                  : currentStatus;
-
-          const rows = await tx
-            .update(table)
-            .set({
-              amount_paid: (nextPaidPence / 100).toFixed(2),
-              balance_due: (balancePence / 100).toFixed(2),
-              status,
-              updated_at: new Date(),
-            })
-            .where(eq(table["id"], record_id))
-            .returning();
-          return rows[0];
-        });
-
-        res.json({ success: true, record: updated });
-        break;
-      }
-
       // ── approveReconciliationMatches ─────────────────────────────────────
       // Atomically reconcile one bank transaction against one or more sales
       // invoices / purchase bills. All validation and writes happen inside a
@@ -323,7 +249,7 @@ router.post("/:name", async (req: Request, res: Response) => {
           .where(eq(bankTransactionsTable.id, bank_transaction_id))
           .limit(1);
         if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
-        if (!(await assertWriteAccess(userId, txn.company_id, res))) return;
+        if (!(await assertWriteAccess(userId, txn.company_id, res, args["company_id"]))) return;
 
         try {
           // Shared atomic approval implementation (services/ai-accountant).
@@ -334,7 +260,7 @@ router.post("/:name", async (req: Request, res: Response) => {
           );
           res.json({ success: true, ...result });
         } catch (e) {
-          res.status(409).json({ error: e instanceof Error ? e.message : "Reconciliation failed" });
+          res.status(409).json({ error: publicErrorMessage(e, "Reconciliation failed") });
         }
         break;
       }
@@ -360,7 +286,7 @@ router.post("/:name", async (req: Request, res: Response) => {
         const [txn] = await db.select().from(bankTransactionsTable)
           .where(eq(bankTransactionsTable.id, bank_transaction_id)).limit(1);
         if (!txn) { res.status(404).json({ error: "Transaction not found" }); return; }
-        if (!(await assertWriteAccess(userId, txn.company_id, res))) return;
+        if (!(await assertWriteAccess(userId, txn.company_id, res, args["company_id"]))) return;
 
         try {
           const result = await applyNonPaymentReconciliationMatch(bank_transaction_id, {
@@ -373,7 +299,7 @@ router.post("/:name", async (req: Request, res: Response) => {
           }, userId);
           res.json({ success: true, ...result });
         } catch (e) {
-          res.status(409).json({ error: e instanceof Error ? e.message : "Reconciliation failed" });
+          res.status(409).json({ error: publicErrorMessage(e, "Reconciliation failed") });
         }
         break;
       }
@@ -393,7 +319,7 @@ router.post("/:name", async (req: Request, res: Response) => {
         const [source] = await db.select().from(bankTransactionsTable)
           .where(eq(bankTransactionsTable.id, bank_transaction_id)).limit(1);
         if (!source) { res.status(404).json({ error: "Transaction not found" }); return; }
-        if (!(await assertWriteAccess(userId, source.company_id, res))) return;
+        if (!(await assertWriteAccess(userId, source.company_id, res, args["company_id"]))) return;
 
         try {
           const result = await db.transaction(async (tx) => {
@@ -449,7 +375,7 @@ router.post("/:name", async (req: Request, res: Response) => {
           });
           res.json({ success: true, ...result });
         } catch (e) {
-          res.status(409).json({ error: e instanceof Error ? e.message : "Transfer could not be recorded" });
+          res.status(409).json({ error: publicErrorMessage(e, "Transfer could not be recorded") });
         }
         break;
       }
@@ -465,8 +391,16 @@ router.post("/:name", async (req: Request, res: Response) => {
           ? (args as { transactions?: Array<Record<string, unknown>> }).transactions
           : [args as Record<string, unknown>];
         const companyId = (args as { company_id?: string }).company_id;
-        if (!companyId || !Array.isArray(entries) || entries.length === 0) {
+        if (typeof companyId !== "string" || !companyId.trim() || !Array.isArray(entries) || entries.length === 0) {
           res.status(400).json({ error: "A company and at least one bank transaction are required" });
+          return;
+        }
+        // Imported rows may retain the workspace where they were prepared.
+        // Never silently relabel those rows with a later selected company;
+        // validate the entire batch before membership reads or any inserts.
+        if (entries.some(entry => !entry || typeof entry !== "object" || Array.isArray(entry) ||
+          (entry.company_id !== undefined && entry.company_id !== companyId))) {
+          res.status(400).json({ error: "Each bank transaction must be an object in the selected company" });
           return;
         }
         if (!(await assertWriteAccess(userId, companyId, res))) return;
@@ -545,13 +479,13 @@ router.post("/:name", async (req: Request, res: Response) => {
             // The import itself is valid bookkeeping data. Preserve it when
             // optional analysis is temporarily unavailable, and surface the
             // failure in server logs rather than silently losing the receipt.
-            req.log.warn({ err: analysisError, company_id: companyId }, "Imported transactions were not analysed");
+            req.log.warn({ ...safeErrorLog(analysisError), company_id: companyId }, "Imported transactions were not analysed");
           }
           res.status(201).json(isBatch
             ? { success: true, data: created, analysis_summary: analysisSummary, analysis_status: analysisSummary ? "complete" : "disabled" }
             : { success: true, data: created[0], analysis_summary: analysisSummary, analysis_status: analysisSummary ? "complete" : "disabled" });
         } catch (e) {
-          res.status(400).json({ error: e instanceof Error ? e.message : "Bank transaction could not be recorded" });
+          res.status(400).json({ error: publicErrorMessage(e, "Bank transaction could not be recorded") });
         }
         break;
       }
@@ -569,7 +503,7 @@ router.post("/:name", async (req: Request, res: Response) => {
         const [existing] = await db.select().from(bankTransactionsTable)
           .where(eq(bankTransactionsTable.id, bank_transaction_id)).limit(1);
         if (!existing) { res.status(404).json({ error: "Transaction not found" }); return; }
-        if (!(await assertWriteAccess(userId, existing.company_id, res))) return;
+        if (!(await assertWriteAccess(userId, existing.company_id, res, args["company_id"]))) return;
         const parsedVat = vat_rate == null || vat_rate === "" ? null : Number(vat_rate);
         if (parsedVat != null && (!Number.isFinite(parsedVat) || parsedVat < 0 || parsedVat > 100)) {
           res.status(400).json({ error: "VAT rate must be between 0 and 100" }); return;
@@ -623,7 +557,7 @@ router.post("/:name", async (req: Request, res: Response) => {
             resourceCompanyId: txn.company_id,
           });
           if (!scope) return;
-          persistAnalysis = !WRITE_BLOCKED_ROLES.has(scope.role ?? "");
+          persistAnalysis = canWriteCompanyData(scope.role);
           txnsToScore = [txn];
         } else if (argCompanyId) {
           // Bulk mode: verify membership then fetch all review-status transactions.
@@ -632,7 +566,7 @@ router.post("/:name", async (req: Request, res: Response) => {
             requestedCompanyId: argCompanyId,
           });
           if (!scope) return;
-          persistAnalysis = !WRITE_BLOCKED_ROLES.has(scope.role ?? "");
+          persistAnalysis = canWriteCompanyData(scope.role);
           txnsToScore = await db
             .select()
             .from(bankTransactionsTable)
@@ -664,60 +598,6 @@ router.post("/:name", async (req: Request, res: Response) => {
         break;
       }
 
-      // ── createDefaultAccounts ────────────────────────────────────────────
-      case "createDefaultAccounts": {
-        const { company_id } = args as { company_id: string };
-        if (!company_id) { res.status(400).json({ error: "company_id is required" }); return; }
-
-        // Verify write access for the requested company
-        if (!(await assertWriteAccess(userId, company_id, res))) return;
-
-        // Standard UK chart of accounts
-        const defaults = [
-          { code: "1000", name: "Cash in Hand",            account_type: "asset",     account_subtype: "current_asset"      },
-          { code: "1100", name: "Bank Accounts",            account_type: "asset",     account_subtype: "current_asset"      },
-          { code: "1200", name: "Accounts Receivable",      account_type: "asset",     account_subtype: "current_asset"      },
-          { code: "1300", name: "Stock/Inventory",          account_type: "asset",     account_subtype: "current_asset"      },
-          { code: "1400", name: "Prepayments",              account_type: "asset",     account_subtype: "current_asset"      },
-          { code: "1500", name: "Fixed Assets",             account_type: "asset",     account_subtype: "fixed_asset"        },
-          { code: "1600", name: "Accumulated Depreciation", account_type: "asset",     account_subtype: "fixed_asset"        },
-          { code: "2000", name: "Accounts Payable",         account_type: "liability", account_subtype: "current_liability"  },
-          { code: "2100", name: "VAT Liability",            account_type: "liability", account_subtype: "current_liability"  },
-          { code: "2200", name: "PAYE/NI Payable",          account_type: "liability", account_subtype: "current_liability"  },
-          { code: "2300", name: "Corporation Tax",          account_type: "liability", account_subtype: "current_liability"  },
-          { code: "2400", name: "Director Loan",            account_type: "liability", account_subtype: "current_liability"  },
-          { code: "2500", name: "Long-term Loans",          account_type: "liability", account_subtype: "long_term_liability" },
-          { code: "3000", name: "Share Capital",            account_type: "equity",    account_subtype: "equity"             },
-          { code: "3100", name: "Retained Earnings",        account_type: "equity",    account_subtype: "equity"             },
-          { code: "4000", name: "Sales Revenue",            account_type: "revenue",   account_subtype: "revenue"            },
-          { code: "4100", name: "Other Income",             account_type: "revenue",   account_subtype: "revenue"            },
-          { code: "5000", name: "Cost of Goods Sold",       account_type: "expense",   account_subtype: "cost_of_sales"      },
-          { code: "6000", name: "Wages & Salaries",         account_type: "expense",   account_subtype: "operating"          },
-          { code: "6100", name: "Rent & Rates",             account_type: "expense",   account_subtype: "operating"          },
-          { code: "6200", name: "Utilities",                account_type: "expense",   account_subtype: "operating"          },
-          { code: "6300", name: "Telephone & Internet",     account_type: "expense",   account_subtype: "operating"          },
-          { code: "6400", name: "Marketing & Advertising",  account_type: "expense",   account_subtype: "operating"          },
-          { code: "6500", name: "Professional Fees",        account_type: "expense",   account_subtype: "operating"          },
-          { code: "6600", name: "Travel & Subsistence",     account_type: "expense",   account_subtype: "operating"          },
-          { code: "6700", name: "Office Supplies",          account_type: "expense",   account_subtype: "operating"          },
-          { code: "6800", name: "Bank Charges",             account_type: "expense",   account_subtype: "operating"          },
-          { code: "6900", name: "Depreciation",             account_type: "expense",   account_subtype: "operating"          },
-          { code: "7000", name: "Miscellaneous",            account_type: "expense",   account_subtype: "operating"          },
-        ];
-
-        const records = defaults.map((d) => ({ ...d, company_id, is_active: true }));
-
-        // Idempotent: skip rows that already exist for this company+code (unique constraint enforced in DB)
-        const created = await db
-          .insert(chartOfAccountsTable)
-          .values(records)
-          .onConflictDoNothing()
-          .returning();
-
-        res.json({ success: true, created: created.length });
-        break;
-      }
-
       // ── getUserCompanies ─────────────────────────────────────────────────
       case "getUserCompanies": {
         const memberships = await db
@@ -740,9 +620,14 @@ router.post("/:name", async (req: Request, res: Response) => {
         res.status(404).json({ error: `Unknown function: ${funcName}` });
     }
   } catch (err: unknown) {
-    req.log.error({ err, funcName }, "function invocation error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    req.log.error({ ...safeErrorLog(err), funcName }, "function invocation error");
+    res.status(500).json({ error: publicErrorMessage(err, "Internal error") });
   }
 });
 
-export default router;
+router.use(safeRouteErrors);
+
+return router;
+}
+
+export default createFunctionsRouter();

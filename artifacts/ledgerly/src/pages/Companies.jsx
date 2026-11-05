@@ -1,5 +1,5 @@
 import { accounting } from '@/api/accountingDocuments.mjs';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import React, { useState } from 'react';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Building2, Plus, Pencil, Trash2, Eye } from 'lucide-react';
 import CompanyForm from '@/components/companies/CompanyForm';
 import CompanyDetails from '@/components/companies/CompanyDetails';
 import { openSyntheticInvoiceDemo } from '@/api/invoiceDemo.mjs';
+import { resumeCreatedCompany } from '@/features/onboarding/model.mjs';
 
 const BUSINESS_LABELS = {
   garage: 'Garage', retail: 'Retail', wholesale: 'Wholesale',
@@ -20,6 +21,12 @@ const BUSINESS_LABELS = {
 
 export default function Companies() {
   const { companies, loadCompanies, switchCompany, activeCompany } = useCompany();
+  const navigate = useNavigate();
+  const savedCompany = async (receipt, { created }) => {
+    if (created) await resumeCreatedCompany(receipt, loadCompanies, switchCompany, navigate);
+    else await loadCompanies();
+  };
+  const reviewSetup = company => { switchCompany(company); navigate('/setup'); };
   const [formOpen, setFormOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -148,7 +155,7 @@ export default function Companies() {
               className={`border-0 shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${activeCompany?.id === c.id ? 'ring-2 ring-primary/20' : ''}`}
             >
               <CardContent className="p-5">
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
                   <div className="space-y-1.5 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold text-base">{c.name}</h3>
@@ -170,7 +177,8 @@ export default function Companies() {
                       {c.city && <p>{[c.address_line_1, c.city, c.postcode].filter(Boolean).join(', ')}</p>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0 ml-3" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex flex-wrap items-center gap-1 sm:ml-3" onClick={(e) => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
+                    <Button variant="outline" size="sm" onClick={() => reviewSetup(c)}>Review setup</Button>
                     {activeCompany?.id !== c.id && (
                       <Button variant="outline" size="sm" onClick={() => switchCompany(c)}>Switch to</Button>
                     )}
@@ -185,7 +193,7 @@ export default function Companies() {
         </div>
       )}
 
-      <CompanyForm open={formOpen} onOpenChange={setFormOpen} editing={editing} onSaved={loadCompanies} />
+      <CompanyForm open={formOpen} onOpenChange={setFormOpen} editing={editing} onSaved={savedCompany} />
       <CompanyDetails company={viewing} open={detailsOpen} onOpenChange={setDetailsOpen} />
     </div>
   );

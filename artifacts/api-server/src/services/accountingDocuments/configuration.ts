@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { fail, parseInvoice } from "../financialDrafts/contract";
+import { canWriteDraft, fail, parseInvoice } from "../financialDrafts/contract";
+import { roleHasAccountingCapability } from "../accounting/canonicalPosting";
 import { scope, supportedCompany, transact, exactFields, type Queryable, type Kind, sales } from "./core";
 
 import { roles, validateAccounts, companyChart } from "./accounts";
@@ -14,6 +15,10 @@ export async function configuration(q: Queryable, company: string, lock=false) {
 export async function context(company: string,actor: string,kind: Kind) {
   return transact(async q=>{
     const c=await scope(q,company,actor);
+    const member=(await q.query("SELECT role,is_active FROM company_users WHERE company_id=$1 AND user_id=$2 ORDER BY id",[company,actor])).rows;
+    const active=member.length===1 && member[0].is_active===true;
+    const capabilities={edit_drafts:canWriteDraft(member[0]?.role,active),
+      post_documents:active && roleHasAccountingCapability(member[0]?.role,"accounting.post")};
     const config=await q.query("SELECT * FROM accounting_company_configuration WHERE company_id=$1",[company]);
     const accounts=await companyChart(q,company);
     const parties=await q.query(`SELECT id,name,status FROM ${sales(kind)?"customers":"suppliers"} WHERE company_id=$1 AND status='active' ORDER BY name,id`,[company]);
@@ -27,7 +32,7 @@ export async function context(company: string,actor: string,kind: Kind) {
     }
     if(!periods.rows.some(p=>p.status==="OPEN")) errors.push("Create an open accounting period for the document date.");
     try {supportedCompany(c);} catch {errors.push("Only UK GBP accrual, Standard invoice-accounting VAT or non-VAT businesses are supported.");}
-    return {company:c,parties:parties.rows,tax_rules:rules.rows,accounts,
+    return {company:c,capabilities,parties:parties.rows,tax_rules:rules.rows,accounts,
       mappings:config.rows[0]?.mappings??{},revision:config.rows[0]?.revision??null,
       business_accounting_basis:config.rows[0]?.business_accounting_basis??null,
       periods:periods.rows,configuration_errors:errors};

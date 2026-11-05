@@ -4,8 +4,9 @@ import * as nativeEntities from '@/api/entities';
 import { useWidgetData } from '../useWidgetData';
 import { ListSkeleton, EmptyState } from '../WidgetPrimitives';
 import { relativeTime } from '@/lib/format';
+import { vatStatusNotification } from '@/lib/vatStatusNotification.mjs';
 import {
-  Bell, CheckCircle2, AlertTriangle, Unplug, Sparkles, FileCheck, Copy,
+  Bell, AlertTriangle, Unplug, Sparkles, FileCheck, Copy,
 } from 'lucide-react';
 
 export default function NotificationsWidget({ company }) {
@@ -24,8 +25,8 @@ export default function NotificationsWidget({ company }) {
     if (!data) return [];
     const { vat, insights, accts, docs } = data;
     const out = [];
-    const submitted = (vat || []).find((v) => v.status === 'submitted' || v.status === 'filed');
-    if (submitted) out.push({ icon: CheckCircle2, color: 'text-emerald-600', title: 'HMRC submission successful', desc: 'Your VAT return was submitted to HMRC.', route: '/vat', date: submitted.created_date });
+    const recordedVAT = vatStatusNotification(vat);
+    if (recordedVAT) out.push({ icon: FileCheck, color: 'text-muted-foreground', ...recordedVAT });
     (insights || []).filter((i) => i.category === 'duplicate').slice(0, 1).forEach((i) => out.push({ icon: Copy, color: 'text-amber-600', title: i.title, desc: i.description, route: '/insights', date: i.generated_date }));
     if ((accts || []).some((a) => a.connection_type === 'open_banking' && a.open_banking_status !== 'connected')) out.push({ icon: Unplug, color: 'text-rose-600', title: 'Bank feed disconnected', desc: 'Reconnect to resume automatic imports.', route: '/bank-accounts' });
     if ((insights || []).some((i) => !i.is_dismissed)) out.push({ icon: Sparkles, color: 'text-primary', title: 'AI suggestion available', desc: 'New insights are ready to review.', route: '/insights', date: (insights || [])[0]?.generated_date });

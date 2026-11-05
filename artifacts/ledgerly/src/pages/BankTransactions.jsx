@@ -14,6 +14,8 @@ import ImportCSVDialog from '@/components/bank_transactions/ImportCSVDialog';
 import ReconciliationWorkflow from '@/components/bank_transactions/ReconciliationWorkflow';
 import SuggestedMatches from '@/components/bank_transactions/SuggestedMatches';
 import { useToast } from '@/components/ui/use-toast';
+import BankWorkspaceScope, { BankReadStatus } from '@/features/bankWorkspaceScope/BankWorkspaceScope';
+import { createBankWorkspaceReader, emptyBankWorkspace } from '@/features/bankWorkspaceScope/model.mjs';
 
 function formatCurrency(a) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(a || 0); }
 
@@ -26,9 +28,19 @@ const MATCHED_LABELS = {
 };
 
 export default function BankTransactions() {
-  const { activeCompany } = useCompany();
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { activeCompany, loading } = useCompany();
+  return <BankWorkspaceScope company={activeCompany} loading={loading} Workspace={CompanyBankTransactions} />;
+}
+
+export function CompanyBankTransactions({ company: activeCompany }) {
+  const [read, setRead] = useState(() => emptyBankWorkspace(activeCompany.id));
+  const [reader] = useState(() => createBankWorkspaceReader({
+    companyId: activeCompany.id,
+    loadTransactions: companyId => nativeEntities.BankTransaction.filter({ company_id: companyId }, '-date', 200),
+    loadSuggestions: companyId => invokeApiFunction('suggestTransactionMatches', { company_id: companyId }),
+    publish: setRead,
+  }));
+  const { transactions, suggestions, loading } = read;
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('review');
   const [formOpen, setFormOpen] = useState(false);
@@ -39,34 +51,18 @@ export default function BankTransactions() {
   const [reconcileOpen, setReconcileOpen] = useState(false);
   const [reconcileTarget, setReconcileTarget] = useState(null);
   const [importOpen, setImportOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState({});
   const [approvingId, setApprovingId] = useState(null);
   const { toast } = useToast();
 
-  useEffect(() => { if (activeCompany) { loadTransactions(); loadSuggestions(); } }, [activeCompany]);
-
-  const loadSuggestions = async () => {
-    try {
-      const result = await invokeApiFunction('suggestTransactionMatches', { company_id: activeCompany.id });
-      // The compatibility client returns the route body directly, while the
-      // older clients wrapped it in `data`.
-      setSuggestions(result?.data?.suggestions ?? result?.suggestions ?? {});
-    } catch (e) { console.error(e); }
-  };
-
-  const loadTransactions = async () => {
-    setLoading(true);
-    try {
-      const list = await nativeEntities.BankTransaction.filter({ company_id: activeCompany.id }, '-date', 200);
-      setTransactions(list);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  };
+  useEffect(() => { reader.start(); return () => reader.stop(); }, [reader]);
+  const loadTransactions = () => reader.refresh();
 
   const openCreate = () => { setEditing(null); setFormOpen(true); };
   const openEdit = (t) => { setEditing(t); setFormOpen(true); };
 
   const handleSave = async (data) => {
+    const ticket = reader.actionTicket();
+    if (!reader.current(ticket)) return;
     setSaving(true);
     try {
       const payload = { ...data, company_id: activeCompany.id };
@@ -75,27 +71,36 @@ export default function BankTransactions() {
         await invokeApiFunction('updateBankTransactionClassification', {
           bank_transaction_id: editing.id, date, description, reference, transaction_type, category, vat_rate, notes,
         });
+        if (!reader.current(ticket)) return;
         toast({ title: 'Transaction updated' });
       } else {
         await invokeApiFunction('recordBankTransaction', payload);
+        if (!reader.current(ticket)) return;
         toast({ title: 'Transaction recorded' });
       }
       await loadTransactions();
-      setFormOpen(false);
-    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
-    finally { setSaving(false); }
+      if (reader.current(ticket)) setFormOpen(false);
+    } catch (e) { if (reader.current(ticket)) toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
+    finally { if (reader.current(ticket)) setSaving(false); }
   };
 
   const handleDelete = async (t) => {
+    const ticket = reader.actionTicket();
+    if (!reader.current(ticket)) return;
     if (!confirm('Delete this transaction?')) return;
-    try { await nativeEntities.BankTransaction.delete(t.id); toast({ title: 'Deleted' }); await loadTransactions(); }
-    catch (e) { toast({ title: 'Error', variant: 'destructive' }); }
+    try {
+      await nativeEntities.BankTransaction.delete(t.id);
+      if (!reader.current(ticket)) return;
+      toast({ title: 'Deleted' }); await loadTransactions();
+    } catch (e) { if (reader.current(ticket)) toast({ title: 'Error', variant: 'destructive' }); }
   };
 
   const openMatch = (t) => { setMatchTarget(t); setMatchOpen(true); };
   const openReconcile = (t) => { setReconcileTarget(t); setReconcileOpen(true); };
 
   const approveSuggestion = async (transaction, suggestion) => {
+    const ticket = reader.actionTicket();
+    if (!reader.current(ticket)) return;
     setApprovingId(transaction.id);
     try {
       const isPaymentMatch = suggestion.record_type === 'sales_invoice' || suggestion.record_type === 'purchase_bill';
@@ -114,11 +119,11 @@ export default function BankTransactions() {
           record_number: suggestion.record_number || undefined,
         });
       }
+      if (!reader.current(ticket)) return;
       toast({ title: 'Transaction matched' });
       await loadTransactions();
-      await loadSuggestions();
-    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
-    finally { setApprovingId(null); }
+    } catch (e) { if (reader.current(ticket)) toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
+    finally { if (reader.current(ticket)) setApprovingId(null); }
   };
 
   const reviewCount = transactions.filter(t => t.status === 'review').length;
@@ -136,8 +141,6 @@ export default function BankTransactions() {
   const totalIn = filtered.reduce((s, t) => s + Number(t.money_in || 0), 0);
   const totalOut = filtered.reduce((s, t) => s + Number(t.money_out || 0), 0);
 
-  if (!activeCompany) return <p className="text-muted-foreground text-center py-12">Please select a company first.</p>;
-
   const tabs = [
     { value: 'review', label: 'Review', count: reviewCount },
     { value: 'matched', label: 'Matched', count: matchedCount },
@@ -149,6 +152,7 @@ export default function BankTransactions() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Bank Transactions</h1>
+          <p className="text-sm font-medium">{activeCompany.name}</p>
           <p className="text-muted-foreground text-sm mt-1">
             Money In: <span className="text-emerald-600 font-medium">{formatCurrency(totalIn)}</span> ·
             Money Out: <span className="text-red-600 font-medium">{formatCurrency(totalOut)}</span>
@@ -174,9 +178,11 @@ export default function BankTransactions() {
         ))}
       </div>
 
+      <BankReadStatus {...read} onRetry={loadTransactions} onRetrySuggestions={() => reader.refreshSuggestions()} />
+
       {loading ? (
         <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
-      ) : filtered.length === 0 ? (
+      ) : read.error ? null : filtered.length === 0 ? (
         <Card className="border-0 shadow-sm">
           <CardContent className="flex flex-col items-center py-16">
             <Landmark className="w-12 h-12 text-muted-foreground/30 mb-4" />

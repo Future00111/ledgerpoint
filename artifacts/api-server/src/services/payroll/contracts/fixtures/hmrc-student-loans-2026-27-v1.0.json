@@ -1,0 +1,1842 @@
+{
+  "version": 1,
+  "taxYear": "2026-27",
+  "status": "reference_fixtures_only_not_engine_qualification",
+  "source": {
+    "publisher": "HM Revenue & Customs",
+    "version": "1.0",
+    "page": "https://www.gov.uk/government/publications/software-developers-payroll-test-data-2026-to-2027",
+    "url": "https://assets.publishing.service.gov.uk/media/6968fd1f5fd54abe6531a807/2026-27-Student-Loan-Threshold-Examples-v1-0__1_.ods",
+    "sha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+    "retrievedAt": "2026-10-31",
+    "licence": "Open Government Licence v3.0; contains public sector information licensed under the OGL v3.0",
+    "licenceUrl": "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+  },
+  "limitations": [
+    "Reference examples do not prove a LedgerPoint calculation engine.",
+    "This corpus alone does not cover eligibility, loan notices, concurrent plans, corrections or all earnings periods.",
+    "Other tax years must use their own pinned official examples; no carry-forward is permitted."
+  ],
+  "cases": [
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-11",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 11,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "payMinor": "52841"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-12",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 12,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "payMinor": "52842"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-13",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 13,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "payMinor": "52852"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-14",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 14,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "payMinor": "66175"
+      },
+      "expected": {
+        "deductionMinor": "1300"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-15",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 15,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "payMinor": "178397"
+      },
+      "expected": {
+        "deductionMinor": "11400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-16",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 16,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "payMinor": "210629"
+      },
+      "expected": {
+        "deductionMinor": "14300"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-17",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 17,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "fortnightly",
+        "payMinor": "104572"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-18",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 18,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "fortnightly",
+        "payMinor": "104573"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-19",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 19,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "fortnightly",
+        "payMinor": "104583"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-20",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 20,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "fortnightly",
+        "payMinor": "110128"
+      },
+      "expected": {
+        "deductionMinor": "600"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-21",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 21,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "fortnightly",
+        "payMinor": "114573"
+      },
+      "expected": {
+        "deductionMinor": "1000"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-22",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 22,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "fortnightly",
+        "payMinor": "367906"
+      },
+      "expected": {
+        "deductionMinor": "23800"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-23",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 23,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "fortnightly",
+        "payMinor": "522350"
+      },
+      "expected": {
+        "deductionMinor": "37700"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-24",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 24,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "four_weekly",
+        "payMinor": "208034"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-25",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 25,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "four_weekly",
+        "payMinor": "208035"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-26",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 26,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "four_weekly",
+        "payMinor": "208045"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-27",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 27,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "four_weekly",
+        "payMinor": "215812"
+      },
+      "expected": {
+        "deductionMinor": "800"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-28",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 28,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "four_weekly",
+        "payMinor": "403590"
+      },
+      "expected": {
+        "deductionMinor": "17700"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-29",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 29,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "four_weekly",
+        "payMinor": "844701"
+      },
+      "expected": {
+        "deductionMinor": "57400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-30",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 30,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "monthly",
+        "payMinor": "225277"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-31",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 31,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "monthly",
+        "payMinor": "225278"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-32",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 32,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "monthly",
+        "payMinor": "225288"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-33",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 33,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "monthly",
+        "payMinor": "228611"
+      },
+      "expected": {
+        "deductionMinor": "400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-34",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 34,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "monthly",
+        "payMinor": "274177"
+      },
+      "expected": {
+        "deductionMinor": "4500"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-35",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 35,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "monthly",
+        "payMinor": "493055"
+      },
+      "expected": {
+        "deductionMinor": "24200"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_1-row-36",
+      "sourceSheet": "Plan_1",
+      "sourceRow": 36,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "monthly",
+        "payMinor": "858611"
+      },
+      "expected": {
+        "deductionMinor": "57100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-11",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 11,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "weekly",
+        "payMinor": "57620"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-12",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 12,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "weekly",
+        "payMinor": "57621"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-13",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 13,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "weekly",
+        "payMinor": "57631"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-14",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 14,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "weekly",
+        "payMinor": "70954"
+      },
+      "expected": {
+        "deductionMinor": "1300"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-15",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 15,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "weekly",
+        "payMinor": "183176"
+      },
+      "expected": {
+        "deductionMinor": "11400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-16",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 16,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "weekly",
+        "payMinor": "215408"
+      },
+      "expected": {
+        "deductionMinor": "14300"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-17",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 17,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "fortnightly",
+        "payMinor": "114130"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-18",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 18,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "fortnightly",
+        "payMinor": "114131"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-19",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 19,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "fortnightly",
+        "payMinor": "114141"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-20",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 20,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "fortnightly",
+        "payMinor": "119686"
+      },
+      "expected": {
+        "deductionMinor": "600"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-21",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 21,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "fortnightly",
+        "payMinor": "124131"
+      },
+      "expected": {
+        "deductionMinor": "1000"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-22",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 22,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "fortnightly",
+        "payMinor": "377464"
+      },
+      "expected": {
+        "deductionMinor": "23800"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-23",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 23,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "fortnightly",
+        "payMinor": "531908"
+      },
+      "expected": {
+        "deductionMinor": "37700"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-24",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 24,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "four_weekly",
+        "payMinor": "227149"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-25",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 25,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "four_weekly",
+        "payMinor": "227150"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-26",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 26,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "four_weekly",
+        "payMinor": "227160"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-27",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 27,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "four_weekly",
+        "payMinor": "234927"
+      },
+      "expected": {
+        "deductionMinor": "800"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-28",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 28,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "four_weekly",
+        "payMinor": "422705"
+      },
+      "expected": {
+        "deductionMinor": "17700"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-29",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 29,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "four_weekly",
+        "payMinor": "863816"
+      },
+      "expected": {
+        "deductionMinor": "57400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-30",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 30,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "monthly",
+        "payMinor": "245986"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-31",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 31,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "monthly",
+        "payMinor": "245987"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-32",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 32,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "monthly",
+        "payMinor": "245997"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-33",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 33,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "monthly",
+        "payMinor": "249320"
+      },
+      "expected": {
+        "deductionMinor": "400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-34",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 34,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "monthly",
+        "payMinor": "294886"
+      },
+      "expected": {
+        "deductionMinor": "4500"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-35",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 35,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "monthly",
+        "payMinor": "513764"
+      },
+      "expected": {
+        "deductionMinor": "24200"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_2-row-36",
+      "sourceSheet": "Plan_2",
+      "sourceRow": 36,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_2",
+        "frequency": "monthly",
+        "payMinor": "879320"
+      },
+      "expected": {
+        "deductionMinor": "57100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-11",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 11,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "weekly",
+        "payMinor": "42050"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-12",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 12,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "weekly",
+        "payMinor": "42051"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-13",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 13,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "weekly",
+        "payMinor": "42067"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-14",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 14,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "weekly",
+        "payMinor": "62051"
+      },
+      "expected": {
+        "deductionMinor": "1300"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-15",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 15,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "weekly",
+        "payMinor": "230385"
+      },
+      "expected": {
+        "deductionMinor": "11400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-16",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 16,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "weekly",
+        "payMinor": "278733"
+      },
+      "expected": {
+        "deductionMinor": "14300"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-17",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 17,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "fortnightly",
+        "payMinor": "82435"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-18",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 18,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "fortnightly",
+        "payMinor": "82436"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-19",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 19,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "fortnightly",
+        "payMinor": "82452"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-20",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 20,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "fortnightly",
+        "payMinor": "90770"
+      },
+      "expected": {
+        "deductionMinor": "600"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-21",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 21,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "fortnightly",
+        "payMinor": "97436"
+      },
+      "expected": {
+        "deductionMinor": "1000"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-22",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 22,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "fortnightly",
+        "payMinor": "477436"
+      },
+      "expected": {
+        "deductionMinor": "23800"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-23",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 23,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "fortnightly",
+        "payMinor": "709103"
+      },
+      "expected": {
+        "deductionMinor": "37700"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-24",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 24,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "four_weekly",
+        "payMinor": "163204"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-25",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 25,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "four_weekly",
+        "payMinor": "163205"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-26",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 26,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "four_weekly",
+        "payMinor": "163221"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-27",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 27,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "four_weekly",
+        "payMinor": "174872"
+      },
+      "expected": {
+        "deductionMinor": "800"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-28",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 28,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "four_weekly",
+        "payMinor": "456539"
+      },
+      "expected": {
+        "deductionMinor": "17700"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-29",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 29,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "four_weekly",
+        "payMinor": "1118205"
+      },
+      "expected": {
+        "deductionMinor": "57400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-30",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 30,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "monthly",
+        "payMinor": "176666"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-31",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 31,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "monthly",
+        "payMinor": "176667"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-32",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 32,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "monthly",
+        "payMinor": "176683"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-33",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 33,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "monthly",
+        "payMinor": "181667"
+      },
+      "expected": {
+        "deductionMinor": "400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-34",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 34,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "monthly",
+        "payMinor": "250016"
+      },
+      "expected": {
+        "deductionMinor": "4500"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-35",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 35,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "monthly",
+        "payMinor": "578334"
+      },
+      "expected": {
+        "deductionMinor": "24200"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-postgraduate-row-36",
+      "sourceSheet": "Postgraduate",
+      "sourceRow": 36,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "postgraduate",
+        "frequency": "monthly",
+        "payMinor": "1126667"
+      },
+      "expected": {
+        "deductionMinor": "57100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-11",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 11,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "weekly",
+        "payMinor": "66101"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-12",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 12,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "weekly",
+        "payMinor": "66102"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-13",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 13,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "weekly",
+        "payMinor": "66112"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-14",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 14,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "weekly",
+        "payMinor": "79435"
+      },
+      "expected": {
+        "deductionMinor": "1300"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-15",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 15,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "weekly",
+        "payMinor": "191657"
+      },
+      "expected": {
+        "deductionMinor": "11400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-16",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 16,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "weekly",
+        "payMinor": "223889"
+      },
+      "expected": {
+        "deductionMinor": "14300"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-17",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 17,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "fortnightly",
+        "payMinor": "131091"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-18",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 18,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "fortnightly",
+        "payMinor": "131092"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-19",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 19,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "fortnightly",
+        "payMinor": "131102"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-20",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 20,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "fortnightly",
+        "payMinor": "136647"
+      },
+      "expected": {
+        "deductionMinor": "600"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-21",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 21,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "fortnightly",
+        "payMinor": "141092"
+      },
+      "expected": {
+        "deductionMinor": "1000"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-22",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 22,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "fortnightly",
+        "payMinor": "394425"
+      },
+      "expected": {
+        "deductionMinor": "23800"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-23",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 23,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "fortnightly",
+        "payMinor": "548869"
+      },
+      "expected": {
+        "deductionMinor": "37700"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-24",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 24,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "four_weekly",
+        "payMinor": "261072"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-25",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 25,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "four_weekly",
+        "payMinor": "261073"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-26",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 26,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "four_weekly",
+        "payMinor": "261083"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-27",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 27,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "four_weekly",
+        "payMinor": "268850"
+      },
+      "expected": {
+        "deductionMinor": "800"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-28",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 28,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "four_weekly",
+        "payMinor": "456628"
+      },
+      "expected": {
+        "deductionMinor": "17700"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-29",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 29,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "four_weekly",
+        "payMinor": "897739"
+      },
+      "expected": {
+        "deductionMinor": "57400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-30",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 30,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "monthly",
+        "payMinor": "282736"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-31",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 31,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "monthly",
+        "payMinor": "282737"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-32",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 32,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "monthly",
+        "payMinor": "282747"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-33",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 33,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "monthly",
+        "payMinor": "286070"
+      },
+      "expected": {
+        "deductionMinor": "400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-34",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 34,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "monthly",
+        "payMinor": "331636"
+      },
+      "expected": {
+        "deductionMinor": "4500"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-35",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 35,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "monthly",
+        "payMinor": "550514"
+      },
+      "expected": {
+        "deductionMinor": "24200"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_4-row-36",
+      "sourceSheet": "Plan_4",
+      "sourceRow": 36,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_4",
+        "frequency": "monthly",
+        "payMinor": "916070"
+      },
+      "expected": {
+        "deductionMinor": "57100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-11",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 11,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "weekly",
+        "payMinor": "49187"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-12",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 12,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "weekly",
+        "payMinor": "49188"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-13",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 13,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "weekly",
+        "payMinor": "49198"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-14",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 14,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "weekly",
+        "payMinor": "62521"
+      },
+      "expected": {
+        "deductionMinor": "1300"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-15",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 15,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "weekly",
+        "payMinor": "174743"
+      },
+      "expected": {
+        "deductionMinor": "11400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-16",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 16,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "weekly",
+        "payMinor": "206975"
+      },
+      "expected": {
+        "deductionMinor": "14300"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-17",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 17,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "fortnightly",
+        "payMinor": "97264"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-18",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 18,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "fortnightly",
+        "payMinor": "97265"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-19",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 19,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "fortnightly",
+        "payMinor": "97275"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-20",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 20,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "fortnightly",
+        "payMinor": "102820"
+      },
+      "expected": {
+        "deductionMinor": "600"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-21",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 21,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "fortnightly",
+        "payMinor": "107265"
+      },
+      "expected": {
+        "deductionMinor": "1000"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-22",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 22,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "fortnightly",
+        "payMinor": "360598"
+      },
+      "expected": {
+        "deductionMinor": "23800"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-23",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 23,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "fortnightly",
+        "payMinor": "515042"
+      },
+      "expected": {
+        "deductionMinor": "37700"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-24",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 24,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "four_weekly",
+        "payMinor": "193418"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-25",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 25,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "four_weekly",
+        "payMinor": "193419"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-26",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 26,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "four_weekly",
+        "payMinor": "193429"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-27",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 27,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "four_weekly",
+        "payMinor": "201196"
+      },
+      "expected": {
+        "deductionMinor": "800"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-28",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 28,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "four_weekly",
+        "payMinor": "388974"
+      },
+      "expected": {
+        "deductionMinor": "17700"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-29",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 29,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "four_weekly",
+        "payMinor": "830085"
+      },
+      "expected": {
+        "deductionMinor": "57400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-30",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 30,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "monthly",
+        "payMinor": "209444"
+      },
+      "expected": {
+        "deductionMinor": "0"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-31",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 31,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "monthly",
+        "payMinor": "209445"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-32",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 32,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "monthly",
+        "payMinor": "209455"
+      },
+      "expected": {
+        "deductionMinor": "100"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-33",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 33,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "monthly",
+        "payMinor": "212778"
+      },
+      "expected": {
+        "deductionMinor": "400"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-34",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 34,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "monthly",
+        "payMinor": "258344"
+      },
+      "expected": {
+        "deductionMinor": "4500"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-35",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 35,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "monthly",
+        "payMinor": "477222"
+      },
+      "expected": {
+        "deductionMinor": "24200"
+      }
+    },
+    {
+      "id": "hmrc-loan-2026-27-plan_5-row-36",
+      "sourceSheet": "Plan_5",
+      "sourceRow": 36,
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_5",
+        "frequency": "monthly",
+        "payMinor": "842778"
+      },
+      "expected": {
+        "deductionMinor": "57100"
+      }
+    }
+  ]
+}

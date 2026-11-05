@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "status": "unqualified",
+  "recovery_point_target_seconds": null,
+  "recovery_time_target_seconds": null,
+  "target_status": "Operational targets remain unset pending measured full-size recovery and agreed operating requirements. Local archive round-trip duration is not an RTO or an RPO.",
+  "backup_operator": null,
+  "restore_operator": null,
+  "encryption_key_custodian": null,
+  "offsite_destination": null,
+  "retention_days": null,
+  "key_rotation_and_recovery": null,
+  "implemented_partial": {
+    "command": "tools/operations/backup-restore/archive.mjs",
+    "scope": "Explicit synthetic file encryption/decryption, at most 64 MiB plaintext; no database or network access",
+    "encryption": "AES-256-GCM, fresh random 96-bit nonce, 128-bit authentication tag, authenticated version header, separate 256-bit key",
+    "restore_guards": "Authenticate before creating output; create-only 0600 destination; refuse existing files, final-component symlinks and identical input/output/key paths",
+    "verified": "Exact synthetic role/job/audit/attachment bundle bytes survive the wrapper; tamper, wrong-key, truncation and overwrite checks fail safely",
+    "separate_cluster_rehearsal": "tools/operations/backup-restore/rehearsal.mjs: representative synthetic role/grants, attachment, pending job and audit; encrypted pg_dump round-trip into separate fresh cluster. Compares rows, schema controls, ownership, grants, role memberships and row-security policies/flags, column definitions/defaults and sequence configuration/consumed identifier state; restored reader sees only its synthetic tenant attachment; missing-FK, unexpected-membership, audit-delete-grant, missing-policy, disabled-RLS and unforced-RLS and column/default/type/identity-rewind/increment negative controls must detect corruption and roll back. Exact-source PostgreSQL CI is required."
+  },
+  "existing_database_rehearsal": "tools/accounting-flow/restore-drill.mjs verifies plaintext pg_dump restore within the disposable test cluster, including accounting/source content fingerprints and existing runtime role restrictions. It does not prove encrypted offsite recovery or reconstruct cluster roles in a new cluster.",
+  "remaining": [
+    "Extend encrypted fresh-cluster recovery from representative fixtures to the complete populated application schema and original source evidence.",
+    "Prove complete application runtime roles, grants, original attachments, durable jobs and audit reconstruction; representative synthetic tables alone do not qualify these flows.",
+    "Measure representative end-to-end recovery duration and point-in-time data loss before setting operational targets.",
+    "Assign backup/restore/key ownership and define key rotation, emergency recovery, retention and deletion evidence.",
+    "Provision off-site destination/access only through the P03-80 owner gate; no provider is connected by this utility."
+  ]
+}

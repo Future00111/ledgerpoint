@@ -1,0 +1,93 @@
+{
+  "version": 2,
+  "authority": "disposable-rehearsal-only",
+  "purpose": "Pins reviewed migration and canonical security overlay input bytes for the disposable installer; not installed schema history, production authorization or full compatibility evidence.",
+  "migrations": [
+    {
+      "id": "accounting-documents",
+      "path": "lib/db/migrations/accounting-documents.review.sql",
+      "contractVersion": 1,
+      "dependencies": [],
+      "sha256": "ff7035a91ca4b998eae04aa7379ecf8b78baa6416ba22de76ebf804aa847d6bc"
+    },
+    {
+      "id": "accounting-chart",
+      "path": "lib/db/migrations/accounting-chart.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-documents"
+      ],
+      "sha256": "105fc4409a5c5f0be80441f659a4f5a1f7bbe23d3111c30da745f8a41aee3b28"
+    },
+    {
+      "id": "accounting-payments",
+      "path": "lib/db/migrations/accounting-payments.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-chart"
+      ],
+      "sha256": "a4ed77c19d5e663a2231d038e22bab18647b18c3f8095724be7de99cd18c47de"
+    },
+    {
+      "id": "credit-tracking",
+      "path": "lib/db/migrations/credit-tracking.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-payments"
+      ],
+      "sha256": "3ee0dcfc473483145052df47d78c07e0ad8a0742959a626d5ef7d394f0e1dd47"
+    },
+    {
+      "id": "document-intake",
+      "path": "lib/db/migrations/document-intake.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "credit-tracking"
+      ],
+      "sha256": "94b25447f0ea167effefd9a0f7c83f6b6bed16e73dfa4576c637ac0d8e864c92"
+    },
+    {
+      "id": "paid-credit-operations",
+      "path": "lib/db/migrations/paid-credit-operations.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "document-intake"
+      ],
+      "sha256": "abb192d7a144403e5073909b2423dbd3701ce2b6d202fe741a8d7e066fe4db2a"
+    },
+    {
+      "id": "accounting-document-amendments",
+      "path": "lib/db/migrations/accounting-document-amendments.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "paid-credit-operations"
+      ],
+      "sha256": "fbec16a4ba8c5d1dbdd631a492680cfe836546ac5b189dd00ec98c183323f600"
+    },
+    {
+      "id": "w03-invoice-drafts",
+      "path": "lib/db/migrations/w03-invoice-drafts.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-documents"
+      ],
+      "sha256": "cd62e959adffa726b22ffe9dacd16bb90d256f5a1573358edd769dbd88ccb06a"
+    },
+    {
+      "id": "conditional-discount-agreements",
+      "path": "lib/db/migrations/conditional-discount-agreements.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-payments",
+        "paid-credit-operations"
+      ],
+      "sha256": "0023c3e11a2ee056aedd67b695e980a1b6cd3202bdd692a42b3f7cb5488906fb"
+    }
+  ],
+  "securityOverlay": {
+    "id": "canonical-security-overlay",
+    "path": "scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql",
+    "contractVersion": 1,
+    "sha256": "779d76aa3ab065d5bb1f5a08c9ea807cf4bc3166d0fdc1b59c21c81140404081"
+  }
+}
