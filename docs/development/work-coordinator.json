@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 263,
+  "revision": 264,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261105-1536",
+    "tokenSha256": "e75b23a42bc3e5762d19b08df051ee837fa85e2230b4fc4c75fdf7aa2b788d4b",
+    "acquiredAt": 1793893049069,
+    "expiresAt": 1793894849069
+  },
   "lastOwner": {
     "runId": "hosted-20261105-1444",
     "tokenSha256": "368a573fd7164283328a4f1d27571573821a4909ecc89d741b0cc34f897f1bed",
@@ -9330,7 +9335,7 @@
     "at": 1793890947869,
     "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc"
   },
-  "updatedAt": 1793890947899,
+  "updatedAt": 1793893049069,
   "recovery": {
     "priorRunId": "hosted-20261105-1408",
     "stoppedEvidence": {
@@ -10725,20 +10730,8 @@
     "evidenceCommit": "51c6404ecaa82e76b1121d46713917d4ac4fbf47"
   },
   "runActivity": {
-    "startedAt": "2026-11-05T14:44:00Z",
-    "lastObservedAt": "2026-11-05T15:02:27.919Z",
-    "activity": "Exact readonly preview published and native CI qualified; all worktrees clean, no active commands or workers, queue686 P01-03 pending. Early clean shutdown.",
-    "workersStopped": true,
-    "sourcePublished": true,
-    "sourceCommit": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
-    "allSevenArchiveHashesVerified": true,
-    "exactReconstructedTree": "a4d25087c8a25d46bcf6ca22d6853d46aae61e12",
-    "rootIndependentReview": true,
-    "credits": "unknown",
-    "ciRun": 42049132286,
-    "job": 127320152088,
-    "remainingParentAcceptance": true,
-    "endedAt": "2026-11-05T15:02:27.920Z",
-    "evidenceCommit": "2e8b567b793b3ec8e4218b12844dbe4476c93474"
+    "startedAt": "2026-11-05T15:37:29.143Z",
+    "activity": "Restored source6ebee; resolving reviewed narrow canonical reversal transaction ownership prerequisite; no workers or product edits yet",
+    "workersStopped": true
   }
 }
