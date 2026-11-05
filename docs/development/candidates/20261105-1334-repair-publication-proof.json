@@ -1,0 +1,44 @@
+{
+  "at": "2026-11-05T13:48:07.799Z",
+  "preflight": {
+    "version": 1,
+    "destination_kind": "integration",
+    "pullRequest": 27,
+    "authorityCommit": "72634e8eb6b6b4ca70ca347c7cdb20faf7163e1c",
+    "authorityRevision": 248,
+    "coordinatorRunId": "hosted-20261105-1334-approved-publication",
+    "observedAt": 1793886387712,
+    "candidateTree": "3e712f71f6dfbebce5b846a8ef90e30de0c74b89",
+    "reviewedBy": "/root",
+    "authorOrigin": {
+      "actor": "validation-fixture",
+      "commit": "eb5886e01dda8f5623ef24d0d2bff4b9f37d511c",
+      "branch": "detached/ci-fixture-fix"
+    },
+    "updateRef": {
+      "repository_full_name": "Future00111/ledgerpoint",
+      "branch_name": "codex/whole-product-first-sprint",
+      "expected_sha": "2ce3b050135b0852f60474190c11e4c00c63263e",
+      "sha": "1ede9a1f65be8bdd6918bfb1fe48efcd4e63ba1e",
+      "force": false
+    },
+    "approvalGranted": false,
+    "sourcePublished": false
+  },
+  "result": {
+    "success": true
+  },
+  "sourcePublished": true,
+  "publishedCommit": "1ede9a1f65be8bdd6918bfb1fe48efcd4e63ba1e",
+  "tree": "3e712f71f6dfbebce5b846a8ef90e30de0c74b89",
+  "archiveCommit": "72634e8eb6b6b4ca70ca347c7cdb20faf7163e1c",
+  "review": {
+    "reviewer": "/root",
+    "commit": "eb5886e01dda8f5623ef24d0d2bff4b9f37d511c",
+    "tree": "3e712f71f6dfbebce5b846a8ef90e30de0c74b89",
+    "result": "approved exact4files and complete local checks; publication approved as necessary validation repair"
+  },
+  "ciRun": 42038811617,
+  "parentAccepted": false,
+  "publicConditionalPostingEnabled": false
+}
