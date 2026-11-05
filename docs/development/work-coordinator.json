@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 246,
+  "revision": 247,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261105-1334-approved-publication",
+    "tokenSha256": "5575af59fb019c5f490906673a294879b82d45ef16dcbcd4183401517ad9a9f1",
+    "acquiredAt": 1793885734845,
+    "expiresAt": 1793887534845
+  },
   "lastOwner": {
     "runId": "hosted-20261105-1314-validation",
     "tokenSha256": "626a575d5a23ed255d4fdefc5d5590fa6098636257656fd0a9ca355e5621d003",
@@ -8892,7 +8897,7 @@
     "at": 1793885475137,
     "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
   },
-  "updatedAt": 1793885475180,
+  "updatedAt": 1793885734845,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9227,38 +9232,24 @@
   },
   "activeWorkers": [],
   "run": {
-    "startedAt": "2026-11-05T13:16:58.908Z",
-    "stopBy": "2026-11-05T13:42:00Z",
-    "status": "stopped-clean-reviewed-validation-fix-archived",
-    "activity": "Exact maintenance c5935c5/tree db733d2 reviewed by root; source833/queue95/registry29 and pinned fullbuild passed; fresh preflight proven on existing2ce remote parentde140/treebd95. Sourcepublication remains blocked/pending explicit action approval; no retry. Fresh financial381 restore verified. All owned processes stopped and worktrees clean; continuation remains paused.",
+    "startedAt": "2026-11-05T13:35:34.885Z",
+    "stopBy": "2026-11-05T14:02:00Z",
+    "status": "active-approved-publication",
+    "activity": "User explicitly approved one fresh non-force integration update of preserved2ce3 expectingde140, followed exact PR27CI. Acquire and freshpreflight before same GitHub update_ref; no alternate transport, no new features or helper publication.",
     "credits": "unknown",
     "activeWorkers": [],
-    "maintenanceLease": {
-      "owner": "/root/validation_stability",
-      "reviewer": "/root",
-      "files": [
-        "tools/development/work-queue/publication.mjs",
-        "tools/development/work-queue/publication.test.mjs",
-        "tools/development/work-queue/README.md"
-      ],
-      "purpose": "Existing integration publication identity preflight and reproducible candidate validation instructions",
-      "backlogAcceptanceUnchanged": true,
-      "releasedAt": "2026-11-05T13:31:15.179Z",
-      "status": "released-clean"
+    "approvedAction": {
+      "userReply": "Yes I approvew",
+      "approvedAt": "2026-11-05T13:34:00Z",
+      "repository": "Future00111/ledgerpoint",
+      "branch": "codex/whole-product-first-sprint",
+      "expectedSha": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+      "sha": "2ce3b050135b0852f60474190c11e4c00c63263e",
+      "force": false,
+      "followup": "Existing PR27 development CI; no merge or deployment",
+      "priorRejectionAcknowledged": true
     },
-    "archiveCommit": "9e31e965e3a251d72022cc4bcd353fae38453ca6",
-    "primaryCandidate": "c5935c548cf8c1caf66f7194fcb85665e99e1942",
-    "primaryCandidateTree": "db733d26289b114714afedbf914d6fb3bb85d3a4",
-    "independentReview": {
-      "reviewer": "/root",
-      "commit": "c5935c548cf8c1caf66f7194fcb85665e99e1942",
-      "tree": "db733d26289b114714afedbf914d6fb3bb85d3a4",
-      "result": "approved maintenance scope only",
-      "sourcePublicationAuthorized": false
-    },
-    "endedAt": "2026-11-05T13:31:15.179Z",
-    "newlyAcceptedOriginalBullets": [],
-    "newCompleteJourneys": []
+    "reviewer": "/root"
   },
   "continuation": {
     "id": "6ae5226d4a2081919e793919d9cafa1b",
