@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 252,
+  "revision": 253,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261105-1408",
+    "tokenSha256": "c99a4cb57337c9ae5ef7b887c1869067617d5664c8590ee464ff629cffe4324b",
+    "acquiredAt": 1793887772937,
+    "expiresAt": 1793889572937
+  },
   "lastOwner": {
     "runId": "hosted-20261105-1334-approved-publication",
     "tokenSha256": "5575af59fb019c5f490906673a294879b82d45ef16dcbcd4183401517ad9a9f1",
@@ -9096,7 +9101,7 @@
     "at": 1793887212335,
     "codeHead": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec"
   },
-  "updatedAt": 1793887212368,
+  "updatedAt": 1793887772937,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9463,65 +9468,17 @@
   },
   "activeWorkers": [],
   "run": {
-    "startedAt": "2026-11-05T13:35:34.885Z",
-    "stopBy": "2026-11-05T14:02:00Z",
-    "status": "stopped-clean-exact-ci-qualified",
-    "activity": "Explicitly approved exactpublication succeeded. Fixed two demonstrated testfixture expectations only, integrated reviewed publication preflight. Finalpublished5c60/tree1b54 independently reviewed CI42039946136/job127287819709 passed1100/0/0 including nativePG/populatedrestore/encryptedrecovery/cleanup; published→CIcheckout files[]. Allworkers/commands stoppedclean. P01-03 pending fullparent; continuation actualresume confirmed byroot unchangedprompt/cadence.",
+    "startedAt": "2026-11-05T14:09:32.959Z",
+    "stopBy": "2026-11-05T14:36:00Z",
+    "implementationStopBy": "2026-11-05T14:25:00Z",
+    "status": "active",
+    "activity": "Continue next highesteligible P01-03 connected workflow from qualified5c60; inspect safe read-only UI/admission versus remaining compensation/correction prerequisites; no redo redemption/preflight. Replit exactresolver foundfalse, no providerdispatch.",
     "credits": "unknown",
     "activeWorkers": [],
-    "approvedAction": {
-      "userReply": "Yes I approvew",
-      "approvedAt": "2026-11-05T13:34:00Z",
-      "repository": "Future00111/ledgerpoint",
-      "branch": "codex/whole-product-first-sprint",
-      "expectedSha": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
-      "sha": "2ce3b050135b0852f60474190c11e4c00c63263e",
-      "force": false,
-      "followup": "Existing PR27 development CI; no merge or deployment",
-      "priorRejectionAcknowledged": true
-    },
-    "reviewer": "/root",
-    "maintenanceLease": {
-      "owner": "coordinator",
-      "reviewer": "/root",
-      "files": [
-        "tools/development/work-queue/publication.mjs",
-        "tools/development/work-queue/publication.test.mjs",
-        "tools/development/work-queue/README.md"
-      ],
-      "sourceCommit": "c5935c548cf8c1caf66f7194fcb85665e99e1942",
-      "purpose": "Integrate already independently reviewed validation stability patch with narrow fixture fix",
-      "status": "released-clean",
-      "releasedAt": "2026-11-05T14:00:12.368Z"
-    },
-    "primaryCandidate": "e8dc4bb86eb0820fab0e09c6332281dc79bbf152",
-    "primaryCandidateTree": "1b54a35ce5224337bf0e611d79100f55ecfa3225",
-    "publishedCommit": "5c60b4729c5658e732b81fe496cdc8fd8ef219ec",
-    "ciRun": 42039946136,
-    "archiveCommit": "51c6404ecaa82e76b1121d46713917d4ac4fbf47",
-    "independentReview": {
-      "reviewer": "/root",
-      "commit": "eb5886e01dda8f5623ef24d0d2bff4b9f37d511c",
-      "tree": "3e712f71f6dfbebce5b846a8ef90e30de0c74b89",
-      "result": "approved exact4files and complete local checks; publication approved as necessary validation repair"
-    },
-    "secondFix": {
-      "commit": "e8dc4bb86eb0820fab0e09c6332281dc79bbf152",
-      "tree": "1b54a35ce5224337bf0e611d79100f55ecfa3225",
-      "reviewer": "/root"
-    },
-    "endedAt": "2026-11-05T14:00:12.368Z",
-    "newlyAcceptedOriginalBullets": [],
-    "newCompleteJourneys": [],
-    "resolvedBlockers": [
-      "Exact integration source publication after explicit owner approval",
-      "Non-root PostgreSQL qualification supplied by existing PR27 CI",
-      "Two testfixture assumptions corrected without runtime changes"
-    ],
-    "rework": [
-      "Postedsource corruption fixture hit immutable trigger before intended negativecontrol; corrected assert/rollback then separate restrictedtxn",
-      "Conditional correction failed earlier valid boundevidence guard than testexpected; exactcode plus nofinancialeffects verified"
-    ]
+    "replitCapability": {
+      "found": false,
+      "dispatch": false
+    }
   },
   "continuation": {
     "id": "6ae5226d4a2081919e793919d9cafa1b",
