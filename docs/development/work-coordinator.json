@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 247,
+  "revision": 248,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+  "codeHead": "2ce3b050135b0852f60474190c11e4c00c63263e",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 669,
+    "revision": 671,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Stopped clean author381ab815678ad20d9271a21729d2674ce9ae867d/integrator17e4051c5a850d568910ffbb4b36884ba22e7fdf same treebd95f5578824de7e0b13015af4dfd0273cb4c384 archivedf99c7a616e079903fa7d4641c15eac6959853f8a. Root exact reviewed10files. Focused59 registry29 source790 fullbuild/typecheck passed. Development publication CAS rejected by automaticreview misclassified authorized integrationbranch as prohibitedworkerbranch; livePR27/source stillde140. No retry/bypass. Next resolve publication approval and publish this existing reviewedcandidate then exactPG/restoreCI, not redo admission/redemption implementation. Fullparent UI/browser/compensation/priorcredits/corrections pending.",
+        "checkpoint": "Exact published2ce/treebd95: repair four test-only forgedsource fixtures by asserting posted source immutability then rollback/new restricted transaction forgedintent rejection. Root independently approved plan; only conditionalDiscount.integration.test.ts author edits. Coordinator separately integrates reviewed3file maintenancec593. No runtime changes; exact combined review/checks/PR27CI required.",
         "evidence": {
           "commit": "381ab815678ad20d9271a21729d2674ce9ae867d",
           "summary": "PARTIAL internal atomic conditional redemption uses native paidCredit posting/releases and immutable unique consumption in existing operation. Exact transaction-only private capability; public conditional paths remain closed. All native eligibility-loss unallocation/reversal guard consumed original/parents; ordinary credits remainclosed and correction childcreditguard retained. Bothparty threshold10800/12000release, duplicate and competing credits, eligibilityloss race, postconsumption rollback, surplusrefund, stale unallocation commit and forgedsource evidence cases added. ActualPG pending exactPR27CI; parent stillpending completeUI/browser, compensation/correction/priorcredit expansion. Worker stoppedclean.",
@@ -222,7 +222,10 @@
             }
           }
         },
-        "blockers": []
+        "owner": "validation-fixture",
+        "tokenSha256": "c0e4fe834d6b7169ff0f6eb1dcfb8ed79d1ba77777c8b4260ae54a3630dc7d80",
+        "leaseUntil": 1793887253089,
+        "workStarted": true
       },
       "P01-04": {
         "status": "blocked",
@@ -8868,6 +8871,20 @@
         "type": "recover",
         "taskId": "P01-03",
         "checkpoint": "Stopped clean author381ab815678ad20d9271a21729d2674ce9ae867d/integrator17e4051c5a850d568910ffbb4b36884ba22e7fdf same treebd95f5578824de7e0b13015af4dfd0273cb4c384 archivedf99c7a616e079903fa7d4641c15eac6959853f8a. Root exact reviewed10files. Focused59 registry29 source790 fullbuild/typecheck passed. Development publication CAS rejected by automaticreview misclassified authorized integrationbranch as prohibitedworkerbranch; livePR27/source stillde140. No retry/bypass. Next resolve publication approval and publish this existing reviewedcandidate then exactPG/restoreCI, not redo admission/redemption implementation. Fullparent UI/browser/compensation/priorcredits/corrections pending."
+      },
+      {
+        "at": 1793886053089,
+        "actor": "validation-fixture",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "c0e4fe834d6b7169ff0f6eb1dcfb8ed79d1ba77777c8b4260ae54a3630dc7d80"
+      },
+      {
+        "at": 1793886053141,
+        "actor": "validation-fixture",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Exact published2ce/treebd95: repair four test-only forgedsource fixtures by asserting posted source immutability then rollback/new restricted transaction forgedintent rejection. Root independently approved plan; only conditionalDiscount.integration.test.ts author edits. Coordinator separately integrates reviewed3file maintenancec593. No runtime changes; exact combined review/checks/PR27CI required."
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8885,19 +8902,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "9e31e965e3a251d72022cc4bcd353fae38453ca6",
+    "sha": "d4d3b7f0ae769948d41daf6901e0e38583f2c193",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "9e31e965e3a251d72022cc4bcd353fae38453ca6",
-        "path": "docs/development/candidates/20261105-1314-final-verification.json"
+        "sha": "d4d3b7f0ae769948d41daf6901e0e38583f2c193",
+        "path": "docs/development/candidates/20261105-1334-publication-proof.json"
       }
     ],
-    "runId": "hosted-20261105-1314-validation",
-    "at": 1793885475137,
-    "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
+    "runId": "hosted-20261105-1334-approved-publication",
+    "at": 1793886077242,
+    "codeHead": "2ce3b050135b0852f60474190c11e4c00c63263e"
   },
-  "updatedAt": 1793885734845,
+  "updatedAt": 1793886077242,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9235,9 +9252,18 @@
     "startedAt": "2026-11-05T13:35:34.885Z",
     "stopBy": "2026-11-05T14:02:00Z",
     "status": "active-approved-publication",
-    "activity": "User explicitly approved one fresh non-force integration update of preserved2ce3 expectingde140, followed exact PR27CI. Acquire and freshpreflight before same GitHub update_ref; no alternate transport, no new features or helper publication.",
+    "activity": "Published exact approved2ce; CI42037342334 source/build succeeded but4new fixture UPDATEs hit postedsource immutability before intended assertion. Root approved narrow test-only repair via highesteligible P01-03 claim plus integration of reviewed maintenancec593. Exactfileassignment persisted before editing; no runtime change.",
     "credits": "unknown",
-    "activeWorkers": [],
+    "activeWorkers": [
+      {
+        "actor": "validation-fixture",
+        "task": "P01-03",
+        "ownedFiles": [
+          "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts"
+        ],
+        "reviewer": "/root"
+      }
+    ],
     "approvedAction": {
       "userReply": "Yes I approvew",
       "approvedAt": "2026-11-05T13:34:00Z",
@@ -9249,7 +9275,18 @@
       "followup": "Existing PR27 development CI; no merge or deployment",
       "priorRejectionAcknowledged": true
     },
-    "reviewer": "/root"
+    "reviewer": "/root",
+    "maintenanceLease": {
+      "owner": "coordinator",
+      "reviewer": "/root",
+      "files": [
+        "tools/development/work-queue/publication.mjs",
+        "tools/development/work-queue/publication.test.mjs",
+        "tools/development/work-queue/README.md"
+      ],
+      "sourceCommit": "c5935c548cf8c1caf66f7194fcb85665e99e1942",
+      "purpose": "Integrate already independently reviewed validation stability patch with narrow fixture fix"
+    }
   },
   "continuation": {
     "id": "6ae5226d4a2081919e793919d9cafa1b",
@@ -9331,6 +9368,15 @@
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
       "sha": "e1206f80c8cfd25d1857f59471970ee6e525aec4",
       "path": "docs/development/candidates/20261104-2121-final-verification.json"
+    },
+    "resolved": true,
+    "resolvedAt": "2026-11-05T13:41:17.269Z",
+    "resolution": {
+      "explicitUserApproval": true,
+      "sourcePublished": true,
+      "publishedSha": "2ce3b050135b0852f60474190c11e4c00c63263e",
+      "tool": "mcp__codex_apps__github_update_ref",
+      "alternateTransport": false
     }
   },
   "nextTasks": [
@@ -9960,12 +10006,12 @@
     }
   },
   "candidateValidation": {
-    "sourcePublished": false,
+    "sourcePublished": true,
     "authorCommit": "381ab815678ad20d9271a21729d2674ce9ae867d",
     "integratorCommit": "17e4051c5a850d568910ffbb4b36884ba22e7fdf",
     "tree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
     "unreferencedRemoteCommit": "2ce3b050135b0852f60474190c11e4c00c63263e",
-    "exactPublishedCI": "not run; sourcepublication blocked",
+    "exactPublishedCI": "failed four test fixture immutable UPDATE errors; runtime redemption assertions passed; restore skipped",
     "localSource": 790,
     "localFocused": 59,
     "localRegistry": 29,
@@ -9976,7 +10022,10 @@
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
       "sha": "e1206f80c8cfd25d1857f59471970ee6e525aec4",
       "path": "docs/development/candidates/20261104-2121-final-verification.json"
-    }
+    },
+    "publishedCommit": "2ce3b050135b0852f60474190c11e4c00c63263e",
+    "ciRun": 42037342334,
+    "ciJob": 127278798776
   },
   "validationStability": {
     "commit": "c5935c548cf8c1caf66f7194fcb85665e99e1942",

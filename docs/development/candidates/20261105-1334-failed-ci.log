@@ -1,0 +1,1872 @@
+﻿2026-11-05T13:37:05.0471201Z Current runner version: '2.338.2'
+2026-11-05T13:37:05.0497713Z ##[group]Runner Image Provisioner
+2026-11-05T13:37:05.0499059Z Hosted Compute Agent
+2026-11-05T13:37:05.0499608Z Version: 20261028.624
+2026-11-05T13:37:05.0500245Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+2026-11-05T13:37:05.0500934Z Build Date: 2026-10-28T21:51:42Z
+2026-11-05T13:37:05.0501576Z Worker ID: {c44de8ba-d5be-465a-817f-c3eed5911489}
+2026-11-05T13:37:05.0502266Z Region: northcentralus
+2026-11-05T13:37:05.0502982Z Cloud: Azure
+2026-11-05T13:37:05.0503505Z ##[endgroup]
+2026-11-05T13:37:05.0504961Z ##[group]Operating System
+2026-11-05T13:37:05.0505537Z Ubuntu
+2026-11-05T13:37:05.0506046Z 24.04.5
+2026-11-05T13:37:05.0506527Z LTS
+2026-11-05T13:37:05.0507019Z ##[endgroup]
+2026-11-05T13:37:05.0507560Z ##[group]Runner Image
+2026-11-05T13:37:05.0508122Z Image: ubuntu-24.04
+2026-11-05T13:37:05.0508644Z Version: 20261101.360.1
+2026-11-05T13:37:05.0509855Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-05T13:37:05.0511408Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360
+2026-11-05T13:37:05.0512611Z ##[endgroup]
+2026-11-05T13:37:05.0513929Z ##[group]GITHUB_TOKEN Permissions
+2026-11-05T13:37:05.0516419Z Contents: read
+2026-11-05T13:37:05.0517004Z Metadata: read
+2026-11-05T13:37:05.0517555Z ##[endgroup]
+2026-11-05T13:37:05.0519665Z Secret source: Actions
+2026-11-05T13:37:05.0520571Z Cache mode: write
+2026-11-05T13:37:05.0521554Z Prepare workflow directory
+2026-11-05T13:37:05.0890231Z Prepare all required actions
+2026-11-05T13:37:05.0962225Z Getting action download info
+2026-11-05T13:37:05.3367629Z Download action repository 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' (SHA:11bd71901bbe5b1630ceea73d27597364c9af683)
+2026-11-05T13:37:05.5598063Z Download action repository 'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-11-05T13:37:05.9292801Z Complete job name: Current source and disposable accounting checks
+2026-11-05T13:37:06.0173572Z ##[group]Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+2026-11-05T13:37:06.0175241Z with:
+2026-11-05T13:37:06.0175994Z   persist-credentials: false
+2026-11-05T13:37:06.0176959Z   repository: Future00111/ledgerpoint
+2026-11-05T13:37:06.0183610Z   token: ***
+2026-11-05T13:37:06.0184386Z   ssh-strict: true
+2026-11-05T13:37:06.0185095Z   ssh-user: git
+2026-11-05T13:37:06.0185661Z   clean: true
+2026-11-05T13:37:06.0186358Z   sparse-checkout-cone-mode: true
+2026-11-05T13:37:06.0187276Z   fetch-depth: 1
+2026-11-05T13:37:06.0187946Z   fetch-tags: false
+2026-11-05T13:37:06.0188607Z   show-progress: true
+2026-11-05T13:37:06.0189191Z   lfs: false
+2026-11-05T13:37:06.0189808Z   submodules: false
+2026-11-05T13:37:06.0190416Z   set-safe-directory: true
+2026-11-05T13:37:06.0191727Z ##[endgroup]
+2026-11-05T13:37:06.3200388Z Syncing repository: Future00111/ledgerpoint
+2026-11-05T13:37:06.3202573Z ##[group]Getting Git version info
+2026-11-05T13:37:06.3204021Z Working directory is '/home/runner/work/ledgerpoint/ledgerpoint'
+2026-11-05T13:37:06.3205726Z [command]/usr/bin/git version
+2026-11-05T13:37:06.3305621Z git version 2.56.0
+2026-11-05T13:37:06.3326266Z ##[endgroup]
+2026-11-05T13:37:06.3339502Z Temporarily overriding HOME='/home/runner/work/_temp/4fedb7f8-5988-4c4f-9e45-2ae1b8fc5956' before making global git config changes
+2026-11-05T13:37:06.3342178Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-05T13:37:06.3345655Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ledgerpoint/ledgerpoint
+2026-11-05T13:37:06.3401106Z Deleting the contents of '/home/runner/work/ledgerpoint/ledgerpoint'
+2026-11-05T13:37:06.3408143Z ##[group]Initializing the repository
+2026-11-05T13:37:06.3411744Z [command]/usr/bin/git init /home/runner/work/ledgerpoint/ledgerpoint
+2026-11-05T13:37:06.3561757Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-05T13:37:06.3563573Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-05T13:37:06.3564683Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-05T13:37:06.3565548Z hint: call:
+2026-11-05T13:37:06.3566016Z hint:
+2026-11-05T13:37:06.3566623Z hint: 	git config --global init.defaultBranch <name>
+2026-11-05T13:37:06.3567292Z hint:
+2026-11-05T13:37:06.3567890Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-05T13:37:06.3568856Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-05T13:37:06.3569620Z hint:
+2026-11-05T13:37:06.3570098Z hint: 	git branch -m <name>
+2026-11-05T13:37:06.3570697Z hint:
+2026-11-05T13:37:06.3571333Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-05T13:37:06.3586965Z Initialized empty Git repository in /home/runner/work/ledgerpoint/ledgerpoint/.git/
+2026-11-05T13:37:06.3598574Z [command]/usr/bin/git remote add origin https://github.com/Future00111/ledgerpoint
+2026-11-05T13:37:06.3650012Z ##[endgroup]
+2026-11-05T13:37:06.3650917Z ##[group]Disabling automatic garbage collection
+2026-11-05T13:37:06.3655488Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-05T13:37:06.3691276Z ##[endgroup]
+2026-11-05T13:37:06.3692122Z ##[group]Setting up auth
+2026-11-05T13:37:06.3700139Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-05T13:37:06.3739081Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-05T13:37:06.4117722Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-05T13:37:06.4153239Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-05T13:37:06.4354377Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-05T13:37:06.4399007Z ##[endgroup]
+2026-11-05T13:37:06.4399987Z ##[group]Fetching the repository
+2026-11-05T13:37:06.4411355Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +a6bb6454e313e3e3c43e8bf04ac6920255de0f9f:refs/remotes/pull/27/merge
+2026-11-05T13:37:07.2763515Z From https://github.com/Future00111/ledgerpoint
+2026-11-05T13:37:07.2765578Z  * [new ref]         a6bb6454e313e3e3c43e8bf04ac6920255de0f9f -> pull/27/merge
+2026-11-05T13:37:07.2769753Z ##[endgroup]
+2026-11-05T13:37:07.2771899Z ##[group]Determining the checkout info
+2026-11-05T13:37:07.2773917Z ##[endgroup]
+2026-11-05T13:37:07.2775217Z [command]/usr/bin/git sparse-checkout disable
+2026-11-05T13:37:07.2835756Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-05T13:37:07.2874014Z ##[group]Checking out the ref
+2026-11-05T13:37:07.2878973Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/27/merge
+2026-11-05T13:37:07.4108489Z Note: switching to 'refs/remotes/pull/27/merge'.
+2026-11-05T13:37:07.4109582Z 
+2026-11-05T13:37:07.4110481Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-05T13:37:07.4112997Z changes and commit them, and you can discard any commits you make in this
+2026-11-05T13:37:07.4115261Z state without impacting any branches by switching back to a branch.
+2026-11-05T13:37:07.4116799Z 
+2026-11-05T13:37:07.4117877Z If you want to create a new branch to retain commits you create, you may
+2026-11-05T13:37:07.4120236Z do so (now or later) by using -c with the switch command. Example:
+2026-11-05T13:37:07.4121607Z 
+2026-11-05T13:37:07.4122585Z   git switch -c <new-branch-name>
+2026-11-05T13:37:07.4123710Z 
+2026-11-05T13:37:07.4124555Z Or undo this operation with:
+2026-11-05T13:37:07.4125736Z 
+2026-11-05T13:37:07.4126439Z   git switch -
+2026-11-05T13:37:07.4127789Z 
+2026-11-05T13:37:07.4129129Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-05T13:37:07.4131073Z 
+2026-11-05T13:37:07.4133335Z HEAD is now at a6bb645 Merge 2ce3b050135b0852f60474190c11e4c00c63263e into d4182922ef5e1a7e942a941fe6dbd15d7715a960
+2026-11-05T13:37:07.4140111Z ##[endgroup]
+2026-11-05T13:37:07.4178644Z [command]/usr/bin/git log -1 --format=%H
+2026-11-05T13:37:07.4205707Z a6bb6454e313e3e3c43e8bf04ac6920255de0f9f
+2026-11-05T13:37:07.4214105Z ##[group]Removing auth
+2026-11-05T13:37:07.4217386Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-05T13:37:07.4249282Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-05T13:37:07.4443637Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-05T13:37:07.4471074Z http.https://github.com/.extraheader
+2026-11-05T13:37:07.4478842Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-05T13:37:07.4515958Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-05T13:37:07.4707343Z ##[endgroup]
+2026-11-05T13:37:07.5077150Z ##[group]Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+2026-11-05T13:37:07.5078758Z with:
+2026-11-05T13:37:07.5079601Z   node-version: 24
+2026-11-05T13:37:07.5080541Z   always-auth: false
+2026-11-05T13:37:07.5081542Z   check-latest: false
+2026-11-05T13:37:07.5090955Z   token: ***
+2026-11-05T13:37:07.5091860Z ##[endgroup]
+2026-11-05T13:37:07.7283871Z Found in cache @ /opt/hostedtoolcache/node/24.22.2/x64
+2026-11-05T13:37:07.7287285Z (node:2308) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-05T13:37:07.7288291Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-05T13:37:07.7290691Z ##[group]Environment details
+2026-11-05T13:37:13.8633540Z node: v24.22.2
+2026-11-05T13:37:13.8634159Z npm: 11.19.1
+2026-11-05T13:37:13.8634836Z yarn: 1.22.22
+2026-11-05T13:37:13.8636780Z ##[endgroup]
+2026-11-05T13:37:13.8781922Z ##[group]Run npm install --global pnpm@10.26.1
+2026-11-05T13:37:13.8783006Z [36;1mnpm install --global pnpm@10.26.1[0m
+2026-11-05T13:37:13.9009019Z shell: /usr/bin/bash -e {0}
+2026-11-05T13:37:13.9009585Z ##[endgroup]
+2026-11-05T13:37:17.5656254Z 
+2026-11-05T13:37:17.5665737Z added 1 package in 4s
+2026-11-05T13:37:17.5666257Z 
+2026-11-05T13:37:17.5666835Z 1 package is looking for funding
+2026-11-05T13:37:17.5667674Z   run `npm fund` for details
+2026-11-05T13:37:17.5928285Z ##[group]Run pnpm install --frozen-lockfile
+2026-11-05T13:37:17.5928837Z [36;1mpnpm install --frozen-lockfile[0m
+2026-11-05T13:37:17.5944620Z shell: /usr/bin/bash -e {0}
+2026-11-05T13:37:17.5945041Z ##[endgroup]
+2026-11-05T13:37:18.0115183Z Scope: all 9 workspace projects
+2026-11-05T13:37:18.0834707Z Lockfile is up to date, resolution step is skipped
+2026-11-05T13:37:18.1365308Z Progress: resolved 1, reused 0, downloaded 0, added 0
+2026-11-05T13:37:18.2167420Z Packages: +639
+2026-11-05T13:37:18.2168776Z ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+2026-11-05T13:37:19.1374805Z Progress: resolved 639, reused 0, downloaded 148, added 121
+2026-11-05T13:37:20.1388868Z Progress: resolved 639, reused 0, downloaded 307, added 257
+2026-11-05T13:37:21.1387640Z Progress: resolved 639, reused 0, downloaded 454, added 336
+2026-11-05T13:37:22.1403820Z Progress: resolved 639, reused 0, downloaded 572, added 409
+2026-11-05T13:37:23.1405068Z Progress: resolved 639, reused 0, downloaded 638, added 638
+2026-11-05T13:37:23.2430216Z Progress: resolved 639, reused 0, downloaded 638, added 639, done
+2026-11-05T13:37:23.4621819Z .../esbuild@0.28.1/node_modules/esbuild postinstall$ node install.js
+2026-11-05T13:37:23.5739839Z .../esbuild@0.28.1/node_modules/esbuild postinstall: Done
+2026-11-05T13:37:23.9678031Z 
+2026-11-05T13:37:23.9679362Z dependencies:
+2026-11-05T13:37:23.9680001Z + @replit/connectors-sdk 0.4.1
+2026-11-05T13:37:23.9680777Z + ajv 8.20.0
+2026-11-05T13:37:23.9681058Z 
+2026-11-05T13:37:23.9681242Z devDependencies:
+2026-11-05T13:37:23.9681694Z + prettier 3.9.6
+2026-11-05T13:37:23.9682244Z + typescript 5.9.3
+2026-11-05T13:37:23.9682662Z 
+2026-11-05T13:37:24.0023975Z . preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+2026-11-05T13:37:24.0145195Z . preinstall: Done
+2026-11-05T13:37:24.1447987Z ╭ Warning ─────────────────────────────────────────────────────────────────────╮
+2026-11-05T13:37:24.1449223Z │                                                                              │
+2026-11-05T13:37:24.1454767Z │   Ignored build scripts: @clerk/shared@3.47.8, core-js@3.50.0.               │
+2026-11-05T13:37:24.1455991Z │   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+2026-11-05T13:37:24.1457158Z │   to run scripts.                                                            │
+2026-11-05T13:37:24.1458080Z │                                                                              │
+2026-11-05T13:37:24.1459198Z ╰──────────────────────────────────────────────────────────────────────────────╯
+2026-11-05T13:37:24.1543157Z Done in 6.5s using pnpm v10.26.1
+2026-11-05T13:37:24.2029406Z ##[group]Run pnpm run build
+2026-11-05T13:37:24.2029815Z [36;1mpnpm run build[0m
+2026-11-05T13:37:24.2043814Z shell: /usr/bin/bash -e {0}
+2026-11-05T13:37:24.2044157Z env:
+2026-11-05T13:37:24.2044438Z   PORT: 8080
+2026-11-05T13:37:24.2044739Z   BASE_PATH: /
+2026-11-05T13:37:24.2045047Z ##[endgroup]
+2026-11-05T13:37:24.4665338Z 
+2026-11-05T13:37:24.4666607Z > workspace@0.0.0 build /home/runner/work/ledgerpoint/ledgerpoint
+2026-11-05T13:37:24.4667653Z > pnpm run typecheck && pnpm -r --if-present run build
+2026-11-05T13:37:24.4668325Z 
+2026-11-05T13:37:24.7410754Z 
+2026-11-05T13:37:24.7411893Z > workspace@0.0.0 typecheck /home/runner/work/ledgerpoint/ledgerpoint
+2026-11-05T13:37:24.7413441Z > pnpm run typecheck:libs && pnpm -r --filter "./artifacts/**" --filter "./scripts" --if-present run typecheck
+2026-11-05T13:37:24.7413948Z 
+2026-11-05T13:37:25.0176266Z 
+2026-11-05T13:37:25.0177245Z > workspace@0.0.0 typecheck:libs /home/runner/work/ledgerpoint/ledgerpoint
+2026-11-05T13:37:25.0183436Z > tsc --build
+2026-11-05T13:37:25.0197219Z 
+2026-11-05T13:37:29.0677282Z Scope: 4 of 9 workspace projects
+2026-11-05T13:37:29.0744223Z artifacts/api-server typecheck$ tsc -p tsconfig.json --noEmit
+2026-11-05T13:37:29.0750876Z artifacts/ledgerly typecheck$ tsc -p tsconfig.json --noEmit
+2026-11-05T13:37:29.0754579Z artifacts/mockup-sandbox typecheck$ tsc -p tsconfig.json --noEmit
+2026-11-05T13:37:29.0759830Z scripts typecheck$ tsc -p tsconfig.json --noEmit
+2026-11-05T13:37:30.5824452Z scripts typecheck: Done
+2026-11-05T13:37:36.6734516Z artifacts/ledgerly typecheck: Done
+2026-11-05T13:37:36.7722090Z artifacts/mockup-sandbox typecheck: Done
+2026-11-05T13:37:38.3823360Z artifacts/api-server typecheck: Done
+2026-11-05T13:37:38.6755676Z Scope: 8 of 9 workspace projects
+2026-11-05T13:37:38.6818334Z artifacts/mockup-sandbox build$ vite build
+2026-11-05T13:37:38.9853419Z artifacts/mockup-sandbox build: [36mvite v7.3.6 [32mbuilding client environment for production...[36m[39m
+2026-11-05T13:37:39.0581973Z artifacts/mockup-sandbox build: transforming...
+2026-11-05T13:37:39.8436682Z artifacts/mockup-sandbox build: [32m✓[39m 30 modules transformed.
+2026-11-05T13:37:39.9570280Z artifacts/mockup-sandbox build: rendering chunks...
+2026-11-05T13:37:39.9625468Z artifacts/mockup-sandbox build: computing gzip size...
+2026-11-05T13:37:39.9701886Z artifacts/mockup-sandbox build: [2mdist/[22m[32mindex.html                 [39m[1m[2m  4.42 kB[22m[1m[22m[2m │ gzip:  1.23 kB[22m
+2026-11-05T13:37:39.9706054Z artifacts/mockup-sandbox build: [2mdist/[22m[2massets/[22m[35mindex-C4GxwS3y.css  [39m[1m[2m 88.37 kB[22m[1m[22m[2m │ gzip: 14.82 kB[22m
+2026-11-05T13:37:39.9708494Z artifacts/mockup-sandbox build: [2mdist/[22m[2massets/[22m[36mindex-CqOx4XgY.js   [39m[1m[2m187.72 kB[22m[1m[22m[2m │ gzip: 59.51 kB[22m
+2026-11-05T13:37:39.9710113Z artifacts/mockup-sandbox build: [32m✓ built in 962ms[39m
+2026-11-05T13:37:40.0042209Z artifacts/mockup-sandbox build: Done
+2026-11-05T13:37:40.0050250Z artifacts/api-server build$ node ./build.mjs
+2026-11-05T13:37:40.0052796Z artifacts/ledgerly build$ vite build --config vite.config.ts
+2026-11-05T13:37:40.5534556Z artifacts/api-server build:   dist/index.mjs                       3.6mb ⚠️
+2026-11-05T13:37:40.5535846Z artifacts/api-server build:   dist/pino-worker.mjs               153.5kb
+2026-11-05T13:37:40.5536714Z artifacts/api-server build:   dist/pino-file.mjs                 142.1kb
+2026-11-05T13:37:40.5537723Z artifacts/api-server build:   dist/pino-pretty.mjs               114.4kb
+2026-11-05T13:37:40.5538744Z artifacts/api-server build:   dist/thread-stream-worker.mjs        7.4kb
+2026-11-05T13:37:40.5545612Z artifacts/api-server build:   dist/index.mjs.map                   8.5mb
+2026-11-05T13:37:40.5546882Z artifacts/api-server build:   dist/pino-worker.mjs.map           256.9kb
+2026-11-05T13:37:40.5547831Z artifacts/api-server build:   dist/pino-file.mjs.map             229.1kb
+2026-11-05T13:37:40.5549042Z artifacts/api-server build:   dist/pino-pretty.mjs.map           203.6kb
+2026-11-05T13:37:40.5549714Z artifacts/api-server build:   dist/thread-stream-worker.mjs.map   12.0kb
+2026-11-05T13:37:40.5550400Z artifacts/api-server build: ⚡ Done in 492ms
+2026-11-05T13:37:40.5705268Z artifacts/api-server build: Done
+2026-11-05T13:37:40.5989650Z artifacts/ledgerly build: [36mvite v7.3.6 [32mbuilding client environment for production...[36m[39m
+2026-11-05T13:37:40.6388684Z artifacts/ledgerly build: transforming...
+2026-11-05T13:37:47.1864884Z artifacts/ledgerly build: [32m✓[39m 2799 modules transformed.
+2026-11-05T13:37:47.6324090Z artifacts/ledgerly build: rendering chunks...
+2026-11-05T13:37:48.0080978Z artifacts/ledgerly build: computing gzip size...
+2026-11-05T13:37:48.1038536Z artifacts/ledgerly build: [2mdist/public/[22m[32mindex.html                                      [39m[1m[2m  0.76 kB[22m[1m[22m[2m │ gzip:   0.43 kB[22m
+2026-11-05T13:37:48.1085148Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[35mindex-_RKrLHZJ.css                       [39m[1m[2m140.94 kB[22m[1m[22m[2m │ gzip:  23.02 kB[22m
+2026-11-05T13:37:48.1087148Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mclock-3-BxcKOn2Z.js                      [39m[1m[2m  0.17 kB[22m[1m[22m[2m │ gzip:   0.17 kB[22m
+2026-11-05T13:37:48.1144615Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36marrow-right-DYXV_KyP.js                  [39m[1m[2m  0.17 kB[22m[1m[22m[2m │ gzip:   0.16 kB[22m
+2026-11-05T13:37:48.1146795Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36marrow-left-B1J-2X56.js                   [39m[1m[2m  0.17 kB[22m[1m[22m[2m │ gzip:   0.16 kB[22m
+2026-11-05T13:37:48.1174761Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36marrow-down-Ca9KFEaI.js                   [39m[1m[2m  0.17 kB[22m[1m[22m[2m │ gzip:   0.16 kB[22m
+2026-11-05T13:37:48.1204700Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36marrow-up-right-C29wXFQ7.js               [39m[1m[2m  0.17 kB[22m[1m[22m[2m │ gzip:   0.16 kB[22m
+2026-11-05T13:37:48.1206737Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36marrow-down-left-CXt0Hhe-.js              [39m[1m[2m  0.17 kB[22m[1m[22m[2m │ gzip:   0.16 kB[22m
+2026-11-05T13:37:48.1234700Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mchevrons-up-down-B2PWLmXI.js             [39m[1m[2m  0.18 kB[22m[1m[22m[2m │ gzip:   0.16 kB[22m
+2026-11-05T13:37:48.1264416Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36muser-round-CyYBLxne.js                   [39m[1m[2m  0.18 kB[22m[1m[22m[2m │ gzip:   0.17 kB[22m
+2026-11-05T13:37:48.1294323Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36muser-DpB_rNCN.js                         [39m[1m[2m  0.19 kB[22m[1m[22m[2m │ gzip:   0.18 kB[22m
+2026-11-05T13:37:48.1296372Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mellipsis-DVbP0bdO.js                     [39m[1m[2m  0.22 kB[22m[1m[22m[2m │ gzip:   0.16 kB[22m
+2026-11-05T13:37:48.1298103Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mupload-BP-XvR0E.js                       [39m[1m[2m  0.23 kB[22m[1m[22m[2m │ gzip:   0.19 kB[22m
+2026-11-05T13:37:48.1300051Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mcopy-COFedghI.js                         [39m[1m[2m  0.23 kB[22m[1m[22m[2m │ gzip:   0.21 kB[22m
+2026-11-05T13:37:48.1324242Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mdownload-CdBxVAuC.js                     [39m[1m[2m  0.23 kB[22m[1m[22m[2m │ gzip:   0.19 kB[22m
+2026-11-05T13:37:48.1354308Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mmessage-square-zgLb1RBV.js               [39m[1m[2m  0.23 kB[22m[1m[22m[2m │ gzip:   0.20 kB[22m
+2026-11-05T13:37:48.1384500Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mlink-2-CBptHv8r.js                       [39m[1m[2m  0.24 kB[22m[1m[22m[2m │ gzip:   0.20 kB[22m
+2026-11-05T13:37:48.1386558Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mcircle-alert-CNmUAT5J.js                 [39m[1m[2m  0.25 kB[22m[1m[22m[2m │ gzip:   0.19 kB[22m
+2026-11-05T13:37:48.1414068Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36meye-BMG0R33j.js                          [39m[1m[2m  0.25 kB[22m[1m[22m[2m │ gzip:   0.20 kB[22m
+2026-11-05T13:37:48.1415897Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36marchive-Cx8OLSnk.js                      [39m[1m[2m  0.25 kB[22m[1m[22m[2m │ gzip:   0.21 kB[22m
+2026-11-05T13:37:48.1417796Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mmap-pin-DPxlxjM4.js                      [39m[1m[2m  0.26 kB[22m[1m[22m[2m │ gzip:   0.22 kB[22m
+2026-11-05T13:37:48.1419633Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mpound-sterling-DPGnblZW.js               [39m[1m[2m  0.26 kB[22m[1m[22m[2m │ gzip:   0.19 kB[22m
+2026-11-05T13:37:48.1444068Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mcalendar-DJJSE3n-.js                     [39m[1m[2m  0.26 kB[22m[1m[22m[2m │ gzip:   0.20 kB[22m
+2026-11-05T13:37:48.1474402Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mfile-check-2-F2JiEg8j.js                 [39m[1m[2m  0.26 kB[22m[1m[22m[2m │ gzip:   0.20 kB[22m
+2026-11-05T13:37:48.1504309Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mpencil-JGy7qo0L.js                       [39m[1m[2m  0.28 kB[22m[1m[22m[2m │ gzip:   0.23 kB[22m
+2026-11-05T13:37:48.1534205Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mwallet-wNGoPr3u.js                       [39m[1m[2m  0.29 kB[22m[1m[22m[2m │ gzip:   0.21 kB[22m
+2026-11-05T13:37:48.1544538Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mclipboard-check-5rDck8zt.js              [39m[1m[2m  0.30 kB[22m[1m[22m[2m │ gzip:   0.23 kB[22m
+2026-11-05T13:37:48.1564140Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mphone-BodU6Xo3.js                        [39m[1m[2m  0.32 kB[22m[1m[22m[2m │ gzip:   0.23 kB[22m
+2026-11-05T13:37:48.1594076Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36msave-DGgTm3DK.js                         [39m[1m[2m  0.33 kB[22m[1m[22m[2m │ gzip:   0.23 kB[22m
+2026-11-05T13:37:48.1624404Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mwallet-cards-DSy02S8S.js                 [39m[1m[2m  0.33 kB[22m[1m[22m[2m │ gzip:   0.25 kB[22m
+2026-11-05T13:37:48.1634118Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mintegrations-DzVhH4nL.js                 [39m[1m[2m  0.43 kB[22m[1m[22m[2m │ gzip:   0.29 kB[22m
+2026-11-05T13:37:48.1654033Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mtextarea-DKxu29bf.js                     [39m[1m[2m  0.46 kB[22m[1m[22m[2m │ gzip:   0.32 kB[22m
+2026-11-05T13:37:48.1683974Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36minput-hP3JKyfy.js                        [39m[1m[2m  0.56 kB[22m[1m[22m[2m │ gzip:   0.36 kB[22m
+2026-11-05T13:37:48.1714001Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mlabel-LbL1AO4W.js                        [39m[1m[2m  0.60 kB[22m[1m[22m[2m │ gzip:   0.41 kB[22m
+2026-11-05T13:37:48.1724154Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mPageHeader-BUBhjcDP.js                   [39m[1m[2m  0.60 kB[22m[1m[22m[2m │ gzip:   0.31 kB[22m
+2026-11-05T13:37:48.1744134Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mEmptyState-mEMQLoUw.js                   [39m[1m[2m  0.65 kB[22m[1m[22m[2m │ gzip:   0.37 kB[22m
+2026-11-05T13:37:48.1774099Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mbadge-CaZum9sD.js                        [39m[1m[2m  0.72 kB[22m[1m[22m[2m │ gzip:   0.38 kB[22m
+2026-11-05T13:37:48.1804284Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mcard-gW1N7gwK.js                         [39m[1m[2m  0.99 kB[22m[1m[22m[2m │ gzip:   0.36 kB[22m
+2026-11-05T13:37:48.1813823Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mmodel-L_TyfQ5Y.js                        [39m[1m[2m  1.15 kB[22m[1m[22m[2m │ gzip:   0.60 kB[22m
+2026-11-05T13:37:48.1833974Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mreportTrace-DlxGfhWV.js                  [39m[1m[2m  1.73 kB[22m[1m[22m[2m │ gzip:   0.92 kB[22m
+2026-11-05T13:37:48.1864011Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAIAccountantTasks-CN84VGJu.js            [39m[1m[2m  1.97 kB[22m[1m[22m[2m │ gzip:   0.97 kB[22m
+2026-11-05T13:37:48.1893966Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mdialog-BmMtnKH4.js                       [39m[1m[2m  2.12 kB[22m[1m[22m[2m │ gzip:   0.83 kB[22m
+2026-11-05T13:37:48.1903976Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36maccountingEditor-DkU7I1d_.js             [39m[1m[2m  2.19 kB[22m[1m[22m[2m │ gzip:   1.05 kB[22m
+2026-11-05T13:37:48.1924015Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAIAccountantRecommendations-yqccbhNC.js  [39m[1m[2m  2.24 kB[22m[1m[22m[2m │ gzip:   1.11 kB[22m
+2026-11-05T13:37:48.1954293Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mDevelopmentTools-ElzRImMN.js             [39m[1m[2m  2.60 kB[22m[1m[22m[2m │ gzip:   1.03 kB[22m
+2026-11-05T13:37:48.1976744Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mmodel-ye_RmmLT.js                        [39m[1m[2m  2.62 kB[22m[1m[22m[2m │ gzip:   1.32 kB[22m
+2026-11-05T13:37:48.1978629Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mledgerCsv-CiFCo7Io.js                    [39m[1m[2m  2.66 kB[22m[1m[22m[2m │ gzip:   1.18 kB[22m
+2026-11-05T13:37:48.1980617Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAIAccountantInbox-BIJi8TDi.js            [39m[1m[2m  2.78 kB[22m[1m[22m[2m │ gzip:   1.22 kB[22m
+2026-11-05T13:37:48.1982770Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAIAccountantReviews-Cjigo7b_.js          [39m[1m[2m  3.14 kB[22m[1m[22m[2m │ gzip:   1.40 kB[22m
+2026-11-05T13:37:48.1984585Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mtabs-F8I7Ig-U.js                         [39m[1m[2m  3.34 kB[22m[1m[22m[2m │ gzip:   1.43 kB[22m
+2026-11-05T13:37:48.1987066Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAccountingUI-CbM5r8QZ.js                 [39m[1m[2m  3.77 kB[22m[1m[22m[2m │ gzip:   1.49 kB[22m
+2026-11-05T13:37:48.1988801Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mRecommendationCard-BF-VI5pK.js           [39m[1m[2m  3.88 kB[22m[1m[22m[2m │ gzip:   1.31 kB[22m
+2026-11-05T13:37:48.1990539Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mmodel-Cap1xtSd.js                        [39m[1m[2m  4.14 kB[22m[1m[22m[2m │ gzip:   1.97 kB[22m
+2026-11-05T13:37:48.1992235Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mswitch-npJpIAnU.js                       [39m[1m[2m  4.16 kB[22m[1m[22m[2m │ gzip:   1.80 kB[22m
+2026-11-05T13:37:48.1994165Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAccountingJournal-BXPYhlTE.js            [39m[1m[2m  4.57 kB[22m[1m[22m[2m │ gzip:   1.76 kB[22m
+2026-11-05T13:37:48.1995924Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mapi-DUrgJV1j.js                          [39m[1m[2m  5.00 kB[22m[1m[22m[2m │ gzip:   1.28 kB[22m
+2026-11-05T13:37:48.1997676Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAccountantPortal-HArY1ApH.js             [39m[1m[2m  5.05 kB[22m[1m[22m[2m │ gzip:   1.75 kB[22m
+2026-11-05T13:37:48.1999710Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mEmailRules-ChZlOYea.js                   [39m[1m[2m  5.48 kB[22m[1m[22m[2m │ gzip:   1.83 kB[22m
+2026-11-05T13:37:48.2001551Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mReminderDraftDialog-pvzuPxId.js          [39m[1m[2m  5.60 kB[22m[1m[22m[2m │ gzip:   2.21 kB[22m
+2026-11-05T13:37:48.2034002Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mInvoiceDocument-DbaTwYTN.js              [39m[1m[2m  5.90 kB[22m[1m[22m[2m │ gzip:   1.80 kB[22m
+2026-11-05T13:37:48.2035837Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mReportLibrary-B2wDegc7.js                [39m[1m[2m  6.32 kB[22m[1m[22m[2m │ gzip:   2.16 kB[22m
+2026-11-05T13:37:48.2037681Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mPartyLedgerDetails-Dstw17d_.js           [39m[1m[2m  6.44 kB[22m[1m[22m[2m │ gzip:   2.42 kB[22m
+2026-11-05T13:37:48.2039519Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAccountingSetup-BXG3oiND.js              [39m[1m[2m  7.30 kB[22m[1m[22m[2m │ gzip:   2.81 kB[22m
+2026-11-05T13:37:48.2041263Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAwaitingCreditsPage-dvpByrwV.js          [39m[1m[2m  7.59 kB[22m[1m[22m[2m │ gzip:   2.89 kB[22m
+2026-11-05T13:37:48.2043242Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mmodel-B8lpg0y7.js                        [39m[1m[2m  8.17 kB[22m[1m[22m[2m │ gzip:   3.39 kB[22m
+2026-11-05T13:37:48.2045137Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36museLedgerSnapshot-DEaq8lik.js            [39m[1m[2m  9.28 kB[22m[1m[22m[2m │ gzip:   3.45 kB[22m
+2026-11-05T13:37:48.2046930Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mStatements-DlMQt05h.js                   [39m[1m[2m  9.40 kB[22m[1m[22m[2m │ gzip:   3.20 kB[22m
+2026-11-05T13:37:48.2048835Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mCollections-ByzRiUzZ.js                  [39m[1m[2m  9.41 kB[22m[1m[22m[2m │ gzip:   2.98 kB[22m
+2026-11-05T13:37:48.2050720Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mSettings-BlFoO-gt.js                     [39m[1m[2m  9.66 kB[22m[1m[22m[2m │ gzip:   3.19 kB[22m
+2026-11-05T13:37:48.2052715Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mBankAccounts-OnHyT_MD.js                 [39m[1m[2m  9.73 kB[22m[1m[22m[2m │ gzip:   2.97 kB[22m
+2026-11-05T13:37:48.2054846Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mGeneralLedger-CDVjsuCj.js                [39m[1m[2m 10.78 kB[22m[1m[22m[2m │ gzip:   3.58 kB[22m
+2026-11-05T13:37:48.2056739Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mInsights-D4WuyD1F.js                     [39m[1m[2m 12.06 kB[22m[1m[22m[2m │ gzip:   4.04 kB[22m
+2026-11-05T13:37:48.2058580Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mInvoices-BXobnYF5.js                     [39m[1m[2m 12.12 kB[22m[1m[22m[2m │ gzip:   3.79 kB[22m
+2026-11-05T13:37:48.2060367Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mSetupWizard-Dm9yb5FC.js                  [39m[1m[2m 12.21 kB[22m[1m[22m[2m │ gzip:   4.25 kB[22m
+2026-11-05T13:37:48.2062203Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAuditHistory-CaBaKtkY.js                 [39m[1m[2m 12.66 kB[22m[1m[22m[2m │ gzip:   5.07 kB[22m
+2026-11-05T13:37:48.2094533Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mCompanies-DHncnj9M.js                    [39m[1m[2m 12.90 kB[22m[1m[22m[2m │ gzip:   4.25 kB[22m
+2026-11-05T13:37:48.2096346Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mSmartSuggestions-ChjZM0Nk.js             [39m[1m[2m 13.62 kB[22m[1m[22m[2m │ gzip:   4.02 kB[22m
+2026-11-05T13:37:48.2098343Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mChartOfAccounts-DHOSZSrh.js              [39m[1m[2m 14.46 kB[22m[1m[22m[2m │ gzip:   5.04 kB[22m
+2026-11-05T13:37:48.2100174Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mInvoiceForm-DFS-Tldp.js                  [39m[1m[2m 15.57 kB[22m[1m[22m[2m │ gzip:   5.21 kB[22m
+2026-11-05T13:37:48.2102488Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mEmailCapture-Cr3UTn-S.js                 [39m[1m[2m 15.80 kB[22m[1m[22m[2m │ gzip:   4.21 kB[22m
+2026-11-05T13:37:48.2104316Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAccountingDocumentList-BxxtNDmh.js       [39m[1m[2m 16.45 kB[22m[1m[22m[2m │ gzip:   5.39 kB[22m
+2026-11-05T13:37:48.2106050Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mClaimList-CJnWr4ei.js                    [39m[1m[2m 17.08 kB[22m[1m[22m[2m │ gzip:   5.94 kB[22m
+2026-11-05T13:37:48.2107843Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mSuppliers-BLHaNkyq.js                    [39m[1m[2m 17.42 kB[22m[1m[22m[2m │ gzip:   5.16 kB[22m
+2026-11-05T13:37:48.2109507Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mCustomers-Hz3XfP9y.js                    [39m[1m[2m 18.63 kB[22m[1m[22m[2m │ gzip:   5.79 kB[22m
+2026-11-05T13:37:48.2111249Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mReports-CzCJhW7-.js                      [39m[1m[2m 19.53 kB[22m[1m[22m[2m │ gzip:   5.60 kB[22m
+2026-11-05T13:37:48.2113092Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mBankTransactions-CAvGwKoQ.js             [39m[1m[2m 20.29 kB[22m[1m[22m[2m │ gzip:   5.77 kB[22m
+2026-11-05T13:37:48.2114968Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mSourceFiles-fQm8Ve2R.js                  [39m[1m[2m 20.73 kB[22m[1m[22m[2m │ gzip:   7.49 kB[22m
+2026-11-05T13:37:48.2116676Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAIAccountant-vwuh0ley.js                 [39m[1m[2m 21.62 kB[22m[1m[22m[2m │ gzip:   5.48 kB[22m
+2026-11-05T13:37:48.2118393Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mselect-BZ5pt82C.js                       [39m[1m[2m 22.23 kB[22m[1m[22m[2m │ gzip:   7.72 kB[22m
+2026-11-05T13:37:48.2120186Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mVATReturnDetail-CEOVrA8j.js              [39m[1m[2m 23.88 kB[22m[1m[22m[2m │ gzip:   6.10 kB[22m
+2026-11-05T13:37:48.2122136Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAutomation-Br71LL11.js                   [39m[1m[2m 25.19 kB[22m[1m[22m[2m │ gzip:   7.27 kB[22m
+2026-11-05T13:37:48.2159092Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mBills-DjrTz2MP.js                        [39m[1m[2m 27.19 kB[22m[1m[22m[2m │ gzip:   6.32 kB[22m
+2026-11-05T13:37:48.2160916Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mReconciliationWorkflow-Bbdbu8--.js       [39m[1m[2m 27.66 kB[22m[1m[22m[2m │ gzip:   8.78 kB[22m
+2026-11-05T13:37:48.2162940Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mpurify.es-Cz4mVeUR.js                    [39m[1m[2m 28.98 kB[22m[1m[22m[2m │ gzip:  10.87 kB[22m
+2026-11-05T13:37:48.2164642Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mPayments-BbXBUA8X.js                     [39m[1m[2m 30.41 kB[22m[1m[22m[2m │ gzip:   9.49 kB[22m
+2026-11-05T13:37:48.2166329Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAccountingReports-K1AO9NJb.js            [39m[1m[2m 34.04 kB[22m[1m[22m[2m │ gzip:   8.97 kB[22m
+2026-11-05T13:37:48.2168110Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mDocuments-CWMp92ql.js                    [39m[1m[2m 41.99 kB[22m[1m[22m[2m │ gzip:  11.14 kB[22m
+2026-11-05T13:37:48.2170109Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mVATReturns-9P_tK6DA.js                   [39m[1m[2m 43.79 kB[22m[1m[22m[2m │ gzip:  12.91 kB[22m
+2026-11-05T13:37:48.2172646Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mInvoiceDetail-DEYGeCQP.js                [39m[1m[2m 48.94 kB[22m[1m[22m[2m │ gzip:  14.00 kB[22m
+2026-11-05T13:37:48.2174378Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mmoment-B-YVwB4U.js                       [39m[1m[2m 60.64 kB[22m[1m[22m[2m │ gzip:  19.62 kB[22m
+2026-11-05T13:37:48.2176052Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mDashboard-DHjTZWHx.js                    [39m[1m[2m 77.89 kB[22m[1m[22m[2m │ gzip:  22.50 kB[22m
+2026-11-05T13:37:48.2177839Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mAccountingDocumentForm-DMFp47qd.js       [39m[1m[2m 90.69 kB[22m[1m[22m[2m │ gzip:  24.66 kB[22m
+2026-11-05T13:37:48.2179627Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mindex.es-Ch0q5HXq.js                     [39m[1m[2m158.95 kB[22m[1m[22m[2m │ gzip:  53.06 kB[22m
+2026-11-05T13:37:48.2181332Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mReconciliation-mur32u4K.js               [39m[1m[2m179.78 kB[22m[1m[22m[2m │ gzip:  54.84 kB[22m
+2026-11-05T13:37:48.2213979Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mhtml2canvas.esm-DXEQVQnt.js              [39m[1m[2m201.04 kB[22m[1m[22m[2m │ gzip:  47.43 kB[22m
+2026-11-05T13:37:48.2215899Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mjspdf.es.min-CabN5PfD.js                 [39m[1m[2m385.80 kB[22m[1m[22m[2m │ gzip: 126.18 kB[22m
+2026-11-05T13:37:48.2217796Z artifacts/ledgerly build: [2mdist/public/[22m[2massets/[22m[36mindex-DJgm_Ltf.js                        [39m[1m[33m594.90 kB[39m[22m[2m │ gzip: 184.04 kB[22m
+2026-11-05T13:37:48.2218922Z artifacts/ledgerly build: [32m✓ built in 7.49s[39m
+2026-11-05T13:37:48.2219620Z artifacts/ledgerly build: [33m
+2026-11-05T13:37:48.2220432Z artifacts/ledgerly build: (!) Some chunks are larger than 500 kB after minification. Consider:
+2026-11-05T13:37:48.2221383Z artifacts/ledgerly build: - Using dynamic import() to code-split the application
+2026-11-05T13:37:48.2222959Z artifacts/ledgerly build: - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2026-11-05T13:37:48.2224446Z artifacts/ledgerly build: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+2026-11-05T13:37:48.4123045Z artifacts/ledgerly build: Done
+2026-11-05T13:37:48.4346409Z ##[group]Run node tools/development/check.mjs
+2026-11-05T13:37:48.4346885Z [36;1mnode tools/development/check.mjs[0m
+2026-11-05T13:37:48.4361339Z shell: /usr/bin/bash -e {0}
+2026-11-05T13:37:48.4361720Z ##[endgroup]
+2026-11-05T13:37:48.7801533Z ✔ company scope accepts an active membership for the resource company (1.648103ms)
+2026-11-05T13:37:48.7803527Z ✔ company scope fails closed when membership is revoked (0.155055ms)
+2026-11-05T13:37:48.7804845Z ✔ company scope rejects cross-company resource access (0.115304ms)
+2026-11-05T13:37:48.7806892Z ✔ company scope rejects caller and resource company disagreement (0.118652ms)
+2026-11-05T13:37:48.7808148Z ✔ company scope rejects missing authentication or company context (0.21988ms)
+2026-11-05T13:37:48.7809523Z ✔ company scope rejects malformed context even when resource context exists (0.110919ms)
+2026-11-05T13:37:48.7810724Z ✔ company scope allows a matching requested and resource company (0.236463ms)
+2026-11-05T13:37:48.7812129Z ✔ resource-backed scope allows a missing caller company context (0.219184ms)
+2026-11-05T13:37:48.7813508Z ✔ malformed or conflicting resource scope fails before membership lookup (0.245732ms)
+2026-11-05T13:37:48.7814873Z ✔ both protected resource-backed routes invoke the conflict-aware scope guard before analysis (1.055258ms)
+2026-11-05T13:37:48.7816101Z ✔ database lookup failures fail closed (0.239153ms)
+2026-11-05T13:37:48.7817114Z ✔ each authorization decision rechecks membership after revocation (0.192941ms)
+2026-11-05T13:37:48.7818235Z ✔ duplicate active memberships with the same role resolve deterministically (0.168559ms)
+2026-11-05T13:37:48.7825615Z ✔ duplicate active memberships with conflicting roles fail closed (0.077742ms)
+2026-11-05T13:37:48.7827001Z ✔ scope resolution invokes only the membership lookup (0.121863ms)
+2026-11-05T13:37:48.7827932Z ✔ background jobs carry explicit system company context (0.522879ms)
+2026-11-05T13:37:48.8103177Z ℹ tests 16
+2026-11-05T13:37:48.8103722Z ℹ suites 0
+2026-11-05T13:37:48.8104065Z ℹ pass 16
+2026-11-05T13:37:48.8104416Z ℹ fail 0
+2026-11-05T13:37:48.8104753Z ℹ cancelled 0
+2026-11-05T13:37:48.8105061Z ℹ skipped 0
+2026-11-05T13:37:48.8105382Z ℹ todo 0
+2026-11-05T13:37:48.8105721Z ℹ duration_ms 174.882306
+2026-11-05T13:37:49.0012926Z ✔ price basis defaults for old drafts, validates strictly and binds canonical source fingerprints (3.106639ms)
+2026-11-05T13:37:49.0015313Z ✔ finite draft capabilities deny unknown, legacy, inactive and unconfigured Manager (0.235174ms)
+2026-11-05T13:37:49.0017299Z ✔ integer half-up line rounding and authoritative VAT composition preserve GBP pence (1.192414ms)
+2026-11-05T13:37:49.0018517Z ✔ decimal grammar, bounds, dates, nulls and tenant/financial field injection reject (0.49024ms)
+2026-11-05T13:37:49.0019960Z ✔ PATCH merges validated source but rejects currency, empty patch, unknown fields (3.483267ms)
+2026-11-05T13:37:49.0026508Z ✔ duplicate JSON keys (including escaped and nested keys) fail closed (0.459293ms)
+2026-11-05T13:37:49.0027668Z ✔ generic invoice writes blocked for every generic operation policy (0.128905ms)
+2026-11-05T13:37:49.0029642Z ✔ shared single/batch settlement sink rejects draft invoice targets (0.205795ms)
+2026-11-05T13:37:49.0031244Z ✔ absent authority refuses even a valid request without connecting a DB (0.662847ms)
+2026-11-05T13:37:49.0134570Z ℹ tests 9
+2026-11-05T13:37:49.0135352Z ℹ suites 0
+2026-11-05T13:37:49.0135776Z ℹ pass 9
+2026-11-05T13:37:49.0136164Z ℹ fail 0
+2026-11-05T13:37:49.0136720Z ℹ cancelled 0
+2026-11-05T13:37:49.0137168Z ℹ skipped 0
+2026-11-05T13:37:49.0137592Z ℹ todo 0
+2026-11-05T13:37:49.0138102Z ℹ duration_ms 95.536304
+2026-11-05T13:37:49.1462518Z ✔ capture JSON rejects duplicate financial keys before JSON.parse loses them (1.486512ms)
+2026-11-05T13:37:49.1465971Z ✔ capture raw body bounds separate upload bytes from review envelopes (44.937763ms)
+2026-11-05T13:37:49.1467170Z ✔ capture malformed JSON fails closed and existing draft bounds remain active (0.343733ms)
+2026-11-05T13:37:49.1554729Z ℹ tests 3
+2026-11-05T13:37:49.1555680Z ℹ suites 0
+2026-11-05T13:37:49.1556536Z ℹ pass 3
+2026-11-05T13:37:49.1557124Z ℹ fail 0
+2026-11-05T13:37:49.1557818Z ℹ cancelled 0
+2026-11-05T13:37:49.1558526Z ℹ skipped 0
+2026-11-05T13:37:49.1559123Z ℹ todo 0
+2026-11-05T13:37:49.1559865Z ℹ duration_ms 101.771728
+2026-11-05T13:37:49.3666360Z ✔ discount parser preserves absent legacy fields, canonical fingerprints and explicit removal (3.814804ms)
+2026-11-05T13:37:49.3675881Z ✔ discount input rejects hidden fields, invalid decimals, zero, over 100%, precision and conflicting intents (1.36956ms)
+2026-11-05T13:37:49.3680101Z ✔ largest remainders allocate every penny deterministically, including ties and zero lines (6.414866ms)
+2026-11-05T13:37:49.3681980Z ✔ percentage precision and amounts remain exact up to the supported money ceiling (0.503063ms)
+2026-11-05T13:37:49.3687764Z ✔ positive percentages rounding to zero cannot create no-op discounts or unpostable zero credits (0.257522ms)
+2026-11-05T13:37:49.3689161Z ✔ excluding_vat percentage discount is applied before authoritative mixed 20/5/0 VAT (1.384636ms)
+2026-11-05T13:37:49.3690418Z ✔ excluding_vat amount discount is applied before authoritative mixed 20/5/0 VAT (0.469729ms)
+2026-11-05T13:37:49.3691919Z ✔ including_vat percentage discount is applied before authoritative mixed 20/5/0 VAT (0.520112ms)
+2026-11-05T13:37:49.3693671Z ✔ including_vat amount discount is applied before authoritative mixed 20/5/0 VAT (0.335706ms)
+2026-11-05T13:37:49.3695135Z ✔ no-discount production authority keeps legacy amounts and context free of discount fields (0.701159ms)
+2026-11-05T13:37:49.3696873Z ✔ legacy financial-draft service accepts and persists authoritative discounted totals and audit (2.138538ms)
+2026-11-05T13:37:49.3698298Z ✔ later gross credit retains original VAT pennies including exact full reductions (11.997893ms)
+2026-11-05T13:37:49.3699930Z ✔ partial returns on discounted originals prorate stored net/VAT and never use pre-discount prices (0.32258ms)
+2026-11-05T13:37:49.3701581Z ✔ a zero-allocated discount line keeps its original partial-return VAT rounding (0.229124ms)
+2026-11-05T13:37:49.3793069Z ℹ tests 14
+2026-11-05T13:37:49.3793764Z ℹ suites 0
+2026-11-05T13:37:49.3794189Z ℹ pass 14
+2026-11-05T13:37:49.3794582Z ℹ fail 0
+2026-11-05T13:37:49.3795182Z ℹ cancelled 0
+2026-11-05T13:37:49.3795648Z ℹ skipped 0
+2026-11-05T13:37:49.3796102Z ℹ todo 0
+2026-11-05T13:37:49.3796591Z ℹ duration_ms 116.647651
+2026-11-05T13:37:49.6683806Z ✔ original document exists on its posting date, but no financial amount exists before it (4.032878ms)
+2026-11-05T13:37:49.6690255Z ✔ £120 corrected to £108 with £50 paid has £58 due using existing settlement semantics (0.684928ms)
+2026-11-05T13:37:49.6692236Z ✔ dated signed movements reconcile every historical net, VAT and gross projection (1.034314ms)
+2026-11-05T13:37:49.6693961Z ✔ same-day corrections retain the validated revision order rather than sorting IDs (0.459442ms)
+2026-11-05T13:37:49.6695647Z ✔ mixed VAT and penny snapshots retain authoritative per-line values with signed deltas (0.57215ms)
+2026-11-05T13:37:49.6696929Z ✔ maximum native precision and a single-penny amendment never use floating point money (0.398547ms)
+2026-11-05T13:37:49.6698433Z ✔ all document kinds retain positive own amounts; credit projection grants no parent capacity (0.959005ms)
+2026-11-05T13:37:49.6700628Z ✔ complete frozen history yields deterministic detached deeply frozen results (0.519733ms)
+2026-11-05T13:37:49.6702140Z ✔ money must be bounded canonical integer strings, not loose coercible values (1.245826ms)
+2026-11-05T13:37:49.6703708Z ✔ zero or negative whole documents and inconsistent line/totals money reject (0.431656ms)
+2026-11-05T13:37:49.6704974Z ✔ source, event and requested company/document scopes must all agree (0.492938ms)
+2026-11-05T13:37:49.6706247Z ✔ identity fields validate UUID shape, while canonical casing cannot bypass identity checks (1.00719ms)
+2026-11-05T13:37:49.6707618Z ✔ financial context is immutable and requires a canonical SHA-256 identity (0.327413ms)
+2026-11-05T13:37:49.6709981Z ✔ invalid calendar dates and posting range reject; a valid leap date works (0.554169ms)
+2026-11-05T13:37:49.6711278Z ✔ correction dates cannot precede the original or previous correction (0.252262ms)
+2026-11-05T13:37:49.6712896Z ✔ duplicate event, replay request, journal or revision identity cannot enter a history (0.534155ms)
+2026-11-05T13:37:49.6714452Z ✔ missing, reordered, stale or truncated history is rejected against its independent head (3.786782ms)
+2026-11-05T13:37:49.6715941Z ✔ every before snapshot must exactly equal the preceding revision, including line amounts (0.651083ms)
+2026-11-05T13:37:49.6717565Z ✔ declared differences must match every aggregate and line, not just balance in total (0.299036ms)
+2026-11-05T13:37:49.6718747Z ✔ all snapshots retain original line references, ordering and count (0.647017ms)
+2026-11-05T13:37:49.6719861Z ✔ invalid, repeated or missing line references and sparse arrays reject (0.320608ms)
+2026-11-05T13:37:49.6729913Z ✔ corrupt future amendments still reject before original existence or financial cutoff (0.44989ms)
+2026-11-05T13:37:49.6754049Z ✔ unchanged money and real line redistribution with zero aggregate have distinct blockers (0.225946ms)
+2026-11-05T13:37:49.6784053Z ✔ only explicit posted financial schemas are accepted; metadata is not a financial event (0.475586ms)
+2026-11-05T13:37:49.6813676Z ✔ snapshot line bounds match the native 200-line contract (0.646388ms)
+2026-11-05T13:37:49.6983399Z ℹ tests 25
+2026-11-05T13:37:49.6983936Z ℹ suites 0
+2026-11-05T13:37:49.6984363Z ℹ pass 25
+2026-11-05T13:37:49.6984724Z ℹ fail 0
+2026-11-05T13:37:49.6985025Z ℹ cancelled 0
+2026-11-05T13:37:49.6985370Z ℹ skipped 0
+2026-11-05T13:37:49.6985663Z ℹ todo 0
+2026-11-05T13:37:49.6985980Z ℹ duration_ms 197.539207
+2026-11-05T13:37:49.8005152Z ✔ all five supported boxes reconcile signed canonical evidence; unsupported boxes stay unknown (2.598098ms)
+2026-11-05T13:37:49.8007405Z ✔ VAT and net amounts, zero/repayment direction and every supported box fail closed on disagreement (1.967432ms)
+2026-11-05T13:37:49.8008858Z ✔ nonrecoverable supplier VAT is not inferred from gross minus net (0.317579ms)
+2026-11-05T13:37:49.8010247Z ✔ dated corrections are differences and never rewrite historical VAT movements (0.421582ms)
+2026-11-05T13:37:49.8011720Z ✔ mixed 20/5/0 line fixtures from the existing calculator reconcile in both price bases (0.524676ms)
+2026-11-05T13:37:49.8013077Z ✔ penny and aggregate values above Number safe integer retain exact reconciliation (0.341897ms)
+2026-11-05T13:37:49.8014254Z ✔ duplicate journals, malformed money, wrong signs, wrong boxes and impossible dates reject (0.438736ms)
+2026-11-05T13:37:49.8015503Z ✔ non-VAT businesses are not applicable, never a reconciled or filing-ready return (0.168731ms)
+2026-11-05T13:37:49.8017086Z ✔ coverage states are detached and immutable; engine cases do not claim actual period eligibility (0.258942ms)
+2026-11-05T13:37:49.8089088Z ℹ tests 9
+2026-11-05T13:37:49.8090041Z ℹ suites 0
+2026-11-05T13:37:49.8090523Z ℹ pass 9
+2026-11-05T13:37:49.8090923Z ℹ fail 0
+2026-11-05T13:37:49.8091411Z ℹ cancelled 0
+2026-11-05T13:37:49.8091863Z ℹ skipped 0
+2026-11-05T13:37:49.8092504Z ℹ todo 0
+2026-11-05T13:37:49.8093047Z ℹ duration_ms 68.709464
+2026-11-05T13:37:50.0821457Z ✔ difference journals preserve double entry, per-line VAT identity and direction for sales and recoverable/nonrecoverable bills (9.878829ms)
+2026-11-05T13:37:50.0823394Z ✔ decimal precision remains integer exact and a zero delta emits no journal legs (0.837613ms)
+2026-11-05T13:37:50.0824828Z ✔ frozen authority ignores only changed quantities/prices and derived tax amounts (1.464545ms)
+2026-11-05T13:37:50.0826160Z ✔ line correction accepts only existing positions and exact decimal strings (1.362219ms)
+2026-11-05T13:37:50.0827329Z ✔ request contract rejects injected fields, invalid dates and missing reasons (0.526125ms)
+2026-11-05T13:37:50.0828756Z ✔ schema absence preserves originals; partial schema and detached amendment heads fail closed (1.128181ms)
+2026-11-05T13:37:50.1091622Z ℹ tests 6
+2026-11-05T13:37:50.1093135Z ℹ suites 0
+2026-11-05T13:37:50.1094086Z ℹ pass 6
+2026-11-05T13:37:50.1095481Z ℹ fail 0
+2026-11-05T13:37:50.1096176Z ℹ cancelled 0
+2026-11-05T13:37:50.1096663Z ℹ skipped 0
+2026-11-05T13:37:50.1097090Z ℹ todo 0
+2026-11-05T13:37:50.1097546Z ℹ duration_ms 185.076546
+2026-11-05T13:37:50.2146423Z ✔ sensitive audit and export roles fail closed (0.777449ms)
+2026-11-05T13:37:50.2150032Z ✔ audit filters reject unsupported or unbounded values and preserve literal search (1.851124ms)
+2026-11-05T13:37:50.2156257Z ✔ continuation preserves microseconds and binds company and every filter (1.874123ms)
+2026-11-05T13:37:50.2159353Z ✔ fixed public projection excludes source, provider errors and unsafe fields (0.506688ms)
+2026-11-05T13:37:50.2167218Z ✔ CSV neutralises spreadsheet formulas and controls, quotes delimiters and never silently truncates (3.855317ms)
+2026-11-05T13:37:50.2261200Z ℹ tests 5
+2026-11-05T13:37:50.2261882Z ℹ suites 0
+2026-11-05T13:37:50.2262656Z ℹ pass 5
+2026-11-05T13:37:50.2263227Z ℹ fail 0
+2026-11-05T13:37:50.2268602Z ℹ cancelled 0
+2026-11-05T13:37:50.2268998Z ℹ skipped 0
+2026-11-05T13:37:50.2269389Z ℹ todo 0
+2026-11-05T13:37:50.2269777Z ℹ duration_ms 75.69956
+2026-11-05T13:37:50.3148084Z ✔ legacy compatibility writes accept only the five known write roles (0.751518ms)
+2026-11-05T13:37:50.3156636Z ✔ compatibility permission does not give staff or members native draft authority (0.191026ms)
+2026-11-05T13:37:50.3239310Z ℹ tests 2
+2026-11-05T13:37:50.3239945Z ℹ suites 0
+2026-11-05T13:37:50.3240528Z ℹ pass 2
+2026-11-05T13:37:50.3240961Z ℹ fail 0
+2026-11-05T13:37:50.3241418Z ℹ cancelled 0
+2026-11-05T13:37:50.3241893Z ℹ skipped 0
+2026-11-05T13:37:50.3242594Z ℹ todo 0
+2026-11-05T13:37:50.3243161Z ℹ duration_ms 59.162212
+2026-11-05T13:37:50.5438909Z ✔ last active owner cannot leave or be demoted; another active owner permits either (1.408101ms)
+2026-11-05T13:37:50.5441212Z ✔ inactive, ambiguous and unknown memberships cannot supply owner authority or protection (0.41683ms)
+2026-11-05T13:37:50.5446615Z ✔ nonowners may leave themselves but cannot remove others or grant any role (0.410971ms)
+2026-11-05T13:37:50.5448252Z ✔ member mutations reject duplicate, missing, ambiguous and invalid-role targets (0.250465ms)
+2026-11-05T13:37:50.5449307Z ✔ company request bodies admit current fields and reject mass assignment and malformed types (5.632192ms)
+2026-11-05T13:37:50.5556815Z ℹ tests 5
+2026-11-05T13:37:50.5557941Z ℹ suites 0
+2026-11-05T13:37:50.5558628Z ℹ pass 5
+2026-11-05T13:37:50.5559348Z ℹ fail 0
+2026-11-05T13:37:50.5559966Z ℹ cancelled 0
+2026-11-05T13:37:50.5560824Z ℹ skipped 0
+2026-11-05T13:37:50.5561460Z ℹ todo 0
+2026-11-05T13:37:50.5562137Z ℹ duration_ms 137.097607
+2026-11-05T13:37:51.1342138Z ✔ company endpoints reject unauthenticated requests and invalid roles before database or identity work (108.154538ms)
+2026-11-05T13:37:51.1596588Z ✔ legacy settlement cannot mutate invoice or bill balances, regardless of role or supplied company (50.227966ms)
+2026-11-05T13:37:51.2081586Z ✔ legacy bank mutations reject contradictory or malformed caller company before membership or writes (47.723531ms)
+2026-11-05T13:37:51.2322536Z ✔ generic entity reads bind explicit workspace context and recheck active membership while preserving viewer reads (24.965163ms)
+2026-11-05T13:37:51.2613921Z ✔ generic lists and deletes honor selected company without broadening malformed context (29.506135ms)
+2026-11-05T13:37:51.3093067Z ✔ generic updates preserve tenant ownership and reject stale or malformed workspace context (47.439762ms)
+2026-11-05T13:37:51.3907433Z ✔ generic creates reject malformed or contradictory company context before membership and insert (81.196678ms)
+2026-11-05T13:37:51.4111515Z ✔ legacy AI rejects malformed explicit company and mismatched membership before company data or provider access (20.651965ms)
+2026-11-05T13:37:51.4413193Z ✔ bank imports reject stale row companies atomically before access and preserve valid selected-company imports (29.626629ms)
+2026-11-05T13:37:51.9860299Z ✔ complete legacy entity inventory denies every CRUD write to inactive, foreign and viewer actors (543.875295ms)
+2026-11-05T13:37:52.1461091Z ✔ complete legacy entity inventory permits scoped viewer reads and denies inactive, foreign and stale-context reads (161.59878ms)
+2026-11-05T13:37:52.1794522Z ✔ legacy function inventory authenticates every action and rejects inactive or foreign company access before effects (33.501116ms)
+2026-11-05T13:37:52.2474053Z ℹ tests 12
+2026-11-05T13:37:52.2474598Z ℹ suites 0
+2026-11-05T13:37:52.2474904Z ℹ pass 12
+2026-11-05T13:37:52.2475181Z ℹ fail 0
+2026-11-05T13:37:52.2475667Z ℹ cancelled 0
+2026-11-05T13:37:52.2476121Z ℹ skipped 0
+2026-11-05T13:37:52.2476523Z ℹ todo 0
+2026-11-05T13:37:52.2476869Z ℹ duration_ms 1484.275908
+2026-11-05T13:37:52.4434489Z ✔ safe errors retain fixed business guidance and redact database/provider/auth diagnostics (1.554624ms)
+2026-11-05T13:37:52.4592954Z ✔ unhandled async route failures expose neither stack traces nor raw diagnostics in response or log (45.194293ms)
+2026-11-05T13:37:52.4754474Z ℹ tests 2
+2026-11-05T13:37:52.4755664Z ℹ suites 0
+2026-11-05T13:37:52.4755982Z ℹ pass 2
+2026-11-05T13:37:52.4756298Z ℹ fail 0
+2026-11-05T13:37:52.4756637Z ℹ cancelled 0
+2026-11-05T13:37:52.4756966Z ℹ skipped 0
+2026-11-05T13:37:52.4757270Z ℹ todo 0
+2026-11-05T13:37:52.4757651Z ℹ duration_ms 149.58996
+2026-11-05T13:37:53.0303762Z ✔ admission limits repeated requests, ignores spoofed forwarding headers and resets at boundary (1.313728ms)
+2026-11-05T13:37:53.0310662Z ✔ capacity is bounded without evicting live counters; expired clients free capacity (0.237647ms)
+2026-11-05T13:37:53.0312689Z ✔ invalid admission settings fail closed and API responses are never cached (1.061591ms)
+2026-11-05T13:37:53.0314752Z ✔ fetch metadata boundary preserves safe methods and rejects only explicit cross-site unsafe requests without Origin (0.183066ms)
+2026-11-05T13:37:53.0316638Z ✔ fetch metadata comparison handles mixed-case cross-site values without reflecting them (0.211662ms)
+2026-11-05T13:37:53.0318477Z ✔ outer error classification trusts only fixed origin and matching parser cases (0.513308ms)
+2026-11-05T13:37:53.1106297Z ✔ actual app rejects malformed JSON before Clerk without echoing body or parser details (218.611348ms)
+2026-11-05T13:37:53.1528702Z ✔ actual app rejects oversized JSON with fixed 413 and unsupported charset with fixed 415 (88.161897ms)
+2026-11-05T13:37:53.1588633Z ✔ actual app rejects disallowed origins without reflecting origin or granting CORS access (6.225706ms)
+2026-11-05T13:37:53.1639260Z ✔ allowed credentialed CORS preflight retains its existing response (5.010427ms)
+2026-11-05T13:37:53.1729402Z ✔ actual app catches synchronous and async middleware failures without arbitrary diagnostic logs (9.1516ms)
+2026-11-05T13:37:53.1822921Z ✔ existing draft parser response and explicitly handled business responses are preserved (8.319481ms)
+2026-11-05T13:37:53.1824338Z ✔ an already-started response closes without headers, body, or raw errors reaching the default handler (0.38148ms)
+2026-11-05T13:37:53.1915189Z ✔ actual app limits URL-encoded parameter counts before Clerk and suppresses server fingerprint (6.865656ms)
+2026-11-05T13:37:53.1916453Z ✔ logger serializes errors as a fixed category and redacts bodies, session tokens and provider responses (2.072918ms)
+2026-11-05T13:37:53.2024619Z ✔ actual app rejects cross-site browser writes without Origin before parsing or Clerk (11.614038ms)
+2026-11-05T13:37:53.2118334Z ✔ allowed cross-site origins and non-browser clients still reach the parser (8.806272ms)
+2026-11-05T13:37:53.2122993Z ✔ implicit error log messages cannot escape the structured error serializer (0.739824ms)
+2026-11-05T13:37:53.2148062Z ✔ HTTP logs omit sensitive request targets, credentials, payloads and response bodies (4.261385ms)
+2026-11-05T13:37:53.3509503Z ℹ tests 19
+2026-11-05T13:37:53.3510086Z ℹ suites 0
+2026-11-05T13:37:53.3510414Z ℹ pass 19
+2026-11-05T13:37:53.3510725Z ℹ fail 0
+2026-11-05T13:37:53.3511500Z ℹ cancelled 0
+2026-11-05T13:37:53.3511951Z ℹ skipped 0
+2026-11-05T13:37:53.3512287Z ℹ todo 0
+2026-11-05T13:37:53.3512922Z ℹ duration_ms 634.410733
+2026-11-05T13:37:53.4573912Z ✔ discounted bill claims retain stored discounted pennies for full and partial returns (3.655295ms)
+2026-11-05T13:37:53.4575984Z ✔ commercial discount credits are never returned-item credit candidates (0.326363ms)
+2026-11-05T13:37:53.4577512Z ✔ claims on an original line with zero allocated discount keep legacy partial VAT rounding (0.541108ms)
+2026-11-05T13:37:53.4578968Z ✔ expected credit retains original standard VAT evidence (0.247284ms)
+2026-11-05T13:37:53.4580201Z ✔ inclusive standard claim extracts VAT using the original treatment (0.227916ms)
+2026-11-05T13:37:53.4581464Z ✔ expected credit retains original reduced VAT evidence (0.116747ms)
+2026-11-05T13:37:53.4582877Z ✔ inclusive reduced claim extracts VAT using the original treatment (0.190556ms)
+2026-11-05T13:37:53.4584148Z ✔ expected credit retains original zero VAT evidence (0.237764ms)
+2026-11-05T13:37:53.4585395Z ✔ inclusive zero claim extracts VAT using the original treatment (1.217145ms)
+2026-11-05T13:37:53.4586587Z ✔ expected credit retains original exempt VAT evidence (0.302271ms)
+2026-11-05T13:37:53.4587777Z ✔ inclusive exempt claim extracts VAT using the original treatment (0.197145ms)
+2026-11-05T13:37:53.4589060Z ✔ expected credit retains original outside_scope VAT evidence (0.091591ms)
+2026-11-05T13:37:53.4590139Z ✔ inclusive outside_scope claim extracts VAT using the original treatment (0.054677ms)
+2026-11-05T13:37:53.4591147Z ✔ expected credit retains original no_vat VAT evidence (0.041128ms)
+2026-11-05T13:37:53.4603303Z ✔ inclusive no_vat claim extracts VAT using the original treatment (0.082379ms)
+2026-11-05T13:37:53.4604817Z ✔ partial quantities use the original exclusive rate with exact half-up rounding (0.232071ms)
+2026-11-05T13:37:53.4606533Z ✔ inclusive input extracts VAT from rounded gross, including fractional quantities (0.111816ms)
+2026-11-05T13:37:53.4608220Z ✔ full-quantity expectation preserves saved line totals instead of summing split rounding (0.104224ms)
+2026-11-05T13:37:53.4609857Z ✔ large prices and quantities stay exact without floating point multiplication (0.074722ms)
+2026-11-05T13:37:53.4611181Z ✔ drafts, wrong kinds and malformed source evidence cannot become claims (0.177544ms)
+2026-11-05T13:37:53.4612679Z ✔ selection rejects nonexistent indices, invalid decimals and excessive quantities (0.325297ms)
+2026-11-05T13:37:53.4614283Z ✔ stored totals and tax evidence must agree with original deterministic calculation (0.203478ms)
+2026-11-05T13:37:53.4615638Z ✔ candidate identifies the exact source and accepts drafts only as suggestions (0.171926ms)
+2026-11-05T13:37:53.4626469Z ✔ candidate rejects wrong company, supplier, bill, revision and document kind (0.198559ms)
+2026-11-05T13:37:53.4627866Z ✔ part and surcharge remain independent even with identical descriptions (0.10926ms)
+2026-11-05T13:37:53.4628803Z ✔ malformed candidate indices and mappings fail closed (0.106841ms)
+2026-11-05T13:37:53.4630114Z ✔ a new claim awaits credit and has its full expected balance (0.281591ms)
+2026-11-05T13:37:53.4631349Z ✔ partial and multiple receipts retain exact monetary and quantity remainders (0.214686ms)
+2026-11-05T13:37:53.4632589Z ✔ a lower-price credit does not close the claim even if it covers the full quantity (0.110623ms)
+2026-11-05T13:37:53.4640625Z ✔ matching gross with different net and VAT requires review (0.1051ms)
+2026-11-05T13:37:53.4642069Z ✔ over-crediting is visible rather than clamped out of received totals (0.087893ms)
+2026-11-05T13:37:53.4643742Z ✔ invalidated receipts do not satisfy a claim and explicitly require review (0.093067ms)
+2026-11-05T13:37:53.4644982Z ✔ receipt quantities accumulate exactly to four decimal places (0.069568ms)
+2026-11-05T13:37:53.4647065Z ✔ malformed money, inconsistent totals and numeric quantities are rejected (0.194088ms)
+2026-11-05T13:37:53.4648636Z ✔ tracking functions leave source documents and receipt evidence unchanged (0.204918ms)
+2026-11-05T13:37:53.4747944Z ℹ tests 35
+2026-11-05T13:37:53.4748569Z ℹ suites 0
+2026-11-05T13:37:53.4748955Z ℹ pass 35
+2026-11-05T13:37:53.4749486Z ℹ fail 0
+2026-11-05T13:37:53.4749943Z ℹ cancelled 0
+2026-11-05T13:37:53.4750462Z ℹ skipped 0
+2026-11-05T13:37:53.4750923Z ℹ todo 0
+2026-11-05T13:37:53.4751445Z ℹ duration_ms 78.29242
+2026-11-05T13:37:53.5958141Z ✔ evidence is content-derived and immutable; duplicates survive new filenames and channels (2.024178ms)
+2026-11-05T13:37:53.5960161Z ✔ source descriptors cannot be forged or copied from unverified JSON (1.628568ms)
+2026-11-05T13:37:53.5964492Z ✔ source rejects unsupported media, bad signatures, unsafe names and oversized bytes (0.434793ms)
+2026-11-05T13:37:53.5966298Z ✔ supported image signatures are accepted without claiming a successful image parse (0.22715ms)
+2026-11-05T13:37:53.5967656Z ✔ transcripts are bounded, immutable and tied to the exact source (3.365542ms)
+2026-11-05T13:37:53.5969078Z ✔ a coherent candidate remains unposted and requires explicit source, supplier and tax review (2.049221ms)
+2026-11-05T13:37:53.5970389Z ✔ fabricated citations, offsets, quotes and sources are rejected (2.390599ms)
+2026-11-05T13:37:53.5971607Z ✔ missing citations and absent identifiers become explicit review errors (0.450905ms)
+2026-11-05T13:37:53.5974185Z ✔ unknown fields, instructions as commands, excessive lines and values fail shape validation (0.605753ms)
+2026-11-05T13:37:53.5975965Z ✔ sparse provider arrays and non-numeric page references cannot bypass validation (0.709066ms)
+2026-11-05T13:37:53.5977579Z ✔ prototype-bearing candidates and accessor fields are rejected without evaluation (0.497502ms)
+2026-11-05T13:37:53.5979119Z ✔ invalid decimal strings and numeric JSON values never get rounded or coerced (1.899942ms)
+2026-11-05T13:37:53.5980623Z ✔ invalid VAT, fractional-penny totals and inconsistent line/document totals are flagged (0.98849ms)
+2026-11-05T13:37:53.5982267Z ✔ totals checks retain exact integer precision at the native money limit (0.553721ms)
+2026-11-05T13:37:53.5984055Z ✔ invalid dates, unsupported currency and missing credit original are explicit errors (0.726003ms)
+2026-11-05T13:37:53.5985384Z ✔ prompt-like instructions in a cited description remain inert text (0.363693ms)
+2026-11-05T13:37:53.5986512Z ✔ reviewed native envelope is parsed and stays an unposted draft candidate (1.141809ms)
+2026-11-05T13:37:53.5987652Z ✔ source, supplier and tax acknowledgements are mandatory and bound to the current payload (0.632371ms)
+2026-11-05T13:37:53.5993788Z ✔ native strict contract rejects model totals, undeclared metadata and invalid decimals (0.296ms)
+2026-11-05T13:37:53.5995023Z ✔ draft adapters reject coercible kinds, source accessors and sparse source lines (0.289073ms)
+2026-11-05T13:37:53.6009801Z ✔ credits require matching explicit original references, reason and effective date (0.782582ms)
+2026-11-05T13:37:53.6088832Z ℹ tests 21
+2026-11-05T13:37:53.6089249Z ℹ suites 0
+2026-11-05T13:37:53.6089840Z ℹ pass 21
+2026-11-05T13:37:53.6090508Z ℹ fail 0
+2026-11-05T13:37:53.6090890Z ℹ cancelled 0
+2026-11-05T13:37:53.6091208Z ℹ skipped 0
+2026-11-05T13:37:53.6091488Z ℹ todo 0
+2026-11-05T13:37:53.6091838Z ℹ duration_ms 92.215107
+2026-11-05T13:37:53.9200871Z ✔ native upload derives identity and SHA from bytes and rejects client identity fields (3.274273ms)
+2026-11-05T13:37:53.9203107Z ✔ strict base64 rejects ignored whitespace, extra padding, URL alphabet and noncanonical trailing bits (0.388182ms)
+2026-11-05T13:37:53.9205034Z ✔ upload caps the encoded allocation and decoded bytes at 5 MiB, accepting the exact limit (51.587242ms)
+2026-11-05T13:37:53.9206866Z ✔ native upload rejects media mismatches, unsafe filenames and prototype-bearing payloads (0.953939ms)
+2026-11-05T13:37:53.9208605Z ✔ verified storage reconstruction rejects tampered hash, bytes, length, format and channel (0.986534ms)
+2026-11-05T13:37:53.9210355Z ✔ download disposition safely encodes quotes, unicode and header delimiters as attachment (0.552291ms)
+2026-11-05T13:37:53.9212636Z ✔ review freshness changes with calculation, mapping, source revision and entered intent (2.901726ms)
+2026-11-05T13:37:53.9214351Z ✔ replay intent remains source-bound and rejects caller totals (0.709921ms)
+2026-11-05T13:37:53.9215829Z ✔ upload deduplicates within a company with one source and one audit while retaining original metadata (1.383122ms)
+2026-11-05T13:37:53.9217361Z ✔ same bytes in another company create independent evidence without revealing the first source (0.784371ms)
+2026-11-05T13:37:53.9219272Z ✔ current membership and write role are required even when the content is a duplicate (0.496062ms)
+2026-11-05T13:37:53.9220158Z ✔ the in-transaction native save helper retains its own active membership and draft-write gate (0.565705ms)
+2026-11-05T13:37:53.9317131Z ℹ tests 12
+2026-11-05T13:37:53.9317614Z ℹ suites 0
+2026-11-05T13:37:53.9318025Z ℹ pass 12
+2026-11-05T13:37:53.9318421Z ℹ fail 0
+2026-11-05T13:37:53.9318716Z ℹ cancelled 0
+2026-11-05T13:37:53.9319078Z ℹ skipped 0
+2026-11-05T13:37:53.9319415Z ℹ todo 0
+2026-11-05T13:37:53.9319772Z ℹ duration_ms 225.081759
+2026-11-05T13:37:54.0849958Z ✔ job identity is stable, canonical and binds company, source bytes, recipe, request and retry policy (3.836097ms)
+2026-11-05T13:37:54.0852049Z ✔ creation requires byte-verified evidence and bounded explicit recipe, identity and retry settings (1.168386ms)
+2026-11-05T13:37:54.0855073Z ✔ a cited mixed-VAT invoice remains immutable evidence for explicit native supplier/tax review (4.034143ms)
+2026-11-05T13:37:54.0857118Z ✔ supplier credit evidence requires original bill and line selection without matching or posting automatically (1.360295ms)
+2026-11-05T13:37:54.0860178Z ✔ malformed candidate accounting values stay visible review errors using existing validators (2.162403ms)
+2026-11-05T13:37:54.0861824Z ✔ incorrect source, hash, page, quote and offsets cannot become accepted citations (4.478462ms)
+2026-11-05T13:37:54.0863798Z ✔ document instructions remain inert cited data and unsupported command fields are rejected (1.407625ms)
+2026-11-05T13:37:54.0865599Z ✔ exact cloned completion is idempotent, changed raw payload conflicts even if sanitized reviews match (1.779083ms)
+2026-11-05T13:37:54.0867365Z ✔ completion requires a verified result and matching company, source id and byte hash (3.098222ms)
+2026-11-05T13:37:54.0868959Z ✔ transient failures wait for the bounded retry deadline and preserve prior immutable outcomes (1.903926ms)
+2026-11-05T13:37:54.0870474Z ✔ retry budgets terminate repeated transient failures and permanent failures never retry (0.962373ms)
+2026-11-05T13:37:54.0872147Z ✔ invalid clocks, revisions, unbounded retry hints and raw provider errors fail closed (0.872939ms)
+2026-11-05T13:37:54.0873854Z ✔ cancellation is terminal, clears result availability and rejects late responses (0.987635ms)
+2026-11-05T13:37:54.0875336Z ✔ supersession binds a different job to the same company/evidence and fences stale deliveries (1.118905ms)
+2026-11-05T13:37:54.0876876Z ✔ page, transcript, result byte, node and depth bounds reject oversized provider output (27.086132ms)
+2026-11-05T13:37:54.0879059Z ✔ non-JSON values, sparse arrays, getters and extra envelope fields are never evaluated or accepted (1.356262ms)
+2026-11-05T13:37:54.0966834Z ℹ tests 16
+2026-11-05T13:37:54.0967375Z ℹ suites 0
+2026-11-05T13:37:54.0967942Z ℹ pass 16
+2026-11-05T13:37:54.0968376Z ℹ fail 0
+2026-11-05T13:37:54.0968696Z ℹ cancelled 0
+2026-11-05T13:37:54.0969145Z ℹ skipped 0
+2026-11-05T13:37:54.0969458Z ℹ todo 0
+2026-11-05T13:37:54.0969837Z ℹ duration_ms 122.158876
+2026-11-05T13:37:54.2157741Z ✔ worker verifies source and adapts bounded cited output into review only, with immutable originals (9.970305ms)
+2026-11-05T13:37:54.2162163Z ✔ enqueue is actor-bound/idempotent, prevents competing source requests, and requires current authority (1.916388ms)
+2026-11-05T13:37:54.2163895Z ✔ source size, media, tenant, hash, revision and linked-document changes fail before dispatch (2.042182ms)
+2026-11-05T13:37:54.2164971Z ✔ two workers race one job but dispatch exactly once (2.285822ms)
+2026-11-05T13:37:54.2188054Z ✔ shared repository limits concurrent executions across multiple workers and different sources (8.95723ms)
+2026-11-05T13:37:54.2364980Z ✔ timeout fences an uncooperative adapter and retains actual capacity until transport closure (17.268663ms)
+2026-11-05T13:37:54.2736823Z ✔ cancel and supersede signal abort and late output cannot replace current state (4.14897ms)
+2026-11-05T13:37:54.2739152Z ✔ expired abandoned leases are recoverable but cannot release execution slots or accept stale completion (1.382762ms)
+2026-11-05T13:37:54.2742766Z ✔ revoked access, changed evidence or converted source at outcome time cannot retain an extraction result (3.66587ms)
+2026-11-05T13:37:54.2744455Z ✔ lease expiry during the final authority check rejects a previously timely result (1.321394ms)
+2026-11-05T13:37:54.2745673Z ✔ transient failures use bounded retry deadlines/budgets; raw failures never leak diagnostics (1.150956ms)
+2026-11-05T13:37:54.2746832Z ✔ permanent unsupported/encrypted failures do not retry and missing adapters fail closed (1.108899ms)
+2026-11-05T13:37:54.2747976Z ✔ output rejects oversized bytes, excessive chunks/pages, duplicate keys, deep JSON and invalid UTF-8 (22.108244ms)
+2026-11-05T13:37:54.2749206Z ✔ transport byte mutation cannot rewrite source evidence and malformed candidate stays an explicit review issue (0.807007ms)
+2026-11-05T13:37:54.2776318Z ✔ unconfirmed transport closure retains capacity even when its output has completed (5.504573ms)
+2026-11-05T13:37:54.2895027Z ✔ a hung authority adapter is bounded and cannot accumulate unlimited orphan resolutions (10.052007ms)
+2026-11-05T13:37:54.2906946Z ✔ queue and settings limits fail explicitly; external repository errors return only bounded status (0.829596ms)
+2026-11-05T13:37:54.2990927Z ℹ tests 17
+2026-11-05T13:37:54.2991581Z ℹ suites 0
+2026-11-05T13:37:54.2992082Z ℹ pass 17
+2026-11-05T13:37:54.2992869Z ℹ fail 0
+2026-11-05T13:37:54.2993325Z ℹ cancelled 0
+2026-11-05T13:37:54.2993904Z ℹ skipped 0
+2026-11-05T13:37:54.2994351Z ℹ todo 0
+2026-11-05T13:37:54.2994945Z ℹ duration_ms 157.345475
+2026-11-05T13:37:54.5777912Z ✔ retired chart bootstrap cannot reach a data handler for any authenticated caller or body (96.067629ms)
+2026-11-05T13:37:54.5997132Z ✔ retirement leaves unrelated functions reachable and preserves generic financial write guards (25.810448ms)
+2026-11-05T13:37:54.6107259Z ℹ tests 2
+2026-11-05T13:37:54.6107899Z ℹ suites 0
+2026-11-05T13:37:54.6108417Z ℹ pass 2
+2026-11-05T13:37:54.6108924Z ℹ fail 0
+2026-11-05T13:37:54.6109406Z ℹ cancelled 0
+2026-11-05T13:37:54.6109838Z ℹ skipped 0
+2026-11-05T13:37:54.6110320Z ℹ todo 0
+2026-11-05T13:37:54.6110790Z ℹ duration_ms 224.71607
+2026-11-05T13:37:54.7230940Z ✔ exact invoice receipt keeps confidence below 100 and proposes full allocation (1.78132ms)
+2026-11-05T13:37:54.7232838Z ✔ one receipt can match multiple invoices (0.32235ms)
+2026-11-05T13:37:54.7237501Z ✔ partial payment records allocation separately from the remaining invoice balance (13.180034ms)
+2026-11-05T13:37:54.7238960Z ✔ small excess against a strong invoice signal is an overpayment candidate (0.413263ms)
+2026-11-05T13:37:54.7245215Z ✔ receipt with no invoice remains a no-match review result (0.306633ms)
+2026-11-05T13:37:54.7246703Z ✔ incorrect reference can still match from amount, name, and date evidence (0.20469ms)
+2026-11-05T13:37:54.7254793Z ✔ delayed payment can match when reference and party evidence are strong (0.224793ms)
+2026-11-05T13:37:54.7256101Z ✔ multiple payments against one invoice can be reviewed as sequential allocations (0.524692ms)
+2026-11-05T13:37:54.7257235Z ✔ slightly different customer names produce a reviewable close-name match (0.272599ms)
+2026-11-05T13:37:54.7258369Z ✔ partially unexplained revenue leaves the unmatched receipt value visible (0.561636ms)
+2026-11-05T13:37:54.7344133Z ℹ tests 10
+2026-11-05T13:37:54.7344811Z ℹ suites 0
+2026-11-05T13:37:54.7345251Z ℹ pass 10
+2026-11-05T13:37:54.7345691Z ℹ fail 0
+2026-11-05T13:37:54.7346193Z ℹ cancelled 0
+2026-11-05T13:37:54.7346705Z ℹ skipped 0
+2026-11-05T13:37:54.7347162Z ℹ todo 0
+2026-11-05T13:37:54.7348001Z ℹ duration_ms 80.276946
+2026-11-05T13:37:54.8265922Z ✔ prioritises an old, high-value overdue invoice and includes actual payment evidence (1.650526ms)
+2026-11-05T13:37:54.8267384Z ✔ excludes paid, cancelled and not-yet-due invoices from a collection queue (0.289802ms)
+2026-11-05T13:37:54.8272901Z ✔ keeps customer totals separate while ranking independent overdue invoices (0.40401ms)
+2026-11-05T13:37:54.8344260Z ℹ tests 3
+2026-11-05T13:37:54.8345039Z ℹ suites 0
+2026-11-05T13:37:54.8345517Z ℹ pass 3
+2026-11-05T13:37:54.8346005Z ℹ fail 0
+2026-11-05T13:37:54.8346499Z ℹ cancelled 0
+2026-11-05T13:37:54.8346939Z ℹ skipped 0
+2026-11-05T13:37:54.8347317Z ℹ todo 0
+2026-11-05T13:37:54.8353387Z ℹ duration_ms 58.432006
+2026-11-05T13:37:54.9301881Z ✔ VAT scenario: standard-rate sales (1.918424ms)
+2026-11-05T13:37:54.9303196Z ✔ VAT scenario: reduced-rate sales (0.135491ms)
+2026-11-05T13:37:54.9313001Z ✔ VAT scenario: zero-rate sales (0.111464ms)
+2026-11-05T13:37:54.9314605Z ✔ VAT scenario: exempt sales (0.146102ms)
+2026-11-05T13:37:54.9315592Z ✔ VAT scenario: no-VAT purchase (0.13863ms)
+2026-11-05T13:37:54.9317513Z ✔ VAT scenario: input VAT reclaim (0.085879ms)
+2026-11-05T13:37:54.9318407Z ✔ VAT scenario: sales credit note (0.077123ms)
+2026-11-05T13:37:54.9319261Z ✔ VAT scenario: supplier credit note (0.064428ms)
+2026-11-05T13:37:54.9320303Z ✔ VAT scenario: mixed sales and purchase (0.134662ms)
+2026-11-05T13:37:54.9321213Z ✔ VAT scenario: box 2 feeds box 3 (0.286353ms)
+2026-11-05T13:37:54.9322125Z ✔ VAT scenario: box 8 retained (0.160855ms)
+2026-11-05T13:37:54.9323282Z ✔ VAT scenario: box 9 retained (0.066271ms)
+2026-11-05T13:37:54.9323989Z ✔ VAT scenario: positive manual box 1 adjustment (3.33213ms)
+2026-11-05T13:37:54.9324703Z ✔ VAT scenario: negative manual box 4 adjustment (0.049767ms)
+2026-11-05T13:37:54.9325296Z ✔ VAT scenario: manual box 6 adjustment (0.05878ms)
+2026-11-05T13:37:54.9325841Z ✔ VAT scenario: manual box 7 adjustment (0.041616ms)
+2026-11-05T13:37:54.9326410Z ✔ VAT scenario: rounding in pence (0.041988ms)
+2026-11-05T13:37:54.9336288Z ✔ VAT scenario: multiple output sources (1.123054ms)
+2026-11-05T13:37:54.9337401Z ✔ VAT scenario: multiple input sources (0.140044ms)
+2026-11-05T13:37:54.9338384Z ✔ VAT scenario: output credit offsets invoice (0.038674ms)
+2026-11-05T13:37:54.9339240Z ✔ VAT scenario: input credit offsets bill (0.027573ms)
+2026-11-05T13:37:54.9339917Z ✔ VAT scenario: blank return (0.030209ms)
+2026-11-05T13:37:54.9346110Z ✔ VAT scenario: all nine boxes can coexist (0.026274ms)
+2026-11-05T13:37:54.9347391Z ✔ VAT scenario: derived boxes cannot be manual adjustments (0.082919ms)
+2026-11-05T13:37:54.9351649Z ✔ VAT scenario: generic entity writes cannot bypass the VAT workflow (0.155278ms)
+2026-11-05T13:37:54.9436184Z ℹ tests 25
+2026-11-05T13:37:54.9436684Z ℹ suites 0
+2026-11-05T13:37:54.9437048Z ℹ pass 25
+2026-11-05T13:37:54.9437375Z ℹ fail 0
+2026-11-05T13:37:54.9437758Z ℹ cancelled 0
+2026-11-05T13:37:54.9438449Z ℹ skipped 0
+2026-11-05T13:37:54.9438767Z ℹ todo 0
+2026-11-05T13:37:54.9439133Z ℹ duration_ms 70.693117
+2026-11-05T13:37:55.0934836Z ✔ source inventory grants no unverified destination, scope or retention assurance (3.540952ms)
+2026-11-05T13:37:55.0936858Z ✔ expiry, outage, revocation and unknown outcome never lose work or broaden unqualified access (0.458502ms)
+2026-11-05T13:37:55.0964344Z ✔ unknown services, malformed operation identity and premature destination entries fail closed (0.451226ms)
+2026-11-05T13:37:55.0974266Z ✔ every current AI completion caller is covered by explicit outbound data inventory (10.850125ms)
+2026-11-05T13:37:55.1692687Z ✔ pinned HMRC bytes reproduce all extracted cases and logical spreadsheet row references (76.509794ms)
+2026-11-05T13:37:55.1694736Z ✔ reference matrix covers all 130 exact amounts across five plans and four frequencies (1.554924ms)
+2026-11-05T13:37:55.1696461Z ✔ reference coverage never promotes payroll calculation or another tax year (12.315813ms)
+2026-11-05T13:37:55.1870019Z ✔ pinned PAYE v1.1 source reproduces all cells, provenance and published changes (86.167199ms)
+2026-11-05T13:37:55.1899676Z ✔ PAYE references retain every regional sheet, exact signed money and sequence links (2.699602ms)
+2026-11-05T13:37:55.1902033Z ✔ regional PAYE references remain unqualified and cannot enable another tax year (8.235806ms)
+2026-11-05T13:37:55.3064916Z ✔ every registered payroll reference matches its pinned corpus without qualifying calculations (6.556019ms)
+2026-11-05T13:37:55.3104421Z ✔ contradictory reference descriptors fail at the ordinary registry boundary (11.92018ms)
+2026-11-05T13:37:55.3105841Z ✔ missing, wrong-year, reclassified and inconsistent corpus evidence fails closed (19.631827ms)
+2026-11-05T13:37:55.3107062Z ✔ incorrect declared count and frequencies cannot pass as reference coverage (2.679004ms)
+2026-11-05T13:37:55.3108189Z ✔ unregistered and malformed examples cannot be silently omitted from coverage (11.999792ms)
+2026-11-05T13:37:55.3109335Z ✔ case identity is unique across all dimensions of a linked corpus (1.551363ms)
+2026-11-05T13:37:55.3110517Z ✔ reference amounts and source coordinates must be complete exact values (48.905468ms)
+2026-11-05T13:37:55.3111729Z ✔ PAYE reference coverage preserves ordered workbook sequence lineage (39.220931ms)
+2026-11-05T13:37:55.3113017Z ✔ independent PAYE sequences can interleave without losing their own lineage (2.356857ms)
+2026-11-05T13:37:55.3114192Z ✔ registered reference identity rejects substituted valid hashes and source versions (10.842194ms)
+2026-11-05T13:37:55.3275860Z ✔ inventory remains in-house, unqualified and preserves all target domains and years (11.786223ms)
+2026-11-05T13:37:55.3279570Z ✔ vat-standard-2025-26: explicit unqualified result matches registered example (1.060809ms)
+2026-11-05T13:37:55.3288757Z ✔ vat-standard-2026-27: explicit unqualified result matches registered example (0.87256ms)
+2026-11-05T13:37:55.3290841Z ✔ vat-standard-2027-28: explicit unqualified result matches registered example (0.721824ms)
+2026-11-05T13:37:55.3293328Z ✔ vat-cash-2025-26: explicit unqualified result matches registered example (0.895701ms)
+2026-11-05T13:37:55.3295205Z ✔ vat-cash-2026-27: explicit unqualified result matches registered example (0.802001ms)
+2026-11-05T13:37:55.3297189Z ✔ vat-cash-2027-28: explicit unqualified result matches registered example (0.93909ms)
+2026-11-05T13:37:55.3306083Z ✔ vat-flat-rate-2025-26: explicit unqualified result matches registered example (0.571171ms)
+2026-11-05T13:37:55.3312728Z ✔ vat-flat-rate-2026-27: explicit unqualified result matches registered example (0.58856ms)
+2026-11-05T13:37:55.3317867Z ✔ vat-flat-rate-2027-28: explicit unqualified result matches registered example (1.577512ms)
+2026-11-05T13:37:55.3320956Z ✔ vat-annual-2025-26: explicit unqualified result matches registered example (0.736697ms)
+2026-11-05T13:37:55.3327012Z ✔ vat-annual-2026-27: explicit unqualified result matches registered example (0.553579ms)
+2026-11-05T13:37:55.3335792Z ✔ vat-annual-2027-28: explicit unqualified result matches registered example (0.801207ms)
+2026-11-05T13:37:55.3347605Z ✔ income-trade-2025-26: explicit unqualified result matches registered example (0.385068ms)
+2026-11-05T13:37:55.3349472Z ✔ income-trade-2026-27: explicit unqualified result matches registered example (0.361031ms)
+2026-11-05T13:37:55.3350971Z ✔ income-trade-2027-28: explicit unqualified result matches registered example (0.395178ms)
+2026-11-05T13:37:55.3384295Z ✔ income-property-2025-26: explicit unqualified result matches registered example (0.35805ms)
+2026-11-05T13:37:55.3390055Z ✔ income-property-2026-27: explicit unqualified result matches registered example (0.426365ms)
+2026-11-05T13:37:55.3391626Z ✔ income-property-2027-28: explicit unqualified result matches registered example (0.706056ms)
+2026-11-05T13:37:55.3393344Z ✔ income-mixed-2025-26: explicit unqualified result matches registered example (1.637075ms)
+2026-11-05T13:37:55.3394830Z ✔ income-mixed-2026-27: explicit unqualified result matches registered example (0.963187ms)
+2026-11-05T13:37:55.3396697Z ✔ income-mixed-2027-28: explicit unqualified result matches registered example (0.336778ms)
+2026-11-05T13:37:55.3398746Z ✔ corporation-trade-2025-26: explicit unqualified result matches registered example (0.367875ms)
+2026-11-05T13:37:55.3401795Z ✔ corporation-trade-2026-27: explicit unqualified result matches registered example (0.539326ms)
+2026-11-05T13:37:55.3403559Z ✔ corporation-trade-2027-28: explicit unqualified result matches registered example (0.578094ms)
+2026-11-05T13:37:55.3414540Z ✔ payroll-employee-2025-26: explicit unqualified result matches registered example (0.972221ms)
+2026-11-05T13:37:55.3416310Z ✔ payroll-employee-2026-27: explicit unqualified result matches registered example (0.793681ms)
+2026-11-05T13:37:55.3417916Z ✔ payroll-employee-2027-28: explicit unqualified result matches registered example (0.531584ms)
+2026-11-05T13:37:55.3419421Z ✔ payroll-director-2025-26: explicit unqualified result matches registered example (1.1922ms)
+2026-11-05T13:37:55.3421072Z ✔ payroll-director-2026-27: explicit unqualified result matches registered example (0.632691ms)
+2026-11-05T13:37:55.3422638Z ✔ payroll-director-2027-28: explicit unqualified result matches registered example (0.555198ms)
+2026-11-05T13:37:55.3440713Z ✔ payroll-starter-leaver-2025-26: explicit unqualified result matches registered example (0.544287ms)
+2026-11-05T13:37:55.3483481Z ✔ payroll-starter-leaver-2026-27: explicit unqualified result matches registered example (1.054667ms)
+2026-11-05T13:37:55.3493392Z ✔ payroll-starter-leaver-2027-28: explicit unqualified result matches registered example (0.698488ms)
+2026-11-05T13:37:55.3504374Z ✔ payroll-correction-2025-26: explicit unqualified result matches registered example (0.838594ms)
+2026-11-05T13:37:55.3505981Z ✔ payroll-correction-2026-27: explicit unqualified result matches registered example (0.589117ms)
+2026-11-05T13:37:55.3508414Z ✔ payroll-correction-2027-28: explicit unqualified result matches registered example (0.587738ms)
+2026-11-05T13:37:55.3510144Z ✔ payroll-loan-plan_1-2026-27: explicit unqualified result matches registered example (0.696212ms)
+2026-11-05T13:37:55.3511878Z ✔ payroll-loan-plan_2-2026-27: explicit unqualified result matches registered example (1.025004ms)
+2026-11-05T13:37:55.3515847Z ✔ payroll-loan-plan_4-2026-27: explicit unqualified result matches registered example (1.244049ms)
+2026-11-05T13:37:55.3517584Z ✔ payroll-loan-plan_5-2026-27: explicit unqualified result matches registered example (0.846548ms)
+2026-11-05T13:37:55.3519176Z ✔ payroll-loan-postgraduate-2026-27: explicit unqualified result matches registered example (0.6735ms)
+2026-11-05T13:37:55.3535807Z ✔ payroll-paye-rest_of_uk-2026-27: explicit unqualified result matches registered example (0.821695ms)
+2026-11-05T13:37:55.3538264Z ✔ payroll-paye-scotland-2026-27: explicit unqualified result matches registered example (0.757331ms)
+2026-11-05T13:37:55.3539902Z ✔ payroll-paye-wales-2026-27: explicit unqualified result matches registered example (1.10548ms)
+2026-11-05T13:37:55.3541851Z ✔ missing, inherited, extra and non-string dimensions fail closed (5.161577ms)
+2026-11-05T13:37:55.3543455Z ✔ unknown year and unknown combinations cannot inherit nearby qualification (1.471722ms)
+2026-11-05T13:37:55.3545432Z ✔ duplicate identity or selectors, missing provenance and unsupported status tampering reject registry (2.41602ms)
+2026-11-05T13:37:55.3547104Z ✔ payroll boundary rejects cross-domain case and does not mutate input (0.927862ms)
+2026-11-05T13:37:55.3548973Z ✔ discovery provenance cannot silently become reviewed qualification (3.024615ms)
+2026-11-05T13:37:55.3550484Z ✔ examples must exactly identify their case and explicitly reject calculation (3.562143ms)
+2026-11-05T13:37:55.3551917Z ✔ incomplete traceability and invalid source metadata reject the registry (5.216738ms)
+2026-11-05T13:37:55.3553657Z ✔ payroll scope covers every original engine/workflow bullet without promoting support (0.956448ms)
+2026-11-05T13:37:55.3555289Z ✔ missing payroll families, years, scenarios and speculative qualification fail closed (18.091416ms)
+2026-11-05T13:37:55.3564475Z ✔ malformed case rows retain the registry validation boundary (3.764478ms)
+2026-11-05T13:37:55.3689803Z ✔ credit envelope forces offset_outstanding and keeps strings (1.752982ms)
+2026-11-05T13:37:55.3700594Z ✔ purchase eligibility only true when explicitly true (0.262646ms)
+2026-11-05T13:37:55.3701635Z ✔ copy preserves order (1.135568ms)
+2026-11-05T13:37:55.3702722Z ✔ pence display (0.361285ms)
+2026-11-05T13:37:55.3703776Z ✔ doc paths (0.348504ms)
+2026-11-05T13:37:55.3715145Z ✔ discount inputs stay decimal strings and clearing sends explicit null for PATCH semantics (0.266114ms)
+2026-11-05T13:37:55.3716826Z ✔ discount adjustment preserves original revision and full source lines in native credit envelope (0.364495ms)
+2026-11-05T13:37:55.3718252Z ✔ post sends quoted If-Match and surfaces error code (1.131745ms)
+2026-11-05T13:37:55.3719829Z ✔ ordinary invoice/bill always sends posting_account_id; default clears to null (0.823798ms)
+2026-11-05T13:37:55.3721245Z ✔ error issues are preserved for field-level display (0.532491ms)
+2026-11-05T13:37:55.3722859Z ✔ updateAccount PATCHes with quoted sha256 revision; no delete method exists (0.368125ms)
+2026-11-05T13:37:55.3724363Z ✔ original payment identity recovery is a scoped read and sends no frozen financial payload (1.667677ms)
+2026-11-05T13:37:55.3725719Z ✔ conditional draft receipt is preserved and explicit clear survives native envelope (0.151901ms)
+2026-11-05T13:37:55.3727092Z ✔ conditional evidence capture/read use company scoped native endpoints (0.579243ms)
+2026-11-05T13:37:55.3733997Z ✔ list scopes and encodes company and optional bill, preserves abort signal and session credentials (2.212705ms)
+2026-11-05T13:37:55.3755287Z ✔ create sends exact quantities, bill revision and request identity without posting fields (0.574515ms)
+2026-11-05T13:37:55.3757373Z ✔ receipt confirmation and cancellation send quoted UUID revision and stable caller request identity (0.532725ms)
+2026-11-05T13:37:55.3759004Z ✔ permission and stale revision failures keep server code, status and issues (0.959737ms)
+2026-11-05T13:37:55.3760437Z ✔ malformed success and unavailable network are not treated as a saved claim (0.47554ms)
+2026-11-05T13:37:55.3801508Z ✔ list/detail scope and content URLs encode company/source/document identifiers and include credentials (1.51894ms)
+2026-11-05T13:37:55.3814523Z ✔ upload retry retains exact payload and returns duplicate source metadata (1.393986ms)
+2026-11-05T13:37:55.3839640Z ✔ review and draft preserve native decimal strings, opaque fingerprint, confirmations and quoted capture revision (0.646835ms)
+2026-11-05T13:37:55.3862704Z ✔ source download is authenticated binary, bounded, and failures preserve safe API errors (1.053775ms)
+2026-11-05T13:37:55.3864188Z ✔ malformed success cannot authorize writes (0.492956ms)
+2026-11-05T13:37:55.4690993Z ✔ native entity reads keep company filters and Clerk session cookies (41.545768ms)
+2026-11-05T13:37:55.4716490Z ✔ native generic invoice writes surface the server's protected-workflow rejection (1.167582ms)
+2026-11-05T13:37:55.4815210Z ✔ first-party function client sends authenticated JSON and returns its native response (34.302634ms)
+2026-11-05T13:37:55.4816874Z ✔ first-party function client reports server failures instead of returning fake success (0.727641ms)
+2026-11-05T13:37:55.4818197Z ✔ LLM integration fails explicitly when no provider is configured (4.415287ms)
+2026-11-05T13:37:55.4819398Z ✔ file upload fails explicitly when persistent storage is not configured (0.342757ms)
+2026-11-05T13:37:55.5501392Z ✔ synthetic demo uses the guarded native POST, cookie authentication and no caller-supplied identity (38.384123ms)
+2026-11-05T13:37:55.5504766Z ✔ an HTML fallback becomes a helpful service message, not a JSON parser error (0.881119ms)
+2026-11-05T13:37:55.5513566Z ✔ authentication, network failures and conflicting sample data remain explicit (0.748123ms)
+2026-11-05T13:37:55.5525396Z ✔ malformed successful responses cannot select an unverified company (0.390633ms)
+2026-11-05T13:37:55.5661988Z ✔ client sends selected basis, defaults legacy forms, and never converts typed amounts (1.14307ms)
+2026-11-05T13:37:55.5663911Z ✔ explicit client DTO preserves source text and excludes financial/tenant/status authority (0.18501ms)
+2026-11-05T13:37:55.5665700Z ✔ client create/edit/read round-trip consumes envelope, company and revision (36.700764ms)
+2026-11-05T13:37:55.5667125Z ✔ safe typed failures preserve code/issues and never retry (1.062297ms)
+2026-11-05T13:37:55.5668690Z ✔ company context uses the authenticated native invoice route and verifies tenant identity (1.617258ms)
+2026-11-05T13:37:55.5670317Z ✔ wrong-company or malformed success is uncertain, not accepted as saved (0.708978ms)
+2026-11-05T13:37:55.5744332Z ✔ new draft defaults use 30 calendar days, including month and leap boundaries (2.727559ms)
+2026-11-05T13:37:55.5751718Z ✔ changing price basis retains all entered line text and dates (0.314457ms)
+2026-11-05T13:37:55.5753896Z ✔ only an untouched new-draft due date follows terms and invoice date (0.280391ms)
+2026-11-05T13:37:55.6644581Z ✔ invoice list uses authenticated native read endpoint scoped to one company (43.776555ms)
+2026-11-05T13:37:55.6662891Z ✔ invoice list rejects cross-company and malformed responses (1.657018ms)
+2026-11-05T13:37:55.6676127Z ✔ unissued drafts retain their row but never contribute to receivables or payment KPIs (1.297685ms)
+2026-11-05T13:37:55.6761288Z ✔ dates, search and scope validation fail closed (1.790436ms)
+2026-11-05T13:37:55.6762581Z ✔ all supported sources link to existing read views (0.278643ms)
+2026-11-05T13:37:55.6763986Z ✔ old company and failed requests cannot display prior rows or recover export authority (1.0213ms)
+2026-11-05T13:37:55.6765346Z ✔ late exports cannot download after company, filter or cancellation changes (0.768977ms)
+2026-11-05T13:37:55.6766561Z ✔ native audit client uses selected company, credentials and safe CSV metadata (35.821642ms)
+2026-11-05T13:37:55.6767971Z ✔ BOM, CRLF, escaped quotes and multiline quoted fields retain exact contents (5.491111ms)
+2026-11-05T13:37:55.6769095Z ✔ malformed quoting, null bytes and missing CSV content are rejected (0.625424ms)
+2026-11-05T13:37:55.6770770Z ✔ upload bytes, UTF-8 bytes, row, column and field limits are enforced before review (8.247053ms)
+2026-11-05T13:37:55.6771928Z ✔ dates never guess a locale; day-first requires explicit selection (0.556391ms)
+2026-11-05T13:37:55.6773324Z ✔ money uses exact pennies including grouped amounts and the existing numeric boundary (2.637145ms)
+2026-11-05T13:37:55.6774556Z ✔ money never truncates, rounds or coerces malformed values to zero (0.34626ms)
+2026-11-05T13:37:55.6775812Z ✔ duplicate mappings are blocked, including ambiguous automatically mapped headers (0.546608ms)
+2026-11-05T13:37:55.6777172Z ✔ valid receipt/payment preview preserves typed exact amounts, company and bank scope (0.608372ms)
+2026-11-05T13:37:55.6778595Z ✔ invalid rows block the entire file and identify the CSV row without partial import (1.516003ms)
+2026-11-05T13:37:55.6780411Z ✔ missing balance stays unknown rather than a fabricated zero (0.412925ms)
+2026-11-05T13:37:55.6781700Z ✔ same-value transactions are retained and flagged, never silently deduplicated (0.936986ms)
+2026-11-05T13:37:55.6783241Z ✔ a newer file, another company and dialog cancellation fence late asynchronous reads (0.342546ms)
+2026-11-05T13:37:55.6784547Z ✔ only a complete scoped import receipt can report success (0.651159ms)
+2026-11-05T13:37:55.7411865Z ✔ new company starts with no inherited rows, suggestions, errors or selections (2.004465ms)
+2026-11-05T13:37:55.7413904Z ✔ concurrent reads publish only verified rows and suggestions for their fixed company (2.572219ms)
+2026-11-05T13:37:55.7426161Z ✔ late success and error after company switch cannot publish or trigger another old-company refresh (0.65025ms)
+2026-11-05T13:37:55.7428162Z ✔ newer refresh wins independently for both requests, including an older rejected request (0.513316ms)
+2026-11-05T13:37:55.7431331Z ✔ Strict Mode stop/start cannot revive an earlier request or action ticket (0.400848ms)
+2026-11-05T13:37:55.7433239Z ✔ invalid, mixed-company and duplicate-id transaction responses fail closed and retries recover (1.437549ms)
+2026-11-05T13:37:55.7435097Z ✔ suggestion failure clears stale suggestions, hides diagnostics, and does not remove verified transactions (4.429975ms)
+2026-11-05T13:37:55.7436698Z ✔ malformed suggestion payloads are rejected rather than rendered or treated as an empty success (0.686183ms)
+2026-11-05T13:37:55.7524134Z ✔ partial receipt stays open with the remaining server amount, cancelled and received amounts are excluded (2.147784ms)
+2026-11-05T13:37:55.7525733Z ✔ totals retain precision beyond Number.MAX_SAFE_INTEGER (0.229898ms)
+2026-11-05T13:37:55.7526992Z ✔ overdue applies only to open claims with a past expected date (0.215794ms)
+2026-11-05T13:37:55.7528281Z ✔ search finds invoice, return note, part and vehicle/job independently (0.411868ms)
+2026-11-05T13:37:55.7529706Z ✔ active receipts prevent cancelling tracking; inactive history does not count as received (0.250221ms)
+2026-11-05T13:37:55.7531197Z ✔ confirmation controls require server capability and a posted, confirmable credit on an active claim (0.23393ms)
+2026-11-05T13:37:55.7532844Z ✔ cancel control is unavailable to a viewer, cancelled claim, or claim with any receipt history (0.194266ms)
+2026-11-05T13:37:55.7534264Z ✔ selected line indices and decimal strings remain exact; no browser calculated money is submitted (1.118491ms)
+2026-11-05T13:37:55.7536226Z ✔ uncertain retry reuses its id; changed details or revision get a new id; success clears it (0.785095ms)
+2026-11-05T13:37:55.7538446Z ✔ old company/refresh responses cannot replace a newer view and unmount invalidates pending results (0.397053ms)
+2026-11-05T13:37:55.7565102Z ✔ ready-to-review is based on posted confirmable candidates, not drafts or arbitrary flags (1.452458ms)
+2026-11-05T13:37:55.7571932Z ✔ overdue and ready filters retain multi-field search and original source identities (4.037092ms)
+2026-11-05T13:37:55.7574502Z ✔ existing lifecycle filters retain cancelled, received and partial claim distinctions (8.505232ms)
+2026-11-05T13:37:55.7576190Z ✔ summary aggregates server minor units exactly and never substitutes missing amounts with zero (0.689252ms)
+2026-11-05T13:37:55.7584723Z ✔ follow-up priorities and UTC calendar ages preserve evidence and never infer sending (0.555984ms)
+2026-11-05T13:37:55.8074509Z ✔ correction intent keeps decimal strings and stable line positions without performing accounting (2.884195ms)
+2026-11-05T13:37:55.8076321Z ✔ invalid dates, blank reasons, oversized fields and invalid identity are rejected before review (0.529107ms)
+2026-11-05T13:37:55.8077904Z ✔ reviewed amounts and existing partial payment come only from server and exact receipt completes once (0.832788ms)
+2026-11-05T13:37:55.8100013Z ✔ unknown outcome keeps exact immutable request, token and revision for retry and blocks fresh edits (0.691847ms)
+2026-11-05T13:37:55.8125422Z ✔ definitive permission failure clears review and requires fresh authoritative context (0.330613ms)
+2026-11-05T13:37:55.8134658Z ✔ read-only and blocked context cannot initiate review or commit (0.348975ms)
+2026-11-05T13:37:55.8136277Z ✔ foreign context and mismatched review identity never expose a commit (0.312906ms)
+2026-11-05T13:37:55.8137801Z ✔ late load and review results cannot replace newer scope or revive a disposed page (0.557275ms)
+2026-11-05T13:37:55.8151409Z ✔ an invalid or differently identified commit receipt remains an unknown outcome (0.448284ms)
+2026-11-05T13:37:55.8153807Z ✔ disposing after a commit starts does not claim cancellation or invoke the old page callback (0.561462ms)
+2026-11-05T13:37:55.8155480Z ✔ a UI refresh failure cannot change a confirmed posting into an uncertain outcome (0.580426ms)
+2026-11-05T13:37:55.8216216Z ✔ editing and posting require independently explicit capabilities (1.195104ms)
+2026-11-05T13:37:55.8225724Z ✔ late discount uses existing credit workflow for original invoices and bills, including partially paid (0.526156ms)
+2026-11-05T13:37:55.8228110Z ✔ adjustment preparation captures source revision while preserving entered decimal values (2.41506ms)
+2026-11-05T13:37:55.8229634Z ✔ balance preview uses canonical reconciled settlement and saved credit within remaining credit capacity (0.843837ms)
+2026-11-05T13:37:55.8231080Z ✔ old company, document, or load generation cannot apply mutation result to a new view (0.231357ms)
+2026-11-05T13:37:55.8232904Z ✔ paid-discount entry uses remaining original credit capacity, independently of remaining cash due (0.369878ms)
+2026-11-05T13:37:55.8234109Z ✔ discount entry rejects missing, malformed or inconsistent settlement without throwing (0.414457ms)
+2026-11-05T13:37:55.8294264Z ✔ capture accepts bounded PDFs/JPEGs/PNGs, rejects empty/oversize/unsupported and caps queue at ten (2.516454ms)
+2026-11-05T13:37:55.8299372Z ✔ bounded FileReader preserves source bytes as base64 and never reads invalid files (2.160951ms)
+2026-11-05T13:37:55.8334406Z ✔ duplicates open their existing capture or correct native bill/credit without creating another editor (0.300783ms)
+2026-11-05T13:37:55.8335827Z ✔ save requires exact reviewed envelope, scope and three explicit acknowledgements (0.6091ms)
+2026-11-05T13:37:55.8336974Z ✔ company and route changes, newer requests and unmount invalidate stale requests (0.311913ms)
+2026-11-05T13:37:55.8872628Z ✔ source returns accept only source identifiers and construct an internal inbox URL (2.276931ms)
+2026-11-05T13:37:55.8897095Z ✔ saved and duplicate captures preserve the native bill/credit route plus a safe source return (0.289359ms)
+2026-11-05T13:37:55.8912221Z ✔ inbox filters only the supplied recent-source metadata and preserve original source identity (0.858661ms)
+2026-11-05T13:37:55.8914114Z ✔ capture progress requires source review before save and does not imply posting (0.319334ms)
+2026-11-05T13:37:55.9603600Z ✔ only PNG/JPEG previews pass type, exact size and binary signature validation (3.79023ms)
+2026-11-05T13:37:55.9625948Z ✔ PNG IHDR dimensions are bounded before decoding, including product and individual-side limits (2.212163ms)
+2026-11-05T13:37:55.9627576Z ✔ PNG animated, repeated or invalid header chunks remain download-only (1.515127ms)
+2026-11-05T13:37:55.9629289Z ✔ JPEG baseline and progressive frames accept bounded dimensions; oversized and zero sizes fail (1.169693ms)
+2026-11-05T13:37:55.9631238Z ✔ JPEG segment bounds reject truncated, invalid, duplicate and unknown frames without decoding (2.284288ms)
+2026-11-05T13:37:55.9632964Z ✔ header reading and segment scanning are explicitly bounded; oversize previews allocate no URL (58.158414ms)
+2026-11-05T13:37:55.9634636Z ✔ an explicit open uses the authenticated content boundary and releases the URL on close (1.45724ms)
+2026-11-05T13:37:55.9637779Z ✔ close and source/company disposal fence late reads even if the loader ignores AbortSignal (0.572845ms)
+2026-11-05T13:37:55.9639260Z ✔ late reads from a previous preview never replace the latest attempt (2.206359ms)
+2026-11-05T13:37:55.9682264Z ✔ closing while signature bytes are read prevents URL creation (9.755884ms)
+2026-11-05T13:37:55.9695409Z ✔ denied reads and corrupt files never allocate URLs or expose raw failure details; retry can recover (1.059741ms)
+2026-11-05T13:37:55.9697237Z ✔ image decode failures release their own URL but stale image events cannot fail a newer preview (0.580675ms)
+2026-11-05T13:37:55.9698816Z ✔ missing identity and unsupported sources never request content; disposed viewers cannot reopen (0.303671ms)
+2026-11-05T13:37:55.9701930Z ✔ viewer identity changes for company, source and immutable metadata, but not filename (0.297708ms)
+2026-11-05T13:37:55.9776046Z ✔ create and saved-record edit submit only actual company schema fields (1.07976ms)
+2026-11-05T13:37:55.9777748Z ✔ unknown and unsupported saved financial settings are never silently normalized (0.48877ms)
+2026-11-05T13:37:55.9779525Z ✔ company save requires a usable receipt and reports safe structured validation errors (1.222239ms)
+2026-11-05T13:37:55.9781113Z ✔ explicit supported tax choices retain exact treatment/rate pairs in native payloads (0.998302ms)
+2026-11-05T13:37:55.9782939Z ✔ tax rules reject wrong registration, rate, calendar dates, missing reasons and overlaps (0.54689ms)
+2026-11-05T13:37:55.9784843Z ✔ new tax rule effective dates stay within the native document date range (0.231919ms)
+2026-11-05T13:37:55.9786322Z ✔ VAT settings preserve actual saved unsupported states and send only reviewed edits (0.70908ms)
+2026-11-05T13:37:55.9787789Z ✔ blank company resumes from fresh server configuration rather than visited steps (5.090102ms)
+2026-11-05T13:37:55.9789229Z ✔ an existing customer does not mask missing mappings, tax rules or unsupported business (2.178789ms)
+2026-11-05T13:37:55.9791043Z ✔ current date must fall in one open period; draft permission stays separate from posting setup (0.748949ms)
+2026-11-05T13:37:55.9792703Z ✔ inactive, ineligible and repeated mappings fail readiness even if server errors are empty (1.74496ms)
+2026-11-05T13:37:55.9794314Z ✔ tax readiness needs valid effective unambiguous codes, rates, labels and non-VAT treatment (0.522495ms)
+2026-11-05T13:37:55.9795953Z ✔ readiness date checks match the native document range including its boundaries (1.617184ms)
+2026-11-05T13:37:55.9797563Z ✔ draft and posting permissions are independent server facts, and active parties are required (0.643841ms)
+2026-11-05T13:37:55.9799003Z ✔ wrong-company, malformed and partial reads fail closed (0.728803ms)
+2026-11-05T13:37:55.9800380Z ✔ late results after company switch, refresh or cancellation cannot restore readiness (0.509155ms)
+2026-11-05T13:37:55.9801684Z ✔ concurrent configuration revisions require another fresh read (0.528828ms)
+2026-11-05T13:37:55.9803348Z ✔ created-company entry uses only the freshly authorized record and switches before navigation (0.621059ms)
+2026-11-05T13:37:55.9804905Z ✔ new business defaults to professional view and a reload restores either explicit choice (1.577185ms)
+2026-11-05T13:37:55.9806644Z ✔ preferences are isolated by both authenticated account and company, including delimiter-like IDs (0.24348ms)
+2026-11-05T13:37:55.9808255Z ✔ missing identity never reads or writes browser storage or creates a shared fallback key (0.467479ms)
+2026-11-05T13:37:55.9809878Z ✔ corrupt, older and non-boolean values cannot enable explanations and can be replaced explicitly (0.291893ms)
+2026-11-05T13:37:55.9811297Z ✔ blocked storage getter or read fails safely without exposing the underlying error (0.340022ms)
+2026-11-05T13:37:55.9813235Z ✔ failed writes retain the explicit choice for this visit and a later successful write clears warning (0.227607ms)
+2026-11-05T13:37:55.9815113Z ✔ only a boolean is accepted; no object or financial payload can be stored (0.687074ms)
+2026-11-05T13:37:56.0256857Z ✔ only explicit absent-schema review falls back; no posting call or ambiguous error is retried (2.837685ms)
+2026-11-05T13:37:56.0268575Z ✔ review preserves exact server allocation vector and request identity (0.32942ms)
+2026-11-05T13:37:56.0407078Z ✔ a lost response after a committed request resolves through a read without reposting (2.298746ms)
+2026-11-05T13:37:56.0417114Z ✔ not found remains unknown and retry sends identical ID, body, precision and review token (0.941017ms)
+2026-11-05T13:37:56.0418540Z ✔ a stale, denied or failed retry never erases an earlier uncertain outcome (0.56578ms)
+2026-11-05T13:37:56.0419976Z ✔ empty, malformed or mismatched recording responses never claim a successful payment (0.643527ms)
+2026-11-05T13:37:56.0422237Z ✔ status lookup resolves payment, allocation, unallocation, refund and reversal by event ID (0.753339ms)
+2026-11-05T13:37:56.0424172Z ✔ failed and malformed history reads retain the recovery request and do not write (1.74369ms)
+2026-11-05T13:37:56.0425497Z ✔ double clicks cannot overlap recording, checking or retry requests (0.786442ms)
+2026-11-05T13:37:56.0426724Z ✔ company switch clears recovery and ignores late recording and history responses (0.845432ms)
+2026-11-05T13:37:56.0428126Z ✔ permissions fail closed for writes while status reads remain available after role changes (1.033324ms)
+2026-11-05T13:37:56.0429608Z ✔ explicit abandon clears only this view and never issues a cancellation or another write (0.435505ms)
+2026-11-05T13:37:56.0511601Z ✔ payment filters combine party/reference, direction and exact unapplied pence without mutating rows (3.47541ms)
+2026-11-05T13:37:56.0513682Z ✔ statement links require a party of the correct type in the currently loaded company context (0.247892ms)
+2026-11-05T13:37:56.0520659Z ✔ payment shortcut waits for verified permission, setup and current ledger before one opening (0.246342ms)
+2026-11-05T13:37:56.0526626Z ✔ unresolved outcomes, existing forms and denied roles consume shortcuts without creating a new payment (0.242068ms)
+2026-11-05T13:37:56.0541042Z ✔ consumed shortcut URL cannot reopen after close, refresh or a remount and keeps existing deep-link parameters (0.335491ms)
+2026-11-05T13:37:56.0543493Z ✔ statement dates reject incomplete, reversed and impossible ranges before a ledger read or export (0.870817ms)
+2026-11-05T13:37:56.0545338Z ✔ statement links preserve a reports closing-date basis and later URL period changes (0.283116ms)
+2026-11-05T13:37:56.0546933Z ✔ late party lookup success or failure is ignored on company switch and retry cancellation (0.993136ms)
+2026-11-05T13:37:56.0548450Z ✔ party selection rejects old, loading, failed and out-of-company links (0.29078ms)
+2026-11-05T13:37:56.0549880Z ✔ statement retry attempts both sources independently even when either fails (0.450511ms)
+2026-11-05T13:37:56.0576882Z ✔ malformed party data becomes a retryable lookup error without publishing accounts (4.243152ms)
+2026-11-05T13:37:56.0580209Z ✔ statement CSV retains exact signed amounts, opening balances and unapplied columns (0.713847ms)
+2026-11-05T13:37:56.1220314Z ✔ dates retain all-history drilldown and reject empty, impossible and reversed periods (1.968111ms)
+2026-11-05T13:37:56.1249641Z ✔ closing reports use As-at independently of movement ranges, including previous years (23.223525ms)
+2026-11-05T13:37:56.1264677Z ✔ company/date/refresh changes and return to a previous scope immediately remove export authority (0.624163ms)
+2026-11-05T13:37:56.1266447Z ✔ cancelled successes and errors cannot publish after scope changes even if abort is ignored (0.735225ms)
+2026-11-05T13:37:56.1270027Z ✔ wrong-period and wrong-company journal responses fail closed; retries recover (0.975216ms)
+2026-11-05T13:37:56.1271460Z ✔ ledger search intersects existing filters and CSV matches exact displayed source amounts (1.213584ms)
+2026-11-05T13:37:56.1273252Z ✔ VAT exports retain repayment scope; non-VAT cannot export a zero-valued return (0.923848ms)
+2026-11-05T13:37:56.1274677Z ✔ account-balance CSV discloses closing basis and does not imply transaction-history export (0.440644ms)
+2026-11-05T13:37:56.1404551Z ✔ loading is lazy, concurrent reads share one import, and successful modules remain cached (1.000149ms)
+2026-11-05T13:37:56.1406491Z ✔ a failed module is retried only on request and its sensitive error is not exposed (0.651875ms)
+2026-11-05T13:37:56.1409032Z ✔ missing default exports fail safely and a subsequent corrected module can load (1.06045ms)
+2026-11-05T13:37:56.1410452Z ✔ independent route failures do not reset a successfully loaded page (0.371068ms)
+2026-11-05T13:37:56.4882832Z ✔ all existing paths retain their exact page, document-kind props, fallbacks and redirects (4.028454ms)
+2026-11-05T13:37:56.4894594Z ✔ auth and company boundaries remain around the workspace; feature pages load only on demand (3.282627ms)
+2026-11-05T13:37:56.5030150Z ✔ every box/search export selects exactly the visible evidence and retains company/period/filter context (5.908465ms)
+2026-11-05T13:37:56.5060744Z ✔ filtered evidence retains original and correction journals separately with canonical signs (0.628214ms)
+2026-11-05T13:37:56.5074433Z ✔ filtered CSV preserves huge money and neutralises formula text in evidence and filter metadata (0.827288ms)
+2026-11-05T13:37:56.5076135Z ✔ unsupported boxes stay unknown and box 5 evidence does not claim a filtered net tax amount (0.93986ms)
+2026-11-05T13:37:56.5084060Z ✔ empty and non-VAT evidence cannot manufacture monetary rows or broaden the full export (0.532883ms)
+2026-11-05T13:37:56.5085906Z ✔ unverified company context and invalid snapshots cannot produce source evidence (0.377014ms)
+2026-11-05T13:37:56.5087388Z ✔ company, date and refresh changes clear selected box/search before an effect runs (0.254565ms)
+2026-11-05T13:37:56.5089227Z ✔ VAT links retain their exact dates and invalid explicit dates require correction (2.560672ms)
+2026-11-05T13:37:56.5090830Z ✔ period input rejects impossible, unbounded, missing and reversed dates without rollover (0.407866ms)
+2026-11-05T13:37:56.5092869Z ✔ source review keeps canonical signs, period scope and eligible VAT without inferring tax from gross (1.944098ms)
+2026-11-05T13:37:56.5094770Z ✔ incomplete, mismatched or unreconciled server evidence cannot appear as verified workings (1.803772ms)
+2026-11-05T13:37:56.5096610Z ✔ CSV preserves integer-string precision and neutralises formula-like source text (1.211729ms)
+2026-11-05T13:37:56.5098534Z ✔ coverage validates all nine box statuses and never accepts zeros for unsupported boxes (2.65451ms)
+2026-11-05T13:37:56.5100296Z ✔ correction movements retain original document links with distinct journals and signed dated CSV evidence (0.672903ms)
+2026-11-05T13:37:56.5102244Z ✔ company, date, removal and refresh scope changes hide both old data and old errors immediately (0.415118ms)
+2026-11-05T13:37:56.5105581Z ✔ cancelled success and error cannot replace a newer result even when transport ignores abort (1.492377ms)
+2026-11-05T13:37:56.5106860Z ✔ load errors fail closed and a fresh retry can recover (0.750238ms)
+2026-11-05T13:37:56.5108102Z ✔ non-VAT companies have no source rows or export even if response contains financial figures (0.331357ms)
+2026-11-05T13:37:56.5109350Z ✔ tablet collapse and opening mobile navigation do not overwrite the saved desktop preference (1.717875ms)
+2026-11-05T13:37:56.5110608Z ✔ storage denial is harmless to shell navigation (0.269071ms)
+2026-11-05T13:37:56.5111876Z ✔ creation shortcuts use exact server capability facts, with payment setup independently gated (0.383553ms)
+2026-11-05T13:37:56.5113321Z ✔ company, role and request changes fail closed before new permissions load (0.355576ms)
+2026-11-05T13:37:56.5114747Z ✔ late permission reads are discarded after company change or abort; one failed capability domain does not grant it (0.510948ms)
+2026-11-05T13:37:56.5116357Z ✔ feature search preserves all existing destinations and never reveals development routes without access (0.803455ms)
+2026-11-05T13:37:56.5117793Z ✔ deep-link navigation matches the most specific existing route without sibling prefix confusion (0.497097ms)
+2026-11-05T13:37:56.5118822Z ✔ keyboard widget movement preserves dimensions, hidden entries, pinned identities and other sections (0.338157ms)
+2026-11-05T13:37:56.5120126Z ✔ closing navigation restores its real opener and falls back to the workspace after a responsive unmount (0.336975ms)
+2026-11-05T13:37:56.5121404Z ✔ daily navigation keeps its seven direct routes and partitions the entire catalogue without loss or duplicates (1.052024ms)
+2026-11-05T13:37:56.5122581Z ✔ navigation searches the whole catalogue and retains development and planned restrictions (0.833928ms)
+2026-11-05T13:37:56.5123417Z ✔ new everyday names remain discoverable through feature search (1.945921ms)
+2026-11-05T13:37:56.5124233Z ✔ audit navigation and search respect the active company role and hide while membership is unavailable (1.574346ms)
+2026-11-05T13:37:56.5125128Z ✔ new draft dates follow issue date plus terms across months and leap years (1.861258ms)
+2026-11-05T13:37:56.5125984Z ✔ manual and reopened saved due dates are not recalculated by issue/terms edits (1.693823ms)
+2026-11-05T13:37:56.5126851Z ✔ save captures the displayed date even if a native input event has not updated React state (0.334874ms)
+2026-11-05T13:37:56.5127718Z ✔ credit dates remain explicit and are never derived from payment terms (0.176582ms)
+2026-11-05T13:37:56.5128630Z ✔ sales and purchase selectors use server eligible_roles strictly; credits inherit originals (1.1973ms)
+2026-11-05T13:37:56.5129659Z ✔ ledger movement and closing-balance footers sum their own columns with integer precision (0.525928ms)
+2026-11-05T13:37:56.5130554Z ✔ planned accounts: non-recoverable purchase has no input VAT line; explicit sales account wins (0.529262ms)
+2026-11-05T13:37:56.5131209Z ✔ issueFor finds path issue (0.222132ms)
+2026-11-05T13:37:56.5131856Z ✔ saved draft account list filters the six-role snapshot like the unsaved preview (0.521383ms)
+2026-11-05T13:37:56.5148343Z ✔ a full reload restores the selected authorized No VAT company, not the first company (0.814183ms)
+2026-11-05T13:37:56.5149964Z ✔ preferences are account-specific and revoked or forged IDs cannot grant company access (0.405335ms)
+2026-11-05T13:37:56.5151497Z ✔ a statement carries opening invoices and credit through payment, allocation and refund movements (2.294502ms)
+2026-11-05T13:37:56.5154123Z ✔ exact export handles large values, negative pennies, quoted text and spreadsheet formula prefixes (0.487471ms)
+2026-11-05T13:37:56.5160167Z ✔ customer statement negatives remain numbers while formula-like references stay escaped (0.347266ms)
+2026-11-05T13:37:56.5161856Z ✔ historical decimal strings convert to minor units exactly; invalid totals stay unavailable (1.173034ms)
+2026-11-05T13:37:56.5163794Z ✔ displayed header totals sum exact pennies without inferring missing values or offsetting per-entry imbalances (4.591803ms)
+2026-11-05T13:37:56.5165273Z ✔ account search uses stored line metadata and tolerates malformed legacy JSON (0.32199ms)
+2026-11-05T13:37:56.5166682Z ✔ switching company or leaving the payment page discards late success and finally updates (2.148961ms)
+2026-11-05T13:37:56.5168066Z ✔ late old failure cannot replace a new form error or release its pending state (0.506902ms)
+2026-11-05T13:37:56.5169409Z ✔ post-refresh completion checks the same request lifetime after its second await (1.817525ms)
+2026-11-05T13:37:56.5171126Z ✔ review captures the exact company, decimal strings, allocations and retry identity (1.046562ms)
+2026-11-05T13:37:56.5172747Z ✔ event deep links choose the requested payment, including allocation and refund events (0.302409ms)
+2026-11-05T13:37:56.5174176Z ✔ posted contribution uses saved account and actual journal including credit reversals (1.198569ms)
+2026-11-05T13:37:56.5175682Z ✔ P&L category drilldown groups split lines, includes credits and excludes VAT and drafts (11.848522ms)
+2026-11-05T13:37:56.5177052Z ✔ report navigation includes historic and future posting dates; filters intersect (1.743461ms)
+2026-11-05T13:37:56.5178524Z ✔ original and correction journals retain separate movements and trace to the same document (0.654863ms)
+2026-11-05T13:37:56.5221392Z ✔ legacy submitted or filed flags are presented as recorded status, not filing success (1.395235ms)
+2026-11-05T13:37:56.5237690Z ✔ approved, locked, draft and missing records do not become submission notifications (0.224713ms)
+2026-11-05T13:37:56.9638725Z ✔ restore refuses shared databases, TCP, altered ports, sibling directories and alternate database names (1.791248ms)
+2026-11-05T13:37:56.9657011Z ✔ restore comparison detects changed amounts, missing source/audit records and changed protections (0.701436ms)
+2026-11-05T13:37:56.9658844Z ✔ partial-schema CommonJS bundle has no restore orchestration dependency (391.763879ms)
+2026-11-05T13:37:56.9748024Z ✔ acquisition is exclusive; transitions do not mutate caller state (3.690169ms)
+2026-11-05T13:37:56.9749839Z ✔ wrong token/run cannot renew, save or release; stale renewal is refused (0.887376ms)
+2026-11-05T13:37:56.9751029Z ✔ clean release needs a current durable checkpoint and preserves it for the next owner (1.865949ms)
+2026-11-05T13:37:56.9752206Z ✔ expiry quarantines all normal actions without granting new ownership (0.76279ms)
+2026-11-05T13:37:56.9753525Z ✔ explicit recovery requires stopped prior run evidence and a durable checkpoint (0.848772ms)
+2026-11-05T13:37:56.9754826Z ✔ invalid time, TTL, arbitrary commands and unsafe checkpoint data fail closed (0.981128ms)
+2026-11-05T13:37:56.9755988Z ✔ malformed persisted evidence and invalid repository paths cannot acquire ownership (0.58752ms)
+2026-11-05T13:37:56.9757137Z ✔ release retires plaintext token but still rejects previous token and run reuse (0.836651ms)
+2026-11-05T13:37:56.9758344Z ✔ expired recovery retires plaintext token and preserves the same reuse guard (0.98672ms)
+2026-11-05T13:37:56.9759484Z ✔ legacy retired tokens normalize without changing live fences or caller history (1.43388ms)
+2026-11-05T13:37:56.9760604Z ✔ malformed or mixed retired token representations fail closed (1.188465ms)
+2026-11-05T13:37:56.9761765Z ✔ active version-2 lease stores only a digest; publishing the digest does not grant ownership (0.382249ms)
+2026-11-05T13:37:56.9763466Z ✔ version-1 active ownership migrates only with the existing fence and preserves times/history (0.665837ms)
+2026-11-05T13:37:56.9764781Z ✔ malformed, mixed, version-2 plaintext and unknown-version active states fail closed (1.760215ms)
+2026-11-05T13:37:56.9766054Z ✔ catalogue rejects cycles, unknown rules/authority, unsafe paths and missing acceptance (4.399916ms)
+2026-11-05T13:37:56.9767458Z ✔ state version 3 fails closed for old/new unsupported states without silently migrating (2.639367ms)
+2026-11-05T13:37:56.9769092Z ✔ automatic selection follows priority and dependencies, not fixed team/category assignments (3.945248ms)
+2026-11-05T13:37:56.9770016Z ✔ exact/prefix leases block overlap through review while unrelated files run simultaneously (2.516272ms)
+2026-11-05T13:37:56.9770835Z ✔ one running task per worker; review permits another independent task (1.113235ms)
+2026-11-05T13:37:56.9771744Z ✔ block releases ownership with checkpoint and task blockers automatically clear after acceptance (2.785228ms)
+2026-11-05T13:37:56.9772881Z ✔ decision/environment blockers need explicit coordinator resolution and never self-unlock (2.313521ms)
+2026-11-05T13:37:56.9774005Z ✔ expired running/review leases are quarantined and cannot be silently stolen (2.403963ms)
+2026-11-05T13:37:56.9774894Z ✔ workers cannot accept their own work; acceptance needs independent matching-commit passing evidence (1.229728ms)
+2026-11-05T13:37:56.9775922Z ✔ reopening a dependency invalidates accepted descendants and quarantines active descendants transitively (2.935638ms)
+2026-11-05T13:37:56.9776898Z ✔ reject retains lease until stopped-worker recovery; approve requires actual scoped owner record (3.782723ms)
+2026-11-05T13:37:56.9777970Z ✔ coordinator priority overrides, worker capabilities and unresolved rules control eligible selection (1.027556ms)
+2026-11-05T13:37:56.9778822Z ✔ transitions are immutable, revisioned, auditable and reject stale tokens (0.669038ms)
+2026-11-05T13:37:56.9779715Z ✔ renewal is scoped and bounded, while invalid task blocker names cannot reference object properties (0.567722ms)
+2026-11-05T13:37:56.9780908Z ✔ discovered dependencies survive resumption, review and acceptance then invalidate work when reopened (9.779003ms)
+2026-11-05T13:37:56.9781848Z ✔ dynamically discovered cycles are rejected atomically across static and discovered dependencies (2.329229ms)
+2026-11-05T13:37:56.9782919Z ✔ reopening a prerequisite preserves downstream environment, decision and other task blockers (5.132148ms)
+2026-11-05T13:37:56.9783815Z ✔ stopped-worker recovery clears quarantine causes but preserves independent blockers (0.477658ms)
+2026-11-05T13:37:56.9784619Z ✔ worker blockers cannot impersonate scheduler-owned quarantine causes (0.744303ms)
+2026-11-05T13:37:56.9785566Z ✔ explicit blocker resolution preserves evidence and dependencies without reopening descendants (3.991171ms)
+2026-11-05T13:37:57.0288728Z ✔ read-only inspection does not create runtime state or locks (2.920591ms)
+2026-11-05T13:37:57.0289900Z ✔ initialisation restores a checkpoint but never overwrites existing runtime (42.418311ms)
+2026-11-05T13:37:57.0290857Z ✔ state revision CAS and atomic checkpoint export preserve newer work (25.751663ms)
+2026-11-05T13:37:57.0291673Z ✔ revision cannot be skipped or changed without an increment; true no-op is allowed (14.983598ms)
+2026-11-05T13:37:57.0292952Z ✔ corrupt state, wrong schema and broken symlinks fail closed instead of reinitialising (19.997005ms)
+2026-11-05T13:37:57.0293960Z ✔ parallel processes share one atomic queue: no double claims or overlapping files (168.613702ms)
+2026-11-05T13:37:57.0339245Z ✔ a crashed process leaves a lock requiring explicit token-matched dead-owner recovery (56.343683ms)
+2026-11-05T13:37:57.0484418Z ✔ live or foreign lock owners are never evicted by age or a recovery request (7.986815ms)
+2026-11-05T13:37:57.0568839Z ✔ separate Git worktrees resolve the same runtime store while retaining their own checkpoint path (26.015956ms)
+2026-11-05T13:37:57.1233468Z ✔ real CLI and core enforce automatic claims, configured coordinator and reviewed dependency release (94.914698ms)
+2026-11-05T13:37:57.1380024Z ✔ CLI command parsing rejects authority injection, actor mismatch, malformed and oversized JSON (12.467169ms)
+2026-11-05T13:37:57.1785635Z ✔ a changed catalogue cannot reinterpret shared state or file leases and init never resets it (39.02618ms)
+2026-11-05T13:37:57.3419576Z ✔ CLI blocker resolution requires current revision and preserves evidence, dependencies and separate acceptance (164.015296ms)
+2026-11-05T13:37:57.3807467Z ✔ real CLI exports verifier-only leases and fences digest-as-command without persisting raw tokens (47.775488ms)
+2026-11-05T13:37:57.3885657Z ✔ v3 claim result alone contains raw token; persisted state and all owned transitions contain only verifiers (7.912574ms)
+2026-11-05T13:37:57.3886766Z ✔ explicit stopped v2 migration preserves task and event meaning, order, revision, source provenance and input (1.992144ms)
+2026-11-05T13:37:57.3887968Z ✔ migration rejects held, mixed, malformed, unknown and missing-provenance input without mutating it (2.341574ms)
+2026-11-05T13:37:57.3889587Z ✔ v3 refuses plaintext, mixed, malformed and misplaced verifiers including nested evidence (1.744529ms)
+2026-11-05T13:37:57.3890173Z ℹ tests 380
+2026-11-05T13:37:57.3890476Z ℹ suites 0
+2026-11-05T13:37:57.3890759Z ℹ pass 380
+2026-11-05T13:37:57.3891075Z ℹ fail 0
+2026-11-05T13:37:57.3891399Z ℹ cancelled 0
+2026-11-05T13:37:57.3891755Z ℹ skipped 0
+2026-11-05T13:37:57.3892038Z ℹ todo 0
+2026-11-05T13:37:57.3892497Z ℹ duration_ms 2399.247755
+2026-11-05T13:37:57.8798678Z ✔ failed history is retryable and cannot imply an empty or balanced ledger or expose diagnostics (23.101327ms)
+2026-11-05T13:37:57.8807047Z ✔ loading history never displays stale rows, zero counts or balance assertions (2.549957ms)
+2026-11-05T13:37:57.8808805Z ✔ successful reads preserve journal rows and distinguish an actual empty result (9.25319ms)
+2026-11-05T13:37:57.8827567Z ✔ opposite unbalanced entries cannot imply balance merely because their aggregate cancels out (4.531106ms)
+2026-11-05T13:37:57.8834102Z ✔ missing or malformed historical header totals are unavailable, never inferred as zero (16.696115ms)
+2026-11-05T13:37:57.8835512Z ✔ schema-shaped legacy details show header totals, line accounts and a valid source link (2.387493ms)
+2026-11-05T13:37:57.8951474Z ℹ tests 6
+2026-11-05T13:37:57.8952146Z ℹ suites 0
+2026-11-05T13:37:57.8952714Z ℹ pass 6
+2026-11-05T13:37:57.8953061Z ℹ fail 0
+2026-11-05T13:37:57.8953364Z ℹ cancelled 0
+2026-11-05T13:37:57.8953702Z ℹ skipped 0
+2026-11-05T13:37:57.8954021Z ℹ todo 0
+2026-11-05T13:37:57.8954403Z ℹ duration_ms 268.391729
+2026-11-05T13:37:58.5595226Z ✔ posted supplier invoice shows tracking at the heading and original lines while access loads, retaining accounting amounts (43.025628ms)
+2026-11-05T13:37:58.5599417Z ✔ sales invoices and posted credit notes retain their original actions without supplier-return selectors (14.427627ms)
+2026-11-05T13:37:58.5601095Z ✔ apply discount is available on partially settled originals only with verified edit permission (24.093211ms)
+2026-11-05T13:37:58.5602661Z ✔ posted discount credit labels original prices and server allocated credit amounts (3.585738ms)
+2026-11-05T13:37:58.5604496Z ✔ normal return from discounted original explains inherited pricing without claiming another full discount (3.1485ms)
+2026-11-05T13:37:58.5606212Z ✔ fully paid originals prepare discount drafts while preserving unavailable and exhausted guards (89.024922ms)
+2026-11-05T13:37:58.5607844Z ✔ malformed settlement renders an unavailable state rather than money, status or write actions (119.244568ms)
+2026-11-05T13:37:58.5609038Z ✔ discount review hides stale or malformed balances and never suggests excess beyond credit capacity (4.881965ms)
+2026-11-05T13:37:58.5610731Z ✔ ordinary credits use remaining original credit capacity even when cash is fully settled (44.162302ms)
+2026-11-05T13:37:58.5906285Z ℹ tests 9
+2026-11-05T13:37:58.5906700Z ℹ suites 0
+2026-11-05T13:37:58.5907195Z ℹ pass 9
+2026-11-05T13:37:58.5907512Z ℹ fail 0
+2026-11-05T13:37:58.5907816Z ℹ cancelled 0
+2026-11-05T13:37:58.5908317Z ℹ skipped 0
+2026-11-05T13:37:58.5908631Z ℹ todo 0
+2026-11-05T13:37:58.5909080Z ℹ duration_ms 555.049362
+2026-11-05T13:37:58.7828182Z ✔ draft document shows invoice date and totals, not issued or receivable/payment labels (17.134253ms)
+2026-11-05T13:37:58.7831880Z ✔ inclusive document labels entered prices and percentage VAT without changing net fields (6.065098ms)
+2026-11-05T13:37:58.7833478Z ✔ issued document retains payment labels and zero-day terms are preserved (2.487114ms)
+2026-11-05T13:37:58.7918405Z ℹ tests 3
+2026-11-05T13:37:58.7918789Z ℹ suites 0
+2026-11-05T13:37:58.7919128Z ℹ pass 3
+2026-11-05T13:37:58.7919643Z ℹ fail 0
+2026-11-05T13:37:58.7920133Z ℹ cancelled 0
+2026-11-05T13:37:58.7920615Z ℹ skipped 0
+2026-11-05T13:37:58.7921017Z ℹ todo 0
+2026-11-05T13:37:58.7921486Z ℹ duration_ms 123.801668
+2026-11-05T13:37:59.1166866Z ✔ audit workspace presents source and journal trace, UTC precision, actor and read-only scope (22.299552ms)
+2026-11-05T13:37:59.1169673Z ✔ loading, errors and edited filters disable export and stale rows stay hidden during reads (10.77146ms)
+2026-11-05T13:37:59.1171816Z ✔ empty history is a filter result and explains supported sources without inventing completeness (2.512487ms)
+2026-11-05T13:37:59.1271715Z ℹ tests 3
+2026-11-05T13:37:59.1273094Z ℹ suites 0
+2026-11-05T13:37:59.1273837Z ℹ pass 3
+2026-11-05T13:37:59.1274524Z ℹ fail 0
+2026-11-05T13:37:59.1275181Z ℹ cancelled 0
+2026-11-05T13:37:59.1275810Z ℹ skipped 0
+2026-11-05T13:37:59.1276507Z ℹ todo 0
+2026-11-05T13:37:59.1277177Z ℹ duration_ms 188.085139
+2026-11-05T13:37:59.2698249Z ✔ review exposes every source row, exact money and explicit duplicate acknowledgement (7.759676ms)
+2026-11-05T13:37:59.2707851Z ✔ explicit exclusions update the count and a pending/uncertain import disables choices (1.028535ms)
+2026-11-05T13:37:59.2708946Z ✔ history coverage advisory remains visible even when no duplicate candidates were found (0.867001ms)
+2026-11-05T13:37:59.2790179Z ℹ tests 3
+2026-11-05T13:37:59.2790933Z ℹ suites 0
+2026-11-05T13:37:59.2791378Z ℹ pass 3
+2026-11-05T13:37:59.2791763Z ℹ fail 0
+2026-11-05T13:37:59.2792542Z ℹ cancelled 0
+2026-11-05T13:37:59.2792911Z ℹ skipped 0
+2026-11-05T13:37:59.2793224Z ℹ todo 0
+2026-11-05T13:37:59.2793608Z ℹ duration_ms 91.29751
+2026-11-05T13:37:59.7123146Z ✔ company loading or missing access never renders the bank workspace or old company details (6.737886ms)
+2026-11-05T13:37:59.7126758Z ✔ company identity gives the actual stateful workspace a new key and renders only the selected company (1.261921ms)
+2026-11-05T13:37:59.7128662Z ✔ failed reads offer scoped retries; suggestion failure does not falsely declare the transaction list empty (1.372019ms)
+2026-11-05T13:37:59.7244180Z ℹ tests 3
+2026-11-05T13:37:59.7244696Z ℹ suites 0
+2026-11-05T13:37:59.7245352Z ℹ pass 3
+2026-11-05T13:37:59.7245880Z ℹ fail 0
+2026-11-05T13:37:59.7246386Z ℹ cancelled 0
+2026-11-05T13:37:59.7246889Z ℹ skipped 0
+2026-11-05T13:37:59.7247312Z ℹ todo 0
+2026-11-05T13:37:59.7247898Z ℹ duration_ms 226.554437
+2026-11-05T13:38:00.0520103Z ✔ original bill line control is an accessible checkbox and passes its exact source index (6.854295ms)
+2026-11-05T13:38:00.0522018Z ✔ tracked source line renders its current status linked to history, with no duplicate selector (1.213471ms)
+2026-11-05T13:38:00.0523720Z ✔ untracked read-only lines and header expose no selection controls (0.576347ms)
+2026-11-05T13:38:00.0525385Z ✔ initial loading, failed lookup and unverified access never expose write controls (1.032516ms)
+2026-11-05T13:38:00.0528135Z ✔ header action opens selection and remains usable when all lines already have claims (8.354982ms)
+2026-11-05T13:38:00.0529791Z ✔ dialog form keeps source line selection and partial quantity, with normal date inputs (3.902435ms)
+2026-11-05T13:38:00.0531179Z ✔ saving disables selection, submission and explicit close controls (1.35606ms)
+2026-11-05T13:38:00.0637285Z ℹ tests 7
+2026-11-05T13:38:00.0638836Z ℹ suites 0
+2026-11-05T13:38:00.0639737Z ℹ pass 7
+2026-11-05T13:38:00.0640497Z ℹ fail 0
+2026-11-05T13:38:00.0641214Z ℹ cancelled 0
+2026-11-05T13:38:00.0641854Z ℹ skipped 0
+2026-11-05T13:38:00.0642720Z ℹ todo 0
+2026-11-05T13:38:00.0643478Z ℹ duration_ms 176.654611
+2026-11-05T13:38:00.3843794Z ✔ collapsed queue preserves item and money context but requires review before confirmation (22.357992ms)
+2026-11-05T13:38:00.3854011Z ✔ review disclosure and confirmation retain the exact selected candidate (4.181415ms)
+2026-11-05T13:38:00.3855754Z ✔ busy review locks disclosure and confirmation while missing amounts stay unavailable (3.004239ms)
+2026-11-05T13:38:00.3857079Z ✔ partial credit shows expected, received and remaining server amounts without settlement claims (2.925911ms)
+2026-11-05T13:38:00.3858654Z ✔ view-only and draft candidate renders cannot expose confirmation controls (4.850386ms)
+2026-11-05T13:38:00.3860302Z ✔ cancelled and reversed-receipt history remains visible without misleading actions (4.150676ms)
+2026-11-05T13:38:00.3862051Z ✔ row shows age and suggested follow-up without implying a sent reminder or changing amounts (1.791862ms)
+2026-11-05T13:38:00.3963640Z ℹ tests 7
+2026-11-05T13:38:00.3964251Z ℹ suites 0
+2026-11-05T13:38:00.3964882Z ℹ pass 7
+2026-11-05T13:38:00.3965371Z ℹ fail 0
+2026-11-05T13:38:00.3965908Z ℹ cancelled 0
+2026-11-05T13:38:00.3966471Z ℹ skipped 0
+2026-11-05T13:38:00.3966966Z ℹ todo 0
+2026-11-05T13:38:00.3967476Z ℹ duration_ms 197.639021
+2026-11-05T13:38:00.7548160Z ✔ queue filters select their own stable status and expose pressed state (6.928705ms)
+2026-11-05T13:38:00.7552948Z ✔ summary actions jump to filtered queues only when source evidence is available (3.561437ms)
+2026-11-05T13:38:00.7665291Z ℹ tests 2
+2026-11-05T13:38:00.7665944Z ℹ suites 0
+2026-11-05T13:38:00.7666353Z ℹ pass 2
+2026-11-05T13:38:00.7666780Z ℹ fail 0
+2026-11-05T13:38:00.7667381Z ℹ cancelled 0
+2026-11-05T13:38:00.7667798Z ℹ skipped 0
+2026-11-05T13:38:00.7673188Z ℹ todo 0
+2026-11-05T13:38:00.7683870Z ℹ duration_ms 183.850419
+2026-11-05T13:38:01.0639508Z ✔ review displays exact before/after balance, unchanged payments and bounded credit restrictions (23.91144ms)
+2026-11-05T13:38:01.0642716Z ✔ blocked/read-only context exposes history and explanation without editing or posting controls (1.157923ms)
+2026-11-05T13:38:01.0644741Z ✔ unknown outcome offers exact-request check and does not offer a fresh post (2.415004ms)
+2026-11-05T13:38:01.0646341Z ✔ loading exposes no stale financial values or edit form (0.65963ms)
+2026-11-05T13:38:01.0746768Z ℹ tests 4
+2026-11-05T13:38:01.0747802Z ℹ suites 0
+2026-11-05T13:38:01.0748163Z ℹ pass 4
+2026-11-05T13:38:01.0748569Z ℹ fail 0
+2026-11-05T13:38:01.0748878Z ℹ cancelled 0
+2026-11-05T13:38:01.0749243Z ℹ skipped 0
+2026-11-05T13:38:01.0749569Z ℹ todo 0
+2026-11-05T13:38:01.0749908Z ℹ duration_ms 182.446556
+2026-11-05T13:38:01.3000443Z ✔ draft save actions distinguish new and edited drafts and fail closed for readers (14.114233ms)
+2026-11-05T13:38:01.3003823Z ✔ ordinary discount amount labels follow price basis; adjustment amount always includes VAT (2.621057ms)
+2026-11-05T13:38:01.3006262Z ✔ zero-total draft can be saved but cannot be reviewed for posting (0.540824ms)
+2026-11-05T13:38:01.3008132Z ✔ saved discount summary displays authoritative amounts without deriving VAT from user percentage (1.229501ms)
+2026-11-05T13:38:01.3009992Z ✔ late discount original line fields are locked, while normal credit quantities and prices remain editable (2.450086ms)
+2026-11-05T13:38:01.3011857Z ✔ discount review separates original total, payments, current remaining and saved discount (1.35435ms)
+2026-11-05T13:38:01.3096177Z ℹ tests 6
+2026-11-05T13:38:01.3096803Z ℹ suites 0
+2026-11-05T13:38:01.3097182Z ℹ pass 6
+2026-11-05T13:38:01.3097492Z ℹ fail 0
+2026-11-05T13:38:01.3097809Z ℹ cancelled 0
+2026-11-05T13:38:01.3098169Z ℹ skipped 0
+2026-11-05T13:38:01.3098498Z ℹ todo 0
+2026-11-05T13:38:01.3098863Z ℹ duration_ms 108.11464
+2026-11-05T13:38:01.6374148Z ✔ native workspace shows honest provider status and file limits, and gates upload/prepare by verified role (32.360441ms)
+2026-11-05T13:38:01.6376974Z ✔ source cards only offer explicit downloads, and linked duplicates open their existing document (1.316865ms)
+2026-11-05T13:38:01.6378882Z ✔ an older duplicate outside the recent list resolves a selected source and retains native preparation actions (4.229954ms)
+2026-11-05T13:38:01.6382020Z ✔ reviewed capture line renders server money before a draft document exists, and stale review hides amounts (2.895758ms)
+2026-11-05T13:38:01.6383500Z ✔ queue renders real reading progress, uncertain failure retry and duplicate links without pretending extraction (1.671742ms)
+2026-11-05T13:38:01.6384481Z ✔ capture save requires current review plus explicit three confirmations, with no posting action (2.38732ms)
+2026-11-05T13:38:01.6385468Z ✔ capture metadata failures and already-linked sources stay recoverable without showing new draft writes (1.399452ms)
+2026-11-05T13:38:01.6497514Z ℹ tests 7
+2026-11-05T13:38:01.6498117Z ℹ suites 0
+2026-11-05T13:38:01.6498665Z ℹ pass 7
+2026-11-05T13:38:01.6499042Z ℹ fail 0
+2026-11-05T13:38:01.6499440Z ℹ cancelled 0
+2026-11-05T13:38:01.6500261Z ℹ skipped 0
+2026-11-05T13:38:01.6500657Z ℹ todo 0
+2026-11-05T13:38:01.6501131Z ℹ duration_ms 210.014404
+2026-11-05T13:38:02.2471050Z ✔ uploaded files expose direct preparation links; duplicate linked files reopen with source return (18.409288ms)
+2026-11-05T13:38:02.2473001Z ✔ status controls are real filter buttons with selected state and zero/loading counts (0.858928ms)
+2026-11-05T13:38:02.2474535Z ✔ mobile cards retain all four document routes, precise money and role-aware draft actions (8.775093ms)
+2026-11-05T13:38:02.2476138Z ✔ mobile supplier rows pass the exact original indices and server net values to line controls (2.181745ms)
+2026-11-05T13:38:02.2485101Z ✔ posted payment and credit actions occur once in the header, only on permitted originals with valid capacity (47.455509ms)
+2026-11-05T13:38:02.2487083Z ✔ capture keeps exactly two distinct submit intents and three unchecked acknowledgements (2.394089ms)
+2026-11-05T13:38:02.2489191Z ✔ optional discount stays compact until needed, while existing discounts and draft safeguards remain visible (1.750354ms)
+2026-11-05T13:38:02.2490465Z ✔ document totals disclose saved net and VAT precisely without inferring unavailable tax (4.517012ms)
+2026-11-05T13:38:02.2491614Z ✔ settlement views discard stale cached balances after failed refresh and retain document access (3.967605ms)
+2026-11-05T13:38:02.2493404Z ✔ desktop document tables preserve keyboard access, full references and named document actions (6.648087ms)
+2026-11-05T13:38:02.2495144Z ✔ malformed settlement snapshots cannot crash document rows or masquerade as filtered zero balances (47.219423ms)
+2026-11-05T13:38:02.2496894Z ✔ document sorting compares exact saved amounts, preserves ties and places missing values last (0.768778ms)
+2026-11-05T13:38:02.2498424Z ✔ document date ordering is stable, rejects impossible dates and does not invent credit due dates (1.180726ms)
+2026-11-05T13:38:02.2811877Z ℹ tests 13
+2026-11-05T13:38:02.2812925Z ℹ suites 0
+2026-11-05T13:38:02.2813251Z ℹ pass 13
+2026-11-05T13:38:02.2813677Z ℹ fail 0
+2026-11-05T13:38:02.2814026Z ℹ cancelled 0
+2026-11-05T13:38:02.2814365Z ℹ skipped 0
+2026-11-05T13:38:02.2814722Z ℹ todo 0
+2026-11-05T13:38:02.2815094Z ℹ duration_ms 389.574158
+2026-11-05T13:38:02.5832465Z ✔ image preview is available on inbox rows, attached cards and draft review without edit authority (20.760328ms)
+2026-11-05T13:38:02.5834661Z ✔ PDF and other file types offer an honest download explanation with no renderer (0.972556ms)
+2026-11-05T13:38:02.5836952Z ✔ ready preview has accessible expansion, escaped source name, bounded image and no external-document frame (0.972605ms)
+2026-11-05T13:38:02.5840174Z ✔ loading and failures remain closable and do not retain an image; retry is explicit (1.507796ms)
+2026-11-05T13:38:02.5950859Z ℹ tests 4
+2026-11-05T13:38:02.5951352Z ℹ suites 0
+2026-11-05T13:38:02.5951818Z ℹ pass 4
+2026-11-05T13:38:02.5952720Z ℹ fail 0
+2026-11-05T13:38:02.5953107Z ℹ cancelled 0
+2026-11-05T13:38:02.5953462Z ℹ skipped 0
+2026-11-05T13:38:02.5953824Z ℹ todo 0
+2026-11-05T13:38:02.5954328Z ℹ duration_ms 184.693933
+2026-11-05T13:38:02.9070957Z ✔ a file drop reaches the same native selection queue with original file objects and prevents navigation (0.846157ms)
+2026-11-05T13:38:02.9075926Z ✔ read-only and busy drops prevent navigation without accepting files or starting a second queue (0.191163ms)
+2026-11-05T13:38:02.9078563Z ✔ cancelling a picker or dropping text does not create an empty upload request (0.206551ms)
+2026-11-05T13:38:02.9079630Z ✔ file and camera choices stay native, keyboard-operable and limited to the supported formats (15.446138ms)
+2026-11-05T13:38:02.9080734Z ✔ active uploads disable both pickers, and unverified roles cannot access a file input (2.817392ms)
+2026-11-05T13:38:02.9081806Z ✔ compact source rows retain explicit native bill/credit choice and only download original bytes (6.840022ms)
+2026-11-05T13:38:02.9083233Z ✔ mixed source inbox groups preparation and linked records without losing an original source (8.201688ms)
+2026-11-05T13:38:02.9192000Z ℹ tests 7
+2026-11-05T13:38:02.9192842Z ℹ suites 0
+2026-11-05T13:38:02.9193732Z ℹ pass 7
+2026-11-05T13:38:02.9194034Z ℹ fail 0
+2026-11-05T13:38:02.9194320Z ℹ cancelled 0
+2026-11-05T13:38:02.9194694Z ℹ skipped 0
+2026-11-05T13:38:02.9194985Z ℹ todo 0
+2026-11-05T13:38:02.9195321Z ℹ duration_ms 198.766761
+2026-11-05T13:38:03.2805407Z ✔ professional and explained views preserve native first tasks and full accounting links (32.232948ms)
+2026-11-05T13:38:03.2811806Z ✔ read-only users get browse paths without document create or manage-contact claims (5.184883ms)
+2026-11-05T13:38:03.2813122Z ✔ loading or failed refresh hides previously supplied readiness and create actions (5.827157ms)
+2026-11-05T13:38:03.2814463Z ✔ missing non-VAT rule is actionable and does not masquerade as successful setup (4.690771ms)
+2026-11-05T13:38:03.2815380Z ✔ resume suggests the first missing saved prerequisite, then the first available real task (22.589955ms)
+2026-11-05T13:38:03.2816613Z ✔ resume respects permissions, unresolved server requirements and failed fresh reads (8.544137ms)
+2026-11-05T13:38:03.2818373Z ✔ optional state explanations distinguish saved work, ledger records and external evidence (7.068961ms)
+2026-11-05T13:38:03.2965889Z ℹ tests 7
+2026-11-05T13:38:03.2966431Z ℹ suites 0
+2026-11-05T13:38:03.2966747Z ℹ pass 7
+2026-11-05T13:38:03.2967096Z ℹ fail 0
+2026-11-05T13:38:03.2967440Z ℹ cancelled 0
+2026-11-05T13:38:03.2967755Z ℹ skipped 0
+2026-11-05T13:38:03.2968089Z ℹ todo 0
+2026-11-05T13:38:03.2968429Z ℹ duration_ms 242.379242
+2026-11-05T13:38:03.6092648Z ✔ saved guidance reaches the first render without showing another account or company preference (35.665913ms)
+2026-11-05T13:38:03.6096747Z ✔ unavailable storage shows a recoverable preference message without blocking setup or native tasks (5.712595ms)
+2026-11-05T13:38:03.6202506Z ℹ tests 2
+2026-11-05T13:38:03.6203084Z ℹ suites 0
+2026-11-05T13:38:03.6203651Z ℹ pass 2
+2026-11-05T13:38:03.6204088Z ℹ fail 0
+2026-11-05T13:38:03.6204516Z ℹ cancelled 0
+2026-11-05T13:38:03.6205144Z ℹ skipped 0
+2026-11-05T13:38:03.6205564Z ℹ todo 0
+2026-11-05T13:38:03.6206071Z ℹ duration_ms 191.647913
+2026-11-05T13:38:03.7707687Z ✔ credit review distinguishes full credit, offset, released cash allocation and original pool evidence (7.098156ms)
+2026-11-05T13:38:03.7805538Z ℹ tests 1
+2026-11-05T13:38:03.7806313Z ℹ suites 0
+2026-11-05T13:38:03.7806980Z ℹ pass 1
+2026-11-05T13:38:03.7807562Z ℹ fail 0
+2026-11-05T13:38:03.7808367Z ℹ cancelled 0
+2026-11-05T13:38:03.7808821Z ℹ skipped 0
+2026-11-05T13:38:03.7809212Z ℹ todo 0
+2026-11-05T13:38:03.7809739Z ℹ duration_ms 93.369016
+2026-11-05T13:38:04.1294058Z ✔ only owner/accountant posting capabilities expose recording and settlement write actions (17.37187ms)
+2026-11-05T13:38:04.1301555Z ✔ settlement actions preserve existing unapplied, allocation, refund and reversal constraints (1.810942ms)
+2026-11-05T13:38:04.1303429Z ✔ all payment event kinds retain dates, amounts and journal links for read-only history (3.957073ms)
+2026-11-05T13:38:04.1304883Z ✔ unknown outcome offers explicit read and same-payment retry without edit or success claims (1.952215ms)
+2026-11-05T13:38:04.1305944Z ✔ status can still be checked with read permission while retry requires posting permission (1.897261ms)
+2026-11-05T13:38:04.1306886Z ✔ closing an uncertain result explicitly warns that history must be checked and nothing is cancelled (0.826527ms)
+2026-11-05T13:38:04.1415832Z ℹ tests 6
+2026-11-05T13:38:04.1416206Z ℹ suites 0
+2026-11-05T13:38:04.1416514Z ℹ pass 6
+2026-11-05T13:38:04.1417075Z ℹ fail 0
+2026-11-05T13:38:04.1417540Z ℹ cancelled 0
+2026-11-05T13:38:04.1418053Z ℹ skipped 0
+2026-11-05T13:38:04.1418520Z ℹ todo 0
+2026-11-05T13:38:04.1418983Z ℹ duration_ms 183.878444
+2026-11-05T13:38:04.4657597Z ✔ payment overview shortcuts use existing row filters and clear conflicting search (11.725662ms)
+2026-11-05T13:38:04.4659466Z ✔ statement summary preserves server balances separately and retains exact large values (1.130096ms)
+2026-11-05T13:38:04.4661271Z ✔ payment filters have named search/direction/unapplied controls and preserve selected view (7.927076ms)
+2026-11-05T13:38:04.4663711Z ✔ payment history provides mobile cards and keyboard scrollable table with real amounts and named actions (3.338724ms)
+2026-11-05T13:38:04.4665294Z ✔ empty and filtered payment results explain different next steps without inventing zero balances (1.799969ms)
+2026-11-05T13:38:04.4666894Z ✔ payment status and detailed balances preserve refund/reversal distinctions and large pence precision (5.366749ms)
+2026-11-05T13:38:04.4668431Z ✔ allocation rows retain original document links, exact amounts and accessible decimal inputs (3.150419ms)
+2026-11-05T13:38:04.4670040Z ✔ statement movements preserve source/journal links and separate document and unapplied balances on both layouts (2.315361ms)
+2026-11-05T13:38:04.4671928Z ✔ statement empty state retains opening-balance context without pretending the account is settled (0.546849ms)
+2026-11-05T13:38:04.4834218Z ℹ tests 9
+2026-11-05T13:38:04.4834570Z ℹ suites 0
+2026-11-05T13:38:04.4834872Z ℹ pass 9
+2026-11-05T13:38:04.4835137Z ℹ fail 0
+2026-11-05T13:38:04.4835410Z ℹ cancelled 0
+2026-11-05T13:38:04.4835705Z ℹ skipped 0
+2026-11-05T13:38:04.4836024Z ℹ todo 0
+2026-11-05T13:38:04.4836367Z ℹ duration_ms 205.728415
+2026-11-05T13:38:04.9130410Z ✔ navigation announces selection; closing date toolbar presents one As-at control (16.713624ms)
+2026-11-05T13:38:04.9132247Z ✔ report shell shows company but has no export during loading or invalid input (19.691888ms)
+2026-11-05T13:38:04.9141024Z ✔ ledger table retains exact money, source routes, captions and keyboard scrolling (2.635025ms)
+2026-11-05T13:38:04.9141750Z ✔ journal review presents evidence and hides prior-scope links and amounts (3.217577ms)
+2026-11-05T13:38:04.9142806Z ✔ correction ledger and journal links use verified original document identity without replacing journal evidence (2.974828ms)
+2026-11-05T13:38:04.9144143Z ✔ report library leads to native VAT and historical status never implies verified filing (7.486453ms)
+2026-11-05T13:38:04.9144964Z ✔ report hub retains every current report and historical tools without invented figures (2.990352ms)
+2026-11-05T13:38:04.9145818Z ✔ profit overview keeps server totals exact and the statement keeps category and account drilldowns (3.579146ms)
+2026-11-05T13:38:04.9264657Z ℹ tests 8
+2026-11-05T13:38:04.9265068Z ℹ suites 0
+2026-11-05T13:38:04.9265387Z ℹ pass 8
+2026-11-05T13:38:04.9265683Z ℹ fail 0
+2026-11-05T13:38:04.9266010Z ℹ cancelled 0
+2026-11-05T13:38:04.9266359Z ℹ skipped 0
+2026-11-05T13:38:04.9266660Z ℹ todo 0
+2026-11-05T13:38:04.9267029Z ℹ duration_ms 251.988104
+2026-11-05T13:38:05.0861859Z ✔ loading and failure views are accessible and offer explicit retry without revealing errors (6.688121ms)
+2026-11-05T13:38:05.0865966Z ✔ only import failures use the route retry boundary; runtime errors keep the application boundary (1.02478ms)
+2026-11-05T13:38:05.0867856Z ✔ a lazy page resolves with its original route props and leaves the surrounding shell rendered (7.633059ms)
+2026-11-05T13:38:05.0871141Z ✔ remounting a route after successful retry never resurrects its rejected lazy value (6.684065ms)
+2026-11-05T13:38:05.0967048Z ℹ tests 4
+2026-11-05T13:38:05.0967498Z ℹ suites 0
+2026-11-05T13:38:05.0967886Z ℹ pass 4
+2026-11-05T13:38:05.0968274Z ℹ fail 0
+2026-11-05T13:38:05.0968658Z ℹ cancelled 0
+2026-11-05T13:38:05.0968986Z ℹ skipped 0
+2026-11-05T13:38:05.0969269Z ℹ todo 0
+2026-11-05T13:38:05.0969605Z ℹ duration_ms 104.05546
+2026-11-05T13:38:05.4240578Z ✔ workings show five server boxes, signed credits, zero eligible VAT and document/journal routes (16.655884ms)
+2026-11-05T13:38:05.4246209Z ✔ repayment direction uses server direction and does not turn box 5 negative (5.790113ms)
+2026-11-05T13:38:05.4248548Z ✔ coverage separates reconciled workings from unsupported boxes, engine scope and filing authority (5.640638ms)
+2026-11-05T13:38:05.4250122Z ✔ missing coverage is shown as unavailable and old data cannot leave a green reconciliation claim (3.270608ms)
+2026-11-05T13:38:05.4253224Z ✔ correction row keeps its document and distinct journal links and is clearly a difference movement (4.145191ms)
+2026-11-05T13:38:05.4254329Z ✔ non-VAT view hides boxes, monetary rows and CSV export (0.509833ms)
+2026-11-05T13:38:05.4261059Z ✔ unsupported setup and load errors provide retry without misleading empty VAT figures (0.725235ms)
+2026-11-05T13:38:05.4262886Z ✔ old scope and refresh loading render no stale money or source links (0.988904ms)
+2026-11-05T13:38:05.4264499Z ✔ full workings and filtered evidence exports remain distinct with an explicit evidence-only label (3.765144ms)
+2026-11-05T13:38:05.4265765Z ✔ filtered export is disabled without verified company context or source movements (7.917819ms)
+2026-11-05T13:38:05.4383363Z ℹ tests 10
+2026-11-05T13:38:05.4383672Z ℹ suites 0
+2026-11-05T13:38:05.4383915Z ℹ pass 10
+2026-11-05T13:38:05.4384132Z ℹ fail 0
+2026-11-05T13:38:05.4384351Z ℹ cancelled 0
+2026-11-05T13:38:05.4384596Z ℹ skipped 0
+2026-11-05T13:38:05.4384812Z ℹ todo 0
+2026-11-05T13:38:05.4385061Z ℹ duration_ms 210.244274
+2026-11-05T13:38:05.8728139Z ✔ email unavailable notice provides a working document-inbox alternative (8.16653ms)
+2026-11-05T13:38:05.8733744Z ✔ email account screen cannot create a simulated connected account (7.415396ms)
+2026-11-05T13:38:05.8734805Z ✔ saved rule notice distinguishes preferences from automation (0.461159ms)
+2026-11-05T13:38:05.8735854Z ✔ saved workflow route explains that active metadata does not execute tasks (0.964241ms)
+2026-11-05T13:38:05.8836949Z ℹ tests 4
+2026-11-05T13:38:05.8837301Z ℹ suites 0
+2026-11-05T13:38:05.8837599Z ℹ pass 4
+2026-11-05T13:38:05.8837896Z ℹ fail 0
+2026-11-05T13:38:05.8838208Z ℹ cancelled 0
+2026-11-05T13:38:05.8838500Z ℹ skipped 0
+2026-11-05T13:38:05.8838754Z ℹ todo 0
+2026-11-05T13:38:05.8839028Z ℹ duration_ms 215.693097
+2026-11-05T13:38:06.3318990Z ✔ closed navigation sheet renders no hidden focusable menu entries (13.361287ms)
+2026-11-05T13:38:06.3323000Z ✔ daily capture and awaiting-credit routes stay available without suggesting unauthorized writes (9.810071ms)
+2026-11-05T13:38:06.3324457Z ✔ breadcrumbs retain document parent navigation and mark the current view (1.65369ms)
+2026-11-05T13:38:06.3326413Z ✔ everyday destinations render as real links with one selected route and accessible collapsed labels (11.993268ms)
+2026-11-05T13:38:06.3327657Z ✔ the daily task queue shows supplied counts and links without pretending tasks are complete (1.89635ms)
+2026-11-05T13:38:06.3328961Z ✔ daily accounting shortcuts retain direct expert paths and only offer draft creation with permission (4.989475ms)
+2026-11-05T13:38:06.3330114Z ✔ posted ledger retains exact amounts and evidence while descriptions use native keyboard disclosures (6.331548ms)
+2026-11-05T13:38:06.3464120Z ℹ tests 7
+2026-11-05T13:38:06.3464607Z ℹ suites 0
+2026-11-05T13:38:06.3465977Z ℹ pass 7
+2026-11-05T13:38:06.3466261Z ℹ fail 0
+2026-11-05T13:38:06.3466554Z ℹ cancelled 0
+2026-11-05T13:38:06.3466942Z ℹ skipped 0
+2026-11-05T13:38:06.3467166Z ℹ todo 0
+2026-11-05T13:38:06.3467431Z ℹ duration_ms 268.231564
+2026-11-05T13:38:06.3756974Z ##[group]Run node --test tools/development/migrations/registry.test.mjs
+2026-11-05T13:38:06.3757534Z [36;1mnode --test tools/development/migrations/registry.test.mjs[0m
+2026-11-05T13:38:06.3773275Z shell: /usr/bin/bash -e {0}
+2026-11-05T13:38:06.3773562Z ##[endgroup]
+2026-11-05T13:38:06.5017970Z ✔ original binding candidate keeps both public posting gates and a database-owned original xid prerequisite (1.609256ms)
+2026-11-05T13:38:06.5024044Z ✔ all registered review migrations are pinned and returned as the exact verified bytes (2.42726ms)
+2026-11-05T13:38:06.5025345Z ✔ unknown version fails closed (0.599307ms)
+2026-11-05T13:38:06.5026215Z ✔ legacy unpinned version fails closed (0.19256ms)
+2026-11-05T13:38:06.5027025Z ✔ missing overlay fails closed (0.546523ms)
+2026-11-05T13:38:06.5029493Z ✔ overlay traversal fails closed (0.382261ms)
+2026-11-05T13:38:06.5030441Z ✔ wrong overlay identity fails closed (0.47178ms)
+2026-11-05T13:38:06.5031553Z ✔ unsupported overlay contract fails closed (0.615712ms)
+2026-11-05T13:38:06.5033138Z ✔ malformed overlay checksum fails closed (0.51489ms)
+2026-11-05T13:38:06.5034388Z ✔ production authority fails closed (0.299872ms)
+2026-11-05T13:38:06.5035209Z ✔ missing migration fails closed (0.181819ms)
+2026-11-05T13:38:06.5035890Z ✔ unknown migration fails closed (0.175889ms)
+2026-11-05T13:38:06.5036603Z ✔ duplicate identity fails closed (0.259818ms)
+2026-11-05T13:38:06.5037272Z ✔ wrong order fails closed (0.165624ms)
+2026-11-05T13:38:06.5037938Z ✔ missing dependency fails closed (0.217945ms)
+2026-11-05T13:38:06.5047168Z ✔ unsupported contract fails closed (0.159351ms)
+2026-11-05T13:38:06.5048111Z ✔ traversal path fails closed (0.115698ms)
+2026-11-05T13:38:06.5049256Z ✔ changed SQL bytes fail checksum validation without leaking SQL (0.184688ms)
+2026-11-05T13:38:06.5050332Z ✔ missing SQL fails with bounded diagnostic (0.127393ms)
+2026-11-05T13:38:06.5051419Z ✔ nonempty database is rejected before BEGIN, amendments=false (0.878492ms)
+2026-11-05T13:38:06.5052780Z ✔ nonempty database is rejected before BEGIN, amendments=true (0.447181ms)
+2026-11-05T13:38:06.5053827Z ✔ altered overlay fails with bounded diagnostic (0.534546ms)
+2026-11-05T13:38:06.5054582Z ✔ missing overlay fails with bounded diagnostic (0.307669ms)
+2026-11-05T13:38:06.5055527Z ✔ tampered overlay stops installer before any database query, amendments=false (6.975704ms)
+2026-11-05T13:38:06.5056290Z ✔ tampered overlay stops installer before any database query, amendments=true (5.942356ms)
+2026-11-05T13:38:06.5065890Z ✔ schema created after preflight is refused under migration lock, amendments=false (0.794478ms)
+2026-11-05T13:38:06.5067362Z ✔ schema created after preflight is refused under migration lock, amendments=true (0.523948ms)
+2026-11-05T13:38:06.5068636Z ✔ installed history matches exact selected input versions, amendments=false (1.190411ms)
+2026-11-05T13:38:06.5069911Z ✔ installed history matches exact selected input versions, amendments=true (0.806884ms)
+2026-11-05T13:38:06.5168380Z ℹ tests 29
+2026-11-05T13:38:06.5168816Z ℹ suites 0
+2026-11-05T13:38:06.5169069Z ℹ pass 29
+2026-11-05T13:38:06.5169283Z ℹ fail 0
+2026-11-05T13:38:06.5169507Z ℹ cancelled 0
+2026-11-05T13:38:06.5169742Z ℹ skipped 0
+2026-11-05T13:38:06.5169954Z ℹ todo 0
+2026-11-05T13:38:06.5170211Z ℹ duration_ms 103.646091
+2026-11-05T13:38:06.5248059Z ##[group]Run echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+2026-11-05T13:38:06.5248468Z [36;1mecho "$(pg_config --bindir)" >> "$GITHUB_PATH"[0m
+2026-11-05T13:38:06.5261949Z shell: /usr/bin/bash -e {0}
+2026-11-05T13:38:06.5262203Z ##[endgroup]
+2026-11-05T13:38:06.5769184Z ##[group]Run node tools/accounting-flow/test.mjs
+2026-11-05T13:38:06.5769566Z [36;1mnode tools/accounting-flow/test.mjs[0m
+2026-11-05T13:38:06.5783421Z shell: /usr/bin/bash -e {0}
+2026-11-05T13:38:06.5783681Z ##[endgroup]
+2026-11-05T13:38:11.0279941Z 
+2026-11-05T13:38:11.0294276Z   ../../generated-artifacts/accounting-flow.test.cjs  2.3mb ⚠️
+2026-11-05T13:38:11.0294608Z 
+2026-11-05T13:38:11.0294758Z ⚡ Done in 114ms
+2026-11-05T13:38:11.6423402Z ✔ document capabilities match actual draft and protected posting permissions (329.832622ms)
+2026-11-05T13:38:11.8974849Z ✔ all four document drafts edit and reopen with revised totals, stale-write protection and source audit (255.834772ms)
+2026-11-05T13:38:12.6282787Z ✔ draft discounts allocate mixed VAT in both bases, clear on edit, post balanced, and allow exact full returns (731.072805ms)
+2026-11-05T13:38:13.1034407Z ✔ later percentage and fixed discounts preserve partial payments and original source for invoices and bills (475.051322ms)
+2026-11-05T13:38:13.1730712Z ✔ discount credits use original VAT evidence and adjustment date after tax rules change (69.615656ms)
+2026-11-05T13:38:13.3018690Z ✔ competing discounts cannot exceed the balance after a partial payment (128.633066ms)
+2026-11-05T13:38:13.4213522Z Accounting operation failed { code: '22012' }
+2026-11-05T13:38:13.4707948Z ✔ discount failures preserve journal, payments, audit and source; permissions, revisions and periods stay enforced (168.711646ms)
+2026-11-05T13:38:13.5734347Z ✔ discounted returned-item claims use the paid-for value and commercial discounts never satisfy those claims (102.807801ms)
+2026-11-05T13:38:13.6037378Z ✔ legacy draft discount is calculated, saved and reopened rather than silently ignored (30.166991ms)
+2026-11-05T13:38:13.6319553Z Accounting operation failed { code: 'P0001' }
+2026-11-05T13:38:13.6362775Z ✔ an audit insert failure atomically rolls back a discount edit and its compatibility projection (32.398722ms)
+2026-11-05T13:38:13.6988326Z ✔ isolated legacy journal history remains readable but cannot become a financial write bypass (62.356769ms)
+2026-11-05T13:38:13.8914849Z ✔ four native create/edit/reopen/review/post journeys reconcile ledger, parties, P&L, BS and VAT with idempotent retries (192.11861ms)
+2026-11-05T13:38:14.3659701Z ✔ demo 5% and zero-rated rules survive repeat setup and reconcile invoices, bills and credits in both price bases (474.891984ms)
+2026-11-05T13:38:14.4373531Z ✔ credit retains original tax point, selected original lines and own effective period; movements differ from closing balances (71.456559ms)
+2026-11-05T13:38:14.5430908Z ✔ concurrent excessive credits serialize; unallocated/refund/date-substitution credits fail closed (105.576623ms)
+2026-11-05T13:38:14.5752804Z Accounting operation failed { code: '22012' }
+2026-11-05T13:38:14.6194378Z ✔ failed posting rolls back journal, effect, status and audit; stale source/context and closed periods deny (76.409271ms)
+2026-11-05T13:38:14.6667453Z ✔ authorization, cross-company IDs, forged journal inputs and generic financial bypasses reject (47.239906ms)
+2026-11-05T13:38:14.7666568Z ✔ non-VAT and explicitly nonrecoverable purchase VAT never fabricate input VAT recovery (99.925029ms)
+2026-11-05T13:38:14.7916258Z ✔ full-schema legacy draft reopen defaults excluding without rewrite and still has no posting (24.85992ms)
+2026-11-05T13:38:14.8367045Z ✔ reports hold a repeatable-read snapshot while a real native posting commits between ledger and source reads (44.862624ms)
+2026-11-05T13:38:14.9448986Z ✔ explicit eligible UUIDv5 sales/purchase accounts save/reopen; defaults clear overrides; invalid choices have safe field errors (107.981005ms)
+2026-11-05T13:38:15.0973998Z ✔ native chart CRUD preserves UUID/history, serializes revisions/code uniqueness, locks classification and groups reports (152.391061ms)
+2026-11-05T13:38:15.4997040Z ✔ partial value credits preserve originals and agree across journals, reports, history and legacy balance readers (402.433791ms)
+2026-11-05T13:38:15.7728742Z ✔ bank status and matching metadata cannot settle documents or duplicate recovered payment commands (273.038098ms)
+2026-11-05T13:38:15.9994388Z ✔ W06 customer excess, refunds, later allocations and undo reconcile cash, statements and historical VAT (226.665965ms)
+2026-11-05T13:38:16.1790872Z ✔ W06 supplier prepayment and refund, full unallocation and reversal preserve profit and tax (179.679409ms)
+2026-11-05T13:38:16.2496885Z Accounting operation failed { code: '22012' }
+2026-11-05T13:38:16.3038671Z ✔ W06 rejects stale concurrent allocations, cross-party, read-only, closed-period and rollback failures (124.52622ms)
+2026-11-05T13:38:16.4720101Z ✔ credit tracking enforces authentication, membership, roles and company boundaries on every operation (168.179677ms)
+2026-11-05T13:38:16.5254998Z ✔ credit tracking allows existing draft-management roles without granting posting capability (53.323522ms)
+2026-11-05T13:38:16.5737901Z ✔ credit tracking retries are idempotent and bind body, actor and current permissions (47.643777ms)
+2026-11-05T13:38:16.6665653Z ✔ credit tracking races serialize and stale claim or credit revisions fail without duplicate receipts (93.317545ms)
+2026-11-05T13:38:16.7298044Z Accounting operation failed { code: '22012' }
+2026-11-05T13:38:16.7987036Z Accounting operation failed { code: '22012' }
+2026-11-05T13:38:16.8242863Z Accounting operation failed { code: '22012' }
+2026-11-05T13:38:16.8538779Z ✔ credit tracking rolls back claims, receipts, revisions and audit atomically without touching accounting (187.288643ms)
+2026-11-05T13:38:16.9364458Z ✔ a reduced-price credit leaves value outstanding and never satisfies a separate surcharge (82.625279ms)
+2026-11-05T13:38:17.0839826Z ✔ historical posted credits are excluded, drafts require posting, and multiple confirmed partial credits complete a claim (147.439681ms)
+2026-11-05T13:38:17.1597954Z ✔ fully paid bills can be tracked without changing their accounting or settled status (75.692219ms)
+2026-11-05T13:38:17.2485971Z ✔ tracking receipt and command history are immutable and claim financial snapshots cannot be edited by runtime role (88.584253ms)
+2026-11-05T13:38:17.3696220Z ✔ real canonical reversals invalidate confirmed tracking receipts and prevent reversed bill claims (121.066877ms)
+2026-11-05T13:38:17.4251916Z ✔ capture retains exact authenticated evidence and deduplicates concurrent uploads within a company (55.643009ms)
+2026-11-05T13:38:17.4998908Z ✔ capture creates exactly one reviewed draft under concurrent retries and never posts (74.692296ms)
+2026-11-05T13:38:17.5570653Z ✔ capture review rejects missing acknowledgements, stale intent, stale tax and foreign supplier (57.122795ms)
+2026-11-05T13:38:17.5842009Z Document intake operation failed { code: '22012' }
+2026-11-05T13:38:17.5941191Z ✔ capture draft, compatibility projection, source link and audits roll back together (37.009267ms)
+2026-11-05T13:38:17.6589760Z ✔ capture permissions are checked on upload, review and every idempotent retry (64.791848ms)
+2026-11-05T13:38:17.7417488Z ✔ capture evidence and audit are immutable and document links enforce tenant identity (82.516227ms)
+2026-11-05T13:38:17.8203908Z ✔ captured supplier credits retain original source rates and native settlement controls (78.606155ms)
+2026-11-05T13:38:18.2297657Z ✔ paid supplier and customer credits atomically release allocations, preserve cash, replay and rollback (407.817293ms)
+2026-11-05T13:38:18.4125655Z ✔ competing paid credits and multiple payment releases retain cumulative capacity and stable order (184.359948ms)
+2026-11-05T13:38:18.5272942Z ✔ part-paid excess review includes prior unapplied/refunded money and denies revoked-member replay (114.713448ms)
+2026-11-05T13:38:18.6555440Z ✔ paid-credit stale setup, closed period and absent/partial schema commit no effects (128.128987ms)
+2026-11-05T13:38:18.7937644Z ✔ paid credit and separately reviewed payment unallocation fence competing allocation vectors (137.846063ms)
+2026-11-05T13:38:19.2480710Z ✔ paid-credit released pools support later allocation, refund and undo without double use or rewriting history (454.442485ms)
+2026-11-05T13:38:19.4019339Z ✔ original payment request recovery survives new sessions without reposting and denies revoked or foreign membership (153.832415ms)
+2026-11-05T13:38:19.4485932Z Accounting operation failed { code: '22012' }
+2026-11-05T13:38:19.4756482Z ✔ rolled-back payment command remains unknown and a same-identity retry recovers its one committed result (69.42145ms)
+2026-11-05T13:38:19.5222951Z ℹ tests 52
+2026-11-05T13:38:19.5223844Z ℹ suites 0
+2026-11-05T13:38:19.5224136Z ℹ pass 52
+2026-11-05T13:38:19.5224410Z ℹ fail 0
+2026-11-05T13:38:19.5224776Z ℹ cancelled 0
+2026-11-05T13:38:19.5225009Z ℹ skipped 0
+2026-11-05T13:38:19.5225217Z ℹ todo 0
+2026-11-05T13:38:19.5225472Z ℹ duration_ms 8446.28875
+2026-11-05T13:38:19.8834483Z 
+2026-11-05T13:38:19.8835436Z   ../../generated-artifacts/conditional-discount-flow.test.cjs  913.4kb
+2026-11-05T13:38:19.8835785Z 
+2026-11-05T13:38:19.8836138Z ⚡ Done in 66ms
+2026-11-05T13:38:20.1729216Z ✔ real PostgreSQL: parent cannot witness before top commit (99.191834ms)
+2026-11-05T13:38:20.2186762Z ✔ real PostgreSQL: unreleased savepoint cannot witness before top commit (46.491919ms)
+2026-11-05T13:38:20.2766592Z ✔ real PostgreSQL: released savepoint cannot witness before top commit (57.839572ms)
+2026-11-05T13:38:20.3019360Z ✔ real PostgreSQL: rollback removes both source and transaction receipt (25.185736ms)
+2026-11-05T13:38:20.3583250Z ✔ real PostgreSQL: runtime cannot forge, update, delete or truncate transaction receipts (56.29608ms)
+2026-11-05T13:38:20.4056136Z ✔ real PostgreSQL: missing trigger rejects schema; foreign origin cannot certify an unwitnessed event (47.192525ms)
+2026-11-05T13:38:20.4407680Z ✔ real PostgreSQL: fabricated clocks are replaced and the first observation survives retries (34.943917ms)
+2026-11-05T13:38:20.4794015Z ✔ real PostgreSQL: existing valid witness remains readable after origin mismatch without recertification (38.467783ms)
+2026-11-05T13:38:20.5757473Z ✔ real PostgreSQL: restricted runtime cannot poison the first receipt hash, journal or observer (96.188248ms)
+2026-11-05T13:38:20.6121631Z ✔ real PostgreSQL: inconsistent canonical posting effect cannot certify a receipt (36.365352ms)
+2026-11-05T13:38:20.6501316Z ✔ real PostgreSQL: original journal top-xid origin / none (38.223002ms)
+2026-11-05T13:38:20.6805273Z ✔ real PostgreSQL: original journal top-xid origin / released (30.186548ms)
+2026-11-05T13:38:20.7130214Z ✔ real PostgreSQL: original journal top-xid origin / unreleased (32.29761ms)
+2026-11-05T13:38:20.7583256Z ✔ real PostgreSQL: original origin rolls back with journal and cannot be retroactively attached or forged (45.040631ms)
+2026-11-05T13:38:20.8698523Z ✔ real PostgreSQL: customer evidence capture/replay/read/draft/clear and disabled posting (111.878342ms)
+2026-11-05T13:38:20.9724053Z ✔ real PostgreSQL: supplier evidence capture/replay/read/draft/clear and disabled posting (102.008229ms)
+2026-11-05T13:38:21.0411283Z ✔ real PostgreSQL: successful conditional binding and committed observation / parent (69.198658ms)
+2026-11-05T13:38:21.0928578Z ✔ real PostgreSQL: successful conditional binding and committed observation / unreleased (51.640332ms)
+2026-11-05T13:38:21.1531880Z ✔ real PostgreSQL: successful conditional binding and committed observation / released (60.143909ms)
+2026-11-05T13:38:21.1954313Z ✔ real PostgreSQL: binding rolls back with its native journal and source (42.21927ms)
+2026-11-05T13:38:21.2525063Z ✔ real PostgreSQL: original observer rejects a disabled immutable guard before reading evidence (56.752405ms)
+2026-11-05T13:38:21.3773583Z ✔ real PostgreSQL: poisoned SQL binding payload rejects service first observation (125.066706ms)
+2026-11-05T13:38:21.4961235Z ✔ real PostgreSQL: poisoned SQL binding payload rejects service replay (118.467646ms)
+2026-11-05T13:38:21.5724309Z ✔ real PostgreSQL: restricted SQL cannot replace the pre-journal native payload commitment (76.087761ms)
+2026-11-05T13:38:21.6587226Z ✔ real PostgreSQL: direct observer rejects duplicate identity and rechecks a locked concurrent revocation (86.304231ms)
+2026-11-05T13:38:21.9747294Z ✔ real PostgreSQL: customer native cash freezes bindings before allocation and never backfills old pools (315.596962ms)
+2026-11-05T13:38:22.2096700Z ✔ real PostgreSQL: supplier native cash freezes bindings before allocation and never backfills old pools (235.376797ms)
+2026-11-05T13:38:22.2256747Z ✔ real PostgreSQL: new payment planning rejects a partial binding schema before any financial write (15.815853ms)
+2026-11-05T13:38:22.2772139Z ✔ real PostgreSQL: retained original observation survives foreign historical transaction origin without recertification (51.395877ms)
+2026-11-05T13:38:22.3921239Z ✔ real PostgreSQL: customer internal admission threshold 10800 with closed public credit routes (115.218066ms)
+2026-11-05T13:38:22.4725048Z ✔ real PostgreSQL: customer internal admission threshold 10799 with closed public credit routes (80.301554ms)
+2026-11-05T13:38:22.6125874Z ✔ real PostgreSQL: customer internal admission threshold 12000 with closed public credit routes (139.847172ms)
+2026-11-05T13:38:22.7155251Z ✔ real PostgreSQL: customer conditional admission old-pool (103.194739ms)
+2026-11-05T13:38:22.8409440Z ✔ real PostgreSQL: customer conditional admission later-allocation (125.317512ms)
+2026-11-05T13:38:22.9808028Z ✔ real PostgreSQL: customer conditional admission unwitnessed-allocation (139.590674ms)
+2026-11-05T13:38:23.0754451Z ✔ real PostgreSQL: customer conditional admission unwitnessed (93.809002ms)
+2026-11-05T13:38:23.1605164Z ✔ real PostgreSQL: customer conditional admission late-effective (86.068376ms)
+2026-11-05T13:38:23.3016704Z ✔ real PostgreSQL: customer conditional admission unallocation (140.634578ms)
+2026-11-05T13:38:23.4290796Z ✔ real PostgreSQL: customer conditional admission late-replenishment (127.762386ms)
+2026-11-05T13:38:23.5432059Z ✔ real PostgreSQL: customer conditional admission surplus-refund (114.045ms)
+2026-11-05T13:38:23.6615307Z ✔ real PostgreSQL: customer conditional admission deadline-clock (118.296769ms)
+2026-11-05T13:38:23.7831234Z ✔ real PostgreSQL: customer conditional admission cutoff-clock (121.482333ms)
+2026-11-05T13:38:23.8795456Z ✔ real PostgreSQL: supplier internal admission threshold 10800 with closed public credit routes (96.345464ms)
+2026-11-05T13:38:23.9655410Z ✔ real PostgreSQL: supplier internal admission threshold 10799 with closed public credit routes (85.925186ms)
+2026-11-05T13:38:24.0876632Z ✔ real PostgreSQL: supplier internal admission threshold 12000 with closed public credit routes (122.129751ms)
+2026-11-05T13:38:24.1774339Z ✔ real PostgreSQL: supplier conditional admission old-pool (89.637846ms)
+2026-11-05T13:38:24.3103693Z ✔ real PostgreSQL: supplier conditional admission later-allocation (132.936708ms)
+2026-11-05T13:38:24.4304630Z ✔ real PostgreSQL: supplier conditional admission unwitnessed-allocation (119.96936ms)
+2026-11-05T13:38:24.5062151Z ✔ real PostgreSQL: supplier conditional admission unwitnessed (75.768065ms)
+2026-11-05T13:38:24.6126873Z ✔ real PostgreSQL: supplier conditional admission late-effective (106.496724ms)
+2026-11-05T13:38:24.7354191Z ✔ real PostgreSQL: supplier conditional admission unallocation (122.640659ms)
+2026-11-05T13:38:24.8756498Z ✔ real PostgreSQL: supplier conditional admission late-replenishment (140.167475ms)
+2026-11-05T13:38:24.9695864Z ✔ real PostgreSQL: supplier conditional admission surplus-refund (93.128773ms)
+2026-11-05T13:38:25.0513511Z ✔ real PostgreSQL: supplier conditional admission deadline-clock (82.358748ms)
+2026-11-05T13:38:25.1600354Z ✔ real PostgreSQL: supplier conditional admission cutoff-clock (108.250463ms)
+2026-11-05T13:38:25.2940423Z ✖ real PostgreSQL: customer atomic conditional redemption 10800, replay and protected settlement (132.160839ms)
+2026-11-05T13:38:25.4756769Z ✖ real PostgreSQL: customer atomic conditional redemption 12000, replay and protected settlement (183.089787ms)
+2026-11-05T13:38:25.7222673Z ✔ real PostgreSQL: customer conditional redemption rollback and competing identities (247.12256ms)
+2026-11-05T13:38:25.8788486Z ✖ real PostgreSQL: supplier atomic conditional redemption 10800, replay and protected settlement (156.095275ms)
+2026-11-05T13:38:26.0098619Z ✖ real PostgreSQL: supplier atomic conditional redemption 12000, replay and protected settlement (131.010233ms)
+2026-11-05T13:38:26.2499678Z ✔ real PostgreSQL: supplier conditional redemption rollback and competing identities (240.091521ms)
+2026-11-05T13:38:26.4054821Z ✔ real PostgreSQL: customer redemption races eligibility loss under the same company lock (155.734703ms)
+2026-11-05T13:38:26.5343318Z ✔ real PostgreSQL: supplier redemption races eligibility loss under the same company lock (128.706579ms)
+2026-11-05T13:38:26.7108956Z ✔ real PostgreSQL: customer redemption releases old nonqualifying pool before qualifying cash (176.452804ms)
+2026-11-05T13:38:26.8868738Z ✔ real PostgreSQL: supplier redemption releases old nonqualifying pool before qualifying cash (175.386157ms)
+2026-11-05T13:38:26.9312797Z ℹ tests 65
+2026-11-05T13:38:26.9313126Z ℹ suites 0
+2026-11-05T13:38:26.9313423Z ℹ pass 61
+2026-11-05T13:38:26.9313680Z ℹ fail 4
+2026-11-05T13:38:26.9313920Z ℹ cancelled 0
+2026-11-05T13:38:26.9314199Z ℹ skipped 0
+2026-11-05T13:38:26.9314446Z ℹ todo 0
+2026-11-05T13:38:26.9314736Z ℹ duration_ms 7002.771715
+2026-11-05T13:38:26.9335604Z 
+2026-11-05T13:38:26.9335976Z ✖ failing tests:
+2026-11-05T13:38:26.9336154Z 
+2026-11-05T13:38:26.9336563Z test at generated-artifacts/conditional-discount-flow.test.cjs:23529:74
+2026-11-05T13:38:26.9337454Z ✖ real PostgreSQL: customer atomic conditional redemption 10800, replay and protected settlement (132.160839ms)
+2026-11-05T13:38:26.9338069Z   error: Posted accounting sources are immutable; use a linked credit
+2026-11-05T13:38:26.9338706Z       at /home/runner/work/ledgerpoint/ledgerpoint/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:652:17
+2026-11-05T13:38:26.9339352Z       at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-11-05T13:38:26.9340178Z       at async TestContext.<anonymous> (/home/runner/work/ledgerpoint/ledgerpoint/generated-artifacts/conditional-discount-flow.test.cjs:23555:7)
+2026-11-05T13:38:26.9340842Z       at async Test.run (node:internal/test_runner/test:1409:7)
+2026-11-05T13:38:26.9341319Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+2026-11-05T13:38:26.9341695Z     length: 189,
+2026-11-05T13:38:26.9341906Z     severity: 'ERROR',
+2026-11-05T13:38:26.9342129Z     code: 'P0001',
+2026-11-05T13:38:26.9342500Z     detail: undefined,
+2026-11-05T13:38:26.9342742Z     hint: undefined,
+2026-11-05T13:38:26.9343029Z     position: undefined,
+2026-11-05T13:38:26.9343299Z     internalPosition: undefined,
+2026-11-05T13:38:26.9343564Z     internalQuery: undefined,
+2026-11-05T13:38:26.9343971Z     where: 'PL/pgSQL function accounting_document_immutable() line 4 at RAISE',
+2026-11-05T13:38:26.9344347Z     schema: undefined,
+2026-11-05T13:38:26.9344571Z     table: undefined,
+2026-11-05T13:38:26.9344795Z     column: undefined,
+2026-11-05T13:38:26.9345034Z     dataType: undefined,
+2026-11-05T13:38:26.9345262Z     constraint: undefined,
+2026-11-05T13:38:26.9345493Z     file: 'pl_exec.c',
+2026-11-05T13:38:26.9345700Z     line: '3897',
+2026-11-05T13:38:26.9345929Z     routine: 'exec_stmt_raise'
+2026-11-05T13:38:26.9346160Z   }
+2026-11-05T13:38:26.9346261Z 
+2026-11-05T13:38:26.9346533Z test at generated-artifacts/conditional-discount-flow.test.cjs:23529:74
+2026-11-05T13:38:26.9347415Z ✖ real PostgreSQL: customer atomic conditional redemption 12000, replay and protected settlement (183.089787ms)
+2026-11-05T13:38:26.9348011Z   error: Posted accounting sources are immutable; use a linked credit
+2026-11-05T13:38:26.9348630Z       at /home/runner/work/ledgerpoint/ledgerpoint/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:652:17
+2026-11-05T13:38:26.9349504Z       at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-11-05T13:38:26.9351007Z       at async TestContext.<anonymous> (/home/runner/work/ledgerpoint/ledgerpoint/generated-artifacts/conditional-discount-flow.test.cjs:23555:7)
+2026-11-05T13:38:26.9351789Z       at async Test.run (node:internal/test_runner/test:1409:7)
+2026-11-05T13:38:26.9352280Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+2026-11-05T13:38:26.9353021Z     length: 189,
+2026-11-05T13:38:26.9353243Z     severity: 'ERROR',
+2026-11-05T13:38:26.9353458Z     code: 'P0001',
+2026-11-05T13:38:26.9353668Z     detail: undefined,
+2026-11-05T13:38:26.9354000Z     hint: undefined,
+2026-11-05T13:38:26.9354235Z     position: undefined,
+2026-11-05T13:38:26.9354613Z     internalPosition: undefined,
+2026-11-05T13:38:26.9354937Z     internalQuery: undefined,
+2026-11-05T13:38:26.9355354Z     where: 'PL/pgSQL function accounting_document_immutable() line 4 at RAISE',
+2026-11-05T13:38:26.9355821Z     schema: undefined,
+2026-11-05T13:38:26.9356092Z     table: undefined,
+2026-11-05T13:38:26.9356369Z     column: undefined,
+2026-11-05T13:38:26.9356667Z     dataType: undefined,
+2026-11-05T13:38:26.9356984Z     constraint: undefined,
+2026-11-05T13:38:26.9357278Z     file: 'pl_exec.c',
+2026-11-05T13:38:26.9357539Z     line: '3897',
+2026-11-05T13:38:26.9357823Z     routine: 'exec_stmt_raise'
+2026-11-05T13:38:26.9358140Z   }
+2026-11-05T13:38:26.9358287Z 
+2026-11-05T13:38:26.9358628Z test at generated-artifacts/conditional-discount-flow.test.cjs:23529:74
+2026-11-05T13:38:26.9359594Z ✖ real PostgreSQL: supplier atomic conditional redemption 10800, replay and protected settlement (156.095275ms)
+2026-11-05T13:38:26.9360311Z   error: Posted accounting sources are immutable; use a linked credit
+2026-11-05T13:38:26.9361054Z       at /home/runner/work/ledgerpoint/ledgerpoint/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:652:17
+2026-11-05T13:38:26.9361890Z       at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-11-05T13:38:26.9362909Z       at async TestContext.<anonymous> (/home/runner/work/ledgerpoint/ledgerpoint/generated-artifacts/conditional-discount-flow.test.cjs:23555:7)
+2026-11-05T13:38:26.9363654Z       at async Test.run (node:internal/test_runner/test:1409:7)
+2026-11-05T13:38:26.9364146Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+2026-11-05T13:38:26.9364723Z     length: 189,
+2026-11-05T13:38:26.9365053Z     severity: 'ERROR',
+2026-11-05T13:38:26.9365368Z     code: 'P0001',
+2026-11-05T13:38:26.9365649Z     detail: undefined,
+2026-11-05T13:38:26.9366094Z     hint: undefined,
+2026-11-05T13:38:26.9366372Z     position: undefined,
+2026-11-05T13:38:26.9366697Z     internalPosition: undefined,
+2026-11-05T13:38:26.9366953Z     internalQuery: undefined,
+2026-11-05T13:38:26.9367329Z     where: 'PL/pgSQL function accounting_document_immutable() line 4 at RAISE',
+2026-11-05T13:38:26.9367684Z     schema: undefined,
+2026-11-05T13:38:26.9367895Z     table: undefined,
+2026-11-05T13:38:26.9368105Z     column: undefined,
+2026-11-05T13:38:26.9368358Z     dataType: undefined,
+2026-11-05T13:38:26.9368583Z     constraint: undefined,
+2026-11-05T13:38:26.9368816Z     file: 'pl_exec.c',
+2026-11-05T13:38:26.9369023Z     line: '3897',
+2026-11-05T13:38:26.9369248Z     routine: 'exec_stmt_raise'
+2026-11-05T13:38:26.9369473Z   }
+2026-11-05T13:38:26.9369580Z 
+2026-11-05T13:38:26.9369844Z test at generated-artifacts/conditional-discount-flow.test.cjs:23529:74
+2026-11-05T13:38:26.9370611Z ✖ real PostgreSQL: supplier atomic conditional redemption 12000, replay and protected settlement (131.010233ms)
+2026-11-05T13:38:26.9371191Z   error: Posted accounting sources are immutable; use a linked credit
+2026-11-05T13:38:26.9371781Z       at /home/runner/work/ledgerpoint/ledgerpoint/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:652:17
+2026-11-05T13:38:26.9372749Z       at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-11-05T13:38:26.9373523Z       at async TestContext.<anonymous> (/home/runner/work/ledgerpoint/ledgerpoint/generated-artifacts/conditional-discount-flow.test.cjs:23555:7)
+2026-11-05T13:38:26.9374328Z       at async Test.run (node:internal/test_runner/test:1409:7)
+2026-11-05T13:38:26.9374791Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+2026-11-05T13:38:26.9375158Z     length: 189,
+2026-11-05T13:38:26.9375373Z     severity: 'ERROR',
+2026-11-05T13:38:26.9375582Z     code: 'P0001',
+2026-11-05T13:38:26.9375788Z     detail: undefined,
+2026-11-05T13:38:26.9375996Z     hint: undefined,
+2026-11-05T13:38:26.9376209Z     position: undefined,
+2026-11-05T13:38:26.9376548Z     internalPosition: undefined,
+2026-11-05T13:38:26.9376800Z     internalQuery: undefined,
+2026-11-05T13:38:26.9377182Z     where: 'PL/pgSQL function accounting_document_immutable() line 4 at RAISE',
+2026-11-05T13:38:26.9377534Z     schema: undefined,
+2026-11-05T13:38:26.9377747Z     table: undefined,
+2026-11-05T13:38:26.9377951Z     column: undefined,
+2026-11-05T13:38:26.9378163Z     dataType: undefined,
+2026-11-05T13:38:26.9378397Z     constraint: undefined,
+2026-11-05T13:38:26.9378623Z     file: 'pl_exec.c',
+2026-11-05T13:38:26.9378834Z     line: '3897',
+2026-11-05T13:38:26.9379061Z     routine: 'exec_stmt_raise'
+2026-11-05T13:38:26.9379315Z   }
+2026-11-05T13:38:27.1058394Z ##[error]Process completed with exit code 1.
+2026-11-05T13:38:27.1146251Z ##[group]Run if [ 'skipped' != 'skipped' ]; then
+2026-11-05T13:38:27.1146625Z [36;1mif [ 'skipped' != 'skipped' ]; then[0m
+2026-11-05T13:38:27.1147483Z [36;1m  node -e 'const r=require("./generated-artifacts/encrypted-recovery.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'[0m
+2026-11-05T13:38:27.1148308Z [36;1mfi[0m
+2026-11-05T13:38:27.1161855Z shell: /usr/bin/bash -e {0}
+2026-11-05T13:38:27.1162119Z ##[endgroup]
+2026-11-05T13:38:27.1230228Z ##[group]Run if [ 'failure' != 'skipped' ]; then
+2026-11-05T13:38:27.1230592Z [36;1mif [ 'failure' != 'skipped' ]; then[0m
+2026-11-05T13:38:27.1231456Z [36;1m  node -e 'const r=require("./generated-artifacts/accounting-flow-cleanup.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'[0m
+2026-11-05T13:38:27.1232272Z [36;1mfi[0m
+2026-11-05T13:38:27.1245227Z shell: /usr/bin/bash -e {0}
+2026-11-05T13:38:27.1245500Z ##[endgroup]
+2026-11-05T13:38:27.1653257Z Post job cleanup.
+2026-11-05T13:38:27.2490200Z [command]/usr/bin/git version
+2026-11-05T13:38:27.2529796Z git version 2.56.0
+2026-11-05T13:38:27.2572139Z Temporarily overriding HOME='/home/runner/work/_temp/d6a9e5cb-0262-42fb-a9d0-23f9a5fc8e0f' before making global git config changes
+2026-11-05T13:38:27.2573432Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-05T13:38:27.2578486Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ledgerpoint/ledgerpoint
+2026-11-05T13:38:27.2625310Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-05T13:38:27.2666433Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-05T13:38:27.2876125Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-05T13:38:27.2905590Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-05T13:38:27.3289781Z Cleaning up orphan processes
+2026-11-05T13:38:27.3626387Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683, actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
