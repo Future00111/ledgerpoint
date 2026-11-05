@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 264,
+  "revision": 265,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
@@ -9308,7 +9308,7 @@
         "checkpoint": "Published6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc/treea4d25087c8a25d46bcf6ca22d6853d46aae61e12. Exact CI42049132286/job127320152088 1109pass0fail0skip0cancel; root independent equal checkout+logs. No workers/processes/source edits. Next P01-03 coordinator-owned engineering: transaction-scoped linked reversal contract + stopped-worker ownership migration, then atomic compensation implementation. Publicposting closed; browser absent; parent pending."
       }
     ],
-    "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
+    "catalogDigest": "4a4d6a7a34c9e133364ffbfbf4979a8ceacd73ef9436d0db7a7f5a7f00336058",
     "workerTokenMigration": {
       "fromVersion": 2,
       "source": {
@@ -9323,19 +9323,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "2e8b567b793b3ec8e4218b12844dbe4476c93474",
+    "sha": "2a303d6079069dc95e0a83ed8542472f41e82717",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
         "sha": "2e8b567b793b3ec8e4218b12844dbe4476c93474",
-        "path": "docs/development/candidates/20261105-1444-final-verification.json"
+        "path": "docs/development/candidates/20261105-1444-next-assignment.json"
       }
     ],
-    "runId": "hosted-20261105-1444",
-    "at": 1793890947869,
+    "runId": "hosted-20261105-1536",
+    "at": 1793893130112,
     "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc"
   },
-  "updatedAt": 1793893049069,
+  "updatedAt": 1793893130112,
   "recovery": {
     "priorRunId": "hosted-20261105-1408",
     "stoppedEvidence": {
@@ -10731,7 +10731,28 @@
   },
   "runActivity": {
     "startedAt": "2026-11-05T15:37:29.143Z",
-    "activity": "Restored source6ebee; resolving reviewed narrow canonical reversal transaction ownership prerequisite; no workers or product edits yet",
-    "workersStopped": true
+    "activity": "Root-reviewed two-file P01-03 ownership extension, preserved all states/events; no workers/implementation yet",
+    "workersStopped": true,
+    "lastObservedAt": "2026-11-05T15:38:50.159Z"
+  },
+  "catalogMigration": {
+    "version": 1,
+    "runId": "hosted-20261105-1536",
+    "reviewer": "/root",
+    "allAffectedWorkersStopped": true,
+    "sourceCommit": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+    "priorStateCommit": "2a303d6079069dc95e0a83ed8542472f41e82717",
+    "priorCatalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
+    "catalogDigest": "4a4d6a7a34c9e133364ffbfbf4979a8ceacd73ef9436d0db7a7f5a7f00336058",
+    "task": "P01-03",
+    "addedFiles": [
+      "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
+      "artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts"
+    ],
+    "queueRevision": 686,
+    "eventCount": 697,
+    "statesAndEventsPreserved": true,
+    "all92BulletsDependenciesPrioritiesAcceptanceUnchanged": true,
+    "contract": "Extract protected transaction-scoped linked reversal using same authority/period/account/idempotency checks, immutable reversalLines, same transaction rollback; wrappers retain retries. No schema/public route/correction API changes."
   }
 }

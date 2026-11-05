@@ -51,10 +51,11 @@
     {
       "id": "P01-02",
       "title": "Allow credits after full payment",
-      "description": "Allow credits after full payment. Complete the missing workflow for a fully paid bill or invoice to receive a valid credit and create a refundable or reusable balance. Example: a \u00a3120 paid bill must be able to receive a \u00a312 supplier credit.",
+      "description": "Allow credits after full payment. Complete the missing workflow for a fully paid bill or invoice to receive a valid credit and create a refundable or reusable balance. Example: a £120 paid bill must be able to receive a £12 supplier credit.",
       "priority": 102,
       "dependencies": [
-        "P01-00"
+        "P01-00",
+        "P03-00"
       ],
       "acceptance": [
         "A synthetic fully paid GBP120 bill can receive a valid GBP12 supplier credit, retaining the payment and producing a reusable/refundable balance.",
@@ -65,7 +66,21 @@
         "artifacts/api-server/src/services/accountingDocuments/settlement.ts",
         "artifacts/api-server/src/services/accountingDocuments/payments.ts",
         "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
-        "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx"
+        "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx",
+        "artifacts/api-server/src/services/accountingDocuments/posting.ts",
+        "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+        "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
+        "artifacts/api-server/src/routes/accountingDocuments.ts",
+        "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+        "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+        "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
+        "lib/db/migrations/paid-credit-operations.review.sql",
+        "lib/db/schema-change-registry.json",
+        "tools/accounting-flow/schema.mjs"
       ],
       "kind": "implementation",
       "approval": "approved"
@@ -88,7 +103,44 @@
         "artifacts/api-server/src/services/accountingDocuments/payments.ts",
         "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
         "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx",
-        "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx"
+        "artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx",
+        "artifacts/ledgerly/src/features/documentDiscounts/model.mjs",
+        "artifacts/ledgerly/src/features/documentDiscounts/model.test.mjs",
+        "artifacts/ledgerly/src/components/accounting/PostedDocument.jsx",
+        "artifacts/ledgerly/src/components/accounting/PostedDocument.test.jsx",
+        "docs/development/credit-capacity-contract.md",
+        "artifacts/api-server/src/services/financialDrafts/contract.ts",
+        "artifacts/api-server/src/services/financialDrafts/contract.test.ts",
+        "artifacts/api-server/src/services/financialDrafts/discounts.ts",
+        "artifacts/api-server/src/services/financialDrafts/discounts.test.ts",
+        "artifacts/api-server/src/services/financialDrafts/invoiceService.ts",
+        "artifacts/api-server/src/services/financialDrafts/productionAuthority.ts",
+        "artifacts/api-server/src/services/financialDrafts/invoice.integration.test.ts",
+        "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+        "artifacts/api-server/src/services/accountingDocuments/posting.ts",
+        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.ts",
+        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts",
+        "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+        "artifacts/api-server/src/routes/accountingDocuments.ts",
+        "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+        "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+        "artifacts/ledgerly/src/api/invoiceDrafts.mjs",
+        "artifacts/ledgerly/src/api/invoiceDrafts.test.mjs",
+        "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+        "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.test.jsx",
+        "lib/db/migrations/conditional-discount-agreements.review.sql",
+        "lib/db/schema-change-registry.json",
+        "lib/db/migration-registry.json",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs",
+        "tools/development/migrations/registry.mjs",
+        "tools/development/migrations/registry.test.mjs",
+        "tools/development/migrations/partial-schema.test.mjs",
+        "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
+        "artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts"
       ],
       "kind": "implementation",
       "approval": "approved"
@@ -280,7 +332,10 @@
       ],
       "files": [
         "docs/development/persistence-contracts.md",
-        "lib/db/schema-change-registry.json"
+        "lib/db/schema-change-registry.json",
+        "tools/development/migrations/partial-schema.test.mjs",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs"
       ],
       "kind": "contract",
       "approval": "approved"
@@ -303,7 +358,19 @@
         "lib/db/migrations/operation-recovery.review.sql",
         "artifacts/ledgerly/src/features/paymentRecovery/model.mjs",
         "artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx",
-        "artifacts/ledgerly/src/features/documentCorrections/model.mjs"
+        "artifacts/ledgerly/src/features/documentCorrections/model.mjs",
+        "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+        "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+        "artifacts/api-server/src/routes/accountingDocuments.ts",
+        "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+        "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+        "artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs",
+        "tools/development/migrations/registry.mjs",
+        "tools/development/migrations/registry.test.mjs",
+        "lib/db/migration-registry.json",
+        "lib/db/schema-change-registry.json"
       ],
       "kind": "implementation",
       "approval": "approved"
@@ -324,7 +391,20 @@
         "artifacts/api-server/src/services/durableJobs/",
         "lib/db/migrations/durable-jobs.review.sql",
         "artifacts/api-server/src/services/documentIntake/extraction/worker/types.ts",
-        "artifacts/api-server/src/services/documentIntake/extraction/worker.ts"
+        "artifacts/api-server/src/services/documentIntake/extraction/worker.ts",
+        "artifacts/api-server/src/services/documentIntake/extraction/contract.ts",
+        "artifacts/api-server/src/services/documentIntake/extraction/contract.test.ts",
+        "artifacts/api-server/src/services/documentIntake/extraction/worker.test.ts",
+        "artifacts/api-server/src/services/documentIntake/service.ts",
+        "artifacts/api-server/src/services/documentIntake/service.test.ts",
+        "artifacts/api-server/src/routes/documentIntake.ts",
+        "artifacts/api-server/src/index.ts",
+        "tools/accounting-flow/schema.mjs",
+        "tools/accounting-flow/test.mjs",
+        "tools/development/migrations/registry.mjs",
+        "tools/development/migrations/registry.test.mjs",
+        "lib/db/migration-registry.json",
+        "lib/db/schema-change-registry.json"
       ],
       "kind": "implementation",
       "approval": "approved"
@@ -364,7 +444,8 @@
       ],
       "files": [
         "tools/operations/backup-restore/",
-        "docs/operations/recovery-targets.json"
+        "docs/operations/recovery-targets.json",
+        "tools/accounting-flow/restore-drill.mjs"
       ],
       "kind": "verification",
       "approval": "approved"
@@ -610,7 +691,8 @@
         "Prove in fixtures that bank status alone cannot change a document balance and unknown outcomes recover using the original command identity."
       ],
       "files": [
-        "docs/development/native-bank-import-contract.md"
+        "docs/development/native-bank-import-contract.md",
+        "artifacts/api-server/src/services/accountingDocuments/integration.test.ts"
       ],
       "kind": "contract",
       "approval": "approved"
@@ -795,8 +877,9 @@
       "files": [
         "artifacts/ledgerly/src/features/workspaceNavigation/DailyWork.jsx",
         "artifacts/ledgerly/src/features/reporting/LedgerTable.jsx",
-        "artifacts/ledgerly/src/components/accounting/DocumentList.jsx",
-        "artifacts/ledgerly/src/features/workspaceNavigation/Navigation.test.jsx"
+        "artifacts/ledgerly/src/features/workspaceNavigation/Navigation.test.jsx",
+        "artifacts/ledgerly/src/pages/AccountingDocumentList.jsx",
+        "artifacts/ledgerly/src/features/documentIntake/DocumentUsability.test.jsx"
       ],
       "kind": "implementation",
       "approval": "approved"
@@ -815,7 +898,13 @@
         "artifacts/ledgerly/src/components/layout/AppLayout.jsx",
         "artifacts/ledgerly/src/features/workspaceNavigation/WorkspaceCapabilities.jsx",
         "artifacts/ledgerly/src/features/workspaceNavigation/model.mjs",
-        "artifacts/ledgerly/src/features/routeLoading/route-inventory.json"
+        "artifacts/ledgerly/src/features/routeLoading/route-inventory.json",
+        "artifacts/ledgerly/src/pages/EmailCapture.jsx",
+        "artifacts/ledgerly/src/pages/EmailRules.jsx",
+        "artifacts/ledgerly/src/components/email_capture/EmailAccountManager.jsx",
+        "artifacts/ledgerly/src/components/email_capture/ScanConfigForm.jsx",
+        "artifacts/ledgerly/src/components/email_capture/EmailRuleManager.jsx",
+        "artifacts/ledgerly/src/features/workspaceNavigation/EmailCapabilities.test.jsx"
       ],
       "kind": "implementation",
       "approval": "approved"
@@ -1755,9 +1844,13 @@
         "Any reminder path requires a reviewable recipient/content/action and permission check; this task prepares drafts only and external sending is P14-81."
       ],
       "files": [
-        "artifacts/ledgerly/src/features/creditRecovery/CreditQueue.jsx",
         "artifacts/ledgerly/src/features/creditRecovery/queuePresentation.mjs",
-        "artifacts/api-server/src/services/creditTracking/followUp/"
+        "artifacts/api-server/src/services/creditTracking/followUp/",
+        "artifacts/ledgerly/src/features/creditRecovery/AwaitingCreditsPage.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/ClaimList.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/ClaimList.test.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/CreditQueue.test.jsx",
+        "artifacts/ledgerly/src/features/creditRecovery/queuePresentation.test.mjs"
       ],
       "kind": "implementation",
       "approval": "approved"

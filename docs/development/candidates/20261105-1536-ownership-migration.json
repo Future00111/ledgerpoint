@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "runId": "hosted-20261105-1536",
+  "reviewer": "/root",
+  "allAffectedWorkersStopped": true,
+  "sourceCommit": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+  "priorStateCommit": "2a303d6079069dc95e0a83ed8542472f41e82717",
+  "priorCatalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
+  "catalogDigest": "4a4d6a7a34c9e133364ffbfbf4979a8ceacd73ef9436d0db7a7f5a7f00336058",
+  "task": "P01-03",
+  "addedFiles": [
+    "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
+    "artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts"
+  ],
+  "queueRevision": 686,
+  "eventCount": 697,
+  "statesAndEventsPreserved": true,
+  "all92BulletsDependenciesPrioritiesAcceptanceUnchanged": true,
+  "contract": "Extract protected transaction-scoped linked reversal using same authority/period/account/idempotency checks, immutable reversalLines, same transaction rollback; wrappers retain retries. No schema/public route/correction API changes."
+}
