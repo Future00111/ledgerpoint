@@ -1,0 +1,19 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown project config "auto-install-peers". This will stop working in the next major version of npm.
+npm warn Unknown project config "strict-peer-dependencies". This will stop working in the next major version of npm.
+
+> workspace@0.0.0 build /workspace/scratch/b4d6a4379808/ledgerpoint
+> pnpm run typecheck && pnpm -r --if-present run build
+
+
+> workspace@0.0.0 typecheck /workspace/scratch/b4d6a4379808/ledgerpoint
+> pnpm run typecheck:libs && pnpm -r --filter "./artifacts/**" --filter "./scripts" --if-present run typecheck
+
+
+> workspace@0.0.0 typecheck:libs /workspace/scratch/b4d6a4379808/ledgerpoint
+> tsc --build
+
+sh: 1: tsc: not found
+ ELIFECYCLE  Command failed.
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.

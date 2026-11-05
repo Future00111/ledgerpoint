@@ -1,0 +1,177 @@
+{
+  "runId": "hosted-20261105-1314-validation",
+  "observedAt": "2026-11-05T13:29:45.214Z",
+  "sourcePublished": false,
+  "sourceHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
+  "commit": "c5935c548cf8c1caf66f7194fcb85665e99e1942",
+  "tree": "db733d26289b114714afedbf914d6fb3bb85d3a4",
+  "files": [
+    "tools/development/work-queue/README.md",
+    "tools/development/work-queue/publication.mjs",
+    "tools/development/work-queue/publication.test.mjs"
+  ],
+  "artifactHashes": [
+    {
+      "path": "stability.patch",
+      "bytes": 19514,
+      "sha256": "3146297002eb8c996db3ea1fff33e26622a205e8421dfdcc2c8f454045ce4e9b"
+    },
+    {
+      "path": "stability-raw-commit.txt",
+      "bytes": 333,
+      "sha256": "6e5ea389251f320af4fe5ab4763bc5bea78c1cb20c159a47e25d8697016296c5"
+    },
+    {
+      "path": "queue-tests.log",
+      "bytes": 8527,
+      "sha256": "825f9f2082b2e14bf3475640e860668dfa48f313d4516f26db9afcc662745628"
+    },
+    {
+      "path": "actual-preflight.json",
+      "bytes": 820,
+      "sha256": "ae060f8fd168ebc457cfd2d2c29a2a038640ba6c9c5f0b70d62f8005b2675148"
+    }
+  ],
+  "tests": {
+    "source": {
+      "command": "node tools/development/check.mjs",
+      "exitCode": 0,
+      "tests": 833,
+      "pass": 833,
+      "fail": 0,
+      "skip": 0,
+      "cancelled": 0
+    },
+    "queue": {
+      "command": "node --test tools/development/work-queue/*.test.mjs",
+      "exitCode": 0,
+      "pass": 95,
+      "fail": 0,
+      "skip": 0,
+      "preflightTests": 43
+    },
+    "registry": {
+      "command": "node --test tools/development/migrations/registry.test.mjs",
+      "exitCode": 0,
+      "pass": 29,
+      "fail": 0,
+      "skip": 0
+    },
+    "build": {
+      "command": "PORT=8080 BASE_PATH=/ npm exec --yes --package=pnpm@10.26.1 -- pnpm run build",
+      "exitCode": 0,
+      "completeLog": true
+    },
+    "actualFreshPreflight": {
+      "result": "passed",
+      "remoteCandidate": "2ce3b050135b0852f60474190c11e4c00c63263e",
+      "destinationKind": "integration",
+      "sourceUpdateAttempted": false
+    },
+    "disposablePostgreSQL": {
+      "result": "not run",
+      "reason": "PostgreSQL binaries absent and runuser -u nobody -- id failed: cannot set groups: Operation not permitted",
+      "existingWorkflowRemainsRequired": true
+    },
+    "restore": {
+      "result": "not run",
+      "reason": "Same non-root PostgreSQL runtime blocker; existing PR workflow remains required"
+    }
+  },
+  "restoredFinancialCandidate": {
+    "archive": "f99c7a616e079903fa7d4641c15eac6959853f8a",
+    "author": "381ab815678ad20d9271a21729d2674ce9ae867d",
+    "tree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
+    "patchSha256": "227234a4d351994ff473a6c90752323a4e6a7cb71a7b5d08667cff8e3fbe08f0",
+    "remoteCandidate": "2ce3b050135b0852f60474190c11e4c00c63263e",
+    "remoteParent": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
+  },
+  "review": {
+    "reviewer": "/root",
+    "commit": "c5935c548cf8c1caf66f7194fcb85665e99e1942",
+    "tree": "db733d26289b114714afedbf914d6fb3bb85d3a4",
+    "result": "approved exact 3-file maintenance candidate and independently inspected final full logs",
+    "scope": "Publication identity preflight and reproducible validation procedure only; no source update authorization"
+  },
+  "originalBulletsAccepted": 0,
+  "parentAccepted": false,
+  "continuationEnabled": false,
+  "approvalBlockerUnchanged": true,
+  "status": "reviewed-tested-archived-source-publication-pending",
+  "artifacts": [
+    {
+      "path": "docs/development/candidates/20261105-1314-stability.patch",
+      "bytes": 19514,
+      "sha256": "3146297002eb8c996db3ea1fff33e26622a205e8421dfdcc2c8f454045ce4e9b"
+    },
+    {
+      "path": "docs/development/candidates/20261105-1314-stability-raw-commit.txt",
+      "bytes": 333,
+      "sha256": "6e5ea389251f320af4fe5ab4763bc5bea78c1cb20c159a47e25d8697016296c5"
+    },
+    {
+      "path": "docs/development/candidates/20261105-1314-queue-tests.log",
+      "bytes": 8527,
+      "sha256": "825f9f2082b2e14bf3475640e860668dfa48f313d4516f26db9afcc662745628"
+    },
+    {
+      "path": "docs/development/candidates/20261105-1314-actual-preflight.json",
+      "bytes": 820,
+      "sha256": "ae060f8fd168ebc457cfd2d2c29a2a038640ba6c9c5f0b70d62f8005b2675148"
+    },
+    {
+      "path": "docs/development/candidates/20261105-1314-source.log",
+      "bytes": 86764,
+      "sha256": "b5104a2bb7e079c719c773f6b917be27a7d0fa83bc885d9e25e5b80e82c47567"
+    },
+    {
+      "path": "docs/development/candidates/20261105-1314-build.log",
+      "bytes": 16007,
+      "sha256": "2099c013ee2c6e7822ca18afdeee78b4a23daa18fcbd96e432549bfc17fa07ce"
+    },
+    {
+      "path": "docs/development/candidates/20261105-1314-registry.log",
+      "bytes": 2067,
+      "sha256": "42db7dd4b9c9fcd2dfcb85465c4f39def16cea17dcc689d4666b78a9ec7b4650"
+    },
+    {
+      "path": "docs/development/candidates/20261105-1314-install.log",
+      "bytes": 3070,
+      "sha256": "1134c5aaf1b6c42e220b3febdeefa5bd30a5adb5bb9fcdf63ec9cf81f2b38878"
+    },
+    {
+      "path": "docs/development/candidates/20261105-1314-install-pinned.log",
+      "bytes": 5963,
+      "sha256": "b9f585a99763faddd7a6842ca2202d6835ff1d680de459248443699cf99daae3"
+    },
+    {
+      "path": "docs/development/candidates/20261105-1314-initial-source-setup-failure.log",
+      "bytes": 1079,
+      "sha256": "ac3695172bc37d87b2c2afdb213a168439f3c54a489cfadab4985b47781f9be8"
+    },
+    {
+      "path": "docs/development/candidates/20261105-1314-initial-build-setup-failure.log",
+      "bytes": 885,
+      "sha256": "57a4f43736808166cb8c82ff794ca1653f74bc6ad526feb886343943297778e3"
+    }
+  ],
+  "capabilities": {
+    "freshClone": "git clone https://github.com/Future00111/ledgerpoint.git ledgerpoint succeeded",
+    "node": "24.22.1",
+    "pnpm": "10.26.1 explicit pinned install succeeded",
+    "ambientPnpm": "11.25.0 initial install wrote allowBuilds then failed; exact workspace restored before pinned install",
+    "nonRoot": "runuser -u nobody -- id exit1 cannot set groups: Operation not permitted",
+    "postgreSQLBinaries": false
+  },
+  "limitations": [
+    "Cannot control automatic approval classification or guarantee publication",
+    "Original financial candidate actual PostgreSQL and restore remain unrun",
+    "Integration source remains de140; no source publication retry or alternate transport attempted",
+    "Preflight validates caller-supplied fresh observations, not remote truth or CI by itself",
+    "Continuation remains paused; parent P01-03 and all original backlog acceptance unchanged"
+  ],
+  "worktreesClean": true,
+  "workersStopped": true,
+  "activeCommands": 0,
+  "sourcePublicationAuthorized": false
+}

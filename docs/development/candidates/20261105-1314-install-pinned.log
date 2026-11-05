@@ -1,0 +1,97 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown project config "auto-install-peers". This will stop working in the next major version of npm.
+npm warn Unknown project config "strict-peer-dependencies". This will stop working in the next major version of npm.
+Scope: all 9 workspace projects
+Recreating /workspace/scratch/b4d6a4379808/ledgerpoint/node_modules
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +639
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 639, reused 0, downloaded 0, added 0
+Progress: resolved 639, reused 0, downloaded 1, added 0
+Progress: resolved 639, reused 0, downloaded 21, added 21
+Progress: resolved 639, reused 0, downloaded 22, added 21
+Progress: resolved 639, reused 0, downloaded 42, added 42
+Progress: resolved 639, reused 0, downloaded 43, added 42
+Progress: resolved 639, reused 0, downloaded 63, added 63
+Progress: resolved 639, reused 0, downloaded 64, added 63
+Progress: resolved 639, reused 0, downloaded 84, added 84
+Progress: resolved 639, reused 0, downloaded 85, added 84
+Progress: resolved 639, reused 0, downloaded 105, added 105
+Progress: resolved 639, reused 0, downloaded 106, added 105
+Progress: resolved 639, reused 0, downloaded 126, added 126
+Progress: resolved 639, reused 0, downloaded 127, added 126
+Progress: resolved 639, reused 0, downloaded 147, added 147
+Progress: resolved 639, reused 0, downloaded 148, added 147
+Progress: resolved 639, reused 0, downloaded 168, added 168
+Progress: resolved 639, reused 0, downloaded 169, added 168
+Progress: resolved 639, reused 0, downloaded 189, added 188
+Progress: resolved 639, reused 0, downloaded 189, added 189
+Progress: resolved 639, reused 0, downloaded 190, added 189
+Progress: resolved 639, reused 0, downloaded 210, added 210
+Progress: resolved 639, reused 0, downloaded 211, added 210
+Progress: resolved 639, reused 0, downloaded 231, added 231
+Progress: resolved 639, reused 0, downloaded 232, added 231
+Progress: resolved 639, reused 0, downloaded 252, added 252
+Progress: resolved 639, reused 0, downloaded 253, added 252
+Progress: resolved 639, reused 0, downloaded 273, added 273
+Progress: resolved 639, reused 0, downloaded 274, added 273
+Progress: resolved 639, reused 0, downloaded 294, added 294
+Progress: resolved 639, reused 0, downloaded 295, added 294
+Progress: resolved 639, reused 0, downloaded 315, added 315
+Progress: resolved 639, reused 0, downloaded 316, added 315
+Progress: resolved 639, reused 0, downloaded 336, added 336
+Progress: resolved 639, reused 0, downloaded 337, added 336
+Progress: resolved 639, reused 0, downloaded 357, added 357
+Progress: resolved 639, reused 0, downloaded 358, added 357
+Progress: resolved 639, reused 0, downloaded 378, added 378
+Progress: resolved 639, reused 0, downloaded 379, added 378
+Progress: resolved 639, reused 0, downloaded 399, added 399
+Progress: resolved 639, reused 0, downloaded 400, added 399
+Progress: resolved 639, reused 0, downloaded 420, added 420
+Progress: resolved 639, reused 0, downloaded 421, added 420
+Progress: resolved 639, reused 0, downloaded 441, added 441
+Progress: resolved 639, reused 0, downloaded 442, added 441
+Progress: resolved 639, reused 0, downloaded 462, added 462
+Progress: resolved 639, reused 0, downloaded 463, added 462
+Progress: resolved 639, reused 0, downloaded 482, added 482
+Progress: resolved 639, reused 0, downloaded 483, added 482
+Progress: resolved 639, reused 0, downloaded 483, added 483
+Progress: resolved 639, reused 0, downloaded 484, added 483
+Progress: resolved 639, reused 0, downloaded 503, added 503
+Progress: resolved 639, reused 0, downloaded 504, added 504
+Progress: resolved 639, reused 0, downloaded 505, added 504
+Progress: resolved 639, reused 0, downloaded 525, added 525
+Progress: resolved 639, reused 0, downloaded 526, added 525
+Progress: resolved 639, reused 0, downloaded 546, added 546
+Progress: resolved 639, reused 0, downloaded 547, added 546
+Progress: resolved 639, reused 0, downloaded 567, added 567
+Progress: resolved 639, reused 0, downloaded 568, added 567
+Progress: resolved 639, reused 0, downloaded 588, added 588
+Progress: resolved 639, reused 0, downloaded 589, added 588
+Progress: resolved 639, reused 0, downloaded 609, added 609
+Progress: resolved 639, reused 0, downloaded 610, added 609
+Progress: resolved 639, reused 0, downloaded 630, added 630
+Progress: resolved 639, reused 0, downloaded 631, added 630
+Progress: resolved 639, reused 0, downloaded 638, added 639, done
+.../esbuild@0.28.1/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.28.1/node_modules/esbuild postinstall: Done
+
+dependencies:
++ @replit/connectors-sdk 0.4.1
++ ajv 8.20.0
+
+devDependencies:
++ prettier 3.9.6
++ typescript 5.9.3
+
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+. preinstall: Done
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: @clerk/shared@3.47.8, core-js@3.50.0.               │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Done in 3m 1.2s using pnpm v10.26.1

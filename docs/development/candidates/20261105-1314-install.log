@@ -1,0 +1,51 @@
+Scope: all 9 workspace projects
+? Verifying lockfile against supply-chain policies (640 entries)...
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +639
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 639, reused 0, downloaded 0, added 0
+Progress: resolved 639, reused 0, downloaded 1, added 0
+Packages are hard linked from the content-addressable store to the virtual store.
+  Content-addressable store is at: /root/.local/share/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 639, reused 0, downloaded 45, added 13
+Progress: resolved 639, reused 0, downloaded 88, added 21
+Progress: resolved 639, reused 0, downloaded 182, added 29
+[WARN] Request took 10382ms: https://registry.npmjs.org/@radix-ui%2Freact-accordion
+[WARN] Request took 10595ms: https://registry.npmjs.org/@radix-ui%2Freact-alert-dialog
+Progress: resolved 639, reused 0, downloaded 287, added 38
+Progress: resolved 639, reused 0, downloaded 460, added 58
+Progress: resolved 639, reused 0, downloaded 636, added 185
+[WARN] Request took 13670ms: https://registry.npmjs.org/pnpm
+
+   ╭──────────────────────────────────────────────────────────────────────╮
+   │                                                                      │
+   │                 Update available! 11.25.0 → 12.16.1.                 │
+   │                 Changelog: https://pnpm.io/v/12.16.1                 │
+   │   To update, run: curl -fsSL https://get.pnpm.io/install.sh | sh -   │
+   │                                                                      │
+   ╰──────────────────────────────────────────────────────────────────────╯
+
+Progress: resolved 639, reused 0, downloaded 637, added 406
+[WARN] Request took 13846ms: https://registry.npmjs.org/@clerk%2Freact
+[WARN] Request took 14029ms: https://registry.npmjs.org/@clerk%2Fthemes
+[WARN] Request took 14586ms: https://registry.npmjs.org/@clerk%2Fexpress
+Progress: resolved 639, reused 0, downloaded 638, added 639, done
+[WARN] Request took 15006ms: https://registry.npmjs.org/@clerk%2Fbackend
+[WARN] Request took 15215ms: https://registry.npmjs.org/@clerk%2Fshared
+✓ Lockfile passes supply-chain policies (640 entries in 15.7s)
+
+dependencies:
++ @replit/connectors-sdk 0.4.1
++ ajv 8.20.0
+
+devDependencies:
++ prettier 3.9.6
++ typescript 5.9.3
+
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+. preinstall: Done
+[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: @clerk/shared@3.47.8, core-js@3.50.0, esbuild@0.28.1
+
+Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.
