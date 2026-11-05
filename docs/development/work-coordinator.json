@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 249,
+  "revision": 250,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "1ede9a1f65be8bdd6918bfb1fe48efcd4e63ba1e",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 672,
+    "revision": 674,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -103,7 +103,7 @@
         "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Stopped author edits clean eb5886e/tree3e712f parent2ce, exactly testfixture repair + reviewedmaintenance3files. Root exactreview passed; source833 registry29 fullbuild integrationbundle passed. Archive72634e8e. Published samebranch expected2ce→1ede9a1f. New exact PR27nativePG/restoreCI pending; P01-03 stillpartial, no acceptance or publicactivation.",
+        "checkpoint": "Exact1ede CI42038811617 firstfixture repaired; same4 reach later assertion expecting childcredit but actual earlier CORRECTION_JOURNAL_UNSUPPORTED because conditionaljournal has boundevidencehash. Root approved test-only exacterror correction plus unchangedjournal/amendment/effect counters. Same singlefilelease held; no runtimeguard changes. New exactCI required.",
         "evidence": {
           "commit": "381ab815678ad20d9271a21729d2674ce9ae867d",
           "summary": "PARTIAL internal atomic conditional redemption uses native paidCredit posting/releases and immutable unique consumption in existing operation. Exact transaction-only private capability; public conditional paths remain closed. All native eligibility-loss unallocation/reversal guard consumed original/parents; ordinary credits remainclosed and correction childcreditguard retained. Bothparty threshold10800/12000release, duplicate and competing credits, eligibilityloss race, postconsumption rollback, surplusrefund, stale unallocation commit and forgedsource evidence cases added. ActualPG pending exactPR27CI; parent stillpending completeUI/browser, compensation/correction/priorcredit expansion. Worker stoppedclean.",
@@ -224,7 +224,7 @@
         },
         "owner": "validation-fixture",
         "tokenSha256": "c0e4fe834d6b7169ff0f6eb1dcfb8ed79d1ba77777c8b4260ae54a3630dc7d80",
-        "leaseUntil": 1793887253089,
+        "leaseUntil": 1793887605734,
         "workStarted": true
       },
       "P01-04": {
@@ -8892,6 +8892,19 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "Stopped author edits clean eb5886e/tree3e712f parent2ce, exactly testfixture repair + reviewedmaintenance3files. Root exactreview passed; source833 registry29 fullbuild integrationbundle passed. Archive72634e8e. Published samebranch expected2ce→1ede9a1f. New exact PR27nativePG/restoreCI pending; P01-03 stillpartial, no acceptance or publicactivation."
+      },
+      {
+        "at": 1793886600278,
+        "actor": "validation-fixture",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "Exact1ede CI42038811617 firstfixture repaired; same4 reach later assertion expecting childcredit but actual earlier CORRECTION_JOURNAL_UNSUPPORTED because conditionaljournal has boundevidencehash. Root approved test-only exacterror correction plus unchangedjournal/amendment/effect counters. Same singlefilelease held; no runtimeguard changes. New exactCI required."
+      },
+      {
+        "at": 1793886705734,
+        "actor": "validation-fixture",
+        "type": "renew",
+        "taskId": "P01-03"
       }
     ],
     "catalogDigest": "68303be21dda92c8bd6c412c1ba37b8894884960d0d06c89393ab656caff7366",
@@ -8909,19 +8922,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "72634e8eb6b6b4ca70ca347c7cdb20faf7163e1c",
+    "sha": "22f979023698120f079abdb612e4fab6009c7664",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "72634e8eb6b6b4ca70ca347c7cdb20faf7163e1c",
-        "path": "docs/development/candidates/20261105-1334-repair-verification.json"
+        "sha": "22f979023698120f079abdb612e4fab6009c7664",
+        "path": "docs/development/candidates/20261105-1334-repair-publication-proof.json"
       }
     ],
     "runId": "hosted-20261105-1334-approved-publication",
-    "at": 1793886487768,
+    "at": 1793886705802,
     "codeHead": "1ede9a1f65be8bdd6918bfb1fe48efcd4e63ba1e"
   },
-  "updatedAt": 1793886487768,
+  "updatedAt": 1793886705802,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9259,7 +9272,7 @@
     "startedAt": "2026-11-05T13:35:34.885Z",
     "stopBy": "2026-11-05T14:02:00Z",
     "status": "active-approved-publication",
-    "activity": "Published independently reviewed combined1ede/tree3e712f, localeb588 after narrowfixturefix and unchanged reviewedmaintenance. Source833 registry29 fullbuild/bundle passed. ExactPR27CI42038811617 in_progress. No further author edits; all original parentacceptance gates retained, continuation paused pending rootdecision afterCI.",
+    "activity": "SecondCI42038811617 failed4 laterfixture expectedchildcredit error but conditionaljournal evidence fails earlier CORRECTION_JOURNAL_UNSUPPORTED. Root approved exacttest-only e8dc4/tree1b54: exactcode and no journal/amendment/effect changes. APItypecheck/bundlepassed; archive+freshpreflight then samebranch FF expected1ede. No runtimechanges; continuationpaused.",
     "credits": "unknown",
     "activeWorkers": [
       {
@@ -9304,6 +9317,11 @@
       "commit": "eb5886e01dda8f5623ef24d0d2bff4b9f37d511c",
       "tree": "3e712f71f6dfbebce5b846a8ef90e30de0c74b89",
       "result": "approved exact4files and complete local checks; publication approved as necessary validation repair"
+    },
+    "secondFix": {
+      "commit": "e8dc4bb86eb0820fab0e09c6332281dc79bbf152",
+      "tree": "1b54a35ce5224337bf0e611d79100f55ecfa3225",
+      "reviewer": "/root"
     }
   },
   "continuation": {
@@ -10030,7 +10048,7 @@
     "tree": "3e712f71f6dfbebce5b846a8ef90e30de0c74b89",
     "base": "2ce3b050135b0852f60474190c11e4c00c63263e",
     "financialAuthorCommit": "381ab815678ad20d9271a21729d2674ce9ae867d",
-    "exactPublishedCI": "pending",
+    "exactPublishedCI": "failed4 correction expectation fixtures; preserved valid earlier guard; restore skipped",
     "ciRun": 42038811617,
     "localSource": 833,
     "localRegistry": 29,

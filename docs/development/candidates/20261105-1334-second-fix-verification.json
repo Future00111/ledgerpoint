@@ -1,0 +1,54 @@
+{
+  "runId": "hosted-20261105-1334-approved-publication",
+  "basePublished": "1ede9a1f65be8bdd6918bfb1fe48efcd4e63ba1e",
+  "baseLocal": "eb5886e01dda8f5623ef24d0d2bff4b9f37d511c",
+  "commit": "e8dc4bb86eb0820fab0e09c6332281dc79bbf152",
+  "tree": "1b54a35ce5224337bf0e611d79100f55ecfa3225",
+  "files": [
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts"
+  ],
+  "artifacts": [
+    {
+      "path": "second-fix.patch",
+      "bytes": 2451,
+      "sha256": "ab65e36d2b5a7c41b241432fe40de11161c51ca1f1edae53bf4c6bde2ea6d965"
+    },
+    {
+      "path": "second-fix-raw-commit.txt",
+      "bytes": 324,
+      "sha256": "f4f75d5df6ee194048d33cd32f91c043c4ce126f80892e9d673ad7c555385486"
+    },
+    {
+      "path": "second-fix-typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "second-fix-bundle.log",
+      "bytes": 90,
+      "sha256": "97e24eec597a47f6c88f90492126011b03d4132193b9b8ec7f93d050d143790d"
+    },
+    {
+      "path": "repair-ci-failed.log",
+      "bytes": 199372,
+      "sha256": "50ddab44b216744886bae89edfab04feb8ecd8ac0df7cee6a0262572fc6a1e86"
+    }
+  ],
+  "review": {
+    "reviewer": "/root",
+    "approved": true,
+    "scope": "test-only exact correction rejection and no financial effects"
+  },
+  "tests": {
+    "apiTypecheck": "passed",
+    "integrationBundle": "passed",
+    "nativePostgreSQL": "pending new exactCI"
+  },
+  "runtimeChanges": false,
+  "parentAccepted": false,
+  "previousFailedCI": {
+    "runId": 42038811617,
+    "jobId": 127283869267,
+    "failure": "Four fixtures expected childcredit rejection but earlier valid conditional evidence guard returned CORRECTION_JOURNAL_UNSUPPORTED; cleanup passed, restores skipped"
+  }
+}
