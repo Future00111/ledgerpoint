@@ -110,6 +110,105 @@ Check CI for that new revision. Keep required owner review, production migration
 real filing/sends, connections, pilot admission and release gates. The scheduler
 does not make these actions authorized. Do not merge, deploy or touch production.
 
+### Reproducible validation and publication preflight
+
+A worker's author branch is provenance, not the publication destination. Use
+`publication.mjs` before every source-publication attempt to construct the explicit existing integration-ref update from
+fresh GitHub observations. It accepts only `Future00111/ledgerpoint`, open draft
+PR 27, head `codex/whole-product-first-sprint`, and base
+`dev/w03-draft-invoice-slice`. It validates the full coordinator state through
+the existing fencing module, the observed head, reviewed candidate commit/tree,
+and the candidate's single actual parent. An equivalent author tree does not
+make an author commit's different parent a valid publication parent.
+
+The helper is read-only. It neither publishes nor grants approval, and cannot
+change the platform's approval classification. A previous automatic rejection
+remains a blocker until explicitly resolved; do not retry through another token,
+tool, branch, transport or workflow. State archival remains a separate operation.
+
+1. Read the current state-branch authority, then acquire/checkpoint the single
+   coordinator lease before edits. A fresh supported checkout is
+   `git clone https://github.com/Future00111/ledgerpoint.git ledgerpoint`.
+   Detach at the authority's `codeHead`; verify the actual tree and clean status.
+   Do not reuse scratch paths or assume a gateway credential exists.
+2. Recover an existing candidate from its immutable state-branch archive.
+   Verify the manifest's patch byte length and SHA-256, apply to its exact
+   `basePublished` in a separate detached worktree with `git apply --index`,
+   and require `git write-tree` to equal the recorded tree. Verify the raw
+   commit's byte length/hash and `git hash-object -t commit --stdin` against
+   the recorded commit before restoring it. Author and integrator identities
+   may differ while their verified trees match. Do not recreate financial work.
+3. Use Node 24 and CI's pinned pnpm **10.26.1**, then
+   `pnpm install --frozen-lockfile`. Check `pnpm --version` first: an ambient
+   newer pnpm can rewrite workspace configuration even when installation fails.
+   Revert any installation-only configuration changes before checking source;
+   use the pinned version instead of approving new scripts or changing the lock.
+4. Run `node tools/development/check.mjs`,
+   `node --test tools/development/migrations/registry.test.mjs`, and
+   `PORT=8080 BASE_PATH=/ pnpm run build` on the candidate to be reviewed.
+   Capture command status and complete logs against commit/tree identities.
+   `check.mjs` discovers the publication regression tests automatically.
+5. Before attempting local PostgreSQL, verify `id -u` and availability of
+   `initdb`, `postgres`, `pg_isready`, `pg_dump`, `pg_restore` and `psql`.
+   Use only the existing fresh disposable accounting/recovery runners on a
+   supported non-root runtime. A root-only host without PostgreSQL, or a denied
+   `runuser -u nobody -- id`, is an environment blocker, not a skipped passing
+   check. Do not bypass host restrictions or connect an existing database.
+   Where unavailable, the existing PR development workflow supplies these
+   gates after authorized publication; no new runner or dispatch is implied.
+6. After independent review, read the authority, destination ref, PR 27 and
+   actual remote candidate commit again. Supply observations no older than
+   60 seconds. Each has `repository` and local `observedAt` milliseconds;
+   `authority` has `sha` (state-branch commit) and `value` (state JSON),
+   `pullRequest.value` is the GitHub PR response, `candidate.value` is the Git
+   commit response, and `destination` has `ref` and `sha`. Keep the separately
+   reviewed intent fixed: `expectedHead`, `expectedBaseSha`, `candidateSha`,
+   `candidateTree`, `authorCommit`, `authorBranch`, `authorActor`,
+   `reviewed: true`, and an independent `reviewer` distinct from `authorActor`.
+   The local `owner` contains the current `runId` and raw fencing `token`.
+   Invoke `preflightPublication(input)`; persist only its result, never the
+   input/token. It emits `destination_kind: integration`, distinct author
+   provenance, and the exact `updateRef` arguments with `force: false`.
+   These are trusted read-only observations supplied by the coordinator; the
+   helper does not fetch GitHub or prove the review/CI itself. Run it from the
+   repository root, keeping the raw owner file outside the repository:
+
+   ```sh
+   node --input-type=module - <<'NODE'
+   import { readFileSync } from 'node:fs';
+   import { preflightPublication } from './tools/development/work-queue/publication.mjs';
+   const input = JSON.parse(readFileSync('../fresh-publication-observations.json', 'utf8'));
+   const owner = JSON.parse(readFileSync('../local-owner.json', 'utf8'));
+   try {
+     console.log(JSON.stringify(preflightPublication({ ...input, owner }), null, 2));
+   } catch (error) {
+     console.error(error.code || 'PREFLIGHT_FAILED');
+     process.exitCode = 1;
+   }
+   NODE
+   ```
+7. A preflight result is a short-lived review aid, not a remote lock or
+   permission. Immediately before an authorized update, repeat the reads and
+   preflight; call the existing GitHub `update_ref` with those exact arguments.
+   Stop on rejection or expected-head conflict. Do not blindly retry.
+8. Fetch the resulting PR workflow's actual checkout and verify tree equality
+   with the published candidate. Require successful source/build/typecheck,
+   native disposable PostgreSQL, populated restore, encrypted recovery,
+   current-run/source receipt matching and cleanup; inspect failures and skips.
+   Archive exact identities, full logs and receipts. Earlier green CI on a
+   different source does not qualify this candidate. Parent workflow acceptance
+   and browser journeys remain separate existing requirements.
+
+The preserved 4 November candidate is archived at
+`f99c7a616e079903fa7d4641c15eac6959853f8a`, under
+`docs/development/candidates/20261104-2121-*`: author
+`381ab815678ad20d9271a21729d2674ce9ae867d`, tree
+`bd95f5578824de7e0b13015af4dfd0273cb4c384`, published base
+`de140ea97eed9cccb01a6dccc2edc79638da6c91`. The unreferenced remote candidate
+`2ce3b050135b0852f60474190c11e4c00c63263e` must still be fetched and its actual
+tree/parent verified before preparing its update. Its blocked publication and
+unrun native PostgreSQL/restore gates are not resolved by a successful preflight.
+
 Export the queue with its expected revision, publish worker checkpoints, then
 save the queue and integrated source head to the state branch. Release the
 coordinator lease only after all workers stop and all checkpoints are durable.

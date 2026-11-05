@@ -616,7 +616,11 @@ for(const partyType of ['customer','supplier'] as const) {
   const forgedRequest=randomUUID(),connection=await admin.connect();
   try {
    await connection.query('BEGIN');
-   await connection.query('UPDATE accounting_document_sources SET source=$3 WHERE company_id=$1 AND id=$2',[f.company,credit.id,altered.source]);
+   await assert.rejects(()=>connection.query('UPDATE accounting_document_sources SET source=$3 WHERE company_id=$1 AND id=$2',[f.company,credit.id,altered.source]),/Posted accounting sources are immutable/);
+   await connection.query('ROLLBACK');
+   // Check forged consumption independently: the rejected source mutation must
+   // not leave this assertion in an aborted transaction or alter posted history.
+   await connection.query('BEGIN');
    await connection.query('SET LOCAL ROLE ledgerly_api');
    await assert.rejects(()=>connection.query(`INSERT INTO accounting_paid_credit_operations(company_id,request_id,credit_id,actor_id,request_hash,intent,result) VALUES($1,$2,$3,$4,$5,$6,$7)`,[f.company,forgedRequest,credit.id,actor,op.request_hash,forgedIntent,{...op.result,request_id:forgedRequest}]),/Conditional consumption identity invalid/);
   } finally {await connection.query('ROLLBACK');connection.release();}
