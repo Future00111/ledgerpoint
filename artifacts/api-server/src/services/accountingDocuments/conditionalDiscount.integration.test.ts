@@ -627,7 +627,15 @@ for(const partyType of ['customer','supplier'] as const) {
 
   await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,input),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
   await assert.rejects(()=>postDocument(f.company,actor,credit.id,credit.revision),/CONDITIONAL_POSTING_NOT_AVAILABLE/);
-  await assert.rejects(()=>reviewCorrection(f.company,actor,f.draft.id,f.draft.revision,{request_id:randomUUID(),reason:'Consumed original',effective_date:'2199-12-02',line_items:f.draft.source.line_items.map((x:any)=>({quantity:x.quantity,unit_price:'110'}))}),/CORRECTION_CHILD_CREDITS/);
+  const correctionState=async()=>(await admin.query(`SELECT
+   (SELECT count(*) FROM canonical_journal_entries WHERE company_id=$1)::int journals,
+   (SELECT count(*) FROM accounting_document_amendments WHERE company_id=$1)::int amendments,
+   (SELECT count(*) FROM accounting_posting_effects WHERE company_id=$1)::int effects`,[f.company])).rows[0];
+  const beforeCorrection=await correctionState();
+  // Bound conditional journal evidence is outside ordinary correction support;
+  // that earlier guard must reject without creating any correction effects.
+  await assert.rejects(()=>reviewCorrection(f.company,actor,f.draft.id,f.draft.revision,{request_id:randomUUID(),reason:'Consumed original',effective_date:'2199-12-02',line_items:f.draft.source.line_items.map((x:any)=>({quantity:x.quantity,unit_price:'110'}))}),(error:any)=>error.code==='CORRECTION_JOURNAL_UNSUPPORTED');
+  assert.deepEqual(await correctionState(),beforeCorrection);
   const undo={...f.body,id:randomUUID(),date:'2199-12-02',kind:'unallocation',payment_id:cash.id,amount_minor:'1',allocations:[{document_id:f.draft.id,amount_minor:'1'}]};
   await assert.rejects(()=>previewPayment(f.company,actor,undo),/CONDITIONAL_CONSUMED_PAYMENT_PROTECTED/);
   await assert.rejects(()=>postPayment(f.company,actor,{...staleUndo,review_token:staleUndoReview.review_token}),/CONDITIONAL_CONSUMED_PAYMENT_PROTECTED/);
