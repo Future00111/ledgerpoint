@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 241,
+  "revision": 242,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "hosted-20261105-1314-validation",
+    "tokenSha256": "626a575d5a23ed255d4fdefc5d5590fa6098636257656fd0a9ca355e5621d003",
+    "acquiredAt": 1793884618876,
+    "expiresAt": 1793886418876
+  },
   "lastOwner": {
     "runId": "hosted-20261104-2121",
     "tokenSha256": "a803e353112738ed446ee96d77db574326bef16fda25f422fb5799be2d091dd6",
@@ -8892,7 +8897,7 @@
     "at": 1793828457763,
     "codeHead": "de140ea97eed9cccb01a6dccc2edc79638da6c91"
   },
-  "updatedAt": 1793828457790,
+  "updatedAt": 1793884618876,
   "recovery": {
     "priorRunId": "hosted-20261104-1521",
     "stoppedEvidence": {
@@ -9227,44 +9232,12 @@
   },
   "activeWorkers": [],
   "run": {
-    "startedAt": "2026-11-04T21:22:41.155Z",
-    "stopBy": "2026-11-04T21:49:00Z",
-    "implementationStopBy": "2026-11-04T21:39:00Z",
-    "status": "stopped-clean-publication-blocked",
-    "activity": "Implemented and independently reviewed actual internal atomic conditional redemption; frozen381ab815/treebd95 archivedf99c7,59focused29registry790source and fullbuild/typecheck passed. Automaticreview rejected intended authorizedintegrationref update, misclassifying workerbranch; no sourcepublication/retry/bypass. Current source remainsde140, candidate nativePG/restore unrun. Allworkers/ownedcommands stoppedclean, parentpending; continuation paused byroot21:38:54 pendingreviewresolution.",
+    "startedAt": "2026-11-05T13:16:58.908Z",
+    "stopBy": "2026-11-05T13:42:00Z",
+    "status": "active-validation-stabilization",
+    "activity": "Verify reproducible exact archived candidate validation on supported local host, then narrowly repair validation path if evidenced; no source publication retry",
     "credits": "unknown",
-    "providerUsage": "unknown",
-    "observedAt": "2026-11-04T21:40:01.767Z",
-    "replitCapability": {
-      "found": false,
-      "dispatch": false,
-      "boundedCheck": "Root actual exact name resolve returned found:false; no verified stop/monitor/export transport; no browser retries"
-    },
-    "primaryCandidate": "17e4051c5a850d568910ffbb4b36884ba22e7fdf",
-    "workerCandidate": "381ab815678ad20d9271a21729d2674ce9ae867d",
-    "primaryCandidateTree": "bd95f5578824de7e0b13015af4dfd0273cb4c384",
-    "newlyAcceptedOriginalBullets": [],
-    "newCompleteJourneys": [],
-    "archiveCommit": "f99c7a616e079903fa7d4641c15eac6959853f8a",
-    "activeWorkers": [],
-    "endedAt": "2026-11-04T21:40:01.767Z",
-    "endReason": "Hard automatic publication approval rejection; preserve reviewed candidate and pause repeated blocked attempts. Remaining run window cannot resolve review boundary noninteractively; no further claims.",
-    "reviewWait": "not measured",
-    "newVerifiedBoundedScenarios": [],
-    "rework": [
-      "API fresh libraries required tsc build; initial esbuild path and duplicate test import fixed before final passingchecks",
-      "Registry accidental unrelated dependency repaired before final exact29 checks",
-      "Initial fullbuild returned0 and produced freshdist but log omitted finalchildoutput; repeated fullbuild passed with complete log unchanged source"
-    ],
-    "resolvedBlockers": [
-      "Actual internal atomic redemption and all-writer contract implemented/reviewed locally; publicgatesclosed",
-      "Exact schema nativecredit commitment/perparentrelease/lockedwriter guards reviewed; localfullgates passed"
-    ],
-    "idleReasons": [
-      "No Replit dispatch: fresh exact resolver foundfalse, control/stop/export unproven",
-      "No second author: primary financial integration/review and boundedCI/shutdown capacity; no manufactured occupancy",
-      "No further sourcepublication after automaticapproval rejection; no retry/bypass"
-    ]
+    "activeWorkers": []
   },
   "continuation": {
     "id": "6ae5226d4a2081919e793919d9cafa1b",
