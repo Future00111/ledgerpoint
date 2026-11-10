@@ -1,23 +1,18 @@
 {
   "version": 2,
-  "revision": 268,
+  "revision": 269,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "hosted-20261105-1536",
     "tokenSha256": "e75b23a42bc3e5762d19b08df051ee837fa85e2230b4fc4c75fdf7aa2b788d4b",
     "acquiredAt": 1793893049069,
     "expiresAt": 1793895863699
-  },
-  "lastOwner": {
-    "runId": "hosted-20261105-1444",
-    "tokenSha256": "368a573fd7164283328a4f1d27571573821a4909ecc89d741b0cc34f897f1bed",
-    "acquiredAt": 1793890123685,
-    "expiresAt": 1793891923685
   },
   "queueState": {
     "version": 3,
@@ -9539,27 +9534,27 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "e64bb9dd445b120cd46089f41657f0049c5eeceb",
+    "sha": "300a863dceabf659e031fdb10839d332db096497",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "5277ec2aadd92d6055348c28ab2a195d04beb17e",
-        "path": "docs/development/candidates/20261105-1536-ownership-migration.json"
+        "sha": "300a863dceabf659e031fdb10839d332db096497",
+        "path": "docs/development/work-coordinator.json"
       }
     ],
     "runId": "hosted-20261105-1536",
-    "at": 1793894453212,
+    "at": 1794333035543,
     "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc"
   },
-  "updatedAt": 1793894453212,
+  "updatedAt": 1794333035543,
   "recovery": {
-    "priorRunId": "hosted-20261105-1408",
+    "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "2d5328ec9ba8af9a739293cd75ab209a28f39455",
-      "path": "docs/development/candidates/20261105-1408-verification.json"
+      "sha": "300a863dceabf659e031fdb10839d332db096497",
+      "path": "docs/development/work-coordinator.json"
     },
-    "at": 1793889639055
+    "at": 1794333035543
   },
   "historyReference": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -11039,5 +11034,14 @@
     "statesAndEventsPreserved": true,
     "all92BulletsDependenciesPrioritiesAcceptanceUnchanged": true,
     "contract": "Extract protected transaction-scoped linked reversal using same authority/period/account/idempotency checks, immutable reversalLines, same transaction rollback; wrappers retain retries. No schema/public route/correction API changes."
+  },
+  "integrationHandoff": {
+    "archiveSha256": "c117771b5462e1c87fd3c1829e0f31b25a53a657b1fb981c902d25dc43a7ef4d",
+    "libraryFileId": "libfile_286da2671c508191a79cb8f07c6d4dd7",
+    "candidate": "99d2c6d9e6d5e4593d6d9f5093530847b08d5b7e",
+    "manifestFilesVerified": 3588,
+    "sourcePublished": false,
+    "independentReview": "pending",
+    "combinedValidation": "pending"
   }
 }
