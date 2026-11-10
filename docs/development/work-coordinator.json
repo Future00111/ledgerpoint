@@ -1,23 +1,18 @@
 {
   "version": 2,
-  "revision": 302,
+  "revision": 304,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "cd6d0ca249ce367fbccf1e0ec075ee99dabb78ff",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "next-1794341988275",
     "tokenSha256": "7e92b2977e264cc3859829b2745372e898f0ceb46747123e6adbe91eae8d6692",
     "acquiredAt": 1794341988276,
     "expiresAt": 1794344171417
-  },
-  "lastOwner": {
-    "runId": "browser-approved-1794338528580",
-    "tokenSha256": "a0a78bebf69d35aba48e9a206529a8f9f369a341fa2a22495e843c0489677776",
-    "acquiredAt": 1794338528617,
-    "expiresAt": 1794340632297
   },
   "queueState": {
     "version": 3,
@@ -9872,19 +9867,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "e03238928ae96ce67813ac2633d51991f4bfaea0",
+    "sha": "5240b789d4aecc29b58dd6fa167f094ce346defd",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e03238928ae96ce67813ac2633d51991f4bfaea0",
-        "path": "docs/development/candidates/20261110-discount/browser-acceptance.json"
+        "sha": "5240b789d4aecc29b58dd6fa167f094ce346defd",
+        "path": "docs/development/candidates/20261110-conditional-preview/handoff.json"
       }
     ],
     "runId": "next-1794341988275",
-    "at": 1794342586880,
+    "at": 1794342667447,
     "codeHead": "cd6d0ca249ce367fbccf1e0ec075ee99dabb78ff"
   },
-  "updatedAt": 1794342586880,
+  "updatedAt": 1794342667477,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
