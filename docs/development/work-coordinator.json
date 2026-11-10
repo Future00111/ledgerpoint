@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 272,
+  "revision": 273,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+  "codeHead": "0629fb78401d509174017ca31d3a8953e3d7ee5c",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -9539,19 +9539,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "b16cac2427dfba138dfe1ba7f34843a0b0f3c8b9",
+    "sha": "b2e41dad3a604318e17a036fc98ad20d0275b030",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "b16cac2427dfba138dfe1ba7f34843a0b0f3c8b9",
+        "sha": "b2e41dad3a604318e17a036fc98ad20d0275b030",
         "path": "docs/development/work-coordinator.json"
       }
     ],
     "runId": "integration-20261110-1794333097900",
-    "at": 1794333249464,
-    "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc"
+    "at": 1794333658926,
+    "codeHead": "0629fb78401d509174017ca31d3a8953e3d7ee5c"
   },
-  "updatedAt": 1794333249570,
+  "updatedAt": 1794333658926,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -10044,8 +10044,9 @@
     }
   },
   "nextTasks": [
-    "User requests temporary Replit implementation; no actual dispatch or claim. First use immutable final candidate archive, root-reviewed contract, new verified isolation/monitor/export/stop controls before authorized handoff. Source stays6ebee; candidatef7c1945 pending actualPG/CI; do not duplicate implementation.",
-    "Restore statebranch catalogue from ownershipmigration5277ec before queueinit; source6ebee catalogue predates migration. Next fullcompensation needs appendonly settlement AND reports projection, permanentconsumption, atomic qualifying cashmutation; publicposting remainsclosed."
+    "Verify exact0629fb7 PR27 CI and restore receipts; retain pending until successful.",
+    "Resolve reproduced P2 stale banking retry recovery with authoritative no-effect/rejection evidence; exact ownership before editing.",
+    "Fix stale Payments outcome notice; complete connected public conditional posting acceptance without bypassing gates."
   ],
   "workerVerifierApproval": {
     "approvedAt": "2026-11-04T12:43:18.480Z",
@@ -11013,10 +11014,10 @@
   },
   "runActivity": {
     "startedAt": "2026-11-10T17:51:38.035Z",
-    "activity": "Two read-only reviewers observed responding: financial invariants no blocker yet; banking examining unknown outcome recovery. Pinned dependency install active. No edits or publication. 3588 manifest hashes and standalone bundle verified. Local PostgreSQL binaries unavailable; exact PR27 CI gate required.",
-    "workersStopped": false,
+    "activity": "Both reviewers completed stopped. Published exact reviewed combined tree to PR27 with fresh token preflight and expected-head fast-forward. CI pending. No feature edits, original parent acceptance unchanged.",
+    "workersStopped": true,
     "credits": "unknown",
-    "lastObservedAt": "2026-11-10T17:54:09.620Z"
+    "lastObservedAt": "2026-11-10T18:00:59.026Z"
   },
   "catalogMigration": {
     "version": 1,
@@ -11043,8 +11044,10 @@
     "libraryFileId": "libfile_286da2671c508191a79cb8f07c6d4dd7",
     "candidate": "99d2c6d9e6d5e4593d6d9f5093530847b08d5b7e",
     "manifestFilesVerified": 3588,
-    "sourcePublished": false,
-    "independentReview": "pending",
-    "combinedValidation": "pending"
+    "sourcePublished": true,
+    "independentReview": "bounded completed; P2 stale banking retry dead-end remains pending",
+    "combinedValidation": "965 source and 38 migration/auth checks plus full build passed; exact CI pending",
+    "published": "0629fb78401d509174017ca31d3a8953e3d7ee5c",
+    "parentAccepted": false
   }
 }

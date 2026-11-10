@@ -1,0 +1,46 @@
+✔ root app retains existing authentication routes (2.102616ms)
+✔ mounted authentication never escapes its app prefix (0.397196ms)
+✔ base paths with or without trailing slash agree (0.22989ms)
+✔ normal sidebar sign-out delegates to the base-aware authentication context (1.087848ms)
+✔ actual Customers boundary gives A and B separate React state lifetimes (1.90892ms)
+✔ clearing company unmounts the prior directory and open forms (0.966317ms)
+✔ refreshing the same company does not unnecessarily remount its workspace (0.35833ms)
+✔ versioned replacement migration retains existing consumption engine and requires a committed cluster origin (18.803228ms)
+✔ replacement history migration is pinned, append-only and separate from original binding and payment qualification (2.319617ms)
+✔ original binding candidate keeps both public posting gates and a database-owned original xid prerequisite (1.251329ms)
+✔ all registered review migrations are pinned and returned as the exact verified bytes (16.326619ms)
+✔ unknown version fails closed (6.023448ms)
+✔ legacy unpinned version fails closed (1.433067ms)
+✔ missing overlay fails closed (45.436474ms)
+✔ overlay traversal fails closed (1.379498ms)
+✔ wrong overlay identity fails closed (1.926356ms)
+✔ unsupported overlay contract fails closed (2.582705ms)
+✔ malformed overlay checksum fails closed (4.954449ms)
+✔ production authority fails closed (0.246574ms)
+✔ missing migration fails closed (0.264731ms)
+✔ unknown migration fails closed (0.475082ms)
+✔ duplicate identity fails closed (0.414923ms)
+✔ wrong order fails closed (0.464977ms)
+✔ missing dependency fails closed (0.422654ms)
+✔ unsupported contract fails closed (0.282067ms)
+✔ traversal path fails closed (0.289718ms)
+✔ changed SQL bytes fail checksum validation without leaking SQL (0.963483ms)
+✔ missing SQL fails with bounded diagnostic (0.349607ms)
+✔ nonempty database is rejected before BEGIN, amendments=false (7.807017ms)
+✔ nonempty database is rejected before BEGIN, amendments=true (11.548196ms)
+✔ altered overlay fails with bounded diagnostic (1.954668ms)
+✔ missing overlay fails with bounded diagnostic (1.277537ms)
+✔ tampered overlay stops installer before any database query, amendments=false (44.430001ms)
+✔ tampered overlay stops installer before any database query, amendments=true (48.491966ms)
+✔ schema created after preflight is refused under migration lock, amendments=false (8.80643ms)
+✔ schema created after preflight is refused under migration lock, amendments=true (1.979233ms)
+✔ installed history matches exact selected input versions, amendments=false (6.786646ms)
+✔ installed history matches exact selected input versions, amendments=true (3.015946ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 756.660742

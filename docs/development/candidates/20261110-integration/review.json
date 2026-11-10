@@ -1,0 +1,37 @@
+{
+  "source": "0629fb78401d509174017ca31d3a8953e3d7ee5c",
+  "author": "99d2c6d9e6d5e4593d6d9f5093530847b08d5b7e",
+  "tree": "83e20e8b8e1e13dee60f4babdae2520efdadd7c4",
+  "base": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+  "reviewers": [
+    "root",
+    "review_financial",
+    "review_banking_auth"
+  ],
+  "review": "Bounded independent static review of changed financial compensation/replacement/correction/capacity/payment/report paths and banking services/SQL/routes/UI plus auth delta. No new financial integrity blocker established. Not blanket statutory/release approval.",
+  "findings": [
+    {
+      "severity": "P2",
+      "status": "pending",
+      "path": "artifacts/ledgerly/src/features/nativeBankStatements/NativeBankStatements.jsx",
+      "line": 160,
+      "repro": "Review import in A; submit fails before server; B imports another row; A recovery unknown then exact retry receives BANK_IMPORT_REVIEW_STALE. Pending immutable request blocks new review indefinitely. Same pattern in match and correction recovery.",
+      "next": "Reproduce in isolated test; implement authoritative absence/rejection recovery and fresh review without discarding genuine unknown outcome. Coordinator must assign exact owned paths."
+    }
+  ],
+  "otherPending": [
+    "stale Payments outcome banner",
+    "conditional public posting remains gated",
+    "demo API failure not investigated",
+    "all parent acceptance unchanged",
+    "fresh combined PostgreSQL and restore CI pending"
+  ],
+  "local": {
+    "sourceTests": 965,
+    "sourcePassed": true,
+    "migrationAuthTests": 38,
+    "buildTypecheck": "passed",
+    "initialFocusedAttempt": "esbuild unavailable during dependency installation; rerun passed after frozen install"
+  },
+  "credits": "unknown"
+}

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 27,
+  "authorityCommit": "b2e41dad3a604318e17a036fc98ad20d0275b030",
+  "authorityRevision": 272,
+  "coordinatorRunId": "integration-20261110-1794333097900",
+  "observedAt": 1794333610222,
+  "candidateTree": "83e20e8b8e1e13dee60f4babdae2520efdadd7c4",
+  "reviewedBy": "root-review_financial-review_banking_auth",
+  "authorOrigin": {
+    "actor": "Replit",
+    "commit": "99d2c6d9e6d5e4593d6d9f5093530847b08d5b7e",
+    "branch": "replit/job32-auth-preparation"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+    "sha": "0629fb78401d509174017ca31d3a8953e3d7ee5c",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}
