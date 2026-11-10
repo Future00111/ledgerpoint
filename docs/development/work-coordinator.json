@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 270,
+  "revision": 272,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
@@ -11,7 +11,7 @@
     "runId": "integration-20261110-1794333097900",
     "tokenSha256": "ae85f9de0bb4ce133b4c3a74d166826619db4016ae37f945f767b3cc62df4c6b",
     "acquiredAt": 1794333097902,
-    "expiresAt": 1794334897902
+    "expiresAt": 1794335049570
   },
   "lastOwner": {
     "runId": "hosted-20261105-1536",
@@ -9539,19 +9539,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "300a863dceabf659e031fdb10839d332db096497",
+    "sha": "b16cac2427dfba138dfe1ba7f34843a0b0f3c8b9",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "300a863dceabf659e031fdb10839d332db096497",
+        "sha": "b16cac2427dfba138dfe1ba7f34843a0b0f3c8b9",
         "path": "docs/development/work-coordinator.json"
       }
     ],
-    "runId": "hosted-20261105-1536",
-    "at": 1794333035543,
+    "runId": "integration-20261110-1794333097900",
+    "at": 1794333249464,
     "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc"
   },
-  "updatedAt": 1794333097902,
+  "updatedAt": 1794333249570,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -11013,9 +11013,10 @@
   },
   "runActivity": {
     "startedAt": "2026-11-10T17:51:38.035Z",
-    "activity": "Verified uploaded cumulative candidate; read-only review and combined validation next",
-    "workersStopped": true,
-    "credits": "unknown"
+    "activity": "Two read-only reviewers observed responding: financial invariants no blocker yet; banking examining unknown outcome recovery. Pinned dependency install active. No edits or publication. 3588 manifest hashes and standalone bundle verified. Local PostgreSQL binaries unavailable; exact PR27 CI gate required.",
+    "workersStopped": false,
+    "credits": "unknown",
+    "lastObservedAt": "2026-11-10T17:54:09.620Z"
   },
   "catalogMigration": {
     "version": 1,
