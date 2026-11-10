@@ -33,5 +33,44 @@
     "buildTypecheck": "passed",
     "initialFocusedAttempt": "esbuild unavailable during dependency installation; rerun passed after frozen install"
   },
-  "credits": "unknown"
+  "credits": "unknown",
+  "originalScope": {
+    "sourceBullets": 92,
+    "catalogTasks": 112,
+    "criteriaPriorityDependenciesUnchanged": true
+  },
+  "archive": {
+    "sourcePatchSha256": "d340905d89d2441098e70759ae6a3ae0ec21f06d63d4893b4c4fa5fb5310362e",
+    "format": "gzip UTF-8 git binary patch",
+    "base": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
+    "expectedTree": "83e20e8b8e1e13dee60f4babdae2520efdadd7c4"
+  },
+  "continuation": "Existing hourly automation remains disabled; no new schedule or worker dispatch",
+  "browserFix": {
+    "authorCommit": "0b5f3fb7fe30e19c23d9b8c2f01c9d274ac35671",
+    "publishedCommit": "36f0c77d32ec53b71fa3b0327b192db2e71882e3",
+    "tree": "4665f93eaf5e6c10dab8b9339e5e3c5a466f0020",
+    "reviewer": "review_banking_auth",
+    "reviewResult": "No blocker in two-file diff; preserves sandbox and acceptance assertions. No reviewer runtime execution.",
+    "diffSha256": "3cf3f87fcd8685abb065856167c19bf8c5066138bed0e020181ef83186142905",
+    "localTypecheck": "pass",
+    "ciRun": 42872520570
+  },
+  "completion": {
+    "originalBulletsNewlyAccepted": [],
+    "parentAutoAcceptance": false,
+    "remaining": [
+      "Exact-source CI outcome must be recorded",
+      "P2 banking stale-request retry dead-end",
+      "Payments outcome-unknown banner",
+      "Public conditional-discount mutation journey remains closed"
+    ],
+    "reviewersStopped": true,
+    "localWorktreesClean": true,
+    "providerCredits": "unknown",
+    "reviewWaitingTime": "unknown",
+    "integrationRework": "One browser launcher compatibility fix after failed CI",
+    "allocation": "Coordinator integrated existing candidate chain; two bounded independent read-only reviewers. No Replit dispatch or new feature worker.",
+    "reasonNoMoreImplementation": "Remaining bounded window reserved for exact-source CI, durable evidence and clean release"
+  }
 }
