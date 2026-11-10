@@ -39,6 +39,13 @@ jobs:
         run: node --test tools/development/migrations/registry.test.mjs
       - name: Prepare disposable PostgreSQL binaries
         run: echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+      - name: Prepare installed Chrome for isolated browser acceptance
+        run: |
+          chrome_path="$(command -v google-chrome)"
+          "$chrome_path" --version
+          mkdir -p "$RUNNER_TEMP/ledgerpoint-browser-bin"
+          ln -s "$chrome_path" "$RUNNER_TEMP/ledgerpoint-browser-bin/chromium"
+          echo "$RUNNER_TEMP/ledgerpoint-browser-bin" >> "$GITHUB_PATH"
       - name: Accounting API, security, atomicity and restore regression
         id: accounting
         run: node tools/accounting-flow/test.mjs

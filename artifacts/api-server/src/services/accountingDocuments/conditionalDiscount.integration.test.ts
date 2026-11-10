@@ -1319,11 +1319,11 @@ test('isolated Chromium: native read-only review, stale-input clearing, cancel a
   let html='',stderr='';
   child.stdout.on('data',b=>{html+=b.toString();});child.stderr.on('data',b=>{stderr+=b.toString();});
   const code=await new Promise<number>((resolve,reject)=>{
-   const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('Bounded isolated Chromium timed out'));},30000);
+   const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('Bounded isolated Chromium timed out: '+stderr.slice(-4000)));},30000);
    child.once('error',e=>{clearTimeout(timer);reject(e);});child.once('exit',n=>{clearTimeout(timer);resolve(n??1);});
   });
   writeFileSync(path.join(process.cwd(),'generated-artifacts/compensation-browser.log'),stderr+'\n'+html.match(/<body[^>]*>/)?.[0]+'\n');
-  assert.equal(code,0);assert.match(html,/data-compensation-acceptance="passed"/,html.slice(-1200));
+  assert.equal(code,0,'Isolated Chromium failed: '+stderr.slice(-4000));assert.match(html,/data-compensation-acceptance="passed"/,html.slice(-1200));
   assert.deepEqual(await compensationSnapshot(f.company),before);
   console.log('COMPENSATION_BROWSER_ACCEPTANCE',JSON.stringify({loopbackOnly:true,syntheticTestAuthSeam:true,productionClerkUnchanged:true,
    nativeReview:true,fullCashReversalReview:true,staleInputCleared:true,cancel:true,unknownNoResubmit:true,financialRowsUnchanged:true}));
