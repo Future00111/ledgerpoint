@@ -1,0 +1,42 @@
+{
+  "startedAt": "2026-11-10T20:19:48.309Z",
+  "scope": "Highest eligible task; reconcile existing conditional discount work before bounded implementation",
+  "credits": "unknown",
+  "lastObservedAt": "2026-11-10T20:29:46.877Z",
+  "activity": "One implementer completed and stopped, root reviewed and integrated exacttree; CI passed incl bothparty new HTTP scenarios and all restore. Queue707 parent pending with partial evidence; no active taskclaims.",
+  "contract": "Public read-only conditional preview applies unpaid-balance discount rule regardless of source marker; fullpaid rejected, discount abovepartial outstanding rejected, validthreshold partial released0. Internal historical engine unchanged and inaccessible to publicmutation; future activation must apply rule. No parentacceptance.",
+  "review": {
+    "reviewer": "root",
+    "author": "ff1c3819a04cf9e074d9479c71384e6ab5a80415",
+    "tree": "8cb250c332504819a534b9ca10b38e302e9071be",
+    "patchSha256": "1c4b58df6da4afd1f49af91967decfc12b68b9c6353b87504aee2cbeaf29e9fd",
+    "result": "No blocker: same company lock, no public mutation/financial token, ordinary credits unchanged, bothparty repeated HTTP no-write scenarios"
+  },
+  "ci": {
+    "run": 42895216565,
+    "job": 130106429901,
+    "head": "cd6d0ca249ce367fbccf1e0ec075ee99dabb78ff",
+    "checkout": "76dca4537f3c6611d1de03a39e65a407d5a1ef6c",
+    "fileDiff": [],
+    "result": "success",
+    "logsFetched": true
+  },
+  "completion": {
+    "originalBulletsAccepted": [],
+    "acceptedScenario": "Public conditional discount preview rechecks unpaid balance after later payments; zero releases for eligible exactbalance; no financial effects",
+    "fullJourneyAccepted": false,
+    "resolved": [
+      "Public preview bypassed current discount rule when source lacked discretionary marker"
+    ],
+    "remaining": [
+      "Public conditional original and credit posting still gated: next reconcile admitted terms and unpaid rule at commit with existing compensation/replacement support; then native UI/recovery and browser acceptance"
+    ],
+    "blockerAge": "Public admission outstanding before thisrun; exactage unknown",
+    "reviewWait": "unknown",
+    "rework": 0,
+    "credits": "unknown",
+    "staffing": "One Codex implementer plus root independent review/integration; Replit connector returned no app; no standing extra team",
+    "stopReason": "Bounded reviewed correction completed and verified; remaining public mutation journey needs separate focused contract and ownership reconciliation, no rushed activation",
+    "endedAt": "2026-11-10T20:29:46.877Z"
+  }
+}
