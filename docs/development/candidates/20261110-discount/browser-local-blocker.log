@@ -1,0 +1,7 @@
+{
+  "source": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993",
+  "code": null,
+  "scope": "Synthetic read-only actual-component browser; no backend/Clerk/financial-posting proof",
+  "passed": false,
+  "stderr": "/usr/bin/chromium: 9: [: 5225713664: unexpected operator\n[64:64:1110/190246.031357:FATAL:chrome/browser/process_singleton_posix.cc:297] Check failed: . socket() failed: Operation not permitted (1)\n[1110/190246.032633:ERROR:third_party/crashpad/crashpad/util/linux/scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)\n"
+}

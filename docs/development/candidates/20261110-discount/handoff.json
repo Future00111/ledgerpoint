@@ -1,0 +1,74 @@
+{
+  "run": {
+    "phase": "stopped-browser-publication-rejected",
+    "task": "P01-03",
+    "actor": "discount-implementer",
+    "source": "36f0c77d32ec53b71fa3b0327b192db2e71882e3",
+    "contract": "Fully paid: reject new discount adjustments, retain ordinary credits/refunds. Partial: discount at most outstanding. Historical discount evidence/replay immutable.",
+    "coordinatorFiles": [
+      "AGENTS.md",
+      "tools/development/work-queue/README.md",
+      "tools/development/work-queue/publication.mjs",
+      "tools/development/work-queue/publication.test.mjs"
+    ],
+    "publication": "PR27 merged by explicit owner approval; create reviewed successor draft on same approved source/base branches; no further merge authority.",
+    "published": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993",
+    "pr": 28,
+    "review": {
+      "reviewer": "discount_review",
+      "diffSha256": "c01e0dcee5622d43ee7737c4e50b422b68be7e6d7872d59d5c97f033ece150a7",
+      "result": "No concrete blockers; financial locks and replay and successor publication checked. Publication46 tests independently passed."
+    },
+    "lastObservedAt": "2026-11-10T19:11:10.733Z",
+    "ci": {
+      "run": 42880798976,
+      "head": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993",
+      "result": "success"
+    },
+    "pendingCandidate": {
+      "author": "9bc14822fdbe05995ea0a5fa4b9873b7f6e3f1fe",
+      "base": "6c42c15c906f56e8029e416b34d0af2201d87c29",
+      "tree": "c47dfbccbbd64d362daca573cd2c79aed93b6c89",
+      "unreferencedRemoteCommit": "b16ec529175933bb78409479fa1bf76803b49412",
+      "published": false
+    },
+    "blocker": "Automatic approval review rejected PR28 ref update because prior instructions name PR27. No retry. Need explicit owner authorization for successor PR28 development publication; no merge/deploy implied.",
+    "metrics": {
+      "acceptedOriginalBullets": 0,
+      "acceptedScenario": "Unpaid/part-paid discount cap and paid invoice credit/refund separation",
+      "credits": "unknown",
+      "reviewWaiting": "unknown",
+      "rework": "publication bootstrap corrected; browser publication authorization blocker",
+      "workers": 1,
+      "reviewers": 1,
+      "replit": "unavailable; no worker dispatched",
+      "next": "Approve successor publication, publish preserved test-only patch, run exact CI browser acceptance; then finish public conditional journey gates",
+      "earlyStop": "Publication rejected; preserving candidate and clean shutdown within bounded run"
+    }
+  },
+  "started": "2026-11-10T18:47:00Z",
+  "ended": "2026-11-10T19:11:10.875Z",
+  "publishedReview": {
+    "reviewer": "/root/discount_review",
+    "diffSha256": "c01e0dcee5622d43ee7737c4e50b422b68be7e6d7872d59d5c97f033ece150a7",
+    "author": "6c42c15c906f56e8029e416b34d0af2201d87c29",
+    "published": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993",
+    "tree": "082ea5a7ead7c45ad4e8b677f54f33acb4b64e02"
+  },
+  "pendingReview": {
+    "reviewer": "/root/discount_review",
+    "diffSha256": "5b2680e1473fc351818391b26cf3a4fcea874a77a03cea0fecb786a6dbdb8e89",
+    "result": "No blocker; API typecheck passed, actual Chromium not executed"
+  },
+  "ci": {
+    "run": 42880798976,
+    "job": 130056241194,
+    "head": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993",
+    "result": "success"
+  },
+  "limitations": [
+    "Synthetic browser local launch failed due host socket permission; browser acceptance not established",
+    "Parent P01-03 not accepted; public conditional journey remains gated",
+    "No merge/deploy/live demo/existing DB change"
+  ]
+}

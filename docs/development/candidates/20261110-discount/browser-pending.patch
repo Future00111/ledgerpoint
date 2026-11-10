@@ -1,0 +1,29 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
+index 0bf374a..f350502 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
+@@ -1895,3 +1895,24 @@ for(const side of ['sales_invoice','purchase_bill']) test(`new discount policy:
+  const item=report.open_items.find((d:any)=>d.id===original.id);
+  assert.deepEqual([item.paid_minor,item.credited_minor,item.open_minor],['5000','7000','0']);
+ });
++
++
++test('isolated Chromium: unpaid and partial discounts, fully paid credit/refund guidance, excess preview refusal',async()=>{
++ const fs=await import('node:fs'),os=await import('node:os'),cp=await import('node:child_process');
++ const {createRequire}=await import('node:module');
++ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'discount-rule-browser-'));
++ const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
++ const server=express();let browser:ReturnType<typeof cp.spawn>|undefined;
++ const fixture=server.listen(0,'127.0.0.1');await new Promise<void>(r=>fixture.once('listening',r));
++ try {
++  fs.writeFileSync(entry,"import React from 'react';\nimport {createRoot} from 'react-dom/client';\nimport {MemoryRouter} from 'react-router-dom';\nimport PostedDocument from '@/components/accounting/PostedDocument.jsx';\nimport {DiscountBalanceReview} from '@/features/documentDiscounts/DiscountControls.jsx';\n// Synthetic read-only UI harness. No API, Clerk, database or posting authority.\nlet requests=0;\nwindow.fetch=async()=>{requests++;return new Response(JSON.stringify({error:{code:'SYNTHETIC_UNAVAILABLE'}}),{status:503,headers:{'Content-Type':'application/json'}})};\nconst root=createRoot(document.getElementById('root'));\nconst source={invoice_number:'SYNTHETIC',issue_date:'2026-11-10',due_date:'2026-11-10',payment_terms:0,price_basis:'including_vat',reference:'',notes:'',line_items:[{description:'Synthetic supply',quantity:'1',unit_price:'120',tax_code:'STANDARD_20'}]};\nconst doc={id:'original',revision:'one',status:'posted',party_id:'party',party_name:'Synthetic party',journal_id:'synthetic',source,money:{gross_pence:'12000',net_pence:'10000',vat_pence:'2000',lines:[{net_pence:'10000',vat_pence:'2000',gross_pence:'12000'}]}};\nconst wait=()=>new Promise(r=>setTimeout(r,80));\nconst assert=(v,m)=>{if(!v)throw Error(m)};\n(async()=>{\n for(const kind of ['sales_invoice','purchase_bill']) for(const paid of ['0','5000','12000']) {\n  const open=(12000n-BigInt(paid)).toString();\n  root.render(<MemoryRouter key={kind+paid}><PostedDocument kind={kind} doc={{...doc,kind}} company={{id:'synthetic-company'}} journal={{status:'loading'}} capabilities={{edit_drafts:true,post_documents:true}} settlement={{loading:false}} openItem={{gross_minor:'12000',paid_minor:paid,credited_minor:'0',open_minor:open,history:[]}} /></MemoryRouter>);await wait();\n  const links=[...document.querySelectorAll('a')];\n  assert(links.some(a=>a.textContent==='Create credit note'),kind+' ordinary credit unavailable');\n  assert(links.some(a=>a.textContent==='Apply discount')===(open!=='0'),kind+' wrong discount entry '+paid);\n  if(open==='0')assert(document.body.textContent.includes('There is no unpaid balance to discount'),'Refund guidance missing');\n }\n const item={gross_minor:'12000',paid_minor:'5000',credited_minor:'0',open_minor:'7000'};\n for(const amount of ['1200','7000','8000']) {\n  root.render(<DiscountBalanceReview original={doc} item={item} money={{gross_pence:amount}}/>);await wait();\n  assert(document.body.textContent.includes('Balance if posted')===(amount!=='8000'),'Wrong excess preview');\n }\n document.body.dataset.acceptance='passed';document.body.dataset.scope='synthetic-read-only-ui';document.body.dataset.stubbedRequests=String(requests);\n})().catch(e=>{document.body.dataset.acceptance='failed';document.body.append(document.createTextNode(e.message));});\n");
++  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
++  server.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
++  server.get('/',(_req,res)=>res.type('html').send('<!doctype html><html><head><meta charset="utf-8"><title>Synthetic discount UI</title></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>'));
++  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=6000','http://127.0.0.1:'+(fixture.address() as any).port],{stdio:['ignore','pipe','pipe']});
++  let html='',stderr='';browser.stdout!.on('data',b=>html+=b);browser.stderr!.on('data',b=>stderr+=b);
++  const code=await new Promise<number|null>((resolve,reject)=>{const timer=setTimeout(()=>{browser?.kill('SIGTERM');reject(Error('Bounded browser timeout: '+stderr.slice(-2000)));},30000);browser!.once('error',e=>{clearTimeout(timer);reject(e)});browser!.once('exit',code=>{clearTimeout(timer);resolve(code)})});
++  assert.equal(code,0,stderr.slice(-4000));assert.match(html,/data-acceptance="passed"/,html.slice(-2000));
++  console.log('DISCOUNT_RULE_BROWSER_ACCEPTANCE',JSON.stringify({syntheticReadOnly:true,actualComponents:true,unpaidAndPartial:true,fullyPaidCreditOnly:true,excessRefused:true,financialPosting:false,realClerk:false}));
++ } finally {browser?.kill('SIGTERM');await new Promise<void>(r=>fixture.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
++});

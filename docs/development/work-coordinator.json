@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 287,
+  "revision": 288,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "b16ec529175933bb78409479fa1bf76803b49412",
+  "codeHead": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 699,
+    "revision": 700,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "running",
+        "status": "blocked",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Reviewed cumulative author6c42c15 tree082ea5a7 publishedcd032a78 to successor draftPR28. Source967/build pass, final publication46 pass. Reviewer discount_review hashc01e0dcee5622d43ee7737c4e50b422b68be7e6d7872d59d5c97f033ece150a7. NativePG/restore CI pending. P01-03 remains partial; public conditional posting closed.",
+        "checkpoint": "Stopped implementation 19:12 UTC; no browser/test process running. Root and independent discount_review completed. Discount runtime CI passed; browser fixture review/typecheck passed but publication rejected, no browser evidence claimed. Parent conditional-discount journey remains incomplete.",
         "evidence": {
           "commit": "f7c19458e888f9b217b4c0e99b6fc9784f96bf1e",
           "summary": "PARTIAL UNPUBLISHED protected transaction-scoped canonical reversal prerequisite; root reviewed exact runtime and fixturecast fix. Final build/typecheck passed, nativePG/CI pending. User stopped Codex publication to favor future Replit implementation; candidate preserved. Publicposting closed; compensation not implemented.",
@@ -270,10 +270,12 @@
             }
           }
         },
-        "owner": "discount-implementer",
-        "tokenSha256": "48c13a18bd202a7d2231bde13298722f163bc2d6b1f51b87548fb7451ff5d33f",
-        "leaseUntil": 1794338332159,
-        "workStarted": true
+        "blockers": [
+          {
+            "type": "decision",
+            "reason": "Automatic approval review rejected further PR28 publication: retained instruction restricted existing PR27. Owner approval required for successor PR28 development publication; no retry or transport bypass. Reviewed browser fixture local9bc1482 preserved as immutable pending patch; financial runtime cd032 exact CI42880798976 passed."
+          }
+        ]
       },
       "P01-04": {
         "status": "blocked",
@@ -9593,6 +9595,19 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "Reviewed cumulative author6c42c15 tree082ea5a7 publishedcd032a78 to successor draftPR28. Source967/build pass, final publication46 pass. Reviewer discount_review hashc01e0dcee5622d43ee7737c4e50b422b68be7e6d7872d59d5c97f033ece150a7. NativePG/restore CI pending. P01-03 remains partial; public conditional posting closed."
+      },
+      {
+        "at": 1794337849060,
+        "actor": "discount-implementer",
+        "type": "block",
+        "taskId": "P01-03",
+        "checkpoint": "Stopped implementation 19:12 UTC; no browser/test process running. Root and independent discount_review completed. Discount runtime CI passed; browser fixture review/typecheck passed but publication rejected, no browser evidence claimed. Parent conditional-discount journey remains incomplete.",
+        "blockers": [
+          {
+            "type": "decision",
+            "reason": "Automatic approval review rejected further PR28 publication: retained instruction restricted existing PR27. Owner approval required for successor PR28 development publication; no retry or transport bypass. Reviewed browser fixture local9bc1482 preserved as immutable pending patch; financial runtime cd032 exact CI42880798976 passed."
+          }
+        ]
       }
     ],
     "catalogDigest": "4a4d6a7a34c9e133364ffbfbf4979a8ceacd73ef9436d0db7a7f5a7f00336058",
@@ -9619,10 +9634,10 @@
       }
     ],
     "runId": "discount-20261110-1794336489986",
-    "at": 1794337773946,
-    "codeHead": "b16ec529175933bb78409479fa1bf76803b49412"
+    "at": 1794337870734,
+    "codeHead": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993"
   },
-  "updatedAt": 1794337773946,
+  "updatedAt": 1794337870734,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -11162,7 +11177,7 @@
     }
   },
   "discountRun": {
-    "phase": "browser-fixture-published-CI-pending",
+    "phase": "stopped-browser-publication-rejected",
     "task": "P01-03",
     "actor": "discount-implementer",
     "source": "36f0c77d32ec53b71fa3b0327b192db2e71882e3",
@@ -11174,18 +11189,38 @@
       "tools/development/work-queue/publication.test.mjs"
     ],
     "publication": "PR27 merged by explicit owner approval; create reviewed successor draft on same approved source/base branches; no further merge authority.",
-    "published": "b16ec529175933bb78409479fa1bf76803b49412",
+    "published": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993",
     "pr": 28,
     "review": {
       "reviewer": "discount_review",
       "diffSha256": "c01e0dcee5622d43ee7737c4e50b422b68be7e6d7872d59d5c97f033ece150a7",
       "result": "No concrete blockers; financial locks and replay and successor publication checked. Publication46 tests independently passed."
     },
-    "lastObservedAt": "2026-11-10T19:07:36.483Z",
+    "lastObservedAt": "2026-11-10T19:11:10.733Z",
     "ci": {
       "run": 42880798976,
       "head": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993",
       "result": "success"
+    },
+    "pendingCandidate": {
+      "author": "9bc14822fdbe05995ea0a5fa4b9873b7f6e3f1fe",
+      "base": "6c42c15c906f56e8029e416b34d0af2201d87c29",
+      "tree": "c47dfbccbbd64d362daca573cd2c79aed93b6c89",
+      "unreferencedRemoteCommit": "b16ec529175933bb78409479fa1bf76803b49412",
+      "published": false
+    },
+    "blocker": "Automatic approval review rejected PR28 ref update because prior instructions name PR27. No retry. Need explicit owner authorization for successor PR28 development publication; no merge/deploy implied.",
+    "metrics": {
+      "acceptedOriginalBullets": 0,
+      "acceptedScenario": "Unpaid/part-paid discount cap and paid invoice credit/refund separation",
+      "credits": "unknown",
+      "reviewWaiting": "unknown",
+      "rework": "publication bootstrap corrected; browser publication authorization blocker",
+      "workers": 1,
+      "reviewers": 1,
+      "replit": "unavailable; no worker dispatched",
+      "next": "Approve successor publication, publish preserved test-only patch, run exact CI browser acceptance; then finish public conditional journey gates",
+      "earlyStop": "Publication rejected; preserving candidate and clean shutdown within bounded run"
     }
   },
   "integrationPullRequest": 28
