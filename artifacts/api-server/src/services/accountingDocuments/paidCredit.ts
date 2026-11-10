@@ -93,6 +93,16 @@ export async function reviewPaidCredit(company:string,actor:string,id:string,exp
 export async function reviewConditionalCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
   const b=intent(body);return transact(q=>plan(q,company,actor,id,expected,b,true));
 }
+/** Current public preview policy, separate from historical internal redemption.
+ * Both reads share the company-locked transaction; no request flag can opt out. */
+export async function reviewPublicConditionalCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
+  const b=intent(body);
+  return transact(async q=>{
+    const review=await plan(q,company,actor,id,expected,b,true);
+    await assertDiscountOutstanding(q,company,review.original_id,review.credit_minor);
+    return review;
+  });
+}
 async function commitCredit(company:string,actor:string,id:string,expected:string,body:unknown,conditional:CreditPurpose,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
   const b=intent(body),input=body as any;
   if(typeof input.review_token!=='string'||!/^sha256:[a-f0-9]{64}$/.test(input.review_token)||!Array.isArray(input.releases)) fail(428,'PAID_CREDIT_REVIEW_REQUIRED');

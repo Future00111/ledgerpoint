@@ -1442,7 +1442,7 @@ for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL: 
 for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL HTTP: ${partyType} conditional eligibility is read-only, scoped and keeps public posting closed`,async()=>{
  const f=await admissionFixture(partyType);
  await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
- await observeConditionalOriginal(f.company,actor,f.draft.id);await nativeCash(f,'12000','12000');
+ await observeConditionalOriginal(f.company,actor,f.draft.id);await nativeCash(f,'10800','10800');
  const credit=await conditionalCreditDraft(f,partyType),body={request_id:randomUUID(),reason:'Read-only HTTP eligibility'};
  const viewer=`viewer-${randomUUID()}`,inactive=`inactive-${randomUUID()}`;
  for(const [user,role,active] of [[viewer,'read_only',true],[inactive,'owner',false]])await admin.query(
@@ -1451,7 +1451,7 @@ for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL H
  const result=await conditionalHttp(f.company,credit.id,body,credit.revision);
  assert.equal(result.status,200);assert.equal(result.data.readonly,true);assert.equal(result.data.posting_available,false);
  assert.deepEqual(result.data.conditional_admission,{threshold_minor:'10800',qualifying_minor:'10800',deadline:'2199-11-30'});
- assert.equal(result.data.released_minor,'1200');assert.equal(result.data.document_id,credit.id);assert.equal(result.data.revision,credit.revision);
+ assert.equal(result.data.released_minor,'0');assert.deepEqual(result.data.releases,[]);assert.equal(result.data.document_id,credit.id);assert.equal(result.data.revision,credit.revision);
  for(const key of ['review_token','intent','conditional_credit_payload'])assert.equal(Object.hasOwn(result.data,key),false,key);
  assert.deepEqual(await conditionalHttp(f.company,credit.id,body,credit.revision),result);
  assert.equal((await conditionalHttp(f.company,credit.id,body,credit.revision,null)).status,401);
@@ -1563,4 +1563,34 @@ test('Job12 PostgreSQL HTTP: missing replacement schema is honest 503 and record
   assert.equal(w.status,503);
   assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_replacements WHERE company_id=$1',[f.company])).rows[0].n,0);
  } finally {await admin.query('ALTER TABLE conditional_discount_replacements ENABLE ALWAYS TRIGGER conditional_replacement_immutable');}
+});
+
+for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL HTTP: ${partyType} conditional preview rechecks unpaid capacity after further payments`,async()=>{
+ const f=await admissionFixture(partyType);
+ await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
+ await observeConditionalOriginal(f.company,actor,f.draft.id);
+ const credit=await conditionalCreditDraft(f,partyType),body={request_id:randomUUID(),reason:'Current unpaid balance preview'};
+ // A saved draft does not establish qualification or reserve the unpaid balance.
+ let before=await financialSnapshot(f.company);
+ let result=await conditionalHttp(f.company,credit.id,body,credit.revision);
+ assert.equal(result.status,409);assert.equal(result.error.code,'CONDITIONAL_PAYMENT_THRESHOLD_NOT_MET');
+ assert.deepEqual(await financialSnapshot(f.company),before);
+ await nativeCash(f,'10800','10800');
+ before=await financialSnapshot(f.company);
+ result=await conditionalHttp(f.company,credit.id,body,credit.revision);
+ assert.equal(result.status,200);assert.equal(result.data.credit_minor,'1200');
+ assert.equal(result.data.offset_minor,'1200');assert.equal(result.data.released_minor,'0');
+ assert.deepEqual(result.data.releases,[]);assert.equal(result.data.posting_available,false);
+ assert.deepEqual(await financialSnapshot(f.company),before);
+ // The same request cannot reuse an earlier preview after another tab pays.
+ await nativeCash(f,'1','1');
+ before=await financialSnapshot(f.company);
+ result=await conditionalHttp(f.company,credit.id,body,credit.revision);
+ assert.equal(result.status,409);assert.equal(result.error.code,'DISCOUNT_EXCEEDS_OUTSTANDING');
+ assert.deepEqual(await financialSnapshot(f.company),before);
+ await nativeCash(f,'1199','1199');
+ before=await financialSnapshot(f.company);
+ result=await conditionalHttp(f.company,credit.id,body,credit.revision);
+ assert.equal(result.status,409);assert.equal(result.error.code,'DISCOUNT_REQUIRES_UNPAID_BALANCE');
+ assert.deepEqual(await financialSnapshot(f.company),before);
 });

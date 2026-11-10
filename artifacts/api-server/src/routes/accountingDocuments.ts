@@ -1,5 +1,5 @@
 import { captureConditionalEvidence, getConditionalEvidence } from '../services/accountingDocuments/conditionalDiscount';
-import { reviewPaidCredit, commitPaidCredit, reviewConditionalCredit } from '../services/accountingDocuments/paidCredit';
+import { reviewPaidCredit, commitPaidCredit, reviewPublicConditionalCredit } from '../services/accountingDocuments/paidCredit';
 import { conditionalCompensationContext,reviewConditionalCompensation,recoverConditionalCompensation } from '../services/accountingDocuments/conditionalCompensation';
 import { Router, type RequestHandler, type Request } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
@@ -152,7 +152,7 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
   });
   router.post('/accounting-documents/:id/conditional-credit/review',async(req,res)=>{
     const {company,actor,id}=ids(req);
-    const review=await reviewConditionalCredit(company,actor,id,revision(req),req.body);
+    const review=await reviewPublicConditionalCredit(company,actor,id,revision(req),req.body);
     const {document_id,revision:reviewedRevision,original_id,original_kind,original_number,date,
       credit_minor,offset_minor,released_minor,remaining_minor,releases,conditional_admission}=review;
     res.json({data:{document_id,revision:reviewedRevision,original_id,original_kind,original_number,date,

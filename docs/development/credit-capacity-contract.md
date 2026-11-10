@@ -597,3 +597,22 @@ Conditional internal evidence remains historical/internal; public conditional
 posting stays closed. Any later public admission must apply this owner rule and
 qualify the connected journey rather than enabling old full-payment discount
 scenarios wholesale. This bounded change does not accept all of P01-03.
+
+### Current public conditional preview boundary - 10 November 2026
+
+The public read-only conditional eligibility route now uses a distinct server
+entry point. After the existing eligibility calculation, it rechecks the current
+unpaid balance in the same company-locked transaction, independent of the credit
+source's discretionary-discount marker. A fully paid original rejects with
+`DISCOUNT_REQUIRES_UNPAID_BALANCE`; a discount exceeding the remaining unpaid
+balance rejects with `DISCOUNT_EXCEEDS_OUTSTANDING`. A qualifying exact-balance
+discount previews with zero payment releases. Repeating a preview after another
+payment recalculates eligibility and capacity; a preview reserves nothing.
+
+Internal historical review/redemption and exact recovery are unchanged, including
+the legacy fully paid fixtures needed to verify compensation. They are not public
+mutation authority. Public conditional posting remains closed; future activation
+must enforce the same current owner rule at locked commit and qualify the whole
+journey. Ordinary commercial credit/refund capacity is unchanged. The new both-party
+HTTP cases check unchanged financial snapshots after allowed and denied previews;
+this bounded preview correction does not complete P01-03 or qualify posting.
