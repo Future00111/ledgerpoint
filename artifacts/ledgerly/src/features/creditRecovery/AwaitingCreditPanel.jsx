@@ -90,7 +90,7 @@ function BillCreditTracker({ companyId, doc, children }) {
   const claims = data?.claims ?? [];
   const lineClaims = new Map(claims.filter(claim => !claim.cancelled).map(claim => [claim.original_line_ref, claim]));
   const selected = lines.filter(line => line.selected && !lineClaims.has(line.original_line_ref));
-  const canManage = data?.can_manage === true && !loading && !doc.correction_count;
+  const canManage = data?.can_manage === true && !loading;
   const panelId = `awaiting-credits-${doc.id}`;
   const renderChildren = typeof children === 'function';
   const changeValue = (field, value) => setValues(previous => ({ ...previous, [field]: value }));
@@ -132,7 +132,7 @@ function BillCreditTracker({ companyId, doc, children }) {
   const panel = <section ref={panelRef} id={panelId} tabIndex={-1} className="workspace-card scroll-mt-6 space-y-5 p-6" aria-label="Awaiting supplier credits" data-testid="awaiting-credit-panel">
     <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="flex items-center gap-2 font-semibold"><RotateCcw className="h-4 w-4 text-primary" />Awaiting credits</h2><p className="mt-1 text-sm text-muted-foreground">Track items you have returned or are waiting to be credited.</p></div><Link className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline" to="/awaiting-credits">All awaiting credits<ArrowRight className="h-3.5 w-3.5" /></Link></div>
     <ErrorBox error={error} onRetry={refresh} />
-    {doc.correction_count > 0 && <p className="rounded-lg border bg-muted/40 p-3 text-sm">Existing tracking history is preserved. New return-credit tracking is unavailable for corrected bills in this version.</p>}
+    {doc.correction_count > 0 && <p className="rounded-lg border bg-muted/40 p-3 text-sm">New returns use the corrected bill amounts. Existing tracking history is preserved; resolve older claims before starting another return for the same line.</p>}
     {loading && !data && <SkeletonRows rows={2} />}
     {loading && data && <p role="status" className="text-xs text-muted-foreground">Refreshing credit tracking…</p>}
     {message && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-950">{message}</p>}

@@ -1,14 +1,20 @@
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import path from 'node:path';
+import { execFileSync, spawn } from 'node:child_process';
 import express from 'express';
 import pg from 'pg';
 import { pool } from '@workspace/db';
 import { createAccountingRouter } from '../../routes/accountingDocuments';
 import { correctionContext, reviewCorrection, commitCorrection, correctionHistory } from './corrections';
-import { queryAdapter } from './core';
+import { queryAdapter, scope, transact } from './core';
+import { prepareReplacementCapacity } from './replacementCapacity';
 import { previewPayment, postPayment } from './payments';
 import { linkedCreditDocuments, documentOpen } from './settlement';
+import { reviewPaidCredit, commitPaidCredit } from './paidCredit';
+import { reconcileLifecycleReport } from './reportAcceptance.testSupport';
 import { createClaims, cancelClaim, confirmReceipt, listClaims } from '../creditTracking/service';
 
 const socket = process.env.ACCOUNTING_FLOW_TEST_SOCKET ?? '';
@@ -17,10 +23,12 @@ const admin = new pg.Pool({ host: socket, port: 55441, user: 'w03_bootstrap', da
   password: () => '', ssl: false, options: '-c timezone=UTC' });
 const actor = 'synthetic-correction-owner', reader = 'synthetic-correction-reader';
 let server: ReturnType<ReturnType<typeof express>['listen']>, base: string;
+let browserHtml = '';
 before(async () => {
   assert.deepEqual((await pool.query('SELECT current_database() db,current_user role,inet_server_addr() addr')).rows[0],
     { db: 'ledgerly_accounting_flow_test', role: 'ledgerly_api', addr: null });
   const app = express(); app.use(express.json());
+  app.get('/synthetic-correction-browser', (_req,res) => res.type('html').send(browserHtml));
   app.use('/companies/:companyId', createAccountingRouter((req, res, next) => {
     const user = req.get('x-test-actor'); if (!user) { res.sendStatus(401); return; }
     (req as any).userId = user; next();
@@ -102,6 +110,43 @@ async function counts(f:any) {return (await admin.query(`SELECT
   (SELECT count(*) FROM accounting_document_audit WHERE company_id=$1)::int document_audit,
   (SELECT count(*) FROM accounting_audit_events WHERE company_id=$1)::int canonical_audit`,[f.company])).rows[0];}
 
+for (const kind of ['sales_invoice', 'purchase_bill']) test(`isolated Chromium ${kind}: cancel, stale/denied review, lost response reload and company isolation`, async () => {
+  const f=await fixture(),foreign=await fixture();
+  const doc=await postNew(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier,'excluding_vat',['STANDARD']));
+  const before=await counts(f),foreignBefore=await counts(foreign);
+  const original=(await admin.query('SELECT source,money,revision,journal_id FROM accounting_document_sources WHERE id=$1',[doc.id])).rows[0];
+  const dir=mkdtempSync(path.join(path.dirname(socket),'correction-browser-'));
+  try {
+    const frontend=path.join(process.cwd(),'artifacts/ledgerly/src'),bundle=path.join(dir,'bundle.js');
+    execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',
+      path.join(frontend,'features/documentCorrections/browserAcceptance.jsx'),'--bundle','--platform=browser','--format=iife',
+      '--jsx=automatic','--alias:@='+frontend,'--outfile='+bundle],{stdio:'pipe'});
+    browserHtml=`<!doctype html><html><head><meta charset="utf-8"><title>SYNTHETIC CORRECTION TEST — not Clerk acceptance</title></head><body><div id="root"></div><script>window.syntheticFixture=${JSON.stringify({company:f.company,documentId:doc.id,foreignCompany:foreign.company,actor,reader})};${readFileSync(bundle,'utf8').replaceAll('</script','<\\/script')}</script></body></html>`;
+    const child=spawn('chromium',['--headless','--no-first-run','--disable-gpu','--disable-background-networking',
+      '--disable-component-update','--disable-sync','--user-data-dir='+path.join(dir,'profile'),
+      '--dump-dom','--virtual-time-budget=20000',base+'/synthetic-correction-browser'],{stdio:['ignore','pipe','pipe']});
+    let html='',stderr='';
+    child.stdout.on('data',b=>{html+=b.toString();});child.stderr.on('data',b=>{stderr+=b.toString();});
+    const code=await new Promise<number>((resolve,reject)=>{
+      const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('Bounded correction browser timed out'));},45000);
+      child.once('error',e=>{clearTimeout(timer);reject(e);});
+      child.once('exit',n=>{clearTimeout(timer);resolve(n??1);});
+    });
+    writeFileSync(path.join(process.cwd(),`generated-artifacts/correction-browser-${kind}.log`),stderr+'\n'+html.slice(-10000));
+    assert.equal(code,0);assert.match(html,/data-correction-acceptance="passed"/,html.slice(-2000));
+    const now=await counts(f);
+    assert.equal(now.amendments,before.amendments+1);assert.equal(now.journals,before.journals+1);
+    assert.equal(now.effects,before.effects+1);
+    assert.deepEqual(await counts(foreign),foreignBefore);
+    assert.deepEqual((await admin.query('SELECT source,money,revision,journal_id FROM accounting_document_sources WHERE id=$1',[doc.id])).rows[0],original);
+    assert.equal((await current(f,doc)).money.gross_pence,'10800');
+    const r=await report(f);assert.equal(r.journal_movements.debit_minor,r.journal_movements.credit_minor);
+    console.log('CORRECTION_BROWSER_ACCEPTANCE',JSON.stringify({kind,loopbackOnly:true,syntheticAuth:true,realNativeRoutes:true,
+      cancel:true,staleInput:true,staleRevision:true,permissionDenied:true,lostResponse:true,fullReload:true,
+      companySwitch:true,readOnlyRole:true,exactlyOneCorrection:true,originalUnchanged:true}));
+  } finally {browserHtml='';rmSync(dir,{recursive:true,force:true});}
+});
+
 test('correction HTTP routes require authentication, company scope, capability and revision before posting an exact reviewed command',async()=>{
   const f=await fixture(),foreign=await fixture(),doc=await postNew(f,'sales_invoice',source(f.customer,'excluding_vat',['STANDARD']));
   const path=`/accounting-documents/${doc.id}`,body=intent(doc),before=await counts(f);
@@ -118,6 +163,32 @@ test('correction HTTP routes require authentication, company scope, capability a
   const posted=await request(f.company,`${path}/corrections`,'POST',command,doc.revision);assert.equal(posted.status,200,JSON.stringify(posted));assert.equal(posted.data.status,'posted');
   const retry=await request(f.company,`${path}/corrections`,'POST',command,doc.revision);assert.equal(retry.status,200);assert.equal(retry.data.status,'duplicate');
   const history=await request(f.company,`${path}/corrections`);assert.equal(history.status,200);assert.equal(history.data.amendments.length,1);assert.equal(history.data.amendments[0].journal_id,posted.data.journal_id);
+});
+
+test('correction outcome recovers committed history read-only after reload; rollback stays unknown and permissions are current',async()=>{
+  const f=await fixture(),doc=await postNew(f,'sales_invoice',source(f.customer,'excluding_vat',['STANDARD']));
+  const r=await review(f,doc),path=`/accounting-documents/${doc.id}/corrections/operations/${r.intent.request_id}`;
+  const before=await counts(f);
+  assert.equal((await request(f.company,path)).data.state,'unknown');
+  assert.deepEqual(await counts(f),before);
+  const posted=await commit(f,doc,r); // Simulate losing this response at the client.
+  const snapshot=await counts(f);
+  const found=await request(f.company,path);assert.equal(found.status,200,JSON.stringify(found));
+  assert.equal(found.data.state,'known');assert.equal(found.data.receipt.journal_id,posted.journal_id);
+  assert.equal(found.data.receipt.id,r.intent.request_id);
+  assert.equal((await request(f.company,path)).data.receipt.journal_id,posted.journal_id);
+  assert.deepEqual(await counts(f),snapshot);
+  assert.equal((await request(f.company,path,'GET',undefined,undefined,null)).status,401);
+  assert.equal((await request(f.company,path,'GET',undefined,undefined,reader)).status,403);
+  const foreign=await fixture();assert.equal((await request(foreign.company,path)).status,404);
+  const later=await current(f,doc),second=await review(f,later,intent(later,'95','2026-10-25'));
+  const unknown=`/accounting-documents/${doc.id}/corrections/operations/${second.intent.request_id}`;
+  await assert.rejects(()=>commit(f,later,second,async()=>{throw Error('recovery rollback');}),/recovery rollback/);
+  assert.equal((await request(f.company,unknown)).data.state,'unknown');assert.deepEqual(await counts(f),snapshot);
+  await commit(f,later,second);
+  assert.equal((await request(f.company,path)).data.receipt.revision,posted.revision);
+  await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+  assert.equal((await request(f.company,path)).status,404);
 });
 
 test('posted invoice correction keeps original facts and partial cash immutable while every current/historical projection agrees',async()=>{
@@ -187,27 +258,220 @@ test('atomic failure after journal, relation, amendment, head, projection and do
   assert.equal((await commit(f,doc,r)).status,'posted');
 });
 
-test('dependent credits are blocked before and after correction; new account legs cannot enter through zero VAT origins',async()=>{
+test('existing credits still block later correction and credits cannot predate a correction; no new zero VAT account legs',async()=>{
   const f=await fixture(),doc=await postNew(f,'sales_invoice',source(f.customer,'excluding_vat',['STANDARD']));
   const body={kind:'sales_credit_note',source:{...doc.source,invoice_number:'C-'+randomUUID(),line_items:[{...doc.source.line_items[0],quantity:'0.1'}]},original_id:doc.id,reason:'Return',adjustment_method:'offset_outstanding',effective_adjustment_date:doc.source.issue_date,original_line_refs:[0]};
   const credit=await request(f.company,'/accounting-documents','POST',body);assert.equal(credit.status,201,JSON.stringify(credit));await rejected(()=>review(f,doc),'CORRECTION_CHILD_CREDITS');
   const other=await postNew(f,'sales_invoice',source(f.customer,'excluding_vat',['STANDARD']));await commit(f,other,await review(f,other));
-  const future=await request(f.company,'/accounting-documents','POST',{...body,original_id:other.id,source:{...body.source,invoice_number:'C-'+randomUUID()}});assert.equal(future.status,409);assert.equal(future.error.code,'CORRECTED_DOCUMENT_DEPENDENCY_UNSUPPORTED');
+  const future=await request(f.company,'/accounting-documents','POST',{...body,original_id:other.id,source:{...body.source,invoice_number:'C-'+randomUUID()}});assert.equal(future.status,409);assert.equal(future.error.code,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
   const tiny=await postNew(f,'sales_invoice',{...source(f.customer,'excluding_vat',['STANDARD']),line_items:[{description:'Tiny',quantity:'1',unit_price:'0.01',tax_code:'STANDARD'}]});
   await rejected(()=>review(f,tiny,intent(tiny,'1')),'CORRECTION_NEW_ACCOUNT_LEG_UNSUPPORTED');
 });
 
-test('active claims block correction, cancelled claims persist, and corrected bills reject new tracking',async()=>{
+async function correctedCredit(f:any,doc:any,price:string,ref=0,date='2026-10-24') {
+  const now=await current(f,doc);
+  const saved=await request(f.company,'/accounting-documents','POST',{
+    kind:doc.kind==='sales_invoice'?'sales_credit_note':'supplier_credit_note',
+    source:{...now.source,invoice_number:'CAP-'+randomUUID(),issue_date:date,due_date:date,
+      line_items:[{...now.source.line_items[ref],quantity:'1',unit_price:price}]},
+    original_id:doc.id,reason:'Agreed price decrease offset against liability',
+    adjustment_method:'offset_outstanding',effective_adjustment_date:date,original_line_refs:[ref]});
+  assert.equal(saved.status,201,JSON.stringify(saved));
+  assert.equal(saved.data.tax_context.original_revision,now.revision);
+  const reopened=await request(f.company,`/accounting-documents/${saved.data.id}`);
+  assert.equal(reopened.status,200);assert.deepEqual(reopened.data.money,saved.data.money);
+  return saved.data;
+}
+async function creditReview(f:any,c:any) {
+  const b={request_id:randomUUID(),reason:'Reviewed corrected original capacity'};
+  const r=await request(f.company,`/accounting-documents/${c.id}/paid-credit/review`,'POST',b,c.revision);
+  assert.equal(r.status,200,JSON.stringify(r));
+  return {...b,review_token:r.data.review_token,releases:r.data.releases};
+}
+for(const kind of ['sales_invoice','purchase_bill']) {
+  test(`Job11 ${kind}: correction preserves posted credit and updates outstanding with per-line caps`,async()=>{
+    const f=await fixture(),party=kind==='sales_invoice'?f.customer:f.supplier;
+    const doc=await postNew(f,kind,source(party,'including_vat',['STANDARD']));
+    // £100 inclusive original; £24 inclusive credit; corrected face value £90.
+    const c=await correctedCredit(f,doc,'24',0,'2026-10-20'),body=await creditReview(f,c);
+    await commitPaidCredit(f.company,actor,c.id,c.revision,body);
+    const saved=(await admin.query('SELECT * FROM accounting_document_sources WHERE company_id=$1 AND id=$2',[f.company,c.id])).rows;
+    const r=await review(f,doc,intent(doc,'90','2026-10-22'));
+    assert.equal(r.settlement.credited_minor,'2400');
+    assert.equal(r.settlement.before_open_minor,'7600');assert.equal(r.settlement.after_open_minor,'6600');
+    const baseline=await counts(f);
+    await assert.rejects(()=>commit(f,doc,r,()=>{throw Error('credit correction rollback');}),/credit correction rollback/);
+    assert.deepEqual(await counts(f),baseline);
+    await commit(f,doc,r);
+    const terms={version:1 as const,party_type:kind==='sales_invoice'?'customer' as const:'supplier' as const,
+      party_id:party,currency:'GBP' as const,agreement_id:randomUUID(),agreement_date:'2026-10-22',
+      payment_deadline:'2026-10-30',discount_gross_pence:'600'};
+    const capacity=()=>transact(async q=>{await scope(q,f.company,actor,true,true);return prepareReplacementCapacity(q,f.company,doc.id,terms);});
+    const frozen=await capacity();
+    assert.equal(frozen.money.gross_pence,'6600');
+    assert.equal(frozen.snapshot.credits.length,1);
+    assert.equal(frozen.snapshot.credits[0].id,c.id);
+    assert.equal(frozen.snapshot.journal_origins.length,3);
+    assert.equal(new Set(frozen.snapshot.journal_origins.map((o:any)=>o.cluster_id)).size,1);
+    await assert.rejects(()=>pool.query('SELECT public.conditional_capacity_origins($1,$2::uuid[])',
+      [randomUUID(),frozen.snapshot.journal_origins.map((o:any)=>o.journal_id)]),/origin unavailable/);
+    await assert.rejects(()=>pool.query('SELECT public.conditional_capacity_origins($1,$2::uuid[])',
+      [f.company,[doc.journal_id,doc.journal_id]]),/identity invalid/);
+    assert.equal(frozen.vector.reduce((n:bigint,line:any)=>n+BigInt(line.gross_pence),0n),600n);
+    assert.equal((await capacity()).snapshot_hash,frozen.snapshot_hash);
+    await rejected(()=>transact(async q=>{await scope(q,f.company,actor,true,true);
+      return prepareReplacementCapacity(q,f.company,doc.id,{...terms,agreement_date:'2026-10-21'});}),
+      'CONDITIONAL_REPLACEMENT_PRECEDES_ACTIVITY');
+    await rejected(()=>prepareReplacementCapacity(pool,randomUUID(),doc.id,terms),'RESOURCE_NOT_FOUND');
+    assert.deepEqual((await admin.query('SELECT * FROM accounting_document_sources WHERE company_id=$1 AND id=$2',[f.company,c.id])).rows,saved);
+    assert.equal((await report(f,'2026-10-21')).open_items.find((d:any)=>d.id===doc.id).open_minor,'7600');
+    assert.equal((await report(f)).open_items.find((d:any)=>d.id===doc.id).open_minor,'6600');
+    await rejected(()=>review(f,doc,intent(doc,'90','2026-10-22')),'REVISION_CONFLICT');
+    const now=await current(f,doc);
+    await rejected(()=>review(f,now,intent(now,'20','2026-10-23')),'CORRECTION_BELOW_CREDIT_CAPACITY');
+    await pay(f,now,'5000','2026-10-23');
+    await rejected(()=>review(f,now,intent(now,'70','2026-10-24')),'CORRECTION_BELOW_PAID');
+    const valid=await review(f,now,intent(now,'80','2026-10-24'));
+    assert.equal(valid.settlement.after_open_minor,'600');
+    await assert.rejects(()=>commit(f,now,valid,async(tx:any)=>{
+      const q=queryAdapter(tx);
+      // This hook is before the canonical audit, so full history validation
+      // correctly rejects first. Probe the DB-origin guard directly here.
+      // Releasing a savepoint does not commit the enclosing transaction.
+      await q.query('SAVEPOINT capacity_test');
+      await q.query('RELEASE SAVEPOINT capacity_test');
+      const journals=(await q.query('SELECT journal_id FROM accounting_document_amendments WHERE company_id=$1 AND document_id=$2',[f.company,doc.id])).rows;
+      await q.query('SELECT public.conditional_capacity_origins($1,$2::uuid[])',[f.company,journals.map(r=>r.journal_id)]);
+    }),(error:any)=>/transaction not committed locally/.test(error?.message??'') ||
+      /transaction not committed locally/.test(error?.cause?.message??''));
+    assert.equal((await capacity()).snapshot_hash,frozen.snapshot_hash);
+    await commit(f,now,valid);
+    const advanced=await transact(async q=>{await scope(q,f.company,actor,true,true);
+      return prepareReplacementCapacity(q,f.company,doc.id,{...terms,agreement_date:'2026-10-24'});});
+    assert.notEqual(advanced.snapshot_hash,frozen.snapshot_hash);
+    assert.equal(advanced.snapshot.journal_origins.length,4);
+    assert.equal((await report(f)).open_items.find((d:any)=>d.id===doc.id).open_minor,'600');
+  });
+  test(`corrected ${kind}: cumulative partial/full credits, native replay, exact history and cash preservation`,async()=>{
+    const f=await fixture(),doc=await postNew(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier,'excluding_vat',['STANDARD']));
+    await pay(f,doc);
+    await commit(f,doc,await review(f,doc));
+    const frozen=(await admin.query('SELECT * FROM accounting_document_sources WHERE id=$1',[doc.id])).rows;
+    const amendments=(await admin.query('SELECT * FROM accounting_document_amendments WHERE document_id=$1',[doc.id])).rows;
+    const first=await correctedCredit(f,doc,'10');
+    const posted=await request(f.company,`/accounting-documents/${first.id}/post`,'POST',{},first.revision);
+    assert.equal(posted.status,200,JSON.stringify(posted));
+    let open=(await report(f)).open_items.find((d:any)=>d.id===doc.id);
+    assert.equal(open.gross_minor,'10800');assert.equal(open.credited_minor,'1200');
+    assert.equal(open.paid_minor,'5000');assert.equal(open.open_minor,'4600');
+    assert.equal((await report(f,'2026-10-21')).open_items.find((d:any)=>d.id===doc.id).gross_minor,'12000');
+    assert.equal((await report(f,'2026-10-23')).open_items.find((d:any)=>d.id===doc.id).credited_minor,'0');
+    const second=await correctedCredit(f,doc,'80',0,'2026-10-25'),command=await creditReview(f,second);
+    assert.equal(command.releases.length,1);assert.equal(command.releases[0].amount_minor,'5000');
+    const endpoint=`/accounting-documents/${second.id}/paid-credit`;
+    const done=await request(f.company,endpoint,'POST',command,second.revision);
+    assert.equal(done.status,200,JSON.stringify(done));
+    const retry=await request(f.company,endpoint,'POST',command,second.revision);
+    assert.equal(retry.status,200);assert.equal(retry.data.status,'duplicate');assert.equal(retry.data.journal_id,done.data.journal_id);
+    assert.equal((await request(f.company,endpoint,'POST',{...command,reason:'Conflicting intent'},second.revision)).status,409);
+    open=(await report(f)).open_items.find((d:any)=>d.id===doc.id);
+    assert.equal(open.credited_minor,'10800');assert.equal(open.paid_minor,'0');assert.equal(open.open_minor,'0');
+    const over=await correctedCredit(f,doc,'0.01',0,'2026-10-26');
+    await rejected(()=>reviewPaidCredit(f.company,actor,over.id,over.revision,{request_id:randomUUID(),reason:'Over cap'}),'CREDIT_EXCEEDS_COMMERCIAL_CAPACITY');
+    assert.deepEqual((await admin.query('SELECT * FROM accounting_document_sources WHERE id=$1',[doc.id])).rows,frozen);
+    assert.deepEqual((await admin.query('SELECT * FROM accounting_document_amendments WHERE document_id=$1',[doc.id])).rows,amendments);
+    const cash=(await admin.query("SELECT kind,amount_minor::text FROM accounting_payment_events WHERE company_id=$1 ORDER BY created_at",[f.company])).rows;
+    assert.deepEqual(cash.map(e=>e.kind),['payment','unallocation']);assert.equal(cash[0].amount_minor,'5000');
+    const data=await report(f);assert.equal(data.journal_movements.debit_minor,data.journal_movements.credit_minor);
+    assert.equal(data.balance_sheet.balanced,true);
+    for(const [date,prior,open,poolAmount,net,vat] of [
+      ['2026-10-10','2026-10-09','12000','0','10000','2000'],
+      ['2026-10-15','2026-10-14','7000','0','10000','2000'],
+      ['2026-10-22','2026-10-21','5800','0','9000','1800'],
+      ['2026-10-24','2026-10-23','4600','0','8000','1600'],
+      ['2026-10-25','2026-10-24','0','5000','0','0'],
+      ['2026-11-01','2026-10-31','0','5000','0','0'],
+    ]) {
+      const side=kind==='sales_invoice'?'customer':'supplier';
+      const cash=date<'2026-10-15'?'0':side==='customer'?'5000':'-5000';
+      reconcileLifecycleReport(await report(f,date),await report(f,date,date),await report(f,prior),
+        doc.party_id,{open,pool:poolAmount,cash,net,vat,side});
+    }
+    // This fixture also retains a rejected excess-credit DRAFT; it still blocks
+    // correction until resolved. Posted-only capacity is exercised above.
+    await rejected(async()=>review(f,await current(f,doc)),'CORRECTION_CHILD_CREDITS');
+  });
+  test(`corrected ${kind}: line-local capacity, concurrent drafts, rollback and authority`,async()=>{
+    const f=await fixture(),doc=await postNew(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier,'excluding_vat',['STANDARD','REDUCED']));
+    await commit(f,doc,await review(f,doc));
+    const a=await correctedCredit(f,doc,'60'),b=await correctedCredit(f,doc,'60');
+    const ca=await creditReview(f,a),cb=await creditReview(f,b);
+    const outcomes=await Promise.all([a,b].map((c,i)=>request(f.company,`/accounting-documents/${c.id}/paid-credit`,'POST',i?cb:ca,c.revision)));
+    assert.deepEqual(outcomes.map(r=>r.status).sort(),[200,409]);
+    assert.equal(outcomes.find(r=>r.status===409).error.code,'CREDIT_EXCEEDS_COMMERCIAL_CAPACITY');
+    const other=await correctedCredit(f,doc,'90',1),co=await creditReview(f,other),before=await counts(f);
+    assert.equal((await request(f.company,`/accounting-documents/${other.id}/paid-credit`,'POST',co,other.revision,reader)).status,403);
+    const foreign=await fixture();
+    assert.equal((await request(foreign.company,`/accounting-documents/${other.id}/paid-credit`,'POST',co,other.revision)).status,404);
+    await assert.rejects(()=>commitPaidCredit(f.company,actor,other.id,other.revision,co,async()=>{throw Error('injected capacity rollback');}),/injected capacity rollback/);
+    assert.deepEqual(await counts(f),before);
+    await admin.query("UPDATE accounting_document_periods SET status='CLOSED' WHERE company_id=$1",[f.company]);
+    await rejected(()=>commitPaidCredit(f.company,actor,other.id,other.revision,co),'PERIOD_NOT_WRITABLE');
+    assert.deepEqual(await counts(f),before);
+  });
+  test(`corrected ${kind}: later commercial discount and partial credit share frozen line capacity`,async()=>{
+    const f=await fixture(),doc=await postNew(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier,'excluding_vat',['STANDARD']));
+    await commit(f,doc,await review(f,doc));
+    const now=await current(f,doc);
+    const saved=await request(f.company,'/accounting-documents','POST',{
+      kind:kind==='sales_invoice'?'sales_credit_note':'supplier_credit_note',
+      source:{...now.source,invoice_number:'DISC-'+randomUUID(),issue_date:'2026-10-24',due_date:'2026-10-24',
+        discount_adjustment:{type:'percentage',value:'10',original_revision:now.revision}},
+      original_id:doc.id,reason:'Agreed subsequent commercial discount',adjustment_method:'offset_outstanding',
+      effective_adjustment_date:'2026-10-24',original_line_refs:[0]});
+    assert.equal(saved.status,201,JSON.stringify(saved));assert.equal(saved.data.money.gross_pence,'1080');
+    assert.equal((await request(f.company,`/accounting-documents/${saved.data.id}/post`,'POST',{},saved.data.revision)).status,200);
+    const full=await correctedCredit(f,doc,'90',0,'2026-10-25');
+    await rejected(()=>reviewPaidCredit(f.company,actor,full.id,full.revision,{request_id:randomUUID(),reason:'Cannot consume discount twice'}),'CREDIT_EXCEEDS_COMMERCIAL_CAPACITY');
+    const remaining=await correctedCredit(f,doc,'81',0,'2026-10-25'),command=await creditReview(f,remaining);
+    assert.equal((await request(f.company,`/accounting-documents/${remaining.id}/paid-credit`,'POST',command,remaining.revision)).status,200);
+    assert.equal((await report(f)).open_items.find((d:any)=>d.id===doc.id).open_minor,'0');
+  });
+}
+
+test('active claims block correction, cancelled claims persist, and new claims bind the corrected head',async()=>{
   const f=await fixture(),doc=await postNew(f,'purchase_bill',source(f.supplier,'including_vat',['STANDARD']));
   const body={request_id:randomUUID(),bill_id:doc.id,bill_revision:doc.revision,reason:'Returned part',return_reference:'RN-1',returned_on:'2026-10-11',expected_by:'2026-10-20',lines:[{original_line_ref:0,quantity:'0.5',part_reference:'PART',job_reference:'JOB'}]};
   const claim=await createClaims(f.company,actor,body);await rejected(()=>review(f,doc),'CORRECTION_ACTIVE_CLAIMS');
   const saved=(await admin.query('SELECT * FROM supplier_credit_claims WHERE id=$1',[claim.ids[0]])).rows[0];
   await cancelClaim(f.company,actor,saved.id,saved.revision,{request_id:randomUUID()});
-  await commit(f,doc,await review(f,doc));await rejected(()=>createClaims(f.company,actor,{...body,request_id:randomUUID()}),'CORRECTED_DOCUMENT_DEPENDENCY_UNSUPPORTED');
+  await commit(f,doc,await review(f,doc));
+  await rejected(()=>createClaims(f.company,actor,{...body,request_id:randomUUID()}),'REVISION_CONFLICT');
   assert.equal((await admin.query('SELECT cancelled FROM supplier_credit_claims WHERE id=$1',[saved.id])).rows[0].cancelled,true);
   const historical=await listClaims(f.company,actor,doc.id);
   assert.equal(historical.claims[0].cancelled,true);assert.equal(historical.claims[0].status,'needs_review');
   assert.deepEqual(historical.claims[0].expected,saved.expected);assert.deepEqual(historical.claims[0].candidates,[]);
+  const corrected=await current(f,doc);
+  await rejected(()=>createClaims(f.company,actor,{...body,request_id:randomUUID(),bill_revision:corrected.revision}),'RETURN_PRECEDES_CORRECTION');
+  const command={...body,request_id:randomUUID(),bill_revision:corrected.revision,returned_on:'2026-10-22',expected_by:'2026-10-25'};
+  const fresh=await createClaims(f.company,actor,command);
+  assert.deepEqual(await createClaims(f.company,actor,command),fresh);
+  const listed=(await listClaims(f.company,actor,doc.id)).claims.find(c=>c.id===fresh.ids[0])!;
+  assert.equal(listed.status,'awaiting');
+  assert.equal(listed.bill_revision,corrected.revision);
+  assert.equal(listed.expected.gross_pence,(BigInt(corrected.money.gross_pence)/2n).toString());
+  const credit=await postNew(f,'supplier_credit_note',{...corrected.source,
+    invoice_number:'CLAIM-'+randomUUID(),issue_date:'2026-10-23',due_date:'2026-10-23',
+    line_items:[{...corrected.source.line_items[0],quantity:'0.5'}]},
+    {original_id:doc.id,reason:'Returned part',adjustment_method:'offset_outstanding',
+      effective_adjustment_date:'2026-10-23',original_line_refs:[0]});
+  const receipt={request_id:randomUUID(),credit_id:credit.id,credit_revision:credit.revision,credit_line_ref:0};
+  const received=await confirmReceipt(f.company,actor,listed.id,listed.revision,receipt);
+  assert.deepEqual(await confirmReceipt(f.company,actor,listed.id,listed.revision,receipt),received);
+  const final=(await listClaims(f.company,actor,doc.id)).claims.find(c=>c.id===listed.id)!;
+  assert.equal(final.status,'received');
+  assert.deepEqual(final.received,final.expected);
+  assert.equal((await admin.query('SELECT revision FROM accounting_document_sources WHERE id=$1',[doc.id])).rows[0].revision,doc.revision);
 });
 
 test('SQL boundaries enforce runtime grants, owner immutable triggers, strict head succession and tenant FKs',async()=>{

@@ -1,6 +1,8 @@
 import test,{before,after} from "node:test";
 import assert from "node:assert/strict";
 import {randomUUID} from "node:crypto";
+import {execFileSync,fork, type ChildProcess} from "node:child_process";
+import path from "node:path";
 import pg from "pg";
 import express from "express";
 import {pool} from "@workspace/db";
@@ -16,6 +18,11 @@ import {reports} from "./reports";
 import {ensureWorkspaceTaxRules} from '../../../../../tools/accounting-flow/workspace-tax-rules.mjs';
 import {applyReconciliationApproval,applyNonPaymentReconciliationMatch} from '../ai-accountant/approval';
 import {reverseCanonicalJournal} from '../accounting/canonicalPosting';
+import {createCompaniesRouter} from '../../routes/companies';
+import {createEntitiesRouter} from '../../routes/entities';
+import {createFunctionsRouter} from '../../routes/functions';
+import {addVATTaxRule} from '../ai-accountant/vat';
+import {registerEmptyCompanyJourney} from './onboardingJourney';
 
 const socket=process.env.ACCOUNTING_FLOW_TEST_SOCKET??"";
 if(!/^\/tmp\/ledgerly-accounting-flow-tests-[A-Za-z0-9]+\/socket$/.test(socket)) throw Error("Disposable socket required");
@@ -31,6 +38,11 @@ before(async()=>{
   const identity=(await pool.query("SELECT current_database() db,current_user role,inet_server_addr() addr")).rows[0];
   assert.deepEqual(identity,{db:"ledgerly_accounting_flow_test",role:"ledgerly_api",addr:null});
   const app=express();app.use(express.json({limit:'10mb',verify:verifyDraftBody}));app.use(draftParserErrors);
+  app.use('/onboarding-companies',createCompaniesRouter(auth,{
+    byId:async id=>({id}),byEmail:async()=>null,
+  }));
+  app.use('/onboarding-entities',createEntitiesRouter(auth));
+  app.use('/bank-functions',createFunctionsRouter(auth));
   app.use('/companies/:companyId/document-intake',createDocumentIntakeRouter(auth,async q=>{
     if(failNextCapture){failNextCapture=false;await q.query('SELECT 1/0');}
   }));
@@ -45,12 +57,78 @@ before(async()=>{
   base=`http://127.0.0.1:${(server.address() as any).port}`;
 });
 after(async()=>{await new Promise<void>(r=>server.close(()=>r()));await pool.end();await admin.end();});
+test('native bank import rejects late fractional-penny evidence before any persisted rows',async()=>{
+  const f=await fixture();
+  const count=async()=>Number((await admin.query('SELECT count(*) n FROM bank_transactions WHERE company_id=$1',[f.company])).rows[0].n);
+  assert.equal(await count(),0);
+  for(const money_in of ['0.005','1.001','10000000000.00',true]){
+    const response=await fetch(base+'/bank-functions/recordBankTransactions',{method:'POST',
+      headers:{'Content-Type':'application/json','x-test-actor':actor},
+      body:JSON.stringify({company_id:f.company,transactions:[
+        {money_in:'19.99',money_out:'0',description:'Synthetic valid first row'},
+        {money_in,money_out:'0',description:'Synthetic invalid late row'}]})});
+    assert.equal(response.status,400);
+    assert.equal(await count(),0);
+  }
+});
+test('protected bank import command persists evidence once, denies foreign and read-only actors, and rolls back invalid late rows',async()=>{
+  const f=await fixture(),other=await fixture(),bank=randomUUID(),foreign=randomUUID();
+  await admin.query("INSERT INTO bank_accounts(id,company_id,account_name,currency,status) VALUES($1,$2,'Synthetic GBP','GBP','active'),($3,$4,'Foreign synthetic','GBP','active')",[bank,f.company,foreign,other.company]);
+  const body:any={request_id:randomUUID(),bank_account_id:bank,rows:[{date:'2026-11-09',description:'Synthetic statement',reference:'S1',money_in:'19.99',money_out:'0.00'}]};
+  const counts=async()=>Number((await admin.query('SELECT count(*) n FROM bank_transactions WHERE company_id=$1',[f.company])).rows[0].n);
+  assert.equal((await request(f.company,'/bank-imports','POST',body,undefined,null)).status,401);
+  assert.equal((await request(f.company,'/bank-imports','POST',body,undefined,readOnly)).status,403);
+  assert.notEqual((await request(f.company,'/bank-imports','POST',{...body,bank_account_id:foreign})).status,201);
+  assert.equal(await counts(),0);
+  const preview=await request(f.company,'/bank-statements/import-review','POST',body);
+  assert.equal(preview.status,200,JSON.stringify(preview));body.review_token=preview.data.review_token;
+  const first=await request(f.company,'/bank-imports','POST',body);
+  assert.equal(first.status,201,JSON.stringify(first));
+  assert.equal(first.data.rows[0].money_in,'19.99');
+  assert.equal(first.data.rows[0].status,'review');
+  assert.equal(first.data.rows[0].linked_invoice_id,null);
+  const duplicate=await request(f.company,'/bank-imports','POST',body);
+  assert.deepEqual(duplicate.data,first.data);assert.equal(await counts(),1);
+  assert.deepEqual((await request(f.company,`/bank-imports/${body.request_id}`)).data,first.data);
+  const parallel=await Promise.all([request(f.company,'/bank-imports','POST',body),request(f.company,'/bank-imports','POST',body)]);
+  for(const p of parallel)assert.deepEqual(p.data,first.data);
+  assert.equal(await counts(),1);
+  const changed={...body,rows:[{...body.rows[0],description:'Changed intent'}]};
+  assert.notEqual((await request(f.company,'/bank-imports','POST',changed)).status,201);
+  const bad={...body,request_id:randomUUID(),rows:[body.rows[0],{...body.rows[0],date:'2026-02-30'}]};
+  assert.notEqual((await request(f.company,'/bank-imports','POST',bad)).status,201);
+  assert.equal(await counts(),1,'first valid row rolls back with invalid late date');
+  assert.equal((await admin.query('SELECT count(*) n FROM accounting_bank_imports WHERE company_id=$1',[f.company])).rows[0].n,'1');
+  assert.equal((await pool.query("SELECT has_table_privilege(current_user,'bank_transactions','INSERT') permitted")).rows[0].permitted,false);
+  assert.equal((await pool.query("SELECT has_table_privilege(current_user,'accounting_bank_imports','INSERT') permitted")).rows[0].permitted,false);
+  assert.equal((await admin.query('SELECT count(*) n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,'0','statement import never posts a journal');
+  await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+  assert.equal((await request(f.company,'/bank-imports','POST',body)).status,404);
+  assert.equal((await request(f.company,`/bank-imports/${body.request_id}`)).status,404);
+});
 async function request(company:string,path:string,method="GET",body?:unknown,revision?:string,user:string|null=actor) {
   const response=await fetch(base+"/companies/"+company+path,{method,headers:{
     ...(user?{"x-test-actor":user}:{}),...(body===undefined?{}:{"Content-Type":"application/json"}),
     ...(revision?{"If-Match":`"${revision}"`}:{})},body:body===undefined?undefined:JSON.stringify(body)});
   const result=await response.json() as any;return {status:response.status,...result};
 }
+registerEmptyCompanyJourney({
+  scoped:request,
+  addRule:addVATTaxRule,
+  root:async(path,method,body,user=actor)=>{
+    const response=await fetch(base+path,{method,headers:{
+      ...(user?{'x-test-actor':user}:{}),'Content-Type':'application/json',
+    },body:body===undefined?undefined:JSON.stringify(body)});
+    return {status:response.status,data:await response.json()};
+  },
+});
+test('native VAT setup audit is readable but cannot be edited or removed by the runtime role',async()=>{
+  const rows=await pool.query("SELECT event_type,user_id FROM vat_return_audits WHERE user_id=$1",[actor]);
+  assert.equal(rows.rows.length,4);
+  assert.ok(rows.rows.every(r=>r.event_type==='vat_tax_rule_created' && r.user_id===actor));
+  for(const sql of ['UPDATE vat_return_audits SET description=description','DELETE FROM vat_return_audits','TRUNCATE vat_return_audits'])
+    await assert.rejects(pool.query(sql),{code:'42501'});
+});
 async function fixture(vat=true) {
   const company=randomUUID(),customer=randomUUID(),supplier=randomUUID();
   await admin.query(`INSERT INTO companies(id,name,country,base_currency,vat_registered,vat_scheme,vat_accounting_basis,status)
@@ -82,6 +160,414 @@ async function fixture(vat=true) {
   assert.equal((await request(company,'/accounting-payments/configuration','PUT',{revision:null,mappings:paymentMappings})).status,200);
   return {company,customer,supplier,mappings,paymentMappings,period:period.data.id};
 }
+async function openingFixture() {
+  const f=await fixture(),bank=randomUUID(),equity=randomUUID();
+  await admin.query("INSERT INTO bank_accounts(id,company_id,account_name,currency,status,opening_balance,current_balance) VALUES($1,$2,'Synthetic opening bank','GBP','active',999,999)",[bank,f.company]);
+  await admin.query("INSERT INTO chart_of_accounts(id,company_id,code,name,account_type,is_active) VALUES($1,$2,'3000','Reviewed opening equity','equity',true)",[equity,f.company]);
+  return {...f,bank,equity,body:{request_id:randomUUID(),bank_account_id:bank,bank_ledger_account_id:f.paymentMappings.bank,
+    balancing_account_id:equity,effective_date:'2026-01-15',amount_minor:'12345',direction:'debit'}};
+}
+async function matchedBankCase(party='customer') {
+  const f=await openingFixture();
+  const payment={id:randomUUID(),kind:'payment',party_type:party,party_id:party==='customer'?f.customer:f.supplier,
+    payment_id:null,date:'2026-10-21',reference:'Correction lifecycle',amount_minor:'12000',allocations:[]};
+  await recordPayment(f,payment);
+  const batch={request_id:randomUUID(),bank_account_id:f.bank,rows:[{date:'2026-10-21',description:'Lifecycle cash',
+    reference:'LIFE',money_in:party==='customer'?'120.00':'0.00',money_out:party==='customer'?'0.00':'120.00'}]};
+  const ir=await request(f.company,'/bank-statements/import-review','POST',batch);
+  const imported=await request(f.company,'/bank-statements/imports','POST',{...batch,review_token:ir.data.review_token});
+  assert.equal(imported.status,200,JSON.stringify(imported));
+  const add=async(amount:string)=>{
+    const b={request_id:randomUUID(),bank_transaction_id:imported.data.rows[0].id,payment_id:payment.id,amount_minor:amount};
+    const r=await request(f.company,'/bank-statements/match-review','POST',b);
+    assert.equal(r.status,200,JSON.stringify(r));
+    const posted=await request(f.company,'/bank-statements/matches','POST',{...b,review_token:r.data.review_token});
+    assert.equal(posted.status,200,JSON.stringify(posted));return posted.data;
+  };
+  return {f,payment,statement:imported.data.rows[0].id,add};
+}
+async function correctBankMatch(f:any,m:any) {
+  const b={request_id:randomUUID(),match_request_id:m.request_id,reason:'Wrong statement association'};
+  const r=await request(f.company,'/bank-statements/correction-review','POST',b);
+  assert.equal(r.status,200,JSON.stringify(r));
+  const result=await request(f.company,'/bank-statements/corrections','POST',{...b,review_token:r.data.review_token});
+  assert.equal(result.status,200,JSON.stringify(result));return result.data;
+}
+for(const side of ['customer','supplier']) test(`${side} correction does not bypass allocation guards; native unallocation and reversal restore document outstanding`,async()=>{
+  const {f,payment,add}=await matchedBankCase(side);
+  const doc=await create(f,side==='customer'?'sales_invoice':'purchase_bill',source(side==='customer'?f.customer:f.supplier,'120'));
+  assert.equal(doc.money.gross_pence,'12000');
+  await post(f,doc);
+  const allocations=[{document_id:doc.id,amount_minor:'12000'}];
+  await recordPayment(f,{...payment,id:randomUUID(),kind:'allocation',payment_id:payment.id,allocations});
+  const m=await add('12000');await correctBankMatch(f,m);
+  const reversal={...payment,id:randomUUID(),kind:'reversal',payment_id:payment.id,date:'2026-10-22',reference:'Restored outstanding'};
+  assert.equal((await request(f.company,'/accounting-payments/review','POST',reversal)).status,409);
+  assert.equal((await reports(f.company,actor,'2026-01-01','2026-12-31')).open_items.find((x:any)=>x.id===doc.id).open_minor,'0');
+  await recordPayment(f,{...payment,id:randomUUID(),kind:'unallocation',payment_id:payment.id,allocations,date:'2026-10-22'});
+  await recordPayment(f,reversal);
+  const report=await reports(f.company,actor,'2026-01-01','2026-12-31');
+  assert.equal(report.open_items.find((x:any)=>x.id===doc.id).open_minor,'12000');
+  assert.equal(report.cash.balance_minor,'0');
+  assert.equal((await request(f.company,'/bank-statements/context')).data.statements[0].remaining_minor,'12000');
+});
+for(const side of ['customer','supplier']) test(`${side} statement matching uses the posted refund event's own cash journal without new money`,async()=>{
+  const {f,payment}=await matchedBankCase(side);
+  const refund={...payment,id:randomUUID(),kind:'refund',payment_id:payment.id,amount_minor:'6000',reference:'Existing refund'};
+  await recordPayment(f,refund);
+  const rows=[{date:'2026-10-21',description:'Refund cash',reference:'REFUND',money_in:side==='supplier'?'60.00':'0.00',money_out:side==='customer'?'60.00':'0.00'}];
+  const batch={request_id:randomUUID(),bank_account_id:f.bank,rows};
+  const r=await request(f.company,'/bank-statements/import-review','POST',batch);
+  const imported=await request(f.company,'/bank-statements/imports','POST',{...batch,review_token:r.data.review_token});
+  assert.equal(imported.status,200,JSON.stringify(imported));
+  const statement=imported.data.rows[0].id;
+  const own=(await admin.query('SELECT journal_id FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[f.company,refund.id])).rows[0].journal_id;
+  const original=(await admin.query('SELECT journal_id FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[f.company,payment.id])).rows[0].journal_id;
+  assert.notEqual(own,original);
+  const body={request_id:randomUUID(),bank_transaction_id:statement,payment_id:refund.id,amount_minor:'4000'};
+  const preview=await request(f.company,'/bank-statements/match-review','POST',body);
+  assert.equal(preview.status,200,JSON.stringify(preview));assert.equal(preview.data.payment.journal_id,own);
+  const postBody={...body,review_token:preview.data.review_token};
+  const posted=await request(f.company,'/bank-statements/matches','POST',postBody);
+  assert.equal(posted.status,200);assert.equal(posted.data.journal_id,own);
+  assert.deepEqual((await request(f.company,'/bank-statements/matches','POST',postBody)).data,posted.data);
+  assert.deepEqual((await request(f.company,`/bank-statements/matches/${body.request_id}`)).data,posted.data);
+  const tooMuch=await request(f.company,'/bank-statements/match-review','POST',{...body,request_id:randomUUID(),amount_minor:'3000'});
+  assert.equal(tooMuch.status,409);
+  assert.equal((await request(f.company,'/bank-statements/match-review','POST',{...body,request_id:randomUUID(),payment_id:payment.id})).status,422);
+  const ctx=(await request(f.company,'/bank-statements/context')).data;
+  assert.equal(ctx.payments.find((p:any)=>p.id===refund.id).remaining_minor,'2000');
+  assert.equal(ctx.statements.find((s:any)=>s.id===statement).remaining_minor,'2000');
+  assert.equal((await admin.query('SELECT count(*) n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,'2');
+  assert.equal((await reports(f.company,actor,'2026-01-01','2026-12-31')).cash.balance_minor,side==='customer'?'6000':'-6000');
+});
+for(const side of ['customer','supplier']) test(`${side} payment reversal requires every active match corrected and recovers one balanced reversal`,async()=>{
+  const {f,payment,add}=await matchedBankCase(side),a=await add('7000'),b=await add('5000');
+  const reversal={...payment,id:randomUUID(),kind:'reversal',payment_id:payment.id,date:'2026-10-22',reference:'Corrected match reversal'};
+  assert.equal((await request(f.company,'/accounting-payments/review','POST',reversal)).status,409);
+  await correctBankMatch(f,a);
+  assert.equal((await request(f.company,'/accounting-payments/review','POST',reversal)).status,409);
+  await correctBankMatch(f,b);
+  const review=await request(f.company,'/accounting-payments/review','POST',reversal);
+  assert.equal(review.status,200,JSON.stringify(review));
+  const confirmed=await request(f.company,'/accounting-payments','POST',{...reversal,review_token:review.data.review_token});
+  assert.equal(confirmed.status,200,JSON.stringify(confirmed));
+  const recovered=await request(f.company,`/accounting-payments/operations/${reversal.id}`);
+  assert.equal(recovered.status,200);
+  assert.equal((await request(f.company,'/accounting-payments','POST',{...reversal,review_token:review.data.review_token})).status,200);
+  const ctx=(await request(f.company,'/bank-statements/context')).data;
+  assert.equal(ctx.statements[0].remaining_minor,'12000');assert.equal(ctx.statements[0].status,'unmatched');
+  const now=await reports(f.company,actor,'2026-01-01','2026-10-22');
+  const before=await reports(f.company,actor,'2026-01-01','2026-10-21');
+  assert.equal(now.cash.balance_minor,'0');assert.equal(before.cash.balance_minor,side==='customer'?'12000':'-12000');
+  assert.equal((await admin.query('SELECT count(*) n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,'2');
+  assert.equal((await admin.query(`SELECT count(*) n FROM
+    (SELECT journal_entry_id FROM canonical_journal_lines WHERE company_id=$1 GROUP BY journal_entry_id HAVING sum(debit_minor)<>sum(credit_minor)) x`,[f.company])).rows[0].n,'0');
+});
+for(const side of ['customer','supplier']) test(`${side} append-only bank correction releases one partial receipt, serializes replay and preserves cash`,async()=>{
+  const {f,payment,statement,add}=await matchedBankCase(side),a=await add('7000'),b=await add('5000');
+  const make=(m:any)=>({request_id:randomUUID(),match_request_id:m.request_id,reason:'Wrong evidence selected'});
+  const ca=make(a),cb=make(b);
+  const ar=await request(f.company,'/bank-statements/correction-review','POST',ca);
+  const br=await request(f.company,'/bank-statements/correction-review','POST',cb);
+  assert.equal(ar.status,200);assert.equal(ar.data.statement_remaining_minor,'7000');
+  assert.equal((await request(f.company,'/bank-statements/correction-review','POST',ca,undefined,readOnly)).status,403);
+  const foreign=await fixture();
+  assert.equal((await request(foreign.company,'/bank-statements/correction-review','POST',ca)).status,404);
+  const body={...ca,review_token:ar.data.review_token};
+  failNextCredit=true;
+  assert.equal((await request(f.company,'/bank-statements/corrections','POST',body)).status,500);
+  assert.equal((await request(f.company,`/bank-statements/corrections/${ca.request_id}`)).data.status,'unknown');
+  const results=await Promise.all([request(f.company,'/bank-statements/corrections','POST',body),request(f.company,'/bank-statements/corrections','POST',body)]);
+  assert.equal(results[0].status,200,JSON.stringify(results));assert.deepEqual(results[1].data,results[0].data);
+  assert.equal(results[0].data.released_minor,'7000');assert.ok(results[0].data.effective_at);
+  assert.deepEqual((await request(f.company,`/bank-statements/corrections/${ca.request_id}`)).data,results[0].data);
+  assert.equal((await request(f.company,'/bank-statements/corrections','POST',{...body,reason:'Changed'})).status,409);
+  assert.equal((await request(f.company,'/bank-statements/corrections','POST',{...body,request_id:randomUUID()})).status,409);
+  const stale=await request(f.company,'/bank-statements/corrections','POST',{...cb,review_token:br.data.review_token});
+  assert.equal(stale.status,409);assert.equal(stale.error.code,'BANK_CORRECTION_REVIEW_STALE');
+  const ctx=(await request(f.company,'/bank-statements/context')).data;
+  assert.equal(ctx.statements.find((s:any)=>s.id===statement).remaining_minor,'7000');
+  assert.equal(ctx.matches.find((m:any)=>m.request_id===a.request_id).active,false);
+  assert.equal(ctx.matches.find((m:any)=>m.request_id===b.request_id).active,true);
+  assert.equal(ctx.payments.find((p:any)=>p.id===payment.id).remaining_minor,'7000');
+  assert.equal((await admin.query('SELECT count(*) n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,'1');
+  assert.equal((await reports(f.company,actor,'2026-01-01','2026-12-31')).cash.balance_minor,side==='customer'?'12000':'-12000');
+  await assert.rejects(pool.query('DELETE FROM accounting_bank_match_corrections WHERE company_id=$1',[f.company]));
+  await assert.rejects(pool.query('UPDATE accounting_bank_match_corrections SET reason=$2 WHERE company_id=$1',[f.company,'Changed']));
+  await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+  assert.equal((await request(f.company,'/bank-statements/corrections','POST',body)).status,404);
+});
+test('adversarial imports cannot bypass reviewed duplicate authority through alias or runtime SQL',async()=>{
+  const f=await openingFixture();
+  const make=()=>({request_id:randomUUID(),bank_account_id:f.bank,rows:[
+    {date:'2026-10-21',description:'Identical synthetic evidence',reference:'REVIEW-25',money_in:'10.00',money_out:'0.00'}]});
+  const a=make(),b=make();
+  assert.equal((await request(f.company,'/bank-imports','POST',a)).status,428);
+  assert.equal((await pool.query("SELECT has_function_privilege(current_user,'ledgerly_record_bank_import(uuid,text,uuid,uuid,jsonb)','EXECUTE') allowed")).rows[0].allowed,false);
+  await assert.rejects(pool.query('SELECT ledgerly_record_bank_import($1,$2,$3,$4,$5::jsonb)',[f.company,actor,f.bank,a.request_id,JSON.stringify(a.rows)]),/permission denied/);
+  const ar=await request(f.company,'/bank-statements/import-review','POST',a);
+  const br=await request(f.company,'/bank-statements/import-review','POST',b);
+  assert.equal(ar.status,200);assert.equal(br.status,200);
+  const posted=await request(f.company,'/bank-imports','POST',{...a,review_token:ar.data.review_token});
+  assert.equal(posted.status,201,JSON.stringify(posted));
+  assert.equal((await request(f.company,'/bank-imports','POST',{...b,review_token:br.data.review_token})).status,409);
+  await assert.rejects(pool.query('SELECT ledgerly_record_reviewed_bank_import($1,$2,$3,$4,$5::jsonb,$6)',
+    [f.company,actor,f.bank,b.request_id,JSON.stringify(br.data.intent.rows),br.data.review_token]),/BANK_IMPORT_DUPLICATE/);
+  assert.equal((await admin.query('SELECT count(*) n FROM bank_transactions WHERE company_id=$1',[f.company])).rows[0].n,'1');
+  assert.deepEqual((await request(f.company,'/bank-imports','POST',{...a,review_token:ar.data.review_token})).data,posted.data);
+  const unreviewed=make();
+  await assert.rejects(pool.query('SELECT ledgerly_record_reviewed_bank_import($1,$2,$3,$4,$5::jsonb,$6)',
+    [f.company,actor,f.bank,unreviewed.request_id,JSON.stringify(a.rows),'sha256:'+'0'.repeat(64)]),/BANK_IMPORT_REVIEW_REQUIRED/);
+  const legacyRace={...make(),rows:[{...a.rows[0],description:'Legacy zero side',reference:''}]};
+  const lr=await request(f.company,'/bank-statements/import-review','POST',legacyRace);
+  assert.equal(lr.status,200);
+  await admin.query(`INSERT INTO bank_transactions(id,company_id,bank_account_id,date,description,reference,money_in,money_out)
+    VALUES($1,$2,$3,'2026-10-21','Legacy zero side',NULL,10,NULL)`,[randomUUID(),f.company,f.bank]);
+  await assert.rejects(pool.query('SELECT ledgerly_record_reviewed_bank_import($1,$2,$3,$4,$5::jsonb,$6)',
+    [f.company,actor,f.bank,legacyRace.request_id,JSON.stringify(lr.data.intent.rows),lr.data.review_token]),/BANK_IMPORT_DUPLICATE/);
+});
+test('adversarial bank setup cannot reclassify historical prepayment pools as cash',async()=>{
+  const f=await fixture();
+  const b={id:randomUUID(),kind:'payment',party_type:'supplier',party_id:f.supplier,payment_id:null,
+    date:'2026-01-20',reference:'Historical supplier prepayment',amount_minor:'6000',allocations:[]};
+  await recordPayment(f,b);
+  const before=await reports(f.company,actor,'2026-01-01','2026-01-31');
+  assert.equal(before.cash.balance_minor,'-6000');
+  const config=(await request(f.company,'/accounting-payments/context')).data.configuration;
+  const newPool=randomUUID();
+  await admin.query("INSERT INTO chart_of_accounts(id,company_id,code,name,account_type,is_active) VALUES($1,$2,'NEWPOOL','New pool','asset',true)",[newPool,f.company]);
+  const malicious={revision:config.revision,mappings:{...config.mappings,bank:config.mappings.supplier_prepayment,supplier_prepayment:newPool}};
+  const rejected=await request(f.company,'/accounting-payments/configuration','PUT',malicious);
+  assert.equal(rejected.status,422,JSON.stringify(rejected));assert.equal(rejected.error.code,'PAYMENT_HISTORICAL_ACCOUNT_CONFLICT');
+  assert.equal((await reports(f.company,actor,'2026-01-01','2026-01-31')).cash.balance_minor,'-6000');
+  assert.deepEqual((await request(f.company,'/accounting-payments/context')).data.configuration,config);
+});
+test('canonical import whitespace and malformed legacy history fail closed through HTTP and SQL',async()=>{
+  const f=await openingFixture();
+  const whitespace=[9,10,11,12,13,32,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279];
+  for(const n of whitespace) {
+    const value=String.fromCharCode(n)+'Payment'+String.fromCharCode(n);
+    assert.equal((await pool.query('SELECT ledgerly_import_trim($1) v',[value])).rows[0].v,value.trim());
+  }
+  const body={request_id:randomUUID(),bank_account_id:f.bank,rows:[
+    {date:'2026-10-21',description:'Payment',reference:'WS',money_in:'10.00',money_out:'0.00'}]};
+  const preview=await request(f.company,'/bank-statements/import-review','POST',body);
+  assert.equal(preview.status,200);
+  const legacy=randomUUID();
+  await admin.query(`INSERT INTO bank_transactions(id,company_id,bank_account_id,date,description,reference,money_in,money_out)
+    VALUES($1,$2,$3,'2026-10-21',$4,'WS',10,0)`,[legacy,f.company,f.bank,'\u00a0Payment\u00a0']);
+  const call=()=>pool.query('SELECT ledgerly_record_reviewed_bank_import($1,$2,$3,$4,$5::jsonb,$6)',
+    [f.company,actor,f.bank,body.request_id,JSON.stringify(preview.data.intent.rows),preview.data.review_token]);
+  await assert.rejects(call(),/BANK_IMPORT_DUPLICATE/);
+  assert.equal((await request(f.company,'/bank-statements/imports','POST',{...body,review_token:preview.data.review_token})).status,409);
+  for(const fields of [{description:null,money_in:'10',money_out:'0'},{description:'Legacy',money_in:null,money_out:null},
+    {description:'Legacy',money_in:'NaN',money_out:'0'}]) {
+    await admin.query('UPDATE bank_transactions SET description=$2,money_in=$3,money_out=$4 WHERE id=$1',
+      [legacy,fields.description,fields.money_in,fields.money_out]);
+    const held=await request(f.company,'/bank-statements/import-review','POST',{...body,request_id:randomUUID()});
+    assert.equal(held.status,409,JSON.stringify(held));assert.equal(held.error.code,'BANK_IMPORT_LEGACY_HISTORY_UNKEYABLE');
+    await assert.rejects(call(),/BANK_IMPORT_LEGACY_HISTORY_UNKEYABLE/);
+  }
+  assert.equal((await admin.query('SELECT count(*) n FROM bank_transactions WHERE company_id=$1',[f.company])).rows[0].n,'1');
+  assert.equal((await pool.query("SELECT has_function_privilege(current_user,'ledgerly_record_reviewed_bank_import_private(uuid,text,uuid,uuid,jsonb,text)','EXECUTE') allowed")).rows[0].allowed,false);
+});
+test('adversarial reversal cannot strand already matched statement evidence even after a prior valid review',async()=>{
+  const f=await openingFixture();
+  const b={id:randomUUID(),kind:'payment',party_type:'customer',party_id:f.customer,payment_id:null,
+    date:'2026-10-21',reference:'Matched cash',amount_minor:'10000',allocations:[]};
+  await recordPayment(f,b);
+  const reverse={...b,id:randomUUID(),kind:'reversal',payment_id:b.id,reference:'Would strand match'};
+  const before=await request(f.company,'/accounting-payments/review','POST',reverse);
+  assert.equal(before.status,200);
+  const batch={request_id:randomUUID(),bank_account_id:f.bank,rows:[
+    {date:'2026-10-21',description:'Cash received',reference:'MATCH-25',money_in:'100.00',money_out:'0.00'}]};
+  const review=await request(f.company,'/bank-statements/import-review','POST',batch);
+  const imported=await request(f.company,'/bank-statements/imports','POST',{...batch,review_token:review.data.review_token});
+  const match={request_id:randomUUID(),bank_transaction_id:imported.data.rows[0].id,payment_id:b.id,amount_minor:'10000'};
+  const mr=await request(f.company,'/bank-statements/match-review','POST',match);
+  assert.equal((await request(f.company,'/bank-statements/matches','POST',{...match,review_token:mr.data.review_token})).status,200);
+  for(const path of ['/accounting-payments/review','/accounting-payments']) {
+    const rejected=await request(f.company,path,'POST',{...reverse,review_token:before.data.review_token});
+    assert.equal(rejected.status,409,JSON.stringify(rejected));assert.equal(rejected.error.code,'PAYMENT_BANK_MATCHED_REVERSAL_UNSUPPORTED');
+  }
+  const ctx=(await request(f.company,'/bank-statements/context')).data;
+  assert.equal(ctx.statements[0].status,'matched');assert.equal(ctx.payments.length,1);
+  assert.equal((await admin.query('SELECT count(*) n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,'1');
+  assert.equal((await reports(f.company,actor,'2026-01-01','2026-12-31')).cash.balance_minor,'10000');
+});
+test('native statement import preview, duplicates and partial matching preserve existing payment journals and recover exactly once',async()=>{
+  const f=await openingFixture();
+  const invoice=await create(f,'sales_invoice',source(f.customer));
+  await post(f,invoice);
+  const b=paymentIntent(f,invoice,'12000','12000');
+  const recorded=await recordPayment(f,b);
+  const snapshot=async()=>({
+    journals:(await admin.query('SELECT * FROM canonical_journal_entries WHERE company_id=$1 ORDER BY id',[f.company])).rows,
+    lines:(await admin.query('SELECT * FROM canonical_journal_lines WHERE company_id=$1 ORDER BY id',[f.company])).rows,
+    payments:(await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 ORDER BY id',[f.company])).rows,
+  });
+  const before=await snapshot();
+  const row={date:'2026-10-21',description:'Synthetic settlement',reference:'BANK-1',money_in:'120.00',money_out:'0.00'};
+  const batch={request_id:randomUUID(),bank_account_id:f.bank,rows:[row]};
+  assert.equal((await request(f.company,'/bank-statements/import-review','POST',batch,undefined,null)).status,401);
+  assert.equal((await request(f.company,'/bank-statements/import-review','POST',batch,undefined,readOnly)).status,403);
+  const invalid=await request(f.company,'/bank-statements/import-review','POST',{...batch,rows:[row,{...row,money_in:'0.001'}]});
+  assert.equal(invalid.status,422);
+  const preview=await request(f.company,'/bank-statements/import-review','POST',batch);
+  assert.equal(preview.status,200,JSON.stringify(preview));assert.equal(preview.data.can_import,true);
+  assert.equal((await admin.query('SELECT count(*) n FROM bank_transactions WHERE company_id=$1',[f.company])).rows[0].n,'0');
+  const command={...batch,review_token:preview.data.review_token};
+  const imported=await request(f.company,'/bank-statements/imports','POST',command);
+  assert.equal(imported.status,200,JSON.stringify(imported));const statement=imported.data.rows[0].id;
+  assert.deepEqual((await request(f.company,'/bank-statements/imports','POST',command)).data,imported.data);
+  assert.deepEqual((await request(f.company,`/bank-statements/imports/${batch.request_id}`)).data,imported.data);
+  const duplicate=await request(f.company,'/bank-statements/import-review','POST',{...batch,request_id:randomUUID()});
+  assert.equal(duplicate.data.can_import,false);assert.equal(duplicate.data.duplicates.length,1);
+  assert.equal((await request(f.company,'/bank-statements/imports','POST',{...batch,request_id:randomUUID(),review_token:duplicate.data.review_token})).status,409);
+  const match={request_id:randomUUID(),bank_transaction_id:statement,payment_id:b.id,amount_minor:'7000'};
+  const review=await request(f.company,'/bank-statements/match-review','POST',match);
+  assert.equal(review.status,200,JSON.stringify(review));
+  assert.equal(review.data.statement_remaining_minor,'5000');
+  assert.equal((await request(f.company,`/bank-statements/matches/${match.request_id}`)).data.status,'unknown');
+  const matchCommand={...match,review_token:review.data.review_token};
+  const outcomes=await Promise.all([request(f.company,'/bank-statements/matches','POST',matchCommand),request(f.company,'/bank-statements/matches','POST',matchCommand)]);
+  for(const outcome of outcomes)assert.equal(outcome.status,200,JSON.stringify(outcome));
+  assert.deepEqual(outcomes[0].data,outcomes[1].data);
+  assert.deepEqual((await request(f.company,`/bank-statements/matches/${match.request_id}`)).data,outcomes[0].data);
+  let ctx=(await request(f.company,'/bank-statements/context')).data;
+  assert.equal(ctx.statements[0].status,'partial');assert.equal(ctx.statements[0].remaining_minor,'5000');
+  assert.equal(ctx.payments[0].remaining_minor,'5000');
+  assert.equal((await request(f.company,'/bank-statements/matches','POST',{...matchCommand,amount_minor:'6000'})).status,409);
+  const remainder={...match,request_id:randomUUID(),amount_minor:'5000'};
+  const finalReview=await request(f.company,'/bank-statements/match-review','POST',remainder);
+  assert.equal((await request(f.company,'/bank-statements/matches','POST',{...remainder,review_token:finalReview.data.review_token})).status,200);
+  ctx=(await request(f.company,'/bank-statements/context')).data;
+  assert.equal(ctx.statements[0].status,'matched');assert.equal(ctx.payments[0].remaining_minor,'0');
+  assert.equal(ctx.matches.length,2);
+  assert.deepEqual(await snapshot(),before,'Matching must not alter or create any financial effect');
+  await assert.rejects(admin.query("UPDATE bank_transactions SET description='changed' WHERE id=$1",[statement]),/immutable/);
+  await assert.rejects(admin.query('DELETE FROM bank_transactions WHERE id=$1',[statement]),/immutable/);
+  await assert.rejects(admin.query("UPDATE accounting_bank_matches SET amount_minor=1 WHERE company_id=$1",[f.company]),/immutable/);
+  const r=await reports(f.company,actor,'2026-01-01','2026-12-31');
+  assert.equal(r.cash.balance_minor,'12000');
+  assert.equal(r.open_items.find((d:any)=>d.id===invoice.id).open_minor,'0');
+  assert.equal(recorded.journal_id,ctx.matches[0].journal_id);
+});
+test('native statement matching rejects cross-company, stale capacity, wrong direction and rolls back receipt failures',async()=>{
+  const f=await openingFixture(),other=await openingFixture();
+  const b={id:randomUUID(),kind:'payment',party_type:'supplier',party_id:f.supplier,payment_id:null,
+    date:'2026-10-21',reference:'Synthetic supplier cash',amount_minor:'6000',allocations:[]};
+  const p=await request(f.company,'/accounting-payments/review','POST',b);
+  assert.equal((await request(f.company,'/accounting-payments','POST',{...b,review_token:p.data.review_token})).status,200);
+  const batch={request_id:randomUUID(),bank_account_id:f.bank,rows:[
+    {date:'2026-10-21',description:'Supplier part1',reference:'B1',money_in:'0',money_out:'40'},
+    {date:'2026-10-21',description:'Supplier part2',reference:'B2',money_in:'0',money_out:'20'},
+    {date:'2026-10-21',description:'Wrong direction',reference:'B3',money_in:'60',money_out:'0'}]};
+  const review=await request(f.company,'/bank-statements/import-review','POST',batch);
+  const imported=await request(f.company,'/bank-statements/imports','POST',{...batch,review_token:review.data.review_token});
+  assert.equal(imported.status,200,JSON.stringify(imported));
+  const rows=imported.data.rows;
+  const first={request_id:randomUUID(),bank_transaction_id:rows[0].id,payment_id:b.id,amount_minor:'4000'};
+  assert.equal((await request(other.company,'/bank-statements/match-review','POST',first)).status,404);
+  assert.equal((await request(f.company,'/bank-statements/match-review','POST',first,undefined,readOnly)).status,403);
+  assert.equal((await request(f.company,'/bank-statements/match-review','POST',{...first,bank_transaction_id:rows[2].id})).status,422);
+  const second={...first,request_id:randomUUID(),bank_transaction_id:rows[1].id,amount_minor:'2000'};
+  const r1=await request(f.company,'/bank-statements/match-review','POST',first),r2=await request(f.company,'/bank-statements/match-review','POST',second);
+  failNextCredit=true;
+  assert.equal((await request(f.company,'/bank-statements/matches','POST',{...first,review_token:r1.data.review_token})).status,500);
+  assert.equal((await request(f.company,`/bank-statements/matches/${first.request_id}`)).data.status,'unknown');
+  assert.equal((await request(f.company,'/bank-statements/matches','POST',{...first,review_token:r1.data.review_token})).status,200);
+  assert.equal((await request(f.company,'/bank-statements/matches','POST',{...second,review_token:r2.data.review_token})).status,409);
+  const fresh=await request(f.company,'/bank-statements/match-review','POST',second);
+  assert.equal((await request(f.company,'/bank-statements/matches','POST',{...second,review_token:fresh.data.review_token})).status,200);
+  await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+  assert.equal((await request(f.company,`/bank-statements/matches/${first.request_id}`)).status,404);
+  assert.equal((await request(f.company,'/bank-statements/matches','POST',{...first,review_token:r1.data.review_token})).status,404);
+});
+test('bank opening native review-confirm, concurrent replay, recovery and historical reports use a single balanced journal',async()=>{
+  const f=await openingFixture();
+  assert.equal((await request(f.company,'/opening-balances/review','POST',f.body,undefined,null)).status,401);
+  assert.equal((await request(f.company,'/opening-balances/review','POST',f.body,undefined,readOnly)).status,403);
+  const review=await request(f.company,'/opening-balances/review','POST',f.body);
+  assert.equal(review.status,200,JSON.stringify(review));
+  assert.deepEqual(review.data.lines.map((l:any)=>[l.debitMinor,l.creditMinor]),[['12345','0'],['0','12345']]);
+  assert.equal((await request(f.company,`/opening-balances/${f.bank}`)).data.status,'unknown');
+  const body={...f.body,review_token:review.data.review_token};
+  const results=await Promise.all([request(f.company,'/opening-balances','POST',body),request(f.company,'/opening-balances','POST',body)]);
+  for(const result of results) assert.equal(result.status,200,JSON.stringify(result));
+  assert.equal(results[0].data.journal_id,results[1].data.journal_id);
+  const recovered=await request(f.company,`/opening-balances/${f.bank}`,undefined,undefined,undefined,readOnly);
+  assert.equal(recovered.data.journal_id,results[0].data.journal_id);
+  assert.equal(recovered.data.balance_minor,'12345');
+  assert.equal((await request(f.company,'/opening-balances','POST',{...body,request_id:randomUUID()})).status,409);
+  assert.equal((await request(f.company,'/opening-balances','POST',{...body,amount_minor:'100'})).status,409);
+  const counts=(await admin.query(`SELECT (SELECT count(*) FROM canonical_journal_entries WHERE company_id=$1) journals,
+    (SELECT count(*) FROM canonical_journal_lines WHERE company_id=$1) lines,
+    (SELECT count(*) FROM accounting_audit_events WHERE company_id=$1 AND outcome='posted') audits`,[f.company])).rows[0];
+  assert.deepEqual(counts,{journals:'1',lines:'2',audits:'1'});
+  const before=await reports(f.company,actor,'2026-01-01','2026-01-14');
+  const at=await reports(f.company,actor,'2026-01-15','2026-01-15');
+  const after=await reports(f.company,actor,'2026-01-16','2026-01-31');
+  assert.equal(before.cash.balance_minor,'0');assert.equal(at.cash.balance_minor,'12345');assert.equal(after.cash.balance_minor,'12345');
+  assert.deepEqual(at.journal_movements,{debit_minor:'12345',credit_minor:'12345'});
+  assert.deepEqual(after.journal_movements,{debit_minor:'0',credit_minor:'0'});
+  assert.equal(at.balance_sheet.assets_minor,'12345');assert.equal(at.balance_sheet.equity_minor,'12345');
+  assert.equal(at.pnl.profit_minor,'0');
+  assert.equal(at.trial_balance.reduce((n:bigint,l:any)=>n+BigInt(l.balance_minor),0n),0n);
+  assert.equal(at.vat.box1_pence,'0');assert.equal(at.vat.box4_pence,'0');
+  const payment={id:randomUUID(),kind:'payment',party_type:'customer',party_id:f.customer,payment_id:null,
+    date:'2026-01-20',reference:'Synthetic cash after opening',amount_minor:'1000',allocations:[]};
+  const paymentReview=await request(f.company,'/accounting-payments/review','POST',payment);
+  assert.equal(paymentReview.status,200,JSON.stringify(paymentReview));
+  assert.equal((await request(f.company,'/accounting-payments','POST',{...payment,review_token:paymentReview.data.review_token})).status,200);
+  assert.equal((await request(f.company,`/opening-balances/${f.bank}`)).data.balance_minor,'13345');
+  assert.equal((await reports(f.company,actor,'2026-01-01','2026-01-19')).cash.balance_minor,'12345');
+  assert.equal((await reports(f.company,actor,'2026-01-01','2026-01-20')).cash.balance_minor,'13345');
+  // Changing the current bank mapping must not erase historical bank identity
+  // or permit its reuse as a subledger control.
+  const newBank=randomUUID();
+  await admin.query("INSERT INTO chart_of_accounts(id,company_id,code,name,account_type,is_active) VALUES($1,$2,'1201','New bank','asset',true)",[newBank,f.company]);
+  const config=(await request(f.company,'/accounting-payments/context')).data.configuration;
+  assert.equal((await request(f.company,'/accounting-payments/configuration','PUT',{revision:config.revision,
+    mappings:{...f.paymentMappings,bank:newBank,supplier_prepayment:f.paymentMappings.bank}})).status,422);
+  assert.equal((await request(f.company,'/accounting-payments/configuration','PUT',{revision:config.revision,
+    mappings:{...f.paymentMappings,bank:newBank}})).status,200);
+  assert.equal((await reports(f.company,actor,'2026-01-01','2026-01-20')).cash.balance_minor,'13345');
+  assert.equal((await admin.query('SELECT current_balance FROM bank_accounts WHERE id=$1',[f.bank])).rows[0].current_balance,'999.00');
+  await assert.rejects(pool.query('UPDATE accounting_bank_openings SET actor_id=$1 WHERE company_id=$2',['changed',f.company]));
+  await assert.rejects(pool.query('DELETE FROM accounting_bank_openings WHERE company_id=$1',[f.company]));
+  await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+  assert.equal((await request(f.company,'/opening-balances','POST',body)).status,404);
+});
+test('bank opening rejects closed/stale/foreign/subledger states, rolls back atomically, supports overdraft without VAT or profit',async()=>{
+  const f=await openingFixture(),other=await openingFixture();
+  for(const change of [{bank_account_id:other.bank},{balancing_account_id:other.equity},
+    {bank_ledger_account_id:f.mappings.receivables},{balancing_account_id:f.mappings.revenue},
+    {effective_date:'2026-02-30'},{effective_date:'2025-12-31'},{amount_minor:'0'},{amount_minor:'1.5'}]) {
+    assert.notEqual((await request(f.company,'/opening-balances/review','POST',{...f.body,...change})).status,200,JSON.stringify(change));
+  }
+  const body={...f.body,direction:'credit'};
+  const first=await request(f.company,'/opening-balances/review','POST',body);assert.equal(first.status,200,JSON.stringify(first));
+  await admin.query("UPDATE chart_of_accounts SET name='Changed equity' WHERE id=$1",[f.equity]);
+  assert.equal((await request(f.company,'/opening-balances','POST',{...body,review_token:first.data.review_token})).status,409);
+  const review=await request(f.company,'/opening-balances/review','POST',body);
+  await admin.query("UPDATE accounting_document_periods SET status='CLOSED' WHERE id=$1",[f.period]);
+  assert.equal((await request(f.company,'/opening-balances','POST',{...body,review_token:review.data.review_token})).status,409);
+  await admin.query("UPDATE accounting_document_periods SET status='OPEN' WHERE id=$1",[f.period]);
+  const fresh=await request(f.company,'/opening-balances/review','POST',body);
+  const command={...body,review_token:fresh.data.review_token};
+  failNext=true;assert.equal((await request(f.company,'/opening-balances','POST',command)).status,500);
+  assert.equal((await admin.query('SELECT count(*) n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,'0');
+  assert.equal((await request(f.company,`/opening-balances/${f.bank}`)).data.status,'unknown');
+  const posted=await request(f.company,'/opening-balances','POST',command);assert.equal(posted.status,200,JSON.stringify(posted));
+  assert.equal(posted.data.balance_minor,'-12345');
+  const report=await reports(f.company,actor,'2026-01-01','2026-12-31');
+  assert.equal(report.cash.balance_minor,'-12345');assert.equal(report.pnl.profit_minor,'0');
+  const secondBank=randomUUID();
+  await admin.query("INSERT INTO bank_accounts(id,company_id,account_name,currency,status) VALUES($1,$2,'Second synthetic','GBP','active')",[secondBank,f.company]);
+  assert.equal((await request(f.company,'/opening-balances/review','POST',{...body,request_id:randomUUID(),bank_account_id:secondBank})).status,409);
+});
 function source(party:string,price="120",quantity="1",date="2026-10-21",code="STANDARD_20") {
   return {contract:"w03.draft.v1",currency:"GBP",price_basis:"including_vat",customer_id:party,invoice_number:"SYNTH-"+randomUUID(),
     issue_date:date,due_date:date,payment_terms:0,reference:"",notes:"TEST DATA",line_items:[{description:"Synthetic ordinary supply",quantity,unit_price:price,tax_code:code}]};
@@ -1266,6 +1752,62 @@ test('paid-credit released pools support later allocation, refund and undo witho
   assert.equal(item.open_minor,'0');assert.equal(item.credited_minor,'1200');assert.equal(item.paid_minor,'10800');
   assert.deepEqual((await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=ANY($2::uuid[]) ORDER BY id',[f.company,frozen.map((e:any)=>e.id)])).rows,frozen);
  }
+});
+
+test('payment recovery survives actual subprocess restart after a committed response is lost',async()=>{
+  const file=path.join(process.cwd(),'generated-artifacts/payment-restart-harness.cjs');
+  execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',
+    'src/services/accountingDocuments/paymentRestartHarness.ts','--bundle','--platform=node',
+    '--format=cjs','--external:pg','--external:@clerk/express','--outfile='+file],{stdio:'pipe'});
+  const env={PATH:process.env.PATH,HOME:process.env.HOME,LANG:'C',LC_ALL:'C',
+    NODE_ENV:'test',NODE_PATH:path.join(process.cwd(),'artifacts/api-server/node_modules'),
+    ACCOUNTING_FLOW_TEST_SOCKET:socket,
+    DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_test?host=${encodeURIComponent(socket)}&port=55441`};
+  const children:ChildProcess[]=[];
+  async function startChild(){
+    const child=fork(file,[],{env,stdio:['ignore','ignore','inherit','ipc']});children.push(child);
+    const ready=await new Promise<{port:number,pid:number}>((resolve,reject)=>{
+      const timer=setTimeout(()=>reject(Error('Restart harness startup timeout')),15000);
+      child.once('message',(m:any)=>{clearTimeout(timer);resolve(m);});
+      child.once('error',e=>{clearTimeout(timer);reject(e);});
+      child.once('exit',()=>{clearTimeout(timer);reject(Error('Restart harness exited before ready'));});
+    });
+    return {child,...ready};
+  }
+  async function stop(child:ChildProcess){
+    if(child.exitCode!==null||child.signalCode!==null)return;
+    await new Promise<void>((resolve,reject)=>{
+      const timer=setTimeout(()=>{child.kill('SIGKILL');},5000);
+      child.once('exit',()=>{clearTimeout(timer);resolve();});
+      child.once('error',e=>{clearTimeout(timer);reject(e);});child.kill('SIGTERM');
+    });
+  }
+  try{
+    for(const kind of ['sales_invoice','purchase_bill']){
+      const f=await fixture(),foreign=await fixture();
+      const doc=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,doc);
+      const command=await reviewPayment(f,paymentIntent(f,doc)),first=await startChild();
+      await assert.rejects(()=>fetch(`http://127.0.0.1:${first.port}/companies/${f.company}/accounting-payments`,{
+        method:'POST',headers:{'Content-Type':'application/json','x-test-actor':actor,'x-test-drop-reply':'yes'},body:JSON.stringify(command)}));
+      const events=(await admin.query('SELECT id,journal_id FROM accounting_payment_events WHERE id=$1',[command.id])).rows;
+      assert.equal(events.length,1);
+      const snapshot=async()=>(await admin.query(`SELECT (SELECT count(*) FROM accounting_payment_events WHERE company_id=$1) events,
+        (SELECT count(*) FROM canonical_journal_entries WHERE company_id=$1) journals`,[f.company])).rows;
+      const before=await snapshot();await stop(first.child);
+      const second=await startChild();assert.notEqual(first.pid,second.pid);
+      const lookup=async(company:string,user:string|null=readOnly,id=command.id)=>{
+        const r=await fetch(`http://127.0.0.1:${second.port}/companies/${company}/accounting-payments/operations/${id}`,{headers:user?{'x-test-actor':user}:{}});
+        return {status:r.status,body:await r.json() as {data:{status:string,id:string,journal_id?:string}}};
+      };
+      const known=await lookup(f.company);
+      assert.equal(known.status,200);assert.deepEqual(known.body.data,{status:'recorded',id:command.id,journal_id:events[0].journal_id});
+      assert.equal((await lookup(f.company,null)).status,401);
+      assert.equal((await lookup(f.company,'synthetic-no-membership')).status,404);
+      assert.equal((await lookup(foreign.company)).body.data.status,'unknown');
+      assert.equal((await lookup(f.company,readOnly,randomUUID())).body.data.status,'unknown');
+      assert.deepEqual(await snapshot(),before);await stop(second.child);
+    }
+  }finally{for(const child of children)await stop(child);}
 });
 
 test('original payment request recovery survives new sessions without reposting and denies revoked or foreign membership',async()=>{

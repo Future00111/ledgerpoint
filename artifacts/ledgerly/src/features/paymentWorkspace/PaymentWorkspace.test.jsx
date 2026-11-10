@@ -1,3 +1,16 @@
+test('statement original and correction keep distinct keys on mobile and desktop', () => {
+  const rows = ['original-journal', 'correction-journal'].map(journal_id => ({
+    source_id: 'same-bill', source_type: 'purchase_bill', journal_id,
+    balance_effect_minor: '100', running_balance_minor: '100', running_unapplied_minor: '0',
+  }));
+  const tree = StatementMovements({ rows });
+  const mobile = tree.props.children[0].props.children;
+  const desktop = tree.props.children[1].props.children.props.children[2].props.children;
+  for (const elements of [mobile, desktop]) {
+    assert.equal(elements.length, 2);
+    assert.equal(new Set(elements.map(element => element.key)).size, 2);
+  }
+});
 import React from 'react';
 import test from 'node:test';
 import assert from 'node:assert/strict';

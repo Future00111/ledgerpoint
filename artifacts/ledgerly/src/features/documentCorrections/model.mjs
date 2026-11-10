@@ -21,15 +21,37 @@ export function correctionIntent(form, requestId) {
 }
 export const canReviewCorrection = context => context?.capabilities?.review_corrections === true && Array.isArray(context.blockers) && context.blockers.length === 0;
 
-/** Page-memory recovery only. A scope disposal fences late UI results, never cancels a server commit. */
-export function createCorrectionController({ client, companyId, documentId, onState = () => {}, makeRequestId = () => crypto.randomUUID(), onSaved = () => {} }) {
+/** Persist only a request locator before sending. The server remains the
+ * authority; a reload never reconstructs financial intent or reposts it. */
+export function createCorrectionController({ client, companyId, documentId, onState = () => {}, makeRequestId = () => crypto.randomUUID(), onSaved = () => {}, rememberRequest = () => {}, forgetRequest = () => {}, recoveryRequestId = null }) {
   let active = true, generation = 0, abort;
-  let state = { status: 'idle', context: null, review: null, pending: null, error: null, receipt: null };
+  let state = { status: 'idle', context: null, review: null, pending: null, error: null, receipt: null, requestId: recoveryRequestId };
   const current = g => active && generation === g;
   const emit = patch => { state = { ...state, ...patch }; if (active) onState(state); };
   return {
     get state() { return state; },
+    async recover() {
+      if(!active || ['posting','checking'].includes(state.status)) return;
+      const requestId=state.requestId??state.pending?.body.request_id;
+      const g=++generation; abort?.abort();abort=new AbortController();
+      emit({status:'checking',error:null});
+      try {
+        if(!uuid(requestId)) throw Error('The correction recovery link is invalid. Check correction history before taking further action.');
+        const result=await client.recoverCorrection(companyId,documentId,requestId,abort.signal);
+        if(!current(g)) return;
+        if(result?.request_id!==requestId || result.document_id!==documentId || !['known','unknown'].includes(result.state))
+          throw Error('The correction outcome could not be verified.');
+        if(result.state==='unknown') {emit({status:'unknown',requestId});return;}
+        const receipt=result.receipt;
+        if(receipt?.id!==requestId || receipt.document_id!==documentId || receipt.status!=='posted' || !uuid(receipt.journal_id)||!uuid(receipt.revision))
+          throw Error('The correction receipt could not be verified.');
+        emit({status:'posted',receipt,pending:null,requestId});
+        // Do not refetch/unmount automatically while the recovery locator is in
+        // the URL: remounting would recover and refetch indefinitely.
+      } catch(error) {if(current(g)) emit({status:'unknown',error,requestId});}
+    },
     async load() {
+      if(state.requestId) return this.recover();
       if (!active || state.status === 'posting' || state.status === 'unknown') return;
       const g = ++generation; abort?.abort(); abort = new AbortController();
       emit({ status: 'loading', context: null, review: null, pending: null, error: null, receipt: null });
@@ -54,6 +76,7 @@ export function createCorrectionController({ client, companyId, documentId, onSt
         if (!current(g)) return;
         if (result?.expected_revision !== context.document.revision || result.before?.revision !== context.document.revision ||
             result.intent?.request_id !== intent.request_id || result.intent.reason !== intent.reason || result.intent.effective_date !== intent.effective_date ||
+            JSON.stringify(result.intent.line_items) !== JSON.stringify(intent.line_items) ||
             typeof result.review_token !== 'string' || !/^sha256:[0-9a-f]{64}$/.test(result.review_token) || !result.after?.money || !result.settlement)
           throw Error('The correction review could not be verified. Refresh before continuing.');
         const pending = frozen(copy({ body: { ...result.intent, review_token: result.review_token }, revision: result.expected_revision }));
@@ -63,6 +86,9 @@ export function createCorrectionController({ client, companyId, documentId, onSt
     async post() {
       if (!active || !['reviewed', 'unknown'].includes(state.status) || !state.pending || state.context?.capabilities?.correct_documents !== true) return;
       const g = ++generation, pending = state.pending;
+      try { rememberRequest(pending.body.request_id); }
+      catch(error) {emit({status:'reviewed',error:Error('Could not save the recovery link. No correction was sent.')});return;}
+      emit({requestId:pending.body.request_id});
       emit({ status: 'posting', error: null });
       try {
         const receipt = await client.commitCorrection(companyId, documentId, pending.body, pending.revision);
@@ -73,7 +99,11 @@ export function createCorrectionController({ client, companyId, documentId, onSt
       } catch (error) {
         if (!current(g)) return;
         const definitive = [400, 401, 403, 404, 409, 415, 422, 428].includes(error.status);
-        emit(definitive ? { status: 'error', error, review: null, pending: null } : { status: 'unknown', error });
+        if (definitive) {
+          try { forgetRequest(); }
+          catch { emit({ status: 'unknown', error: Error('Could not clear the recovery link. Check this request before continuing.') }); return; }
+          emit({ status: 'error', error, context: null, review: null, pending: null, requestId: null });
+        } else emit({ status: 'unknown', error });
       }
     },
     dispose() { active = false; generation++; abort?.abort(); },

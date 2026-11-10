@@ -8,7 +8,6 @@ import { canAccessDevTools } from '@/lib/devAccess';
 import CompanySwitcher from './CompanySwitcher';
 import { NavigationLinks } from './NavigationLinks';
 import { navigationGroups } from '@/features/workspaceNavigation/model.mjs';
-import { useClerk } from '@clerk/react';
 import { ChevronsLeft, LogOut, Search } from 'lucide-react';
 
 const itemClass = 'flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2';
@@ -18,7 +17,7 @@ export default function Sidebar({ collapsed = false, setCollapsed, tablet = fals
   const location = useLocation();
   const [menuSearch, setMenuSearch] = useState('');
   const [showPlanned, setShowPlanned] = useState(false);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { activeCompany, roles } = useCompany();
   const canDev = canAccessDevTools(user);
   const activeItem = findActiveItem(location.pathname);
@@ -32,7 +31,6 @@ export default function Sidebar({ collapsed = false, setCollapsed, tablet = fals
     if (collapsed) { setCollapsed?.(false); setOpenSection(section.key); return; }
     setOpenSection(current => current === section.key ? null : section.key);
   };
-  const { signOut } = useClerk();
 
   return <aside className={cn('ledger-sidebar flex h-full shrink-0 flex-col', mobile ? 'w-full' : collapsed ? 'w-[76px]' : 'w-[260px]')} aria-label={mobile ? 'Mobile workspace sidebar' : 'Workspace sidebar'}>
     <div className={cn('flex h-[76px] shrink-0 items-center', collapsed ? 'justify-center' : 'px-6')}>
@@ -50,7 +48,7 @@ export default function Sidebar({ collapsed = false, setCollapsed, tablet = fals
     </nav>
     {!collapsed && <button type="button" onClick={() => setShowPlanned(value => !value)} aria-pressed={showPlanned} className="mx-4 mb-2 min-h-11 rounded-xl px-2 text-left text-xs text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{showPlanned ? 'Hide planned tools' : 'Show planned tools'}</button>}
     <div className="flex shrink-0 items-center gap-1 border-t p-3">
-      <button type="button" onClick={() => signOut({ redirectUrl: '/' })} aria-label="Sign out" title={collapsed ? 'Sign out' : undefined} className={cn(itemClass, idleClass, 'min-w-0 flex-1', collapsed && 'justify-center px-0')}><LogOut className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />{!collapsed && <span>Sign out</span>}</button>
+      <button type="button" onClick={logout} aria-label="Sign out" title={collapsed ? 'Sign out' : undefined} className={cn(itemClass, idleClass, 'min-w-0 flex-1', collapsed && 'justify-center px-0')}><LogOut className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />{!collapsed && <span>Sign out</span>}</button>
       {!mobile && !tablet && <button type="button" onClick={() => setCollapsed?.(value => !value)} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} className={cn('flex h-11 w-9 shrink-0 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary', collapsed && 'w-6')}><ChevronsLeft className={cn('h-4 w-4', collapsed && 'rotate-180')} aria-hidden="true" /></button>}
     </div>
   </aside>;

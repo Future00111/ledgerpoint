@@ -13,9 +13,10 @@ const freeze = value => {
   return value;
 };
 
-/** Page-memory recovery only. The same immutable intent and token survive every retry. */
-export function createPaymentRecovery(companyId, api) {
-  let state = null, generation = 0;
+/** Exact intent retries stay in memory; restored locators permit status reads only. */
+export function createPaymentRecovery(companyId, api, { recoveryRequestId = null, rememberRequest = () => {}, forgetRequest = () => {}, nextRecoveryRequest = () => null } = {}) {
+  let state = recoveryRequestId ? Object.freeze({ companyId, body: Object.freeze({ id: recoveryRequestId }),
+    phase: 'unknown', readOnly: true, check: 'not_checked', result: null, error: null }) : null, generation = 0;
   const listeners = new Set();
   const publish = next => {
     state = next ? Object.freeze(next) : null;
@@ -45,11 +46,12 @@ export function createPaymentRecovery(companyId, api) {
     async record(review, capabilities) {
       if (state || !canPostPayments(capabilities)) return false;
       const body = freeze(paymentPostBody(companyId, review));
+      rememberRequest(body.id); // Must succeed before any financial request is sent.
       await send({ companyId, body, check: 'not_checked', result: null });
       return true;
     },
     async retry(capabilities) {
-      if (state?.phase !== 'unknown' || !canPostPayments(capabilities)) return false;
+      if (state?.phase !== 'unknown' || state.readOnly || !canPostPayments(capabilities)) return false;
       await send(state);
       return true;
     },
@@ -72,11 +74,15 @@ export function createPaymentRecovery(companyId, api) {
       return true;
     },
     clearRecorded() {
-      if (state?.phase === 'recorded') { generation++; publish(null); }
+      if (state?.phase === 'recorded') {
+        forgetRequest(state.body.id); generation++;
+        const next = nextRecoveryRequest();
+        publish(next ? { companyId, body: Object.freeze({ id: next }), phase: 'unknown',
+          readOnly: true, check: 'not_checked', result: null, error: null } : null);
+      }
     },
     abandon() {
-      if (state?.phase !== 'unknown') return false;
-      generation++; publish(null); return true;
+      return false; // Unknown is not cancelled; never unlock a replacement write.
     },
     // Called on company change/unmount. No prior-company response may update a new view.
     reset() { generation++; publish(null); },

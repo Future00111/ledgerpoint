@@ -5,14 +5,15 @@ import { correctCanonicalJournal, roleHasAccountingCapability, type DatabaseTran
 import { document, exactFields, hash, pounds, queryAdapter, sales, scope, supportedCompany, tables, transact, type Kind, type Queryable } from './core';
 import { calculateDocument } from './documents';
 import { appliedTo, paymentEvents, settlementAmounts } from './settlement';
-import { amendmentHistory, amendmentSchema, correctionIdentity, documentEvidenceHash } from './amendments';
+import { amendmentHistory, amendmentSchema, correctionIdentity, originalPostingEvidence } from './amendments';
 import { amendmentContextHash, amendmentDelta, amendmentJournalLines, correctionLineSource, sameJournalLines } from './amendmentsMath';
 import { journalLines } from './documentJournal';
+import { assertCreditCapacity } from './creditCapacity';
 
 const blockerMessages: Record<string, string> = {
   CORRECTION_SCHEMA_UNAVAILABLE: 'Document corrections have not been enabled in this development database.',
   CORRECTION_KIND_UNSUPPORTED: 'This correction workflow currently supports posted invoices and bills.',
-  CORRECTION_CHILD_CREDITS: 'A linked credit already exists. Use the existing credit workflow; this correction is unavailable.',
+  CORRECTION_CHILD_CREDITS: 'A linked credit draft is awaiting review. Resolve it before correcting the original.',
   CORRECTION_ACTIVE_CLAIMS: 'This bill has items awaiting credit. Resolve those claims before a financial correction.',
   CORRECTION_JOURNAL_UNSUPPORTED: 'The original journal or its history needs review before this correction is available.',
   CORRECTION_LEGACY_SETTLEMENT: 'Legacy settlement links need review before this correction is available.',
@@ -40,17 +41,19 @@ async function blockers(q: Queryable, company: string, original: any, history: A
   const codes: string[] = [];
   if (!history.available) return ['CORRECTION_SCHEMA_UNAVAILABLE'];
   if (!['sales_invoice', 'purchase_bill'].includes(original.kind) || original.status !== 'posted') return ['CORRECTION_KIND_UNSUPPORTED'];
+  if(original.source?.conditional_discount && (await q.query("SELECT 1 FROM accounting_paid_credit_operations WHERE company_id=$1 AND intent->>'original_id'=$2::text AND intent ? 'conditional_admission' LIMIT 1",[company,original.id])).rowCount)
+    return ['CORRECTION_JOURNAL_UNSUPPORTED'];
   const entries = (await q.query(`SELECT * FROM canonical_journal_entries WHERE company_id=$1 AND id=$2`, [company, original.journal_id])).rows;
   const entry = entries[0];
   const lines = (await q.query(`SELECT * FROM canonical_journal_lines WHERE company_id=$1 AND journal_entry_id=$2 ORDER BY line_number`, [company, original.journal_id])).rows;
   const relations = (await q.query(`SELECT * FROM canonical_journal_relations WHERE company_id=$1
     AND (original_journal_id=$2 OR related_journal_id=$2)`, [company, original.journal_id])).rows;
   if (!entry || entry.status !== 'posted' || entry.source_type !== original.kind || entry.source_id !== original.id ||
-    entry.source_revision !== original.revision || entry.source_evidence_hash !== documentEvidenceHash(original) ||
+    entry.source_revision !== original.revision || entry.source_evidence_hash !== await originalPostingEvidence(q,company,original) ||
     !sameJournalLines(lines, journalLines(original)) || relations.length !== history.rows.length ||
     relations.some(relation => relation.relation_type !== 'correction' || relation.original_journal_id !== original.journal_id ||
       !history.rows.some(row => row.journal_id === relation.related_journal_id))) codes.push('CORRECTION_JOURNAL_UNSUPPORTED');
-  if ((await q.query('SELECT id FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 LIMIT 1', [company, original.id])).rowCount) codes.push('CORRECTION_CHILD_CREDITS');
+  if ((await q.query("SELECT id FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND status='draft' LIMIT 1", [company, original.id])).rowCount) codes.push('CORRECTION_CHILD_CREDITS');
   if (original.kind === 'purchase_bill' && (await q.query('SELECT id FROM supplier_credit_claims WHERE company_id=$1 AND bill_id=$2 AND NOT cancelled LIMIT 1', [company, original.id])).rowCount) codes.push('CORRECTION_ACTIVE_CLAIMS');
   if ((await q.query(`SELECT id FROM bank_transactions b WHERE company_id=$1 AND
     (to_jsonb(b)->>'linked_invoice_id'=$2::text OR to_jsonb(b)->>'linked_bill_id'=$2::text OR matched_record_id=$2::text) LIMIT 1`, [company, original.id])).rowCount) codes.push('CORRECTION_LEGACY_SETTLEMENT');
@@ -81,6 +84,23 @@ export async function correctionHistory(company: string, actor: string, id: stri
   return transact(async q => { await authority(q, company, actor); return publicHistory(await amendmentHistory(q, company, await document(q, company, id))); }, true);
 }
 
+/** Read-only outcome lookup. Unknown is not proof of failure: an in-flight
+ * transaction may still commit. Never retry or create an operation here. */
+export async function recoverCorrection(company:string,actor:string,id:string,requestId:string) {
+  const request=uuid(requestId).toLowerCase();
+  return transact(async q=>{
+    await authority(q,company,actor,false,true);
+    if(!await amendmentSchema(q)) fail(503,'CORRECTION_SCHEMA_UNAVAILABLE');
+    const original=await document(q,company,id);
+    const history=await amendmentHistory(q,company,original);
+    const row=history.rows.find(row=>row.request_id===request);
+    if(!row) return {state:'unknown',request_id:request,document_id:id};
+    if(row.actor_id!==actor) fail(404,'RESOURCE_NOT_FOUND');
+    return {state:'known',request_id:request,document_id:id,receipt:{
+      status:'posted',id:request,document_id:id,revision:row.revision,journal_id:row.journal_id}};
+  },true);
+}
+
 async function plan(q: Queryable, company: string, actor: string, id: string, expected: string, intent: ReturnType<typeof correctionIntent>) {
   supportedCompany((await authority(q, company, actor, true, true)).business);
   const original = await document(q, company, id, true);
@@ -89,9 +109,12 @@ async function plan(q: Queryable, company: string, actor: string, id: string, ex
   if (blocked.length) fail(blocked[0] === 'CORRECTION_SCHEMA_UNAVAILABLE' ? 503 : 409, blocked[0]!);
   if (history.head_revision !== expected) fail(409, 'REVISION_CONFLICT');
   const current = history.current;
+  const credits = await assertCreditCapacity(q, company, current);
+  const credited = credits.reduce((sum:bigint,c:any)=>sum+BigInt(c.money.gross_pence),0n).toString();
   const events = await paymentEvents(q, company);
   const related = events.filter(event => event.allocations.some((allocation: any) => allocation.document_id === id));
-  if (intent.effective_date < history.latest_date || intent.effective_date < original.source.issue_date || related.some(event => event.effective_date > intent.effective_date)) fail(409, 'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
+  if (intent.effective_date < history.latest_date || intent.effective_date < original.source.issue_date || related.some(event => event.effective_date > intent.effective_date) ||
+    credits.some((c:any)=>c.posting_date>intent.effective_date)) fail(409, 'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
   const periods = (await q.query(`SELECT *,start_date::text,end_date::text FROM accounting_document_periods WHERE company_id=$1
     AND start_date<=$2::date AND end_date>=$2::date ORDER BY id FOR UPDATE`, [company, intent.effective_date])).rows;
   if (periods.length !== 1 || periods[0].status !== 'OPEN') fail(409, 'PERIOD_NOT_WRITABLE');
@@ -102,9 +125,10 @@ async function plan(q: Queryable, company: string, actor: string, id: string, ex
   const delta = amendmentDelta(current.money, after.money);
   if (['net_pence', 'vat_pence', 'gross_pence'].every(field => (delta as any)[field] === '0')) fail(422, 'CORRECTION_ZERO_CHANGE_UNSUPPORTED');
   if (BigInt(after.money.gross_pence) <= 0n) fail(422, 'CORRECTION_POSITIVE_TOTAL_REQUIRED');
+  await assertCreditCapacity(q, company, after);
   const paid = appliedTo(events, id).toString();
-  if (BigInt(after.money.gross_pence) < BigInt(paid)) fail(409, 'CORRECTION_BELOW_PAID');
-  const beforeSettlement = settlementAmounts(current.money.gross_pence, '0', paid), afterSettlement = settlementAmounts(after.money.gross_pence, '0', paid);
+  if (BigInt(after.money.gross_pence)-BigInt(credited) < BigInt(paid)) fail(409, 'CORRECTION_BELOW_PAID');
+  const beforeSettlement = settlementAmounts(current.money.gross_pence, credited, paid), afterSettlement = settlementAmounts(after.money.gross_pence, credited, paid);
   const compatibility = (await q.query(`SELECT amount_paid,balance_due FROM ${tables[original.kind as Kind]} WHERE company_id=$1 AND id=$2 FOR UPDATE`, [company, id])).rows[0];
   if (!compatibility || compatibility.amount_paid !== pounds(paid) || compatibility.balance_due !== pounds(beforeSettlement.open_minor)) fail(409, 'CORRECTION_LEGACY_SETTLEMENT');
   const lines = amendmentJournalLines(current, after);
@@ -112,12 +136,13 @@ async function plan(q: Queryable, company: string, actor: string, id: string, ex
   if (lines.some(line => !originAccounts.includes(line.accountId))) fail(409, 'CORRECTION_NEW_ACCOUNT_LEG_UNSUPPORTED');
   const accounts = (await q.query('SELECT * FROM chart_of_accounts WHERE company_id=$1 AND id=ANY($2::uuid[]) ORDER BY id FOR UPDATE', [company, originAccounts])).rows;
   if (accounts.length !== originAccounts.length || accounts.some(account => account.is_active !== true)) fail(409, 'CORRECTION_AUTHORITY_CHANGED');
-  const settlement = { paid_minor: paid, credited_minor: '0', before_open_minor: beforeSettlement.open_minor, after_open_minor: afterSettlement.open_minor };
+  const settlement = { paid_minor: paid, credited_minor: credited, before_open_minor: beforeSettlement.open_minor, after_open_minor: afterSettlement.open_minor };
   const review = { intent, expected_revision: expected, before: { source: current.source, money: current.money, revision: expected },
     after: { source: after.source, money: after.money }, delta, settlement, journal_lines: lines };
   const token = hash({ company, actor, document_id: id, ...review, period: periods[0], accounts,
-    configuration_revision: after.mapping_revision, authority_hash: context, payment_events: related });
-  return { ...review, review_token: token, original, current, afterRow: after, history, period: periods[0], accounts, afterSettlement, context };
+    configuration_revision: after.mapping_revision, authority_hash: context, payment_events: related, credits });
+  return { ...review, review_token: token, original, current, afterRow: after, history, period: periods[0], accounts, afterSettlement, context,
+    postingEvidence: await originalPostingEvidence(q,company,original) };
 }
 
 const reviewResult = (p: Awaited<ReturnType<typeof plan>>) => ({ intent: p.intent, expected_revision: p.expected_revision, review_token: p.review_token,
@@ -171,7 +196,7 @@ export async function commitCorrection(company: string, actor: string, id: strin
         const authority: LockedAuthority<PostingContext> = { authority: context, recordKeys: [`companies:${company}`, `accounting_document_sources:${id}`,
           `accounting_document_periods:${current.period.id}`], capturedToken: { revision: expected }, lockMode: 'FOR UPDATE', transactionBound: true,
           validateCurrent: ({ command, companyId, source }) => companyId === company && current.review_token === reviewToken && current.history.head_revision === expected &&
-            command.sourceId === current.original.journal_id && source?.sourceRevision === current.original.revision && source?.evidenceHash === documentEvidenceHash(current.original)
+            command.sourceId === current.original.journal_id && source?.sourceRevision === current.original.revision && source?.evidenceHash === current.postingEvidence
             ? { ok: true } : { ok: false, code: 'transaction_contract_invalid', message: 'Reviewed correction state changed.' } };
         return authority;
       } },

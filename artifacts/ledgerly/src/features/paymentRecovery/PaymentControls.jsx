@@ -32,22 +32,17 @@ export function PaymentRecoveryPanel({ state, capabilities, closing, onCheck, on
   const busy = recoveryBusy(state);
   return <section role="status" aria-live="polite" className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
     <h3 className="font-semibold">{state.phase === 'posting' ? 'Recording the reviewed payment…' : state.phase === 'checking' ? 'Checking payment history…' : 'Payment outcome not yet confirmed'}</h3>
-    <p className="break-words">{state.body.reference} · <Money value={state.body.amount_minor} /></p>
+    {!state.readOnly && <p className="break-words">{state.body.reference} · <Money value={state.body.amount_minor} /></p>}
     <p className="break-all text-xs">Payment event reference: {state.body.id}</p>
     {state.phase !== 'posting' && <p>The payment may already be recorded. Check its status before creating another payment. A retry uses the same reviewed payment and cannot create a second event with this reference.</p>}
     {state.check === 'not_found' && <p>Not found in the latest history. The original request may still finish; its outcome remains unknown.</p>}
     {state.error && <p>The latest request did not confirm the outcome{state.error.code ? ` (${state.error.code})` : ''}. This does not establish whether the original recording succeeded.</p>}
     <Link className="underline" to={`/payments?event=${encodeURIComponent(state.body.id)}`}>Open this event in payment history</Link>
     <p className="text-xs">Keep this event reference to check its recorded history after reloading or signing in again. An absent event remains unconfirmed; do not create a replacement payment.</p>
-    <p className="text-xs">The reviewed details stay frozen while this view is open. Leaving, reloading or switching company clears this recovery view; it does not cancel a payment.</p>
-    {closing ? <div role="alert" className="space-y-3 border-t border-amber-300 pt-3">
-      <p className="font-medium">Close this view with the outcome still unknown?</p>
-      <p>Closing does not cancel, delete or reverse anything. Check payment history before recording this payment again.</p>
-      <div className="flex flex-wrap gap-2"><Button className="min-h-11" variant="outline" disabled={busy} onClick={onKeep}>Keep checking</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={onAbandon}>Close view — outcome unknown</Button></div>
-    </div> : <div className="flex flex-wrap gap-2">
+    <p className="text-xs">{state.readOnly ? 'The original review is no longer open. Only status checks are available; do not recreate this payment.' : 'The reviewed details stay frozen while this view is open. After a reload, the saved reference supports status checks only.'}</p>
+    <div className="flex flex-wrap gap-2">
       <Button className="min-h-11" variant="outline" disabled={busy} onClick={onCheck}>Check payment status</Button>
-      {canPostPayments(capabilities) && <Button className="min-h-11" disabled={busy} onClick={onRetry}>Retry same payment</Button>}
-      <Button className="min-h-11" variant="ghost" disabled={busy} onClick={onClose}>Close recovery view</Button>
-    </div>}
+      {!state.readOnly && canPostPayments(capabilities) && <Button className="min-h-11" disabled={busy} onClick={onRetry}>Retry same payment</Button>}
+    </div>
   </section>;
 }

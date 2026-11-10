@@ -549,6 +549,13 @@ test("bank imports reject stale row companies atomically before access and prese
     }
     assert.equal(transactions, 0);
     role = "owner"; active = true;
+    for (const money_in of ["1.001", "0.005", "1e2", true, [], {}, "-1", "10000000000000.00"]) {
+      const before: number = transactions;
+      assert.equal((await request("recordBankTransactions", { company_id: "company-a",
+        transactions: [valid, { ...valid, money_in }] })).status, 400);
+      assert.equal(transactions, before, "invalid late-row money must reject before any transaction");
+      assert.equal(inserted.length, 0);
+    }
     const response = await request("recordBankTransactions", { company_id: "company-a", transactions: [valid, { ...valid, company_id: "company-a" }] });
     assert.equal(response.status, 201);
     assert.equal((await response.json() as { data: unknown[] }).data.length, 2);

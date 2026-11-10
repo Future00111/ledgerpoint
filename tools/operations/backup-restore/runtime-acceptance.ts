@@ -14,10 +14,16 @@ async function main() {
   assert.equal(process.env.W03_INVOICE_DEMO_MODE, undefined);
   // Validate the target before loading the native database/runtime modules.
   const { pool } = await import('../../../lib/db/src/index');
-  const { previewPayment, postPayment } = await import('../../../artifacts/api-server/src/services/accountingDocuments/payments');
+  const { previewPayment, postPayment, recoverPayment } = await import('../../../artifacts/api-server/src/services/accountingDocuments/payments');
   const { captureCommittedPaymentWitness } = await import('../../../artifacts/api-server/src/services/accountingDocuments/conditionalDiscount');
   const { getIntakeContent } = await import('../../../artifacts/api-server/src/services/documentIntake/service');
   const { withCanonicalPostingTransaction } = await import('../../../artifacts/api-server/src/services/accounting/canonicalPosting');
+  const {conditionalReplacementOverview}=await import('../../../artifacts/api-server/src/services/accountingDocuments/conditionalReplacementOverview');
+  const {reports}=await import('../../../artifacts/api-server/src/services/accountingDocuments/reports');
+  const {recoverBankOpening}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankOpenings');
+  const {recoverBankImport}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankImports');
+  const {recoverBankMatch}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankStatements');
+  const {recoverBankCorrection}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankCorrections');
   try {
     assert.deepEqual((await pool.query(`SELECT current_database() database,current_user actor,
       inet_server_addr() address,current_setting('port') port`)).rows[0],
@@ -34,6 +40,35 @@ async function main() {
       const body = { ...template, id: randomUUID(), reference: 'Synthetic restore acceptance', amount_minor: '100', allocations: [] };
       const review = await previewPayment(company, actor, body);
       return { ...body, review_token: review.review_token };
+    };
+    const bankingRecovery = async () => {
+      const result:any[]=[];
+      for (const [kind,table,id,reader] of [
+        ['opening','accounting_bank_openings','bank_account_id',recoverBankOpening],
+        ['import','accounting_bank_import_reviews','request_id',recoverBankImport],
+        ['match','accounting_bank_matches','request_id',recoverBankMatch],
+        ['correction','accounting_bank_match_corrections','request_id',recoverBankCorrection],
+        ['refund_match','accounting_bank_matches','request_id',recoverBankMatch],
+        ['corrected_payment_reversal','accounting_payment_events','id',recoverPayment],
+      ] as const) {
+        const filter=kind==='refund_match'
+          ? "WHERE EXISTS(SELECT 1 FROM accounting_payment_events p WHERE p.company_id=r.company_id AND p.id=r.payment_id AND p.kind='refund')"
+          :kind==='corrected_payment_reversal'
+          ? "WHERE r.kind='reversal' AND EXISTS(SELECT 1 FROM accounting_bank_matches m JOIN accounting_bank_match_corrections c ON c.company_id=m.company_id AND c.match_request_id=m.request_id WHERE m.company_id=r.company_id AND m.payment_id=r.payment_id)"
+          :'';
+        const rows=(await pool.query(`SELECT r.company_id,r.${id} id,u.user_id actor
+          FROM ${table} r JOIN company_users u ON u.company_id=r.company_id AND u.is_active AND u.role='owner'
+          ${filter}
+          ORDER BY r.company_id,r.${id},u.user_id`)).rows;
+        let found=false;
+        for(const row of rows) {
+          const receipt=await reader(row.company_id,row.actor,row.id);
+          if(receipt.status==='unknown')continue;
+          result.push({kind,...row,receipt});found=true;break;
+        }
+        assert.ok(found,`Populated ${kind} recovery evidence is required`);
+      }
+      return result;
     };
     const sourceMetadata = (row: any) => Object.fromEntries(
       ['id', 'revision', 'sha256', 'media_type', 'filename', 'byte_length', 'document_id'].map(key => [key, row[key]]));
@@ -70,6 +105,10 @@ async function main() {
       const fixture = (await pool.query(`SELECT e.company_id,e.id,e.source,e.actor_id
         FROM accounting_payment_events e JOIN conditional_discount_commit_witnesses w ON w.event_id=e.id AND w.company_id=e.company_id
         WHERE e.actor_id='synthetic-witness-owner' AND e.kind='payment' AND e.party_type='customer'
+        -- The prepare phase posts £1. Do not contaminate another restore
+        -- acceptance fixture's expected historical or unapplied balances.
+        AND NOT EXISTS(SELECT 1 FROM conditional_discount_compensations c WHERE c.company_id=e.company_id)
+        AND NOT EXISTS(SELECT 1 FROM conditional_discount_replacement_observations o WHERE o.company_id=e.company_id)
         AND (SELECT count(*) FROM company_users u WHERE u.company_id=e.company_id AND u.user_id=e.actor_id)=1
         AND EXISTS(SELECT 1 FROM company_users u WHERE u.company_id=e.company_id AND u.user_id=e.actor_id AND u.is_active AND u.role='owner')
         ORDER BY e.id LIMIT 1`)).rows[0];
@@ -101,12 +140,34 @@ async function main() {
       assert.equal(await witnesses(body.id), 0);
       const transaction = (await pool.query('SELECT cluster_id FROM conditional_discount_payment_transactions WHERE event_id=$1', [body.id])).rows[0];
       assert.ok(transaction?.cluster_id);
-      return { company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
+      const lifecycleRows=(await pool.query(`SELECT DISTINCT o.company_id,o.actor_id,d.id,d.kind FROM accounting_paid_credit_operations o
+        JOIN accounting_document_sources d ON d.company_id=o.company_id AND d.id::text=o.intent->>'original_id'
+        WHERE o.intent ? 'commercial_admission' AND EXISTS(SELECT 1 FROM conditional_discount_compensations c WHERE c.company_id=o.company_id)
+        ORDER BY o.company_id,d.id`)).rows;
+      assert.ok(lifecycleRows.some(r=>r.kind==='sales_invoice')&&lifecycleRows.some(r=>r.kind==='purchase_bill'),'Both replacement lifecycles required for executable restore');
+      const replacementAcceptance=[];
+      for(const row of lifecycleRows) {
+        const overview=await conditionalReplacementOverview(row.company_id,row.actor_id,row.id);
+        assert.equal(overview.consumed,true);
+        assert.ok(overview.replacements.some(r=>r.observation.state==='observed'));
+        const cutoffs=[];
+        for(const date of ['2026-11-06','2026-11-07','2026-11-08','2026-11-10','2199-12-02','2199-12-03'])
+          cutoffs.push({date,report:await reports(row.company_id,row.actor_id,'2026-01-01',date)});
+        replacementAcceptance.push({...row,overview,cutoffs});
+      }
+      return { bankingRecovery:await bankingRecovery(),replacementAcceptance,company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
         unwitnessedEvent: body.id, sourceCluster: transaction.cluster_id, template: fixture.source.intent, permissions, capture };
     }
     const fixture = JSON.parse(readFileSync(0, 'utf8'));
+    assert.deepEqual(await bankingRecovery(),fixture.bankingRecovery,'Native banking receipts changed across restore');
     assert.deepEqual(permissions, fixture.permissions, 'Effective function permissions changed during restore.');
     await verifyCapture(fixture.capture);
+    assert.ok(fixture.replacementAcceptance?.length>=2);
+    for(const row of fixture.replacementAcceptance) {
+      assert.deepEqual(await conditionalReplacementOverview(row.company_id,row.actor_id,row.id),row.overview,'Restored replacement history/consumption changed');
+      for(const cutoff of row.cutoffs)
+        assert.deepEqual(await reports(row.company_id,row.actor_id,'2026-01-01',cutoff.date),cutoff.report,'Restored executable lifecycle report changed');
+    }
     assert.deepEqual(await captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.historicalEvent), fixture.historical);
     assert.equal(await witnesses(fixture.unwitnessedEvent), 0);
     await assert.rejects(() => captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.unwitnessedEvent),
@@ -132,7 +193,9 @@ async function main() {
     const origin = (await pool.query('SELECT cluster_id FROM conditional_discount_payment_transactions WHERE event_id=$1', [body.id])).rows[0];
     assert.notEqual(origin.cluster_id, fixture.sourceCluster, 'Restored cluster must have a different transaction origin.');
     assert.deepEqual(await captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.historicalEvent), fixture.historical);
-    return { newNativePaymentPosted: true, newCommittedWitnessRecorded: true, retrySingleEffect: true,
+    return { nativeBankingRecoveryVerified:true,bankingRecoveryKinds:fixture.bankingRecovery.map((r:any)=>r.kind),
+      replacementLifecyclesVerified:fixture.replacementAcceptance.length,replacementHistoricalReportsPreserved:true,
+      replacementObservationAndConsumptionPreserved:true,newNativePaymentPosted: true, newCommittedWitnessRecorded: true, retrySingleEffect: true,
       historicalWitnessPreserved: true, foreignUnwitnessedRejected: true, distinctClusterOrigin: true,
       effectiveFunctionPermissionsPreserved: true, nativeCaptureBytesAndMetadataPreserved: true,
       nativeCaptureReadOnlyAccessPreserved: true, nativeCaptureForeignCompanyDenied: true,

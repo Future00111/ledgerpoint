@@ -3,6 +3,7 @@ import { hash, type Queryable } from './core';
 import { projectDocumentAsOf, DocumentProjectionError } from './documentEvents';
 import { amendmentContextHash, amendmentMoney, amendmentJournalLines, sameJournalLines } from './amendmentsMath';
 import { journalLines } from './documentJournal';
+import { prepareConditionalOriginal, verifiedOriginal } from './conditionalDiscount';
 
 export async function amendmentSchema(q: Queryable): Promise<boolean> {
   const row = (await q.query(`SELECT to_regclass('public.accounting_document_amendments') amendments,
@@ -16,6 +17,16 @@ const identity = (row: any) => `document-correction:${row.document_id}:${row.req
 export const correctionIdentity = identity;
 const evidence = (row: any) => hash({ source: row.source, money: row.money, tax_context: row.tax_context, accounts: row.posting_accounts });
 export const documentEvidenceHash = evidence;
+
+/** Conditional originals commit their full agreement binding, not merely the
+ * financial snapshot. Verify that immutable original; never substitute a new
+ * replacement or corrected financial hash for the original posting identity. */
+export async function originalPostingEvidence(q: Queryable, company: string, original: any) {
+  if (!original.source?.conditional_discount) return evidence(original);
+  const prepared = await prepareConditionalOriginal(q, company, original);
+  if (!await verifiedOriginal(q, company, original.id, prepared.bindingHash)) fail(503,'CORRECTION_JOURNAL_INVALID');
+  return prepared.bindingHash;
+}
 
 /** Validates the complete persisted chain before a current OR historical projection. */
 export async function amendmentHistory(q: Queryable, company: string, original: any, asOf = '9999-12-31') {
@@ -46,7 +57,7 @@ export async function amendmentHistory(q: Queryable, company: string, original: 
     AND journal_id=ANY($2::uuid[])`, [company, rows.map(row => row.journal_id)])).rows;
   const first = entries.find(entry => entry.id === original.journal_id);
   if (!first || first.status !== 'posted' || first.source_type !== original.kind || first.source_id !== original.id ||
-    first.source_revision !== original.revision || first.source_evidence_hash !== evidence(original) ||
+    first.source_revision !== original.revision || first.source_evidence_hash !== await originalPostingEvidence(q,company,original) ||
     !sameJournalLines(lines.filter(line => line.journal_entry_id === first.id), journalLines(original))) fail(503, 'CORRECTION_JOURNAL_INVALID');
   if (relations.length !== rows.length || relations.some(relation => relation.relation_type !== 'correction' ||
     relation.original_journal_id !== original.journal_id || !rows.some(row => row.journal_id === relation.related_journal_id)))
@@ -66,7 +77,7 @@ export async function amendmentHistory(q: Queryable, company: string, original: 
     const effect = effects.find(item => item.journal_id === row.journal_id);
     const audit = audits.find(item => item.journal_id === row.journal_id);
     if (!entry || entry.status !== 'posted' || entry.source_type !== 'canonical_journal' || entry.source_id !== original.journal_id ||
-      entry.source_revision !== original.revision || entry.source_evidence_hash !== evidence(original) || entry.currency_code !== 'GBP' ||
+      entry.source_revision !== original.revision || entry.source_evidence_hash !== await originalPostingEvidence(q,company,original) || entry.currency_code !== 'GBP' ||
       entry.posting_kind !== 'document_correction' || entry.posting_date !== row.effective_date ||
       entry.reversal_of_id !== original.journal_id || entry.correction_reason !== row.reason ||
       entry.created_by_type !== 'user' || entry.created_by_id !== row.actor_id || entry.economic_effect_id !== identity(row) ||

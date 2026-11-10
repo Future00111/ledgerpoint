@@ -18,6 +18,10 @@ import {
   correctCanonicalJournal,
   postCanonicalJournal,
   reverseCanonicalJournal,
+  reverseCanonicalJournalInTransaction,
+  postCanonicalJournalInTransaction,
+  withCanonicalPostingTransaction,
+  type DatabaseTransaction,
   type CanonicalPostingCommand,
   type CanonicalPostingDependencies,
 } from "./canonicalPosting.js";
@@ -1080,4 +1084,55 @@ test("owner journal locks serialize transactions without API mutation privileges
 
 test.after(async () => {
   await pool.end();
+});
+
+
+test("linked reversal shares protected parent transaction and rolls back later effects", async () => {
+  let touched = false;
+  const fake = new Proxy({}, { get() { touched = true; throw new Error("unexpected query"); } });
+  await assert.rejects(() => reverseCanonicalJournalInTransaction(fake as DatabaseTransaction,
+    {} as Parameters<typeof reverseCanonicalJournalInTransaction>[1],
+    { hooks: { async afterTransactionStart() { touched = true; } } } as unknown as Parameters<typeof reverseCanonicalJournalInTransaction>[2]),
+    /Protected posting transaction required/);
+  assert.equal(touched, false);
+  const company = await createCompany("shared-reversal");
+  const owner = `canonical-owner-${randomUUID()}`;
+  const debit = await addAccount(company.id, "Shared debit");
+  const credit = await addAccount(company.id, "Shared credit");
+  await addMembership(company.id, owner, "accountant");
+  const state: FixtureState = { companyId: company.id, revision: "rev-1", periodStatus: "OPEN",
+    configurationVersionId: "config-v1", accountIds: [debit.id, credit.id],
+    lines: [{ accountId: debit.id, debitMinor: 1200, creditMinor: 0 },
+      { accountId: credit.id, debitMinor: 0, creditMinor: 1200 }] };
+  const original = await postCanonicalJournal(command({ companyId: company.id, userId: owner,
+    effect: `original-${randomUUID()}`, key: `original-${randomUUID()}`, accountIds: state.accountIds }), dependencies(state));
+  const reversal = { principal: { kind: "user" as const, userId: owner, requestedCompanyId: company.id },
+    requestedCompanyId: company.id, originalJournalId: original.journalId, reason: "Shared rollback",
+    postingDate: "2026-04-11", economicEffectId: `reverse-${randomUUID()}`,
+    idempotencyKey: `reverse-${randomUUID()}`, configurationVersionId: "config-v1" };
+  const later = command({ companyId: company.id, userId: owner, effect: `later-${randomUUID()}`,
+    key: `later-${randomUUID()}`, accountIds: state.accountIds });
+  const counts = async () => (await pool.query(`SELECT
+    (SELECT count(*)::int FROM canonical_journal_entries WHERE company_id=$1) journals,
+    (SELECT count(*)::int FROM canonical_journal_relations WHERE company_id=$1) relations,
+    (SELECT count(*)::int FROM accounting_posting_effects WHERE company_id=$1) effects,
+    (SELECT count(*)::int FROM accounting_audit_events WHERE company_id=$1) audits`, [company.id])).rows[0];
+  const before = await counts();
+  let captured: DatabaseTransaction | undefined;
+  await assert.rejects(() => withCanonicalPostingTransaction(async tx => {
+    captured = tx;
+    const shared = { ...dependencies(state), hooks: { async afterTransactionStart(actual: DatabaseTransaction) {
+      assert.equal(actual, tx, "child must use the parent transaction, not a nested one");
+    } } };
+    await reverseCanonicalJournalInTransaction(tx, reversal, shared);
+    await postCanonicalJournalInTransaction(tx, later, shared);
+    throw new Error("after both child effects");
+  }), /after both child effects/);
+  assert.deepEqual(await counts(), before);
+  await assert.rejects(() => reverseCanonicalJournalInTransaction(captured!, reversal, dependencies(state)),
+    /Protected posting transaction required/);
+  const committed = await withCanonicalPostingTransaction(tx => reverseCanonicalJournalInTransaction(tx, reversal, dependencies(state)));
+  const retry = await withCanonicalPostingTransaction(tx => reverseCanonicalJournalInTransaction(tx, reversal, dependencies(state)));
+  assert.equal(retry.journalId, committed.journalId);
+  assert.equal(retry.status, "duplicate");
 });

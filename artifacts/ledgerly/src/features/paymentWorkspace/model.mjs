@@ -1,3 +1,5 @@
+// A refresh can clear context while an existing draft/recovery stays mounted.
+export const paymentFormContextPending = (form, context) => !!form && !context;
 import { decimalMinor } from '../../lib/ledgerCsv.mjs';
 
 /** Filters select existing server rows; they never recompute an account balance. */

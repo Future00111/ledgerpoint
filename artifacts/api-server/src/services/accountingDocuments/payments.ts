@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { conditionalPaymentSnapshot, observePaymentOutcome, assertConditionalPaymentMutation } from './conditionalDiscount';
+import { hasConditionalCompensationAuthority } from './conditionalCompensation';
 import { isCompanyRole } from '../../security/roles';
 import { canWriteDraft, fail, uuid } from '../financialDrafts/contract';
 import { postCanonicalJournal, postCanonicalJournalInTransaction, roleHasAccountingCapability, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
@@ -26,10 +27,15 @@ async function validateMappings(q:Queryable,company:string,mappings:any) {
   const config=(await q.query('SELECT mappings FROM accounting_company_configuration WHERE company_id=$1',[company])).rows[0];
   const historical=(await q.query(`SELECT DISTINCT m.value account_id FROM accounting_document_sources d,
     jsonb_each_text(d.posting_accounts) m WHERE d.company_id=$1 AND d.status='posted'`,[company])).rows;
+  const openingBanks=(await q.query('SELECT bank_ledger_account_id FROM accounting_bank_openings WHERE company_id=$1',[company])).rows;
+  const history=(await q.query(`SELECT DISTINCT source->>'bank_account_id' bank,source->>'pool_account_id' pool
+    FROM accounting_payment_events WHERE company_id=$1`,[company])).rows;
   for(const role of roles) {
     const a=accounts.find(a=>a.id===mappings[role]);
     if(!a || a.is_active!==true || !types[role]!.includes(String(a.account_type).toLowerCase())) fail(422,'PAYMENT_ACCOUNT_INVALID',`/mappings/${role}`);
     if(Object.values(config?.mappings??{}).includes(a.id)||historical.some(h=>h.account_id===a.id)) fail(422,'PAYMENT_CONTROL_ACCOUNT_CONFLICT',`/mappings/${role}`);
+    if(role!=='bank'&&openingBanks.some(o=>o.bank_ledger_account_id===a.id)) fail(422,'PAYMENT_CONTROL_ACCOUNT_CONFLICT',`/mappings/${role}`);
+    if(history.some(h=>role==='bank'?h.pool===a.id:h.bank===a.id)) fail(422,'PAYMENT_HISTORICAL_ACCOUNT_CONFLICT',`/mappings/${role}`);
   }
   return accounts;
 }
@@ -115,7 +121,7 @@ function intent(body:unknown) {
     payment_id:b.kind==='payment'?null:uuid(b.payment_id),date:b.date,reference:b.reference.trim(),
     amount_minor:amount(b.amount_minor),allocations};
 }
-async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof intent>) {
+async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof intent>,tx?:DatabaseTransaction) {
   supportedCompany(await scope(q,company,actor,true,true));
   const party=(await q.query(`SELECT id,name FROM ${b.party_type==='customer'?'customers':'suppliers'} WHERE company_id=$1 AND id=$2`,[company,b.party_id])).rows[0];
   if(!party) fail(404,'RESOURCE_NOT_FOUND');
@@ -126,11 +132,13 @@ async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof 
     WHERE company_id=$1 AND start_date<=$2::date AND end_date>=$2::date ORDER BY id FOR UPDATE`,[company,b.date])).rows;
   if(periods.length!==1||periods[0].status!=='OPEN') fail(409,'PERIOD_NOT_WRITABLE');
   const events=await paymentEvents(q,company);
-  await assertConditionalPaymentMutation(q,company,b);
+  if(!hasConditionalCompensationAuthority(tx,company,actor,b)) await assertConditionalPaymentMutation(q,company,b);
   const parent=b.payment_id?events.find(e=>e.id===b.payment_id&&e.kind==='payment'):null;
   const related=parent?events.filter(e=>e.id===parent.id||e.payment_id===parent.id):[];
   if(b.payment_id && (!parent||parent.party_id!==b.party_id||parent.party_type!==b.party_type)) fail(404,'RESOURCE_NOT_FOUND');
   if(related.some(e=>e.kind==='reversal')) fail(409,'PAYMENT_ALREADY_REVERSED');
+  if(b.kind==='reversal' && (await q.query('SELECT 1 FROM accounting_bank_active_matches WHERE company_id=$1 AND payment_id=$2 LIMIT 1',[company,b.payment_id])).rowCount)
+    fail(409,'PAYMENT_BANK_MATCHED_REVERSAL_UNSUPPORTED');
   if(related.some(e=>e.effective_date>b.date)) fail(409,'DATE_PRECEDES_PAYMENT_ACTIVITY');
   const remainder=related.reduce((n,e)=>n+unappliedEffect(e),0n);
   const value=BigInt(b.amount_minor),sum=b.allocations.reduce((n:bigint,a:any)=>n+BigInt(a.amount_minor),0n);
@@ -180,8 +188,8 @@ async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof 
   return {source,review_token:hash(source),lines,period:periods[0],configuration:config,party_name:party.name,
     allocated_minor:sum.toString(),unapplied_minor:(b.kind==='payment'?value-sum:remainder+unappliedEffect({...b,allocations:b.allocations})).toString()};
 }
-export async function previewPaymentInTransaction(q:Queryable,company:string,actor:string,body:unknown) {
-  return plan(q,company,actor,intent(body));
+export async function previewPaymentInTransaction(q:Queryable,company:string,actor:string,body:unknown,tx?:DatabaseTransaction) {
+  return plan(q,company,actor,intent(body),tx);
 }
 export async function previewPayment(company:string,actor:string,body:unknown) {
   const b=intent(body);return transact(q=>plan(q,company,actor,b));
@@ -197,7 +205,7 @@ export async function postPayment(company:string,actor:string,body:unknown,testH
     await scope(q,company,actor,true,true);
     const prior=(await q.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[company,b.id])).rows[0];
     if(prior){if(prior.request_hash!==requestHash) fail(409,'IDEMPOTENCY_CONFLICT');return {replayed:prior};}
-    const p=await plan(q,company,actor,b);if(p.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');return {plan:p};
+    const p=await plan(q,company,actor,b,existingTransaction);if(p.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');return {plan:p};
   };
   const initial=existingTransaction?await admission(queryAdapter(existingTransaction)):await transact(admission);
   if(initial.replayed) return observePaymentOutcome({status:'duplicate',id:b.id,journal_id:initial.replayed.journal_id},company,actor,b.id,b.kind,!!existingTransaction);
@@ -211,7 +219,7 @@ export async function postPayment(company:string,actor:string,body:unknown,testH
       transaction=tx;const q=queryAdapter(tx);await scope(q,company,actor,true,true);
       const prior=(await q.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[company,b.id])).rows[0];
       if(prior){if(prior.request_hash!==requestHash) fail(409,'IDEMPOTENCY_CONFLICT');throw new Replayed({status:'duplicate',id:b.id,journal_id:prior.journal_id});}
-      current=await plan(q,company,actor,b);if(current.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');
+      current=await plan(q,company,actor,b,tx);if(current.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');
       return authority({companyId:company,sourceType:'accounting_payment_event',sourceId:b.id,status:'reviewed',isPostable:true,
         sourceRevision:expected,evidenceHash:expected},[`companies:${company}`,`accounting_payment_event:${b.id}`],expected);
     }},

@@ -1,4 +1,5 @@
 import { canWriteCompanyData } from "../security/roles";
+import { bankImportSides } from "../services/bankImportMoney";
 import { publicErrorMessage, safeErrorLog, safeRouteErrors } from "../security/publicErrors";
 /**
  * /api/functions/:name — server-side business logic functions.
@@ -405,20 +406,18 @@ router.post("/:name", retiredChartBootstrapBoundary, async (req: Request, res: R
         }
         if (!(await assertWriteAccess(userId, companyId, res))) return;
 
+        // Validate every amount before entering the batch transaction. Direct
+        // callers must obey the same penny precision as the statement importer.
+        try { entries.forEach(bankImportSides); }
+        catch (error) {
+          res.status(400).json({ error: publicErrorMessage(error, "Invalid bank amount") });
+          return;
+        }
         try {
           const created = await db.transaction(async (tx) => {
             const rows = [];
             for (const entry of entries) {
-              const moneyIn = entry.money_in == null || entry.money_in === "" ? 0 : Number(entry.money_in);
-              const moneyOut = entry.money_out == null || entry.money_out === "" ? 0 : Number(entry.money_out);
-              if (!Number.isFinite(moneyIn) || !Number.isFinite(moneyOut) || moneyIn < 0 || moneyOut < 0) {
-                throw new Error("Money in and money out must be valid non-negative amounts");
-              }
-              const inPence = Math.round(moneyIn * 100);
-              const outPence = Math.round(moneyOut * 100);
-              if ((inPence <= 0 && outPence <= 0) || (inPence > 0 && outPence > 0)) {
-                throw new Error("Each bank transaction must contain either money in or money out");
-              }
+              const { inPence, outPence } = bankImportSides(entry);
               const vatRate = entry.vat_rate == null || entry.vat_rate === ""
                 ? null
                 : Number(entry.vat_rate);

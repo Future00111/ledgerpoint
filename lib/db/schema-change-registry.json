@@ -91,6 +91,18 @@
         "conditional_discount_original_bindings",
         "conditional_discount_original_observations"
       ]
+    },
+    {
+      "path": "lib/db/migrations/conditional-discount-compensations.review.sql",
+      "sha256": "d1f05ddcc8dd98b560038a12dec41463e47bb7fca23856c4b49ecd432f54ac52",
+      "status": "review_sql_only",
+      "tables": ["conditional_discount_compensations"]
+    },
+    {
+      "path": "lib/db/migrations/conditional-discount-cash-reversal.review.sql",
+      "sha256": "80ae6ef09b65592793a5c829fe6d97550aa64147f589caf27ffd608e62569431",
+      "status": "review_sql_only",
+      "tables": ["conditional_discount_compensations"]
     }
   ],
   "reservedChanges": [

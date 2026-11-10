@@ -12,7 +12,7 @@ test('application recovery rejects existing/shared and redirected archive inputs
   ]) assert.throws(() => assertApplicationArchive(pair), /disposable accounting archive/);
 });
 test('restored application roles reject elevated flags, login owner and unexpected memberships', () => {
-  const roles = ['ledgerly_api', 'ledgerly_canonical_owner'].map((rolname, i) => ({
+  const roles = ['ledgerly_api', 'ledgerly_bank_import_owner', 'ledgerly_canonical_owner'].map((rolname, i) => ({
     rolname, rolsuper: false, rolinherit: true, rolcreaterole: false, rolcreatedb: false,
     rolcanlogin: i === 0, rolreplication: false, rolbypassrls: false,
   }));
@@ -21,7 +21,11 @@ test('restored application roles reject elevated flags, login owner and unexpect
     const changed = structuredClone(roles); changed[0][field] = true;
     assert.throws(() => assertApplicationRoles(changed, []), /restricted role contract/);
   }
-  assert.throws(() => assertApplicationRoles([{...roles[0]}, {...roles[1], rolcanlogin: true}], []), /restricted role contract/);
+  for (const index of [1,2]) {
+    const changed=structuredClone(roles); changed[index].rolcanlogin=true;
+    assert.throws(() => assertApplicationRoles(changed, []), /restricted role contract/);
+  }
+  assert.throws(() => assertApplicationRoles(roles, [{role_name:'ledgerly_bank_import_owner',member_name:'ledgerly_api',admin_option:false}]), /restricted role contract/);
   assert.throws(() => assertApplicationRoles(roles, [{role_name:'ledgerly_canonical_owner',member_name:'ledgerly_api',admin_option:false}]), /restricted role contract/);
   assert.throws(() => assertApplicationRoles(roles.slice(0,1), []), /restricted role contract/);
 });

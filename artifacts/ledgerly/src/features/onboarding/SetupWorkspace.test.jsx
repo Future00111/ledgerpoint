@@ -11,6 +11,16 @@ const render = (contexts, props = {}) => renderToStaticMarkup(<MemoryRouter><Set
   readiness={deriveReadiness('synthetic-company', contexts, DATE)} date={DATE} onDateChange={() => {}} onRefresh={() => {}} onGuidedChange={() => {}} {...props} /></MemoryRouter>);
 const links = html => [...html.matchAll(/href="([^"]+)"/g)].map(match => match[1]);
 
+test('first journey explains separate payment setup without claiming bank transfer or automatic defaults', () => {
+  const html = render(fixture());
+  assert.match(html, /Document setup does not configure payments/);
+  assert.match(html, /No accounts are selected for you/);
+  assert.match(html, /allocation to a posted invoice or bill/);
+  assert.match(html, /does not move money at your bank/);
+  assert.ok(links(html).includes('/payments'));
+  assert.ok(links(html).includes('/reports'));
+});
+
 test('professional and explained views preserve native first tasks and full accounting links', () => {
   const data = fixture(), professional = render(data), guided = render(data, { guided: true });
   assert.deepEqual(links(guided), links(professional));

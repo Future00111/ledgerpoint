@@ -2,6 +2,7 @@ import { fail } from '../financialDrafts/contract';
 import type { Queryable } from './core';
 import { pounds, tables, type Kind } from './core';
 import { amendmentHistory } from './amendments';
+import { compensationHistory } from './conditionalCompensation';
 
 export function settlementAmounts(gross:string, credited:string, paid:string) {
   const remaining=BigInt(gross)-BigInt(credited)-BigInt(paid);
@@ -45,7 +46,8 @@ export async function linkedCreditDocuments(q:Queryable,company:string,original:
     if(!row.verified_journal_id || row.kind!==expectedKind || row.party_id!==original.party_id ||
       row.source.currency!==original.source.currency) fail(503,'CREDIT_HISTORY_INVALID');
     const history=await amendmentHistory(q,company,row,to);
-    if(row.posting_date<=to) result.push(history.current);
+    const compensations=await compensationHistory(q,company,row);
+    if(row.posting_date<=to && !compensations.some(c=>c.effective_date<=to)) result.push(history.current);
   }
   return result;
 }

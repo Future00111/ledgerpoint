@@ -2824,6 +2824,12 @@
       {
         "id": "national_insurance",
         "backlogTask": "P09-04",
+        "referenceFixturePack": {
+          "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-ni-2026-27-v1.0.json",
+          "sourceSha256": "49edd60c91df45d5f529b92291c018e4fc453ab17675035d1f2662825c0b0368",
+          "caseCount": 896,
+          "qualification": "reference_fixtures_only_not_engine_qualification"
+        },
         "status": "unqualified",
         "owner": "coordinator",
         "variants": [

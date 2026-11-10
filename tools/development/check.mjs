@@ -23,6 +23,8 @@ env.NODE_ENV = 'test';
 env.NODE_PATH = path.join(api, 'node_modules');
 const apiTests = [
   'src/middlewares/companyScope.test.ts',
+  'src/services/bankImportMoney.test.ts',
+  'src/services/ai/lazy.test.ts',
   'src/services/financialDrafts/contract.test.ts',
   'src/services/financialDrafts/jsonBoundary.test.ts',
   'src/services/financialDrafts/discounts.test.ts',
@@ -41,6 +43,7 @@ const apiTests = [
   'src/services/documentIntake/extraction/contract.test.ts',
   'src/services/documentIntake/extraction/worker.test.ts',
   'src/routes/legacyChartBootstrapPolicy.test.ts',
+  'src/routes/conditionalReplacementRoutes.test.ts',
   'src/services/ai-accountant/matcher.scenarios.test.ts',
   'src/services/ai-accountant/collectionsAnalysis.scenarios.test.ts',
   'src/services/ai-accountant/vat.scenarios.test.ts',
@@ -55,7 +58,8 @@ try {
   const mjs = [...readdirSync(frontend, { recursive: true }).filter(file => file.endsWith('.test.mjs')).map(file => path.join(frontend, file)),
     ...readdirSync(path.join(api, 'src/services'), { recursive: true }).filter(file => file.endsWith('.test.mjs')).map(file => path.join(api, 'src/services', file)),
     ...readdirSync(path.join(root, 'tools/development/work-queue')).filter(file => file.endsWith('.test.mjs')).map(file => path.join(root, 'tools/development/work-queue', file)),
-    path.join(root,'tools/accounting-flow/restore-drill.test.mjs')];
+    path.join(root,'tools/accounting-flow/restore-drill.test.mjs'),
+    path.join(root,'tools/payroll-specification/studentLoans.test.mjs')];
   execFileSync(process.execPath, ['--test', ...mjs], { cwd: root, env, stdio: 'inherit' });
   const renders = readdirSync(frontend, { recursive: true }).filter(file => file.endsWith('.test.jsx'));
   for (const [index, entry] of renders.entries()) {

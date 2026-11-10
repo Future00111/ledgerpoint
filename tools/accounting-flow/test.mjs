@@ -42,10 +42,19 @@ try {
   await admin.query('CREATE DATABASE ledgerly_accounting_flow_test');await admin.end();
   admin=new Client({host:socket,port,user:'w03_bootstrap',database:'ledgerly_accounting_flow_test',password:()=>'',ssl:false,options:'-c timezone=UTC'});await admin.connect();
   await installSchema(admin,exportSchema(),{includeAmendments:true});await admin.end();admin=null;
+  // The canonical suite requires its own empty baseline and UUID-bound identity.
+  // Never reuse the accounting fixtures or a caller-supplied database.
+  const canonicalDatabase='ledgerly_canonical_test_'+runId.replaceAll('-','');
+  admin=new Client({host:socket,port,user:'w03_bootstrap',database:'postgres',password:()=>'',ssl:false});
+  await admin.connect();await admin.query(`CREATE DATABASE ${canonicalDatabase}`);
+  await admin.query(`REVOKE TEMPORARY ON DATABASE ${canonicalDatabase} FROM PUBLIC`);await admin.end();
+  admin=new Client({host:socket,port,user:'w03_bootstrap',database:canonicalDatabase,password:()=>'',ssl:false});
+  await admin.connect();await installSchema(admin,exportSchema(),{includeAmendments:true});await admin.end();admin=null;
   const testEnv={...env,NODE_ENV:'test',NODE_PATH:root+'/artifacts/api-server/node_modules',
     ACCOUNTING_FLOW_TEST_SOCKET:socket,
     DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_test?host=${encodeURIComponent(socket)}&port=${port}`};
   for(const [entry,output] of [
+    ['src/services/accounting/canonicalPosting.integration.test.ts','canonical-posting-flow.test.cjs'],
     ['src/services/accountingDocuments/integration.test.ts','accounting-flow.test.cjs'],
     ['src/services/accountingDocuments/conditionalDiscount.integration.test.ts','conditional-discount-flow.test.cjs'],
     ['src/services/accountingDocuments/conditionalDiscount.test.ts','conditional-discount-unit.test.cjs'],
@@ -57,13 +66,26 @@ try {
   ]) {
     execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',entry,
       '--bundle','--platform=node','--format=cjs','--external:pg','--external:@clerk/express',
+      '--external:pino','--external:pino-http','--external:pino-pretty','--external:thread-stream',
       '--outfile=../../generated-artifacts/'+output],{cwd:root,stdio:'inherit'});
-    const result=spawn(process.execPath,['--test',root+'/generated-artifacts/'+output],{cwd:root,env:testEnv,stdio:'inherit'});
+    const suiteEnv=output==='canonical-posting-flow.test.cjs' ? {...testEnv,
+      DATABASE_URL:`postgresql://ledgerly_api@localhost/${canonicalDatabase}?host=${encodeURIComponent(socket)}&port=${port}`,
+      LEDGERLY_CANONICAL_TEST_DATABASE_NAME:canonicalDatabase,
+      LEDGERLY_CANONICAL_TEST_RUN_ID:runId,
+      LEDGERLY_CANONICAL_TEST_ENVIRONMENT:'development-disposable-test'} : testEnv;
+    const result=spawn(process.execPath,['--test',root+'/generated-artifacts/'+output],{cwd:root,env:suiteEnv,stdio:'inherit'});
     exitCode=await new Promise((resolve,reject)=>{result.on('error',reject);result.on('exit',code=>resolve(code??1));});
     if(exitCode!==0) break;
   }
   if(exitCode===0) {
     restore={runId,sourceCommit,startedAt,...await runRestoreDrill({Client,directory:dir,socket,port})};
+    execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',
+      'src/services/accountingDocuments/conditionalCompensation.restore.test.ts','--bundle','--platform=node',
+      '--format=cjs','--external:pg','--outfile=../../generated-artifacts/compensation-restore.test.cjs'],{cwd:root,stdio:'inherit'});
+    const result=spawn(process.execPath,['--test',root+'/generated-artifacts/compensation-restore.test.cjs'],{cwd:root,
+      env:{...testEnv,DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_restore_test?host=${encodeURIComponent(socket)}&port=${port}`},stdio:'inherit'});
+    exitCode=await new Promise((resolve,reject)=>{result.on('error',reject);result.on('exit',code=>resolve(code??1));});
+    restore.compensationAcceptanceVerified=exitCode===0;
     writeFileSync(restoreReceipt,JSON.stringify(restore,null,2)+'\n');
     console.log('Disposable backup/restore verified: original rows, restored evidence and restricted runtime match.');
   }

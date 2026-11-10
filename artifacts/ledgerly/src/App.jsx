@@ -235,6 +235,8 @@ function App() {
       appearance={clerkAppearance}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}
+      signInFallbackRedirectUrl={`${basePath}/`}
+      signUpFallbackRedirectUrl={`${basePath}/`}
     >
       <QueryClientProvider client={queryClientInstance}>
         <Router basename={basePath}>

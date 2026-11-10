@@ -1142,7 +1142,29 @@ async function postLinkedJournal(
   }) => Promise<CanonicalLineDraft[]> | CanonicalLineDraft[],
 ): Promise<CanonicalPostingResult> {
   validateCommand(command);
-  return runCanonicalTransaction(async (transaction) => {
+  return runCanonicalTransaction(transaction => postLinkedJournalInTransaction(transaction, command, dependencies, relation, buildDrafts));
+}
+
+async function postLinkedJournalInTransaction(
+  transaction: DatabaseTransaction,
+  command: CanonicalPostingCommand,
+  dependencies: Pick<
+    CanonicalPostingDependencies,
+    "contextProvider" | "lineBuilder" | "hooks"
+  >,
+  relation: {
+    originalJournalId: string;
+    relationType: "reversal" | "correction";
+    reason: string;
+  },
+  buildDrafts: (input: {
+    source: CanonicalSourceSnapshot;
+    context: PostingContext;
+    originalLines: CanonicalJournalLine[];
+  }) => Promise<CanonicalLineDraft[]> | CanonicalLineDraft[],
+): Promise<CanonicalPostingResult> {
+  if (!protectedTransactions.has(transaction)) throw new Error("Protected posting transaction required");
+  validateCommand(command);
     await dependencies.hooks?.afterTransactionStart?.(transaction);
     const [preliminaryOriginal] = await transaction
       .select()
@@ -1318,13 +1340,22 @@ async function postLinkedJournal(
       correction: relation,
       hooks: dependencies.hooks,
     });
-  });
 }
 
 export async function reverseCanonicalJournal(
   command: CanonicalReversalCommand,
   dependencies: Pick<CanonicalPostingDependencies, "contextProvider" | "hooks">,
 ): Promise<CanonicalPostingResult> {
+  return runCanonicalTransaction(transaction => reverseCanonicalJournalInTransaction(transaction, command, dependencies));
+}
+
+/** Append a linked reversal within an already protected parent operation. */
+export async function reverseCanonicalJournalInTransaction(
+  transaction: DatabaseTransaction,
+  command: CanonicalReversalCommand,
+  dependencies: Pick<CanonicalPostingDependencies, "contextProvider" | "hooks">,
+): Promise<CanonicalPostingResult> {
+  if (!protectedTransactions.has(transaction)) throw new Error("Protected posting transaction required");
   const reason = requireNonEmpty(command.reason, "reason");
   const originalJournalId = requireNonEmpty(
     command.originalJournalId,
@@ -1345,7 +1376,8 @@ export async function reverseCanonicalJournal(
     description: `Reversal of ${originalJournalId}`,
     reference: command.reference ?? null,
   };
-  return postLinkedJournal(
+  return postLinkedJournalInTransaction(
+    transaction,
     sourceCommand,
     {
       ...dependencies,

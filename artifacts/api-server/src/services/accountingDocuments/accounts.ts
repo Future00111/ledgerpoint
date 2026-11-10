@@ -62,7 +62,8 @@ export async function validateAccounts(q:Queryable,company:string,mappings:Recor
   const paymentConfig=(await q.query('SELECT mappings FROM accounting_payment_configuration WHERE company_id=$1',[company])).rows[0];
   const historical=(await q.query(`SELECT DISTINCT source->>'bank_account_id' bank,source->>'pool_account_id' pool
     FROM accounting_payment_events WHERE company_id=$1`,[company])).rows;
-  if(Object.values(mappings).some(id=>Object.values(paymentConfig?.mappings??{}).includes(id)||historical.some(h=>h.bank===id||h.pool===id)))
+  const openingBanks=(await q.query('SELECT bank_ledger_account_id FROM accounting_bank_openings WHERE company_id=$1',[company])).rows;
+  if(Object.values(mappings).some(id=>Object.values(paymentConfig?.mappings??{}).includes(id)||historical.some(h=>h.bank===id||h.pool===id)||openingBanks.some(o=>o.bank_ledger_account_id===id)))
     throw new AccountSelectionError('/mappings','Payment bank and unapplied-cash accounts must remain separate from document control accounts.');
   const ids=needed.map(role=>accountId(mappings[role],paths[role]??`/mappings/${role}`));
   const rows=await q.query("SELECT * FROM chart_of_accounts WHERE company_id=$1 AND id=ANY($2::uuid[]) ORDER BY id FOR UPDATE",[company,ids]);

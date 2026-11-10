@@ -4,6 +4,7 @@ import { transact, scope, sales, credit, supportedCompany, type Kind } from "./c
 import { movementAccounts, sections } from "./presentation";
 import { amendmentHistory, amendmentSchema } from './amendments';
 import { buildVatCoverage } from './vatCoverage';
+import { compensationHistory } from './conditionalCompensation';
 
 const signed=(row:any)=>BigInt(row.debit_minor)-BigInt(row.credit_minor);
 const lower=(value:unknown)=>String(value??"").toLowerCase();
@@ -109,8 +110,12 @@ export async function reports(company:string,actor:string,from:string,to:string,
       const amendments=history?.rows.filter(row=>row.effective_date<=to)??[];
       const current=history?.current??d;
       const sign=credit(d.kind)?-1n:1n;
+      const compensation=credit(d.kind)?await compensationHistory(q,company,d):[];
       const facts=[{journal_id:d.journal_id,date:d.posting_date,recorded_at:d.journal_created_at,money:d.money,movement_kind:'original'},
-        ...amendments.map(row=>({journal_id:row.journal_id,date:row.effective_date,recorded_at:row.created_at,money:row.delta_money,movement_kind:'financial_correction'}))];
+        ...amendments.map(row=>({journal_id:row.journal_id,date:row.effective_date,recorded_at:row.created_at,money:row.delta_money,movement_kind:'financial_correction'})),
+        ...compensation.filter(row=>row.effective_date<=to).map(row=>({journal_id:row.journal_id,date:row.effective_date,
+          recorded_at:row.created_at,money:Object.fromEntries(['net_pence','vat_pence','gross_pence'].map(k=>[k,(-BigInt(d.money[k])).toString()])),
+          movement_kind:'conditional_discount_compensation'}))];
       const party=(await q.query(`SELECT name FROM ${sales(d.kind)?"customers":"suppliers"} WHERE company_id=$1 AND id=$2`,[company,d.party_id])).rows[0];
       if(!party) fail(503,"REPORT_PARTY_MISSING");
       const p=parties.get(d.party_id)??{party_id:d.party_id,party_name:party.name,
@@ -125,8 +130,8 @@ export async function reports(company:string,actor:string,from:string,to:string,
           .reduce((n,line)=>n+signed(line),0n)*(sales(d.kind)?-1n:1n);
         const taxExpected=(sales(d.kind)||d.purchase_vat_eligible?BigInt(fact.money.vat_pence):0n)*sign;
         if(tax!==taxExpected) fail(503,"REPORT_LEDGER_MISMATCH");
-        if(fact.movement_kind==='financial_correction') for(const line of journalLines) {
-          line.document_kind=d.kind;line.document_id=d.id;line.source_number=d.number;line.movement_kind='financial_correction';
+        if(fact.movement_kind!=='original') for(const line of journalLines) {
+          line.document_kind=d.kind;line.document_id=d.id;line.source_number=d.number;line.movement_kind=fact.movement_kind;
         }
         if(sales(d.kind)) closingOutput+=tax;else closingInput+=tax;
         p.balance+=counter;
@@ -148,9 +153,15 @@ export async function reports(company:string,actor:string,from:string,to:string,
         const paid=appliedTo(payments,d.id);
         const amounts=settlementAmounts(current.money.gross_pence,credited.toString(),paid.toString());
         const remaining=BigInt(amounts.open_minor);
+        const compensationRows=(await Promise.all(docs.filter(c=>c.original_id===d.id).map(async c=>
+          (await compensationHistory(q,company,c)).filter(row=>row.effective_date<=to).map(row=>({
+            id:row.request_id,kind:'conditional_discount_compensation',document_id:d.id,document_kind:d.kind,
+            source_type:d.kind,source_id:d.id,number:c.number,date:row.effective_date,recorded_at:row.created_at,
+            journal_id:row.journal_id,amount_minor:(-BigInt(c.money.gross_pence)).toString(),
+          }))))).flat();
         const historyRows=[...docs.filter(c=>c.original_id===d.id).map(c=>({id:c.id,kind:c.kind,number:c.number,
           date:c.posting_date,recorded_at:c.journal_created_at,journal_id:c.journal_id,amount_minor:c.money.gross_pence})),
-          ...amendments.map(row=>({id:row.id,kind:'financial_correction',document_id:d.id,document_kind:d.kind,source_type:d.kind,source_id:d.id,number:d.number,date:row.effective_date,
+          ...compensationRows,...amendments.map(row=>({id:row.id,kind:'financial_correction',document_id:d.id,document_kind:d.kind,source_type:d.kind,source_id:d.id,number:d.number,date:row.effective_date,
             recorded_at:row.created_at,journal_id:row.journal_id,amount_minor:row.delta_money.gross_pence})),
           ...payments.flatMap(e=>e.allocations.filter((a:any)=>a.document_id===d.id).map((a:any)=>({id:e.id,
             kind:e.kind,number:e.reference,date:e.effective_date,recorded_at:e.created_at,journal_id:e.journal_id,
@@ -183,7 +194,8 @@ export async function reports(company:string,actor:string,from:string,to:string,
     }
     transactions.sort((a,b)=>a.date.localeCompare(b.date)||new Date(a.recorded_at).getTime()-new Date(b.recorded_at).getTime()||a.source_id.localeCompare(b.source_id));
     const paymentConfig=(await q.query('SELECT mappings FROM accounting_payment_configuration WHERE company_id=$1',[company])).rows[0];
-    const bankIds=new Set([paymentConfig?.mappings?.bank,...payments.map(e=>e.source.bank_account_id)].filter(Boolean));
+    const openings=(await q.query('SELECT bank_ledger_account_id FROM accounting_bank_openings WHERE company_id=$1',[company])).rows;
+    const bankIds=new Set([paymentConfig?.mappings?.bank,...payments.map(e=>e.source.bank_account_id),...openings.map(o=>o.bank_ledger_account_id)].filter(Boolean));
     const cash=all.rows.filter(l=>bankIds.has(l.account_id)).reduce((n,l)=>n+signed(l),0n);
     const drafts=(await q.query(`SELECT id,kind,number,party_id,source->>'issue_date' date,money->>'gross_pence' gross_minor
       FROM accounting_document_sources WHERE company_id=$1 AND status='draft' ORDER BY created_at DESC`,[company])).rows;
@@ -209,7 +221,11 @@ export async function reports(company:string,actor:string,from:string,to:string,
         net_assets_minor:(assets-closingInput+(closingInput>closingOutput?closingInput-closingOutput:0n)).toString(),
         net_liabilities_minor:(liabilities-closingOutput+(closingOutput>closingInput?closingOutput-closingInput:0n)).toString(),
         balanced:assets===liabilities+equity+earnings},
-      vat,vat_coverage:buildVatCoverage({from,to,vat,movements:postedDocuments}),
+      // The coverage contract calls all signed delta movements financial
+      // corrections; preserve the precise compensation kind in report/history.
+      vat,vat_coverage:buildVatCoverage({from,to,vat,movements:postedDocuments.map(m=>
+        m.movement_kind==='conditional_discount_compensation'?{...m,movement_kind:'financial_correction',
+          adjustment_kind:m.movement_kind}:m)}),
       party_balances:[...parties.values()].map(({balance,unapplied,...p})=>({...p,balance_minor:balance.toString(),
         unapplied_minor:unapplied.toString(),net_balance_minor:(balance-unapplied).toString()})),
       party_transactions:transactions,

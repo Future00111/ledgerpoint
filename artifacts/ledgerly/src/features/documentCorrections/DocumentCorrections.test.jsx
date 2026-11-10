@@ -12,8 +12,11 @@ const review={intent:{effective_date:'2026-10-30'},before:{money},after:{money:{
 const render=(state,ack=false)=>renderToStaticMarkup(<MemoryRouter><CorrectionWorkspace state={state} form={form} acknowledged={ack} /></MemoryRouter>);
 test('review displays exact before/after balance, unchanged payments and bounded credit restrictions',()=>{
  const html=render({status:'reviewed',context,review});
- for(const text of ['£120.00','£108.00','£70.00','£58.00','£50.00','cannot receive new credit notes','Immutable original','Post correction'])assert.ok(html.includes(text),text);
+ for(const text of ['£120.00','£108.00','£70.00','£58.00','£50.00','within their remaining line amounts','replacement terms and return-credit tracking','Immutable original','Post correction'])assert.ok(html.includes(text),text);
  assert.match(html,/disabled=""[^>]*>Post correction/);assert.ok(!render({status:'reviewed',context,review},true).match(/disabled=""[^>]*>Post correction/));
+ assert.ok(html.includes('Posted credits remain included in the outstanding balance.'));
+ assert.ok(html.includes('a linked draft credit must be resolved before correction.'));
+ assert.ok(!html.includes('Documents with existing linked credits cannot be corrected here.'));
 });
 test('blocked/read-only context exposes history and explanation without editing or posting controls',()=>{
  const html=render({status:'ready',context:{...context,capabilities:{review_corrections:false,correct_documents:false},blockers:[{code:'CHILD_CREDIT',message:'A linked credit must be resolved first.'}]}});
@@ -21,7 +24,12 @@ test('blocked/read-only context exposes history and explanation without editing 
 });
 test('unknown outcome offers exact-request check and does not offer a fresh post',()=>{
  const html=render({status:'unknown',context,review,error:Error('Interrupted')});
- assert.ok(html.includes('may already be posted'));assert.ok(html.includes('Check this correction again'));assert.ok(html.includes('Leaving or reloading clears'));assert.ok(!html.includes('>Post correction<'));assert.match(html,/disabled=""[^>]*>Close/);
+ assert.ok(html.includes('may already be posted'));assert.ok(html.includes('Check this correction again'));assert.ok(html.includes('survives reload'));assert.ok(!html.includes('>Post correction<'));assert.match(html,/disabled=""[^>]*>Close/);
+});
+test('reloaded recovery without form context stays visible and cannot post',()=>{
+ const html=render({status:'unknown',requestId:'saved-request'});
+ assert.ok(html.includes('Check this correction again'));assert.ok(html.includes('read-only'));
+ assert.ok(!html.includes('Post correction'));assert.ok(!html.includes('Review revised amounts'));
 });
 test('loading exposes no stale financial values or edit form',()=>{
  const html=render({status:'loading'});assert.ok(!html.includes('£120.00'));assert.ok(!html.includes('Repair labour'));assert.ok(html.includes('aria-busy="true"'));

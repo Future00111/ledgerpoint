@@ -488,3 +488,95 @@ not qualify. The exact review retains qualifying events and their clocks.
 This is admission evidence only. Atomic agreement consumption/redemption, all
 writer guards, compensation, prior-credit/correction combinations, native API/UI
 and browser acceptance remain pending before activation or parent acceptance.
+
+## Unintegrated compensation candidate (2026-11-05)
+
+The preceding paragraph records the base revision, not acceptance of this local
+successor. This independently prepared candidate reuses the original binding,
+fresh observer, existing eligibility/redemption, canonical reversal and native
+payment engines. It is not integrated, pushed, activated or independently
+accepted. Both public conditional posting rejection gates remain unchanged.
+
+### Atomic boundary and immutable evidence
+
+`conditionalCompensation.ts` exposes internal server review/commit/recovery.
+Commit requires both posting and reversal capabilities, current company
+membership, a fresh exact review, open period and locked company/source/account
+authority. Its one protected transaction reverses the **entire frozen posted
+discount credit**, unallocates the expressly reviewed amount using the existing
+payment engine, appends `conditional_discount_compensations`, and updates the
+derived settlement projection. Failure at any stage rolls back both journals,
+payment event, evidence and projections.
+
+The native payment guard has no caller flag or HTTP escape hatch. Only this
+service can hold an exact command/actor/company capability in its private
+transaction WeakMap, removed in `finally`. Normal unallocation/reversal of a
+consumed qualifying payment stays blocked. The consumption record is never
+deleted or reset: compensation does not grant another redemption.
+
+The new fresh-install-only review SQL requires both child journal origins in
+the same current top-level transaction, scoped immutable source revision/hash,
+original consumption, exact child IDs and frozen financial context. A later
+attempt to attach those already-committed children fails before uniqueness
+checking. Hashes use the existing recursively sorted JSON/`hash()` contract;
+`jsonb::text` is not used as a source-evidence hash.
+
+### Expected accounting and historical projection
+
+For both parties: original £120 (net £100/VAT £20), full discount credit £12
+(£10/£2), and qualifying allocation £108 initially leave zero outstanding.
+Undoing £10 of allocation plus reversing the full £12 credit leaves £98
+allocated, £22 outstanding, £10 unapplied, and unchanged cash.
+
+Customer compensation reverses the actual credit lines (debit debtors £12,
+credit revenue £10/output VAT £2), then debits debtors £10/credits the payment
+pool £10. Supplier compensation reverses the actual supplier credit (debit
+expense £10/input VAT £2, credit creditors £12), then debits the supplier
+prepayment pool £10/credits creditors £10. The two journals total £22 each
+side; no bank line is used.
+
+Settlement excludes the compensated credit only from its effective adjustment
+date; its original source, money, journal and consumption remain. Statements,
+open-item history and reports show the signed compensation separately. Historical
+cutoffs before compensation still show the original credit and zero open amount;
+after compensation they show £22. P&L/VAT use period movements, trial balance and
+balance sheet use closing balances. VAT coverage represents compensation as a
+signed correction delta with its explicit compensation adjustment kind, not as
+another ordinary credit or new VAT calculation.
+
+### Review-only native interface
+
+The existing Payments screen mounts a narrow conditional-compensation panel.
+Company-scoped native routes provide context, review and exact-request recovery.
+There is **no public compensation commit route or client method**. Review has a
+disabled Confirm posting action explaining the acceptance gate; changing input
+invalidates its result, Cancel cancels review only, and an unknown recovered
+outcome does not authorise resubmission or imply rollback.
+
+The loopback Chromium integration case uses the real component and native
+read-only APIs with the existing **synthetic test authentication seam**, inside
+the runner's new disposable cluster. It checks review, stale-input clearing,
+Cancel, unknown outcome and unchanged financial rows. This is not a Clerk
+sign-in walkthrough, existing-demo inspection, independent-human approval, or
+public conditional posting acceptance. Production Clerk middleware is unchanged.
+
+### Explicit unsupported combinations and verification
+
+Downstream refunds/reallocations, unrelated allocations, additional prior credits,
+corrected/reversed originals and full cash-payment reversals are not enabled by
+this operation. Unsupported histories reject without financial effects. This
+does not change or duplicate allocation/refund engines, create an ordinary-credit
+VAT shortcut, reopen historical periods, or enable statutory/filing workflows.
+
+Validation uses only `node tools/accounting-flow/test.mjs` under the documented
+sanitised environment and its own fresh `/tmp/ledgerly-accounting-flow-tests-*`
+socket. Cases cover both parties, VAT-frozen inverse lines, unchanged originals
+and cash, rollback after each child/evidence/projection stage, identical replay,
+conflicting requests/races, stale review, revoked membership, foreign company,
+closed period, unsupported refund, permanent consumption and retroactive-attach
+rejection. Populated restore additionally invokes the native historical reports
+and known-request recovery under restricted `ledgerly_api`; the encrypted
+separate-cluster drill retains its all-table fingerprint and isolation checks.
+Exact commits, logs, counts, restore/cleanup receipts and patches are exported
+outside this source checkout. Local checks are not GitHub CI or production/HMRC
+qualification. Independent integration/activation acceptance remains required.

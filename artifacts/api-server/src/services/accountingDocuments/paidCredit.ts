@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
+import { commercialCreditAdmission } from './commercialCredit';
 import { fail, uuid } from '../financialDrafts/contract';
 import { withCanonicalPostingTransaction, roleHasAccountingCapability, type DatabaseTransaction } from '../accounting/canonicalPosting';
 import { document, scope, transact, queryAdapter, exactFields, hash, credit, sales, type Queryable } from './core';
-import { assertUncorrectedOriginal } from './amendments';
+import { creditOriginal, assertCreditCapacity } from './creditCapacity';
 import { documentOpen, paymentEvents, appliedTo, unappliedEffect } from './settlement';
 import { postPayment, previewPaymentInTransaction } from './payments';
 import { postDocument } from './posting';
@@ -37,13 +38,14 @@ function childId(request:string,payment:string) {
   const h=createHash('sha256').update(`paid-credit:${request}:${payment}`).digest('hex');
   return `${h.slice(0,8)}-${h.slice(8,12)}-4${h.slice(13,16)}-a${h.slice(17,20)}-${h.slice(20,32)}`;
 }
-async function plan(q:Queryable,company:string,actor:string,id:string,expected:string,b:ReturnType<typeof intent>,conditional=false) {
+// Server-selected mode only. HTTP request parsing never accepts it.
+type CreditPurpose=false|true|'commercial';
+async function plan(q:Queryable,company:string,actor:string,id:string,expected:string,b:ReturnType<typeof intent>,conditional:CreditPurpose=false) {
   await authority(q,company,actor);
   const row=await document(q,company,id,true);
   if(!credit(row.kind)||row.status!=='draft') fail(409,'CREDIT_DRAFT_REQUIRED');
   if(row.revision!==expected) fail(409,'REVISION_CONFLICT');
-  const original=await document(q,company,row.original_id,true);
-  await assertUncorrectedOriginal(q,company,original);
+  const original=await creditOriginal(q,company,row.original_id,row.source.issue_date);
   if(!conditional) await assertNoConditionalCredit(q,company,original);
   if(conditional) {
     for(const saved of [original,row]) {
@@ -53,16 +55,7 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
     }
   }
   if(row.source.issue_date<original.source.issue_date) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
-  const linked=(await q.query("SELECT d.*,j.posting_date::text FROM accounting_document_sources d JOIN canonical_journal_entries j ON j.id=d.journal_id AND j.company_id=d.company_id WHERE d.company_id=$1 AND d.original_id=$2 AND d.status='posted'",[company,original.id])).rows;
-  if(linked.some(c=>c.posting_date>row.source.issue_date)) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
-  for(let i=0;i<row.money.lines.length;i++) {
-    const ref=row.tax_context.original_line_refs[i];
-    for(const field of ['net_pence','vat_pence','gross_pence']) {
-      let n=BigInt(row.money.lines[i][field]);
-      for(const c of linked){const ix=c.tax_context.original_line_refs.indexOf(ref);if(ix>=0)n+=BigInt(c.money.lines[ix][field]);}
-      if(n>BigInt(original.money.lines[ref][field]))fail(409,'CREDIT_EXCEEDS_COMMERCIAL_CAPACITY');
-    }
-  }
+  const linked=await assertCreditCapacity(q,company,original,row);
   const events=await paymentEvents(q,company),open=await documentOpen(q,company,original.id,events);
   const value=BigInt(row.money.gross_pence),capacity=BigInt(open.gross_minor)-BigInt(open.credited_minor);
   if(value<=0n||value>capacity) fail(409,'CREDIT_EXCEEDS_COMMERCIAL_CAPACITY');
@@ -86,10 +79,11 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
   for(const release of releases) if(events.some(e=>(e.id===release.payment_id||e.payment_id===release.payment_id)&&e.effective_date>row.source.issue_date)) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
   if(events.some(e=>e.effective_date>row.source.issue_date&&e.allocations.some((a:any)=>a.document_id===original.id))) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
   const configurations=(await q.query('SELECT * FROM accounting_payment_configuration WHERE company_id=$1',[company])).rows;
-  const admission=conditional?await conditionalCreditAdmission(q,company,original,row,releases):undefined;
-  const review={...(admission?{conditional_admission:admission,conditional_credit_payload:canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts})}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
+  const admission=conditional===true?await conditionalCreditAdmission(q,company,original,row,releases):undefined;
+  const commercial=conditional==='commercial'?await commercialCreditAdmission(q,company,original,row):undefined;
+  const review={...(commercial?{commercial_admission:commercial}:{}),...(admission?{conditional_admission:admission,conditional_credit_payload:canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts})}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
     credit_minor:value.toString(),offset_minor:(value-excess).toString(),released_minor:excess.toString(),remaining_minor:(BigInt(open.open_minor)-(value-excess)).toString(),releases};
-  return {...review,review_token:hash({company,actor,review,row,original,events,periods,configurations})};
+  return {...review,review_token:hash({company,actor,review,row,original,linked,events,periods,configurations})};
 }
 export async function reviewPaidCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
   const b=intent(body);return transact(q=>plan(q,company,actor,id,expected,b));
@@ -98,10 +92,10 @@ export async function reviewPaidCredit(company:string,actor:string,id:string,exp
 export async function reviewConditionalCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
   const b=intent(body);return transact(q=>plan(q,company,actor,id,expected,b,true));
 }
-async function commitCredit(company:string,actor:string,id:string,expected:string,body:unknown,conditional:boolean,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+async function commitCredit(company:string,actor:string,id:string,expected:string,body:unknown,conditional:CreditPurpose,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
   const b=intent(body),input=body as any;
   if(typeof input.review_token!=='string'||!/^sha256:[a-f0-9]{64}$/.test(input.review_token)||!Array.isArray(input.releases)) fail(428,'PAID_CREDIT_REVIEW_REQUIRED');
-  const requestHash=hash({company,actor,id,expected,...b,review_token:input.review_token,releases:input.releases,...(conditional?{conditional:true}:{})});
+  const requestHash=hash({company,actor,id,expected,...b,review_token:input.review_token,releases:input.releases,...(conditional?{conditional}: {})});
   return withCanonicalPostingTransaction(async tx=>{
     const q=queryAdapter(tx);await authority(q,company,actor);
     const creditRow=await document(q,company,id,true);
@@ -137,4 +131,12 @@ export async function commitPaidCredit(company:string,actor:string,id:string,exp
 /** Internal server command. Deliberately not mounted on an HTTP route. */
 export async function commitConditionalCredit(company:string,actor:string,id:string,expected:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
   return commitCredit(company,actor,id,expected,body,true,testHook);
+}
+
+/** Internal ordinary price adjustment; no HTTP route and no request mode flag. */
+export async function reviewCommercialCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
+  return transact(q=>plan(q,company,actor,id,expected,intent(body),'commercial'));
+}
+export async function commitCommercialCredit(company:string,actor:string,id:string,expected:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+  return commitCredit(company,actor,id,expected,body,'commercial',testHook);
 }

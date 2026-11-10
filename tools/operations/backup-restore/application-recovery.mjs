@@ -35,17 +35,17 @@ export function prepareApplicationRuntime({ directory, socket, port }) {
 }
 
 const roleSQL = `SELECT rolname,rolsuper,rolinherit,rolcreaterole,rolcreatedb,rolcanlogin,rolreplication,rolbypassrls
-  FROM pg_roles WHERE rolname IN ('ledgerly_api','ledgerly_canonical_owner') ORDER BY rolname`;
+  FROM pg_roles WHERE rolname IN ('ledgerly_api','ledgerly_bank_import_owner','ledgerly_canonical_owner') ORDER BY rolname`;
 const membershipSQL = `SELECT parent.rolname role_name,member.rolname member_name,m.admin_option
   FROM pg_auth_members m JOIN pg_roles parent ON parent.oid=m.roleid JOIN pg_roles member ON member.oid=m.member
-  WHERE parent.rolname IN ('ledgerly_api','ledgerly_canonical_owner') OR member.rolname IN ('ledgerly_api','ledgerly_canonical_owner')
+  WHERE parent.rolname IN ('ledgerly_api','ledgerly_bank_import_owner','ledgerly_canonical_owner') OR member.rolname IN ('ledgerly_api','ledgerly_bank_import_owner','ledgerly_canonical_owner')
   ORDER BY role_name,member_name`;
 export function assertApplicationArchive({ directory, archive }) {
   if (typeof directory !== 'string' || !/^\/tmp\/ledgerly-accounting-flow-tests-[a-zA-Z0-9]{6}$/.test(directory) ||
       archive !== path.join(directory, 'synthetic-accounting.dump')) throw new Error('Only the populated disposable accounting archive is allowed.');
 }
 export function assertApplicationRoles(roles, memberships) {
-  const expected = ['ledgerly_api', 'ledgerly_canonical_owner'].map((rolname, i) => ({
+  const expected = ['ledgerly_api', 'ledgerly_bank_import_owner', 'ledgerly_canonical_owner'].map((rolname, i) => ({
     rolname, rolsuper: false, rolinherit: true, rolcreaterole: false, rolcreatedb: false,
     rolcanlogin: i === 0, rolreplication: false, rolbypassrls: false,
   }));
@@ -84,7 +84,8 @@ export async function recoverApplicationArchive({ Client, directory, archive, so
     if (identity.directory !== data || identity.address !== null || identity.database !== 'postgres' || identity.actor !== 'w03_bootstrap')
       throw new Error('New application recovery cluster identity mismatch.');
     await restored.query(`CREATE ROLE ledgerly_api LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
-      CREATE ROLE ledgerly_canonical_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);
+      CREATE ROLE ledgerly_canonical_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+      CREATE ROLE ledgerly_bank_import_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);
     // Restore only authenticated bytes; never use the original plaintext dump here.
     run('pg_restore', ['-h', socket, '-p', String(port), '-U', 'w03_bootstrap', '-d', 'postgres', '--exit-on-error', recovered]);
     assertSameFingerprint(before, await fingerprintDatabase(restored));

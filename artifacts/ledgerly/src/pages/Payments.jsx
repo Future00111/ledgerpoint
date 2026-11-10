@@ -1,3 +1,4 @@
+import { paymentFormContextPending } from '@/features/paymentWorkspace/model.mjs';
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,7 +13,9 @@ import { useCompany } from '@/lib/useCompany';
 import { useLedgerSnapshot } from '@/lib/useLedgerSnapshot';
 import { createPaymentRequestScope, runPaymentRequest, bindPaymentReview, paymentForEvent } from '@/lib/paymentRequestScope.mjs';
 import { accounting, docPath } from '@/api/accountingDocuments.mjs';
+import ConditionalCompensationPanel from '@/features/conditionalCompensation/ConditionalCompensationReview';
 import { createPaymentRecovery, canConfigurePayments, canPostPayments, recoveryBusy, recoveryUnresolved } from '@/features/paymentRecovery/model.mjs';
+import { createPaymentLocator } from '@/features/paymentRecovery/locator.mjs';
 import { PaymentToolbar, PaymentHistoryActions, PaymentEventHistory, PaymentRecoveryPanel } from '@/features/paymentRecovery/PaymentControls';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,7 +48,12 @@ function CompanyPayments({ company, companyName }) {
   const [context, setContext] = useState(null), [payments, setPayments] = useState(null), [error, setError] = useState(null);
   const [tick, setTick] = useState(0), [requestBusy, setBusy] = useState(false), [setup, setSetup] = useState(false), [mappings, setMappings] = useState({});
   const [form, setForm] = useState(null), [review, setReview] = useState(null), [result, setResult] = useState(null), [detail, setDetail] = useState(null);
-  const [recovery] = useState(() => createPaymentRecovery(company, accounting));
+  const [recovery] = useState(() => {
+    const locator = createPaymentLocator(company);
+    return createPaymentRecovery(company, accounting, { recoveryRequestId: locator.read(),
+      rememberRequest: id => locator.remember(id), forgetRequest: locator.forget,
+      nextRecoveryRequest: locator.read });
+  });
   const recoveryState = useSyncExternalStore(recovery.subscribe, recovery.getSnapshot, recovery.getSnapshot);
   const unresolved = recoveryUnresolved(recoveryState), busy = requestBusy || recoveryBusy(recoveryState);
   const [closingRecovery, setClosingRecovery] = useState(false), [abandoned, setAbandoned] = useState(null);
@@ -84,6 +92,7 @@ function CompanyPayments({ company, companyName }) {
   const start = (kind = 'payment', payment = null) => {
     if (busy || unresolved || !canPost || !context?.configuration || !ledger.data || ledger.error) return false;
     requestScope.invalidate(); recovery.clearRecorded(); setClosingRecovery(false);
+    if (recoveryUnresolved(recovery.getSnapshot())) { setResult(null); return false; }
     const partyType = payment?.party_type || (params.get('party_type') === 'supplier' ? 'supplier' : 'customer');
     const requestedParty = payment?.party_id || params.get('party_id') || '';
     const partyId = (partyType === 'customer' ? context.customers : context.suppliers).some(party => party.id === requestedParty) ? requestedParty : '';
@@ -131,11 +140,11 @@ function CompanyPayments({ company, companyName }) {
   const post = async () => {
     if (!review || busy || unresolved || !canPost) return;
     setError(null);
-    await recovery.record(review, context.capabilities);
+    try { await recovery.record(review, context.capabilities); } catch (err) { setError(err); }
   };
   const closeForm = () => {
     if (busy) return;
-    if (unresolved) { setClosingRecovery(true); return; }
+    if (unresolved) { setForm(null); setReview(null); return; }
     requestScope.invalidate(); setForm(null); setReview(null); setError(null);
   };
   const abandonRecovery = () => {
@@ -153,10 +162,17 @@ function CompanyPayments({ company, companyName }) {
   };
   const shownPayments = filterPayments(payments || [], filters).slice().reverse();
   const partyStatementPath = detail ? statementPath(context, detail) : null;
+  if (paymentFormContextPending(form, context)) return <div className="workspace-page">
+    <p role="status">Refreshing payment permissions and accounts. Your existing payment request is preserved; nothing is being submitted.</p>
+    <ErrorBox error={error} onRetry={() => setTick(t => t + 1)} />
+    {!error && <SkeletonRows rows={4} />}
+  </div>;
   return <div className="workspace-page">
     <PageHeader eyebrow="Money in and out" title="Payments" description="Record money already received or paid, then follow its allocations and remaining balance." context={companyName}
       actions={<PaymentToolbar capabilities={context?.capabilities} busy={busy || unresolved} ready={!!context?.configuration && !!ledger.data && !ledger.error} onSetup={() => setSetup(value => !value)} onStart={() => start()} />} />
     <PaymentOverview payments={payments} filters={filters} onChange={setFilters} />
+    {unresolved && !form && <PaymentRecoveryPanel state={recoveryState} capabilities={context?.capabilities} onCheck={() => recovery.check()} onRetry={() => recovery.retry(context?.capabilities)} />}
+    <ConditionalCompensationPanel key={company} company={company} />
     {context && !canPost && <p className="text-sm text-muted-foreground">You can view payment history{canConfigure ? ' and manage payment setup' : ''}. An owner or accountant must record payments, allocations, refunds and reversals.</p>}
     {abandoned && <div role="status" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm">The outcome of payment event <span className="break-all">{abandoned}</span> is still unknown. Closing its view did not cancel it. Check payment history before recording it again.</div>}
     <ErrorBox error={!form ? error || ledger.error : null} onRetry={() => { setTick(t => t + 1); ledger.refresh(); }} />

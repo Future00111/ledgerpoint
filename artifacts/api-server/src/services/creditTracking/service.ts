@@ -54,13 +54,15 @@ async function command<T>(company: string, actor: string, action: string, body: 
 export async function createClaims(company: string, actor: string, input: unknown, hook?: TestHook) {
   const body = exactFields(input, commandFields);
   return command(company, actor, 'create', body, undefined, async q => {
-    const bill = await document(q, company, uuid(body.bill_id), true);
-    await assertUncorrectedOriginal(q,company,bill);
-    if (bill.kind !== 'purchase_bill' || !await liveJournal(q, company, bill)) fail(409, 'POSTED_BILL_REQUIRED');
+    const original = await document(q, company, uuid(body.bill_id), true);
+    const history = await amendmentHistory(q, company, original);
+    const bill = history.current;
+    if (bill.kind !== 'purchase_bill' || !await liveJournal(q, company, original)) fail(409, 'POSTED_BILL_REQUIRED');
     if (uuid(body.bill_revision) !== bill.revision) fail(409, 'REVISION_CONFLICT');
     const reason = text(body.reason, 1000, true, true), returnReference = text(body.return_reference ?? '', 200);
     const returnedOn = date(body.returned_on), expectedBy = date(body.expected_by);
     if (returnedOn && returnedOn < bill.source.issue_date) fail(422, 'RETURN_PRECEDES_BILL');
+    if (returnedOn && returnedOn < history.latest_date) fail(422, 'RETURN_PRECEDES_CORRECTION');
     if (returnedOn && expectedBy && expectedBy < returnedOn) fail(422, 'EXPECTED_DATE_PRECEDES_RETURN');
     if (!Array.isArray(body.lines) || body.lines.length < 1 || body.lines.length > 200) fail(422, 'LINES_RANGE');
     const seen = new Set<number>(), ids: string[] = [];
@@ -90,8 +92,8 @@ export async function confirmReceipt(company: string, actor: string, id: string,
     if (claim.cancelled) fail(409, 'CLAIM_CANCELLED');
     if (claim.revision !== expected) fail(409, 'REVISION_CONFLICT');
     const bill = await document(q, company, claim.bill_id, true);
-    await assertUncorrectedOriginal(q, company, bill);
-    if (bill.revision !== claim.bill_revision || !await liveJournal(q, company, bill)) fail(409, 'ORIGINAL_BILL_NOT_CURRENT');
+    const history = await amendmentHistory(q, company, bill);
+    if (history.head_revision !== claim.bill_revision || !await liveJournal(q, company, bill)) fail(409, 'ORIGINAL_BILL_NOT_CURRENT');
     const credit = await document(q, company, uuid(body.credit_id), true);
     await assertUncorrectedOriginal(q, company, credit);
     if (credit.revision !== uuid(body.credit_revision)) fail(409, 'CREDIT_REVISION_CONFLICT');
@@ -138,7 +140,7 @@ export async function listClaims(company: string, actor: string, billId?: string
       // and validate the same full chain used by settlement/reports before
       // deciding whether this claim's frozen original is still current.
       const history = await amendmentHistory(q, company, bill);
-      const originalActive = history.rows.length === 0 && bill.revision === claim.bill_revision && await liveJournal(q, company, bill);
+      const originalActive = history.head_revision === claim.bill_revision && await liveJournal(q, company, bill);
       const credits = (await q.query("SELECT * FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND kind='supplier_credit_note' ORDER BY created_at,id", [company, claim.bill_id])).rows;
       const allocations = (await q.query('SELECT * FROM supplier_credit_receipts WHERE company_id=$1 AND credit_id=ANY($2::uuid[])', [company, credits.map(r => r.id)])).rows;
       const receipts = [], candidates = [];

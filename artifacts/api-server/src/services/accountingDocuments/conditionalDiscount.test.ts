@@ -5,6 +5,37 @@ import { PgDialect } from 'drizzle-orm/pg-core';
 import { captureCommittedPaymentWitness, observePaymentOutcome } from './conditionalDiscount';
 import { hash } from './core';
 import { canonicalConditionalPayload,prepareConditionalOriginal,frozenConditionalVector } from './conditionalDiscount';
+import { replacementCapacityVector } from './replacementCapacity';
+
+for (const kind of ['sales_invoice','purchase_bill']) test(`${kind}: replacement discount uses remaining line capacity, not original face value`,()=>{
+ const current={kind,source:{},money:{net_pence:'10000',vat_pence:'2000',gross_pence:'12000',
+   lines:[{net_pence:'10000',vat_pence:'2000',gross_pence:'12000'}]},tax_context:{lines:[{rate:'20.00'}]}};
+ const credits=[{money:{lines:[{net_pence:'2000',vat_pence:'400',gross_pence:'2400'}]},tax_context:{original_line_refs:[0]}}];
+ const before=JSON.stringify({current,credits});
+ const result=replacementCapacityVector(current,credits,{discount_gross_pence:'1200'});
+ assert.equal(result.money.gross_pence,'9600');
+ assert.deepEqual(result.vector.map(({net_pence,vat_pence,gross_pence}:any)=>({net_pence,vat_pence,gross_pence})),
+   [{net_pence:'1000',vat_pence:'200',gross_pence:'1200'}]);
+ assert.equal(JSON.stringify({current,credits}),before);
+ assert.throws(()=>replacementCapacityVector(current,credits,{discount_gross_pence:'9600'}),/CONDITIONAL_BINDING_INVALID/);
+ const corrected={...current,money:{net_pence:'8000',vat_pence:'1600',gross_pence:'9600',
+   lines:[{net_pence:'8000',vat_pence:'1600',gross_pence:'9600'}]}};
+ assert.equal(replacementCapacityVector(corrected,credits,{discount_gross_pence:'1200'}).money.gross_pence,'7200');
+});
+
+test('replacement residual vector keeps depleted line indexes and native mixed-rate rounding',()=>{
+ const current={kind:'sales_invoice',source:{},money:{gross_pence:'225',
+   lines:[{net_pence:'100',vat_pence:'20',gross_pence:'120'},{net_pence:'100',vat_pence:'5',gross_pence:'105'}]},
+   tax_context:{lines:[{rate:'20.00'},{rate:'5.00'}]}};
+ const credit={money:{lines:[current.money.lines[0]]},tax_context:{original_line_refs:[0]}};
+ const result=replacementCapacityVector(current,[credit],{discount_gross_pence:'21'});
+ assert.deepEqual(result.vector.map((v:any)=>[v.line_ref,v.net_pence,v.vat_pence,v.gross_pence]),
+   [['0','0','0','0'],['1','20','1','21']]);
+ const over={money:{lines:[{net_pence:'99',vat_pence:'21',gross_pence:'120'}]},tax_context:{original_line_refs:[0]}};
+ assert.throws(()=>replacementCapacityVector(current,[over],{discount_gross_pence:'21'}),/CORRECTION_BELOW_CREDIT_CAPACITY/);
+ const wrong={...credit,tax_context:{original_line_refs:[2]}};
+ assert.throws(()=>replacementCapacityVector(current,[wrong],{discount_gross_pence:'21'}),/CREDIT_HISTORY_INVALID/);
+});
 
 test('frozen conditional vector uses native deterministic gross allocation and original tax capacity',()=>{
  const row={kind:'sales_invoice',source:{conditional_discount:{discount_gross_pence:'1200'}},
@@ -173,12 +204,14 @@ function originalFake(t:any,{binding=originalBinding,bindingHash=hash(binding),m
   else if(sql.includes('bool_and(pg_get_userbyid')) rows=[{n:3,owned,writable}];
   else if(sql.includes('FROM pg_trigger t JOIN')) rows=[{n:guards}];
   else if(sql.includes('conrelid=ANY')) rows=[{n:constraints}];
+  else if(sql.includes('FROM conditional_discount_replacements')) rows=[];
   else if(sql.includes('to_regclass')) rows=[{present:'conditional_discount_evidence'}];
   else if(sql.includes('FROM pg_trigger')) rows=[{n:2}];
   else if(sql.includes('pg_get_userbyid(relowner) owner')) rows=[{n:11,owner:'ledgerly_canonical_owner',writable:false}];
   else if(sql.includes('FROM conditional_discount_evidence')) rows=[evidenceRow];
   else if(sql.includes('FROM conditional_discount_original_bindings')) rows=bound?[{company_id:company,document_id:eventId,journal_id:journal,binding,binding_hash:bindingHash,canonical_payload:canonicalConditionalPayload(binding),...(snapshot?receipt:{})}]:[];
   else if(sql.includes('FROM canonical_journal_entries j')) rows=parentValid?[{id:journal}]:[];
+  else if(sql.includes('FROM accounting_document_sources')&&sql.includes('original_id=$2')) rows=[];
   else if(sql.includes('FROM accounting_document_sources')) rows=[originalRow];
   else if(sql.includes('public.bind_conditional_discount_original')) passedBinding={binding:JSON.parse(params[3]),hash:params[4],payload:params[6]};
   else if(sql.includes('public.observe_conditional_discount_original')) observed=true;

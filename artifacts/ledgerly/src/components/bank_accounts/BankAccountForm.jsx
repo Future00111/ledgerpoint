@@ -131,7 +131,7 @@ export default function BankAccountForm({ account, open, onOpenChange, onSave, c
               </Select>
             </div>
             <div>
-              <Label htmlFor="opening_balance">Opening Balance</Label>
+              <Label htmlFor="opening_balance">Legacy opening metadata (not posted)</Label>
               <Input
                 id="opening_balance"
                 type="number"
@@ -139,6 +139,7 @@ export default function BankAccountForm({ account, open, onOpenChange, onSave, c
                 value={formData.opening_balance}
                 onChange={e => setFormData({ ...formData, opening_balance: parseFloat(e.target.value) || 0 })}
               />
+              <p className="text-xs text-muted-foreground mt-1">This does not affect your accounts. Use Opening balance on the bank card to review and post a ledger opening.</p>
             </div>
           </div>
 

@@ -11,6 +11,38 @@ const form=()=>({...correctionForm(context().document,'2026-10-30'),reason:'Pric
 const reviewed=intent=>({intent,expected_revision:revision,review_token:token,before:{revision,money},after:{money:{net_pence:'9000',vat_pence:'1800',gross_pence:'10800'}},settlement:{paid_minor:'5000',before_open_minor:'7000',after_open_minor:'5800'}});
 const receipt=()=>({id:requestId,document_id:documentId,status:'posted',revision:nextRevision,journal_id:journal});
 const deferred=()=>{let resolve;const promise=new Promise(r=>{resolve=r;});return {promise,resolve};};
+test('reload recovers only the server receipt and never repeats a correction POST or automatic refresh',async()=>{
+ let remembered,posts=0,reads=0,refreshes=0;
+ const first=setup({commitCorrection:async()=>{posts++;throw Error('lost response');}},
+  {rememberRequest:id=>{remembered=id;}});
+ await first.session.load();await first.session.review(form());await first.session.post();
+ assert.equal(remembered,requestId);assert.equal(first.session.state.status,'unknown');first.session.dispose();
+ const reloaded=setup({recoverCorrection:async(c,d,id)=>{reads++;assert.equal(c,companyId);assert.equal(d,documentId);assert.equal(id,requestId);
+  return {state:'known',request_id:id,document_id:d,receipt:receipt()};},
+  commitCorrection:async()=>{posts++;throw Error('must not post');}},
+  {recoveryRequestId:remembered,onSaved:()=>refreshes++});
+ await reloaded.session.load();assert.equal(reloaded.session.state.status,'posted');
+ assert.equal(posts,1);assert.equal(reads,1);assert.equal(refreshes,0);assert.equal(reloaded.session.state.receipt.journal_id,journal);
+});
+test('unknown, invalid and denied recovery remain fenced without fresh review or resubmission',async()=>{
+ for(const response of [{state:'unknown',request_id:requestId,document_id:documentId},
+  {state:'known',request_id:requestId,document_id:documentId,receipt:{...receipt(),id:journal}},Error('Access removed')]) {
+  const {session,calls}=setup({recoverCorrection:async()=>{if(response instanceof Error)throw response;return response;}},
+    {recoveryRequestId:requestId});
+  await session.load();await session.review(form());await session.post();
+  assert.equal(session.state.status,'unknown');assert.equal(calls.length,0);
+ }
+});
+test('failure to retain recovery locator prevents sending, and disposal fences late recovery',async()=>{
+ const first=setup({}, {rememberRequest:()=>{throw Error('URL unavailable');}});
+ await first.session.load();await first.session.review(form());await first.session.post();
+ assert.equal(first.calls.length,0);assert.equal(first.session.state.status,'reviewed');
+ const wait=deferred();let saved=0;
+ const second=setup({recoverCorrection:()=>wait.promise},{recoveryRequestId:requestId,onSaved:()=>saved++});
+ const reading=second.session.load();second.session.dispose();
+ wait.resolve({state:'known',request_id:requestId,document_id:documentId,receipt:receipt()});await reading;
+ assert.equal(saved,0);
+});
 function setup(overrides={},options={}) {
  const calls=[];
  const client={correctionContext:async()=>context(),reviewCorrection:async(_c,_d,intent)=>reviewed(intent),commitCorrection:async(...args)=>{calls.push(args);return receipt();},...overrides};
@@ -79,4 +111,26 @@ test('a UI refresh failure cannot change a confirmed posting into an uncertain o
  const {session}=setup({}, {onSaved:()=>{throw Error('UI refresh failed');}});await session.load();await session.review(form());await session.post();
  assert.equal(session.state.status,'posted');assert.equal(session.state.receipt.journal_id,journal);assert.equal(session.state.pending,null);
  assert.match(session.state.error.message,/posted successfully/);
+});
+test('stale and denied posts clear recovery locator and require fresh context before review',async()=>{
+ for(const status of [401,403,409,422]) {
+  let remembered=null,loads=0;
+  const {session}=setup({correctionContext:async()=>{loads++;return context();},
+   commitCorrection:async()=>{throw Object.assign(Error('Rejected'),{status});}},
+   {rememberRequest:id=>remembered=id,forgetRequest:()=>remembered=null});
+  await session.load();await session.review(form());await session.post();
+  assert.equal(remembered,null);assert.equal(session.state.requestId,null);assert.equal(session.state.context,null);
+  await session.load();assert.equal(loads,2);assert.equal(session.state.status,'ready');
+ }
+});
+test('failed locator cleanup stays fenced and never reports ready for another post',async()=>{
+ const {session}=setup({commitCorrection:async()=>{throw Object.assign(Error('Stale'),{status:409});}},
+  {forgetRequest:()=>{throw Error('History unavailable');}});
+ await session.load();await session.review(form());await session.post();
+ assert.equal(session.state.status,'unknown');assert.equal(session.state.requestId,requestId);
+});
+test('review response cannot substitute different quantity or price under the same request',async()=>{
+ const {session,calls}=setup({reviewCorrection:async(_c,_d,intent)=>reviewed({...intent,line_items:[{quantity:'2',unit_price:'90.00'}]})});
+ await session.load();await session.review(form());await session.post();
+ assert.equal(session.state.status,'ready');assert.equal(session.state.pending,null);assert.equal(calls.length,0);
 });

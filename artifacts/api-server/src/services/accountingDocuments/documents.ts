@@ -2,7 +2,8 @@ import { hasConditionalCreditAuthority } from './paidCredit';
 import type { DatabaseTransaction } from '../accounting/canonicalPosting';
 import { assertNoConditionalCredit, validateConditionalDraft } from './conditionalDiscount';
 import { appliedTo, documentOpen, paymentEvents } from './settlement';
-import { amendmentHistory, assertUncorrectedOriginal } from './amendments';
+import { amendmentHistory } from './amendments';
+import { creditOriginal, assertCreditCapacity } from './creditCapacity';
 import { randomUUID } from "node:crypto";
 import { accountId } from "./accounts";
 import type pg from "pg";
@@ -41,8 +42,7 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
     if(source.discount) fail(422,"DISCOUNT_REQUIRES_ORIGINAL_DOCUMENT");
     if(!originalId || typeof reason!=="string" || !reason.trim() || reason.length>1000 ||
       method!=="offset_outstanding" || effective!==source.issue_date) fail(422,"CREDIT_EFFECTIVE_DECREASE_REQUIRED");
-    const original=await document(q,company,uuid(originalId),true);
-    await assertUncorrectedOriginal(q,company,original);
+    const original=await creditOriginal(q,company,uuid(originalId),source.issue_date);
     if(original.kind!==(sales(kind)?"sales_invoice":"purchase_bill") ||
        original.party_id!==source.customer_id || source.issue_date<original.source.issue_date ||
        source.price_basis!==(original.source.price_basis??"excluding_vat")) fail(422,"CREDIT_ORIGINAL_MISMATCH");
@@ -121,8 +121,7 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
 }
 export async function assertCreditAvailable(q:Queryable, company:string, row:any, tx?:DatabaseTransaction, actor?:string) {
   if(!credit(row.kind)) return;
-  const original=await document(q,company,row.original_id,true);
-  await assertUncorrectedOriginal(q,company,original);
+  const original=await creditOriginal(q,company,row.original_id,row.source.issue_date);
   if(!hasConditionalCreditAuthority(tx,company,actor,row)) await assertNoConditionalCredit(q,company,original);
   if(original.status!=="posted" || !original.journal_id ||
     row.tax_context.original_revision!==original.revision ||
@@ -142,18 +141,7 @@ export async function assertCreditAvailable(q:Queryable, company:string, row:any
     fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
   const available=await documentOpen(q,company,original.id,settlements);
   if(BigInt(row.money.gross_pence)>BigInt(available.open_minor)) fail(409,'CREDIT_EXCEEDS_OUTSTANDING');
-  const other=await q.query("SELECT money,tax_context FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND status='posted' ORDER BY id FOR UPDATE",[company,original.id]);
-  for(let i=0;i<row.money.lines.length;i++) {
-    const ref=row.tax_context.original_line_refs[i], own=row.money.lines[i];
-    for(const field of ["net_pence","vat_pence","gross_pence"]) {
-      let total=BigInt(own[field]);
-      for(const prior of other.rows) {
-        const ix=prior.tax_context.original_line_refs.indexOf(ref);
-        if(ix>=0) total+=BigInt(prior.money.lines[ix][field]);
-      }
-      if(total>BigInt(original.money.lines[ref][field])) fail(409,'CREDIT_EXCEEDS_OUTSTANDING');
-    }
-  }
+  await assertCreditCapacity(q,company,original,row);
 }
 export async function project(q:Queryable,company:string,id:string,kind:Kind,row:any,insert:boolean) {
   const s=row.source, isCredit=credit(kind);

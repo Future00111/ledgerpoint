@@ -6,10 +6,11 @@ import { Money, StatusPill, SettlementPill, ErrorBox, SkeletonRows, JournalLink 
 import DocumentPostingImpact from './DocumentPostingImpact';
 import AwaitingCreditPanel from '@/features/creditRecovery/AwaitingCreditPanel';
 import { SavedDiscountSummary } from '@/features/documentDiscounts/DiscountControls';
-import { canApplyDiscount, isValidSettlementSnapshot, canPostDocuments, discountCreditPath } from '@/features/documentDiscounts/model.mjs';
+import { canApplyDiscount, isValidSettlementSnapshot, canPostDocuments, canEditDrafts, discountCreditPath } from '@/features/documentDiscounts/model.mjs';
 import SourceAttachments from '@/features/documentIntake/SourceFiles';
 import PageHeader from '@/components/workspace/PageHeader';
 import DocumentCorrections from '@/features/documentCorrections/DocumentCorrections';
+import ConditionalReplacementPanel from '@/features/conditionalReplacement/ConditionalReplacementPanel';
 const date = v => v ? new Date(`${v}T12:00:00`).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
 export default function PostedDocument(props) {
   if (props.kind === 'purchase_bill') return <AwaitingCreditPanel companyId={props.company.id} doc={props.doc}>
@@ -29,7 +30,7 @@ function PostedDocumentLayout({ doc, kind, company, journal, settlement, openIte
   const originalDiscount = !discountCredit && meta.credit && Boolean(doc.tax_context?.original_discount);
   const canPrepareCredit = doc.status === 'posted' && doc.kind === kind && typeof doc.id === 'string' && doc.id.length > 0
     && openItem?.gross_minor === doc.money?.gross_pence
-    && !error && !doc.correction_count && !settlement.loading && !settlementError && canApplyDiscount(kind, openItem, capabilities);
+    && !error && !settlement.loading && !settlementError && canApplyDiscount(kind, openItem, capabilities);
   const canSettle = !meta.credit && hasBalance && !settlement.loading && !settlementError;
   const completed=openItem && BigInt(openItem.gross_minor)>0n ? Number((BigInt(openItem.gross_minor)-BigInt(openItem.open_minor))*100n/BigInt(openItem.gross_minor)) : 0;
   return <div className="workspace-page">
@@ -43,8 +44,15 @@ function PostedDocumentLayout({ doc, kind, company, journal, settlement, openIte
         {canPrepareCredit && <Button asChild variant="outline" className="min-h-11"><Link to={discountCreditPath(kind, doc.id)}>Apply discount</Link></Button>}
       </>} />
     <ErrorBox error={error} />
-    {doc.correction_count > 0 && <p className="rounded-lg border bg-muted/30 p-4 text-sm">This document includes {doc.correction_count} recorded correction{doc.correction_count === 1 ? '' : 's'}. Original total: <Money value={doc.original_money?.gross_pence} />. New credits, later discount credits and return-credit tracking are unavailable for corrected documents in this version.</p>}
+    {doc.correction_count > 0 && <p className="rounded-lg border bg-muted/30 p-4 text-sm">This document includes {doc.correction_count} recorded correction{doc.correction_count === 1 ? '' : 's'}. Original total: <Money value={doc.original_money?.gross_pence} />. Credits use the corrected amounts and preserve this history.</p>}
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_330px]">
+      {meta.credit && <section className="workspace-panel p-5 xl:col-span-2" aria-label="Linked document outstanding balance">
+        <h2 className="font-semibold">Original document outstanding balance</h2>
+        <ErrorBox error={settlementError} onRetry={settlement.refresh} />
+        {settlement.loading ? <SkeletonRows rows={1} /> : openItem
+          ? <><p className="mt-2 text-2xl font-semibold"><Money value={openItem.open_minor} /></p><p className="text-sm text-muted-foreground">As at {date(settlement.to)}. Includes recorded corrections, credits and payments. This credit’s amount stays unchanged.</p></>
+          : !settlementError && <p className="text-sm text-muted-foreground">Balance unavailable for this reporting date.</p>}
+      </section>}
       <div className="space-y-6">
         <article className="workspace-panel" aria-label={`${meta.label} details`}>
           <div className="flex items-start justify-between gap-5 border-b bg-muted/25 p-5 sm:p-6"><div><span className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border bg-white text-primary"><FileText className="h-5 w-5" /></span><p className="text-lg font-semibold">{meta.label}</p><p className="mt-1 text-sm text-muted-foreground">{source.invoice_number}</p></div><div className="text-right"><p className="text-sm font-semibold">{company.name}</p><p className="mt-2 text-xs text-muted-foreground">{source.price_basis==='including_vat' ? 'Prices include VAT' : 'Prices exclude VAT'}</p></div></div>
@@ -63,6 +71,7 @@ function PostedDocumentLayout({ doc, kind, company, journal, settlement, openIte
         </article>
         {!meta.credit && <section className="workspace-card p-6"><h2 className="font-semibold">Payments & credits</h2><p className="mt-1 text-xs text-muted-foreground">A clear history of changes to the outstanding balance.</p>{settlement.loading ? <div className="mt-4"><SkeletonRows rows={2} /></div> : openItem?.history?.length ? <ul className="mt-4 divide-y">{openItem.history.map((event,i)=><li key={`${event.id}-${i}`} className="flex flex-wrap items-center justify-between gap-3 py-4"><div><Link className="text-sm font-medium text-primary hover:underline" to={event.kind === 'financial_correction' ? `/accounting/journals/${encodeURIComponent(event.journal_id)}` : docPath(KINDS[event.kind] ? event.kind : 'accounting_payment_event', event.payment_id ?? event.id)}>{event.kind === 'financial_correction' ? 'Document correction' : event.number || 'Payment'}</Link><p className="mt-1 text-xs text-muted-foreground">{date(event.date)} · {KINDS[event.kind]?.label || ({financial_correction:'Amount corrected',payment:'Payment',allocation:'Balance allocated',unallocation:'Allocation removed'}[event.kind] || event.kind)}</p></div><div className="flex items-center gap-4"><Money value={event.amount_minor} className="text-sm font-medium" /><JournalLink id={event.journal_id} /></div></li>)}</ul> : <p className="mt-5 rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">{settlementError ? 'History could not be loaded.' : 'No payments or credit notes recorded.'}</p>}</section>}
         {!meta.credit && <DocumentCorrections key={`${company.id}:${doc.id}:${doc.revision}`} companyId={company.id} documentId={doc.id} onSaved={onCorrectionSaved} />}
+        {!meta.credit && source.conditional_discount && <ConditionalReplacementPanel key={`${company.id}:${doc.id}`} companyId={company.id} doc={doc} kind={kind} canWrite={canEditDrafts(capabilities)} />}
         {creditUI?.panel}
         <SourceAttachments key={`${company.id}:${doc.id}`} companyId={company.id} documentId={doc.id} />
         <details className="workspace-card group p-5" data-testid="panel-accounts"><summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium">Accounting details<ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" /></summary><p className="mb-4 mt-2 text-xs text-muted-foreground">The original posting journal. Correction journals are listed separately in Corrections &amp; history.</p>{journal.status==='loading' ? <SkeletonRows rows={3} /> : journal.error ? <ErrorBox error={journal.error} /> : journal.data && <div className="overflow-x-auto"><table className="workspace-table"><thead><tr><th>Account</th><th className="text-right">Debit</th><th className="text-right">Credit</th></tr></thead><tbody>{journal.data.lines.map((l,i)=><tr key={i} data-testid={`row-posted-line-${i}`}><td>{l.account_code} · {l.account_name}</td><td className="text-right">{l.debit_minor!=='0' && <Money value={l.debit_minor} />}</td><td className="text-right">{l.credit_minor!=='0' && <Money value={l.credit_minor} />}</td></tr>)}</tbody></table></div>}</details>

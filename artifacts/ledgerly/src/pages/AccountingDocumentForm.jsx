@@ -71,8 +71,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const discountMode = meta.credit && Boolean(form.discount_adjustment || (!editId && requestedDiscount));
   const manualDue = useRef(false);
   const [journal, setJournal] = useState({ status: 'idle', data: null, error: null });
-  const settlement = useLedgerSnapshot(activeCompany?.id, undefined, undefined, doc?.status === 'posted' && !meta.credit);
-  const openItem = settlement.data?.open_items.find(d => d.id === doc?.id);
+  const settlement = useLedgerSnapshot(activeCompany?.id, undefined, undefined, doc?.status === 'posted');
+  const openItem = settlement.data?.open_items.find(d => d.id === (meta.credit ? doc?.original_id : doc?.id));
   const originalSettlement = useLedgerSnapshot(activeCompany?.id, undefined, undefined, discountMode && !!extra.original_id);
   const originalOpenItem = !originalSettlement.error && originalSettlement.data?.open_items.find(d => d.id === extra.original_id);
 
@@ -104,7 +104,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
         setCtx(context);
         setLoadedScope(scopeKey);
         if (existing === 'LEGACY') { setLegacy(true); return; }
-        setOriginals((origList || []).filter(d => d.status === 'posted' && !d.correction_count));
+        setOriginals((origList || []).filter(d => d.status === 'posted'));
         if (existing) {
           setDoc(existing);
           setForm({ ...blankForm(), ...existing.source, payment_terms: String(existing.source?.payment_terms ?? '0') });
@@ -117,7 +117,6 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
         } else if (meta.credit && requestedOriginal) {
           const original = origList.find(o => o.id === requestedOriginal && o.status === 'posted');
           if (!original) throw new Error('The original document is unavailable in this company.');
-          if (original.correction_count) throw new Error('Credits and later discounts are not yet available for corrected invoices or bills. Open the original document to review its correction history.');
           setOriginalDoc(original);
           setForm(f => ({ ...f, customer_id: original.source.customer_id, price_basis: original.source.price_basis, discount: null, line_items: copyOriginalLines(original),
             ...(requestedDiscount ? { discount_adjustment: discountAdjustment(original) } : {}) }));

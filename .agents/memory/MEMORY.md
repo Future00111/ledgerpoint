@@ -1,4 +1,8 @@
 - [Ledgerly migration architecture](ledgerly-migration.md) — Clerk identity, direct native API clients, tenant-scoped generic CRUD, and protected financial workflows.
+- [Optional provider isolation](optional-provider-isolation.md) — native routes must load without AI credentials; actual provider use must fail explicitly when unavailable.
+- [Restore role contract](restore-role-contract.md) — dedicated SQL owners must be provisioned and constrained in separate-cluster recovery, not just same-cluster restores.
+- [Bank opening scope](bank-opening-scope.md) — initial bank/equity postings are not subledger migration; legacy metadata and changed mappings must not redefine ledger history.
+- [JSON evidence values](json-evidence-values.md) — normalize driver Date objects before review hashing so persisted JSON and recovery hash the same authority.
 - [API server build quirks](api-server-build.md) — esbuild external list must include "pg" or pg fails at runtime; use @workspace/db for the drizzle instance, not a custom db.ts.
 - [TS project references staleness](ts-project-references.md) — new lib/db schema exports need `tsc -b lib/db` before dependent typechecks see them.
 - [Reconciliation write boundary](reconciliation-write-boundary.md) — bank matching, money, links, and account references must use protected reconciliation routes, not generic CRUD.
@@ -25,3 +29,14 @@
 - [Evidence observation clocks](evidence-observation-clocks.md) — use a real UTC recording clock; replay-stable callback time does not establish fresh or atomic observations.
 - [Invoice development boundaries](invoice-development-boundaries.md) — owner-scoped line half-up rounding and isolated, genuinely authenticated synthetic demos are not production or DEC-04 acceptance.
 - [SQL array binding](drizzle-sql-array-binding.md) — pg arrays must remain single bound parameters across the Drizzle transaction bridge; test actual authority/context queries.
+- [Replacement terms](conditional-replacement-terms.md) — changed conditional-discount documents require explicit new terms; no automatic scaling or retrospective qualification.
+- [Review evidence ordering](review-evidence-order.md) — canonical JSON preserves array order; order database evidence by identity to avoid false stale reviews after rollback.
+- [Official reference anomalies](official-reference-anomalies.md) — preserve inconsistent source inputs; quarantine rather than infer corrected official examples.
+- [Transaction error evidence](transaction-error-evidence.md) — native transaction errors can wrap the intended PostgreSQL rejection; verify its cause without exposing query parameters.
+- [Payment recovery locators](payment-recovery-locators.md) — persist opaque references across reloads, not reconstructed financial intent; absent outcomes remain unknown.
+- [Fresh-company acceptance](fresh-company-acceptance.md) — seeded accounting fixtures bypass native setup audit dependencies and cannot prove onboarding.
+- [Test source freeze](test-source-freeze.md) — freeze migration source and manifest for the entire disposable run; late cases reload both.
+- [Restore fixture isolation](restore-fixture-isolation.md) — restore-probe payments must not contaminate companies used by balance acceptance.
+- [Bank correction boundary](bank-correction-boundary.md) — unmatching releases receipt capacity, not historical bank-to-ledger identity.
+- [Clerk testing callback](clerk-test-origin.md) — programmatic test login returns to the development domain, not an arbitrary loopback origin.
+- [Company view lifetimes](company-view-state.md) — changing the request company alone does not prevent an old response replacing the current company's UI.

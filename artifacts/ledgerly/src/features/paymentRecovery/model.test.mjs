@@ -190,12 +190,41 @@ test('permissions fail closed for writes while status reads remain available aft
   assert.equal(writes, 1); assert.equal(reads, 1);
 });
 
-test('explicit abandon clears only this view and never issues a cancellation or another write', async () => {
+test('unknown outcomes cannot be abandoned or replaced with another write', async () => {
   let writes = 0;
   const recovery = createPaymentRecovery('company-a', { postPayment: async () => { writes++; throw new Error('Unknown'); } });
   await recovery.record(review(), owner);
-  assert.equal(recovery.abandon(), true);
-  assert.equal(recovery.getSnapshot(), null);
-  assert.equal(await recovery.retry(owner), false);
+  assert.equal(recovery.abandon(), false);
+  assert.equal(recovery.getSnapshot().phase, 'unknown');
+  assert.equal(await recovery.record(review(), owner), false);
   assert.equal(writes, 1);
+});
+test('restored locator is read-only across server restart, absence and revoked access', async () => {
+  let forgotten=null, response=unknown(), writes=0;
+  const recovery=createPaymentRecovery('company-a',{
+    postPayment:async()=>{writes++;}, recoverPayment:async()=>{if(response instanceof Error)throw response;return response;}
+  },{recoveryRequestId:'synthetic-event',forgetRequest:id=>{forgotten=id;}});
+  assert.equal(await recovery.retry(owner),false);
+  assert.equal(await recovery.record(review(),owner),false);
+  await recovery.check();assert.equal(recovery.getSnapshot().check,'not_found');
+  response=Object.assign(Error('revoked'),{status:403});await recovery.check();
+  assert.equal(recovery.getSnapshot().phase,'unknown');assert.equal(forgotten,null);
+  response=outcome();await recovery.check();assert.equal(recovery.getSnapshot().phase,'recorded');
+  recovery.clearRecorded();assert.equal(forgotten,'synthetic-event');assert.equal(writes,0);
+});
+test('locator is saved before POST and storage failure sends no request', async () => {
+  let writes=0, remembered=null;
+  const api={postPayment:async()=>{writes++;assert.equal(remembered,'synthetic-event');throw Error('lost');}};
+  const failed=createPaymentRecovery('company-a',api,{rememberRequest:()=>{throw Error('storage');}});
+  await assert.rejects(()=>failed.record(review(),owner),/storage/);assert.equal(writes,0);
+  const working=createPaymentRecovery('company-a',api,{rememberRequest:id=>{remembered=id;}});
+  await working.record(review(),owner);working.reset();assert.equal(remembered,'synthetic-event');assert.equal(writes,1);
+});
+test('confirming one event restores another unresolved locator before any new write',async()=>{
+ const r=createPaymentRecovery('company-a',{recoverPayment:async()=>outcome()},
+  {recoveryRequestId:'synthetic-event',nextRecoveryRequest:()=> 'another-event'});
+ await r.check();assert.equal(r.getSnapshot().phase,'recorded');
+ r.clearRecorded();assert.equal(r.getSnapshot().body.id,'another-event');
+ assert.equal(r.getSnapshot().readOnly,true);
+ assert.equal(await r.record(review(),owner),false);assert.equal(await r.retry(owner),false);
 });

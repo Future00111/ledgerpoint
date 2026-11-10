@@ -97,13 +97,23 @@ test('fully paid originals prepare discount drafts while preserving unavailable 
       { error: new Error('Document unavailable') },
       { capabilities: null },
       { capabilities: { edit_drafts: 'true' } },
-      ...[{ correction_count: 1 }, { status: 'cancelled' }, { status: 'draft' }, { kind: 'supplier_credit_note' }, { id: '' }]
+      ...[{ status: 'cancelled' }, { status: 'draft' }, { kind: 'supplier_credit_note' }, { id: '' }]
         .map(patch => ({ doc: { ...doc, kind, ...patch } })),
     ];
     for (const override of overrides) assert.ok(!render(kind, { openItem: paid, ...override }).includes('Apply discount'), JSON.stringify(override));
   }
 });
 
+
+test('corrected originals expose native credit and discount links while retaining correction history', () => {
+  for (const kind of ['sales_invoice', 'purchase_bill']) {
+    const html = render(kind, { doc: { ...doc, kind, correction_count: 1, original_money: { gross_pence: '15000' } },
+      openItem: { gross_minor: '14400', credited_minor: '0', paid_minor: '0', open_minor: '14400' },
+      capabilities: { edit_drafts: true } });
+    assert.ok(html.includes('Create credit note'));assert.ok(html.includes('Apply discount'));
+    assert.ok(html.includes('Credits use the corrected amounts'));
+  }
+});
 
 test('malformed settlement renders an unavailable state rather than money, status or write actions', () => {
   const valid = { gross_minor: '14400', paid_minor: '14400', credited_minor: '0', open_minor: '0', history: [] };
@@ -145,6 +155,18 @@ test('discount review hides stale or malformed balances and never suggests exces
 });
 
 
+test('credit views show corrected linked outstanding without rewriting the credit amount', () => {
+  for (const kind of ['sales_credit_note','supplier_credit_note']) {
+    const html=render(kind,{doc:{...doc,kind,money:{...doc.money,gross_pence:'2400'}},
+      openItem:{gross_minor:'10000',credited_minor:'2400',paid_minor:'0',open_minor:'7600'}});
+    assert.ok(html.includes('£76.00'));assert.ok(html.includes('£24.00'));
+    assert.ok(html.includes('Original document outstanding balance'));
+    const unavailable=render(kind,{openItem:{gross_minor:'10000',credited_minor:'2400',paid_minor:'0',open_minor:'7600'},
+      settlement:{loading:false,error:new Error('Unavailable')}});
+    assert.ok(!unavailable.includes('£76.00'));
+  }
+});
+
 test('ordinary credits use remaining original credit capacity even when cash is fully settled', () => {
   for (const kind of ['sales_invoice', 'purchase_bill']) {
     const paid = { gross_minor: '14400', paid_minor: '13400', credited_minor: '1000', open_minor: '0', history: [] };
@@ -163,7 +185,7 @@ test('ordinary credits use remaining original credit capacity even when cash is 
       { error: new Error('Document unavailable') },
       { capabilities: null },
       { capabilities: { edit_drafts: 'true', post_documents: true } },
-      ...[{ correction_count: 1 }, { status: 'cancelled' }, { status: 'draft' }, { kind: 'supplier_credit_note' }, { id: '' }]
+      ...[{ status: 'cancelled' }, { status: 'draft' }, { kind: 'supplier_credit_note' }, { id: '' }]
         .map(patch => ({ doc: { ...doc, kind, ...patch } })),
     ]) assert.ok(!render(kind, { openItem: paid, ...override }).includes('Create credit note'), JSON.stringify(override));
   }

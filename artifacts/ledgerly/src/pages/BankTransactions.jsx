@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as nativeEntities from '@/api/entities';
 import { invokeApiFunction } from '@/api/functions.mjs';
+import { bankStatements } from '@/api/bankStatements.mjs';
 import { useCompany } from '@/lib/useCompany';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import SuggestedMatches from '@/components/bank_transactions/SuggestedMatches';
 import { useToast } from '@/components/ui/use-toast';
 import BankWorkspaceScope, { BankReadStatus } from '@/features/bankWorkspaceScope/BankWorkspaceScope';
 import { createBankWorkspaceReader, emptyBankWorkspace } from '@/features/bankWorkspaceScope/model.mjs';
+import NativeBankStatements from '@/features/nativeBankStatements/NativeBankStatements';
 
 function formatCurrency(a) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(a || 0); }
 
@@ -29,14 +31,38 @@ const MATCHED_LABELS = {
 
 export default function BankTransactions() {
   const { activeCompany, loading } = useCompany();
-  return <BankWorkspaceScope company={activeCompany} loading={loading} Workspace={CompanyBankTransactions} />;
+  return <BankWorkspaceScope company={activeCompany} loading={loading} Workspace={BankWorkspaceSwitch} />;
 }
 
-export function CompanyBankTransactions({ company: activeCompany }) {
+/** Native statement workspace by default; the existing review stays available, explicitly labelled. */
+export function BankWorkspaceSwitch({ company }) {
+  const [legacy, setLegacy] = useState(false);
+  if (!legacy) return <NativeBankStatements key={company.id} company={company} onOpenLegacy={() => setLegacy(true)} />;
+  return (
+    <div className="space-y-4">
+      <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950" data-testid="text-legacy-banner">
+        <p><span className="font-medium">Legacy review/history.</span> Imported statement evidence is immutable: legacy edit, delete, match and reconcile actions cannot modify it.</p>
+        <Button variant="outline" size="sm" onClick={() => setLegacy(false)} data-testid="button-back-native">Back to statements</Button>
+      </div>
+      <CompanyBankTransactions key={company.id} company={company} onNativeImport={() => setLegacy(false)} />
+    </div>
+  );
+}
+
+export function CompanyBankTransactions({ company: activeCompany, onNativeImport }) {
   const [read, setRead] = useState(() => emptyBankWorkspace(activeCompany.id));
   const [reader] = useState(() => createBankWorkspaceReader({
     companyId: activeCompany.id,
-    loadTransactions: companyId => nativeEntities.BankTransaction.filter({ company_id: companyId }, '-date', 200),
+    loadTransactions: async companyId => {
+      const [rows, native] = await Promise.all([
+        nativeEntities.BankTransaction.filter({ company_id: companyId }, '-date', 200),
+        bankStatements.context(companyId),
+      ]);
+      const imported = new Set(native.statements.map(row => row.id));
+      // Native evidence has append-only matching receipts, not legacy mutable
+      // status fields. Never present it as "review" in the legacy action screen.
+      return rows.filter(row => !imported.has(row.id));
+    },
     loadSuggestions: companyId => invokeApiFunction('suggestTransactionMatches', { company_id: companyId }),
     publish: setRead,
   }));
@@ -57,7 +83,7 @@ export function CompanyBankTransactions({ company: activeCompany }) {
   useEffect(() => { reader.start(); return () => reader.stop(); }, [reader]);
   const loadTransactions = () => reader.refresh();
 
-  const openCreate = () => { setEditing(null); setFormOpen(true); };
+  const openCreate = () => { if (onNativeImport) { onNativeImport(); return; } setEditing(null); setFormOpen(true); };
   const openEdit = (t) => { setEditing(t); setFormOpen(true); };
 
   const handleSave = async (data) => {
@@ -159,7 +185,7 @@ export function CompanyBankTransactions({ company: activeCompany }) {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2"><Upload className="w-4 h-4" />Import CSV</Button>
+          <Button variant="outline" onClick={() => onNativeImport ? onNativeImport() : setImportOpen(true)} className="gap-2"><Upload className="w-4 h-4" />Import CSV</Button>
           <Button onClick={openCreate} className="gap-2"><Plus className="w-4 h-4" />Add Transaction</Button>
         </div>
       </div>

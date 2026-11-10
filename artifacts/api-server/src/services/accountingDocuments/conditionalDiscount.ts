@@ -1,9 +1,10 @@
 import { createHash } from 'node:crypto';
 import { conditionalTermsHash, parseConditionalTerms, type InvoiceSource } from '../financialDrafts/contract';
 import { fail, uuid } from '../financialDrafts/contract';
-import { hash, scope, transact, exactFields, type Queryable } from './core';
+import { document, hash, scope, transact, exactFields, type Queryable } from './core';
 import { allocateDiscount, creditFromGross } from '../financialDrafts/discounts';
 import { decimal } from '../financialDrafts/contract';
+import { readReplacementBinding } from './replacementBindings';
 
 /** Original evidence is usable only with the complete protected schema. */
 export async function conditionalOriginalSchema(q:Queryable) {
@@ -95,7 +96,7 @@ export async function prepareConditionalOriginal(q:Queryable,company:string,row:
   return {binding,canonicalPayload,bindingHash:hash(binding)};
 }
 
-async function verifiedOriginal(q:Queryable,company:string,id:string,bindingHash:string) {
+export async function verifiedOriginal(q:Queryable,company:string,id:string,bindingHash:string) {
   return (await q.query(`SELECT d.* FROM accounting_document_sources d
       JOIN canonical_journal_entries j ON j.company_id=d.company_id AND j.id=d.journal_id
       JOIN accounting_posting_effects p ON p.company_id=j.company_id AND p.journal_id=j.id
@@ -156,7 +157,7 @@ export async function conditionalPaymentSnapshot(q:Queryable,company:string,part
       [company,parent.journal_id,parent.id,hash(parent.source)])).rows[0];
     if(!verified) fail(503,'PAYMENT_HISTORY_INVALID');
     if(prior.bindings.some((b:any)=>!b || typeof b!=='object' || Array.isArray(b) ||
-      Object.keys(b).sort().join(',')!=='binding_hash,company_id,document_id,journal_id,observed_at' ||
+      !['binding_hash,company_id,document_id,journal_id,observed_at','binding_hash,company_id,document_id,journal_id,observed_at,replacement_hash,replacement_id'].includes(Object.keys(b).sort().join(',')) ||
       b.company_id!==company || !/^[a-f0-9-]{36}$/.test(b.document_id) || !/^[a-f0-9-]{36}$/.test(b.journal_id) ||
       !/^sha256:[a-f0-9]{64}$/.test(b.binding_hash) || typeof b.observed_at!=='string') ||
       new Set(prior.bindings.map((b:any)=>b.document_id)).size!==prior.bindings.length)
@@ -169,7 +170,7 @@ export async function conditionalPaymentSnapshot(q:Queryable,company:string,part
     WHERE b.company_id=$1 AND d.party_id=$2 AND d.kind=$3
       AND ($4::uuid[] IS NULL OR b.document_id=ANY($4::uuid[])) ORDER BY b.document_id`,
     [company,partyId,partyType==='customer'?'sales_invoice':'purchase_bill',selected?.map((b:any)=>b.document_id)??null])).rows;
-  const bindings:{company_id:string,document_id:string,journal_id:string,binding_hash:string,observed_at:string}[]=[];
+  const bindings:{company_id:string,document_id:string,journal_id:string,binding_hash:string,observed_at:string,replacement_id?:string,replacement_hash?:string}[]=[];
   for(const row of rows) {
     if(!row.binding || row.binding_hash!==hash(row.binding) || canonicalConditionalPayload(row.binding)!==row.canonical_payload ||
       typeof row.observed_at!=='string' || !Number.isFinite(Date.parse(row.observed_at))) fail(503,'CONDITIONAL_BINDING_INVALID');
@@ -178,8 +179,21 @@ export async function conditionalPaymentSnapshot(q:Queryable,company:string,part
       original.kind!==(partyType==='customer'?'sales_invoice':'purchase_bill')) fail(503,'CONDITIONAL_BINDING_INVALID');
     const expected=await prepareConditionalOriginal(q,company,original);
     if(expected.bindingHash!==row.binding_hash || expected.canonicalPayload!==row.canonical_payload) fail(503,'CONDITIONAL_BINDING_INVALID');
-    bindings.push({company_id:company,document_id:row.document_id,journal_id:row.journal_id,
-      binding_hash:row.binding_hash,observed_at:row.observed_at});
+    const originalDescriptor={company_id:company,document_id:row.document_id,journal_id:row.journal_id,
+      binding_hash:row.binding_hash,observed_at:row.observed_at};
+    const retained=selected?.find((b:any)=>b.document_id===row.document_id);
+    // Allocation keeps the parent's exact historical version, never the latest
+    // terms. Cash created before an observation carries no replacement binding.
+    if(retained&&!retained.replacement_id) {bindings.push(originalDescriptor);continue;}
+    const replacement=await readReplacementBinding(q,company,row.document_id,retained?.replacement_id);
+    if(!retained&&!replacement && (await q.query(`SELECT 1 FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND status='posted'
+      AND NOT EXISTS(SELECT 1 FROM accounting_paid_credit_operations WHERE company_id=$1 AND intent->>'original_id'=$2::text AND intent ? 'conditional_admission')`,[company,row.document_id])).rowCount)
+      fail(409,'CONDITIONAL_REPLACEMENT_REQUIRED');
+    if(replacement) {
+      if(!replacement.observation) continue;
+      bindings.push({...originalDescriptor,replacement_id:replacement.replacement.id,
+        replacement_hash:replacement.observation.binding_hash,observed_at:replacement.observation.observed_at});
+    } else bindings.push(originalDescriptor);
   }
   if(selected && (selected.length!==bindings.length || selected.some((b:any)=>!bindings.some(x=>hash(x)===hash(b)))))
     fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
@@ -362,19 +376,21 @@ export function conditionalEventTimely(created:string,observed:string,bindingObs
  * Caller holds the native company/original locks and validates the credit draft. */
 export async function conditionalCreditAdmission(q:Queryable,company:string,original:any,credit:any,releases:{payment_id:string,amount_minor:string}[]=[]) {
   if(!original.source?.conditional_discount) fail(409,'CONDITIONAL_AGREEMENT_REQUIRED');
+  const replacement=await readReplacementBinding(q,company,original.id);
+  if(replacement&&!replacement.observation) fail(409,'CONDITIONAL_REPLACEMENT_REDEMPTION_UNAVAILABLE');
   const partyType=original.kind==='sales_invoice'?'customer':'supplier';
   const current=await conditionalPaymentSnapshot(q,company,partyType,original.party_id,'payment',null,[]);
   const binding=current.bindings.find(b=>b.document_id===original.id);
   if(!binding) fail(409,'CONDITIONAL_AGREEMENT_REQUIRED');
-  const prepared=await prepareConditionalOriginal(q,company,original),frozen=prepared.binding;
+  const prepared=await prepareConditionalOriginal(q,company,await document(q,company,original.id)),frozen=replacement?.frozen??prepared.binding;
   if(binding.binding_hash!==prepared.bindingHash || credit.money.gross_pence!==frozen.discount_gross_pence ||
     credit.tax_context.original_revision!==original.revision ||
     credit.tax_context.original_evidence_hash!==frozen.financial_hash ||
-    credit.money.lines.length!==frozen.vector.length || frozen.vector.some((v,i)=>
+    credit.money.lines.length!==frozen.vector.length || frozen.vector.some((v:any,i:number)=>
       credit.tax_context.original_line_refs[i]!==Number(v.line_ref) ||
       ['net_pence','vat_pence','gross_pence'].some(k=>credit.money.lines[i][k]!==v[k as keyof typeof v])))
     fail(409,'CONDITIONAL_CREDIT_VECTOR_MISMATCH');
-  if((await q.query("SELECT id FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND status='posted'",[company,original.id])).rows.length)
+  if((await q.query("SELECT id FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND status='posted'",[company,original.id])).rows.length && !frozen.capacity)
     fail(409,'CONDITIONAL_PRIOR_CREDIT_UNSUPPORTED');
   const installed=(await q.query("SELECT to_regclass('public.conditional_discount_commit_witnesses') present")).rows[0]?.present;
   if(!installed) fail(503,'CONDITIONAL_WITNESS_SCHEMA_INCOMPLETE');
@@ -425,6 +441,21 @@ export async function conditionalCreditAdmission(q:Queryable,company:string,orig
       (e.kind==='payment' && e.payment_id!==null) ||
       (e.kind!=='payment' && !e.payment_id)) fail(503,'PAYMENT_HISTORY_INVALID');
   };
+  const originalClock=(await q.query(`SELECT to_char(observed_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') clock
+    FROM conditional_discount_original_observations WHERE company_id=$1 AND document_id=$2`,[company,original.id])).rows[0]?.clock;
+  const originalDescriptor={company_id:company,document_id:original.id,journal_id:original.journal_id,
+    binding_hash:prepared.bindingHash,observed_at:originalClock};
+  const awaitHistorical=new Map<string,any>();
+  for(const event of events) {
+    const list=event.source?.conditional_binding_snapshot?.bindings;
+    if(!Array.isArray(list)) continue;
+    for(const item of list) if(item?.document_id===original.id&&item.replacement_id&&!awaitHistorical.has(item.replacement_id)) {
+      uuid(item.replacement_id);
+      const old=await readReplacementBinding(q,company,original.id,item.replacement_id);
+      if(!old?.observation) fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
+      awaitHistorical.set(item.replacement_id,old);
+    }
+  }
   const timely=(e:any)=>{
     const snapshot=e.source.conditional_binding_snapshot;
     if(snapshot===undefined) return false;
@@ -432,11 +463,22 @@ export async function conditionalCreditAdmission(q:Queryable,company:string,orig
       fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
     const selected=snapshot.bindings.filter((b:any)=>b?.document_id===original.id);
     if(selected.length===0) return false;
-    if(selected.length!==1 || hash(selected[0])!==hash(binding)) fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
+    if(selected.length!==1) fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
+    if(hash(selected[0])!==hash(binding)) {
+      // A genuine earlier agreement is not qualifying cash for this version.
+      // Corrupt descriptors still reject rather than silently becoming ineligible.
+      const prior=selected[0],version=prior.replacement_id?awaitHistorical.get(prior.replacement_id):null;
+      const expected=version?{company_id:company,document_id:original.id,journal_id:original.journal_id,
+        binding_hash:prepared.bindingHash,replacement_id:version.replacement.id,replacement_hash:version.observation.binding_hash,
+        observed_at:version.observation.observed_at}:originalDescriptor;
+      if(hash(prior)!==hash(expected)) fail(503,'CONDITIONAL_PAYMENT_SNAPSHOT_INVALID');
+      return false;
+    }
     if(!e.witness_clock) return false;
     if(e.witness_journal!==e.journal_id || e.witness_hash!==e.source_revision || e.witness_created!==e.event_clock)
       fail(503,'CONDITIONAL_WITNESS_INVALID');
-    return conditionalEventTimely(e.event_clock,e.witness_clock,binding.observed_at,e.event_date,frozen.deadline);
+    return (!replacement||e.event_date>=replacement.terms!.agreement_date)&&
+      conditionalEventTimely(e.event_clock,e.witness_clock,binding.observed_at,e.event_date,frozen.deadline);
   };
   const qualifying:any[]=[];let total=0n;
   for(const e of events) {

@@ -49,7 +49,7 @@ test('all payment event kinds retain dates, amounts and journal links for read-o
 
 test('unknown outcome offers explicit read and same-payment retry without edit or success claims', () => {
   const html = render(<PaymentRecoveryPanel state={state} capabilities={owner} />);
-  for (const text of ['Payment outcome not yet confirmed', 'Check payment status', 'Retry same payment', 'synthetic-event', '£150.00', 'outcome remains unknown', 'does not cancel a payment']) assert.ok(html.includes(text), text);
+  for (const text of ['Payment outcome not yet confirmed', 'Check payment status', 'Retry same payment', 'synthetic-event', '£150.00', 'outcome remains unknown', 'saved reference supports status checks only']) assert.ok(html.includes(text), text);
   for (const text of ['Back to edit', 'Confirm and record', 'Payment event recorded']) assert.ok(!html.includes(text));
   const unsafeMessage = render(<PaymentRecoveryPanel state={{ ...state, error: { code: 'ACCOUNTING_OPERATION_FAILED', message: 'No changes were committed.' } }} capabilities={owner} />);
   assert.ok(!unsafeMessage.includes('No changes were committed'));
@@ -63,11 +63,13 @@ test('status can still be checked with read permission while retry requires post
     assert.ok(!html.includes('Retry same payment'));
   }
   const pending = render(<PaymentRecoveryPanel state={{ ...state, phase: 'checking' }} capabilities={owner} />);
-  assert.equal((pending.match(/disabled=""/g) || []).length, 3);
+  assert.equal((pending.match(/disabled=""/g) || []).length, 2);
 });
 
-test('closing an uncertain result explicitly warns that history must be checked and nothing is cancelled', () => {
+test('unknown outcomes cannot be discarded and restored references are read-only', () => {
   const html = render(<PaymentRecoveryPanel state={state} capabilities={owner} closing />);
-  for (const text of ['Close this view with the outcome still unknown?', 'Closing does not cancel, delete or reverse anything.', 'Check payment history', 'Keep checking', 'Close view — outcome unknown']) assert.ok(html.includes(text), text);
+  assert.ok(!html.includes('Close view'));
+  const restored=render(<PaymentRecoveryPanel state={{...state,body:{id:'synthetic-event'},readOnly:true}} capabilities={owner}/>);
+  assert.ok(restored.includes('Only status checks'));assert.ok(!restored.includes('Retry same payment'));assert.ok(!restored.includes('£'));
   assert.equal(render(<PaymentRecoveryPanel state={{ ...state, phase: 'recorded' }} capabilities={owner} />), '');
 });

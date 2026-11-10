@@ -41,6 +41,12 @@ export default function SetupWorkspace({ company, readiness, date, onDateChange,
       </section>}
       {guided && <section className="workspace-panel p-5" aria-labelledby="setup-document-states"><h2 id="setup-document-states" className="workspace-section-title">What document states mean</h2><dl className="mt-3 space-y-3">{DOCUMENT_STATE_HELP.map(([label, detail]) => <div key={label}><dt className="text-sm font-semibold">{label}</dt><dd className="text-sm text-muted-foreground">{detail}</dd></div>)}</dl></section>}
 
+      <section className="workspace-panel p-5" aria-labelledby="setup-payment-step">
+        <h2 id="setup-payment-step" className="workspace-section-title">After posting: record a payment</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Document setup does not configure payments. In Payments, choose separate bank, customer credit and supplier prepayment accounts, then review and save those choices. No accounts are selected for you.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Record only money actually received or paid. Review its allocation to a posted invoice or bill before confirming. This records accounting entries; it does not move money at your bank. Check the resulting journal, outstanding balance and reports.</p>
+        <div className="mt-3 flex flex-wrap gap-3"><Button asChild variant="outline"><Link to="/payments">Review payment setup</Link></Button><Button asChild variant="outline"><Link to="/reports">View accounting reports</Link></Button></div>
+      </section>
       <section className="workspace-panel overflow-hidden" aria-labelledby="setup-review-title">
         <div className="workspace-panel-header flex flex-wrap items-center justify-between gap-3"><div><h2 id="setup-review-title" className="workspace-section-title">Accounting setup review</h2><p className="mt-1 text-sm text-muted-foreground">{readiness.configuredCount} of {readiness.checks.length} setup checks available for {date}. This is a readiness check, not approval of a document.</p></div><Button asChild variant="outline"><Link to="/accounting/setup">Posting setup</Link></Button></div>
         <ol className="divide-y">{readiness.checks.map(check => <li key={check.id} data-testid={`setup-check-${check.id}`} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-start">

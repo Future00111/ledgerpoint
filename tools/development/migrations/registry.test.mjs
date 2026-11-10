@@ -10,6 +10,26 @@ import { installSchema } from '../../accounting-flow/schema.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const registry = () => JSON.parse(readFileSync(path.join(root, 'lib/db/migration-registry.json'), 'utf8'));
 const read = relative => readFileSync(path.join(root, relative));
+test('versioned replacement migration retains existing consumption engine and requires a committed cluster origin',()=>{
+ const sql=loadMigrationInputs(root)['conditional-discount-replacement-observations'];
+ assert.match(sql,/pg_xact_status\(replacement.source_xid\) IS DISTINCT FROM 'committed'/);
+ assert.match(sql,/replacement.cluster_id IS DISTINCT FROM \(pg_control_system\(\)\).system_identifier/);
+ assert.match(sql,/Consumption migration source mismatch/);
+ assert.match(sql,/Superseded agreement cannot redeem/);
+ assert.match(sql,/parent.created_at>o.observed_at/);
+ assert.doesNotMatch(sql,/jsonb::text/);
+});
+test('replacement history migration is pinned, append-only and separate from original binding and payment qualification',()=>{
+  const inputs=loadMigrationInputs(root);
+  const sql=inputs['conditional-discount-replacements'];
+  assert.match(sql,/Consumed agreement cannot be replaced/);
+  assert.match(sql,/Replacement predecessor changed/);
+  assert.match(sql,/FOR UPDATE/);
+  assert.match(sql,/UNIQUE INDEX conditional_replacement_one_successor/);
+  assert.match(sql,/REVOKE ALL ON public.conditional_discount_replacements FROM PUBLIC,ledgerly_api/);
+  assert.match(sql,/ENABLE ALWAYS TRIGGER conditional_replacement_immutable/);
+  assert.doesNotMatch(sql,/UPDATE public\.conditional_discount_original_bindings|INSERT INTO public\.accounting_payment_events/);
+});
 test('original binding candidate keeps both public posting gates and a database-owned original xid prerequisite',()=>{
   const posting=read('artifacts/api-server/src/services/accountingDocuments/posting.ts').toString();
   assert.equal((posting.match(/fail\(422,'CONDITIONAL_POSTING_NOT_AVAILABLE'\)/g)??[]).length,2);

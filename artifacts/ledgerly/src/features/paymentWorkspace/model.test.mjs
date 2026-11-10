@@ -1,3 +1,11 @@
+import { paymentFormContextPending } from './model.mjs';
+test('open payment survives context invalidation during outcome refresh without rendering null parties', () => {
+  const form = { id: 'same-request', party_type: 'supplier' };
+  assert.equal(paymentFormContextPending(form, null), true);
+  assert.equal(paymentFormContextPending(form, { suppliers: [], capabilities: {} }), false);
+  assert.equal(paymentFormContextPending(null, null), false);
+  assert.equal(form.id, 'same-request');
+});
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { filterPayments, statementPath, createPaymentShortcutGate, clearPaymentShortcut, statementDateError, statementPeriod, loadStatementParties, selectedStatementParty, retryStatementReads, statementCsvRows } from './model.mjs';
