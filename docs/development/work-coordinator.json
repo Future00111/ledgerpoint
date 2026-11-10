@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 286,
+  "revision": 287,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993",
+  "codeHead": "b16ec529175933bb78409479fa1bf76803b49412",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -9619,10 +9619,10 @@
       }
     ],
     "runId": "discount-20261110-1794336489986",
-    "at": 1794337656484,
-    "codeHead": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993"
+    "at": 1794337773946,
+    "codeHead": "b16ec529175933bb78409479fa1bf76803b49412"
   },
-  "updatedAt": 1794337656566,
+  "updatedAt": 1794337773946,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -11162,7 +11162,7 @@
     }
   },
   "discountRun": {
-    "phase": "financial-CI-passed-browser-test-reviewed",
+    "phase": "browser-fixture-published-CI-pending",
     "task": "P01-03",
     "actor": "discount-implementer",
     "source": "36f0c77d32ec53b71fa3b0327b192db2e71882e3",
@@ -11174,7 +11174,7 @@
       "tools/development/work-queue/publication.test.mjs"
     ],
     "publication": "PR27 merged by explicit owner approval; create reviewed successor draft on same approved source/base branches; no further merge authority.",
-    "published": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993",
+    "published": "b16ec529175933bb78409479fa1bf76803b49412",
     "pr": 28,
     "review": {
       "reviewer": "discount_review",
