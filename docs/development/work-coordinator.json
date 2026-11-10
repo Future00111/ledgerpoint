@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 299,
+  "revision": 301,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "b16ec529175933bb78409479fa1bf76803b49412",
+  "codeHead": "cd6d0ca249ce367fbccf1e0ec075ee99dabb78ff",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -11,7 +11,7 @@
     "runId": "next-1794341988275",
     "tokenSha256": "7e92b2977e264cc3859829b2745372e898f0ceb46747123e6adbe91eae8d6692",
     "acquiredAt": 1794341988276,
-    "expiresAt": 1794343935989
+    "expiresAt": 1794344171417
   },
   "lastOwner": {
     "runId": "browser-approved-1794338528580",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 703,
+    "revision": 704,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -103,7 +103,7 @@
         "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "Before edits: b16ec529175933bb78409479fa1bf76803b49412 clean at next-run. Root-approved public conditional preview owner-rule guard in same transaction; preserve internal historical commands and public posting gate. Files paidCredit.ts/routes/accountingDocuments.ts/conditionalDiscount.integration.test.ts/credit-capacity-contract.md; focused HTTP checks planned.",
+        "checkpoint": "STOPPED implementation; partial candidate ff1c3819a04cf9e074d9479c71384e6ab5a80415 tree 8cb250c332504819a534b9ca10b38e302e9071be at next-run. Public conditional preview current unpaid cap in same locked transaction; internal historical commands/public posting gates preserved. source check/full build/API tsc/integration bundle passed. Native PostgreSQL HTTP execution pending exact CI (no local binaries). Parent P01-03 remains pending connected posting acceptance and full journey; root independent review/integration next.",
         "evidence": {
           "commit": "f7c19458e888f9b217b4c0e99b6fc9784f96bf1e",
           "summary": "PARTIAL UNPUBLISHED protected transaction-scoped canonical reversal prerequisite; root reviewed exact runtime and fixturecast fix. Final build/typecheck passed, nativePG/CI pending. User stopped Codex publication to favor future Replit implementation; candidate preserved. Publicposting closed; compensation not implemented.",
@@ -9633,6 +9633,13 @@
         "type": "checkpoint",
         "taskId": "P01-03",
         "checkpoint": "Before edits: b16ec529175933bb78409479fa1bf76803b49412 clean at next-run. Root-approved public conditional preview owner-rule guard in same transaction; preserve internal historical commands and public posting gate. Files paidCredit.ts/routes/accountingDocuments.ts/conditionalDiscount.integration.test.ts/credit-capacity-contract.md; focused HTTP checks planned."
+      },
+      {
+        "at": 1794342263632,
+        "actor": "next-implementer",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "STOPPED implementation; partial candidate ff1c3819a04cf9e074d9479c71384e6ab5a80415 tree 8cb250c332504819a534b9ca10b38e302e9071be at next-run. Public conditional preview current unpaid cap in same locked transaction; internal historical commands/public posting gates preserved. source check/full build/API tsc/integration bundle passed. Native PostgreSQL HTTP execution pending exact CI (no local binaries). Parent P01-03 remains pending connected posting acceptance and full journey; root independent review/integration next."
       }
     ],
     "catalogDigest": "4a4d6a7a34c9e133364ffbfbf4979a8ceacd73ef9436d0db7a7f5a7f00336058",
@@ -9659,10 +9666,10 @@
       }
     ],
     "runId": "next-1794341988275",
-    "at": 1794342135953,
-    "codeHead": "b16ec529175933bb78409479fa1bf76803b49412"
+    "at": 1794342371379,
+    "codeHead": "cd6d0ca249ce367fbccf1e0ec075ee99dabb78ff"
   },
-  "updatedAt": 1794342135989,
+  "updatedAt": 1794342371417,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -11267,8 +11274,15 @@
     "startedAt": "2026-11-10T20:19:48.309Z",
     "scope": "Highest eligible task; reconcile existing conditional discount work before bounded implementation",
     "credits": "unknown",
-    "lastObservedAt": "2026-11-10T20:22:15.950Z",
-    "activity": "next_implementation claimed P01-03 and confirmed public conditional preview still offers fullypaid discount cashrelease; root approved same-transaction publicpreview outstanding guard, preserve gated internal historical fixtures. Worker implementing publicpreview and bothparty HTTP no-write tests. Replit list_apps returned no editable ledgerpoint; not dispatched.",
-    "contract": "Public read-only conditional preview applies unpaid-balance discount rule regardless of source marker; fullpaid rejected, discount abovepartial outstanding rejected, validthreshold partial released0. Internal historical engine unchanged and inaccessible to publicmutation; future activation must apply rule. No parentacceptance."
+    "lastObservedAt": "2026-11-10T20:26:11.376Z",
+    "activity": "Implementer stopped with commit ff1c381, root independently reviewed all4 files and approved. Source/build/focusedtypecheck/bundle passed. Published cd6d0ca via fresh fencing/preflight expectedheadFF to PR28. ActualPG/restore CI pending.",
+    "contract": "Public read-only conditional preview applies unpaid-balance discount rule regardless of source marker; fullpaid rejected, discount abovepartial outstanding rejected, validthreshold partial released0. Internal historical engine unchanged and inaccessible to publicmutation; future activation must apply rule. No parentacceptance.",
+    "review": {
+      "reviewer": "root",
+      "author": "ff1c3819a04cf9e074d9479c71384e6ab5a80415",
+      "tree": "8cb250c332504819a534b9ca10b38e302e9071be",
+      "patchSha256": "1c4b58df6da4afd1f49af91967decfc12b68b9c6353b87504aee2cbeaf29e9fd",
+      "result": "No blocker: same company lock, no public mutation/financial token, ordinary credits unchanged, bothparty repeated HTTP no-write scenarios"
+    }
   }
 }
