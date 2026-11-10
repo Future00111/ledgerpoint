@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 291,
+  "revision": 292,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993",
+  "codeHead": "b16ec529175933bb78409479fa1bf76803b49412",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 700,
+    "revision": 701,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,7 +100,7 @@
         }
       },
       "P01-03": {
-        "status": "blocked",
+        "status": "pending",
         "priority": 103,
         "discoveredDependencies": [],
         "checkpoint": "Stopped implementation 19:12 UTC; no browser/test process running. Root and independent discount_review completed. Discount runtime CI passed; browser fixture review/typecheck passed but publication rejected, no browser evidence claimed. Parent conditional-discount journey remains incomplete.",
@@ -270,12 +270,7 @@
             }
           }
         },
-        "blockers": [
-          {
-            "type": "decision",
-            "reason": "Automatic approval review rejected further PR28 publication: retained instruction restricted existing PR27. Owner approval required for successor PR28 development publication; no retry or transport bypass. Reviewed browser fixture local9bc1482 preserved as immutable pending patch; financial runtime cd032 exact CI42880798976 passed."
-          }
-        ]
+        "blockers": []
       },
       "P01-04": {
         "status": "blocked",
@@ -9608,6 +9603,19 @@
             "reason": "Automatic approval review rejected further PR28 publication: retained instruction restricted existing PR27. Owner approval required for successor PR28 development publication; no retry or transport bypass. Reviewed browser fixture local9bc1482 preserved as immutable pending patch; financial runtime cd032 exact CI42880798976 passed."
           }
         ]
+      },
+      {
+        "at": 1794338612423,
+        "actor": "integration-coordinator",
+        "type": "resolve",
+        "taskId": "P01-03",
+        "reason": "Owner explicitly approved development publication to PR28 successor on 2026-11-10. Reviewed saved browser candidate b16 published after fresh fencing/preflight and expected-head FF. No merge/deploy approved.",
+        "resolvedBlockers": [
+          {
+            "type": "decision",
+            "reason": "Automatic approval review rejected further PR28 publication: retained instruction restricted existing PR27. Owner approval required for successor PR28 development publication; no retry or transport bypass. Reviewed browser fixture local9bc1482 preserved as immutable pending patch; financial runtime cd032 exact CI42880798976 passed."
+          }
+        ]
       }
     ],
     "catalogDigest": "4a4d6a7a34c9e133364ffbfbf4979a8ceacd73ef9436d0db7a7f5a7f00336058",
@@ -9633,11 +9641,11 @@
         "path": "docs/development/candidates/20261110-discount/handoff.json"
       }
     ],
-    "runId": "discount-20261110-1794336489986",
-    "at": 1794337969869,
-    "codeHead": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993"
+    "runId": "browser-approved-1794338528580",
+    "at": 1794338613232,
+    "codeHead": "b16ec529175933bb78409479fa1bf76803b49412"
   },
-  "updatedAt": 1794338528617,
+  "updatedAt": 1794338613232,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -11177,7 +11185,7 @@
     }
   },
   "discountRun": {
-    "phase": "stopped-browser-publication-rejected",
+    "phase": "browser-published-CI-running",
     "task": "P01-03",
     "actor": "discount-implementer",
     "source": "36f0c77d32ec53b71fa3b0327b192db2e71882e3",
@@ -11189,7 +11197,7 @@
       "tools/development/work-queue/publication.test.mjs"
     ],
     "publication": "PR27 merged by explicit owner approval; create reviewed successor draft on same approved source/base branches; no further merge authority.",
-    "published": "cd032a78fc3087911dc7ada2c3578dbcbd4c6993",
+    "published": "b16ec529175933bb78409479fa1bf76803b49412",
     "pr": 28,
     "review": {
       "reviewer": "discount_review",
@@ -11207,9 +11215,9 @@
       "base": "6c42c15c906f56e8029e416b34d0af2201d87c29",
       "tree": "c47dfbccbbd64d362daca573cd2c79aed93b6c89",
       "unreferencedRemoteCommit": "b16ec529175933bb78409479fa1bf76803b49412",
-      "published": false
+      "published": true
     },
-    "blocker": "Automatic approval review rejected PR28 ref update because prior instructions name PR27. No retry. Need explicit owner authorization for successor PR28 development publication; no merge/deploy implied.",
+    "blocker": null,
     "metrics": {
       "acceptedOriginalBullets": 0,
       "acceptedScenario": "Unpaid/part-paid discount cap and paid invoice credit/refund separation",
