@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 296,
+  "revision": 297,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "b16ec529175933bb78409479fa1bf76803b49412",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "next-1794341988275",
+    "tokenSha256": "7e92b2977e264cc3859829b2745372e898f0ceb46747123e6adbe91eae8d6692",
+    "acquiredAt": 1794341988276,
+    "expiresAt": 1794343788276
+  },
   "lastOwner": {
     "runId": "browser-approved-1794338528580",
     "tokenSha256": "a0a78bebf69d35aba48e9a206529a8f9f369a341fa2a22495e843c0489677776",
@@ -9640,7 +9645,7 @@
     "at": 1794338910650,
     "codeHead": "b16ec529175933bb78409479fa1bf76803b49412"
   },
-  "updatedAt": 1794338910752,
+  "updatedAt": 1794341988276,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -11240,5 +11245,10 @@
       "userReply": "Yes I approve"
     }
   },
-  "integrationPullRequest": 28
+  "integrationPullRequest": 28,
+  "nextRun": {
+    "startedAt": "2026-11-10T20:19:48.309Z",
+    "scope": "Highest eligible task; reconcile existing conditional discount work before bounded implementation",
+    "credits": "unknown"
+  }
 }
