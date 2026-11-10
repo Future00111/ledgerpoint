@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
-export default function CompanySwitcher({ collapsed, onNavigate }) {
-  const { companies, activeCompany, switchCompany } = useCompany();
+export default function CompanySwitcher({ collapsed = false, onNavigate, surface = 'sidebar' }) {
+  const { companies, activeCompany, switchCompany, loading } = useCompany();
 
   if (companies.length === 0) {
     return (
@@ -21,13 +21,13 @@ export default function CompanySwitcher({ collapsed, onNavigate }) {
         to="/companies"
         onClick={onNavigate}
         className={cn(
-          'flex items-center gap-2 rounded-lg text-sm text-muted-foreground hover:bg-muted transition-colors',
+          'flex min-h-11 items-center gap-2 rounded-xl text-sm text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           collapsed ? 'lg:justify-center lg:w-10 lg:h-10 lg:mx-auto p-2' : 'px-3 py-2'
         )}
-        title="Create company"
+        title="Choose company" aria-label={loading ? "Loading companies" : "Choose or create a company"}
       >
         <Building2 className="w-5 h-5 flex-shrink-0" />
-        {!collapsed && <span>No company — create one</span>}
+        {!collapsed && <span>{loading ? 'Loading companies…' : 'Choose a company'}</span>}
       </Link>
     );
   }
@@ -37,23 +37,23 @@ export default function CompanySwitcher({ collapsed, onNavigate }) {
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            'w-full flex items-center gap-2 rounded-lg text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'w-full min-h-11 flex items-center gap-2 rounded-xl border border-transparent text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
             collapsed
-              ? 'lg:justify-center lg:w-10 lg:h-10 lg:mx-auto p-2 hover:bg-muted'
-              : 'items-center justify-between px-3 py-2 bg-muted hover:bg-muted/70'
+              ? 'justify-center p-2 text-foreground hover:bg-muted'
+              : surface === 'sidebar' ? 'items-center justify-between px-3 py-3 bg-muted/60 text-foreground hover:border-border hover:bg-muted' : 'items-center justify-between px-3 py-2 bg-muted/50 text-foreground hover:bg-muted'
           )}
           title={collapsed ? activeCompany?.name : undefined}
-          aria-label="Switch company"
+          aria-label={`Current company: ${activeCompany?.name || 'none selected'}. Switch company`}
         >
           {collapsed ? (
-            <Building2 className="w-5 h-5 text-foreground" />
+            <Building2 className="w-5 h-5 text-current" />
           ) : (
             <>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-6 h-6 rounded-md bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Building2 className="w-3.5 h-3.5" />
+                <div className="w-8 h-8 rounded-lg border bg-white text-primary flex items-center justify-center flex-shrink-0">
+                  <Building2 className="w-4 h-4" />
                 </div>
-                <span className="truncate font-medium text-sm">{activeCompany?.name || 'Select company'}</span>
+                <span className="min-w-0 text-left"><span className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Your business</span><span className="block truncate font-medium text-sm">{activeCompany?.name || 'Select company'}</span></span>
               </div>
               <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             </>
@@ -71,7 +71,7 @@ export default function CompanySwitcher({ collapsed, onNavigate }) {
               switchCompany(c);
               onNavigate?.();
             }}
-            className="gap-2"
+            className="min-h-11 gap-2"
           >
             <Building2 className="w-4 h-4 flex-shrink-0" />
             <span className="truncate flex-1">{c.name}</span>
@@ -79,12 +79,12 @@ export default function CompanySwitcher({ collapsed, onNavigate }) {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
+        <DropdownMenuItem asChild className="min-h-11">
           <Link to="/companies" onClick={onNavigate}>
             <Plus className="w-4 h-4 mr-2" /> Create company
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
+        <DropdownMenuItem asChild className="min-h-11">
           <Link to="/companies" onClick={onNavigate}>
             <Settings className="w-4 h-4 mr-2" /> Manage companies
           </Link>

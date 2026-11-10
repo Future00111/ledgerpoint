@@ -48,7 +48,7 @@ export default function ScanConfigForm({ companyId }) {
       } else {
         await nativeEntities.EmailScanConfig.create({ company_id: companyId, ...data });
       }
-      toast({ title: 'Scan configuration saved' });
+      toast({ title: 'Preferences saved — scanning remains unavailable' });
       await loadConfig();
     } catch (e) { toast({ title: 'Error saving configuration', variant: 'destructive' }); }
     finally { setSaving(false); }
@@ -59,7 +59,9 @@ export default function ScanConfigForm({ companyId }) {
   return (
     <Card className="border-0 shadow-sm">
       <CardContent className="p-4 sm:p-6 space-y-5">
-        <p className="text-sm font-medium">Scan Configuration</p>
+        <p className="text-sm font-medium">Saved scan preferences</p>
+
+        <p className="text-sm text-muted-foreground">These preferences do not scan email until a mailbox integration is available.</p>
 
         <div className="space-y-2">
           <Label>Scan Mode</Label>
@@ -84,7 +86,7 @@ export default function ScanConfigForm({ companyId }) {
               onChange={e => setConfig({ ...config, selected_senders: e.target.value })}
               rows={3}
             />
-            <p className="text-xs text-muted-foreground">Only emails from these senders will be scanned</p>
+            <p className="text-xs text-muted-foreground">Preferred senders for future scanning</p>
           </div>
         )}
 
@@ -96,7 +98,7 @@ export default function ScanConfigForm({ companyId }) {
             onChange={e => setConfig({ ...config, ignored_senders: e.target.value })}
             rows={3}
           />
-          <p className="text-xs text-muted-foreground">Emails from these senders will always be skipped</p>
+          <p className="text-xs text-muted-foreground">Ignored-sender preference for future scanning</p>
         </div>
 
         <div className="flex items-center justify-between py-2">
@@ -115,7 +117,7 @@ export default function ScanConfigForm({ companyId }) {
             onChange={e => setConfig({ ...config, ignore_older_than: e.target.value })}
             className="sm:w-48"
           />
-          <p className="text-xs text-muted-foreground">Emails older than this date will be skipped</p>
+          <p className="text-xs text-muted-foreground">Date preference for future scanning</p>
         </div>
 
         <Button onClick={handleSave} disabled={saving} className="gap-2">

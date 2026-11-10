@@ -1,9 +1,15 @@
+import { hasConditionalCreditAuthority } from './paidCredit';
+import type { DatabaseTransaction } from '../accounting/canonicalPosting';
+import { assertNoConditionalCredit, validateConditionalDraft } from './conditionalDiscount';
 import { appliedTo, documentOpen, paymentEvents } from './settlement';
+import { amendmentHistory } from './amendments';
+import { creditOriginal, assertCreditCapacity } from './creditCapacity';
 import { randomUUID } from "node:crypto";
 import { accountId } from "./accounts";
 import type pg from "pg";
 import { fail, parseInvoice, netPence, money, decimal, uuid, type InvoiceSource } from "../financialDrafts/contract";
-import { calculateTaxLine, createProductionInvoiceDraftAuthority } from "../financialDrafts/productionAuthority";
+import { calculateReturnLine, createProductionInvoiceDraftAuthority } from "../financialDrafts/productionAuthority";
+import { discountedAmounts, creditFromGross } from '../financialDrafts/discounts';
 import { configuration, validateAccounts } from "./configuration";
 import { transact, scope, document, supportedCompany, kindOf, sales, credit, tables, hash, exactFields, pounds,
   type Queryable, type Kind } from "./core";
@@ -32,9 +38,11 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
   let postingAccount=body.posting_account_id===undefined?previous?.posting_account_id??null:body.posting_account_id;
   let tax:any;
   if(credit(kind)) {
+    if(source.conditional_discount) fail(422,'CONDITIONAL_REQUIRES_ORIGINAL_DOCUMENT');
+    if(source.discount) fail(422,"DISCOUNT_REQUIRES_ORIGINAL_DOCUMENT");
     if(!originalId || typeof reason!=="string" || !reason.trim() || reason.length>1000 ||
       method!=="offset_outstanding" || effective!==source.issue_date) fail(422,"CREDIT_EFFECTIVE_DECREASE_REQUIRED");
-    const original=await document(q,company,uuid(originalId),true);
+    const original=await creditOriginal(q,company,uuid(originalId),source.issue_date);
     if(original.kind!==(sales(kind)?"sales_invoice":"purchase_bill") ||
        original.party_id!==source.customer_id || source.issue_date<original.source.issue_date ||
        source.price_basis!==(original.source.price_basis??"excluding_vat")) fail(422,"CREDIT_ORIGINAL_MISMATCH");
@@ -42,6 +50,15 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
     if(!Array.isArray(references) || references.length!==source.line_items.length ||
        new Set(references).size!==references.length ||
        references.some(i=>!Number.isInteger(i) || i<0 || i>=original.source.line_items.length)) fail(422,"CREDIT_ORIGINAL_MISMATCH");
+    const adjustment=source.discount_adjustment;
+    if(adjustment && (original.status!=="posted" || adjustment.original_revision!==original.revision))
+      fail(409,"DISCOUNT_ORIGINAL_CHANGED");
+    if(adjustment && (references.length!==original.source.line_items.length || references.some((ref,i)=>ref!==i) ||
+      source.line_items.some((line,i)=>line.quantity!==original.source.line_items[i].quantity ||
+        line.unit_price!==original.source.line_items[i].unit_price || line.tax_code!==original.source.line_items[i].tax_code)))
+      fail(422,"DISCOUNT_ORIGINAL_LINES_REQUIRED");
+    const lateDiscount=adjustment?discountedAmounts(original.money.lines.map((line:any)=>BigInt(line.gross_pence)),
+      {type:adjustment.type,value:adjustment.value},'including_vat'):undefined;
     const entered=netPence(source.line_items);
     const net:string[]=[], vat:string[]=[], unit:string[]=[];
     const lines=source.line_items.map((line,i)=>{
@@ -49,16 +66,27 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
       const fact=original.tax_context.lines[references[i]];
       if(!fact || decimal(line.unit_price,false)>decimal(originalLine.unit_price,false) || line.tax_code!==originalLine.tax_code ||
          decimal(line.quantity,true)>decimal(originalLine.quantity,true)) fail(422,"CREDIT_ORIGINAL_MISMATCH");
-      const amount=calculateTaxLine(entered[i]!,decimal(String(fact.rate),false)/100n,source.price_basis!,line.unit_price);
+      const rate=decimal(String(fact.rate),false)/100n;
+      const allocatedDiscount=original.source.discount?original.money.discount?.lines?.[references[i]]?.discount_pence:undefined;
+      if(original.source.discount && allocatedDiscount===undefined) fail(409,'SOURCE_CONTEXT_CHANGED');
+      const ordinary=calculateReturnLine(entered[i]!,rate,source.price_basis!,line,originalLine,original.money.lines[references[i]],allocatedDiscount);
+      const adjusted=lateDiscount?.summary
+        ?creditFromGross(BigInt(lateDiscount.summary.lines[i]!.discount_pence),original.money.lines[references[i]],rate)
+        :null;
+      const amount=adjusted?{...adjusted,unitNetPrice:ordinary.unitNetPrice}:ordinary;
       net.push(amount.net.toString());vat.push(amount.vat.toString());unit.push(amount.unitNetPrice);
-      return {...fact,entered_unit_price:line.unit_price,unit_net_price:amount.unitNetPrice,
+      const { entered_before_discount_pence: _before, discount_pence: _discount, entered_after_discount_pence: _after, ...originalFact }=fact;
+      return {...originalFact,entered_unit_price:line.unit_price,unit_net_price:amount.unitNetPrice,
         net_pence:amount.net.toString(),vat_pence:amount.vat.toString(),original_line_ref:references[i]};
     });
     eligible=original.purchase_vat_eligible;
     accounts=original.posting_accounts;
     postingAccount=original.posting_account_id;
+    const {discount:originalDiscount,...originalContext}=original.tax_context;
     tax={netPence:net,vatPence:vat,unitNetPrices:unit,context:{
-      ...original.tax_context,lines,original_line_refs:references,
+      ...originalContext,lines,original_line_refs:references,
+      ...(originalDiscount?{original_discount:originalDiscount}:{}),
+      ...(lateDiscount?.summary?{discount_adjustment:lateDiscount.summary}:{}),
       original_document_id:original.id,original_revision:original.revision,
       original_tax_point_date:original.source.issue_date,issue_date:source.issue_date,
       effective_adjustment_date:effective,adjustment_method:method,adjustment_reason:reason.trim(),
@@ -67,6 +95,7 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
     }};
     if(original.tax_context.company.vat_registered!==c.vat_registered) fail(422,"TAX_CONTEXT_CHANGED");
   } else {
+    if(source.discount_adjustment) fail(422,"DISCOUNT_ADJUSTMENT_REQUIRES_CREDIT");
     if(originalId || method || effective || reason) fail(422,"FIELD_INVALID");
     tax=await createProductionInvoiceDraftAuthority().resolveTax(q as pg.PoolClient,company,source,netPence(source.line_items));
     if(postingAccount!==null) {
@@ -77,7 +106,10 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
   }
   await validateAccounts(q,company,accounts,c.vat_registered,
     !credit(kind) && postingAccount!==null?{[sales(kind)?"revenue":"expense"]:"/posting_account_id"}:{});
-  const totals=money(tax.netPence.map((v:string)=>BigInt(v)),tax.vatPence);
+  const totals={...money(tax.netPence.map((v:string)=>BigInt(v)),tax.vatPence),
+    ...(source.discount?{discount:tax.context.discount}:{}),
+    ...(source.discount_adjustment?{discount_adjustment:tax.context.discount_adjustment}:{})};
+  await validateConditionalDraft(q,company,source,sales(kind)?'customer':'supplier',totals.gross_pence);
   return {source,party_name:party.rows[0].name,party_id:source.customer_id,
     original_id:originalId??null,reason:typeof reason==="string"?reason.trim():"",
     adjustment_method:method,effective_adjustment_date:effective,
@@ -87,9 +119,10 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
       purchase_vat_eligible:eligible,business_accounting_basis:"accrual"},
     posting_accounts:accounts,mapping_revision:config.revision,unit_net_prices:tax.unitNetPrices};
 }
-export async function assertCreditAvailable(q:Queryable, company:string, row:any) {
+export async function assertCreditAvailable(q:Queryable, company:string, row:any, tx?:DatabaseTransaction, actor?:string) {
   if(!credit(row.kind)) return;
-  const original=await document(q,company,row.original_id,true);
+  const original=await creditOriginal(q,company,row.original_id,row.source.issue_date);
+  if(!hasConditionalCreditAuthority(tx,company,actor,row)) await assertNoConditionalCredit(q,company,original);
   if(original.status!=="posted" || !original.journal_id ||
     row.tax_context.original_revision!==original.revision ||
     row.tax_context.original_evidence_hash!==hash({source:original.source,money:original.money,tax_context:original.tax_context,accounts:original.posting_accounts}))
@@ -108,18 +141,7 @@ export async function assertCreditAvailable(q:Queryable, company:string, row:any
     fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
   const available=await documentOpen(q,company,original.id,settlements);
   if(BigInt(row.money.gross_pence)>BigInt(available.open_minor)) fail(409,'CREDIT_EXCEEDS_OUTSTANDING');
-  const other=await q.query("SELECT money,tax_context FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND status='posted' ORDER BY id FOR UPDATE",[company,original.id]);
-  for(let i=0;i<row.money.lines.length;i++) {
-    const ref=row.tax_context.original_line_refs[i], own=row.money.lines[i];
-    for(const field of ["net_pence","vat_pence","gross_pence"]) {
-      let total=BigInt(own[field]);
-      for(const prior of other.rows) {
-        const ix=prior.tax_context.original_line_refs.indexOf(ref);
-        if(ix>=0) total+=BigInt(prior.money.lines[ix][field]);
-      }
-      if(total>BigInt(original.money.lines[ref][field])) fail(409,"CREDIT_EXCEEDS_OUTSTANDING");
-    }
-  }
+  await assertCreditCapacity(q,company,original,row);
 }
 export async function project(q:Queryable,company:string,id:string,kind:Kind,row:any,insert:boolean) {
   const s=row.source, isCredit=credit(kind);
@@ -149,40 +171,42 @@ export async function project(q:Queryable,company:string,id:string,kind:Kind,row
   }
 }
 const editable=["kind","source","original_id","purchase_vat_eligible","posting_account_id","reason","adjustment_method","effective_adjustment_date","original_line_refs"];
-export async function saveDocument(company:string,actor:string,input:unknown,id?:string,expected?:string) {
+/** Same native validation and audit, composed only inside an existing transaction. */
+export async function saveDocumentInTransaction(q:Queryable,company:string,actor:string,input:unknown,id?:string,expected?:string) {
   const body=exactFields(input,editable);
-  return transact(async q=>{
-    await scope(q,company,actor,true,true);
-    const old=id?await document(q,company,id,true):undefined;
-    if(old && old.status!=="draft") fail(409,"DOCUMENT_NOT_DRAFT");
-    if(old && expected!==old.revision) fail(409,"REVISION_CONFLICT");
-    if(old && body.kind!==undefined && body.kind!==old.kind) fail(422,"DOCUMENT_KIND_INVALID");
-    const kind=old?.kind??kindOf(body.kind);
-    if(old) {
-      const linked=await q.query("SELECT id FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2",[company,id]);
-      if(linked.rowCount) fail(409,"DOCUMENT_NOT_DRAFT");
-    }
-    const row=await calculateDocument(q,company,kind,body,old);
-    const docId=id??randomUUID(),revision=randomUUID();
-    await project(q,company,docId,kind,row,!old);
-    const vals=[company,kind,row.source.invoice_number,revision,row.source,row.party_id,row.original_id,
-      row.reason,row.adjustment_method,row.effective_adjustment_date,row.purchase_vat_eligible,row.posting_account_id,
-      row.money,row.tax_context,row.posting_accounts,row.mapping_revision,docId];
-    if(old) {
-      await q.query(`UPDATE accounting_document_sources SET number=$3,revision=$4,source=$5,party_id=$6,original_id=$7,
-        reason=$8,adjustment_method=$9,effective_adjustment_date=$10,purchase_vat_eligible=$11,posting_account_id=$12,
-        money=$13,tax_context=$14,posting_accounts=$15,mapping_revision=$16,updated_at=clock_timestamp()
-        WHERE company_id=$1 AND kind=$2 AND id=$17`,vals);
-    } else {
-      await q.query(`INSERT INTO accounting_document_sources(company_id,kind,number,revision,source,party_id,original_id,
-        reason,adjustment_method,effective_adjustment_date,purchase_vat_eligible,posting_account_id,
-        money,tax_context,posting_accounts,mapping_revision,id,status)
-        VALUES(${vals.map((_,i)=>`$${i+1}`).join(",")},'draft')`,vals);
-    }
-    await q.query(`INSERT INTO accounting_document_audit(id,company_id,document_id,actor_id,action,before_source,after_source)
-      VALUES($1,$2,$3,$4,$5,$6,$7)`,[randomUUID(),company,docId,actor,old?"edit":"create",old?.source??null,row.source]);
-    return {...row,id:docId,kind,status:"draft",revision,journal_id:null};
-  });
+  await scope(q,company,actor,true,true);
+  const old=id?await document(q,company,id,true):undefined;
+  if(old && old.status!=="draft") fail(409,"DOCUMENT_NOT_DRAFT");
+  if(old && expected!==old.revision) fail(409,"REVISION_CONFLICT");
+  if(old && body.kind!==undefined && body.kind!==old.kind) fail(422,"DOCUMENT_KIND_INVALID");
+  const kind=old?.kind??kindOf(body.kind);
+  if(old) {
+    const linked=await q.query("SELECT id FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2",[company,id]);
+    if(linked.rowCount) fail(409,"DOCUMENT_NOT_DRAFT");
+  }
+  const row=await calculateDocument(q,company,kind,body,old);
+  const docId=id??randomUUID(),revision=randomUUID();
+  await project(q,company,docId,kind,row,!old);
+  const vals=[company,kind,row.source.invoice_number,revision,row.source,row.party_id,row.original_id,
+    row.reason,row.adjustment_method,row.effective_adjustment_date,row.purchase_vat_eligible,row.posting_account_id,
+    row.money,row.tax_context,row.posting_accounts,row.mapping_revision,docId];
+  if(old) {
+    await q.query(`UPDATE accounting_document_sources SET number=$3,revision=$4,source=$5,party_id=$6,original_id=$7,
+      reason=$8,adjustment_method=$9,effective_adjustment_date=$10,purchase_vat_eligible=$11,posting_account_id=$12,
+      money=$13,tax_context=$14,posting_accounts=$15,mapping_revision=$16,updated_at=clock_timestamp()
+      WHERE company_id=$1 AND kind=$2 AND id=$17`,vals);
+  } else {
+    await q.query(`INSERT INTO accounting_document_sources(company_id,kind,number,revision,source,party_id,original_id,
+      reason,adjustment_method,effective_adjustment_date,purchase_vat_eligible,posting_account_id,
+      money,tax_context,posting_accounts,mapping_revision,id,status)
+      VALUES(${vals.map((_,i)=>`$${i+1}`).join(",")},'draft')`,vals);
+  }
+  await q.query(`INSERT INTO accounting_document_audit(id,company_id,document_id,actor_id,action,before_source,after_source)
+    VALUES($1,$2,$3,$4,$5,$6,$7)`,[randomUUID(),company,docId,actor,old?"edit":"create",old?.source??null,row.source]);
+  return {...row,id:docId,kind,status:"draft",revision,journal_id:null};
+}
+export async function saveDocument(company:string,actor:string,input:unknown,id?:string,expected?:string) {
+  return transact(q=>saveDocumentInTransaction(q,company,actor,input,id,expected));
 }
 export async function getDocument(company:string,actor:string,id:string) {
   return transact(async q=>{
@@ -195,14 +219,17 @@ export async function getDocument(company:string,actor:string,id:string) {
     }
     const row=await document(q,company,id);
     const p=await q.query(`SELECT name FROM ${sales(row.kind)?"customers":"suppliers"} WHERE id=$1 AND company_id=$2`,[row.party_id,company]);
-    return {...row,party_name:p.rows[0]?.name??""};
-  });
+    return {...(await amendmentHistory(q,company,row)).current,party_name:p.rows[0]?.name??""};
+  },true);
 }
 export async function listDocuments(company:string,actor:string,kind:Kind) {
   return transact(async q=>{
     await scope(q,company,actor);
-    return (await q.query(`SELECT d.*,p.name party_name FROM accounting_document_sources d
+    const rows=(await q.query(`SELECT d.*,p.name party_name FROM accounting_document_sources d
       JOIN ${sales(kind)?"customers":"suppliers"} p ON p.id=d.party_id AND p.company_id=d.company_id
       WHERE d.company_id=$1 AND d.kind=$2 ORDER BY d.created_at DESC,d.id`,[company,kind])).rows;
-  });
+    const result=[];
+    for(const row of rows) result.push({...row,...(await amendmentHistory(q,company,row)).current});
+    return result;
+  },true);
 }

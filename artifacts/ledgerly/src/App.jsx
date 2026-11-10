@@ -1,6 +1,4 @@
-import ReportLibrary from '@/pages/ReportLibrary';
-import Payments from '@/pages/Payments';
-import Statements from '@/pages/Statements';
+import { lazyRoute } from '@/components/RouteLoadingBoundary';
 import { ClerkProvider, SignIn, SignUp, useAuth as useClerkAuth } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
@@ -16,43 +14,49 @@ import { CompanyProvider } from '@/lib/useCompany';
 import NotificationStack from '@/components/notifications/NotificationStack';
 
 import AppLayout from '@/components/layout/AppLayout';
-import Dashboard from '@/pages/Dashboard';
-import Companies from '@/pages/Companies';
-import Customers from '@/pages/Customers';
-import Suppliers from '@/pages/Suppliers';
-import Invoices from '@/pages/Invoices';
-import InvoiceForm from '@/pages/InvoiceForm';
-import InvoiceDetail from '@/pages/InvoiceDetail';
-import Collections from '@/pages/Collections';
-import Bills from '@/pages/Bills';
-import BankAccounts from '@/pages/BankAccounts';
-import BankTransactions from '@/pages/BankTransactions';
-import Reconciliation from '@/pages/Reconciliation';
-import VATReturns from '@/pages/VATReturns';
-import VATReturnDetail from '@/pages/VATReturnDetail';
-import Documents from '@/pages/Documents';
-import EmailCapture from '@/pages/EmailCapture';
-import EmailRules from '@/pages/EmailRules';
-import Reports from '@/pages/Reports';
-import AccountantPortal from '@/pages/AccountantPortal';
-import Settings from '@/pages/Settings';
-import ChartOfAccounts from '@/pages/ChartOfAccounts';
-import GeneralLedger from '@/pages/GeneralLedger';
-import SetupWizard from '@/pages/SetupWizard';
-import Insights from '@/pages/Insights';
-import SmartSuggestions from '@/pages/SmartSuggestions';
-import DevelopmentTools from '@/pages/DevelopmentTools';
-import Automation from '@/pages/Automation';
-import AIAccountant from '@/pages/AIAccountant';
-import AIAccountantInbox from '@/pages/AIAccountantInbox';
-import AIAccountantTasks from '@/pages/AIAccountantTasks';
-import AIAccountantReviews from '@/pages/AIAccountantReviews';
-import AIAccountantRecommendations from '@/pages/AIAccountantRecommendations';
-import AccountingDocumentList from '@/pages/AccountingDocumentList';
-import AccountingDocumentForm from '@/pages/AccountingDocumentForm';
-import AccountingJournal from '@/pages/AccountingJournal';
-import AccountingReports from '@/pages/AccountingReports';
-import AccountingSetup from '@/pages/AccountingSetup';
+
+const ReportLibrary = lazyRoute(() => import('@/pages/ReportLibrary'));
+const Payments = lazyRoute(() => import('@/pages/Payments'));
+const Statements = lazyRoute(() => import('@/pages/Statements'));
+const Dashboard = lazyRoute(() => import('@/pages/Dashboard'));
+const Companies = lazyRoute(() => import('@/pages/Companies'));
+const Customers = lazyRoute(() => import('@/pages/Customers'));
+const Suppliers = lazyRoute(() => import('@/pages/Suppliers'));
+const Invoices = lazyRoute(() => import('@/pages/Invoices'));
+const InvoiceForm = lazyRoute(() => import('@/pages/InvoiceForm'));
+const InvoiceDetail = lazyRoute(() => import('@/pages/InvoiceDetail'));
+const Collections = lazyRoute(() => import('@/pages/Collections'));
+const Bills = lazyRoute(() => import('@/pages/Bills'));
+const BankAccounts = lazyRoute(() => import('@/pages/BankAccounts'));
+const BankTransactions = lazyRoute(() => import('@/pages/BankTransactions'));
+const Reconciliation = lazyRoute(() => import('@/pages/Reconciliation'));
+const VATReturns = lazyRoute(() => import('@/pages/VATReturns'));
+const VATReturnDetail = lazyRoute(() => import('@/pages/VATReturnDetail'));
+const Documents = lazyRoute(() => import('@/pages/Documents'));
+const EmailCapture = lazyRoute(() => import('@/pages/EmailCapture'));
+const EmailRules = lazyRoute(() => import('@/pages/EmailRules'));
+const Reports = lazyRoute(() => import('@/pages/Reports'));
+const AccountantPortal = lazyRoute(() => import('@/pages/AccountantPortal'));
+const Settings = lazyRoute(() => import('@/pages/Settings'));
+const ChartOfAccounts = lazyRoute(() => import('@/pages/ChartOfAccounts'));
+const GeneralLedger = lazyRoute(() => import('@/pages/GeneralLedger'));
+const SetupWizard = lazyRoute(() => import('@/pages/SetupWizard'));
+const Insights = lazyRoute(() => import('@/pages/Insights'));
+const SmartSuggestions = lazyRoute(() => import('@/pages/SmartSuggestions'));
+const DevelopmentTools = lazyRoute(() => import('@/pages/DevelopmentTools'));
+const Automation = lazyRoute(() => import('@/pages/Automation'));
+const AIAccountant = lazyRoute(() => import('@/pages/AIAccountant'));
+const AIAccountantInbox = lazyRoute(() => import('@/pages/AIAccountantInbox'));
+const AIAccountantTasks = lazyRoute(() => import('@/pages/AIAccountantTasks'));
+const AIAccountantReviews = lazyRoute(() => import('@/pages/AIAccountantReviews'));
+const AIAccountantRecommendations = lazyRoute(() => import('@/pages/AIAccountantRecommendations'));
+const AccountingDocumentList = lazyRoute(() => import('@/pages/AccountingDocumentList'));
+const AccountingDocumentForm = lazyRoute(() => import('@/pages/AccountingDocumentForm'));
+const AwaitingCreditsPage = lazyRoute(() => import('@/features/creditRecovery/AwaitingCreditsPage'));
+const AccountingJournal = lazyRoute(() => import('@/pages/AccountingJournal'));
+const AccountingReports = lazyRoute(() => import('@/pages/AccountingReports'));
+const AccountingSetup = lazyRoute(() => import('@/pages/AccountingSetup'));
+const AuditHistory = lazyRoute(() => import('@/pages/AuditHistory'));
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -156,10 +160,10 @@ const AuthenticatedApp = () => {
           <Route path="/register" element={<Navigate to="/sign-up" replace />} />
           <Route path="/forgot-password" element={<Navigate to="/sign-in" replace />} />
           <Route path="/reset-password" element={<Navigate to="/sign-in" replace />} />
-          <Route path="/setup" element={<SetupWizard />} />
 
           <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/sign-in" replace />} />}>
             <Route element={<CompanyProvider><AppLayout /></CompanyProvider>}>
+              <Route path="/setup" element={<SetupWizard />} />
               <Route path="/" element={<Dashboard />} />
               <Route path="/ai-accountant" element={<AIAccountant />} />
               <Route path="/ai-accountant/inbox" element={<AIAccountantInbox />} />
@@ -180,6 +184,7 @@ const AuthenticatedApp = () => {
               <Route path="/invoices/:id/view" element={<AccountingDocumentForm kind="sales_invoice" legacyFallback={<InvoiceDetail />} />} />
               <Route path="/collections" element={<Collections />} />
               <Route path="/bills" element={<AccountingDocumentList kind="purchase_bill" />} />
+              <Route path="/awaiting-credits" element={<AwaitingCreditsPage />} />
               <Route path="/bills/earlier" element={<Bills />} />
               <Route path="/bills/new" element={<AccountingDocumentForm kind="purchase_bill" />} />
               <Route path="/bills/:id" element={<AccountingDocumentForm kind="purchase_bill" />} />
@@ -192,6 +197,7 @@ const AuthenticatedApp = () => {
               <Route path="/accounting/journals/:id" element={<AccountingJournal />} />
               <Route path="/accounting/reports" element={<AccountingReports />} />
               <Route path="/accounting/setup" element={<AccountingSetup />} />
+              <Route path="/audit-history" element={<AuditHistory />} />
               <Route path="/bank-accounts" element={<BankAccounts />} />
               <Route path="/transactions" element={<BankTransactions />} />
               <Route path="/reconciliation" element={<Reconciliation />} />
@@ -229,6 +235,8 @@ function App() {
       appearance={clerkAppearance}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}
+      signInFallbackRedirectUrl={`${basePath}/`}
+      signUpFallbackRedirectUrl={`${basePath}/`}
     >
       <QueryClientProvider client={queryClientInstance}>
         <Router basename={basePath}>

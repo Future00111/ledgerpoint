@@ -1,348 +1,140 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import * as nativeEntities from '@/api/entities';
 import { invokeApiFunction } from '@/api/functions.mjs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
-import { Upload, AlertCircle } from 'lucide-react';
-import moment from 'moment';
+import { buildBankPreview, checkFileSize, confirmedImportReceipt, createImportGate, FIELDS, markDuplicateCandidates, parseBankCSV } from '@/features/bankImport/model.mjs';
+import BankImportReview from '@/features/bankImport/BankImportReview';
 
-function parseCSV(text) {
-  const rows = [];
-  let current = [];
-  let field = '';
-  let inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQuotes) {
-      if (c === '"') {
-        if (text[i + 1] === '"') { field += '"'; i++; }
-        else inQuotes = false;
-      } else field += c;
-    } else {
-      if (c === '"') inQuotes = true;
-      else if (c === ',') { current.push(field); field = ''; }
-      else if (c === '\n') { current.push(field); rows.push(current); current = []; field = ''; }
-      else if (c === '\r') { /* skip */ }
-      else field += c;
-    }
-  }
-  if (field || current.length) { current.push(field); rows.push(current); }
-  return rows.filter(r => r.some(c => c.trim()));
-}
+const LABELS = { date: 'Date', description: 'Description', reference: 'Reference', money_in: 'Money in', money_out: 'Money out', balance: 'Balance' };
 
-const HEADER_MAP = {
-  'date': 'date', 'transaction date': 'date', 'transaction_date': 'date',
-  'description': 'description', 'details': 'description', 'narrative': 'description', 'memo': 'description',
-  'reference': 'reference', 'ref': 'reference',
-  'money in': 'money_in', 'credit': 'money_in', 'deposit': 'money_in', 'money_in': 'money_in',
-  'money out': 'money_out', 'debit': 'money_out', 'payment': 'money_out', 'money_out': 'money_out',
-  'balance': 'balance',
-};
-
-export default function ImportCSVDialog({ open, onOpenChange, companyId, onImported }) {
-  const [step, setStep] = useState('select'); // select, map, review, importing, results
+function BankImportSession({ open, onOpenChange, companyId, onImported }) {
+  const [accounts, setAccounts] = useState([]);
+  const [accountsLoading, setAccountsLoading] = useState(true);
   const [bankAccountId, setBankAccountId] = useState('');
-  const [bankAccounts, setBankAccounts] = useState([]);
-  const [rawRows, setRawRows] = useState([]);
-  const [headers, setHeaders] = useState([]);
+  const [file, setFile] = useState(null);
   const [columnMap, setColumnMap] = useState({});
-  const [preview, setPreview] = useState([]);
-  const [fileName, setFileName] = useState('');
-  const [importing, setImporting] = useState(false);
-  const [results, setResults] = useState(null);
-  const fileRef = useRef(null);
-  const { toast } = useToast();
-
-  const loadBankAccounts = async () => {
-    try {
-      const accounts = await nativeEntities.BankAccount.filter({ company_id: companyId });
-      setBankAccounts(accounts);
-    } catch (e) { console.error(e); }
-  };
-
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setFileName(file.name);
-    const text = await file.text();
-    const rows = parseCSV(text);
-    if (rows.length < 2) { toast({ title: 'CSV appears empty', variant: 'destructive' }); return; }
-    const hdrs = rows[0].map(h => h.trim().toLowerCase());
-    setHeaders(hdrs);
-    setRawRows(rows.slice(1));
-    
-    // Auto-map headers
-    const map = {};
-    hdrs.forEach((h, i) => {
-      const field = HEADER_MAP[h];
-      if (field) map[i] = field;
-    });
-    setColumnMap(map);
-    setStep('map');
-  };
-
-  const handleMapChange = (colIndex, field) => {
-    setColumnMap(prev => {
-      const updated = { ...prev };
-      if (field) updated[colIndex] = field;
-      else delete updated[colIndex];
-      return updated;
-    });
-  };
-
-  const buildPreview = () => {
-    const mapped = rawRows.map(row => {
-      const obj = {};
-      headers.forEach((h, i) => {
-        const field = columnMap[i];
-        if (field) obj[field] = row[i]?.trim() || '';
-      });
-      obj.money_in = parseFloat(obj.money_in) || 0;
-      obj.money_out = parseFloat(obj.money_out) || 0;
-      obj.balance = parseFloat(obj.balance) || 0;
-      obj.type = obj.money_in > 0 ? 'income' : 'expense';
-      obj.amount = obj.money_in || obj.money_out;
-      obj.status = 'review';
-      obj.company_id = companyId;
-      obj.bank_account_id = bankAccountId;
-      return obj;
-    });
-    setPreview(mapped);
-    setStep('review');
-  };
-
-  const checkDuplicates = async (transactions) => {
-    const account = bankAccounts.find(a => a.id === bankAccountId);
-    if (!account) return { imported: [], duplicates: [] };
-
-    const existing = await nativeEntities.BankTransaction.filter({
-      company_id: companyId,
-      bank_account_id: bankAccountId
-    });
-
-    const duplicates = [];
-    const toImport = [];
-
-    for (const txn of transactions) {
-      const isDuplicate = existing.some(e =>
-        moment(e.date).format('YYYY-MM-DD') === moment(txn.date).format('YYYY-MM-DD') &&
-        e.description?.toLowerCase() === txn.description?.toLowerCase() &&
-        Math.abs((e.money_in || 0) - (txn.money_in || 0)) < 0.01 &&
-        Math.abs((e.money_out || 0) - (txn.money_out || 0)) < 0.01 &&
-        e.reference?.toLowerCase() === txn.reference?.toLowerCase()
-      );
-      if (isDuplicate) duplicates.push(txn);
-      else toImport.push(txn);
-    }
-
-    return { imported: toImport, duplicates };
-  };
-
-  const handleImport = async () => {
-    if (preview.length === 0) return;
-    setImporting(true);
-    try {
-      const { imported, duplicates } = await checkDuplicates(preview);
-      if (imported.length > 0) {
-        const response = await invokeApiFunction('recordBankTransactions', {
-          company_id: companyId,
-          transactions: imported,
-        });
-        const body = response?.data ?? response;
-        setResults({
-          imported: imported.length,
-          duplicates: duplicates.length,
-          total: preview.length,
-          analysis: body?.analysis_summary || null,
-          analysisStatus: body?.analysis_status || 'complete',
-        });
-      } else {
-        setResults({
-          imported: 0,
-          duplicates: duplicates.length,
-          total: preview.length,
-          analysis: null,
-          analysisStatus: 'complete',
-        });
-      }
-      onImported();
-      setStep('results');
-    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
-    finally { setImporting(false); }
-  };
-
-  const resetDialog = () => {
-    setStep('select');
-    setBankAccountId('');
-    setRawRows([]);
-    setHeaders([]);
-    setColumnMap({});
-    setPreview([]);
-    setFileName('');
-    setResults(null);
-  };
-
-  const handleOpenChange = (newOpen) => {
-    if (!newOpen) resetDialog();
-    onOpenChange(newOpen);
-  };
+  const [dateFormat, setDateFormat] = useState('iso');
+  const [preview, setPreview] = useState(null);
+  const [excluded, setExcluded] = useState(new Set());
+  const [duplicatesReviewed, setDuplicatesReviewed] = useState(false);
+  const [errors, setErrors] = useState([]);
+  const [busy, setBusy] = useState('');
+  const [result, setResult] = useState(null);
+  const [unknownOutcome, setUnknownOutcome] = useState(false);
+  const gate = useRef(createImportGate());
+  const importing = useRef(false);
+  const active = useRef(true);
+  const scope = `${companyId}:${open}`;
 
   useEffect(() => {
-    if (open) loadBankAccounts();
-  }, [open]);
+    active.current = true;
+    if (!open || !companyId) { setAccountsLoading(false); return () => { active.current = false; gate.current.cancel(); }; }
+    nativeEntities.BankAccount.filter({ company_id: companyId }).then(items => {
+      if (!active.current) return;
+      if (!Array.isArray(items) || items.some(item => !item?.id || item.company_id !== companyId)) throw new Error('Bank accounts could not be verified for this company.');
+      setAccounts(items); setAccountsLoading(false);
+    }).catch(() => {
+      if (active.current) { setAccountsLoading(false); setErrors([{ message: 'Bank accounts could not be loaded. Close and reopen this dialog to retry.' }]); }
+    });
+    return () => { active.current = false; gate.current.cancel(); };
+  }, [companyId, open]);
 
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Import Bank Transactions</DialogTitle></DialogHeader>
-        <div className="space-y-4 py-2">
-          
-          {step === 'select' && (
-            <>
-              <div>
-                <Label>Select Bank Account</Label>
-                <Select value={bankAccountId} onValueChange={setBankAccountId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a bank account" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {bankAccounts.map(a => (
-                      <SelectItem key={a.id} value={a.id}>
-                        {a.account_name} ({a.bank_name})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>CSV File</Label>
-                <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                  <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleFile} />
-                  <Button variant="outline" onClick={() => fileRef.current?.click()} className="gap-2"><Upload className="w-4 h-4" />Choose File</Button>
-                  {fileName && <p className="text-sm mt-2 text-muted-foreground">{fileName}</p>}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Expected columns: date, description, reference, money in/out, balance</p>
-              </div>
-            </>
-          )}
+  function invalidateReview() {
+    gate.current.cancel(); setPreview(null); setErrors([]); setExcluded(new Set()); setDuplicatesReviewed(false);
+  }
 
-          {step === 'map' && (
-            <>
-              <div className="text-sm">
-                <p className="font-medium mb-3">Map CSV columns to transaction fields:</p>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {headers.map((h, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="text-xs bg-muted px-2 py-1 rounded flex-shrink-0">{h}</span>
-                      <Select value={columnMap[i] || ''} onValueChange={(v) => handleMapChange(i, v)}>
-                        <SelectTrigger className="text-xs h-8">
-                          <SelectValue placeholder="Skip" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={null}>Skip this column</SelectItem>
-                          <SelectItem value="date">Date</SelectItem>
-                          <SelectItem value="description">Description</SelectItem>
-                          <SelectItem value="reference">Reference</SelectItem>
-                          <SelectItem value="money_in">Money In</SelectItem>
-                          <SelectItem value="money_out">Money Out</SelectItem>
-                          <SelectItem value="balance">Balance</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
+  async function readFile(event) {
+    const selected = event.target.files?.[0];
+    event.target.value = '';
+    if (!selected || importing.current) return;
+    invalidateReview(); setFile(null); setColumnMap({});
+    const ticket = gate.current.begin(scope);
+    setBusy('Reading CSV');
+    try {
+      checkFileSize(selected.size);
+      const parsed = parseBankCSV(await selected.text());
+      if (!active.current || !gate.current.current(ticket, scope)) return;
+      setFile({ ...parsed, name: selected.name }); setColumnMap(parsed.columnMap);
+    } catch (error) {
+      if (active.current && gate.current.current(ticket, scope)) setErrors([{ message: error.message }]);
+    } finally {
+      if (active.current && gate.current.current(ticket, scope)) setBusy('');
+    }
+  }
 
-          {step === 'review' && (
-            <>
-              <div>
-                <p className="text-sm font-medium mb-2">{preview.length} transactions ready to import</p>
-                <div className="max-h-48 overflow-y-auto border rounded-lg">
-                  <table className="w-full text-xs">
-                    <thead className="bg-muted sticky top-0">
-                      <tr><th className="text-left p-2">Date</th><th className="text-left p-2">Description</th><th className="text-right p-2">In</th><th className="text-right p-2">Out</th></tr>
-                    </thead>
-                    <tbody>
-                      {preview.slice(0, 20).map((p, i) => (
-                        <tr key={i} className="border-t"><td className="p-2">{p.date}</td><td className="p-2 truncate max-w-32">{p.description}</td><td className="text-right p-2">{p.money_in || ''}</td><td className="text-right p-2">{p.money_out || ''}</td></tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </>
-          )}
+  async function review() {
+    if (busy || importing.current || !file) return;
+    const ticket = gate.current.begin(scope);
+    setErrors([]); setPreview(null); setBusy('Checking statement');
+    try {
+      if (!accounts.some(account => account.id === bankAccountId)) throw new Error('Choose an authorised bank account.');
+      const checked = buildBankPreview({ ...file, columnMap, dateFormat, companyId, bankAccountId });
+      if (checked.errors.length) { setErrors(checked.errors); return; }
+      const existing = await nativeEntities.BankTransaction.filter({ company_id: companyId, bank_account_id: bankAccountId });
+      if (!active.current || !gate.current.current(ticket, scope)) return;
+      if (!Array.isArray(existing) || existing.some(item => item.company_id !== companyId || item.bank_account_id !== bankAccountId)) throw new Error('Existing transactions could not be verified for this account.');
+      setPreview(markDuplicateCandidates(checked.transactions, existing));
+      setExcluded(new Set()); setDuplicatesReviewed(false);
+    } catch (error) {
+      if (active.current && gate.current.current(ticket, scope)) setErrors([{ message: error.message || 'Statement review could not be completed.' }]);
+    } finally {
+      if (active.current && gate.current.current(ticket, scope)) setBusy('');
+    }
+  }
 
-          {step === 'results' && results && (
-            <div className="space-y-3 py-4">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-                <p className="text-sm font-medium text-emerald-900">✓ Imported: <span className="text-lg font-semibold">{results.imported}</span></p>
-              </div>
-              {results.duplicates > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-amber-900">Skipped as duplicates: <span className="text-lg font-semibold">{results.duplicates}</span></p>
-                    <p className="text-xs text-amber-700 mt-1">Matched by date, description, amount & reference</p>
-                  </div>
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground">Total: {results.total} transactions processed</p>
-               {results.analysisStatus === 'disabled' ? (
-                 <p className="text-xs text-slate-500">Automatic analysis is disabled for this company. Imported transactions are ready for manual review.</p>
-               ) : results.analysis && (
-                 <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3">
-                   <p className="text-sm font-semibold text-indigo-950">Bank statement analysis complete</p>
-                   <p className="mt-1 text-xs text-indigo-800">{results.analysis.analysed} transaction{results.analysis.analysed === 1 ? '' : 's'} analysed automatically</p>
-                   <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-                     <span><strong>{results.analysis.ready}</strong> ready</span>
-                     <span><strong>{results.analysis.review_required}</strong> review required</span>
-                     <span><strong>{results.analysis.no_match}</strong> no match</span>
-                     <span><strong>{results.analysis.duplicates}</strong> possible duplicate</span>
-                   </div>
-                   {(Number(results.analysis.unexplained_receipts || 0) > 0 || Number(results.analysis.potential_invoice_value || 0) > 0) && (
-                     <p className="mt-2 text-xs text-indigo-800">
-                       {Number(results.analysis.unexplained_receipts || 0) > 0 && <>Unexplained receipts: <strong>£{Number(results.analysis.unexplained_receipts).toFixed(2)}</strong></>}
-                       {Number(results.analysis.unexplained_receipts || 0) > 0 && Number(results.analysis.potential_invoice_value || 0) > 0 && ' · '}
-                       {Number(results.analysis.potential_invoice_value || 0) > 0 && <>Potential invoice value: <strong>£{Number(results.analysis.potential_invoice_value).toFixed(2)}</strong></>}
-                     </p>
-                   )}
-                 </div>
-               )}
-            </div>
-          )}
+  async function importSelected() {
+    if (importing.current || busy || unknownOutcome || !preview || (preview.some(row => row.possibleDuplicate) && !duplicatesReviewed)) return;
+    const selected = preview.filter(row => !excluded.has(row.sourceRow));
+    if (!selected.length) return;
+    importing.current = true; setBusy('Importing reviewed transactions'); setErrors([]);
+    try {
+      const receipt = await invokeApiFunction('recordBankTransactions', { company_id: companyId, transactions: selected.map(row => row.payload) });
+      if (!active.current) return;
+      setResult({ ...confirmedImportReceipt(receipt, selected, companyId, bankAccountId), excluded: excluded.size });
+      // A workspace refresh failure must not invalidate a confirmed server receipt.
+      try { Promise.resolve(onImported?.()).catch(() => {}); } catch { /* Reopening refreshes the workspace. */ }
+    } catch {
+      if (!active.current) return;
+      // Even a 4xx cannot prove rollback: the current route has work after its transaction.
+      setUnknownOutcome(true);
+      setErrors([{ message: 'The import result could not be confirmed. Do not import this file again until you have checked the bank transactions. Automatic retry is disabled.' }]);
+    } finally {
+      importing.current = false;
+      if (active.current) setBusy('');
+    }
+  }
 
-        </div>
+  const close = next => { if (!importing.current) onOpenChange(next); };
+  return <Dialog open={open} onOpenChange={close}>
+    <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogHeader><DialogTitle>Import bank transactions</DialogTitle></DialogHeader>
+      {errors.length > 0 && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-950"><p className="font-medium">Resolve these issues before importing.</p><ul className="mt-2 list-disc space-y-1 pl-5">{errors.slice(0, 30).map((error, index) => <li key={index}>{error.row ? `CSV row ${error.row}: ` : ''}{error.message}</li>)}</ul>{errors.length > 30 && <p className="mt-2">{errors.length - 30} more rows need correction. No rows will be imported until all are valid.</p>}</div>}
+      {busy && <p role="status" className="text-sm text-muted-foreground">{busy}…</p>}
+      {unknownOutcome && <p className="text-sm"><Link to="/transactions" onClick={() => close(false)} className="font-medium text-primary underline">Close and check bank transactions</Link></p>}
+      {result ? <div role="status" className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm"><p className="font-semibold">{result.count} transactions imported for review.</p><p>{result.excluded} rows excluded by you.</p><p>{result.analysisStatus === 'complete' ? 'Statement analysis is available in the bank workspace.' : 'Automatic analysis is unavailable; use the bank workspace to review the imported transactions.'}</p><p>Importing does not match, reconcile or post a payment.</p></div> : <>
+        {!preview && <fieldset disabled={Boolean(busy) || accountsLoading || unknownOutcome} className="space-y-4 disabled:opacity-60">
+          <label className="block space-y-1 text-sm font-medium">Bank account<select className="block w-full rounded-md border bg-background p-2" value={bankAccountId} onChange={event => { invalidateReview(); setBankAccountId(event.target.value); }}><option value="">{accountsLoading ? 'Loading accounts…' : 'Choose a bank account'}</option>{accounts.map(account => <option key={account.id} value={account.id}>{account.account_name} ({account.bank_name})</option>)}</select></label>
+          <label className="block space-y-1 text-sm font-medium">Statement CSV<input type="file" accept=".csv,text/csv" className="block w-full rounded-md border p-2" onChange={readFile} /></label>
+          <p className="text-xs text-muted-foreground">Up to 1 MiB and 1,000 transactions. Amounts must have at most two decimal places. Supported thousands format: 1,234.56. No amount is rounded or guessed.</p>
+          {file && <><p className="break-words text-sm">{file.name} · {file.rows.length} transaction rows</p>
+            <label className="block space-y-1 text-sm font-medium">Date format<select className="block w-full rounded-md border bg-background p-2" value={dateFormat} onChange={event => { invalidateReview(); setDateFormat(event.target.value); }}><option value="iso">YYYY-MM-DD</option><option value="dmy">DD/MM/YYYY (day first)</option></select></label>
+            <div className="space-y-2"><h3 className="text-sm font-semibold">Map columns</h3>{file.headers.map((header, index) => <label key={index} className="grid grid-cols-2 items-center gap-3 text-sm"><span className="break-words">{header}</span><select className="rounded-md border bg-background p-2" value={columnMap[index] || 'skip'} onChange={event => { invalidateReview(); setColumnMap(previous => ({ ...previous, [index]: event.target.value })); }}><option value="skip">Skip this column</option>{FIELDS.map(field => <option key={field} value={field}>{LABELS[field]}</option>)}</select></label>)}</div>
+          </>}
+        </fieldset>}
+        {preview && <BankImportReview rows={preview} excluded={excluded} duplicatesReviewed={duplicatesReviewed} disabled={Boolean(busy) || unknownOutcome}
+          onDuplicatesReviewed={setDuplicatesReviewed} onInclude={(row, included) => setExcluded(previous => { const next = new Set(previous); included ? next.delete(row) : next.add(row); return next; })} />}
+      </>}
+      <DialogFooter>
+        <Button variant="outline" onClick={() => close(false)} disabled={importing.current}>{result || unknownOutcome ? 'Close' : 'Cancel'}</Button>
+        {!result && !unknownOutcome && (preview ? <><Button variant="outline" disabled={Boolean(busy)} onClick={invalidateReview}>Back to mapping</Button><Button onClick={importSelected} disabled={Boolean(busy) || preview.length === excluded.size || (preview.some(row => row.possibleDuplicate) && !duplicatesReviewed)}>Import {preview.length - excluded.size} selected rows</Button></> : <Button onClick={review} disabled={Boolean(busy) || !file || !bankAccountId || accountsLoading}>Review statement</Button>)}
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>;
+}
 
-        <DialogFooter>
-          {step === 'results' ? (
-            <Button onClick={() => handleOpenChange(false)}>Done</Button>
-          ) : (
-            <>
-              <Button variant="outline" onClick={() => handleOpenChange(false)}>Cancel</Button>
-              {step === 'select' && <Button onClick={() => setStep('map')} disabled={!bankAccountId || !fileName}>Next</Button>}
-              {step === 'map' && (
-                <>
-                  <Button variant="outline" onClick={() => setStep('select')}>Back</Button>
-                  <Button onClick={buildPreview}>Review</Button>
-                </>
-              )}
-              {step === 'review' && (
-                <>
-                  <Button variant="outline" onClick={() => setStep('map')}>Back</Button>
-                  <Button onClick={handleImport} disabled={importing}>{importing ? `Importing & analysing ${preview.length}…` : 'Import & analyse'}</Button>
-                </>
-              )}
-            </>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+// A new company/dialog session never inherits another company's file or late read.
+export default function ImportCSVDialog(props) {
+  return <BankImportSession key={JSON.stringify([props.companyId, props.open])} {...props} />;
 }

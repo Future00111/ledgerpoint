@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "status": "draft_not_approved_for_publication",
+  "sourceCommit": "854c4c5478a0dacb79701f1c62ca49512d5b5c4e",
+  "customerProfile": {
+    "deliveryTarget": "UK sole traders and small businesses, with small limited companies retained in the agreed scope",
+    "approvedPilotCohort": null,
+    "publicAdmissionEnabled": false
+  },
+  "pricing": {
+    "amount": null,
+    "currency": "GBP",
+    "approved": false
+  },
+  "support": {
+    "publicContact": null,
+    "responseCommitment": null,
+    "validated": false
+  },
+  "draftHeadline": "Accounting, tax and payroll built around reviewable financial records",
+  "draftAvailabilityCopy": "LedgerPoint is in development. Current development workflows include source uploads, reviewed bill and supplier-credit drafts, protected posting and connected accounting reports. Tax, payroll, automated capture and filing remain development work; availability must be verified for each feature before public release.",
+  "helpPages": [
+    {
+      "path": "docs/product/help/upload-a-supplier-document.md",
+      "appRoutes": [
+        "/documents",
+        "/bills/new",
+        "/supplier-credit-notes/new"
+      ],
+      "status": "draft_source_checked_browser_acceptance_pending"
+    },
+    {
+      "path": "docs/product/help/credit-after-payment.md",
+      "appRoutes": [
+        "/supplier-credit-notes/new",
+        "/sales-credit-notes/new",
+        "/payments"
+      ],
+      "status": "draft_source_checked_browser_acceptance_pending",
+      "sourceCommit": "fa5559864cd237a8a63b9250f22c3710b3219eaa"
+    },
+    {
+      "path": "docs/product/help/apply-a-later-discount.md",
+      "appRoutes": [
+        "/invoices",
+        "/bills"
+      ],
+      "status": "draft_source_checked_browser_acceptance_pending",
+      "sourceCommit": "12b31286277683071804101fe3fc7b778d15fc98"
+    }
+  ],
+  "claimsNotPermitted": [
+    "A saved email account is an authenticated mailbox connection",
+    "Email scanning or automatic document extraction is available",
+    "The complete in-house tax or payroll engine is implemented or HMRC-qualified",
+    "Saving a draft posts, pays, sends or files it",
+    "The commercial product, pilot cohort, subscription price or support commitment is approved",
+    "Posting a credit after payment sends a cash refund",
+    "Development paid-credit checks enable every existing demo/customer environment",
+    "Credits against corrected originals are fully supported",
+    "Conditional early-payment discounts apply automatically when a payment arrives"
+  ],
+  "evidencePaths": [
+    "docs/ledgerly-active-product-plan.md",
+    "artifacts/ledgerly/src/features/documentIntake/DocumentIntake.test.jsx",
+    "artifacts/ledgerly/src/features/documentIntake/useDocumentIntake.jsx",
+    "artifacts/api-server/src/services/documentIntake/service.ts",
+    "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+    "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
+    "artifacts/ledgerly/src/features/paymentWorkspace/PaymentList.jsx",
+    "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts"
+  ],
+  "remaining": [
+    "Approve a concrete subscription offer and supported customer cohort",
+    "Configure and validate the actual human support destination and response commitment",
+    "Complete launch app/domain and owner-approved publication",
+    "Verify help against the authenticated browser journey and full supported-feature inventory"
+  ]
+}

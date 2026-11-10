@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { GripVertical, X, Lightbulb, ChevronDown } from 'lucide-react';
+import { GripVertical, X, Lightbulb, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import WidgetInsightDialog from './WidgetInsightDialog';
 
@@ -19,6 +19,10 @@ export default function WidgetCard({
   onCycleW,
   onCycleH,
   onHide,
+  onMoveEarlier,
+  onMoveLater,
+  canMoveEarlier,
+  canMoveLater,
   onToggleCollapse,
   collapsed,
   attention,
@@ -34,7 +38,7 @@ export default function WidgetCard({
   return (
     <div
       className={cn(
-        'min-w-0 transition-opacity animate-in fade-in-0 duration-300',
+        'min-w-0 transition-opacity',
         dragging && 'opacity-40',
         dragOver && 'z-10'
       )}
@@ -44,22 +48,23 @@ export default function WidgetCard({
     >
       <Card
         className={cn(
-          'h-full flex flex-col overflow-hidden rounded-2xl border-border/80 bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md',
-          editMode && 'ring-1 ring-dashed ring-border hover:translate-y-0',
+          'h-full flex flex-col overflow-hidden rounded-xl border-border bg-card shadow-none',
+          editMode && 'ring-1 ring-border',
           dragOver && 'ring-2 ring-primary',
           attention && 'ring-1 ring-amber-400/70'
         )}
       >
-        <CardHeader className="flex-row items-center justify-between py-3.5 px-4 space-y-0 border-b border-border/60 flex-shrink-0">
+        <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 py-3 px-4 space-y-0 border-b border-border/60 flex-shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             {editMode && (
               <button
+                type="button"
                 draggable
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
-                className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
+                className="flex h-11 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted touch-none cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 title="Drag to move"
-                aria-label="Drag to move"
+                aria-label={`Drag ${meta.title} to move; earlier and later buttons are also available`}
               >
                 <GripVertical className="w-4 h-4" />
               </button>
@@ -81,45 +86,47 @@ export default function WidgetCard({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-1">
             <button
               onClick={() => setInsightOpen(true)}
-              className="p-1 rounded-md hover:bg-amber-50 text-amber-500 transition-colors"
+              className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               title="What does this mean?"
-              aria-label="Explain this widget"
+              aria-label={`Explain ${meta.title}`}
             >
               <Lightbulb className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={onToggleCollapse}
-              className="p-1 rounded-md hover:bg-muted text-muted-foreground"
+              className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               title={collapsed ? 'Expand' : 'Collapse'}
-              aria-label={collapsed ? 'Expand widget' : 'Collapse widget'}
+              aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${meta.title}`} aria-expanded={!collapsed}
             >
               <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', collapsed && 'rotate-[-90deg]')} />
             </button>
             {editMode && (
               <>
+                <button type="button" onClick={onMoveEarlier} disabled={!canMoveEarlier} aria-label={`Move ${meta.title} earlier in this section`} className="flex h-11 w-9 items-center justify-center rounded-md hover:bg-muted disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><ArrowUp className="h-4 w-4" /></button>
+                <button type="button" onClick={onMoveLater} disabled={!canMoveLater} aria-label={`Move ${meta.title} later in this section`} className="flex h-11 w-9 items-center justify-center rounded-md hover:bg-muted disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><ArrowDown className="h-4 w-4" /></button>
                 <button
                   onClick={onCycleW}
-                  className="px-1.5 py-1 rounded-md hover:bg-muted text-[10px] font-medium text-muted-foreground border border-border"
-                  title="Resize width"
+                  className="min-h-11 rounded-md border px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  title="Resize width" aria-label={`Resize ${meta.title} width: ${W_LABEL[size.w]}`}
                 >
                   {W_LABEL[size.w]}
                 </button>
                 <button
                   onClick={onCycleH}
-                  className="px-1.5 py-1 rounded-md hover:bg-muted text-[10px] font-medium text-muted-foreground border border-border"
-                  title="Resize height"
+                  className="min-h-11 rounded-md border px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  title="Resize height" aria-label={`Resize ${meta.title} height: ${size.h === 1 ? 'Short' : 'Tall'}`}
                 >
                   {size.h === 1 ? 'Short' : 'Tall'}
                 </button>
                 {!isCore && (
                   <button
                     onClick={onHide}
-                    className="p-1 rounded-md hover:bg-muted text-muted-foreground"
+                    className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     title="Hide widget"
-                    aria-label="Hide widget"
+                    aria-label={`Hide ${meta.title}`}
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>

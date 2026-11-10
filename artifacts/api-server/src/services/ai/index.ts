@@ -59,4 +59,12 @@ function createAIProvider(): AIProvider {
 
 // ─── Singleton ────────────────────────────────────────────────────────────────
 
-export const aiService: AIProvider = createAIProvider();
+// Importing native banking routes must not require an optional AI credential.
+// Actual AI use still constructs the real provider and fails explicitly if
+// unavailable; there is no simulated completion or silent provider fallback.
+let provider: AIProvider | undefined;
+const getProvider = () => provider ??= createAIProvider();
+export const aiService: AIProvider = {
+  get name() { return getProvider().name; },
+  async complete(options) { return getProvider().complete(options); },
+};

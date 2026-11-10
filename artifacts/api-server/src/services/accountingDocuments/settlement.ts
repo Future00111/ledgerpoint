@@ -1,6 +1,8 @@
 import { fail } from '../financialDrafts/contract';
 import type { Queryable } from './core';
 import { pounds, tables, type Kind } from './core';
+import { amendmentHistory } from './amendments';
+import { compensationHistory } from './conditionalCompensation';
 
 export function settlementAmounts(gross:string, credited:string, paid:string) {
   const remaining=BigInt(gross)-BigInt(credited)-BigInt(paid);
@@ -29,14 +31,34 @@ export function appliedTo(events:any[],id:string,paymentId?:string) {
     .reduce((n,e)=>n+allocationSign(e)*(e.allocations as any[]).filter(a=>a.document_id===id)
       .reduce((v,a)=>v+BigInt(a.amount_minor),0n),0n);
 }
+// Validate all linked posted credits before applying a historical cutoff. A
+// missing/mismatched journal must not silently disappear or reduce an open balance.
+export async function linkedCreditDocuments(q:Queryable,company:string,original:any,to='9999-12-31') {
+  const rows=(await q.query(`SELECT d.*,j.posting_date::text,j.id verified_journal_id
+    FROM accounting_document_sources d LEFT JOIN canonical_journal_entries j
+      ON j.id=d.journal_id AND j.company_id=d.company_id AND j.source_id=d.id::text
+      AND j.source_type=d.kind AND j.status='posted'
+      AND j.source_revision=d.revision::text AND j.currency_code=d.source->>'currency'
+    WHERE d.company_id=$1 AND d.original_id=$2 AND d.status='posted' ORDER BY d.id`,[company,original.id])).rows;
+  const expectedKind=original.kind==='sales_invoice'?'sales_credit_note':'supplier_credit_note';
+  const result:any[]=[];
+  for(const row of rows) {
+    if(!row.verified_journal_id || row.kind!==expectedKind || row.party_id!==original.party_id ||
+      row.source.currency!==original.source.currency) fail(503,'CREDIT_HISTORY_INVALID');
+    const history=await amendmentHistory(q,company,row,to);
+    const compensations=await compensationHistory(q,company,row);
+    if(row.posting_date<=to && !compensations.some(c=>c.effective_date<=to)) result.push(history.current);
+  }
+  return result;
+}
 export async function documentOpen(q:Queryable,company:string,id:string,events?:any[]) {
   const r=(await q.query(`SELECT d.*,j.posting_date::text FROM accounting_document_sources d
-    JOIN canonical_journal_entries j ON j.id=d.journal_id AND j.company_id=d.company_id AND j.status='posted'
+    JOIN canonical_journal_entries j ON j.id=d.journal_id AND j.company_id=d.company_id AND j.source_id=d.id::text AND j.source_type=d.kind AND j.status='posted'
     WHERE d.company_id=$1 AND d.id=$2 AND d.status='posted'`,[company,id])).rows[0];
   if(!r || !['sales_invoice','purchase_bill'].includes(r.kind)) fail(422,'POSTED_DOCUMENT_REQUIRED');
-  const credits=(await q.query(`SELECT coalesce(sum((money->>'gross_pence')::numeric),0)::text amount
-    FROM accounting_document_sources WHERE company_id=$1 AND original_id=$2 AND status='posted'`,[company,id])).rows[0].amount;
-  return {...r,...settlementAmounts(r.money.gross_pence,credits,appliedTo(events??await paymentEvents(q,company),id).toString())};
+  const credits=(await linkedCreditDocuments(q,company,r)).reduce((sum,row)=>sum+BigInt(row.money.gross_pence),0n).toString();
+  const current=(await amendmentHistory(q,company,r)).current;
+  return {...current,...settlementAmounts(current.money.gross_pence,credits,appliedTo(events??await paymentEvents(q,company),id).toString())};
 }
 
 // Compatibility fields are read models only. Update them inside the SAME

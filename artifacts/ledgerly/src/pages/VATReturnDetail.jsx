@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useCompany } from '@/lib/useCompany';
+import PageHeader from '@/components/workspace/PageHeader';
+import EmptyState from '@/components/workspace/EmptyState';
+import { ErrorBox } from '@/components/accounting/AccountingUI';
+import HistoricalVatNotice, { historicalStatus } from '@/features/vatPreparation/HistoricalVatNotice';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Lock, CheckCircle2, RefreshCw, Eye, ChevronRight, AlertTriangle, MessageSquare } from 'lucide-react';
+import { Lock, CheckCircle2, RefreshCw, Eye, ChevronRight, AlertTriangle, MessageSquare } from 'lucide-react';
 import moment from 'moment';
 import VATReturnBreakdown from '@/components/vat_returns/VATReturnBreakdown';
 import VATBoxDrillDown from '@/components/vat_returns/VATBoxDrillDown';
@@ -17,19 +21,20 @@ const STATUS_STYLES = {
   draft: 'bg-muted text-muted-foreground',
   ready_for_review: 'bg-amber-100 text-amber-700',
   approved: 'bg-blue-100 text-blue-700',
-  submitted: 'bg-emerald-100 text-emerald-700',
-};
-
-const STATUS_LABELS = {
-  draft: 'Draft',
-  ready_for_review: 'Ready for Review',
-  approved: 'Approved',
-  submitted: 'Submitted',
+  submitted: 'bg-muted text-muted-foreground',
 };
 
 export default function VATReturnDetail() {
   const { id } = useParams();
   const { activeCompany } = useCompany();
+  return activeCompany ? <CompanyVATReturnDetail key={`${activeCompany.id}:${id}`} activeCompany={activeCompany} id={id} />
+    : <EmptyState title="Select a company" description="Choose a company to view its historical VAT record." />;
+}
+
+function CompanyVATReturnDetail({ activeCompany, id }) {
+  const alive = useRef(false), loadVersion = useRef(0);
+  const [loadError, setLoadError] = useState(null);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; loadVersion.current++; }; }, []);
   const [vatReturn, setVatReturn] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -46,25 +51,28 @@ export default function VATReturnDetail() {
   useEffect(() => { if (id && activeCompany?.id) loadReturn(); }, [id, activeCompany?.id]);
 
   const loadReturn = async () => {
-    setLoading(true);
+    const version = ++loadVersion.current;
+    setLoading(true); setLoadError(null);
     try {
       const result = await aiApi.vatReturn(activeCompany.id, id);
+      if (!alive.current || version !== loadVersion.current) return;
       setVatReturn(result.vat_return);
       setOverview(result.overview);
       setAudits(result.audits || []);
       setExceptions(result.exceptions || []);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+    } catch (e) { if (alive.current && version === loadVersion.current) { setVatReturn(null); setLoadError(new Error('The historical VAT record could not be loaded. Please retry.')); } }
+    finally { if (alive.current && version === loadVersion.current) setLoading(false); }
   };
 
   const recalculate = async () => {
     setActionLoading(true);
     try {
       const result = await aiApi.recalculateVatReturn(activeCompany.id, id);
+      if (!alive.current) return;
       setVatReturn(result.vat_return);
       setOverview(result.overview);
       toast({ title: 'VAT return recalculated' });
-    } catch (e) { toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
+    } catch (e) { if (alive.current) toast({ title: 'Error', description: e.message, variant: 'destructive' }); }
     finally { setActionLoading(false); }
   };
 
@@ -72,9 +80,10 @@ export default function VATReturnDetail() {
     setActionLoading(true);
     try {
       const result = await aiApi.markVatReturnReady(activeCompany.id, id);
+      if (!alive.current) return;
       setVatReturn(result.vat_return);
       toast({ title: 'Marked as Ready for Review' });
-    } catch (e) { toast({ title: 'Error', variant: 'destructive' }); }
+    } catch (e) { if (alive.current) toast({ title: 'Error', variant: 'destructive' }); }
     finally { setActionLoading(false); }
   };
 
@@ -82,27 +91,31 @@ export default function VATReturnDetail() {
     setActionLoading(true);
     try {
       const result = await aiApi.approveVatReturn(activeCompany.id, id);
+      if (!alive.current) return;
       setVatReturn(result.vat_return);
       await loadReturn();
+      if (!alive.current) return;
       toast({ title: 'VAT return approved and locked', description: 'Ledgerly has not submitted anything to HMRC.' });
-    } catch (e) { toast({ title: 'Could not approve VAT return', description: e.message, variant: 'destructive' }); }
+    } catch (e) { if (alive.current) toast({ title: 'Could not approve VAT return', description: e.message, variant: 'destructive' }); }
     finally { setActionLoading(false); }
   };
 
   const askVAT = async () => {
     if (!question.trim()) return;
     try {
-      setAnswer(await aiApi.explainVat(activeCompany.id, vatReturn.period_start, vatReturn.period_end, question));
-    } catch (e) { toast({ title: 'Could not explain VAT position', description: e.message, variant: 'destructive' }); }
+      const response = await aiApi.explainVat(activeCompany.id, vatReturn.period_start, vatReturn.period_end, question);
+      if (alive.current) setAnswer(response);
+    } catch (e) { if (alive.current) toast({ title: 'Could not explain VAT position', description: e.message, variant: 'destructive' }); }
   };
 
   const createRevision = async () => {
     setActionLoading(true);
     try {
       const result = await aiApi.createVatRevision(activeCompany.id, id);
+      if (!alive.current) return;
       toast({ title: 'VAT return revision created', description: 'The locked return is unchanged; review the revision separately.' });
       navigate(`/vat/${result.vat_return.id}`);
-    } catch (e) { toast({ title: 'Could not create VAT revision', description: e.message, variant: 'destructive' }); }
+    } catch (e) { if (alive.current) toast({ title: 'Could not create VAT revision', description: e.message, variant: 'destructive' }); }
     finally { setActionLoading(false); }
   };
 
@@ -112,14 +125,17 @@ export default function VATReturnDetail() {
     setResolvingId(exception.id);
     try {
       await aiApi.resolveVatException(activeCompany.id, exception.id, note.trim());
+      if (!alive.current) return;
       await loadReturn();
+      if (!alive.current) return;
       toast({ title: 'VAT review decision recorded' });
-    } catch (e) { toast({ title: 'Could not record review decision', description: e.message, variant: 'destructive' }); }
+    } catch (e) { if (alive.current) toast({ title: 'Could not record review decision', description: e.message, variant: 'destructive' }); }
     finally { setResolvingId(null); }
   };
 
-  if (loading) return <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
-  if (!vatReturn) return <p className="text-muted-foreground text-center py-12">VAT return not found.</p>;
+  if (loading) return <div role="status" className="flex justify-center py-12"><span className="sr-only">Loading historical VAT record</span><div aria-hidden="true" className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
+  if (loadError) return <div className="workspace-page"><PageHeader eyebrow="Historical VAT" title="Historical record unavailable" context={activeCompany.name} /><ErrorBox error={loadError} onRetry={loadReturn} /><Link to="/vat" className="text-sm text-primary underline">Back to VAT preparation</Link></div>;
+  if (!vatReturn) return <EmptyState title="Historical VAT record not found" action={<Link to="/vat" className="text-primary underline">Back to VAT preparation</Link>} />;
 
   const isLocked = vatReturn.locked || vatReturn.status === 'submitted';
   const boxes = [
@@ -142,17 +158,12 @@ export default function VATReturnDetail() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/vat')}><ArrowLeft className="w-4 h-4" /></Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight">VAT Return</h1>
-          <p className="text-muted-foreground text-sm mt-1">{moment(vatReturn.period_start).format('DD MMM YYYY')} — {moment(vatReturn.period_end).format('DD MMM YYYY')}</p>
-        </div>
-      </div>
+    <div className="workspace-page">
+      <PageHeader eyebrow="Historical VAT" title="Historical VAT record" description={`${moment(vatReturn.period_start).format('DD MMM YYYY')} – ${moment(vatReturn.period_end).format('DD MMM YYYY')}`} context={<span className="font-medium">{activeCompany.name}</span>} actions={<Button asChild variant="outline"><Link to="/vat">Back to VAT preparation</Link></Button>} />
+      <HistoricalVatNotice from={vatReturn.period_start} to={vatReturn.period_end} />
 
       <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="secondary" className={STATUS_STYLES[vatReturn.status]}>{STATUS_LABELS[vatReturn.status]}</Badge>
+        <Badge variant="secondary" className={STATUS_STYLES[vatReturn.status]}>{historicalStatus(vatReturn.status)}</Badge>
         <Badge variant="outline" className="capitalize">{vatReturn.vat_scheme?.replace(/_/g, ' ') || 'Standard'}</Badge>
         {vatReturn.locked && <Badge variant="outline" className="gap-1"><Lock className="w-3 h-3" /> Locked</Badge>}
         {vatReturn.locked && <span className="text-xs text-muted-foreground">Approved returns are locked. Use an explicit adjustment or revision for later changes.</span>}
@@ -193,7 +204,7 @@ export default function VATReturnDetail() {
         </Card>
         <Card className={`border-0 shadow-sm ${vatReturn.box5_net_vat_due >= 0 ? 'ring-2 ring-blue-100' : 'ring-2 ring-emerald-100'}`}>
           <CardContent className="p-5 text-center">
-            <p className="text-sm text-muted-foreground">{vatReturn.box5_net_vat_due >= 0 ? 'VAT to Pay HMRC' : 'VAT Refund Due'}</p>
+            <p className="text-sm text-muted-foreground">{vatReturn.box5_net_vat_due >= 0 ? 'Historical VAT payable estimate' : 'Historical VAT repayment estimate'}</p>
             <p className={`text-2xl font-bold mt-1 ${vatReturn.box5_net_vat_due >= 0 ? 'text-blue-600' : 'text-emerald-600'}`}>{formatCurrency(Math.abs(vatReturn.box5_net_vat_due))}</p>
           </CardContent>
         </Card>
@@ -202,7 +213,7 @@ export default function VATReturnDetail() {
       {/* VAT Boxes */}
       <Card className="border-0 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-base">VAT Return Summary</CardTitle>
+          <CardTitle className="text-base">Historical VAT summary</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">Click any box to see the underlying documents</p>
         </CardHeader>
         <CardContent className="p-0">
@@ -241,9 +252,9 @@ export default function VATReturnDetail() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><MessageSquare className="w-4 h-4" />Ask Ledgerly about this VAT period</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base flex items-center gap-2"><MessageSquare className="w-4 h-4" />Ask Ledgerly about this historical calculation</CardTitle></CardHeader>
           <CardContent className="space-y-3">
-            <textarea className="w-full min-h-20 rounded-md border p-2 text-sm" value={question} onChange={e => setQuestion(e.target.value)} placeholder="For example: Why is the VAT liability higher this period?" />
+            <label htmlFor="historical-vat-question" className="text-sm font-medium">Question about this historical calculation</label><textarea id="historical-vat-question" className="w-full min-h-20 rounded-md border p-2 text-sm" value={question} onChange={e => setQuestion(e.target.value)} placeholder="For example: Why is the VAT liability higher this period?" />
             <Button size="sm" onClick={askVAT}>Explain VAT position</Button>
             {answer && <div className="text-sm p-3 rounded-md bg-muted/50"><p>{answer.explanation}</p><p className="mt-2 text-muted-foreground">{answer.recommendation}</p><p className="mt-2 text-xs text-muted-foreground">{answer.scope_note}</p></div>}
           </CardContent>

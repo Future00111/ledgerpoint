@@ -5,9 +5,10 @@ import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, AlertCircle, Eye, Link2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertCircle, Eye, Link2, Landmark } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import BankAccountForm from '@/components/bank_accounts/BankAccountForm';
+import OpeningBalance from '@/components/bank_accounts/OpeningBalance';
 
 export default function BankAccounts() {
   const { activeCompany } = useCompany();
@@ -17,9 +18,11 @@ export default function BankAccounts() {
   const [formOpen, setFormOpen] = useState(false);
   const [bankingOpen, setBankingOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
+  const [openingFor, setOpeningFor] = useState(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    setOpeningFor(null);
     if (activeCompany) loadAccounts();
   }, [activeCompany]);
 
@@ -119,7 +122,7 @@ export default function BankAccounts() {
                       <p className="font-medium text-foreground font-mono">****{account.account_number?.slice(-4)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground/70">Balance</p>
+                      <p className="text-xs text-muted-foreground/70" title="Stored on the bank record; not a posted ledger balance">Legacy recorded metadata</p>
                        <p className="font-medium text-foreground">
                          {account.currency || 'GBP'} {Number(account.current_balance ?? 0).toFixed(2)}
                        </p>
@@ -133,7 +136,7 @@ export default function BankAccounts() {
                       </Badge>
                       {account.connection_type === 'open_banking' && (
                         <Badge variant="secondary" className="text-xs">
-                          {account.open_banking_status === 'connected' ? '✓ Connected' : account.open_banking_status}
+                          {account.open_banking_status === 'connected' ? 'Connected' : account.open_banking_status}
                         </Badge>
                       )}
                       {account.connection_type !== 'open_banking' && (
@@ -147,6 +150,17 @@ export default function BankAccounts() {
                           Connect Feed
                         </Button>
                       )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => { e.stopPropagation(); setOpeningFor(account); }}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        className="h-6 text-xs gap-1"
+                        data-testid={`button-opening-balance-${account.id}`}
+                      >
+                        <Landmark className="w-3 h-3" />
+                        Opening balance
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -183,6 +197,16 @@ export default function BankAccounts() {
       )}
 
       <BankAccountForm account={editing} open={formOpen} onOpenChange={setFormOpen} onSave={loadAccounts} companyId={activeCompany.id} />
+
+      {openingFor && (
+        <OpeningBalance
+          key={`${activeCompany.id}:${openingFor.id}`}
+          companyId={activeCompany.id}
+          bank={openingFor}
+          open
+          onOpenChange={(v) => { if (!v) setOpeningFor(null); }}
+        />
+      )}
 
       <Dialog open={bankingOpen} onOpenChange={setBankingOpen}>
         <DialogContent className="sm:max-w-md">

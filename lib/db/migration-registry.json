@@ -1,0 +1,184 @@
+{
+  "version": 2,
+  "authority": "disposable-rehearsal-only",
+  "purpose": "Pins reviewed migration and canonical security overlay input bytes for the disposable installer; not installed schema history, production authorization or full compatibility evidence.",
+  "migrations": [
+    {
+      "id": "accounting-documents",
+      "path": "lib/db/migrations/accounting-documents.review.sql",
+      "contractVersion": 1,
+      "dependencies": [],
+      "sha256": "ff7035a91ca4b998eae04aa7379ecf8b78baa6416ba22de76ebf804aa847d6bc"
+    },
+    {
+      "id": "accounting-chart",
+      "path": "lib/db/migrations/accounting-chart.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-documents"
+      ],
+      "sha256": "105fc4409a5c5f0be80441f659a4f5a1f7bbe23d3111c30da745f8a41aee3b28"
+    },
+    {
+      "id": "accounting-payments",
+      "path": "lib/db/migrations/accounting-payments.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-chart"
+      ],
+      "sha256": "a4ed77c19d5e663a2231d038e22bab18647b18c3f8095724be7de99cd18c47de"
+    },
+    {
+      "id": "credit-tracking",
+      "path": "lib/db/migrations/credit-tracking.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-payments"
+      ],
+      "sha256": "3ee0dcfc473483145052df47d78c07e0ad8a0742959a626d5ef7d394f0e1dd47"
+    },
+    {
+      "id": "document-intake",
+      "path": "lib/db/migrations/document-intake.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "credit-tracking"
+      ],
+      "sha256": "94b25447f0ea167effefd9a0f7c83f6b6bed16e73dfa4576c637ac0d8e864c92"
+    },
+    {
+      "id": "paid-credit-operations",
+      "path": "lib/db/migrations/paid-credit-operations.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "document-intake"
+      ],
+      "sha256": "abb192d7a144403e5073909b2423dbd3701ce2b6d202fe741a8d7e066fe4db2a"
+    },
+    {
+      "id": "accounting-document-amendments",
+      "path": "lib/db/migrations/accounting-document-amendments.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "paid-credit-operations"
+      ],
+      "sha256": "fbec16a4ba8c5d1dbdd631a492680cfe836546ac5b189dd00ec98c183323f600"
+    },
+    {
+      "id": "w03-invoice-drafts",
+      "path": "lib/db/migrations/w03-invoice-drafts.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-documents"
+      ],
+      "sha256": "cd62e959adffa726b22ffe9dacd16bb90d256f5a1573358edd769dbd88ccb06a"
+    },
+    {
+      "id": "conditional-discount-agreements",
+      "path": "lib/db/migrations/conditional-discount-agreements.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-payments",
+        "paid-credit-operations"
+      ],
+      "sha256": "0023c3e11a2ee056aedd67b695e980a1b6cd3202bdd692a42b3f7cb5488906fb"
+    },
+    {
+      "id": "conditional-discount-compensations",
+      "path": "lib/db/migrations/conditional-discount-compensations.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["conditional-discount-agreements"],
+      "sha256": "d1f05ddcc8dd98b560038a12dec41463e47bb7fca23856c4b49ecd432f54ac52"
+    },
+    {
+      "id": "conditional-discount-replacements",
+      "path": "lib/db/migrations/conditional-discount-replacements.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["conditional-discount-agreements"],
+      "sha256": "5bd8c235198790f0109c9223c5ed726630196a23ff6cdb717feabb957f5e3ffb"
+    },
+    {
+      "id": "conditional-discount-cash-reversal",
+      "path": "lib/db/migrations/conditional-discount-cash-reversal.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["conditional-discount-compensations"],
+      "sha256": "80ae6ef09b65592793a5c829fe6d97550aa64147f589caf27ffd608e62569431"
+    },
+    {
+      "id": "conditional-discount-replacement-observations",
+      "path": "lib/db/migrations/conditional-discount-replacement-observations.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["conditional-discount-replacements", "conditional-discount-cash-reversal"],
+      "sha256": "bec24160979fe415040e734709852cb16b8759f2b53a92028f5731085126732d"
+    },
+    {
+      "id": "conditional-discount-capacity-origins",
+      "path": "lib/db/migrations/conditional-discount-capacity-origins.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["conditional-discount-replacement-observations"],
+      "sha256": "efd1827fd5c5bdbaf3a43362beeee7d6984446abc185b576efc2cefb58c71303"
+    },
+    {
+      "id": "conditional-discount-corrected-observations",
+      "path": "lib/db/migrations/conditional-discount-corrected-observations.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["conditional-discount-capacity-origins", "accounting-document-amendments"],
+      "sha256": "a26ce2ca3abec3909efa0ca50bbbf9356e96b759725577b69a56e9b58db97eb5"
+    },
+    {
+      "id": "conditional-discount-commercial-credits",
+      "path": "lib/db/migrations/conditional-discount-commercial-credits.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["conditional-discount-corrected-observations"],
+      "sha256": "fe258c882db68b5e1298c7b3e8da27b999c01acec70ba850a8e326735e81b46a"
+    },
+    {
+      "id": "bank-imports",
+      "path": "lib/db/migrations/bank-imports.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["accounting-documents"],
+      "sha256": "782aee6353d11a32b68fde24dfe30a4533d5fa970e39f3d31dbcfa0507f131fb"
+    },
+    {
+      "id": "bank-openings",
+      "path": "lib/db/migrations/bank-openings.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["accounting-payments"],
+      "sha256": "38e214b38c43fa90713d202c0b1902be4f13322eb74c228a26d6c3921b41185d"
+    },
+    {
+      "id": "bank-statement-matches",
+      "path": "lib/db/migrations/bank-statement-matches.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["bank-imports", "bank-openings"],
+      "sha256": "863fba03473e601758f22d6802bdbb2202672973d9d5dcc46a441a1ff60c2cbf"
+    },
+    {
+      "id": "bank-import-review-authority",
+      "path": "lib/db/migrations/bank-import-review-authority.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["bank-statement-matches"],
+      "sha256": "6c3e202b7ed3563cf15db16a2cb260f53c1084785da983e5cf19a42a7b31cbdd"
+    },
+    {
+      "id": "bank-import-canonical-history",
+      "path": "lib/db/migrations/bank-import-canonical-history.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["bank-import-review-authority"],
+      "sha256": "4166b44142179bed2c8df9945ff2d000b2ff83e8d77332aa8fb151c8bf027225"
+    },
+    {
+      "id": "bank-match-corrections",
+      "path": "lib/db/migrations/bank-match-corrections.review.sql",
+      "contractVersion": 1,
+      "dependencies": ["bank-import-canonical-history"],
+      "sha256": "03369850b2a88106d19fc4ed1154d30d119474bf4c8fa23b7a231cf1e67ab3a4"
+    }
+  ],
+  "securityOverlay": {
+    "id": "canonical-security-overlay",
+    "path": "scripts/sql/ledgerly-44-rs-01-disposable-overlay.sql",
+    "contractVersion": 1,
+    "sha256": "779d76aa3ab065d5bb1f5a08c9ea807cf4bc3166d0fdc1b59c21c81140404081"
+  }
+}

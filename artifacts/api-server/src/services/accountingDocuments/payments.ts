@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { fail, uuid } from '../financialDrafts/contract';
-import { postCanonicalJournal, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
+import { conditionalPaymentSnapshot, observePaymentOutcome, assertConditionalPaymentMutation } from './conditionalDiscount';
+import { hasConditionalCompensationAuthority } from './conditionalCompensation';
+import { isCompanyRole } from '../../security/roles';
+import { canWriteDraft, fail, uuid } from '../financialDrafts/contract';
+import { postCanonicalJournal, postCanonicalJournalInTransaction, roleHasAccountingCapability, type CanonicalLineDraft, type CanonicalPostingDependencies, type DatabaseTransaction, type LockedAuthority } from '../accounting/canonicalPosting';
 import { scope, transact, exactFields, supportedCompany, hash, queryAdapter, type Queryable } from './core';
 import { companyChart } from './accounts';
 import { allocated, appliedTo, allocationSign, unappliedEffect, paymentEvents, documentOpen, syncSettlementProjection } from './settlement';
@@ -24,10 +27,15 @@ async function validateMappings(q:Queryable,company:string,mappings:any) {
   const config=(await q.query('SELECT mappings FROM accounting_company_configuration WHERE company_id=$1',[company])).rows[0];
   const historical=(await q.query(`SELECT DISTINCT m.value account_id FROM accounting_document_sources d,
     jsonb_each_text(d.posting_accounts) m WHERE d.company_id=$1 AND d.status='posted'`,[company])).rows;
+  const openingBanks=(await q.query('SELECT bank_ledger_account_id FROM accounting_bank_openings WHERE company_id=$1',[company])).rows;
+  const history=(await q.query(`SELECT DISTINCT source->>'bank_account_id' bank,source->>'pool_account_id' pool
+    FROM accounting_payment_events WHERE company_id=$1`,[company])).rows;
   for(const role of roles) {
     const a=accounts.find(a=>a.id===mappings[role]);
     if(!a || a.is_active!==true || !types[role]!.includes(String(a.account_type).toLowerCase())) fail(422,'PAYMENT_ACCOUNT_INVALID',`/mappings/${role}`);
     if(Object.values(config?.mappings??{}).includes(a.id)||historical.some(h=>h.account_id===a.id)) fail(422,'PAYMENT_CONTROL_ACCOUNT_CONFLICT',`/mappings/${role}`);
+    if(role!=='bank'&&openingBanks.some(o=>o.bank_ledger_account_id===a.id)) fail(422,'PAYMENT_CONTROL_ACCOUNT_CONFLICT',`/mappings/${role}`);
+    if(history.some(h=>role==='bank'?h.pool===a.id:h.bank===a.id)) fail(422,'PAYMENT_HISTORICAL_ACCOUNT_CONFLICT',`/mappings/${role}`);
   }
   return accounts;
 }
@@ -49,7 +57,12 @@ export async function savePaymentConfiguration(company:string,actor:string,body:
 export async function paymentContext(company:string,actor:string) {
   return transact(async q=>{
     await scope(q,company,actor);
-    return {configuration:await configuration(q,company),accounts:await companyChart(q,company),
+    const members=(await q.query('SELECT role,is_active FROM company_users WHERE company_id=$1 AND user_id=$2 ORDER BY id',[company,actor])).rows;
+    const active=members.length===1 && members[0].is_active===true;
+    const capabilities={configure_payments:canWriteDraft(members[0]?.role,active),
+      review_payments:canWriteDraft(members[0]?.role,active),
+      post_payments:active && roleHasAccountingCapability(members[0]?.role,'accounting.post')};
+    return {capabilities,configuration:await configuration(q,company),accounts:await companyChart(q,company),
       customers:(await q.query('SELECT id,name FROM customers WHERE company_id=$1 ORDER BY name',[company])).rows,
       suppliers:(await q.query('SELECT id,name FROM suppliers WHERE company_id=$1 ORDER BY name',[company])).rows};
   });
@@ -70,6 +83,29 @@ export async function listPayments(company:string,actor:string) {
     });
   },true);
 }
+/** Existing immutable payment events are the command/outcome authority. This
+ * read never retries a command; an absent row may still be an in-flight commit. */
+export async function recoverPayment(company:string,actor:string,requestId:string) {
+  const id=uuid(requestId);
+  return transact(async q=>{
+    await scope(q,company,actor);
+    const membership=(await q.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2',[company,actor])).rows[0];
+    if(!isCompanyRole(membership?.role)) fail(403,'CAPABILITY_DENIED');
+    const event=(await q.query(`SELECT e.id,e.source,j.source_revision,j.id verified_journal_id,p.id verified_effect_id FROM accounting_payment_events e
+      LEFT JOIN canonical_journal_entries j ON j.id=e.journal_id AND j.company_id=e.company_id
+        AND j.source_id=e.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
+        AND j.currency_code='GBP' AND j.posting_kind='party_'||e.kind
+        AND j.economic_effect_id='payment-event:'||e.id::text
+      LEFT JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
+        AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
+        AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text
+        AND p.status='posted' AND p.source_revision=j.source_revision
+      WHERE e.company_id=$1 AND e.id=$2`,[company,id])).rows[0];
+    if(!event) return {status:'unknown',id};
+    if(!event.verified_journal_id || !event.verified_effect_id || event.source_revision!==hash(event.source)) fail(503,'PAYMENT_HISTORY_INVALID');
+    return {status:'recorded',id,journal_id:event.verified_journal_id};
+  },true);
+}
 function intent(body:unknown) {
   const b=exactFields(body,['id','kind','party_type','party_id','payment_id','date','reference','amount_minor','allocations','review_token']);
   if(!['payment','allocation','unallocation','refund','reversal'].includes(b.kind)) fail(422,'PAYMENT_ACTION_INVALID');
@@ -85,7 +121,7 @@ function intent(body:unknown) {
     payment_id:b.kind==='payment'?null:uuid(b.payment_id),date:b.date,reference:b.reference.trim(),
     amount_minor:amount(b.amount_minor),allocations};
 }
-async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof intent>) {
+async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof intent>,tx?:DatabaseTransaction) {
   supportedCompany(await scope(q,company,actor,true,true));
   const party=(await q.query(`SELECT id,name FROM ${b.party_type==='customer'?'customers':'suppliers'} WHERE company_id=$1 AND id=$2`,[company,b.party_id])).rows[0];
   if(!party) fail(404,'RESOURCE_NOT_FOUND');
@@ -96,10 +132,13 @@ async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof 
     WHERE company_id=$1 AND start_date<=$2::date AND end_date>=$2::date ORDER BY id FOR UPDATE`,[company,b.date])).rows;
   if(periods.length!==1||periods[0].status!=='OPEN') fail(409,'PERIOD_NOT_WRITABLE');
   const events=await paymentEvents(q,company);
+  if(!hasConditionalCompensationAuthority(tx,company,actor,b)) await assertConditionalPaymentMutation(q,company,b);
   const parent=b.payment_id?events.find(e=>e.id===b.payment_id&&e.kind==='payment'):null;
   const related=parent?events.filter(e=>e.id===parent.id||e.payment_id===parent.id):[];
   if(b.payment_id && (!parent||parent.party_id!==b.party_id||parent.party_type!==b.party_type)) fail(404,'RESOURCE_NOT_FOUND');
   if(related.some(e=>e.kind==='reversal')) fail(409,'PAYMENT_ALREADY_REVERSED');
+  if(b.kind==='reversal' && (await q.query('SELECT 1 FROM accounting_bank_active_matches WHERE company_id=$1 AND payment_id=$2 LIMIT 1',[company,b.payment_id])).rowCount)
+    fail(409,'PAYMENT_BANK_MATCHED_REVERSAL_UNSUPPORTED');
   if(related.some(e=>e.effective_date>b.date)) fail(409,'DATE_PRECEDES_PAYMENT_ACTIVITY');
   const remainder=related.reduce((n,e)=>n+unappliedEffect(e),0n);
   const value=BigInt(b.amount_minor),sum=b.allocations.reduce((n:bigint,a:any)=>n+BigInt(a.amount_minor),0n);
@@ -124,6 +163,7 @@ async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof 
     const d=await documentOpen(q,company,a.document_id,events);
     if(d.party_id!==b.party_id || d.kind!==(customer?'sales_invoice':'purchase_bill')) fail(422,'ALLOCATION_PARTY_MISMATCH');
     if(d.posting_date>b.date) fail(409,'DATE_PRECEDES_DOCUMENT');
+    if(d.latest_correction_date && d.latest_correction_date>b.date) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
     // Do not let a backdated event invalidate a later allocation or credit.
     const later=(await q.query(`SELECT 1 FROM accounting_document_sources d JOIN canonical_journal_entries j ON j.id=d.journal_id
       WHERE d.company_id=$1 AND d.original_id=$2 AND d.status='posted' AND j.posting_date>$3::date LIMIT 1`,[company,d.id,b.date])).rowCount;
@@ -140,29 +180,35 @@ async function plan(q:Queryable,company:string,actor:string,b:ReturnType<typeof 
   const ids=[...new Set(lines.map(l=>l.accountId))];
   const accounts=(await q.query('SELECT id,company_id,code,name,account_type,is_active FROM chart_of_accounts WHERE company_id=$1 AND id=ANY($2::uuid[]) ORDER BY id FOR UPDATE',[company,ids])).rows;
   if(accounts.length!==ids.length||accounts.some(a=>a.is_active!==true)) fail(422,'PAYMENT_ACCOUNT_INVALID');
-  const source={intent:b,lines,bank_account_id:bankAccount,pool_account_id:poolAccount,party_name:party.name,
+  const conditionalSnapshot=['payment','allocation'].includes(b.kind)
+    ?{conditional_binding_snapshot:await conditionalPaymentSnapshot(q,company,b.party_type,b.party_id,b.kind,parent,b.allocations)}:{};
+  const source={...conditionalSnapshot,intent:b,lines,bank_account_id:bankAccount,pool_account_id:poolAccount,party_name:party.name,
     configuration_revision:config.revision,period_id:periods[0].id,open_states:openStates,
     parent_remainder_minor:remainder.toString(),parent_events:related.map(e=>e.id),accounts};
   return {source,review_token:hash(source),lines,period:periods[0],configuration:config,party_name:party.name,
     allocated_minor:sum.toString(),unapplied_minor:(b.kind==='payment'?value-sum:remainder+unappliedEffect({...b,allocations:b.allocations})).toString()};
 }
+export async function previewPaymentInTransaction(q:Queryable,company:string,actor:string,body:unknown,tx?:DatabaseTransaction) {
+  return plan(q,company,actor,intent(body),tx);
+}
 export async function previewPayment(company:string,actor:string,body:unknown) {
   const b=intent(body);return transact(q=>plan(q,company,actor,b));
 }
 class Replayed extends Error {constructor(public data:any){super('Payment event already recorded');}}
-export async function postPayment(company:string,actor:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+export async function postPayment(company:string,actor:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>,existingTransaction?:DatabaseTransaction) {
   const b=intent(body),expected=(body as any).review_token;
   if(typeof expected!=='string'||!/^sha256:[a-f0-9]{64}$/.test(expected)) fail(428,'PAYMENT_REVIEW_REQUIRED');
   const requestHash=hash(b);
   // Admission read only supplies the command envelope. Locked calculation below
   // is the authority. Retries are checked before recalculating spent remainders.
-  const initial=await transact(async q=>{
+  const admission=async(q:Queryable)=>{
     await scope(q,company,actor,true,true);
     const prior=(await q.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[company,b.id])).rows[0];
     if(prior){if(prior.request_hash!==requestHash) fail(409,'IDEMPOTENCY_CONFLICT');return {replayed:prior};}
-    const p=await plan(q,company,actor,b);if(p.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');return {plan:p};
-  });
-  if(initial.replayed) return {status:'duplicate',id:b.id,journal_id:initial.replayed.journal_id};
+    const p=await plan(q,company,actor,b,existingTransaction);if(p.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');return {plan:p};
+  };
+  const initial=existingTransaction?await admission(queryAdapter(existingTransaction)):await transact(admission);
+  if(initial.replayed) return observePaymentOutcome({status:'duplicate',id:b.id,journal_id:initial.replayed.journal_id},company,actor,b.id,b.kind,!!existingTransaction);
   const first=initial.plan!;let current=first,transaction:DatabaseTransaction;
   const authority=<T>(value:T,keys:string[],token:string):LockedAuthority<T>=>({authority:value,recordKeys:keys,
     capturedToken:{revision:token},lockMode:'FOR UPDATE',transactionBound:true,
@@ -173,7 +219,7 @@ export async function postPayment(company:string,actor:string,body:unknown,testH
       transaction=tx;const q=queryAdapter(tx);await scope(q,company,actor,true,true);
       const prior=(await q.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[company,b.id])).rows[0];
       if(prior){if(prior.request_hash!==requestHash) fail(409,'IDEMPOTENCY_CONFLICT');throw new Replayed({status:'duplicate',id:b.id,journal_id:prior.journal_id});}
-      current=await plan(q,company,actor,b);if(current.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');
+      current=await plan(q,company,actor,b,tx);if(current.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');
       return authority({companyId:company,sourceType:'accounting_payment_event',sourceId:b.id,status:'reviewed',isPostable:true,
         sourceRevision:expected,evidenceHash:expected},[`companies:${company}`,`accounting_payment_event:${b.id}`],expected);
     }},
@@ -194,11 +240,12 @@ export async function postPayment(company:string,actor:string,body:unknown,testH
     }}
   };
   try {
-    const result=await postCanonicalJournal({principal:{kind:'user',userId:actor,requestedCompanyId:company},requestedCompanyId:company,
+    const post=existingTransaction?(command:any,deps:CanonicalPostingDependencies)=>postCanonicalJournalInTransaction(existingTransaction,command,deps):postCanonicalJournal;
+    const result=await post({principal:{kind:'user',userId:actor,requestedCompanyId:company},requestedCompanyId:company,
       sourceType:'accounting_payment_event',sourceId:b.id,sourceRevision:expected,sourceEvidenceHash:expected,sourceStatus:'reviewed',
       postingKind:`party_${b.kind}`,economicEffectId:`payment-event:${b.id}`,idempotencyKey:`payment-event:${b.id}`,
       accountIds:[...new Set(first.lines.map(l=>l.accountId))],postingDate:b.date,configurationVersionId:first.configuration.revision,
       currencyCode:'GBP',description:`${b.party_type} ${b.kind}: ${b.reference}`,reference:b.reference},deps);
-    return {status:result.status,id:b.id,journal_id:result.journalId};
-  } catch(error){if(error instanceof Replayed)return error.data;throw error;}
+    return observePaymentOutcome({status:result.status,id:b.id,journal_id:result.journalId},company,actor,b.id,b.kind,!!existingTransaction);
+  } catch(error){if(error instanceof Replayed)return observePaymentOutcome(error.data,company,actor,b.id,b.kind,!!existingTransaction);throw error;}
 }

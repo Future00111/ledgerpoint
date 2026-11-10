@@ -1,3 +1,5 @@
+import { canWriteCompanyData } from "../security/roles";
+import { safeErrorLog, safeRouteErrors } from "../security/publicErrors";
 /**
  * Generic CRUD router for all entities — with tenant isolation and role enforcement.
  *
@@ -14,12 +16,13 @@
  *  - IN list:         ?field[]=a&field[]=b  (sent by entities.js $in operator)
  */
 
-import { Router, type Request, type Response } from "express";
+import { Router, type Request, type Response, type RequestHandler } from "express";
 import { db } from "@workspace/db";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
 import {
   findActiveCompanyIds,
-  findActiveMembership,
+  requireCompanyScope,
+  resolveCompanyScope,
 } from "../middlewares/companyScope";
 import { genericEntityWriteError, isGenericEntityWriteBlocked, genericEntityWriteBoundary } from "./entityWritePolicy";
 import {
@@ -94,7 +97,7 @@ const ENTITY_MAP: Record<string, AnyTable> = {
 /** Company has no company_id column; scope to membership list via /api/companies. */
 const COMPANY_ENTITY = "Company";
 /** Roles that cannot perform write operations. */
-const WRITE_BLOCKED_ROLES = new Set(["read_only"]);
+
 const RECONCILIATION_LINK_FIELDS = new Set([
   "matched_type",
   "matched_record_id",
@@ -134,20 +137,15 @@ async function getAuthorizedCompanyIds(userId: string): Promise<string[]> {
   return findActiveCompanyIds(userId);
 }
 
-/** Returns the user's role in a specific company, or null if not a member. */
-async function getUserRole(userId: string, companyId: string): Promise<string | null> {
-  const membership = await findActiveMembership(userId, companyId);
-  return membership?.role ?? null;
-}
-
 // ---------------------------------------------------------------------------
 // Router
 // ---------------------------------------------------------------------------
 
+export function createEntitiesRouter(authenticate: RequestHandler = requireAuth) {
 const router = Router();
 
 // Validate entity name + authenticate
-router.use("/:entity", requireAuth, genericEntityWriteBoundary, (req: Request, res: Response, next) => {
+router.use("/:entity", authenticate, genericEntityWriteBoundary, (req: Request, res: Response, next) => {
   const entityName = req.params["entity"] as string;
   if (!ENTITY_MAP[entityName]) {
     res.status(404).json({ error: `Unknown entity: ${entityName}` });
@@ -169,7 +167,15 @@ router.get("/:entity", async (req: Request, res: Response) => {
     const _order = rawQuery["_order"] as string | undefined;
     const _limit = rawQuery["_limit"] as string | undefined;
 
-    const authorizedIds = await getAuthorizedCompanyIds(userId);
+    // Explicit workspace context is never an optional truthy filter: malformed
+    // values must not fall back to a cross-company list. Company uses the same
+    // selected scope as every other entity, despite having no company_id column.
+    const requestedCompanyId = req.query["company_id"];
+    const selectedScope = requestedCompanyId === undefined ? null : await requireCompanyScope(res, {
+      userId, requestedCompanyId,
+    });
+    if (requestedCompanyId !== undefined && !selectedScope) return;
+    const authorizedIds = selectedScope ? [selectedScope.companyId] : await getAuthorizedCompanyIds(userId);
     if (authorizedIds.length === 0) {
       res.json([]);
       return;
@@ -181,17 +187,7 @@ router.get("/:entity", async (req: Request, res: Response) => {
     if (entityName === COMPANY_ENTITY) {
       conditions.push(inArray(table["id"], authorizedIds));
     } else {
-      // Scope to company
-      const requestedCompanyId = rawQuery["company_id"] as string | undefined;
-      if (requestedCompanyId) {
-        if (!authorizedIds.includes(requestedCompanyId)) {
-          res.status(403).json({ error: "Access denied to this company" });
-          return;
-        }
-        conditions.push(eq(table["company_id"], requestedCompanyId));
-      } else {
-        conditions.push(inArray(table["company_id"], authorizedIds));
-      }
+      conditions.push(inArray(table["company_id"], authorizedIds));
 
       // Apply additional filters (skip control params and company_id, already handled)
       for (const [rawKey, rawVal] of Object.entries(rawQuery)) {
@@ -239,8 +235,8 @@ router.get("/:entity", async (req: Request, res: Response) => {
     const rows = await query;
     res.json(rows);
   } catch (err: unknown) {
-    req.log.error({ err }, "entity list error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    req.log.error(safeErrorLog(err), "entity list error");
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 });
 
@@ -266,21 +262,25 @@ router.get("/:entity/:id", async (req: Request, res: Response) => {
 
     const row = rows[0] as Record<string, unknown>;
 
-    // Verify ownership
-    if (entityName === COMPANY_ENTITY) {
-      if (!authorizedIds.includes(row["id"] as string)) {
-        res.status(403).json({ error: "Access denied" });
-        return;
-      }
-    } else if (!authorizedIds.includes(row["company_id"] as string)) {
+    // The current workspace, when supplied, must agree with the resource even
+    // for a user who can access both companies. Recheck active membership for
+    // this exact resource; list membership alone is not an authorization token.
+    const resourceCompanyId = entityName === COMPANY_ENTITY ? row["id"] : row["company_id"];
+    if (!authorizedIds.includes(resourceCompanyId as string)) {
       res.status(403).json({ error: "Access denied" });
       return;
     }
+    const scope = await requireCompanyScope(res, {
+      userId,
+      requestedCompanyId: req.query["company_id"],
+      resourceCompanyId,
+    });
+    if (!scope) return;
 
     res.json(row);
   } catch (err: unknown) {
-    req.log.error({ err }, "entity get error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    req.log.error(safeErrorLog(err), "entity get error");
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 });
 
@@ -309,6 +309,7 @@ router.patch("/:entity/bulk-update", async (req: Request, res: Response) => {
     const results: Array<Record<string, unknown>> = [];
 
     for (const record of records) {
+      if (!record || typeof record !== "object" || Array.isArray(record)) continue;
       const id = record["id"] as string | undefined;
       if (!id) continue;
 
@@ -318,14 +319,15 @@ router.patch("/:entity/bulk-update", async (req: Request, res: Response) => {
       const existingRow = existing[0] as Record<string, unknown>;
       const companyId = existingRow["company_id"] as string;
 
-      const role = await getUserRole(userId, companyId);
-      if (!role || WRITE_BLOCKED_ROLES.has(role)) continue;
-
-      // Prevent tenant reassignment
-      if (record["company_id"] && record["company_id"] !== companyId) continue;
+      // Explicit null/empty context is invalid, never permission to clear the tenant.
+      if (record["company_id"] !== undefined && record["company_id"] !== companyId) continue;
+      const decision = await resolveCompanyScope({ userId,
+        requestedCompanyId: req.query["company_id"], resourceCompanyId: companyId });
+      if (!decision.ok || !canWriteCompanyData(decision.scope.role)) continue;
 
       const updateData = { ...record };
       delete updateData["id"];
+      delete updateData["company_id"];
       if (table["updated_at"]) updateData["updated_at"] = new Date();
 
       const updated = await db.update(table).set(updateData).where(eq(table["id"], id)).returning();
@@ -334,8 +336,8 @@ router.patch("/:entity/bulk-update", async (req: Request, res: Response) => {
 
     res.json(results);
   } catch (err: unknown) {
-    req.log.error({ err }, "entity bulk-update error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    req.log.error(safeErrorLog(err), "entity bulk-update error");
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 });
 
@@ -361,8 +363,12 @@ router.post("/:entity/bulk", async (req: Request, res: Response) => {
     }
 
     // All records must target the same authorized company
-    const companyId = records[0]["company_id"] as string | undefined;
-    if (!companyId) {
+    if (records.some(record => !record || typeof record !== "object" || Array.isArray(record))) {
+      res.status(400).json({ error: "Each bulk record must be an object" });
+      return;
+    }
+    const companyId = records[0]["company_id"];
+    if (typeof companyId !== "string" || !companyId.trim()) {
       res.status(400).json({ error: "company_id is required in each record" });
       return;
     }
@@ -371,12 +377,12 @@ router.post("/:entity/bulk", async (req: Request, res: Response) => {
       return;
     }
 
-    const role = await getUserRole(userId, companyId);
-    if (!role) {
-      res.status(403).json({ error: "Not authorized for this company" });
-      return;
-    }
-    if (WRITE_BLOCKED_ROLES.has(role)) {
+    // A delayed create must not silently target the old workspace, even when
+    // the actor is a member of both the body and query companies.
+    const scope = await requireCompanyScope(res, { userId,
+      requestedCompanyId: req.query["company_id"], resourceCompanyId: companyId });
+    if (!scope) return;
+    if (!canWriteCompanyData(scope.role)) {
       res.status(403).json({ error: "Your role does not permit creating records" });
       return;
     }
@@ -385,8 +391,8 @@ router.post("/:entity/bulk", async (req: Request, res: Response) => {
     const rows = await db.insert(table).values(records).returning();
     res.status(201).json(rows);
   } catch (err: unknown) {
-    req.log.error({ err }, "entity bulk create error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    req.log.error(safeErrorLog(err), "entity bulk create error");
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 });
 
@@ -405,18 +411,22 @@ router.post("/:entity", async (req: Request, res: Response) => {
       return;
     }
 
-    const companyId = req.body["company_id"] as string | undefined;
-    if (!companyId) {
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+      res.status(400).json({ error: "Body must be a record object" });
+      return;
+    }
+    const companyId = req.body["company_id"];
+    if (typeof companyId !== "string" || !companyId.trim()) {
       res.status(400).json({ error: "company_id is required" });
       return;
     }
 
-    const role = await getUserRole(userId, companyId);
-    if (!role) {
-      res.status(403).json({ error: "Not authorized for this company" });
-      return;
-    }
-    if (WRITE_BLOCKED_ROLES.has(role)) {
+    // A delayed create must not silently target the old workspace, even when
+    // the actor is a member of both the body and query companies.
+    const scope = await requireCompanyScope(res, { userId,
+      requestedCompanyId: req.query["company_id"], resourceCompanyId: companyId });
+    if (!scope) return;
+    if (!canWriteCompanyData(scope.role)) {
       res.status(403).json({ error: "Your role does not permit creating records" });
       return;
     }
@@ -426,8 +436,8 @@ router.post("/:entity", async (req: Request, res: Response) => {
     const row = rows[0] as Record<string, unknown>;
     res.status(201).json(row);
   } catch (err: unknown) {
-    req.log.error({ err }, "entity create error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    req.log.error(safeErrorLog(err), "entity create error");
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 });
 
@@ -457,24 +467,24 @@ async function updateEntity(req: Request, res: Response) {
     const existingRow = existing[0] as Record<string, unknown>;
     const companyId = existingRow["company_id"] as string;
 
-    const role = await getUserRole(userId, companyId);
-    if (!role) {
-      res.status(403).json({ error: "Access denied" });
-      return;
-    }
-    if (WRITE_BLOCKED_ROLES.has(role)) {
-      res.status(403).json({ error: "Your role does not permit updating records" });
-      return;
-    }
-
-    // Never allow changing company_id — prevents cross-tenant record reassignment
-    if (req.body["company_id"] && req.body["company_id"] !== companyId) {
+    // Check both caller contexts against the authoritative resource company.
+    // Never let explicit null/empty context clear tenant ownership in UPDATE.
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body) ||
+      (req.body["company_id"] !== undefined && req.body["company_id"] !== companyId)) {
       res.status(400).json({ error: "Changing company_id is not permitted" });
+      return;
+    }
+    const scope = await requireCompanyScope(res, { userId,
+      requestedCompanyId: req.query["company_id"], resourceCompanyId: companyId });
+    if (!scope) return;
+    if (!canWriteCompanyData(scope.role)) {
+      res.status(403).json({ error: "Your role does not permit updating records" });
       return;
     }
 
     const updateData = { ...req.body };
     delete updateData["id"];
+    delete updateData["company_id"];
     // Older clients used empty strings to clear relations.
     // PostgreSQL UUID columns require null instead; normalise at the boundary
     // so an otherwise valid match can never fail with a 500 response.
@@ -489,8 +499,8 @@ async function updateEntity(req: Request, res: Response) {
     const row = rows[0] as Record<string, unknown>;
     res.json(row);
   } catch (err: unknown) {
-    req.log.error({ err }, "entity update error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    req.log.error(safeErrorLog(err), "entity update error");
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 }
 
@@ -521,12 +531,13 @@ router.delete("/:entity/:id", async (req: Request, res: Response) => {
     const existingRow = existing[0] as Record<string, unknown>;
     const companyId = existingRow["company_id"] as string;
 
-    const role = await getUserRole(userId, companyId);
-    if (!role) {
-      res.status(403).json({ error: "Access denied" });
-      return;
-    }
-    if (WRITE_BLOCKED_ROLES.has(role)) {
+    const scope = await requireCompanyScope(res, {
+      userId,
+      requestedCompanyId: req.query["company_id"],
+      resourceCompanyId: companyId,
+    });
+    if (!scope) return;
+    if (!canWriteCompanyData(scope.role)) {
       res.status(403).json({ error: "Your role does not permit deleting records" });
       return;
     }
@@ -538,9 +549,14 @@ router.delete("/:entity/:id", async (req: Request, res: Response) => {
     await db.delete(table).where(eq(table["id"], id));
     res.json({ success: true });
   } catch (err: unknown) {
-    req.log.error({ err }, "entity delete error");
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal error" });
+    req.log.error(safeErrorLog(err), "entity delete error");
+    res.status(500).json({ error: "Unable to complete this request. Please try again." });
   }
 });
 
-export default router;
+router.use(safeRouteErrors);
+
+return router;
+}
+
+export default createEntitiesRouter();

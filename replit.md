@@ -103,3 +103,17 @@ _Populate as you build — sharp edges, "always run X before Y" rules._
 ## Pointers
 
 - See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+
+## Coordinator-controlled implementation
+
+Follow [the Replit worker protocol](docs/development/replit-worker-protocol.md)
+and the prepared assignment only after the coordinator supplies a fresh durable
+reservation, exact source and leased files. Plan for Replit and Codex to implement
+together when separate ready file leases make both useful, with an independent
+reviewer and one coordinator. Codex also implements; authors do not self-approve.
+The shared queue chooses the highest eligible task for each worker. Prefer the
+same priority journey where safe; use other eligible work or idle when files
+conflict. Keep at most two implementers by default. Do not initialise a
+local queue, push unreviewed work, change demo startup/database state, or continue
+working after the agreed stop. Local commits and verified patch exports return
+to the coordinator for serial integration into the existing draft PR.

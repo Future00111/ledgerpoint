@@ -22,9 +22,11 @@ Use the isolated development database described above for accounting walkthrough
 Do not apply review migrations to a shared or production database automatically.
 
 The active app uses first-party `/api` routes. Document posting uses the protected
-canonical journal engine, and financial reports read its entries. Uploads,
-document extraction and email delivery still require native provider integration;
-removing legacy code does not make those services available.
+canonical journal engine, and financial reports read its entries. The reviewed
+document-capture development schema supports native PDF/JPEG/PNG uploads,
+duplicate detection, source attachments and reviewed bill/supplier-credit drafts.
+OCR extraction and email intake/delivery still require native provider integration;
+the capture screen reports those providers as unavailable.
 
 ## Historical source
 

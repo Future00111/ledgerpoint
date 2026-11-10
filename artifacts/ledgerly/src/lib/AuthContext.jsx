@@ -3,8 +3,10 @@
  */
 import React, { createContext, useContext } from 'react';
 import { useUser, useClerk } from '@clerk/react';
+import { authPaths } from './authPaths.mjs';
 
 const AuthContext = createContext(undefined);
+const paths = authPaths(import.meta.env.BASE_URL);
 
 export function AuthProvider({ children }) {
   const { user, isLoaded, isSignedIn } = useUser();
@@ -28,8 +30,8 @@ export function AuthProvider({ children }) {
     isLoadingPublicSettings: !isLoaded,
     authChecked: isLoaded,
     authError: null,
-    navigateToLogin: () => { window.location.href = '/sign-in'; },
-    logout: () => signOut({ redirectUrl: '/' }),
+    navigateToLogin: () => { window.location.href = paths.signIn; },
+    logout: () => signOut({ redirectUrl: paths.home }),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

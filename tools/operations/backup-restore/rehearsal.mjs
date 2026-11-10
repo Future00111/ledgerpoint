@@ -1,0 +1,153 @@
+// Disposable, synthetic two-cluster recovery only; accepts no connection parameters.
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { randomBytes, createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
+import { performance } from 'node:perf_hooks';
+import { transformFile } from './archive.mjs';
+import { fingerprintDatabase } from '../../accounting-flow/restore-drill.mjs';
+import { proveRecoveryControl } from './recovery-controls.mjs';
+const require = createRequire(new URL('../../../artifacts/api-server/package.json', import.meta.url));
+const { Client } = require('pg');
+const root = new URL('../../../', import.meta.url).pathname;
+if (process.argv.length !== 2) throw new Error('Synthetic rehearsal takes no arguments or connection parameters.');
+const directory = mkdtempSync('/tmp/ledgerpoint-encrypted-recovery-');
+const env = { PATH: process.env.PATH, HOME: directory, LANG: 'C', LC_ALL: 'C' };
+const started = performance.now(), clusters = [], clients = [];
+const receiptPath = new URL('../../../generated-artifacts/encrypted-recovery.json', import.meta.url);
+const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+mkdirSync(new URL('../../../generated-artifacts/', import.meta.url), { recursive: true });
+rmSync(receiptPath, { force: true });
+let verified = false, postgresStopped = true, directoryRemoved = false, failure;
+const run = (command, args) => execFileSync(command, args, { env, stdio: 'pipe', timeout: 60000 });
+const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+let sourceFingerprint, restoredFingerprint;
+const negativeControls = [], rowSecurityNegativeControls = [], schemaSequenceNegativeControls = [];
+async function cluster(name) {
+  const base = `${directory}/${name}`, socket = `${base}/socket`, data = `${base}/data`;
+  mkdirSync(socket, { recursive: true, mode: 0o700 });
+  run('initdb', ['-D', data, '-U', 'lp_bootstrap', '-A', 'trust', '--no-locale', '--encoding=UTF8']);
+  // Track before starting: startup errors still trigger stop/cleanup.
+  const result = { base, socket, data }; clusters.push(result);
+  run('pg_ctl', ['-D', data, '-l', `${base}/postgres.log`, '-o', `-h '' -k ${socket} -p 55442 -F`, '-w', 'start']);
+  const client = new Client({ host: socket, port: 55442, user: 'lp_bootstrap', database: 'postgres', password: () => '', ssl: false });
+  clients.push(client); await client.connect();
+  const { rows: [identity] } = await client.query("SELECT current_setting('data_directory') directory, inet_server_addr() address, current_user actor");
+  if (identity.directory !== data || identity.address !== null || identity.actor !== 'lp_bootstrap') throw new Error('Disposable cluster identity mismatch.');
+  return { ...result, client };
+}
+async function fingerprint(client) {
+  // Reuse the accounting restore verifier: rows alone cannot prove that source
+  // constraints, ownership, immutable guards or function privileges survived.
+  const database = await fingerprintDatabase(client);
+  const roles = await client.query("SELECT rolname,rolsuper,rolinherit,rolcreaterole,rolcreatedb,rolcanlogin,rolreplication,rolbypassrls FROM pg_roles WHERE rolname IN ('lp_synthetic_reader','lp_synthetic_elevated') ORDER BY rolname");
+  const memberships = await client.query(`SELECT parent.rolname role_name,member.rolname member_name,m.admin_option
+    FROM pg_auth_members m JOIN pg_roles parent ON parent.oid=m.roleid JOIN pg_roles member ON member.oid=m.member
+    WHERE parent.rolname LIKE 'lp_synthetic_%' OR member.rolname LIKE 'lp_synthetic_%'
+    ORDER BY role_name,member_name`);
+  const rowSecurity = await client.query(`SELECT c.relname table_name,c.relrowsecurity enabled,c.relforcerowsecurity forced
+    FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public' AND c.relkind IN ('r','p') ORDER BY c.relname`);
+  const policies = await client.query(`SELECT schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check
+    FROM pg_policies WHERE schemaname='public' ORDER BY tablename,policyname`);
+  // Row equality does not establish that future inserts retain their types,
+  // required fields, defaults or generated identifiers after recovery.
+  const columns = await client.query(`SELECT c.relname table_name,a.attnum ordinal,a.attname column_name,
+    format_type(a.atttypid,a.atttypmod) data_type,a.attnotnull required,a.attidentity identity_kind,
+    a.attgenerated generated_kind,pg_get_expr(d.adbin,d.adrelid) default_expression,
+    col.collname column_collation
+    FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid
+    JOIN pg_namespace n ON n.oid=c.relnamespace
+    LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum
+    LEFT JOIN pg_collation col ON col.oid=a.attcollation
+    WHERE n.nspname='public' AND c.relkind IN ('r','p') AND a.attnum>0 AND NOT a.attisdropped
+    ORDER BY c.relname,a.attnum`);
+  const sequences = await client.query(`SELECT sequencename,data_type,start_value,min_value,max_value,
+    increment_by,cycle,cache_size,last_value FROM pg_sequences WHERE schemaname='public' ORDER BY sequencename`);
+  const sequenceStates = [];
+  for (const sequence of sequences.rows) {
+    const name = sequence.sequencename.replaceAll('"', '""');
+    const state = await client.query(`SELECT last_value::text,is_called FROM public."${name}"`);
+    sequenceStates.push({ ...sequence, ...state.rows[0] });
+  }
+  return digest({ database, roles: roles.rows, memberships: memberships.rows,
+    rowSecurity: rowSecurity.rows, policies: policies.rows, columns: columns.rows, sequences: sequenceStates });
+}
+
+try {
+  const source = await cluster('source');
+  await source.client.query(`CREATE ROLE lp_synthetic_reader NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+    CREATE ROLE lp_synthetic_elevated NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+    CREATE TABLE original_attachments(id text PRIMARY KEY, tenant_id text NOT NULL, content bytea NOT NULL);
+    CREATE TABLE durable_jobs(id text PRIMARY KEY, source_id text REFERENCES original_attachments(id), state text NOT NULL DEFAULT 'pending', ordinal bigint GENERATED ALWAYS AS IDENTITY UNIQUE);
+    CREATE TABLE audit_evidence(id text PRIMARY KEY, source_id text REFERENCES original_attachments(id), payload jsonb NOT NULL);
+    GRANT SELECT ON original_attachments,durable_jobs,audit_evidence TO lp_synthetic_reader;
+    ALTER TABLE original_attachments ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE original_attachments FORCE ROW LEVEL SECURITY;
+    CREATE POLICY synthetic_tenant_read ON original_attachments FOR SELECT TO lp_synthetic_reader
+      USING (tenant_id = 'synthetic-tenant-1');`);
+  await source.client.query('INSERT INTO original_attachments VALUES($1,$2,$3)', ['source-1', 'synthetic-tenant-1', Buffer.from([0,255,1,10,13])]);
+  await source.client.query('INSERT INTO original_attachments VALUES($1,$2,$3)', ['source-2', 'synthetic-tenant-2', Buffer.from('other synthetic tenant')]);
+  await source.client.query("INSERT INTO durable_jobs VALUES('job-1','source-1','pending'); INSERT INTO audit_evidence VALUES('audit-1','source-1','{\"actor\":\"synthetic\",\"action\":\"capture\"}');");
+  // Preserve consumed identifiers too: deleting a row must not rewind identity.
+  await source.client.query("INSERT INTO durable_jobs(id,source_id) VALUES('discarded-job','source-1'); DELETE FROM durable_jobs WHERE id='discarded-job'");
+  sourceFingerprint = await fingerprint(source.client);
+  const dump = `${directory}/source.dump`, encrypted = `${directory}/source.enc`, restored = `${directory}/restored.dump`, keyFile = `${directory}/key`;
+  writeFileSync(keyFile, randomBytes(32), { mode: 0o600, flag: 'wx' });
+  run('pg_dump', ['-h', source.socket, '-p', '55442', '-U', 'lp_bootstrap', '-d', 'postgres', '-Fc', '-f', dump]);
+  transformFile({ mode: 'encrypt', input: dump, output: encrypted, keyFile, syntheticOnly: true });
+  // Recovery must use authenticated recovered bytes, never the plaintext dump.
+  transformFile({ mode: 'decrypt', input: encrypted, output: restored, keyFile, syntheticOnly: true });
+  if (!readFileSync(dump).equals(readFileSync(restored))) throw new Error('Archive bytes differ.');
+  const target = await cluster('restored');
+  // Exact synthetic role contract; never replay arbitrary cluster SQL or credentials.
+  await target.client.query('CREATE ROLE lp_synthetic_reader NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; CREATE ROLE lp_synthetic_elevated NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS');
+  run('pg_restore', ['-h', target.socket, '-p', '55442', '-U', 'lp_bootstrap', '-d', 'postgres', '--exit-on-error', restored]);
+  restoredFingerprint = await fingerprint(target.client);
+  if (sourceFingerprint !== restoredFingerprint || sourceFingerprint !== await fingerprint(source.client)) throw new Error('Recovery fingerprint mismatch.');
+  for (const [name, sql] of [
+    ['missing_source_foreign_key', 'ALTER TABLE durable_jobs DROP CONSTRAINT durable_jobs_source_id_fkey'],
+    ['unexpected_role_membership', 'GRANT lp_synthetic_elevated TO lp_synthetic_reader'],
+    ['unexpected_audit_delete_grant', 'GRANT DELETE ON audit_evidence TO lp_synthetic_reader'],
+    ['missing_tenant_policy', 'DROP POLICY synthetic_tenant_read ON original_attachments'],
+    ['disabled_row_security', 'ALTER TABLE original_attachments DISABLE ROW LEVEL SECURITY'],
+    ['unforced_row_security', 'ALTER TABLE original_attachments NO FORCE ROW LEVEL SECURITY'],
+    ['missing_required_column', 'ALTER TABLE durable_jobs ALTER COLUMN state DROP NOT NULL'],
+    ['changed_column_default', "ALTER TABLE durable_jobs ALTER COLUMN state SET DEFAULT 'completed'"],
+    ['changed_column_type', 'ALTER TABLE durable_jobs ALTER COLUMN state TYPE varchar(64)'],
+    ['rewound_identity', 'ALTER SEQUENCE durable_jobs_ordinal_seq RESTART WITH 1'],
+    ['changed_identity_increment', 'ALTER SEQUENCE durable_jobs_ordinal_seq INCREMENT BY 2'],
+  ]) {
+    await proveRecoveryControl(target.client, restoredFingerprint, sql, fingerprint);
+    (['missing_tenant_policy', 'disabled_row_security', 'unforced_row_security'].includes(name)
+      ? rowSecurityNegativeControls
+      : ['missing_required_column', 'changed_column_default', 'changed_column_type', 'rewound_identity', 'changed_identity_increment'].includes(name)
+        ? schemaSequenceNegativeControls : negativeControls).push(name);
+  }
+  await target.client.query('SET ROLE lp_synthetic_reader');
+  const visible = await target.client.query('SELECT id,content FROM original_attachments ORDER BY id');
+  if (visible.rowCount !== 1 || visible.rows[0].id !== 'source-1' ||
+      !visible.rows[0].content.equals(Buffer.from([0,255,1,10,13]))) throw new Error('Restored tenant policy or original attachment bytes differ.');
+  let denied = false;
+  try { await target.client.query('DELETE FROM audit_evidence'); } catch (error) { if (error.code !== '42501') throw error; denied = true; }
+  finally { await target.client.query('RESET ROLE'); }
+  if (!denied) throw new Error('Restored reader can mutate audit evidence.');
+  verified = true;
+} catch (error) { failure = error; }
+finally {
+  await Promise.allSettled(clients.map(client => client.end()));
+  for (const cluster of clusters.reverse()) {
+    try { run('pg_ctl', ['-D', cluster.data, '-m', 'immediate', '-w', 'stop']); }
+    catch { postgresStopped = false; }
+  }
+  if (postgresStopped) { rmSync(directory, { recursive: true, force: true }); directoryRemoved = true; }
+  writeFileSync(receiptPath, JSON.stringify({ sourceCommit, syntheticOnly: true, verified, sourceFingerprint, restoredFingerprint,
+    elapsedMilliseconds: Math.round(performance.now() - started), postgresStopped, directoryRemoved,
+    separateClusters: true, negativeControls, rowSecurityNegativeControls, schemaSequenceNegativeControls, columnDefinitionsPreserved: verified, sequenceStatePreserved: verified, schemaControlsPreserved: verified, roleMembershipsPreserved: verified, rowSecurityPreserved: verified, tenantVisibilityVerified: verified, encryptedArchiveUsed: verified, runtimeMutationDenied: verified,
+    fixtureScope: 'Representative synthetic role, two-tenant RLS binary attachments, pending job and audit tables; not the application schema or production recovery qualification',
+    ambientDatabaseCredentialsUsed: false, productionContact: false }, null, 2) + '\n');
+}
+if (failure || !verified || !postgresStopped || !directoryRemoved) {
+  process.stderr.write('Synthetic encrypted recovery failed; inspect isolated receipt and disposable runner prerequisites.\n');
+  process.exitCode = 1;
+} else console.log('Synthetic encrypted recovery verified across fresh clusters; cleanup complete.');

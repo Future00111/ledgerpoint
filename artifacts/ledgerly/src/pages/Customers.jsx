@@ -19,6 +19,13 @@ const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' 
 
 export default function Customers() {
   const { activeCompany } = useCompany();
+  // Keep asynchronous list results and every open customer workspace/form
+  // inside one company lifetime. A late response can only update its old,
+  // unmounted instance, never the newly selected company's directory.
+  return <CompanyCustomers key={activeCompany?.id ?? 'no-company'} activeCompany={activeCompany} />;
+}
+
+function CompanyCustomers({ activeCompany }) {
   const nav = useNavigate();
   const { id: focusId } = useParams();
   const [searchParams] = useSearchParams();

@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCompany } from '@/lib/useCompany';
 import AskTrigger from '@/components/ask/AskTrigger';
+import DailyWork from '@/features/workspaceNavigation/DailyWork';
+import EmptyState from '@/components/workspace/EmptyState';
+import { moveWidget } from '@/features/workspaceNavigation/model.mjs';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import DashboardSuggestions from '@/components/dashboard/DashboardSuggestions';
 import { useDashboardActivity } from '@/components/dashboard/useDashboardActivity';
@@ -70,6 +73,7 @@ export default function CustomDashboard() {
   const dragId = useRef(null);
   const [draggingId, setDraggingId] = useState(null);
   const [overId, setOverId] = useState(null);
+  const [moveAnnouncement, setMoveAnnouncement] = useState('');
 
   useEffect(() => {
     const m = window.matchMedia('(min-width:1024px)');
@@ -103,6 +107,11 @@ export default function CustomDashboard() {
     setDraggingId(null);
     setOverId(null);
   };
+  const move = (id, direction) => {
+    updateArr(arr => moveWidget(arr, id, direction, sectionOf));
+    setMoveAnnouncement(`${WIDGETS[id].title} moved ${direction < 0 ? 'earlier' : 'later'} in its section.`);
+  };
+
   const onDrop = (id) => {
     const from = dragId.current;
     clearDrag();
@@ -193,6 +202,8 @@ export default function CustomDashboard() {
     const meta = WIDGETS[item.id];
     if (!meta) return null;
     const Comp = meta.component;
+    const peers = layout.filter(widget => !widget.hidden && sectionOf(widget.id) === sectionOf(item.id));
+    const position = peers.findIndex(widget => widget.id === item.id);
     return (
       <WidgetCard
         key={item.id}
@@ -213,6 +224,10 @@ export default function CustomDashboard() {
         onCycleH={() => cycleH(item.id)}
         onToggleCollapse={() => toggleCollapse(item.id)}
         onHide={() => hide(item.id)}
+        onMoveEarlier={() => move(item.id, -1)}
+        onMoveLater={() => move(item.id, 1)}
+        canMoveEarlier={!adaptive && position > 0}
+        canMoveLater={!adaptive && position < peers.length - 1}
       >
         <WidgetErrorBoundary>
           <Comp company={activeCompany} h={item.h} />
@@ -229,28 +244,12 @@ export default function CustomDashboard() {
     );
   }
 
-  if (!activeCompany) {
-    return (
-      <div className="flex flex-col items-center justify-center text-center py-20 px-4">
-        <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
-          <Building2 className="w-7 h-7 text-muted-foreground" />
-        </div>
-        <h2 className="text-lg font-semibold">Welcome to Ledgerly</h2>
-        <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-          Set up your first business to unlock your Business Command Centre — KPIs, priorities, cashflow and insights.
-        </p>
-        <Button className="mt-4" onClick={() => nav('/setup')}>
-          Start setup
-        </Button>
-      </div>
-    );
-  }
+  if (!activeCompany) return <section className="workspace-card"><EmptyState icon={Building2} title="Choose your company" description="Your dashboard layouts stay saved. Open a company to see its figures and next steps." action={<Button onClick={() => nav('/companies')}>Open companies</Button>} /></section>;
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-6 pb-8">
-      <section className="relative overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-br from-card via-card to-primary/[0.035] px-4 py-5 shadow-sm sm:px-6">
-        <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-primary/[0.07] blur-3xl" />
-        <div className="relative">
+      <section className="space-y-5">
+        <div>
           <DashboardHeader />
 
           {/* Ask bar — the single entry point into the Ask workspace */}
@@ -259,8 +258,8 @@ export default function CustomDashboard() {
           </div>
         </div>
       </section>
-
-
+      <DailyWork compact />
+      <p className="sr-only" role="status" aria-live="polite">{moveAnnouncement}</p>
 
       {focusMode ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-16 text-center">
@@ -268,7 +267,7 @@ export default function CustomDashboard() {
             <Focus className="w-6 h-6" />
           </div>
           <p className="text-sm text-muted-foreground max-w-sm">
-            Focus mode — a calm view of what matters now: Ask, Today's Priority and Business Health.
+            Focus mode keeps your daily links and Ask available. Your saved widgets are hidden until you leave focus mode.
           </p>
           <Button variant="outline" size="sm" className="mt-4" onClick={() => setFocusMode(false)}>
             Exit focus mode
@@ -282,7 +281,7 @@ export default function CustomDashboard() {
           )}
 
           {/* Dashboard settings */}
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card/70 px-3 py-2 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-3 py-3">
             <div className="flex items-center gap-2">
               <span className="hidden text-xs font-medium text-muted-foreground sm:inline">Your workspace</span>
               <Button variant={editMode ? 'default' : 'outline'} size="sm" onClick={() => setEditMode((v) => !v)}>
@@ -366,9 +365,10 @@ export default function CustomDashboard() {
             </span>
           </div>
 
+          {editMode && !isDesktop && <p className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">Widget arrangement is available on a wider screen. Your saved layout and templates are unchanged.</p>}
           {edit && (
             <div className="text-xs text-muted-foreground rounded-xl border border-primary/15 bg-primary/[0.035] px-3 py-2.5">
-              Drag the grip handle to move widgets · use Narrow/Wide/Full and Short/Tall to resize · collapse widgets you want to keep but tuck away · hide widgets you don't need. Pinned widgets stay. Switching templates changes only the layout — never your data.
+              Use the earlier/later buttons to move a widget within its section, or drag its handle. Resize, collapse or hide widgets to suit your work. Pinned widgets stay. Templates change only the layout, never your data. {adaptive && 'Turn off adaptive order in Templates to move widgets yourself.'}
             </div>
           )}
 
