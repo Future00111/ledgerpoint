@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 269,
+  "revision": 270,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "integration-20261110-1794333097900",
+    "tokenSha256": "ae85f9de0bb4ce133b4c3a74d166826619db4016ae37f945f767b3cc62df4c6b",
+    "acquiredAt": 1794333097902,
+    "expiresAt": 1794334897902
+  },
   "lastOwner": {
     "runId": "hosted-20261105-1536",
     "tokenSha256": "e75b23a42bc3e5762d19b08df051ee837fa85e2230b4fc4c75fdf7aa2b788d4b",
@@ -9546,7 +9551,7 @@
     "at": 1794333035543,
     "codeHead": "6ebee0fd204b1d9434fd349f6d0c850d57a3e0bc"
   },
-  "updatedAt": 1794333035543,
+  "updatedAt": 1794333097902,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -11007,12 +11012,9 @@
     "evidenceCommit": "51c6404ecaa82e76b1121d46713917d4ac4fbf47"
   },
   "runActivity": {
-    "startedAt": "2026-11-05T15:37:29.143Z",
-    "activity": "Stopped at userbudget steering. Frozen corrected candidatef7c1945 rootreviewed/fullbuildpassed, unpublished, PG/CIpending; archive then release. No actual Replit dispatch.",
+    "startedAt": "2026-11-10T17:51:38.035Z",
+    "activity": "Verified uploaded cumulative candidate; read-only review and combined validation next",
     "workersStopped": true,
-    "lastObservedAt": "2026-11-05T16:00:53.279Z",
-    "toolStall": "Ownership persistence orchestration blocked585sec then aborted; live reconciled264 unchanged; separate calls persisted5277ec safely.",
-    "replit": "Root observed stopped readonly prep report; found browser Chromium path not executed; reports and settlement require appendonly compensated-credit projection, permanentconsumption. No Replit work dispatched.",
     "credits": "unknown"
   },
   "catalogMigration": {
