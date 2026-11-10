@@ -23,7 +23,7 @@ export function DiscountEditor({ value, onChange, priceBasis, adjustment = false
   const includingVat = adjustment || priceBasis === 'including_vat';
   if (!adjustment && type === 'none' && !expanded) return <Button type="button" variant="outline" className="min-h-11" disabled={disabled} onClick={() => setExpanded(true)}>Add a discount (optional)</Button>;
   return <section className="workspace-card space-y-4 p-6" aria-label={adjustment ? 'Discount adjustment' : 'Document discount'}>
-    <div><h2 className="font-semibold">{adjustment ? 'Discount adjustment' : 'Discount'}</h2><p className="mt-1 text-sm text-muted-foreground">{adjustment ? 'Prepare a credit against the original document. A percentage uses its original total including VAT, not the remaining balance.' : 'Optional discount across this document. VAT and line amounts are recalculated when you save.'}</p></div>
+    <div><h2 className="font-semibold">{adjustment ? 'Discount adjustment' : 'Discount'}</h2><p className="mt-1 text-sm text-muted-foreground">{adjustment ? 'Prepare a credit against the original document. A percentage uses its original total including VAT, not the remaining balance. The discount cannot exceed the unpaid balance. Fully paid documents require a linked credit and a separately reviewed refund.' : 'Optional discount across this document. VAT and line amounts are recalculated when you save.'}</p></div>
     <div className="grid gap-4 sm:grid-cols-2"><div><Label htmlFor="discount-type">Discount type</Label><select id="discount-type" className="mt-1.5 w-full rounded-md border bg-background p-2.5 text-sm" disabled={disabled} value={type}
       onChange={event => { if (event.target.value === 'none') setExpanded(false); onChange(event.target.value === 'none' ? null : { ...value, type: event.target.value, value: value?.value ?? '' }); }}>
       {!adjustment && <option value="none">None</option>}<option value="percentage">Percentage (%)</option><option value="amount">Fixed amount (£)</option>
@@ -51,7 +51,6 @@ export function DiscountBalanceReview({ original, item, money, dirty, loading, e
   const visibleItem = !loading && !error && isValidSettlementSnapshot(item)
     && item.gross_minor === original?.money?.gross_pence ? item : null;
   const after = balanceAfterSavedCredit(visibleItem, money, dirty);
-  const excess = after !== null && BigInt(after) < 0n ? (-BigInt(after)).toString() : null;
   return <section className="workspace-card order-2 space-y-3 p-5" aria-label="Discount balance review">
     <h2 className="text-sm font-semibold">Effect on the original balance</h2>
     <ErrorBox error={error} onRetry={onRetry} />
@@ -60,10 +59,9 @@ export function DiscountBalanceReview({ original, item, money, dirty, loading, e
       <div className="flex justify-between"><dt>Payments received / made</dt><dd><Money value={visibleItem?.paid_minor} /></dd></div>
       <div className="flex justify-between"><dt>Current remaining balance</dt><dd><Money value={visibleItem?.open_minor} /></dd></div>
       <div className="flex justify-between"><dt>Saved discount credit</dt><dd><Money value={after !== null ? money.gross_pence : null} /></dd></div>
-      {after !== null && <div className="flex justify-between border-t pt-2 font-semibold"><dt>Balance if posted</dt><dd><Money value={excess ? '0' : after} /></dd></div>}
+      {after !== null && <div className="flex justify-between border-t pt-2 font-semibold"><dt>Balance if posted</dt><dd><Money value={after} /></dd></div>}
     </dl>}
-    {!loading && after === null && <p className="text-sm">Balance preview unavailable. Save a valid credit and refresh the original balance before review.</p>}
-    {excess && <p className="text-sm">This credit includes <Money value={excess} /> beyond the remaining balance. Review &amp; post will check whether that amount can be released from existing payment allocations into an unapplied balance. Allocation to another document or a refund requires a separate review; posting this credit does not move cash.</p>}
+    {!loading && after === null && <p className="text-sm">Balance preview unavailable. Discounts require an unpaid balance and cannot exceed it. For a fully paid document or a larger reduction, use a linked credit note and review any refund separately. Refresh the balance before review.</p>}
     <p className="text-xs text-muted-foreground">{dirty || !money ? 'Save the draft to calculate the discount and its effect. ' : ''}This is a preview from the displayed balance. Posting checks cumulative credit limits and current payment allocations again.</p>
   </section>;
 }

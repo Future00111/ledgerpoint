@@ -580,3 +580,20 @@ separate-cluster drill retains its all-table fingerprint and isolation checks.
 Exact commits, logs, counts, restore/cleanup receipts and patches are exported
 outside this source checkout. Local checks are not GitHub CI or production/HMRC
 qualification. Independent integration/activation acceptance remains required.
+
+## Owner adjustment - 10 November 2026
+
+A new discretionary discount is permitted only on an unpaid or partly paid
+invoice/bill, and cannot exceed its current unpaid balance. A fully paid original
+must use an ordinary linked credit and a separately reviewed refund; the original
+payment remains immutable and a credit never asserts that cash was refunded.
+This distinction does not cap genuine commercial credits at the cash outstanding.
+
+Enforce the discount rule on saved draft calculation, fresh review and locked
+commit, including a draft/review prepared before another tab pays the original.
+Replay of an already recorded operation remains unchanged. Historic posted
+source, VAT, journals and reports are not rewritten or reclassified.
+Conditional internal evidence remains historical/internal; public conditional
+posting stays closed. Any later public admission must apply this owner rule and
+qualify the connected journey rather than enabling old full-payment discount
+scenarios wholesale. This bounded change does not accept all of P01-03.

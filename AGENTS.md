@@ -77,3 +77,12 @@ the next executable assignment. Unknown cost and duration remain unknown.
 Replit capability checks have a five-minute limit per run unless new evidence
 justifies more; unavailable Replit never stalls ready Codex work. No demo changes,
 external actions, owner gates or release authority are added by this policy.
+
+## Simplified delivery (owner approved 10 November 2026)
+
+Use one implementer (prefer Replit when controlled isolated execution is actually
+available) and root performing coordination/review/integration. Use a separate
+reviewer for financial/security implementation; do not self-approve. Extra workers
+are optional only for named independent work that shortens delivery. Preserve the
+single queue, fencing, file leases, exact-source tests and owner gates. Measure
+accepted customer journeys, elapsed time, rework and actual usage, not occupancy.

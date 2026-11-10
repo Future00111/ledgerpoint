@@ -8,7 +8,7 @@ import { documentOpen, paymentEvents, appliedTo, unappliedEffect } from './settl
 import { postPayment, previewPaymentInTransaction } from './payments';
 import { postDocument } from './posting';
 import { assertNoConditionalCredit, conditionalCreditAdmission, conditionalConsumptionSchema, canonicalConditionalPayload } from './conditionalDiscount';
-import { calculateDocument } from './documents';
+import { calculateDocument, assertDiscountOutstanding } from './documents';
 
 // Only the internal command below can create this transaction-bound capability.
 // Exporting its predicate does not expose a constructor or a caller-supplied flag.
@@ -59,6 +59,7 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
   const events=await paymentEvents(q,company),open=await documentOpen(q,company,original.id,events);
   const value=BigInt(row.money.gross_pence),capacity=BigInt(open.gross_minor)-BigInt(open.credited_minor);
   if(value<=0n||value>capacity) fail(409,'CREDIT_EXCEEDS_COMMERCIAL_CAPACITY');
+  if(row.source.discount_adjustment) await assertDiscountOutstanding(q,company,original.id,row.money.gross_pence);
   const excess=value>BigInt(open.open_minor)?value-BigInt(open.open_minor):0n;
   let remaining=excess;
   const releases:any[]=[];

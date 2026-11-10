@@ -19,11 +19,15 @@ export function isValidSettlementSnapshot(openItem) {
   return gross > 0n && gross === credited + paid + open;
 }
 
-export function canApplyDiscount(kind, openItem, capabilities) {
+export function canPrepareCredit(kind, openItem, capabilities) {
   if (!discountCreditPath(kind, 'id') || !canEditDrafts(capabilities) || !isValidSettlementSnapshot(openItem)) return false;
   // Payment does not consume credit capacity. This only admits draft preparation;
   // protected posting rechecks capacity and explicitly reviews allocation release.
   return BigInt(openItem.gross_minor) > BigInt(openItem.credited_minor);
+}
+
+export function canApplyDiscount(kind, openItem, capabilities) {
+  return canPrepareCredit(kind,openItem,capabilities) && BigInt(openItem.open_minor)>0n;
 }
 
 /** Only subtract saved, server-calculated pence for an explicitly labelled preview. */
@@ -31,7 +35,7 @@ export function balanceAfterSavedCredit(openItem, money, dirty = false) {
   if (dirty || !isValidSettlementSnapshot(openItem) || typeof money?.gross_pence !== 'string'
     || money.gross_pence.length > 12 || !/^(?:0|[1-9]\d*)$/.test(money.gross_pence)) return null;
   const credit = BigInt(money.gross_pence);
-  if (credit > BigInt(openItem.gross_minor) - BigInt(openItem.credited_minor)) return null;
+  if (BigInt(openItem.open_minor)<=0n || credit > BigInt(openItem.open_minor)) return null;
   return (BigInt(openItem.open_minor) - credit).toString();
 }
 

@@ -65,7 +65,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
     const json = await res.json().catch(() => null);
     if (!res.ok) {
       const e = json?.error;
-      throw Object.assign(new Error(e?.message || `Request failed (${res.status}).`), { status: res.status, code: e?.code, issues: Array.isArray(e?.issues) ? e.issues : [] });
+      throw Object.assign(new Error(({DISCOUNT_REQUIRES_UNPAID_BALANCE:'This document has no unpaid balance. Create a linked credit note and review any refund separately.',DISCOUNT_EXCEEDS_OUTSTANDING:'The discount exceeds the unpaid balance. Reduce it or use a linked credit note and review any refund separately.'})[e?.code] || e?.message || `Request failed (${res.status}).`), { status: res.status, code: e?.code, issues: Array.isArray(e?.issues) ? e.issues : [] });
     }
     return json?.data;
   };

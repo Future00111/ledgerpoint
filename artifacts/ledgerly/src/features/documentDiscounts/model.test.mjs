@@ -34,8 +34,8 @@ test('adjustment preparation captures source revision while preserving entered d
 test('balance preview uses canonical reconciled settlement and saved credit within remaining credit capacity', () => {
   const partial = { gross_minor: '12000', credited_minor: '0', paid_minor: '5000', open_minor: '7000' };
   assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '1200' }), '5800');
-  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '8000' }), '-1000');
-  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '12000' }), '-5000');
+  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '8000' }), null);
+  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '12000' }), null);
   assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '12001' }), null);
   assert.equal(balanceAfterSavedCredit({ ...partial, credited_minor: '1000', open_minor: '6000' }, { gross_pence: '11001' }), null);
   assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '1200' }, true), null);
@@ -56,12 +56,12 @@ test('old company, document, or load generation cannot apply mutation result to 
 });
 
 
-test('paid-discount entry uses remaining original credit capacity, independently of remaining cash due', () => {
+test('discount entry requires an unpaid balance for both original document kinds', () => {
   const capabilities = { edit_drafts: true };
   for (const kind of ['sales_invoice', 'purchase_bill']) {
     for (const [credited, paid, open, expected] of [
       ['0', '0', '12000', true], ['0', '5000', '7000', true],
-      ['0', '12000', '0', true], ['1200', '10800', '0', true],
+      ['0', '12000', '0', false], ['1200', '10800', '0', false],
       ['12000', '0', '0', false],
     ]) assert.equal(canApplyDiscount(kind, { gross_minor: '12000', credited_minor: credited, paid_minor: paid, open_minor: open }, capabilities), expected);
   }

@@ -708,7 +708,7 @@ test('competing discounts cannot exceed the balance after a partial payment',asy
   await recordPayment(f,paymentIntent(f,sale,'5000','5000'));
   const first=await discountCredit(f,sale,'amount','50'),second=await discountCredit(f,sale,'amount','50');
   const results=await Promise.all([first,second].map(d=>request(f.company,`/accounting-documents/${d.id}/post`,'POST',{},d.revision)));
-  assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);assert.equal(results.find(r=>r.status===409)?.error.code,'CREDIT_EXCEEDS_OUTSTANDING');
+  assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);assert.equal(results.find(r=>r.status===409)?.error.code,'DISCOUNT_EXCEEDS_OUTSTANDING');
   const item=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-12-31')).data.open_items.find((d:any)=>d.id===sale.id);
   assert.deepEqual([item.paid_minor,item.credited_minor,item.open_minor],['5000','5000','2000']);
 });
@@ -1724,8 +1724,8 @@ test('paid-credit released pools support later allocation, refund and undo witho
  for(const kind of ['purchase_bill','sales_invoice']) {
   const f=await fixture(),original=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,original);
   const payment=await recordPayment(f,paymentIntent(f,original,'12000','12000'));
-  const credit=await discountCredit(f,original,'percentage','10','2026-10-22');
-  const r=await reviewPaidCredit(f.company,actor,credit.id,credit.revision,{request_id:randomUUID(),reason:'Agreed later discount'});
+  const credit=await creditDoc(f,original,'0.1','2026-10-22');
+  const r=await reviewPaidCredit(f.company,actor,credit.id,credit.revision,{request_id:randomUUID(),reason:'Linked credit on fully paid document; refund reviewed separately'});
   await commitPaidCredit(f.company,actor,credit.id,credit.revision,{...r.intent,review_token:r.review_token,releases:r.releases});
   const frozen=(await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 ORDER BY id',[f.company])).rows;
   const second=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,second);
@@ -1850,4 +1850,48 @@ test('rolled-back payment command remains unknown and a same-identity retry reco
   const posted=await request(f.company,'/accounting-payments','POST',reviewed);assert.equal(posted.status,200);
   assert.deepEqual((await request(f.company,path)).data,{status:'recorded',id:reviewed.id,journal_id:posted.data.journal_id});
   assert.equal((await admin.query('SELECT id FROM accounting_payment_events WHERE id=$1',[reviewed.id])).rowCount,1);
+});
+
+for(const side of ['sales_invoice','purchase_bill']) test(`new discount policy: ${side} rejects fully paid and excess discounts without blocking ordinary credits`,async()=>{
+ const {reviewPaidCredit,commitPaidCredit}=await import('./paidCredit');
+ const f=await fixture(),original=await create(f,side,source(side==='sales_invoice'?f.customer:f.supplier));await post(f,original);
+ const draft=await discountCredit(f,original,'amount','12');
+ const review=await reviewPaidCredit(f.company,actor,draft.id,draft.revision,{request_id:randomUUID(),reason:'Discount while unpaid'});
+ await recordPayment(f,paymentIntent(f,original,'12000','12000'));
+ const before=await reports(f.company,actor,'2026-01-01','2026-12-31');
+ const journals=(await admin.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n;
+ const fresh=await request(f.company,'/accounting-documents','POST',{kind:side==='sales_invoice'?'sales_credit_note':'supplier_credit_note',
+  original_id:original.id,reason:'New discount after full payment',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-21',
+  source:{...original.source,invoice_number:'REJECT-'+randomUUID(),discount_adjustment:{type:'amount',value:'12',original_revision:original.revision}}});
+ assert.equal(fresh.status,409,JSON.stringify(fresh));assert.equal(fresh.error.code,'DISCOUNT_REQUIRES_UNPAID_BALANCE');
+ const direct=await request(f.company,`/accounting-documents/${draft.id}/post`,'POST',{},draft.revision);
+ assert.equal(direct.status,409);assert.equal(direct.error.code,'DISCOUNT_REQUIRES_UNPAID_BALANCE');
+ await assert.rejects(reviewPaidCredit(f.company,actor,draft.id,draft.revision,{request_id:randomUUID(),reason:'Stale draft'}),{code:'DISCOUNT_REQUIRES_UNPAID_BALANCE'});
+ await assert.rejects(commitPaidCredit(f.company,actor,draft.id,draft.revision,{...review.intent,review_token:review.review_token,releases:review.releases}),{code:'DISCOUNT_REQUIRES_UNPAID_BALANCE'});
+ assert.deepEqual(await reports(f.company,actor,'2026-01-01','2026-12-31'),before);
+ assert.equal((await admin.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,journals);
+ const ordinary=await creditDoc(f,original,'0.1');
+ const r=await reviewPaidCredit(f.company,actor,ordinary.id,ordinary.revision,{request_id:randomUUID(),reason:'Linked refund credit'});
+ assert.equal(r.released_minor,'1200');
+ await commitPaidCredit(f.company,actor,ordinary.id,ordinary.revision,{...r.intent,review_token:r.review_token,releases:r.releases});
+ const after=await reports(f.company,actor,'2026-01-01','2026-12-31');
+ assert.equal(after.cash.balance_minor,before.cash.balance_minor); // credit is not a cash refund
+ assert.equal(after.party_balances[0].unapplied_minor,'1200');
+});
+
+for(const side of ['sales_invoice','purchase_bill']) test(`new discount policy: ${side} caps a partial-payment discount at outstanding and preserves replay`,async()=>{
+ const {reviewPaidCredit,commitPaidCredit}=await import('./paidCredit');
+ const f=await fixture(),original=await create(f,side,source(side==='sales_invoice'?f.customer:f.supplier));await post(f,original);
+ const excess=await discountCredit(f,original,'amount','80');
+ await recordPayment(f,paymentIntent(f,original,'5000','5000'));
+ await assert.rejects(reviewPaidCredit(f.company,actor,excess.id,excess.revision,{request_id:randomUUID(),reason:'Too large'}),{code:'DISCOUNT_EXCEEDS_OUTSTANDING'});
+ const exact=await discountCredit(f,original,'amount','70');
+ const r=await reviewPaidCredit(f.company,actor,exact.id,exact.revision,{request_id:randomUUID(),reason:'Discount remaining debt'});
+ assert.equal(r.released_minor,'0');assert.deepEqual(r.releases,[]);
+ const body={...r.intent,review_token:r.review_token,releases:r.releases};
+ await commitPaidCredit(f.company,actor,exact.id,exact.revision,body);
+ assert.equal((await commitPaidCredit(f.company,actor,exact.id,exact.revision,body)).status,'duplicate');
+ const report=await reports(f.company,actor,'2026-01-01','2026-12-31');
+ const item=report.open_items.find((d:any)=>d.id===original.id);
+ assert.deepEqual([item.paid_minor,item.credited_minor,item.open_minor],['5000','7000','0']);
 });
