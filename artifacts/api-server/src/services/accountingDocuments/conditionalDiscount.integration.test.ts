@@ -1763,3 +1763,85 @@ test('real PostgreSQL: explicit original retry rejects a missing historical bind
  assert.deepEqual(await financialSnapshot(f.company),before);
  assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_bindings WHERE company_id=$1',[f.company])).rows[0].n,0);
 });
+
+for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${side} blank original agreement through payment and current discount full page`,async()=>{
+ const f=await ordinaryOriginalFixture(side),kind=side==='customer'?'sales_invoice':'purchase_bill',route=side==='customer'?'/invoices':'/bills',creditRoute=side==='customer'?'/sales-credit-notes':'/supplier-credit-notes',creditKind=side==='customer'?'sales_credit_note':'supplier_credit_note',number='BROWSER-AGREEMENT-'+randomUUID();
+ const dir=mkdtempSync(path.join(path.dirname(socket),'agreement-page-browser-'));
+ try {
+  const frontend=path.join(process.cwd(),'artifacts/ledgerly'),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js'),companyStub=path.join(dir,'company.mjs');
+  writeFileSync(companyStub,`export const useCompany=()=>({activeCompany:{id:${JSON.stringify(f.company)}}});`);
+  writeFileSync(entry,`
+   import React from ${JSON.stringify(frontend+'/node_modules/react/index.js')};
+   import {createRoot} from ${JSON.stringify(frontend+'/node_modules/react-dom/client.js')};
+   import {MemoryRouter,Routes,Route,useNavigate} from ${JSON.stringify(frontend+'/node_modules/react-router-dom/dist/index.mjs')};
+   import {QueryClient,QueryClientProvider} from ${JSON.stringify(frontend+'/node_modules/@tanstack/react-query/build/modern/index.js')};
+   import Form from ${JSON.stringify(frontend+'/src/pages/AccountingDocumentForm.jsx')};
+   const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,savedId=null;
+   window.fetch=async(url,options={})=>{
+    const path=String(url).replace(/^\\/api\\//,'/');
+    const headers=new Headers(options.headers);headers.set('x-test-actor',${JSON.stringify(actor)});
+    if(path.endsWith('/conditional-discount-evidence')&&options.method==='POST')captures++;
+    if(path.endsWith('/accounting-documents')&&options.method==='POST')saves++;
+    if(path.includes('/conditional-original')&&options.method==='POST'&&!path.endsWith('/observe'))posts++;
+    const response=await nativeFetch(path,{...options,headers});
+    if(path.endsWith('/accounting-documents')&&options.method==='POST'&&response.ok)savedId=(await response.clone().json()).data.id;
+    if(path.endsWith('/conditional-original/observe')&&response.ok)observed++;
+    if(path.endsWith('/conditional-discount')&&options.method==='POST'&&response.ok)discountPosts++;
+    return response;
+   };
+   const root=createRoot(document.getElementById('root'));
+   function Navigation(){window.testNavigate=useNavigate();return null;}
+   root.render(<QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MemoryRouter initialEntries={[${JSON.stringify(route+'/new')}]}><Navigation/><Routes><Route path=${JSON.stringify(route+'/:id')} element={<Form kind=${JSON.stringify(kind)}/>}/><Route path=${JSON.stringify(creditRoute+'/:id')} element={<Form kind=${JSON.stringify(creditKind)}/>}/></Routes></MemoryRouter></QueryClientProvider>);
+   const el=id=>document.querySelector('[data-testid="'+id+'"]');
+   const wait=async(fn)=>{for(let i=0;i<240;i++){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Browser timeout: '+document.getElementById('root').textContent.slice(-1200));};
+   const change=async(selector,value)=>{const node=document.querySelector(selector);if(!node)throw Error('Missing '+selector);const proto=node.tagName==='SELECT'?HTMLSelectElement.prototype:node.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(node,value);node.dispatchEvent(new Event(node.tagName==='SELECT'?'change':'input',{bubbles:true}));await new Promise(r=>setTimeout(r,25));};
+   (async()=>{
+    await wait(()=>el('select-party'));
+    await change('#party',${JSON.stringify(f.body.party_id)});await change('#number',${JSON.stringify(number)});
+    await change('#issue','2026-11-01');await change('#due','2026-11-30');await change('#d0','Browser entered original');await change('#p0','120');await change('#t0','NONE');
+    el('agreement-enabled').click();await wait(()=>document.querySelector('#agreement-amount'));
+    await change('#agreement-date','2026-11-01');await change('#agreement-deadline','2199-11-30');await change('#agreement-amount','12.00');await change('#agreement-evidence','Synthetic agreement attested in actual form');
+    if(!el('button-save').disabled||!el('capture-agreement').disabled)throw Error('Unattested source admitted');
+    el('agreement-attested').click();await wait(()=>!el('capture-agreement').disabled);el('capture-agreement').click();
+    await wait(()=>el('agreement-status')?.textContent.includes('Evidence captured'));
+    if(saves||posts)throw Error('Capture silently saved or posted');
+    await change('#agreement-amount','11.00');
+    if(el('agreement-attested').checked||!el('button-save').disabled)throw Error('Changed terms retained receipt');
+    await change('#agreement-amount','12.00');el('agreement-attested').click();await wait(()=>!el('capture-agreement').disabled);el('capture-agreement').click();await wait(()=>el('agreement-status')?.textContent.includes('Evidence captured'));
+    el('button-save').click();await wait(()=>savedId&&el('button-save')?.textContent==='Save changes'&&!el('button-post').disabled);
+    if(posts||captures!==2||saves!==1)throw Error('Save/capture boundary changed');
+    if(document.querySelector('#agreement-evidence').value!=='Synthetic agreement attested in actual form')throw Error('Saved receipt was not reloaded');
+    el('button-post').click();await wait(()=>document.querySelector('[aria-label="Saved original agreement"]'));
+    const review=document.querySelector('[aria-label="Saved original agreement"]').textContent;
+    if(!review.includes('£12.00')||!review.includes('2199-11-30')||posts)throw Error('Review omitted saved agreement or silently posted');
+    el('button-confirm-posting').click();await wait(()=>posts===1&&observed===1&&!el('button-confirm-posting')&&document.getElementById('root').textContent.includes('Posted'));
+    const originalId=savedId;
+    const payment={id:crypto.randomUUID(),kind:'payment',party_type:${JSON.stringify(side)},party_id:${JSON.stringify(f.body.party_id)},payment_id:null,date:'2026-11-03',reference:'Browser native qualifying payment',amount_minor:'10800',allocations:[{document_id:originalId,amount_minor:'10800'}]};
+    const call=async(path,body)=>{const response=await fetch('/api/companies/'+${JSON.stringify(f.company)}+'/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const result=await response.json();if(!response.ok)throw Error(JSON.stringify(result));return result.data;};
+    const paymentReview=await call('accounting-payments/review',payment);await call('accounting-payments',{...payment,review_token:paymentReview.review_token});
+    window.testNavigate(${JSON.stringify(creditRoute+'/new?original=')}+originalId+'&discount=1');
+    await wait(()=>document.querySelector('#discount-value'));
+    await change('#reason','Browser current unpaid discount');await change('#discount-value','10');await change('#number',${JSON.stringify(number+'-CREDIT')});
+    el('button-save').click();await wait(()=>savedId!==originalId&&el('button-save')?.textContent==='Save changes'&&!el('button-post').disabled);
+    el('button-post').click();await wait(()=>document.querySelector('[aria-label="Conditional discount posting review"]'));
+    const discountReview=document.querySelector('[aria-label="Conditional discount posting review"]').textContent;
+    if(!discountReview.includes('£12.00')||!discountReview.includes('No paid cash is released')||discountPosts)throw Error('Current discount review omitted unpaid policy');
+    el('button-confirm-posting').click();await wait(()=>discountPosts===1&&!el('button-confirm-posting')&&document.getElementById('root').textContent.includes('Posted'));
+    document.body.dataset.originalAgreementAcceptance='passed';
+   })().catch(e=>{document.body.dataset.originalAgreementAcceptance='failed';document.getElementById('root').append(document.createTextNode(e.message));});
+  `);
+  execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',entry,'--bundle','--platform=browser','--format=iife','--jsx=automatic','--alias:@='+frontend+'/src','--alias:@/lib/useCompany='+companyStub,'--outfile='+bundle],{stdio:'pipe'});
+  browserHtml=`<!doctype html><html><head><meta charset="utf-8"><title>Synthetic original agreement form</title></head><body><div id="root"></div><script>${readFileSync(bundle,'utf8').replaceAll('</script','<\\/script')}</script></body></html>`;
+  const child=spawn('chromium',['--headless','--no-first-run','--disable-gpu','--disable-background-networking','--disable-component-update','--disable-sync','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=24000',base+'/synthetic-compensation-browser'],{stdio:['ignore','pipe','pipe']});
+  let html='',stderr='';child.stdout.on('data',b=>{html+=b.toString();});child.stderr.on('data',b=>{stderr+=b.toString();});
+  const code=await new Promise<number>((resolve,reject)=>{const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('Bounded Chromium timeout'));},35000);child.once('error',e=>{clearTimeout(timer);reject(e);});child.once('exit',n=>{clearTimeout(timer);resolve(n??1);});});
+  assert.equal(code,0,stderr.slice(-2000));assert.match(html,/<body[^>]*data-original-agreement-acceptance="passed"/,html.slice(0,18000));
+  const row=(await pool.query(`SELECT id FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE company_id=$1 AND ${side==='customer'?'invoice_number':'bill_number'}=$2`,[f.company,number])).rows[0];
+  assert.ok(row);const saved=await getDocument(f.company,actor,row.id);assert.equal(saved.status,'posted');assert.equal(saved.source.conditional_discount.discount_gross_pence,'1200');
+  assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_observations WHERE company_id=$1 AND document_id=$2',[f.company,row.id])).rows[0].n,1);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,1);
+  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,0);
+  assert.deepEqual((await pool.query(`SELECT amount_paid::text,balance_due::text FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[row.id])).rows[0],{amount_paid:'108.00',balance_due:'0.00'});
+  console.log('ORIGINAL_AGREEMENT_PAGE_BROWSER_ACCEPTANCE' ,JSON.stringify({party:side,actualFullPage:true,blankEntry:true,nativeEvidence:true,invalidatedTerms:true,savedReceiptReload:true,explicitReviewAndPost:true,nativePayment:true,actualDiscountCreditPage:true,noPaidCashRelease:true,syntheticOnly:true}));
+ }finally{browserHtml='';rmSync(dir,{recursive:true,force:true});}
+});

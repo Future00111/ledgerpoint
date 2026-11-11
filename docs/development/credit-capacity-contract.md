@@ -684,3 +684,43 @@ saved source validation, followed by the complete blank-original-to-settlement
 browser journey. Existing migrations require their separate environment approval;
 this candidate does not deploy, migrate an existing database, send money or
 activate public production access.
+
+### 11 November 2026 — bounded original agreement entry (partial)
+
+The native invoice/bill page now offers explicit original conditional-agreement
+entry outside document intake. It generates an agreement ID, collects agreement
+date, payment deadline, exact decimal GBP discount including VAT, evidence text
+and user attestation. Integer minor units use BigInt without rounding. Ordinary
+immediate discounts and conditional terms remain mutually exclusive. Capturing
+immutable evidence does not save or post the document; a separate draft save and
+saved-amount posting review remain required. The existing server validates the
+receipt, agreement, party, company and amount against the saved original.
+
+Capture retries retain the request ID until inputs change. Responses attach only
+when their exact terms, company, party and evidence match the active request;
+company/document generation changes discard old responses. Changing party,
+terms or evidence clears the attached receipt and attestation. Saved source and
+posting fields load before receipt verification; failed verification blocks
+save/review without silently discarding the saved agreement. Removing an
+agreement is an explicit draft edit and does not delete immutable evidence.
+Reopening fetches and verifies the saved receipt. Posting review displays the
+saved agreement amount and dates and retains the original full amount.
+
+New full-page Chromium cases use actual AccountingDocumentForm, native API and
+fresh disposable synthetic fixtures for both customer and supplier. They check
+unattested save blocking, capture without saving/posting, changed-term
+invalidation, recapture, save/route reload, receipt retrieval, explicit saved-term
+review and original posting/committed observation, then a native reviewed £108
+payment and actual discount-credit page save/review/£12 commit with no cash
+release. They require exact-source CI;
+local bundle compilation and source tests are not browser/financial acceptance.
+
+This remains PARTIAL P01-03. It does not close the original 92-bullet catalogue,
+parent excess-credit/refund acceptance, intake conditional entry, or full-page lost-response reload/recovery. The new connected page cases
+join original entry, native payment and current discount, pending exact-source CI.
+The existing connected native API and review/recovery-component cases cover
+recovery separately. Fully paid conditional-original commercial credit
+and refund admission remains separately gated; this entry does not enable it.
+Next: run the new cases on matching-source disposable PostgreSQL/Chromium CI,
+independently review results, then connect and verify remaining parent customer
+journeys without rewriting historical posted outcomes.
