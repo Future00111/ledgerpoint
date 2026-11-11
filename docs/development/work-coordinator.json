@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 313,
+  "revision": 314,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "15c7869317b9d3aa546764a43a4e39de38790a80",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "connected-1794420305732",
+    "tokenSha256": "f45c3796a0be2e48c16b8d2b0a7401ca5480375d33d8dfe21e21097c9687f15a",
+    "acquiredAt": 1794420305733,
+    "expiresAt": 1794422105733
+  },
   "lastOwner": {
     "runId": "posting-1794406714096",
     "tokenSha256": "ea5f63294d20626ec61256113e9e0fd94a9e0df7d70ce0738e8ccc9d8158cfc3",
@@ -9772,7 +9777,7 @@
     "at": 1794407541387,
     "codeHead": "15c7869317b9d3aa546764a43a4e39de38790a80"
   },
-  "updatedAt": 1794407541446,
+  "updatedAt": 1794420305733,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -11469,5 +11474,10 @@
       "cost": "unknown",
       "adaptation": "Keep oneimplementer+rootreview, next executable assignment atomic originalbinding plus connected API/UI admission rather than more preview/validation-only changes; preserve all currentgates"
     }
+  },
+  "connectedRun": {
+    "startedAt": "2026-11-11T18:05:05.802Z",
+    "scope": "Atomic original agreement binding and connected current-policy posting journey",
+    "credits": "unknown"
   }
 }
