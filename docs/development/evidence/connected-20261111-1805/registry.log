@@ -1,0 +1,39 @@
+✔ versioned replacement migration retains existing consumption engine and requires a committed cluster origin (8.052955ms)
+✔ replacement history migration is pinned, append-only and separate from original binding and payment qualification (3.399893ms)
+✔ explicit original binding keeps ordinary posting gates and a database-owned original xid prerequisite (1.078762ms)
+✔ all registered review migrations are pinned and returned as the exact verified bytes (7.768361ms)
+✔ unknown version fails closed (1.465544ms)
+✔ legacy unpinned version fails closed (0.449508ms)
+✔ missing overlay fails closed (5.866734ms)
+✔ overlay traversal fails closed (3.196153ms)
+✔ wrong overlay identity fails closed (3.81096ms)
+✔ unsupported overlay contract fails closed (4.009192ms)
+✔ malformed overlay checksum fails closed (2.388296ms)
+✔ production authority fails closed (0.33754ms)
+✔ missing migration fails closed (0.366474ms)
+✔ unknown migration fails closed (0.226522ms)
+✔ duplicate identity fails closed (0.248043ms)
+✔ wrong order fails closed (0.32123ms)
+✔ missing dependency fails closed (0.512096ms)
+✔ unsupported contract fails closed (0.262911ms)
+✔ traversal path fails closed (0.171931ms)
+✔ changed SQL bytes fail checksum validation without leaking SQL (0.344012ms)
+✔ missing SQL fails with bounded diagnostic (0.211865ms)
+✔ nonempty database is rejected before BEGIN, amendments=false (2.159169ms)
+✔ nonempty database is rejected before BEGIN, amendments=true (1.946341ms)
+✔ altered overlay fails with bounded diagnostic (1.518503ms)
+✔ missing overlay fails with bounded diagnostic (1.211119ms)
+✔ tampered overlay stops installer before any database query, amendments=false (7.595511ms)
+✔ tampered overlay stops installer before any database query, amendments=true (4.949745ms)
+✔ schema created after preflight is refused under migration lock, amendments=false (2.307836ms)
+✔ schema created after preflight is refused under migration lock, amendments=true (2.930806ms)
+✔ installed history matches exact selected input versions, amendments=false (4.997895ms)
+✔ installed history matches exact selected input versions, amendments=true (4.404568ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 340.490855
