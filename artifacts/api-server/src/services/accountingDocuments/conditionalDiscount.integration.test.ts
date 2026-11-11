@@ -1717,10 +1717,10 @@ test('isolated Chromium: current discount native commit lost response reload and
    (async()=>{
     await wait(()=>button('Review discount'));button('Review discount').click();await wait(()=>document.querySelector('[aria-label="Conditional discount posting review"]'));
     const text=document.querySelector('[aria-label="Conditional discount posting review"]').textContent;if(!text.includes('£12.00')||!text.includes('No paid cash is released'))throw Error('Review omitted exact unpaid policy');
-    button('Confirm discount').click();await wait(()=>document.body.textContent.includes('Simulated response lost'));
-    root.render(<App key="reloaded"/>);await wait(()=>document.querySelector('[aria-label="Conditional discount recovery"]')&&!document.body.textContent.includes('Simulated response lost'));
+    button('Confirm discount').click();await wait(()=>document.getElementById('root').textContent.includes('Simulated response lost'));
+    root.render(<App key="reloaded"/>);await wait(()=>document.querySelector('[aria-label="Conditional discount recovery"]')&&!document.getElementById('root').textContent.includes('Simulated response lost'));
     if(!button('Review discount').disabled||!button('Confirm discount').disabled||commits!==1)throw Error('Pending operation allowed resubmission');
-    button('Recover discount outcome').click();await wait(()=>document.body.textContent.includes('Recovered posted journal'));
+    button('Recover discount outcome').click();await wait(()=>document.getElementById('root').textContent.includes('Recovered posted journal'));
     if(readDiscountRecovery(localStorage,company,doc.id)!==null||commits!==1)throw Error('Recovery resent or retained operation');
     document.body.dataset.connectedDiscountAcceptance='passed';
    })().catch(e=>{document.body.dataset.connectedDiscountAcceptance='failed';document.body.append(document.createTextNode(e.message));});
