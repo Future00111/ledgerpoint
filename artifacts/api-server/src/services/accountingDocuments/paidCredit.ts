@@ -1,3 +1,4 @@
+import { compensationSchema } from './conditionalCompensation';
 import { createHash } from 'node:crypto';
 import { commercialCreditAdmission } from './commercialCredit';
 import { fail, uuid } from '../financialDrafts/contract';
@@ -42,6 +43,7 @@ function childId(request:string,payment:string) {
 type CreditPurpose=false|true|'commercial'|'conditional-discount';
 async function plan(q:Queryable,company:string,actor:string,id:string,expected:string,b:ReturnType<typeof intent>,conditional:CreditPurpose=false) {
   await authority(q,company,actor);
+  if(conditional==='conditional-discount' && !await compensationSchema(q)) fail(503,'CONDITIONAL_COMPENSATION_SCHEMA_INCOMPLETE');
   const row=await document(q,company,id,true);
   if(!credit(row.kind)||row.status!=='draft') fail(409,'CREDIT_DRAFT_REQUIRED');
   if(row.revision!==expected) fail(409,'REVISION_CONFLICT');

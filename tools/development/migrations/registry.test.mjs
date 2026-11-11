@@ -30,10 +30,13 @@ test('replacement history migration is pinned, append-only and separate from ori
   assert.match(sql,/ENABLE ALWAYS TRIGGER conditional_replacement_immutable/);
   assert.doesNotMatch(sql,/UPDATE public\.conditional_discount_original_bindings|INSERT INTO public\.accounting_payment_events/);
 });
-test('original binding candidate keeps both public posting gates and a database-owned original xid prerequisite',()=>{
+test('explicit original binding keeps ordinary posting gates and a database-owned original xid prerequisite',()=>{
   const posting=read('artifacts/api-server/src/services/accountingDocuments/posting.ts').toString();
   assert.equal((posting.match(/fail\(422,'CONDITIONAL_POSTING_NOT_AVAILABLE'\)/g)??[]).length,2);
-  assert.doesNotMatch(posting,/bindConditionalOriginal|observeConditionalOriginal/);
+  assert.match(posting,/conditionalOriginalTransactions=new WeakMap/);
+  assert.match(posting,/held\.company===company && held\.actor===actor && held\.id===id && held\.expected===expected/);
+  assert.match(posting,/if\(conditionalOriginal\) await bindConditionalOriginal\(q,company,actor,id\)/);
+  assert.doesNotMatch(posting,/observeConditionalOriginal/);
   const sql=read('lib/db/migrations/conditional-discount-agreements.review.sql').toString();
   assert.match(sql,/origin\.source_xid<>pg_current_xact_id\(\)/);
   assert.match(sql,/pg_xact_status\(origin\.source_xid\) IS DISTINCT FROM 'committed'/);

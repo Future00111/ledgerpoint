@@ -643,3 +643,44 @@ connected delivery must integrate atomic original binding, the explicit current
 review/commit/recovery API and UI, and all relevant payment, correction,
 replacement and compensation guards, followed by independent review and an
 isolated browser journey. The broad P01-03 package remains pending.
+
+## Connected current-discount development candidate — 11 November 2026
+
+The explicit `conditional-original` command reuses canonical posting with a
+private transaction/actor/company/document/revision capability. It commits the
+prepared native binding hash as the journal source evidence, rechecks the frozen
+source under lock, and binds the original in that same transaction. Duplicate
+responses also verify the existing binding. Ordinary `/post` remains closed to
+conditional sources. A separate, retryable observation request proves the binding
+committed before qualifying payment evidence; the form displays an observation
+retry when posting succeeded but observation did not.
+
+The explicit `conditional-discount/review` and commit routes select the existing
+current policy internally. The public review projects the token, request intent,
+amounts and threshold/deadline display only. It does not expose canonical payloads,
+frozen vectors or qualifying-payment authority. The current policy cannot release
+paid cash and requires the complete compensation guard before review/commit.
+Historical preview and internal historical redemption retain their boundaries.
+
+Before committing, the form stores only company/document/revision/request ID.
+Unknown outcomes retain that locator and disable a new review or submission.
+The scoped recovery endpoint must return the matching recorded journal before
+clearing it; late responses cannot clear a different stored request. Storage
+failure or corruption fails closed. A posted document still displays unresolved
+recovery. This is not a cross-tab atomic lock. There is no automatic resubmission
+and no claim that an unknown receipt proves failure.
+
+Qualification added: native HTTP original posting/observation, payment, review,
+commit and recovery for customer and supplier; rollback, replay, role denial,
+request-mode rejection and incomplete-compensation-schema controls; isolated
+Chromium uses the actual review/recovery components with the native commit API,
+simulated lost response and component remount recovery. PostgreSQL and Chromium
+must pass on this exact candidate in the disposable CI runner. The browser case
+is not a full-page blank-original creation demonstration.
+
+**Parent P01-03 remains pending.** Next executable work is the original form's
+agreement terms and evidence capture controls, using existing evidence APIs and
+saved source validation, followed by the complete blank-original-to-settlement
+browser journey. Existing migrations require their separate environment approval;
+this candidate does not deploy, migrate an existing database, send money or
+activate public production access.

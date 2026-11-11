@@ -31,7 +31,35 @@ test('source wiring: conditional form review hides confirmation and guards the p
  const {readFile}=await import('node:fs/promises');
  const source=await readFile(new URL('../../pages/AccountingDocumentForm.jsx',import.meta.url),'utf8');
  assert.match(source,/prepareCreditReview\(accounting,activeCompany.id,doc,crypto.randomUUID\(\),originalDoc\)/);
- assert.match(source,/if \(review\?\.conditionalCredit \|\| originalDoc\?\.source\?\.conditional_discount \|\|/);
+ assert.match(source,/discountPending \|\| !canPost/);
  assert.match(source,/\{!review\?\.conditionalCredit && <Button type="button" onClick=\{post\}/);
  assert.match(source,/if\(stillCurrent\(\)\)setReview/);
+});
+
+import {prepareCurrentDiscountReview,saveDiscountRecovery,readDiscountRecovery,verifyDiscountRecovery} from './model.mjs';
+test('current policy review validates identity, unpaid cap, and token; no historical fallback',async()=>{
+ const doc={id:'credit',revision:'r',original_id:'original',reason:'discount'},original={id:'original',source:{conditional_discount:{}}};
+ const value={posting_available:true,review_token:'sha256:'+'a'.repeat(64),intent:{request_id:'request'},document_id:'credit',revision:'r',original_id:'original',conditional_admission:{},released_minor:'0',releases:[]};
+ const client={reviewConditionalDiscount:async()=>value};assert.equal(await prepareCurrentDiscountReview(client,'company',doc,'request',original),value);
+ for(const delta of [{posting_available:false},{released_minor:'1'},{releases:[{}]},{intent:{request_id:'other'}},{review_token:'bad'},{original_id:'foreign'}])await assert.rejects(()=>prepareCurrentDiscountReview({reviewConditionalDiscount:async()=>({...value,...delta})},'company',doc,'request',original),/could not be verified/);
+});
+test('minimal durable recovery stays scoped and unknown cannot authorize another submission',()=>{
+ const values=new Map(),storage={setItem:(k,v)=>values.set(k,v),getItem:k=>values.get(k)};
+ const pending=saveDiscountRecovery(storage,'company','credit','r','request');
+ assert.deepEqual(readDiscountRecovery(storage,'company','credit'),pending);assert.equal(readDiscountRecovery(storage,'other','credit'),null);
+ const receipt={status:'recorded',request_id:'request',document_id:'credit',journal_id:'11111111-1111-4111-a111-111111111111'};
+ for(const status of ['posted','duplicate','recorded'])assert.equal(verifyDiscountRecovery({...receipt,status},pending),true);
+ for(const delta of [{status:'unknown'},{request_id:'wrong'},{document_id:'wrong'},{journal_id:''}])assert.equal(verifyDiscountRecovery({...receipt,...delta},pending),false);
+ assert.equal(values.size,1);assert.ok(![...values.values()][0].includes('review_token'));
+ values.set([...values.keys()][0],'{invalid');assert.throws(()=>readDiscountRecovery(storage,'company','credit'),/must be recovered/);
+});
+import {clearDiscountRecovery} from './model.mjs';
+test('durable locator collision and late completions cannot replace or clear another request',()=>{
+ const values=new Map(),storage={setItem:(k,v)=>values.set(k,v),getItem:k=>values.get(k),removeItem:k=>values.delete(k)};
+ const first=saveDiscountRecovery(storage,'company','credit','r','first');
+ assert.deepEqual(saveDiscountRecovery(storage,'company','credit','r','first'),first);
+ assert.throws(()=>saveDiscountRecovery(storage,'company','credit','r','second'),/Recover the existing/);
+ clearDiscountRecovery(storage,{...first,request_id:'second'});assert.deepEqual(readDiscountRecovery(storage,'company','credit'),first);
+ clearDiscountRecovery(storage,first);assert.equal(readDiscountRecovery(storage,'company','credit'),null);
+ assert.throws(()=>saveDiscountRecovery({...storage,setItem:()=>{throw Error('storage unavailable')}},'company','credit','r','first'),/storage unavailable/);
 });
