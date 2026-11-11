@@ -1,0 +1,17 @@
+✔ editing and posting require independently explicit capabilities (0.822369ms)
+✔ late discount uses existing credit workflow for original invoices and bills, including partially paid (0.340124ms)
+✔ adjustment preparation captures source revision while preserving entered decimal values (0.661761ms)
+✔ balance preview uses canonical reconciled settlement and saved credit within remaining credit capacity (0.452982ms)
+✔ old company, document, or load generation cannot apply mutation result to a new view (0.138545ms)
+✔ discount entry requires an unpaid balance for both original document kinds (0.2498ms)
+✔ discount entry rejects missing, malformed or inconsistent settlement without throwing (0.300085ms)
+✔ original agreement money uses exact decimal minor units without rounding (0.247607ms)
+✔ captured original evidence matches exact company, both party types, all terms and evidence (0.557296ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 120.649866

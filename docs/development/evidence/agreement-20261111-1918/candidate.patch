@@ -1,0 +1,398 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+index f996f68..3675b09 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+@@ -1763,3 +1763,85 @@ test('real PostgreSQL: explicit original retry rejects a missing historical bind
+  assert.deepEqual(await financialSnapshot(f.company),before);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_bindings WHERE company_id=$1',[f.company])).rows[0].n,0);
+ });
++
++for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${side} blank original agreement through payment and current discount full page`,async()=>{
++ const f=await ordinaryOriginalFixture(side),kind=side==='customer'?'sales_invoice':'purchase_bill',route=side==='customer'?'/invoices':'/bills',creditRoute=side==='customer'?'/sales-credit-notes':'/supplier-credit-notes',creditKind=side==='customer'?'sales_credit_note':'supplier_credit_note',number='BROWSER-AGREEMENT-'+randomUUID();
++ const dir=mkdtempSync(path.join(path.dirname(socket),'agreement-page-browser-'));
++ try {
++  const frontend=path.join(process.cwd(),'artifacts/ledgerly'),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js'),companyStub=path.join(dir,'company.mjs');
++  writeFileSync(companyStub,`export const useCompany=()=>({activeCompany:{id:${JSON.stringify(f.company)}}});`);
++  writeFileSync(entry,`
++   import React from ${JSON.stringify(frontend+'/node_modules/react/index.js')};
++   import {createRoot} from ${JSON.stringify(frontend+'/node_modules/react-dom/client.js')};
++   import {MemoryRouter,Routes,Route,useNavigate} from ${JSON.stringify(frontend+'/node_modules/react-router-dom/dist/index.mjs')};
++   import {QueryClient,QueryClientProvider} from ${JSON.stringify(frontend+'/node_modules/@tanstack/react-query/build/modern/index.js')};
++   import Form from ${JSON.stringify(frontend+'/src/pages/AccountingDocumentForm.jsx')};
++   const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,savedId=null;
++   window.fetch=async(url,options={})=>{
++    const path=String(url).replace(/^\\/api\\//,'/');
++    const headers=new Headers(options.headers);headers.set('x-test-actor',${JSON.stringify(actor)});
++    if(path.endsWith('/conditional-discount-evidence')&&options.method==='POST')captures++;
++    if(path.endsWith('/accounting-documents')&&options.method==='POST')saves++;
++    if(path.includes('/conditional-original')&&options.method==='POST'&&!path.endsWith('/observe'))posts++;
++    const response=await nativeFetch(path,{...options,headers});
++    if(path.endsWith('/accounting-documents')&&options.method==='POST'&&response.ok)savedId=(await response.clone().json()).data.id;
++    if(path.endsWith('/conditional-original/observe')&&response.ok)observed++;
++    if(path.endsWith('/conditional-discount')&&options.method==='POST'&&response.ok)discountPosts++;
++    return response;
++   };
++   const root=createRoot(document.getElementById('root'));
++   function Navigation(){window.testNavigate=useNavigate();return null;}
++   root.render(<QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MemoryRouter initialEntries={[${JSON.stringify(route+'/new')}]}><Navigation/><Routes><Route path=${JSON.stringify(route+'/:id')} element={<Form kind=${JSON.stringify(kind)}/>}/><Route path=${JSON.stringify(creditRoute+'/:id')} element={<Form kind=${JSON.stringify(creditKind)}/>}/></Routes></MemoryRouter></QueryClientProvider>);
++   const el=id=>document.querySelector('[data-testid="'+id+'"]');
++   const wait=async(fn)=>{for(let i=0;i<240;i++){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Browser timeout: '+document.getElementById('root').textContent.slice(-1200));};
++   const change=async(selector,value)=>{const node=document.querySelector(selector);if(!node)throw Error('Missing '+selector);const proto=node.tagName==='SELECT'?HTMLSelectElement.prototype:node.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(node,value);node.dispatchEvent(new Event(node.tagName==='SELECT'?'change':'input',{bubbles:true}));await new Promise(r=>setTimeout(r,25));};
++   (async()=>{
++    await wait(()=>el('select-party'));
++    await change('#party',${JSON.stringify(f.body.party_id)});await change('#number',${JSON.stringify(number)});
++    await change('#issue','2026-11-01');await change('#due','2026-11-30');await change('#d0','Browser entered original');await change('#p0','120');await change('#t0','NONE');
++    el('agreement-enabled').click();await wait(()=>document.querySelector('#agreement-amount'));
++    await change('#agreement-date','2026-11-01');await change('#agreement-deadline','2199-11-30');await change('#agreement-amount','12.00');await change('#agreement-evidence','Synthetic agreement attested in actual form');
++    if(!el('button-save').disabled||!el('capture-agreement').disabled)throw Error('Unattested source admitted');
++    el('agreement-attested').click();await wait(()=>!el('capture-agreement').disabled);el('capture-agreement').click();
++    await wait(()=>el('agreement-status')?.textContent.includes('Evidence captured'));
++    if(saves||posts)throw Error('Capture silently saved or posted');
++    await change('#agreement-amount','11.00');
++    if(el('agreement-attested').checked||!el('button-save').disabled)throw Error('Changed terms retained receipt');
++    await change('#agreement-amount','12.00');el('agreement-attested').click();await wait(()=>!el('capture-agreement').disabled);el('capture-agreement').click();await wait(()=>el('agreement-status')?.textContent.includes('Evidence captured'));
++    el('button-save').click();await wait(()=>savedId&&el('button-save')?.textContent==='Save changes'&&!el('button-post').disabled);
++    if(posts||captures!==2||saves!==1)throw Error('Save/capture boundary changed');
++    if(document.querySelector('#agreement-evidence').value!=='Synthetic agreement attested in actual form')throw Error('Saved receipt was not reloaded');
++    el('button-post').click();await wait(()=>document.querySelector('[aria-label="Saved original agreement"]'));
++    const review=document.querySelector('[aria-label="Saved original agreement"]').textContent;
++    if(!review.includes('£12.00')||!review.includes('2199-11-30')||posts)throw Error('Review omitted saved agreement or silently posted');
++    el('button-confirm-posting').click();await wait(()=>posts===1&&observed===1&&!el('button-confirm-posting')&&document.getElementById('root').textContent.includes('Posted'));
++    const originalId=savedId;
++    const payment={id:crypto.randomUUID(),kind:'payment',party_type:${JSON.stringify(side)},party_id:${JSON.stringify(f.body.party_id)},payment_id:null,date:'2026-11-03',reference:'Browser native qualifying payment',amount_minor:'10800',allocations:[{document_id:originalId,amount_minor:'10800'}]};
++    const call=async(path,body)=>{const response=await fetch('/api/companies/'+${JSON.stringify(f.company)}+'/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const result=await response.json();if(!response.ok)throw Error(JSON.stringify(result));return result.data;};
++    const paymentReview=await call('accounting-payments/review',payment);await call('accounting-payments',{...payment,review_token:paymentReview.review_token});
++    window.testNavigate(${JSON.stringify(creditRoute+'/new?original=')}+originalId+'&discount=1');
++    await wait(()=>document.querySelector('#discount-value'));
++    await change('#reason','Browser current unpaid discount');await change('#discount-value','10');await change('#number',${JSON.stringify(number+'-CREDIT')});
++    el('button-save').click();await wait(()=>savedId!==originalId&&el('button-save')?.textContent==='Save changes'&&!el('button-post').disabled);
++    el('button-post').click();await wait(()=>document.querySelector('[aria-label="Conditional discount posting review"]'));
++    const discountReview=document.querySelector('[aria-label="Conditional discount posting review"]').textContent;
++    if(!discountReview.includes('£12.00')||!discountReview.includes('No paid cash is released')||discountPosts)throw Error('Current discount review omitted unpaid policy');
++    el('button-confirm-posting').click();await wait(()=>discountPosts===1&&!el('button-confirm-posting')&&document.getElementById('root').textContent.includes('Posted'));
++    document.body.dataset.originalAgreementAcceptance='passed';
++   })().catch(e=>{document.body.dataset.originalAgreementAcceptance='failed';document.getElementById('root').append(document.createTextNode(e.message));});
++  `);
++  execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',entry,'--bundle','--platform=browser','--format=iife','--jsx=automatic','--alias:@='+frontend+'/src','--alias:@/lib/useCompany='+companyStub,'--outfile='+bundle],{stdio:'pipe'});
++  browserHtml=`<!doctype html><html><head><meta charset="utf-8"><title>Synthetic original agreement form</title></head><body><div id="root"></div><script>${readFileSync(bundle,'utf8').replaceAll('</script','<\\/script')}</script></body></html>`;
++  const child=spawn('chromium',['--headless','--no-first-run','--disable-gpu','--disable-background-networking','--disable-component-update','--disable-sync','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=24000',base+'/synthetic-compensation-browser'],{stdio:['ignore','pipe','pipe']});
++  let html='',stderr='';child.stdout.on('data',b=>{html+=b.toString();});child.stderr.on('data',b=>{stderr+=b.toString();});
++  const code=await new Promise<number>((resolve,reject)=>{const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('Bounded Chromium timeout'));},35000);child.once('error',e=>{clearTimeout(timer);reject(e);});child.once('exit',n=>{clearTimeout(timer);resolve(n??1);});});
++  assert.equal(code,0,stderr.slice(-2000));assert.match(html,/<body[^>]*data-original-agreement-acceptance="passed"/,html.slice(0,18000));
++  const row=(await pool.query(`SELECT id FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE company_id=$1 AND ${side==='customer'?'invoice_number':'bill_number'}=$2`,[f.company,number])).rows[0];
++  assert.ok(row);const saved=await getDocument(f.company,actor,row.id);assert.equal(saved.status,'posted');assert.equal(saved.source.conditional_discount.discount_gross_pence,'1200');
++  assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_observations WHERE company_id=$1 AND document_id=$2',[f.company,row.id])).rows[0].n,1);
++  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,1);
++  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,0);
++  assert.deepEqual((await pool.query(`SELECT amount_paid::text,balance_due::text FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[row.id])).rows[0],{amount_paid:'108.00',balance_due:'0.00'});
++  console.log('ORIGINAL_AGREEMENT_PAGE_BROWSER_ACCEPTANCE' ,JSON.stringify({party:side,actualFullPage:true,blankEntry:true,nativeEvidence:true,invalidatedTerms:true,savedReceiptReload:true,explicitReviewAndPost:true,nativePayment:true,actualDiscountCreditPage:true,noPaidCashRelease:true,syntheticOnly:true}));
++ }finally{browserHtml='';rmSync(dir,{recursive:true,force:true});}
++});
+diff --git a/artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx b/artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx
+index a66ab4e..fba77b4 100644
+--- a/artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx
++++ b/artifacts/ledgerly/src/features/documentDiscounts/DiscountControls.jsx
+@@ -11,7 +11,7 @@ export function DraftWriteActions({ capabilities, doc, editId, busy, dirty, cred
+   const ready = Boolean(doc && !dirty && !zeroTotal && configurationErrors.length === 0);
+   return <>
+     {canEditDrafts(capabilities) && <Button type="submit" variant={ready && canPostDocuments(capabilities) ? 'outline' : 'default'} className={actionClass} disabled={busy || creditInvalid} data-testid="button-save">{busy ? 'Working…' : editId ? 'Save changes' : 'Save draft'}</Button>}
+-    {canPostDocuments(capabilities) && <Button type="button" variant={ready ? 'default' : 'secondary'} className={actionClass} disabled={busy || !doc || dirty || zeroTotal || configurationErrors.length > 0} onClick={onReview} data-testid="button-post">{reviewLabel}</Button>}
++    {canPostDocuments(capabilities) && <Button type="button" variant={ready ? 'default' : 'secondary'} className={actionClass} disabled={busy || creditInvalid || !doc || dirty || zeroTotal || configurationErrors.length > 0} onClick={onReview} data-testid="button-post">{reviewLabel}</Button>}
+     {zeroTotal && <p className="text-xs text-muted-foreground">This draft totals £0.00. Zero-value documents cannot be posted yet.</p>}
+     {canEditDrafts(capabilities) && !canPostDocuments(capabilities) && <p className="text-xs text-muted-foreground">You can prepare this draft. An owner or accountant must review and post it.</p>}
+   </>;
+diff --git a/artifacts/ledgerly/src/features/documentDiscounts/model.mjs b/artifacts/ledgerly/src/features/documentDiscounts/model.mjs
+index fbcc2c2..4f91153 100644
+--- a/artifacts/ledgerly/src/features/documentDiscounts/model.mjs
++++ b/artifacts/ledgerly/src/features/documentDiscounts/model.mjs
+@@ -42,3 +42,23 @@ export function balanceAfterSavedCredit(openItem, money, dirty = false) {
+ export function isCurrentDocumentRequest(started, current) {
+   return started.scope === current.scope && started.generation === current.generation;
+ }
++
++/** Decimal entry is converted without binary floating point. Server owns admissibility. */
++export function agreementPence(value) {
++  if (typeof value !== 'string' || !/^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?$/.test(value)) return null;
++  const [whole, fraction = ''] = value.split('.');
++  const pence = BigInt(whole) * 100n + BigInt(fraction.padEnd(2, '0'));
++  return pence > 0n && pence <= 999999999999n ? String(pence) : null;
++}
++export function agreementTerms(entry, partyType, partyId) {
++  const amount = agreementPence(entry.amount);
++  if (!amount || !partyId || !entry.agreement_id || !entry.agreement_date || !entry.payment_deadline || entry.payment_deadline < entry.agreement_date) return null;
++  return {version:1, party_type:partyType, party_id:partyId.toLowerCase(), currency:'GBP', agreement_id:entry.agreement_id, agreement_date:entry.agreement_date, payment_deadline:entry.payment_deadline, discount_gross_pence:amount};
++}
++export function matchesAgreementReceipt(receipt, company, terms, evidenceText) {
++  const keys = ['version','party_type','party_id','currency','agreement_id','agreement_date','payment_deadline','discount_gross_pence'];
++  return Boolean(terms && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(receipt?.id ?? '') && receipt.company_id === company && receipt.attested === true
++    && receipt.party_type === terms.party_type && receipt.party_id === terms.party_id
++    && receipt.currency === 'GBP' && keys.every(key => receipt.terms?.[key] === terms[key])
++    && (evidenceText === undefined || receipt.evidence_text === evidenceText));
++}
+diff --git a/artifacts/ledgerly/src/features/documentDiscounts/model.test.mjs b/artifacts/ledgerly/src/features/documentDiscounts/model.test.mjs
+index b7933e0..abbe60b 100644
+--- a/artifacts/ledgerly/src/features/documentDiscounts/model.test.mjs
++++ b/artifacts/ledgerly/src/features/documentDiscounts/model.test.mjs
+@@ -1,7 +1,7 @@
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
+ import { canEditDrafts, canPostDocuments, canApplyDiscount, discountCreditPath, documentActionLabel,
+-  discountAdjustment, balanceAfterSavedCredit, isCurrentDocumentRequest } from './model.mjs';
++  agreementPence, agreementTerms, matchesAgreementReceipt, discountAdjustment, balanceAfterSavedCredit, isCurrentDocumentRequest } from './model.mjs';
+ 
+ test('editing and posting require independently explicit capabilities', () => {
+   for (const capability of [undefined, null, {}, { edit_drafts: 'true', post_documents: 1 }]) {
+@@ -81,3 +81,22 @@ test('discount entry rejects missing, malformed or inconsistent settlement witho
+   for (const kind of ['supplier_credit_note', 'sales_credit_note', 'unknown'])
+     assert.equal(canApplyDiscount(kind, valid, { edit_drafts: true }), false);
+ });
++
++
++test('original agreement money uses exact decimal minor units without rounding', () => {
++  for (const [input, expected] of [['12.30','1230'],['0.01','1'],['9999999999.99','999999999999'],['1','100'],['1.2','120']]) assert.equal(agreementPence(input),expected);
++  for (const input of ['', '0','0.00','01','1.001','1e2','-1',' 1','10000000000',1,null]) assert.equal(agreementPence(input),null);
++});
++test('captured original evidence matches exact company, both party types, all terms and evidence', () => {
++  for (const party_type of ['customer','supplier']) {
++    const entry={agreement_id:'agreement',agreement_date:'2026-11-01',payment_deadline:'2026-11-10',amount:'12.00'};
++    const terms=agreementTerms(entry,party_type,'PARTY');
++    const receipt={id:'11111111-1111-4111-8111-111111111111',company_id:'company',attested:true,party_type,party_id:'party',currency:'GBP',terms,evidence_text:'Agreed'};
++    assert.equal(matchesAgreementReceipt(receipt,'company',terms,'Agreed'),true);
++    assert.equal(matchesAgreementReceipt(receipt,'other',terms,'Agreed'),false);
++    assert.equal(matchesAgreementReceipt(receipt,'company',terms,'Changed'),false);
++    for (const key of Object.keys(terms)) assert.equal(matchesAgreementReceipt({...receipt,terms:{...terms,[key]:'changed'}},'company',terms,'Agreed'),false,key);
++    for (const [key,value] of [['party_id','other'],['party_type','other'],['attested',false],['id',null],['currency','USD']]) assert.equal(matchesAgreementReceipt({...receipt,[key]:value},'company',terms),false,key);
++    assert.equal(agreementTerms({...entry,payment_deadline:'2026-10-30'},party_type,'party'),null);
++  }
++});
+diff --git a/artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx b/artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx
+index 4d7432e..b095b0c 100644
+--- a/artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx
++++ b/artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx
+@@ -17,7 +17,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
+ import { StatusPill, SettlementPill, Money, ConfigErrors, JournalLink, ErrorBox, SkeletonRows, today } from '@/components/accounting/AccountingUI';
+ import { DiscountEditor, SavedDiscountSummary, DiscountBalanceReview, DraftWriteActions } from '@/features/documentDiscounts/DiscountControls';
+ import DocumentLineFields from '@/features/documentDiscounts/DocumentLineFields';
+-import { canEditDrafts, canPostDocuments, discountAdjustment, isCurrentDocumentRequest } from '@/features/documentDiscounts/model.mjs';
++import { agreementTerms, matchesAgreementReceipt, canEditDrafts, canPostDocuments, discountAdjustment, isCurrentDocumentRequest } from '@/features/documentDiscounts/model.mjs';
+ import { useCaptureDraft } from '@/features/documentIntake/useDocumentIntake';
+ import { CaptureSourceReview, CaptureDraftActions } from '@/features/documentIntake/CaptureReview';
+ import SourceAttachments from '@/features/documentIntake/SourceFiles';
+@@ -29,6 +29,7 @@ import PageHeader from '@/components/workspace/PageHeader';
+ const blankLine = () => ({ description: '', quantity: '1', unit_price: '0', tax_code: '' });
+ const blankForm = () => ({ customer_id: '', invoice_number: '', issue_date: today(), due_date: dueFromTerms(today(), '30'), payment_terms: '30', reference: '', notes: '', price_basis: 'excluding_vat', line_items: [blankLine()] });
+ const blankExtra = () => ({ original_line_refs: [], original_id: '', reason: '', effective_adjustment_date: '', purchase_vat_eligible: false, posting_account_id: '' });
++const blankAgreement = () => ({ enabled:false, agreement_id:'', agreement_date:today(), payment_deadline:today(), amount:'', evidence_text:'', attested:false, receipt:null });
+ const sel = 'mt-1.5 min-h-11 w-full rounded-lg border bg-background p-2.5 text-sm';
+ 
+ /** Shared native create/review/post page for all four accounting document kinds. */
+@@ -58,6 +59,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState(null);
+   const [review, setReview] = useState(null);
++  const [agreement, setAgreement] = useState(blankAgreement);
++  const evidenceRequest = useRef(null);
+   const [observationPending,setObservationPending]=useState(false);
+   const [discountPending, setDiscountPending] = useState(null);
+   const [legacy, setLegacy] = useState(false);
+@@ -93,6 +96,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+     const g = ++gen.current; const c = new AbortController();
+     manualDue.current = Boolean(editId);
+     setReview(null);setDiscountPending(null);setObservationPending(false);
++    setAgreement(blankAgreement()); evidenceRequest.current = null;
+     setCtx(null); setLoadedScope(null); setDoc(null); setForm(blankForm()); setExtra(blankExtra()); setDirty(false); setBusy(false); setError(null); setLegacy(false); setLoading(true); setOriginalDoc(null);
+     if (!activeCompany) return () => c.abort();
+     (async () => {
+@@ -109,6 +113,20 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+         setOriginals((origList || []).filter(d => d.status === 'posted'));
+         if (existing) {
+           setDoc(existing);
++          setExtra({
++            original_line_refs: existing.tax_context?.original_line_refs ?? existing.source?.line_items?.map((_, i) => i) ?? [],
++            original_id: existing.original_id || '', reason: existing.reason || '', effective_adjustment_date: existing.effective_adjustment_date || '',
++            purchase_vat_eligible: existing.purchase_vat_eligible === true, posting_account_id: existing.posting_account_id || '',
++          });
++          setForm({ ...blankForm(), ...existing.source, payment_terms: String(existing.source?.payment_terms ?? '0') });
++          if (!meta.credit && existing.source?.conditional_discount) {
++            const terms = existing.source.conditional_discount;
++            setAgreement({...blankAgreement(), enabled:true, ...terms, amount:`${BigInt(terms.discount_gross_pence)/100n}.${String(BigInt(terms.discount_gross_pence)%100n).padStart(2,'0')}`});
++            const receipt = await accounting.getConditionalEvidence(activeCompany.id, terms.evidence_receipt_id, c.signal);
++            if(g !== gen.current || latestScope.current !== scopeKey || c.signal.aborted)return;
++            if (!matchesAgreementReceipt(receipt, activeCompany.id, terms)) throw new Error('Saved agreement evidence could not be verified. Reload before saving or posting.');
++            setAgreement({...blankAgreement(), enabled:true, ...terms, amount:`${BigInt(terms.discount_gross_pence)/100n}.${String(BigInt(terms.discount_gross_pence)%100n).padStart(2,'0')}`, evidence_text:receipt.evidence_text, attested:true, receipt});
++          }
+           setDiscountPending({company:activeCompany.id,id:existing.id,invalid:true});
+           setDiscountPending(readDiscountRecovery(localStorage,activeCompany.id,existing.id));
+           if(existing.status==='posted' && existing.source?.conditional_discount) {
+@@ -117,12 +135,6 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+             if(g !== gen.current || latestScope.current !== scopeKey || c.signal.aborted)return;
+             setObservationPending(false);
+           }
+-          setForm({ ...blankForm(), ...existing.source, payment_terms: String(existing.source?.payment_terms ?? '0') });
+-          setExtra({
+-            original_line_refs: existing.tax_context?.original_line_refs ?? existing.source?.line_items?.map((_, i) => i) ?? [],
+-            original_id: existing.original_id || '', reason: existing.reason || '', effective_adjustment_date: existing.effective_adjustment_date || '',
+-            purchase_vat_eligible: existing.purchase_vat_eligible === true, posting_account_id: existing.posting_account_id || '',
+-          });
+           if (existing.original_id) setOriginalDoc((origList || []).find(o => o.id === existing.original_id) || null);
+         } else if (meta.credit && requestedOriginal) {
+           const original = origList.find(o => o.id === requestedOriginal && o.status === 'posted');
+@@ -147,6 +159,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+   const touch = () => { setDirty(true); if (captureMode) capture.invalidateReview(); };
+   const change = (k, v) => {
+     if (k === 'due_date') manualDue.current = true;
++    if (k === 'customer_id' && agreement.enabled) { setAgreement(a => ({...a, receipt:null, attested:false})); evidenceRequest.current = null; setReview(null); setForm(f => ({...f, conditional_discount:null})); }
+     touch(); setForm(f => changeDateField(f, k, v, manualDue.current, meta.credit));
+   };
+   const changeLine = (i, k, v) => { touch(); setForm(f => ({ ...f, line_items: f.line_items.map((l, j) => j === i ? { ...l, [k]: v } : l) })); };
+@@ -188,9 +201,30 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+   const showTotals = Boolean(displayedMoney);
+   const configErrors = ctx?.configuration_errors ?? [];
+ 
++  const terms = agreement.enabled ? agreementTerms(agreement, meta.party, form.customer_id) : null;
++  const agreementInvalid = agreement.enabled && (!matchesAgreementReceipt(agreement.receipt, activeCompany.id, terms, agreement.evidence_text) || !agreement.attested || !form.conditional_discount || form.conditional_discount.evidence_receipt_id !== agreement.receipt?.id);
++  const changeAgreement = (key, value) => {
++    touch(); setReview(null); evidenceRequest.current = null;
++    setAgreement(a => ({...a, [key]:value, ...(key === 'enabled' && value ? {agreement_id:crypto.randomUUID()} : {}), receipt:null, attested:key === 'attested' ? value : false}));
++    setForm(f => ({...f, conditional_discount:null}));
++  };
++  const captureAgreement = async () => {
++    if (!canEdit || busy || loading || posted || !terms || !agreement.attested || !agreement.evidence_text.trim() || form.discount) return;
++    const started = {scope:scopeKey,generation:gen.current};
++    const stillCurrent = () => isCurrentDocumentRequest(started,{scope:latestScope.current,generation:gen.current});
++    const requestId = evidenceRequest.current || crypto.randomUUID(); evidenceRequest.current = requestId;
++    setBusy(true);setError(null);
++    try {
++      const receipt = await accounting.captureConditionalEvidence(activeCompany.id,{request_id:requestId,terms,evidence_text:agreement.evidence_text,attested:true});
++      if (!stillCurrent()) return;
++      if (!matchesAgreementReceipt(receipt,activeCompany.id,terms,agreement.evidence_text)) throw new Error('Captured evidence did not match this company, party and agreement. Nothing was attached.');
++      setAgreement(a => ({...a,receipt}));setForm(f => ({...f,conditional_discount:{...terms,evidence_receipt_id:receipt.id}}));touch();
++    } catch(err) {if(stillCurrent())setError(err);} finally {if(stillCurrent())setBusy(false);}
++  };
++
+   const save = async (e) => {
+     e?.preventDefault();
+-    if (!canEdit || busy || capture.busy || posted || creditInvalid || discountPending) return;
++    if (!canEdit || busy || loading || capture.busy || posted || creditInvalid || agreementInvalid || discountPending) return;
+     const started = { scope: scopeKey, generation: gen.current };
+     const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
+     const fields = new FormData(e.currentTarget);
+@@ -222,7 +256,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+     } catch (err) { if (stillCurrent()) setError(err); } finally { if (stillCurrent()) setBusy(false); }
+   };
+   const preparePostingReview = async () => {
+-    if (!canPost || busy || !doc || dirty || discountPending) return;
++    if (!canPost || busy || loading || !doc || dirty || agreementInvalid || discountPending) return;
+     const started = { scope: scopeKey, generation: gen.current };
+     const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
+     setBusy(true);setError(null);
+@@ -233,7 +267,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+     } catch(err) {if(stillCurrent())setError(err);} finally {if(stillCurrent())setBusy(false);}
+   };
+   const post = async () => {
+-    if (review?.conditionalCredit || (originalDoc?.source?.conditional_discount && !review?.currentDiscount) || discountPending || !canPost || busy || !doc || dirty || doc.money?.gross_pence === '0' || posted || !review || configErrors.length > 0) return;
++    if (review?.conditionalCredit || (originalDoc?.source?.conditional_discount && !review?.currentDiscount) || discountPending || !canPost || busy || loading || !doc || dirty || agreementInvalid || doc.money?.gross_pence === '0' || posted || !review || configErrors.length > 0) return;
+     const started = { scope: scopeKey, generation: gen.current };
+     const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
+     if (review.companyId !== activeCompany.id || review.id !== doc.id || review.revision !== doc.revision) {
+@@ -317,7 +351,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+ 
+       {!loading && ctx && (
+         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_350px]">
+-          <fieldset disabled={posted || busy || capture.busy || !canEdit} className="workspace-panel min-w-0">
++          <fieldset disabled={posted || busy || loading || capture.busy || !canEdit} className="workspace-panel min-w-0">
+             {meta.credit && (
+               <section className="space-y-5 border-b p-5 last:border-b-0 sm:p-6">
+                 <div><h2 className="text-lg font-semibold">{discountMode ? 'Discount credit' : 'Adjustment'}</h2>
+@@ -381,9 +415,25 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+               )}
+             </section>
+ 
+-            {(!meta.credit || discountMode) && <DiscountEditor value={discountMode ? form.discount_adjustment : form.discount} priceBasis={form.price_basis} adjustment={discountMode} disabled={!canEdit || busy}
++            {(!meta.credit || discountMode) && !agreement.enabled && <DiscountEditor value={discountMode ? form.discount_adjustment : form.discount} priceBasis={form.price_basis} adjustment={discountMode} disabled={!canEdit || busy}
+               onChange={value => change(discountMode ? 'discount_adjustment' : 'discount', value)} />}
+ 
++            {!meta.credit && !captureMode && <section aria-label="Original conditional agreement" className="space-y-4 border-b p-6">
++              <label className="flex gap-3"><input type="checkbox" data-testid="agreement-enabled" checked={agreement.enabled} disabled={Boolean(form.discount)} onChange={e => changeAgreement('enabled',e.target.checked)} />Record an agreed conditional discount</label>
++              {form.discount && <p className="text-sm">Remove the immediate discount before recording a conditional agreement.</p>}
++              {agreement.enabled && <>
++                <p className="text-sm">Record terms already agreed with this {meta.party}. Evidence records your attestation, not legal validation. Capture evidence, save the draft, then review posting separately. New discounts can only offset an unpaid balance; fully paid documents require a separate credit and refund review.</p>
++                <p className="text-xs">Agreement reference: {agreement.agreement_id}</p>
++                <div><Label htmlFor="agreement-date">Agreement date</Label><Input id="agreement-date" type="date" required value={agreement.agreement_date} onChange={e => changeAgreement('agreement_date',e.target.value)} /></div>
++                <div><Label htmlFor="agreement-deadline">Payment deadline</Label><Input id="agreement-deadline" type="date" required value={agreement.payment_deadline} onChange={e => changeAgreement('payment_deadline',e.target.value)} /></div>
++                <div><Label htmlFor="agreement-amount">Agreed discount including VAT (£)</Label><Input id="agreement-amount" inputMode="decimal" required value={agreement.amount} onChange={e => changeAgreement('amount',e.target.value)} /></div>
++                <div><Label htmlFor="agreement-evidence">Agreement evidence</Label><Textarea id="agreement-evidence" required value={agreement.evidence_text} onChange={e => changeAgreement('evidence_text',e.target.value)} /></div>
++                <label className="flex gap-3"><input type="checkbox" data-testid="agreement-attested" checked={agreement.attested} onChange={e => changeAgreement('attested',e.target.checked)} />I attest these terms and this evidence accurately record our agreement.</label>
++                <Button type="button" data-testid="capture-agreement" onClick={captureAgreement} disabled={!terms || !agreement.attested || !agreement.evidence_text.trim() || Boolean(agreement.receipt)}>Capture agreement evidence</Button>
++                <p role="status" data-testid="agreement-status">{agreementInvalid ? 'Capture matching evidence before saving this agreement.' : 'Evidence captured for these exact terms. Save and review the original separately.'}</p>
++              </>}
++            </section>}
++
+             <section className="space-y-5 border-b p-5 last:border-b-0 sm:p-6">
+               <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-primary"><ListPlus className="h-5 w-5" aria-hidden="true" /></span><div><p className="workspace-kicker">02 · Line items</p><h2 className="mt-1 text-base font-semibold">{discountMode ? 'Original items · reference only' : 'Items & services'}</h2></div></div>
+                 {meta.credit && <span className="text-xs text-muted-foreground">{discountMode ? 'The original quantities, prices and VAT rates are retained. The saved discount determines the credit amounts below.' : 'Copied from the original. Reduce the amount or quantity, or exclude a line, for a partial credit. The original VAT basis, rate and accounts are retained.'}</span>}</div>
+@@ -402,7 +452,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+             {captureMode && <div className="order-first"><CaptureSourceReview capture={capture} companyId={activeCompany.id} compact /></div>}
+             {!posted && (captureMode ? canEdit : canEdit || canPost) && <section id="document-actions" tabIndex={-1} className="workspace-card order-2 scroll-mt-6 space-y-3 p-5" aria-label="Save and review document">
+               {captureMode ? <CaptureDraftActions capture={capture} canEdit={canEdit} invalid={creditInvalid || busy} /> : <>
+-                <div className="flex flex-wrap items-center gap-3"><DraftWriteActions compact capabilities={capabilities} doc={doc} editId={editId} busy={busy} dirty={dirty} creditInvalid={creditInvalid} configurationErrors={configErrors}
++                <div className="flex flex-wrap items-center gap-3"><DraftWriteActions compact capabilities={capabilities} doc={doc} editId={editId} busy={busy || loading} dirty={dirty} creditInvalid={creditInvalid || agreementInvalid} configurationErrors={configErrors}
+                   onReview={preparePostingReview} reviewLabel={originalDoc?.source?.conditional_discount ? 'Check conditional eligibility' : undefined} /></div>
+                 <p className="text-sm text-muted-foreground">{originalDoc?.source?.conditional_discount ? (dirty ? 'Save changes before checking conditional eligibility.' : 'Review the current conditional discount before posting. It cannot release paid cash.') : doc && dirty ? 'Unsaved changes. Save to update the calculated totals before posting.' : doc ? 'Saved draft. Review and confirm posting when you are ready.' : 'Save a draft to calculate its totals. It will not affect your accounts until you post it.'}</p>
+               </>}
+@@ -465,6 +515,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+               {review?.conditionalCredit ? 'Read-only preview. Conditional credit posting is not available. Your saved draft and payment balances remain unchanged.' : 'Posting creates a balanced, source-linked journal and makes this document read-only. You cannot edit or delete its posted amounts here. Posting does not send the document or move cash.'}
+             </AlertDialogDescription>
+           </AlertDialogHeader>
++          {review && doc?.source?.conditional_discount && !meta.credit && <div aria-label="Saved original agreement" className="space-y-2 rounded-lg border p-4 text-sm"><p>Agreed discount: <Money value={doc.source.conditional_discount.discount_gross_pence} /> including VAT</p><p>Agreement date: {doc.source.conditional_discount.agreement_date} · Payment deadline: {doc.source.conditional_discount.payment_deadline}</p><p>The original posts at its full saved total. Any later discount requires a separate review of the unpaid balance.</p></div>}
+           {review?.paidCreditUnavailable && <p className="text-sm">Payment allocation release is unavailable in this environment. Only credits within the original outstanding balance can be posted here.</p>}
+           {review?.conditionalCredit && <PaidCreditReview review={review.conditionalCredit} conditional />}
+           {review?.currentDiscount && <PaidCreditReview review={review.currentDiscount} conditional current />}
+diff --git a/docs/development/credit-capacity-contract.md b/docs/development/credit-capacity-contract.md
+index c969432..a43035e 100644
+--- a/docs/development/credit-capacity-contract.md
++++ b/docs/development/credit-capacity-contract.md
+@@ -684,3 +684,43 @@ saved source validation, followed by the complete blank-original-to-settlement
+ browser journey. Existing migrations require their separate environment approval;
+ this candidate does not deploy, migrate an existing database, send money or
+ activate public production access.
++
++### 11 November 2026 — bounded original agreement entry (partial)
++
++The native invoice/bill page now offers explicit original conditional-agreement
++entry outside document intake. It generates an agreement ID, collects agreement
++date, payment deadline, exact decimal GBP discount including VAT, evidence text
++and user attestation. Integer minor units use BigInt without rounding. Ordinary
++immediate discounts and conditional terms remain mutually exclusive. Capturing
++immutable evidence does not save or post the document; a separate draft save and
++saved-amount posting review remain required. The existing server validates the
++receipt, agreement, party, company and amount against the saved original.
++
++Capture retries retain the request ID until inputs change. Responses attach only
++when their exact terms, company, party and evidence match the active request;
++company/document generation changes discard old responses. Changing party,
++terms or evidence clears the attached receipt and attestation. Saved source and
++posting fields load before receipt verification; failed verification blocks
++save/review without silently discarding the saved agreement. Removing an
++agreement is an explicit draft edit and does not delete immutable evidence.
++Reopening fetches and verifies the saved receipt. Posting review displays the
++saved agreement amount and dates and retains the original full amount.
++
++New full-page Chromium cases use actual AccountingDocumentForm, native API and
++fresh disposable synthetic fixtures for both customer and supplier. They check
++unattested save blocking, capture without saving/posting, changed-term
++invalidation, recapture, save/route reload, receipt retrieval, explicit saved-term
++review and original posting/committed observation, then a native reviewed £108
++payment and actual discount-credit page save/review/£12 commit with no cash
++release. They require exact-source CI;
++local bundle compilation and source tests are not browser/financial acceptance.
++
++This remains PARTIAL P01-03. It does not close the original 92-bullet catalogue,
++parent excess-credit/refund acceptance, intake conditional entry, or full-page lost-response reload/recovery. The new connected page cases
++join original entry, native payment and current discount, pending exact-source CI.
++The existing connected native API and review/recovery-component cases cover
++recovery separately. Fully paid conditional-original commercial credit
++and refund admission remains separately gated; this entry does not enable it.
++Next: run the new cases on matching-source disposable PostgreSQL/Chromium CI,
++independently review results, then connect and verify remaining parent customer
++journeys without rewriting historical posted outcomes.

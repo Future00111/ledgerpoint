@@ -1,0 +1,32 @@
+{
+  "reviewer": "root",
+  "author": "agreement-implementer",
+  "authorCommit": "c2b550dfa69907c19d7d8cbf7c2a8b178e688f56",
+  "base": "8f1adf37d4e8caebc86ed35880aaf25cd5c84124",
+  "tree": "d0a6e16e244ce1a204062014ec85ebca20e62acd",
+  "published": "82ea45c5e9b30a0b0a2eb7249df4b8224da9a834",
+  "verdict": "Reviewed bounded development candidate; CI pending; no parent acceptance",
+  "checks": [
+    "GBP input conversion uses BigInt with exact decimal validation and no binary floating-point rounding",
+    "Receipt requires UUID, active company, party, explicit attestation, exact complete terms and evidence text",
+    "Edits clear receipt and attestation; capture retries reuse request ID until inputs change; scope/generation discards stale responses",
+    "Saved source is loaded before asynchronous evidence verification; invalid evidence blocks save/review; loading and capability guards preserved",
+    "Immediate and conditional discounts mutually exclusive; no financial server or schema changes",
+    "Full-page browser harness uses actual AccountingDocumentForm, native API and only synthetic company/auth plumbing; native payment and actual discount-credit page connected for both parties",
+    "Independent model9 and scheduler98 tests passed; source and pinned fullbuild/typecheck passed on authored tree"
+  ],
+  "reviewRework": [
+    "Preserve loaded source before evidence lookup",
+    "Validate receipt identity format",
+    "Block actions during loading",
+    "Await original observation response in browser before proceeding"
+  ],
+  "limitations": [
+    "CI required for DB/browser execution",
+    "Native payment uses API in browser harness rather than payment-entry page",
+    "Lost-response recovery currently covered by prior component test, not this full-page case",
+    "Document intake agreement entry and fully-paid conditional-original commercial credit/refund remain pending",
+    "No production/statutory/launch acceptance or parent auto-closure"
+  ],
+  "usage": "unknown"
+}
