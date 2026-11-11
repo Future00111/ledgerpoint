@@ -1,0 +1,25 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/posting.ts b/artifacts/api-server/src/services/accountingDocuments/posting.ts
+index cb5519f..76894a8 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/posting.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/posting.ts
+@@ -127,7 +127,6 @@ export async function postDocument(company:string,actor:string,id:string,expecte
+       await testHook?.(transaction!);
+       await q.query("UPDATE accounting_document_sources SET status='posted',journal_id=$3,updated_at=clock_timestamp() WHERE company_id=$1 AND id=$2 AND status='draft'",[company,id,journal.id]);
+       await q.query(`UPDATE ${tables[current.kind as Kind]} SET status='posted',updated_at=clock_timestamp()${credit(current.kind)?",is_applied=true":""} WHERE company_id=$1 AND id=$2 AND status='draft'`,[company,id]);
+-      if(conditionalOriginal) await bindConditionalOriginal(q,company,actor,id);
+       await syncSettlementProjection(q,company,credit(current.kind)?current.original_id:id);
+       await q.query(`INSERT INTO accounting_document_audit(id,company_id,document_id,actor_id,action,before_source,after_source)
+         VALUES($1,$2,$3,$4,'post',$5,$5)`,[randomUUID(),company,id,actor,current.source]);
+diff --git a/tools/development/migrations/registry.test.mjs b/tools/development/migrations/registry.test.mjs
+index 9e7c4e3..8150b51 100644
+--- a/tools/development/migrations/registry.test.mjs
++++ b/tools/development/migrations/registry.test.mjs
+@@ -35,7 +35,7 @@ test('explicit original binding keeps ordinary posting gates and a database-owne
+   assert.equal((posting.match(/fail\(422,'CONDITIONAL_POSTING_NOT_AVAILABLE'\)/g)??[]).length,2);
+   assert.match(posting,/conditionalOriginalTransactions=new WeakMap/);
+   assert.match(posting,/held\.company===company && held\.actor===actor && held\.id===id && held\.expected===expected/);
+-  assert.match(posting,/if\(conditionalOriginal\) await bindConditionalOriginal\(q,company,actor,id\)/);
++  assert.match(posting,/const result=await postDocument\(company,actor,id,expected,testHook,tx\);await bindConditionalOriginal\(q,company,actor,id\);return result/);
+   assert.doesNotMatch(posting,/observeConditionalOriginal/);
+   const sql=read('lib/db/migrations/conditional-discount-agreements.review.sql').toString();
+   assert.match(sql,/origin\.source_xid<>pg_current_xact_id\(\)/);
