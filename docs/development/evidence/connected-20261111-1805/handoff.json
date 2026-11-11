@@ -1,0 +1,104 @@
+{
+  "run": "connected-20261111-1805",
+  "startedAt": "2026-11-11T18:05:05.802Z",
+  "endedAt": "2026-11-11T18:32:03.338Z",
+  "base": "15c7869317b9d3aa546764a43a4e39de38790a80",
+  "published": "8f1adf37d4e8caebc86ed35880aaf25cd5c84124",
+  "tree": "69af23014a7962c72612d61304eb1e24bea9993a",
+  "authors": [
+    {
+      "commit": "7bd6201dfbeee7f7dda22d15d79b84f0aba55f53",
+      "tree": "92d96a90acd50cd2fd421ec6c17ac0da57792174"
+    },
+    {
+      "commit": "e77e0dd96e5ffd1545a094d80250e130d439ee96",
+      "tree": "4e8ac3feac54b133036692267972dee47fea81b1"
+    },
+    {
+      "commit": "ab894425951687bc9189ee5adb37d62c05a109a5",
+      "tree": "69af23014a7962c72612d61304eb1e24bea9993a"
+    }
+  ],
+  "reviewer": "root",
+  "originalBulletsAccepted": [],
+  "parent": "P01-03 pending",
+  "newScenariosVerified": [
+    "Saved agreement original posts with immutable binding, committed observation, native payment, current discount and request recovery for customer and supplier",
+    "Actual review/recovery components in isolated Chromium commit through native API, simulate lost response, remount saved locator and recover without resubmission",
+    "Missing historical binding cannot retrofit; partial compensation schema blocks before writes; SQL rollback/replay and permission tests pass"
+  ],
+  "ci": {
+    "firstRun": 43076691799,
+    "firstResult": "failed: original binding ran before canonical effect finalization; transaction rolled back; cleanup succeeded",
+    "correctionRun": 43077659301,
+    "result": "success",
+    "mergeComparison": {
+      "head": "8f1adf37d4e8caebc86ed35880aaf25cd5c84124",
+      "merge": "377b0135518c71d43168c4e6762e5f27321b0c34",
+      "files": 0,
+      "status": "ahead"
+    },
+    "correctionResult": "native bothparty, schema and missing binding controls passed; browser failed because inline script text matched DOM waits",
+    "finalRun": 43078296324,
+    "finalJob": 130723892201,
+    "allStepsPassed": true
+  },
+  "internalBlockers": {
+    "resolved": [
+      "Exact original-posting and binding transaction interface settled",
+      "Current discount API projection and durable recovery locator connected",
+      "Checkpoint serialization error repaired by fast-forward and full JSON verification",
+      "CI exposed binder/effect ordering; independently reviewed correction published",
+      "Browser acceptance predicates scoped to rendered root, excluding inline script text"
+    ],
+    "remaining": [
+      {
+        "item": "Blank-original agreement/evidence entry controls and complete page browser acceptance",
+        "age": "identified this run",
+        "nextAction": "Implement using existing captureConditionalEvidence API and source validation; qualify blank invoice and bill through payment/current discount/recovery",
+        "role": "next implementer, independent root review"
+      }
+    ]
+  },
+  "next": {
+    "task": "P01-03 automatically claim highest eligible",
+    "source": "8f1adf37d4e8caebc86ed35880aaf25cd5c84124",
+    "ownedPaths": [
+      "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx",
+      "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+      "artifacts/ledgerly/src/features/documentDiscounts/model.mjs",
+      "artifacts/ledgerly/src/features/documentDiscounts/model.test.mjs",
+      "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts"
+    ],
+    "acceptance": [
+      "Blank original captures exact terms/evidence and saves draft; posting binds same transaction; observation retry preserves posted state",
+      "Customer and supplier payment meets supported terms; current discount within unpaid balance posts once; lost response recovers without resubmission",
+      "Fully-paid document cannot receive new discount; ordinary invoice credit/refund remains distinct; historical journals unchanged",
+      "Stale company/revision, denied actor, corrupt recovery locator and interrupted request fail closed",
+      "Independent financial/security review and exact published build/source/scheduler/native PostgreSQL/restore/full-page browser gates"
+    ],
+    "parentClosingEvidence": "Reconcile both original P01-03 acceptance bullets and previously verified allocation/refund/reversal chains against final exact source; no automatic parent closure"
+  },
+  "staffing": {
+    "implementers": 1,
+    "reviewerCoordinator": "root",
+    "replit": "list_apps returned no LedgerPoint workspace; not dispatched",
+    "extraCapacity": "Idle under simplified credit-efficient policy; no safe second assignment needed for this bounded journey",
+    "workerStopped": true
+  },
+  "metrics": {
+    "credits": "unknown",
+    "reviewWait": "unknown",
+    "integrationWait": "unknown",
+    "rework": "two CI corrections: transaction binding order and rendered-DOM test predicate",
+    "terminationReason": "Reserve bounded window for exact CI and durable shutdown; remaining agreement-entry journey requires next focused run"
+  },
+  "safety": {
+    "merged": false,
+    "deployed": false,
+    "existingDatabaseTouched": false,
+    "rawTokensPublished": false
+  },
+  "queueRevision": 731,
+  "verifiedScope": "Bounded saved-original workflow; not blank-original full-page UI or parent completion"
+}
