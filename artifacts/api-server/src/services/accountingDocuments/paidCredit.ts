@@ -39,7 +39,7 @@ function childId(request:string,payment:string) {
   return `${h.slice(0,8)}-${h.slice(8,12)}-4${h.slice(13,16)}-a${h.slice(17,20)}-${h.slice(20,32)}`;
 }
 // Server-selected mode only. HTTP request parsing never accepts it.
-type CreditPurpose=false|true|'commercial';
+type CreditPurpose=false|true|'commercial'|'conditional-discount';
 async function plan(q:Queryable,company:string,actor:string,id:string,expected:string,b:ReturnType<typeof intent>,conditional:CreditPurpose=false) {
   await authority(q,company,actor);
   const row=await document(q,company,id,true);
@@ -59,7 +59,7 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
   const events=await paymentEvents(q,company),open=await documentOpen(q,company,original.id,events);
   const value=BigInt(row.money.gross_pence),capacity=BigInt(open.gross_minor)-BigInt(open.credited_minor);
   if(value<=0n||value>capacity) fail(409,'CREDIT_EXCEEDS_COMMERCIAL_CAPACITY');
-  if(row.source.discount_adjustment) await assertDiscountOutstanding(q,company,original.id,row.money.gross_pence);
+  if(row.source.discount_adjustment || conditional==='conditional-discount') await assertDiscountOutstanding(q,company,original.id,row.money.gross_pence);
   const excess=value>BigInt(open.open_minor)?value-BigInt(open.open_minor):0n;
   let remaining=excess;
   const releases:any[]=[];
@@ -80,9 +80,10 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
   for(const release of releases) if(events.some(e=>(e.id===release.payment_id||e.payment_id===release.payment_id)&&e.effective_date>row.source.issue_date)) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
   if(events.some(e=>e.effective_date>row.source.issue_date&&e.allocations.some((a:any)=>a.document_id===original.id))) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
   const configurations=(await q.query('SELECT * FROM accounting_payment_configuration WHERE company_id=$1',[company])).rows;
-  const admission=conditional===true?await conditionalCreditAdmission(q,company,original,row,releases):undefined;
+  if(conditional==='conditional-discount' && releases.length) fail(409,'DISCOUNT_EXCEEDS_OUTSTANDING');
+  const admission=(conditional===true||conditional==='conditional-discount')?await conditionalCreditAdmission(q,company,original,row,releases):undefined;
   const commercial=conditional==='commercial'?await commercialCreditAdmission(q,company,original,row):undefined;
-  const review={...(commercial?{commercial_admission:commercial}:{}),...(admission?{conditional_admission:admission,conditional_credit_payload:canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts})}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
+  const review={...(conditional==='conditional-discount'?{purpose:conditional}:{}),...(commercial?{commercial_admission:commercial}:{}),...(admission?{conditional_admission:admission,conditional_credit_payload:canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts})}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
     credit_minor:value.toString(),offset_minor:(value-excess).toString(),released_minor:excess.toString(),remaining_minor:(BigInt(open.open_minor)-(value-excess)).toString(),releases};
   return {...review,review_token:hash({company,actor,review,row,original,linked,events,periods,configurations})};
 }
@@ -93,15 +94,10 @@ export async function reviewPaidCredit(company:string,actor:string,id:string,exp
 export async function reviewConditionalCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
   const b=intent(body);return transact(q=>plan(q,company,actor,id,expected,b,true));
 }
-/** Current public preview policy, separate from historical internal redemption.
- * Both reads share the company-locked transaction; no request flag can opt out. */
+/** Current discount policy is server-selected and bound into the review identity.
+ * The HTTP endpoint still projects this as a read-only preview. */
 export async function reviewPublicConditionalCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
-  const b=intent(body);
-  return transact(async q=>{
-    const review=await plan(q,company,actor,id,expected,b,true);
-    await assertDiscountOutstanding(q,company,review.original_id,review.credit_minor);
-    return review;
-  });
+  return transact(q=>plan(q,company,actor,id,expected,intent(body),'conditional-discount'));
 }
 async function commitCredit(company:string,actor:string,id:string,expected:string,body:unknown,conditional:CreditPurpose,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
   const b=intent(body),input=body as any;
@@ -150,4 +146,38 @@ export async function reviewCommercialCredit(company:string,actor:string,id:stri
 }
 export async function commitCommercialCredit(company:string,actor:string,id:string,expected:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
   return commitCredit(company,actor,id,expected,body,'commercial',testHook);
+}
+
+/** Protected current-policy command. Public admission remains gated separately. */
+export async function commitCurrentConditionalDiscount(company:string,actor:string,id:string,expected:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+  return commitCredit(company,actor,id,expected,body,'conditional-discount',testHook);
+}
+
+/** Recover only this purpose's immutable receipt; never expose canonical intent. */
+export async function recoverCurrentConditionalDiscount(company:string,actor:string,requestId:string) {
+  const request=uuid(requestId).toLowerCase();
+  return transact(async q=>{
+    await authority(q,company,actor);
+    const op=(await q.query('SELECT actor_id,credit_id,intent,result FROM accounting_paid_credit_operations WHERE company_id=$1 AND request_id=$2',[company,request])).rows[0];
+    if(!op || op.actor_id!==actor || op.intent.purpose!=='conditional-discount') return {status:'unknown',request_id:request};
+    const row=await document(q,company,op.credit_id);
+    const j=(await q.query(`SELECT j.*,p.id effect_id FROM canonical_journal_entries j
+      LEFT JOIN accounting_posting_effects p ON p.company_id=j.company_id AND p.journal_id=j.id
+        AND p.source_id=j.source_id AND p.source_type=j.source_type AND p.source_revision=j.source_revision
+        AND p.source_evidence_hash=j.source_evidence_hash AND p.status='posted'
+        AND p.posting_kind=j.posting_kind AND p.economic_effect_id=j.economic_effect_id
+        AND p.idempotency_key='document:'||j.source_id
+      WHERE j.company_id=$1 AND j.id=$2`,[company,row.journal_id])).rows;
+    const payload=canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts});
+    if(row.status!=='posted'||!credit(row.kind)||row.id!==op.result.document_id||row.journal_id!==op.result.journal_id||
+      op.result.request_id!==request||op.result.status!=='posted'||op.intent.document_id!==row.id||op.intent.revision!==row.revision||
+      op.intent.original_id!==row.original_id||op.intent.conditional_credit_payload!==payload||!op.intent.conditional_admission||
+      op.intent.released_minor!=='0'||!Array.isArray(op.intent.releases)||op.intent.releases.length||
+      !Array.isArray(op.result.releases)||op.result.releases.length||
+      j.length!==1||!j[0].effect_id||j[0].status!=='posted'||j[0].source_id!==row.id||j[0].source_type!==row.kind||
+      j[0].posting_kind!=='ordinary_document'||j[0].economic_effect_id!==`document:${row.id}`||
+      j[0].created_by_type!=='user'||j[0].created_by_id!==actor||
+      j[0].source_revision!==row.revision||j[0].source_evidence_hash!==hash(JSON.parse(payload))) fail(503,'CONDITIONAL_DISCOUNT_HISTORY_INVALID');
+    return {status:'recorded',request_id:request,document_id:op.result.document_id,journal_id:op.result.journal_id};
+  });
 }

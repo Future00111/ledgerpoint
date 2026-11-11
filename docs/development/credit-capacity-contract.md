@@ -616,3 +616,30 @@ must enforce the same current owner rule at locked commit and qualify the whole
 journey. Ordinary commercial credit/refund capacity is unchanged. The new both-party
 HTTP cases check unchanged financial snapshots after allowed and denied previews;
 this bounded preview correction does not complete P01-03 or qualify posting.
+
+### Current conditional-discount command (11 November 2026)
+
+The internal `commitCurrentConditionalDiscount` command shares the protected
+canonical transaction and company lock with the existing credit engine. Its
+server-selected `conditional-discount` purpose is bound into both the review
+identity and operation request hash. Current-policy review and commit require a
+positive unpaid balance and a discount no greater than that balance, before any
+release planning; the accepted plan has no cash allocation releases. Existing
+conditional qualification, source freshness, account, period, capability and
+immutable consumption controls remain required. Exact committed retries return
+the recorded result before applying today's outstanding-balance checks. Historical
+internal redemption and genuine commercial credits retain their separate modes.
+
+`recoverCurrentConditionalDiscount` requires current posting capability, company
+scope, the original actor and this purpose. An absent or differently scoped request
+returns `unknown`, which is not proof of rollback and never creates a replacement
+request. A recorded receipt verifies the credit, canonical payload, journal and
+posting effect linkage before returning only request, document and journal IDs.
+It does not expose internal intent, review tokens or canonical payloads.
+
+This is an internal financial command, not public activation. Public original
+conditional posting and conditional-credit commit remain closed. The next
+connected delivery must integrate atomic original binding, the explicit current
+review/commit/recovery API and UI, and all relevant payment, correction,
+replacement and compensation guards, followed by independent review and an
+isolated browser journey. The broad P01-03 package remains pending.

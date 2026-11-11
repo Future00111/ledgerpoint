@@ -1594,3 +1594,62 @@ for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL H
  assert.equal(result.status,409);assert.equal(result.error.code,'DISCOUNT_REQUIRES_UNPAID_BALANCE');
  assert.deepEqual(await financialSnapshot(f.company),before);
 });
+
+import {reviewPublicConditionalCredit,commitCurrentConditionalDiscount,recoverCurrentConditionalDiscount} from './paidCredit';
+for(const side of ['customer','supplier'] as const) {
+ test(`real PostgreSQL: ${side} current conditional discount commits atomically without releasing cash and recovers exact receipt`,async()=>{
+  const f=await admissionFixture(side);
+  await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));await observeConditionalOriginal(f.company,actor,f.draft.id);
+  await nativeCash(f,'10800','10800');
+  const c=await conditionalCreditDraft(f,side),b={request_id:randomUUID(),reason:'Current policy discount'};
+  const r=await reviewPublicConditionalCredit(f.company,actor,c.id,c.revision,b);
+  const historical=await reviewConditionalCredit(f.company,actor,c.id,c.revision,b);
+  assert.notEqual(r.review_token,historical.review_token);assert.deepEqual(r.releases,[]);assert.equal(r.released_minor,'0');
+  const input={...b,review_token:r.review_token,releases:r.releases};
+  const before=await financialSnapshot(f.company);
+  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...input,review_token:historical.review_token}),/PAID_CREDIT_REVIEW_STALE/);
+  await assert.rejects(()=>commitConditionalCredit(f.company,actor,c.id,c.revision,input),/PAID_CREDIT_REVIEW_STALE/);
+  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...input,purpose:true}),/FIELD_INVALID/);
+  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,input,async()=>{throw Error('current discount rollback');}),/current discount rollback/);
+  assert.deepEqual(await financialSnapshot(f.company),before);
+  assert.equal((await recoverCurrentConditionalDiscount(f.company,actor,b.request_id)).status,'unknown');
+  const results=await Promise.all([commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,input),commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,input)]);
+  assert.deepEqual(results.map(x=>x.status).sort(),['duplicate','posted']);
+  assert.deepEqual(results[0].releases,[]);
+  assert.equal((await commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,input)).status,'duplicate');
+  await assert.rejects(()=>commitConditionalCredit(f.company,actor,c.id,c.revision,input),/IDEMPOTENCY_CONFLICT/);
+  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...input,reason:'changed'}),/IDEMPOTENCY_CONFLICT/);
+  const receipt=await recoverCurrentConditionalDiscount(f.company,actor,b.request_id);
+  assert.deepEqual(receipt,{status:'recorded',request_id:b.request_id,document_id:c.id,journal_id:results[0].journal_id});
+  const another=`owner-${randomUUID()}`;
+  await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',true)",[randomUUID(),f.company,another]);
+  assert.deepEqual(await recoverCurrentConditionalDiscount(f.company,another,b.request_id),{status:'unknown',request_id:b.request_id});
+  const other=await admissionFixture(side);
+  assert.equal((await recoverCurrentConditionalDiscount(other.company,actor,b.request_id)).status,'unknown');
+  const viewer=`viewer-${randomUUID()}`;
+  await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'read_only',true)",[randomUUID(),f.company,viewer]);
+  await assert.rejects(()=>recoverCurrentConditionalDiscount(f.company,viewer,b.request_id),/CAPABILITY_DENIED|ROLE_DENIED/);
+  await assert.rejects(()=>recoverCurrentConditionalDiscount(f.company,'unrelated-user',b.request_id));
+  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,0);
+ });
+ for(const extra of ['1','1200'])test(`real PostgreSQL: ${side} current discount locked commit rejects ${extra} further paid pence`,async()=>{
+  const f=await admissionFixture(side);await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));await observeConditionalOriginal(f.company,actor,f.draft.id);
+  await nativeCash(f,'10800','10800');const c=await conditionalCreditDraft(f,side),b={request_id:randomUUID(),reason:'Payment raced review'};
+  const r=await reviewPublicConditionalCredit(f.company,actor,c.id,c.revision,b);
+  await nativeCash(f,extra,extra);const before=await financialSnapshot(f.company);
+  const pattern=extra==='1'?/DISCOUNT_EXCEEDS_OUTSTANDING/:/DISCOUNT_REQUIRES_UNPAID_BALANCE/;
+  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...b,review_token:r.review_token,releases:r.releases}),pattern);
+  await assert.rejects(()=>reviewPublicConditionalCredit(f.company,actor,c.id,c.revision,b),pattern);
+  assert.deepEqual(await financialSnapshot(f.company),before);
+ });
+ test(`real PostgreSQL: ${side} current discount and payment race cannot over-discount`,async()=>{
+  const f=await admissionFixture(side);await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));await observeConditionalOriginal(f.company,actor,f.draft.id);
+  await nativeCash(f,'10800','10800');const c=await conditionalCreditDraft(f,side),b={request_id:randomUUID(),reason:'Concurrent payment'};
+  const r=await reviewPublicConditionalCredit(f.company,actor,c.id,c.revision,b);
+  const p={...f.body,id:randomUUID(),amount_minor:'1',allocations:[{document_id:f.draft.id,amount_minor:'1'}]};
+  const pr=await previewPayment(f.company,actor,p);
+  const race=await Promise.allSettled([commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...b,review_token:r.review_token,releases:r.releases}),postPayment(f.company,actor,{...p,review_token:pr.review_token})]);
+  assert.equal(race.filter(x=>x.status==='fulfilled').length,1);assert.equal(race.filter(x=>x.status==='rejected').length,1);
+  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,0);
+ });
+}
