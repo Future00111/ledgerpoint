@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 304,
+  "revision": 305,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "cd6d0ca249ce367fbccf1e0ec075ee99dabb78ff",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "posting-1794406714096",
+    "tokenSha256": "ea5f63294d20626ec61256113e9e0fd94a9e0df7d70ce0738e8ccc9d8158cfc3",
+    "acquiredAt": 1794406714096,
+    "expiresAt": 1794408514096
+  },
   "lastOwner": {
     "runId": "next-1794341988275",
     "tokenSha256": "7e92b2977e264cc3859829b2745372e898f0ceb46747123e6adbe91eae8d6692",
@@ -9879,7 +9884,7 @@
     "at": 1794342667447,
     "codeHead": "cd6d0ca249ce367fbccf1e0ec075ee99dabb78ff"
   },
-  "updatedAt": 1794342667477,
+  "updatedAt": 1794406714096,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -11521,5 +11526,10 @@
       "stopReason": "Bounded reviewed correction completed and verified; remaining public mutation journey needs separate focused contract and ownership reconciliation, no rushed activation",
       "endedAt": "2026-11-10T20:29:46.877Z"
     }
+  },
+  "postingRun": {
+    "startedAt": "2026-11-11T14:18:34.125Z",
+    "scope": "Complete current-rule conditional posting prerequisite and connected journey",
+    "credits": "unknown"
   }
 }
