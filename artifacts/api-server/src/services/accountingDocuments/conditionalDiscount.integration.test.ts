@@ -1764,7 +1764,7 @@ test('real PostgreSQL: explicit original retry rejects a missing historical bind
  assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_bindings WHERE company_id=$1',[f.company])).rows[0].n,0);
 });
 
-for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${side} blank original agreement through payment and current discount full page`,async()=>{
+for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${side} blank original agreement through payment and current discount lost-response full-page recovery`,async()=>{
  const f=await ordinaryOriginalFixture(side),kind=side==='customer'?'sales_invoice':'purchase_bill',route=side==='customer'?'/invoices':'/bills',creditRoute=side==='customer'?'/sales-credit-notes':'/supplier-credit-notes',creditKind=side==='customer'?'sales_credit_note':'supplier_credit_note',number='BROWSER-AGREEMENT-'+randomUUID();
  const dir=mkdtempSync(path.join(path.dirname(socket),'agreement-page-browser-'));
  try {
@@ -1776,7 +1776,8 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
    import {MemoryRouter,Routes,Route,useNavigate} from ${JSON.stringify(frontend+'/node_modules/react-router-dom/dist/index.mjs')};
    import {QueryClient,QueryClientProvider} from ${JSON.stringify(frontend+'/node_modules/@tanstack/react-query/build/modern/index.js')};
    import Form from ${JSON.stringify(frontend+'/src/pages/AccountingDocumentForm.jsx')};
-   const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,savedId=null;
+   import {readDiscountRecovery} from ${JSON.stringify(frontend+'/src/features/paidCreditReview/model.mjs')};
+   const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,recoveries=0,savedId=null;
    window.fetch=async(url,options={})=>{
     const path=String(url).replace(/^\\/api\\//,'/');
     const headers=new Headers(options.headers);headers.set('x-test-actor',${JSON.stringify(actor)});
@@ -1786,12 +1787,14 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
     const response=await nativeFetch(path,{...options,headers});
     if(path.endsWith('/accounting-documents')&&options.method==='POST'&&response.ok)savedId=(await response.clone().json()).data.id;
     if(path.endsWith('/conditional-original/observe')&&response.ok)observed++;
-    if(path.endsWith('/conditional-discount')&&options.method==='POST'&&response.ok)discountPosts++;
+    if(path.endsWith('/conditional-discount')&&options.method==='POST'&&response.ok){discountPosts++;if(discountPosts===1)throw Error('Synthetic lost discount response');}
+    if(path.includes('/accounting-conditional-discounts/operations/')&&response.ok)recoveries++;
     return response;
    };
    const root=createRoot(document.getElementById('root'));
    function Navigation(){window.testNavigate=useNavigate();return null;}
-   root.render(<QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MemoryRouter initialEntries={[${JSON.stringify(route+'/new')}]}><Navigation/><Routes><Route path=${JSON.stringify(route+'/:id')} element={<Form kind=${JSON.stringify(kind)}/>}/><Route path=${JSON.stringify(creditRoute+'/:id')} element={<Form kind=${JSON.stringify(creditKind)}/>}/></Routes></MemoryRouter></QueryClientProvider>);
+   const mount=(url,key)=>root.render(<QueryClientProvider key={key} client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MemoryRouter initialEntries={[url]}><Navigation/><Routes><Route path=${JSON.stringify(route+'/:id')} element={<Form kind=${JSON.stringify(kind)}/>}/><Route path=${JSON.stringify(creditRoute+'/:id')} element={<Form kind=${JSON.stringify(creditKind)}/>}/></Routes></MemoryRouter></QueryClientProvider>);
+   mount(${JSON.stringify(route+'/new')},'initial');
    const el=id=>document.querySelector('[data-testid="'+id+'"]');
    const wait=async(fn)=>{for(let i=0;i<240;i++){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Browser timeout: '+document.getElementById('root').textContent.slice(-1200));};
    const change=async(selector,value)=>{const node=document.querySelector(selector);if(!node)throw Error('Missing '+selector);const proto=node.tagName==='SELECT'?HTMLSelectElement.prototype:node.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(node,value);node.dispatchEvent(new Event(node.tagName==='SELECT'?'change':'input',{bubbles:true}));await new Promise(r=>setTimeout(r,25));};
@@ -1826,7 +1829,18 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
     el('button-post').click();await wait(()=>document.querySelector('[aria-label="Conditional discount posting review"]'));
     const discountReview=document.querySelector('[aria-label="Conditional discount posting review"]').textContent;
     if(!discountReview.includes('£12.00')||!discountReview.includes('No paid cash is released')||discountPosts)throw Error('Current discount review omitted unpaid policy');
-    el('button-confirm-posting').click();await wait(()=>discountPosts===1&&!el('button-confirm-posting')&&document.getElementById('root').textContent.includes('Posted'));
+    el('button-confirm-posting').click();
+    const recovery=()=>document.querySelector('[aria-label="Conditional discount recovery"]');
+    const pending=()=>readDiscountRecovery(localStorage,${JSON.stringify(f.company)},savedId);
+    await wait(()=>discountPosts===1&&recovery()&&el('button-confirm-posting')?.disabled);
+    if(!pending())throw Error('Lost response did not persist recovery');
+    mount(${JSON.stringify(creditRoute+'/')}+savedId,'reloaded');
+    await wait(()=>recovery()&&document.getElementById('root').textContent.includes('Posted')&&!el('button-confirm-posting'));
+    if(discountPosts!==1||!pending())throw Error('Reload resent commit or lost recovery');
+    const recoverButton=[...recovery().querySelectorAll('button')].find(b=>b.textContent==='Recover discount outcome');
+    if(!recoverButton||recoverButton.disabled)throw Error('Posted page omitted recovery action');
+    recoverButton.click();await wait(()=>!recovery()&&recoveries===1&&pending()===null&&document.getElementById('root').textContent.includes('Posted'));
+    if(discountPosts!==1)throw Error('Recovery resubmitted discount');
     document.body.dataset.originalAgreementAcceptance='passed';
    })().catch(e=>{document.body.dataset.originalAgreementAcceptance='failed';document.getElementById('root').append(document.createTextNode(e.message));});
   `);
@@ -1842,6 +1856,6 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
   assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,1);
   assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,0);
   assert.deepEqual((await pool.query(`SELECT amount_paid::text,balance_due::text FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[row.id])).rows[0],{amount_paid:'108.00',balance_due:'0.00'});
-  console.log('ORIGINAL_AGREEMENT_PAGE_BROWSER_ACCEPTANCE' ,JSON.stringify({party:side,actualFullPage:true,blankEntry:true,nativeEvidence:true,invalidatedTerms:true,savedReceiptReload:true,explicitReviewAndPost:true,nativePayment:true,actualDiscountCreditPage:true,noPaidCashRelease:true,syntheticOnly:true}));
+  console.log('ORIGINAL_AGREEMENT_PAGE_BROWSER_ACCEPTANCE' ,JSON.stringify({party:side,actualFullPage:true,blankEntry:true,nativeEvidence:true,invalidatedTerms:true,savedReceiptReload:true,explicitReviewAndPost:true,nativePayment:true,actualDiscountCreditPage:true,noPaidCashRelease:true,lostResponse:true,actualFormRemountRecovery:true,noResubmission:true,syntheticOnly:true}));
  }finally{browserHtml='';rmSync(dir,{recursive:true,force:true});}
 });

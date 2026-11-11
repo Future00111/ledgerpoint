@@ -712,12 +712,16 @@ unattested save blocking, capture without saving/posting, changed-term
 invalidation, recapture, save/route reload, receipt retrieval, explicit saved-term
 review and original posting/committed observation, then a native reviewed £108
 payment and actual discount-credit page save/review/£12 commit with no cash
-release. They require exact-source CI;
+release. A test-only continuation now drops the successful discount response,
+checks the actual form persists recovery and disables confirmation, remounts the
+posted credit page, then recovers through the native receipt GET exactly once
+without another commit. These extended cases require exact-source CI;
 local bundle compilation and source tests are not browser/financial acceptance.
 
 This remains PARTIAL P01-03. It does not close the original 92-bullet catalogue,
-parent excess-credit/refund acceptance, intake conditional entry, or full-page lost-response reload/recovery. The new connected page cases
-join original entry, native payment and current discount, pending exact-source CI.
+parent excess-credit/refund acceptance, intake conditional entry, or broader parent recovery/refund acceptance. The new connected page cases
+join original entry, native payment, current discount and lost-response remount
+recovery, pending exact-source CI for this test-only continuation.
 The existing connected native API and review/recovery-component cases cover
 recovery separately. Fully paid conditional-original commercial credit
 and refund admission remains separately gated; this entry does not enable it.
