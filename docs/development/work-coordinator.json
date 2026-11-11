@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 314,
+  "revision": 316,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "15c7869317b9d3aa546764a43a4e39de38790a80",
@@ -11,7 +11,7 @@
     "runId": "connected-1794420305732",
     "tokenSha256": "f45c3796a0be2e48c16b8d2b0a7401ca5480375d33d8dfe21e21097c9687f15a",
     "acquiredAt": 1794420305733,
-    "expiresAt": 1794422105733
+    "expiresAt": 1794422252346
   },
   "lastOwner": {
     "runId": "posting-1794406714096",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 714,
+    "revision": 716,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "pending",
+        "status": "running",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "PARTIAL verified current-policy conditional commit/recovery; authorf9dcafa/tree9687764 published15c7869317b9d3aa546764a43a4e39de38790a80. Root independentreview; source/build/typecheck passed. ExactCI43038657047 job130584214079 all8new bothpartyPG race/rollback/replay/recovery cases plusbrowser/security/restore/encryptedcleanup passed; checkout0df7335 files[]. Worker completed stoppedclean. Next root+implementer wire atomic originalbinding through protected posting, then explicit currentpolicy review/commit/recovery API/UI with unknownoutcome recovery; preserve allmutator compensation/replacement guards. No more preview-only slices; parentacceptance requires connected isolatedbrowser + samefinancial/recoverygates.",
+        "checkpoint": "connected-run base15c7869; approved explicit conditional-original wrapper and current-discount API/client/recovery contract; before edits",
         "evidence": {
           "commit": "f9dcafa931426ea0c905d468bd97e0514d9a635a",
           "summary": "PARTIAL protected current-policy conditional-discount commit and verified recovery. Purpose-bound hashes preserve historical redemption; unpaid cap at lockedcommit prevents cashreleases. Public posting remains gated. NativePG/independentreview pending; next atomicoriginalbinding and connected review/commit/recovery UI.",
@@ -118,7 +118,10 @@
             }
           ]
         },
-        "blockers": []
+        "owner": "connected-implementer",
+        "tokenSha256": "3cef13de68236c003b9b654b7f3f198451107b4fe6166247cd6942f7a2b75400",
+        "leaseUntil": 1794421293166,
+        "workStarted": true
       },
       "P01-04": {
         "status": "blocked",
@@ -9748,6 +9751,20 @@
         "type": "recover",
         "taskId": "P01-03",
         "checkpoint": "PARTIAL verified current-policy conditional commit/recovery; authorf9dcafa/tree9687764 published15c7869317b9d3aa546764a43a4e39de38790a80. Root independentreview; source/build/typecheck passed. ExactCI43038657047 job130584214079 all8new bothpartyPG race/rollback/replay/recovery cases plusbrowser/security/restore/encryptedcleanup passed; checkout0df7335 files[]. Worker completed stoppedclean. Next root+implementer wire atomic originalbinding through protected posting, then explicit currentpolicy review/commit/recovery API/UI with unknownoutcome recovery; preserve allmutator compensation/replacement guards. No more preview-only slices; parentacceptance requires connected isolatedbrowser + samefinancial/recoverygates."
+      },
+      {
+        "at": 1794420393166,
+        "actor": "connected-implementer",
+        "type": "claim",
+        "taskId": "P01-03",
+        "tokenSha256": "3cef13de68236c003b9b654b7f3f198451107b4fe6166247cd6942f7a2b75400"
+      },
+      {
+        "at": 1794420438374,
+        "actor": "connected-implementer",
+        "type": "checkpoint",
+        "taskId": "P01-03",
+        "checkpoint": "connected-run base15c7869; approved explicit conditional-original wrapper and current-discount API/client/recovery contract; before edits"
       }
     ],
     "catalogDigest": "4a4d6a7a34c9e133364ffbfbf4979a8ceacd73ef9436d0db7a7f5a7f00336058",
@@ -9773,11 +9790,11 @@
         "path": "docs/development/candidates/20261111-current-discount/handoff.json"
       }
     ],
-    "runId": "posting-1794406714096",
-    "at": 1794407541387,
+    "runId": "connected-1794420305732",
+    "at": 1794420452278,
     "codeHead": "15c7869317b9d3aa546764a43a4e39de38790a80"
   },
-  "updatedAt": 1794420305733,
+  "updatedAt": 1794420452346,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -11478,6 +11495,9 @@
   "connectedRun": {
     "startedAt": "2026-11-11T18:05:05.802Z",
     "scope": "Atomic original agreement binding and connected current-policy posting journey",
-    "credits": "unknown"
+    "credits": "unknown",
+    "activity": "Observed connected_implementation claimed P01-03; proposed exact originalbinding+explicit API/client/UI contract rootapproved. Rootrequires bindinghash canonicalcommand underlockedsource, sametx bind, separate committedobserver, existing ordinarypost remainsblocked and explicit conditionalentry only; recovery safe noresubmit. Replitapp search empty, notdispatched.",
+    "lastObservedAt": "2026-11-11T18:07:32.273Z",
+    "contract": "Explicit conditional-original posting reuses canonicalengine with preparedbindinghash and samejournaltransaction binding; no retroactivebinding. Explicit currentrule conditional review/commit/recovery endpoints, scoped capability/revision/intent, minimalbrowser requestidentity persistence, recovery-before-newrequest and stalecompany guards. Native HTTP and isolatedbrowser gates required; no deployment."
   }
 }
