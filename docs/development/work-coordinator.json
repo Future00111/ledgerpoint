@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 309,
+  "revision": 310,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "cd6d0ca249ce367fbccf1e0ec075ee99dabb78ff",
+  "codeHead": "15c7869317b9d3aa546764a43a4e39de38790a80",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -9763,10 +9763,10 @@
       }
     ],
     "runId": "posting-1794406714096",
-    "at": 1794407166691,
-    "codeHead": "cd6d0ca249ce367fbccf1e0ec075ee99dabb78ff"
+    "at": 1794407262984,
+    "codeHead": "15c7869317b9d3aa546764a43a4e39de38790a80"
   },
-  "updatedAt": 1794407166744,
+  "updatedAt": 1794407262984,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -11413,8 +11413,8 @@
     "startedAt": "2026-11-11T14:18:34.125Z",
     "scope": "Complete current-rule conditional posting prerequisite and connected journey",
     "credits": "unknown",
-    "activity": "Observed implementer stopped and submitted queue712 exact f9dcafa tree9687764. Root independently reviewed runtime lock/replay/purpose isolation/recovery joins and8tests/doc. No blocker. Final source/build/typecheck passed, actualPGpending.",
-    "lastObservedAt": "2026-11-11T14:26:06.689Z",
+    "activity": "Reviewed current-rule posting/recovery source published to PR28; exact CI pending; implementer stopped.",
+    "lastObservedAt": "2026-11-11T14:27:42.983Z",
     "contract": "Private server-selected conditional-discount purpose binds review and request hash; unpaid-cap before releases under same company lock; zero release; replay first; authenticated purpose/actor/company scoped verified recovery. Historical mode preserved. No HTTPcommit/originalposting activation until combined customerjourney qualified.",
     "review": {
       "reviewer": "root",
@@ -11422,6 +11422,7 @@
       "tree": "968776437631a43597b49880937c9c5897308b5e",
       "patchSha256": "cd5389aa354de06d1e6d622f03d503d824bfe7e9fae169e33634e373e3f9fe0d",
       "result": "Independent review passed, source and fullbuild passed; actualPG/restore await CI"
-    }
+    },
+    "published": "15c7869317b9d3aa546764a43a4e39de38790a80"
   }
 }

@@ -1,0 +1,194 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+index 8cb51a6..573ac1e 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+@@ -1594,3 +1594,62 @@ for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL H
+  assert.equal(result.status,409);assert.equal(result.error.code,'DISCOUNT_REQUIRES_UNPAID_BALANCE');
+  assert.deepEqual(await financialSnapshot(f.company),before);
+ });
++
++import {reviewPublicConditionalCredit,commitCurrentConditionalDiscount,recoverCurrentConditionalDiscount} from './paidCredit';
++for(const side of ['customer','supplier'] as const) {
++ test(`real PostgreSQL: ${side} current conditional discount commits atomically without releasing cash and recovers exact receipt`,async()=>{
++  const f=await admissionFixture(side);
++  await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));await observeConditionalOriginal(f.company,actor,f.draft.id);
++  await nativeCash(f,'10800','10800');
++  const c=await conditionalCreditDraft(f,side),b={request_id:randomUUID(),reason:'Current policy discount'};
++  const r=await reviewPublicConditionalCredit(f.company,actor,c.id,c.revision,b);
++  const historical=await reviewConditionalCredit(f.company,actor,c.id,c.revision,b);
++  assert.notEqual(r.review_token,historical.review_token);assert.deepEqual(r.releases,[]);assert.equal(r.released_minor,'0');
++  const input={...b,review_token:r.review_token,releases:r.releases};
++  const before=await financialSnapshot(f.company);
++  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...input,review_token:historical.review_token}),/PAID_CREDIT_REVIEW_STALE/);
++  await assert.rejects(()=>commitConditionalCredit(f.company,actor,c.id,c.revision,input),/PAID_CREDIT_REVIEW_STALE/);
++  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...input,purpose:true}),/FIELD_INVALID/);
++  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,input,async()=>{throw Error('current discount rollback');}),/current discount rollback/);
++  assert.deepEqual(await financialSnapshot(f.company),before);
++  assert.equal((await recoverCurrentConditionalDiscount(f.company,actor,b.request_id)).status,'unknown');
++  const results=await Promise.all([commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,input),commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,input)]);
++  assert.deepEqual(results.map(x=>x.status).sort(),['duplicate','posted']);
++  assert.deepEqual(results[0].releases,[]);
++  assert.equal((await commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,input)).status,'duplicate');
++  await assert.rejects(()=>commitConditionalCredit(f.company,actor,c.id,c.revision,input),/IDEMPOTENCY_CONFLICT/);
++  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...input,reason:'changed'}),/IDEMPOTENCY_CONFLICT/);
++  const receipt=await recoverCurrentConditionalDiscount(f.company,actor,b.request_id);
++  assert.deepEqual(receipt,{status:'recorded',request_id:b.request_id,document_id:c.id,journal_id:results[0].journal_id});
++  const another=`owner-${randomUUID()}`;
++  await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',true)",[randomUUID(),f.company,another]);
++  assert.deepEqual(await recoverCurrentConditionalDiscount(f.company,another,b.request_id),{status:'unknown',request_id:b.request_id});
++  const other=await admissionFixture(side);
++  assert.equal((await recoverCurrentConditionalDiscount(other.company,actor,b.request_id)).status,'unknown');
++  const viewer=`viewer-${randomUUID()}`;
++  await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'read_only',true)",[randomUUID(),f.company,viewer]);
++  await assert.rejects(()=>recoverCurrentConditionalDiscount(f.company,viewer,b.request_id),/CAPABILITY_DENIED|ROLE_DENIED/);
++  await assert.rejects(()=>recoverCurrentConditionalDiscount(f.company,'unrelated-user',b.request_id));
++  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,0);
++ });
++ for(const extra of ['1','1200'])test(`real PostgreSQL: ${side} current discount locked commit rejects ${extra} further paid pence`,async()=>{
++  const f=await admissionFixture(side);await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));await observeConditionalOriginal(f.company,actor,f.draft.id);
++  await nativeCash(f,'10800','10800');const c=await conditionalCreditDraft(f,side),b={request_id:randomUUID(),reason:'Payment raced review'};
++  const r=await reviewPublicConditionalCredit(f.company,actor,c.id,c.revision,b);
++  await nativeCash(f,extra,extra);const before=await financialSnapshot(f.company);
++  const pattern=extra==='1'?/DISCOUNT_EXCEEDS_OUTSTANDING/:/DISCOUNT_REQUIRES_UNPAID_BALANCE/;
++  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...b,review_token:r.review_token,releases:r.releases}),pattern);
++  await assert.rejects(()=>reviewPublicConditionalCredit(f.company,actor,c.id,c.revision,b),pattern);
++  assert.deepEqual(await financialSnapshot(f.company),before);
++ });
++ test(`real PostgreSQL: ${side} current discount and payment race cannot over-discount`,async()=>{
++  const f=await admissionFixture(side);await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));await observeConditionalOriginal(f.company,actor,f.draft.id);
++  await nativeCash(f,'10800','10800');const c=await conditionalCreditDraft(f,side),b={request_id:randomUUID(),reason:'Concurrent payment'};
++  const r=await reviewPublicConditionalCredit(f.company,actor,c.id,c.revision,b);
++  const p={...f.body,id:randomUUID(),amount_minor:'1',allocations:[{document_id:f.draft.id,amount_minor:'1'}]};
++  const pr=await previewPayment(f.company,actor,p);
++  const race=await Promise.allSettled([commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...b,review_token:r.review_token,releases:r.releases}),postPayment(f.company,actor,{...p,review_token:pr.review_token})]);
++  assert.equal(race.filter(x=>x.status==='fulfilled').length,1);assert.equal(race.filter(x=>x.status==='rejected').length,1);
++  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,0);
++ });
++}
+diff --git a/artifacts/api-server/src/services/accountingDocuments/paidCredit.ts b/artifacts/api-server/src/services/accountingDocuments/paidCredit.ts
+index f959469..a4d3b3e 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/paidCredit.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/paidCredit.ts
+@@ -39,7 +39,7 @@ function childId(request:string,payment:string) {
+   return `${h.slice(0,8)}-${h.slice(8,12)}-4${h.slice(13,16)}-a${h.slice(17,20)}-${h.slice(20,32)}`;
+ }
+ // Server-selected mode only. HTTP request parsing never accepts it.
+-type CreditPurpose=false|true|'commercial';
++type CreditPurpose=false|true|'commercial'|'conditional-discount';
+ async function plan(q:Queryable,company:string,actor:string,id:string,expected:string,b:ReturnType<typeof intent>,conditional:CreditPurpose=false) {
+   await authority(q,company,actor);
+   const row=await document(q,company,id,true);
+@@ -59,7 +59,7 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
+   const events=await paymentEvents(q,company),open=await documentOpen(q,company,original.id,events);
+   const value=BigInt(row.money.gross_pence),capacity=BigInt(open.gross_minor)-BigInt(open.credited_minor);
+   if(value<=0n||value>capacity) fail(409,'CREDIT_EXCEEDS_COMMERCIAL_CAPACITY');
+-  if(row.source.discount_adjustment) await assertDiscountOutstanding(q,company,original.id,row.money.gross_pence);
++  if(row.source.discount_adjustment || conditional==='conditional-discount') await assertDiscountOutstanding(q,company,original.id,row.money.gross_pence);
+   const excess=value>BigInt(open.open_minor)?value-BigInt(open.open_minor):0n;
+   let remaining=excess;
+   const releases:any[]=[];
+@@ -80,9 +80,10 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
+   for(const release of releases) if(events.some(e=>(e.id===release.payment_id||e.payment_id===release.payment_id)&&e.effective_date>row.source.issue_date)) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
+   if(events.some(e=>e.effective_date>row.source.issue_date&&e.allocations.some((a:any)=>a.document_id===original.id))) fail(409,'DATE_PRECEDES_SETTLEMENT_ACTIVITY');
+   const configurations=(await q.query('SELECT * FROM accounting_payment_configuration WHERE company_id=$1',[company])).rows;
+-  const admission=conditional===true?await conditionalCreditAdmission(q,company,original,row,releases):undefined;
++  if(conditional==='conditional-discount' && releases.length) fail(409,'DISCOUNT_EXCEEDS_OUTSTANDING');
++  const admission=(conditional===true||conditional==='conditional-discount')?await conditionalCreditAdmission(q,company,original,row,releases):undefined;
+   const commercial=conditional==='commercial'?await commercialCreditAdmission(q,company,original,row):undefined;
+-  const review={...(commercial?{commercial_admission:commercial}:{}),...(admission?{conditional_admission:admission,conditional_credit_payload:canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts})}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
++  const review={...(conditional==='conditional-discount'?{purpose:conditional}:{}),...(commercial?{commercial_admission:commercial}:{}),...(admission?{conditional_admission:admission,conditional_credit_payload:canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts})}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
+     credit_minor:value.toString(),offset_minor:(value-excess).toString(),released_minor:excess.toString(),remaining_minor:(BigInt(open.open_minor)-(value-excess)).toString(),releases};
+   return {...review,review_token:hash({company,actor,review,row,original,linked,events,periods,configurations})};
+ }
+@@ -93,15 +94,10 @@ export async function reviewPaidCredit(company:string,actor:string,id:string,exp
+ export async function reviewConditionalCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
+   const b=intent(body);return transact(q=>plan(q,company,actor,id,expected,b,true));
+ }
+-/** Current public preview policy, separate from historical internal redemption.
+- * Both reads share the company-locked transaction; no request flag can opt out. */
++/** Current discount policy is server-selected and bound into the review identity.
++ * The HTTP endpoint still projects this as a read-only preview. */
+ export async function reviewPublicConditionalCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
+-  const b=intent(body);
+-  return transact(async q=>{
+-    const review=await plan(q,company,actor,id,expected,b,true);
+-    await assertDiscountOutstanding(q,company,review.original_id,review.credit_minor);
+-    return review;
+-  });
++  return transact(q=>plan(q,company,actor,id,expected,intent(body),'conditional-discount'));
+ }
+ async function commitCredit(company:string,actor:string,id:string,expected:string,body:unknown,conditional:CreditPurpose,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+   const b=intent(body),input=body as any;
+@@ -151,3 +147,37 @@ export async function reviewCommercialCredit(company:string,actor:string,id:stri
+ export async function commitCommercialCredit(company:string,actor:string,id:string,expected:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+   return commitCredit(company,actor,id,expected,body,'commercial',testHook);
+ }
++
++/** Protected current-policy command. Public admission remains gated separately. */
++export async function commitCurrentConditionalDiscount(company:string,actor:string,id:string,expected:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
++  return commitCredit(company,actor,id,expected,body,'conditional-discount',testHook);
++}
++
++/** Recover only this purpose's immutable receipt; never expose canonical intent. */
++export async function recoverCurrentConditionalDiscount(company:string,actor:string,requestId:string) {
++  const request=uuid(requestId).toLowerCase();
++  return transact(async q=>{
++    await authority(q,company,actor);
++    const op=(await q.query('SELECT actor_id,credit_id,intent,result FROM accounting_paid_credit_operations WHERE company_id=$1 AND request_id=$2',[company,request])).rows[0];
++    if(!op || op.actor_id!==actor || op.intent.purpose!=='conditional-discount') return {status:'unknown',request_id:request};
++    const row=await document(q,company,op.credit_id);
++    const j=(await q.query(`SELECT j.*,p.id effect_id FROM canonical_journal_entries j
++      LEFT JOIN accounting_posting_effects p ON p.company_id=j.company_id AND p.journal_id=j.id
++        AND p.source_id=j.source_id AND p.source_type=j.source_type AND p.source_revision=j.source_revision
++        AND p.source_evidence_hash=j.source_evidence_hash AND p.status='posted'
++        AND p.posting_kind=j.posting_kind AND p.economic_effect_id=j.economic_effect_id
++        AND p.idempotency_key='document:'||j.source_id
++      WHERE j.company_id=$1 AND j.id=$2`,[company,row.journal_id])).rows;
++    const payload=canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts});
++    if(row.status!=='posted'||!credit(row.kind)||row.id!==op.result.document_id||row.journal_id!==op.result.journal_id||
++      op.result.request_id!==request||op.result.status!=='posted'||op.intent.document_id!==row.id||op.intent.revision!==row.revision||
++      op.intent.original_id!==row.original_id||op.intent.conditional_credit_payload!==payload||!op.intent.conditional_admission||
++      op.intent.released_minor!=='0'||!Array.isArray(op.intent.releases)||op.intent.releases.length||
++      !Array.isArray(op.result.releases)||op.result.releases.length||
++      j.length!==1||!j[0].effect_id||j[0].status!=='posted'||j[0].source_id!==row.id||j[0].source_type!==row.kind||
++      j[0].posting_kind!=='ordinary_document'||j[0].economic_effect_id!==`document:${row.id}`||
++      j[0].created_by_type!=='user'||j[0].created_by_id!==actor||
++      j[0].source_revision!==row.revision||j[0].source_evidence_hash!==hash(JSON.parse(payload))) fail(503,'CONDITIONAL_DISCOUNT_HISTORY_INVALID');
++    return {status:'recorded',request_id:request,document_id:op.result.document_id,journal_id:op.result.journal_id};
++  });
++}
+diff --git a/docs/development/credit-capacity-contract.md b/docs/development/credit-capacity-contract.md
+index 506fc2b..9cb1a56 100644
+--- a/docs/development/credit-capacity-contract.md
++++ b/docs/development/credit-capacity-contract.md
+@@ -616,3 +616,30 @@ must enforce the same current owner rule at locked commit and qualify the whole
+ journey. Ordinary commercial credit/refund capacity is unchanged. The new both-party
+ HTTP cases check unchanged financial snapshots after allowed and denied previews;
+ this bounded preview correction does not complete P01-03 or qualify posting.
++
++### Current conditional-discount command (11 November 2026)
++
++The internal `commitCurrentConditionalDiscount` command shares the protected
++canonical transaction and company lock with the existing credit engine. Its
++server-selected `conditional-discount` purpose is bound into both the review
++identity and operation request hash. Current-policy review and commit require a
++positive unpaid balance and a discount no greater than that balance, before any
++release planning; the accepted plan has no cash allocation releases. Existing
++conditional qualification, source freshness, account, period, capability and
++immutable consumption controls remain required. Exact committed retries return
++the recorded result before applying today's outstanding-balance checks. Historical
++internal redemption and genuine commercial credits retain their separate modes.
++
++`recoverCurrentConditionalDiscount` requires current posting capability, company
++scope, the original actor and this purpose. An absent or differently scoped request
++returns `unknown`, which is not proof of rollback and never creates a replacement
++request. A recorded receipt verifies the credit, canonical payload, journal and
++posting effect linkage before returning only request, document and journal IDs.
++It does not expose internal intent, review tokens or canonical payloads.
++
++This is an internal financial command, not public activation. Public original
++conditional posting and conditional-credit commit remain closed. The next
++connected delivery must integrate atomic original binding, the explicit current
++review/commit/recovery API and UI, and all relevant payment, correction,
++replacement and compensation guards, followed by independent review and an
++isolated browser journey. The broad P01-03 package remains pending.
