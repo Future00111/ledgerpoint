@@ -35,7 +35,7 @@ test('explicit original binding keeps ordinary posting gates and a database-owne
   assert.equal((posting.match(/fail\(422,'CONDITIONAL_POSTING_NOT_AVAILABLE'\)/g)??[]).length,2);
   assert.match(posting,/conditionalOriginalTransactions=new WeakMap/);
   assert.match(posting,/held\.company===company && held\.actor===actor && held\.id===id && held\.expected===expected/);
-  assert.match(posting,/if\(conditionalOriginal\) await bindConditionalOriginal\(q,company,actor,id\)/);
+  assert.match(posting,/const result=await postDocument\(company,actor,id,expected,testHook,tx\);await bindConditionalOriginal\(q,company,actor,id\);return result/);
   assert.doesNotMatch(posting,/observeConditionalOriginal/);
   const sql=read('lib/db/migrations/conditional-discount-agreements.review.sql').toString();
   assert.match(sql,/origin\.source_xid<>pg_current_xact_id\(\)/);

@@ -127,7 +127,6 @@ export async function postDocument(company:string,actor:string,id:string,expecte
       await testHook?.(transaction!);
       await q.query("UPDATE accounting_document_sources SET status='posted',journal_id=$3,updated_at=clock_timestamp() WHERE company_id=$1 AND id=$2 AND status='draft'",[company,id,journal.id]);
       await q.query(`UPDATE ${tables[current.kind as Kind]} SET status='posted',updated_at=clock_timestamp()${credit(current.kind)?",is_applied=true":""} WHERE company_id=$1 AND id=$2 AND status='draft'`,[company,id]);
-      if(conditionalOriginal) await bindConditionalOriginal(q,company,actor,id);
       await syncSettlementProjection(q,company,credit(current.kind)?current.original_id:id);
       await q.query(`INSERT INTO accounting_document_audit(id,company_id,document_id,actor_id,action,before_source,after_source)
         VALUES($1,$2,$3,$4,'post',$5,$5)`,[randomUUID(),company,id,actor,current.source]);
