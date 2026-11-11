@@ -1442,7 +1442,7 @@ for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL: 
 for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL HTTP: ${partyType} conditional eligibility is read-only, scoped and keeps public posting closed`,async()=>{
  const f=await admissionFixture(partyType);
  await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
- await observeConditionalOriginal(f.company,actor,f.draft.id);await nativeCash(f,'12000','12000');
+ await observeConditionalOriginal(f.company,actor,f.draft.id);await nativeCash(f,'10800','10800');
  const credit=await conditionalCreditDraft(f,partyType),body={request_id:randomUUID(),reason:'Read-only HTTP eligibility'};
  const viewer=`viewer-${randomUUID()}`,inactive=`inactive-${randomUUID()}`;
  for(const [user,role,active] of [[viewer,'read_only',true],[inactive,'owner',false]])await admin.query(
@@ -1451,7 +1451,7 @@ for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL H
  const result=await conditionalHttp(f.company,credit.id,body,credit.revision);
  assert.equal(result.status,200);assert.equal(result.data.readonly,true);assert.equal(result.data.posting_available,false);
  assert.deepEqual(result.data.conditional_admission,{threshold_minor:'10800',qualifying_minor:'10800',deadline:'2199-11-30'});
- assert.equal(result.data.released_minor,'1200');assert.equal(result.data.document_id,credit.id);assert.equal(result.data.revision,credit.revision);
+ assert.equal(result.data.released_minor,'0');assert.deepEqual(result.data.releases,[]);assert.equal(result.data.document_id,credit.id);assert.equal(result.data.revision,credit.revision);
  for(const key of ['review_token','intent','conditional_credit_payload'])assert.equal(Object.hasOwn(result.data,key),false,key);
  assert.deepEqual(await conditionalHttp(f.company,credit.id,body,credit.revision),result);
  assert.equal((await conditionalHttp(f.company,credit.id,body,credit.revision,null)).status,401);
@@ -1563,4 +1563,299 @@ test('Job12 PostgreSQL HTTP: missing replacement schema is honest 503 and record
   assert.equal(w.status,503);
   assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_replacements WHERE company_id=$1',[f.company])).rows[0].n,0);
  } finally {await admin.query('ALTER TABLE conditional_discount_replacements ENABLE ALWAYS TRIGGER conditional_replacement_immutable');}
+});
+
+for(const partyType of ['customer','supplier'] as const) test(`real PostgreSQL HTTP: ${partyType} conditional preview rechecks unpaid capacity after further payments`,async()=>{
+ const f=await admissionFixture(partyType);
+ await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));
+ await observeConditionalOriginal(f.company,actor,f.draft.id);
+ const credit=await conditionalCreditDraft(f,partyType),body={request_id:randomUUID(),reason:'Current unpaid balance preview'};
+ // A saved draft does not establish qualification or reserve the unpaid balance.
+ let before=await financialSnapshot(f.company);
+ let result=await conditionalHttp(f.company,credit.id,body,credit.revision);
+ assert.equal(result.status,409);assert.equal(result.error.code,'CONDITIONAL_PAYMENT_THRESHOLD_NOT_MET');
+ assert.deepEqual(await financialSnapshot(f.company),before);
+ await nativeCash(f,'10800','10800');
+ before=await financialSnapshot(f.company);
+ result=await conditionalHttp(f.company,credit.id,body,credit.revision);
+ assert.equal(result.status,200);assert.equal(result.data.credit_minor,'1200');
+ assert.equal(result.data.offset_minor,'1200');assert.equal(result.data.released_minor,'0');
+ assert.deepEqual(result.data.releases,[]);assert.equal(result.data.posting_available,false);
+ assert.deepEqual(await financialSnapshot(f.company),before);
+ // The same request cannot reuse an earlier preview after another tab pays.
+ await nativeCash(f,'1','1');
+ before=await financialSnapshot(f.company);
+ result=await conditionalHttp(f.company,credit.id,body,credit.revision);
+ assert.equal(result.status,409);assert.equal(result.error.code,'DISCOUNT_EXCEEDS_OUTSTANDING');
+ assert.deepEqual(await financialSnapshot(f.company),before);
+ await nativeCash(f,'1199','1199');
+ before=await financialSnapshot(f.company);
+ result=await conditionalHttp(f.company,credit.id,body,credit.revision);
+ assert.equal(result.status,409);assert.equal(result.error.code,'DISCOUNT_REQUIRES_UNPAID_BALANCE');
+ assert.deepEqual(await financialSnapshot(f.company),before);
+});
+
+import {reviewPublicConditionalCredit,commitCurrentConditionalDiscount,recoverCurrentConditionalDiscount} from './paidCredit';
+for(const side of ['customer','supplier'] as const) {
+ test(`real PostgreSQL: ${side} current conditional discount commits atomically without releasing cash and recovers exact receipt`,async()=>{
+  const f=await admissionFixture(side);
+  await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));await observeConditionalOriginal(f.company,actor,f.draft.id);
+  await nativeCash(f,'10800','10800');
+  const c=await conditionalCreditDraft(f,side),b={request_id:randomUUID(),reason:'Current policy discount'};
+  const r=await reviewPublicConditionalCredit(f.company,actor,c.id,c.revision,b);
+  const historical=await reviewConditionalCredit(f.company,actor,c.id,c.revision,b);
+  assert.notEqual(r.review_token,historical.review_token);assert.deepEqual(r.releases,[]);assert.equal(r.released_minor,'0');
+  const input={...b,review_token:r.review_token,releases:r.releases};
+  const before=await financialSnapshot(f.company);
+  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...input,review_token:historical.review_token}),/PAID_CREDIT_REVIEW_STALE/);
+  await assert.rejects(()=>commitConditionalCredit(f.company,actor,c.id,c.revision,input),/PAID_CREDIT_REVIEW_STALE/);
+  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...input,purpose:true}),/FIELD_INVALID/);
+  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,input,async()=>{throw Error('current discount rollback');}),/current discount rollback/);
+  assert.deepEqual(await financialSnapshot(f.company),before);
+  assert.equal((await recoverCurrentConditionalDiscount(f.company,actor,b.request_id)).status,'unknown');
+  const results=await Promise.all([commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,input),commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,input)]);
+  assert.deepEqual(results.map(x=>x.status).sort(),['duplicate','posted']);
+  assert.deepEqual(results[0].releases,[]);
+  assert.equal((await commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,input)).status,'duplicate');
+  await assert.rejects(()=>commitConditionalCredit(f.company,actor,c.id,c.revision,input),/IDEMPOTENCY_CONFLICT/);
+  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...input,reason:'changed'}),/IDEMPOTENCY_CONFLICT/);
+  const receipt=await recoverCurrentConditionalDiscount(f.company,actor,b.request_id);
+  assert.deepEqual(receipt,{status:'recorded',request_id:b.request_id,document_id:c.id,journal_id:results[0].journal_id});
+  const another=`owner-${randomUUID()}`;
+  await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',true)",[randomUUID(),f.company,another]);
+  assert.deepEqual(await recoverCurrentConditionalDiscount(f.company,another,b.request_id),{status:'unknown',request_id:b.request_id});
+  const other=await admissionFixture(side);
+  assert.equal((await recoverCurrentConditionalDiscount(other.company,actor,b.request_id)).status,'unknown');
+  const viewer=`viewer-${randomUUID()}`;
+  await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'read_only',true)",[randomUUID(),f.company,viewer]);
+  await assert.rejects(()=>recoverCurrentConditionalDiscount(f.company,viewer,b.request_id),/CAPABILITY_DENIED|ROLE_DENIED/);
+  await assert.rejects(()=>recoverCurrentConditionalDiscount(f.company,'unrelated-user',b.request_id));
+  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,0);
+ });
+ for(const extra of ['1','1200'])test(`real PostgreSQL: ${side} current discount locked commit rejects ${extra} further paid pence`,async()=>{
+  const f=await admissionFixture(side);await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));await observeConditionalOriginal(f.company,actor,f.draft.id);
+  await nativeCash(f,'10800','10800');const c=await conditionalCreditDraft(f,side),b={request_id:randomUUID(),reason:'Payment raced review'};
+  const r=await reviewPublicConditionalCredit(f.company,actor,c.id,c.revision,b);
+  await nativeCash(f,extra,extra);const before=await financialSnapshot(f.company);
+  const pattern=extra==='1'?/DISCOUNT_EXCEEDS_OUTSTANDING/:/DISCOUNT_REQUIRES_UNPAID_BALANCE/;
+  await assert.rejects(()=>commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...b,review_token:r.review_token,releases:r.releases}),pattern);
+  await assert.rejects(()=>reviewPublicConditionalCredit(f.company,actor,c.id,c.revision,b),pattern);
+  assert.deepEqual(await financialSnapshot(f.company),before);
+ });
+ test(`real PostgreSQL: ${side} current discount and payment race cannot over-discount`,async()=>{
+  const f=await admissionFixture(side);await withCanonicalPostingTransaction(tx=>bindInOriginalTransaction(f,tx));await observeConditionalOriginal(f.company,actor,f.draft.id);
+  await nativeCash(f,'10800','10800');const c=await conditionalCreditDraft(f,side),b={request_id:randomUUID(),reason:'Concurrent payment'};
+  const r=await reviewPublicConditionalCredit(f.company,actor,c.id,c.revision,b);
+  const p={...f.body,id:randomUUID(),amount_minor:'1',allocations:[{document_id:f.draft.id,amount_minor:'1'}]};
+  const pr=await previewPayment(f.company,actor,p);
+  const race=await Promise.allSettled([commitCurrentConditionalDiscount(f.company,actor,c.id,c.revision,{...b,review_token:r.review_token,releases:r.releases}),postPayment(f.company,actor,{...p,review_token:pr.review_token})]);
+  assert.equal(race.filter(x=>x.status==='fulfilled').length,1);assert.equal(race.filter(x=>x.status==='rejected').length,1);
+  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,0);
+ });
+}
+
+import {postConditionalOriginal} from './posting';
+async function connectedHttp(company:string,route:string,body?:unknown,revision?:string,user=actor) {
+ const response=await fetch(`${base}/companies/${company}/${route}`,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json','x-test-actor':user,...(revision?{'If-Match':`"${revision}"`}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});
+ const json:any=await response.json();return {status:response.status,...json};
+}
+for(const side of ['customer','supplier'] as const)test(`real PostgreSQL HTTP: connected ${side} original binding payment discount and recovery`,async()=>{
+ const f=await admissionFixture(side),originalRoute=`accounting-documents/${f.draft.id}/conditional-original`;
+ const before=await financialSnapshot(f.company);
+ await assert.rejects(()=>postConditionalOriginal(f.company,actor,f.draft.id,f.draft.revision,async()=>{throw Error('original rollback');}),/original rollback/);
+ assert.deepEqual(await financialSnapshot(f.company),before);
+ assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_bindings WHERE company_id=$1',[f.company])).rows[0].n,0);
+ const original=await connectedHttp(f.company,originalRoute,{},f.draft.revision);assert.equal(original.status,200,JSON.stringify(original));
+ assert.equal((await connectedHttp(f.company,originalRoute,{},f.draft.revision)).data.journal_id,original.data.journal_id);
+ const observed=await connectedHttp(f.company,originalRoute+'/observe',{});assert.equal(observed.status,200,JSON.stringify(observed));
+ const body={...f.body,id:randomUUID(),amount_minor:'10800',date:'2026-11-03',allocations:[{document_id:f.draft.id,amount_minor:'10800'}]};
+ const pr=await connectedHttp(f.company,'accounting-payments/review',body);assert.equal(pr.status,200,JSON.stringify(pr));
+ const payment=await connectedHttp(f.company,'accounting-payments',{...body,review_token:pr.data.review_token});assert.equal(payment.status,200,JSON.stringify(payment));
+ const credit=await conditionalCreditDraft(f,side),route=`accounting-documents/${credit.id}/conditional-discount`,intent={request_id:randomUUID(),reason:'Connected current discount'};
+ const review=await connectedHttp(f.company,route+'/review',intent,credit.revision);assert.equal(review.status,200,JSON.stringify(review));
+ assert.equal(review.data.posting_available,true);assert.equal(review.data.released_minor,'0');
+ for(const forbidden of ['conditional_credit_payload','binding','source','capacity'])assert.ok(!Object.hasOwn(review.data,forbidden));
+ assert.deepEqual(Object.keys(review.data.conditional_admission).sort(),['deadline','qualifying_minor','threshold_minor']);
+ const input={...intent,review_token:review.data.review_token,releases:[]};
+ assert.equal((await connectedHttp(f.company,route,{...input,purpose:true},credit.revision)).status,422);
+ const viewer='connected-viewer-'+randomUUID();await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'viewer',true)",[randomUUID(),f.company,viewer]);
+ assert.equal((await connectedHttp(f.company,route,input,credit.revision,viewer)).status,403);
+ const committed=await connectedHttp(f.company,route,input,credit.revision);assert.equal(committed.status,200,JSON.stringify(committed));
+ const recovered=await connectedHttp(f.company,`accounting-conditional-discounts/operations/${intent.request_id}`);assert.equal(recovered.status,200,JSON.stringify(recovered));
+ assert.equal(recovered.data.status,'recorded');assert.equal(recovered.data.journal_id,committed.data.journal_id);
+ assert.equal((await connectedHttp(f.company,route,input,credit.revision)).data.status,'duplicate');
+ assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,0);
+ assert.deepEqual((await pool.query(`SELECT amount_paid::text,balance_due::text FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[f.draft.id])).rows[0],{amount_paid:'108.00',balance_due:'0.00'});
+ const unknown=await connectedHttp(f.company,`accounting-conditional-discounts/operations/${randomUUID()}`);assert.equal(unknown.data.status,'unknown');
+});
+
+test('isolated Chromium: current discount native commit lost response reload and receipt recovery without resubmission',async()=>{
+ const f=await admissionFixture('customer');
+ await postConditionalOriginal(f.company,actor,f.draft.id,f.draft.revision);await observeConditionalOriginal(f.company,actor,f.draft.id);await nativeCash(f,'10800','10800');
+ const credit=await conditionalCreditDraft(f,'customer');
+ const dir=mkdtempSync(path.join(path.dirname(socket),'discount-connected-browser-'));
+ try {
+  const frontend=path.join(process.cwd(),'artifacts/ledgerly'),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
+  writeFileSync(entry,`
+   import React,{useState} from ${JSON.stringify(frontend+'/node_modules/react/index.js')};
+   import {createRoot} from ${JSON.stringify(frontend+'/node_modules/react-dom/client.js')};
+   import Review,{DiscountRecoveryNotice} from ${JSON.stringify(frontend+'/src/features/paidCreditReview/PaidCreditReview.jsx')};
+   import {prepareCurrentDiscountReview,saveDiscountRecovery,readDiscountRecovery,clearDiscountRecovery,verifyDiscountRecovery} from ${JSON.stringify(frontend+'/src/features/paidCreditReview/model.mjs')};
+   const company=${JSON.stringify(f.company)},doc=${JSON.stringify(credit)},original=${JSON.stringify(f.draft)};
+   const call=async(route,body,revision)=>{const r=await fetch('/companies/'+company+'/'+route,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','x-test-actor':${JSON.stringify(actor)},...(revision?{'If-Match':'"'+revision+'"'}:{})},...(body?{body:JSON.stringify(body)}:{})});const j=await r.json();if(!r.ok)throw Error(j.error?.code);return j.data;};
+   const client={reviewConditionalDiscount:(_c,id,b,r)=>call('accounting-documents/'+id+'/conditional-discount/review',b,r)};
+   let commits=0;const root=createRoot(document.getElementById('root'));
+   function App(){const [pending,setPending]=useState(()=>readDiscountRecovery(localStorage,company,doc.id)),[review,setReview]=useState(null),[message,setMessage]=useState('');
+    const prepare=async()=>{if(pending)return;setReview(await prepareCurrentDiscountReview(client,company,doc,crypto.randomUUID(),original));};
+    const post=async()=>{if(pending||!review)return;setPending(saveDiscountRecovery(localStorage,company,doc.id,doc.revision,review.intent.request_id));commits++;await call('accounting-documents/'+doc.id+'/conditional-discount',{...review.intent,review_token:review.review_token,releases:[]},doc.revision);setMessage('Simulated response lost');};
+    const recover=async()=>{const receipt=await call('accounting-conditional-discounts/operations/'+pending.request_id);if(!verifyDiscountRecovery(receipt,pending))throw Error('Unverified receipt');clearDiscountRecovery(localStorage,pending);setPending(null);setReview(null);setMessage('Recovered posted journal');};
+    return <><button disabled={!!pending} onClick={prepare}>Review discount</button>{review&&<Review conditional current review={review}/>}<button disabled={!!pending||!review} onClick={post}>Confirm discount</button><DiscountRecoveryNotice pending={pending} onRecover={recover}/><p>{message}</p></>;
+   }
+   root.render(<App/>);
+   const wait=async(fn)=>{for(let i=0;i<180;i++){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Browser timeout');};
+   const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
+   (async()=>{
+    await wait(()=>button('Review discount'));button('Review discount').click();await wait(()=>document.querySelector('[aria-label="Conditional discount posting review"]'));
+    const text=document.querySelector('[aria-label="Conditional discount posting review"]').textContent;if(!text.includes('£12.00')||!text.includes('No paid cash is released'))throw Error('Review omitted exact unpaid policy');
+    button('Confirm discount').click();await wait(()=>document.getElementById('root').textContent.includes('Simulated response lost'));
+    root.render(<App key="reloaded"/>);await wait(()=>document.querySelector('[aria-label="Conditional discount recovery"]')&&!document.getElementById('root').textContent.includes('Simulated response lost'));
+    if(!button('Review discount').disabled||!button('Confirm discount').disabled||commits!==1)throw Error('Pending operation allowed resubmission');
+    button('Recover discount outcome').click();await wait(()=>document.getElementById('root').textContent.includes('Recovered posted journal'));
+    if(readDiscountRecovery(localStorage,company,doc.id)!==null||commits!==1)throw Error('Recovery resent or retained operation');
+    document.body.dataset.connectedDiscountAcceptance='passed';
+   })().catch(e=>{document.body.dataset.connectedDiscountAcceptance='failed';document.body.append(document.createTextNode(e.message));});
+  `);
+  execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',entry,'--bundle','--platform=browser','--format=iife','--outfile='+bundle],{stdio:'pipe'});
+  browserHtml=`<!doctype html><html><head><meta charset="utf-8"><title>Synthetic connected discount</title></head><body><div id="root"></div><script>${readFileSync(bundle,'utf8').replaceAll('</script','<\\/script')}</script></body></html>`;
+  const child=spawn('chromium',['--headless','--no-first-run','--disable-gpu','--disable-background-networking','--disable-component-update','--disable-sync','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=12000',base+'/synthetic-compensation-browser'],{stdio:['ignore','pipe','pipe']});
+  let html='',stderr='';child.stdout.on('data',b=>{html+=b.toString();});child.stderr.on('data',b=>{stderr+=b.toString();});
+  const code=await new Promise<number>((resolve,reject)=>{const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('Bounded Chromium timeout'));},30000);child.once('error',e=>{clearTimeout(timer);reject(e);});child.once('exit',n=>{clearTimeout(timer);resolve(n??1);});});
+  assert.equal(code,0,stderr.slice(-2000));assert.match(html,/data-connected-discount-acceptance="passed"/,html.slice(-2000));
+  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,1);
+  console.log('CONNECTED_DISCOUNT_BROWSER_ACCEPTANCE',JSON.stringify({nativeCommit:true,syntheticOnly:true,actualReviewAndRecoveryComponents:true,lostResponse:true,remountRecovery:true,noResubmission:true,fullOriginalEntryUi:false}));
+ }finally{browserHtml='';rmSync(dir,{recursive:true,force:true});}
+});
+
+test('real PostgreSQL HTTP: partial compensation schema blocks new current-policy admission before writes',async()=>{
+ const f=await admissionFixture('customer');await postConditionalOriginal(f.company,actor,f.draft.id,f.draft.revision);await observeConditionalOriginal(f.company,actor,f.draft.id);await nativeCash(f,'10800','10800');
+ const credit=await conditionalCreditDraft(f,'customer'),intent={request_id:randomUUID(),reason:'Schema check'},route=`accounting-documents/${credit.id}/conditional-discount`;
+ const review=await connectedHttp(f.company,route+'/review',intent,credit.revision);assert.equal(review.status,200);
+ const second=await admissionFixture('supplier'),before=await financialSnapshot(f.company),beforeSecond=await financialSnapshot(second.company);
+ await admin.query('ALTER TABLE conditional_discount_compensations DISABLE TRIGGER conditional_discount_compensation_guard');
+ try {
+  assert.equal((await connectedHttp(f.company,route+'/review',intent,credit.revision)).status,503);
+  assert.equal((await connectedHttp(f.company,route,{...intent,review_token:review.data.review_token,releases:[]},credit.revision)).status,503);
+  assert.equal((await connectedHttp(second.company,`accounting-documents/${second.draft.id}/conditional-original`,{},second.draft.revision)).status,503);
+  assert.deepEqual(await financialSnapshot(f.company),before);assert.deepEqual(await financialSnapshot(second.company),beforeSecond);
+ }finally{await admin.query('ALTER TABLE conditional_discount_compensations ENABLE ALWAYS TRIGGER conditional_discount_compensation_guard');}
+});
+
+test('real PostgreSQL: explicit original retry rejects a missing historical binding without retrofitting it',async()=>{
+ const f=await admissionFixture('customer');await postConditionalOriginal(f.company,actor,f.draft.id,f.draft.revision);
+ // Disposable administrator-only corruption, before any observation references it.
+ const q=await admin.connect();try {
+  await q.query('BEGIN');await q.query('ALTER TABLE conditional_discount_original_bindings DISABLE TRIGGER conditional_original_immutable');
+  await q.query('DELETE FROM conditional_discount_original_bindings WHERE company_id=$1 AND document_id=$2',[f.company,f.draft.id]);
+  await q.query('ALTER TABLE conditional_discount_original_bindings ENABLE ALWAYS TRIGGER conditional_original_immutable');await q.query('COMMIT');
+ }catch(e){await q.query('ROLLBACK');throw e;}finally{q.release();}
+ const before=await financialSnapshot(f.company);
+ await assert.rejects(()=>postConditionalOriginal(f.company,actor,f.draft.id,f.draft.revision),/CONDITIONAL_BINDING_INVALID/);
+ assert.deepEqual(await financialSnapshot(f.company),before);
+ assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_bindings WHERE company_id=$1',[f.company])).rows[0].n,0);
+});
+
+for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${side} blank original agreement through payment and current discount lost-response full-page recovery`,async()=>{
+ const f=await ordinaryOriginalFixture(side),kind=side==='customer'?'sales_invoice':'purchase_bill',route=side==='customer'?'/invoices':'/bills',creditRoute=side==='customer'?'/sales-credit-notes':'/supplier-credit-notes',creditKind=side==='customer'?'sales_credit_note':'supplier_credit_note',number='BROWSER-AGREEMENT-'+randomUUID();
+ const dir=mkdtempSync(path.join(path.dirname(socket),'agreement-page-browser-'));
+ try {
+  const frontend=path.join(process.cwd(),'artifacts/ledgerly'),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js'),companyStub=path.join(dir,'company.mjs');
+  writeFileSync(companyStub,`export const useCompany=()=>({activeCompany:{id:${JSON.stringify(f.company)}}});`);
+  writeFileSync(entry,`
+   import React from ${JSON.stringify(frontend+'/node_modules/react/index.js')};
+   import {createRoot} from ${JSON.stringify(frontend+'/node_modules/react-dom/client.js')};
+   import {MemoryRouter,Routes,Route,useNavigate} from ${JSON.stringify(frontend+'/node_modules/react-router-dom/dist/index.mjs')};
+   import {QueryClient,QueryClientProvider} from ${JSON.stringify(frontend+'/node_modules/@tanstack/react-query/build/modern/index.js')};
+   import Form from ${JSON.stringify(frontend+'/src/pages/AccountingDocumentForm.jsx')};
+   import {readDiscountRecovery} from ${JSON.stringify(frontend+'/src/features/paidCreditReview/model.mjs')};
+   const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,recoveries=0,savedId=null;
+   window.fetch=async(url,options={})=>{
+    const path=String(url).replace(/^\\/api\\//,'/');
+    const headers=new Headers(options.headers);headers.set('x-test-actor',${JSON.stringify(actor)});
+    if(path.endsWith('/conditional-discount-evidence')&&options.method==='POST')captures++;
+    if(path.endsWith('/accounting-documents')&&options.method==='POST')saves++;
+    if(path.includes('/conditional-original')&&options.method==='POST'&&!path.endsWith('/observe'))posts++;
+    const response=await nativeFetch(path,{...options,headers});
+    if(path.endsWith('/accounting-documents')&&options.method==='POST'&&response.ok)savedId=(await response.clone().json()).data.id;
+    if(path.endsWith('/conditional-original/observe')&&response.ok)observed++;
+    if(path.endsWith('/conditional-discount')&&options.method==='POST'&&response.ok){discountPosts++;if(discountPosts===1)throw Error('Synthetic lost discount response');}
+    if(path.includes('/accounting-conditional-discounts/operations/')&&response.ok)recoveries++;
+    return response;
+   };
+   const root=createRoot(document.getElementById('root'));
+   function Navigation(){window.testNavigate=useNavigate();return null;}
+   const mount=(url,key)=>root.render(<QueryClientProvider key={key} client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MemoryRouter initialEntries={[url]}><Navigation/><Routes><Route path=${JSON.stringify(route+'/:id')} element={<Form kind=${JSON.stringify(kind)}/>}/><Route path=${JSON.stringify(creditRoute+'/:id')} element={<Form kind=${JSON.stringify(creditKind)}/>}/></Routes></MemoryRouter></QueryClientProvider>);
+   mount(${JSON.stringify(route+'/new')},'initial');
+   const el=id=>document.querySelector('[data-testid="'+id+'"]');
+   const wait=async(fn)=>{for(let i=0;i<240;i++){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Browser timeout: '+document.getElementById('root').textContent.slice(-1200));};
+   const change=async(selector,value)=>{const node=document.querySelector(selector);if(!node)throw Error('Missing '+selector);const proto=node.tagName==='SELECT'?HTMLSelectElement.prototype:node.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(node,value);node.dispatchEvent(new Event(node.tagName==='SELECT'?'change':'input',{bubbles:true}));await new Promise(r=>setTimeout(r,25));};
+   (async()=>{
+    await wait(()=>el('select-party'));
+    await change('#party',${JSON.stringify(f.body.party_id)});await change('#number',${JSON.stringify(number)});
+    await change('#issue','2026-11-01');await change('#due','2026-11-30');await change('#d0','Browser entered original');await change('#p0','120');await change('#t0','NONE');
+    el('agreement-enabled').click();await wait(()=>document.querySelector('#agreement-amount'));
+    await change('#agreement-date','2026-11-01');await change('#agreement-deadline','2199-11-30');await change('#agreement-amount','12.00');await change('#agreement-evidence','Synthetic agreement attested in actual form');
+    if(!el('button-save').disabled||!el('capture-agreement').disabled)throw Error('Unattested source admitted');
+    el('agreement-attested').click();await wait(()=>!el('capture-agreement').disabled);el('capture-agreement').click();
+    await wait(()=>el('agreement-status')?.textContent.includes('Evidence captured'));
+    if(saves||posts)throw Error('Capture silently saved or posted');
+    await change('#agreement-amount','11.00');
+    if(el('agreement-attested').checked||!el('button-save').disabled)throw Error('Changed terms retained receipt');
+    await change('#agreement-amount','12.00');el('agreement-attested').click();await wait(()=>!el('capture-agreement').disabled);el('capture-agreement').click();await wait(()=>el('agreement-status')?.textContent.includes('Evidence captured'));
+    el('button-save').click();await wait(()=>savedId&&el('button-save')?.textContent==='Save changes'&&!el('button-post').disabled);
+    if(posts||captures!==2||saves!==1)throw Error('Save/capture boundary changed');
+    if(document.querySelector('#agreement-evidence').value!=='Synthetic agreement attested in actual form')throw Error('Saved receipt was not reloaded');
+    el('button-post').click();await wait(()=>document.querySelector('[aria-label="Saved original agreement"]'));
+    const review=document.querySelector('[aria-label="Saved original agreement"]').textContent;
+    if(!review.includes('£12.00')||!review.includes('2199-11-30')||posts)throw Error('Review omitted saved agreement or silently posted');
+    el('button-confirm-posting').click();await wait(()=>posts===1&&observed===1&&!el('button-confirm-posting')&&document.getElementById('root').textContent.includes('Posted'));
+    const originalId=savedId;
+    const payment={id:crypto.randomUUID(),kind:'payment',party_type:${JSON.stringify(side)},party_id:${JSON.stringify(f.body.party_id)},payment_id:null,date:'2026-11-03',reference:'Browser native qualifying payment',amount_minor:'10800',allocations:[{document_id:originalId,amount_minor:'10800'}]};
+    const call=async(path,body)=>{const response=await fetch('/api/companies/'+${JSON.stringify(f.company)}+'/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const result=await response.json();if(!response.ok)throw Error(JSON.stringify(result));return result.data;};
+    const paymentReview=await call('accounting-payments/review',payment);await call('accounting-payments',{...payment,review_token:paymentReview.review_token});
+    window.testNavigate(${JSON.stringify(creditRoute+'/new?original=')}+originalId+'&discount=1');
+    await wait(()=>document.querySelector('#discount-value'));
+    await change('#reason','Browser current unpaid discount');await change('#discount-value','10');await change('#number',${JSON.stringify(number+'-CREDIT')});
+    el('button-save').click();await wait(()=>savedId!==originalId&&el('button-save')?.textContent==='Save changes'&&!el('button-post').disabled);
+    el('button-post').click();await wait(()=>document.querySelector('[aria-label="Conditional discount posting review"]'));
+    const discountReview=document.querySelector('[aria-label="Conditional discount posting review"]').textContent;
+    if(!discountReview.includes('£12.00')||!discountReview.includes('No paid cash is released')||discountPosts)throw Error('Current discount review omitted unpaid policy');
+    el('button-confirm-posting').click();
+    const recovery=()=>document.querySelector('[aria-label="Conditional discount recovery"]');
+    const pending=()=>readDiscountRecovery(localStorage,${JSON.stringify(f.company)},savedId);
+    await wait(()=>discountPosts===1&&recovery()&&el('button-confirm-posting')?.disabled);
+    if(!pending())throw Error('Lost response did not persist recovery');
+    mount(${JSON.stringify(creditRoute+'/')}+savedId,'reloaded');
+    await wait(()=>recovery()&&document.getElementById('root').textContent.includes('Posted')&&!el('button-confirm-posting'));
+    if(discountPosts!==1||!pending())throw Error('Reload resent commit or lost recovery');
+    const recoverButton=[...recovery().querySelectorAll('button')].find(b=>b.textContent==='Recover discount outcome');
+    if(!recoverButton||recoverButton.disabled)throw Error('Posted page omitted recovery action');
+    recoverButton.click();await wait(()=>!recovery()&&recoveries===1&&pending()===null&&document.getElementById('root').textContent.includes('Posted'));
+    if(discountPosts!==1)throw Error('Recovery resubmitted discount');
+    document.body.dataset.originalAgreementAcceptance='passed';
+   })().catch(e=>{document.body.dataset.originalAgreementAcceptance='failed';document.getElementById('root').append(document.createTextNode(e.message));});
+  `);
+  execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',entry,'--bundle','--platform=browser','--format=iife','--jsx=automatic','--alias:@='+frontend+'/src','--alias:@/lib/useCompany='+companyStub,'--outfile='+bundle],{stdio:'pipe'});
+  browserHtml=`<!doctype html><html><head><meta charset="utf-8"><title>Synthetic original agreement form</title></head><body><div id="root"></div><script>${readFileSync(bundle,'utf8').replaceAll('</script','<\\/script')}</script></body></html>`;
+  const child=spawn('chromium',['--headless','--no-first-run','--disable-gpu','--disable-background-networking','--disable-component-update','--disable-sync','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=24000',base+'/synthetic-compensation-browser'],{stdio:['ignore','pipe','pipe']});
+  let html='',stderr='';child.stdout.on('data',b=>{html+=b.toString();});child.stderr.on('data',b=>{stderr+=b.toString();});
+  const code=await new Promise<number>((resolve,reject)=>{const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('Bounded Chromium timeout'));},35000);child.once('error',e=>{clearTimeout(timer);reject(e);});child.once('exit',n=>{clearTimeout(timer);resolve(n??1);});});
+  assert.equal(code,0,stderr.slice(-2000));assert.match(html,/<body[^>]*data-original-agreement-acceptance="passed"/,html.slice(0,18000));
+  const row=(await pool.query(`SELECT id FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE company_id=$1 AND ${side==='customer'?'invoice_number':'bill_number'}=$2`,[f.company,number])).rows[0];
+  assert.ok(row);const saved=await getDocument(f.company,actor,row.id);assert.equal(saved.status,'posted');assert.equal(saved.source.conditional_discount.discount_gross_pence,'1200');
+  assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_observations WHERE company_id=$1 AND document_id=$2',[f.company,row.id])).rows[0].n,1);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,1);
+  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,0);
+  assert.deepEqual((await pool.query(`SELECT amount_paid::text,balance_due::text FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[row.id])).rows[0],{amount_paid:'108.00',balance_due:'0.00'});
+  console.log('ORIGINAL_AGREEMENT_PAGE_BROWSER_ACCEPTANCE' ,JSON.stringify({party:side,actualFullPage:true,blankEntry:true,nativeEvidence:true,invalidatedTerms:true,savedReceiptReload:true,explicitReviewAndPost:true,nativePayment:true,actualDiscountCreditPage:true,noPaidCashRelease:true,lostResponse:true,actualFormRemountRecovery:true,noResubmission:true,syntheticOnly:true}));
+ }finally{browserHtml='';rmSync(dir,{recursive:true,force:true});}
 });

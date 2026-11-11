@@ -1,5 +1,5 @@
-import {prepareCreditReview} from '@/features/paidCreditReview/model.mjs';
-import PaidCreditReview from '@/features/paidCreditReview/PaidCreditReview';
+import {prepareCreditReview,prepareCurrentDiscountReview,clearDiscountRecovery,saveDiscountRecovery,readDiscountRecovery,verifyDiscountRecovery} from '@/features/paidCreditReview/model.mjs';
+import PaidCreditReview,{DiscountRecoveryNotice} from '@/features/paidCreditReview/PaidCreditReview';
 import PostedDocument from '@/components/accounting/PostedDocument';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowDown, FileText, ListPlus, UserRound } from 'lucide-react';
@@ -17,7 +17,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { StatusPill, SettlementPill, Money, ConfigErrors, JournalLink, ErrorBox, SkeletonRows, today } from '@/components/accounting/AccountingUI';
 import { DiscountEditor, SavedDiscountSummary, DiscountBalanceReview, DraftWriteActions } from '@/features/documentDiscounts/DiscountControls';
 import DocumentLineFields from '@/features/documentDiscounts/DocumentLineFields';
-import { canEditDrafts, canPostDocuments, discountAdjustment, isCurrentDocumentRequest } from '@/features/documentDiscounts/model.mjs';
+import { agreementTerms, matchesAgreementReceipt, canEditDrafts, canPostDocuments, discountAdjustment, isCurrentDocumentRequest } from '@/features/documentDiscounts/model.mjs';
 import { useCaptureDraft } from '@/features/documentIntake/useDocumentIntake';
 import { CaptureSourceReview, CaptureDraftActions } from '@/features/documentIntake/CaptureReview';
 import SourceAttachments from '@/features/documentIntake/SourceFiles';
@@ -29,6 +29,7 @@ import PageHeader from '@/components/workspace/PageHeader';
 const blankLine = () => ({ description: '', quantity: '1', unit_price: '0', tax_code: '' });
 const blankForm = () => ({ customer_id: '', invoice_number: '', issue_date: today(), due_date: dueFromTerms(today(), '30'), payment_terms: '30', reference: '', notes: '', price_basis: 'excluding_vat', line_items: [blankLine()] });
 const blankExtra = () => ({ original_line_refs: [], original_id: '', reason: '', effective_adjustment_date: '', purchase_vat_eligible: false, posting_account_id: '' });
+const blankAgreement = () => ({ enabled:false, agreement_id:'', agreement_date:today(), payment_deadline:today(), amount:'', evidence_text:'', attested:false, receipt:null });
 const sel = 'mt-1.5 min-h-11 w-full rounded-lg border bg-background p-2.5 text-sm';
 
 /** Shared native create/review/post page for all four accounting document kinds. */
@@ -58,6 +59,10 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [review, setReview] = useState(null);
+  const [agreement, setAgreement] = useState(blankAgreement);
+  const evidenceRequest = useRef(null);
+  const [observationPending,setObservationPending]=useState(false);
+  const [discountPending, setDiscountPending] = useState(null);
   const [legacy, setLegacy] = useState(false);
   const gen = useRef(0);
   const scopeKey = JSON.stringify([activeCompany?.id, editId, kind, requestedOriginal, requestedDiscount, requestedCapture]);
@@ -90,7 +95,8 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   useEffect(() => {
     const g = ++gen.current; const c = new AbortController();
     manualDue.current = Boolean(editId);
-    setReview(null);
+    setReview(null);setDiscountPending(null);setObservationPending(false);
+    setAgreement(blankAgreement()); evidenceRequest.current = null;
     setCtx(null); setLoadedScope(null); setDoc(null); setForm(blankForm()); setExtra(blankExtra()); setDirty(false); setBusy(false); setError(null); setLegacy(false); setLoading(true); setOriginalDoc(null);
     if (!activeCompany) return () => c.abort();
     (async () => {
@@ -107,12 +113,28 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
         setOriginals((origList || []).filter(d => d.status === 'posted'));
         if (existing) {
           setDoc(existing);
-          setForm({ ...blankForm(), ...existing.source, payment_terms: String(existing.source?.payment_terms ?? '0') });
           setExtra({
             original_line_refs: existing.tax_context?.original_line_refs ?? existing.source?.line_items?.map((_, i) => i) ?? [],
             original_id: existing.original_id || '', reason: existing.reason || '', effective_adjustment_date: existing.effective_adjustment_date || '',
             purchase_vat_eligible: existing.purchase_vat_eligible === true, posting_account_id: existing.posting_account_id || '',
           });
+          setForm({ ...blankForm(), ...existing.source, payment_terms: String(existing.source?.payment_terms ?? '0') });
+          if (!meta.credit && existing.source?.conditional_discount) {
+            const terms = existing.source.conditional_discount;
+            setAgreement({...blankAgreement(), enabled:true, ...terms, amount:`${BigInt(terms.discount_gross_pence)/100n}.${String(BigInt(terms.discount_gross_pence)%100n).padStart(2,'0')}`});
+            const receipt = await accounting.getConditionalEvidence(activeCompany.id, terms.evidence_receipt_id, c.signal);
+            if(g !== gen.current || latestScope.current !== scopeKey || c.signal.aborted)return;
+            if (!matchesAgreementReceipt(receipt, activeCompany.id, terms)) throw new Error('Saved agreement evidence could not be verified. Reload before saving or posting.');
+            setAgreement({...blankAgreement(), enabled:true, ...terms, amount:`${BigInt(terms.discount_gross_pence)/100n}.${String(BigInt(terms.discount_gross_pence)%100n).padStart(2,'0')}`, evidence_text:receipt.evidence_text, attested:true, receipt});
+          }
+          setDiscountPending({company:activeCompany.id,id:existing.id,invalid:true});
+          setDiscountPending(readDiscountRecovery(localStorage,activeCompany.id,existing.id));
+          if(existing.status==='posted' && existing.source?.conditional_discount) {
+            setObservationPending(true);
+            await accounting.observeConditionalOriginal(activeCompany.id,existing.id);
+            if(g !== gen.current || latestScope.current !== scopeKey || c.signal.aborted)return;
+            setObservationPending(false);
+          }
           if (existing.original_id) setOriginalDoc((origList || []).find(o => o.id === existing.original_id) || null);
         } else if (meta.credit && requestedOriginal) {
           const original = origList.find(o => o.id === requestedOriginal && o.status === 'posted');
@@ -137,6 +159,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const touch = () => { setDirty(true); if (captureMode) capture.invalidateReview(); };
   const change = (k, v) => {
     if (k === 'due_date') manualDue.current = true;
+    if (k === 'customer_id' && agreement.enabled) { setAgreement(a => ({...a, receipt:null, attested:false})); evidenceRequest.current = null; setReview(null); setForm(f => ({...f, conditional_discount:null})); }
     touch(); setForm(f => changeDateField(f, k, v, manualDue.current, meta.credit));
   };
   const changeLine = (i, k, v) => { touch(); setForm(f => ({ ...f, line_items: f.line_items.map((l, j) => j === i ? { ...l, [k]: v } : l) })); };
@@ -178,9 +201,30 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
   const showTotals = Boolean(displayedMoney);
   const configErrors = ctx?.configuration_errors ?? [];
 
+  const terms = agreement.enabled ? agreementTerms(agreement, meta.party, form.customer_id) : null;
+  const agreementInvalid = agreement.enabled && (!matchesAgreementReceipt(agreement.receipt, activeCompany.id, terms, agreement.evidence_text) || !agreement.attested || !form.conditional_discount || form.conditional_discount.evidence_receipt_id !== agreement.receipt?.id);
+  const changeAgreement = (key, value) => {
+    touch(); setReview(null); evidenceRequest.current = null;
+    setAgreement(a => ({...a, [key]:value, ...(key === 'enabled' && value ? {agreement_id:crypto.randomUUID()} : {}), receipt:null, attested:key === 'attested' ? value : false}));
+    setForm(f => ({...f, conditional_discount:null}));
+  };
+  const captureAgreement = async () => {
+    if (!canEdit || busy || loading || posted || !terms || !agreement.attested || !agreement.evidence_text.trim() || form.discount) return;
+    const started = {scope:scopeKey,generation:gen.current};
+    const stillCurrent = () => isCurrentDocumentRequest(started,{scope:latestScope.current,generation:gen.current});
+    const requestId = evidenceRequest.current || crypto.randomUUID(); evidenceRequest.current = requestId;
+    setBusy(true);setError(null);
+    try {
+      const receipt = await accounting.captureConditionalEvidence(activeCompany.id,{request_id:requestId,terms,evidence_text:agreement.evidence_text,attested:true});
+      if (!stillCurrent()) return;
+      if (!matchesAgreementReceipt(receipt,activeCompany.id,terms,agreement.evidence_text)) throw new Error('Captured evidence did not match this company, party and agreement. Nothing was attached.');
+      setAgreement(a => ({...a,receipt}));setForm(f => ({...f,conditional_discount:{...terms,evidence_receipt_id:receipt.id}}));touch();
+    } catch(err) {if(stillCurrent())setError(err);} finally {if(stillCurrent())setBusy(false);}
+  };
+
   const save = async (e) => {
     e?.preventDefault();
-    if (!canEdit || busy || capture.busy || posted || creditInvalid) return;
+    if (!canEdit || busy || loading || capture.busy || posted || creditInvalid || agreementInvalid || discountPending) return;
     const started = { scope: scopeKey, generation: gen.current };
     const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
     const fields = new FormData(e.currentTarget);
@@ -212,17 +256,18 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     } catch (err) { if (stillCurrent()) setError(err); } finally { if (stillCurrent()) setBusy(false); }
   };
   const preparePostingReview = async () => {
-    if (!canPost || busy || !doc || dirty) return;
+    if (!canPost || busy || loading || !doc || dirty || agreementInvalid || discountPending) return;
     const started = { scope: scopeKey, generation: gen.current };
     const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
     setBusy(true);setError(null);
     try {
-      const {paidCredit,paidCreditUnavailable,conditionalCredit}=meta.credit ? await prepareCreditReview(accounting,activeCompany.id,doc,crypto.randomUUID(),originalDoc) : {paidCredit:null,paidCreditUnavailable:false};
-      if(stillCurrent())setReview({companyId:activeCompany.id,id:doc.id,revision:doc.revision,number:doc.source.invoice_number,money:doc.money,paidCredit,paidCreditUnavailable,conditionalCredit});
+      const currentDiscount=originalDoc?.source?.conditional_discount ? await prepareCurrentDiscountReview(accounting,activeCompany.id,doc,crypto.randomUUID(),originalDoc):null;
+      const {paidCredit,paidCreditUnavailable,conditionalCredit}=meta.credit && !currentDiscount ? await prepareCreditReview(accounting,activeCompany.id,doc,crypto.randomUUID(),originalDoc) : {paidCredit:null,paidCreditUnavailable:false};
+      if(stillCurrent())setReview({companyId:activeCompany.id,id:doc.id,revision:doc.revision,number:doc.source.invoice_number,money:doc.money,paidCredit,paidCreditUnavailable,conditionalCredit,currentDiscount});
     } catch(err) {if(stillCurrent())setError(err);} finally {if(stillCurrent())setBusy(false);}
   };
   const post = async () => {
-    if (review?.conditionalCredit || originalDoc?.source?.conditional_discount || !canPost || busy || !doc || dirty || doc.money?.gross_pence === '0' || posted || !review || configErrors.length > 0) return;
+    if (review?.conditionalCredit || (originalDoc?.source?.conditional_discount && !review?.currentDiscount) || discountPending || !canPost || busy || loading || !doc || dirty || agreementInvalid || doc.money?.gross_pence === '0' || posted || !review || configErrors.length > 0) return;
     const started = { scope: scopeKey, generation: gen.current };
     const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
     if (review.companyId !== activeCompany.id || review.id !== doc.id || review.revision !== doc.revision) {
@@ -232,20 +277,49 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
     }
     setBusy(true); setError(null);
     try {
-      const r = review.paidCredit
+      if(review.currentDiscount) setDiscountPending(saveDiscountRecovery(localStorage,review.companyId,review.id,review.revision,review.currentDiscount.intent.request_id));
+      const r = review.currentDiscount
+        ? await accounting.commitConditionalDiscount(review.companyId,review.id,{...review.currentDiscount.intent,review_token:review.currentDiscount.review_token,releases:[]},review.revision)
+        : review.paidCredit
         ? await accounting.commitPaidCredit(review.companyId,review.id,{...review.paidCredit.intent,review_token:review.paidCredit.review_token,releases:review.paidCredit.releases},review.revision)
+        : doc.source?.conditional_discount ? await accounting.postConditionalOriginal(review.companyId,review.id,review.revision)
         : await accounting.post(review.companyId, review.id, review.revision);
+      if(review.currentDiscount) {
+        if(!verifyDiscountRecovery({...r,status:r.status==='duplicate'?'posted':r.status},{id:review.id,request_id:review.currentDiscount.intent.request_id})) throw new Error('Posting outcome is unknown. Recover the saved operation.');
+        clearDiscountRecovery(localStorage,{company:review.companyId,id:review.id,revision:review.revision,request_id:review.currentDiscount.intent.request_id});
+      }
+      if(doc.source?.conditional_discount) {
+        if(stillCurrent()){setDoc({...doc,status:'posted',journal_id:r.journal_id});setReview(null);setObservationPending(true);}
+        await accounting.observeConditionalOriginal(review.companyId,review.id);
+        if(stillCurrent())setObservationPending(false);
+      }
       if (!stillCurrent()) return;
+      setDiscountPending(null);
       setDoc({ ...doc, status: 'posted', journal_id: r.journal_id });
       setReview(null);
       toast({ title: r.status === 'duplicate' ? 'Already posted' : 'Posted to accounts', description: 'Journal recorded.' });
     } catch (err) { if (stillCurrent()) setError(err); } finally { if (stillCurrent()) setBusy(false); }
   };
 
-  if (posted && !loading && currentContext) return <PostedDocument doc={doc} kind={kind} company={activeCompany} journal={journal} settlement={settlement} openItem={openItem} error={error} capabilities={capabilities} sourceReturn={sourceReturn} onCorrectionSaved={() => { toast({ title: 'Correction posted', description: 'The original and payment history are preserved.' }); settlement.refresh(); setDocumentRefresh(value => value + 1); }} />;
+  const recoverDiscount = async () => {
+    if(!discountPending || discountPending.invalid || busy)return;
+    const pending=discountPending,started={scope:scopeKey,generation:gen.current};setBusy(true);setError(null);
+    try {
+      const receipt=await accounting.recoverConditionalDiscount(pending.company,pending.request_id);
+      if(!verifyDiscountRecovery(receipt,pending))throw new Error('The outcome is still unknown. Do not submit another discount. Check recovery again.');
+      clearDiscountRecovery(localStorage,pending);
+      if(isCurrentDocumentRequest(started,{scope:latestScope.current,generation:gen.current})) {setDiscountPending(null);setReview(null);setDocumentRefresh(v=>v+1);}
+    }catch(e){if(isCurrentDocumentRequest(started,{scope:latestScope.current,generation:gen.current}))setError(e);}
+    finally {if(isCurrentDocumentRequest(started,{scope:latestScope.current,generation:gen.current}))setBusy(false);}
+  };
+
+  const retryObservation=async()=>{const started={scope:scopeKey,generation:gen.current};const current=()=>isCurrentDocumentRequest(started,{scope:latestScope.current,generation:gen.current});setBusy(true);try {await accounting.observeConditionalOriginal(activeCompany.id,doc.id);if(current()){setObservationPending(false);setError(null);}}catch(e){if(current())setError(e);}finally{if(current())setBusy(false);}};
+  const recoveryControls=<DiscountRecoveryNotice pending={discountPending} busy={busy} onRecover={recoverDiscount}/>;
+  if (posted && !loading && currentContext) return <>{recoveryControls}{observationPending && <section role="status"><p>Original posted. Confirm its committed terms before recording qualifying payments.</p><Button disabled={busy} onClick={retryObservation}>Confirm committed terms</Button></section>}<PostedDocument doc={doc} kind={kind} company={activeCompany} journal={journal} settlement={settlement} openItem={openItem} error={error} capabilities={capabilities} sourceReturn={sourceReturn} onCorrectionSaved={() => { toast({ title: 'Correction posted', description: 'The original and payment history are preserved.' }); settlement.refresh(); setDocumentRefresh(value => value + 1); }} /></>;
 
   return (
     <form onSubmit={save} className="workspace-page">
+      {recoveryControls}
       <PageHeader eyebrow={`${meta.section} · ${meta.label}`}
         title={editId ? `${canEdit ? 'Edit draft' : 'View draft'} · ${form.invoice_number || meta.label}` : `${captureMode ? 'Prepare' : 'New'} ${discountMode ? 'discount credit' : meta.label.toLowerCase()}`}
         description={doc?.party_name || (captureMode ? 'Enter the source details, check the calculated totals, then save a linked draft.' : 'Enter the details below. You can review the saved draft before posting.')}
@@ -277,7 +351,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
 
       {!loading && ctx && (
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_350px]">
-          <fieldset disabled={posted || busy || capture.busy || !canEdit} className="workspace-panel min-w-0">
+          <fieldset disabled={posted || busy || loading || capture.busy || !canEdit} className="workspace-panel min-w-0">
             {meta.credit && (
               <section className="space-y-5 border-b p-5 last:border-b-0 sm:p-6">
                 <div><h2 className="text-lg font-semibold">{discountMode ? 'Discount credit' : 'Adjustment'}</h2>
@@ -341,8 +415,24 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               )}
             </section>
 
-            {(!meta.credit || discountMode) && <DiscountEditor value={discountMode ? form.discount_adjustment : form.discount} priceBasis={form.price_basis} adjustment={discountMode} disabled={!canEdit || busy}
+            {(!meta.credit || discountMode) && !agreement.enabled && <DiscountEditor value={discountMode ? form.discount_adjustment : form.discount} priceBasis={form.price_basis} adjustment={discountMode} disabled={!canEdit || busy}
               onChange={value => change(discountMode ? 'discount_adjustment' : 'discount', value)} />}
+
+            {!meta.credit && !captureMode && <section aria-label="Original conditional agreement" className="space-y-4 border-b p-6">
+              <label className="flex gap-3"><input type="checkbox" data-testid="agreement-enabled" checked={agreement.enabled} disabled={Boolean(form.discount)} onChange={e => changeAgreement('enabled',e.target.checked)} />Record an agreed conditional discount</label>
+              {form.discount && <p className="text-sm">Remove the immediate discount before recording a conditional agreement.</p>}
+              {agreement.enabled && <>
+                <p className="text-sm">Record terms already agreed with this {meta.party}. Evidence records your attestation, not legal validation. Capture evidence, save the draft, then review posting separately. New discounts can only offset an unpaid balance; fully paid documents require a separate credit and refund review.</p>
+                <p className="text-xs">Agreement reference: {agreement.agreement_id}</p>
+                <div><Label htmlFor="agreement-date">Agreement date</Label><Input id="agreement-date" type="date" required value={agreement.agreement_date} onChange={e => changeAgreement('agreement_date',e.target.value)} /></div>
+                <div><Label htmlFor="agreement-deadline">Payment deadline</Label><Input id="agreement-deadline" type="date" required value={agreement.payment_deadline} onChange={e => changeAgreement('payment_deadline',e.target.value)} /></div>
+                <div><Label htmlFor="agreement-amount">Agreed discount including VAT (£)</Label><Input id="agreement-amount" inputMode="decimal" required value={agreement.amount} onChange={e => changeAgreement('amount',e.target.value)} /></div>
+                <div><Label htmlFor="agreement-evidence">Agreement evidence</Label><Textarea id="agreement-evidence" required value={agreement.evidence_text} onChange={e => changeAgreement('evidence_text',e.target.value)} /></div>
+                <label className="flex gap-3"><input type="checkbox" data-testid="agreement-attested" checked={agreement.attested} onChange={e => changeAgreement('attested',e.target.checked)} />I attest these terms and this evidence accurately record our agreement.</label>
+                <Button type="button" data-testid="capture-agreement" onClick={captureAgreement} disabled={!terms || !agreement.attested || !agreement.evidence_text.trim() || Boolean(agreement.receipt)}>Capture agreement evidence</Button>
+                <p role="status" data-testid="agreement-status">{agreementInvalid ? 'Capture matching evidence before saving this agreement.' : 'Evidence captured for these exact terms. Save and review the original separately.'}</p>
+              </>}
+            </section>}
 
             <section className="space-y-5 border-b p-5 last:border-b-0 sm:p-6">
               <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-primary"><ListPlus className="h-5 w-5" aria-hidden="true" /></span><div><p className="workspace-kicker">02 · Line items</p><h2 className="mt-1 text-base font-semibold">{discountMode ? 'Original items · reference only' : 'Items & services'}</h2></div></div>
@@ -362,9 +452,9 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
             {captureMode && <div className="order-first"><CaptureSourceReview capture={capture} companyId={activeCompany.id} compact /></div>}
             {!posted && (captureMode ? canEdit : canEdit || canPost) && <section id="document-actions" tabIndex={-1} className="workspace-card order-2 scroll-mt-6 space-y-3 p-5" aria-label="Save and review document">
               {captureMode ? <CaptureDraftActions capture={capture} canEdit={canEdit} invalid={creditInvalid || busy} /> : <>
-                <div className="flex flex-wrap items-center gap-3"><DraftWriteActions compact capabilities={capabilities} doc={doc} editId={editId} busy={busy} dirty={dirty} creditInvalid={creditInvalid} configurationErrors={configErrors}
+                <div className="flex flex-wrap items-center gap-3"><DraftWriteActions compact capabilities={capabilities} doc={doc} editId={editId} busy={busy || loading} dirty={dirty} creditInvalid={creditInvalid || agreementInvalid} configurationErrors={configErrors}
                   onReview={preparePostingReview} reviewLabel={originalDoc?.source?.conditional_discount ? 'Check conditional eligibility' : undefined} /></div>
-                <p className="text-sm text-muted-foreground">{originalDoc?.source?.conditional_discount ? (dirty ? 'Save changes before checking conditional eligibility.' : 'Conditional credit eligibility is a read-only preview. Posting is unavailable.') : doc && dirty ? 'Unsaved changes. Save to update the calculated totals before posting.' : doc ? 'Saved draft. Review and confirm posting when you are ready.' : 'Save a draft to calculate its totals. It will not affect your accounts until you post it.'}</p>
+                <p className="text-sm text-muted-foreground">{originalDoc?.source?.conditional_discount ? (dirty ? 'Save changes before checking conditional eligibility.' : 'Review the current conditional discount before posting. It cannot release paid cash.') : doc && dirty ? 'Unsaved changes. Save to update the calculated totals before posting.' : doc ? 'Saved draft. Review and confirm posting when you are ready.' : 'Save a draft to calculate its totals. It will not affect your accounts until you post it.'}</p>
               </>}
             </section>}
             <details className="workspace-card order-3 p-5" data-testid="panel-accounts">
@@ -425,8 +515,10 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
               {review?.conditionalCredit ? 'Read-only preview. Conditional credit posting is not available. Your saved draft and payment balances remain unchanged.' : 'Posting creates a balanced, source-linked journal and makes this document read-only. You cannot edit or delete its posted amounts here. Posting does not send the document or move cash.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {review && doc?.source?.conditional_discount && !meta.credit && <div aria-label="Saved original agreement" className="space-y-2 rounded-lg border p-4 text-sm"><p>Agreed discount: <Money value={doc.source.conditional_discount.discount_gross_pence} /> including VAT</p><p>Agreement date: {doc.source.conditional_discount.agreement_date} · Payment deadline: {doc.source.conditional_discount.payment_deadline}</p><p>The original posts at its full saved total. Any later discount requires a separate review of the unpaid balance.</p></div>}
           {review?.paidCreditUnavailable && <p className="text-sm">Payment allocation release is unavailable in this environment. Only credits within the original outstanding balance can be posted here.</p>}
           {review?.conditionalCredit && <PaidCreditReview review={review.conditionalCredit} conditional />}
+          {review?.currentDiscount && <PaidCreditReview review={review.currentDiscount} conditional current />}
           {review?.paidCredit && <PaidCreditReview review={review.paidCredit} />}
           {review && <dl aria-label={review?.conditionalCredit ? "Saved draft amounts" : "Saved amounts to post"} className="space-y-2 rounded-lg border p-4 text-sm">
             <div className="flex justify-between"><dt>Document number</dt><dd className="font-medium">{review.number}</dd></div>
@@ -438,7 +530,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null }) 
           {error && <ErrorBox error={error} />}
           <AlertDialogFooter>
             <AlertDialogCancel type="button" disabled={busy} data-testid="button-cancel-posting">Cancel</AlertDialogCancel>
-            {!review?.conditionalCredit && <Button type="button" onClick={post} disabled={!canPost || busy || dirty || doc?.money?.gross_pence === '0' || posted || configErrors.length > 0} data-testid="button-confirm-posting">
+            {!review?.conditionalCredit && <Button type="button" onClick={post} disabled={!canPost || busy || dirty || !!discountPending || doc?.money?.gross_pence === '0' || posted || configErrors.length > 0} data-testid="button-confirm-posting">
               {busy ? 'Posting…' : 'Confirm posting'}
             </Button>}
           </AlertDialogFooter>

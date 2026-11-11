@@ -65,7 +65,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
     const json = await res.json().catch(() => null);
     if (!res.ok) {
       const e = json?.error;
-      throw Object.assign(new Error(e?.message || `Request failed (${res.status}).`), { status: res.status, code: e?.code, issues: Array.isArray(e?.issues) ? e.issues : [] });
+      throw Object.assign(new Error(({DISCOUNT_REQUIRES_UNPAID_BALANCE:'This document has no unpaid balance. Create a linked credit note and review any refund separately.',DISCOUNT_EXCEEDS_OUTSTANDING:'The discount exceeds the unpaid balance. Reduce it or use a linked credit note and review any refund separately.'})[e?.code] || e?.message || `Request failed (${res.status}).`), { status: res.status, code: e?.code, issues: Array.isArray(e?.issues) ? e.issues : [] });
     }
     return json?.data;
   };
@@ -100,6 +100,11 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
     replacementHistory: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/conditional-replacements`, { signal }),
     appendReplacement: (c, id, body, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/conditional-replacements`, { method: 'POST', body, signal }),
     observeReplacement: (c, id, replacementId, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/conditional-replacements/${encodeURIComponent(replacementId)}/observe`, { method: 'POST', body: {}, signal }),
+    postConditionalOriginal: (c,id,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/conditional-original`, {method:'POST',body:{},revision}),
+    observeConditionalOriginal: (c,id) => call(`${docs(c)}/${encodeURIComponent(id)}/conditional-original/observe`, {method:'POST',body:{}}),
+    reviewConditionalDiscount: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/conditional-discount/review`, {method:'POST',body,revision}),
+    commitConditionalDiscount: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/conditional-discount`, {method:'POST',body,revision}),
+    recoverConditionalDiscount: (c,id,signal) => call(`${base(c)}/accounting-conditional-discounts/operations/${encodeURIComponent(id)}`, {signal}),
     reviewConditionalCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/conditional-credit/review`, {method:'POST',body,revision}),
     reviewPaidCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/paid-credit/review`, {method:'POST',body,revision}),
     commitPaidCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/paid-credit`, {method:'POST',body,revision}),

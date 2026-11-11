@@ -708,7 +708,7 @@ test('competing discounts cannot exceed the balance after a partial payment',asy
   await recordPayment(f,paymentIntent(f,sale,'5000','5000'));
   const first=await discountCredit(f,sale,'amount','50'),second=await discountCredit(f,sale,'amount','50');
   const results=await Promise.all([first,second].map(d=>request(f.company,`/accounting-documents/${d.id}/post`,'POST',{},d.revision)));
-  assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);assert.equal(results.find(r=>r.status===409)?.error.code,'CREDIT_EXCEEDS_OUTSTANDING');
+  assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);assert.equal(results.find(r=>r.status===409)?.error.code,'DISCOUNT_EXCEEDS_OUTSTANDING');
   const item=(await request(f.company,'/accounting-reports?from=2026-01-01&to=2026-12-31')).data.open_items.find((d:any)=>d.id===sale.id);
   assert.deepEqual([item.paid_minor,item.credited_minor,item.open_minor],['5000','5000','2000']);
 });
@@ -1724,8 +1724,8 @@ test('paid-credit released pools support later allocation, refund and undo witho
  for(const kind of ['purchase_bill','sales_invoice']) {
   const f=await fixture(),original=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,original);
   const payment=await recordPayment(f,paymentIntent(f,original,'12000','12000'));
-  const credit=await discountCredit(f,original,'percentage','10','2026-10-22');
-  const r=await reviewPaidCredit(f.company,actor,credit.id,credit.revision,{request_id:randomUUID(),reason:'Agreed later discount'});
+  const credit=await creditDoc(f,original,'0.1','2026-10-22');
+  const r=await reviewPaidCredit(f.company,actor,credit.id,credit.revision,{request_id:randomUUID(),reason:'Linked credit on fully paid document; refund reviewed separately'});
   await commitPaidCredit(f.company,actor,credit.id,credit.revision,{...r.intent,review_token:r.review_token,releases:r.releases});
   const frozen=(await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 ORDER BY id',[f.company])).rows;
   const second=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,second);
@@ -1850,4 +1850,69 @@ test('rolled-back payment command remains unknown and a same-identity retry reco
   const posted=await request(f.company,'/accounting-payments','POST',reviewed);assert.equal(posted.status,200);
   assert.deepEqual((await request(f.company,path)).data,{status:'recorded',id:reviewed.id,journal_id:posted.data.journal_id});
   assert.equal((await admin.query('SELECT id FROM accounting_payment_events WHERE id=$1',[reviewed.id])).rowCount,1);
+});
+
+for(const side of ['sales_invoice','purchase_bill']) test(`new discount policy: ${side} rejects fully paid and excess discounts without blocking ordinary credits`,async()=>{
+ const {reviewPaidCredit,commitPaidCredit}=await import('./paidCredit');
+ const f=await fixture(),original=await create(f,side,source(side==='sales_invoice'?f.customer:f.supplier));await post(f,original);
+ const draft=await discountCredit(f,original,'amount','12');
+ const review=await reviewPaidCredit(f.company,actor,draft.id,draft.revision,{request_id:randomUUID(),reason:'Discount while unpaid'});
+ await recordPayment(f,paymentIntent(f,original,'12000','12000'));
+ const before=await reports(f.company,actor,'2026-01-01','2026-12-31');
+ const journals=(await admin.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n;
+ const fresh=await request(f.company,'/accounting-documents','POST',{kind:side==='sales_invoice'?'sales_credit_note':'supplier_credit_note',
+  original_id:original.id,reason:'New discount after full payment',adjustment_method:'offset_outstanding',effective_adjustment_date:'2026-10-21',
+  source:{...original.source,invoice_number:'REJECT-'+randomUUID(),discount_adjustment:{type:'amount',value:'12',original_revision:original.revision}}});
+ assert.equal(fresh.status,409,JSON.stringify(fresh));assert.equal(fresh.error.code,'DISCOUNT_REQUIRES_UNPAID_BALANCE');
+ const direct=await request(f.company,`/accounting-documents/${draft.id}/post`,'POST',{},draft.revision);
+ assert.equal(direct.status,409);assert.equal(direct.error.code,'DISCOUNT_REQUIRES_UNPAID_BALANCE');
+ await assert.rejects(reviewPaidCredit(f.company,actor,draft.id,draft.revision,{request_id:randomUUID(),reason:'Stale draft'}),{code:'DISCOUNT_REQUIRES_UNPAID_BALANCE'});
+ await assert.rejects(commitPaidCredit(f.company,actor,draft.id,draft.revision,{...review.intent,review_token:review.review_token,releases:review.releases}),{code:'DISCOUNT_REQUIRES_UNPAID_BALANCE'});
+ assert.deepEqual(await reports(f.company,actor,'2026-01-01','2026-12-31'),before);
+ assert.equal((await admin.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n,journals);
+ const ordinary=await creditDoc(f,original,'0.1');
+ const r=await reviewPaidCredit(f.company,actor,ordinary.id,ordinary.revision,{request_id:randomUUID(),reason:'Linked refund credit'});
+ assert.equal(r.released_minor,'1200');
+ await commitPaidCredit(f.company,actor,ordinary.id,ordinary.revision,{...r.intent,review_token:r.review_token,releases:r.releases});
+ const after=await reports(f.company,actor,'2026-01-01','2026-12-31');
+ assert.equal(after.cash.balance_minor,before.cash.balance_minor); // credit is not a cash refund
+ assert.equal(after.party_balances[0].unapplied_minor,'1200');
+});
+
+for(const side of ['sales_invoice','purchase_bill']) test(`new discount policy: ${side} caps a partial-payment discount at outstanding and preserves replay`,async()=>{
+ const {reviewPaidCredit,commitPaidCredit}=await import('./paidCredit');
+ const f=await fixture(),original=await create(f,side,source(side==='sales_invoice'?f.customer:f.supplier));await post(f,original);
+ const excess=await discountCredit(f,original,'amount','80');
+ await recordPayment(f,paymentIntent(f,original,'5000','5000'));
+ await assert.rejects(reviewPaidCredit(f.company,actor,excess.id,excess.revision,{request_id:randomUUID(),reason:'Too large'}),{code:'DISCOUNT_EXCEEDS_OUTSTANDING'});
+ const exact=await discountCredit(f,original,'amount','70');
+ const r=await reviewPaidCredit(f.company,actor,exact.id,exact.revision,{request_id:randomUUID(),reason:'Discount remaining debt'});
+ assert.equal(r.released_minor,'0');assert.deepEqual(r.releases,[]);
+ const body={...r.intent,review_token:r.review_token,releases:r.releases};
+ await commitPaidCredit(f.company,actor,exact.id,exact.revision,body);
+ assert.equal((await commitPaidCredit(f.company,actor,exact.id,exact.revision,body)).status,'duplicate');
+ const report=await reports(f.company,actor,'2026-01-01','2026-12-31');
+ const item=report.open_items.find((d:any)=>d.id===original.id);
+ assert.deepEqual([item.paid_minor,item.credited_minor,item.open_minor],['5000','7000','0']);
+});
+
+
+test('isolated Chromium: unpaid and partial discounts, fully paid credit/refund guidance, excess preview refusal',async()=>{
+ const fs=await import('node:fs'),os=await import('node:os'),cp=await import('node:child_process');
+ const {createRequire}=await import('node:module');
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'discount-rule-browser-'));
+ const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
+ const server=express();let browser:ReturnType<typeof cp.spawn>|undefined;
+ const fixture=server.listen(0,'127.0.0.1');await new Promise<void>(r=>fixture.once('listening',r));
+ try {
+  fs.writeFileSync(entry,"import React from 'react';\nimport {createRoot} from 'react-dom/client';\nimport {MemoryRouter} from 'react-router-dom';\nimport PostedDocument from '@/components/accounting/PostedDocument.jsx';\nimport {DiscountBalanceReview} from '@/features/documentDiscounts/DiscountControls.jsx';\n// Synthetic read-only UI harness. No API, Clerk, database or posting authority.\nlet requests=0;\nwindow.fetch=async()=>{requests++;return new Response(JSON.stringify({error:{code:'SYNTHETIC_UNAVAILABLE'}}),{status:503,headers:{'Content-Type':'application/json'}})};\nconst root=createRoot(document.getElementById('root'));\nconst source={invoice_number:'SYNTHETIC',issue_date:'2026-11-10',due_date:'2026-11-10',payment_terms:0,price_basis:'including_vat',reference:'',notes:'',line_items:[{description:'Synthetic supply',quantity:'1',unit_price:'120',tax_code:'STANDARD_20'}]};\nconst doc={id:'original',revision:'one',status:'posted',party_id:'party',party_name:'Synthetic party',journal_id:'synthetic',source,money:{gross_pence:'12000',net_pence:'10000',vat_pence:'2000',lines:[{net_pence:'10000',vat_pence:'2000',gross_pence:'12000'}]}};\nconst wait=()=>new Promise(r=>setTimeout(r,80));\nconst assert=(v,m)=>{if(!v)throw Error(m)};\n(async()=>{\n for(const kind of ['sales_invoice','purchase_bill']) for(const paid of ['0','5000','12000']) {\n  const open=(12000n-BigInt(paid)).toString();\n  root.render(<MemoryRouter key={kind+paid}><PostedDocument kind={kind} doc={{...doc,kind}} company={{id:'synthetic-company'}} journal={{status:'loading'}} capabilities={{edit_drafts:true,post_documents:true}} settlement={{loading:false}} openItem={{gross_minor:'12000',paid_minor:paid,credited_minor:'0',open_minor:open,history:[]}} /></MemoryRouter>);await wait();\n  const links=[...document.querySelectorAll('a')];\n  assert(links.some(a=>a.textContent==='Create credit note'),kind+' ordinary credit unavailable');\n  assert(links.some(a=>a.textContent==='Apply discount')===(open!=='0'),kind+' wrong discount entry '+paid);\n  if(open==='0')assert(document.body.textContent.includes('There is no unpaid balance to discount'),'Refund guidance missing');\n }\n const item={gross_minor:'12000',paid_minor:'5000',credited_minor:'0',open_minor:'7000'};\n for(const amount of ['1200','7000','8000']) {\n  root.render(<DiscountBalanceReview original={doc} item={item} money={{gross_pence:amount}}/>);await wait();\n  assert(document.body.textContent.includes('Balance if posted')===(amount!=='8000'),'Wrong excess preview');\n }\n document.body.dataset.acceptance='passed';document.body.dataset.scope='synthetic-read-only-ui';document.body.dataset.stubbedRequests=String(requests);\n})().catch(e=>{document.body.dataset.acceptance='failed';document.body.append(document.createTextNode(e.message));});\n");
+  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
+  server.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
+  server.get('/',(_req,res)=>res.type('html').send('<!doctype html><html><head><meta charset="utf-8"><title>Synthetic discount UI</title></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>'));
+  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=6000','http://127.0.0.1:'+(fixture.address() as any).port],{stdio:['ignore','pipe','pipe']});
+  let html='',stderr='';browser.stdout!.on('data',b=>html+=b);browser.stderr!.on('data',b=>stderr+=b);
+  const code=await new Promise<number|null>((resolve,reject)=>{const timer=setTimeout(()=>{browser?.kill('SIGTERM');reject(Error('Bounded browser timeout: '+stderr.slice(-2000)));},30000);browser!.once('error',e=>{clearTimeout(timer);reject(e)});browser!.once('exit',code=>{clearTimeout(timer);resolve(code)})});
+  assert.equal(code,0,stderr.slice(-4000));assert.match(html,/data-acceptance="passed"/,html.slice(-2000));
+  console.log('DISCOUNT_RULE_BROWSER_ACCEPTANCE',JSON.stringify({syntheticReadOnly:true,actualComponents:true,unpaidAndPartial:true,fullyPaidCreditOnly:true,excessRefused:true,financialPosting:false,realClerk:false}));
+ } finally {browser?.kill('SIGTERM');await new Promise<void>(r=>fixture.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
 });

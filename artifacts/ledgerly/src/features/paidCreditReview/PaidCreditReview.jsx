@@ -1,10 +1,10 @@
 import React from 'react';
 const amount = value => {const n=BigInt(value);return `£${n/100n}.${(n%100n).toString().padStart(2,'0')}`;};
-export default function PaidCreditReview({review,conditional=false}) {
-  return <section aria-label={conditional ? "Conditional credit eligibility preview" : "Credit settlement review"} className="space-y-2 rounded-lg border p-4 text-sm">
-    <h3 className="font-semibold">{conditional ? 'Conditional eligibility preview' : 'How this credit will be applied'}</h3>
+export default function PaidCreditReview({review,conditional=false,current=false}) {
+  return <section aria-label={current ? "Conditional discount posting review" : conditional ? "Conditional credit eligibility preview" : "Credit settlement review"} className="space-y-2 rounded-lg border p-4 text-sm">
+    <h3 className="font-semibold">{current ? 'Review conditional discount' : conditional ? 'Conditional eligibility preview' : 'How this credit will be applied'}</h3>
     {conditional && <>
-      <p>Eligible at this review. Posting is unavailable; this preview makes no changes.</p>
+      <p>{current ? 'Confirm to post this discount against the unpaid balance. No paid cash is released. Eligibility is checked again at posting.' : 'Eligible at this review. Posting is unavailable; this preview makes no changes.'}</p>
       <dl><dt>Payment threshold</dt><dd>{amount(review.conditional_admission.threshold_minor)}</dd>
         <dt>Qualifying payments</dt><dd>{amount(review.conditional_admission.qualifying_minor)}</dd>
         <dt>Payment deadline</dt><dd>{review.conditional_admission.deadline}</dd></dl>
@@ -18,4 +18,9 @@ export default function PaidCreditReview({review,conditional=false}) {
       <p className="break-all text-xs">Payment ID: {r.payment_id}</p><p className="break-all text-xs">Original pool account: {r.pool_account_id}</p></div>)}
     <p>{conditional ? 'No credit has been posted and no allocations have been released. No refund is sent.' : 'Original cash payments remain unchanged. This posts the credit and releases the listed allocations together. It does not send a refund.'}</p>
   </section>;
+}
+
+export function DiscountRecoveryNotice({pending,busy,onRecover}) {
+  if(!pending)return null;
+  return <section role="status" aria-label="Conditional discount recovery"><p>A conditional discount outcome needs recovery. Do not submit another discount.</p><button type="button" disabled={busy || pending.invalid} onClick={onRecover}>Recover discount outcome</button></section>;
 }
