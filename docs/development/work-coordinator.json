@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 310,
+  "revision": 311,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "15c7869317b9d3aa546764a43a4e39de38790a80",
@@ -21,7 +21,7 @@
   },
   "queueState": {
     "version": 3,
-    "revision": 712,
+    "revision": 714,
     "tasks": {
       "P01-00": {
         "status": "done",
@@ -100,10 +100,10 @@
         }
       },
       "P01-03": {
-        "status": "review",
+        "status": "pending",
         "priority": 103,
         "discoveredDependencies": [],
-        "checkpoint": "STOPPED author f9dcafa931426ea0c905d468bd97e0514d9a635a tree968776437631a43597b49880937c9c5897308b5e in posting-run. Current-purpose locked conditional-discount commit/recovery and bothparty8 nativePG cases. Final source and pinnedpnpm10.26.1 fullbuild/typecheck passed. NativePG unrun missinghostbinaries, exactCI needed; publicgates remainclosed. Next atomicoriginalbinding plus API/UI/recovery connected journey after independentreview.",
+        "checkpoint": "PARTIAL verified current-policy conditional commit/recovery; authorf9dcafa/tree9687764 published15c7869317b9d3aa546764a43a4e39de38790a80. Root independentreview; source/build/typecheck passed. ExactCI43038657047 job130584214079 all8new bothpartyPG race/rollback/replay/recovery cases plusbrowser/security/restore/encryptedcleanup passed; checkout0df7335 files[]. Worker completed stoppedclean. Next root+implementer wire atomic originalbinding through protected posting, then explicit currentpolicy review/commit/recovery API/UI with unknownoutcome recovery; preserve allmutator compensation/replacement guards. No more preview-only slices; parentacceptance requires connected isolatedbrowser + samefinancial/recoverygates.",
         "evidence": {
           "commit": "f9dcafa931426ea0c905d468bd97e0514d9a635a",
           "summary": "PARTIAL protected current-policy conditional-discount commit and verified recovery. Purpose-bound hashes preserve historical redemption; unpaid cap at lockedcommit prevents cashreleases. Public posting remains gated. NativePG/independentreview pending; next atomicoriginalbinding and connected review/commit/recovery UI.",
@@ -118,10 +118,7 @@
             }
           ]
         },
-        "owner": "posting-implementer",
-        "tokenSha256": "92db2076a4d2c5d50273f3f365ed53cac4a7b322f85118f15504d07961036069",
-        "leaseUntil": 1794407897908,
-        "workStarted": true
+        "blockers": []
       },
       "P01-04": {
         "status": "blocked",
@@ -9737,6 +9734,20 @@
             }
           ]
         }
+      },
+      {
+        "at": 1794407456569,
+        "actor": "integration-coordinator",
+        "type": "reject",
+        "taskId": "P01-03",
+        "reason": "Bounded current-policy conditional commit/recovery independently accepted on exact published15c786 CI43038657047, but parent not complete: atomic original-binding and explicit connected public review/commit/recovery/UI remain gated. Return stopped partial work without autoaccepting parent."
+      },
+      {
+        "at": 1794407456757,
+        "actor": "integration-coordinator",
+        "type": "recover",
+        "taskId": "P01-03",
+        "checkpoint": "PARTIAL verified current-policy conditional commit/recovery; authorf9dcafa/tree9687764 published15c7869317b9d3aa546764a43a4e39de38790a80. Root independentreview; source/build/typecheck passed. ExactCI43038657047 job130584214079 all8new bothpartyPG race/rollback/replay/recovery cases plusbrowser/security/restore/encryptedcleanup passed; checkout0df7335 files[]. Worker completed stoppedclean. Next root+implementer wire atomic originalbinding through protected posting, then explicit currentpolicy review/commit/recovery API/UI with unknownoutcome recovery; preserve allmutator compensation/replacement guards. No more preview-only slices; parentacceptance requires connected isolatedbrowser + samefinancial/recoverygates."
       }
     ],
     "catalogDigest": "4a4d6a7a34c9e133364ffbfbf4979a8ceacd73ef9436d0db7a7f5a7f00336058",
@@ -9763,10 +9774,10 @@
       }
     ],
     "runId": "posting-1794406714096",
-    "at": 1794407262984,
+    "at": 1794407457018,
     "codeHead": "15c7869317b9d3aa546764a43a4e39de38790a80"
   },
-  "updatedAt": 1794407262984,
+  "updatedAt": 1794407457018,
   "recovery": {
     "priorRunId": "hosted-20261105-1536",
     "stoppedEvidence": {
@@ -11413,8 +11424,8 @@
     "startedAt": "2026-11-11T14:18:34.125Z",
     "scope": "Complete current-rule conditional posting prerequisite and connected journey",
     "credits": "unknown",
-    "activity": "Reviewed current-rule posting/recovery source published to PR28; exact CI pending; implementer stopped.",
-    "lastObservedAt": "2026-11-11T14:27:42.983Z",
+    "activity": "PARTIAL verified current-policy conditional commit/recovery; authorf9dcafa/tree9687764 published15c7869317b9d3aa546764a43a4e39de38790a80. Root independentreview; source/build/typecheck passed. ExactCI43038657047 job130584214079 all8new bothpartyPG race/rollback/replay/recovery cases plusbrowser/security/restore/encryptedcleanup passed; checkout0df7335 files[]. Worker completed stoppedclean. Next root+implementer wire atomic originalbinding through protected posting, then explicit currentpolicy review/commit/recovery API/UI with unknownoutcome recovery; preserve allmutator compensation/replacement guards. No more preview-only slices; parentacceptance requires connected isolatedbrowser + samefinancial/recoverygates.",
+    "lastObservedAt": "2026-11-11T14:30:57.014Z",
     "contract": "Private server-selected conditional-discount purpose binds review and request hash; unpaid-cap before releases under same company lock; zero release; replay first; authenticated purpose/actor/company scoped verified recovery. Historical mode preserved. No HTTPcommit/originalposting activation until combined customerjourney qualified.",
     "review": {
       "reviewer": "root",
@@ -11423,6 +11434,45 @@
       "patchSha256": "cd5389aa354de06d1e6d622f03d503d824bfe7e9fae169e33634e373e3f9fe0d",
       "result": "Independent review passed, source and fullbuild passed; actualPG/restore await CI"
     },
-    "published": "15c7869317b9d3aa546764a43a4e39de38790a80"
+    "published": "15c7869317b9d3aa546764a43a4e39de38790a80",
+    "ci": {
+      "run": 43038657047,
+      "job": 130584214079,
+      "head": "15c7869317b9d3aa546764a43a4e39de38790a80",
+      "checkout": "0df7335e1a51fc858b58029ff01857e45d09a1ec",
+      "fileDiff": [],
+      "result": "success",
+      "newNativeScenarios": 8,
+      "logsFetched": true
+    },
+    "completion": {
+      "originalBulletsAccepted": [],
+      "acceptedScenario": "Protected current-policy conditional discount commit, duplicate/race/rollback/recovery without cash release",
+      "publicJourneyAccepted": false,
+      "remaining": "Atomic originalbinding and connected current-policy review/commit/recovery API/UI remain gated; next assignment must target that connectedjourney",
+      "responsible": "Coordinator financialcontract and one implementer; root independentreview",
+      "blockerAge": "Publicactivation predates thisrun; exactageunknown",
+      "reviewWait": "unknown",
+      "rework": "Recovery evidence joins strengthened beforefirstCI; no CI failure",
+      "credits": "unknown",
+      "staffing": "One implementer plus rootreview; Replitapp unavailable; allstopped",
+      "stopReason": "Bounded financial command completed and exact-source verified; separate connected activation requires its own reviewed originalbinding+UI scope",
+      "endedAt": "2026-11-11T14:30:57.014Z"
+    },
+    "threeRunComparison": {
+      "runs": [
+        "20261110-discount",
+        "20261110-conditional-preview",
+        "20261111-current-discount"
+      ],
+      "outcomes": [
+        "Discretionary discount unpaidcap and paidinvoice credit/refund separation",
+        "Currentconditional preview unpaidcap",
+        "Currentconditional protected commit/recovery"
+      ],
+      "fullConditionalJourneyAccepted": false,
+      "cost": "unknown",
+      "adaptation": "Keep oneimplementer+rootreview, next executable assignment atomic originalbinding plus connected API/UI admission rather than more preview/validation-only changes; preserve all currentgates"
+    }
   }
 }
