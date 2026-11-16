@@ -78,8 +78,30 @@
     "type": "environment",
     "reason": "This bounded run lacks a safe full implementation, independent review and exact-source CI window for the connected schema, authority and UI change. No code scaffolding created. Next coordinator explicitly resolves after reserving a full implementation/review/CI window."
   },
-  "nextAction": "Resolve this recorded resource/window blocker with a reserved full connected-work window; review the two pending-identity fencing/lifecycle decisions, persist exact contract and file reservation, then implement the connected top-level admission/discovery scenario. Preserve prior committed receipt-discovery acceptance; parent P03-01 remains pending.",
+  "nextAction": "Reserve full implementation/review/CI window, explicitly resolve run-resource blocker, automatically claim P03-01, implement reviewed contract including actor fence and fresh-lock reads. No owner technical decision is pending.",
   "authorStopped": true,
   "codeEdits": false,
-  "testsRunThisClaim": []
+  "testsRunThisClaim": [],
+  "coordinatorResolution": {
+    "at": "2026-11-16T16:31:34.011Z",
+    "reviewer": "independent_review",
+    "decision": "Approved technical contract, not implemented or accepted feature.",
+    "rules": [
+      "Existing company lock then attempt lock; READ COMMITTED authoritative reads AFTER lock acquisition, never existing repeatable-read recovery snapshot as no-effect proof.",
+      "Exact canonical event/journal/effect remains committed-result authority. Bind request to actor+intent+review. Reject fresh IDs for an actor/company while any admission lacks verified recorded outcome or valid terminal marker; exact same-ID continuation only.",
+      "Explicit authorized terminal write appends immutable no-effect marker under same company/attempt serialization after checking complete canonical absence. No TTL or empty discovery unlock. Transaction rollback leaves unresolved fence.",
+      "Canonical sourceProvider checks terminal marker before effects, including bundled existingTransaction children. Bundled calls skip independent admission, not terminal protection.",
+      "Actor/company fence does not claim to prevent different users entering semantic duplicates."
+    ],
+    "tests": [
+      "Two new IDs race; exact same-ID race; actor/hash/review conflict; unrelated company/actor isolation.",
+      "Admission visible before effects; crash, stale review and rollback stay unresolved and forbid replacement.",
+      "Terminal wins -> delayed writer rejected; posting wins -> terminal observes recorded after lock. Reader starts before posting commit and locks after commit to expose stale snapshots.",
+      "Terminal rollback/idempotent replay/restart; corrupt or orphaned canonical state never releases fence.",
+      "Current authorization/terminal write capability/tenant isolation.",
+      "Bundled rollback atomic with no independent admission; terminal marker cannot be bypassed by bundled child.",
+      "Mounted lost-locator pending recovery ahead of history pagination; no automatic selection/repost/unlock; final current-auth read.",
+      "Restore immutable admission and terminal history."
+    ]
+  }
 }

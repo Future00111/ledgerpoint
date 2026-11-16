@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "revision": 799,
+  "revision": 811,
   "tasks": {
     "P01-00": {
       "status": "done",
@@ -105,29 +105,31 @@
       }
     },
     "P01-04": {
-      "status": "pending",
+      "status": "done",
       "priority": 104,
       "discoveredDependencies": [],
-      "checkpoint": "Clean stopped codex/lp-1847-worker4 aa45af5cd82a676b4851e5cbab873cd70bcf5c04, no edits/processes. Source-path inspection complete; independent worker3 b2baf6b review passed registry28. Ready for ownership repair or independent review.",
+      "checkpoint": "Verification complete, no source edits/processes. Exact eb4bf2b/tree1f4ff0a7 independently matched CI merge3f553987 via GitHub Git API. Full CI43903722452/job133426839772 logs and successful steps inspected. Both original P01-04 criteria mapped; corrected child-credit protections remain P05-01. Await independent root acceptance, no automatic parent acceptance.",
       "evidence": {
-        "commit": "9156863",
-        "summary": "PARTIAL P01-04: linked posted credits must match immutable source revision and currency before current/historical settlement; orphaned/mismatched journal fails closed. Added both-party disposable corruption-and-rollback regression; runtime PostgreSQL execution pending. Corrected credit activation remains blocked and broad package unfinished.",
+        "commit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33",
+        "summary": "VERIFICATION ONLY, no implementation changes. P01-04 original criterion1 satisfied by shared amendmentHistory/projectDocumentAsOf chain for settlement/report VAT/creditOriginal capacity/return create-confirm-list, with frozen corrected head and complete journal/effect validation. Criterion2: corrections.integration.test194+ historical VAT/balances,355+ both-party cumulative corrected credits/six cutoffs,404+ competing credits/rollback/authority,442+ corrected-head claims and receipt replay,513+ correction-payment race,550+/574+ corruption refusal; integration.test1325+ claim races and1347+ rollback. Exact CI all gates passed; both native correction browser journeys plus native corrected-credit/claim API evidence. No full-page corrected-claim browser claim. Existing corrected child-credit/reversal safeguards remain separate P05 scope. Worker stopped; root must independently reconcile/accept. Root independently inspected amendmentHistory->projectDocumentAsOf, settlement/reports and corrected-head claim create/receive, original criteria and exact CI excerpt evidence. Accept original P01-04 without source rewrite; unrelated corrected-child-credit guard retained.",
         "tests": [
           {
-            "command": "API TypeScript --noEmit passed",
+            "command": "Independently fetched GitHub CI43903722452 job133426839772: all build/typecheck/unit/migration/native PostgreSQL/security/browser/plain+encrypted restore/current-source/cleanup steps successful; full logs inspected",
             "passed": true
           },
           {
-            "command": "corrections.integration.test.ts esbuild bundle passed; database execution pending CI",
+            "command": "GitHub Git-commit tree equality: published eb4bf2b229725c23c3324c22eca9feca00c2ff33 and tested3f55398781649418d0b422766cb0c584f35b4adc both tree1f4ff0a7b085faceaf17637bdf3c7381bcf14522",
             "passed": true
           },
           {
-            "command": "git diff --check passed",
+            "command": "Exact CI logs: corrections26/26, ordinary accounting80/80; both CORRECTION_BROWSER_ACCEPTANCE markers and CORRECTED_CREDIT_RESTORE_ACCEPTANCE originals8 balanced; corrected credit/claim/cutoff/concurrency/rollback/security assertions passed",
             "passed": true
           }
-        ]
-      },
-      "blockers": []
+        ],
+        "reviewed": true,
+        "reviewer": "acceptance-coordinator",
+        "integratedCommit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33"
+      }
     },
     "P01-05": {
       "status": "blocked",
@@ -310,10 +312,10 @@
       }
     },
     "P03-01": {
-      "status": "pending",
+      "status": "blocked",
       "priority": 301,
       "discoveredDependencies": [],
-      "checkpoint": "Design bounded pending-operation admission using existing receipt authority; keep absence fail-closed and preserve no-repost controls.",
+      "checkpoint": "STOPPED clean exact eb4bf2b229725c23c3324c22eca9feca00c2ff33 branch codex/pending-admission-1617, no code edits/candidate. Full approved pending-admission contract and required decisions/evidence in acceptance-pending-contract.json for durable coordinator archival. Next run reserve full connected schema/UI/native review+CI window, explicitly resolve window blocker, settle pending identity fence/lifecycle, then persist ownership before implementation. Prior committed receipt-discovery retained; P03-01 not accepted.",
       "evidence": {
         "commit": "914203d4aab64f54897a53c8819a0f387cbd565a",
         "integratedCommit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33",
@@ -370,6 +372,12 @@
               }
             ]
           }
+        }
+      ],
+      "blockers": [
+        {
+          "type": "environment",
+          "reason": "This bounded run lacks a safe full implementation, independent review and exact-source CI window for the connected schema and UI pending-admission change. Next coordinator explicitly resolves after reserving a full window. No scaffolding or candidate code created."
         }
       ]
     },
@@ -448,27 +456,31 @@
       "status": "pending",
       "priority": 401,
       "discoveredDependencies": [],
-      "checkpoint": "Implement bounded synthetic notice input/output contract and qualify combined timing/amount cases including zero, thresholds and conflicts; live employee notices are not a development prerequisite.",
+      "checkpoint": "Qualify the remaining supported-case input/output examples and exceptional instructions against authoritative evidence; preserve original case scope and engine dependencies. No live employee data required for synthetic development.",
       "evidence": {
-        "commit": "f201062a2ce9bc83360edae25777f69fba3a33db",
-        "integratedCommit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33",
-        "summary": "Sixteen authored synthetic Plan1 notice start/stop timing scenarios linked to official rules and pinned numeric boundary examples; reference qualification only, not a payroll engine.",
-        "reviewed": true,
-        "reviewer": "independent_review",
+        "commit": "d5269ed4e56382e8c82eff399069718fe054e498",
+        "summary": "P04-01 bounded synthetic Plan1 input/output contract: exact contract/rule versions and synthetic purpose; each supplied notice requires contentdigest-bound explicit identity and first-practical-payday verification assertions. Combined function reuses existing timing and official-authority Job19 arithmetic; returns exact amount, trace, timing and reproducible inputdigest, always qualifiedfalse/notForPayrolltrue. Existing16dated fixtures unchanged. Originalcase still unsupported; no runtimeimports/newrates/DB/provider. Synthetic assertions suffice for this developmentcontract; no live employee dependency. Remaining full P04-01 matrix and P04-03 independent qualification; broader instructions/periods/plans/concurrentloans/corrections and payrollintegration remain. Next review synthetic combinedcontract then completeexistingcase/dependency gates before productionadapter. Author stoppedclean, independentreview required.",
         "tests": [
           {
-            "command": "Independent matching-author focused tests and diff review",
+            "command": "node --test artifacts/api-server/src/services/payroll/contracts/*.test.mjs artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs tools/payroll-specification/studentLoans.test.mjs — 156 passed on submitted tree",
             "passed": true
           },
           {
-            "command": "Combined node tools/development/check.mjs: 1030 passed; full build/typecheck",
+            "command": "git diff --check passed; rg plan1SyntheticContract artifacts/api-server/src excluding contracts found no runtime imports",
             "passed": true
           },
           {
-            "command": "GitHub Actions 43903722452 job133426839772: source, security, disposable PostgreSQL, browser and encrypted restore; merge tree identical to eb4bf2",
+            "command": "Independent exact-author review and133focused tests passed",
+            "passed": true
+          },
+          {
+            "command": "Combined1052sourcechecks/fullbuild and exact-sourceCI43907873654 job133441495586 all native/browser/plain+encrypted restore gates passed; tested7809ee8 tree28498292 equals published99e547aa",
             "passed": true
           }
-        ]
+        ],
+        "reviewed": true,
+        "integratedCommit": "99e547aa77608457427475bcb9e3ae3be7bd9ebd",
+        "reviewer": "independent_review"
       },
       "acceptedOutcomes": [
         {
@@ -536,6 +548,46 @@
                 "passed": true
               }
             ]
+          }
+        },
+        {
+          "id": "synthetic-plan1-versioned-input-output-20261116",
+          "scenario": "Versioned executable synthetic Plan1 input boundary combines existing notice timing and exact deduction arithmetic, binds explicit verification assertions and rejects unsupported/conflicting inputs; unqualified reference only, no runtime adapter.",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Complete every original supported tax/payroll case and missing official/independent fixtures; parent remains pending.",
+            "Complete P04-03 qualification and other existing engine dependencies before production payroll integration."
+          ],
+          "nextAction": "Qualify the remaining supported-case input/output examples and exceptional instructions against authoritative evidence; preserve original case scope and engine dependencies. No live employee data required for synthetic development.",
+          "integratedCommit": "99e547aa77608457427475bcb9e3ae3be7bd9ebd",
+          "acceptedAt": 1794846657981,
+          "evidence": {
+            "commit": "d5269ed4e56382e8c82eff399069718fe054e498",
+            "summary": "P04-01 bounded synthetic Plan1 input/output contract: exact contract/rule versions and synthetic purpose; each supplied notice requires contentdigest-bound explicit identity and first-practical-payday verification assertions. Combined function reuses existing timing and official-authority Job19 arithmetic; returns exact amount, trace, timing and reproducible inputdigest, always qualifiedfalse/notForPayrolltrue. Existing16dated fixtures unchanged. Originalcase still unsupported; no runtimeimports/newrates/DB/provider. Synthetic assertions suffice for this developmentcontract; no live employee dependency. Remaining full P04-01 matrix and P04-03 independent qualification; broader instructions/periods/plans/concurrentloans/corrections and payrollintegration remain. Next review synthetic combinedcontract then completeexistingcase/dependency gates before productionadapter. Author stoppedclean, independentreview required.",
+            "tests": [
+              {
+                "command": "node --test artifacts/api-server/src/services/payroll/contracts/*.test.mjs artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs tools/payroll-specification/studentLoans.test.mjs — 156 passed on submitted tree",
+                "passed": true
+              },
+              {
+                "command": "git diff --check passed; rg plan1SyntheticContract artifacts/api-server/src excluding contracts found no runtime imports",
+                "passed": true
+              },
+              {
+                "command": "Independent exact-author review and133focused tests passed",
+                "passed": true
+              },
+              {
+                "command": "Combined1052sourcechecks/fullbuild and exact-sourceCI43907873654 job133441495586 all native/browser/plain+encrypted restore gates passed; tested7809ee8 tree28498292 equals published99e547aa",
+                "passed": true
+              }
+            ],
+            "reviewed": true,
+            "integratedCommit": "99e547aa77608457427475bcb9e3ae3be7bd9ebd",
+            "reviewer": "independent_review"
           }
         }
       ]
@@ -10820,6 +10872,187 @@
             "passed": true
           }
         ]
+      }
+    },
+    {
+      "at": 1794846010219,
+      "actor": "correction-acceptance",
+      "type": "claim",
+      "taskId": "P01-04",
+      "tokenSha256": "4412af364fae5a7b9f7d90366b695dbdadfbaf93b2cd668feefab640a0f5cf9a"
+    },
+    {
+      "at": 1794846010291,
+      "actor": "correction-acceptance",
+      "type": "checkpoint",
+      "taskId": "P01-04",
+      "checkpoint": "Verification-only reservation on exact eb4bf2b229725c23c3324c22eca9feca00c2ff33. Independent acceptance reviewer inspecting existing original criteria, shared corrected-original projection, credits/claims/history/concurrency and browser evidence. No source edits; awaiting coordinator persisted reservation before any edits."
+    },
+    {
+      "at": 1794846012890,
+      "actor": "payroll-input",
+      "type": "claim",
+      "taskId": "P04-01",
+      "tokenSha256": "afec601aacdce49124d80f98b78f4b46d0e6e5044432b253f7930fdb45b58871",
+      "track": "tax-payroll"
+    },
+    {
+      "at": 1794846027510,
+      "actor": "payroll-input",
+      "type": "checkpoint",
+      "taskId": "P04-01",
+      "checkpoint": "Before edits exacteb4bf2b isolated payroll-input-1617. ClaimedP04-01. Owned new payroll/contracts/plan1SyntheticContract.mjs + test, narrow register link only if useful. Reuse existing16dated fixtures and Job19 arithmetic. Explicit synthetic-only verified notice and first-practical-payday assertions, strict pinned rule version, combined timing/deduction output and trace; invalid/unsupported fail closed. Await durable reservation."
+    },
+    {
+      "at": 1794846157696,
+      "actor": "correction-acceptance",
+      "type": "checkpoint",
+      "taskId": "P01-04",
+      "checkpoint": "Verification complete, no source edits/processes. Exact eb4bf2b/tree1f4ff0a7 independently matched CI merge3f553987 via GitHub Git API. Full CI43903722452/job133426839772 logs and successful steps inspected. Both original P01-04 criteria mapped; corrected child-credit protections remain P05-01. Await independent root acceptance, no automatic parent acceptance."
+    },
+    {
+      "at": 1794846157787,
+      "actor": "correction-acceptance",
+      "type": "submit",
+      "taskId": "P01-04",
+      "evidence": {
+        "commit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33",
+        "summary": "VERIFICATION ONLY, no implementation changes. P01-04 original criterion1 satisfied by shared amendmentHistory/projectDocumentAsOf chain for settlement/report VAT/creditOriginal capacity/return create-confirm-list, with frozen corrected head and complete journal/effect validation. Criterion2: corrections.integration.test194+ historical VAT/balances,355+ both-party cumulative corrected credits/six cutoffs,404+ competing credits/rollback/authority,442+ corrected-head claims and receipt replay,513+ correction-payment race,550+/574+ corruption refusal; integration.test1325+ claim races and1347+ rollback. Exact CI all gates passed; both native correction browser journeys plus native corrected-credit/claim API evidence. No full-page corrected-claim browser claim. Existing corrected child-credit/reversal safeguards remain separate P05 scope. Worker stopped; root must independently reconcile/accept.",
+        "tests": [
+          {
+            "command": "Independently fetched GitHub CI43903722452 job133426839772: all build/typecheck/unit/migration/native PostgreSQL/security/browser/plain+encrypted restore/current-source/cleanup steps successful; full logs inspected",
+            "passed": true
+          },
+          {
+            "command": "GitHub Git-commit tree equality: published eb4bf2b229725c23c3324c22eca9feca00c2ff33 and tested3f55398781649418d0b422766cb0c584f35b4adc both tree1f4ff0a7b085faceaf17637bdf3c7381bcf14522",
+            "passed": true
+          },
+          {
+            "command": "Exact CI logs: corrections26/26, ordinary accounting80/80; both CORRECTION_BROWSER_ACCEPTANCE markers and CORRECTED_CREDIT_RESTORE_ACCEPTANCE originals8 balanced; corrected credit/claim/cutoff/concurrency/rollback/security assertions passed",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1794846174698,
+      "actor": "acceptance-coordinator",
+      "type": "accept",
+      "taskId": "P01-04",
+      "evidence": {
+        "commit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33",
+        "summary": "VERIFICATION ONLY, no implementation changes. P01-04 original criterion1 satisfied by shared amendmentHistory/projectDocumentAsOf chain for settlement/report VAT/creditOriginal capacity/return create-confirm-list, with frozen corrected head and complete journal/effect validation. Criterion2: corrections.integration.test194+ historical VAT/balances,355+ both-party cumulative corrected credits/six cutoffs,404+ competing credits/rollback/authority,442+ corrected-head claims and receipt replay,513+ correction-payment race,550+/574+ corruption refusal; integration.test1325+ claim races and1347+ rollback. Exact CI all gates passed; both native correction browser journeys plus native corrected-credit/claim API evidence. No full-page corrected-claim browser claim. Existing corrected child-credit/reversal safeguards remain separate P05 scope. Worker stopped; root must independently reconcile/accept. Root independently inspected amendmentHistory->projectDocumentAsOf, settlement/reports and corrected-head claim create/receive, original criteria and exact CI excerpt evidence. Accept original P01-04 without source rewrite; unrelated corrected-child-credit guard retained.",
+        "tests": [
+          {
+            "command": "Independently fetched GitHub CI43903722452 job133426839772: all build/typecheck/unit/migration/native PostgreSQL/security/browser/plain+encrypted restore/current-source/cleanup steps successful; full logs inspected",
+            "passed": true
+          },
+          {
+            "command": "GitHub Git-commit tree equality: published eb4bf2b229725c23c3324c22eca9feca00c2ff33 and tested3f55398781649418d0b422766cb0c584f35b4adc both tree1f4ff0a7b085faceaf17637bdf3c7381bcf14522",
+            "passed": true
+          },
+          {
+            "command": "Exact CI logs: corrections26/26, ordinary accounting80/80; both CORRECTION_BROWSER_ACCEPTANCE markers and CORRECTED_CREDIT_RESTORE_ACCEPTANCE originals8 balanced; corrected credit/claim/cutoff/concurrency/rollback/security assertions passed",
+            "passed": true
+          }
+        ],
+        "reviewed": true,
+        "reviewer": "acceptance-coordinator",
+        "integratedCommit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33"
+      }
+    },
+    {
+      "at": 1794846222013,
+      "actor": "payroll-input",
+      "type": "submit",
+      "taskId": "P04-01",
+      "evidence": {
+        "commit": "d5269ed4e56382e8c82eff399069718fe054e498",
+        "summary": "P04-01 bounded synthetic Plan1 input/output contract: exact contract/rule versions and synthetic purpose; each supplied notice requires contentdigest-bound explicit identity and first-practical-payday verification assertions. Combined function reuses existing timing and official-authority Job19 arithmetic; returns exact amount, trace, timing and reproducible inputdigest, always qualifiedfalse/notForPayrolltrue. Existing16dated fixtures unchanged. Originalcase still unsupported; no runtimeimports/newrates/DB/provider. Synthetic assertions suffice for this developmentcontract; no live employee dependency. Remaining full P04-01 matrix and P04-03 independent qualification; broader instructions/periods/plans/concurrentloans/corrections and payrollintegration remain. Next review synthetic combinedcontract then completeexistingcase/dependency gates before productionadapter. Author stoppedclean, independentreview required.",
+        "tests": [
+          {
+            "command": "node --test artifacts/api-server/src/services/payroll/contracts/*.test.mjs artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs tools/payroll-specification/studentLoans.test.mjs — 156 passed on submitted tree",
+            "passed": true
+          },
+          {
+            "command": "git diff --check passed; rg plan1SyntheticContract artifacts/api-server/src excluding contracts found no runtime imports",
+            "passed": true
+          }
+        ],
+        "reviewed": false
+      }
+    },
+    {
+      "at": 1794846230505,
+      "actor": "pending-admission",
+      "type": "claim",
+      "taskId": "P03-01",
+      "tokenSha256": "5fd254fc0ca9e21e9baea9c78df58025018ef5bd58be2c8b5fd0d86fd8f1d99d"
+    },
+    {
+      "at": 1794846267191,
+      "actor": "pending-admission",
+      "type": "checkpoint",
+      "taskId": "P03-01",
+      "checkpoint": "Exact eb4bf2b isolated codex/pending-admission-1617; inspected current canonical payment event/receipt authority. No edits. Proposed immutable server payment-attempt admission before top-level canonical posting, derived outcome from existing journal/event authority; awaiting reviewed contract and durable reservation. Bundled caller-owned payment transactions need explicit exclusion/parent operation coverage."
+    },
+    {
+      "at": 1794846377323,
+      "actor": "pending-admission",
+      "type": "block",
+      "taskId": "P03-01",
+      "checkpoint": "STOPPED clean exact eb4bf2b229725c23c3324c22eca9feca00c2ff33 branch codex/pending-admission-1617, no code edits/candidate. Full approved pending-admission contract and required decisions/evidence in acceptance-pending-contract.json for durable coordinator archival. Next run reserve full connected schema/UI/native review+CI window, explicitly resolve window blocker, settle pending identity fence/lifecycle, then persist ownership before implementation. Prior committed receipt-discovery retained; P03-01 not accepted.",
+      "blockers": [
+        {
+          "type": "environment",
+          "reason": "This bounded run lacks a safe full implementation, independent review and exact-source CI window for the connected schema and UI pending-admission change. Next coordinator explicitly resolves after reserving a full window. No scaffolding or candidate code created."
+        }
+      ]
+    },
+    {
+      "at": 1794846657981,
+      "actor": "acceptance-coordinator",
+      "type": "accept-outcome",
+      "taskId": "P04-01",
+      "outcome": {
+        "id": "synthetic-plan1-versioned-input-output-20261116",
+        "scenario": "Versioned executable synthetic Plan1 input boundary combines existing notice timing and exact deduction arithmetic, binds explicit verification assertions and rejects unsupported/conflicting inputs; unqualified reference only, no runtime adapter.",
+        "criteria": [
+          0,
+          1
+        ],
+        "remaining": [
+          "Complete every original supported tax/payroll case and missing official/independent fixtures; parent remains pending.",
+          "Complete P04-03 qualification and other existing engine dependencies before production payroll integration."
+        ],
+        "nextAction": "Qualify the remaining supported-case input/output examples and exceptional instructions against authoritative evidence; preserve original case scope and engine dependencies. No live employee data required for synthetic development.",
+        "integratedCommit": "99e547aa77608457427475bcb9e3ae3be7bd9ebd"
+      },
+      "workersStopped": true,
+      "evidence": {
+        "commit": "d5269ed4e56382e8c82eff399069718fe054e498",
+        "summary": "P04-01 bounded synthetic Plan1 input/output contract: exact contract/rule versions and synthetic purpose; each supplied notice requires contentdigest-bound explicit identity and first-practical-payday verification assertions. Combined function reuses existing timing and official-authority Job19 arithmetic; returns exact amount, trace, timing and reproducible inputdigest, always qualifiedfalse/notForPayrolltrue. Existing16dated fixtures unchanged. Originalcase still unsupported; no runtimeimports/newrates/DB/provider. Synthetic assertions suffice for this developmentcontract; no live employee dependency. Remaining full P04-01 matrix and P04-03 independent qualification; broader instructions/periods/plans/concurrentloans/corrections and payrollintegration remain. Next review synthetic combinedcontract then completeexistingcase/dependency gates before productionadapter. Author stoppedclean, independentreview required.",
+        "tests": [
+          {
+            "command": "node --test artifacts/api-server/src/services/payroll/contracts/*.test.mjs artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs tools/payroll-specification/studentLoans.test.mjs — 156 passed on submitted tree",
+            "passed": true
+          },
+          {
+            "command": "git diff --check passed; rg plan1SyntheticContract artifacts/api-server/src excluding contracts found no runtime imports",
+            "passed": true
+          },
+          {
+            "command": "Independent exact-author review and133focused tests passed",
+            "passed": true
+          },
+          {
+            "command": "Combined1052sourcechecks/fullbuild and exact-sourceCI43907873654 job133441495586 all native/browser/plain+encrypted restore gates passed; tested7809ee8 tree28498292 equals published99e547aa",
+            "passed": true
+          }
+        ],
+        "reviewed": true,
+        "integratedCommit": "99e547aa77608457427475bcb9e3ae3be7bd9ebd",
+        "reviewer": "independent_review"
       }
     }
   ],
