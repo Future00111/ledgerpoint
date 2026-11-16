@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "task": "P03-01",
+  "status": "carryover_contract_only_no_candidate_code",
+  "actor": "pending-admission",
+  "sourceCommit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33",
+  "sourceBranch": "codex/pending-admission-1617",
+  "observedAt": "2026-11-16T16:26:16.534243+00:00",
+  "approvedBy": "acceptance-coordinator",
+  "scope": "Top-level ordinary payment pending admission before canonical effects; existing bundled parent transactions unchanged.",
+  "authority": {
+    "current": "Immutable accounting_payment_events plus verified canonical journal and posting effect remain the sole committed-outcome authority.",
+    "new": "Immutable pending admission is an observation that a reviewed command reached the server, never success, failure, cancellation, or permission to post again.",
+    "browser": "Only locator identity may persist. Financial payload/review token stays out of browser storage. Lost review allows reads only.",
+    "bundledTransactions": "postPayment(existingTransaction) is called by paidCredit and conditionalCompensation. Never open or commit an independent admission transaction for these calls; retain existing parent authority."
+  },
+  "proposedSchema": {
+    "path": "lib/db/migrations/operation-recovery.review.sql",
+    "table": "payment_attempt_admissions",
+    "columns": [
+      "company_id uuid tenant key",
+      "request_id uuid original payment event identity",
+      "actor_id text authenticated actor",
+      "request_hash text canonical intent hash",
+      "review_hash text validated reviewed state hash",
+      "kind text constrained ordinary payment event kind",
+      "party_type text constrained customer/supplier",
+      "reference text bounded display metadata",
+      "effective_date date",
+      "amount_minor exact positive numeric pence",
+      "admitted_at timestamptz server timestamp"
+    ],
+    "identity": "Primary key(company_id,request_id); actor/company indexes for discovery. Bind same identity to same actor and hashes; conflicts fail closed. Do not create parallel financial effects or outcome balances.",
+    "immutability": "Reject UPDATE, DELETE and TRUNCATE with always-enabled immutable guards. Revoke PUBLIC and runtime mutation rights except required SELECT/INSERT. Registry hash, dependencies and installer remain explicit; no startup DDL or existing/shared database execution."
+  },
+  "flow": [
+    "Top-level postPayment validates current scope, permission, exact intent and review token using existing locked planning authority.",
+    "In that existing separate preflight transaction, persist immutable admission before starting canonical posting; concurrent same identity must validate actor/hash binding.",
+    "Canonical sourceProvider still rechecks membership, prior exact event and locked review before effects. Atomic journal/event/effect remains unchanged.",
+    "Recovery derives recorded only after existing journal/effect verification. Admission without event is pending/unknown; absent admission and event is unknown, never proof of failure.",
+    "Actor/company discovery may expose pending metadata alongside verified receipts without returning full source, command payload or review token. Prioritize unresolved observations or explicitly paginate; latest100 history must not silently hide pending observations.",
+    "Explicit pending selection enters existing read-only unresolved model; status-only check can eventually reveal the same canonical outcome. No repost, automatic selection, cancellation or replacement authorization.",
+    "Revoked, foreign-company or foreign-actor reads must not disclose pending attempts; reauthorize every read and invalidate stale browser responses on company/session exit."
+  ],
+  "implementationDecisionsBeforeEditing": [
+    "Specify how a new independent request identity is fenced while an actor/company has unresolved admissions. Discovery alone is not durable duplicate-prevention; do not imply it solves replacement requests across tabs/reloads. Any such fence must consult canonical outcome under existing company serialization and never convert absence to failure.",
+    "Specify retained-pending behavior after stale review or canonical rollback. No automatic expiry/cancellation/unlock is authorized; explicit reconciliation/cancellation would require a separate reviewed contract.",
+    "Keep bundled operations under their own existing parent command receipts; do not claim P03 operation-family completion."
+  ],
+  "plannedOwnedPaths": [
+    "artifacts/api-server/src/services/operationRecovery/",
+    "lib/db/migrations/operation-recovery.review.sql",
+    "artifacts/api-server/src/services/accountingDocuments/payments.ts",
+    "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+    "artifacts/api-server/src/routes/accountingDocuments.ts",
+    "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+    "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+    "artifacts/ledgerly/src/features/paymentRecovery/model.mjs",
+    "artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs",
+    "artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx",
+    "tools/accounting-flow/schema.mjs",
+    "tools/accounting-flow/test.mjs",
+    "tools/development/migrations/registry.mjs",
+    "tools/development/migrations/registry.test.mjs",
+    "lib/db/migration-registry.json",
+    "lib/db/schema-change-registry.json"
+  ],
+  "requiredEvidence": [
+    "Native disposable PostgreSQL: pause canonical transaction using existing test hook; committed admission visible while event/journal/effect uncommitted and invisible, then release to same-ID recorded outcome with exactly one effect.",
+    "Native forced rollback: retained admission remains unresolved, no new/replacement effect authorized.",
+    "Concurrent exact replay and actor/hash conflicts; revoked and foreign tenant/actor denial; current authorization after admission and before canonical posting.",
+    "Bundled existingTransaction payment tests retain atomic rollback and parent authority without independent committed admission.",
+    "Actual mounted ordinary payment controls plus native API: lost response and browser locator discover pending, remain locked/read-only, then resolve original ID after commit; no POST during recovery.",
+    "Source/migration checksum/dependency/immutable/grant tests; pinned pnpm10.26.1 full typecheck/build.",
+    "Exact integrated native PostgreSQL, populated restore, encrypted recovery, current-source receipts and cleanup through existing authorized CI; independent financial/security review."
+  ],
+  "blocker": {
+    "type": "environment",
+    "reason": "This bounded run lacks a safe full implementation, independent review and exact-source CI window for the connected schema, authority and UI change. No code scaffolding created. Next coordinator explicitly resolves after reserving a full implementation/review/CI window."
+  },
+  "nextAction": "Resolve this recorded resource/window blocker with a reserved full connected-work window; review the two pending-identity fencing/lifecycle decisions, persist exact contract and file reservation, then implement the connected top-level admission/discovery scenario. Preserve prior committed receipt-discovery acceptance; parent P03-01 remains pending.",
+  "authorStopped": true,
+  "codeEdits": false,
+  "testsRunThisClaim": []
+}
