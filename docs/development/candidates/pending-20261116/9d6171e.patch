@@ -1,0 +1,651 @@
+diff --git a/artifacts/api-server/src/routes/accountingDocuments.ts b/artifacts/api-server/src/routes/accountingDocuments.ts
+index 444615af..5903e0f5 100644
+--- a/artifacts/api-server/src/routes/accountingDocuments.ts
++++ b/artifacts/api-server/src/routes/accountingDocuments.ts
+@@ -14,7 +14,7 @@ import { chart, AccountSelectionError } from "../services/accountingDocuments/ac
+ import { saveAccount } from "../services/accountingDocuments/chart";
+ import { correctionContext, reviewCorrection, commitCorrection, correctionHistory, recoverCorrection } from "../services/accountingDocuments/corrections";
+ 
+-import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment, recoverPayment, discoverPayments } from '../services/accountingDocuments/payments';
++import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment, recoverPayment, discoverPayments, terminatePaymentAttempt } from '../services/accountingDocuments/payments';
+ import { createClaims, listClaims, confirmReceipt, cancelClaim } from '../services/creditTracking/service';
+ import type { Queryable } from '../services/accountingDocuments/core';
+ import { appendConditionalReplacement } from '../services/accountingDocuments/conditionalReplacements';
+@@ -102,6 +102,7 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
+   });
+   router.put('/accounting-payments/configuration',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await savePaymentConfiguration(company,actor,req.body)});});
+   router.get('/accounting-payments/operations',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await discoverPayments(company,actor)});});
++  router.post('/accounting-payments/operations/:requestId/no-effect',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await terminatePaymentAttempt(company,actor,String(req.params.requestId),req.body)});});
+   router.get('/accounting-payments/operations/:requestId',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await recoverPayment(company,actor,String(req.params.requestId))});});
+   router.get('/accounting-payments',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await listPayments(company,actor)});});
+   router.post('/accounting-payments/review',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await previewPayment(company,actor,req.body)});});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
+index f3eb639f..fc98a0f4 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
+@@ -1612,6 +1612,8 @@ test('paid supplier and customer credits atomically release allocations, preserv
+     const before=(await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 ORDER BY id',[f.company])).rows;
+     const journalCount=async()=>Number((await admin.query('SELECT count(*) n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n);
+     const n=await journalCount();
++    const admissionCount=async()=>Number((await admin.query('SELECT count(*) n FROM payment_attempt_admissions WHERE company_id=$1',[f.company])).rows[0].n);
++    const admissionsBefore=await admissionCount();
+     await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,body,async(tx)=>{await queryAdapter(tx).query('SELECT 1/0');}));
+     assert.equal(await journalCount(),n);assert.deepEqual((await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 ORDER BY id',[f.company])).rows,before);
+     await assert.rejects(()=>commitPaidCredit(f.company,readOnly,credit.id,credit.revision,body));
+@@ -1620,7 +1622,7 @@ test('paid supplier and customer credits atomically release allocations, preserv
+     assert.deepEqual(simultaneous.map(r=>r.status).sort(),['duplicate','posted']);
+     assert.equal((await commitPaidCredit(f.company,actor,credit.id,credit.revision,body)).status,'duplicate');
+     await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,{...body,reason:'Changed'}),(e:any)=>e.code==='IDEMPOTENCY_CONFLICT');
+-    assert.equal(await journalCount(),n+2);
++    assert.equal(await journalCount(),n+2);assert.equal(await admissionCount(),admissionsBefore);
+     const beforeRelease=await reports(f.company,actor,'2026-10-01','2026-10-21'),afterRelease=await reports(f.company,actor,'2026-10-01','2026-10-22');
+     assert.equal(beforeRelease.open_items[0].paid_minor,'12000');assert.equal(beforeRelease.open_items[0].credited_minor,'0');
+     assert.equal(afterRelease.open_items[0].paid_minor,'10800');assert.equal(afterRelease.open_items[0].credited_minor,'1200');assert.equal(afterRelease.balance_sheet.balanced,true);
+@@ -1864,7 +1866,7 @@ test('rolled-back payment command remains unknown and a same-identity retry reco
+   failNext=true;
+   assert.equal((await request(f.company,'/accounting-payments','POST',reviewed)).status,500);
+   const path=`/accounting-payments/operations/${reviewed.id}`;
+-  assert.deepEqual((await request(f.company,path)).data,{status:'unknown',id:reviewed.id});
++  assert.deepEqual((await request(f.company,path)).data,{status:'pending',id:reviewed.id});
+   assert.equal((await admin.query('SELECT id FROM accounting_payment_events WHERE id=$1',[reviewed.id])).rowCount,0);
+   const posted=await request(f.company,'/accounting-payments','POST',reviewed);assert.equal(posted.status,200);
+   assert.deepEqual((await request(f.company,path)).data,{status:'recorded',id:reviewed.id,journal_id:posted.data.journal_id});
+@@ -1988,3 +1990,195 @@ const button=text=>[...document.querySelectorAll('button')].find(b=>b.textConten
+   console.log('PAYMENT_DISCOVERY_BROWSER_ACCEPTANCE',JSON.stringify({actualComponents:true,nativeApi:true,syntheticSession:true,lostLocator:true,explicitSelection:true,reposts:posts,realClerk:false,pendingAdmission:false}));
+  } finally {browser?.kill('SIGTERM');await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
+ });
++
++test('pending admission survives rollback, fences replacements and terminal resolution permanently fences delayed writers',async()=>{
++ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
++ const command=await reviewPayment(f,paymentIntent(f,doc));failNext=true;
++ assert.equal((await request(f.company,'/accounting-payments','POST',command)).status,500);
++ const path=`/accounting-payments/operations/${command.id}`;
++ assert.deepEqual((await request(f.company,path)).data,{status:'pending',id:command.id});
++ const discovery=(await request(f.company,'/accounting-payments/operations')).data;
++ assert.equal(discovery.pending[0].id,command.id);assert.equal(discovery.receipts.length,0);
++ assert.equal((await request(f.company,path,'GET',undefined,undefined,readOnly)).data.status,'unknown');
++ const replacement=await reviewPayment(f,{...command,id:randomUUID()});
++ assert.equal((await request(f.company,'/accounting-payments','POST',replacement)).error.code,'PAYMENT_ATTEMPT_UNRESOLVED');
++ assert.equal((await request(f.company,'/accounting-payments','POST',{...command,reference:'Conflict'})).error.code,'IDEMPOTENCY_CONFLICT');
++ assert.equal((await request(f.company,'/accounting-payments','POST',{...command,review_token:'sha256:'+'0'.repeat(64)})).error.code,'IDEMPOTENCY_CONFLICT');
++ const admission=(await admin.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0];
++ const binding={request_hash:admission.request_hash,review_hash:admission.review_hash};
++ const otherActor='synthetic-pending-other-owner';
++ await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',true)",[randomUUID(),f.company,otherActor]);
++ assert.equal((await request(f.company,'/accounting-payments','POST',command,undefined,otherActor)).error.code,'IDEMPOTENCY_CONFLICT');
++ assert.deepEqual((await request(f.company,'/accounting-payments/operations','GET',undefined,undefined,otherActor)).data.pending,[]);
++ assert.equal((await request(f.company,path+'/no-effect','POST',binding,undefined,otherActor)).status,404);
++ const foreign=await fixture();assert.equal((await request(foreign.company,path+'/no-effect','POST',binding)).status,404);
++ assert.equal((await request(f.company,path+'/no-effect','POST',binding,undefined,readOnly)).status,403);
++ assert.equal((await request(f.company,path+'/no-effect','POST',{...binding,review_hash:'invalid'})).status,409);
++ await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
++ assert.equal((await request(f.company,path+'/no-effect','POST',binding)).status,404);
++ assert.equal((await request(f.company,'/accounting-payments/operations')).status,404);
++ await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
++ const terminal=await request(f.company,path+'/no-effect','POST',binding);
++ assert.deepEqual(terminal.data,{status:'no_effect',id:command.id});
++ assert.deepEqual((await request(f.company,path+'/no-effect','POST',binding)).data,terminal.data);
++ assert.equal((await request(f.company,'/accounting-payments','POST',command)).error.code,'PAYMENT_ATTEMPT_TERMINATED');
++ assert.equal((await request(f.company,'/accounting-payments','POST',replacement)).status,200);
++ assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE id=$1',[command.id])).rows[0].n,0);
++ for(const table of ['payment_attempt_admissions','payment_attempt_no_effect']) {
++  await assert.rejects(()=>pool.query(`DELETE FROM ${table} WHERE company_id=$1`,[f.company]),(e:any)=>e.code==='42501');
++  await assert.rejects(()=>admin.query(`DELETE FROM ${table} WHERE company_id=$1`,[f.company]),/immutable/);
++  await assert.rejects(()=>admin.query(`TRUNCATE ${table} CASCADE`),/immutable/);
++ }
++});
++
++test('admission is visible before effects and a terminal reader waiting on posting sees the committed canonical outcome',async()=>{
++ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
++ const command=await reviewPayment(f,paymentIntent(f,doc));
++ let release!:()=>void,entered!:()=>void;const paused=new Promise<void>(r=>entered=r),resume=new Promise<void>(r=>release=r);
++ pausePosting=async()=>{entered();await resume;};
++ const posting=request(f.company,'/accounting-payments','POST',command);
++ try {
++  await paused;
++  const admission=(await admin.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0];
++  assert.ok(admission);assert.equal((await request(f.company,`/accounting-payments/operations/${command.id}`)).data.status,'pending');
++  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE id=$1',[command.id])).rows[0].n,0);
++  assert.equal((await admin.query("SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2",[f.company,command.id])).rows[0].n,0);
++  let terminalFinished=false;
++  const terminal=request(f.company,`/accounting-payments/operations/${command.id}/no-effect`,'POST',{request_hash:admission.request_hash,review_hash:admission.review_hash}).then(r=>{terminalFinished=true;return r;});
++  let observedWaiting=false;
++  for(let i=0;i<200;i++) {
++   observedWaiting=(await admin.query("SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE 'SELECT * FROM companies WHERE id=%'")).rowCount!>0;
++   if(observedWaiting) break;await new Promise(r=>setTimeout(r,10));
++  }
++  assert.equal(observedWaiting,true,'terminal must actually wait on the held company lock before posting commits');
++  assert.equal(terminalFinished,false);
++  release();const posted=await posting,closed=await terminal;
++  assert.equal(posted.status,200);assert.equal(closed.data.status,'recorded');assert.equal(closed.data.journal_id,posted.data.journal_id);
++  assert.equal((await admin.query('SELECT count(*)::int n FROM payment_attempt_no_effect WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0].n,0);
++ } finally {release();pausePosting=undefined;await posting;}
++});
++
++test('isolated Chromium: mounted payment discovery discovers pending admission then resolves original event with no browser locator or repost',async()=>{
++ const fs=await import('node:fs'),os=await import('node:os'),cp=await import('node:child_process');
++ const {createRequire}=await import('node:module');
++ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
++ const command=await reviewPayment(f,paymentIntent(f,doc));
++ // Commit succeeds, but the browser never receives this response or its request locator.
++ let release!:()=>void,entered!:()=>void;const paused=new Promise<void>(r=>entered=r),resume=new Promise<void>(r=>release=r);
++ pausePosting=async()=>{entered();await resume;};
++ const posting=request(f.company,'/accounting-payments','POST',command);await paused;
++ const before=(await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n;
++ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'payment-discovery-browser-'));
++ const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
++ const app=express();let browser:ReturnType<typeof cp.spawn>|undefined,posts=0;
++ // Isolated synthetic authenticated session; production Clerk is not bypassed or exercised.
++ app.use('/api/companies/:companyId',(req,_res,next)=>{if(req.method!=='GET')posts++;req.headers['x-test-actor']=actor;next();},createAccountingRouter(auth));
++ app.get('/release',async(_req,res)=>{release();await posting;res.json({ok:true});});
++ const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));
++ try {
++  fs.writeFileSync(entry,`import React,{useSyncExternalStore} from 'react';
++import {createRoot} from 'react-dom/client';
++import {MemoryRouter} from 'react-router-dom';
++import {PaymentToolbar,PaymentRecoveryPanel} from '@/features/paymentRecovery/PaymentControls.jsx';
++import {createPaymentRecovery,recoveryUnresolved} from '@/features/paymentRecovery/model.mjs';
++import {createAccountingClient} from '@/api/accountingDocuments.mjs';
++const recovery=createPaymentRecovery(${JSON.stringify(f.company)},createAccountingClient());
++const caps={post_payments:true,configure_payments:true};let starts=0;
++function App(){const state=useSyncExternalStore(recovery.subscribe,recovery.getSnapshot);return <MemoryRouter><PaymentToolbar capabilities={caps} busy={recoveryUnresolved(state)} ready={true} onStart={()=>starts++}/><PaymentRecoveryPanel state={state} capabilities={caps}/><output>{state?.phase}</output></MemoryRouter>}
++createRoot(document.getElementById('root')).render(<App/>);
++const wait=()=>new Promise(r=>setTimeout(r,80));const assert=(v,m)=>{if(!v)throw Error(m)};
++const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
++(async()=>{await wait();assert(recovery.getSnapshot()?.phase==='discovery','URL lost-reference mode not mounted');
++ assert(button('Record payment').disabled,'ordinary recording must be locked');
++ assert(!document.body.textContent.includes('Retry same payment'),'no replay without original review');
++ button('Check my recorded payments').click();
++ for(let i=0;i<50&&!recovery.getSnapshot()?.candidates;i++)await wait();
++ assert(recovery.getSnapshot()?.candidates?.length===1,'own server receipt missing');
++ assert(recovery.getSnapshot().phase==='discovery','must not automatically select');
++ assert(button('Record payment').disabled,'candidate list must remain locked');
++ button('This is my event — verify status').click();
++ for(let i=0;i<50&&recovery.getSnapshot()?.phase!=='unknown';i++)await wait();
++ assert(recovery.getSnapshot()?.check==='pending','pending selection must stay unresolved');
++ assert(button('Record payment').disabled,'pending must fence ordinary writes');
++ assert(!document.body.textContent.includes('Retry same payment'),'lost review must remain read-only');
++ await fetch('/release');await recovery.check();
++ assert(recovery.getSnapshot()?.phase==='recorded','selected receipt not verified');assert(starts===0,'unexpected ordinary write start');
++ document.body.dataset.acceptance='passed';document.body.dataset.recovered=recovery.getSnapshot().result.id;
++})().catch(e=>{document.body.dataset.acceptance='failed';document.body.append(document.createTextNode(e.message));});`);
++  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
++  app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
++  app.get('/payments',(_req,res)=>res.type('html').send('<!doctype html><html><body><div id="root"></div><script src="/bundle.js"></script></body></html>'));
++  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=10000','http://127.0.0.1:'+(listener.address() as any).port+'/payments?recover=lost'],{stdio:['ignore','pipe','pipe']});
++  let html='',stderr='';browser.stdout!.on('data',b=>html+=b);browser.stderr!.on('data',b=>stderr+=b);
++  const code=await new Promise<number|null>((resolve,reject)=>{const timer=setTimeout(()=>{browser?.kill('SIGTERM');reject(Error('Bounded browser timeout: '+stderr.slice(-2000)));},30000);browser!.once('error',e=>{clearTimeout(timer);reject(e)});browser!.once('exit',code=>{clearTimeout(timer);resolve(code)})});
++  assert.equal(code,0,stderr.slice(-4000));assert.match(html,/data-acceptance="passed"/,html.slice(-3000));
++  assert.ok(html.includes('data-recovered="'+command.id+'"'));assert.equal(posts,0);
++  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,before+1);
++  console.log('PAYMENT_DISCOVERY_BROWSER_ACCEPTANCE',JSON.stringify({actualComponents:true,nativeApi:true,syntheticSession:true,lostLocator:true,explicitSelection:true,reposts:posts,realClerk:false,pendingAdmission:true}));
++ } finally {release();pausePosting=undefined;await posting;browser?.kill('SIGTERM');await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
++});
++
++test('competing fresh identity is fenced before effects; exact same identity continuation stays single-effect',async()=>{
++ const {postPayment}=await import('./payments');
++ for(const same of [false,true]) {
++  const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
++  const first=await reviewPayment(f,paymentIntent(f,doc)),second=same?first:await reviewPayment(f,{...first,id:randomUUID()});
++  let release!:()=>void,entered!:()=>void;const admitted=new Promise<void>(r=>entered=r),resume=new Promise<void>(r=>release=r);
++  const firstWrite=postPayment(f.company,actor,first,undefined,undefined,async()=>{entered();await resume;});
++  try {
++   await admitted;
++   const competing=await request(f.company,'/accounting-payments','POST',second);
++   if(same) assert.equal(competing.status,200);
++   else {assert.equal(competing.status,409);assert.equal(competing.error.code,'PAYMENT_ATTEMPT_UNRESOLVED');}
++   release();await firstWrite;
++   assert.equal((await admin.query('SELECT count(*)::int n FROM payment_attempt_admissions WHERE company_id=$1',[f.company])).rows[0].n,1);
++   assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,1);
++  } finally {release();await firstWrite.catch(()=>{});}
++ }
++});
++
++test('terminal marker cannot be bypassed by an existing canonical parent transaction',async()=>{
++ const {withCanonicalPostingTransaction}=await import('../accounting/canonicalPosting');
++ const {postPayment}=await import('./payments');
++ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
++ const command=await reviewPayment(f,paymentIntent(f,doc));failNext=true;
++ assert.equal((await request(f.company,'/accounting-payments','POST',command)).status,500);
++ const row=(await admin.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0];
++ assert.equal((await request(f.company,`/accounting-payments/operations/${command.id}/no-effect`,'POST',{request_hash:row.request_hash,review_hash:row.review_hash})).data.status,'no_effect');
++ await assert.rejects(()=>withCanonicalPostingTransaction(tx=>postPayment(f.company,actor,command,undefined,tx)),(e:any)=>e.code==='PAYMENT_ATTEMPT_TERMINATED');
++ assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE id=$1',[command.id])).rows[0].n,0);
++});
++
++test('orphan canonical effect never permits same-ID continuation, no-effect terminal or replacement admission',async()=>{
++ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
++ const command=await reviewPayment(f,paymentIntent(f,doc));failNext=true;
++ assert.equal((await request(f.company,'/accounting-payments','POST',command)).status,500);
++ const row=(await admin.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0];
++ // Deliberately corrupt only the disposable fixture; immutable evidence is retained for restore.
++ await admin.query(`INSERT INTO accounting_posting_effects(id,company_id,source_type,source_id,posting_kind,
++  economic_effect_id,idempotency_key,command_fingerprint,status,created_by_type,created_by_id)
++  VALUES($1,$2,'accounting_payment_event',$3,'party_payment',$4,$4,'synthetic-orphan','uncertain','user',$5)`,
++  [randomUUID(),f.company,command.id,`payment-event:${command.id}`,actor]);
++ assert.equal((await request(f.company,'/accounting-payments','POST',command)).error.code,'PAYMENT_HISTORY_INVALID');
++ assert.equal((await request(f.company,`/accounting-payments/operations/${command.id}/no-effect`,'POST',{request_hash:row.request_hash,review_hash:row.review_hash})).error.code,'PAYMENT_HISTORY_INVALID');
++ const replacement=await reviewPayment(f,{...command,id:randomUUID()});
++ assert.equal((await request(f.company,'/accounting-payments','POST',replacement)).error.code,'PAYMENT_HISTORY_INVALID');
++ assert.equal((await admin.query('SELECT count(*)::int n FROM payment_attempt_no_effect WHERE company_id=$1',[f.company])).rows[0].n,0);
++});
++
++test('terminal wins while a top-level canonical writer is delayed after committed admission',async()=>{
++ const {postPayment}=await import('./payments');
++ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
++ const command=await reviewPayment(f,paymentIntent(f,doc));
++ let release!:()=>void,entered!:()=>void;const admitted=new Promise<void>(r=>entered=r),resume=new Promise<void>(r=>release=r);
++ const writing=postPayment(f.company,actor,command,undefined,undefined,async()=>{entered();await resume;});
++ try {
++  await admitted;
++  const row=(await admin.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0];
++  const terminal=await request(f.company,`/accounting-payments/operations/${command.id}/no-effect`,'POST',{request_hash:row.request_hash,review_hash:row.review_hash});
++  assert.equal(terminal.data.status,'no_effect');
++  const rejected=assert.rejects(writing,(e:any)=>e.code==='PAYMENT_ATTEMPT_TERMINATED');release();await rejected;
++  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE id=$1',[command.id])).rows[0].n,0);
++  assert.equal((await admin.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2',[f.company,command.id])).rows[0].n,0);
++ } finally {release();await writing.catch(()=>{});}
++});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/payments.ts b/artifacts/api-server/src/services/accountingDocuments/payments.ts
+index 33a0f0cb..3c9f0d7e 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/payments.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/payments.ts
+@@ -89,28 +89,92 @@ async function paymentRecoveryAccess(q:Queryable,company:string,actor:string) {
+   const membership=(await q.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2',[company,actor])).rows[0];
+   if(!isCompanyRole(membership?.role)) fail(403,'CAPABILITY_DENIED');
+ }
+-const paymentReceiptQuery=`SELECT e.id,e.source,e.kind,e.party_type,e.reference,e.amount_minor::text,
++const paymentReceiptQuery=`SELECT e.id,e.source,e.actor_id,e.request_hash,e.kind,e.party_type,e.reference,e.amount_minor::text,
+   to_char(e.effective_date,'YYYY-MM-DD') effective_date,e.created_at recorded_at,
+   j.source_revision,j.id verified_journal_id,p.id verified_effect_id FROM accounting_payment_events e
+   LEFT JOIN canonical_journal_entries j ON j.id=e.journal_id AND j.company_id=e.company_id
+     AND j.source_id=e.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
+     AND j.currency_code='GBP' AND j.posting_kind='party_'||e.kind
+-    AND j.economic_effect_id='payment-event:'||e.id::text
++    AND j.economic_effect_id='payment-event:'||e.id::text AND j.source_evidence_hash=j.source_revision
+   LEFT JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
+     AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
+     AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text
+-    AND p.status='posted' AND p.source_revision=j.source_revision`;
++    AND p.status='posted' AND p.source_revision=j.source_revision AND p.source_evidence_hash=j.source_evidence_hash`;
+ function verifiedPaymentReceipt(event:any) {
+-  if(!event.verified_journal_id || !event.verified_effect_id || event.source_revision!==hash(event.source)) fail(503,'PAYMENT_HISTORY_INVALID');
++  if(!event.verified_journal_id || !event.verified_effect_id || event.source_revision!==hash(event.source) || event.source?.intent?.id!==event.id || hash(event.source?.intent)!==event.request_hash) fail(503,'PAYMENT_HISTORY_INVALID');
+   return {status:'recorded',id:event.id,journal_id:event.verified_journal_id};
+ }
++// Company lock is acquired first. Every decision below is a fresh READ COMMITTED
++// statement after the attempt lock; read-only recovery snapshots never authorize writes.
++async function lockPaymentAttempt(q:Queryable,company:string,actor:string,id:string) {
++  const isolation=(await q.query('SHOW transaction_isolation')).rows[0]?.transaction_isolation;
++  if(isolation!=='read committed') fail(503,'PAYMENT_ISOLATION_UNSUPPORTED');
++  await scope(q,company,actor,true,true);
++  const member=(await q.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2',[company,actor])).rows[0];
++  if(!roleHasAccountingCapability(member?.role,'accounting.post')) fail(403,'CAPABILITY_DENIED');
++  await q.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[`${company}:payment-attempt:${id}`]);
++}
++async function attemptRows(q:Queryable,company:string,id:string) {
++  const admission=(await q.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[company,id])).rows[0];
++  const terminal=(await q.query('SELECT * FROM payment_attempt_no_effect WHERE company_id=$1 AND request_id=$2',[company,id])).rows[0];
++  if(terminal && (!admission || terminal.actor_id!==admission.actor_id || terminal.request_hash!==admission.request_hash || terminal.review_hash!==admission.review_hash)) fail(503,'PAYMENT_HISTORY_INVALID');
++  return {admission,terminal};
++}
++function bindAttempt(admission:any,actor:string,requestHash:string,reviewHash:string) {
++  if(admission && (admission.actor_id!==actor || admission.request_hash!==requestHash || admission.review_hash!==reviewHash)) fail(409,'IDEMPOTENCY_CONFLICT');
++}
++async function canonicalAttempt(q:Queryable,company:string,id:string) {
++  const event=(await q.query(paymentReceiptQuery+' WHERE e.company_id=$1 AND e.id=$2',[company,id])).rows[0];
++  if(event) {
++    const {admission,terminal}=await attemptRows(q,company,id);
++    if(terminal || (admission && (admission.actor_id!==event.actor_id || admission.request_hash!==event.request_hash || admission.review_hash!==hash(event.source)))) fail(503,'PAYMENT_HISTORY_INVALID');
++    return verifiedPaymentReceipt(event);
++  }
++  // An orphan journal/effect is corruption, never permission to release a fence.
++  const orphan=(await q.query(`SELECT 1 FROM canonical_journal_entries WHERE company_id=$1 AND
++    (source_id=$2 OR economic_effect_id=$3) UNION ALL SELECT 1 FROM accounting_posting_effects
++    WHERE company_id=$1 AND (source_id=$2 OR economic_effect_id=$3 OR idempotency_key=$3) LIMIT 1`,[company,id,`payment-event:${id}`])).rowCount;
++  if(orphan) fail(503,'PAYMENT_HISTORY_INVALID');
++  return null;
++}
++async function fenceOtherAttempts(q:Queryable,company:string,actor:string,id:string) {
++  const rows=(await q.query('SELECT request_id FROM payment_attempt_admissions WHERE company_id=$1 AND actor_id=$2 AND request_id<>$3 ORDER BY request_id',[company,actor,id])).rows;
++  for(const row of rows) {
++    const {terminal}=await attemptRows(q,company,row.request_id);
++    const outcome=await canonicalAttempt(q,company,row.request_id);
++    if(terminal && outcome) fail(503,'PAYMENT_HISTORY_INVALID');
++    if(!outcome && !terminal) fail(409,'PAYMENT_ATTEMPT_UNRESOLVED');
++  }
++}
++/** Explicit no-effect resolution fences delayed same-ID writers permanently. */
++export async function terminatePaymentAttempt(company:string,actor:string,requestId:string,body:unknown) {
++  const id=uuid(requestId),b=exactFields(body,['request_hash','review_hash']);
++  return transact(async q=>{
++    await q.query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
++    await lockPaymentAttempt(q,company,actor,id);
++    const {admission,terminal}=await attemptRows(q,company,id);
++    if(!admission || admission.actor_id!==actor) fail(404,'RESOURCE_NOT_FOUND');
++    bindAttempt(admission,actor,b.request_hash,b.review_hash);
++    const outcome=await canonicalAttempt(q,company,id);
++    if(outcome){if(terminal) fail(503,'PAYMENT_HISTORY_INVALID');return outcome;}
++    if(!terminal) await q.query(`INSERT INTO payment_attempt_no_effect(company_id,request_id,actor_id,request_hash,review_hash)
++      VALUES($1,$2,$3,$4,$5)`,[company,id,actor,admission.request_hash,admission.review_hash]);
++    return {status:'no_effect',id};
++  });
++}
++
+ /** A bounded actor-owned discovery read, never evidence that a missing attempt failed. */
+ export async function discoverPayments(company:string,actor:string) {
+   return transact(async q=>{
+     await paymentRecoveryAccess(q,company,actor);
++    const pending=(await q.query(`SELECT a.request_id id,a.kind,a.party_type,a.reference,a.amount_minor::text,
++      to_char(a.effective_date,'YYYY-MM-DD') effective_date,a.admitted_at FROM payment_attempt_admissions a
++      WHERE a.company_id=$1 AND a.actor_id=$2 AND NOT EXISTS(SELECT 1 FROM accounting_payment_events e WHERE e.company_id=a.company_id AND e.id=a.request_id)
++      AND NOT EXISTS(SELECT 1 FROM payment_attempt_no_effect t WHERE t.company_id=a.company_id AND t.request_id=a.request_id)
++      ORDER BY a.admitted_at,a.request_id`,[company,actor])).rows.map(row=>({...row,status:'pending'}));
+     const rows=(await q.query(paymentReceiptQuery+`
+       WHERE e.company_id=$1 AND e.actor_id=$2 ORDER BY e.created_at DESC,e.id DESC LIMIT 101`,[company,actor])).rows;
+-    return {receipts:rows.slice(0,100).map(event=>({...verifiedPaymentReceipt(event),kind:event.kind,
++    return {pending,receipts:rows.slice(0,100).map(event=>({...verifiedPaymentReceipt(event),kind:event.kind,
+       party_type:event.party_type,reference:event.reference,amount_minor:event.amount_minor,
+       effective_date:event.effective_date,recorded_at:event.recorded_at})),has_more:rows.length>100};
+   },true);
+@@ -121,7 +185,11 @@ export async function recoverPayment(company:string,actor:string,requestId:strin
+   return transact(async q=>{
+     await paymentRecoveryAccess(q,company,actor);
+     const event=(await q.query(paymentReceiptQuery+' WHERE e.company_id=$1 AND e.id=$2',[company,id])).rows[0];
+-    return event?verifiedPaymentReceipt(event):{status:'unknown',id};
++    if(event) return verifiedPaymentReceipt(event);
++    const {admission,terminal}=await attemptRows(q,company,id);
++    if(admission?.actor_id!==actor) return {status:'unknown',id};
++    if(terminal) await canonicalAttempt(q,company,id);
++    return {status:terminal?'no_effect':'pending',id};
+   },true);
+ }
+ 
+@@ -214,20 +282,31 @@ export async function previewPayment(company:string,actor:string,body:unknown) {
+   const b=intent(body);return transact(q=>plan(q,company,actor,b));
+ }
+ class Replayed extends Error {constructor(public data:any){super('Payment event already recorded');}}
+-export async function postPayment(company:string,actor:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>,existingTransaction?:DatabaseTransaction) {
++export async function postPayment(company:string,actor:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>,existingTransaction?:DatabaseTransaction,afterAdmission?:()=>Promise<void>) {
+   const b=intent(body),expected=(body as any).review_token;
+   if(typeof expected!=='string'||!/^sha256:[a-f0-9]{64}$/.test(expected)) fail(428,'PAYMENT_REVIEW_REQUIRED');
+   const requestHash=hash(b);
+   // Admission read only supplies the command envelope. Locked calculation below
+   // is the authority. Retries are checked before recalculating spent remainders.
+   const admission=async(q:Queryable)=>{
+-    await scope(q,company,actor,true,true);
++    if(!existingTransaction) await q.query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
++    await lockPaymentAttempt(q,company,actor,b.id);
++    const {admission:held,terminal}=await attemptRows(q,company,b.id);
++    bindAttempt(held,actor,requestHash,expected);
++    if(terminal) fail(409,'PAYMENT_ATTEMPT_TERMINATED');
+     const prior=(await q.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[company,b.id])).rows[0];
+-    if(prior){if(prior.request_hash!==requestHash) fail(409,'IDEMPOTENCY_CONFLICT');return {replayed:prior};}
+-    const p=await plan(q,company,actor,b,existingTransaction);if(p.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');return {plan:p};
++    if(prior){if(prior.request_hash!==requestHash || prior.actor_id!==actor || hash(prior.source)!==expected) fail(409,'IDEMPOTENCY_CONFLICT');await canonicalAttempt(q,company,b.id);return {replayed:prior};}
++    await canonicalAttempt(q,company,b.id);
++    if(!existingTransaction) await fenceOtherAttempts(q,company,actor,b.id);
++    const p=await plan(q,company,actor,b,existingTransaction);if(p.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');
++    if(!existingTransaction && !held) await q.query(`INSERT INTO payment_attempt_admissions
++      (company_id,request_id,actor_id,request_hash,review_hash,kind,party_type,reference,effective_date,amount_minor)
++      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,[company,b.id,actor,requestHash,expected,b.kind,b.party_type,b.reference,b.date,b.amount_minor]);
++    return {plan:p};
+   };
+   const initial=existingTransaction?await admission(queryAdapter(existingTransaction)):await transact(admission);
+   if(initial.replayed) return observePaymentOutcome({status:'duplicate',id:b.id,journal_id:initial.replayed.journal_id},company,actor,b.id,b.kind,!!existingTransaction);
++  if(!existingTransaction) await afterAdmission?.();
+   const first=initial.plan!;let current=first,transaction:DatabaseTransaction;
+   const authority=<T>(value:T,keys:string[],token:string):LockedAuthority<T>=>({authority:value,recordKeys:keys,
+     capturedToken:{revision:token},lockMode:'FOR UPDATE',transactionBound:true,
+@@ -235,9 +314,13 @@ export async function postPayment(company:string,actor:string,body:unknown,testH
+       ?{ok:true}:{ok:false,code:'transaction_contract_invalid',message:'Reviewed payment state changed.'}});
+   const deps:CanonicalPostingDependencies={
+     sourceProvider:{async lockForPosting(_command,tx){
+-      transaction=tx;const q=queryAdapter(tx);await scope(q,company,actor,true,true);
++      transaction=tx;const q=queryAdapter(tx);await lockPaymentAttempt(q,company,actor,b.id);
++      const {admission:held,terminal}=await attemptRows(q,company,b.id);
++      bindAttempt(held,actor,requestHash,expected);
++      if(terminal) fail(409,'PAYMENT_ATTEMPT_TERMINATED');
+       const prior=(await q.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[company,b.id])).rows[0];
+-      if(prior){if(prior.request_hash!==requestHash) fail(409,'IDEMPOTENCY_CONFLICT');throw new Replayed({status:'duplicate',id:b.id,journal_id:prior.journal_id});}
++      if(prior){if(prior.request_hash!==requestHash || prior.actor_id!==actor || hash(prior.source)!==expected) fail(409,'IDEMPOTENCY_CONFLICT');await canonicalAttempt(q,company,b.id);throw new Replayed({status:'duplicate',id:b.id,journal_id:prior.journal_id});}
++      await canonicalAttempt(q,company,b.id);
+       current=await plan(q,company,actor,b,tx);if(current.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');
+       return authority({companyId:company,sourceType:'accounting_payment_event',sourceId:b.id,status:'reviewed',isPostable:true,
+         sourceRevision:expected,evidenceHash:expected},[`companies:${company}`,`accounting_payment_event:${b.id}`],expected);
+diff --git a/artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx b/artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx
+index 785b7f6c..82f960bb 100644
+--- a/artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx
++++ b/artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx
+@@ -37,9 +37,9 @@ export function PaymentRecoveryPanel({ state, capabilities, closing, onCheck, on
+     <Button className="min-h-11" variant="outline" disabled={state.loading} onClick={() => state.discover()}>{state.loading ? 'Checking recorded payments…' : 'Check my recorded payments'}</Button>
+     {state.error && <p>History could not confirm the outcome{state.error.code ? ` (${state.error.code})` : ''}. Ordinary payment recording remains locked.</p>}
+     {state.candidates?.length === 0 && <p>No recorded events found for your account in this company. This does not prove that a missing payment failed.</p>}
+-    {state.hasMore && <p>Only the latest 100 events are shown. Older or missing events remain unconfirmed here.</p>}
++    {state.hasMore && <p>Pending attempts are shown first, followed by the latest 100 recorded events. Older recorded events remain unconfirmed here.</p>}
+     {state.candidates?.map(receipt => <div key={receipt.id} className="space-y-2 rounded border p-3">
+-      <p>{receipt.effective_date} · {receipt.party_type} {receipt.kind} · <Money value={receipt.amount_minor} /></p>
++      <p>{receipt.status === 'pending' ? 'Pending · ' : 'Recorded · '}{receipt.effective_date} · {receipt.party_type} {receipt.kind} · <Money value={receipt.amount_minor} /></p>
+       <p className="break-words">{receipt.reference}</p><p className="break-all text-xs">Event: {receipt.id}</p>
+       <Button className="min-h-11" variant="outline" disabled={state.loading} onClick={() => state.selectReceipt(receipt.id)}>This is my event — verify status</Button>
+     </div>)}
+@@ -50,6 +50,8 @@ export function PaymentRecoveryPanel({ state, capabilities, closing, onCheck, on
+     {!state.readOnly && <p className="break-words">{state.body.reference} · <Money value={state.body.amount_minor} /></p>}
+     <p className="break-all text-xs">Payment event reference: {state.body.id}</p>
+     {state.phase !== 'posting' && <p>The payment may already be recorded. Check its status before creating another payment. A retry uses the same reviewed payment and cannot create a second event with this reference.</p>}
++    {state.check === 'pending' && <p>The server received this attempt; its outcome is still pending. Check again using this same reference.</p>}
++    {state.check === 'no_effect' && <p>This attempt was explicitly closed with no recorded effect. This recovery view remains read-only.</p>}
+     {state.check === 'not_found' && <p>Not found in the latest history. The original request may still finish; its outcome remains unknown.</p>}
+     {state.error && <p>The latest request did not confirm the outcome{state.error.code ? ` (${state.error.code})` : ''}. This does not establish whether the original recording succeeded.</p>}
+     <Link className="underline" to={`/payments?event=${encodeURIComponent(state.body.id)}`}>Open this event in payment history</Link>
+diff --git a/artifacts/ledgerly/src/features/paymentRecovery/model.mjs b/artifacts/ledgerly/src/features/paymentRecovery/model.mjs
+index 8ba0ab3c..1328cd97 100644
+--- a/artifacts/ledgerly/src/features/paymentRecovery/model.mjs
++++ b/artifacts/ledgerly/src/features/paymentRecovery/model.mjs
+@@ -37,10 +37,11 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
+     try {
+       const result = await api.discoverPayments(companyId);
+       if (current !== generation) return false;
+-      const rows = result?.receipts;
+-      if (!Array.isArray(rows) || rows.length > 100 || typeof result.has_more !== 'boolean' ||
++      const pending = result?.pending ?? [];
++      const rows = Array.isArray(result?.receipts) && Array.isArray(pending) ? [...pending,...result.receipts] : null;
++      if (!Array.isArray(rows) || result.receipts.length > 100 || typeof result.has_more !== 'boolean' ||
+           new Set(rows.map(row => row?.id)).size !== rows.length || rows.some(row =>
+-            !recorded(row, row.id) || row.status !== 'recorded' || !['payment', 'allocation', 'unallocation', 'refund', 'reversal'].includes(row.kind) ||
++            !(row.status === 'pending' ? uuid(row.id) && row.journal_id === undefined : recorded(row,row.id) && row.status === 'recorded') || !['payment', 'allocation', 'unallocation', 'refund', 'reversal'].includes(row.kind) ||
+             !['customer', 'supplier'].includes(row.party_type) || typeof row.reference !== 'string' ||
+             typeof row.amount_minor !== 'string' || !/^\d{1,20}$/.test(row.amount_minor) || !/^\d{4}-\d{2}-\d{2}$/.test(row.effective_date))) {
+         throw new Error('Recorded payment history could not be verified.');
+@@ -59,7 +60,12 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
+       // Selection is explicit, and current authorization and outcome are checked again.
+       const result = await api.recoverPayment(companyId, id);
+       if (current !== generation) return false;
+-      if (!recorded(result, id) || result.journal_id !== candidate.journal_id) throw new Error('The selected payment outcome could not be verified.');
++      if (candidate.status === 'pending' && result?.status === 'pending' && result.id === id) {
++        rememberRequest(id);
++        publish({companyId,body:Object.freeze({id}),readOnly:true,phase:'unknown',check:'pending',result:null,error:null});
++        return true;
++      }
++      if (!recorded(result, id) || (candidate.status === 'recorded' && result.journal_id !== candidate.journal_id)) throw new Error('The selected payment outcome could not be verified.');
+       publish({ companyId, body: Object.freeze({ id }), readOnly: true, phase: 'recorded', result, error: null });
+     } catch (error) {
+       if (current === generation) publish({ ...attempt, loading: false, error });
+@@ -106,9 +112,9 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
+         if (current !== generation) return false;
+         if (recorded(result, attempt.body.id)) {
+           publish({ ...attempt, phase: 'recorded', result, error: null });
+-        } else if (result?.status === 'unknown' && result.id === attempt.body.id) {
++        } else if (['unknown','pending','no_effect'].includes(result?.status) && result.id === attempt.body.id) {
+           // Absence at one read is not proof of failure: the first request may still commit.
+-          publish({ ...attempt, phase: 'unknown', check: 'not_found', error: null });
++          publish({ ...attempt, readOnly: attempt.readOnly || result.status === 'no_effect', phase: 'unknown', check: result.status === 'pending' ? 'pending' : result.status === 'no_effect' ? 'no_effect' : 'not_found', error: null });
+         } else throw new Error('Payment outcome could not be verified.');
+       } catch (error) {
+         if (current === generation) publish({ ...attempt, phase: 'unknown', error });
+diff --git a/artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs b/artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs
+index d68f5422..5b62f0eb 100644
+--- a/artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs
++++ b/artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs
+@@ -363,3 +363,21 @@ test('company exit invalidates delayed discovery and delayed selected receipt',a
+     assert.equal(r.getSnapshot(),null);
+   }
+ });
++
++test('pending admission is shown ahead of history and explicit selection stays read-only until same ID commits',async()=>{
++ let posts=0,committed=false,saved=[];
++ const pending={...discoveryReceipt(),status:'pending'};delete pending.journal_id;
++ const r=createPaymentRecovery('company-a',{discoverPayments:async()=>({pending:[pending],receipts:[discoveryReceipt(otherId)],has_more:true}),
++  recoverPayment:async()=>committed?outcome():{status:'pending',id:requestId},postPayment:async()=>{posts++;}},
++  {discoverLostReference:true,rememberRequest:id=>saved.push(id)});
++ await r.discover();assert.equal(r.getSnapshot().candidates[0].status,'pending');
++ await r.selectReceipt(requestId);assert.equal(r.getSnapshot().phase,'unknown');assert.equal(r.getSnapshot().readOnly,true);
++ assert.deepEqual(saved,[requestId]);await r.retry({post_payments:true});assert.equal(posts,0);
++ committed=true;await r.check();assert.equal(r.getSnapshot().phase,'recorded');assert.equal(posts,0);
++});
++test('terminal status disables retained in-memory retry without unlocking a replacement',async()=>{
++ let posts=0;const r=createPaymentRecovery('company-a',{postPayment:async()=>{posts++;throw new Error('Lost response');},recoverPayment:async()=>({status:'no_effect',id:requestId})});
++ await r.record(review(),owner);assert.notEqual(r.getSnapshot().readOnly,true);
++ await r.check();assert.equal(r.getSnapshot().readOnly,true);assert.equal(await r.retry({post_payments:true}),false);
++ assert.equal(r.abandon(),false);assert.equal(recoveryUnresolved(r.getSnapshot()),true);assert.equal(posts,1);
++});
+diff --git a/lib/db/migration-registry.json b/lib/db/migration-registry.json
+index f52d778c..9ad49bbf 100644
+--- a/lib/db/migration-registry.json
++++ b/lib/db/migration-registry.json
+@@ -173,6 +173,15 @@
+       "contractVersion": 1,
+       "dependencies": ["bank-import-canonical-history"],
+       "sha256": "03369850b2a88106d19fc4ed1154d30d119474bf4c8fa23b7a231cf1e67ab3a4"
++    },
++    {
++      "id": "operation-recovery",
++      "path": "lib/db/migrations/operation-recovery.review.sql",
++      "contractVersion": 1,
++      "dependencies": [
++        "accounting-payments"
++      ],
++      "sha256": "7d4ab4c43a80d667a68254e7de90732a1c7fc336c19f81d4c499eb6a220b93d3"
+     }
+   ],
+   "securityOverlay": {
+diff --git a/lib/db/migrations/operation-recovery.review.sql b/lib/db/migrations/operation-recovery.review.sql
+new file mode 100644
+index 00000000..c1d1e418
+--- /dev/null
++++ b/lib/db/migrations/operation-recovery.review.sql
+@@ -0,0 +1,35 @@
++-- Additive disposable-only ordinary payment admission; never financial outcome authority.
++CREATE TABLE public.payment_attempt_admissions (
++ company_id uuid NOT NULL REFERENCES companies(id), request_id uuid NOT NULL,
++ actor_id text NOT NULL, request_hash text NOT NULL CHECK(request_hash ~ '^sha256:[a-f0-9]{64}$'),
++ review_hash text NOT NULL CHECK(review_hash ~ '^sha256:[a-f0-9]{64}$'),
++ kind text NOT NULL CHECK(kind IN ('payment','allocation','unallocation','refund','reversal')),
++ party_type text NOT NULL CHECK(party_type IN ('customer','supplier')),
++ reference text NOT NULL CHECK(length(reference) BETWEEN 1 AND 200), effective_date date NOT NULL,
++ amount_minor numeric(20,0) NOT NULL CHECK(amount_minor>0), admitted_at timestamptz NOT NULL DEFAULT clock_timestamp(),
++ PRIMARY KEY(company_id,request_id)
++);
++CREATE INDEX payment_attempt_actor ON public.payment_attempt_admissions(company_id,actor_id,admitted_at);
++CREATE TABLE public.payment_attempt_no_effect (
++ company_id uuid NOT NULL, request_id uuid NOT NULL, actor_id text NOT NULL,
++ request_hash text NOT NULL, review_hash text NOT NULL,
++ recorded_at timestamptz NOT NULL DEFAULT clock_timestamp(),
++ PRIMARY KEY(company_id,request_id),
++ FOREIGN KEY(company_id,request_id) REFERENCES public.payment_attempt_admissions(company_id,request_id)
++);
++CREATE FUNCTION public.payment_attempt_immutable() RETURNS trigger LANGUAGE plpgsql AS $$
++BEGIN RAISE EXCEPTION 'Payment attempt history is immutable'; END $$;
++CREATE TRIGGER payment_attempt_admission_immutable BEFORE UPDATE OR DELETE ON public.payment_attempt_admissions
++ FOR EACH ROW EXECUTE FUNCTION public.payment_attempt_immutable();
++CREATE TRIGGER payment_attempt_admission_no_truncate BEFORE TRUNCATE ON public.payment_attempt_admissions
++ FOR EACH STATEMENT EXECUTE FUNCTION public.payment_attempt_immutable();
++CREATE TRIGGER payment_attempt_terminal_immutable BEFORE UPDATE OR DELETE ON public.payment_attempt_no_effect
++ FOR EACH ROW EXECUTE FUNCTION public.payment_attempt_immutable();
++CREATE TRIGGER payment_attempt_terminal_no_truncate BEFORE TRUNCATE ON public.payment_attempt_no_effect
++ FOR EACH STATEMENT EXECUTE FUNCTION public.payment_attempt_immutable();
++ALTER TABLE public.payment_attempt_admissions ENABLE ALWAYS TRIGGER payment_attempt_admission_immutable;
++ALTER TABLE public.payment_attempt_admissions ENABLE ALWAYS TRIGGER payment_attempt_admission_no_truncate;
++ALTER TABLE public.payment_attempt_no_effect ENABLE ALWAYS TRIGGER payment_attempt_terminal_immutable;
++ALTER TABLE public.payment_attempt_no_effect ENABLE ALWAYS TRIGGER payment_attempt_terminal_no_truncate;
++REVOKE ALL ON public.payment_attempt_admissions,public.payment_attempt_no_effect FROM PUBLIC,ledgerly_api;
++GRANT SELECT,INSERT ON public.payment_attempt_admissions,public.payment_attempt_no_effect TO ledgerly_api;
+diff --git a/lib/db/schema-change-registry.json b/lib/db/schema-change-registry.json
+index ba87640c..407fdc0a 100644
+--- a/lib/db/schema-change-registry.json
++++ b/lib/db/schema-change-registry.json
+@@ -110,10 +110,11 @@
+       "task": "P03-01",
+       "migration": "lib/db/migrations/operation-recovery.review.sql",
+       "tables": [
+-        "operation_commands",
+-        "operation_outcomes"
++        "payment_attempt_admissions",
++        "payment_attempt_no_effect"
+       ],
+-      "status": "contract_only"
++      "status": "ordinary_payment_review_sql_only",
++      "sha256": "7d4ab4c43a80d667a68254e7de90732a1c7fc336c19f81d4c499eb6a220b93d3"
+     },
+     {
+       "task": "P03-02",
+diff --git a/tools/accounting-flow/schema.mjs b/tools/accounting-flow/schema.mjs
+index 9e796fc4..10c97bd6 100644
+--- a/tools/accounting-flow/schema.mjs
++++ b/tools/accounting-flow/schema.mjs
+@@ -64,6 +64,7 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
+     await admin.query(migrationInputs['accounting-documents']);
+     await admin.query(migrationInputs['accounting-chart']);
+     await admin.query(migrationInputs['accounting-payments']);
++    await admin.query(migrationInputs['operation-recovery']);
+     await admin.query(migrationInputs['credit-tracking']);
+     await admin.query(migrationInputs['document-intake']);
+     await admin.query(migrationInputs['paid-credit-operations']);
+diff --git a/tools/development/migrations/registry.mjs b/tools/development/migrations/registry.mjs
+index e1416435..276c0c51 100644
+--- a/tools/development/migrations/registry.mjs
++++ b/tools/development/migrations/registry.mjs
+@@ -18,6 +18,7 @@ export const migrationOrder = Object.freeze([
+   'bank-import-review-authority',
+   'bank-import-canonical-history',
+   'bank-match-corrections',
++  'operation-recovery',
+ ]);
+ const fail = code => { throw Object.assign(new Error(code), { code }); };
+ export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+@@ -29,7 +30,7 @@ export function validateMigrationInputs(registry, readBytes) {
+   for (const [index, id] of migrationOrder.entries()) {
+     const item = registry.migrations[index];
+     const expectedPath = `lib/db/migrations/${id}.review.sql`;
+-    const dependencies = id === 'bank-statement-matches' ? ['bank-imports','bank-openings'] : id === 'bank-openings' ? ['accounting-payments'] : id === 'bank-imports' ? ['accounting-documents'] : id === 'conditional-discount-corrected-observations' ? ['conditional-discount-capacity-origins','accounting-document-amendments']
++    const dependencies = id === 'operation-recovery' ? ['accounting-payments'] : id === 'bank-statement-matches' ? ['bank-imports','bank-openings'] : id === 'bank-openings' ? ['accounting-payments'] : id === 'bank-imports' ? ['accounting-documents'] : id === 'conditional-discount-corrected-observations' ? ['conditional-discount-capacity-origins','accounting-document-amendments']
+       : id === 'conditional-discount-capacity-origins' ? ['conditional-discount-replacement-observations']
+       : id === 'conditional-discount-replacement-observations' ? ['conditional-discount-replacements','conditional-discount-cash-reversal']
+       : id === 'conditional-discount-replacements' ? ['conditional-discount-agreements']
+@@ -69,7 +70,7 @@ export function loadMigrationInputs(root) {
+ export function expectedMigrationHistory(inputs, { includeAmendments = false } = {}) {
+   return [...migrationOrder.filter(id => includeAmendments || !['accounting-document-amendments','conditional-discount-corrected-observations','conditional-discount-commercial-credits'].includes(id)),
+     'canonical-security-overlay'].map(id => ({ id, sha256: sha256(Buffer.from(inputs[id])), contract_version: 1,
+-      dependencies: id === 'canonical-security-overlay' ? ['w03-invoice-drafts']
++      dependencies: id === 'operation-recovery' ? ['accounting-payments'] : id === 'canonical-security-overlay' ? ['w03-invoice-drafts']
+         : id === 'bank-statement-matches' ? ['bank-imports','bank-openings']
+         : id === 'bank-openings' ? ['accounting-payments']
+         : id === 'bank-imports' ? ['accounting-documents']
+diff --git a/tools/development/migrations/registry.test.mjs b/tools/development/migrations/registry.test.mjs
+index 8150b514..84e30a35 100644
+--- a/tools/development/migrations/registry.test.mjs
++++ b/tools/development/migrations/registry.test.mjs
+@@ -151,3 +151,13 @@ for (const includeAmendments of [false, true]) test(`installed history matches e
+     assert.throws(() => validateInstalledMigrationHistory(altered, expected), { code: 'MIGRATION_HISTORY_INCOMPATIBLE' });
+   }
+ });
++
++test('payment admission and terminal history are pinned append-only observations with restricted runtime grants',()=>{
++ const sql=loadMigrationInputs(root)['operation-recovery'];
++ for(const trigger of ['admission_immutable','admission_no_truncate','terminal_immutable','terminal_no_truncate'])
++  assert.ok(sql.includes('ENABLE ALWAYS TRIGGER payment_attempt_'+trigger));
++ assert.match(sql,/PRIMARY KEY\(company_id,request_id\)/);
++ assert.match(sql,/REVOKE ALL ON public.payment_attempt_admissions,public.payment_attempt_no_effect FROM PUBLIC,ledgerly_api/);
++ assert.match(sql,/GRANT SELECT,INSERT ON public.payment_attempt_admissions,public.payment_attempt_no_effect TO ledgerly_api/);
++ assert.doesNotMatch(sql,/INSERT INTO.*(?:accounting_payment_events|canonical_journal)/);
++});

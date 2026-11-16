@@ -1,0 +1,6 @@
+tree 189dd8819561ed0f6dc764006c2fb6fe7484fa46
+parent 86ac44c53a090d6f50057297a816a7d15260702d
+author Codex <codex@openai.com> 1794850873 +0000
+committer Codex <codex@openai.com> 1794850873 +0000
+
+Make competing admission fence test deterministic
