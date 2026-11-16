@@ -1,0 +1,9 @@
+{
+  "observedAt": "2026-11-16T17:06:59Z",
+  "workerShutdownAt": "2026-11-16T16:32:06.613Z",
+  "durableShutdownCommit": "b356e769f9840e4893cfd377632ae6def6d7d57d",
+  "authorityVerifiedIdle": true,
+  "heldTasks": 0,
+  "source": "99e547aa77608457427475bcb9e3ae3be7bd9ebd",
+  "note": "Final state publication/final verification completed substantially after worker shutdown. Elapsed wall time exceeded the nominal 30-minute run; no workers continued and no additional implementation occurred after shutdown. Delay attribution inside tool/publication path is unknown; distinguish worker stop time from durable finalization."
+}
