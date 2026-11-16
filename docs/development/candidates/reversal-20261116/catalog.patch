@@ -1,0 +1,15 @@
+diff --git a/docs/development/work-backlog.json b/docs/development/work-backlog.json
+index fe3fa42..1f2086c 100644
+--- a/docs/development/work-backlog.json
++++ b/docs/development/work-backlog.json
+@@ -140,7 +140,9 @@
+         "tools/development/migrations/registry.test.mjs",
+         "tools/development/migrations/partial-schema.test.mjs",
+         "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
+-        "artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts"
++        "artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts",
++        "artifacts/ledgerly/src/features/conditionalCompensation/ConditionalCompensationReview.jsx",
++        "artifacts/ledgerly/src/features/conditionalCompensation/ConditionalCompensationReview.test.jsx"
+       ],
+       "kind": "implementation",
+       "approval": "approved"
