@@ -81,6 +81,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
     recoverCompensation: (c, id, signal) => call(`${base(c)}/accounting-conditional-compensations/operations/${encodeURIComponent(id)}`, { signal }),
     discoverPayments: (c, signal) => call(`${base(c)}/accounting-payments/operations`, { signal }),
     recoverPayment: (c, id, signal) => call(`${base(c)}/accounting-payments/operations/${encodeURIComponent(id)}`, { signal }),
+    terminatePaymentAttempt: (c, id, body) => call(`${base(c)}/accounting-payments/operations/${encodeURIComponent(id)}/no-effect`, { method: 'POST', body }),
     payments: (c, signal) => call(`${base(c)}/accounting-payments`, { signal }),
     savePaymentConfiguration: (c, body) => call(`${base(c)}/accounting-payments/configuration`, { method: 'PUT', body }),
     reviewPayment: (c, body) => call(`${base(c)}/accounting-payments/review`, { method: 'POST', body }),

@@ -189,7 +189,8 @@ export async function recoverPayment(company:string,actor:string,requestId:strin
     const {admission,terminal}=await attemptRows(q,company,id);
     if(admission?.actor_id!==actor) return {status:'unknown',id};
     if(terminal) await canonicalAttempt(q,company,id);
-    return {status:terminal?'no_effect':'pending',id};
+    return {status:terminal?'no_effect':'pending',id,request_hash:admission.request_hash,review_hash:admission.review_hash,
+      kind:admission.kind,party_type:admission.party_type,reference:admission.reference,amount_minor:String(admission.amount_minor)};
   },true);
 }
 

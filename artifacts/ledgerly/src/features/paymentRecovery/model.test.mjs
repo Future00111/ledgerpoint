@@ -381,3 +381,100 @@ test('terminal status disables retained in-memory retry without unlocking a repl
  await r.check();assert.equal(r.getSnapshot().readOnly,true);assert.equal(await r.retry({post_payments:true}),false);
  assert.equal(r.abandon(),false);assert.equal(recoveryUnresolved(r.getSnapshot()),true);assert.equal(posts,1);
 });
+
+const admission = (status = 'pending', extra = {}) => ({ status, id: requestId,
+  request_hash: 'sha256:' + 'a'.repeat(64), review_hash: 'sha256:' + 'b'.repeat(64),
+  kind: 'payment', party_type: 'supplier', reference: 'Synthetic attempt', amount_minor: '12345', ...extra });
+async function terminalHarness(options = {}) {
+  let status = 'pending'; const calls = [], forgotten = [];
+  const recovery = createPaymentRecovery('company-a', {
+    recoverPayment: async (company,id) => { calls.push(['read',company,id]); return admission(status); },
+    terminatePaymentAttempt: async (company,id,body) => { calls.push(['terminal',company,id,body]); status = 'no_effect'; return {status,id}; },
+    postPayment: async () => { calls.push(['post']); throw new Error('Lost response'); },
+    ...options.api,
+  }, {recoveryRequestId: requestId, forgetRequest: id => forgotten.push(id), ...options.storage});
+  await recovery.check(); return {recovery,calls,forgotten};
+}
+test('selected terminal confirmation binds exact admission, verifies fresh status, and explicitly clears only that locator', async () => {
+  const {recovery,calls,forgotten} = await terminalHarness();
+  assert.equal(recovery.abandon(), false);
+  await recovery.getSnapshot().selectTerminal(owner);
+  assert.equal(recovery.getSnapshot().confirming, true);
+  recovery.getSnapshot().cancelTerminal();
+  assert.equal(await recovery.getSnapshot().confirmTerminal(owner), false);
+  assert.equal(calls.filter(c=>c[0]==='terminal').length,0);
+  await recovery.getSnapshot().selectTerminal(owner);
+  assert.equal(await recovery.getSnapshot().confirmTerminal(viewer),false);
+  await recovery.getSnapshot().confirmTerminal(owner);
+  assert.equal(recovery.getSnapshot().check,'no_effect');assert.deepEqual(forgotten,[]);
+  assert.equal(recovery.abandon(),false);
+  assert.equal(calls.at(-1)[0],'read');
+  assert.deepEqual(calls.find(c=>c[0]==='terminal'),['terminal','company-a',requestId,{request_hash:admission().request_hash,review_hash:admission().review_hash}]);
+  let closedForm=false;
+  await recovery.getSnapshot().continueFresh(owner,()=>{closedForm=recovery.getSnapshot()===null;});
+  assert.equal(closedForm,true);assert.equal(recovery.getSnapshot(),null);assert.deepEqual(forgotten,[requestId]);
+  await assert.rejects(()=>recovery.record(review(),owner),/Close this form/);
+  assert.equal(calls.filter(c=>c[0]==='post').length,0);
+});
+test('terminal continue restores the next locator and rejects missing/mismatched or unauthorized fresh status',async()=>{
+  for(const response of [unknown(),admission('no_effect',{id:otherId}),admission('no_effect',{review_hash:'sha256:'+'c'.repeat(64)}),admission('pending')]) {
+    let result=admission('no_effect');
+    const {recovery,forgotten}=await terminalHarness({api:{recoverPayment:async()=>result}});
+    result=response;await recovery.getSnapshot().continueFresh(owner);
+    assert.deepEqual(forgotten,[]);assert.equal(recoveryUnresolved(recovery.getSnapshot()),true);
+  }
+  const {recovery,forgotten}=await terminalHarness({api:{recoverPayment:async()=>admission('no_effect')},storage:{nextRecoveryRequest:()=>otherId}});
+  assert.equal(await recovery.getSnapshot().continueFresh(viewer),false);
+  let navigated=false;await recovery.getSnapshot().continueFresh(owner,()=>{navigated=true;});
+  assert.equal(navigated,false);assert.deepEqual(forgotten,[requestId]);assert.equal(recovery.getSnapshot().body.id,otherId);assert.equal(recovery.getSnapshot().readOnly,true);
+});
+test('permission denial, recorded precedence and company exit never unlock or repost a terminal attempt',async()=>{
+  const denied=await terminalHarness({api:{terminatePaymentAttempt:async()=>{throw Object.assign(Error('Denied'),{code:'CAPABILITY_DENIED'});}}});
+  await denied.recovery.getSnapshot().selectTerminal(owner);await denied.recovery.getSnapshot().confirmTerminal(owner);
+  assert.equal(denied.recovery.getSnapshot().error.code,'CAPABILITY_DENIED');assert.deepEqual(denied.forgotten,[]);
+  const done=await terminalHarness({api:{terminatePaymentAttempt:async()=>outcome()}});
+  await done.recovery.getSnapshot().selectTerminal(owner);await done.recovery.getSnapshot().confirmTerminal(owner);
+  assert.equal(done.recovery.getSnapshot().phase,'recorded');assert.deepEqual(done.forgotten,[]);
+  const wait=deferred();const stale=await terminalHarness({api:{terminatePaymentAttempt:()=>wait.promise}});
+  await stale.recovery.getSnapshot().selectTerminal(owner);const pending=stale.recovery.getSnapshot().confirmTerminal(owner);
+  stale.recovery.reset();wait.resolve(admission('no_effect'));await pending;
+  assert.equal(stale.recovery.getSnapshot(),null);assert.deepEqual(stale.forgotten,[]);
+});
+test('unbound legacy/absent reads, changed binding and double confirmation stay locked',async()=>{
+  for(const response of [unknown(),{status:'pending',id:requestId},admission('pending',{request_hash:'a'.repeat(64)})]) {
+    const {recovery,calls}=await terminalHarness({api:{recoverPayment:async()=>response}});
+    await recovery.getSnapshot().selectTerminal(owner);
+    assert.equal(recovery.getSnapshot().confirming,false);assert.equal(await recovery.getSnapshot().confirmTerminal(owner),false);
+    assert.equal(calls.length,0);
+  }
+  const wait=deferred();const {recovery}=await terminalHarness({api:{terminatePaymentAttempt:()=>wait.promise}});
+  await recovery.getSnapshot().selectTerminal(owner);const first=recovery.getSnapshot().confirmTerminal(owner);
+  assert.equal(await recovery.getSnapshot().confirmTerminal(owner),false);assert.equal(recoveryBusy(recovery.getSnapshot()),true);
+  wait.resolve({status:'no_effect',id:requestId});await first;
+  assert.equal(recoveryUnresolved(recovery.getSnapshot()),true);
+});
+
+test('lost terminal response remains locked until a bound fresh GET verifies no effect; late continue after exit is ignored',async()=>{
+ let result=admission();
+ const {recovery,forgotten}=await terminalHarness({api:{recoverPayment:async()=>result,terminatePaymentAttempt:async()=>{result=admission('no_effect');throw Error('Response lost');}}});
+ await recovery.getSnapshot().selectTerminal(owner);await recovery.getSnapshot().confirmTerminal(owner);
+ assert.deepEqual(forgotten,[]);assert.equal(recovery.getSnapshot().check,'pending');
+ await recovery.check();assert.equal(recovery.getSnapshot().check,'no_effect');
+ await recovery.getSnapshot().continueFresh(owner);assert.deepEqual(forgotten,[requestId]);
+ const wait=deferred();let checks=0;
+ const stale=await terminalHarness({api:{recoverPayment:()=>++checks===1?Promise.resolve(admission('no_effect')):wait.promise}});
+ let navigated=false;const continuing=stale.recovery.getSnapshot().continueFresh(owner,()=>{navigated=true;});stale.recovery.reset();wait.resolve(admission('no_effect'));await continuing;
+ assert.deepEqual(stale.forgotten,[]);assert.equal(stale.recovery.getSnapshot(),null);assert.equal(navigated,false);
+});
+
+test('fresh terminal continuation respects read revocation and canonical recorded precedence',async()=>{
+ for(const mode of ['denied','recorded']) {
+  let reads=0;
+  const {recovery,forgotten}=await terminalHarness({api:{recoverPayment:async()=>{
+   if(++reads===1)return admission('no_effect');
+   if(mode==='recorded')return outcome();throw Object.assign(Error('Access revoked'),{code:'CAPABILITY_DENIED'});
+  }}});
+  let navigated=false;assert.equal(await recovery.getSnapshot().continueFresh(owner,()=>{navigated=true;}),false);assert.equal(navigated,false);assert.deepEqual(forgotten,[]);
+  assert.equal(recovery.getSnapshot().phase,mode==='recorded'?'recorded':'unknown');
+ }
+});

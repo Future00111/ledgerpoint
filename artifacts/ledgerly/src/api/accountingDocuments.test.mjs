@@ -119,3 +119,11 @@ test('lost payment locator discovery is an authenticated company scoped GET with
   assert.equal(seen.url,'/api/companies/company%2Fid/accounting-payments/operations');
   assert.equal(seen.init.method,'GET');assert.equal(seen.init.body,undefined);assert.equal(seen.init.signal,signal);
 });
+
+test('terminal resolution posts only exact selected binding to the protected scoped endpoint',async()=>{
+ let seen;const client=createAccountingClient(async(url,init)=>{seen={url,init};return {ok:true,json:async()=>({data:{status:'no_effect',id:'attempt/id'}})};});
+ const binding={request_hash:'sha256:'+'a'.repeat(64),review_hash:'sha256:'+'b'.repeat(64)};
+ await client.terminatePaymentAttempt('company/id','attempt/id',binding);
+ assert.equal(seen.url,'/api/companies/company%2Fid/accounting-payments/operations/attempt%2Fid/no-effect');
+ assert.equal(seen.init.method,'POST');assert.deepEqual(JSON.parse(seen.init.body),binding);
+});
