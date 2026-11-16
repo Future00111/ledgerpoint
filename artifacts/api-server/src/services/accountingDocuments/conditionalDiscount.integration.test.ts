@@ -954,7 +954,7 @@ import {reports as compensationReports} from './reports';
 import {reconcileLifecycleReport} from './reportAcceptance.testSupport';
 import {reviewCorrection,commitCorrection} from './corrections';
 
-async function compensationFixture(partyType:'customer'|'supplier',cashAmount='10800') {
+async function compensationFixture(partyType:'customer'|'supplier',cashAmount='10800',currentPolicy=false) {
  const f=await admissionFixture(partyType);
  await admin.query("UPDATE companies SET vat_registered=true,vat_scheme='standard',vat_accounting_basis='invoice' WHERE id=$1",[f.company]);
  await admin.query(`INSERT INTO vat_tax_rules(id,company_id,code,label,rate,treatment,effective_from,is_active)
@@ -970,8 +970,8 @@ async function compensationFixture(partyType:'customer'|'supplier',cashAmount='1
   effective_adjustment_date:'2199-12-02',source:{...source,invoice_number:'COMP-CREDIT-'+randomUUID(),issue_date:'2199-12-02',
    due_date:'2199-12-02',payment_terms:0,line_items:source.line_items.map((l:any)=>({...l,unit_price:'10'}))}});
  const redemption={request_id:randomUUID(),reason:'Synthetic original discount redemption'};
- const reviewed=await reviewConditionalCredit(f.company,actor,credit.id,credit.revision,redemption);
- await commitConditionalCredit(f.company,actor,credit.id,credit.revision,{...redemption,review_token:reviewed.review_token,releases:reviewed.releases});
+ const reviewed=await (currentPolicy?reviewPublicConditionalCredit:reviewConditionalCredit)(f.company,actor,credit.id,credit.revision,redemption);
+ await (currentPolicy?commitCurrentConditionalDiscount:commitConditionalCredit)(f.company,actor,credit.id,credit.revision,{...redemption,review_token:reviewed.review_token,releases:reviewed.releases});
  const body={request_id:randomUUID(),original_id:f.draft.id,credit_id:credit.id,payment_id:cash.id,
   date:'2199-12-03',amount_minor:'1000',reason:'Qualifying allocation reduced; compensate full frozen discount'};
  const r=await reviewConditionalCompensation(f.company,actor,body);
@@ -1223,16 +1223,15 @@ for(const side of ['customer','supplier'] as const) {
   await assert.rejects(()=>commitConditionalCompensation(f.company,actor,{...f.body,review_token:'sha256:'+'0'.repeat(64)}),/COMPENSATION_REVIEW_STALE/);
   assert.deepEqual(await compensationSnapshot(f.company),before);
  });
- test(`real PostgreSQL HTTP: ${side} compensation review/recovery are native and read-only, with no public writer`,async()=>{
+ test(`real PostgreSQL HTTP: ${side} compensation preview stays read-only before explicit public commit`,async()=>{
   const f=await compensationFixture(side),before=await compensationSnapshot(f.company);
   const url=`${base}/companies/${f.company}/accounting-conditional-compensations`;
   const headers={'Content-Type':'application/json','x-test-actor':actor};
   const context=await fetch(url+'/context',{headers});assert.equal(context.status,200);
-  assert.equal(((await context.json()) as any).data.posting_available,false);
+  assert.equal(((await context.json()) as any).data.posting_available,true);
   const response=await fetch(url+'/review',{method:'POST',headers,body:JSON.stringify(f.body)});
   assert.equal(response.status,200);const review=((await response.json()) as any).data;
-  assert.equal(review.after_open_minor,'2200');assert.equal(review.readonly,true);assert.equal(review.posting_available,false);
-  assert.equal((await fetch(url,{method:'POST',headers,body:JSON.stringify(f.body)})).status,404);
+  assert.equal(review.after_open_minor,'2200');assert.equal(review.readonly,true);assert.equal(review.posting_available,true);
   assert.equal((await fetch(url+'/context')).status,401);
   assert.deepEqual(await compensationSnapshot(f.company),before);
  });
@@ -1289,7 +1288,7 @@ test('isolated Chromium: native read-only review, stale-input clearing, cancel a
     button('Review adjustment').click();
     await wait(()=>document.querySelector('[aria-label="Discount compensation review"]'));
     if(!document.querySelector('[aria-label="Discount compensation review"]').textContent.includes('£22.00'))throw Error('Wrong outstanding');
-    if(!button('Confirm posting — unavailable').disabled)throw Error('Public posting became available');
+    if(button('Confirm discount adjustment').disabled)throw Error('Explicit confirmation missing');
     change(selectFor('Adjustment'),'reverse_payment');
     await wait(()=>!document.querySelector('[aria-label="Discount compensation review"]'));
     change(document.querySelectorAll('input')[0],'108');
@@ -1298,7 +1297,7 @@ test('isolated Chromium: native read-only review, stale-input clearing, cancel a
     const reversal=document.querySelector('[aria-label="Discount compensation review"]').textContent;
     if(!reversal.includes('£120.00')||!reversal.includes('changes the recorded bank balance')||!reversal.includes('All three adjustments'))
      throw Error('Cash reversal review missing');
-    if(!button('Confirm posting — unavailable').disabled)throw Error('Cash reversal public posting became available');
+    if(button('Confirm discount adjustment').disabled)throw Error('Explicit cash reversal confirmation missing');
     change(document.querySelectorAll('input')[0],'11');
     await wait(()=>!document.querySelector('[aria-label="Discount compensation review"]'));
     button('Cancel review').click();
@@ -1999,4 +1998,99 @@ for(const side of ['customer','supplier'] as const)test(`real PostgreSQL HTTP: $
  const refundReview=await connectedHttp(f.company,'accounting-payments/review',refund);assert.equal(refundReview.status,200,JSON.stringify(refundReview));
  const refunded=await connectedHttp(f.company,'accounting-payments',{...refund,review_token:refundReview.data.review_token});assert.equal(refunded.status,200,JSON.stringify(refunded));
  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='refund'",[f.company])).rows[0].n,1);
+});
+
+for(const side of ['customer','supplier'] as const) for(const action of ['unallocate','reverse_payment']) test(`real PostgreSQL HTTP: ${side} current-policy ${action} explicit compensation, recovery and replay`,async()=>{
+ const f=await compensationFixture(side,'10800',true),before=await compensationSnapshot(f.company);
+ const body={...f.body,request_id:randomUUID(),amount_minor:action==='reverse_payment'?'10800':'1000',...(action==='reverse_payment'?{payment_action:action}:{})};
+ const url=`${base}/companies/${f.company}/accounting-conditional-compensations`,headers={'Content-Type':'application/json','x-test-actor':actor};
+ const send=async(suffix:string,b:any,h:any=headers)=>{const r=await fetch(url+suffix,{method:'POST',headers:h,body:JSON.stringify(b)});const raw=await r.text();return {status:r.status,data:raw.startsWith('{')?JSON.parse(raw).data:null};};
+ const reviewed=await send('/review',body);assert.equal(reviewed.status,200);
+ assert.equal(reviewed.data.cash_change_minor,action==='unallocate'?'0':side==='customer'?'-10800':'10800');
+ assert.deepEqual(await compensationSnapshot(f.company),before);
+ const command={...reviewed.data.intent,review_token:reviewed.data.review_token};
+ assert.equal((await send('',command,{'Content-Type':'application/json'})).status,401);
+ await admin.query("UPDATE company_users SET role='bookkeeper' WHERE company_id=$1 AND user_id=$2",[f.company,actor]);
+ assert.equal((await send('',command)).status,403);
+ await admin.query("UPDATE company_users SET role='owner' WHERE company_id=$1 AND user_id=$2",[f.company,actor]);
+ assert.equal((await send('',{...command,review_token:'sha256:'+'0'.repeat(64)})).status,409);
+ assert.deepEqual(await compensationSnapshot(f.company),before);
+ const first=await send('',command);assert.equal(first.status,200);assert.equal(first.data.status,'posted');
+ const after=await compensationSnapshot(f.company);
+ assert.equal((await send('',command)).data.status,'duplicate');assert.deepEqual(await compensationSnapshot(f.company),after);
+ const recovered=await fetch(url+'/operations/'+command.request_id,{headers});assert.equal(recovered.status,200);
+ assert.equal(((await recovered.json()) as any).data.reversal_journal_id,first.data.reversal_journal_id);
+ assert.equal(!!first.data.cash_reversal_journal_id,action==='reverse_payment');
+ const report=await compensationReports(f.company,actor,'2026-01-01','2199-12-03');
+ assert.equal(report.open_items.find((d:any)=>d.id===f.draft.id).open_minor,action==='reverse_payment'?'12000':'2200');
+ const bank=await pool.query(`SELECT COALESCE(sum(l.debit_minor-l.credit_minor),0)::text delta FROM canonical_journal_lines l JOIN accounting_payment_configuration c ON c.company_id=l.company_id WHERE l.company_id=$1 AND l.account_id=(c.mappings->>'bank')::uuid`,[f.company]);
+ assert.equal(bank.rows[0].delta,action==='reverse_payment'?'0':side==='customer'?'10800':'-10800');
+ for(const table of ['accounting_payment_events','canonical_journal_entries','canonical_journal_lines','accounting_document_sources','accounting_paid_credit_operations'])
+  for(const row of (before as any)[table])assert.ok((after as any)[table].some((r:any)=>JSON.stringify(r)===JSON.stringify(row)),table);
+
+});
+
+for(const side of ['customer','supplier'] as const) for(const action of ['unallocate','reverse_payment']) test(`isolated Chromium: ${side} actual Payments ${action} current-policy recovery`,async()=>{
+ const f=await compensationFixture(side,'10800',true);
+ const dir=mkdtempSync(path.join(path.dirname(socket),'compensation-browser-'));
+ try {
+  const frontend=path.join(process.cwd(),'artifacts/ledgerly');
+  const entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js'),companyStub=path.join(dir,'company.mjs');
+  writeFileSync(companyStub,`export const useCompany=()=>({activeCompany:{id:${JSON.stringify(f.company)}}});`);
+  writeFileSync(entry,`
+   import React from ${JSON.stringify(frontend+'/node_modules/react/index.js')};
+   import {createRoot} from ${JSON.stringify(frontend+'/node_modules/react-dom/client.js')};
+   import Payments from ${JSON.stringify(frontend+'/src/pages/Payments.jsx')};
+   import {MemoryRouter} from ${JSON.stringify(frontend+'/node_modules/react-router-dom/dist/index.mjs')};
+   import {QueryClient,QueryClientProvider} from ${JSON.stringify(frontend+'/node_modules/@tanstack/react-query/build/modern/index.js')};
+   const nativeFetch=window.fetch.bind(window);let commits=0,recoveries=0,unknown=true;
+   window.fetch=async(url,options={})=>{const target=String(url).replace(/^\\/api\\//,'/'),headers=new Headers(options.headers);headers.set('x-test-actor',${JSON.stringify(actor)});
+    if(target.includes('/accounting-conditional-compensations/operations/')){recoveries++;if(unknown)return new Response(JSON.stringify({data:{state:'unknown',request_id:target.split('/').pop()}}),{headers:{'Content-Type':'application/json'}});}
+    const response=await nativeFetch(target,{...options,headers});
+    if(target.endsWith('/accounting-conditional-compensations')&&options.method==='POST'&&response.ok){commits++;throw Error('Synthetic lost compensation response');}return response;};
+   const root=createRoot(document.getElementById('root'));
+   const mount=key=>root.render(<QueryClientProvider key={key} client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MemoryRouter initialEntries={['/payments']}><Payments/></MemoryRouter></QueryClientProvider>);mount('first');
+   const wait=async(fn)=>{for(let i=0;i<150;i++){if(fn())return;await new Promise(r=>setTimeout(r,25))}throw Error('Browser condition timed out')};
+   const change=(el,value)=>{Object.getOwnPropertyDescriptor(el.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype,'value').set.call(el,value);
+    el.dispatchEvent(new Event(el.tagName==='SELECT'?'change':'input',{bubbles:true}))};
+   const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
+   const selectFor=text=>[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith(text))?.querySelector('select');
+   (async()=>{
+    await wait(()=>document.querySelector('select option[value="${f.credit.id}"]'));
+    const panel=()=>[...document.querySelectorAll('details')].find(d=>d.textContent.includes('Conditional discount adjustments'));
+    panel().open=true;
+    const step=async(el,value)=>{change(el,value);await new Promise(r=>setTimeout(r,25));};
+    await step(selectFor('Adjustment'),${JSON.stringify(action)});
+    await step(selectFor('Original document and discount credit'),${JSON.stringify(f.credit.id)});
+    await wait(()=>selectFor('Original qualifying payment')?.options.length>1);
+    await step(selectFor('Original qualifying payment'),${JSON.stringify(f.cash.id)});
+    await step(panel().querySelectorAll('input')[0],${JSON.stringify(action==='reverse_payment'?'108':'10')});
+    await step(panel().querySelectorAll('input')[1],'2199-12-03');await step(panel().querySelectorAll('input')[2],'Public compensation acceptance');
+    button('Review adjustment').click();await wait(()=>button('Confirm discount adjustment'));
+    button('Confirm discount adjustment').click();await wait(()=>panel().textContent.includes('Synthetic lost compensation response'));
+    const key='ledgerly:compensation:${f.company}',saved=localStorage.getItem(key);
+    if(!saved||commits!==1||!panel().querySelector('fieldset').disabled)throw Error('Pending command not locked');
+    mount('remount');await wait(()=>recoveries>0&&panel()?.textContent.includes('Its outcome is unknown'));
+    if(!panel().querySelector('fieldset').disabled||localStorage.getItem(key)!==saved||commits!==1)throw Error('Unknown outcome escaped lock');
+    unknown=false;button('Check request outcome').click();await wait(()=>panel().textContent.includes('Committed request found'));
+    if(localStorage.getItem(key)||commits!==1||!panel().querySelector('a[href="/payments"]'))throw Error('Recovery or refresh navigation missing');
+    mount('refresh');await wait(()=>panel()?.textContent.includes('already compensated'));
+    if(commits!==1)throw Error('Refresh reposted');document.body.dataset.compensationAcceptance='passed';
+   })().catch(e=>{document.body.dataset.compensationAcceptance='failed';document.body.append(String(e.stack||e));});
+  `);
+  execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',entry,'--bundle','--platform=browser','--format=iife','--jsx=automatic','--alias:@='+frontend+'/src','--alias:@/lib/useCompany='+companyStub,'--outfile='+bundle],{stdio:'pipe'});
+  browserHtml=`<!doctype html><html><head><meta charset="utf-8"><title>SYNTHETIC COMPENSATION TEST — not a signed-in demo</title></head><body><div id="root"></div><script>${readFileSync(bundle,'utf8').replaceAll('</script','<\\/script')}</script></body></html>`;
+  const child=spawn('chromium',['--headless','--no-first-run','--disable-gpu','--disable-background-networking','--disable-component-update','--disable-sync',
+   '--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=12000',base+'/synthetic-compensation-browser'],{stdio:['ignore','pipe','pipe']});
+  let html='',stderr='';
+  child.stdout.on('data',b=>{html+=b.toString();});child.stderr.on('data',b=>{stderr+=b.toString();});
+  const code=await new Promise<number>((resolve,reject)=>{
+   const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('Bounded isolated Chromium timed out: '+stderr.slice(-4000)));},30000);
+   child.once('error',e=>{clearTimeout(timer);reject(e);});child.once('exit',n=>{clearTimeout(timer);resolve(n??1);});
+  });
+  writeFileSync(path.join(process.cwd(),'generated-artifacts/compensation-browser.log'),stderr+'\n'+html.match(/<body[^>]*>/)?.[0]+'\n');
+  assert.equal(code,0,stderr.slice(-2000));assert.match(html,/<body[^>]*data-compensation-acceptance="passed"/,html.slice(-18000));
+  assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_compensations WHERE company_id=$1',[f.company])).rows[0].n,1);
+  console.log('PUBLIC_COMPENSATION_BROWSER_ACCEPTANCE',JSON.stringify({side,action,actualPayments:true,currentPolicy:true,lostResponse:true,unknownLocked:true,remountRecovery:true,noResubmission:true}));
+ }finally{browserHtml='';rmSync(dir,{recursive:true,force:true});}
 });

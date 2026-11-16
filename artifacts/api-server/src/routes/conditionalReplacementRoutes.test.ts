@@ -47,14 +47,27 @@ test("observe accepts no caller fields and company header context is rejected", 
     assert.equal(r.status,400);
   } finally {server.close();}
 });
-test("no commit, redemption, compensation-commit or conditional-posting route is exposed", ()=>{
+test("replacement bypass routes remain closed and compensation has one explicit confirmation route", ()=>{
   const router:any=createAccountingRouter((_q,_s,n)=>n());
   const paths:string[]=router.stack.filter((l:any)=>l.route).flatMap((l:any)=>Object.keys(l.route.methods).map(m=>`${m} ${l.route.path}`));
   assert.ok(paths.includes("get /accounting-documents/:id/conditional-replacements"));
   assert.ok(paths.includes("post /accounting-documents/:id/conditional-replacements"));
   assert.ok(paths.includes("post /accounting-documents/:id/conditional-replacements/:replacementId/observe"));
-  for(const p of paths) assert.doesNotMatch(p,/redeem|redemption|conditional-credit(?!\/review)|conditional-compensations(?!\/(context|review|operations))|authority|commit/i,p);
+  assert.ok(paths.includes("post /accounting-conditional-compensations"));
+  for(const p of paths) if(p!=="post /accounting-conditional-compensations") assert.doesNotMatch(p,/redeem|redemption|conditional-credit(?!\/review)|conditional-compensations(?!\/(context|review|operations))|authority|commit/i,p);
   assert.ok(!paths.some(p=>/^post .*conditional-replacements.*\/(post|redeem|commit)/.test(p)));
+});
+test("compensation confirmation requires authentication and a reviewed command without bypass fields", async()=>{
+  const path=`/companies/${company}/accounting-conditional-compensations`;
+  const body={request_id:valid.request_id,original_id:doc,credit_id:company,payment_id:terms.party_id,
+    date:"2026-11-16",amount_minor:"1000",reason:"Reviewed adjustment"};
+  assert.equal((await call(app(false),"POST",path,body)).status,401);
+  const missing=await call(app(),"POST",path,body);
+  assert.equal(missing.status,428);assert.equal(missing.json.error.code,"COMPENSATION_REVIEW_REQUIRED");
+  for(const field of ["force","authority_token","posting_available"]) {
+    const result=await call(app(),"POST",path,{...body,review_token:"sha256:"+"a".repeat(64),[field]:true});
+    assert.equal(result.status,422);assert.equal(result.json.error.code,"FIELD_INVALID");
+  }
 });
 test("history projection distinguishes current/superseded/observed/consumed and leaks no internals", ()=>{
   const rows=[{id:"r1",predecessor_id:null,request_id:"q1",recorded_at:"t1",actor_id:"u",original_binding_hash:"h",source_xid:"9",evidence_id:"e",

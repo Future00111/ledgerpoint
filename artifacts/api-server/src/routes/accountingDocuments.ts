@@ -1,6 +1,6 @@
 import { captureConditionalEvidence, getConditionalEvidence, observeConditionalOriginal } from '../services/accountingDocuments/conditionalDiscount';
 import { reviewCommercialCredit, commitCommercialCredit, recoverCommercialCredit, reviewPaidCredit, commitPaidCredit, reviewPublicConditionalCredit, commitCurrentConditionalDiscount, recoverCurrentConditionalDiscount } from '../services/accountingDocuments/paidCredit';
-import { conditionalCompensationContext,reviewConditionalCompensation,recoverConditionalCompensation } from '../services/accountingDocuments/conditionalCompensation';
+import { conditionalCompensationContext,reviewConditionalCompensation,recoverConditionalCompensation,commitConditionalCompensation } from '../services/accountingDocuments/conditionalCompensation';
 import { Router, type RequestHandler, type Request } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import { DraftError, fail } from "../services/financialDrafts/contract";
@@ -52,15 +52,17 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
   router.post('/conditional-discount-evidence',async(req,res)=>{const {company,actor}=ids(req);res.status(201).json({data:await captureConditionalEvidence(company,actor,req.body)});});
   router.get('/conditional-discount-evidence/:id',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await getConditionalEvidence(company,actor,id)});});
   router.get('/accounting-conditional-compensations/context',async(req,res)=>{
-    const {company,actor}=ids(req);res.json({data:await conditionalCompensationContext(company,actor)});
+    const {company,actor}=ids(req);const context=await conditionalCompensationContext(company,actor);res.json({data:{...context,posting_available:context.available&&context.can_review}});
   });
   router.post('/accounting-conditional-compensations/review',async(req,res)=>{
-    const {company,actor}=ids(req);res.json({data:{...await reviewConditionalCompensation(company,actor,req.body),readonly:true,posting_available:false}});
+    const {company,actor}=ids(req);res.json({data:{...await reviewConditionalCompensation(company,actor,req.body),readonly:true,posting_available:true}});
   });
   router.get('/accounting-conditional-compensations/operations/:id',async(req,res)=>{
     const {company,actor,id}=ids(req);res.json({data:await recoverConditionalCompensation(company,actor,id)});
   });
-  // No compensation commit route: independent integration acceptance is pending.
+  router.post('/accounting-conditional-compensations',async(req,res)=>{
+    const {company,actor}=ids(req);res.json({data:await commitConditionalCompensation(company,actor,req.body,testPostHook?async(_stage,tx)=>testPostHook(tx):undefined)});
+  });
   router.get('/credit-claims',async(req,res)=>{
     const {company,actor}=ids(req);
     if(req.query.bill_id!==undefined && typeof req.query.bill_id!=='string') fail(400,'INVALID_REQUEST_SHAPE');

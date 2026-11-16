@@ -77,6 +77,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
     paymentContext: (c, signal) => call(`${base(c)}/accounting-payments/context`, { signal }),
     compensationContext: (c, signal) => call(`${base(c)}/accounting-conditional-compensations/context`, { signal }),
     reviewCompensation: (c, body, signal) => call(`${base(c)}/accounting-conditional-compensations/review`, { method: 'POST', body, signal }),
+    commitCompensation: (c, body, signal) => call(`${base(c)}/accounting-conditional-compensations`, { method: 'POST', body, signal }),
     recoverCompensation: (c, id, signal) => call(`${base(c)}/accounting-conditional-compensations/operations/${encodeURIComponent(id)}`, { signal }),
     recoverPayment: (c, id, signal) => call(`${base(c)}/accounting-payments/operations/${encodeURIComponent(id)}`, { signal }),
     payments: (c, signal) => call(`${base(c)}/accounting-payments`, { signal }),
