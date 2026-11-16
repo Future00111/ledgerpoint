@@ -363,3 +363,21 @@ test('company exit invalidates delayed discovery and delayed selected receipt',a
     assert.equal(r.getSnapshot(),null);
   }
 });
+
+test('pending admission is shown ahead of history and explicit selection stays read-only until same ID commits',async()=>{
+ let posts=0,committed=false,saved=[];
+ const pending={...discoveryReceipt(),status:'pending'};delete pending.journal_id;
+ const r=createPaymentRecovery('company-a',{discoverPayments:async()=>({pending:[pending],receipts:[discoveryReceipt(otherId)],has_more:true}),
+  recoverPayment:async()=>committed?outcome():{status:'pending',id:requestId},postPayment:async()=>{posts++;}},
+  {discoverLostReference:true,rememberRequest:id=>saved.push(id)});
+ await r.discover();assert.equal(r.getSnapshot().candidates[0].status,'pending');
+ await r.selectReceipt(requestId);assert.equal(r.getSnapshot().phase,'unknown');assert.equal(r.getSnapshot().readOnly,true);
+ assert.deepEqual(saved,[requestId]);await r.retry({post_payments:true});assert.equal(posts,0);
+ committed=true;await r.check();assert.equal(r.getSnapshot().phase,'recorded');assert.equal(posts,0);
+});
+test('terminal status disables retained in-memory retry without unlocking a replacement',async()=>{
+ let posts=0;const r=createPaymentRecovery('company-a',{postPayment:async()=>{posts++;throw new Error('Lost response');},recoverPayment:async()=>({status:'no_effect',id:requestId})});
+ await r.record(review(),owner);assert.notEqual(r.getSnapshot().readOnly,true);
+ await r.check();assert.equal(r.getSnapshot().readOnly,true);assert.equal(await r.retry({post_payments:true}),false);
+ assert.equal(r.abandon(),false);assert.equal(recoveryUnresolved(r.getSnapshot()),true);assert.equal(posts,1);
+});

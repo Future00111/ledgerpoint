@@ -14,7 +14,7 @@ import { chart, AccountSelectionError } from "../services/accountingDocuments/ac
 import { saveAccount } from "../services/accountingDocuments/chart";
 import { correctionContext, reviewCorrection, commitCorrection, correctionHistory, recoverCorrection } from "../services/accountingDocuments/corrections";
 
-import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment, recoverPayment, discoverPayments } from '../services/accountingDocuments/payments';
+import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment, recoverPayment, discoverPayments, terminatePaymentAttempt } from '../services/accountingDocuments/payments';
 import { createClaims, listClaims, confirmReceipt, cancelClaim } from '../services/creditTracking/service';
 import type { Queryable } from '../services/accountingDocuments/core';
 import { appendConditionalReplacement } from '../services/accountingDocuments/conditionalReplacements';
@@ -102,6 +102,7 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
   });
   router.put('/accounting-payments/configuration',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await savePaymentConfiguration(company,actor,req.body)});});
   router.get('/accounting-payments/operations',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await discoverPayments(company,actor)});});
+  router.post('/accounting-payments/operations/:requestId/no-effect',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await terminatePaymentAttempt(company,actor,String(req.params.requestId),req.body)});});
   router.get('/accounting-payments/operations/:requestId',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await recoverPayment(company,actor,String(req.params.requestId))});});
   router.get('/accounting-payments',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await listPayments(company,actor)});});
   router.post('/accounting-payments/review',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await previewPayment(company,actor,req.body)});});

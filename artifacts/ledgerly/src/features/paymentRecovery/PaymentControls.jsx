@@ -37,9 +37,9 @@ export function PaymentRecoveryPanel({ state, capabilities, closing, onCheck, on
     <Button className="min-h-11" variant="outline" disabled={state.loading} onClick={() => state.discover()}>{state.loading ? 'Checking recorded payments…' : 'Check my recorded payments'}</Button>
     {state.error && <p>History could not confirm the outcome{state.error.code ? ` (${state.error.code})` : ''}. Ordinary payment recording remains locked.</p>}
     {state.candidates?.length === 0 && <p>No recorded events found for your account in this company. This does not prove that a missing payment failed.</p>}
-    {state.hasMore && <p>Only the latest 100 events are shown. Older or missing events remain unconfirmed here.</p>}
+    {state.hasMore && <p>Pending attempts are shown first, followed by the latest 100 recorded events. Older recorded events remain unconfirmed here.</p>}
     {state.candidates?.map(receipt => <div key={receipt.id} className="space-y-2 rounded border p-3">
-      <p>{receipt.effective_date} · {receipt.party_type} {receipt.kind} · <Money value={receipt.amount_minor} /></p>
+      <p>{receipt.status === 'pending' ? 'Pending · ' : 'Recorded · '}{receipt.effective_date} · {receipt.party_type} {receipt.kind} · <Money value={receipt.amount_minor} /></p>
       <p className="break-words">{receipt.reference}</p><p className="break-all text-xs">Event: {receipt.id}</p>
       <Button className="min-h-11" variant="outline" disabled={state.loading} onClick={() => state.selectReceipt(receipt.id)}>This is my event — verify status</Button>
     </div>)}
@@ -50,6 +50,8 @@ export function PaymentRecoveryPanel({ state, capabilities, closing, onCheck, on
     {!state.readOnly && <p className="break-words">{state.body.reference} · <Money value={state.body.amount_minor} /></p>}
     <p className="break-all text-xs">Payment event reference: {state.body.id}</p>
     {state.phase !== 'posting' && <p>The payment may already be recorded. Check its status before creating another payment. A retry uses the same reviewed payment and cannot create a second event with this reference.</p>}
+    {state.check === 'pending' && <p>The server received this attempt; its outcome is still pending. Check again using this same reference.</p>}
+    {state.check === 'no_effect' && <p>This attempt was explicitly closed with no recorded effect. This recovery view remains read-only.</p>}
     {state.check === 'not_found' && <p>Not found in the latest history. The original request may still finish; its outcome remains unknown.</p>}
     {state.error && <p>The latest request did not confirm the outcome{state.error.code ? ` (${state.error.code})` : ''}. This does not establish whether the original recording succeeded.</p>}
     <Link className="underline" to={`/payments?event=${encodeURIComponent(state.body.id)}`}>Open this event in payment history</Link>

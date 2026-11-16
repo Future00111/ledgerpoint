@@ -110,10 +110,11 @@
       "task": "P03-01",
       "migration": "lib/db/migrations/operation-recovery.review.sql",
       "tables": [
-        "operation_commands",
-        "operation_outcomes"
+        "payment_attempt_admissions",
+        "payment_attempt_no_effect"
       ],
-      "status": "contract_only"
+      "status": "ordinary_payment_review_sql_only",
+      "sha256": "7d4ab4c43a80d667a68254e7de90732a1c7fc336c19f81d4c499eb6a220b93d3"
     },
     {
       "task": "P03-02",

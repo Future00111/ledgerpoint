@@ -89,28 +89,92 @@ async function paymentRecoveryAccess(q:Queryable,company:string,actor:string) {
   const membership=(await q.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2',[company,actor])).rows[0];
   if(!isCompanyRole(membership?.role)) fail(403,'CAPABILITY_DENIED');
 }
-const paymentReceiptQuery=`SELECT e.id,e.source,e.kind,e.party_type,e.reference,e.amount_minor::text,
+const paymentReceiptQuery=`SELECT e.id,e.source,e.actor_id,e.request_hash,e.kind,e.party_type,e.reference,e.amount_minor::text,
   to_char(e.effective_date,'YYYY-MM-DD') effective_date,e.created_at recorded_at,
   j.source_revision,j.id verified_journal_id,p.id verified_effect_id FROM accounting_payment_events e
   LEFT JOIN canonical_journal_entries j ON j.id=e.journal_id AND j.company_id=e.company_id
     AND j.source_id=e.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
     AND j.currency_code='GBP' AND j.posting_kind='party_'||e.kind
-    AND j.economic_effect_id='payment-event:'||e.id::text
+    AND j.economic_effect_id='payment-event:'||e.id::text AND j.source_evidence_hash=j.source_revision
   LEFT JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
     AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
     AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text
-    AND p.status='posted' AND p.source_revision=j.source_revision`;
+    AND p.status='posted' AND p.source_revision=j.source_revision AND p.source_evidence_hash=j.source_evidence_hash`;
 function verifiedPaymentReceipt(event:any) {
-  if(!event.verified_journal_id || !event.verified_effect_id || event.source_revision!==hash(event.source)) fail(503,'PAYMENT_HISTORY_INVALID');
+  if(!event.verified_journal_id || !event.verified_effect_id || event.source_revision!==hash(event.source) || event.source?.intent?.id!==event.id || hash(event.source?.intent)!==event.request_hash) fail(503,'PAYMENT_HISTORY_INVALID');
   return {status:'recorded',id:event.id,journal_id:event.verified_journal_id};
 }
+// Company lock is acquired first. Every decision below is a fresh READ COMMITTED
+// statement after the attempt lock; read-only recovery snapshots never authorize writes.
+async function lockPaymentAttempt(q:Queryable,company:string,actor:string,id:string) {
+  const isolation=(await q.query('SHOW transaction_isolation')).rows[0]?.transaction_isolation;
+  if(isolation!=='read committed') fail(503,'PAYMENT_ISOLATION_UNSUPPORTED');
+  await scope(q,company,actor,true,true);
+  const member=(await q.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2',[company,actor])).rows[0];
+  if(!roleHasAccountingCapability(member?.role,'accounting.post')) fail(403,'CAPABILITY_DENIED');
+  await q.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[`${company}:payment-attempt:${id}`]);
+}
+async function attemptRows(q:Queryable,company:string,id:string) {
+  const admission=(await q.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[company,id])).rows[0];
+  const terminal=(await q.query('SELECT * FROM payment_attempt_no_effect WHERE company_id=$1 AND request_id=$2',[company,id])).rows[0];
+  if(terminal && (!admission || terminal.actor_id!==admission.actor_id || terminal.request_hash!==admission.request_hash || terminal.review_hash!==admission.review_hash)) fail(503,'PAYMENT_HISTORY_INVALID');
+  return {admission,terminal};
+}
+function bindAttempt(admission:any,actor:string,requestHash:string,reviewHash:string) {
+  if(admission && (admission.actor_id!==actor || admission.request_hash!==requestHash || admission.review_hash!==reviewHash)) fail(409,'IDEMPOTENCY_CONFLICT');
+}
+async function canonicalAttempt(q:Queryable,company:string,id:string) {
+  const event=(await q.query(paymentReceiptQuery+' WHERE e.company_id=$1 AND e.id=$2',[company,id])).rows[0];
+  if(event) {
+    const {admission,terminal}=await attemptRows(q,company,id);
+    if(terminal || (admission && (admission.actor_id!==event.actor_id || admission.request_hash!==event.request_hash || admission.review_hash!==hash(event.source)))) fail(503,'PAYMENT_HISTORY_INVALID');
+    return verifiedPaymentReceipt(event);
+  }
+  // An orphan journal/effect is corruption, never permission to release a fence.
+  const orphan=(await q.query(`SELECT 1 FROM canonical_journal_entries WHERE company_id=$1 AND
+    (source_id=$2 OR economic_effect_id=$3) UNION ALL SELECT 1 FROM accounting_posting_effects
+    WHERE company_id=$1 AND (source_id=$2 OR economic_effect_id=$3 OR idempotency_key=$3) LIMIT 1`,[company,id,`payment-event:${id}`])).rowCount;
+  if(orphan) fail(503,'PAYMENT_HISTORY_INVALID');
+  return null;
+}
+async function fenceOtherAttempts(q:Queryable,company:string,actor:string,id:string) {
+  const rows=(await q.query('SELECT request_id FROM payment_attempt_admissions WHERE company_id=$1 AND actor_id=$2 AND request_id<>$3 ORDER BY request_id',[company,actor,id])).rows;
+  for(const row of rows) {
+    const {terminal}=await attemptRows(q,company,row.request_id);
+    const outcome=await canonicalAttempt(q,company,row.request_id);
+    if(terminal && outcome) fail(503,'PAYMENT_HISTORY_INVALID');
+    if(!outcome && !terminal) fail(409,'PAYMENT_ATTEMPT_UNRESOLVED');
+  }
+}
+/** Explicit no-effect resolution fences delayed same-ID writers permanently. */
+export async function terminatePaymentAttempt(company:string,actor:string,requestId:string,body:unknown) {
+  const id=uuid(requestId),b=exactFields(body,['request_hash','review_hash']);
+  return transact(async q=>{
+    await q.query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+    await lockPaymentAttempt(q,company,actor,id);
+    const {admission,terminal}=await attemptRows(q,company,id);
+    if(!admission || admission.actor_id!==actor) fail(404,'RESOURCE_NOT_FOUND');
+    bindAttempt(admission,actor,b.request_hash,b.review_hash);
+    const outcome=await canonicalAttempt(q,company,id);
+    if(outcome){if(terminal) fail(503,'PAYMENT_HISTORY_INVALID');return outcome;}
+    if(!terminal) await q.query(`INSERT INTO payment_attempt_no_effect(company_id,request_id,actor_id,request_hash,review_hash)
+      VALUES($1,$2,$3,$4,$5)`,[company,id,actor,admission.request_hash,admission.review_hash]);
+    return {status:'no_effect',id};
+  });
+}
+
 /** A bounded actor-owned discovery read, never evidence that a missing attempt failed. */
 export async function discoverPayments(company:string,actor:string) {
   return transact(async q=>{
     await paymentRecoveryAccess(q,company,actor);
+    const pending=(await q.query(`SELECT a.request_id id,a.kind,a.party_type,a.reference,a.amount_minor::text,
+      to_char(a.effective_date,'YYYY-MM-DD') effective_date,a.admitted_at FROM payment_attempt_admissions a
+      WHERE a.company_id=$1 AND a.actor_id=$2 AND NOT EXISTS(SELECT 1 FROM accounting_payment_events e WHERE e.company_id=a.company_id AND e.id=a.request_id)
+      AND NOT EXISTS(SELECT 1 FROM payment_attempt_no_effect t WHERE t.company_id=a.company_id AND t.request_id=a.request_id)
+      ORDER BY a.admitted_at,a.request_id`,[company,actor])).rows.map(row=>({...row,status:'pending'}));
     const rows=(await q.query(paymentReceiptQuery+`
       WHERE e.company_id=$1 AND e.actor_id=$2 ORDER BY e.created_at DESC,e.id DESC LIMIT 101`,[company,actor])).rows;
-    return {receipts:rows.slice(0,100).map(event=>({...verifiedPaymentReceipt(event),kind:event.kind,
+    return {pending,receipts:rows.slice(0,100).map(event=>({...verifiedPaymentReceipt(event),kind:event.kind,
       party_type:event.party_type,reference:event.reference,amount_minor:event.amount_minor,
       effective_date:event.effective_date,recorded_at:event.recorded_at})),has_more:rows.length>100};
   },true);
@@ -121,7 +185,11 @@ export async function recoverPayment(company:string,actor:string,requestId:strin
   return transact(async q=>{
     await paymentRecoveryAccess(q,company,actor);
     const event=(await q.query(paymentReceiptQuery+' WHERE e.company_id=$1 AND e.id=$2',[company,id])).rows[0];
-    return event?verifiedPaymentReceipt(event):{status:'unknown',id};
+    if(event) return verifiedPaymentReceipt(event);
+    const {admission,terminal}=await attemptRows(q,company,id);
+    if(admission?.actor_id!==actor) return {status:'unknown',id};
+    if(terminal) await canonicalAttempt(q,company,id);
+    return {status:terminal?'no_effect':'pending',id};
   },true);
 }
 
@@ -214,20 +282,31 @@ export async function previewPayment(company:string,actor:string,body:unknown) {
   const b=intent(body);return transact(q=>plan(q,company,actor,b));
 }
 class Replayed extends Error {constructor(public data:any){super('Payment event already recorded');}}
-export async function postPayment(company:string,actor:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>,existingTransaction?:DatabaseTransaction) {
+export async function postPayment(company:string,actor:string,body:unknown,testHook?:(tx:DatabaseTransaction)=>Promise<void>,existingTransaction?:DatabaseTransaction,afterAdmission?:()=>Promise<void>) {
   const b=intent(body),expected=(body as any).review_token;
   if(typeof expected!=='string'||!/^sha256:[a-f0-9]{64}$/.test(expected)) fail(428,'PAYMENT_REVIEW_REQUIRED');
   const requestHash=hash(b);
   // Admission read only supplies the command envelope. Locked calculation below
   // is the authority. Retries are checked before recalculating spent remainders.
   const admission=async(q:Queryable)=>{
-    await scope(q,company,actor,true,true);
+    if(!existingTransaction) await q.query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+    await lockPaymentAttempt(q,company,actor,b.id);
+    const {admission:held,terminal}=await attemptRows(q,company,b.id);
+    bindAttempt(held,actor,requestHash,expected);
+    if(terminal) fail(409,'PAYMENT_ATTEMPT_TERMINATED');
     const prior=(await q.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[company,b.id])).rows[0];
-    if(prior){if(prior.request_hash!==requestHash) fail(409,'IDEMPOTENCY_CONFLICT');return {replayed:prior};}
-    const p=await plan(q,company,actor,b,existingTransaction);if(p.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');return {plan:p};
+    if(prior){if(prior.request_hash!==requestHash || prior.actor_id!==actor || hash(prior.source)!==expected) fail(409,'IDEMPOTENCY_CONFLICT');await canonicalAttempt(q,company,b.id);return {replayed:prior};}
+    await canonicalAttempt(q,company,b.id);
+    if(!existingTransaction) await fenceOtherAttempts(q,company,actor,b.id);
+    const p=await plan(q,company,actor,b,existingTransaction);if(p.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');
+    if(!existingTransaction && !held) await q.query(`INSERT INTO payment_attempt_admissions
+      (company_id,request_id,actor_id,request_hash,review_hash,kind,party_type,reference,effective_date,amount_minor)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,[company,b.id,actor,requestHash,expected,b.kind,b.party_type,b.reference,b.date,b.amount_minor]);
+    return {plan:p};
   };
   const initial=existingTransaction?await admission(queryAdapter(existingTransaction)):await transact(admission);
   if(initial.replayed) return observePaymentOutcome({status:'duplicate',id:b.id,journal_id:initial.replayed.journal_id},company,actor,b.id,b.kind,!!existingTransaction);
+  if(!existingTransaction) await afterAdmission?.();
   const first=initial.plan!;let current=first,transaction:DatabaseTransaction;
   const authority=<T>(value:T,keys:string[],token:string):LockedAuthority<T>=>({authority:value,recordKeys:keys,
     capturedToken:{revision:token},lockMode:'FOR UPDATE',transactionBound:true,
@@ -235,9 +314,13 @@ export async function postPayment(company:string,actor:string,body:unknown,testH
       ?{ok:true}:{ok:false,code:'transaction_contract_invalid',message:'Reviewed payment state changed.'}});
   const deps:CanonicalPostingDependencies={
     sourceProvider:{async lockForPosting(_command,tx){
-      transaction=tx;const q=queryAdapter(tx);await scope(q,company,actor,true,true);
+      transaction=tx;const q=queryAdapter(tx);await lockPaymentAttempt(q,company,actor,b.id);
+      const {admission:held,terminal}=await attemptRows(q,company,b.id);
+      bindAttempt(held,actor,requestHash,expected);
+      if(terminal) fail(409,'PAYMENT_ATTEMPT_TERMINATED');
       const prior=(await q.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[company,b.id])).rows[0];
-      if(prior){if(prior.request_hash!==requestHash) fail(409,'IDEMPOTENCY_CONFLICT');throw new Replayed({status:'duplicate',id:b.id,journal_id:prior.journal_id});}
+      if(prior){if(prior.request_hash!==requestHash || prior.actor_id!==actor || hash(prior.source)!==expected) fail(409,'IDEMPOTENCY_CONFLICT');await canonicalAttempt(q,company,b.id);throw new Replayed({status:'duplicate',id:b.id,journal_id:prior.journal_id});}
+      await canonicalAttempt(q,company,b.id);
       current=await plan(q,company,actor,b,tx);if(current.review_token!==expected) fail(409,'PAYMENT_REVIEW_STALE');
       return authority({companyId:company,sourceType:'accounting_payment_event',sourceId:b.id,status:'reviewed',isPostable:true,
         sourceRevision:expected,evidenceHash:expected},[`companies:${company}`,`accounting_payment_event:${b.id}`],expected);

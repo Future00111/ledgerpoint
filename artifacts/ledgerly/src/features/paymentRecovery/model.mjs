@@ -37,10 +37,11 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
     try {
       const result = await api.discoverPayments(companyId);
       if (current !== generation) return false;
-      const rows = result?.receipts;
-      if (!Array.isArray(rows) || rows.length > 100 || typeof result.has_more !== 'boolean' ||
+      const pending = result?.pending ?? [];
+      const rows = Array.isArray(result?.receipts) && Array.isArray(pending) ? [...pending,...result.receipts] : null;
+      if (!Array.isArray(rows) || result.receipts.length > 100 || typeof result.has_more !== 'boolean' ||
           new Set(rows.map(row => row?.id)).size !== rows.length || rows.some(row =>
-            !recorded(row, row.id) || row.status !== 'recorded' || !['payment', 'allocation', 'unallocation', 'refund', 'reversal'].includes(row.kind) ||
+            !(row.status === 'pending' ? uuid(row.id) && row.journal_id === undefined : recorded(row,row.id) && row.status === 'recorded') || !['payment', 'allocation', 'unallocation', 'refund', 'reversal'].includes(row.kind) ||
             !['customer', 'supplier'].includes(row.party_type) || typeof row.reference !== 'string' ||
             typeof row.amount_minor !== 'string' || !/^\d{1,20}$/.test(row.amount_minor) || !/^\d{4}-\d{2}-\d{2}$/.test(row.effective_date))) {
         throw new Error('Recorded payment history could not be verified.');
@@ -59,7 +60,12 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
       // Selection is explicit, and current authorization and outcome are checked again.
       const result = await api.recoverPayment(companyId, id);
       if (current !== generation) return false;
-      if (!recorded(result, id) || result.journal_id !== candidate.journal_id) throw new Error('The selected payment outcome could not be verified.');
+      if (candidate.status === 'pending' && result?.status === 'pending' && result.id === id) {
+        rememberRequest(id);
+        publish({companyId,body:Object.freeze({id}),readOnly:true,phase:'unknown',check:'pending',result:null,error:null});
+        return true;
+      }
+      if (!recorded(result, id) || (candidate.status === 'recorded' && result.journal_id !== candidate.journal_id)) throw new Error('The selected payment outcome could not be verified.');
       publish({ companyId, body: Object.freeze({ id }), readOnly: true, phase: 'recorded', result, error: null });
     } catch (error) {
       if (current === generation) publish({ ...attempt, loading: false, error });
@@ -106,9 +112,9 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
         if (current !== generation) return false;
         if (recorded(result, attempt.body.id)) {
           publish({ ...attempt, phase: 'recorded', result, error: null });
-        } else if (result?.status === 'unknown' && result.id === attempt.body.id) {
+        } else if (['unknown','pending','no_effect'].includes(result?.status) && result.id === attempt.body.id) {
           // Absence at one read is not proof of failure: the first request may still commit.
-          publish({ ...attempt, phase: 'unknown', check: 'not_found', error: null });
+          publish({ ...attempt, readOnly: attempt.readOnly || result.status === 'no_effect', phase: 'unknown', check: result.status === 'pending' ? 'pending' : result.status === 'no_effect' ? 'no_effect' : 'not_found', error: null });
         } else throw new Error('Payment outcome could not be verified.');
       } catch (error) {
         if (current === generation) publish({ ...attempt, phase: 'unknown', error });
