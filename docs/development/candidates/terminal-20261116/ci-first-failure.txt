@@ -1,0 +1,43 @@
+✖ isolated Chromium: mounted terminal resolution explicitly cancels, confirms and verifies before fresh review (30264.24547ms)
+2026-11-16T19:16:02.1490689Z   Error: Bounded browser timeout: on UNIX "unix")
+2026-11-16T19:16:02.1491585Z   [5013:5013:1116/191532.198876:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+2026-11-16T19:16:02.1492852Z   [5013:5013:1116/191532.205003:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+2026-11-16T19:16:02.1494689Z   [5013:5042:1116/191532.205634:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-11-16T19:16:02.1496037Z   [5013:5013:1116/191532.216578:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+2026-11-16T19:16:02.1497299Z   [5013:5013:1116/191532.232162:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+2026-11-16T19:16:02.1499134Z   [5013:5042:1116/191532.232524:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-11-16T19:16:02.1500952Z   [5013:5013:1116/191532.233249:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files
+2026-11-16T19:16:02.1502700Z   [5013:5013:1116/191532.253921:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+2026-11-16T19:16:02.1504332Z   [5013:5042:1116/191532.254196:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-11-16T19:16:02.1505727Z   [5013:5013:1116/191532.257392:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+2026-11-16T19:16:02.1506588Z   Created TensorFlow Lite XNNPACK delegate for CPU.
+2026-11-16T19:16:02.1506952Z   
+2026-11-16T19:16:02.1507860Z       at Timeout._onTimeout (/home/runner/work/ledgerpoint/ledgerpoint/generated-artifacts/accounting-flow.test.cjs:70137:17)
+2026-11-16T19:16:02.1508572Z       at listOnTimeout (node:internal/timers:685:17)
+2026-11-16T19:16:02.1509014Z       at process.processTimers (node:internal/timers:618:7)
+2026-11-16T19:16:02.3499388Z ##[error]Process completed with exit code 1.
+2026-11-16T19:16:02.3590010Z ##[group]Run if [ 'skipped' != 'skipped' ]; then
+2026-11-16T19:16:02.3590426Z [36;1mif [ 'skipped' != 'skipped' ]; then[0m
+2026-11-16T19:16:02.3591375Z [36;1m  node -e 'const r=require("./generated-artifacts/encrypted-recovery.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'[0m
+2026-11-16T19:16:02.3592308Z [36;1mfi[0m
+2026-11-16T19:16:02.3612338Z shell: /usr/bin/bash -e {0}
+2026-11-16T19:16:02.3612616Z ##[endgroup]
+2026-11-16T19:16:02.3688383Z ##[group]Run if [ 'failure' != 'skipped' ]; then
+2026-11-16T19:16:02.3688802Z [36;1mif [ 'failure' != 'skipped' ]; then[0m
+2026-11-16T19:16:02.3689765Z [36;1m  node -e 'const r=require("./generated-artifacts/accounting-flow-cleanup.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'[0m
+2026-11-16T19:16:02.3690695Z [36;1mfi[0m
+2026-11-16T19:16:02.3709466Z shell: /usr/bin/bash -e {0}
+2026-11-16T19:16:02.3709737Z ##[endgroup]
+2026-11-16T19:16:02.4163525Z Post job cleanup.
+2026-11-16T19:16:02.5072536Z [command]/usr/bin/git version
+2026-11-16T19:16:02.5122878Z git version 2.56.1
+2026-11-16T19:16:02.5172699Z Temporarily overriding HOME='/home/runner/work/_temp/21dcc322-d765-4048-a64a-fc848315b940' before making global git config changes
+2026-11-16T19:16:02.5174342Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-16T19:16:02.5180616Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ledgerpoint/ledgerpoint
+2026-11-16T19:16:02.5223976Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-16T19:16:02.5264851Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-16T19:16:02.5618866Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-16T19:16:02.5680109Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-16T19:16:02.6334704Z Cleaning up orphan processes
+2026-11-16T19:16:02.6710386Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683, actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+
