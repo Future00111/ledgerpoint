@@ -1,0 +1,1431 @@
+diff --git a/artifacts/api-server/src/routes/accountingDocuments.ts b/artifacts/api-server/src/routes/accountingDocuments.ts
+index 95abb8c..444615a 100644
+--- a/artifacts/api-server/src/routes/accountingDocuments.ts
++++ b/artifacts/api-server/src/routes/accountingDocuments.ts
+@@ -14,7 +14,7 @@ import { chart, AccountSelectionError } from "../services/accountingDocuments/ac
+ import { saveAccount } from "../services/accountingDocuments/chart";
+ import { correctionContext, reviewCorrection, commitCorrection, correctionHistory, recoverCorrection } from "../services/accountingDocuments/corrections";
+ 
+-import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment, recoverPayment } from '../services/accountingDocuments/payments';
++import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment, recoverPayment, discoverPayments } from '../services/accountingDocuments/payments';
+ import { createClaims, listClaims, confirmReceipt, cancelClaim } from '../services/creditTracking/service';
+ import type { Queryable } from '../services/accountingDocuments/core';
+ import { appendConditionalReplacement } from '../services/accountingDocuments/conditionalReplacements';
+@@ -101,6 +101,7 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
+     res.json({data:await recoverBankImport(company,actor,String(req.params.requestId))});
+   });
+   router.put('/accounting-payments/configuration',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await savePaymentConfiguration(company,actor,req.body)});});
++  router.get('/accounting-payments/operations',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await discoverPayments(company,actor)});});
+   router.get('/accounting-payments/operations/:requestId',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await recoverPayment(company,actor,String(req.params.requestId))});});
+   router.get('/accounting-payments',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await listPayments(company,actor)});});
+   router.post('/accounting-payments/review',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await previewPayment(company,actor,req.body)});});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
+index f350502..f3eb639 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
+@@ -1799,7 +1799,26 @@ test('payment recovery survives actual subprocess restart after a committed resp
+         const r=await fetch(`http://127.0.0.1:${second.port}/companies/${company}/accounting-payments/operations/${id}`,{headers:user?{'x-test-actor':user}:{}});
+         return {status:r.status,body:await r.json() as {data:{status:string,id:string,journal_id?:string}}};
+       };
+-      const known=await lookup(f.company);
++      // The new session has no browser locator: discovery request contains no original ID or intent.
++      const discover=async(company:string,user:string|null=actor)=>{
++        const r=await fetch(`http://127.0.0.1:${second.port}/companies/${company}/accounting-payments/operations`,{headers:user?{'x-test-actor':user}:{}});
++        return {status:r.status,body:await r.json() as any};
++      };
++      const discovered=await discover(f.company);
++      assert.equal(discovered.status,200);assert.equal(discovered.body.data.has_more,false);
++      assert.equal(discovered.body.data.receipts.length,1);
++      const receipt=discovered.body.data.receipts[0];
++      assert.equal(receipt.id,command.id);assert.equal(receipt.journal_id,events[0].journal_id);
++      assert.equal(receipt.reference,command.reference);assert.equal(receipt.amount_minor,command.amount_minor);
++      assert.deepEqual(Object.keys(receipt).sort(),['amount_minor','effective_date','id','journal_id','kind','party_type','recorded_at','reference','status']);
++      assert.deepEqual((await discover(f.company,readOnly)).body.data.receipts,[]);
++      assert.deepEqual((await discover(foreign.company)).body.data.receipts,[]);
++      assert.equal((await discover(f.company,null)).status,401);
++      assert.equal((await discover(f.company,'synthetic-no-membership')).status,404);
++      await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
++      assert.equal((await discover(f.company)).status,404);
++      await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
++      const known=await lookup(f.company,actor,receipt.id);
+       assert.equal(known.status,200);assert.deepEqual(known.body.data,{status:'recorded',id:command.id,journal_id:events[0].journal_id});
+       assert.equal((await lookup(f.company,null)).status,401);
+       assert.equal((await lookup(f.company,'synthetic-no-membership')).status,404);
+@@ -1916,3 +1935,56 @@ test('isolated Chromium: unpaid and partial discounts, fully paid credit/refund
+   console.log('DISCOUNT_RULE_BROWSER_ACCEPTANCE',JSON.stringify({syntheticReadOnly:true,actualComponents:true,unpaidAndPartial:true,fullyPaidCreditOnly:true,excessRefused:true,financialPosting:false,realClerk:false}));
+  } finally {browser?.kill('SIGTERM');await new Promise<void>(r=>fixture.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
+ });
++
++test('isolated Chromium: mounted payment discovery recovers committed event with no browser locator and no repost',async()=>{
++ const fs=await import('node:fs'),os=await import('node:os'),cp=await import('node:child_process');
++ const {createRequire}=await import('node:module');
++ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
++ const command=await reviewPayment(f,paymentIntent(f,doc));
++ // Commit succeeds, but the browser never receives this response or its request locator.
++ const posted=await request(f.company,'/accounting-payments','POST',command);assert.equal(posted.status,200);
++ const before=(await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n;
++ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'payment-discovery-browser-'));
++ const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
++ const app=express();let browser:ReturnType<typeof cp.spawn>|undefined,posts=0;
++ // Isolated synthetic authenticated session; production Clerk is not bypassed or exercised.
++ app.use('/api/companies/:companyId',(req,_res,next)=>{if(req.method!=='GET')posts++;req.headers['x-test-actor']=actor;next();},createAccountingRouter(auth));
++ const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));
++ try {
++  fs.writeFileSync(entry,`import React,{useSyncExternalStore} from 'react';
++import {createRoot} from 'react-dom/client';
++import {MemoryRouter} from 'react-router-dom';
++import {PaymentToolbar,PaymentRecoveryPanel} from '@/features/paymentRecovery/PaymentControls.jsx';
++import {createPaymentRecovery,recoveryUnresolved} from '@/features/paymentRecovery/model.mjs';
++import {createAccountingClient} from '@/api/accountingDocuments.mjs';
++const recovery=createPaymentRecovery(${JSON.stringify(f.company)},createAccountingClient());
++const caps={post_payments:true,configure_payments:true};let starts=0;
++function App(){const state=useSyncExternalStore(recovery.subscribe,recovery.getSnapshot);return <MemoryRouter><PaymentToolbar capabilities={caps} busy={recoveryUnresolved(state)} ready={true} onStart={()=>starts++}/><PaymentRecoveryPanel state={state} capabilities={caps}/><output>{state?.phase}</output></MemoryRouter>}
++createRoot(document.getElementById('root')).render(<App/>);
++const wait=()=>new Promise(r=>setTimeout(r,80));const assert=(v,m)=>{if(!v)throw Error(m)};
++const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
++(async()=>{await wait();assert(recovery.getSnapshot()?.phase==='discovery','URL lost-reference mode not mounted');
++ assert(button('Record payment').disabled,'ordinary recording must be locked');
++ assert(!document.body.textContent.includes('Retry same payment'),'no replay without original review');
++ button('Check my recorded payments').click();
++ for(let i=0;i<50&&!recovery.getSnapshot()?.candidates;i++)await wait();
++ assert(recovery.getSnapshot()?.candidates?.length===1,'own server receipt missing');
++ assert(recovery.getSnapshot().phase==='discovery','must not automatically select');
++ assert(button('Record payment').disabled,'candidate list must remain locked');
++ button('This is my event — verify status').click();
++ for(let i=0;i<50&&recovery.getSnapshot()?.phase!=='recorded';i++)await wait();
++ assert(recovery.getSnapshot()?.phase==='recorded','selected receipt not verified');assert(starts===0,'unexpected ordinary write start');
++ document.body.dataset.acceptance='passed';document.body.dataset.recovered=recovery.getSnapshot().result.id;
++})().catch(e=>{document.body.dataset.acceptance='failed';document.body.append(document.createTextNode(e.message));});`);
++  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
++  app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
++  app.get('/payments',(_req,res)=>res.type('html').send('<!doctype html><html><body><div id="root"></div><script src="/bundle.js"></script></body></html>'));
++  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=10000','http://127.0.0.1:'+(listener.address() as any).port+'/payments?recover=lost'],{stdio:['ignore','pipe','pipe']});
++  let html='',stderr='';browser.stdout!.on('data',b=>html+=b);browser.stderr!.on('data',b=>stderr+=b);
++  const code=await new Promise<number|null>((resolve,reject)=>{const timer=setTimeout(()=>{browser?.kill('SIGTERM');reject(Error('Bounded browser timeout: '+stderr.slice(-2000)));},30000);browser!.once('error',e=>{clearTimeout(timer);reject(e)});browser!.once('exit',code=>{clearTimeout(timer);resolve(code)})});
++  assert.equal(code,0,stderr.slice(-4000));assert.match(html,/data-acceptance="passed"/,html.slice(-3000));
++  assert.ok(html.includes('data-recovered="'+command.id+'"'));assert.equal(posts,0);
++  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,before);
++  console.log('PAYMENT_DISCOVERY_BROWSER_ACCEPTANCE',JSON.stringify({actualComponents:true,nativeApi:true,syntheticSession:true,lostLocator:true,explicitSelection:true,reposts:posts,realClerk:false,pendingAdmission:false}));
++ } finally {browser?.kill('SIGTERM');await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
++});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/payments.ts b/artifacts/api-server/src/services/accountingDocuments/payments.ts
+index 6479806..33a0f0c 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/payments.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/payments.ts
+@@ -83,29 +83,48 @@ export async function listPayments(company:string,actor:string) {
+     });
+   },true);
+ }
+-/** Existing immutable payment events are the command/outcome authority. This
+- * read never retries a command; an absent row may still be an in-flight commit. */
++/** Existing immutable events and their canonical effects are the only receipt authority. */
++async function paymentRecoveryAccess(q:Queryable,company:string,actor:string) {
++  await scope(q,company,actor);
++  const membership=(await q.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2',[company,actor])).rows[0];
++  if(!isCompanyRole(membership?.role)) fail(403,'CAPABILITY_DENIED');
++}
++const paymentReceiptQuery=`SELECT e.id,e.source,e.kind,e.party_type,e.reference,e.amount_minor::text,
++  to_char(e.effective_date,'YYYY-MM-DD') effective_date,e.created_at recorded_at,
++  j.source_revision,j.id verified_journal_id,p.id verified_effect_id FROM accounting_payment_events e
++  LEFT JOIN canonical_journal_entries j ON j.id=e.journal_id AND j.company_id=e.company_id
++    AND j.source_id=e.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
++    AND j.currency_code='GBP' AND j.posting_kind='party_'||e.kind
++    AND j.economic_effect_id='payment-event:'||e.id::text
++  LEFT JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
++    AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
++    AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text
++    AND p.status='posted' AND p.source_revision=j.source_revision`;
++function verifiedPaymentReceipt(event:any) {
++  if(!event.verified_journal_id || !event.verified_effect_id || event.source_revision!==hash(event.source)) fail(503,'PAYMENT_HISTORY_INVALID');
++  return {status:'recorded',id:event.id,journal_id:event.verified_journal_id};
++}
++/** A bounded actor-owned discovery read, never evidence that a missing attempt failed. */
++export async function discoverPayments(company:string,actor:string) {
++  return transact(async q=>{
++    await paymentRecoveryAccess(q,company,actor);
++    const rows=(await q.query(paymentReceiptQuery+`
++      WHERE e.company_id=$1 AND e.actor_id=$2 ORDER BY e.created_at DESC,e.id DESC LIMIT 101`,[company,actor])).rows;
++    return {receipts:rows.slice(0,100).map(event=>({...verifiedPaymentReceipt(event),kind:event.kind,
++      party_type:event.party_type,reference:event.reference,amount_minor:event.amount_minor,
++      effective_date:event.effective_date,recorded_at:event.recorded_at})),has_more:rows.length>100};
++  },true);
++}
++/** A read never retries a command; an absent row may still be an in-flight commit. */
+ export async function recoverPayment(company:string,actor:string,requestId:string) {
+   const id=uuid(requestId);
+   return transact(async q=>{
+-    await scope(q,company,actor);
+-    const membership=(await q.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2',[company,actor])).rows[0];
+-    if(!isCompanyRole(membership?.role)) fail(403,'CAPABILITY_DENIED');
+-    const event=(await q.query(`SELECT e.id,e.source,j.source_revision,j.id verified_journal_id,p.id verified_effect_id FROM accounting_payment_events e
+-      LEFT JOIN canonical_journal_entries j ON j.id=e.journal_id AND j.company_id=e.company_id
+-        AND j.source_id=e.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
+-        AND j.currency_code='GBP' AND j.posting_kind='party_'||e.kind
+-        AND j.economic_effect_id='payment-event:'||e.id::text
+-      LEFT JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
+-        AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
+-        AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text
+-        AND p.status='posted' AND p.source_revision=j.source_revision
+-      WHERE e.company_id=$1 AND e.id=$2`,[company,id])).rows[0];
+-    if(!event) return {status:'unknown',id};
+-    if(!event.verified_journal_id || !event.verified_effect_id || event.source_revision!==hash(event.source)) fail(503,'PAYMENT_HISTORY_INVALID');
+-    return {status:'recorded',id,journal_id:event.verified_journal_id};
++    await paymentRecoveryAccess(q,company,actor);
++    const event=(await q.query(paymentReceiptQuery+' WHERE e.company_id=$1 AND e.id=$2',[company,id])).rows[0];
++    return event?verifiedPaymentReceipt(event):{status:'unknown',id};
+   },true);
+ }
++
+ function intent(body:unknown) {
+   const b=exactFields(body,['id','kind','party_type','party_id','payment_id','date','reference','amount_minor','allocations','review_token']);
+   if(!['payment','allocation','unallocation','refund','reversal'].includes(b.kind)) fail(422,'PAYMENT_ACTION_INVALID');
+diff --git a/artifacts/api-server/src/services/payroll/contracts/fixtures/plan1-notice-start-stop-2026-27.json b/artifacts/api-server/src/services/payroll/contracts/fixtures/plan1-notice-start-stop-2026-27.json
+new file mode 100644
+index 0000000..bdbc81d
+--- /dev/null
++++ b/artifacts/api-server/src/services/payroll/contracts/fixtures/plan1-notice-start-stop-2026-27.json
+@@ -0,0 +1,877 @@
++{
++  "version": 1,
++  "id": "plan1-notice-start-stop-2026-27",
++  "status": "reference_only_engine_not_implemented",
++  "caseId": "payroll-loan-plan_1-2026-27",
++  "parentTask": "P04-01",
++  "nextTask": "P04-03",
++  "checkedAt": "2026-11-16",
++  "scope": "Ordinary employed, single Plan1, regular weekly Class1 NI earnings; one SL1 and optionally one subsequent SL2. Notice identity and practical payroll availability are explicit synthetic facts, not authenticated or independently qualified.",
++  "sources": {
++    "start": {
++      "url": "https://www.gov.uk/hmrc-internal-manuals/collection-of-student-loans-manual/cslm17010",
++      "section": "Start Notices (Forms SL1 and PGL1)",
++      "observedManualUpdatedAt": "2026-10-29",
++      "checkedAt": "2026-11-16",
++      "excerpt": "first available pay day after the start date",
++      "interpretation": "SL1 applies after its stated date at the first available payday, and persists across years until stopped.",
++      "captureKind": "selected_excerpt_and_paraphrase_not_full_page_snapshot"
++    },
++    "stop": {
++      "url": "https://www.gov.uk/hmrc-internal-manuals/collection-of-student-loans-manual/cslm17015",
++      "section": "Stop Notice (Form SL2 and PGL2)",
++      "observedManualUpdatedAt": "2026-10-29",
++      "checkedAt": "2026-11-16",
++      "excerpt": "first available pay day after the Student and or postgraduate Loan deduction stop date",
++      "interpretation": "SL2 stops deductions on that first available payday. An employee request alone does not stop deductions.",
++      "captureKind": "selected_excerpt_and_paraphrase_not_full_page_snapshot"
++    },
++    "availability": {
++      "url": "https://www.gov.uk/guidance/special-rules-for-student-loans",
++      "section": "SL2 or PGL2 stop notice received",
++      "observedUpdatedAt": "2026-04-06",
++      "checkedAt": "2026-11-16",
++      "excerpt": "the first payday on which it’s practical to apply that notice",
++      "interpretation": "Practical application requires supplied payroll cutoff facts; receipt date does not determine it automatically.",
++      "captureKind": "selected_excerpt_and_paraphrase_not_full_page_snapshot"
++    },
++    "rounding": {
++      "url": "https://www.gov.uk/government/publications/payroll-technical-specifications-student-loans/collection-of-student-loans-from-6-april-2026",
++      "section": "3 Calculate loan deductions; 4 Parameter values",
++      "observedUpdatedAt": "2025-12-12",
++      "checkedAt": "2026-11-16",
++      "interpretation": "Plan 1 annual threshold £26,900 and recovery 9%; divide by periods per year and truncate threshold to pennies; truncate final recovery to whole pounds. The existing Job19 software oracle is reused, not manual SL3 tables.",
++      "existingPinnedText": "tools/payroll-specification/sources/student-loans-2026-27.md",
++      "existingPinnedTextSha256": "a9ae92e1586f836ce5aa77fbb295bd33bdb5d4d8c6cc6d07e2ec1816af586243",
++      "captureKind": "live_recheck_with_existing_pinned_text"
++    }
++  },
++  "amountEvidence": {
++    "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-student-loans-2026-27-v1.0.json",
++    "archiveSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
++    "sheet": "Plan_1",
++    "rows": [
++      11,
++      12
++    ],
++    "expected": [
++      {
++        "payMinor": "52841",
++        "deductionMinor": "0"
++      },
++      {
++        "payMinor": "52842",
++        "deductionMinor": "100"
++      }
++    ]
++  },
++  "roundingWitness": {
++    "kind": "hand_transcribed_software_specification_application_not_HMRC_dated_notice_example",
++    "annualThresholdMinor": "2690000",
++    "periodsPerYear": "52",
++    "thresholdMinor": "51730",
++    "lowerExcessMinor": "1111",
++    "lowerRecoveryNumerator": "9999",
++    "upperExcessMinor": "1112",
++    "upperRecoveryNumerator": "10008",
++    "wholePoundsDenominator": "10000"
++  },
++  "remaining": [
++    "Independent review of authored dated notice scenarios, source interpretation and real notice identity/availability evidence before qualification.",
++    "P45/starter/GNS/exceptional instructions, duplicate/conflicting/reissued notices, plan changes, missing notices and notice ingestion/audit remain unqualified.",
++    "Concurrent loans, protected earnings, corrections, irregular periods, other years and complete payroll cycle remain in full scope.",
++    "P04-01 exhaustive register and P04-03 acceptance remain pending; no production import, calculation authority or filing."
++  ],
++  "cases": [
++    {
++      "id": "no-start-instruction",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-04-17",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": false,
++        "deductionMinor": "0",
++        "reason": "NO_START_INSTRUCTION"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "start"
++        ],
++        "amountSource": "zero_because_notice_instruction_inactive",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "before-start-date",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-04-10",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-17",
++            "receivedDate": "2026-04-08",
++            "firstAvailablePayday": "2026-04-24",
++            "availabilityEvidence": "Synthetic payroll schedule: notice date17April and first practical payday24April; payment10April precedes start date."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": false,
++        "deductionMinor": "0",
++        "reason": "BEFORE_FIRST_AVAILABLE_START"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "start"
++        ],
++        "amountSource": "zero_because_notice_instruction_inactive",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "on-start-date",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-04-10",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-08",
++            "firstAvailablePayday": "2026-04-17",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": false,
++        "deductionMinor": "0",
++        "reason": "BEFORE_FIRST_AVAILABLE_START"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "start"
++        ],
++        "amountSource": "zero_because_notice_instruction_inactive",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "first-start-payday-upper-boundary",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-04-17",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-08",
++            "firstAvailablePayday": "2026-04-17",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": true,
++        "deductionMinor": "100",
++        "reason": "START_APPLIES"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "start"
++        ],
++        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "first-start-payday-lower-boundary",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-04-17",
++        "payMinor": "52841",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-08",
++            "firstAvailablePayday": "2026-04-17",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": true,
++        "deductionMinor": "0",
++        "reason": "START_APPLIES"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "start",
++          "rounding"
++        ],
++        "amountSource": "hmrc-loan-2026-27-plan_1-row-11",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "start-persists-next-week",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-04-24",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-08",
++            "firstAvailablePayday": "2026-04-17",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": true,
++        "deductionMinor": "100",
++        "reason": "START_APPLIES"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "start"
++        ],
++        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "employee-request-does-not-stop",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-04-17",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": true,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-08",
++            "firstAvailablePayday": "2026-04-17",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": true,
++        "deductionMinor": "100",
++        "reason": "START_APPLIES"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "stop"
++        ],
++        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "on-stop-date-still-active",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-05-01",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-08",
++            "firstAvailablePayday": "2026-04-17",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
++          },
++          {
++            "id": "synthetic-SL2",
++            "type": "SL2",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-05-01",
++            "receivedDate": "2026-04-29",
++            "firstAvailablePayday": "2026-05-08",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 1 May is 8 May; notice received before processing cutoff."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": true,
++        "deductionMinor": "100",
++        "reason": "START_APPLIES"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "stop"
++        ],
++        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "first-stop-payday",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-05-08",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-08",
++            "firstAvailablePayday": "2026-04-17",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
++          },
++          {
++            "id": "synthetic-SL2",
++            "type": "SL2",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-05-01",
++            "receivedDate": "2026-04-29",
++            "firstAvailablePayday": "2026-05-08",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 1 May is 8 May; notice received before processing cutoff."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": false,
++        "deductionMinor": "0",
++        "reason": "STOP_APPLIES"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "stop"
++        ],
++        "amountSource": "zero_because_notice_instruction_inactive",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "stop-persists-next-week",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-05-15",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-08",
++            "firstAvailablePayday": "2026-04-17",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
++          },
++          {
++            "id": "synthetic-SL2",
++            "type": "SL2",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-05-01",
++            "receivedDate": "2026-04-29",
++            "firstAvailablePayday": "2026-05-08",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 1 May is 8 May; notice received before processing cutoff."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": false,
++        "deductionMinor": "0",
++        "reason": "STOP_APPLIES"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "stop"
++        ],
++        "amountSource": "zero_because_notice_instruction_inactive",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "late-start-before-practical-payday",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-04-17",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-16",
++            "firstAvailablePayday": "2026-04-24",
++            "availabilityEvidence": "Synthetic 17 April payroll cutoff was 15 April; received 16 April. First practical payday is 24 April; no automatic receipt-date inference."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": false,
++        "deductionMinor": "0",
++        "reason": "BEFORE_FIRST_AVAILABLE_START"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "start",
++          "availability"
++        ],
++        "amountSource": "zero_because_notice_instruction_inactive",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "late-start-first-practical-payday",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-04-24",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-16",
++            "firstAvailablePayday": "2026-04-24",
++            "availabilityEvidence": "Synthetic 17 April payroll cutoff was 15 April; received 16 April. First practical payday is 24 April; no automatic receipt-date inference."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": true,
++        "deductionMinor": "100",
++        "reason": "START_APPLIES"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "start",
++          "availability"
++        ],
++        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "late-stop-before-practical-payday",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-05-08",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-08",
++            "firstAvailablePayday": "2026-04-17",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
++          },
++          {
++            "id": "synthetic-SL2",
++            "type": "SL2",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-05-01",
++            "receivedDate": "2026-05-07",
++            "firstAvailablePayday": "2026-05-15",
++            "availabilityEvidence": "Synthetic 8 May payroll cutoff was 6 May; received 7 May. First practical payday is 15 May; no automatic receipt-date inference."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": true,
++        "deductionMinor": "100",
++        "reason": "START_APPLIES"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "stop",
++          "availability"
++        ],
++        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "late-stop-first-practical-payday",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-05-15",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-08",
++            "firstAvailablePayday": "2026-04-17",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
++          },
++          {
++            "id": "synthetic-SL2",
++            "type": "SL2",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-05-01",
++            "receivedDate": "2026-05-07",
++            "firstAvailablePayday": "2026-05-15",
++            "availabilityEvidence": "Synthetic 8 May payroll cutoff was 6 May; received 7 May. First practical payday is 15 May; no automatic receipt-date inference."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": false,
++        "deductionMinor": "0",
++        "reason": "STOP_APPLIES"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "stop",
++          "availability"
++        ],
++        "amountSource": "zero_because_notice_instruction_inactive",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "prior-year-notice-current-year-pay",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-04-10",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2025-11-07",
++            "receivedDate": "2025-11-05",
++            "firstAvailablePayday": "2025-11-14",
++            "availabilityEvidence": "Synthetic prior-year notice first applied 14 November 2025; no later instruction has superseded it."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": true,
++        "deductionMinor": "100",
++        "reason": "START_APPLIES"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "start"
++        ],
++        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
++        "independentReview": null
++      }
++    },
++    {
++      "id": "before-stop-effective-date",
++      "input": {
++        "taxYear": "2026-27",
++        "plan": "plan_1",
++        "frequency": "weekly",
++        "paymentDate": "2026-04-24",
++        "payMinor": "52842",
++        "employmentId": "synthetic-employee-1",
++        "earningsBasis": "class1_ni_earnings",
++        "activeEmployment": true,
++        "employeeStopRequest": false,
++        "otherInstructions": [],
++        "notices": [
++          {
++            "id": "synthetic-SL1",
++            "type": "SL1",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-04-10",
++            "receivedDate": "2026-04-08",
++            "firstAvailablePayday": "2026-04-17",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
++          },
++          {
++            "id": "synthetic-SL2",
++            "type": "SL2",
++            "plan": "plan_1",
++            "employmentId": "synthetic-employee-1",
++            "effectiveDate": "2026-05-01",
++            "receivedDate": "2026-04-29",
++            "firstAvailablePayday": "2026-05-08",
++            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 1 May is 8 May; notice received before processing cutoff."
++          }
++        ],
++        "offPayroll": false,
++        "occupationalPensionOnly": false,
++        "deceased": false,
++        "protectedEarnings": false,
++        "concurrentLoan": false,
++        "correction": false
++      },
++      "expected": {
++        "instructionActive": true,
++        "deductionMinor": "100",
++        "reason": "START_APPLIES"
++      },
++      "provenance": {
++        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
++        "timingSourceIds": [
++          "stop"
++        ],
++        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
++        "independentReview": null
++      }
++    }
++  ]
++}
+diff --git a/artifacts/api-server/src/services/payroll/contracts/plan1NoticeFixtures.mjs b/artifacts/api-server/src/services/payroll/contracts/plan1NoticeFixtures.mjs
+new file mode 100644
+index 0000000..5eaf80f
+--- /dev/null
++++ b/artifacts/api-server/src/services/payroll/contracts/plan1NoticeFixtures.mjs
+@@ -0,0 +1,49 @@
++/** Offline notice-timing review only. Not a payroll eligibility or calculation service. */
++const plain = x => x !== null && typeof x === 'object' && !Array.isArray(x);
++const exact = (x, keys) => plain(x) && Object.keys(x).length === keys.length && keys.every(k => Object.hasOwn(x, k));
++const text = x => typeof x === 'string' && x.trim().length > 0;
++const date = x => typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x)
++  && Number.isFinite(Date.parse(x)) && new Date(x).toISOString().slice(0, 10) === x;
++const fail = code => { throw new Error(code); };
++const exclusions = ['offPayroll','occupationalPensionOnly','deceased','protectedEarnings','concurrentLoan','correction'];
++const inputFields = ['taxYear','plan','frequency','paymentDate','payMinor','employmentId','earningsBasis',
++  'activeEmployment','employeeStopRequest','otherInstructions','notices', ...exclusions];
++const noticeFields = ['id','type','plan','employmentId','effectiveDate','receivedDate','firstAvailablePayday','availabilityEvidence'];
++
++/** Applies sourced SL1/SL2 timing to explicitly supplied synthetic availability facts.
++ * Does not authenticate notices, infer the first practical payday, or qualify actual employees.
++ * No P45, starter, GNS, exceptional instructions, plan changes or conflicting notices in this slice.
++ */
++export function reviewPlan1NoticeTiming(input) {
++  if (!exact(input, inputFields)) fail('NOTICE_INPUT_FIELDS');
++  if (input.taxYear !== '2026-27' || input.plan !== 'plan_1' || input.frequency !== 'weekly') fail('NOTICE_UNSUPPORTED_CASE');
++  if (!date(input.paymentDate) || input.paymentDate < '2026-04-06' || input.paymentDate > '2027-04-05') fail('NOTICE_PAYMENT_DATE');
++  if (!text(input.employmentId) || typeof input.payMinor !== 'string' || !/^(0|[1-9][0-9]{0,15})$/.test(input.payMinor)) fail('NOTICE_INPUT_FIELDS');
++  if (input.earningsBasis !== 'class1_ni_earnings' || input.activeEmployment !== true
++    || typeof input.employeeStopRequest !== 'boolean' || exclusions.some(k => input[k] !== false)
++    || !Array.isArray(input.otherInstructions) || input.otherInstructions.length !== 0) fail('NOTICE_EXCLUDED_CONTEXT');
++  if (!Array.isArray(input.notices) || input.notices.length > 2) fail('NOTICE_CONFLICT');
++  const byType = new Map(), ids = new Set();
++  for (const n of input.notices) {
++    if (!exact(n, noticeFields) || !text(n.id) || !['SL1','SL2'].includes(n.type)
++      || n.plan !== input.plan || n.employmentId !== input.employmentId || !text(n.availabilityEvidence)
++      || !date(n.effectiveDate) || !date(n.receivedDate) || !date(n.firstAvailablePayday)) fail('NOTICE_INVALID_INSTRUCTION');
++    if (byType.has(n.type) || ids.has(n.id)) fail('NOTICE_CONFLICT');
++    // HMRC specifies AFTER the notice date, not on it. Receipt alone is not payday availability.
++    if (n.firstAvailablePayday <= n.effectiveDate || n.firstAvailablePayday < n.receivedDate) fail('NOTICE_AVAILABILITY');
++    ids.add(n.id); byType.set(n.type,n);
++  }
++  const start = byType.get('SL1'), stop = byType.get('SL2');
++  if (stop && (!start || stop.effectiveDate < start.effectiveDate
++    || stop.firstAvailablePayday <= start.firstAvailablePayday)) fail('NOTICE_CONFLICT');
++  let instructionActive = false, reason = 'NO_START_INSTRUCTION';
++  if (start) {
++    instructionActive = input.paymentDate >= start.firstAvailablePayday;
++    reason = instructionActive ? 'START_APPLIES' : 'BEFORE_FIRST_AVAILABLE_START';
++  }
++  if (stop && input.paymentDate >= stop.firstAvailablePayday) {
++    instructionActive = false; reason = 'STOP_APPLIES';
++  }
++  // An employee request is deliberately not an HMRC stop instruction.
++  return {qualified:false, notForPayroll:true, instructionActive, reason};
++}
+diff --git a/artifacts/api-server/src/services/payroll/contracts/plan1NoticeFixtures.test.mjs b/artifacts/api-server/src/services/payroll/contracts/plan1NoticeFixtures.test.mjs
+new file mode 100644
+index 0000000..40082ba
+--- /dev/null
++++ b/artifacts/api-server/src/services/payroll/contracts/plan1NoticeFixtures.test.mjs
+@@ -0,0 +1,94 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {readFileSync} from 'node:fs';
++import {reviewPlan1NoticeTiming} from './plan1NoticeFixtures.mjs';
++import {loadPinnedEvidence, specificationTrace} from '../../../../../../tools/payroll-specification/studentLoans.mjs';
++import {resolveQualifiedCase} from '../../tax/contracts/caseRegistry.mjs';
++const pack=JSON.parse(readFileSync(new URL('./fixtures/plan1-notice-start-stop-2026-27.json',import.meta.url)));
++const corpus=loadPinnedEvidence();
++const registry=JSON.parse(readFileSync(new URL('../../../../../../docs/development/tax-payroll-supported-cases.json',import.meta.url)));
++function observe(input) {
++  const timing=reviewPlan1NoticeTiming(input);
++  const calculation=timing.instructionActive ? specificationTrace({taxYear:input.taxYear,plan:input.plan,
++    frequency:input.frequency,payMinor:input.payMinor,paymentDate:input.paymentDate,earningsBasis:input.earningsBasis,
++    confirmedInstruction:true,protectedEarnings:false,concurrentLoan:false,correction:false,offPayroll:false}) : null;
++  return {timing,calculation,deductionMinor:calculation?.deductionMinor??'0'};
++}
++for(const scenario of pack.cases) test(`Plan1 dated notice: ${scenario.id}`,()=>{
++  const before=JSON.stringify(scenario),result=observe(scenario.input);
++  assert.equal(result.timing.qualified,false);assert.equal(result.timing.notForPayroll,true);
++  assert.equal(result.timing.instructionActive,scenario.expected.instructionActive);
++  assert.equal(result.timing.reason,scenario.expected.reason);
++  assert.equal(result.deductionMinor,scenario.expected.deductionMinor);
++  assert.equal(scenario.provenance.kind,'authored_dated_scenario_not_official_HMRC_notice_example');
++  assert.equal(scenario.provenance.independentReview,null);
++  assert.ok(scenario.provenance.timingSourceIds.every(id=>pack.sources[id]));
++  if(result.timing.instructionActive){
++    const official=corpus.cases.find(c=>c.id===scenario.provenance.amountSource);
++    assert.equal(official.input.payMinor,scenario.input.payMinor);
++    assert.equal(official.expected.deductionMinor,scenario.expected.deductionMinor);
++    assert.equal(official.input.plan,scenario.input.plan);
++    assert.equal(official.input.frequency,scenario.input.frequency);
++    assert.equal(official.input.taxYear,scenario.input.taxYear);
++  } else assert.equal(result.calculation,null);
++  assert.equal(JSON.stringify(scenario),before);
++});
++test('rounding witness is source-based and official penny-wide boundary remains intact',()=>{
++  const witness=pack.roundingWitness;
++  for(const [row,pay,amount,excess,numerator] of [[11,'52841','0','1111','9999'],[12,'52842','100','1112','10008']]){
++    const input={...pack.cases.find(c=>c.id==='first-start-payday-upper-boundary').input,payMinor:pay};
++    const trace=observe(input).calculation,official=corpus.cases.find(c=>c.id===`hmrc-loan-2026-27-plan_1-row-${row}`);
++    assert.equal(official.sourceSheet,'Plan_1');assert.equal(official.sourceRow,row);
++    assert.equal(official.expected.deductionMinor,amount);
++    assert.equal(trace.annualThresholdMinor,witness.annualThresholdMinor);
++    assert.equal(trace.periodsPerYear,witness.periodsPerYear);
++    assert.equal(trace.thresholdMinor,witness.thresholdMinor);
++    assert.equal(trace.excessMinor,excess);assert.equal(trace.recoveryNumerator,numerator);
++    assert.equal(trace.wholePoundsDenominator,witness.wholePoundsDenominator);
++  }
++});
++test('missing availability, mismatched employment, conflicting notices and ambiguous context reject',()=>{
++  const valid=pack.cases.find(c=>c.id==='first-start-payday-upper-boundary').input;
++  for(const mutate of [
++    i=>delete i.notices[0].firstAvailablePayday,
++    i=>i.notices[0].availabilityEvidence='',
++    i=>i.notices[0].firstAvailablePayday=i.notices[0].effectiveDate,
++    i=>i.notices[0].receivedDate='2026-04-18',
++    i=>i.notices[0].effectiveDate='2026-02-30',
++    i=>i.notices[0].employmentId='different-employee',
++    i=>i.notices[0].plan='plan_2',
++    i=>i.notices.push({...i.notices[0],id:'duplicate'}),
++    i=>i.notices[0].type='SL2',
++    i=>i.notices[0].type='P45',
++    i=>i.otherInstructions=['GNS'],
++    i=>i.otherInstructions=['starter'],
++    i=>i.offPayroll=true,i=>i.protectedEarnings=true,i=>i.concurrentLoan=true,
++    i=>i.deceased=true,i=>i.occupationalPensionOnly=true,i=>i.correction=true,
++    i=>i.activeEmployment=false,i=>i.taxYear='2027-28',i=>i.frequency='monthly',
++    i=>i.paymentDate='2026-04-05',i=>i.paymentDate='2027-04-06',
++    i=>delete i.employeeStopRequest,i=>i.unrecognisedInstruction=true,
++  ]){const input=structuredClone(valid);mutate(input);assert.throws(()=>observe(input),/^Error: NOTICE_/);}
++});
++test('same-day notice dates cannot silently apply start or stop early; receipt alone is insufficient',()=>{
++  const get=id=>pack.cases.find(c=>c.id===id);
++  assert.equal(observe(get('on-start-date').input).deductionMinor,'0');
++  assert.equal(observe(get('on-stop-date-still-active').input).deductionMinor,'100');
++  assert.equal(observe(get('late-start-before-practical-payday').input).deductionMinor,'0');
++  assert.equal(observe(get('late-stop-before-practical-payday').input).deductionMinor,'100');
++  assert.equal(observe(get('employee-request-does-not-stop').input).deductionMinor,'100');
++});
++test('register link preserves unqualified boundary and precise remaining parent work',()=>{
++  const row=registry.cases.find(c=>c.id===pack.caseId);
++  assert.equal(pack.cases.length,16);
++  assert.equal(new Set(pack.cases.map(c=>c.id)).size,16);
++  assert.equal(row.fixturePrerequisite.noticeTimingReference.caseCount,16);
++  assert.equal(row.fixturePrerequisite.noticeTimingReference.qualificationEvidence,null);
++  assert.equal(row.fixturePrerequisite.noticeTimingReference.status,'reference_only_engine_not_implemented');
++  assert.deepEqual(resolveQualifiedCase(registry,row.selector),{ok:false,code:'CASE_NOT_QUALIFIED',caseId:row.id});
++  assert.ok(pack.remaining.length>=4);
++  assert.equal(pack.amountEvidence.archiveSha256,corpus.source.sha256);
++  for(const source of Object.values(pack.sources)){
++    assert.ok(source.url.startsWith('https://www.gov.uk/'));
++    assert.equal(source.checkedAt,'2026-11-16');
++  }
++});
+diff --git a/artifacts/ledgerly/src/api/accountingDocuments.mjs b/artifacts/ledgerly/src/api/accountingDocuments.mjs
+index e453d1d..9b1865f 100644
+--- a/artifacts/ledgerly/src/api/accountingDocuments.mjs
++++ b/artifacts/ledgerly/src/api/accountingDocuments.mjs
+@@ -79,6 +79,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
+     reviewCompensation: (c, body, signal) => call(`${base(c)}/accounting-conditional-compensations/review`, { method: 'POST', body, signal }),
+     commitCompensation: (c, body, signal) => call(`${base(c)}/accounting-conditional-compensations`, { method: 'POST', body, signal }),
+     recoverCompensation: (c, id, signal) => call(`${base(c)}/accounting-conditional-compensations/operations/${encodeURIComponent(id)}`, { signal }),
++    discoverPayments: (c, signal) => call(`${base(c)}/accounting-payments/operations`, { signal }),
+     recoverPayment: (c, id, signal) => call(`${base(c)}/accounting-payments/operations/${encodeURIComponent(id)}`, { signal }),
+     payments: (c, signal) => call(`${base(c)}/accounting-payments`, { signal }),
+     savePaymentConfiguration: (c, body) => call(`${base(c)}/accounting-payments/configuration`, { method: 'PUT', body }),
+diff --git a/artifacts/ledgerly/src/api/accountingDocuments.test.mjs b/artifacts/ledgerly/src/api/accountingDocuments.test.mjs
+index c49ddea..9e4f3bf 100644
+--- a/artifacts/ledgerly/src/api/accountingDocuments.test.mjs
++++ b/artifacts/ledgerly/src/api/accountingDocuments.test.mjs
+@@ -109,3 +109,13 @@ test('explicit conditional original and current discount methods use scoped nati
+  await client.reviewConditionalDiscount('co','credit',{request_id:'request'},'r');await client.commitConditionalDiscount('co','credit',{request_id:'request'},'r');await client.recoverConditionalDiscount('co','request');
+  assert.deepEqual(calls.map(c=>c.url),['/api/companies/co/accounting-documents/doc/conditional-original','/api/companies/co/accounting-documents/doc/conditional-original/observe','/api/companies/co/accounting-documents/credit/conditional-discount/review','/api/companies/co/accounting-documents/credit/conditional-discount','/api/companies/co/accounting-conditional-discounts/operations/request']);
+ });
++
++
++test('lost payment locator discovery is an authenticated company scoped GET with no financial payload', async () => {
++  let seen;
++  const client=createAccountingClient(async (url,init)=>{seen={url,init};return {ok:true,json:async()=>({data:{receipts:[],has_more:false}})};});
++  const signal=new AbortController().signal;
++  assert.deepEqual(await client.discoverPayments('company/id',signal),{receipts:[],has_more:false});
++  assert.equal(seen.url,'/api/companies/company%2Fid/accounting-payments/operations');
++  assert.equal(seen.init.method,'GET');assert.equal(seen.init.body,undefined);assert.equal(seen.init.signal,signal);
++});
+diff --git a/artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx b/artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx
+index ef99ecf..785b7f6 100644
+--- a/artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx
++++ b/artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx
+@@ -7,6 +7,7 @@ export function PaymentToolbar({ capabilities, busy, ready, onSetup, onStart })
+   return <div className="flex flex-wrap items-start gap-2">
+     {canConfigurePayments(capabilities) && <Button className="min-h-11" variant="outline" disabled={busy} onClick={onSetup}>Payment setup</Button>}
+     {canPostPayments(capabilities) && <Button className="min-h-11" disabled={busy || !ready} onClick={onStart}>Record payment</Button>}
++    <Button className="min-h-11" variant="outline" disabled={busy} asChild={!busy}>{busy ? <span>Find a recorded payment</span> : <a href="/payments?recover=lost">Find a recorded payment</a>}</Button>
+   </div>;
+ }
+ 
+@@ -29,6 +30,20 @@ export function PaymentEventHistory({ events, labels }) {
+ 
+ export function PaymentRecoveryPanel({ state, capabilities, closing, onCheck, onRetry, onClose, onKeep, onAbandon }) {
+   if (!state || state.phase === 'recorded') return null;
++  if (state.phase === 'discovery') return <section role="status" aria-live="polite" className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
++    <h3 className="font-semibold">Find a recorded payment after losing its reference</h3>
++    <p>Check payments recorded by your signed-in account in this company. Select the exact event you recognise from its reference, date and amount. Nothing is selected automatically and this check never records a payment.</p>
++    <p>If your event is missing or you cannot distinguish it from another, its outcome remains unknown. It may still be processing. Do not create a replacement payment.</p>
++    <Button className="min-h-11" variant="outline" disabled={state.loading} onClick={() => state.discover()}>{state.loading ? 'Checking recorded payments…' : 'Check my recorded payments'}</Button>
++    {state.error && <p>History could not confirm the outcome{state.error.code ? ` (${state.error.code})` : ''}. Ordinary payment recording remains locked.</p>}
++    {state.candidates?.length === 0 && <p>No recorded events found for your account in this company. This does not prove that a missing payment failed.</p>}
++    {state.hasMore && <p>Only the latest 100 events are shown. Older or missing events remain unconfirmed here.</p>}
++    {state.candidates?.map(receipt => <div key={receipt.id} className="space-y-2 rounded border p-3">
++      <p>{receipt.effective_date} · {receipt.party_type} {receipt.kind} · <Money value={receipt.amount_minor} /></p>
++      <p className="break-words">{receipt.reference}</p><p className="break-all text-xs">Event: {receipt.id}</p>
++      <Button className="min-h-11" variant="outline" disabled={state.loading} onClick={() => state.selectReceipt(receipt.id)}>This is my event — verify status</Button>
++    </div>)}
++  </section>;
+   const busy = recoveryBusy(state);
+   return <section role="status" aria-live="polite" className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+     <h3 className="font-semibold">{state.phase === 'posting' ? 'Recording the reviewed payment…' : state.phase === 'checking' ? 'Checking payment history…' : 'Payment outcome not yet confirmed'}</h3>
+diff --git a/artifacts/ledgerly/src/features/paymentRecovery/model.mjs b/artifacts/ledgerly/src/features/paymentRecovery/model.mjs
+index 8b38293..8ba0ab3 100644
+--- a/artifacts/ledgerly/src/features/paymentRecovery/model.mjs
++++ b/artifacts/ledgerly/src/features/paymentRecovery/model.mjs
+@@ -16,9 +16,11 @@ const freeze = value => {
+ };
+ 
+ /** Exact intent retries stay in memory; restored locators permit status reads only. */
+-export function createPaymentRecovery(companyId, api, { recoveryRequestId = null, rememberRequest = () => {}, forgetRequest = () => {}, nextRecoveryRequest = () => null } = {}) {
++export function createPaymentRecovery(companyId, api, { recoveryRequestId = null, rememberRequest = () => {}, forgetRequest = () => {}, nextRecoveryRequest = () => null,
++  discoverLostReference = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('recover') === 'lost' } = {}) {
+   let state = recoveryRequestId ? Object.freeze({ companyId, body: Object.freeze({ id: recoveryRequestId }),
+-    phase: 'unknown', readOnly: true, check: 'not_checked', result: null, error: null }) : null, generation = 0;
++    phase: 'unknown', readOnly: true, check: 'not_checked', result: null, error: null }) : discoverLostReference ? Object.freeze({ companyId, phase: 'discovery', readOnly: true,
++      body: Object.freeze({ id: null }), candidates: null, hasMore: false, error: null, discover, selectReceipt }) : null, generation = 0;
+   const listeners = new Set();
+   const publish = next => {
+     state = next ? Object.freeze(next) : null;
+@@ -28,6 +30,43 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
+     uuid(result.journal_id) &&
+     ['posted', 'duplicate', 'recorded'].includes(result.status);
+ 
++  async function discover() {
++    if (state?.phase !== 'discovery' || state.loading) return false;
++    const attempt = state, current = ++generation;
++    publish({ ...attempt, loading: true, candidates: null, error: null });
++    try {
++      const result = await api.discoverPayments(companyId);
++      if (current !== generation) return false;
++      const rows = result?.receipts;
++      if (!Array.isArray(rows) || rows.length > 100 || typeof result.has_more !== 'boolean' ||
++          new Set(rows.map(row => row?.id)).size !== rows.length || rows.some(row =>
++            !recorded(row, row.id) || row.status !== 'recorded' || !['payment', 'allocation', 'unallocation', 'refund', 'reversal'].includes(row.kind) ||
++            !['customer', 'supplier'].includes(row.party_type) || typeof row.reference !== 'string' ||
++            typeof row.amount_minor !== 'string' || !/^\d{1,20}$/.test(row.amount_minor) || !/^\d{4}-\d{2}-\d{2}$/.test(row.effective_date))) {
++        throw new Error('Recorded payment history could not be verified.');
++      }
++      publish({ ...attempt, loading: false, candidates: freeze(structuredClone(rows)), hasMore: result.has_more, error: null });
++    } catch (error) {
++      if (current === generation) publish({ ...attempt, loading: false, candidates: null, error });
++    }
++    return true;
++  }
++  async function selectReceipt(id) {
++    if (state?.phase !== 'discovery' || state.loading || !state.candidates?.some(row => row.id === id)) return false;
++    const attempt = state, candidate = state.candidates.find(row => row.id === id), current = ++generation;
++    publish({ ...attempt, loading: true, error: null });
++    try {
++      // Selection is explicit, and current authorization and outcome are checked again.
++      const result = await api.recoverPayment(companyId, id);
++      if (current !== generation) return false;
++      if (!recorded(result, id) || result.journal_id !== candidate.journal_id) throw new Error('The selected payment outcome could not be verified.');
++      publish({ companyId, body: Object.freeze({ id }), readOnly: true, phase: 'recorded', result, error: null });
++    } catch (error) {
++      if (current === generation) publish({ ...attempt, loading: false, error });
++    }
++    return true;
++  }
++
+   async function send(attempt) {
+     const current = ++generation;
+     publish({ ...attempt, phase: 'posting', error: null });
+@@ -44,6 +83,7 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
+ 
+   return {
+     getSnapshot: () => state,
++    discover, selectReceipt,
+     subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
+     async record(review, capabilities) {
+       if (state || !canPostPayments(capabilities)) return false;
+diff --git a/artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs b/artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs
+index f9837de..d68f542 100644
+--- a/artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs
++++ b/artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs
+@@ -311,3 +311,55 @@ test('matching malformed request IDs cannot verify a receipt on POST or restored
+     }
+   }
+ });
++
++
++const discoveryReceipt = (id=requestId) => ({...outcome(),id,kind:'payment',party_type:'supplier',reference:'Original payment',
++  amount_minor:'12000',effective_date:'2026-11-16',recorded_at:'2026-11-16T12:00:00Z'});
++test('lost response and lost browser locator discover original server receipt, then fresh read, never repost',async()=>{
++  let posts=0,reads=0,lists=0;
++  const api={postPayment:async()=>{posts++;throw Error('Reply lost after commit');},
++    discoverPayments:async()=>{lists++;return {receipts:[discoveryReceipt(),discoveryReceipt(otherId)],has_more:false};},
++    recoverPayment:async(c,id)=>{reads++;return {...outcome(),id};}};
++  const original=createPaymentRecovery('company-a',api);await original.record(review(),owner);
++  original.reset(); // Browser reference and in-memory intent both gone.
++  const restored=createPaymentRecovery('company-a',api,{discoverLostReference:true});
++  assert.equal(recoveryUnresolved(restored.getSnapshot()),true);
++  assert.equal(await restored.record(review(),owner),false);
++  await restored.discover();
++  assert.equal(restored.getSnapshot().phase,'discovery');assert.equal(reads,0);
++  assert.equal(restored.getSnapshot().candidates.length,2); // Ambiguous until explicit recognition.
++  assert.equal(await restored.retry(owner),false);assert.equal(await restored.abandon(),false);
++  assert.equal(await restored.selectReceipt(journalId),false);
++  await restored.selectReceipt(requestId);
++  assert.equal(restored.getSnapshot().phase,'recorded');assert.equal(restored.getSnapshot().result.id,requestId);
++  assert.equal(restored.getSnapshot().readOnly,true);assert.equal(posts,1);assert.equal(reads,1);assert.equal(lists,1);
++});
++test('empty, truncated, malformed or failed discovery never unlocks payment recording',async()=>{
++  for(const response of [{receipts:[],has_more:false},{receipts:[discoveryReceipt()],has_more:true},
++    {receipts:[discoveryReceipt(),discoveryReceipt()],has_more:false},
++    {receipts:[{...discoveryReceipt(),journal_id:'invalid'}],has_more:false},new Error('revoked')]) {
++    const r=createPaymentRecovery('company-a',{discoverPayments:async()=>{if(response instanceof Error)throw response;return response;}},{discoverLostReference:true});
++    await r.discover();assert.equal(r.getSnapshot().phase,'discovery');
++    assert.equal(await r.record(review(),owner),false);assert.equal(await r.retry(owner),false);r.clearRecorded();
++    assert.equal(recoveryUnresolved(r.getSnapshot()),true);
++  }
++});
++test('selected discovery must recheck authorization and exact outcome; unknown or foreign receipt stays locked',async()=>{
++  for(const response of [unknown(),{...outcome(),id:otherId},{...outcome(),journal_id:otherId},new Error('membership revoked')]) {
++    const r=createPaymentRecovery('company-a',{discoverPayments:async()=>({receipts:[discoveryReceipt()],has_more:false}),
++      recoverPayment:async()=>{if(response instanceof Error)throw response;return response;}},{discoverLostReference:true});
++    await r.discover();await r.selectReceipt(requestId);
++    assert.equal(r.getSnapshot().phase,'discovery');assert.ok(r.getSnapshot().error);
++    assert.equal(await r.record(review(),owner),false);
++  }
++});
++test('company exit invalidates delayed discovery and delayed selected receipt',async()=>{
++  for(const phase of ['list','selection']) {
++    const late=deferred();
++    const r=createPaymentRecovery('company-a',{discoverPayments:()=>phase==='list'?late.promise:Promise.resolve({receipts:[discoveryReceipt()],has_more:false}),
++      recoverPayment:()=>late.promise},{discoverLostReference:true});
++    const pending=phase==='list'?r.discover():(await r.discover(),r.selectReceipt(requestId));
++    r.reset();late.resolve(phase==='list'?{receipts:[discoveryReceipt()],has_more:false}:outcome());await pending;
++    assert.equal(r.getSnapshot(),null);
++  }
++});
+diff --git a/docs/development/tax-payroll-supported-cases.json b/docs/development/tax-payroll-supported-cases.json
+index 9e6f8b8..4a47dbb 100644
+--- a/docs/development/tax-payroll-supported-cases.json
++++ b/docs/development/tax-payroll-supported-cases.json
+@@ -2273,7 +2273,13 @@
+           "2025-26",
+           "2027-28"
+         ],
+-        "nextExecutableStep": "P04-03: independently qualify notice_start_stop for this plan and 2026-27 using the pinned weekly boundary pair; obtain effective notice/payment-date fixtures and statutory rounding/rule version. Do not import another year."
++        "nextExecutableStep": "P04-03: independently review the linked16 authored dated SL1/SL2 scenarios against pinned HMRC timing/rounding sources and official Plan1 amounts, then qualify real notice authenticity and practical payroll availability evidence. Resolve conflicting/alternative instructions before any application adapter. Parent remains pending.",
++        "noticeTimingReference": {
++          "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/plan1-notice-start-stop-2026-27.json",
++          "caseCount": 16,
++          "status": "reference_only_engine_not_implemented",
++          "qualificationEvidence": null
++        }
+       }
+     },
+     {

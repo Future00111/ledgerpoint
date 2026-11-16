@@ -1,0 +1,16 @@
+{
+  "base": "7f7da84ed2753e12a84ced3368567d8623847f32",
+  "commit": "c6f501017a43ba275eea568eb52889699168dda8",
+  "tree": "1f4ff0a7b085faceaf17637bdf3c7381bcf14522",
+  "authors": {
+    "payment": "914203d4aab64f54897a53c8819a0f387cbd565a",
+    "payroll": "f201062a2ce9bc83360edae25777f69fba3a33db"
+  },
+  "reviewer": "independent_review",
+  "review": "Exactauthor approvals and combinedbyteequivalence checked; no selfapproval. Payment45modelAPI+6controls; payroll109independentcontract tests + liveHMRC sources verified. NativePG/browser/exactCI pending.",
+  "remaining": {
+    "payment": "Pending/precommit admission, older/absent receipts, otherfamilies remain.",
+    "payroll": "Reference-only notice fixture, notenginequalification; use syntheticverifiednotice inputs, no liveemployee data required for furtherdevelopment."
+  },
+  "patchSha256": "056d768408f6d19616a00e3b09b39fd7ba4a0cd2deda76c27add13bc01c1f862"
+}
