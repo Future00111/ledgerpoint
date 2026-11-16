@@ -1,0 +1,25 @@
+{
+  "source": "eb4bf2b229725c23c3324c22eca9feca00c2ff33",
+  "testedCheckout": "3f55398781649418d0b422766cb0c584f35b4adc",
+  "tree": "1f4ff0a7b085faceaf17637bdf3c7381bcf14522",
+  "comparisonFiles": 0,
+  "run": "https://github.com/Future00111/ledgerpoint/actions/runs/43903722452",
+  "job": 133426839772,
+  "result": "success",
+  "browser": [
+    "2026-11-16T16:07:34.9686970Z PAYMENT_DISCOVERY_BROWSER_ACCEPTANCE {\"actualComponents\":true,\"nativeApi\":true,\"syntheticSession\":true,\"lostLocator\":true,\"explicitSelection\":true,\"reposts\":0,\"realClerk\":false,\"pendingAdmission\":false}",
+    "2026-11-16T16:07:34.9731293Z ✔ isolated Chromium: mounted payment discovery recovers committed event with no browser locator and no repost (599.709254ms)"
+  ],
+  "gates": [
+    "full build/typecheck",
+    "combined source/scheduler regression",
+    "disposable PostgreSQL security/atomicity",
+    "mounted component/native API browser",
+    "plain and encrypted restore and cleanup"
+  ],
+  "limits": [
+    "synthetic session, not real Clerk",
+    "committed payment receipts only, not precommit pending admission",
+    "Plan1 dated timing scenarios are authored reference fixtures, not a qualified production payroll engine"
+  ]
+}
