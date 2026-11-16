@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 29,
+  "successorDraftRequired": false,
+  "authorityCommit": "c9e359667bcd93828b260cc4d1eb61fa38b50355",
+  "authorityRevision": 415,
+  "coordinatorRunId": "terminal-20261116-1812",
+  "observedAt": 1794856867208,
+  "candidateTree": "52e72e63b8933250f95bc015b39804d8cb38abb3",
+  "reviewedBy": "terminal_review",
+  "authorOrigin": {
+    "actor": "terminal-implementation",
+    "commit": "d0d7b9c548973ad05d2c220c031c95d032bf74db",
+    "branch": "codex/terminal-author"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "cd12ba80c41ee5e2eb6e0284b4e068b5eca6c655",
+    "sha": "b55ba10f73b3b1d279de7de67340ce753c9a5f5b",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}
