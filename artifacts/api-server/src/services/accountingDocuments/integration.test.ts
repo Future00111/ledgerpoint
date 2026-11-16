@@ -2200,6 +2200,9 @@ test('isolated Chromium: mounted terminal resolution explicitly cancels, confirm
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'payment-discovery-browser-'));
  const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
  const app=express();app.use(express.json({limit:'10mb',verify:verifyDraftBody}));app.use(draftParserErrors);let browser:ReturnType<typeof cp.spawn>|undefined,posts=0,reviews=0;
+ let stage='browser startup',report:(value:any)=>void=()=>{};
+ app.post('/acceptance',(req,res)=>{res.json({ok:true});report(req.body);});
+ app.post('/progress',(req,res)=>{stage=String(req.body?.stage??'unknown');res.json({ok:true});});
  // Isolated synthetic authenticated session; production Clerk is not bypassed or exercised.
  app.use('/api/companies/:companyId',(req,_res,next)=>{if(req.method!=='GET'){if(req.path.endsWith('/review'))reviews++;else posts++;}req.headers['x-test-actor']=actor;next();},createAccountingRouter(auth));
  app.get('/revoke',async(_req,res)=>{await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);res.json({ok:true});});
@@ -2216,6 +2219,10 @@ import {createPaymentLocator} from '@/features/paymentRecovery/locator.mjs';
 const api=createAccountingClient(),company=${JSON.stringify(f.company)};
 const locator=createPaymentLocator(company);
 const recovery=createPaymentRecovery(company,api,{recoveryRequestId:locator.read(),rememberRequest:id=>locator.remember(id),forgetRequest:locator.forget,nextRecoveryRequest:locator.read});
+let stage='mount';
+const report=(passed,error=null)=>fetch('/acceptance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({passed,error,stage,freshId})});
+const progress=async value=>{stage=value;await fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage})});};
+window.addEventListener('unhandledrejection',event=>{report(false,String(event.reason?.message??event.reason));});
 let caps={post_payments:true,configure_payments:true},starts=0,freshReview=null,freshId=null;
 async function start(){starts++;freshId=crypto.randomUUID();const {review_token,...input}=${JSON.stringify(command)};freshReview=await api.reviewPayment(company,{...input,id:freshId});}
 function App(){const state=useSyncExternalStore(recovery.subscribe,recovery.getSnapshot);return <MemoryRouter><PaymentToolbar capabilities={caps} busy={recoveryUnresolved(state)} ready={true} onStart={start}/><PaymentRecoveryPanel state={state} capabilities={caps} onCheck={()=>recovery.check()}/><output>{state?.phase}</output></MemoryRouter>}
@@ -2224,13 +2231,15 @@ const wait=()=>new Promise(r=>setTimeout(r,80));const assert=(v,m)=>{if(!v)throw
 const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
 (async()=>{await wait();
  if(sessionStorage.getItem('terminal-stage')==='fresh') {
+  await progress('fresh page after actual navigation');
   assert(recovery.getSnapshot()===null&&locator.read()===null,'terminal locator survived navigation');
   assert(location.search==='','old recovery URL survived navigation');assert(starts===0,'navigation automatically started a payment');
   assert(!button('Record payment').disabled,'fresh payment remains locked');button('Record payment').click();
   for(let i=0;i<50&&!freshReview;i++)await wait();
   assert(starts===1&&freshReview?.review_token&&freshId!==${JSON.stringify(command.id)},'fresh identity review missing');
-  sessionStorage.removeItem('terminal-stage');document.body.dataset.acceptance='passed';return;
+  sessionStorage.removeItem('terminal-stage');document.body.dataset.acceptance='passed';await progress('fresh UUID native review verified');await report(true);return;
  }
+ await progress('lost-reference discovery');
  assert(recovery.getSnapshot()?.phase==='discovery','URL lost-reference mode not mounted');
  assert(button('Record payment').disabled,'ordinary recording must be locked');
  assert(!document.body.textContent.includes('Retry same payment'),'no replay without original review');
@@ -2251,25 +2260,44 @@ const button=text=>[...document.querySelectorAll('button')].find(b=>b.textConten
  assert(button('Record payment').disabled,'cancel must not unlock');
  button('Select this attempt to close without effect').click();
  for(let i=0;i<50&&!recovery.getSnapshot()?.confirming;i++)await wait();
+ await progress('selected attempt and cancel verified');
  caps={post_payments:false};root.render(<App/>);await wait();assert(!button('Confirm close without effect'),'revoked local capability allows confirmation');
  caps={post_payments:true};root.render(<App/>);await wait();await fetch('/revoke');button('Confirm close without effect').click();
  for(let i=0;i<50&&!recovery.getSnapshot()?.error;i++)await wait();assert(recovery.getSnapshot()?.error,'revoked server session accepted');assert(button('Record payment').disabled,'denial unlocked');
+ await progress('client and server revocation verified');
  await fetch('/restore');button('Select this attempt to close without effect').click();
  for(let i=0;i<50&&!recovery.getSnapshot()?.confirming;i++)await wait();
  button('Confirm close without effect').click();
  for(let i=0;i<50&&recovery.getSnapshot()?.check!=='no_effect';i++)await wait();
  assert(recovery.getSnapshot()?.check==='no_effect','terminal not verified');assert(button('Record payment').disabled,'must await explicit continuation');
+ await progress('terminal verified; explicit navigation next');
  sessionStorage.setItem('terminal-stage','fresh');button('Continue to a fresh payment review').click();
-})().catch(e=>{document.body.dataset.acceptance='failed';document.body.append(document.createTextNode(e.message));});`);
+})().catch(e=>{document.body.dataset.acceptance='failed';document.body.append(document.createTextNode(e.message));return report(false,e.message);});`);
   createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
   app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
   app.get('/payments',(_req,res)=>res.type('html').send('<!doctype html><html><body><div id="root"></div><script src="/bundle.js"></script></body></html>'));
-  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=10000','http://127.0.0.1:'+(listener.address() as any).port+'/payments?recover=lost'],{stdio:['ignore','pipe','pipe']});
-  let html='',stderr='';browser.stdout!.on('data',b=>html+=b);browser.stderr!.on('data',b=>stderr+=b);
-  const code=await new Promise<number|null>((resolve,reject)=>{const timer=setTimeout(()=>{browser?.kill('SIGTERM');reject(Error('Bounded browser timeout: '+stderr.slice(-2000)));},30000);browser!.once('error',e=>{clearTimeout(timer);reject(e)});browser!.once('exit',code=>{clearTimeout(timer);resolve(code)})});
-  assert.equal(code,0,stderr.slice(-4000));assert.match(html,/data-acceptance="passed"/,html.slice(-3000));
+  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'http://127.0.0.1:'+(listener.address() as any).port+'/payments?recover=lost'],{stdio:['ignore','pipe','pipe']});
+  let stdout='',stderr='';browser.stdout!.on('data',b=>stdout=(stdout+b).slice(-4000));browser.stderr!.on('data',b=>stderr=(stderr+b).slice(-4000));
+  // Completion is reported by the real reloaded page, not inferred from Chrome's
+  // dump-dom/virtual-time lifecycle. A missing report or early browser exit fails.
+  const acceptance=await new Promise<any>((resolve,reject)=>{
+    const finish=(error:Error|null,value?:any)=>{clearTimeout(timer);browser!.off('error',failed);browser!.off('exit',exited);report=()=>{};error?reject(error):resolve(value);};
+    const failed=(error:Error)=>finish(error);
+    const exited=(code:number|null)=>finish(Error('Browser exited before acceptance at '+stage+' ('+code+'): '+stderr));
+    const timer=setTimeout(()=>finish(Error('Bounded browser timeout at '+stage+': '+stderr+' '+stdout)),30000);
+    report=value=>finish(null,value);browser!.once('error',failed);browser!.once('exit',exited);
+  });
+  assert.equal(acceptance?.passed,true,JSON.stringify(acceptance));
+  assert.equal(acceptance.stage,'fresh UUID native review verified');
+  assert.match(acceptance.freshId,/^[0-9a-f]{8}-[0-9a-f-]{27}$/i);assert.notEqual(acceptance.freshId,command.id);
   assert.equal(posts,2);assert.equal(reviews,1); // One denied and one confirmed terminal command; no payment repost.
   assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,before);
   console.log('PAYMENT_TERMINAL_BROWSER_ACCEPTANCE',JSON.stringify({actualComponents:true,nativeApi:true,syntheticSession:true,lostLocator:true,explicitSelection:true,terminalPosts:posts,realClerk:false,pendingAdmission:true}));
- } finally {browser?.kill('SIGTERM');await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
+ } finally {
+  if(browser?.pid && browser.exitCode===null && browser.signalCode===null) await new Promise<void>(resolve=>{
+    const timer=setTimeout(()=>browser?.kill('SIGKILL'),5000);
+    browser!.once('exit',()=>{clearTimeout(timer);resolve();});browser!.kill('SIGTERM');
+  });
+  listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});
+ }
 });
