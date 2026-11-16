@@ -1,0 +1,169 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown project config "auto-install-peers". This will stop working in the next major version of npm.
+npm warn Unknown project config "strict-peer-dependencies". This will stop working in the next major version of npm.
+
+> workspace@0.0.0 build /workspace/scratch/b4d6a4379808/reversal-run
+> pnpm run typecheck && pnpm -r --if-present run build
+
+
+> workspace@0.0.0 typecheck /workspace/scratch/b4d6a4379808/reversal-run
+> pnpm run typecheck:libs && pnpm -r --filter "./artifacts/**" --filter "./scripts" --if-present run typecheck
+
+
+> workspace@0.0.0 typecheck:libs /workspace/scratch/b4d6a4379808/reversal-run
+> tsc --build
+
+Scope: 4 of 9 workspace projects
+artifacts/api-server typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/ledgerly typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/mockup-sandbox typecheck$ tsc -p tsconfig.json --noEmit
+scripts typecheck$ tsc -p tsconfig.json --noEmit
+scripts typecheck: Done
+artifacts/mockup-sandbox typecheck: Done
+artifacts/ledgerly typecheck: Done
+artifacts/api-server typecheck: Done
+Scope: 8 of 9 workspace projects
+artifacts/mockup-sandbox build$ vite build
+artifacts/mockup-sandbox build: vite v7.3.6 building client environment for production...
+artifacts/mockup-sandbox build: transforming...
+artifacts/mockup-sandbox build: ✓ 30 modules transformed.
+artifacts/mockup-sandbox build: rendering chunks...
+artifacts/mockup-sandbox build: computing gzip size...
+artifacts/mockup-sandbox build: dist/index.html                   4.42 kB │ gzip:  1.23 kB
+artifacts/mockup-sandbox build: dist/assets/index-C4GxwS3y.css   88.37 kB │ gzip: 14.82 kB
+artifacts/mockup-sandbox build: dist/assets/index-CqOx4XgY.js   187.72 kB │ gzip: 59.51 kB
+artifacts/mockup-sandbox build: ✓ built in 1.36s
+artifacts/mockup-sandbox build: Done
+artifacts/api-server build$ node ./build.mjs
+artifacts/ledgerly build$ vite build --config vite.config.ts
+artifacts/api-server build:   dist/index.mjs                       3.7mb ⚠️
+artifacts/api-server build:   dist/pino-worker.mjs               154.4kb
+artifacts/api-server build:   dist/pino-file.mjs                 142.9kb
+artifacts/api-server build:   dist/pino-pretty.mjs               115.6kb
+artifacts/api-server build:   dist/thread-stream-worker.mjs        7.5kb
+artifacts/api-server build:   dist/index.mjs.map                   8.7mb
+artifacts/api-server build:   dist/pino-worker.mjs.map           257.4kb
+artifacts/api-server build:   dist/pino-file.mjs.map             229.5kb
+artifacts/api-server build:   dist/pino-pretty.mjs.map           204.2kb
+artifacts/api-server build:   dist/thread-stream-worker.mjs.map   12.1kb
+artifacts/api-server build: ⚡ Done in 390ms
+artifacts/api-server build: Done
+artifacts/ledgerly build: vite v7.3.6 building client environment for production...
+artifacts/ledgerly build: transforming...
+artifacts/ledgerly build: ✓ 2812 modules transformed.
+artifacts/ledgerly build: rendering chunks...
+artifacts/ledgerly build: computing gzip size...
+artifacts/ledgerly build: dist/public/index.html                                        0.76 kB │ gzip:   0.43 kB
+artifacts/ledgerly build: dist/public/assets/index-y5FQzN2V.css                       141.30 kB │ gzip:  23.10 kB
+artifacts/ledgerly build: dist/public/assets/clock-3-BhpiTses.js                        0.17 kB │ gzip:   0.17 kB
+artifacts/ledgerly build: dist/public/assets/arrow-right-D79NIUn2.js                    0.17 kB │ gzip:   0.16 kB
+artifacts/ledgerly build: dist/public/assets/arrow-left-DVbZBEuf.js                     0.17 kB │ gzip:   0.16 kB
+artifacts/ledgerly build: dist/public/assets/arrow-down-pQiyQOLM.js                     0.17 kB │ gzip:   0.16 kB
+artifacts/ledgerly build: dist/public/assets/arrow-up-right-DCfjemEV.js                 0.17 kB │ gzip:   0.16 kB
+artifacts/ledgerly build: dist/public/assets/arrow-down-left-CvybYwTu.js                0.17 kB │ gzip:   0.16 kB
+artifacts/ledgerly build: dist/public/assets/chevrons-up-down-C__6YMpa.js               0.18 kB │ gzip:   0.16 kB
+artifacts/ledgerly build: dist/public/assets/user-round-BN5fQ6MG.js                     0.18 kB │ gzip:   0.17 kB
+artifacts/ledgerly build: dist/public/assets/user-Bv5P61Kj.js                           0.19 kB │ gzip:   0.18 kB
+artifacts/ledgerly build: dist/public/assets/ellipsis-DXgcFXNr.js                       0.22 kB │ gzip:   0.16 kB
+artifacts/ledgerly build: dist/public/assets/upload-DaUu1Ucw.js                         0.23 kB │ gzip:   0.19 kB
+artifacts/ledgerly build: dist/public/assets/copy-BQgAFDPQ.js                           0.23 kB │ gzip:   0.21 kB
+artifacts/ledgerly build: dist/public/assets/download-OzJsvibH.js                       0.23 kB │ gzip:   0.19 kB
+artifacts/ledgerly build: dist/public/assets/message-square-ykUKcVrV.js                 0.23 kB │ gzip:   0.20 kB
+artifacts/ledgerly build: dist/public/assets/link-2-CwBf4zqH.js                         0.24 kB │ gzip:   0.20 kB
+artifacts/ledgerly build: dist/public/assets/circle-alert-DYojllLe.js                   0.25 kB │ gzip:   0.19 kB
+artifacts/ledgerly build: dist/public/assets/eye-BM7bLFBu.js                            0.25 kB │ gzip:   0.20 kB
+artifacts/ledgerly build: dist/public/assets/archive-D17UX0lO.js                        0.25 kB │ gzip:   0.21 kB
+artifacts/ledgerly build: dist/public/assets/map-pin-BGnqWs7_.js                        0.26 kB │ gzip:   0.22 kB
+artifacts/ledgerly build: dist/public/assets/pound-sterling-CIFScCPT.js                 0.26 kB │ gzip:   0.19 kB
+artifacts/ledgerly build: dist/public/assets/calendar-TlAr2FJJ.js                       0.26 kB │ gzip:   0.20 kB
+artifacts/ledgerly build: dist/public/assets/file-check-2-CfZ7j16r.js                   0.26 kB │ gzip:   0.20 kB
+artifacts/ledgerly build: dist/public/assets/pencil-DaYmbCmI.js                         0.28 kB │ gzip:   0.23 kB
+artifacts/ledgerly build: dist/public/assets/wallet-BSM5W_gN.js                         0.29 kB │ gzip:   0.21 kB
+artifacts/ledgerly build: dist/public/assets/clipboard-check-COKmRsFl.js                0.30 kB │ gzip:   0.23 kB
+artifacts/ledgerly build: dist/public/assets/shield-check-Dg2YRGYM.js                   0.32 kB │ gzip:   0.25 kB
+artifacts/ledgerly build: dist/public/assets/phone-CTHhCvFb.js                          0.32 kB │ gzip:   0.23 kB
+artifacts/ledgerly build: dist/public/assets/save-CRn44IH_.js                           0.33 kB │ gzip:   0.23 kB
+artifacts/ledgerly build: dist/public/assets/wallet-cards-CjwScsGl.js                   0.33 kB │ gzip:   0.25 kB
+artifacts/ledgerly build: dist/public/assets/integrations-DzVhH4nL.js                   0.43 kB │ gzip:   0.29 kB
+artifacts/ledgerly build: dist/public/assets/textarea-DREpNh27.js                       0.46 kB │ gzip:   0.32 kB
+artifacts/ledgerly build: dist/public/assets/input-Bd4y-iPs.js                          0.56 kB │ gzip:   0.36 kB
+artifacts/ledgerly build: dist/public/assets/label-Baw9-NSJ.js                          0.60 kB │ gzip:   0.41 kB
+artifacts/ledgerly build: dist/public/assets/PageHeader-CNoaVmrU.js                     0.60 kB │ gzip:   0.31 kB
+artifacts/ledgerly build: dist/public/assets/EmptyState-DlWcR79Y.js                     0.65 kB │ gzip:   0.37 kB
+artifacts/ledgerly build: dist/public/assets/badge-BE8fFCXQ.js                          0.72 kB │ gzip:   0.38 kB
+artifacts/ledgerly build: dist/public/assets/card-aiI9xZId.js                           0.99 kB │ gzip:   0.36 kB
+artifacts/ledgerly build: dist/public/assets/reportTrace-DlxGfhWV.js                    1.73 kB │ gzip:   0.92 kB
+artifacts/ledgerly build: dist/public/assets/AIAccountantTasks-FzFBvFUt.js              1.97 kB │ gzip:   0.96 kB
+artifacts/ledgerly build: dist/public/assets/dialog-DR9xWht3.js                         2.12 kB │ gzip:   0.83 kB
+artifacts/ledgerly build: dist/public/assets/accountingEditor-DkU7I1d_.js               2.19 kB │ gzip:   1.05 kB
+artifacts/ledgerly build: dist/public/assets/model-DheuOSAe.js                          2.19 kB │ gzip:   1.00 kB
+artifacts/ledgerly build: dist/public/assets/AIAccountantRecommendations-C1Tgvp1C.js    2.24 kB │ gzip:   1.10 kB
+artifacts/ledgerly build: dist/public/assets/DevelopmentTools-Bd1uLKA0.js               2.60 kB │ gzip:   1.03 kB
+artifacts/ledgerly build: dist/public/assets/model-Bkn_OdJr.js                          2.65 kB │ gzip:   1.34 kB
+artifacts/ledgerly build: dist/public/assets/ledgerCsv-CiFCo7Io.js                      2.66 kB │ gzip:   1.18 kB
+artifacts/ledgerly build: dist/public/assets/AIAccountantInbox-ClLCs77P.js              2.78 kB │ gzip:   1.22 kB
+artifacts/ledgerly build: dist/public/assets/AIAccountantReviews-034k8icu.js            3.14 kB │ gzip:   1.40 kB
+artifacts/ledgerly build: dist/public/assets/tabs-Cy_WEc2m.js                           3.34 kB │ gzip:   1.43 kB
+artifacts/ledgerly build: dist/public/assets/AccountingUI-CTESBRQZ.js                   3.77 kB │ gzip:   1.49 kB
+artifacts/ledgerly build: dist/public/assets/RecommendationCard-DCLjfP0O.js             3.88 kB │ gzip:   1.31 kB
+artifacts/ledgerly build: dist/public/assets/model-Cap1xtSd.js                          4.14 kB │ gzip:   1.97 kB
+artifacts/ledgerly build: dist/public/assets/switch-CmeZpBHO.js                         4.16 kB │ gzip:   1.80 kB
+artifacts/ledgerly build: dist/public/assets/AccountingJournal-CE2HPnVq.js              4.57 kB │ gzip:   1.76 kB
+artifacts/ledgerly build: dist/public/assets/api-DUrgJV1j.js                            5.00 kB │ gzip:   1.28 kB
+artifacts/ledgerly build: dist/public/assets/AccountantPortal-DHa-rIj1.js               5.05 kB │ gzip:   1.75 kB
+artifacts/ledgerly build: dist/public/assets/EmailRules-DM9bmITB.js                     5.48 kB │ gzip:   1.83 kB
+artifacts/ledgerly build: dist/public/assets/ReminderDraftDialog-B7RWDNZV.js            5.60 kB │ gzip:   2.22 kB
+artifacts/ledgerly build: dist/public/assets/InvoiceDocument-Bviyf0ai.js                5.90 kB │ gzip:   1.80 kB
+artifacts/ledgerly build: dist/public/assets/ReportLibrary-BbS9M790.js                  6.32 kB │ gzip:   2.15 kB
+artifacts/ledgerly build: dist/public/assets/PartyLedgerDetails-BXCIcJ28.js             6.44 kB │ gzip:   2.42 kB
+artifacts/ledgerly build: dist/public/assets/AccountingSetup-CD18WCqa.js                7.30 kB │ gzip:   2.81 kB
+artifacts/ledgerly build: dist/public/assets/AwaitingCreditsPage-CSkXrVq3.js            7.59 kB │ gzip:   2.88 kB
+artifacts/ledgerly build: dist/public/assets/model-B8lpg0y7.js                          8.17 kB │ gzip:   3.39 kB
+artifacts/ledgerly build: dist/public/assets/useLedgerSnapshot-ntZWRUxk.js              9.28 kB │ gzip:   3.45 kB
+artifacts/ledgerly build: dist/public/assets/Collections-Bh5qg9lq.js                    9.41 kB │ gzip:   2.98 kB
+artifacts/ledgerly build: dist/public/assets/Statements-C7Q92Vgp.js                     9.44 kB │ gzip:   3.21 kB
+artifacts/ledgerly build: dist/public/assets/Settings-CrZTd3Qq.js                       9.66 kB │ gzip:   3.18 kB
+artifacts/ledgerly build: dist/public/assets/GeneralLedger-Ch5pvx6m.js                 10.78 kB │ gzip:   3.58 kB
+artifacts/ledgerly build: dist/public/assets/Insights-DA72LMXd.js                      12.06 kB │ gzip:   4.05 kB
+artifacts/ledgerly build: dist/public/assets/Invoices-BPpNfFqO.js                      12.12 kB │ gzip:   3.78 kB
+artifacts/ledgerly build: dist/public/assets/AuditHistory-Bqom1Xmc.js                  12.66 kB │ gzip:   5.06 kB
+artifacts/ledgerly build: dist/public/assets/Companies-BMWSHEHS.js                     12.90 kB │ gzip:   4.25 kB
+artifacts/ledgerly build: dist/public/assets/SetupWizard-CsGVjIHC.js                   13.29 kB │ gzip:   4.53 kB
+artifacts/ledgerly build: dist/public/assets/SmartSuggestions-BZpD5s26.js              13.62 kB │ gzip:   4.02 kB
+artifacts/ledgerly build: dist/public/assets/ChartOfAccounts-RK5lTsFQ.js               14.46 kB │ gzip:   5.03 kB
+artifacts/ledgerly build: dist/public/assets/InvoiceForm-CgO8SDTY.js                   15.57 kB │ gzip:   5.21 kB
+artifacts/ledgerly build: dist/public/assets/EmailCapture-ZZoUoGZD.js                  15.80 kB │ gzip:   4.21 kB
+artifacts/ledgerly build: dist/public/assets/AccountingDocumentList-DnAfI7do.js        16.45 kB │ gzip:   5.39 kB
+artifacts/ledgerly build: dist/public/assets/ClaimList-07KuKxsn.js                     17.08 kB │ gzip:   5.94 kB
+artifacts/ledgerly build: dist/public/assets/Suppliers-BKRY1czW.js                     17.42 kB │ gzip:   5.16 kB
+artifacts/ledgerly build: dist/public/assets/Customers-Bj9jT0gH.js                     18.72 kB │ gzip:   5.82 kB
+artifacts/ledgerly build: dist/public/assets/Reports-Dfs17eKu.js                       19.53 kB │ gzip:   5.60 kB
+artifacts/ledgerly build: dist/public/assets/SourceFiles-BINqxV9u.js                   20.73 kB │ gzip:   7.49 kB
+artifacts/ledgerly build: dist/public/assets/AIAccountant-UfniPtxR.js                  21.62 kB │ gzip:   5.48 kB
+artifacts/ledgerly build: dist/public/assets/select-BrVqaumm.js                        22.23 kB │ gzip:   7.72 kB
+artifacts/ledgerly build: dist/public/assets/VATReturnDetail-0uSqUqQf.js               23.88 kB │ gzip:   6.10 kB
+artifacts/ledgerly build: dist/public/assets/BankAccounts-CbCqyiAb.js                  24.31 kB │ gzip:   7.41 kB
+artifacts/ledgerly build: dist/public/assets/Automation-UoP2GiLk.js                    25.19 kB │ gzip:   7.27 kB
+artifacts/ledgerly build: dist/public/assets/Bills-DLhA1F7p.js                         27.19 kB │ gzip:   6.31 kB
+artifacts/ledgerly build: dist/public/assets/ReconciliationWorkflow-Bqi-6X6T.js        27.70 kB │ gzip:   8.80 kB
+artifacts/ledgerly build: dist/public/assets/purify.es-Cz4mVeUR.js                     28.98 kB │ gzip:  10.87 kB
+artifacts/ledgerly build: dist/public/assets/AccountingReports-CUYUlj_w.js             34.04 kB │ gzip:   8.97 kB
+artifacts/ledgerly build: dist/public/assets/Documents-C6d6VZyU.js                     41.99 kB │ gzip:  11.13 kB
+artifacts/ledgerly build: dist/public/assets/Payments-BkacY8LE.js                      43.42 kB │ gzip:  13.03 kB
+artifacts/ledgerly build: dist/public/assets/VATReturns-CsP-9k03.js                    43.56 kB │ gzip:  12.74 kB
+artifacts/ledgerly build: dist/public/assets/InvoiceDetail-BXn2jq7I.js                 48.94 kB │ gzip:  14.00 kB
+artifacts/ledgerly build: dist/public/assets/moment-B-YVwB4U.js                        60.64 kB │ gzip:  19.62 kB
+artifacts/ledgerly build: dist/public/assets/BankTransactions-DJEYgCsc.js              66.73 kB │ gzip:  17.75 kB
+artifacts/ledgerly build: dist/public/assets/Dashboard-CzMyjqiC.js                     77.89 kB │ gzip:  22.50 kB
+artifacts/ledgerly build: dist/public/assets/AccountingDocumentForm-DcMDJr5N.js       125.95 kB │ gzip:  33.73 kB
+artifacts/ledgerly build: dist/public/assets/index.es-DDrh-lvh.js                     158.95 kB │ gzip:  53.06 kB
+artifacts/ledgerly build: dist/public/assets/Reconciliation-ChT2fux_.js               179.78 kB │ gzip:  54.84 kB
+artifacts/ledgerly build: dist/public/assets/html2canvas.esm-DXEQVQnt.js              201.04 kB │ gzip:  47.43 kB
+artifacts/ledgerly build: dist/public/assets/jspdf.es.min-LZxKOP1R.js                 385.80 kB │ gzip: 126.18 kB
+artifacts/ledgerly build: dist/public/assets/index-DgF_2hqs.js                        597.49 kB │ gzip: 184.48 kB
+artifacts/ledgerly build: ✓ built in 9.54s
+artifacts/ledgerly build: (!) Some chunks are larger than 500 kB after minification. Consider:
+artifacts/ledgerly build: - Using dynamic import() to code-split the application
+artifacts/ledgerly build: - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+artifacts/ledgerly build: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+artifacts/ledgerly build: Done

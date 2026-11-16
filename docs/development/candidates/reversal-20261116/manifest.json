@@ -1,0 +1,11 @@
+{
+  "author": "074b5582fa1190dc351284165c8060b3239cf60f",
+  "tree": "4c7b23bd380193826dded0fe2e7a733a0c068f7d",
+  "basePublished": "bd589654b2c5e08f81ae34f7bb94019fa3ff5388",
+  "authorActor": "reversal-implementer",
+  "patchBytes": 45512,
+  "patchSha256": "dde31f78c536369098412be97f876f2dd6d11d2f556ed79d451ada02238bc25d",
+  "rawCommitBytes": 277,
+  "rawCommitSha256": "2e0f31b6d74c093637f005c7a126b084dcd819e6c6431a98bc5af11e253e597e",
+  "parentAccepted": false
+}
