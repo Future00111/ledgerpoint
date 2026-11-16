@@ -1,0 +1,15 @@
+{
+  "author": "d0d7b9c548973ad05d2c220c031c95d032bf74db",
+  "authorBase": "c04c00c11da07e67368b9cc7a8a03e05cea2d1c2",
+  "publishedBase": "cd12ba80c41ee5e2eb6e0284b4e068b5eca6c655",
+  "tree": "52e72e63b8933250f95bc015b39804d8cb38abb3",
+  "patchSha256": "af3318ea791019dded6aff2e09870ec9e701a1fde71305aea67a07c2796f11a4",
+  "independentReviewer": "terminal_review",
+  "review": "Exact d0d7b9c5 approved; all realnavigation/newreview/authorization/financial assertions preserved;30s failure bound unchanged",
+  "tests": [
+    "Native integration bundle passed",
+    "Product unchanged; prior1061source/fullbuild on c04 applies unchanged product; finalCI still required"
+  ],
+  "remaining": "Exact published browser/PG/restore gates pending",
+  "observedAt": "2026-11-16T19:20:11.792Z"
+}
