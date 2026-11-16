@@ -2301,3 +2301,72 @@ const button=text=>[...document.querySelectorAll('button')].find(b=>b.textConten
   listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});
  }
 });
+
+for(const kind of ['sales_invoice','purchase_bill']) test(`${kind}: rejected correction retry cannot forget a delayed original commit`,async()=>{
+ const {pathToFileURL}=await import('node:url');
+ const {createCorrectionController}=await import(pathToFileURL(path.resolve('artifacts/ledgerly/src/features/documentCorrections/model.mjs')).href);
+ const f=await fixture(),foreign=await fixture();
+ const doc=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,doc);
+ const immutable=(await admin.query('SELECT source,money,revision,journal_id FROM accounting_document_sources WHERE id=$1',[doc.id])).rows[0];
+ const originalJournal=(await admin.query('SELECT * FROM canonical_journal_entries WHERE id=$1',[immutable.journal_id])).rows[0];
+ const requestId=randomUUID(),form={reason:'Recover delayed agreed-price correction',effective_date:'2026-10-22',line_items:[{quantity:'1',unit_price:'108'}]};
+ let release!:()=>void,entered!:()=>void;const paused=new Promise<void>(r=>entered=r),resume=new Promise<void>(r=>release=r);
+ let posting:Promise<any>|undefined,posts=0,forgotten=0,locator:string|null=null,user:string|null=actor;
+ const counts=async()=> (await admin.query(`SELECT
+  (SELECT count(*)::int FROM accounting_document_amendments WHERE company_id=$1) amendments,
+  (SELECT count(*)::int FROM canonical_journal_entries WHERE company_id=$1) journals,
+  (SELECT count(*)::int FROM accounting_posting_effects WHERE company_id=$1) effects`,[f.company])).rows[0];
+ const before=await counts();
+ const unwrap=(r:any)=>{if(r.status!==200)throw Object.assign(Error(r.error?.code??'Rejected'),{status:r.status});return r.data;};
+ const client={
+  correctionContext:async(c:string,d:string)=>unwrap(await request(c,`/accounting-documents/${d}/correction-context`,'GET',undefined,undefined,user)),
+  reviewCorrection:async(c:string,d:string,b:any,rev:string)=>unwrap(await request(c,`/accounting-documents/${d}/corrections/review`,'POST',b,rev,user)),
+  commitCorrection:async(c:string,d:string,b:any,rev:string)=>{
+   posts++;
+   if(posts===1){
+    posting=request(c,`/accounting-documents/${d}/corrections`,'POST',b,rev,user);
+    let timeout:ReturnType<typeof setTimeout>|undefined;
+    try {await Promise.race([paused,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('Correction did not reach transaction barrier')),5000);})]);}
+    finally {clearTimeout(timeout);}
+    throw Error('Response lost while original correction remains in flight');
+   }
+   return unwrap(await request(c,`/accounting-documents/${d}/corrections`,'POST',b,rev,user));
+  },
+  recoverCorrection:async(c:string,d:string,id:string)=>unwrap(await request(c,`/accounting-documents/${d}/corrections/operations/${id}`,'GET',undefined,undefined,user)),
+ };
+ const options={client,companyId:f.company,documentId:doc.id,makeRequestId:()=>requestId,
+  rememberRequest:(id:string)=>{locator=id;},forgetRequest:()=>{forgotten++;locator=null;}};
+ const controller=createCorrectionController(options);
+ try {
+  await controller.load();await controller.review(form);assert.equal(controller.state.status,'reviewed');
+  const pending=controller.state.pending;pausePosting=async()=>{entered();await resume;};
+  await controller.post();assert.equal(controller.state.status,'unknown');assert.deepEqual(await counts(),before);
+  user=null;await controller.post();assert.equal(controller.state.error.status,401);
+  assert.equal(controller.state.status,'unknown');assert.equal(controller.state.pending,pending);assert.equal(locator,requestId);assert.equal(forgotten,0);
+  await controller.recover();assert.equal(controller.state.status,'unknown');assert.equal(controller.state.error.status,401);
+  user=actor;await controller.recover();assert.equal(controller.state.status,'unknown');
+  controller.discardReview();await controller.review({...form,reason:'Never create a replacement'});assert.equal(controller.state.pending,pending);
+  controller.dispose();const reloaded=createCorrectionController({...options,recoveryRequestId:locator});
+  await reloaded.load();await reloaded.review(form);await reloaded.post();assert.equal(reloaded.state.status,'unknown');assert.equal(posts,2);
+  release();pausePosting=undefined;const committed=await posting;assert.equal(committed.status,200,JSON.stringify(committed));
+  const knownCounts=await counts();assert.deepEqual(knownCounts,{amendments:before.amendments+1,journals:before.journals+1,effects:before.effects+1});
+  // Foreign-company and another current member cannot recover this actor's result.
+  const otherScope=createCorrectionController({...options,companyId:foreign.company,recoveryRequestId:locator});
+  await otherScope.load();assert.equal(otherScope.state.status,'unknown');assert.equal(otherScope.state.error.status,404);otherScope.dispose();
+  await admin.query('UPDATE company_users SET role=$3 WHERE company_id=$1 AND user_id=$2',[f.company,readOnly,'owner']);
+  user=readOnly;await reloaded.recover();assert.equal(reloaded.state.status,'unknown');assert.equal(reloaded.state.error.status,404);
+  await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+  user=actor;await reloaded.recover();assert.equal(reloaded.state.status,'unknown');assert.equal(reloaded.state.error.status,404);
+  await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+  await reloaded.recover();assert.equal(reloaded.state.status,'posted');assert.equal(reloaded.state.receipt.id,requestId);
+  assert.equal(reloaded.state.receipt.journal_id,committed.data.journal_id);assert.equal(reloaded.state.pending,null);
+  await reloaded.post();assert.equal(posts,2);assert.equal(forgotten,0);assert.deepEqual(await counts(),knownCounts);
+  const replay=await request(f.company,`/accounting-documents/${doc.id}/corrections`,'POST',pending.body,pending.revision);
+  assert.equal(replay.status,200);assert.equal(replay.data.status,'duplicate');assert.equal(replay.data.journal_id,committed.data.journal_id);
+  const history=await request(f.company,`/accounting-documents/${doc.id}/corrections`);
+  assert.equal(history.status,200);assert.equal(history.data.amendments.length,1);assert.equal(history.data.amendments[0].journal_id,committed.data.journal_id);
+  assert.deepEqual((await admin.query('SELECT source,money,revision,journal_id FROM accounting_document_sources WHERE id=$1',[doc.id])).rows[0],immutable);
+  assert.deepEqual((await admin.query('SELECT * FROM canonical_journal_entries WHERE id=$1',[immutable.journal_id])).rows[0],originalJournal);
+  assert.deepEqual(await counts(),knownCounts);reloaded.dispose();
+ } finally {release();pausePosting=undefined;await posting;controller.dispose();}
+});

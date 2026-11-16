@@ -85,9 +85,11 @@ export function createCorrectionController({ client, companyId, documentId, onSt
     },
     async post() {
       if (!active || !['reviewed', 'unknown'].includes(state.status) || !state.pending || state.context?.capabilities?.correct_documents !== true) return;
-      const g = ++generation, pending = state.pending;
+      const g = ++generation, pending = state.pending, unresolved = state.status === 'unknown';
       try { rememberRequest(pending.body.request_id); }
-      catch(error) {emit({status:'reviewed',error:Error('Could not save the recovery link. No correction was sent.')});return;}
+      catch(error) {emit({status:unresolved?'unknown':'reviewed',error:Error(unresolved
+        ? 'Could not save the recovery link. The earlier correction is still unverified; check that request before continuing.'
+        : 'Could not save the recovery link. No correction was sent.')});return;}
       emit({requestId:pending.body.request_id});
       emit({ status: 'posting', error: null });
       try {
@@ -99,7 +101,10 @@ export function createCorrectionController({ client, companyId, documentId, onSt
       } catch (error) {
         if (!current(g)) return;
         const definitive = [400, 401, 403, 404, 409, 415, 422, 428].includes(error.status);
-        if (definitive) {
+        // Rejection of this retry says nothing about the earlier ambiguous
+        // attempt: it may still commit. Keep its locator and frozen request
+        // until the canonical receipt is verified.
+        if (definitive && !unresolved) {
           try { forgetRequest(); }
           catch { emit({ status: 'unknown', error: Error('Could not clear the recovery link. Check this request before continuing.') }); return; }
           emit({ status: 'error', error, context: null, review: null, pending: null, requestId: null });

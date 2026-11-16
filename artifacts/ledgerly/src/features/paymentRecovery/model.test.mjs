@@ -478,3 +478,57 @@ test('fresh terminal continuation respects read revocation and canonical recorde
   assert.equal(recovery.getSnapshot().phase,mode==='recorded'?'recorded':'unknown');
  }
 });
+
+// Shared operation-recovery regression: correction identity must survive a
+// rejected retry after an earlier request lost its response.
+test('ambiguous correction retains its original identity across rejected retries and reload', async () => {
+  const { createCorrectionController } = await import('../documentCorrections/model.mjs');
+  for (const status of [400, 401, 403, 404, 409, 415, 422, 428]) {
+    const documentId = otherId, revision = journalId, companyId = 'correction-company';
+    const form = { reason: 'Agreed price correction', effective_date: '2026-11-16', line_items: [{ quantity: '1', unit_price: '90' }] };
+    const calls = []; let locator = null, recoveries = 0, forgets = 0, committed = false;
+    const receipt = { id: requestId, document_id: documentId, status: 'posted', revision, journal_id: journalId };
+    const client = {
+      correctionContext: async () => ({ document: { id: documentId, company_id: companyId, revision }, blockers: [], capabilities: { review_corrections: true, correct_documents: true } }),
+      reviewCorrection: async (_c, _d, intent) => ({ intent, expected_revision: revision, before: { revision }, after: { money: {} }, settlement: {}, review_token: 'sha256:' + 'a'.repeat(64) }),
+      commitCorrection: async (...args) => { calls.push(args); if (calls.length === 1) throw Error('Response lost while original request is in flight'); throw Object.assign(Error('Retry rejected'), { status }); },
+      recoverCorrection: async (c, d, id) => { recoveries++; assert.deepEqual([c, d, id], [companyId, documentId, requestId]); return { state: committed ? 'known' : 'unknown', request_id: id, document_id: d, ...(committed ? { receipt } : {}) }; },
+    };
+    const options = { client, companyId, documentId, makeRequestId: () => requestId, rememberRequest: id => { locator = id; }, forgetRequest: () => { forgets++; locator = null; } };
+    const controller = createCorrectionController(options);
+    await controller.load(); await controller.review(form); const pending = controller.state.pending;
+    await controller.post(); await controller.post();
+    assert.deepEqual(calls[0], calls[1]); assert.equal(controller.state.status, 'unknown');
+    assert.equal(controller.state.pending, pending); assert.ok(Object.isFrozen(pending.body.line_items[0]));
+    assert.equal(controller.state.requestId, requestId); assert.equal(locator, requestId); assert.equal(forgets, 0);
+    controller.discardReview(); await controller.review({ ...form, reason: 'Replacement forbidden' }); await controller.load();
+    assert.equal(controller.state.pending, pending); assert.equal(controller.state.status, 'unknown'); assert.equal(calls.length, 2);
+    controller.dispose();
+    const reloaded = createCorrectionController({ ...options, recoveryRequestId: locator });
+    await reloaded.load(); await reloaded.review(form); await reloaded.post();
+    assert.equal(reloaded.state.status, 'unknown'); assert.equal(calls.length, 2);
+    committed = true; await reloaded.recover(); await reloaded.post();
+    assert.equal(reloaded.state.status, 'posted'); assert.deepEqual(reloaded.state.receipt, receipt);
+    assert.equal(reloaded.state.pending, null); assert.equal(calls.length, 2); assert.equal(recoveries, 3);
+  }
+});
+
+test('locator failure during an ambiguous correction retry cannot unlock editing', async () => {
+  const { createCorrectionController } = await import('../documentCorrections/model.mjs');
+  let attempts = 0, remembers = 0, forgets = 0;
+  const revision = journalId, documentId = otherId;
+  const controller = createCorrectionController({ companyId: 'company', documentId, makeRequestId: () => requestId,
+    rememberRequest: () => { if (++remembers > 1) throw Error('Storage unavailable'); }, forgetRequest: () => { forgets++; },
+    client: {
+      correctionContext: async () => ({ document: { id: documentId, company_id: 'company', revision }, blockers: [], capabilities: { review_corrections: true, correct_documents: true } }),
+      reviewCorrection: async (_c, _d, intent) => ({ intent, expected_revision: revision, before: { revision }, after: { money: {} }, settlement: {}, review_token: 'sha256:' + 'a'.repeat(64) }),
+      commitCorrection: async () => { attempts++; throw Error('Response lost'); },
+    },
+  });
+  const form = { reason: 'Price correction', effective_date: '2026-11-16', line_items: [{ quantity: '1', unit_price: '90' }] };
+  await controller.load(); await controller.review(form); await controller.post(); const pending = controller.state.pending;
+  await controller.post(); controller.discardReview(); await controller.review(form);
+  assert.equal(controller.state.status, 'unknown'); assert.equal(controller.state.pending, pending);
+  assert.equal(controller.state.requestId, requestId); assert.equal(attempts, 1); assert.equal(forgets, 0);
+  assert.match(controller.state.error.message, /earlier correction is still unverified/);
+});
