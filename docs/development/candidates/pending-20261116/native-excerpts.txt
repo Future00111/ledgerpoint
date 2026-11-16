@@ -1,0 +1,115 @@
+2026-11-16T17:44:35.8520791Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +062e915dfbb99839c8d8e18d8a73da7c508db8e7:refs/remotes/pull/29/merge
+2026-11-16T17:44:36.5471544Z  * [new ref]         062e915dfbb99839c8d8e18d8a73da7c508db8e7 -> pull/29/merge
+2026-11-16T17:44:36.7467588Z HEAD is now at 062e915 Merge 936d1f97bbb0b988dfaff7a97eb94a769d0b3db2 into 5e43784fa63232a760dbf4d8a2a356207785deff
+2026-11-16T17:44:36.7609810Z 062e915dfbb99839c8d8e18d8a73da7c508db8e7
+2026-11-16T17:45:16.2479959Z ℹ fail 0
+2026-11-16T17:45:16.3559710Z ℹ fail 0
+2026-11-16T17:45:16.5056484Z ℹ fail 0
+2026-11-16T17:45:16.7285198Z ℹ fail 0
+2026-11-16T17:45:16.8803558Z ℹ fail 0
+2026-11-16T17:45:17.1233105Z ℹ fail 0
+2026-11-16T17:45:17.4504418Z ℹ fail 0
+2026-11-16T17:45:17.5710798Z ℹ fail 0
+2026-11-16T17:45:17.8869728Z ℹ fail 0
+2026-11-16T17:45:18.0074754Z ℹ fail 0
+2026-11-16T17:45:18.1082827Z ℹ fail 0
+2026-11-16T17:45:18.3646969Z ℹ fail 0
+2026-11-16T17:45:20.1367762Z ℹ fail 0
+2026-11-16T17:45:20.3889452Z ℹ fail 0
+2026-11-16T17:45:21.3031859Z ℹ fail 0
+2026-11-16T17:45:21.4428817Z ℹ fail 0
+2026-11-16T17:45:21.5944075Z ℹ fail 0
+2026-11-16T17:45:21.9641456Z ℹ fail 0
+2026-11-16T17:45:22.1532129Z ℹ fail 0
+2026-11-16T17:45:22.3798573Z ℹ fail 0
+2026-11-16T17:45:22.7416847Z ℹ fail 0
+2026-11-16T17:45:23.3600315Z ℹ fail 0
+2026-11-16T17:45:23.4901114Z ℹ fail 0
+2026-11-16T17:45:23.5936151Z ℹ fail 0
+2026-11-16T17:45:23.7163537Z ℹ fail 0
+2026-11-16T17:45:25.2872933Z ✔ late results after company switch, refresh or cancellation cannot restore readiness (0.563703ms)
+2026-11-16T17:45:25.2976523Z ✔ new business defaults to professional view and a reload restores either explicit choice (2.523924ms)
+2026-11-16T17:45:25.4376561Z ✔ restored locator is read-only across server restart, absence and revoked access (0.495005ms)
+2026-11-16T17:45:25.4392207Z ✔ confirming one event restores another unresolved locator before any new write (0.340025ms)
+2026-11-16T17:45:25.4528473Z ✔ matching malformed request IDs cannot verify a receipt on POST or restored recovery (0.56219ms)
+2026-11-16T17:45:25.4538989Z ✔ pending admission is shown ahead of history and explicit selection stays read-only until same ID commits (0.525031ms)
+2026-11-16T17:45:25.8821769Z ✔ closing navigation restores its real opener and falls back to the workspace after a responsive unmount (0.397111ms)
+2026-11-16T17:45:25.8850604Z ✔ a full reload restores the selected authorized No VAT company, not the first company (1.397019ms)
+2026-11-16T17:45:26.5418663Z ✔ restore refuses shared databases, TCP, altered ports, sibling directories and alternate database names (1.631397ms)
+2026-11-16T17:45:26.5463337Z ✔ restore comparison detects changed amounts, missing source/audit records and changed protections (0.594961ms)
+2026-11-16T17:45:26.5470265Z ✔ partial-schema CommonJS bundle has no restore orchestration dependency (534.375539ms)
+2026-11-16T17:45:26.6353460Z ✔ initialisation restores a checkpoint but never overwrites existing runtime (12.889673ms)
+2026-11-16T17:45:27.0153330Z ℹ fail 0
+2026-11-16T17:45:27.5441097Z ℹ fail 0
+2026-11-16T17:45:28.3578872Z ℹ fail 0
+2026-11-16T17:45:28.5750582Z ℹ fail 0
+2026-11-16T17:45:28.9272513Z ℹ fail 0
+2026-11-16T17:45:29.1010959Z ℹ fail 0
+2026-11-16T17:45:29.5966949Z ℹ fail 0
+2026-11-16T17:45:29.7710228Z ℹ fail 0
+2026-11-16T17:45:29.9401916Z ℹ fail 0
+2026-11-16T17:45:30.3033154Z ℹ fail 0
+2026-11-16T17:45:30.6673313Z ℹ fail 0
+2026-11-16T17:45:31.0545871Z ℹ fail 0
+2026-11-16T17:45:31.4000195Z ℹ fail 0
+2026-11-16T17:45:31.6496601Z ℹ fail 0
+2026-11-16T17:45:32.0405928Z ℹ fail 0
+2026-11-16T17:45:32.7020439Z ℹ fail 0
+2026-11-16T17:45:33.0329883Z ℹ fail 0
+2026-11-16T17:45:33.3987207Z ℹ fail 0
+2026-11-16T17:45:33.7346943Z ℹ fail 0
+2026-11-16T17:45:34.0751057Z ℹ fail 0
+2026-11-16T17:45:34.5024824Z ℹ fail 0
+2026-11-16T17:45:34.8664166Z ℹ fail 0
+2026-11-16T17:45:35.1097005Z ℹ fail 0
+2026-11-16T17:45:35.4430177Z ✔ unknown outcomes cannot be discarded and restored references are read-only (1.204891ms)
+2026-11-16T17:45:35.4566402Z ℹ fail 0
+2026-11-16T17:45:35.8205445Z ℹ fail 0
+2026-11-16T17:45:36.3164623Z ℹ fail 0
+2026-11-16T17:45:36.5000716Z ℹ fail 0
+2026-11-16T17:45:36.8672180Z ℹ fail 0
+2026-11-16T17:45:37.3358928Z ℹ fail 0
+2026-11-16T17:45:37.8341773Z ℹ fail 0
+2026-11-16T17:45:38.0493088Z ℹ fail 0
+2026-11-16T17:45:43.1890368Z ℹ fail 0
+2026-11-16T17:45:45.3695764Z ✔ customer correction does not bypass allocation guards; native unallocation and reversal restore document outstanding (291.976801ms)
+2026-11-16T17:45:45.6242623Z ✔ supplier correction does not bypass allocation guards; native unallocation and reversal restore document outstanding (254.288858ms)
+2026-11-16T17:46:02.8074855Z PAYMENT_DISCOVERY_BROWSER_ACCEPTANCE {"actualComponents":true,"nativeApi":true,"syntheticSession":true,"lostLocator":true,"explicitSelection":true,"reposts":0,"realClerk":false,"pendingAdmission":false}
+2026-11-16T17:46:03.0339137Z ✔ pending admission survives rollback, fences replacements and terminal resolution permanently fences delayed writers (214.313641ms)
+2026-11-16T17:46:03.1449801Z ✔ admission is visible before effects and a terminal reader waiting on posting sees the committed canonical outcome (111.405808ms)
+2026-11-16T17:46:03.9888937Z PAYMENT_DISCOVERY_BROWSER_ACCEPTANCE {"actualComponents":true,"nativeApi":true,"syntheticSession":true,"lostLocator":true,"explicitSelection":true,"reposts":0,"realClerk":false,"pendingAdmission":true}
+2026-11-16T17:46:04.0020949Z ✔ isolated Chromium: mounted payment discovery discovers pending admission then resolves original event with no browser locator or repost (857.354376ms)
+2026-11-16T17:46:04.1876539Z ✔ competing fresh identity is fenced before effects; exact same identity continuation stays single-effect (185.551157ms)
+2026-11-16T17:46:04.2845981Z ✔ terminal marker cannot be bypassed by an existing canonical parent transaction (97.085746ms)
+2026-11-16T17:46:04.3736430Z ✔ orphan canonical effect never permits same-ID continuation, no-effect terminal or replacement admission (88.837884ms)
+2026-11-16T17:46:04.4374708Z ✔ terminal wins while a top-level canonical writer is delayed after committed admission (61.319616ms)
+2026-11-16T17:46:05.2254925Z ℹ fail 0
+2026-11-16T17:46:24.1065035Z ✔ Job2 real PostgreSQL: customer full 10800 payment reversal atomically restores original debt and cash with exact replay (340.16848ms)
+2026-11-16T17:46:24.4884875Z ✔ Job2 real PostgreSQL: customer full 12000 payment reversal atomically restores original debt and cash with exact replay (381.773368ms)
+2026-11-16T17:46:25.7133666Z ✔ Job2 real PostgreSQL: supplier full 10800 payment reversal atomically restores original debt and cash with exact replay (351.14666ms)
+2026-11-16T17:46:26.0946174Z ✔ Job2 real PostgreSQL: supplier full 12000 payment reversal atomically restores original debt and cash with exact replay (381.249172ms)
+2026-11-16T17:47:02.5507053Z ℹ fail 0
+2026-11-16T17:47:03.2771455Z ℹ fail 0
+2026-11-16T17:47:04.3564999Z ℹ fail 0
+2026-11-16T17:47:15.4962232Z ℹ fail 0
+2026-11-16T17:47:16.7536708Z ℹ fail 0
+2026-11-16T17:47:18.0689175Z ℹ fail 0
+2026-11-16T17:47:37.0985147Z ℹ fail 0
+2026-11-16T17:47:43.3154343Z   ../../generated-artifacts/compensation-restore.test.cjs  762.1kb
+2026-11-16T17:47:45.7780955Z ✔ populated restored compensations retain immutable children, permanent consumption, historical reports and recovery under runtime role (2251.45968ms)
+2026-11-16T17:47:45.8114902Z ℹ fail 0
+2026-11-16T17:47:45.8180144Z Disposable backup/restore verified: original rows, restored evidence and restricted runtime match.
+2026-11-16T17:47:46.0850204Z ##[group]Run node --test tools/operations/backup-restore/*.test.mjs
+2026-11-16T17:47:46.0850967Z [36;1mnode --test tools/operations/backup-restore/*.test.mjs[0m
+2026-11-16T17:47:46.2174766Z ✔ restored application roles reject elevated flags, login owner and unexpected memberships (1.398632ms)
+2026-11-16T17:47:46.5049184Z ✔ file rehearsal restores a fresh output only and never overwrites evidence (10.292545ms)
+2026-11-16T17:47:46.5175895Z ✔ restored fixture must match after rollback before the control can pass (0.381542ms)
+2026-11-16T17:47:46.5836372Z ℹ fail 0
+2026-11-16T17:47:46.5959108Z ##[group]Run node tools/operations/backup-restore/rehearsal.mjs
+2026-11-16T17:47:46.5959606Z [36;1mnode tools/operations/backup-restore/rehearsal.mjs[0m
+2026-11-16T17:47:49.0325016Z [36;1m    r.sourceFingerprint !== r.restoredFingerprint ||[0m
+2026-11-16T17:47:49.1161997Z [36;1mconst restore = require('./generated-artifacts/accounting-restore-drill.json');[0m
+2026-11-16T17:47:49.1163165Z [36;1mif (!cleanup.restoreVerified || cleanup.runId !== restore.runId || cleanup.sourceCommit !== restore.sourceCommit ||[0m
+2026-11-16T17:47:49.1163990Z [36;1m    restore.sourceCommit !== process.env.GITHUB_SHA || !restore.syntheticOnly || !restore.sourceUnchanged ||[0m
+2026-11-16T17:47:49.1164862Z [36;1m    !restore.controlsPreserved || !restore.runtimeRestricted || restore.sourceFingerprint !== restore.restoredFingerprint ||[0m
+2026-11-16T17:47:49.1165681Z [36;1m    restore.ambientDatabaseCredentialsUsed || restore.productionContact) process.exit(1);[0m

@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-11-16T18:05:22.968Z",
+  "workers": [
+    {
+      "id": "/root/pending_implementation",
+      "status": "completed"
+    },
+    {
+      "id": "/root/pending_review",
+      "status": "completed"
+    }
+  ],
+  "workersStopped": true,
+  "worktreesClean": true,
+  "source": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2",
+  "priorRunId": "pending-1794850220523",
+  "liveStateHead": "f049d7b32aa343d87795cf3456707d1b68d542f5",
+  "preparedAcceptanceQueueRevision": 817,
+  "reason": "Final publication rejected; owner explicitly approved checkpoint, acceptance evidence and coordinator release. No worker restart or code publication."
+}

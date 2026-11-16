@@ -1,0 +1,21 @@
+{
+  "source": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2",
+  "author": "9d6171e05081df2868f40bc5ba6cc7d72286c374",
+  "testedCheckout": "062e915dfbb99839c8d8e18d8a73da7c508db8e7",
+  "tree": "189dd8819561ed0f6dc764006c2fb6fe7484fa46",
+  "comparisonFiles": 0,
+  "run": "https://github.com/Future00111/ledgerpoint/actions/runs/43921527781",
+  "job": 133489789262,
+  "result": "success",
+  "logSha256": "88076e829f8cc93d72e4bc7613266ae9992cd9f0d68dbad246de52319127a583",
+  "sourceTests": 1054,
+  "independentFocusedTests": 79,
+  "independentReviewer": "pending_review",
+  "review": "Exact author financial/security review and matching native/browser/restore logs approved; reviewer stopped, no mutations.",
+  "browser": [],
+  "limits": [
+    "P03-01 parent remains incomplete; other operation families unimplemented.",
+    "Terminal no-effect UI remains read-only, no automatic retry/unlock.",
+    "Synthetic mounted native-API browser, not real Clerk or production."
+  ]
+}
