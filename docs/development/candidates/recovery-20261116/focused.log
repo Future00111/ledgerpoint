@@ -1,0 +1,32 @@
+✔ a lost response after a committed request resolves through a read without reposting (5.385132ms)
+✔ not found remains unknown and retry sends identical ID, body, precision and review token (2.008361ms)
+✔ a stale, denied or failed retry never erases an earlier uncertain outcome (1.185067ms)
+✔ empty, malformed or mismatched recording responses never claim a successful payment (0.899218ms)
+✔ status lookup resolves payment, allocation, unallocation, refund and reversal by event ID (2.268039ms)
+✔ failed and malformed history reads retain the recovery request and do not write (0.893922ms)
+✔ double clicks cannot overlap recording, checking or retry requests (0.993176ms)
+✔ company switch clears recovery and ignores late recording and history responses (1.453013ms)
+✔ permissions fail closed for writes while status reads remain available after role changes (0.673112ms)
+✔ unknown outcomes cannot be abandoned or replaced with another write (0.674305ms)
+✔ restored locator is read-only across server restart, absence and revoked access (0.800893ms)
+✔ locator is saved before POST and storage failure sends no request (0.735498ms)
+✔ confirming one event restores another unresolved locator before any new write (0.437583ms)
+✔ payment: POST and recovery accept only valid matching successful receipts (1.254539ms)
+✔ payment: malformed POST/read receipts retain locator and lock replacement until valid recovery (11.118078ms)
+✔ allocation: POST and recovery accept only valid matching successful receipts (0.502145ms)
+✔ allocation: malformed POST/read receipts retain locator and lock replacement until valid recovery (1.593428ms)
+✔ unallocation: POST and recovery accept only valid matching successful receipts (0.191253ms)
+✔ unallocation: malformed POST/read receipts retain locator and lock replacement until valid recovery (1.989087ms)
+✔ refund: POST and recovery accept only valid matching successful receipts (0.134142ms)
+✔ refund: malformed POST/read receipts retain locator and lock replacement until valid recovery (3.186694ms)
+✔ reversal: POST and recovery accept only valid matching successful receipts (0.319446ms)
+✔ reversal: malformed POST/read receipts retain locator and lock replacement until valid recovery (1.787942ms)
+✔ matching malformed request IDs cannot verify a receipt on POST or restored recovery (0.807868ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 247.474441

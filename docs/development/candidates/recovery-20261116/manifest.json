@@ -1,0 +1,24 @@
+{
+  "author": "ce6e7b68c478e83fe95a53b17e0059e06ddafaa7",
+  "tree": "48c90981709708928188b780f86d9119a10cbb8d",
+  "basePublished": "3896236437b90a0b61c2ba57131f5c5345a319aa",
+  "authorActor": "replit-recovery-implementer",
+  "patchBytes": 14410,
+  "patchSha256": "ff59376dcfeb9723bed93a8c20b7d9f711ca03b064a6eee2f6a3ff0cab4bacce",
+  "rawCommitBytes": 323,
+  "rawCommitSha256": "5c90664d73b2e8ecf18a5f2bf1875a700232d0b0296593247b29febd7f96088e",
+  "reviewer": "root",
+  "reviewed": true,
+  "scope": "Partial P03-01 malformed payment receipt identity protection only; no parentacceptance",
+  "files": [
+    "artifacts/ledgerly/src/features/paymentRecovery/model.mjs",
+    "artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs"
+  ],
+  "tests": {
+    "focused": 24,
+    "source": 989,
+    "build": "passed"
+  },
+  "remaining": "Server pending admission/discovery and connected recovery after lost local identity across operation families.",
+  "replitStopped": true
+}
