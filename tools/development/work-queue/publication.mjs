@@ -14,7 +14,7 @@ const requireValue = (ok, code) => { if (!ok) throw Object.assign(new Error(code
  * The caller must repeat reads immediately before the expected-head update and
  * stop on any approval rejection or CAS conflict; this result is not a lock.
  */
-export function preflightPublication({ authority, pullRequest, destination, candidate, intent, owner }, { now = Date.now() } = {}) {
+export function preflightPublication({ authority, pullRequest, destination, candidate, intent, owner, baseDestination }, { now = Date.now() } = {}) {
   requireValue(Number.isSafeInteger(now) && now >= 0, 'INVALID_TIME');
   for (const observation of [authority, pullRequest, destination, candidate]) {
     requireValue(observation && Number.isSafeInteger(observation.observedAt) && observation.observedAt >= 0
@@ -43,11 +43,28 @@ export function preflightPublication({ authority, pullRequest, destination, cand
   requireValue(destination.ref === `refs/heads/${branch}`, 'WRONG_INTEGRATION_TARGET');
   requireValue(destination.sha === intent.expectedHead, 'DESTINATION_HEAD_CHANGED');
   const pr = pullRequest.value;
-  requireValue(pr?.number === 27 && pr.state === 'open' && pr.draft === true && pr.merged === false,
+  const expectedPr = state.integrationPullRequest ?? 27;
+  const successor = state.publicationSuccessor;
+  // One explicitly checkpointed transition after the owner merges the prior PR.
+  // It permits only a reviewed FF on the same head branch, then a new draft PR.
+  const bootstrap = successor?.predecessorPr === expectedPr &&
+    sha(successor.mergeCommit) && successor.ownerApprovedMerge === true &&
+    pr?.number === expectedPr && pr.state === 'closed' && pr.merged === true &&
+    pr.merge_commit_sha === successor.mergeCommit &&
+    intent.expectedBaseSha === successor.mergeCommit && sha(successor.preMergeBaseSha) &&
+    pr.base?.sha === successor.preMergeBaseSha;
+  requireValue(Number.isSafeInteger(expectedPr) && expectedPr > 0 && (bootstrap ||
+    pr?.number === expectedPr && pr.state === 'open' && pr.draft === true && pr.merged === false),
     'DRAFT_PR_REQUIRED');
   requireValue(pr.head?.repo?.full_name === repository && pr.base?.repo?.full_name === repository
     && pr.head.ref === branch && pr.base.ref === baseBranch, 'PR_TARGET_CHANGED');
-  requireValue(pr.head.sha === intent.expectedHead && pr.base.sha === intent.expectedBaseSha, 'PR_HEAD_CHANGED');
+  if (bootstrap) {
+    requireValue(baseDestination?.repository === repository && baseDestination.ref === `refs/heads/${baseBranch}` &&
+      baseDestination.sha === intent.expectedBaseSha && Number.isSafeInteger(baseDestination.observedAt) &&
+      baseDestination.observedAt >= authority.observedAt && baseDestination.observedAt <= now &&
+      now-baseDestination.observedAt <= maxObservationAgeMs, 'SUCCESSOR_BASE_CHANGED');
+  }
+  requireValue(pr.head.sha === intent.expectedHead && (bootstrap || pr.base.sha === intent.expectedBaseSha), 'PR_HEAD_CHANGED');
   const commit = candidate.value;
   requireValue(commit?.sha === intent.candidateSha && commit.tree?.sha === intent.candidateTree,
     'CANDIDATE_IDENTITY_CHANGED');
@@ -56,7 +73,8 @@ export function preflightPublication({ authority, pullRequest, destination, cand
   return {
     version: 1,
     destination_kind: 'integration',
-    pullRequest: 27,
+    pullRequest: expectedPr,
+    successorDraftRequired: bootstrap,
     authorityCommit: authority.sha,
     authorityRevision: state.revision,
     coordinatorRunId: state.lease.runId,

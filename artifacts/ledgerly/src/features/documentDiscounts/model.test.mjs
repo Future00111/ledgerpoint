@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { canEditDrafts, canPostDocuments, canApplyDiscount, discountCreditPath, documentActionLabel,
-  discountAdjustment, balanceAfterSavedCredit, isCurrentDocumentRequest } from './model.mjs';
+  agreementPence, agreementTerms, matchesAgreementReceipt, discountAdjustment, balanceAfterSavedCredit, isCurrentDocumentRequest } from './model.mjs';
 
 test('editing and posting require independently explicit capabilities', () => {
   for (const capability of [undefined, null, {}, { edit_drafts: 'true', post_documents: 1 }]) {
@@ -34,8 +34,8 @@ test('adjustment preparation captures source revision while preserving entered d
 test('balance preview uses canonical reconciled settlement and saved credit within remaining credit capacity', () => {
   const partial = { gross_minor: '12000', credited_minor: '0', paid_minor: '5000', open_minor: '7000' };
   assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '1200' }), '5800');
-  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '8000' }), '-1000');
-  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '12000' }), '-5000');
+  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '8000' }), null);
+  assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '12000' }), null);
   assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '12001' }), null);
   assert.equal(balanceAfterSavedCredit({ ...partial, credited_minor: '1000', open_minor: '6000' }, { gross_pence: '11001' }), null);
   assert.equal(balanceAfterSavedCredit(partial, { gross_pence: '1200' }, true), null);
@@ -56,12 +56,12 @@ test('old company, document, or load generation cannot apply mutation result to 
 });
 
 
-test('paid-discount entry uses remaining original credit capacity, independently of remaining cash due', () => {
+test('discount entry requires an unpaid balance for both original document kinds', () => {
   const capabilities = { edit_drafts: true };
   for (const kind of ['sales_invoice', 'purchase_bill']) {
     for (const [credited, paid, open, expected] of [
       ['0', '0', '12000', true], ['0', '5000', '7000', true],
-      ['0', '12000', '0', true], ['1200', '10800', '0', true],
+      ['0', '12000', '0', false], ['1200', '10800', '0', false],
       ['12000', '0', '0', false],
     ]) assert.equal(canApplyDiscount(kind, { gross_minor: '12000', credited_minor: credited, paid_minor: paid, open_minor: open }, capabilities), expected);
   }
@@ -80,4 +80,23 @@ test('discount entry rejects missing, malformed or inconsistent settlement witho
     assert.equal(canApplyDiscount('sales_invoice', valid, capabilities), false);
   for (const kind of ['supplier_credit_note', 'sales_credit_note', 'unknown'])
     assert.equal(canApplyDiscount(kind, valid, { edit_drafts: true }), false);
+});
+
+
+test('original agreement money uses exact decimal minor units without rounding', () => {
+  for (const [input, expected] of [['12.30','1230'],['0.01','1'],['9999999999.99','999999999999'],['1','100'],['1.2','120']]) assert.equal(agreementPence(input),expected);
+  for (const input of ['', '0','0.00','01','1.001','1e2','-1',' 1','10000000000',1,null]) assert.equal(agreementPence(input),null);
+});
+test('captured original evidence matches exact company, both party types, all terms and evidence', () => {
+  for (const party_type of ['customer','supplier']) {
+    const entry={agreement_id:'agreement',agreement_date:'2026-11-01',payment_deadline:'2026-11-10',amount:'12.00'};
+    const terms=agreementTerms(entry,party_type,'PARTY');
+    const receipt={id:'11111111-1111-4111-8111-111111111111',company_id:'company',attested:true,party_type,party_id:'party',currency:'GBP',terms,evidence_text:'Agreed'};
+    assert.equal(matchesAgreementReceipt(receipt,'company',terms,'Agreed'),true);
+    assert.equal(matchesAgreementReceipt(receipt,'other',terms,'Agreed'),false);
+    assert.equal(matchesAgreementReceipt(receipt,'company',terms,'Changed'),false);
+    for (const key of Object.keys(terms)) assert.equal(matchesAgreementReceipt({...receipt,terms:{...terms,[key]:'changed'}},'company',terms,'Agreed'),false,key);
+    for (const [key,value] of [['party_id','other'],['party_type','other'],['attested',false],['id',null],['currency','USD']]) assert.equal(matchesAgreementReceipt({...receipt,[key]:value},'company',terms),false,key);
+    assert.equal(agreementTerms({...entry,payment_deadline:'2026-10-30'},party_type,'party'),null);
+  }
 });

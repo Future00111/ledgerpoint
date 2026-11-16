@@ -37,6 +37,39 @@ function validReference(row) {
     && row.selector.employment === `employee_${loan ? 'loan' : 'paye'}_${ref[dimension]}`
     && (!loan || names(ref.frequencies) && ref.frequencies.every(f => ['weekly', 'fortnightly', 'four_weekly', 'monthly'].includes(f)));
 }
+// Concrete reference examples expose missing execution context; they never qualify a calculation.
+function validFixturePrerequisite(row) {
+  const item = row.fixturePrerequisite;
+  if (!row.referenceFixtures) return item === undefined;
+  if (!plain(item) || item.status !== 'reference_only_engine_not_implemented'
+    || item.nextTask !== 'P04-03' || item.owner !== row.owner
+    || !nonempty(item.acceptanceScenario) || !nonempty(item.nextExecutableStep)
+    || item.ruleEvidence !== null || item.independentReview !== null
+    || !names(item.remainingYears) || item.remainingYears.includes(row.selector.taxYear)
+    || !names(item.missingInputs) || !names(item.missingOutputs)
+    || !Array.isArray(item.examples) || item.examples.length !== 2
+    || !Array.isArray(item.missingFixtures) || item.missingFixtures.length === 0) return false;
+  const dimension = row.referenceFixtures.plan ? 'plan' : 'region';
+  const ids = new Set();
+  for (const example of item.examples) {
+    if (!plain(example) || !nonempty(example.id) || ids.has(example.id)
+      || !nonempty(example.sourceSheet) || !Number.isSafeInteger(example.sourceRow) || example.sourceRow <= 0
+      || !plain(example.input) || !plain(example.expected)
+      || example.input.taxYear !== row.selector.taxYear
+      || example.input[dimension] !== row.referenceFixtures[dimension]
+      || Object.keys(example.expected).length === 0
+      || Object.values(example.expected).some(value => typeof value !== 'string' || !/^-?(0|[1-9][0-9]*)$/.test(value) || value === '-0')
+      || JSON.stringify(item.missingInputs) !== JSON.stringify(row.requiredInputs.filter(key => !Object.hasOwn(example.input, key)))
+      || JSON.stringify(item.missingOutputs) !== JSON.stringify(row.requiredOutputs.filter(key => !Object.hasOwn(example.expected, key)))) return false;
+    ids.add(example.id);
+  }
+  if (dimension === 'region' && (item.examples[0].previousExampleId !== null
+    || item.examples[1].previousExampleId !== item.examples[0].id
+    || item.examples[0].sequenceId !== item.examples[1].sequenceId)) return false;
+  return item.missingFixtures.every(fixture => plain(fixture) && nonempty(fixture.id) && nonempty(fixture.scenario))
+    && new Set(item.missingFixtures.map(fixture => fixture.id)).size === item.missingFixtures.length;
+}
+
 // Scope declaration is an input to fixture/engine work, never calculation authority.
 function validPayrollPrerequisites(registry) {
   const matrix = registry.payrollPrerequisites;
@@ -70,7 +103,7 @@ export function validateCaseRegistry(registry) {
       || selectors.has(signature(row.selector)) || !['supported', 'unsupported'].includes(row.status)
       || !Array.isArray(row.backlogTasks) || row.backlogTasks.length === 0 || typeof row.owner !== 'string' || !row.owner
       || !plain(row.ruleProvenance) || !Object.hasOwn(registry.sources, row.ruleProvenance.sourceId)) throw new Error('INVALID_CASE_REGISTRY');
-    if (!validReference(row)) throw new Error('INVALID_CASE_REGISTRY');
+    if (!validReference(row) || !validFixturePrerequisite(row)) throw new Error('INVALID_CASE_REGISTRY');
     // This initial contract intentionally cannot authorize future engines from metadata.
     // Promotion requires a separately reviewed adapter tying fixtures to executable rules.
     if (row.status === 'supported') throw new Error('SUPPORTED_CASE_ADAPTER_REQUIRED');
@@ -98,4 +131,27 @@ export function resolveQualifiedCase(registry, selector) {
   const found = registry.cases.find(row => signature(row.selector) === signature(selector));
   if (!found) return { ok: false, code: 'UNKNOWN_CASE' };
   return { ok: false, code: 'CASE_NOT_QUALIFIED', caseId: found.id };
+}
+
+/** Prepare reference evidence for P04-03 review, without filling missing inputs or running an engine.
+ * The caller supplies the pinned corpus; repository fixture tests verify its source bytes.
+ */
+export function prepareCaseFixtureHandoff(registry, selector, corpus) {
+  const boundary = resolveQualifiedCase(registry, selector);
+  if (boundary.code !== 'CASE_NOT_QUALIFIED') return boundary;
+  const row = registry.cases.find(row => row.id === boundary.caseId);
+  if (!row.fixturePrerequisite) return { ...boundary, prerequisiteCode: 'REFERENCE_FIXTURES_MISSING' };
+  const ref = row.referenceFixtures;
+  if (!plain(corpus) || corpus.taxYear !== row.selector.taxYear
+    || corpus.status !== 'reference_fixtures_only_not_engine_qualification'
+    || corpus.source?.sha256 !== ref.sourceSha256 || corpus.source?.version !== ref.sourceVersion
+    || corpus.source?.page !== registry.sources[row.ruleProvenance.sourceId].url
+    || !Array.isArray(corpus.cases)
+    || row.fixturePrerequisite.examples.some(example => {
+      const matches = corpus.cases.filter(candidate => candidate?.id === example.id);
+      return matches.length !== 1 || JSON.stringify(matches[0]) !== JSON.stringify(example);
+    })) throw new Error('REFERENCE_HANDOFF_SOURCE_MISMATCH');
+  return structuredClone({ ...boundary, prerequisiteCode: 'REFERENCE_CONTEXT_INCOMPLETE',
+    source: { path: ref.path, sha256: ref.sourceSha256, version: ref.sourceVersion,
+      page: corpus.source.page }, prerequisite: row.fixturePrerequisite });
 }

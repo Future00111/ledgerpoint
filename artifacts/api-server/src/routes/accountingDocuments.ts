@@ -1,13 +1,13 @@
-import { captureConditionalEvidence, getConditionalEvidence } from '../services/accountingDocuments/conditionalDiscount';
-import { reviewPaidCredit, commitPaidCredit, reviewConditionalCredit } from '../services/accountingDocuments/paidCredit';
-import { conditionalCompensationContext,reviewConditionalCompensation,recoverConditionalCompensation } from '../services/accountingDocuments/conditionalCompensation';
+import { captureConditionalEvidence, getConditionalEvidence, observeConditionalOriginal } from '../services/accountingDocuments/conditionalDiscount';
+import { reviewCommercialCredit, commitCommercialCredit, recoverCommercialCredit, reviewPaidCredit, commitPaidCredit, reviewPublicConditionalCredit, commitCurrentConditionalDiscount, recoverCurrentConditionalDiscount } from '../services/accountingDocuments/paidCredit';
+import { conditionalCompensationContext,reviewConditionalCompensation,recoverConditionalCompensation,commitConditionalCompensation } from '../services/accountingDocuments/conditionalCompensation';
 import { Router, type RequestHandler, type Request } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import { DraftError, fail } from "../services/financialDrafts/contract";
 import { kindOf, exactFields } from "../services/accountingDocuments/core";
 import { context, saveConfiguration, addPeriod } from "../services/accountingDocuments/configuration";
 import { getDocument, listDocuments, saveDocument } from "../services/accountingDocuments/documents";
-import { postDocument } from "../services/accountingDocuments/posting";
+import { postDocument, postConditionalOriginal } from "../services/accountingDocuments/posting";
 import { journal, reports } from "../services/accountingDocuments/reports";
 import { CanonicalPostingError, type DatabaseTransaction } from "../services/accounting/canonicalPosting";
 import { chart, AccountSelectionError } from "../services/accountingDocuments/accounts";
@@ -52,15 +52,17 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
   router.post('/conditional-discount-evidence',async(req,res)=>{const {company,actor}=ids(req);res.status(201).json({data:await captureConditionalEvidence(company,actor,req.body)});});
   router.get('/conditional-discount-evidence/:id',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await getConditionalEvidence(company,actor,id)});});
   router.get('/accounting-conditional-compensations/context',async(req,res)=>{
-    const {company,actor}=ids(req);res.json({data:await conditionalCompensationContext(company,actor)});
+    const {company,actor}=ids(req);const context=await conditionalCompensationContext(company,actor);res.json({data:{...context,posting_available:context.available&&context.can_review}});
   });
   router.post('/accounting-conditional-compensations/review',async(req,res)=>{
-    const {company,actor}=ids(req);res.json({data:{...await reviewConditionalCompensation(company,actor,req.body),readonly:true,posting_available:false}});
+    const {company,actor}=ids(req);res.json({data:{...await reviewConditionalCompensation(company,actor,req.body),readonly:true,posting_available:true}});
   });
   router.get('/accounting-conditional-compensations/operations/:id',async(req,res)=>{
     const {company,actor,id}=ids(req);res.json({data:await recoverConditionalCompensation(company,actor,id)});
   });
-  // No compensation commit route: independent integration acceptance is pending.
+  router.post('/accounting-conditional-compensations',async(req,res)=>{
+    const {company,actor}=ids(req);res.json({data:await commitConditionalCompensation(company,actor,req.body,testPostHook?async(_stage,tx)=>testPostHook(tx):undefined)});
+  });
   router.get('/credit-claims',async(req,res)=>{
     const {company,actor}=ids(req);
     if(req.query.bill_id!==undefined && typeof req.query.bill_id!=='string') fail(400,'INVALID_REQUEST_SHAPE');
@@ -150,9 +152,30 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     const {company,actor,id}=ids(req);
     res.json({data:await saveDocument(company,actor,req.body,id,revision(req))});
   });
+  router.post('/accounting-documents/:id/conditional-original',async(req,res)=>{
+    const {company,actor,id}=ids(req);exactFields(req.body,[]);
+    res.json({data:await postConditionalOriginal(company,actor,id,revision(req),testPostHook)});
+  });
+  router.post('/accounting-documents/:id/conditional-original/observe',async(req,res)=>{
+    const {company,actor,id}=ids(req);exactFields(req.body,[]);
+    res.json({data:await observeConditionalOriginal(company,actor,id)});
+  });
+  router.post('/accounting-documents/:id/conditional-discount/review',async(req,res)=>{
+    const {company,actor,id}=ids(req);
+    const r=await reviewPublicConditionalCredit(company,actor,id,revision(req),req.body);
+    const {document_id,revision:reviewedRevision,original_id,original_kind,original_number,date,credit_minor,offset_minor,released_minor,remaining_minor,releases,intent,review_token}=r;
+    res.json({data:{document_id,revision:reviewedRevision,original_id,original_kind,original_number,date,credit_minor,offset_minor,released_minor,remaining_minor,releases,intent,review_token,
+      conditional_admission:{threshold_minor:r.conditional_admission!.threshold_minor,qualifying_minor:r.conditional_admission!.qualifying_minor,deadline:r.conditional_admission!.deadline},posting_available:true}});
+  });
+  router.post('/accounting-documents/:id/conditional-discount',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await commitCurrentConditionalDiscount(company,actor,id,revision(req),req.body,testPostHook)});
+  });
+  router.get('/accounting-conditional-discounts/operations/:requestId',async(req,res)=>{
+    const {company,actor}=ids(req);res.json({data:await recoverCurrentConditionalDiscount(company,actor,String(req.params.requestId))});
+  });
   router.post('/accounting-documents/:id/conditional-credit/review',async(req,res)=>{
     const {company,actor,id}=ids(req);
-    const review=await reviewConditionalCredit(company,actor,id,revision(req),req.body);
+    const review=await reviewPublicConditionalCredit(company,actor,id,revision(req),req.body);
     const {document_id,revision:reviewedRevision,original_id,original_kind,original_number,date,
       credit_minor,offset_minor,released_minor,remaining_minor,releases,conditional_admission}=review;
     res.json({data:{document_id,revision:reviewedRevision,original_id,original_kind,original_number,date,
@@ -176,6 +199,16 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     const known=await conditionalReplacementOverview(company,actor,id);
     if(!known.replacements.some((r:any)=>r.id===replacement)) fail(404,'RESOURCE_NOT_FOUND');
     res.json({data:observationReceipt(await observeConditionalReplacement(company,actor,replacement))});
+  });
+  router.post('/accounting-documents/:id/commercial-credit/review',async(req,res)=>{
+    const {company,actor,id}=ids(req);const r=await reviewCommercialCredit(company,actor,id,revision(req),req.body);
+    const {commercial_admission,...display}=r;res.json({data:{...display,posting_available:true}});
+  });
+  router.post('/accounting-documents/:id/commercial-credit',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await commitCommercialCredit(company,actor,id,revision(req),req.body,testPostHook)});
+  });
+  router.get('/accounting-commercial-credits/operations/:requestId',async(req,res)=>{
+    const {company,actor}=ids(req);res.json({data:await recoverCommercialCredit(company,actor,String(req.params.requestId))});
   });
   router.post('/accounting-documents/:id/paid-credit/review',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await reviewPaidCredit(company,actor,id,revision(req),req.body)});});
   router.post('/accounting-documents/:id/paid-credit',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await commitPaidCredit(company,actor,id,revision(req),req.body,testPostHook)});});

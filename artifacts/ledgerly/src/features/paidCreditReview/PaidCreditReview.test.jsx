@@ -20,3 +20,9 @@ test('conditional draft action offers eligibility while ordinary action retains 
  assert.ok(conditional.includes('Check conditional eligibility'));assert.ok(!conditional.includes('Review &amp; post'));
  assert.ok(renderToStaticMarkup(<DraftWriteActions {...props}/>).includes('Review &amp; post'));
 });
+
+test('current conditional review describes unpaid-only posting and recovery notice blocks unknown resubmission',()=>{
+ const html=renderToStaticMarkup(<PaidCreditReview conditional current review={{posting_available:true,original_id:'I1',original_kind:'sales_invoice',credit_minor:'1200',offset_minor:'1200',released_minor:'0',remaining_minor:'0',conditional_admission:{threshold_minor:'10800',qualifying_minor:'10800',deadline:'2199-11-30'},releases:[]}}/>);
+ for(const text of ['Conditional discount posting review','Confirm to post','No paid cash is released','Eligibility is checked again'])assert.ok(html.includes(text),text);
+ assert.ok(!html.includes('Posting is unavailable'));
+});

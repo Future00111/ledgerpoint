@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 const KINDS = new Set(['implementation', 'contract', 'verification', 'external']);
 const STATUSES = new Set(['pending', 'running', 'review', 'blocked', 'done', 'quarantined']);
 const HELD = new Set(['running', 'review', 'quarantined']);
-const COORDINATOR = new Set(['accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
+const COORDINATOR = new Set(['accept', 'accept-outcome', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
 const tokenDigest = value => createHash('sha256').update(value, 'utf8').digest('hex');
 const digestValid = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 const text = value => typeof value === 'string' && value.trim().length > 0;
@@ -140,6 +140,10 @@ function reconcile(catalog, state, now) {
 }
 function approved(task, entry) { return task.approval === 'approved' && task.kind !== 'external' || approvalValid(entry.approvalEvidence, task.id); }
 function approvalValid(evidence, id) { return evidence?.authority === 'owner' && evidence.scope === id && text(evidence.approvedBy) && text(evidence.reference); }
+function trackAllows(task, track) {
+  requireValue(track === undefined || track === 'tax-payroll', 'INVALID_TRACK', 'Only the owner-approved tax-payroll second track is supported.');
+  return track === undefined || task.files.some(file => /^artifacts\/api-server\/src\/services\/(tax|payroll)\//.test(file));
+}
 function ready(catalog, state, task, capabilities) {
   const entry = state.tasks[task.id];
   if (!['pending', 'blocked'].includes(entry.status) || !approved(task, entry) || task.rulesKnown === false) return false;
@@ -149,13 +153,15 @@ function ready(catalog, state, task, capabilities) {
   return !catalog.tasks.some(other => other.id !== task.id && HELD.has(state.tasks[other.id].status) && task.files.some(file => other.files.some(held => overlap(file, held))));
 }
 
-export function explainTask(catalog, state, task, { worker, now, capabilities } = {}) {
+export function explainTask(catalog, state, task, { worker, now, capabilities, track } = {}) {
   validateCatalog(catalog); validateState(catalog, state); timestamp(now);
   requireValue(capabilities === undefined || Array.isArray(capabilities) && capabilities.every(kind => KINDS.has(kind)), 'INVALID_CAPABILITIES', 'Capabilities must be known task kinds.');
   const known = catalog.tasks.find(item => item.id === task?.id);
   requireValue(known, 'UNKNOWN_TASK', 'A catalogue task is required.');
+  trackAllows({ files: [] }, track);
   const current = structuredClone(state); reconcile(catalog, current, now);
   const entry = current.tasks[known.id], blockers = [];
+  if (!trackAllows(known, track)) blockers.push({ type: 'decision', reason: 'Outside the requested tax-payroll track.' });
   if (!['pending', 'blocked'].includes(entry.status)) blockers.push({ type: 'environment', reason: `Task is ${entry.status}; its current transition must be resolved first.` });
   if (worker && Object.values(current.tasks).some(item => item.owner === worker && ['running', 'quarantined'].includes(item.status))) blockers.push({ type: 'environment', reason: 'Worker already has running or quarantined work.' });
   if (!approved(known, entry)) blockers.push({ type: 'decision', reason: 'Recorded owner authority is required before this task can be claimed.' });
@@ -167,13 +173,14 @@ export function explainTask(catalog, state, task, { worker, now, capabilities } 
   return { eligible: blockers.length === 0, blockers };
 }
 
-export function selectNext(catalog, state, { worker, now, capabilities } = {}) {
+export function selectNext(catalog, state, { worker, now, capabilities, track } = {}) {
   validateCatalog(catalog); validateState(catalog, state); timestamp(now);
   requireValue(text(worker), 'INVALID_WORKER', 'A worker identity is required.');
   requireValue(capabilities === undefined || Array.isArray(capabilities) && capabilities.every(kind => KINDS.has(kind)), 'INVALID_CAPABILITIES', 'Capabilities must be known task kinds.');
+  trackAllows({ files: [] }, track);
   const current = structuredClone(state); reconcile(catalog, current, now);
   if (Object.values(current.tasks).some(entry => entry.owner === worker && ['running', 'quarantined'].includes(entry.status))) return null;
-  return catalog.tasks.filter(task => ready(catalog, current, task, capabilities))
+  return catalog.tasks.filter(task => trackAllows(task, track) && ready(catalog, current, task, capabilities))
     .sort((a, b) => (current.tasks[a.id].priority ?? a.priority) - (current.tasks[b.id].priority ?? b.priority) || a.id.localeCompare(b.id))[0] ?? null;
 }
 
@@ -201,14 +208,14 @@ export function transition(catalog, state, command, { now, coordinator } = {}) {
   if (type === 'claim') {
     leaseDuration(command.leaseMs, now);
     requireValue(text(command.token) && command.token.length >= 8 && !next.events.some(item => item.tokenSha256 === tokenDigest(command.token)) && !Object.values(next.tasks).some(entry => text(command.token) && entry.tokenSha256 === tokenDigest(command.token)), 'INVALID_TOKEN', 'A new unique lease token of at least eight characters is required.');
-    const task = selectNext(catalog, next, { worker: actor, now, capabilities: command.capabilities });
+    const task = selectNext(catalog, next, { worker: actor, now, capabilities: command.capabilities, track: command.track });
     if (task) {
       const entry = next.tasks[task.id];
       entry.discoveredDependencies = dependencies(task, next).filter(id => !task.dependencies.includes(id));
       Object.assign(entry, { status: 'running', owner: actor, tokenSha256: tokenDigest(command.token), leaseUntil: now + command.leaseMs, workStarted: false });
       delete entry.blockers;
       claim = { taskId: task.id, token: command.token, leaseUntil: entry.leaseUntil, files: [...task.files] };
-      event(next, now, actor, type, task.id, { tokenSha256: tokenDigest(command.token) });
+      event(next, now, actor, type, task.id, { tokenSha256: tokenDigest(command.token), ...(command.track ? { track: command.track } : {}) });
     }
   } else {
     const task = catalog.tasks.find(item => item.id === command.taskId), entry = next.tasks[command.taskId];
@@ -240,6 +247,22 @@ export function transition(catalog, state, command, { now, coordinator } = {}) {
         requireValue(evidenceValid(command.evidence, true) && command.evidence.reviewer !== entry.owner && command.evidence.commit === entry.evidence?.commit, 'EVIDENCE_REQUIRED', 'Acceptance requires independent review and passing evidence for the submitted commit.');
         entry.status = 'done'; entry.evidence = structuredClone(command.evidence); clearLease(entry); delete entry.blockers;
         break;
+      case 'accept-outcome': {
+        requireValue(entry.status === 'review' && dependencies(task, next).every(id => next.tasks[id].status === 'done'), 'REVIEW_REQUIRED', 'Only dependency-current submitted work can have an accepted outcome.');
+        requireValue(evidenceValid(command.evidence, true) && command.evidence.reviewer !== entry.owner && command.evidence.commit === entry.evidence?.commit, 'EVIDENCE_REQUIRED', 'Independent matching-commit review is required.');
+        const outcome = command.outcome;
+        requireValue(outcome && typeof outcome.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(outcome.id) && text(outcome.scenario)
+          && Array.isArray(outcome.criteria) && outcome.criteria.length > 0 && new Set(outcome.criteria).size === outcome.criteria.length
+          && outcome.criteria.every(i => Number.isSafeInteger(i) && i >= 0 && i < task.acceptance.length)
+          && Array.isArray(outcome.remaining) && outcome.remaining.length > 0 && outcome.remaining.every(text)
+          && text(outcome.nextAction) && text(outcome.integratedCommit) && outcome.integratedCommit === (command.evidence.integratedCommit ?? command.evidence.commit)
+          && command.workersStopped === true, 'OUTCOME_REQUIRED', 'A bounded integrated scenario, parent criteria, remaining work, next action and stopped author are required.');
+        requireValue(!(entry.acceptedOutcomes ?? []).some(item => item.id === outcome.id), 'DUPLICATE_OUTCOME', 'Accepted outcome identities are immutable.');
+        entry.acceptedOutcomes = [...(entry.acceptedOutcomes ?? []), { ...structuredClone(outcome), acceptedAt: now, evidence: structuredClone(command.evidence) }];
+        entry.status = 'pending'; entry.evidence = structuredClone(command.evidence); entry.checkpoint = outcome.nextAction;
+        clearLease(entry); delete entry.blockers;
+        break;
+      }
       case 'reject':
         requireValue(entry.status === 'review' && text(command.reason), 'REVIEW_REQUIRED', 'Reject a review with a concrete reason.');
         entry.status = 'quarantined'; appendBlockers(entry, [{ type: 'decision', source: 'review', reason: command.reason }]);
@@ -278,6 +301,7 @@ export function transition(catalog, state, command, { now, coordinator } = {}) {
     }
     event(next, now, actor, type, task.id, {
       ...(command.reason ? { reason: command.reason } : {}),
+      ...(type === 'accept-outcome' ? { outcome: structuredClone(command.outcome), workersStopped: true } : {}),
       ...(resolvedBlockers ? { resolvedBlockers } : {}),
       ...(command.evidence ? { evidence: structuredClone(command.evidence) } : {}),
       ...(command.approvalEvidence ? { approvalEvidence: structuredClone(command.approvalEvidence) } : {}),

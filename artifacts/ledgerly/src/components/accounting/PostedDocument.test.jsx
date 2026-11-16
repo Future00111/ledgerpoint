@@ -59,7 +59,7 @@ test('apply discount is available on partially settled originals only with verif
     assert.ok(!readonly.includes('Create credit note'));
     assert.ok(!readonly.includes('Record payment'));
     assert.ok(readonly.includes('View journal'));
-    assert.ok(render(kind, { openItem: { gross_minor: '14400', paid_minor: '14400', credited_minor: '0', open_minor: '0', history: [] } }).includes('Apply discount'));
+    assert.ok(!render(kind, { openItem: { gross_minor: '14400', paid_minor: '14400', credited_minor: '0', open_minor: '0', history: [] } }).includes('Apply discount'));
   }
 });
 
@@ -81,12 +81,14 @@ test('normal return from discounted original explains inherited pricing without 
 });
 
 
-test('fully paid originals prepare discount drafts while preserving unavailable and exhausted guards', () => {
+test('fully paid originals retain ordinary credits but reject new discounts', () => {
   const paid = { gross_minor: '14400', paid_minor: '14400', credited_minor: '0', open_minor: '0', history: [] };
   for (const kind of ['sales_invoice', 'purchase_bill']) {
     const html = render(kind, { openItem: paid, capabilities: { edit_drafts: true } });
-    assert.ok(html.includes('Apply discount'));
-    assert.ok(html.includes('original=synthetic-bill&amp;discount=1'));
+    assert.ok(!html.includes('Apply discount'));
+    assert.ok(html.includes('Create credit note'));
+    assert.ok(html.includes('There is no unpaid balance to discount'));
+    assert.ok(!html.includes('discount=1'));
     assert.ok(!html.includes('Record payment'));
     assert.ok(!html.includes('Record refund'));
     const overrides = [
@@ -140,7 +142,9 @@ test('discount review hides stale or malformed balances and never suggests exces
   const money = { gross_pence: '1000' };
   const renderReview = (props = {}) => renderToStaticMarkup(<DiscountBalanceReview original={doc} item={item} money={money} {...props} />);
   const valid = renderReview();
-  for (const value of ['£144.00', '£140.00', '£4.00', '£10.00', '£6.00', 'posting this credit does not move cash']) assert.ok(valid.includes(value), value);
+  for (const value of ['£144.00', '£140.00', '£4.00', 'Discounts require an unpaid balance']) assert.ok(valid.includes(value), value);
+  assert.ok(!valid.includes('Balance if posted'));
+  assert.ok(!valid.includes('£6.00'));
   for (const props of [{ loading: true }, { error: new Error('Unavailable') }, { item: null }, { original: { money: { gross_pence: '14500' } } },
     ...Object.keys(item).flatMap(field => [undefined, null, '', '-1', '01', 'bad', '1.2', 0, '1000000000000'].map(value => ({ item: { ...item, [field]: value } })))]) {
     const html = renderReview(props);

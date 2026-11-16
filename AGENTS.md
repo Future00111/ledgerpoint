@@ -77,3 +77,38 @@ the next executable assignment. Unknown cost and duration remain unknown.
 Replit capability checks have a five-minute limit per run unless new evidence
 justifies more; unavailable Replit never stalls ready Codex work. No demo changes,
 external actions, owner gates or release authority are added by this policy.
+
+## Simplified delivery (owner approved 10 November 2026)
+
+Use one implementer (prefer Replit when controlled isolated execution is actually
+available) and root performing coordination/review/integration. Use a separate
+reviewer for financial/security implementation; do not self-approve. Extra workers
+are optional only for named independent work that shortens delivery. Preserve the
+single queue, fencing, file leases, exact-source tests and owner gates. Measure
+accepted customer journeys, elapsed time, rework and actual usage, not occupancy.
+
+## Owner-approved efficiency trial — 16 November 2026
+
+Use at most two independent implementation tracks, not permanent departments:
+normal highest-eligible connected accounting work, and the highest eligible
+`tax-payroll` prerequisite via CLI `claim` with `track: "tax-payroll"`.
+The second-track exception is owner approved; dependencies, approval, file
+leases and priority within the track are unchanged. No third implementation
+track. Verify provider controls before dispatch; unavailable Replit does not
+block eligible Codex work. Move qualified tax/payroll specifications and fixtures
+into actual calculation implementation as their existing dependencies permit.
+
+A submitted bounded integrated scenario can use coordinator `accept-outcome`
+with independent matching-commit evidence, stable outcome ID, parent criterion
+indices, remaining work, next action and stopped-author attestation. This releases
+review ownership and records child acceptance while leaving the parent pending.
+Never reject/recover merely to record successful partial delivery. Full parent
+acceptance still requires every original criterion and existing financial,
+security, browser and exact-source restore gates. `current-view.mjs` derives
+current task/evidence/blocker status without deleting historical records.
+
+Weekly compare accepted integrated scenarios, elapsed delivery/review/blocker time,
+first-pass review, avoidable failures, actual tax/payroll advancement and measured
+provider cost (unknown when unavailable). Do not use occupancy, commits or test
+counts as completion. Reuse passing evidence only for matching source/configuration;
+retain full combined integration gates. No merge/deploy authority is added.

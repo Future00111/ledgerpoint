@@ -580,3 +580,151 @@ separate-cluster drill retains its all-table fingerprint and isolation checks.
 Exact commits, logs, counts, restore/cleanup receipts and patches are exported
 outside this source checkout. Local checks are not GitHub CI or production/HMRC
 qualification. Independent integration/activation acceptance remains required.
+
+## Owner adjustment - 10 November 2026
+
+A new discretionary discount is permitted only on an unpaid or partly paid
+invoice/bill, and cannot exceed its current unpaid balance. A fully paid original
+must use an ordinary linked credit and a separately reviewed refund; the original
+payment remains immutable and a credit never asserts that cash was refunded.
+This distinction does not cap genuine commercial credits at the cash outstanding.
+
+Enforce the discount rule on saved draft calculation, fresh review and locked
+commit, including a draft/review prepared before another tab pays the original.
+Replay of an already recorded operation remains unchanged. Historic posted
+source, VAT, journals and reports are not rewritten or reclassified.
+Conditional internal evidence remains historical/internal; public conditional
+posting stays closed. Any later public admission must apply this owner rule and
+qualify the connected journey rather than enabling old full-payment discount
+scenarios wholesale. This bounded change does not accept all of P01-03.
+
+### Current public conditional preview boundary - 10 November 2026
+
+The public read-only conditional eligibility route now uses a distinct server
+entry point. After the existing eligibility calculation, it rechecks the current
+unpaid balance in the same company-locked transaction, independent of the credit
+source's discretionary-discount marker. A fully paid original rejects with
+`DISCOUNT_REQUIRES_UNPAID_BALANCE`; a discount exceeding the remaining unpaid
+balance rejects with `DISCOUNT_EXCEEDS_OUTSTANDING`. A qualifying exact-balance
+discount previews with zero payment releases. Repeating a preview after another
+payment recalculates eligibility and capacity; a preview reserves nothing.
+
+Internal historical review/redemption and exact recovery are unchanged, including
+the legacy fully paid fixtures needed to verify compensation. They are not public
+mutation authority. Public conditional posting remains closed; future activation
+must enforce the same current owner rule at locked commit and qualify the whole
+journey. Ordinary commercial credit/refund capacity is unchanged. The new both-party
+HTTP cases check unchanged financial snapshots after allowed and denied previews;
+this bounded preview correction does not complete P01-03 or qualify posting.
+
+### Current conditional-discount command (11 November 2026)
+
+The internal `commitCurrentConditionalDiscount` command shares the protected
+canonical transaction and company lock with the existing credit engine. Its
+server-selected `conditional-discount` purpose is bound into both the review
+identity and operation request hash. Current-policy review and commit require a
+positive unpaid balance and a discount no greater than that balance, before any
+release planning; the accepted plan has no cash allocation releases. Existing
+conditional qualification, source freshness, account, period, capability and
+immutable consumption controls remain required. Exact committed retries return
+the recorded result before applying today's outstanding-balance checks. Historical
+internal redemption and genuine commercial credits retain their separate modes.
+
+`recoverCurrentConditionalDiscount` requires current posting capability, company
+scope, the original actor and this purpose. An absent or differently scoped request
+returns `unknown`, which is not proof of rollback and never creates a replacement
+request. A recorded receipt verifies the credit, canonical payload, journal and
+posting effect linkage before returning only request, document and journal IDs.
+It does not expose internal intent, review tokens or canonical payloads.
+
+This is an internal financial command, not public activation. Public original
+conditional posting and conditional-credit commit remain closed. The next
+connected delivery must integrate atomic original binding, the explicit current
+review/commit/recovery API and UI, and all relevant payment, correction,
+replacement and compensation guards, followed by independent review and an
+isolated browser journey. The broad P01-03 package remains pending.
+
+## Connected current-discount development candidate — 11 November 2026
+
+The explicit `conditional-original` command reuses canonical posting with a
+private transaction/actor/company/document/revision capability. It commits the
+prepared native binding hash as the journal source evidence, rechecks the frozen
+source under lock, and binds the original in that same transaction. Duplicate
+responses also verify the existing binding. Ordinary `/post` remains closed to
+conditional sources. A separate, retryable observation request proves the binding
+committed before qualifying payment evidence; the form displays an observation
+retry when posting succeeded but observation did not.
+
+The explicit `conditional-discount/review` and commit routes select the existing
+current policy internally. The public review projects the token, request intent,
+amounts and threshold/deadline display only. It does not expose canonical payloads,
+frozen vectors or qualifying-payment authority. The current policy cannot release
+paid cash and requires the complete compensation guard before review/commit.
+Historical preview and internal historical redemption retain their boundaries.
+
+Before committing, the form stores only company/document/revision/request ID.
+Unknown outcomes retain that locator and disable a new review or submission.
+The scoped recovery endpoint must return the matching recorded journal before
+clearing it; late responses cannot clear a different stored request. Storage
+failure or corruption fails closed. A posted document still displays unresolved
+recovery. This is not a cross-tab atomic lock. There is no automatic resubmission
+and no claim that an unknown receipt proves failure.
+
+Qualification added: native HTTP original posting/observation, payment, review,
+commit and recovery for customer and supplier; rollback, replay, role denial,
+request-mode rejection and incomplete-compensation-schema controls; isolated
+Chromium uses the actual review/recovery components with the native commit API,
+simulated lost response and component remount recovery. PostgreSQL and Chromium
+must pass on this exact candidate in the disposable CI runner. The browser case
+is not a full-page blank-original creation demonstration.
+
+**Parent P01-03 remains pending.** Next executable work is the original form's
+agreement terms and evidence capture controls, using existing evidence APIs and
+saved source validation, followed by the complete blank-original-to-settlement
+browser journey. Existing migrations require their separate environment approval;
+this candidate does not deploy, migrate an existing database, send money or
+activate public production access.
+
+### 11 November 2026 — bounded original agreement entry (partial)
+
+The native invoice/bill page now offers explicit original conditional-agreement
+entry outside document intake. It generates an agreement ID, collects agreement
+date, payment deadline, exact decimal GBP discount including VAT, evidence text
+and user attestation. Integer minor units use BigInt without rounding. Ordinary
+immediate discounts and conditional terms remain mutually exclusive. Capturing
+immutable evidence does not save or post the document; a separate draft save and
+saved-amount posting review remain required. The existing server validates the
+receipt, agreement, party, company and amount against the saved original.
+
+Capture retries retain the request ID until inputs change. Responses attach only
+when their exact terms, company, party and evidence match the active request;
+company/document generation changes discard old responses. Changing party,
+terms or evidence clears the attached receipt and attestation. Saved source and
+posting fields load before receipt verification; failed verification blocks
+save/review without silently discarding the saved agreement. Removing an
+agreement is an explicit draft edit and does not delete immutable evidence.
+Reopening fetches and verifies the saved receipt. Posting review displays the
+saved agreement amount and dates and retains the original full amount.
+
+New full-page Chromium cases use actual AccountingDocumentForm, native API and
+fresh disposable synthetic fixtures for both customer and supplier. They check
+unattested save blocking, capture without saving/posting, changed-term
+invalidation, recapture, save/route reload, receipt retrieval, explicit saved-term
+review and original posting/committed observation, then a native reviewed £108
+payment and actual discount-credit page save/review/£12 commit with no cash
+release. A test-only continuation now drops the successful discount response,
+checks the actual form persists recovery and disables confirmation, remounts the
+posted credit page, then recovers through the native receipt GET exactly once
+without another commit. These extended cases require exact-source CI;
+local bundle compilation and source tests are not browser/financial acceptance.
+
+This remains PARTIAL P01-03. It does not close the original 92-bullet catalogue,
+parent excess-credit/refund acceptance, intake conditional entry, or broader parent recovery/refund acceptance. The new connected page cases
+join original entry, native payment, current discount and lost-response remount
+recovery, pending exact-source CI for this test-only continuation.
+The existing connected native API and review/recovery-component cases cover
+recovery separately. Fully paid conditional-original commercial credit
+and refund admission remains separately gated; this entry does not enable it.
+Next: run the new cases on matching-source disposable PostgreSQL/Chromium CI,
+independently review results, then connect and verify remaining parent customer
+journeys without rewriting historical posted outcomes.

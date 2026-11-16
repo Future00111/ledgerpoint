@@ -102,3 +102,10 @@ test('conditional credit review is scoped, revision-bound and exposes no commit 
  assert.equal(calls[0].init.method,'POST');assert.equal(calls[0].init.headers['If-Match'],'"saved-revision"');assert.deepEqual(JSON.parse(calls[0].init.body),body);
  assert.equal(client.commitConditionalCredit,undefined);
 });
+
+test('explicit conditional original and current discount methods use scoped native routes',async()=>{
+ const calls=[],client=createAccountingClient(async(url,options)=>{calls.push({url,...options});return {ok:true,json:async()=>({data:{}})};});
+ await client.postConditionalOriginal('co','doc','r');await client.observeConditionalOriginal('co','doc');
+ await client.reviewConditionalDiscount('co','credit',{request_id:'request'},'r');await client.commitConditionalDiscount('co','credit',{request_id:'request'},'r');await client.recoverConditionalDiscount('co','request');
+ assert.deepEqual(calls.map(c=>c.url),['/api/companies/co/accounting-documents/doc/conditional-original','/api/companies/co/accounting-documents/doc/conditional-original/observe','/api/companies/co/accounting-documents/credit/conditional-discount/review','/api/companies/co/accounting-documents/credit/conditional-discount','/api/companies/co/accounting-conditional-discounts/operations/request']);
+});

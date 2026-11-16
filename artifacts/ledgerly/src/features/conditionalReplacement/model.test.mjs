@@ -40,7 +40,7 @@ test('recovery confirms only from history; labels distinguish states', () => {
   assert.equal(versionLabel({ current: false, observation: { state: 'observed' } }), 'Superseded · observed');
   assert.equal(versionLabel({ current: false, observation: { state: 'unobserved' } }), 'Superseded · never observed');
 });
-test('client uses company-scoped endpoints and exposes no redemption/commit method', async () => {
+test('replacement client uses company-scoped endpoints without redemption or replacement commit methods', async () => {
   const calls = [];
   const c = createAccountingClient(async (url, o) => { calls.push({ url, ...o }); return { ok: true, json: async () => ({ data: {} }) }; });
   await c.replacementHistory('co', 'doc'); await c.appendReplacement('co', 'doc', { request_id: 'q' }); await c.observeReplacement('co', 'doc', 'r');
@@ -49,5 +49,6 @@ test('client uses company-scoped endpoints and exposes no redemption/commit meth
     ['POST', '/api/companies/co/accounting-documents/doc/conditional-replacements'],
     ['POST', '/api/companies/co/accounting-documents/doc/conditional-replacements/r/observe']]);
   assert.ok(calls.every(x => x.credentials === 'include'));
-  for (const k of Object.keys(c)) assert.doesNotMatch(k, /redeem|commitReplacement|commitCompensation|conditionalPost/i);
+  assert.equal(typeof c.commitCompensation, 'function');
+  for (const k of Object.keys(c)) if (k !== 'commitCompensation') assert.doesNotMatch(k, /redeem|commitReplacement|commitCompensation|conditionalPost/i);
 });

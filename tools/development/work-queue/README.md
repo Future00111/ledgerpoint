@@ -337,3 +337,48 @@ appended events, set the recorded revision, verify the resulting digest and vali
 with the current queue module before init. Never initialise the stale base alone.
 Normal coordinator recovery requires stopped evidence and preserves lastOwner's
 SHA-256 reuse fence; do not remove fencing fields to resolve publication failures.
+
+
+### Owner-approved simplification and merged PR successor - 10 November 2026
+
+One implementer plus root for coordination/integration is the default. Obtain a
+separate financial/security review, without a standing extra team. Replit must
+still meet isolation, observation and stop/export controls; unavailable Replit
+never stalls eligible local implementation. This is staffing policy, not a new
+scheduler enforcement claim.
+
+After the owner explicitly merges the pinned integration PR, record its number,
+merge commit and owner approval as `publicationSuccessor` on the durable authority.
+The reviewed preflight may bootstrap exactly one FF candidate on the unchanged
+approved head branch only when the closed merged PR and current base match that
+merge commit. Immediately create a successor draft PR against the same base,
+persist its number as `integrationPullRequest`, and remove `publicationSuccessor`.
+All subsequent updates require that numbered open draft. No branch change,
+force-push, merge, deployment or parent acceptance is authorized by this transition.
+
+### Efficiency trial (owner approved 16 November 2026)
+
+`claim`, `status` and `listready` accept optional `track: "tax-payroll"`.
+This selects the highest eligible task owning native tax/payroll service paths;
+normal claims retain global priority. It never bypasses dependencies, approvals
+or held-file conflicts. Staffing remains a coordinator responsibility: at most
+two implementers, no third track or permanent specialties.
+
+`accept-outcome` is coordinator-only. Submit normally, retain files through review,
+then provide independent matching-commit `evidence`, `workersStopped: true`, and
+`outcome: { id, scenario, criteria, remaining, nextAction, integratedCommit }`.
+`criteria` contains zero-based parent acceptance indices; `remaining` is nonempty.
+For a rebased/cherry-picked integration, evidence.commit still matches the submitted
+author; evidence.integratedCommit and outcome.integratedCommit name the tested
+published integration. The coordinator verifies the preserved diff and actual
+integrated-source gates before attesting.
+The event and task retain the outcome; parent stays pending and dependencies
+stay blocked until full parent acceptance. Use reject only for actual defects.
+`currentView(catalog, authority, { now, publishedCommits })` in `current-view.mjs`
+provides a read-only current projection; published commits must come from verified
+integration-branch ancestry, never a worker assertion. Unknown ages remain null.
+
+Earlier PR27 references above describe historical bootstrap behavior. Use the
+current durable `integrationPullRequest` and publication helper; PR28 is the
+current successor. Draft description text is not current CI evidence. Keep the
+existing pinned runner, focused pre-submission checks and full exact-source gates.

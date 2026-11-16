@@ -109,6 +109,10 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
   const totals={...money(tax.netPence.map((v:string)=>BigInt(v)),tax.vatPence),
     ...(source.discount?{discount:tax.context.discount}:{}),
     ...(source.discount_adjustment?{discount_adjustment:tax.context.discount_adjustment}:{})};
+  // New discounts reduce unpaid debt only. Historical posted evidence is never
+  // recalculated under a new admission rule; ordinary credits retain full capacity.
+  if(source.discount_adjustment && previous?.status !== 'posted')
+    await assertDiscountOutstanding(q,company,originalId,totals.gross_pence);
   await validateConditionalDraft(q,company,source,sales(kind)?'customer':'supplier',totals.gross_pence);
   return {source,party_name:party.rows[0].name,party_id:source.customer_id,
     original_id:originalId??null,reason:typeof reason==="string"?reason.trim():"",
@@ -118,6 +122,12 @@ export async function calculateDocument(q:Queryable, company:string, kind:Kind, 
       rounding:{...tax.context.rounding,decision_scope:"Owner-authorized synthetic development accounting; not production qualification."},
       purchase_vat_eligible:eligible,business_accounting_basis:"accrual"},
     posting_accounts:accounts,mapping_revision:config.revision,unit_net_prices:tax.unitNetPrices};
+}
+export async function assertDiscountOutstanding(q:Queryable,company:string,originalId:string,amount:string) {
+  // Callers hold the company lock before this read, including review/commit.
+  const open=await documentOpen(q,company,originalId,await paymentEvents(q,company));
+  if(BigInt(open.open_minor)<=0n) fail(409,'DISCOUNT_REQUIRES_UNPAID_BALANCE');
+  if(BigInt(amount)>BigInt(open.open_minor)) fail(409,'DISCOUNT_EXCEEDS_OUTSTANDING');
 }
 export async function assertCreditAvailable(q:Queryable, company:string, row:any, tx?:DatabaseTransaction, actor?:string) {
   if(!credit(row.kind)) return;

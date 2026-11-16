@@ -92,3 +92,43 @@ test('rejects time before authority update and never mutates a lease to extend i
   assert.throws(() => preflight(input), { code: 'INVALID_AUTHORITY_OBSERVATION' });
   for (const now of [-1, NaN, Infinity, 1.2]) assert.throws(() => preflightPublication(fixture(), { now }), { code: 'INVALID_TIME' });
 });
+
+
+test('only checkpointed owner-merged predecessor can bootstrap the same integration branch', () => {
+  const x=fixture();
+  x.authority.value.publicationSuccessor={predecessorPr:27,mergeCommit:base,preMergeBaseSha:base,ownerApprovedMerge:true};
+  Object.assign(x.pullRequest.value,{state:'closed',draft:false,merged:true,merge_commit_sha:base});
+  x.baseDestination={repository,ref:'refs/heads/dev/w03-draft-invoice-slice',sha:base,observedAt:1000};
+  assert.equal(preflight(x).successorDraftRequired,true);
+  for(const change of [
+    y=>{delete y.authority.value.publicationSuccessor;},
+    y=>{delete y.baseDestination;},
+    y=>{y.baseDestination.sha=next;},
+    y=>{y.baseDestination.observedAt=1002;},
+    y=>{y.baseDestination.repository='other/repo';},
+    y=>{y.authority.value.publicationSuccessor.preMergeBaseSha=next;},
+    y=>{y.authority.value.publicationSuccessor.ownerApprovedMerge=false;},
+    y=>{y.authority.value.publicationSuccessor.predecessorPr=28;},
+    y=>{y.pullRequest.value.merged=false;},
+    y=>{y.pullRequest.value.merge_commit_sha=next;},
+    y=>{y.intent.expectedBaseSha=next;},
+  ]) {const bad=structuredClone(x);change(bad);assert.throws(()=>preflight(bad));}
+  const fork=structuredClone(x);fork.pullRequest.value.head.repo.full_name='other/repo';
+  assert.throws(()=>preflight(fork),{code:'PR_TARGET_CHANGED'});
+});
+
+test('successor PR number is pinned by durable authority and still requires open draft state',()=>{
+ const x=fixture();x.authority.value.integrationPullRequest=28;x.pullRequest.value.number=28;
+ assert.equal(preflight(x).pullRequest,28);
+ x.pullRequest.value.number=29;assert.throws(()=>preflight(x),{code:'DRAFT_PR_REQUIRED'});
+ x.pullRequest.value.number=28;x.pullRequest.value.draft=false;assert.throws(()=>preflight(x),{code:'DRAFT_PR_REQUIRED'});
+});
+
+test('merged PR retains old base SHA while separately observed base must equal the actual merge',()=>{
+ const x=fixture();const merged='9'.repeat(40);
+ x.authority.value.publicationSuccessor={predecessorPr:27,mergeCommit:merged,preMergeBaseSha:base,ownerApprovedMerge:true};
+ Object.assign(x.pullRequest.value,{state:'closed',draft:false,merged:true,merge_commit_sha:merged});
+ x.intent.expectedBaseSha=merged;
+ x.baseDestination={repository,ref:'refs/heads/dev/w03-draft-invoice-slice',sha:merged,observedAt:1000};
+ assert.equal(preflight(x).successorDraftRequired,true);
+});

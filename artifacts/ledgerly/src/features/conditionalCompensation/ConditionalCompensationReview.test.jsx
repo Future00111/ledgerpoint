@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { compensationInput, ConditionalCompensationReview, CompensationRecovery } from './ConditionalCompensationReview';
+import { compensationInput, ConditionalCompensationReview, CompensationRecovery, saveCompensationPending, readCompensationPending, validateCompensationOutcome } from './ConditionalCompensationReview';
 import { createAccountingClient } from '../../api/accountingDocuments.mjs';
 
 test('compensation review displays full frozen discount, allocation change and cash/no-redemption consequences with posting disabled', () => {
@@ -36,7 +36,7 @@ test('input retains exact selected identities and pennies without binary float r
   for (const n of ['0','-1','1.001','1e2','']) assert.throws(()=>compensationInput(item,'payment',n,'2026-11-05','Reason','r'));
   assert.throws(()=>compensationInput(item,'foreign','10','2026-11-05','Reason','r'));
 });
-test('native client sends review/recovery to company-scoped endpoints and exposes no compensation commit',async()=>{
+test('native client sends review/recovery to company-scoped endpoints and explicit reviewed compensation commit',async()=>{
   const calls=[];
   const client=createAccountingClient(async(url,options)=>{calls.push({url,...options});return {ok:true,json:async()=>({data:{posting_available:false}})};});
   await client.compensationContext('company');
@@ -47,7 +47,7 @@ test('native client sends review/recovery to company-scoped endpoints and expose
     '/api/companies/company/accounting-conditional-compensations/review',
     '/api/companies/company/accounting-conditional-compensations/operations/request']);
   assert.deepEqual(calls.map(c=>c.method),['GET','POST','GET']);
-  assert.equal(client.commitCompensation,undefined);assert.ok(calls.every(c=>c.credentials==='include'));
+  await client.commitCompensation('company',{request_id:'request',review_token:'review'});assert.equal(calls[3].url,'/api/companies/company/accounting-conditional-compensations');assert.equal(calls[3].method,'POST');assert.ok(calls.every(c=>c.credentials==='include'));
 });
 test('full payment reversal review clearly changes cash, preserves disabled confirmation and provides recovery journal',()=>{
  const input=compensationInput({original_id:'o',credit_id:'c',payment_ids:['p']},'p','108','2026-11-05','Reverse','r','reverse_payment');
@@ -61,4 +61,21 @@ test('full payment reversal review clearly changes cash, preserves disabled conf
  assert.doesNotMatch(html,/Cash does not change/);assert.match(html,/disabled/);
  const recovered=renderToStaticMarkup(<CompensationRecovery outcome={{state:'known',reversal_journal_id:'a',unallocation_journal_id:'b',cash_reversal_journal_id:'c'}}/>);
  assert.match(recovered,/accounting\/journals\/c/);
+});
+
+test('pending locator requires durable write and exact company/request recovery',()=>{
+ const values=new Map(),storage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)};
+ const request='11111111-1111-1111-1111-111111111111';
+ assert.equal(saveCompensationPending(storage,'company',request).request,request);
+ assert.equal(readCompensationPending(storage,'company').request,request);
+ assert.equal(readCompensationPending(storage,'other'),null);
+ assert.throws(()=>saveCompensationPending(storage,'company','22222222-2222-2222-2222-222222222222'));
+ assert.equal(readCompensationPending(storage,'company').request,request);
+ assert.throws(()=>validateCompensationOutcome({state:'known',status:'rejected',request_id:request,reversal_journal_id:request,unallocation_journal_id:request},request));
+ assert.throws(()=>validateCompensationOutcome({state:'known',status:'posted',request_id:request,reversal_journal_id:'bad',unallocation_journal_id:request},request));
+ assert.equal(validateCompensationOutcome({state:'known',status:'posted',request_id:request,reversal_journal_id:request,unallocation_journal_id:request},request).state,'known');
+ assert.throws(()=>saveCompensationPending({setItem(){throw Error('denied')}},'company',request));
+ assert.throws(()=>validateCompensationOutcome({state:'known',request_id:'other',reversal_journal_id:'a',unallocation_journal_id:'b'},request));
+ assert.throws(()=>validateCompensationOutcome({state:'unknown',request_id:'other'},request));
+ assert.equal(validateCompensationOutcome({state:'unknown',request_id:request},request).state,'unknown');
 });

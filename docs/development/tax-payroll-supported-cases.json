@@ -2207,6 +2207,73 @@
         "qualification": "reference_only_engine_not_implemented",
         "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
         "sourceVersion": "1.0"
+      },
+      "fixturePrerequisite": {
+        "status": "reference_only_engine_not_implemented",
+        "nextTask": "P04-03",
+        "owner": "coordinator",
+        "acceptanceScenario": "Independently review the two adjacent official weekly examples below, then implement notice eligibility and reconcile the exact deductionMinor values without deriving expected values from the engine. These examples alone do not qualify the plan.",
+        "examples": [
+          {
+            "id": "hmrc-loan-2026-27-plan_1-row-11",
+            "sourceSheet": "Plan_1",
+            "sourceRow": 11,
+            "input": {
+              "taxYear": "2026-27",
+              "plan": "plan_1",
+              "frequency": "weekly",
+              "payMinor": "52841"
+            },
+            "expected": {
+              "deductionMinor": "0"
+            }
+          },
+          {
+            "id": "hmrc-loan-2026-27-plan_1-row-12",
+            "sourceSheet": "Plan_1",
+            "sourceRow": 12,
+            "input": {
+              "taxYear": "2026-27",
+              "plan": "plan_1",
+              "frequency": "weekly",
+              "payMinor": "52842"
+            },
+            "expected": {
+              "deductionMinor": "100"
+            }
+          }
+        ],
+        "missingInputs": [
+          "loanNotice",
+          "employmentId",
+          "paymentDate"
+        ],
+        "missingOutputs": [
+          "ruleVersion",
+          "calculationSteps",
+          "warnings"
+        ],
+        "missingFixtures": [
+          {
+            "id": "notice_start_stop",
+            "scenario": "Effective-dated loan start/stop notice and payment-date boundary, including no notice and conflicting notices; pin expected eligibility and deduction with independent evidence."
+          },
+          {
+            "id": "concurrent_student_postgraduate",
+            "scenario": "The same earnings period with a student plan and postgraduate notice; pin both deductions, earnings basis and ordering independently rather than adding unrelated source rows."
+          },
+          {
+            "id": "correction_replay",
+            "scenario": "Correct earnings and replay prior periods under the original rule version; pin before/after deductions, year-to-date totals and immutable correction links."
+          }
+        ],
+        "ruleEvidence": null,
+        "independentReview": null,
+        "remainingYears": [
+          "2025-26",
+          "2027-28"
+        ],
+        "nextExecutableStep": "P04-03: independently qualify notice_start_stop for this plan and 2026-27 using the pinned weekly boundary pair; obtain effective notice/payment-date fixtures and statutory rounding/rule version. Do not import another year."
       }
     },
     {
@@ -2279,6 +2346,73 @@
         "qualification": "reference_only_engine_not_implemented",
         "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
         "sourceVersion": "1.0"
+      },
+      "fixturePrerequisite": {
+        "status": "reference_only_engine_not_implemented",
+        "nextTask": "P04-03",
+        "owner": "coordinator",
+        "acceptanceScenario": "Independently review the two adjacent official weekly examples below, then implement notice eligibility and reconcile the exact deductionMinor values without deriving expected values from the engine. These examples alone do not qualify the plan.",
+        "examples": [
+          {
+            "id": "hmrc-loan-2026-27-plan_2-row-11",
+            "sourceSheet": "Plan_2",
+            "sourceRow": 11,
+            "input": {
+              "taxYear": "2026-27",
+              "plan": "plan_2",
+              "frequency": "weekly",
+              "payMinor": "57620"
+            },
+            "expected": {
+              "deductionMinor": "0"
+            }
+          },
+          {
+            "id": "hmrc-loan-2026-27-plan_2-row-12",
+            "sourceSheet": "Plan_2",
+            "sourceRow": 12,
+            "input": {
+              "taxYear": "2026-27",
+              "plan": "plan_2",
+              "frequency": "weekly",
+              "payMinor": "57621"
+            },
+            "expected": {
+              "deductionMinor": "100"
+            }
+          }
+        ],
+        "missingInputs": [
+          "loanNotice",
+          "employmentId",
+          "paymentDate"
+        ],
+        "missingOutputs": [
+          "ruleVersion",
+          "calculationSteps",
+          "warnings"
+        ],
+        "missingFixtures": [
+          {
+            "id": "notice_start_stop",
+            "scenario": "Effective-dated loan start/stop notice and payment-date boundary, including no notice and conflicting notices; pin expected eligibility and deduction with independent evidence."
+          },
+          {
+            "id": "concurrent_student_postgraduate",
+            "scenario": "The same earnings period with a student plan and postgraduate notice; pin both deductions, earnings basis and ordering independently rather than adding unrelated source rows."
+          },
+          {
+            "id": "correction_replay",
+            "scenario": "Correct earnings and replay prior periods under the original rule version; pin before/after deductions, year-to-date totals and immutable correction links."
+          }
+        ],
+        "ruleEvidence": null,
+        "independentReview": null,
+        "remainingYears": [
+          "2025-26",
+          "2027-28"
+        ],
+        "nextExecutableStep": "P04-03: independently qualify notice_start_stop for this plan and 2026-27 using the pinned weekly boundary pair; obtain effective notice/payment-date fixtures and statutory rounding/rule version. Do not import another year."
       }
     },
     {
@@ -2351,6 +2485,73 @@
         "qualification": "reference_only_engine_not_implemented",
         "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
         "sourceVersion": "1.0"
+      },
+      "fixturePrerequisite": {
+        "status": "reference_only_engine_not_implemented",
+        "nextTask": "P04-03",
+        "owner": "coordinator",
+        "acceptanceScenario": "Independently review the two adjacent official weekly examples below, then implement notice eligibility and reconcile the exact deductionMinor values without deriving expected values from the engine. These examples alone do not qualify the plan.",
+        "examples": [
+          {
+            "id": "hmrc-loan-2026-27-plan_4-row-11",
+            "sourceSheet": "Plan_4",
+            "sourceRow": 11,
+            "input": {
+              "taxYear": "2026-27",
+              "plan": "plan_4",
+              "frequency": "weekly",
+              "payMinor": "66101"
+            },
+            "expected": {
+              "deductionMinor": "0"
+            }
+          },
+          {
+            "id": "hmrc-loan-2026-27-plan_4-row-12",
+            "sourceSheet": "Plan_4",
+            "sourceRow": 12,
+            "input": {
+              "taxYear": "2026-27",
+              "plan": "plan_4",
+              "frequency": "weekly",
+              "payMinor": "66102"
+            },
+            "expected": {
+              "deductionMinor": "100"
+            }
+          }
+        ],
+        "missingInputs": [
+          "loanNotice",
+          "employmentId",
+          "paymentDate"
+        ],
+        "missingOutputs": [
+          "ruleVersion",
+          "calculationSteps",
+          "warnings"
+        ],
+        "missingFixtures": [
+          {
+            "id": "notice_start_stop",
+            "scenario": "Effective-dated loan start/stop notice and payment-date boundary, including no notice and conflicting notices; pin expected eligibility and deduction with independent evidence."
+          },
+          {
+            "id": "concurrent_student_postgraduate",
+            "scenario": "The same earnings period with a student plan and postgraduate notice; pin both deductions, earnings basis and ordering independently rather than adding unrelated source rows."
+          },
+          {
+            "id": "correction_replay",
+            "scenario": "Correct earnings and replay prior periods under the original rule version; pin before/after deductions, year-to-date totals and immutable correction links."
+          }
+        ],
+        "ruleEvidence": null,
+        "independentReview": null,
+        "remainingYears": [
+          "2025-26",
+          "2027-28"
+        ],
+        "nextExecutableStep": "P04-03: independently qualify notice_start_stop for this plan and 2026-27 using the pinned weekly boundary pair; obtain effective notice/payment-date fixtures and statutory rounding/rule version. Do not import another year."
       }
     },
     {
@@ -2423,6 +2624,73 @@
         "qualification": "reference_only_engine_not_implemented",
         "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
         "sourceVersion": "1.0"
+      },
+      "fixturePrerequisite": {
+        "status": "reference_only_engine_not_implemented",
+        "nextTask": "P04-03",
+        "owner": "coordinator",
+        "acceptanceScenario": "Independently review the two adjacent official weekly examples below, then implement notice eligibility and reconcile the exact deductionMinor values without deriving expected values from the engine. These examples alone do not qualify the plan.",
+        "examples": [
+          {
+            "id": "hmrc-loan-2026-27-plan_5-row-11",
+            "sourceSheet": "Plan_5",
+            "sourceRow": 11,
+            "input": {
+              "taxYear": "2026-27",
+              "plan": "plan_5",
+              "frequency": "weekly",
+              "payMinor": "49187"
+            },
+            "expected": {
+              "deductionMinor": "0"
+            }
+          },
+          {
+            "id": "hmrc-loan-2026-27-plan_5-row-12",
+            "sourceSheet": "Plan_5",
+            "sourceRow": 12,
+            "input": {
+              "taxYear": "2026-27",
+              "plan": "plan_5",
+              "frequency": "weekly",
+              "payMinor": "49188"
+            },
+            "expected": {
+              "deductionMinor": "100"
+            }
+          }
+        ],
+        "missingInputs": [
+          "loanNotice",
+          "employmentId",
+          "paymentDate"
+        ],
+        "missingOutputs": [
+          "ruleVersion",
+          "calculationSteps",
+          "warnings"
+        ],
+        "missingFixtures": [
+          {
+            "id": "notice_start_stop",
+            "scenario": "Effective-dated loan start/stop notice and payment-date boundary, including no notice and conflicting notices; pin expected eligibility and deduction with independent evidence."
+          },
+          {
+            "id": "concurrent_student_postgraduate",
+            "scenario": "The same earnings period with a student plan and postgraduate notice; pin both deductions, earnings basis and ordering independently rather than adding unrelated source rows."
+          },
+          {
+            "id": "correction_replay",
+            "scenario": "Correct earnings and replay prior periods under the original rule version; pin before/after deductions, year-to-date totals and immutable correction links."
+          }
+        ],
+        "ruleEvidence": null,
+        "independentReview": null,
+        "remainingYears": [
+          "2025-26",
+          "2027-28"
+        ],
+        "nextExecutableStep": "P04-03: independently qualify notice_start_stop for this plan and 2026-27 using the pinned weekly boundary pair; obtain effective notice/payment-date fixtures and statutory rounding/rule version. Do not import another year."
       }
     },
     {
@@ -2495,6 +2763,73 @@
         "qualification": "reference_only_engine_not_implemented",
         "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
         "sourceVersion": "1.0"
+      },
+      "fixturePrerequisite": {
+        "status": "reference_only_engine_not_implemented",
+        "nextTask": "P04-03",
+        "owner": "coordinator",
+        "acceptanceScenario": "Independently review the two adjacent official weekly examples below, then implement notice eligibility and reconcile the exact deductionMinor values without deriving expected values from the engine. These examples alone do not qualify the plan.",
+        "examples": [
+          {
+            "id": "hmrc-loan-2026-27-postgraduate-row-11",
+            "sourceSheet": "Postgraduate",
+            "sourceRow": 11,
+            "input": {
+              "taxYear": "2026-27",
+              "plan": "postgraduate",
+              "frequency": "weekly",
+              "payMinor": "42050"
+            },
+            "expected": {
+              "deductionMinor": "0"
+            }
+          },
+          {
+            "id": "hmrc-loan-2026-27-postgraduate-row-12",
+            "sourceSheet": "Postgraduate",
+            "sourceRow": 12,
+            "input": {
+              "taxYear": "2026-27",
+              "plan": "postgraduate",
+              "frequency": "weekly",
+              "payMinor": "42051"
+            },
+            "expected": {
+              "deductionMinor": "100"
+            }
+          }
+        ],
+        "missingInputs": [
+          "loanNotice",
+          "employmentId",
+          "paymentDate"
+        ],
+        "missingOutputs": [
+          "ruleVersion",
+          "calculationSteps",
+          "warnings"
+        ],
+        "missingFixtures": [
+          {
+            "id": "notice_start_stop",
+            "scenario": "Effective-dated loan start/stop notice and payment-date boundary, including no notice and conflicting notices; pin expected eligibility and deduction with independent evidence."
+          },
+          {
+            "id": "concurrent_student_postgraduate",
+            "scenario": "The same earnings period with a student plan and postgraduate notice; pin both deductions, earnings basis and ordering independently rather than adding unrelated source rows."
+          },
+          {
+            "id": "correction_replay",
+            "scenario": "Correct earnings and replay prior periods under the original rule version; pin before/after deductions, year-to-date totals and immutable correction links."
+          }
+        ],
+        "ruleEvidence": null,
+        "independentReview": null,
+        "remainingYears": [
+          "2025-26",
+          "2027-28"
+        ],
+        "nextExecutableStep": "P04-03: independently qualify notice_start_stop for this plan and 2026-27 using the pinned weekly boundary pair; obtain effective notice/payment-date fixtures and statutory rounding/rule version. Do not import another year."
       }
     },
     {
@@ -2565,6 +2900,101 @@
         "qualification": "reference_only_engine_not_implemented",
         "sourceSha256": "163b18bd7dcfb699b8d77ec621ac1d4509372299de72daa1a5a027564caf188c",
         "sourceVersion": "1.1"
+      },
+      "fixturePrerequisite": {
+        "status": "reference_only_engine_not_implemented",
+        "nextTask": "P04-03",
+        "owner": "coordinator",
+        "acceptanceScenario": "Independently review the first two official cumulative monthly rows below as an ordered sequence. Reconcile both current and cumulative PAYE amounts; establish opening prior tax and employment inputs from authoritative evidence before execution. Never treat missing opening tax as zero.",
+        "examples": [
+          {
+            "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-6",
+            "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+            "sourceSheet": "Gen_cumul-mthly",
+            "sourceRow": 6,
+            "sequenceId": "rest_of_uk/Gen_cumul-mthly",
+            "previousExampleId": null,
+            "input": {
+              "taxYear": "2026-27",
+              "region": "rest_of_uk",
+              "frequency": "monthly",
+              "period": 1,
+              "taxCode": "1257L",
+              "week1Month1": null,
+              "grossPayMinor": "115625",
+              "taxablePayToDateMinor": "115625"
+            },
+            "expected": {
+              "taxDueMinor": "2140",
+              "taxDueToDateMinor": "2140"
+            },
+            "sourceNumericLexemes": {
+              "B": "1156.25",
+              "C": "1156.25",
+              "G": "21.4",
+              "H": "21.4"
+            }
+          },
+          {
+            "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-7",
+            "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
+            "sourceSheet": "Gen_cumul-mthly",
+            "sourceRow": 7,
+            "sequenceId": "rest_of_uk/Gen_cumul-mthly",
+            "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-6",
+            "input": {
+              "taxYear": "2026-27",
+              "region": "rest_of_uk",
+              "frequency": "monthly",
+              "period": 2,
+              "taxCode": "1257L",
+              "week1Month1": null,
+              "grossPayMinor": "115626",
+              "taxablePayToDateMinor": "231251"
+            },
+            "expected": {
+              "taxDueMinor": "2160",
+              "taxDueToDateMinor": "4300"
+            },
+            "sourceNumericLexemes": {
+              "B": "1156.26",
+              "C": "2312.5100000000002",
+              "G": "21.6",
+              "H": "43"
+            }
+          }
+        ],
+        "missingInputs": [
+          "priorTaxDueToDateMinor",
+          "employmentId",
+          "paymentDate"
+        ],
+        "missingOutputs": [
+          "ruleVersion",
+          "calculationSteps",
+          "warnings"
+        ],
+        "missingFixtures": [
+          {
+            "id": "opening_prior_tax",
+            "scenario": "Pin explicit opening taxable pay and prior tax for each cumulative sequence, including a starter with previous employment; source row predecessor alone is not eligibility or opening-balance evidence."
+          },
+          {
+            "id": "code_region_basis_change",
+            "scenario": "Pin an ordered midyear code, region and cumulative/non-cumulative basis change with before/after inputs, prior tax and exact current/cumulative outputs."
+          },
+          {
+            "id": "irregular_pay_refund_correction",
+            "scenario": "Pin irregular pay, refund and corrected prior-period sequence with opening balances, payment dates and exact current/cumulative outputs."
+          }
+        ],
+        "ruleEvidence": null,
+        "independentReview": null,
+        "remainingYears": [
+          "2025-26",
+          "2027-28"
+        ],
+        "nextExecutableStep": "P04-03: independently qualify opening_prior_tax for this region and 2026-27, retaining the pinned two-row sequence and exact workbook provenance; obtain explicit opening employment/tax context and statutory rule version. Do not infer zero or import another year."
       }
     },
     {
@@ -2635,6 +3065,101 @@
         "qualification": "reference_only_engine_not_implemented",
         "sourceSha256": "163b18bd7dcfb699b8d77ec621ac1d4509372299de72daa1a5a027564caf188c",
         "sourceVersion": "1.1"
+      },
+      "fixturePrerequisite": {
+        "status": "reference_only_engine_not_implemented",
+        "nextTask": "P04-03",
+        "owner": "coordinator",
+        "acceptanceScenario": "Independently review the first two official cumulative monthly rows below as an ordered sequence. Reconcile both current and cumulative PAYE amounts; establish opening prior tax and employment inputs from authoritative evidence before execution. Never treat missing opening tax as zero.",
+        "examples": [
+          {
+            "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-6",
+            "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+            "sourceSheet": "Gen_cumul_mthly",
+            "sourceRow": 6,
+            "sequenceId": "scotland/Gen_cumul_mthly",
+            "previousExampleId": null,
+            "input": {
+              "taxYear": "2026-27",
+              "region": "scotland",
+              "frequency": "monthly",
+              "period": 1,
+              "taxCode": "S1257L",
+              "week1Month1": null,
+              "grossPayMinor": "115625",
+              "taxablePayToDateMinor": "115625"
+            },
+            "expected": {
+              "taxDueMinor": "2033",
+              "taxDueToDateMinor": "2033"
+            },
+            "sourceNumericLexemes": {
+              "B": "1156.25",
+              "C": "1156.25",
+              "G": "20.329999999999998",
+              "H": "20.329999999999998"
+            }
+          },
+          {
+            "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-7",
+            "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
+            "sourceSheet": "Gen_cumul_mthly",
+            "sourceRow": 7,
+            "sequenceId": "scotland/Gen_cumul_mthly",
+            "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-6",
+            "input": {
+              "taxYear": "2026-27",
+              "region": "scotland",
+              "frequency": "monthly",
+              "period": 2,
+              "taxCode": "S1257L",
+              "week1Month1": null,
+              "grossPayMinor": "115626",
+              "taxablePayToDateMinor": "231251"
+            },
+            "expected": {
+              "taxDueMinor": "2052",
+              "taxDueToDateMinor": "4085"
+            },
+            "sourceNumericLexemes": {
+              "B": "1156.26",
+              "C": "2312.5100000000002",
+              "G": "20.520000000000003",
+              "H": "40.85"
+            }
+          }
+        ],
+        "missingInputs": [
+          "priorTaxDueToDateMinor",
+          "employmentId",
+          "paymentDate"
+        ],
+        "missingOutputs": [
+          "ruleVersion",
+          "calculationSteps",
+          "warnings"
+        ],
+        "missingFixtures": [
+          {
+            "id": "opening_prior_tax",
+            "scenario": "Pin explicit opening taxable pay and prior tax for each cumulative sequence, including a starter with previous employment; source row predecessor alone is not eligibility or opening-balance evidence."
+          },
+          {
+            "id": "code_region_basis_change",
+            "scenario": "Pin an ordered midyear code, region and cumulative/non-cumulative basis change with before/after inputs, prior tax and exact current/cumulative outputs."
+          },
+          {
+            "id": "irregular_pay_refund_correction",
+            "scenario": "Pin irregular pay, refund and corrected prior-period sequence with opening balances, payment dates and exact current/cumulative outputs."
+          }
+        ],
+        "ruleEvidence": null,
+        "independentReview": null,
+        "remainingYears": [
+          "2025-26",
+          "2027-28"
+        ],
+        "nextExecutableStep": "P04-03: independently qualify opening_prior_tax for this region and 2026-27, retaining the pinned two-row sequence and exact workbook provenance; obtain explicit opening employment/tax context and statutory rule version. Do not infer zero or import another year."
       }
     },
     {
@@ -2705,6 +3230,101 @@
         "qualification": "reference_only_engine_not_implemented",
         "sourceSha256": "163b18bd7dcfb699b8d77ec621ac1d4509372299de72daa1a5a027564caf188c",
         "sourceVersion": "1.1"
+      },
+      "fixturePrerequisite": {
+        "status": "reference_only_engine_not_implemented",
+        "nextTask": "P04-03",
+        "owner": "coordinator",
+        "acceptanceScenario": "Independently review the first two official cumulative monthly rows below as an ordered sequence. Reconcile both current and cumulative PAYE amounts; establish opening prior tax and employment inputs from authoritative evidence before execution. Never treat missing opening tax as zero.",
+        "examples": [
+          {
+            "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-6",
+            "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+            "sourceSheet": "Gen_cumul_mthly",
+            "sourceRow": 6,
+            "sequenceId": "wales/Gen_cumul_mthly",
+            "previousExampleId": null,
+            "input": {
+              "taxYear": "2026-27",
+              "region": "wales",
+              "frequency": "monthly",
+              "period": 1,
+              "taxCode": "C1257L",
+              "week1Month1": null,
+              "grossPayMinor": "115625",
+              "taxablePayToDateMinor": "115625"
+            },
+            "expected": {
+              "taxDueMinor": "2140",
+              "taxDueToDateMinor": "2140"
+            },
+            "sourceNumericLexemes": {
+              "B": "1156.25",
+              "C": "1156.25",
+              "G": "21.4",
+              "H": "21.4"
+            }
+          },
+          {
+            "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-7",
+            "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
+            "sourceSheet": "Gen_cumul_mthly",
+            "sourceRow": 7,
+            "sequenceId": "wales/Gen_cumul_mthly",
+            "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-6",
+            "input": {
+              "taxYear": "2026-27",
+              "region": "wales",
+              "frequency": "monthly",
+              "period": 2,
+              "taxCode": "C1257L",
+              "week1Month1": null,
+              "grossPayMinor": "115626",
+              "taxablePayToDateMinor": "231251"
+            },
+            "expected": {
+              "taxDueMinor": "2160",
+              "taxDueToDateMinor": "4300"
+            },
+            "sourceNumericLexemes": {
+              "B": "1156.26",
+              "C": "2312.5100000000002",
+              "G": "21.6",
+              "H": "43"
+            }
+          }
+        ],
+        "missingInputs": [
+          "priorTaxDueToDateMinor",
+          "employmentId",
+          "paymentDate"
+        ],
+        "missingOutputs": [
+          "ruleVersion",
+          "calculationSteps",
+          "warnings"
+        ],
+        "missingFixtures": [
+          {
+            "id": "opening_prior_tax",
+            "scenario": "Pin explicit opening taxable pay and prior tax for each cumulative sequence, including a starter with previous employment; source row predecessor alone is not eligibility or opening-balance evidence."
+          },
+          {
+            "id": "code_region_basis_change",
+            "scenario": "Pin an ordered midyear code, region and cumulative/non-cumulative basis change with before/after inputs, prior tax and exact current/cumulative outputs."
+          },
+          {
+            "id": "irregular_pay_refund_correction",
+            "scenario": "Pin irregular pay, refund and corrected prior-period sequence with opening balances, payment dates and exact current/cumulative outputs."
+          }
+        ],
+        "ruleEvidence": null,
+        "independentReview": null,
+        "remainingYears": [
+          "2025-26",
+          "2027-28"
+        ],
+        "nextExecutableStep": "P04-03: independently qualify opening_prior_tax for this region and 2026-27, retaining the pinned two-row sequence and exact workbook provenance; obtain explicit opening employment/tax context and statutory rule version. Do not infer zero or import another year."
       }
     }
   ],

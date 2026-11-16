@@ -6,7 +6,7 @@ import { Money, StatusPill, SettlementPill, ErrorBox, SkeletonRows, JournalLink 
 import DocumentPostingImpact from './DocumentPostingImpact';
 import AwaitingCreditPanel from '@/features/creditRecovery/AwaitingCreditPanel';
 import { SavedDiscountSummary } from '@/features/documentDiscounts/DiscountControls';
-import { canApplyDiscount, isValidSettlementSnapshot, canPostDocuments, canEditDrafts, discountCreditPath } from '@/features/documentDiscounts/model.mjs';
+import { canPrepareCredit as canPrepareOrdinaryCredit, canApplyDiscount, isValidSettlementSnapshot, canPostDocuments, canEditDrafts, discountCreditPath } from '@/features/documentDiscounts/model.mjs';
 import SourceAttachments from '@/features/documentIntake/SourceFiles';
 import PageHeader from '@/components/workspace/PageHeader';
 import DocumentCorrections from '@/features/documentCorrections/DocumentCorrections';
@@ -30,7 +30,7 @@ function PostedDocumentLayout({ doc, kind, company, journal, settlement, openIte
   const originalDiscount = !discountCredit && meta.credit && Boolean(doc.tax_context?.original_discount);
   const canPrepareCredit = doc.status === 'posted' && doc.kind === kind && typeof doc.id === 'string' && doc.id.length > 0
     && openItem?.gross_minor === doc.money?.gross_pence
-    && !error && !settlement.loading && !settlementError && canApplyDiscount(kind, openItem, capabilities);
+    && !error && !settlement.loading && !settlementError && canPrepareOrdinaryCredit(kind, openItem, capabilities);
   const canSettle = !meta.credit && hasBalance && !settlement.loading && !settlementError;
   const completed=openItem && BigInt(openItem.gross_minor)>0n ? Number((BigInt(openItem.gross_minor)-BigInt(openItem.open_minor))*100n/BigInt(openItem.gross_minor)) : 0;
   return <div className="workspace-page">
@@ -41,9 +41,10 @@ function PostedDocumentLayout({ doc, kind, company, journal, settlement, openIte
         {canSettle && canPostDocuments(capabilities) && <Button asChild className="min-h-11"><Link to={`/payments?party_type=${meta.party}&party_id=${doc.party_id}&document=${doc.id}`}>Record payment<ArrowRight /></Link></Button>}
         {canPrepareCredit && <Button asChild variant="outline" className="min-h-11"><Link to={`${KINDS[creditKind].path}/new?original=${doc.id}`}>Create credit note</Link></Button>}
         {creditUI?.action}
-        {canPrepareCredit && <Button asChild variant="outline" className="min-h-11"><Link to={discountCreditPath(kind, doc.id)}>Apply discount</Link></Button>}
+        {canPrepareCredit && canApplyDiscount(kind, openItem, capabilities) && <Button asChild variant="outline" className="min-h-11"><Link to={discountCreditPath(kind, doc.id)}>Apply discount</Link></Button>}
       </>} />
     <ErrorBox error={error} />
+    {canPrepareCredit && !hasBalance && <p className="rounded-lg border p-4 text-sm">There is no unpaid balance to discount. Create a linked credit note, then review a refund separately. The original payment stays recorded; creating a credit does not move cash.</p>}
     {doc.correction_count > 0 && <p className="rounded-lg border bg-muted/30 p-4 text-sm">This document includes {doc.correction_count} recorded correction{doc.correction_count === 1 ? '' : 's'}. Original total: <Money value={doc.original_money?.gross_pence} />. Credits use the corrected amounts and preserve this history.</p>}
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_330px]">
       {meta.credit && <section className="workspace-panel p-5 xl:col-span-2" aria-label="Linked document outstanding balance">

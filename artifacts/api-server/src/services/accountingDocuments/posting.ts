@@ -1,5 +1,7 @@
 import { hasConditionalCreditAuthority } from './paidCredit';
-import { assertNoConditionalCredit } from './conditionalDiscount';
+import { compensationSchema } from './conditionalCompensation';
+import { withCanonicalPostingTransaction } from '../accounting/canonicalPosting';
+import { assertNoConditionalCredit, prepareConditionalOriginal, bindConditionalOriginal, conditionalOriginalSchema, conditionalConsumptionSchema } from './conditionalDiscount';
 import { journalLines } from './documentJournal';
 export { journalLines } from './documentJournal';
 import { randomUUID } from "node:crypto";
@@ -10,6 +12,20 @@ import { postCanonicalJournal, postCanonicalJournalInTransaction, type Canonical
 import { calculateDocument, assertCreditAvailable } from "./documents";
 import { queryAdapter, scope, document, transact, hash, sales, credit, tables, type Kind, type Queryable } from "./core";
 
+const conditionalOriginalTransactions=new WeakMap<DatabaseTransaction,{company:string,actor:string,id:string,expected:string}>();
+export async function postConditionalOriginal(company:string,actor:string,id:string,expected:string,testHook?:(tx:DatabaseTransaction)=>Promise<void>) {
+  return withCanonicalPostingTransaction(async tx=>{
+    const q=queryAdapter(tx);await scope(q,company,actor,true,true);
+    await conditionalOriginalSchema(q);await conditionalConsumptionSchema(q);
+    if(!await compensationSchema(q)) fail(503,'CONDITIONAL_COMPENSATION_SCHEMA_INCOMPLETE');
+    const row=await document(q,company,id,true);
+    if(!row.source?.conditional_discount || !['sales_invoice','purchase_bill'].includes(row.kind)) fail(422,'CONDITIONAL_BINDING_INVALID');
+    if(row.status==='posted' && (await q.query('SELECT 1 FROM conditional_discount_original_bindings WHERE company_id=$1 AND document_id=$2',[company,id])).rowCount!==1) fail(503,'CONDITIONAL_BINDING_INVALID');
+    conditionalOriginalTransactions.set(tx,{company,actor,id,expected});
+    try {const result=await postDocument(company,actor,id,expected,testHook,tx);await bindConditionalOriginal(q,company,actor,id);return result;}
+    finally {conditionalOriginalTransactions.delete(tx);}
+  });
+}
 class AlreadyPosted extends Error {
   constructor(public journalId:string) {super("Already posted");}
 }
@@ -51,7 +67,11 @@ export async function postDocument(company:string,actor:string,id:string,expecte
     return row;
   };
   const initial=existingTransaction?await admission(queryAdapter(existingTransaction)):await transact(admission,true);
-  if(initial.source?.conditional_discount) fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
+  const held=existingTransaction?conditionalOriginalTransactions.get(existingTransaction):undefined;
+  const conditionalOriginal=!!held && held.company===company && held.actor===actor && held.id===id && held.expected===expected;
+  const prepared=conditionalOriginal?await prepareConditionalOriginal(queryAdapter(existingTransaction!),company,initial):null;
+  const evidenceHash=prepared?.bindingHash??hash({source:initial.source,money:initial.money,tax_context:initial.tax_context,accounts:initial.posting_accounts});
+  if(initial.source?.conditional_discount && !conditionalOriginal) fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
   if(initial.revision!==expected) fail(409,"REVISION_CONFLICT");
   let current:any, transaction:DatabaseTransaction;
   const dependencies:CanonicalPostingDependencies={
@@ -59,9 +79,14 @@ export async function postDocument(company:string,actor:string,id:string,expecte
       transaction=tx;const q=queryAdapter(tx);
       await scope(q,company,actor,true,true);
       current=await document(q,company,id,true);
-      if(current.source?.conditional_discount) fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
+      if(current.source?.conditional_discount && !conditionalOriginal) fail(422,'CONDITIONAL_POSTING_NOT_AVAILABLE');
       if(current.revision!==expected) fail(409,"REVISION_CONFLICT");
+      if(conditionalOriginal) {
+        const freshBinding=await prepareConditionalOriginal(q,company,current);
+        if(freshBinding.bindingHash!==evidenceHash) fail(409,'SOURCE_CONTEXT_CHANGED');
+      }
       if(current.status==="posted") {
+        if(conditionalOriginal) await bindConditionalOriginal(q,company,actor,id);
         const linked=await q.query(`SELECT id FROM canonical_journal_entries
           WHERE id=$1 AND company_id=$2 AND source_type=$3 AND source_id=$4 AND status='posted'`,
           [current.journal_id,company,current.kind,id]);
@@ -78,8 +103,7 @@ export async function postDocument(company:string,actor:string,id:string,expecte
       }
       await assertCreditAvailable(q,company,current,tx,actor);
       const snapshot={companyId:company,sourceType:current.kind,sourceId:id,status:"draft",isPostable:true,
-        sourceRevision:expected,evidenceHash:hash({source:current.source,money:current.money,
-          tax_context:current.tax_context,accounts:current.posting_accounts})};
+        sourceRevision:expected,evidenceHash:conditionalOriginal?evidenceHash:hash({source:current.source,money:current.money,tax_context:current.tax_context,accounts:current.posting_accounts})};
       return locked(snapshot,[`accounting_document_sources:${id}`],expected);
     }},
     contextProvider:{async lockForPosting(input,tx) {
@@ -113,7 +137,7 @@ export async function postDocument(company:string,actor:string,id:string,expecte
     const result=await post({
       principal:{kind:"user",userId:actor,requestedCompanyId:company},requestedCompanyId:company,
       sourceType:initial.kind,sourceId:id,sourceRevision:expected,sourceStatus:"draft",
-      sourceEvidenceHash:hash({source:initial.source,money:initial.money,tax_context:initial.tax_context,accounts:initial.posting_accounts}),
+      sourceEvidenceHash:evidenceHash,
       postingKind:"ordinary_document",economicEffectId:`document:${id}`,idempotencyKey:`document:${id}`,
       accountIds:[...new Set(Object.values(initial.posting_accounts).filter((v):v is string=>typeof v==="string" && v.length>0))],
       postingDate:initial.source.issue_date,configurationVersionId:initial.mapping_revision,

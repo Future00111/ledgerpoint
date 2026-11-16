@@ -140,7 +140,9 @@
         "tools/development/migrations/registry.test.mjs",
         "tools/development/migrations/partial-schema.test.mjs",
         "artifacts/api-server/src/services/accounting/canonicalPosting.ts",
-        "artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts"
+        "artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts",
+        "artifacts/ledgerly/src/features/conditionalCompensation/ConditionalCompensationReview.jsx",
+        "artifacts/ledgerly/src/features/conditionalCompensation/ConditionalCompensationReview.test.jsx"
       ],
       "kind": "implementation",
       "approval": "approved"
