@@ -2273,12 +2273,47 @@
           "2025-26",
           "2027-28"
         ],
-        "nextExecutableStep": "P04-03: independently review the linked16 authored dated SL1/SL2 scenarios against pinned HMRC timing/rounding sources and official Plan1 amounts, then qualify real notice authenticity and practical payroll availability evidence. Resolve conflicting/alternative instructions before any application adapter. Parent remains pending.",
+        "nextExecutableStep": "Independently review the combined synthetic Plan1 input/output contract against existing16dated scenarios and official boundary amounts; complete P04-01 case coverage and P04-03 qualification evidence before any production adapter. Synthetic verified-notice and practical-payday assertions suffice for this development contract; real notice ingestion/authentication is a separate future integration requirement, not a blocker to synthetic tests.",
         "noticeTimingReference": {
           "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/plan1-notice-start-stop-2026-27.json",
           "caseCount": 16,
           "status": "reference_only_engine_not_implemented",
           "qualificationEvidence": null
+        },
+        "syntheticInputContract": {
+          "path": "artifacts/api-server/src/services/payroll/contracts/plan1SyntheticContract.mjs",
+          "contractVersion": "plan1-synthetic-input-v1",
+          "ruleVersion": "student-loans-2026-27-review-v1",
+          "purpose": "synthetic_development",
+          "status": "unqualified_synthetic_reference_contract",
+          "qualificationEvidence": null,
+          "requiredEnvelopeFields": [
+            "contractVersion",
+            "ruleVersion",
+            "purpose",
+            "input",
+            "verifiedNotices"
+          ],
+          "requiredNoticeAssertions": [
+            "noticeId",
+            "noticeDigest",
+            "identityVerified",
+            "firstPracticalPayday",
+            "availabilityVerified"
+          ],
+          "resultFields": [
+            "contractVersion",
+            "ruleVersion",
+            "purpose",
+            "status",
+            "qualified",
+            "notForPayroll",
+            "inputDigest",
+            "instructionActive",
+            "reason",
+            "deductionMinor",
+            "calculation"
+          ]
         }
       }
     },
