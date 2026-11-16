@@ -6,7 +6,8 @@ export function currentView(catalog, authority, { now, publishedCommits = [] }) 
   const tasks = catalog.tasks.map(task => {
     const entry = state.tasks[task.id];
     const events = state.events.filter(e => e.taskId === task.id);
-    const blockers = explainTask(catalog, state, task, { now }).blockers;
+    const scheduling = explainTask(catalog, state, task, { now });
+    const blockers = entry.status === 'done' ? [] : scheduling.blockers.filter(b => !/^Task is (running|review|quarantined); its current transition must be resolved first\.$/.test(b.reason));
     const ancestors = new Set();
     const collect = id => {
       const t = catalog.tasks.find(t => t.id === id), e = state.tasks[id];
@@ -24,7 +25,7 @@ export function currentView(catalog, authority, { now, publishedCommits = [] }) 
       childOutcomes: outcomes, remainingAcceptanceCriteria: entry.status === 'done' ? [] : task.acceptance,
       remainingWork: outcomes.filter(o => o.current).at(-1)?.remaining ?? null,
       source: authority.codeHead, candidate: commit, evidence,
-      status: entry.status, eligible: explainTask(catalog, state, task, { now }).eligible,
+      status: entry.status, eligible: scheduling.eligible,
       blockers: blockers.map(blocker => ({ ...blocker,
         responsible: blocker.type === 'task' ? blocker.id : 'coordinator',
         firstObservedAt: events.find(e => e.type === 'block' && e.blockers?.some(b => b.reason === blocker.reason))?.at ?? null,

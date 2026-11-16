@@ -1,10 +1,11 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import { initialState } from './core.mjs';import { currentView } from './current-view.mjs';
+import { initialState, transition } from './core.mjs';import { currentView } from './current-view.mjs';
 test('current view preserves source/history and separates publication from parent acceptance', () => {
  const catalog={version:1,source:{source_bullet_count:92},tasks:[{id:'a',title:'Parent',priority:1,dependencies:[],files:['a.js'],kind:'implementation',approval:'approved',acceptance:['Whole journey']}]};
  const q=initialState(catalog);q.tasks.a.evidence={commit:'abc'};q.tasks.a.acceptedOutcomes=[{id:'child',acceptedAt:10,remaining:['Other cases'],nextAction:'Implement other cases'}];
  const a={codeHead:'abc',queueState:q},before=structuredClone(a);
  let v=currentView(catalog,a,{now:20,publishedCommits:['abc']});assert.equal(v.tasks[0].acceptance,'child-only');assert.equal(v.tasks[0].publication,'published');assert.deepEqual(v.tasks[0].remainingAcceptanceCriteria,['Whole journey']);assert.deepEqual(a,before);
+ q.tasks.a.status='done';assert.deepEqual(currentView(catalog,a,{now:20}).tasks[0].blockers,[]);q.tasks.a.status='pending';
  q.events.push({type:'reopen',taskId:'a',at:15});v=currentView(catalog,a,{now:20,publishedCommits:['abc']});assert.equal(v.tasks[0].acceptance,'parent-not-accepted');assert.equal(v.tasks[0].childOutcomes.length,1);
 });
 test('dependency reopen invalidates historical outcomes even after dependency reacceptance', () => {
@@ -17,4 +18,10 @@ test('dependency reopen invalidates historical outcomes even after dependency re
   q.events.push({type:'reopen',taskId:'root',at:10});
   v=currentView(c,{codeHead:'abc',queueState:q},{now:30});assert.equal(v.tasks[2].acceptance,'parent-not-accepted');assert.notEqual(v.tasks[2].nextAction,'Old next');
  }
+});
+
+test('current view retains reconciled expiry blockers for stopped-looking held work',()=>{
+ const c={version:1,tasks:[{id:'a',title:'A',priority:1,dependencies:[],files:['a.js'],kind:'implementation',approval:'approved',acceptance:['All']}]};
+ const q=transition(c,initialState(c),{type:'claim',actor:'author',token:'test-lease-unique',leaseMs:1000},{now:10}).state;
+ for(const status of ['running','review']){q.tasks.a.status=status;const v=currentView(c,{codeHead:'abc',queueState:q},{now:2000});assert.ok(v.tasks[0].blockers.some(b=>b.reason.includes('lease expired')));}
 });
