@@ -1,0 +1,13 @@
+2026-11-16T19:21:35.8283509Z HEAD is now at f9ecf42 Merge b55ba10f73b3b1d279de7de67340ce753c9a5f5b into 5e43784fa63232a760dbf4d8a2a356207785deff
+2026-11-16T19:22:12.6109007Z ✔ permanent unsupported/encrypted failures do not retry and missing adapters fail closed (0.753454ms)
+2026-11-16T19:23:07.4340957Z PAYMENT_TERMINAL_BROWSER_ACCEPTANCE {"actualComponents":true,"nativeApi":true,"syntheticSession":true,"lostLocator":true,"explicitSelection":true,"terminalPosts":2,"realClerk":false,"pendingAdmission":true}
+2026-11-16T19:23:07.4592208Z ✔ isolated Chromium: mounted terminal resolution explicitly cancels, confirms and verifies before fresh review (1538.713791ms)
+2026-11-16T19:23:08.4409173Z ℹ tests 88
+2026-11-16T19:24:12.2149672Z Disposable backup/restore verified: original rows, restored evidence and restricted runtime match.
+2026-11-16T19:24:14.1653428Z Synthetic encrypted recovery verified across fresh clusters; cleanup complete.
+2026-11-16T19:24:14.1743714Z [36;1m  node -e 'const r=require("./generated-artifacts/encrypted-recovery.json"); if(!r.syntheticOnly || !r.postgresStopped || !r.directoryRemoved || r.ambientDatabaseCredentialsUsed || r.productionContact) process.exit(1);'[0m
+2026-11-16T19:24:14.2053998Z [36;1mconst r = require('./generated-artifacts/encrypted-recovery.json');[0m
+2026-11-16T19:24:14.2054393Z [36;1mif (r.sourceCommit !== process.env.GITHUB_SHA || !r.syntheticOnly || !r.verified ||[0m
+2026-11-16T19:24:14.2054806Z [36;1m    !r.separateClusters || !r.encryptedArchiveUsed || !r.runtimeMutationDenied ||[0m
+2026-11-16T19:24:14.2667449Z [36;1mif (!cleanup.restoreVerified || cleanup.runId !== restore.runId || cleanup.sourceCommit !== restore.sourceCommit ||[0m
+2026-11-16T19:24:14.2668010Z [36;1m    restore.sourceCommit !== process.env.GITHUB_SHA || !restore.syntheticOnly || !restore.sourceUnchanged ||[0m
