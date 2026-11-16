@@ -1,0 +1,41 @@
+{
+  "source": "8fbfdbdacc6161d5d12fbe26db634b4145243ec7",
+  "author": "d70f21f922e7a76169cdbdb0fe2e5b9271b25bb7",
+  "testedCheckout": "2f605c54b6724c0d6ff24ec1b26d3a3e573f41a7",
+  "tree": "f7819bfc69634b3f11af7b402911cdd7a0be586c",
+  "comparisonFiles": 0,
+  "run": "https://github.com/Future00111/ledgerpoint/actions/runs/43943273107",
+  "job": 133566111670,
+  "result": "success",
+  "logSha256": "3702911a944625252590f846e3b2b1d838f306bb04f69f3dcfc362b3bb80d823",
+  "reviewer": "root",
+  "review": "Exact author and integration trees independently matched; all steps/full logs inspected; both new actual native delayed correction tests passed; source/build/migrations/security/browser/plain+encryptedrestore/current-source cleanup passed. Bounded outcome only.",
+  "gates": [
+    "Combined source/scheduler/UI/security regression",
+    "Full build/typecheck",
+    "Pinned migrations",
+    "Native90/90 including two new invoice/bill delayed original tests",
+    "Both actual-component/native-API correction browser acceptances",
+    "Populated backup/restore",
+    "Encrypted separate-cluster recovery",
+    "Exact-source receipts and cleanup"
+  ],
+  "markers": [
+    "2026-11-16T19:50:49.1553450Z \u2714 sales_invoice: rejected correction retry cannot forget a delayed original commit (104.827337ms)",
+    "2026-11-16T19:50:49.2378684Z \u2714 purchase_bill: rejected correction retry cannot forget a delayed original commit (80.748548ms)",
+    "2026-11-16T19:51:28.2280023Z CORRECTION_BROWSER_ACCEPTANCE {\"kind\":\"sales_invoice\",\"loopbackOnly\":true,\"syntheticAuth\":true,\"realNativeRoutes\":true,\"cancel\":true,\"staleInput\":true,\"staleRevision\":true,\"permissionDenied\":true,\"lostResponse\":true,\"fullReload\":true,\"companySwitch\":true,\"readOnlyRole\":true,\"exactlyOneCorrection\":true,\"originalUnchanged\":true}",
+    "2026-11-16T19:51:29.4191632Z CORRECTION_BROWSER_ACCEPTANCE {\"kind\":\"purchase_bill\",\"loopbackOnly\":true,\"syntheticAuth\":true,\"realNativeRoutes\":true,\"cancel\":true,\"staleInput\":true,\"staleRevision\":true,\"permissionDenied\":true,\"lostResponse\":true,\"fullReload\":true,\"companySwitch\":true,\"readOnlyRole\":true,\"exactlyOneCorrection\":true,\"originalUnchanged\":true}",
+    "2026-11-16T19:51:52.4317539Z CORRECTED_CREDIT_RESTORE_ACCEPTANCE {\"originals\":8,\"balanced\":true}",
+    "2026-11-16T19:51:52.4319827Z COMPENSATION_RESTORE_ACCEPTANCE {\"rows\":44,\"bothParties\":true,\"historicalReports\":true,\"knownRecovery\":true,\"permanentConsumption\":true,\"runtimeMutationDenied\":true,\"socketDirectory\":\"ledgerly-accounting-flow-tests-8FfpF1\"}",
+    "2026-11-16T19:51:52.4572209Z Disposable backup/restore verified: original rows, restored evidence and restricted runtime match.",
+    "2026-11-16T19:51:54.3836625Z Synthetic encrypted recovery verified across fresh clusters; cleanup complete."
+  ],
+  "limitations": [
+    "Synthetic authentication, not real Clerk or production",
+    "No new browser action invokes the low-level retry: existing actual-component unknown/reload journeys pass; new retry invariant is model/native API qualification",
+    "P03-01 broader operation families and full original parent acceptance remain open"
+  ],
+  "workersStopped": true,
+  "worktreesClean": true,
+  "credits": "unknown"
+}
