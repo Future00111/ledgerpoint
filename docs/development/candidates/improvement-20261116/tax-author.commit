@@ -1,0 +1,6 @@
+tree b795c995602918424469fe5c45db2627dd13093f
+parent 55ec0fc0e2e1ef6d8b83cf7b030f1cca5ff29770
+author Codex <codex@openai.com> 1794842235 +0000
+committer Codex <codex@openai.com> 1794842235 +0000
+
+Expose concrete payroll fixture prerequisites for case qualification

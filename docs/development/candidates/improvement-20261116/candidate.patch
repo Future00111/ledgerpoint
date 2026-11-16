@@ -1,0 +1,1166 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index eec85f0..29ee54b 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -86,3 +86,29 @@ reviewer for financial/security implementation; do not self-approve. Extra worke
+ are optional only for named independent work that shortens delivery. Preserve the
+ single queue, fencing, file leases, exact-source tests and owner gates. Measure
+ accepted customer journeys, elapsed time, rework and actual usage, not occupancy.
++
++## Owner-approved efficiency trial — 16 November 2026
++
++Use at most two independent implementation tracks, not permanent departments:
++normal highest-eligible connected accounting work, and the highest eligible
++`tax-payroll` prerequisite via CLI `claim` with `track: "tax-payroll"`.
++The second-track exception is owner approved; dependencies, approval, file
++leases and priority within the track are unchanged. No third implementation
++track. Verify provider controls before dispatch; unavailable Replit does not
++block eligible Codex work. Move qualified tax/payroll specifications and fixtures
++into actual calculation implementation as their existing dependencies permit.
++
++A submitted bounded integrated scenario can use coordinator `accept-outcome`
++with independent matching-commit evidence, stable outcome ID, parent criterion
++indices, remaining work, next action and stopped-author attestation. This releases
++review ownership and records child acceptance while leaving the parent pending.
++Never reject/recover merely to record successful partial delivery. Full parent
++acceptance still requires every original criterion and existing financial,
++security, browser and exact-source restore gates. `current-view.mjs` derives
++current task/evidence/blocker status without deleting historical records.
++
++Weekly compare accepted integrated scenarios, elapsed delivery/review/blocker time,
++first-pass review, avoidable failures, actual tax/payroll advancement and measured
++provider cost (unknown when unavailable). Do not use occupancy, commits or test
++counts as completion. Reuse passing evidence only for matching source/configuration;
++retain full combined integration gates. No merge/deploy authority is added.
+diff --git a/artifacts/api-server/src/services/tax/contracts/caseRegistry.mjs b/artifacts/api-server/src/services/tax/contracts/caseRegistry.mjs
+index aef2ca1..7669f4f 100644
+--- a/artifacts/api-server/src/services/tax/contracts/caseRegistry.mjs
++++ b/artifacts/api-server/src/services/tax/contracts/caseRegistry.mjs
+@@ -37,6 +37,39 @@ function validReference(row) {
+     && row.selector.employment === `employee_${loan ? 'loan' : 'paye'}_${ref[dimension]}`
+     && (!loan || names(ref.frequencies) && ref.frequencies.every(f => ['weekly', 'fortnightly', 'four_weekly', 'monthly'].includes(f)));
+ }
++// Concrete reference examples expose missing execution context; they never qualify a calculation.
++function validFixturePrerequisite(row) {
++  const item = row.fixturePrerequisite;
++  if (!row.referenceFixtures) return item === undefined;
++  if (!plain(item) || item.status !== 'reference_only_engine_not_implemented'
++    || item.nextTask !== 'P04-03' || item.owner !== row.owner
++    || !nonempty(item.acceptanceScenario) || !nonempty(item.nextExecutableStep)
++    || item.ruleEvidence !== null || item.independentReview !== null
++    || !names(item.remainingYears) || item.remainingYears.includes(row.selector.taxYear)
++    || !names(item.missingInputs) || !names(item.missingOutputs)
++    || !Array.isArray(item.examples) || item.examples.length !== 2
++    || !Array.isArray(item.missingFixtures) || item.missingFixtures.length === 0) return false;
++  const dimension = row.referenceFixtures.plan ? 'plan' : 'region';
++  const ids = new Set();
++  for (const example of item.examples) {
++    if (!plain(example) || !nonempty(example.id) || ids.has(example.id)
++      || !nonempty(example.sourceSheet) || !Number.isSafeInteger(example.sourceRow) || example.sourceRow <= 0
++      || !plain(example.input) || !plain(example.expected)
++      || example.input.taxYear !== row.selector.taxYear
++      || example.input[dimension] !== row.referenceFixtures[dimension]
++      || Object.keys(example.expected).length === 0
++      || Object.values(example.expected).some(value => typeof value !== 'string' || !/^-?(0|[1-9][0-9]*)$/.test(value) || value === '-0')
++      || JSON.stringify(item.missingInputs) !== JSON.stringify(row.requiredInputs.filter(key => !Object.hasOwn(example.input, key)))
++      || JSON.stringify(item.missingOutputs) !== JSON.stringify(row.requiredOutputs.filter(key => !Object.hasOwn(example.expected, key)))) return false;
++    ids.add(example.id);
++  }
++  if (dimension === 'region' && (item.examples[0].previousExampleId !== null
++    || item.examples[1].previousExampleId !== item.examples[0].id
++    || item.examples[0].sequenceId !== item.examples[1].sequenceId)) return false;
++  return item.missingFixtures.every(fixture => plain(fixture) && nonempty(fixture.id) && nonempty(fixture.scenario))
++    && new Set(item.missingFixtures.map(fixture => fixture.id)).size === item.missingFixtures.length;
++}
++
+ // Scope declaration is an input to fixture/engine work, never calculation authority.
+ function validPayrollPrerequisites(registry) {
+   const matrix = registry.payrollPrerequisites;
+@@ -70,7 +103,7 @@ export function validateCaseRegistry(registry) {
+       || selectors.has(signature(row.selector)) || !['supported', 'unsupported'].includes(row.status)
+       || !Array.isArray(row.backlogTasks) || row.backlogTasks.length === 0 || typeof row.owner !== 'string' || !row.owner
+       || !plain(row.ruleProvenance) || !Object.hasOwn(registry.sources, row.ruleProvenance.sourceId)) throw new Error('INVALID_CASE_REGISTRY');
+-    if (!validReference(row)) throw new Error('INVALID_CASE_REGISTRY');
++    if (!validReference(row) || !validFixturePrerequisite(row)) throw new Error('INVALID_CASE_REGISTRY');
+     // This initial contract intentionally cannot authorize future engines from metadata.
+     // Promotion requires a separately reviewed adapter tying fixtures to executable rules.
+     if (row.status === 'supported') throw new Error('SUPPORTED_CASE_ADAPTER_REQUIRED');
+@@ -99,3 +132,26 @@ export function resolveQualifiedCase(registry, selector) {
+   if (!found) return { ok: false, code: 'UNKNOWN_CASE' };
+   return { ok: false, code: 'CASE_NOT_QUALIFIED', caseId: found.id };
+ }
++
++/** Prepare reference evidence for P04-03 review, without filling missing inputs or running an engine.
++ * The caller supplies the pinned corpus; repository fixture tests verify its source bytes.
++ */
++export function prepareCaseFixtureHandoff(registry, selector, corpus) {
++  const boundary = resolveQualifiedCase(registry, selector);
++  if (boundary.code !== 'CASE_NOT_QUALIFIED') return boundary;
++  const row = registry.cases.find(row => row.id === boundary.caseId);
++  if (!row.fixturePrerequisite) return { ...boundary, prerequisiteCode: 'REFERENCE_FIXTURES_MISSING' };
++  const ref = row.referenceFixtures;
++  if (!plain(corpus) || corpus.taxYear !== row.selector.taxYear
++    || corpus.status !== 'reference_fixtures_only_not_engine_qualification'
++    || corpus.source?.sha256 !== ref.sourceSha256 || corpus.source?.version !== ref.sourceVersion
++    || corpus.source?.page !== registry.sources[row.ruleProvenance.sourceId].url
++    || !Array.isArray(corpus.cases)
++    || row.fixturePrerequisite.examples.some(example => {
++      const matches = corpus.cases.filter(candidate => candidate?.id === example.id);
++      return matches.length !== 1 || JSON.stringify(matches[0]) !== JSON.stringify(example);
++    })) throw new Error('REFERENCE_HANDOFF_SOURCE_MISMATCH');
++  return structuredClone({ ...boundary, prerequisiteCode: 'REFERENCE_CONTEXT_INCOMPLETE',
++    source: { path: ref.path, sha256: ref.sourceSha256, version: ref.sourceVersion,
++      page: corpus.source.page }, prerequisite: row.fixturePrerequisite });
++}
+diff --git a/artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs b/artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs
+index 1a9de8b..e1f10e9 100644
+--- a/artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs
++++ b/artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs
+@@ -1,7 +1,7 @@
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
+ import { readFileSync } from 'node:fs';
+-import { validateCaseRegistry, resolveQualifiedCase } from './caseRegistry.mjs';
++import { validateCaseRegistry, resolveQualifiedCase, prepareCaseFixtureHandoff } from './caseRegistry.mjs';
+ import { resolvePayrollCase } from '../../payroll/contracts/caseBoundary.mjs';
+ const registry = JSON.parse(readFileSync(new URL('../../../../../../docs/development/tax-payroll-supported-cases.json', import.meta.url)));
+ const clone = () => structuredClone(registry);
+@@ -114,3 +114,72 @@ test('malformed case rows retain the registry validation boundary', () => {
+     assert.throws(()=>validateCaseRegistry(r), /^Error: INVALID_CASE_REGISTRY$/);
+   }
+ });
++
++const corpusFor = row => JSON.parse(readFileSync(new URL(`../../../../../../${row.referenceFixtures.path}`, import.meta.url)));
++for (const row of registry.cases.filter(row => row.referenceFixtures)) test(`${row.id}: P04-03 handoff preserves exact official examples and exposes missing execution context`, () => {
++  const corpus = corpusFor(row);
++  const handoff = prepareCaseFixtureHandoff(registry, row.selector, corpus);
++  assert.equal(handoff.ok, false);
++  assert.equal(handoff.code, 'CASE_NOT_QUALIFIED');
++  assert.equal(handoff.prerequisiteCode, 'REFERENCE_CONTEXT_INCOMPLETE');
++  assert.equal(handoff.source.sha256, corpus.source.sha256);
++  const prerequisite = handoff.prerequisite;
++  assert.equal(prerequisite.nextTask, 'P04-03');
++  assert.equal(prerequisite.ruleEvidence, null);
++  assert.equal(prerequisite.independentReview, null);
++  assert.deepEqual(prerequisite.missingInputs, row.referenceFixtures.plan
++    ? ['loanNotice', 'employmentId', 'paymentDate']
++    : ['priorTaxDueToDateMinor', 'employmentId', 'paymentDate']);
++  assert.deepEqual(prerequisite.missingOutputs, ['ruleVersion', 'calculationSteps', 'warnings']);
++  for (const example of prerequisite.examples) {
++    assert.deepEqual(example, corpus.cases.find(candidate => candidate.id === example.id));
++    for (const field of prerequisite.missingInputs) assert.equal(Object.hasOwn(example.input, field), false);
++  }
++  if (row.referenceFixtures.plan) {
++    assert.deepEqual(prerequisite.examples.map(example => example.expected.deductionMinor), ['0', '100']);
++    assert.equal(BigInt(prerequisite.examples[1].input.payMinor) - BigInt(prerequisite.examples[0].input.payMinor), 1n);
++  } else {
++    assert.equal(prerequisite.examples[1].previousExampleId, prerequisite.examples[0].id);
++    assert.equal(prerequisite.examples[0].input.period, 1);
++    assert.equal(prerequisite.examples[1].input.period, 2);
++  }
++  // A consumer cannot mutate the register by preparing the next-task packet.
++  prerequisite.examples[0].expected = {};
++  assert.deepEqual(row.fixturePrerequisite.examples[0], corpus.cases.find(c => c.id === row.fixturePrerequisite.examples[0].id));
++});
++test('handoff cannot fill unknown prior PAYE with zero, alter expected pence or change official provenance', () => {
++  const original = registry.cases.find(row => row.referenceFixtures?.region === 'scotland');
++  for (const mutate of [
++    r => r.cases.find(row => row.id === original.id).fixturePrerequisite.examples[0].input.priorTaxDueToDateMinor = '0',
++    r => r.cases.find(row => row.id === original.id).fixturePrerequisite.examples[0].expected.taxDueMinor = '2034',
++    r => r.cases.find(row => row.id === original.id).fixturePrerequisite.examples[0].sourceRow = 7,
++    r => r.cases.find(row => row.id === original.id).fixturePrerequisite.examples[0].input.region = 'wales',
++    r => r.cases.find(row => row.id === original.id).fixturePrerequisite.missingInputs = ['employmentId', 'paymentDate'],
++    r => r.cases.find(row => row.id === original.id).fixturePrerequisite.ruleEvidence = 'assumed',
++    r => r.cases.find(row => row.id === original.id).fixturePrerequisite.independentReview = 'author',
++    r => r.cases.find(row => row.id === original.id).fixturePrerequisite.examples.reverse(),
++    r => delete r.cases.find(row => row.id === original.id).fixturePrerequisite,
++  ]) {
++    const r = clone(); mutate(r);
++    assert.throws(() => prepareCaseFixtureHandoff(r, original.selector, corpusFor(original)), /INVALID_CASE_REGISTRY|REFERENCE_HANDOFF_SOURCE_MISMATCH/);
++  }
++});
++test('handoff requires the exact source corpus and one unambiguous example identity', () => {
++  const row = registry.cases.find(row => row.referenceFixtures?.plan);
++  for (const mutate of [
++    c => c.taxYear = '2027-28', c => c.source.sha256 = '0'.repeat(64),
++    c => c.source.version = '99.0', c => c.source.page = 'https://example.com',
++    c => c.cases = [], c => c.cases.push(structuredClone(c.cases[0])),
++    c => c.cases[0].expected.deductionMinor = '1',
++  ]) {
++    const corpus = corpusFor(row); mutate(corpus);
++    assert.throws(() => prepareCaseFixtureHandoff(registry, row.selector, corpus), /REFERENCE_HANDOFF_SOURCE_MISMATCH/);
++  }
++});
++test('unmapped tax evidence and unknown cases remain explicit blockers for P04-03', () => {
++  const tax = registry.cases.find(row => row.selector.domain === 'income');
++  assert.deepEqual(prepareCaseFixtureHandoff(registry, tax.selector, null), {
++    ok:false, code:'CASE_NOT_QUALIFIED', caseId:tax.id, prerequisiteCode:'REFERENCE_FIXTURES_MISSING',
++  });
++  assert.deepEqual(prepareCaseFixtureHandoff(registry, {...tax.selector,taxYear:'2030-31'},null), {ok:false,code:'UNKNOWN_CASE'});
++});
+diff --git a/docs/development/tax-payroll-supported-cases.json b/docs/development/tax-payroll-supported-cases.json
+index dfeaad6..9e6f8b8 100644
+--- a/docs/development/tax-payroll-supported-cases.json
++++ b/docs/development/tax-payroll-supported-cases.json
+@@ -2207,6 +2207,73 @@
+         "qualification": "reference_only_engine_not_implemented",
+         "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+         "sourceVersion": "1.0"
++      },
++      "fixturePrerequisite": {
++        "status": "reference_only_engine_not_implemented",
++        "nextTask": "P04-03",
++        "owner": "coordinator",
++        "acceptanceScenario": "Independently review the two adjacent official weekly examples below, then implement notice eligibility and reconcile the exact deductionMinor values without deriving expected values from the engine. These examples alone do not qualify the plan.",
++        "examples": [
++          {
++            "id": "hmrc-loan-2026-27-plan_1-row-11",
++            "sourceSheet": "Plan_1",
++            "sourceRow": 11,
++            "input": {
++              "taxYear": "2026-27",
++              "plan": "plan_1",
++              "frequency": "weekly",
++              "payMinor": "52841"
++            },
++            "expected": {
++              "deductionMinor": "0"
++            }
++          },
++          {
++            "id": "hmrc-loan-2026-27-plan_1-row-12",
++            "sourceSheet": "Plan_1",
++            "sourceRow": 12,
++            "input": {
++              "taxYear": "2026-27",
++              "plan": "plan_1",
++              "frequency": "weekly",
++              "payMinor": "52842"
++            },
++            "expected": {
++              "deductionMinor": "100"
++            }
++          }
++        ],
++        "missingInputs": [
++          "loanNotice",
++          "employmentId",
++          "paymentDate"
++        ],
++        "missingOutputs": [
++          "ruleVersion",
++          "calculationSteps",
++          "warnings"
++        ],
++        "missingFixtures": [
++          {
++            "id": "notice_start_stop",
++            "scenario": "Effective-dated loan start/stop notice and payment-date boundary, including no notice and conflicting notices; pin expected eligibility and deduction with independent evidence."
++          },
++          {
++            "id": "concurrent_student_postgraduate",
++            "scenario": "The same earnings period with a student plan and postgraduate notice; pin both deductions, earnings basis and ordering independently rather than adding unrelated source rows."
++          },
++          {
++            "id": "correction_replay",
++            "scenario": "Correct earnings and replay prior periods under the original rule version; pin before/after deductions, year-to-date totals and immutable correction links."
++          }
++        ],
++        "ruleEvidence": null,
++        "independentReview": null,
++        "remainingYears": [
++          "2025-26",
++          "2027-28"
++        ],
++        "nextExecutableStep": "P04-03: independently qualify notice_start_stop for this plan and 2026-27 using the pinned weekly boundary pair; obtain effective notice/payment-date fixtures and statutory rounding/rule version. Do not import another year."
+       }
+     },
+     {
+@@ -2279,6 +2346,73 @@
+         "qualification": "reference_only_engine_not_implemented",
+         "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+         "sourceVersion": "1.0"
++      },
++      "fixturePrerequisite": {
++        "status": "reference_only_engine_not_implemented",
++        "nextTask": "P04-03",
++        "owner": "coordinator",
++        "acceptanceScenario": "Independently review the two adjacent official weekly examples below, then implement notice eligibility and reconcile the exact deductionMinor values without deriving expected values from the engine. These examples alone do not qualify the plan.",
++        "examples": [
++          {
++            "id": "hmrc-loan-2026-27-plan_2-row-11",
++            "sourceSheet": "Plan_2",
++            "sourceRow": 11,
++            "input": {
++              "taxYear": "2026-27",
++              "plan": "plan_2",
++              "frequency": "weekly",
++              "payMinor": "57620"
++            },
++            "expected": {
++              "deductionMinor": "0"
++            }
++          },
++          {
++            "id": "hmrc-loan-2026-27-plan_2-row-12",
++            "sourceSheet": "Plan_2",
++            "sourceRow": 12,
++            "input": {
++              "taxYear": "2026-27",
++              "plan": "plan_2",
++              "frequency": "weekly",
++              "payMinor": "57621"
++            },
++            "expected": {
++              "deductionMinor": "100"
++            }
++          }
++        ],
++        "missingInputs": [
++          "loanNotice",
++          "employmentId",
++          "paymentDate"
++        ],
++        "missingOutputs": [
++          "ruleVersion",
++          "calculationSteps",
++          "warnings"
++        ],
++        "missingFixtures": [
++          {
++            "id": "notice_start_stop",
++            "scenario": "Effective-dated loan start/stop notice and payment-date boundary, including no notice and conflicting notices; pin expected eligibility and deduction with independent evidence."
++          },
++          {
++            "id": "concurrent_student_postgraduate",
++            "scenario": "The same earnings period with a student plan and postgraduate notice; pin both deductions, earnings basis and ordering independently rather than adding unrelated source rows."
++          },
++          {
++            "id": "correction_replay",
++            "scenario": "Correct earnings and replay prior periods under the original rule version; pin before/after deductions, year-to-date totals and immutable correction links."
++          }
++        ],
++        "ruleEvidence": null,
++        "independentReview": null,
++        "remainingYears": [
++          "2025-26",
++          "2027-28"
++        ],
++        "nextExecutableStep": "P04-03: independently qualify notice_start_stop for this plan and 2026-27 using the pinned weekly boundary pair; obtain effective notice/payment-date fixtures and statutory rounding/rule version. Do not import another year."
+       }
+     },
+     {
+@@ -2351,6 +2485,73 @@
+         "qualification": "reference_only_engine_not_implemented",
+         "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+         "sourceVersion": "1.0"
++      },
++      "fixturePrerequisite": {
++        "status": "reference_only_engine_not_implemented",
++        "nextTask": "P04-03",
++        "owner": "coordinator",
++        "acceptanceScenario": "Independently review the two adjacent official weekly examples below, then implement notice eligibility and reconcile the exact deductionMinor values without deriving expected values from the engine. These examples alone do not qualify the plan.",
++        "examples": [
++          {
++            "id": "hmrc-loan-2026-27-plan_4-row-11",
++            "sourceSheet": "Plan_4",
++            "sourceRow": 11,
++            "input": {
++              "taxYear": "2026-27",
++              "plan": "plan_4",
++              "frequency": "weekly",
++              "payMinor": "66101"
++            },
++            "expected": {
++              "deductionMinor": "0"
++            }
++          },
++          {
++            "id": "hmrc-loan-2026-27-plan_4-row-12",
++            "sourceSheet": "Plan_4",
++            "sourceRow": 12,
++            "input": {
++              "taxYear": "2026-27",
++              "plan": "plan_4",
++              "frequency": "weekly",
++              "payMinor": "66102"
++            },
++            "expected": {
++              "deductionMinor": "100"
++            }
++          }
++        ],
++        "missingInputs": [
++          "loanNotice",
++          "employmentId",
++          "paymentDate"
++        ],
++        "missingOutputs": [
++          "ruleVersion",
++          "calculationSteps",
++          "warnings"
++        ],
++        "missingFixtures": [
++          {
++            "id": "notice_start_stop",
++            "scenario": "Effective-dated loan start/stop notice and payment-date boundary, including no notice and conflicting notices; pin expected eligibility and deduction with independent evidence."
++          },
++          {
++            "id": "concurrent_student_postgraduate",
++            "scenario": "The same earnings period with a student plan and postgraduate notice; pin both deductions, earnings basis and ordering independently rather than adding unrelated source rows."
++          },
++          {
++            "id": "correction_replay",
++            "scenario": "Correct earnings and replay prior periods under the original rule version; pin before/after deductions, year-to-date totals and immutable correction links."
++          }
++        ],
++        "ruleEvidence": null,
++        "independentReview": null,
++        "remainingYears": [
++          "2025-26",
++          "2027-28"
++        ],
++        "nextExecutableStep": "P04-03: independently qualify notice_start_stop for this plan and 2026-27 using the pinned weekly boundary pair; obtain effective notice/payment-date fixtures and statutory rounding/rule version. Do not import another year."
+       }
+     },
+     {
+@@ -2423,6 +2624,73 @@
+         "qualification": "reference_only_engine_not_implemented",
+         "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+         "sourceVersion": "1.0"
++      },
++      "fixturePrerequisite": {
++        "status": "reference_only_engine_not_implemented",
++        "nextTask": "P04-03",
++        "owner": "coordinator",
++        "acceptanceScenario": "Independently review the two adjacent official weekly examples below, then implement notice eligibility and reconcile the exact deductionMinor values without deriving expected values from the engine. These examples alone do not qualify the plan.",
++        "examples": [
++          {
++            "id": "hmrc-loan-2026-27-plan_5-row-11",
++            "sourceSheet": "Plan_5",
++            "sourceRow": 11,
++            "input": {
++              "taxYear": "2026-27",
++              "plan": "plan_5",
++              "frequency": "weekly",
++              "payMinor": "49187"
++            },
++            "expected": {
++              "deductionMinor": "0"
++            }
++          },
++          {
++            "id": "hmrc-loan-2026-27-plan_5-row-12",
++            "sourceSheet": "Plan_5",
++            "sourceRow": 12,
++            "input": {
++              "taxYear": "2026-27",
++              "plan": "plan_5",
++              "frequency": "weekly",
++              "payMinor": "49188"
++            },
++            "expected": {
++              "deductionMinor": "100"
++            }
++          }
++        ],
++        "missingInputs": [
++          "loanNotice",
++          "employmentId",
++          "paymentDate"
++        ],
++        "missingOutputs": [
++          "ruleVersion",
++          "calculationSteps",
++          "warnings"
++        ],
++        "missingFixtures": [
++          {
++            "id": "notice_start_stop",
++            "scenario": "Effective-dated loan start/stop notice and payment-date boundary, including no notice and conflicting notices; pin expected eligibility and deduction with independent evidence."
++          },
++          {
++            "id": "concurrent_student_postgraduate",
++            "scenario": "The same earnings period with a student plan and postgraduate notice; pin both deductions, earnings basis and ordering independently rather than adding unrelated source rows."
++          },
++          {
++            "id": "correction_replay",
++            "scenario": "Correct earnings and replay prior periods under the original rule version; pin before/after deductions, year-to-date totals and immutable correction links."
++          }
++        ],
++        "ruleEvidence": null,
++        "independentReview": null,
++        "remainingYears": [
++          "2025-26",
++          "2027-28"
++        ],
++        "nextExecutableStep": "P04-03: independently qualify notice_start_stop for this plan and 2026-27 using the pinned weekly boundary pair; obtain effective notice/payment-date fixtures and statutory rounding/rule version. Do not import another year."
+       }
+     },
+     {
+@@ -2495,6 +2763,73 @@
+         "qualification": "reference_only_engine_not_implemented",
+         "sourceSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+         "sourceVersion": "1.0"
++      },
++      "fixturePrerequisite": {
++        "status": "reference_only_engine_not_implemented",
++        "nextTask": "P04-03",
++        "owner": "coordinator",
++        "acceptanceScenario": "Independently review the two adjacent official weekly examples below, then implement notice eligibility and reconcile the exact deductionMinor values without deriving expected values from the engine. These examples alone do not qualify the plan.",
++        "examples": [
++          {
++            "id": "hmrc-loan-2026-27-postgraduate-row-11",
++            "sourceSheet": "Postgraduate",
++            "sourceRow": 11,
++            "input": {
++              "taxYear": "2026-27",
++              "plan": "postgraduate",
++              "frequency": "weekly",
++              "payMinor": "42050"
++            },
++            "expected": {
++              "deductionMinor": "0"
++            }
++          },
++          {
++            "id": "hmrc-loan-2026-27-postgraduate-row-12",
++            "sourceSheet": "Postgraduate",
++            "sourceRow": 12,
++            "input": {
++              "taxYear": "2026-27",
++              "plan": "postgraduate",
++              "frequency": "weekly",
++              "payMinor": "42051"
++            },
++            "expected": {
++              "deductionMinor": "100"
++            }
++          }
++        ],
++        "missingInputs": [
++          "loanNotice",
++          "employmentId",
++          "paymentDate"
++        ],
++        "missingOutputs": [
++          "ruleVersion",
++          "calculationSteps",
++          "warnings"
++        ],
++        "missingFixtures": [
++          {
++            "id": "notice_start_stop",
++            "scenario": "Effective-dated loan start/stop notice and payment-date boundary, including no notice and conflicting notices; pin expected eligibility and deduction with independent evidence."
++          },
++          {
++            "id": "concurrent_student_postgraduate",
++            "scenario": "The same earnings period with a student plan and postgraduate notice; pin both deductions, earnings basis and ordering independently rather than adding unrelated source rows."
++          },
++          {
++            "id": "correction_replay",
++            "scenario": "Correct earnings and replay prior periods under the original rule version; pin before/after deductions, year-to-date totals and immutable correction links."
++          }
++        ],
++        "ruleEvidence": null,
++        "independentReview": null,
++        "remainingYears": [
++          "2025-26",
++          "2027-28"
++        ],
++        "nextExecutableStep": "P04-03: independently qualify notice_start_stop for this plan and 2026-27 using the pinned weekly boundary pair; obtain effective notice/payment-date fixtures and statutory rounding/rule version. Do not import another year."
+       }
+     },
+     {
+@@ -2565,6 +2900,101 @@
+         "qualification": "reference_only_engine_not_implemented",
+         "sourceSha256": "163b18bd7dcfb699b8d77ec621ac1d4509372299de72daa1a5a027564caf188c",
+         "sourceVersion": "1.1"
++      },
++      "fixturePrerequisite": {
++        "status": "reference_only_engine_not_implemented",
++        "nextTask": "P04-03",
++        "owner": "coordinator",
++        "acceptanceScenario": "Independently review the first two official cumulative monthly rows below as an ordered sequence. Reconcile both current and cumulative PAYE amounts; establish opening prior tax and employment inputs from authoritative evidence before execution. Never treat missing opening tax as zero.",
++        "examples": [
++          {
++            "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-6",
++            "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
++            "sourceSheet": "Gen_cumul-mthly",
++            "sourceRow": 6,
++            "sequenceId": "rest_of_uk/Gen_cumul-mthly",
++            "previousExampleId": null,
++            "input": {
++              "taxYear": "2026-27",
++              "region": "rest_of_uk",
++              "frequency": "monthly",
++              "period": 1,
++              "taxCode": "1257L",
++              "week1Month1": null,
++              "grossPayMinor": "115625",
++              "taxablePayToDateMinor": "115625"
++            },
++            "expected": {
++              "taxDueMinor": "2140",
++              "taxDueToDateMinor": "2140"
++            },
++            "sourceNumericLexemes": {
++              "B": "1156.25",
++              "C": "1156.25",
++              "G": "21.4",
++              "H": "21.4"
++            }
++          },
++          {
++            "id": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-7",
++            "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 rest of UK tax v1.0.xlsx",
++            "sourceSheet": "Gen_cumul-mthly",
++            "sourceRow": 7,
++            "sequenceId": "rest_of_uk/Gen_cumul-mthly",
++            "previousExampleId": "hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-6",
++            "input": {
++              "taxYear": "2026-27",
++              "region": "rest_of_uk",
++              "frequency": "monthly",
++              "period": 2,
++              "taxCode": "1257L",
++              "week1Month1": null,
++              "grossPayMinor": "115626",
++              "taxablePayToDateMinor": "231251"
++            },
++            "expected": {
++              "taxDueMinor": "2160",
++              "taxDueToDateMinor": "4300"
++            },
++            "sourceNumericLexemes": {
++              "B": "1156.26",
++              "C": "2312.5100000000002",
++              "G": "21.6",
++              "H": "43"
++            }
++          }
++        ],
++        "missingInputs": [
++          "priorTaxDueToDateMinor",
++          "employmentId",
++          "paymentDate"
++        ],
++        "missingOutputs": [
++          "ruleVersion",
++          "calculationSteps",
++          "warnings"
++        ],
++        "missingFixtures": [
++          {
++            "id": "opening_prior_tax",
++            "scenario": "Pin explicit opening taxable pay and prior tax for each cumulative sequence, including a starter with previous employment; source row predecessor alone is not eligibility or opening-balance evidence."
++          },
++          {
++            "id": "code_region_basis_change",
++            "scenario": "Pin an ordered midyear code, region and cumulative/non-cumulative basis change with before/after inputs, prior tax and exact current/cumulative outputs."
++          },
++          {
++            "id": "irregular_pay_refund_correction",
++            "scenario": "Pin irregular pay, refund and corrected prior-period sequence with opening balances, payment dates and exact current/cumulative outputs."
++          }
++        ],
++        "ruleEvidence": null,
++        "independentReview": null,
++        "remainingYears": [
++          "2025-26",
++          "2027-28"
++        ],
++        "nextExecutableStep": "P04-03: independently qualify opening_prior_tax for this region and 2026-27, retaining the pinned two-row sequence and exact workbook provenance; obtain explicit opening employment/tax context and statutory rule version. Do not infer zero or import another year."
+       }
+     },
+     {
+@@ -2635,6 +3065,101 @@
+         "qualification": "reference_only_engine_not_implemented",
+         "sourceSha256": "163b18bd7dcfb699b8d77ec621ac1d4509372299de72daa1a5a027564caf188c",
+         "sourceVersion": "1.1"
++      },
++      "fixturePrerequisite": {
++        "status": "reference_only_engine_not_implemented",
++        "nextTask": "P04-03",
++        "owner": "coordinator",
++        "acceptanceScenario": "Independently review the first two official cumulative monthly rows below as an ordered sequence. Reconcile both current and cumulative PAYE amounts; establish opening prior tax and employment inputs from authoritative evidence before execution. Never treat missing opening tax as zero.",
++        "examples": [
++          {
++            "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-6",
++            "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
++            "sourceSheet": "Gen_cumul_mthly",
++            "sourceRow": 6,
++            "sequenceId": "scotland/Gen_cumul_mthly",
++            "previousExampleId": null,
++            "input": {
++              "taxYear": "2026-27",
++              "region": "scotland",
++              "frequency": "monthly",
++              "period": 1,
++              "taxCode": "S1257L",
++              "week1Month1": null,
++              "grossPayMinor": "115625",
++              "taxablePayToDateMinor": "115625"
++            },
++            "expected": {
++              "taxDueMinor": "2033",
++              "taxDueToDateMinor": "2033"
++            },
++            "sourceNumericLexemes": {
++              "B": "1156.25",
++              "C": "1156.25",
++              "G": "20.329999999999998",
++              "H": "20.329999999999998"
++            }
++          },
++          {
++            "id": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-7",
++            "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026 - 27 Scottish tax v1.1.xlsx",
++            "sourceSheet": "Gen_cumul_mthly",
++            "sourceRow": 7,
++            "sequenceId": "scotland/Gen_cumul_mthly",
++            "previousExampleId": "hmrc-paye-2026-27-scotland-Gen_cumul_mthly-row-6",
++            "input": {
++              "taxYear": "2026-27",
++              "region": "scotland",
++              "frequency": "monthly",
++              "period": 2,
++              "taxCode": "S1257L",
++              "week1Month1": null,
++              "grossPayMinor": "115626",
++              "taxablePayToDateMinor": "231251"
++            },
++            "expected": {
++              "taxDueMinor": "2052",
++              "taxDueToDateMinor": "4085"
++            },
++            "sourceNumericLexemes": {
++              "B": "1156.26",
++              "C": "2312.5100000000002",
++              "G": "20.520000000000003",
++              "H": "40.85"
++            }
++          }
++        ],
++        "missingInputs": [
++          "priorTaxDueToDateMinor",
++          "employmentId",
++          "paymentDate"
++        ],
++        "missingOutputs": [
++          "ruleVersion",
++          "calculationSteps",
++          "warnings"
++        ],
++        "missingFixtures": [
++          {
++            "id": "opening_prior_tax",
++            "scenario": "Pin explicit opening taxable pay and prior tax for each cumulative sequence, including a starter with previous employment; source row predecessor alone is not eligibility or opening-balance evidence."
++          },
++          {
++            "id": "code_region_basis_change",
++            "scenario": "Pin an ordered midyear code, region and cumulative/non-cumulative basis change with before/after inputs, prior tax and exact current/cumulative outputs."
++          },
++          {
++            "id": "irregular_pay_refund_correction",
++            "scenario": "Pin irregular pay, refund and corrected prior-period sequence with opening balances, payment dates and exact current/cumulative outputs."
++          }
++        ],
++        "ruleEvidence": null,
++        "independentReview": null,
++        "remainingYears": [
++          "2025-26",
++          "2027-28"
++        ],
++        "nextExecutableStep": "P04-03: independently qualify opening_prior_tax for this region and 2026-27, retaining the pinned two-row sequence and exact workbook provenance; obtain explicit opening employment/tax context and statutory rule version. Do not infer zero or import another year."
+       }
+     },
+     {
+@@ -2705,6 +3230,101 @@
+         "qualification": "reference_only_engine_not_implemented",
+         "sourceSha256": "163b18bd7dcfb699b8d77ec621ac1d4509372299de72daa1a5a027564caf188c",
+         "sourceVersion": "1.1"
++      },
++      "fixturePrerequisite": {
++        "status": "reference_only_engine_not_implemented",
++        "nextTask": "P04-03",
++        "owner": "coordinator",
++        "acceptanceScenario": "Independently review the first two official cumulative monthly rows below as an ordered sequence. Reconcile both current and cumulative PAYE amounts; establish opening prior tax and employment inputs from authoritative evidence before execution. Never treat missing opening tax as zero.",
++        "examples": [
++          {
++            "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-6",
++            "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
++            "sourceSheet": "Gen_cumul_mthly",
++            "sourceRow": 6,
++            "sequenceId": "wales/Gen_cumul_mthly",
++            "previousExampleId": null,
++            "input": {
++              "taxYear": "2026-27",
++              "region": "wales",
++              "frequency": "monthly",
++              "period": 1,
++              "taxCode": "C1257L",
++              "week1Month1": null,
++              "grossPayMinor": "115625",
++              "taxablePayToDateMinor": "115625"
++            },
++            "expected": {
++              "taxDueMinor": "2140",
++              "taxDueToDateMinor": "2140"
++            },
++            "sourceNumericLexemes": {
++              "B": "1156.25",
++              "C": "1156.25",
++              "G": "21.4",
++              "H": "21.4"
++            }
++          },
++          {
++            "id": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-7",
++            "sourceWorkbook": "Tax-test-data-examples-2026-27-v1-1/2026- 27 Welsh tax v1.0.xlsx",
++            "sourceSheet": "Gen_cumul_mthly",
++            "sourceRow": 7,
++            "sequenceId": "wales/Gen_cumul_mthly",
++            "previousExampleId": "hmrc-paye-2026-27-wales-Gen_cumul_mthly-row-6",
++            "input": {
++              "taxYear": "2026-27",
++              "region": "wales",
++              "frequency": "monthly",
++              "period": 2,
++              "taxCode": "C1257L",
++              "week1Month1": null,
++              "grossPayMinor": "115626",
++              "taxablePayToDateMinor": "231251"
++            },
++            "expected": {
++              "taxDueMinor": "2160",
++              "taxDueToDateMinor": "4300"
++            },
++            "sourceNumericLexemes": {
++              "B": "1156.26",
++              "C": "2312.5100000000002",
++              "G": "21.6",
++              "H": "43"
++            }
++          }
++        ],
++        "missingInputs": [
++          "priorTaxDueToDateMinor",
++          "employmentId",
++          "paymentDate"
++        ],
++        "missingOutputs": [
++          "ruleVersion",
++          "calculationSteps",
++          "warnings"
++        ],
++        "missingFixtures": [
++          {
++            "id": "opening_prior_tax",
++            "scenario": "Pin explicit opening taxable pay and prior tax for each cumulative sequence, including a starter with previous employment; source row predecessor alone is not eligibility or opening-balance evidence."
++          },
++          {
++            "id": "code_region_basis_change",
++            "scenario": "Pin an ordered midyear code, region and cumulative/non-cumulative basis change with before/after inputs, prior tax and exact current/cumulative outputs."
++          },
++          {
++            "id": "irregular_pay_refund_correction",
++            "scenario": "Pin irregular pay, refund and corrected prior-period sequence with opening balances, payment dates and exact current/cumulative outputs."
++          }
++        ],
++        "ruleEvidence": null,
++        "independentReview": null,
++        "remainingYears": [
++          "2025-26",
++          "2027-28"
++        ],
++        "nextExecutableStep": "P04-03: independently qualify opening_prior_tax for this region and 2026-27, retaining the pinned two-row sequence and exact workbook provenance; obtain explicit opening employment/tax context and statutory rule version. Do not infer zero or import another year."
+       }
+     }
+   ],
+diff --git a/tools/development/work-queue/README.md b/tools/development/work-queue/README.md
+index aafa226..c5cb97f 100644
+--- a/tools/development/work-queue/README.md
++++ b/tools/development/work-queue/README.md
+@@ -355,3 +355,30 @@ merge commit. Immediately create a successor draft PR against the same base,
+ persist its number as `integrationPullRequest`, and remove `publicationSuccessor`.
+ All subsequent updates require that numbered open draft. No branch change,
+ force-push, merge, deployment or parent acceptance is authorized by this transition.
++
++### Efficiency trial (owner approved 16 November 2026)
++
++`claim`, `status` and `listready` accept optional `track: "tax-payroll"`.
++This selects the highest eligible task owning native tax/payroll service paths;
++normal claims retain global priority. It never bypasses dependencies, approvals
++or held-file conflicts. Staffing remains a coordinator responsibility: at most
++two implementers, no third track or permanent specialties.
++
++`accept-outcome` is coordinator-only. Submit normally, retain files through review,
++then provide independent matching-commit `evidence`, `workersStopped: true`, and
++`outcome: { id, scenario, criteria, remaining, nextAction, integratedCommit }`.
++`criteria` contains zero-based parent acceptance indices; `remaining` is nonempty.
++For a rebased/cherry-picked integration, evidence.commit still matches the submitted
++author; evidence.integratedCommit and outcome.integratedCommit name the tested
++published integration. The coordinator verifies the preserved diff and actual
++integrated-source gates before attesting.
++The event and task retain the outcome; parent stays pending and dependencies
++stay blocked until full parent acceptance. Use reject only for actual defects.
++`currentView(catalog, authority, { now, publishedCommits })` in `current-view.mjs`
++provides a read-only current projection; published commits must come from verified
++integration-branch ancestry, never a worker assertion. Unknown ages remain null.
++
++Earlier PR27 references above describe historical bootstrap behavior. Use the
++current durable `integrationPullRequest` and publication helper; PR28 is the
++current successor. Draft description text is not current CI evidence. Keep the
++existing pinned runner, focused pre-submission checks and full exact-source gates.
+diff --git a/tools/development/work-queue/cli.mjs b/tools/development/work-queue/cli.mjs
+index 6bb13eb..f2e49fd 100644
+--- a/tools/development/work-queue/cli.mjs
++++ b/tools/development/work-queue/cli.mjs
+@@ -6,13 +6,14 @@ import path from 'node:path';
+ import { fileURLToPath } from 'node:url';
+ import { createQueueStore, QueueStoreError, readJSON } from './store.mjs';
+ 
+-const COMMANDS = new Set(['status', 'listready', 'init', 'export', 'recover-lock', 'claim', 'renew', 'checkpoint', 'block', 'submit', 'accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
+-const COORDINATOR_COMMANDS = new Set(['init', 'export', 'recover-lock', 'accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
++const COMMANDS = new Set(['status', 'listready', 'init', 'export', 'recover-lock', 'claim', 'renew', 'checkpoint', 'block', 'submit', 'accept', 'accept-outcome', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
++const COORDINATOR_COMMANDS = new Set(['init', 'export', 'recover-lock', 'accept', 'accept-outcome', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
+ const COMMAND_FIELDS = {
+-  status: ['capabilities'], listready: ['capabilities'], init: [], export: ['expectedRevision'], 'recover-lock': ['expectedToken', 'reason'],
+-  claim: ['leaseMs', 'capabilities', 'expectedRevision'], renew: ['taskId', 'token', 'leaseMs', 'workStarted', 'expectedRevision'],
++  status: ['capabilities', 'track'], listready: ['capabilities', 'track'], init: [], export: ['expectedRevision'], 'recover-lock': ['expectedToken', 'reason'],
++  claim: ['leaseMs', 'capabilities', 'track', 'expectedRevision'], renew: ['taskId', 'token', 'leaseMs', 'workStarted', 'expectedRevision'],
+   checkpoint: ['taskId', 'token', 'checkpoint', 'expectedRevision'], block: ['taskId', 'token', 'blockers', 'checkpoint', 'expectedRevision'],
+   submit: ['taskId', 'token', 'evidence', 'expectedRevision'], accept: ['taskId', 'evidence', 'expectedRevision'],
++  'accept-outcome': ['taskId', 'evidence', 'outcome', 'workersStopped', 'expectedRevision'],
+   reject: ['taskId', 'reason', 'expectedRevision'], reopen: ['taskId', 'reason', 'expectedRevision'],
+   reprioritize: ['taskId', 'priority', 'expectedRevision'], recover: ['taskId', 'workerStopped', 'checkpoint', 'expectedRevision'],
+   approve: ['taskId', 'approvalEvidence', 'expectedRevision'],
+@@ -88,7 +89,7 @@ export async function main({ argv = process.argv.slice(2), input = process.stdin
+     const runtime = store.readOptional();
+     const state = runtime || validateState(stampSeed(existsSync(locations.checkpoint) ? readJSON(locations.checkpoint) : core.initialState(catalog)));
+     const worker = command.actor || '__status__';
+-    const options = { worker, now, capabilities: command.capabilities };
++    const options = { worker, now, capabilities: command.capabilities, track: command.track };
+     const rows = catalog.tasks.map(task => {
+       const record = state.tasks[task.id];
+       const explanation = core.explainTask(catalog, state, task, options);
+diff --git a/tools/development/work-queue/core.mjs b/tools/development/work-queue/core.mjs
+index cf4bc0c..bbbcef7 100644
+--- a/tools/development/work-queue/core.mjs
++++ b/tools/development/work-queue/core.mjs
+@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
+ const KINDS = new Set(['implementation', 'contract', 'verification', 'external']);
+ const STATUSES = new Set(['pending', 'running', 'review', 'blocked', 'done', 'quarantined']);
+ const HELD = new Set(['running', 'review', 'quarantined']);
+-const COORDINATOR = new Set(['accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
++const COORDINATOR = new Set(['accept', 'accept-outcome', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
+ const tokenDigest = value => createHash('sha256').update(value, 'utf8').digest('hex');
+ const digestValid = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+ const text = value => typeof value === 'string' && value.trim().length > 0;
+@@ -140,6 +140,10 @@ function reconcile(catalog, state, now) {
+ }
+ function approved(task, entry) { return task.approval === 'approved' && task.kind !== 'external' || approvalValid(entry.approvalEvidence, task.id); }
+ function approvalValid(evidence, id) { return evidence?.authority === 'owner' && evidence.scope === id && text(evidence.approvedBy) && text(evidence.reference); }
++function trackAllows(task, track) {
++  requireValue(track === undefined || track === 'tax-payroll', 'INVALID_TRACK', 'Only the owner-approved tax-payroll second track is supported.');
++  return track === undefined || task.files.some(file => /^artifacts\/api-server\/src\/services\/(tax|payroll)\//.test(file));
++}
+ function ready(catalog, state, task, capabilities) {
+   const entry = state.tasks[task.id];
+   if (!['pending', 'blocked'].includes(entry.status) || !approved(task, entry) || task.rulesKnown === false) return false;
+@@ -149,13 +153,15 @@ function ready(catalog, state, task, capabilities) {
+   return !catalog.tasks.some(other => other.id !== task.id && HELD.has(state.tasks[other.id].status) && task.files.some(file => other.files.some(held => overlap(file, held))));
+ }
+ 
+-export function explainTask(catalog, state, task, { worker, now, capabilities } = {}) {
++export function explainTask(catalog, state, task, { worker, now, capabilities, track } = {}) {
+   validateCatalog(catalog); validateState(catalog, state); timestamp(now);
+   requireValue(capabilities === undefined || Array.isArray(capabilities) && capabilities.every(kind => KINDS.has(kind)), 'INVALID_CAPABILITIES', 'Capabilities must be known task kinds.');
+   const known = catalog.tasks.find(item => item.id === task?.id);
+   requireValue(known, 'UNKNOWN_TASK', 'A catalogue task is required.');
++  trackAllows({ files: [] }, track);
+   const current = structuredClone(state); reconcile(catalog, current, now);
+   const entry = current.tasks[known.id], blockers = [];
++  if (!trackAllows(known, track)) blockers.push({ type: 'decision', reason: 'Outside the requested tax-payroll track.' });
+   if (!['pending', 'blocked'].includes(entry.status)) blockers.push({ type: 'environment', reason: `Task is ${entry.status}; its current transition must be resolved first.` });
+   if (worker && Object.values(current.tasks).some(item => item.owner === worker && ['running', 'quarantined'].includes(item.status))) blockers.push({ type: 'environment', reason: 'Worker already has running or quarantined work.' });
+   if (!approved(known, entry)) blockers.push({ type: 'decision', reason: 'Recorded owner authority is required before this task can be claimed.' });
+@@ -167,13 +173,14 @@ export function explainTask(catalog, state, task, { worker, now, capabilities }
+   return { eligible: blockers.length === 0, blockers };
+ }
+ 
+-export function selectNext(catalog, state, { worker, now, capabilities } = {}) {
++export function selectNext(catalog, state, { worker, now, capabilities, track } = {}) {
+   validateCatalog(catalog); validateState(catalog, state); timestamp(now);
+   requireValue(text(worker), 'INVALID_WORKER', 'A worker identity is required.');
+   requireValue(capabilities === undefined || Array.isArray(capabilities) && capabilities.every(kind => KINDS.has(kind)), 'INVALID_CAPABILITIES', 'Capabilities must be known task kinds.');
++  trackAllows({ files: [] }, track);
+   const current = structuredClone(state); reconcile(catalog, current, now);
+   if (Object.values(current.tasks).some(entry => entry.owner === worker && ['running', 'quarantined'].includes(entry.status))) return null;
+-  return catalog.tasks.filter(task => ready(catalog, current, task, capabilities))
++  return catalog.tasks.filter(task => trackAllows(task, track) && ready(catalog, current, task, capabilities))
+     .sort((a, b) => (current.tasks[a.id].priority ?? a.priority) - (current.tasks[b.id].priority ?? b.priority) || a.id.localeCompare(b.id))[0] ?? null;
+ }
+ 
+@@ -201,14 +208,14 @@ export function transition(catalog, state, command, { now, coordinator } = {}) {
+   if (type === 'claim') {
+     leaseDuration(command.leaseMs, now);
+     requireValue(text(command.token) && command.token.length >= 8 && !next.events.some(item => item.tokenSha256 === tokenDigest(command.token)) && !Object.values(next.tasks).some(entry => text(command.token) && entry.tokenSha256 === tokenDigest(command.token)), 'INVALID_TOKEN', 'A new unique lease token of at least eight characters is required.');
+-    const task = selectNext(catalog, next, { worker: actor, now, capabilities: command.capabilities });
++    const task = selectNext(catalog, next, { worker: actor, now, capabilities: command.capabilities, track: command.track });
+     if (task) {
+       const entry = next.tasks[task.id];
+       entry.discoveredDependencies = dependencies(task, next).filter(id => !task.dependencies.includes(id));
+       Object.assign(entry, { status: 'running', owner: actor, tokenSha256: tokenDigest(command.token), leaseUntil: now + command.leaseMs, workStarted: false });
+       delete entry.blockers;
+       claim = { taskId: task.id, token: command.token, leaseUntil: entry.leaseUntil, files: [...task.files] };
+-      event(next, now, actor, type, task.id, { tokenSha256: tokenDigest(command.token) });
++      event(next, now, actor, type, task.id, { tokenSha256: tokenDigest(command.token), ...(command.track ? { track: command.track } : {}) });
+     }
+   } else {
+     const task = catalog.tasks.find(item => item.id === command.taskId), entry = next.tasks[command.taskId];
+@@ -240,6 +247,22 @@ export function transition(catalog, state, command, { now, coordinator } = {}) {
+         requireValue(evidenceValid(command.evidence, true) && command.evidence.reviewer !== entry.owner && command.evidence.commit === entry.evidence?.commit, 'EVIDENCE_REQUIRED', 'Acceptance requires independent review and passing evidence for the submitted commit.');
+         entry.status = 'done'; entry.evidence = structuredClone(command.evidence); clearLease(entry); delete entry.blockers;
+         break;
++      case 'accept-outcome': {
++        requireValue(entry.status === 'review' && dependencies(task, next).every(id => next.tasks[id].status === 'done'), 'REVIEW_REQUIRED', 'Only dependency-current submitted work can have an accepted outcome.');
++        requireValue(evidenceValid(command.evidence, true) && command.evidence.reviewer !== entry.owner && command.evidence.commit === entry.evidence?.commit, 'EVIDENCE_REQUIRED', 'Independent matching-commit review is required.');
++        const outcome = command.outcome;
++        requireValue(outcome && typeof outcome.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(outcome.id) && text(outcome.scenario)
++          && Array.isArray(outcome.criteria) && outcome.criteria.length > 0 && new Set(outcome.criteria).size === outcome.criteria.length
++          && outcome.criteria.every(i => Number.isSafeInteger(i) && i >= 0 && i < task.acceptance.length)
++          && Array.isArray(outcome.remaining) && outcome.remaining.length > 0 && outcome.remaining.every(text)
++          && text(outcome.nextAction) && text(outcome.integratedCommit) && outcome.integratedCommit === (command.evidence.integratedCommit ?? command.evidence.commit)
++          && command.workersStopped === true, 'OUTCOME_REQUIRED', 'A bounded integrated scenario, parent criteria, remaining work, next action and stopped author are required.');
++        requireValue(!(entry.acceptedOutcomes ?? []).some(item => item.id === outcome.id), 'DUPLICATE_OUTCOME', 'Accepted outcome identities are immutable.');
++        entry.acceptedOutcomes = [...(entry.acceptedOutcomes ?? []), { ...structuredClone(outcome), acceptedAt: now, evidence: structuredClone(command.evidence) }];
++        entry.status = 'pending'; entry.evidence = structuredClone(command.evidence); entry.checkpoint = outcome.nextAction;
++        clearLease(entry); delete entry.blockers;
++        break;
++      }
+       case 'reject':
+         requireValue(entry.status === 'review' && text(command.reason), 'REVIEW_REQUIRED', 'Reject a review with a concrete reason.');
+         entry.status = 'quarantined'; appendBlockers(entry, [{ type: 'decision', source: 'review', reason: command.reason }]);
+@@ -278,6 +301,7 @@ export function transition(catalog, state, command, { now, coordinator } = {}) {
+     }
+     event(next, now, actor, type, task.id, {
+       ...(command.reason ? { reason: command.reason } : {}),
++      ...(type === 'accept-outcome' ? { outcome: structuredClone(command.outcome), workersStopped: true } : {}),
+       ...(resolvedBlockers ? { resolvedBlockers } : {}),
+       ...(command.evidence ? { evidence: structuredClone(command.evidence) } : {}),
+       ...(command.approvalEvidence ? { approvalEvidence: structuredClone(command.approvalEvidence) } : {}),
+diff --git a/tools/development/work-queue/core.test.mjs b/tools/development/work-queue/core.test.mjs
+index 76ee37a..3856dd7 100644
+--- a/tools/development/work-queue/core.test.mjs
++++ b/tools/development/work-queue/core.test.mjs
+@@ -252,3 +252,36 @@ test('explicit blocker resolution preserves evidence and dependencies without re
+   assert.equal(h.state.tasks.child.status,'pending');
+   assert.throws(()=>h.run(cmd),{code:'RESOLUTION_REQUIRED'});
+ });
++
++test('tax-payroll track selects priority within its scope and retains dependencies and review leases', () => {
++  const h = harness([task('accounting', 1), task('payroll', 3, { files: ['artifacts/api-server/src/services/payroll/fixtures/'] }), task('tax', 2, { files: ['artifacts/api-server/src/services/tax/contracts/'] })]);
++  assert.equal(h.claim('a').taskId, 'accounting');
++  const tax = h.claim('b', { track: 'tax-payroll' }); assert.equal(tax.taskId, 'tax');
++  h.submit('b', tax);
++  assert.equal(h.claim('c', { track: 'tax-payroll' }).taskId, 'payroll');
++  assert.throws(() => h.claim('d', { track: 'invented' }), { code: 'INVALID_TRACK' });
++  const d = harness([task('tax', 1, { files: ['artifacts/api-server/src/services/tax/core/'], dependencies: ['rules'] }), task('rules', 2)]);
++  assert.equal(d.claim('b', { track: 'tax-payroll' }), null);
++});
++
++test('independently accepted child outcome releases stopped author without accepting parent or dependent', () => {
++  const h = harness([task('parent'), task('dependent', 2, { dependencies: ['parent'] })]);
++  const c = h.claim('author'); h.submit('author', c);
++  const command = { type: 'accept-outcome', actor: 'coordinator', taskId: 'parent', workersStopped: true,
++    evidence: evidence('commit-a', { reviewed: true, reviewer: 'reviewer' }),
++    outcome: { id: 'recover-payment', scenario: 'Recover payment after lost response', criteria: [0], remaining: ['Other operation families'], nextAction: 'Implement lost local identity recovery', integratedCommit: 'commit-a' } };
++  assert.throws(() => h.run({ ...command, evidence: evidence('commit-a', { reviewed: true, reviewer: 'author' }) }), { code: 'EVIDENCE_REQUIRED' });
++  assert.throws(() => h.run({ ...command, workersStopped: false }), { code: 'OUTCOME_REQUIRED' });
++  assert.throws(() => h.run({ ...command, outcome: { ...command.outcome, criteria: [1] } }), { code: 'OUTCOME_REQUIRED' });
++  assert.throws(() => h.run({ ...command, evidence: evidence('other', { reviewed: true, reviewer: 'reviewer' }) }), { code: 'EVIDENCE_REQUIRED' });
++  for (const id of [undefined, null, 7]) assert.throws(() => h.run({ ...command, outcome: { ...command.outcome, id } }), { code: 'OUTCOME_REQUIRED' });
++  assert.throws(() => h.run({ ...command, actor: 'stranger' }), { code: 'COORDINATOR_REQUIRED' });
++  command.evidence.integratedCommit = 'published-integration'; command.outcome.integratedCommit = 'published-integration';
++  h.run(command); assert.deepEqual(h.state.events.at(-1).outcome, command.outcome); assert.equal(h.state.events.at(-1).workersStopped, true); assert.equal(h.state.tasks.parent.status, 'pending'); assert.equal(h.state.tasks.parent.owner, undefined);
++  assert.equal(h.state.tasks.parent.acceptedOutcomes.length, 1);
++  assert.equal(h.state.tasks.dependent.status, 'pending');
++  assert.equal(h.claim('next').taskId, 'parent');
++  const parentLease = { taskId: 'parent', token: 'lease-token-2' }; h.submit('next', parentLease);
++  assert.throws(() => h.run(command), { code: 'DUPLICATE_OUTCOME' });
++  assert.equal(h.state.events.filter(e => e.type === 'reject' || e.type === 'recover').length, 0);
++});
+diff --git a/tools/development/work-queue/current-view.mjs b/tools/development/work-queue/current-view.mjs
+new file mode 100644
+index 0000000..e609122
+--- /dev/null
++++ b/tools/development/work-queue/current-view.mjs
+@@ -0,0 +1,40 @@
++import { explainTask } from './core.mjs';
++// Read-only projection. Historical evidence is never rewritten into current acceptance.
++export function currentView(catalog, authority, { now, publishedCommits = [] }) {
++  const state = authority.queueState;
++  const published = new Set(publishedCommits);
++  const tasks = catalog.tasks.map(task => {
++    const entry = state.tasks[task.id];
++    const events = state.events.filter(e => e.taskId === task.id);
++    const blockers = explainTask(catalog, state, task, { now }).blockers;
++    const ancestors = new Set();
++    const collect = id => {
++      const t = catalog.tasks.find(t => t.id === id), e = state.tasks[id];
++      for (const dep of [...t.dependencies, ...(e.discoveredDependencies ?? []), ...(e.blockers ?? []).filter(b => b.type === 'task').map(b => b.id)]) {
++        if (!ancestors.has(dep)) { ancestors.add(dep); collect(dep); }
++      }
++    };
++    collect(task.id);
++    const lastReopen = Math.max(-1, ...state.events.filter(e => e.type === 'reopen' && (e.taskId === task.id || ancestors.has(e.taskId))).map(e => e.at));
++    const outcomes = (entry.acceptedOutcomes ?? []).map(outcome => ({ ...outcome,
++      current: outcome.acceptedAt > lastReopen && [...ancestors].every(id => state.tasks[id].status === 'done') }));
++    const evidence = entry.evidence ?? null;
++    const commit = evidence?.integratedCommit ?? evidence?.commit ?? null;
++    return { id: task.id, title: task.title, originalCriteria: task.acceptance,
++      childOutcomes: outcomes, remainingAcceptanceCriteria: entry.status === 'done' ? [] : task.acceptance,
++      remainingWork: outcomes.filter(o => o.current).at(-1)?.remaining ?? null,
++      source: authority.codeHead, candidate: commit, evidence,
++      status: entry.status, eligible: explainTask(catalog, state, task, { now }).eligible,
++      blockers: blockers.map(blocker => ({ ...blocker,
++        responsible: blocker.type === 'task' ? blocker.id : 'coordinator',
++        firstObservedAt: events.find(e => e.type === 'block' && e.blockers?.some(b => b.reason === blocker.reason))?.at ?? null,
++        nextAction: blocker.type === 'task' ? `Reconcile acceptance of ${blocker.id}; preserve genuine dependency.` : 'Inspect current source; record precise resolution or executable prerequisite.' })),
++      nextAction: outcomes.filter(o => o.current).at(-1)?.nextAction ?? (outcomes.some(o => !o.current && o.nextAction === entry.checkpoint) ? 'Reconcile reopened dependency before reusing historical next action.' : entry.checkpoint ?? null),
++      publication: commit && published.has(commit) ? 'published' : 'not-established',
++      integration: commit && published.has(commit) ? 'integration-branch' : 'not-established',
++      acceptance: entry.status === 'done' ? 'parent-accepted' : outcomes.some(o => o.current) ? 'child-only' : 'parent-not-accepted' };
++  });
++  return { generatedAt: now, source: authority.codeHead, queueRevision: state.revision,
++    originalRequirementCount: catalog.source?.source_bullet_count ?? null,
++    note: 'Null means unknown. Parent criteria remain authoritative; child acceptance never closes a parent. Publication means integration branch, not merged/deployed.', tasks };
++}
+diff --git a/tools/development/work-queue/current-view.test.mjs b/tools/development/work-queue/current-view.test.mjs
+new file mode 100644
+index 0000000..d55b04f
+--- /dev/null
++++ b/tools/development/work-queue/current-view.test.mjs
+@@ -0,0 +1,20 @@
++import test from 'node:test';import assert from 'node:assert/strict';
++import { initialState } from './core.mjs';import { currentView } from './current-view.mjs';
++test('current view preserves source/history and separates publication from parent acceptance', () => {
++ const catalog={version:1,source:{source_bullet_count:92},tasks:[{id:'a',title:'Parent',priority:1,dependencies:[],files:['a.js'],kind:'implementation',approval:'approved',acceptance:['Whole journey']}]};
++ const q=initialState(catalog);q.tasks.a.evidence={commit:'abc'};q.tasks.a.acceptedOutcomes=[{id:'child',acceptedAt:10,remaining:['Other cases'],nextAction:'Implement other cases'}];
++ const a={codeHead:'abc',queueState:q},before=structuredClone(a);
++ let v=currentView(catalog,a,{now:20,publishedCommits:['abc']});assert.equal(v.tasks[0].acceptance,'child-only');assert.equal(v.tasks[0].publication,'published');assert.deepEqual(v.tasks[0].remainingAcceptanceCriteria,['Whole journey']);assert.deepEqual(a,before);
++ q.events.push({type:'reopen',taskId:'a',at:15});v=currentView(catalog,a,{now:20,publishedCommits:['abc']});assert.equal(v.tasks[0].acceptance,'parent-not-accepted');assert.equal(v.tasks[0].childOutcomes.length,1);
++});
++test('dependency reopen invalidates historical outcomes even after dependency reacceptance', () => {
++ const make=(id,dependencies=[])=>({id,title:id,priority:1,dependencies,files:[id+'.js'],kind:'implementation',approval:'approved',acceptance:['All cases']});
++ for(const discovered of [false,true]){
++  const c={version:1,tasks:[make('root'),make('mid',['root']),make('parent',discovered?[]:['mid'])]};const q=initialState(c);
++  q.tasks.root.status='done';q.tasks.mid.status='done';if(discovered)q.tasks.parent.discoveredDependencies=['mid'];
++  q.tasks.parent.checkpoint='Old next';q.tasks.parent.acceptedOutcomes=[{id:'slice',acceptedAt:10,remaining:['Rest'],nextAction:'Old next'}];
++  let v=currentView(c,{codeHead:'abc',queueState:q},{now:30});assert.equal(v.tasks[2].acceptance,'child-only');
++  q.events.push({type:'reopen',taskId:'root',at:10});
++  v=currentView(c,{codeHead:'abc',queueState:q},{now:30});assert.equal(v.tasks[2].acceptance,'parent-not-accepted');assert.notEqual(v.tasks[2].nextAction,'Old next');
++ }
++});

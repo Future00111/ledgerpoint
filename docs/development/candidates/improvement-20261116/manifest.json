@@ -1,0 +1,27 @@
+{
+  "base": "55ec0fc0e2e1ef6d8b83cf7b030f1cca5ff29770",
+  "commit": "68f1cb7cde01aacb5fede32fc679d1bc6f22f6f9",
+  "tree": "61882b14ea96637fdde8e64948be4aa4f2d43a23",
+  "taxAuthor": "518332c4c0bb42962e1754bd7baa4c40adbcc441",
+  "reviewer": "/root/independent_review",
+  "review": "Approved exact combined68f1cb7; independently168queue+caseRegistry passed; prior89tax/payrollcontractchecks passed. No author selfapproval.",
+  "tests": {
+    "queue": 102,
+    "combinedSource": "passed",
+    "build": "passed"
+  },
+  "remaining": "P04-01 fullcasecoverage and independentstatutory evidence; no engineaccepted. P03-01 serverdiscovery remains next accounting task.",
+  "files": [
+    "AGENTS.md",
+    "artifacts/api-server/src/services/tax/contracts/caseRegistry.mjs",
+    "artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs",
+    "docs/development/tax-payroll-supported-cases.json",
+    "tools/development/work-queue/README.md",
+    "tools/development/work-queue/cli.mjs",
+    "tools/development/work-queue/core.mjs",
+    "tools/development/work-queue/core.test.mjs",
+    "tools/development/work-queue/current-view.mjs",
+    "tools/development/work-queue/current-view.test.mjs"
+  ],
+  "patchSha256": "33482957f54c11b842881a77639db04b00c71d8649766c9a76b1af4261c647bc"
+}

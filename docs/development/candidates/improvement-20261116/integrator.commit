@@ -1,0 +1,6 @@
+tree 61882b14ea96637fdde8e64948be4aa4f2d43a23
+parent 6374c0346fd81649eacbfa92fd0de0685ac40be6
+author Codex <codex@openai.com> 1794842235 +0000
+committer LedgerPoint Development <development@ledgerpoint.local> 1794842429 +0000
+
+Expose concrete payroll fixture prerequisites for case qualification
