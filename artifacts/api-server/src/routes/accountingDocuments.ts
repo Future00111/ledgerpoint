@@ -1,5 +1,5 @@
 import { captureConditionalEvidence, getConditionalEvidence, observeConditionalOriginal } from '../services/accountingDocuments/conditionalDiscount';
-import { reviewPaidCredit, commitPaidCredit, reviewPublicConditionalCredit, commitCurrentConditionalDiscount, recoverCurrentConditionalDiscount } from '../services/accountingDocuments/paidCredit';
+import { reviewCommercialCredit, commitCommercialCredit, recoverCommercialCredit, reviewPaidCredit, commitPaidCredit, reviewPublicConditionalCredit, commitCurrentConditionalDiscount, recoverCurrentConditionalDiscount } from '../services/accountingDocuments/paidCredit';
 import { conditionalCompensationContext,reviewConditionalCompensation,recoverConditionalCompensation } from '../services/accountingDocuments/conditionalCompensation';
 import { Router, type RequestHandler, type Request } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
@@ -197,6 +197,16 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     const known=await conditionalReplacementOverview(company,actor,id);
     if(!known.replacements.some((r:any)=>r.id===replacement)) fail(404,'RESOURCE_NOT_FOUND');
     res.json({data:observationReceipt(await observeConditionalReplacement(company,actor,replacement))});
+  });
+  router.post('/accounting-documents/:id/commercial-credit/review',async(req,res)=>{
+    const {company,actor,id}=ids(req);const r=await reviewCommercialCredit(company,actor,id,revision(req),req.body);
+    const {commercial_admission,...display}=r;res.json({data:{...display,posting_available:true}});
+  });
+  router.post('/accounting-documents/:id/commercial-credit',async(req,res)=>{
+    const {company,actor,id}=ids(req);res.json({data:await commitCommercialCredit(company,actor,id,revision(req),req.body,testPostHook)});
+  });
+  router.get('/accounting-commercial-credits/operations/:requestId',async(req,res)=>{
+    const {company,actor}=ids(req);res.json({data:await recoverCommercialCredit(company,actor,String(req.params.requestId))});
   });
   router.post('/accounting-documents/:id/paid-credit/review',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await reviewPaidCredit(company,actor,id,revision(req),req.body)});});
   router.post('/accounting-documents/:id/paid-credit',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await commitPaidCredit(company,actor,id,revision(req),req.body,testPostHook)});});

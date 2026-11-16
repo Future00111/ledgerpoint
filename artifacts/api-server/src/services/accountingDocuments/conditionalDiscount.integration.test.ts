@@ -1859,3 +1859,144 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
   console.log('ORIGINAL_AGREEMENT_PAGE_BROWSER_ACCEPTANCE' ,JSON.stringify({party:side,actualFullPage:true,blankEntry:true,nativeEvidence:true,invalidatedTerms:true,savedReceiptReload:true,explicitReviewAndPost:true,nativePayment:true,actualDiscountCreditPage:true,noPaidCashRelease:true,lostResponse:true,actualFormRemountRecovery:true,noResubmission:true,syntheticOnly:true}));
  }finally{browserHtml='';rmSync(dir,{recursive:true,force:true});}
 });
+
+for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${side} full-paid ordinary commercial credit and explicit refund actual-page recovery`,async()=>{
+ const f=await ordinaryOriginalFixture(side),kind=side==='customer'?'sales_invoice':'purchase_bill',route=side==='customer'?'/invoices':'/bills',creditRoute=side==='customer'?'/sales-credit-notes':'/supplier-credit-notes',creditKind=side==='customer'?'sales_credit_note':'supplier_credit_note',number='BROWSER-COMMERCIAL-'+randomUUID();
+ const dir=mkdtempSync(path.join(path.dirname(socket),'agreement-page-browser-'));
+ try {
+  const frontend=path.join(process.cwd(),'artifacts/ledgerly'),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js'),companyStub=path.join(dir,'company.mjs');
+  writeFileSync(companyStub,`export const useCompany=()=>({activeCompany:{id:${JSON.stringify(f.company)}}});`);
+  writeFileSync(entry,`
+   import React from ${JSON.stringify(frontend+'/node_modules/react/index.js')};
+   import {createRoot} from ${JSON.stringify(frontend+'/node_modules/react-dom/client.js')};
+   import {MemoryRouter,Routes,Route,useNavigate} from ${JSON.stringify(frontend+'/node_modules/react-router-dom/dist/index.mjs')};
+   import {QueryClient,QueryClientProvider} from ${JSON.stringify(frontend+'/node_modules/@tanstack/react-query/build/modern/index.js')};
+   import Form from ${JSON.stringify(frontend+'/src/pages/AccountingDocumentForm.jsx')};
+   import Payments from ${JSON.stringify(frontend+'/src/pages/Payments.jsx')};
+   import {readDiscountRecovery} from ${JSON.stringify(frontend+'/src/features/paidCreditReview/model.mjs')};
+   const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,recoveries=0,savedId=null;
+   window.fetch=async(url,options={})=>{
+    const path=String(url).replace(/^\\/api\\//,'/');
+    const headers=new Headers(options.headers);headers.set('x-test-actor',${JSON.stringify(actor)});
+    if(path.endsWith('/conditional-discount-evidence')&&options.method==='POST')captures++;
+    if(path.endsWith('/accounting-documents')&&options.method==='POST')saves++;
+    if(path.includes('/conditional-original')&&options.method==='POST'&&!path.endsWith('/observe'))posts++;
+    const response=await nativeFetch(path,{...options,headers});
+    if(path.endsWith('/accounting-documents')&&options.method==='POST'&&response.ok)savedId=(await response.clone().json()).data.id;
+    if(path.endsWith('/conditional-original/observe')&&response.ok)observed++;
+    if(path.endsWith('/commercial-credit')&&options.method==='POST'&&response.ok){discountPosts++;if(discountPosts===1)throw Error('Synthetic lost discount response');}
+    if(path.includes('/accounting-commercial-credits/operations/')&&response.ok)recoveries++;
+    return response;
+   };
+   const root=createRoot(document.getElementById('root'));
+   function Navigation(){window.testNavigate=useNavigate();return null;}
+   const mount=(url,key)=>root.render(<QueryClientProvider key={key} client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MemoryRouter initialEntries={[url]}><Navigation/><Routes><Route path="/payments" element={<Payments/>}/><Route path=${JSON.stringify(route+'/:id')} element={<Form kind=${JSON.stringify(kind)}/>}/><Route path=${JSON.stringify(creditRoute+'/:id')} element={<Form kind=${JSON.stringify(creditKind)}/>}/></Routes></MemoryRouter></QueryClientProvider>);
+   mount(${JSON.stringify(route+'/new')},'initial');
+   const el=id=>document.querySelector('[data-testid="'+id+'"]');
+   const wait=async(fn)=>{for(let i=0;i<240;i++){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Browser timeout: '+document.getElementById('root').textContent.slice(-1200));};
+   const change=async(selector,value)=>{const node=document.querySelector(selector);if(!node)throw Error('Missing '+selector);const proto=node.tagName==='SELECT'?HTMLSelectElement.prototype:node.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(node,value);node.dispatchEvent(new Event(node.tagName==='SELECT'?'change':'input',{bubbles:true}));await new Promise(r=>setTimeout(r,25));};
+   (async()=>{
+    await wait(()=>el('select-party'));
+    await change('#party',${JSON.stringify(f.body.party_id)});await change('#number',${JSON.stringify(number)});
+    await change('#issue','2026-11-01');await change('#due','2026-11-30');await change('#d0','Browser entered original');await change('#p0','120');await change('#t0','NONE');
+    el('agreement-enabled').click();await wait(()=>document.querySelector('#agreement-amount'));
+    await change('#agreement-date','2026-11-01');await change('#agreement-deadline','2199-11-30');await change('#agreement-amount','12.00');await change('#agreement-evidence','Synthetic agreement attested in actual form');
+    if(!el('button-save').disabled||!el('capture-agreement').disabled)throw Error('Unattested source admitted');
+    el('agreement-attested').click();await wait(()=>!el('capture-agreement').disabled);el('capture-agreement').click();
+    await wait(()=>el('agreement-status')?.textContent.includes('Evidence captured'));
+    if(saves||posts)throw Error('Capture silently saved or posted');
+    await change('#agreement-amount','11.00');
+    if(el('agreement-attested').checked||!el('button-save').disabled)throw Error('Changed terms retained receipt');
+    await change('#agreement-amount','12.00');el('agreement-attested').click();await wait(()=>!el('capture-agreement').disabled);el('capture-agreement').click();await wait(()=>el('agreement-status')?.textContent.includes('Evidence captured'));
+    el('button-save').click();await wait(()=>savedId&&el('button-save')?.textContent==='Save changes'&&!el('button-post').disabled);
+    if(posts||captures!==2||saves!==1)throw Error('Save/capture boundary changed');
+    if(document.querySelector('#agreement-evidence').value!=='Synthetic agreement attested in actual form')throw Error('Saved receipt was not reloaded');
+    el('button-post').click();await wait(()=>document.querySelector('[aria-label="Saved original agreement"]'));
+    const review=document.querySelector('[aria-label="Saved original agreement"]').textContent;
+    if(!review.includes('£12.00')||!review.includes('2199-11-30')||posts)throw Error('Review omitted saved agreement or silently posted');
+    el('button-confirm-posting').click();await wait(()=>posts===1&&observed===1&&!el('button-confirm-posting')&&document.getElementById('root').textContent.includes('Posted'));
+    const originalId=savedId;
+    const payment={id:crypto.randomUUID(),kind:'payment',party_type:${JSON.stringify(side)},party_id:${JSON.stringify(f.body.party_id)},payment_id:null,date:'2026-11-03',reference:'Browser native qualifying payment',amount_minor:'12000',allocations:[{document_id:originalId,amount_minor:'12000'}]};
+    const call=async(path,body)=>{const response=await fetch('/api/companies/'+${JSON.stringify(f.company)}+'/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const result=await response.json();if(!response.ok)throw Error(JSON.stringify(result));return result.data;};
+    const paymentReview=await call('accounting-payments/review',payment);await call('accounting-payments',{...payment,review_token:paymentReview.review_token});
+    window.testNavigate(${JSON.stringify(creditRoute+'/new?original=')}+originalId);
+    await wait(()=>document.querySelector('#reason'));
+    await change('#reason','Ordinary price reduction after full payment');await change('#p0','12');await change('#number',${JSON.stringify(number+'-CREDIT')});
+    el('button-save').click();await wait(()=>savedId!==originalId&&el('button-save')?.textContent==='Save changes'&&!el('button-post').disabled);
+    await change('[aria-label="Credit purpose"]','commercial');
+    el('button-post').click();await wait(()=>document.querySelector('[aria-label="Credit settlement review"]'));
+    const creditReview=document.querySelector('[aria-label="Credit settlement review"]').textContent;
+    if(!creditReview.includes('£12.00')||!creditReview.includes('Original cash payments remain unchanged')||discountPosts)throw Error('Commercial review omitted release policy');
+    el('button-confirm-posting').click();
+    const recovery=()=>document.querySelector('[aria-label="Conditional discount recovery"]');
+    const pending=()=>readDiscountRecovery(localStorage,${JSON.stringify(f.company)},savedId);
+    await wait(()=>discountPosts===1&&recovery()&&el('button-confirm-posting')?.disabled);
+    if(!pending())throw Error('Lost response did not persist recovery');
+    mount(${JSON.stringify(creditRoute+'/')}+savedId,'reloaded');
+    await wait(()=>recovery()&&document.getElementById('root').textContent.includes('Posted')&&!el('button-confirm-posting'));
+    if(discountPosts!==1||!pending())throw Error('Reload resent commit or lost recovery');
+    const recoverButton=[...recovery().querySelectorAll('button')].find(b=>b.textContent==='Recover credit outcome');
+    if(!recoverButton||recoverButton.disabled)throw Error('Posted page omitted recovery action');
+    recoverButton.click();await wait(()=>!recovery()&&recoveries===1&&pending()===null&&document.getElementById('root').textContent.includes('Posted'));
+    if(discountPosts!==1)throw Error('Recovery resubmitted discount');
+    mount('/payments?event='+payment.id,'refund');
+    const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
+    await wait(()=>button('Record refund')&&!button('Record refund').disabled);button('Record refund').click();
+    await wait(()=>document.querySelector('#pay-amount'));await change('#pay-date','2026-11-16');await change('#pay-amount','12.00');await change('#pay-reference','Separately reviewed browser refund');
+    button('Review accounting entries').click();await wait(()=>button('Confirm and record')&&!button('Confirm and record').disabled);
+    button('Confirm and record').click();await wait(()=>!document.querySelector('#pay-amount')&&!button('Confirm and record'));
+    document.body.dataset.originalAgreementAcceptance='passed';
+   })().catch(e=>{document.body.dataset.originalAgreementAcceptance='failed';document.getElementById('root').append(document.createTextNode(e.message));});
+  `);
+  execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',entry,'--bundle','--platform=browser','--format=iife','--jsx=automatic','--alias:@='+frontend+'/src','--alias:@/lib/useCompany='+companyStub,'--outfile='+bundle],{stdio:'pipe'});
+  browserHtml=`<!doctype html><html><head><meta charset="utf-8"><title>Synthetic original agreement form</title></head><body><div id="root"></div><script>${readFileSync(bundle,'utf8').replaceAll('</script','<\\/script')}</script></body></html>`;
+  const child=spawn('chromium',['--headless','--no-first-run','--disable-gpu','--disable-background-networking','--disable-component-update','--disable-sync','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=24000',base+'/synthetic-compensation-browser'],{stdio:['ignore','pipe','pipe']});
+  let html='',stderr='';child.stdout.on('data',b=>{html+=b.toString();});child.stderr.on('data',b=>{stderr+=b.toString();});
+  const code=await new Promise<number>((resolve,reject)=>{const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('Bounded Chromium timeout'));},35000);child.once('error',e=>{clearTimeout(timer);reject(e);});child.once('exit',n=>{clearTimeout(timer);resolve(n??1);});});
+  assert.equal(code,0,stderr.slice(-2000));assert.match(html,/<body[^>]*data-original-agreement-acceptance="passed"/,html.slice(0,18000));
+  const row=(await pool.query(`SELECT id FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE company_id=$1 AND ${side==='customer'?'invoice_number':'bill_number'}=$2`,[f.company,number])).rows[0];
+  assert.ok(row);const saved=await getDocument(f.company,actor,row.id);assert.equal(saved.status,'posted');assert.equal(saved.source.conditional_discount.discount_gross_pence,'1200');
+  assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_observations WHERE company_id=$1 AND document_id=$2',[f.company,row.id])).rows[0].n,1);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,1);
+  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,1);
+  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='refund'",[f.company])).rows[0].n,1);
+  assert.equal((await pool.query("SELECT amount_minor FROM accounting_payment_events WHERE company_id=$1 AND kind='payment'",[f.company])).rows[0].amount_minor,'12000');
+  assert.deepEqual((await pool.query(`SELECT amount_paid::text,balance_due::text FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[row.id])).rows[0],{amount_paid:'108.00',balance_due:'0.00'});
+  console.log('COMMERCIAL_CREDIT_REFUND_PAGE_BROWSER_ACCEPTANCE' ,JSON.stringify({party:side,actualFullPage:true,blankEntry:true,nativeEvidence:true,invalidatedTerms:true,savedReceiptReload:true,explicitReviewAndPost:true,nativePayment:true,actualDiscountCreditPage:true,commercialRelease:true,separateRefund:true,lostResponse:true,actualFormRemountRecovery:true,noResubmission:true,syntheticOnly:true}));
+ }finally{browserHtml='';rmSync(dir,{recursive:true,force:true});}
+});
+
+for(const side of ['customer','supplier'] as const)test(`real PostgreSQL HTTP: ${side} full-paid commercial purpose, replay, recovery and explicit refund`,async()=>{
+ const f=await admissionFixture(side);await postConditionalOriginal(f.company,actor,f.draft.id,f.draft.revision);await observeConditionalOriginal(f.company,actor,f.draft.id);
+ const {conditional_discount:removedAgreement,...discountSource}=f.draft.source;
+ const marked=await saveDocument(f.company,actor,{kind:side==='customer'?'sales_credit_note':'supplier_credit_note',original_id:f.draft.id,reason:'Saved discount must not become commercial',adjustment_method:'offset_outstanding',effective_adjustment_date:'2199-12-02',source:{...discountSource,invoice_number:'MARKED-'+randomUUID(),issue_date:'2199-12-02',due_date:'2199-12-02',payment_terms:0,discount_adjustment:{type:'amount',value:'12',original_revision:f.draft.revision}}});
+ const payment=await nativeCash(f,'12000','12000'),credit=await conditionalCreditDraft(f,side),intent={request_id:randomUUID(),reason:'Ordinary commercial reduction after full payment'},route=`accounting-documents/${credit.id}/commercial-credit`;
+ const before=await financialSnapshot(f.company);
+ const markedResult=await connectedHttp(f.company,`accounting-documents/${marked.id}/commercial-credit/review`,intent,marked.revision);assert.equal(markedResult.status,409);assert.equal(markedResult.error.code,'COMMERCIAL_CREDIT_DISCOUNT_DRAFT');
+ const discount=await connectedHttp(f.company,`accounting-documents/${credit.id}/conditional-discount/review`,intent,credit.revision);assert.equal(discount.status,409);assert.equal(discount.error.code,'DISCOUNT_REQUIRES_UNPAID_BALANCE');
+ assert.deepEqual(await financialSnapshot(f.company),before);
+ const review=await connectedHttp(f.company,route+'/review',intent,credit.revision);assert.equal(review.status,200,JSON.stringify(review));assert.equal(review.data.purpose,'commercial');assert.equal(review.data.released_minor,'1200');assert.equal(review.data.offset_minor,'0');assert.equal(review.data.commercial_admission,undefined);
+ const cmd={...intent,review_token:review.data.review_token,releases:review.data.releases};
+ const foreign=await admissionFixture(side);
+ await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,'commercial-viewer','read_only',true)",[randomUUID(),f.company]);
+ for(const endpoint of [route+'/review',route]) {
+   const body=endpoint.endsWith('/review')?intent:cmd;
+   const viewer=await connectedHttp(f.company,endpoint,body,credit.revision,'commercial-viewer');assert.ok([403,404].includes(viewer.status),JSON.stringify(viewer));
+   const other=await connectedHttp(foreign.company,endpoint,body,credit.revision);assert.ok([403,404].includes(other.status),JSON.stringify(other));
+ }
+ assert.equal((await connectedHttp(foreign.company,`accounting-commercial-credits/operations/${intent.request_id}`)).data.status,'unknown');
+ assert.equal((await connectedHttp(f.company,route,{...cmd,mode:'commercial'},credit.revision)).status,422);
+ const posted=await connectedHttp(f.company,route,cmd,credit.revision);assert.equal(posted.status,200,JSON.stringify(posted));
+ assert.equal((await connectedHttp(f.company,route,cmd,credit.revision)).data.status,'duplicate');
+ const recovered=await connectedHttp(f.company,`accounting-commercial-credits/operations/${intent.request_id}`);assert.equal(recovered.status,200,JSON.stringify(recovered));assert.equal(recovered.data.status,'recorded');assert.equal(recovered.data.purpose,'commercial');
+ assert.equal((await connectedHttp(f.company,`accounting-conditional-discounts/operations/${intent.request_id}`)).data.status,'unknown');
+ await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,'other-commercial-owner','owner',true)",[randomUUID(),f.company]);
+ assert.equal((await connectedHttp(f.company,`accounting-commercial-credits/operations/${intent.request_id}`,undefined,undefined,'other-commercial-owner')).data.status,'unknown');
+ assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,1);
+ assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='refund'",[f.company])).rows[0].n,0);
+ assert.equal((await pool.query('SELECT amount_minor FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[f.company,payment.id])).rows[0].amount_minor,'12000');
+ const refund={id:randomUUID(),kind:'refund',party_type:side,party_id:f.body.party_id,payment_id:payment.id,date:'2199-12-02',reference:'Separately reviewed refund',amount_minor:'1200',allocations:[]};
+ const refundReview=await connectedHttp(f.company,'accounting-payments/review',refund);assert.equal(refundReview.status,200,JSON.stringify(refundReview));
+ const refunded=await connectedHttp(f.company,'accounting-payments',{...refund,review_token:refundReview.data.review_token});assert.equal(refunded.status,200,JSON.stringify(refunded));
+ assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='refund'",[f.company])).rows[0].n,1);
+});

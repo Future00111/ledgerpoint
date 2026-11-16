@@ -63,3 +63,14 @@ test('durable locator collision and late completions cannot replace or clear ano
  clearDiscountRecovery(storage,first);assert.equal(readDiscountRecovery(storage,'company','credit'),null);
  assert.throws(()=>saveDiscountRecovery({...storage,setItem:()=>{throw Error('storage unavailable')}},'company','credit','r','first'),/storage unavailable/);
 });
+
+test('ordinary commercial review rejects discount drafts and scopes recovery purpose',async()=>{
+ const {prepareCommercialCreditReview,verifyDiscountRecovery}=await import('./model.mjs');
+ const doc={id:'credit',original_id:'original',revision:'rev',reason:'Reduction',source:{}},original={id:'original',source:{conditional_discount:{}}};
+ let calls=0;const result={purpose:'commercial',posting_available:true,review_token:'sha256:'+'a'.repeat(64),intent:{request_id:'request'},document_id:'credit',revision:'rev',original_id:'original',releases:[]};
+ const client={reviewCommercialCredit:async()=>{calls++;return result;}};
+ assert.equal(await prepareCommercialCreditReview(client,'company',doc,'request',original),result);
+ await assert.rejects(()=>prepareCommercialCreditReview(client,'company',{...doc,source:{discount_adjustment:{}}},'request',original));assert.equal(calls,1);
+ const pending={id:'credit',request_id:'request',purpose:'commercial'},receipt={status:'recorded',document_id:'credit',request_id:'request',journal_id:'11111111-1111-4111-a111-111111111111'};
+ assert.equal(verifyDiscountRecovery(receipt,pending),false);assert.equal(verifyDiscountRecovery({...receipt,purpose:'commercial'},pending),true);
+});

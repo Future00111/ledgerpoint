@@ -15,6 +15,7 @@ export default function PaidCreditReview({review,conditional=false,current=false
     {review.releases.map(r=><div key={r.id}><p>{amount(r.amount_minor)} {conditional ? 'would be released from payment' : 'released from payment'} {r.payment_reference || r.payment_id}</p>
       <p>Unapplied balance: {amount(r.before_unapplied_minor)} → {amount(r.after_unapplied_minor)}</p>
       <a className="underline" target="_blank" rel="noopener noreferrer" href={`/accounting/journals/${encodeURIComponent(r.payment_journal_id)}`}>View original payment journal</a>
+      <p>After posting, open Payments to review a separate refund for this payment.</p>
       <p className="break-all text-xs">Payment ID: {r.payment_id}</p><p className="break-all text-xs">Original pool account: {r.pool_account_id}</p></div>)}
     <p>{conditional ? 'No credit has been posted and no allocations have been released. No refund is sent.' : 'Original cash payments remain unchanged. This posts the credit and releases the listed allocations together. It does not send a refund.'}</p>
   </section>;
@@ -22,5 +23,5 @@ export default function PaidCreditReview({review,conditional=false,current=false
 
 export function DiscountRecoveryNotice({pending,busy,onRecover}) {
   if(!pending)return null;
-  return <section role="status" aria-label="Conditional discount recovery"><p>A conditional discount outcome needs recovery. Do not submit another discount.</p><button type="button" disabled={busy || pending.invalid} onClick={onRecover}>Recover discount outcome</button></section>;
+  return <section role="status" aria-label="Conditional discount recovery"><p>A {pending.purpose==='commercial'?'commercial credit':'conditional discount'} outcome needs recovery. Do not submit another credit.</p><button type="button" disabled={busy || pending.invalid} onClick={onRecover}>Recover {pending.purpose==='commercial'?'credit':'discount'} outcome</button></section>;
 }

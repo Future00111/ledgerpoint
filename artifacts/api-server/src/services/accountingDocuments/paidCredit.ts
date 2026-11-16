@@ -45,6 +45,7 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
   await authority(q,company,actor);
   if(conditional==='conditional-discount' && !await compensationSchema(q)) fail(503,'CONDITIONAL_COMPENSATION_SCHEMA_INCOMPLETE');
   const row=await document(q,company,id,true);
+  if(conditional==='commercial' && row.source.discount_adjustment) fail(409,'COMMERCIAL_CREDIT_DISCOUNT_DRAFT');
   if(!credit(row.kind)||row.status!=='draft') fail(409,'CREDIT_DRAFT_REQUIRED');
   if(row.revision!==expected) fail(409,'REVISION_CONFLICT');
   const original=await creditOriginal(q,company,row.original_id,row.source.issue_date);
@@ -85,7 +86,7 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
   if(conditional==='conditional-discount' && releases.length) fail(409,'DISCOUNT_EXCEEDS_OUTSTANDING');
   const admission=(conditional===true||conditional==='conditional-discount')?await conditionalCreditAdmission(q,company,original,row,releases):undefined;
   const commercial=conditional==='commercial'?await commercialCreditAdmission(q,company,original,row):undefined;
-  const review={...(conditional==='conditional-discount'?{purpose:conditional}:{}),...(commercial?{commercial_admission:commercial}:{}),...(admission?{conditional_admission:admission,conditional_credit_payload:canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts})}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
+  const review={...(conditional==='conditional-discount'?{purpose:conditional}:{}),...(commercial?{purpose:'commercial',commercial_admission:commercial}:{}),...(admission?{conditional_admission:admission,conditional_credit_payload:canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts})}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
     credit_minor:value.toString(),offset_minor:(value-excess).toString(),released_minor:excess.toString(),remaining_minor:(BigInt(open.open_minor)-(value-excess)).toString(),releases};
   return {...review,review_token:hash({company,actor,review,row,original,linked,events,periods,configurations})};
 }
@@ -142,7 +143,7 @@ export async function commitConditionalCredit(company:string,actor:string,id:str
   return commitCredit(company,actor,id,expected,body,true,testHook);
 }
 
-/** Internal ordinary price adjustment; no HTTP route and no request mode flag. */
+/** Dedicated server-selected ordinary price adjustment; no request mode flag. */
 export async function reviewCommercialCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
   return transact(q=>plan(q,company,actor,id,expected,intent(body),'commercial'));
 }
@@ -181,5 +182,50 @@ export async function recoverCurrentConditionalDiscount(company:string,actor:str
       j[0].created_by_type!=='user'||j[0].created_by_id!==actor||
       j[0].source_revision!==row.revision||j[0].source_evidence_hash!==hash(JSON.parse(payload))) fail(503,'CONDITIONAL_DISCOUNT_HISTORY_INVALID');
     return {status:'recorded',request_id:request,document_id:op.result.document_id,journal_id:op.result.journal_id};
+  });
+}
+
+/** Purpose-scoped immutable receipt; reads never retry a financial command. */
+export async function recoverCommercialCredit(company:string,actor:string,requestId:string) {
+  const request=uuid(requestId).toLowerCase();
+  return transact(async q=>{
+    await authority(q,company,actor);
+    const op=(await q.query('SELECT actor_id,credit_id,intent,result FROM accounting_paid_credit_operations WHERE company_id=$1 AND request_id=$2',[company,request])).rows[0];
+    if(!op || op.actor_id!==actor || op.intent.purpose!=='commercial') return {status:'unknown',request_id:request};
+    const row=await document(q,company,op.credit_id), payload=canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts});
+    const journals=(await q.query(`SELECT j.*,p.id effect_id FROM canonical_journal_entries j
+      JOIN accounting_posting_effects p ON p.company_id=j.company_id AND p.journal_id=j.id
+      AND p.source_id=j.source_id AND p.source_type=j.source_type AND p.source_revision=j.source_revision
+      AND p.source_evidence_hash=j.source_evidence_hash AND p.status='posted'
+      AND p.posting_kind=j.posting_kind AND p.economic_effect_id=j.economic_effect_id
+      AND p.idempotency_key='document:'||j.source_id WHERE j.company_id=$1 AND j.id=$2`,[company,row.journal_id])).rows;
+    const j=journals[0], planned=op.intent.releases, recorded=op.result.releases;
+    if(row.status!=='posted'||!credit(row.kind)||row.id!==op.result.document_id||row.journal_id!==op.result.journal_id||
+      op.result.request_id!==request||op.result.status!=='posted'||op.intent.document_id!==row.id||op.intent.revision!==row.revision||
+      op.intent.original_id!==row.original_id||op.intent.commercial_admission?.credit_payload!==payload||
+      !Array.isArray(planned)||!Array.isArray(recorded)||planned.length!==recorded.length||
+      journals.length!==1||j.status!=='posted'||j.currency_code!=='GBP'||j.source_id!==row.id||j.source_type!==row.kind||
+      j.posting_kind!=='ordinary_document'||j.economic_effect_id!==`document:${row.id}`||
+      j.created_by_type!=='user'||j.created_by_id!==actor||j.source_revision!==row.revision||j.source_evidence_hash!==hash(JSON.parse(payload))) fail(503,'COMMERCIAL_CREDIT_HISTORY_INVALID');
+    let released=0n;const releaseIds=new Set<string>();
+    for(let i=0;i<planned.length;i++) {
+      const r=planned[i], result=recorded[i];
+      const events=(await q.query(`SELECT e.*,j.source_revision,j.source_evidence_hash,j.created_by_id,p.id effect_id
+        FROM accounting_payment_events e JOIN canonical_journal_entries j ON j.id=e.journal_id AND j.company_id=e.company_id
+        AND j.source_id=e.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
+        AND j.currency_code='GBP' AND j.created_by_type='user' AND j.posting_kind='party_unallocation' AND j.economic_effect_id='payment-event:'||e.id::text
+        JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
+        AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
+        AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text
+        AND p.status='posted' AND p.source_revision=j.source_revision AND p.source_evidence_hash=j.source_evidence_hash
+        WHERE e.company_id=$1 AND e.id=$2`,[company,r.id])).rows;
+      const e=events[0];
+      if(releaseIds.has(r.id)||!['posted','duplicate'].includes(result.status)||events.length!==1||e.kind!=='unallocation'||e.payment_id!==r.payment_id||e.amount_minor!==r.amount_minor||
+        e.created_by_id!==actor||e.source_evidence_hash!==hash(e.source)||e.source_revision!==hash(e.source)||result.id!==r.id||result.journal_id!==e.journal_id||
+        hash(e.allocations)!==hash([{document_id:row.original_id,amount_minor:r.amount_minor}])) fail(503,'COMMERCIAL_CREDIT_HISTORY_INVALID');
+      releaseIds.add(r.id);released+=BigInt(r.amount_minor);
+    }
+    if(released.toString()!==op.intent.released_minor) fail(503,'COMMERCIAL_CREDIT_HISTORY_INVALID');
+    return {status:'recorded',purpose:'commercial',request_id:request,document_id:row.id,journal_id:row.journal_id};
   });
 }
