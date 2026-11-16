@@ -1,0 +1,23 @@
+{
+  "commit": "55ec0fc0e2e1ef6d8b83cf7b030f1cca5ff29770",
+  "summary": "PARTIAL P03-01 bounded Replit receiptvalidation fix verified after independent rootreview. Strict payment/request+journal UUID and expectedstatus/exactrequest prevents malformedPOST/recovery receipts clearing pending and unlockingduplicates; validrecorded behavior retained. Exact tree48c9098 matches authorce6e7b. Root independently verified CI43884825561 allgates; mergec1c3efb sourcefilediff0. ParentNOT accepted; nextactual server pending admission/discovery +connected recovery afterlostlocalidentity acrossoperationfamilies, not repeated incidental validation.",
+  "tests": [
+    {
+      "command": "Exact local focused24/source989/fullbuild passed; root reproducedbaselinebug and verified candidate retainsunknown+locator",
+      "passed": true
+    },
+    {
+      "command": "CI43884825561 job133360001183 checkoutc1c3efb1fdbc45579a6a068727890625bd7cde90 allsource/build/nativePG/browser/plain+encryptedrestore/current-source/cleanup gates success; published55ec0fc file diff0",
+      "passed": true
+    }
+  ],
+  "reviewed": true,
+  "reviewer": "root",
+  "author": "ce6e7b68c478e83fe95a53b17e0059e06ddafaa7",
+  "tree": "48c90981709708928188b780f86d9119a10cbb8d",
+  "parentAccepted": false,
+  "nextEligible": "P03-01",
+  "queueRevision": 776,
+  "stopped": true,
+  "mergeOrDeploy": false
+}
