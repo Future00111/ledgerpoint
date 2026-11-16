@@ -1,0 +1,15 @@
+{
+  "author": "6126fb88dd4d590a56a30134dd2eba34bf4eaca7",
+  "base": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2",
+  "tree": "aeba0828086b6d1bccd48f391e6d2c39562f47b2",
+  "patchSha256": "d25c155834fb24d808b1e07d49278ab20794be56a8b754313256a4a339614eff",
+  "observedAt": "2026-11-16T19:05:53.778Z",
+  "status": "WIP not accepted",
+  "progress": "53 focused tests passed; author strengthening mounted native browser scenario and reviewing fresh GET denial/precedence",
+  "environment": "Local Chromium socket Operation not permitted; PostgreSQL unavailable; existing exact-source CI required",
+  "workers": {
+    "author": "actively implementing observed response",
+    "reviewer": "actively reviewing observed findings"
+  },
+  "remaining": "Final review/build/source/native browser/restore gates"
+}

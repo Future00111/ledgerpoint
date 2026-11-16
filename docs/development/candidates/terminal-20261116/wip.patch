@@ -1,0 +1,436 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
+index fc98a0f4..93acc45d 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
+@@ -1866,7 +1866,8 @@ test('rolled-back payment command remains unknown and a same-identity retry reco
+   failNext=true;
+   assert.equal((await request(f.company,'/accounting-payments','POST',reviewed)).status,500);
+   const path=`/accounting-payments/operations/${reviewed.id}`;
+-  assert.deepEqual((await request(f.company,path)).data,{status:'pending',id:reviewed.id});
++  const receipt=(await request(f.company,path)).data;assert.equal(receipt.status,'pending');assert.equal(receipt.id,reviewed.id);
++  assert.match(receipt.request_hash,/^sha256:[a-f0-9]{64}$/);assert.match(receipt.review_hash,/^sha256:[a-f0-9]{64}$/);
+   assert.equal((await admin.query('SELECT id FROM accounting_payment_events WHERE id=$1',[reviewed.id])).rowCount,0);
+   const posted=await request(f.company,'/accounting-payments','POST',reviewed);assert.equal(posted.status,200);
+   assert.deepEqual((await request(f.company,path)).data,{status:'recorded',id:reviewed.id,journal_id:posted.data.journal_id});
+@@ -1996,20 +1997,25 @@ test('pending admission survives rollback, fences replacements and terminal reso
+  const command=await reviewPayment(f,paymentIntent(f,doc));failNext=true;
+  assert.equal((await request(f.company,'/accounting-payments','POST',command)).status,500);
+  const path=`/accounting-payments/operations/${command.id}`;
+- assert.deepEqual((await request(f.company,path)).data,{status:'pending',id:command.id});
++ const pendingReceipt=(await request(f.company,path)).data;
++ assert.equal(pendingReceipt.status,'pending');assert.equal(pendingReceipt.id,command.id);
++ assert.match(pendingReceipt.request_hash,/^sha256:[a-f0-9]{64}$/);assert.match(pendingReceipt.review_hash,/^sha256:[a-f0-9]{64}$/);
+  const discovery=(await request(f.company,'/accounting-payments/operations')).data;
+  assert.equal(discovery.pending[0].id,command.id);assert.equal(discovery.receipts.length,0);
+- assert.equal((await request(f.company,path,'GET',undefined,undefined,readOnly)).data.status,'unknown');
++ assert.deepEqual((await request(f.company,path,'GET',undefined,undefined,readOnly)).data,{status:'unknown',id:command.id});
+  const replacement=await reviewPayment(f,{...command,id:randomUUID()});
+  assert.equal((await request(f.company,'/accounting-payments','POST',replacement)).error.code,'PAYMENT_ATTEMPT_UNRESOLVED');
+  assert.equal((await request(f.company,'/accounting-payments','POST',{...command,reference:'Conflict'})).error.code,'IDEMPOTENCY_CONFLICT');
+  assert.equal((await request(f.company,'/accounting-payments','POST',{...command,review_token:'sha256:'+'0'.repeat(64)})).error.code,'IDEMPOTENCY_CONFLICT');
+  const admission=(await admin.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0];
+  const binding={request_hash:admission.request_hash,review_hash:admission.review_hash};
++ assert.equal(pendingReceipt.request_hash,binding.request_hash);assert.equal(pendingReceipt.review_hash,binding.review_hash);
++ assert.equal(pendingReceipt.reference,command.reference);assert.equal(pendingReceipt.amount_minor,command.amount_minor);
+  const otherActor='synthetic-pending-other-owner';
+  await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',true)",[randomUUID(),f.company,otherActor]);
+  assert.equal((await request(f.company,'/accounting-payments','POST',command,undefined,otherActor)).error.code,'IDEMPOTENCY_CONFLICT');
+  assert.deepEqual((await request(f.company,'/accounting-payments/operations','GET',undefined,undefined,otherActor)).data.pending,[]);
++ assert.deepEqual((await request(f.company,path,'GET',undefined,undefined,otherActor)).data,{status:'unknown',id:command.id});
+  assert.equal((await request(f.company,path+'/no-effect','POST',binding,undefined,otherActor)).status,404);
+  const foreign=await fixture();assert.equal((await request(foreign.company,path+'/no-effect','POST',binding)).status,404);
+  assert.equal((await request(f.company,path+'/no-effect','POST',binding,undefined,readOnly)).status,403);
+@@ -2020,6 +2026,7 @@ test('pending admission survives rollback, fences replacements and terminal reso
+  await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+  const terminal=await request(f.company,path+'/no-effect','POST',binding);
+  assert.deepEqual(terminal.data,{status:'no_effect',id:command.id});
++ assert.deepEqual((await request(f.company,path)).data,{...pendingReceipt,status:'no_effect'});
+  assert.deepEqual((await request(f.company,path+'/no-effect','POST',binding)).data,terminal.data);
+  assert.equal((await request(f.company,'/accounting-payments','POST',command)).error.code,'PAYMENT_ATTEMPT_TERMINATED');
+  assert.equal((await request(f.company,'/accounting-payments','POST',replacement)).status,200);
+@@ -2182,3 +2189,70 @@ test('terminal wins while a top-level canonical writer is delayed after committe
+   assert.equal((await admin.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2',[f.company,command.id])).rows[0].n,0);
+  } finally {release();await writing.catch(()=>{});}
+ });
++
++test('isolated Chromium: mounted terminal resolution explicitly cancels, confirms and verifies before fresh review',async()=>{
++ const fs=await import('node:fs'),os=await import('node:os'),cp=await import('node:child_process');
++ const {createRequire}=await import('node:module');
++ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
++ const command=await reviewPayment(f,paymentIntent(f,doc));
++ failNext=true;assert.equal((await request(f.company,'/accounting-payments','POST',command)).status,500);
++ const before=(await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n;
++ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'payment-discovery-browser-'));
++ const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
++ const app=express();let browser:ReturnType<typeof cp.spawn>|undefined,posts=0;
++ // Isolated synthetic authenticated session; production Clerk is not bypassed or exercised.
++ app.use('/api/companies/:companyId',(req,_res,next)=>{if(req.method!=='GET')posts++;req.headers['x-test-actor']=actor;next();},createAccountingRouter(auth));
++ const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));
++ try {
++  fs.writeFileSync(entry,`import React,{useSyncExternalStore} from 'react';
++import {createRoot} from 'react-dom/client';
++import {MemoryRouter} from 'react-router-dom';
++import {PaymentToolbar,PaymentRecoveryPanel} from '@/features/paymentRecovery/PaymentControls.jsx';
++import {createPaymentRecovery,recoveryUnresolved} from '@/features/paymentRecovery/model.mjs';
++import {createAccountingClient} from '@/api/accountingDocuments.mjs';
++const recovery=createPaymentRecovery(${JSON.stringify(f.company)},createAccountingClient());
++const caps={post_payments:true,configure_payments:true};let starts=0;
++function App(){const state=useSyncExternalStore(recovery.subscribe,recovery.getSnapshot);return <MemoryRouter><PaymentToolbar capabilities={caps} busy={recoveryUnresolved(state)} ready={true} onStart={()=>starts++}/><PaymentRecoveryPanel state={state} capabilities={caps} onCheck={()=>recovery.check()}/><output>{state?.phase}</output></MemoryRouter>}
++createRoot(document.getElementById('root')).render(<App/>);
++const wait=()=>new Promise(r=>setTimeout(r,80));const assert=(v,m)=>{if(!v)throw Error(m)};
++const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
++(async()=>{await wait();assert(recovery.getSnapshot()?.phase==='discovery','URL lost-reference mode not mounted');
++ assert(button('Record payment').disabled,'ordinary recording must be locked');
++ assert(!document.body.textContent.includes('Retry same payment'),'no replay without original review');
++ button('Check my recorded payments').click();
++ for(let i=0;i<50&&!recovery.getSnapshot()?.candidates;i++)await wait();
++ assert(recovery.getSnapshot()?.candidates?.length===1,'own server receipt missing');
++ assert(recovery.getSnapshot().phase==='discovery','must not automatically select');
++ assert(button('Record payment').disabled,'candidate list must remain locked');
++ button('This is my event — verify status').click();
++ for(let i=0;i<50&&recovery.getSnapshot()?.phase!=='unknown';i++)await wait();
++ assert(recovery.getSnapshot()?.check==='pending','pending selection must stay unresolved');
++ assert(button('Record payment').disabled,'pending must fence ordinary writes');
++ assert(!document.body.textContent.includes('Retry same payment'),'lost review must remain read-only');
++ button('Select this attempt to close without effect').click();
++ for(let i=0;i<50&&!recovery.getSnapshot()?.confirming;i++)await wait();
++ assert(recovery.getSnapshot()?.confirming,'confirmation missing');
++ button('Keep checking this attempt').click();await wait();assert(!recovery.getSnapshot().confirming,'cancel failed');
++ assert(button('Record payment').disabled,'cancel must not unlock');
++ button('Select this attempt to close without effect').click();
++ for(let i=0;i<50&&!recovery.getSnapshot()?.confirming;i++)await wait();
++ button('Confirm close without effect').click();
++ for(let i=0;i<50&&recovery.getSnapshot()?.check!=='no_effect';i++)await wait();
++ assert(recovery.getSnapshot()?.check==='no_effect','terminal not verified');assert(button('Record payment').disabled,'must await explicit continuation');
++ button('Continue to a fresh payment review').click();
++ for(let i=0;i<50&&recovery.getSnapshot();i++)await wait();
++ assert(recovery.getSnapshot()===null,'fresh verified continuation failed');assert(starts===0,'no auto start');
++ document.body.dataset.acceptance='passed';
++})().catch(e=>{document.body.dataset.acceptance='failed';document.body.append(document.createTextNode(e.message));});`);
++  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
++  app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
++  app.get('/payments',(_req,res)=>res.type('html').send('<!doctype html><html><body><div id="root"></div><script src="/bundle.js"></script></body></html>'));
++  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=10000','http://127.0.0.1:'+(listener.address() as any).port+'/payments?recover=lost'],{stdio:['ignore','pipe','pipe']});
++  let html='',stderr='';browser.stdout!.on('data',b=>html+=b);browser.stderr!.on('data',b=>stderr+=b);
++  const code=await new Promise<number|null>((resolve,reject)=>{const timer=setTimeout(()=>{browser?.kill('SIGTERM');reject(Error('Bounded browser timeout: '+stderr.slice(-2000)));},30000);browser!.once('error',e=>{clearTimeout(timer);reject(e)});browser!.once('exit',code=>{clearTimeout(timer);resolve(code)})});
++  assert.equal(code,0,stderr.slice(-4000));assert.match(html,/data-acceptance="passed"/,html.slice(-3000));
++  assert.equal(posts,1); // Only the explicitly confirmed no-effect command; no payment repost.
++  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,before);
++  console.log('PAYMENT_TERMINAL_BROWSER_ACCEPTANCE',JSON.stringify({actualComponents:true,nativeApi:true,syntheticSession:true,lostLocator:true,explicitSelection:true,terminalPosts:posts,realClerk:false,pendingAdmission:true}));
++ } finally {browser?.kill('SIGTERM');await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
++});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/payments.ts b/artifacts/api-server/src/services/accountingDocuments/payments.ts
+index 3c9f0d7e..95426512 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/payments.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/payments.ts
+@@ -189,7 +189,8 @@ export async function recoverPayment(company:string,actor:string,requestId:strin
+     const {admission,terminal}=await attemptRows(q,company,id);
+     if(admission?.actor_id!==actor) return {status:'unknown',id};
+     if(terminal) await canonicalAttempt(q,company,id);
+-    return {status:terminal?'no_effect':'pending',id};
++    return {status:terminal?'no_effect':'pending',id,request_hash:admission.request_hash,review_hash:admission.review_hash,
++      kind:admission.kind,party_type:admission.party_type,reference:admission.reference,amount_minor:String(admission.amount_minor)};
+   },true);
+ }
+ 
+diff --git a/artifacts/ledgerly/src/api/accountingDocuments.mjs b/artifacts/ledgerly/src/api/accountingDocuments.mjs
+index 9b1865fe..862e1e3d 100644
+--- a/artifacts/ledgerly/src/api/accountingDocuments.mjs
++++ b/artifacts/ledgerly/src/api/accountingDocuments.mjs
+@@ -81,6 +81,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
+     recoverCompensation: (c, id, signal) => call(`${base(c)}/accounting-conditional-compensations/operations/${encodeURIComponent(id)}`, { signal }),
+     discoverPayments: (c, signal) => call(`${base(c)}/accounting-payments/operations`, { signal }),
+     recoverPayment: (c, id, signal) => call(`${base(c)}/accounting-payments/operations/${encodeURIComponent(id)}`, { signal }),
++    terminatePaymentAttempt: (c, id, body) => call(`${base(c)}/accounting-payments/operations/${encodeURIComponent(id)}/no-effect`, { method: 'POST', body }),
+     payments: (c, signal) => call(`${base(c)}/accounting-payments`, { signal }),
+     savePaymentConfiguration: (c, body) => call(`${base(c)}/accounting-payments/configuration`, { method: 'PUT', body }),
+     reviewPayment: (c, body) => call(`${base(c)}/accounting-payments/review`, { method: 'POST', body }),
+diff --git a/artifacts/ledgerly/src/api/accountingDocuments.test.mjs b/artifacts/ledgerly/src/api/accountingDocuments.test.mjs
+index 9e4f3bfb..cc8ff0f0 100644
+--- a/artifacts/ledgerly/src/api/accountingDocuments.test.mjs
++++ b/artifacts/ledgerly/src/api/accountingDocuments.test.mjs
+@@ -119,3 +119,11 @@ test('lost payment locator discovery is an authenticated company scoped GET with
+   assert.equal(seen.url,'/api/companies/company%2Fid/accounting-payments/operations');
+   assert.equal(seen.init.method,'GET');assert.equal(seen.init.body,undefined);assert.equal(seen.init.signal,signal);
+ });
++
++test('terminal resolution posts only exact selected binding to the protected scoped endpoint',async()=>{
++ let seen;const client=createAccountingClient(async(url,init)=>{seen={url,init};return {ok:true,json:async()=>({data:{status:'no_effect',id:'attempt/id'}})};});
++ const binding={request_hash:'sha256:'+'a'.repeat(64),review_hash:'sha256:'+'b'.repeat(64)};
++ await client.terminatePaymentAttempt('company/id','attempt/id',binding);
++ assert.equal(seen.url,'/api/companies/company%2Fid/accounting-payments/operations/attempt%2Fid/no-effect');
++ assert.equal(seen.init.method,'POST');assert.deepEqual(JSON.parse(seen.init.body),binding);
++});
+diff --git a/artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx b/artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx
+index 82f960bb..55bfab6c 100644
+--- a/artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx
++++ b/artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx
+@@ -46,20 +46,29 @@ export function PaymentRecoveryPanel({ state, capabilities, closing, onCheck, on
+   </section>;
+   const busy = recoveryBusy(state);
+   return <section role="status" aria-live="polite" className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+-    <h3 className="font-semibold">{state.phase === 'posting' ? 'Recording the reviewed payment…' : state.phase === 'checking' ? 'Checking payment history…' : 'Payment outcome not yet confirmed'}</h3>
++    <h3 className="font-semibold">{state.phase === 'resolving' ? 'Closing the selected attempt…' : state.phase === 'posting' ? 'Recording the reviewed payment…' : state.phase === 'checking' ? 'Checking payment history…' : state.check === 'no_effect' ? 'Attempt closed without effect' : 'Payment outcome not yet confirmed'}</h3>
+     {!state.readOnly && <p className="break-words">{state.body.reference} · <Money value={state.body.amount_minor} /></p>}
+     <p className="break-all text-xs">Payment event reference: {state.body.id}</p>
+-    {state.phase !== 'posting' && <p>The payment may already be recorded. Check its status before creating another payment. A retry uses the same reviewed payment and cannot create a second event with this reference.</p>}
++    {state.phase !== 'posting' && state.check !== 'no_effect' && <p>The payment may already be recorded. Check its status before creating another payment. A retry uses the same reviewed payment and cannot create a second event with this reference.</p>}
+     {state.check === 'pending' && <p>The server received this attempt; its outcome is still pending. Check again using this same reference.</p>}
+-    {state.check === 'no_effect' && <p>This attempt was explicitly closed with no recorded effect. This recovery view remains read-only.</p>}
++    {state.check === 'no_effect' && <p>This attempt was explicitly closed with no recorded effect. Continue only after a fresh status check; the next payment needs a new review and reference.</p>}
+     {state.check === 'not_found' && <p>Not found in the latest history. The original request may still finish; its outcome remains unknown.</p>}
+     {state.error && <p>The latest request did not confirm the outcome{state.error.code ? ` (${state.error.code})` : ''}. This does not establish whether the original recording succeeded.</p>}
+     <Link className="underline" to={`/payments?event=${encodeURIComponent(state.body.id)}`}>Open this event in payment history</Link>
+     <p className="text-xs">Keep this event reference to check its recorded history after reloading or signing in again. An absent event remains unconfirmed; do not create a replacement payment.</p>
+-    <p className="text-xs">{state.readOnly ? 'The original review is no longer open. Only status checks are available; do not recreate this payment.' : 'The reviewed details stay frozen while this view is open. After a reload, the saved reference supports status checks only.'}</p>
++    <p className="text-xs">{state.readOnly ? 'The original review cannot be replayed. You can check status or explicitly resolve a verified pending attempt before starting a new review.' : 'The reviewed details stay frozen while this view is open. After a reload, the saved reference supports status checks only.'}</p>
+     <div className="flex flex-wrap gap-2">
+       <Button className="min-h-11" variant="outline" disabled={busy} onClick={onCheck}>Check payment status</Button>
+-      {!state.readOnly && canPostPayments(capabilities) && <Button className="min-h-11" disabled={busy} onClick={onRetry}>Retry same payment</Button>}
++      {!state.readOnly && !state.confirming && state.check !== 'no_effect' && canPostPayments(capabilities) && <Button className="min-h-11" disabled={busy} onClick={onRetry}>Retry same payment</Button>}
+     </div>
++    {canPostPayments(capabilities) && state.selectTerminal && state.check === 'pending' && !state.confirming && <Button className="min-h-11" variant="outline" disabled={busy} onClick={() => state.selectTerminal(capabilities)}>Select this attempt to close without effect</Button>}
++    {state.confirming && <div className="space-y-3 rounded border p-3">
++      <p className="font-semibold">Close this exact attempt without recording a payment?</p>
++      <p>{state.binding?.reference} · {state.binding?.kind} · <Money value={state.binding?.amount_minor} /></p>
++      <p>This permanently prevents this reference from recording later. If it has already recorded, its recorded outcome takes precedence. This does not reverse a payment or move money.</p>
++      <Button className="min-h-11" variant="outline" disabled={busy} onClick={() => state.cancelTerminal()}>Keep checking this attempt</Button>
++      {canPostPayments(capabilities) && <Button className="min-h-11" disabled={busy} onClick={() => state.confirmTerminal(capabilities)}>Confirm close without effect</Button>}
++    </div>}
++    {state.check === 'no_effect' && state.binding && canPostPayments(capabilities) && <Button className="min-h-11" disabled={busy} onClick={() => state.continueFresh(capabilities, onAbandon)}>Continue to a fresh payment review</Button>}
+   </section>;
+ }
+diff --git a/artifacts/ledgerly/src/features/paymentRecovery/model.mjs b/artifacts/ledgerly/src/features/paymentRecovery/model.mjs
+index 1328cd97..212b3a75 100644
+--- a/artifacts/ledgerly/src/features/paymentRecovery/model.mjs
++++ b/artifacts/ledgerly/src/features/paymentRecovery/model.mjs
+@@ -4,7 +4,7 @@ const uuid = value => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-
+ 
+ export const canConfigurePayments = capabilities => capabilities?.configure_payments === true;
+ export const canPostPayments = capabilities => capabilities?.post_payments === true;
+-export const recoveryBusy = state => ['posting', 'checking'].includes(state?.phase);
++export const recoveryBusy = state => ['posting', 'checking', 'resolving'].includes(state?.phase);
+ export const recoveryUnresolved = state => Boolean(state && state.phase !== 'recorded');
+ 
+ const freeze = value => {
+@@ -21,15 +21,81 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
+   let state = recoveryRequestId ? Object.freeze({ companyId, body: Object.freeze({ id: recoveryRequestId }),
+     phase: 'unknown', readOnly: true, check: 'not_checked', result: null, error: null }) : discoverLostReference ? Object.freeze({ companyId, phase: 'discovery', readOnly: true,
+       body: Object.freeze({ id: null }), candidates: null, hasMore: false, error: null, discover, selectReceipt }) : null, generation = 0;
+-  const listeners = new Set();
++  const listeners = new Set(), retiredIds = new Set();
++  let allowTerminalClear = false;
+   const publish = next => {
+-    state = next ? Object.freeze(next) : null;
++    state = next ? Object.freeze({ ...next, selectTerminal, cancelTerminal, confirmTerminal, continueFresh }) : null;
+     listeners.forEach(listener => listener());
+   };
+   const recorded = (result, id) => uuid(id) && result?.id === id &&
+     uuid(result.journal_id) &&
+     ['posted', 'duplicate', 'recorded'].includes(result.status);
+ 
++  const binding = (result, id) => result?.id === id && ['pending', 'no_effect'].includes(result.status) &&
++    /^sha256:[a-f0-9]{64}$/.test(result.request_hash) && /^sha256:[a-f0-9]{64}$/.test(result.review_hash);
++  const sameBinding = (a, b) => a?.id === b?.id && a?.request_hash === b?.request_hash && a?.review_hash === b?.review_hash;
++  async function selectTerminal(capabilities) {
++    if (state?.phase !== 'unknown' || !canPostPayments(capabilities)) return false;
++    const attempt = state, current = ++generation;
++    publish({ ...attempt, phase: 'checking', confirming: false, error: null });
++    try {
++      const result = await api.recoverPayment(companyId, attempt.body.id);
++      if (current !== generation) return false;
++      if (recorded(result, attempt.body.id)) publish({ ...attempt, phase: 'recorded', result, error: null });
++      else if (binding(result, attempt.body.id) && (!attempt.binding || sameBinding(result, attempt.binding)))
++        publish({ ...attempt, phase: 'unknown', check: result.status, binding: freeze(structuredClone(result)), confirming: result.status === 'pending', error: null });
++      else throw new Error('The selected attempt could not be verified. Check its status again.');
++    } catch (error) { if (current === generation) publish({ ...attempt, phase: 'unknown', confirming: false, error }); }
++    return true;
++  }
++  function cancelTerminal() {
++    if (state?.phase !== 'unknown') return false;
++    publish({ ...state, confirming: false }); return true;
++  }
++  async function confirmTerminal(capabilities) {
++    if (state?.phase !== 'unknown' || !state.confirming || !state.binding || !canPostPayments(capabilities)) return false;
++    const attempt = state, current = ++generation;
++    publish({ ...attempt, phase: 'resolving', confirming: false, error: null });
++    try {
++      const {request_hash, review_hash} = attempt.binding;
++      const result = await api.terminatePaymentAttempt(companyId, attempt.body.id, {request_hash, review_hash});
++      if (current !== generation) return false;
++      if (recorded(result, attempt.body.id)) { publish({ ...attempt, phase: 'recorded', result, confirming: false, error: null }); return true; }
++      // A write acknowledgement never unlocks a new payment. Read durable status afresh.
++      const verified = await api.recoverPayment(companyId, attempt.body.id);
++      if (current !== generation) return false;
++      if (recorded(verified, attempt.body.id)) publish({ ...attempt, phase: 'recorded', result: verified, confirming: false, error: null });
++      else if (binding(verified, attempt.body.id) && verified.status === 'no_effect' && sameBinding(verified, attempt.binding))
++        publish({ ...attempt, phase: 'unknown', readOnly: true, check: 'no_effect', confirming: false, error: null });
++      else throw new Error('The terminal outcome could not be verified.');
++    } catch (error) { if (current === generation) publish({ ...attempt, phase: 'unknown', confirming: false, error }); }
++    return true;
++  }
++  function clearTerminal() {
++    if (!allowTerminalClear || state?.check !== 'no_effect') return false;
++    const id = state.body.id;
++    forgetRequest(id); retiredIds.add(id); generation++;
++    const next = nextRecoveryRequest();
++    publish(next ? { companyId, body: Object.freeze({id: next}), phase: 'unknown', readOnly: true, check: 'not_checked', result: null, error: null } : null);
++    return true;
++  }
++  async function continueFresh(capabilities, onAbandon) {
++    if (state?.phase !== 'unknown' || state.check !== 'no_effect' || !state.binding || !canPostPayments(capabilities)) return false;
++    const attempt = state, current = ++generation;
++    publish({ ...attempt, phase: 'checking', error: null });
++    try {
++      const result = await api.recoverPayment(companyId, attempt.body.id);
++      if (current !== generation) return false;
++      if (recorded(result, attempt.body.id)) { publish({ ...attempt, phase: 'recorded', result, error: null }); return false; }
++      if (!binding(result, attempt.body.id) || result.status !== 'no_effect' || !sameBinding(result, attempt.binding)) throw new Error('The terminal outcome could not be verified.');
++      publish({ ...attempt, phase: 'unknown', confirming: false, error: null });
++      allowTerminalClear = true;
++      try { if (onAbandon) onAbandon(); else clearTerminal(); } finally { allowTerminalClear = false; }
++      return state?.body.id !== attempt.body.id;
++    } catch (error) { if (current === generation) publish({ ...attempt, phase: 'unknown', error }); }
++    return false;
++  }
++
+   async function discover() {
+     if (state?.phase !== 'discovery' || state.loading) return false;
+     const attempt = state, current = ++generation;
+@@ -62,7 +128,7 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
+       if (current !== generation) return false;
+       if (candidate.status === 'pending' && result?.status === 'pending' && result.id === id) {
+         rememberRequest(id);
+-        publish({companyId,body:Object.freeze({id}),readOnly:true,phase:'unknown',check:'pending',result:null,error:null});
++        publish({companyId,body:Object.freeze({id}),readOnly:true,phase:'unknown',check:'pending',binding:binding(result,id)?freeze(structuredClone(result)):null,result:null,error:null});
+         return true;
+       }
+       if (!recorded(result, id) || (candidate.status === 'recorded' && result.journal_id !== candidate.journal_id)) throw new Error('The selected payment outcome could not be verified.');
+@@ -94,12 +160,13 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
+     async record(review, capabilities) {
+       if (state || !canPostPayments(capabilities)) return false;
+       const body = freeze(paymentPostBody(companyId, review));
++      if (retiredIds.has(body.id)) throw new Error('This attempt is closed. Close this form and start a new payment review.');
+       rememberRequest(body.id); // Must succeed before any financial request is sent.
+       await send({ companyId, body, check: 'not_checked', result: null });
+       return true;
+     },
+     async retry(capabilities) {
+-      if (state?.phase !== 'unknown' || state.readOnly || !canPostPayments(capabilities)) return false;
++      if (state?.phase !== 'unknown' || state.readOnly || state.confirming || !canPostPayments(capabilities)) return false;
+       await send(state);
+       return true;
+     },
+@@ -113,8 +180,9 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
+         if (recorded(result, attempt.body.id)) {
+           publish({ ...attempt, phase: 'recorded', result, error: null });
+         } else if (['unknown','pending','no_effect'].includes(result?.status) && result.id === attempt.body.id) {
++          if (attempt.binding && ['pending', 'no_effect'].includes(result.status) && (!binding(result, attempt.body.id) || !sameBinding(result, attempt.binding))) throw new Error('The attempt binding changed.');
+           // Absence at one read is not proof of failure: the first request may still commit.
+-          publish({ ...attempt, readOnly: attempt.readOnly || result.status === 'no_effect', phase: 'unknown', check: result.status === 'pending' ? 'pending' : result.status === 'no_effect' ? 'no_effect' : 'not_found', error: null });
++          publish({ ...attempt, readOnly: attempt.readOnly || result.status === 'no_effect', phase: 'unknown', binding: binding(result, attempt.body.id) ? freeze(structuredClone(result)) : null, confirming: false, check: result.status === 'pending' ? 'pending' : result.status === 'no_effect' ? 'no_effect' : 'not_found', error: null });
+         } else throw new Error('Payment outcome could not be verified.');
+       } catch (error) {
+         if (current === generation) publish({ ...attempt, phase: 'unknown', error });
+@@ -130,7 +198,7 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
+       }
+     },
+     abandon() {
+-      return false; // Unknown is not cancelled; never unlock a replacement write.
++      return clearTerminal(); // Only the explicit, freshly verified terminal continuation grants this.
+     },
+     // Called on company change/unmount. No prior-company response may update a new view.
+     reset() { generation++; publish(null); },
+diff --git a/artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs b/artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs
+index 5b62f0eb..4f63b873 100644
+--- a/artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs
++++ b/artifacts/ledgerly/src/features/paymentRecovery/model.test.mjs
+@@ -381,3 +381,88 @@ test('terminal status disables retained in-memory retry without unlocking a repl
+  await r.check();assert.equal(r.getSnapshot().readOnly,true);assert.equal(await r.retry({post_payments:true}),false);
+  assert.equal(r.abandon(),false);assert.equal(recoveryUnresolved(r.getSnapshot()),true);assert.equal(posts,1);
+ });
++
++const admission = (status = 'pending', extra = {}) => ({ status, id: requestId,
++  request_hash: 'sha256:' + 'a'.repeat(64), review_hash: 'sha256:' + 'b'.repeat(64),
++  kind: 'payment', party_type: 'supplier', reference: 'Synthetic attempt', amount_minor: '12345', ...extra });
++async function terminalHarness(options = {}) {
++  let status = 'pending'; const calls = [], forgotten = [];
++  const recovery = createPaymentRecovery('company-a', {
++    recoverPayment: async (company,id) => { calls.push(['read',company,id]); return admission(status); },
++    terminatePaymentAttempt: async (company,id,body) => { calls.push(['terminal',company,id,body]); status = 'no_effect'; return {status,id}; },
++    postPayment: async () => { calls.push(['post']); throw new Error('Lost response'); },
++    ...options.api,
++  }, {recoveryRequestId: requestId, forgetRequest: id => forgotten.push(id), ...options.storage});
++  await recovery.check(); return {recovery,calls,forgotten};
++}
++test('selected terminal confirmation binds exact admission, verifies fresh status, and explicitly clears only that locator', async () => {
++  const {recovery,calls,forgotten} = await terminalHarness();
++  assert.equal(recovery.abandon(), false);
++  await recovery.getSnapshot().selectTerminal(owner);
++  assert.equal(recovery.getSnapshot().confirming, true);
++  recovery.getSnapshot().cancelTerminal();
++  assert.equal(await recovery.getSnapshot().confirmTerminal(owner), false);
++  assert.equal(calls.filter(c=>c[0]==='terminal').length,0);
++  await recovery.getSnapshot().selectTerminal(owner);
++  assert.equal(await recovery.getSnapshot().confirmTerminal(viewer),false);
++  await recovery.getSnapshot().confirmTerminal(owner);
++  assert.equal(recovery.getSnapshot().check,'no_effect');assert.deepEqual(forgotten,[]);
++  assert.equal(recovery.abandon(),false);
++  assert.equal(calls.at(-1)[0],'read');
++  assert.deepEqual(calls.find(c=>c[0]==='terminal'),['terminal','company-a',requestId,{request_hash:admission().request_hash,review_hash:admission().review_hash}]);
++  let closedForm=false;
++  await recovery.getSnapshot().continueFresh(owner,()=>{closedForm=recovery.abandon();});
++  assert.equal(closedForm,true);assert.equal(recovery.getSnapshot(),null);assert.deepEqual(forgotten,[requestId]);
++  await assert.rejects(()=>recovery.record(review(),owner),/Close this form/);
++  assert.equal(calls.filter(c=>c[0]==='post').length,0);
++});
++test('terminal continue restores the next locator and rejects missing/mismatched or unauthorized fresh status',async()=>{
++  for(const response of [unknown(),admission('no_effect',{id:otherId}),admission('no_effect',{review_hash:'sha256:'+'c'.repeat(64)}),admission('pending')]) {
++    let result=admission('no_effect');
++    const {recovery,forgotten}=await terminalHarness({api:{recoverPayment:async()=>result}});
++    result=response;await recovery.getSnapshot().continueFresh(owner);
++    assert.deepEqual(forgotten,[]);assert.equal(recoveryUnresolved(recovery.getSnapshot()),true);
++  }
++  const {recovery,forgotten}=await terminalHarness({api:{recoverPayment:async()=>admission('no_effect')},storage:{nextRecoveryRequest:()=>otherId}});
++  assert.equal(await recovery.getSnapshot().continueFresh(viewer),false);
++  await recovery.getSnapshot().continueFresh(owner);
++  assert.deepEqual(forgotten,[requestId]);assert.equal(recovery.getSnapshot().body.id,otherId);assert.equal(recovery.getSnapshot().readOnly,true);
++});
++test('permission denial, recorded precedence and company exit never unlock or repost a terminal attempt',async()=>{
++  const denied=await terminalHarness({api:{terminatePaymentAttempt:async()=>{throw Object.assign(Error('Denied'),{code:'CAPABILITY_DENIED'});}}});
++  await denied.recovery.getSnapshot().selectTerminal(owner);await denied.recovery.getSnapshot().confirmTerminal(owner);
++  assert.equal(denied.recovery.getSnapshot().error.code,'CAPABILITY_DENIED');assert.deepEqual(denied.forgotten,[]);
++  const done=await terminalHarness({api:{terminatePaymentAttempt:async()=>outcome()}});
++  await done.recovery.getSnapshot().selectTerminal(owner);await done.recovery.getSnapshot().confirmTerminal(owner);
++  assert.equal(done.recovery.getSnapshot().phase,'recorded');assert.deepEqual(done.forgotten,[]);
++  const wait=deferred();const stale=await terminalHarness({api:{terminatePaymentAttempt:()=>wait.promise}});
++  await stale.recovery.getSnapshot().selectTerminal(owner);const pending=stale.recovery.getSnapshot().confirmTerminal(owner);
++  stale.recovery.reset();wait.resolve(admission('no_effect'));await pending;
++  assert.equal(stale.recovery.getSnapshot(),null);assert.deepEqual(stale.forgotten,[]);
++});
++test('unbound legacy/absent reads, changed binding and double confirmation stay locked',async()=>{
++  for(const response of [unknown(),{status:'pending',id:requestId},admission('pending',{request_hash:'a'.repeat(64)})]) {
++    const {recovery,calls}=await terminalHarness({api:{recoverPayment:async()=>response}});
++    await recovery.getSnapshot().selectTerminal(owner);
++    assert.equal(recovery.getSnapshot().confirming,false);assert.equal(await recovery.getSnapshot().confirmTerminal(owner),false);
++    assert.equal(calls.length,0);
++  }
++  const wait=deferred();const {recovery}=await terminalHarness({api:{terminatePaymentAttempt:()=>wait.promise}});
++  await recovery.getSnapshot().selectTerminal(owner);const first=recovery.getSnapshot().confirmTerminal(owner);
++  assert.equal(await recovery.getSnapshot().confirmTerminal(owner),false);assert.equal(recoveryBusy(recovery.getSnapshot()),true);
++  wait.resolve({status:'no_effect',id:requestId});await first;
++  assert.equal(recoveryUnresolved(recovery.getSnapshot()),true);
++});
++
++test('lost terminal response remains locked until a bound fresh GET verifies no effect; late continue after exit is ignored',async()=>{
++ let result=admission();
++ const {recovery,forgotten}=await terminalHarness({api:{recoverPayment:async()=>result,terminatePaymentAttempt:async()=>{result=admission('no_effect');throw Error('Response lost');}}});
++ await recovery.getSnapshot().selectTerminal(owner);await recovery.getSnapshot().confirmTerminal(owner);
++ assert.deepEqual(forgotten,[]);assert.equal(recovery.getSnapshot().check,'pending');
++ await recovery.check();assert.equal(recovery.getSnapshot().check,'no_effect');
++ await recovery.getSnapshot().continueFresh(owner);assert.deepEqual(forgotten,[requestId]);
++ const wait=deferred();let checks=0;
++ const stale=await terminalHarness({api:{recoverPayment:()=>++checks===1?Promise.resolve(admission('no_effect')):wait.promise}});
++ const continuing=stale.recovery.getSnapshot().continueFresh(owner);stale.recovery.reset();wait.resolve(admission('no_effect'));await continuing;
++ assert.deepEqual(stale.forgotten,[]);assert.equal(stale.recovery.getSnapshot(),null);
++});
