@@ -1,0 +1,13 @@
+{
+  "reviewer": "root",
+  "author": "correction_implementation",
+  "authorCommit": "d70f21f922e7a76169cdbdb0fe2e5b9271b25bb7",
+  "tree": "f7819bfc69634b3f11af7b402911cdd7a0be586c",
+  "review": "No blocker in exact three-file diff. Unknown flag captured before send; subsequent errors cannot clear original locator/pending. Initial first-send rejection behavior preserved. No accounting engine/auth/schema changes. Native tests use actual mounted router with missing synthetic session to reject retry before original transaction lock, then real recovery/tenant/actor checks and exactly-once immutable evidence. Full checks pending.",
+  "stopped": true,
+  "at": "2026-11-16T19:46:49.506219+00:00",
+  "reviewed": true,
+  "fullLocalGates": "1063 source/scheduler/security/UI tests, full workspace build/typecheck and migration registry checks passed at exact author commit",
+  "nativeCI": "Pending authorised publication; no native/browser/restore pass claimed",
+  "approval": "Owner explicitly approved source candidate and evidence upload plus draft PR29 CI in current conversation"
+}

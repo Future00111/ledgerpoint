@@ -1,0 +1,276 @@
+artifacts/api-server/src/index.ts(4,77): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/middlewares/companyScope.ts(1,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/middlewares/companyScope.ts(2,35): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/middlewares/companyScope.ts(93,3): error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
+  Type 'unknown' is not assignable to type 'string'.
+artifacts/api-server/src/middlewares/companyScope.ts(93,39): error TS7006: Parameter 'membership' implicitly has an 'any' type.
+artifacts/api-server/src/routes/accountingDemo.ts(3,77): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/routes/aiAccountant.ts(14,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/routes/aiAccountant.ts(28,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/routes/aiAccountant.ts(253,46): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(284,13): error TS7006: Parameter 'error' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(315,36): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(319,32): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(326,53): error TS7006: Parameter 'transaction' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(327,38): error TS7006: Parameter 'summary' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(327,47): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(338,26): error TS7006: Parameter 'analysis' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(341,17): error TS7006: Parameter 'item' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(418,16): error TS7006: Parameter 'match' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(423,13): error TS7006: Parameter 'match' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(427,16): error TS7006: Parameter 'match' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(556,72): error TS7006: Parameter 'a' implicitly has an 'any' type.
+artifacts/api-server/src/routes/aiAccountant.ts(558,38): error TS7006: Parameter 'candidate' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(15,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/routes/companies.ts(16,51): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/routes/companies.ts(88,41): error TS7006: Parameter 'm' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(91,26): error TS7006: Parameter 'm' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(92,45): error TS7006: Parameter 'other' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(93,16): error TS7006: Parameter 'other' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(111,48): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(137,48): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(141,37): error TS7006: Parameter 'member' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(169,33): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(171,37): error TS7006: Parameter 'member' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(216,42): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(237,48): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(257,32): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/routes/companies.ts(293,42): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/routes/entities.ts(20,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/routes/entities.ts(56,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/routes/financialDrafts.ts(1,22): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/routes/functions.ts(17,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/routes/functions.ts(31,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/routes/functions.ts(183,68): error TS7006: Parameter 'counts' implicitly has an 'any' type.
+artifacts/api-server/src/routes/functions.ts(183,76): error TS7006: Parameter 'analysis' implicitly has an 'any' type.
+artifacts/api-server/src/routes/functions.ts(193,53): error TS7006: Parameter 'analysis' implicitly has an 'any' type.
+artifacts/api-server/src/routes/functions.ts(194,45): error TS7006: Parameter 'analysis' implicitly has an 'any' type.
+artifacts/api-server/src/routes/functions.ts(195,47): error TS7006: Parameter 'analysis' implicitly has an 'any' type.
+artifacts/api-server/src/routes/functions.ts(326,54): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/routes/functions.ts(417,55): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/routes/functions.ts(510,55): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/routes/functions.ts(613,62): error TS7006: Parameter 'm' implicitly has an 'any' type.
+artifacts/api-server/src/routes/health.ts(2,37): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/api-zod/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/api-zod/src/index.ts'.
+artifacts/api-server/src/routes/index.ts(14,42): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/routes/invoiceDemo.ts(3,22): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/routes/invoiceDemo.ts(132,11): error TS18048: 'client' is possibly 'undefined'.
+artifacts/api-server/src/routes/invoiceDemo.ts(133,28): error TS18048: 'client' is possibly 'undefined'.
+artifacts/api-server/src/routes/invoiceDemo.ts(143,25): error TS2345: Argument of type 'PoolClient | undefined' is not assignable to parameter of type 'PoolClient'.
+  Type 'undefined' is not assignable to type 'PoolClient'.
+artifacts/api-server/src/routes/invoiceDemo.ts(144,25): error TS2345: Argument of type 'PoolClient | undefined' is not assignable to parameter of type 'PoolClient'.
+  Type 'undefined' is not assignable to type 'PoolClient'.
+artifacts/api-server/src/routes/invoiceDemo.ts(145,33): error TS2345: Argument of type 'PoolClient | undefined' is not assignable to parameter of type 'PoolClient'.
+  Type 'undefined' is not assignable to type 'PoolClient'.
+artifacts/api-server/src/routes/invoiceDemo.ts(146,33): error TS2345: Argument of type 'PoolClient | undefined' is not assignable to parameter of type 'PoolClient'.
+  Type 'undefined' is not assignable to type 'PoolClient'.
+artifacts/api-server/src/routes/invoiceDemo.ts(147,26): error TS2345: Argument of type 'PoolClient | undefined' is not assignable to parameter of type 'PoolClient'.
+  Type 'undefined' is not assignable to type 'PoolClient'.
+artifacts/api-server/src/routes/invoiceDemo.ts(148,26): error TS2345: Argument of type 'PoolClient | undefined' is not assignable to parameter of type 'PoolClient'.
+  Type 'undefined' is not assignable to type 'PoolClient'.
+artifacts/api-server/src/routes/invoiceDemo.ts(149,25): error TS2345: Argument of type 'PoolClient | undefined' is not assignable to parameter of type 'PoolClient'.
+  Type 'undefined' is not assignable to type 'PoolClient'.
+artifacts/api-server/src/routes/invoiceDemo.ts(151,25): error TS2345: Argument of type 'PoolClient | undefined' is not assignable to parameter of type 'PoolClient'.
+  Type 'undefined' is not assignable to type 'PoolClient'.
+artifacts/api-server/src/routes/invoiceDemo.ts(153,25): error TS2345: Argument of type 'PoolClient | undefined' is not assignable to parameter of type 'PoolClient'.
+  Type 'undefined' is not assignable to type 'PoolClient'.
+artifacts/api-server/src/routes/invoiceDemo.ts(155,11): error TS18048: 'client' is possibly 'undefined'.
+artifacts/api-server/src/security/companyPolicy.ts(1,37): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(95,31): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(96,69): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(149,31): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(150,78): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(206,31): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(207,78): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(281,31): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(282,62): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(348,31): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(349,62): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(437,31): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(438,76): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(498,31): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(499,98): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(593,31): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(594,43): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(658,31): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(659,43): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(711,31): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/security/companyRoutes.test.ts(712,69): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/security/integration.test.ts(6,22): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts(5,26): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts(15,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts(381,34): error TS7006: Parameter 'trigger' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts(472,16): error TS7006: Parameter 'line' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.integration.test.ts(911,33): error TS7006: Parameter 'transaction' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(3,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(16,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(376,14): error TS7006: Parameter 'row' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(377,13): error TS7031: Binding element 'company_id' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(377,25): error TS7031: Binding element 'user_id' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(377,34): error TS7031: Binding element 'role' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(377,40): error TS7031: Binding element 'is_active' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(701,28): error TS7006: Parameter 'row' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(703,6): error TS7006: Parameter 'row' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(949,42): error TS7006: Parameter 'transaction' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(1213,58): error TS7006: Parameter 'line' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(1217,7): error TS2345: Argument of type 'unknown[]' is not assignable to parameter of type 'readonly string[]'.
+  Type 'unknown' is not assignable to type 'string'.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(1219,5): error TS2322: Type 'unknown[]' is not assignable to type 'readonly string[]'.
+  Type 'unknown' is not assignable to type 'string'.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(1231,9): error TS2322: Type 'unknown[]' is not assignable to type 'readonly string[]'.
+  Type 'unknown' is not assignable to type 'string'.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(1274,10): error TS7006: Parameter 'line' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(1274,16): error TS7006: Parameter 'index' implicitly has an 'any' type.
+artifacts/api-server/src/services/accounting/canonicalPosting.ts(1289,47): error TS2345: Argument of type 'unknown[]' is not assignable to parameter of type 'readonly string[]'.
+  Type 'unknown' is not assignable to type 'string'.
+artifacts/api-server/src/services/accountingDocuments/conditionalCompensation.restore.test.ts(6,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts(11,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts(456,141): error TS7006: Parameter 'error' implicitly has an 'any' type.
+artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts(1154,38): error TS7006: Parameter 'e' implicitly has an 'any' type.
+artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts(1155,38): error TS7006: Parameter 'e' implicitly has an 'any' type.
+artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts(1155,68): error TS7006: Parameter 'n' implicitly has an 'any' type.
+artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts(1155,70): error TS7006: Parameter 'e' implicitly has an 'any' type.
+artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.test.ts(3,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/accountingDocuments/core.ts(3,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/accountingDocuments/core.ts(37,25): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/services/accountingDocuments/corrections.integration.test.ts(9,22): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/accountingDocuments/integration.test.ts(8,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/accountingDocuments/integration.test.ts(128,29): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/accountingDocuments/paymentRestartHarness.ts(3,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/accountingDocuments/vatCoverage.integration.test.ts(6,22): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/ai-accountant/analysis.ts(13,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/ai-accountant/analysis.ts(24,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/ai-accountant/analysis.ts(307,35): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/analysis.ts(319,68): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/approval.ts(14,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/ai-accountant/approval.ts(26,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/ai-accountant/approval.ts(62,46): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/approval.ts(111,31): error TS7006: Parameter 'match' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/approval.ts(259,32): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/collections.ts(9,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/ai-accountant/collections.ts(16,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/ai-accountant/collections.ts(331,31): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/collections.ts(359,30): error TS7006: Parameter 'event' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/detectors.ts(9,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/ai-accountant/detectors.ts(15,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/ai-accountant/explain.ts(9,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/ai-accountant/explain.ts(13,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/ai-accountant/insights.ts(10,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/ai-accountant/insights.ts(15,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/ai-accountant/insights.ts(58,35): error TS7006: Parameter 'i' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(59,53): error TS7006: Parameter 'i' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(59,102): error TS7006: Parameter 'i' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(60,53): error TS7006: Parameter 'i' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(60,102): error TS7006: Parameter 'i' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(62,37): error TS7006: Parameter 'b' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(63,56): error TS7006: Parameter 'b' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(63,104): error TS7006: Parameter 'b' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(64,56): error TS7006: Parameter 'b' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(64,104): error TS7006: Parameter 'b' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(67,6): error TS7006: Parameter 'i' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(69,47): error TS7006: Parameter 'i' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(70,37): error TS7006: Parameter 't' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(80,63): error TS7006: Parameter 'i' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/insights.ts(80,95): error TS7006: Parameter 'i' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/matcher.ts(15,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(9,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(15,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(70,31): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(75,41): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(80,22): error TS2339: Property 'status' does not exist on type '{}'.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(80,47): error TS2339: Property 'status' does not exist on type '{}'.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(80,75): error TS2339: Property 'status' does not exist on type '{}'.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(85,13): error TS2339: Property 'status' does not exist on type '{}'.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(86,14): error TS2339: Property 'status' does not exist on type '{}'.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(86,44): error TS2339: Property 'snoozed_until' does not exist on type '{}'.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(86,65): error TS2339: Property 'snoozed_until' does not exist on type '{}'.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(110,8): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(115,62): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(158,50): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(203,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(203,24): error TS7006: Parameter 'b' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(235,29): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(239,45): error TS7006: Parameter 'latest' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(239,53): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(246,33): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(247,27): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(248,28): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(249,29): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(250,28): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(252,51): error TS7006: Parameter 's' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/recommendations.ts(252,54): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/review.ts(5,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/ai-accountant/review.ts(10,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/ai-accountant/review.ts(42,45): error TS7006: Parameter 't' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/review.ts(43,32): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/review.ts(54,6): error TS7006: Parameter 'i' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/review.ts(57,50): error TS7006: Parameter 'latest' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/review.ts(57,58): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/review.ts(65,36): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/review.ts(66,32): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/review.ts(67,28): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/review.ts(68,51): error TS7006: Parameter 's' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/review.ts(68,54): error TS7006: Parameter 'r' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/scheduler.ts(28,23): error TS7006: Parameter 'companyId' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/scheduler.ts(32,36): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(8,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(19,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(398,60): error TS7006: Parameter 'transaction' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(401,16): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(402,13): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(409,14): error TS7006: Parameter 'detection' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(411,14): error TS7006: Parameter 'task' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(413,35): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(457,31): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(459,41): error TS7006: Parameter 'task' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(464,23): error TS2339: Property 'status' does not exist on type '{}'.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(464,52): error TS2339: Property 'status' does not exist on type '{}'.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(465,40): error TS2339: Property 'status' does not exist on type '{}'.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(499,8): error TS7006: Parameter 'task' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(505,52): error TS7006: Parameter 'task' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(549,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(549,24): error TS7006: Parameter 'b' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(600,29): error TS7006: Parameter 'task' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(603,33): error TS7006: Parameter 'task' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(605,6): error TS7006: Parameter 'task' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(607,45): error TS7006: Parameter 'latest' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(607,53): error TS7006: Parameter 'task' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(611,54): error TS7006: Parameter 'transaction' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(615,42): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(617,25): error TS2339: Property 'status' does not exist on type '{}'.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(617,67): error TS2339: Property 'money_in' does not exist on type '{}'.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(619,50): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(621,14): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(622,14): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(622,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(630,47): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(630,52): error TS7006: Parameter 'task' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(631,59): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(631,64): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(632,56): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(632,61): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(635,40): error TS7006: Parameter 'task' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(636,54): error TS7006: Parameter 'result' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/taskEngine.ts(647,25): error TS7006: Parameter 'company' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.integration.test.ts(20,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/ai-accountant/vat.integration.test.ts(21,26): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/ai-accountant/vat.integration.test.ts(397,45): error TS7006: Parameter 'transaction' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.integration.test.ts(405,32): error TS7006: Parameter 'transaction' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.integration.test.ts(406,32): error TS7006: Parameter 'transaction' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.integration.test.ts(539,34): error TS7006: Parameter 'rule' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.integration.test.ts(627,30): error TS7006: Parameter 'audit' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.integration.test.ts(628,31): error TS7006: Parameter 'event' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.integration.test.ts(692,30): error TS7006: Parameter 'audit' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.integration.test.ts(693,31): error TS7006: Parameter 'event' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.ts(7,20): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.
+artifacts/api-server/src/services/ai-accountant/vat.ts(20,8): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/schema/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/schema/index.ts'.
+artifacts/api-server/src/services/ai-accountant/vat.ts(342,14): error TS7006: Parameter 'invoice' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.ts(343,14): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.ts(343,19): error TS7006: Parameter 'invoice' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.ts(385,30): error TS7006: Parameter 'rule' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.ts(391,31): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.ts(452,57): error TS7006: Parameter 'row' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.ts(478,47): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.ts(502,14): error TS7006: Parameter 'item' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.ts(505,32): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/services/ai-accountant/vat.ts(547,47): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+artifacts/api-server/src/services/auditReview/integration.test.ts(6,22): error TS6305: Output file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/dist/index.d.ts' has not been built from source file '/workspace/scratch/0c1e486180e4/ledgerpoint/lib/db/src/index.ts'.

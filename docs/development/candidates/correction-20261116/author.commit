@@ -1,0 +1,6 @@
+tree f7819bfc69634b3f11af7b402911cdd7a0be586c
+parent b55ba10f73b3b1d279de7de67340ce753c9a5f5b
+author Codex <codex@openai.com> 1794857823 +0000
+committer Codex <codex@openai.com> 1794857823 +0000
+
+Preserve uncertain correction identity after rejected retries

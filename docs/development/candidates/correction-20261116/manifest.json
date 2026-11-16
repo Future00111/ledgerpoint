@@ -1,0 +1,47 @@
+{
+  "author": "d70f21f922e7a76169cdbdb0fe2e5b9271b25bb7",
+  "tree": "f7819bfc69634b3f11af7b402911cdd7a0be586c",
+  "basePublished": "b55ba10f73b3b1d279de7de67340ce753c9a5f5b",
+  "files": {
+    "candidate.patch": {
+      "bytes": 15059,
+      "sha256": "ecd0ea4deda1a5851cccd00e4ee4060bc5997efcc98736c3405b3b4f8e3de463"
+    },
+    "author.commit": {
+      "bytes": 258,
+      "sha256": "1f2be7b9b2bd01bb168a129742fdfb00e2c6f9dfeafead3985c30e4d0f1fb3cd"
+    },
+    "implementation-result.json": {
+      "bytes": 921,
+      "sha256": "4486eb8753799c6f4769c4cc0866fe5c3ab667bc9d87c17e4337f0b80d96ad40"
+    },
+    "review.json": {
+      "bytes": 1083,
+      "sha256": "ee11d0574334148100fc5b178a7a4e277d03d6f074cd58e42b98cc0dd5b72d68"
+    },
+    "baseline-regression.log": {
+      "bytes": 1768,
+      "sha256": "01cf0f1d39b39682168fc0c327256e8fd1f296d9cc0efd298118c514b44f25dc"
+    },
+    "correction-focused.log": {
+      "bytes": 5815,
+      "sha256": "73193f2ecf631d0c29870d438739a56cf0ea3e87d345e8d31c596f09969e719b"
+    },
+    "source-check.log": {
+      "bytes": 109093,
+      "sha256": "885289f66dd6d5bcff3028a617a0f36dc7082012370bdea3fa50ec7425231d51"
+    },
+    "full-build.log": {
+      "bytes": 15798,
+      "sha256": "e2ce4cce558363ad35d7c4c161f9683df472ab54de7b7e7cbec692b340c359c4"
+    },
+    "migrations.log": {
+      "bytes": 2442,
+      "sha256": "59df93c6d38fbe4dc0a69125082205992cdba5b81cb3ec81c5f23a189206808d"
+    },
+    "api-typecheck.log": {
+      "bytes": 45714,
+      "sha256": "351ff237610813a3aee804934ad4b87b73b179aaeea264a58b1f6e8abe599566"
+    }
+  }
+}
