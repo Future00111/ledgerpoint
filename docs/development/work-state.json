@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "revision": 811,
+  "revision": 817,
   "tasks": {
     "P01-00": {
       "status": "done",
@@ -312,30 +312,42 @@
       }
     },
     "P03-01": {
-      "status": "blocked",
+      "status": "pending",
       "priority": 301,
       "discoveredDependencies": [],
-      "checkpoint": "STOPPED clean exact eb4bf2b229725c23c3324c22eca9feca00c2ff33 branch codex/pending-admission-1617, no code edits/candidate. Full approved pending-admission contract and required decisions/evidence in acceptance-pending-contract.json for durable coordinator archival. Next run reserve full connected schema/UI/native review+CI window, explicitly resolve window blocker, settle pending identity fence/lifecycle, then persist ownership before implementation. Prior committed receipt-discovery retained; P03-01 not accepted.",
+      "checkpoint": "Automatically claim P03-01 and complete explicit ordinary-payment terminal-resolution UI using the existing protected no-effect endpoint: current actor/company authorization, immutable attempt binding, explicit selection/confirmation, then fresh review only after verified terminal outcome. Preserve no automatic repost, canonical outcome precedence and all race/restore gates. No new owner technical decision required.",
       "evidence": {
-        "commit": "914203d4aab64f54897a53c8819a0f387cbd565a",
-        "integratedCommit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33",
-        "summary": "Recover a committed actor/company-owned payment without its browser locator through explicit selection and fresh authorized receipt verification; mounted components/native API Chromium scenario sends zero POST.",
-        "reviewed": true,
-        "reviewer": "independent_review",
+        "commit": "9d6171e05081df2868f40bc5ba6cc7d72286c374",
+        "summary": "Bounded P03-01 ordinary payment-family pending admission, immutable explicit no-effect fence, same-ID canonical authority and read-only lost-locator discovery. Parent remains pending: correction/capture/payroll/filing operation families, full browser lifecycle and broader recovery acceptance remain. Native PostgreSQL/browser/restore execution unavailable locally and required on integrated CI before acceptance. Author stopped; independent review pending native gates.",
         "tests": [
           {
-            "command": "Independent matching-author focused tests and diff review",
+            "command": "node tools/development/check.mjs (1054 tests; /tmp/pending-9d6171-source.log)",
             "passed": true
           },
           {
-            "command": "Combined node tools/development/check.mjs: 1030 passed; full build/typecheck",
+            "command": "node --test tools/development/migrations/registry.test.mjs (32 tests; /tmp/pending-9d6171-registry.log)",
             "passed": true
           },
           {
-            "command": "GitHub Actions 43903722452 job133426839772: source, security, disposable PostgreSQL, browser and encrypted restore; merge tree identical to eb4bf2",
+            "command": "PORT=8080 BASE_PATH=/ corepack pnpm@10.26.1 run build (/tmp/pending-9d6171-build.log)",
+            "passed": true
+          },
+          {
+            "command": "corepack pnpm@10.26.1 --filter @workspace/api-server exec esbuild src/services/accountingDocuments/integration.test.ts --bundle --platform=node --format=cjs --external:pg --external:@clerk/express --outfile=/tmp/pending-final-integration-test.cjs (syntax bundle only)",
+            "passed": true
+          },
+          {
+            "command": "Independent financial/security review exact9d6171 and79focused tests passed",
+            "passed": true
+          },
+          {
+            "command": "CI43921527781 job133489789262 all gates passed: native87/87, relatedconditional150/150, mounted pendingAdmission:true browser with0reposts, populated restore, encryptedrecovery andcleanup; tested062e915 tree189dd881 identical published936d1f97",
             "passed": true
           }
-        ]
+        ],
+        "integratedCommit": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2",
+        "reviewed": true,
+        "reviewer": "pending_review"
       },
       "acceptedOutcomes": [
         {
@@ -372,12 +384,54 @@
               }
             ]
           }
-        }
-      ],
-      "blockers": [
+        },
         {
-          "type": "environment",
-          "reason": "This bounded run lacks a safe full implementation, independent review and exact-source CI window for the connected schema and UI pending-admission change. Next coordinator explicitly resolves after reserving a full window. No scaffolding or candidate code created."
+          "id": "ordinary-payment-durable-pending-recovery-20261116",
+          "scenario": "Ordinary payment-family requests record durable precommit admissions, fence fresh replacement IDs, bind exact retries, and expose actor-owned pending recovery. Explicit protected no-effect markers permanently fence delayed writers including bundled paths. Mounted lost-reference pending-to-recorded recovery makes zero POST requests.",
+          "criteria": [
+            0
+          ],
+          "remaining": [
+            "P03-01 still requires remaining correction/capture/payroll/filing operation families and complete connected recovery journeys.",
+            "Browser terminal no-effect outcome remains read-only; implement explicit user-facing protected resolution and fresh-review progression without automatic retry or absence/TTL unlock.",
+            "Synthetic isolated browser session does not establish real Clerk or production acceptance."
+          ],
+          "nextAction": "Automatically claim P03-01 and complete explicit ordinary-payment terminal-resolution UI using the existing protected no-effect endpoint: current actor/company authorization, immutable attempt binding, explicit selection/confirmation, then fresh review only after verified terminal outcome. Preserve no automatic repost, canonical outcome precedence and all race/restore gates. No new owner technical decision required.",
+          "integratedCommit": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2",
+          "acceptedAt": 1794851402254,
+          "evidence": {
+            "commit": "9d6171e05081df2868f40bc5ba6cc7d72286c374",
+            "summary": "Bounded P03-01 ordinary payment-family pending admission, immutable explicit no-effect fence, same-ID canonical authority and read-only lost-locator discovery. Parent remains pending: correction/capture/payroll/filing operation families, full browser lifecycle and broader recovery acceptance remain. Native PostgreSQL/browser/restore execution unavailable locally and required on integrated CI before acceptance. Author stopped; independent review pending native gates.",
+            "tests": [
+              {
+                "command": "node tools/development/check.mjs (1054 tests; /tmp/pending-9d6171-source.log)",
+                "passed": true
+              },
+              {
+                "command": "node --test tools/development/migrations/registry.test.mjs (32 tests; /tmp/pending-9d6171-registry.log)",
+                "passed": true
+              },
+              {
+                "command": "PORT=8080 BASE_PATH=/ corepack pnpm@10.26.1 run build (/tmp/pending-9d6171-build.log)",
+                "passed": true
+              },
+              {
+                "command": "corepack pnpm@10.26.1 --filter @workspace/api-server exec esbuild src/services/accountingDocuments/integration.test.ts --bundle --platform=node --format=cjs --external:pg --external:@clerk/express --outfile=/tmp/pending-final-integration-test.cjs (syntax bundle only)",
+                "passed": true
+              },
+              {
+                "command": "Independent financial/security review exact9d6171 and79focused tests passed",
+                "passed": true
+              },
+              {
+                "command": "CI43921527781 job133489789262 all gates passed: native87/87, relatedconditional150/150, mounted pendingAdmission:true browser with0reposts, populated restore, encryptedrecovery andcleanup; tested062e915 tree189dd881 identical published936d1f97",
+                "passed": true
+              }
+            ],
+            "integratedCommit": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2",
+            "reviewed": true,
+            "reviewer": "pending_review"
+          }
         }
       ]
     },
@@ -11053,6 +11107,122 @@
         "reviewed": true,
         "integratedCommit": "99e547aa77608457427475bcb9e3ae3be7bd9ebd",
         "reviewer": "independent_review"
+      }
+    },
+    {
+      "at": 1794850274732,
+      "actor": "pending-coordinator",
+      "type": "resolve",
+      "taskId": "P03-01",
+      "reason": "Fresh full bounded run reserved17:29-17:59; current source99e547aa, reviewed contract includes actor fence and fresh locked reads, author/reviewer capacity available. Prior worker stopped and no candidate code; resource blocker resolved.",
+      "resolvedBlockers": [
+        {
+          "type": "environment",
+          "reason": "This bounded run lacks a safe full implementation, independent review and exact-source CI window for the connected schema and UI pending-admission change. Next coordinator explicitly resolves after reserving a full window. No scaffolding or candidate code created."
+        }
+      ]
+    },
+    {
+      "at": 1794850309899,
+      "actor": "pending-implementation",
+      "type": "claim",
+      "taskId": "P03-01",
+      "tokenSha256": "a6e8a515803197f72352d835818cab2c40e3a84889eb20f4cc9d24861dfcb17b"
+    },
+    {
+      "at": 1794850323330,
+      "actor": "pending-implementation",
+      "type": "checkpoint",
+      "taskId": "P03-01",
+      "checkpoint": "Pre-edit checkpoint: codex/pending-author-1729 at 99e547aa77608457427475bcb9e3ae3be7bd9ebd; reviewed pending-contract.json; waiting coordinator durable reservation before source edits."
+    },
+    {
+      "at": 1794850915744,
+      "actor": "pending-implementation",
+      "type": "checkpoint",
+      "taskId": "P03-01",
+      "checkpoint": "Immutable author9d6171e05081df2868f40bc5ba6cc7d72286c374 tree189dd8819561ed0f6dc764006c2fb6fe7484fa46 branchcodex/pending-author-1729. Connected ordinarypayment admission/terminal and pending readonly recovery; exactsource/build running, native PostgreSQL unavailable locally, independent review pending. All edits stopped until reviewer findings."
+    },
+    {
+      "at": 1794850966776,
+      "actor": "pending-implementation",
+      "type": "submit",
+      "taskId": "P03-01",
+      "evidence": {
+        "commit": "9d6171e05081df2868f40bc5ba6cc7d72286c374",
+        "summary": "Bounded P03-01 ordinary payment-family pending admission, immutable explicit no-effect fence, same-ID canonical authority and read-only lost-locator discovery. Parent remains pending: correction/capture/payroll/filing operation families, full browser lifecycle and broader recovery acceptance remain. Native PostgreSQL/browser/restore execution unavailable locally and required on integrated CI before acceptance. Author stopped; independent review pending native gates.",
+        "tests": [
+          {
+            "command": "node tools/development/check.mjs (1054 tests; /tmp/pending-9d6171-source.log)",
+            "passed": true
+          },
+          {
+            "command": "node --test tools/development/migrations/registry.test.mjs (32 tests; /tmp/pending-9d6171-registry.log)",
+            "passed": true
+          },
+          {
+            "command": "PORT=8080 BASE_PATH=/ corepack pnpm@10.26.1 run build (/tmp/pending-9d6171-build.log)",
+            "passed": true
+          },
+          {
+            "command": "corepack pnpm@10.26.1 --filter @workspace/api-server exec esbuild src/services/accountingDocuments/integration.test.ts --bundle --platform=node --format=cjs --external:pg --external:@clerk/express --outfile=/tmp/pending-final-integration-test.cjs (syntax bundle only)",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1794851402254,
+      "actor": "pending-coordinator",
+      "type": "accept-outcome",
+      "taskId": "P03-01",
+      "outcome": {
+        "id": "ordinary-payment-durable-pending-recovery-20261116",
+        "scenario": "Ordinary payment-family requests record durable precommit admissions, fence fresh replacement IDs, bind exact retries, and expose actor-owned pending recovery. Explicit protected no-effect markers permanently fence delayed writers including bundled paths. Mounted lost-reference pending-to-recorded recovery makes zero POST requests.",
+        "criteria": [
+          0
+        ],
+        "remaining": [
+          "P03-01 still requires remaining correction/capture/payroll/filing operation families and complete connected recovery journeys.",
+          "Browser terminal no-effect outcome remains read-only; implement explicit user-facing protected resolution and fresh-review progression without automatic retry or absence/TTL unlock.",
+          "Synthetic isolated browser session does not establish real Clerk or production acceptance."
+        ],
+        "nextAction": "Automatically claim P03-01 and complete explicit ordinary-payment terminal-resolution UI using the existing protected no-effect endpoint: current actor/company authorization, immutable attempt binding, explicit selection/confirmation, then fresh review only after verified terminal outcome. Preserve no automatic repost, canonical outcome precedence and all race/restore gates. No new owner technical decision required.",
+        "integratedCommit": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2"
+      },
+      "workersStopped": true,
+      "evidence": {
+        "commit": "9d6171e05081df2868f40bc5ba6cc7d72286c374",
+        "summary": "Bounded P03-01 ordinary payment-family pending admission, immutable explicit no-effect fence, same-ID canonical authority and read-only lost-locator discovery. Parent remains pending: correction/capture/payroll/filing operation families, full browser lifecycle and broader recovery acceptance remain. Native PostgreSQL/browser/restore execution unavailable locally and required on integrated CI before acceptance. Author stopped; independent review pending native gates.",
+        "tests": [
+          {
+            "command": "node tools/development/check.mjs (1054 tests; /tmp/pending-9d6171-source.log)",
+            "passed": true
+          },
+          {
+            "command": "node --test tools/development/migrations/registry.test.mjs (32 tests; /tmp/pending-9d6171-registry.log)",
+            "passed": true
+          },
+          {
+            "command": "PORT=8080 BASE_PATH=/ corepack pnpm@10.26.1 run build (/tmp/pending-9d6171-build.log)",
+            "passed": true
+          },
+          {
+            "command": "corepack pnpm@10.26.1 --filter @workspace/api-server exec esbuild src/services/accountingDocuments/integration.test.ts --bundle --platform=node --format=cjs --external:pg --external:@clerk/express --outfile=/tmp/pending-final-integration-test.cjs (syntax bundle only)",
+            "passed": true
+          },
+          {
+            "command": "Independent financial/security review exact9d6171 and79focused tests passed",
+            "passed": true
+          },
+          {
+            "command": "CI43921527781 job133489789262 all gates passed: native87/87, relatedconditional150/150, mounted pendingAdmission:true browser with0reposts, populated restore, encryptedrecovery andcleanup; tested062e915 tree189dd881 identical published936d1f97",
+            "passed": true
+          }
+        ],
+        "integratedCommit": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2",
+        "reviewed": true,
+        "reviewer": "pending_review"
       }
     }
   ],
