@@ -1,0 +1,12 @@
+{
+  "author": "d7d667594567474d9d4b836f90c298376815a11d",
+  "base": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2",
+  "tree": "b00cec1e95e34badb32838c63f5d9e3bada46b58",
+  "patchBytes": 43139,
+  "patchSha256": "e3a7c02da53dcf2fbf414d4b567f45b304db2bb9093bcb3dd4e7f4ee762687db",
+  "status": "Candidate pending final independent review and exact-source CI",
+  "originalRequirement": "P03-01",
+  "scenario": "Explicit bound terminal closure, fresh server verification, clear only terminal locator, clean page navigation then explicit newUUID payment review; no automatic repost",
+  "remaining": "P03-01 remaining operation families; full parent acceptance; native browser/PG restore CI required",
+  "observedAt": "2026-11-16T19:09:22.289Z"
+}
