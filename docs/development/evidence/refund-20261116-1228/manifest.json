@@ -1,0 +1,35 @@
+{
+  "authorCommit": "3c3aef1f43334ca55a9fdb2fcbcf9905727b8f54",
+  "tree": "70305783c25634f8989f776319c135297c1fd551",
+  "basePublished": "1ad1a0da765ee6023637cef64e5fd96b6afe8482",
+  "files": [
+    "artifacts/api-server/src/routes/accountingDocuments.ts",
+    "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/paidCredit.ts",
+    "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+    "artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx",
+    "artifacts/ledgerly/src/features/paidCreditReview/model.mjs",
+    "artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs",
+    "artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx"
+  ],
+  "parentStatus": "P01-03 remains pending; document intake and parent reversal acceptance remain",
+  "tests": {
+    "source": 976,
+    "registry": 31,
+    "fullBuildTypecheck": "passed",
+    "exactPostgresBrowserRestoreCI": "pending"
+  },
+  "isolatedEnvironment": {
+    "uid": 1000,
+    "postgresBinaries": "unavailable",
+    "noExistingDBUsed": true
+  },
+  "refund-candidate.patch": {
+    "bytes": 55362,
+    "sha256": "74243c82b4d9c427da62a40efdcf22802fd0853f5bf58f2ab51af7bd1bb94c78"
+  },
+  "refund-raw-commit.txt": {
+    "bytes": 301,
+    "sha256": "7a2723ab361025edc043ba9a75e7c94f02036dd5df87d191511971e39dcc19b7"
+  }
+}

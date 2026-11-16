@@ -1,0 +1,458 @@
+diff --git a/artifacts/api-server/src/routes/accountingDocuments.ts b/artifacts/api-server/src/routes/accountingDocuments.ts
+index d9e6698..c71b9bf 100644
+--- a/artifacts/api-server/src/routes/accountingDocuments.ts
++++ b/artifacts/api-server/src/routes/accountingDocuments.ts
+@@ -1,5 +1,5 @@
+ import { captureConditionalEvidence, getConditionalEvidence, observeConditionalOriginal } from '../services/accountingDocuments/conditionalDiscount';
+-import { reviewPaidCredit, commitPaidCredit, reviewPublicConditionalCredit, commitCurrentConditionalDiscount, recoverCurrentConditionalDiscount } from '../services/accountingDocuments/paidCredit';
++import { reviewCommercialCredit, commitCommercialCredit, recoverCommercialCredit, reviewPaidCredit, commitPaidCredit, reviewPublicConditionalCredit, commitCurrentConditionalDiscount, recoverCurrentConditionalDiscount } from '../services/accountingDocuments/paidCredit';
+ import { conditionalCompensationContext,reviewConditionalCompensation,recoverConditionalCompensation } from '../services/accountingDocuments/conditionalCompensation';
+ import { Router, type RequestHandler, type Request } from "express";
+ import { requireAuth } from "../middlewares/requireAuth";
+@@ -198,6 +198,16 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
+     if(!known.replacements.some((r:any)=>r.id===replacement)) fail(404,'RESOURCE_NOT_FOUND');
+     res.json({data:observationReceipt(await observeConditionalReplacement(company,actor,replacement))});
+   });
++  router.post('/accounting-documents/:id/commercial-credit/review',async(req,res)=>{
++    const {company,actor,id}=ids(req);const r=await reviewCommercialCredit(company,actor,id,revision(req),req.body);
++    const {commercial_admission,...display}=r;res.json({data:{...display,posting_available:true}});
++  });
++  router.post('/accounting-documents/:id/commercial-credit',async(req,res)=>{
++    const {company,actor,id}=ids(req);res.json({data:await commitCommercialCredit(company,actor,id,revision(req),req.body,testPostHook)});
++  });
++  router.get('/accounting-commercial-credits/operations/:requestId',async(req,res)=>{
++    const {company,actor}=ids(req);res.json({data:await recoverCommercialCredit(company,actor,String(req.params.requestId))});
++  });
+   router.post('/accounting-documents/:id/paid-credit/review',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await reviewPaidCredit(company,actor,id,revision(req),req.body)});});
+   router.post('/accounting-documents/:id/paid-credit',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await commitPaidCredit(company,actor,id,revision(req),req.body,testPostHook)});});
+   router.post("/accounting-documents/:id/post",async(req,res)=>{
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+index ce1002f..20d86b6 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+@@ -1859,3 +1859,144 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
+   console.log('ORIGINAL_AGREEMENT_PAGE_BROWSER_ACCEPTANCE' ,JSON.stringify({party:side,actualFullPage:true,blankEntry:true,nativeEvidence:true,invalidatedTerms:true,savedReceiptReload:true,explicitReviewAndPost:true,nativePayment:true,actualDiscountCreditPage:true,noPaidCashRelease:true,lostResponse:true,actualFormRemountRecovery:true,noResubmission:true,syntheticOnly:true}));
+  }finally{browserHtml='';rmSync(dir,{recursive:true,force:true});}
+ });
++
++for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${side} full-paid ordinary commercial credit and explicit refund actual-page recovery`,async()=>{
++ const f=await ordinaryOriginalFixture(side),kind=side==='customer'?'sales_invoice':'purchase_bill',route=side==='customer'?'/invoices':'/bills',creditRoute=side==='customer'?'/sales-credit-notes':'/supplier-credit-notes',creditKind=side==='customer'?'sales_credit_note':'supplier_credit_note',number='BROWSER-COMMERCIAL-'+randomUUID();
++ const dir=mkdtempSync(path.join(path.dirname(socket),'agreement-page-browser-'));
++ try {
++  const frontend=path.join(process.cwd(),'artifacts/ledgerly'),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js'),companyStub=path.join(dir,'company.mjs');
++  writeFileSync(companyStub,`export const useCompany=()=>({activeCompany:{id:${JSON.stringify(f.company)}}});`);
++  writeFileSync(entry,`
++   import React from ${JSON.stringify(frontend+'/node_modules/react/index.js')};
++   import {createRoot} from ${JSON.stringify(frontend+'/node_modules/react-dom/client.js')};
++   import {MemoryRouter,Routes,Route,useNavigate} from ${JSON.stringify(frontend+'/node_modules/react-router-dom/dist/index.mjs')};
++   import {QueryClient,QueryClientProvider} from ${JSON.stringify(frontend+'/node_modules/@tanstack/react-query/build/modern/index.js')};
++   import Form from ${JSON.stringify(frontend+'/src/pages/AccountingDocumentForm.jsx')};
++   import Payments from ${JSON.stringify(frontend+'/src/pages/Payments.jsx')};
++   import {readDiscountRecovery} from ${JSON.stringify(frontend+'/src/features/paidCreditReview/model.mjs')};
++   const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,recoveries=0,savedId=null;
++   window.fetch=async(url,options={})=>{
++    const path=String(url).replace(/^\\/api\\//,'/');
++    const headers=new Headers(options.headers);headers.set('x-test-actor',${JSON.stringify(actor)});
++    if(path.endsWith('/conditional-discount-evidence')&&options.method==='POST')captures++;
++    if(path.endsWith('/accounting-documents')&&options.method==='POST')saves++;
++    if(path.includes('/conditional-original')&&options.method==='POST'&&!path.endsWith('/observe'))posts++;
++    const response=await nativeFetch(path,{...options,headers});
++    if(path.endsWith('/accounting-documents')&&options.method==='POST'&&response.ok)savedId=(await response.clone().json()).data.id;
++    if(path.endsWith('/conditional-original/observe')&&response.ok)observed++;
++    if(path.endsWith('/commercial-credit')&&options.method==='POST'&&response.ok){discountPosts++;if(discountPosts===1)throw Error('Synthetic lost discount response');}
++    if(path.includes('/accounting-commercial-credits/operations/')&&response.ok)recoveries++;
++    return response;
++   };
++   const root=createRoot(document.getElementById('root'));
++   function Navigation(){window.testNavigate=useNavigate();return null;}
++   const mount=(url,key)=>root.render(<QueryClientProvider key={key} client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MemoryRouter initialEntries={[url]}><Navigation/><Routes><Route path="/payments" element={<Payments/>}/><Route path=${JSON.stringify(route+'/:id')} element={<Form kind=${JSON.stringify(kind)}/>}/><Route path=${JSON.stringify(creditRoute+'/:id')} element={<Form kind=${JSON.stringify(creditKind)}/>}/></Routes></MemoryRouter></QueryClientProvider>);
++   mount(${JSON.stringify(route+'/new')},'initial');
++   const el=id=>document.querySelector('[data-testid="'+id+'"]');
++   const wait=async(fn)=>{for(let i=0;i<240;i++){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Browser timeout: '+document.getElementById('root').textContent.slice(-1200));};
++   const change=async(selector,value)=>{const node=document.querySelector(selector);if(!node)throw Error('Missing '+selector);const proto=node.tagName==='SELECT'?HTMLSelectElement.prototype:node.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(node,value);node.dispatchEvent(new Event(node.tagName==='SELECT'?'change':'input',{bubbles:true}));await new Promise(r=>setTimeout(r,25));};
++   (async()=>{
++    await wait(()=>el('select-party'));
++    await change('#party',${JSON.stringify(f.body.party_id)});await change('#number',${JSON.stringify(number)});
++    await change('#issue','2026-11-01');await change('#due','2026-11-30');await change('#d0','Browser entered original');await change('#p0','120');await change('#t0','NONE');
++    el('agreement-enabled').click();await wait(()=>document.querySelector('#agreement-amount'));
++    await change('#agreement-date','2026-11-01');await change('#agreement-deadline','2199-11-30');await change('#agreement-amount','12.00');await change('#agreement-evidence','Synthetic agreement attested in actual form');
++    if(!el('button-save').disabled||!el('capture-agreement').disabled)throw Error('Unattested source admitted');
++    el('agreement-attested').click();await wait(()=>!el('capture-agreement').disabled);el('capture-agreement').click();
++    await wait(()=>el('agreement-status')?.textContent.includes('Evidence captured'));
++    if(saves||posts)throw Error('Capture silently saved or posted');
++    await change('#agreement-amount','11.00');
++    if(el('agreement-attested').checked||!el('button-save').disabled)throw Error('Changed terms retained receipt');
++    await change('#agreement-amount','12.00');el('agreement-attested').click();await wait(()=>!el('capture-agreement').disabled);el('capture-agreement').click();await wait(()=>el('agreement-status')?.textContent.includes('Evidence captured'));
++    el('button-save').click();await wait(()=>savedId&&el('button-save')?.textContent==='Save changes'&&!el('button-post').disabled);
++    if(posts||captures!==2||saves!==1)throw Error('Save/capture boundary changed');
++    if(document.querySelector('#agreement-evidence').value!=='Synthetic agreement attested in actual form')throw Error('Saved receipt was not reloaded');
++    el('button-post').click();await wait(()=>document.querySelector('[aria-label="Saved original agreement"]'));
++    const review=document.querySelector('[aria-label="Saved original agreement"]').textContent;
++    if(!review.includes('£12.00')||!review.includes('2199-11-30')||posts)throw Error('Review omitted saved agreement or silently posted');
++    el('button-confirm-posting').click();await wait(()=>posts===1&&observed===1&&!el('button-confirm-posting')&&document.getElementById('root').textContent.includes('Posted'));
++    const originalId=savedId;
++    const payment={id:crypto.randomUUID(),kind:'payment',party_type:${JSON.stringify(side)},party_id:${JSON.stringify(f.body.party_id)},payment_id:null,date:'2026-11-03',reference:'Browser native qualifying payment',amount_minor:'12000',allocations:[{document_id:originalId,amount_minor:'12000'}]};
++    const call=async(path,body)=>{const response=await fetch('/api/companies/'+${JSON.stringify(f.company)}+'/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const result=await response.json();if(!response.ok)throw Error(JSON.stringify(result));return result.data;};
++    const paymentReview=await call('accounting-payments/review',payment);await call('accounting-payments',{...payment,review_token:paymentReview.review_token});
++    window.testNavigate(${JSON.stringify(creditRoute+'/new?original=')}+originalId);
++    await wait(()=>document.querySelector('#reason'));
++    await change('#reason','Ordinary price reduction after full payment');await change('#p0','12');await change('#number',${JSON.stringify(number+'-CREDIT')});
++    el('button-save').click();await wait(()=>savedId!==originalId&&el('button-save')?.textContent==='Save changes'&&!el('button-post').disabled);
++    await change('[aria-label="Credit purpose"]','commercial');
++    el('button-post').click();await wait(()=>document.querySelector('[aria-label="Credit settlement review"]'));
++    const creditReview=document.querySelector('[aria-label="Credit settlement review"]').textContent;
++    if(!creditReview.includes('£12.00')||!creditReview.includes('Original cash payments remain unchanged')||discountPosts)throw Error('Commercial review omitted release policy');
++    el('button-confirm-posting').click();
++    const recovery=()=>document.querySelector('[aria-label="Conditional discount recovery"]');
++    const pending=()=>readDiscountRecovery(localStorage,${JSON.stringify(f.company)},savedId);
++    await wait(()=>discountPosts===1&&recovery()&&el('button-confirm-posting')?.disabled);
++    if(!pending())throw Error('Lost response did not persist recovery');
++    mount(${JSON.stringify(creditRoute+'/')}+savedId,'reloaded');
++    await wait(()=>recovery()&&document.getElementById('root').textContent.includes('Posted')&&!el('button-confirm-posting'));
++    if(discountPosts!==1||!pending())throw Error('Reload resent commit or lost recovery');
++    const recoverButton=[...recovery().querySelectorAll('button')].find(b=>b.textContent==='Recover credit outcome');
++    if(!recoverButton||recoverButton.disabled)throw Error('Posted page omitted recovery action');
++    recoverButton.click();await wait(()=>!recovery()&&recoveries===1&&pending()===null&&document.getElementById('root').textContent.includes('Posted'));
++    if(discountPosts!==1)throw Error('Recovery resubmitted discount');
++    mount('/payments?event='+payment.id,'refund');
++    const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
++    await wait(()=>button('Record refund')&&!button('Record refund').disabled);button('Record refund').click();
++    await wait(()=>document.querySelector('#pay-amount'));await change('#pay-date','2026-11-16');await change('#pay-amount','12.00');await change('#pay-reference','Separately reviewed browser refund');
++    button('Review accounting entries').click();await wait(()=>button('Confirm and record')&&!button('Confirm and record').disabled);
++    button('Confirm and record').click();await wait(()=>!document.querySelector('#pay-amount')&&!button('Confirm and record'));
++    document.body.dataset.originalAgreementAcceptance='passed';
++   })().catch(e=>{document.body.dataset.originalAgreementAcceptance='failed';document.getElementById('root').append(document.createTextNode(e.message));});
++  `);
++  execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',entry,'--bundle','--platform=browser','--format=iife','--jsx=automatic','--alias:@='+frontend+'/src','--alias:@/lib/useCompany='+companyStub,'--outfile='+bundle],{stdio:'pipe'});
++  browserHtml=`<!doctype html><html><head><meta charset="utf-8"><title>Synthetic original agreement form</title></head><body><div id="root"></div><script>${readFileSync(bundle,'utf8').replaceAll('</script','<\\/script')}</script></body></html>`;
++  const child=spawn('chromium',['--headless','--no-first-run','--disable-gpu','--disable-background-networking','--disable-component-update','--disable-sync','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=24000',base+'/synthetic-compensation-browser'],{stdio:['ignore','pipe','pipe']});
++  let html='',stderr='';child.stdout.on('data',b=>{html+=b.toString();});child.stderr.on('data',b=>{stderr+=b.toString();});
++  const code=await new Promise<number>((resolve,reject)=>{const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('Bounded Chromium timeout'));},35000);child.once('error',e=>{clearTimeout(timer);reject(e);});child.once('exit',n=>{clearTimeout(timer);resolve(n??1);});});
++  assert.equal(code,0,stderr.slice(-2000));assert.match(html,/<body[^>]*data-original-agreement-acceptance="passed"/,html.slice(0,18000));
++  const row=(await pool.query(`SELECT id FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE company_id=$1 AND ${side==='customer'?'invoice_number':'bill_number'}=$2`,[f.company,number])).rows[0];
++  assert.ok(row);const saved=await getDocument(f.company,actor,row.id);assert.equal(saved.status,'posted');assert.equal(saved.source.conditional_discount.discount_gross_pence,'1200');
++  assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_observations WHERE company_id=$1 AND document_id=$2',[f.company,row.id])).rows[0].n,1);
++  assert.equal((await pool.query('SELECT count(*)::int n FROM accounting_paid_credit_operations WHERE company_id=$1',[f.company])).rows[0].n,1);
++  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,1);
++  assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='refund'",[f.company])).rows[0].n,1);
++  assert.equal((await pool.query("SELECT amount_minor FROM accounting_payment_events WHERE company_id=$1 AND kind='payment'",[f.company])).rows[0].amount_minor,'12000');
++  assert.deepEqual((await pool.query(`SELECT amount_paid::text,balance_due::text FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[row.id])).rows[0],{amount_paid:'108.00',balance_due:'0.00'});
++  console.log('COMMERCIAL_CREDIT_REFUND_PAGE_BROWSER_ACCEPTANCE' ,JSON.stringify({party:side,actualFullPage:true,blankEntry:true,nativeEvidence:true,invalidatedTerms:true,savedReceiptReload:true,explicitReviewAndPost:true,nativePayment:true,actualDiscountCreditPage:true,commercialRelease:true,separateRefund:true,lostResponse:true,actualFormRemountRecovery:true,noResubmission:true,syntheticOnly:true}));
++ }finally{browserHtml='';rmSync(dir,{recursive:true,force:true});}
++});
++
++for(const side of ['customer','supplier'] as const)test(`real PostgreSQL HTTP: ${side} full-paid commercial purpose, replay, recovery and explicit refund`,async()=>{
++ const f=await admissionFixture(side);await postConditionalOriginal(f.company,actor,f.draft.id,f.draft.revision);await observeConditionalOriginal(f.company,actor,f.draft.id);
++ const {conditional_discount:removedAgreement,...discountSource}=f.draft.source;
++ const marked=await saveDocument(f.company,actor,{kind:side==='customer'?'sales_credit_note':'supplier_credit_note',original_id:f.draft.id,reason:'Saved discount must not become commercial',adjustment_method:'offset_outstanding',effective_adjustment_date:'2199-12-02',source:{...discountSource,invoice_number:'MARKED-'+randomUUID(),issue_date:'2199-12-02',due_date:'2199-12-02',payment_terms:0,discount_adjustment:{type:'amount',value:'12',original_revision:f.draft.revision}}});
++ const payment=await nativeCash(f,'12000','12000'),credit=await conditionalCreditDraft(f,side),intent={request_id:randomUUID(),reason:'Ordinary commercial reduction after full payment'},route=`accounting-documents/${credit.id}/commercial-credit`;
++ const before=await financialSnapshot(f.company);
++ const markedResult=await connectedHttp(f.company,`accounting-documents/${marked.id}/commercial-credit/review`,intent,marked.revision);assert.equal(markedResult.status,409);assert.equal(markedResult.error.code,'COMMERCIAL_CREDIT_DISCOUNT_DRAFT');
++ const discount=await connectedHttp(f.company,`accounting-documents/${credit.id}/conditional-discount/review`,intent,credit.revision);assert.equal(discount.status,409);assert.equal(discount.error.code,'DISCOUNT_REQUIRES_UNPAID_BALANCE');
++ assert.deepEqual(await financialSnapshot(f.company),before);
++ const review=await connectedHttp(f.company,route+'/review',intent,credit.revision);assert.equal(review.status,200,JSON.stringify(review));assert.equal(review.data.purpose,'commercial');assert.equal(review.data.released_minor,'1200');assert.equal(review.data.offset_minor,'0');assert.equal(review.data.commercial_admission,undefined);
++ const cmd={...intent,review_token:review.data.review_token,releases:review.data.releases};
++ const foreign=await admissionFixture(side);
++ await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,'commercial-viewer','read_only',true)",[randomUUID(),f.company]);
++ for(const endpoint of [route+'/review',route]) {
++   const body=endpoint.endsWith('/review')?intent:cmd;
++   const viewer=await connectedHttp(f.company,endpoint,body,credit.revision,'commercial-viewer');assert.ok([403,404].includes(viewer.status),JSON.stringify(viewer));
++   const other=await connectedHttp(foreign.company,endpoint,body,credit.revision);assert.ok([403,404].includes(other.status),JSON.stringify(other));
++ }
++ assert.equal((await connectedHttp(foreign.company,`accounting-commercial-credits/operations/${intent.request_id}`)).data.status,'unknown');
++ assert.equal((await connectedHttp(f.company,route,{...cmd,mode:'commercial'},credit.revision)).status,422);
++ const posted=await connectedHttp(f.company,route,cmd,credit.revision);assert.equal(posted.status,200,JSON.stringify(posted));
++ assert.equal((await connectedHttp(f.company,route,cmd,credit.revision)).data.status,'duplicate');
++ const recovered=await connectedHttp(f.company,`accounting-commercial-credits/operations/${intent.request_id}`);assert.equal(recovered.status,200,JSON.stringify(recovered));assert.equal(recovered.data.status,'recorded');assert.equal(recovered.data.purpose,'commercial');
++ assert.equal((await connectedHttp(f.company,`accounting-conditional-discounts/operations/${intent.request_id}`)).data.status,'unknown');
++ await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,'other-commercial-owner','owner',true)",[randomUUID(),f.company]);
++ assert.equal((await connectedHttp(f.company,`accounting-commercial-credits/operations/${intent.request_id}`,undefined,undefined,'other-commercial-owner')).data.status,'unknown');
++ assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='unallocation'",[f.company])).rows[0].n,1);
++ assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='refund'",[f.company])).rows[0].n,0);
++ assert.equal((await pool.query('SELECT amount_minor FROM accounting_payment_events WHERE company_id=$1 AND id=$2',[f.company,payment.id])).rows[0].amount_minor,'12000');
++ const refund={id:randomUUID(),kind:'refund',party_type:side,party_id:f.body.party_id,payment_id:payment.id,date:'2199-12-02',reference:'Separately reviewed refund',amount_minor:'1200',allocations:[]};
++ const refundReview=await connectedHttp(f.company,'accounting-payments/review',refund);assert.equal(refundReview.status,200,JSON.stringify(refundReview));
++ const refunded=await connectedHttp(f.company,'accounting-payments',{...refund,review_token:refundReview.data.review_token});assert.equal(refunded.status,200,JSON.stringify(refunded));
++ assert.equal((await pool.query("SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1 AND kind='refund'",[f.company])).rows[0].n,1);
++});
+diff --git a/artifacts/api-server/src/services/accountingDocuments/paidCredit.ts b/artifacts/api-server/src/services/accountingDocuments/paidCredit.ts
+index edebd97..2a1e097 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/paidCredit.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/paidCredit.ts
+@@ -45,6 +45,7 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
+   await authority(q,company,actor);
+   if(conditional==='conditional-discount' && !await compensationSchema(q)) fail(503,'CONDITIONAL_COMPENSATION_SCHEMA_INCOMPLETE');
+   const row=await document(q,company,id,true);
++  if(conditional==='commercial' && row.source.discount_adjustment) fail(409,'COMMERCIAL_CREDIT_DISCOUNT_DRAFT');
+   if(!credit(row.kind)||row.status!=='draft') fail(409,'CREDIT_DRAFT_REQUIRED');
+   if(row.revision!==expected) fail(409,'REVISION_CONFLICT');
+   const original=await creditOriginal(q,company,row.original_id,row.source.issue_date);
+@@ -85,7 +86,7 @@ async function plan(q:Queryable,company:string,actor:string,id:string,expected:s
+   if(conditional==='conditional-discount' && releases.length) fail(409,'DISCOUNT_EXCEEDS_OUTSTANDING');
+   const admission=(conditional===true||conditional==='conditional-discount')?await conditionalCreditAdmission(q,company,original,row,releases):undefined;
+   const commercial=conditional==='commercial'?await commercialCreditAdmission(q,company,original,row):undefined;
+-  const review={...(conditional==='conditional-discount'?{purpose:conditional}:{}),...(commercial?{commercial_admission:commercial}:{}),...(admission?{conditional_admission:admission,conditional_credit_payload:canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts})}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
++  const review={...(conditional==='conditional-discount'?{purpose:conditional}:{}),...(commercial?{purpose:'commercial',commercial_admission:commercial}:{}),...(admission?{conditional_admission:admission,conditional_credit_payload:canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts})}:{}),intent:b,document_id:id,revision:expected,original_id:original.id,original_kind:original.kind,original_number:original.number,date:row.source.issue_date,
+     credit_minor:value.toString(),offset_minor:(value-excess).toString(),released_minor:excess.toString(),remaining_minor:(BigInt(open.open_minor)-(value-excess)).toString(),releases};
+   return {...review,review_token:hash({company,actor,review,row,original,linked,events,periods,configurations})};
+ }
+@@ -142,7 +143,7 @@ export async function commitConditionalCredit(company:string,actor:string,id:str
+   return commitCredit(company,actor,id,expected,body,true,testHook);
+ }
+ 
+-/** Internal ordinary price adjustment; no HTTP route and no request mode flag. */
++/** Dedicated server-selected ordinary price adjustment; no request mode flag. */
+ export async function reviewCommercialCredit(company:string,actor:string,id:string,expected:string,body:unknown) {
+   return transact(q=>plan(q,company,actor,id,expected,intent(body),'commercial'));
+ }
+@@ -183,3 +184,48 @@ export async function recoverCurrentConditionalDiscount(company:string,actor:str
+     return {status:'recorded',request_id:request,document_id:op.result.document_id,journal_id:op.result.journal_id};
+   });
+ }
++
++/** Purpose-scoped immutable receipt; reads never retry a financial command. */
++export async function recoverCommercialCredit(company:string,actor:string,requestId:string) {
++  const request=uuid(requestId).toLowerCase();
++  return transact(async q=>{
++    await authority(q,company,actor);
++    const op=(await q.query('SELECT actor_id,credit_id,intent,result FROM accounting_paid_credit_operations WHERE company_id=$1 AND request_id=$2',[company,request])).rows[0];
++    if(!op || op.actor_id!==actor || op.intent.purpose!=='commercial') return {status:'unknown',request_id:request};
++    const row=await document(q,company,op.credit_id), payload=canonicalConditionalPayload({source:row.source,money:row.money,tax_context:row.tax_context,accounts:row.posting_accounts});
++    const journals=(await q.query(`SELECT j.*,p.id effect_id FROM canonical_journal_entries j
++      JOIN accounting_posting_effects p ON p.company_id=j.company_id AND p.journal_id=j.id
++      AND p.source_id=j.source_id AND p.source_type=j.source_type AND p.source_revision=j.source_revision
++      AND p.source_evidence_hash=j.source_evidence_hash AND p.status='posted'
++      AND p.posting_kind=j.posting_kind AND p.economic_effect_id=j.economic_effect_id
++      AND p.idempotency_key='document:'||j.source_id WHERE j.company_id=$1 AND j.id=$2`,[company,row.journal_id])).rows;
++    const j=journals[0], planned=op.intent.releases, recorded=op.result.releases;
++    if(row.status!=='posted'||!credit(row.kind)||row.id!==op.result.document_id||row.journal_id!==op.result.journal_id||
++      op.result.request_id!==request||op.result.status!=='posted'||op.intent.document_id!==row.id||op.intent.revision!==row.revision||
++      op.intent.original_id!==row.original_id||op.intent.commercial_admission?.credit_payload!==payload||
++      !Array.isArray(planned)||!Array.isArray(recorded)||planned.length!==recorded.length||
++      journals.length!==1||j.status!=='posted'||j.currency_code!=='GBP'||j.source_id!==row.id||j.source_type!==row.kind||
++      j.posting_kind!=='ordinary_document'||j.economic_effect_id!==`document:${row.id}`||
++      j.created_by_type!=='user'||j.created_by_id!==actor||j.source_revision!==row.revision||j.source_evidence_hash!==hash(JSON.parse(payload))) fail(503,'COMMERCIAL_CREDIT_HISTORY_INVALID');
++    let released=0n;const releaseIds=new Set<string>();
++    for(let i=0;i<planned.length;i++) {
++      const r=planned[i], result=recorded[i];
++      const events=(await q.query(`SELECT e.*,j.source_revision,j.source_evidence_hash,j.created_by_id,p.id effect_id
++        FROM accounting_payment_events e JOIN canonical_journal_entries j ON j.id=e.journal_id AND j.company_id=e.company_id
++        AND j.source_id=e.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
++        AND j.currency_code='GBP' AND j.created_by_type='user' AND j.posting_kind='party_unallocation' AND j.economic_effect_id='payment-event:'||e.id::text
++        JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
++        AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
++        AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text
++        AND p.status='posted' AND p.source_revision=j.source_revision AND p.source_evidence_hash=j.source_evidence_hash
++        WHERE e.company_id=$1 AND e.id=$2`,[company,r.id])).rows;
++      const e=events[0];
++      if(releaseIds.has(r.id)||!['posted','duplicate'].includes(result.status)||events.length!==1||e.kind!=='unallocation'||e.payment_id!==r.payment_id||e.amount_minor!==r.amount_minor||
++        e.created_by_id!==actor||e.source_evidence_hash!==hash(e.source)||e.source_revision!==hash(e.source)||result.id!==r.id||result.journal_id!==e.journal_id||
++        hash(e.allocations)!==hash([{document_id:row.original_id,amount_minor:r.amount_minor}])) fail(503,'COMMERCIAL_CREDIT_HISTORY_INVALID');
++      releaseIds.add(r.id);released+=BigInt(r.amount_minor);
++    }
++    if(released.toString()!==op.intent.released_minor) fail(503,'COMMERCIAL_CREDIT_HISTORY_INVALID');
++    return {status:'recorded',purpose:'commercial',request_id:request,document_id:row.id,journal_id:row.journal_id};
++  });
++}
+diff --git a/artifacts/ledgerly/src/api/accountingDocuments.mjs b/artifacts/ledgerly/src/api/accountingDocuments.mjs
+index e7c3ba9..0b9ad4a 100644
+--- a/artifacts/ledgerly/src/api/accountingDocuments.mjs
++++ b/artifacts/ledgerly/src/api/accountingDocuments.mjs
+@@ -106,6 +106,9 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
+     commitConditionalDiscount: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/conditional-discount`, {method:'POST',body,revision}),
+     recoverConditionalDiscount: (c,id,signal) => call(`${base(c)}/accounting-conditional-discounts/operations/${encodeURIComponent(id)}`, {signal}),
+     reviewConditionalCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/conditional-credit/review`, {method:'POST',body,revision}),
++    reviewCommercialCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/commercial-credit/review`, {method:'POST',body,revision}),
++    commitCommercialCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/commercial-credit`, {method:'POST',body,revision}),
++    recoverCommercialCredit: (c,id,signal) => call(`${base(c)}/accounting-commercial-credits/operations/${encodeURIComponent(id)}`, {signal}),
+     reviewPaidCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/paid-credit/review`, {method:'POST',body,revision}),
+     commitPaidCredit: (c,id,body,revision) => call(`${docs(c)}/${encodeURIComponent(id)}/paid-credit`, {method:'POST',body,revision}),
+     post: (c, id, revision) => call(`${docs(c)}/${encodeURIComponent(id)}/post`, { method: 'POST', body: {}, revision }),
+diff --git a/artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx b/artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx
+index 5dde1e8..1779c62 100644
+--- a/artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx
++++ b/artifacts/ledgerly/src/features/paidCreditReview/PaidCreditReview.jsx
+@@ -15,6 +15,7 @@ export default function PaidCreditReview({review,conditional=false,current=false
+     {review.releases.map(r=><div key={r.id}><p>{amount(r.amount_minor)} {conditional ? 'would be released from payment' : 'released from payment'} {r.payment_reference || r.payment_id}</p>
+       <p>Unapplied balance: {amount(r.before_unapplied_minor)} → {amount(r.after_unapplied_minor)}</p>
+       <a className="underline" target="_blank" rel="noopener noreferrer" href={`/accounting/journals/${encodeURIComponent(r.payment_journal_id)}`}>View original payment journal</a>
++      <p>After posting, open Payments to review a separate refund for this payment.</p>
+       <p className="break-all text-xs">Payment ID: {r.payment_id}</p><p className="break-all text-xs">Original pool account: {r.pool_account_id}</p></div>)}
+     <p>{conditional ? 'No credit has been posted and no allocations have been released. No refund is sent.' : 'Original cash payments remain unchanged. This posts the credit and releases the listed allocations together. It does not send a refund.'}</p>
+   </section>;
+@@ -22,5 +23,5 @@ export default function PaidCreditReview({review,conditional=false,current=false
+ 
+ export function DiscountRecoveryNotice({pending,busy,onRecover}) {
+   if(!pending)return null;
+-  return <section role="status" aria-label="Conditional discount recovery"><p>A conditional discount outcome needs recovery. Do not submit another discount.</p><button type="button" disabled={busy || pending.invalid} onClick={onRecover}>Recover discount outcome</button></section>;
++  return <section role="status" aria-label="Conditional discount recovery"><p>A {pending.purpose==='commercial'?'commercial credit':'conditional discount'} outcome needs recovery. Do not submit another credit.</p><button type="button" disabled={busy || pending.invalid} onClick={onRecover}>Recover {pending.purpose==='commercial'?'credit':'discount'} outcome</button></section>;
+ }
+diff --git a/artifacts/ledgerly/src/features/paidCreditReview/model.mjs b/artifacts/ledgerly/src/features/paidCreditReview/model.mjs
+index be2b5f9..bf1efd9 100644
+--- a/artifacts/ledgerly/src/features/paidCreditReview/model.mjs
++++ b/artifacts/ledgerly/src/features/paidCreditReview/model.mjs
+@@ -28,22 +28,29 @@ export async function prepareCurrentDiscountReview(client,companyId,doc,requestI
+   return r;
+ }
+ export const discountRecoveryKey=(company,id)=>`ledgerpoint:conditional-discount:${company}:${id}`;
+-export function saveDiscountRecovery(storage,company,id,revision,request_id) {
++export function saveDiscountRecovery(storage,company,id,revision,request_id,purpose='conditional-discount') {
+   const existing=readDiscountRecovery(storage,company,id);
+-  if(existing && (existing.request_id!==request_id || existing.revision!==revision)) throw new Error('Recover the existing discount operation before submitting another.');
+-  const pending={company,id,revision,request_id};
++  if(existing && (existing.request_id!==request_id || existing.revision!==revision || (existing.purpose||'conditional-discount')!==purpose)) throw new Error('Recover the existing discount operation before submitting another.');
++  const pending={company,id,revision,request_id,purpose};
+   storage.setItem(discountRecoveryKey(company,id),JSON.stringify(pending));return pending;
+ }
+ export function readDiscountRecovery(storage,company,id) {
+   const raw=storage.getItem(discountRecoveryKey(company,id));if(!raw)return null;
+-  try {const r=JSON.parse(raw);if(r.company===company&&r.id===id&&typeof r.revision==='string'&&typeof r.request_id==='string')return r;}catch{}
++  try {const r=JSON.parse(raw);if(r.company===company&&r.id===id&&typeof r.revision==='string'&&typeof r.request_id==='string' && (!r.purpose || ['conditional-discount','commercial'].includes(r.purpose)))return r;}catch{}
+   throw new Error('The saved discount operation must be recovered before posting.');
+ }
+ export function verifyDiscountRecovery(receipt,pending) {
+-  return ['posted','duplicate','recorded'].includes(receipt?.status) && receipt.request_id===pending.request_id && receipt.document_id===pending.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(receipt.journal_id);
++  return (receipt?.status!=='recorded' || pending.purpose!=='commercial' || receipt.purpose==='commercial') && ['posted','duplicate','recorded'].includes(receipt?.status) && receipt.request_id===pending.request_id && receipt.document_id===pending.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(receipt.journal_id);
+ }
+ 
+ export function clearDiscountRecovery(storage,pending) {
+   const current=readDiscountRecovery(storage,pending.company,pending.id);
+   if(current?.request_id===pending.request_id && current.revision===pending.revision)storage.removeItem(discountRecoveryKey(pending.company,pending.id));
+ }
++
++export async function prepareCommercialCreditReview(client,companyId,doc,requestId,originalDoc) {
++  if(!originalDoc?.source?.conditional_discount || originalDoc.id!==doc.original_id || doc.source?.discount_adjustment) throw new Error('An ordinary commercial credit requires a separate credit draft, not a discount adjustment.');
++  const r=await client.reviewCommercialCredit(companyId,doc.id,{request_id:requestId,reason:doc.reason},doc.revision);
++  if(r?.posting_available!==true || r.purpose!=='commercial' || !/^sha256:[a-f0-9]{64}$/.test(r.review_token) || r.intent?.request_id!==requestId || r.document_id!==doc.id || r.revision!==doc.revision || r.original_id!==originalDoc.id || !Array.isArray(r.releases)) throw new Error('The commercial credit review could not be verified.');
++  return r;
++}
+diff --git a/artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs b/artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs
+index 619aa82..e811594 100644
+--- a/artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs
++++ b/artifacts/ledgerly/src/features/paidCreditReview/model.test.mjs
+@@ -63,3 +63,14 @@ test('durable locator collision and late completions cannot replace or clear ano
+  clearDiscountRecovery(storage,first);assert.equal(readDiscountRecovery(storage,'company','credit'),null);
+  assert.throws(()=>saveDiscountRecovery({...storage,setItem:()=>{throw Error('storage unavailable')}},'company','credit','r','first'),/storage unavailable/);
+ });
++
++test('ordinary commercial review rejects discount drafts and scopes recovery purpose',async()=>{
++ const {prepareCommercialCreditReview,verifyDiscountRecovery}=await import('./model.mjs');
++ const doc={id:'credit',original_id:'original',revision:'rev',reason:'Reduction',source:{}},original={id:'original',source:{conditional_discount:{}}};
++ let calls=0;const result={purpose:'commercial',posting_available:true,review_token:'sha256:'+'a'.repeat(64),intent:{request_id:'request'},document_id:'credit',revision:'rev',original_id:'original',releases:[]};
++ const client={reviewCommercialCredit:async()=>{calls++;return result;}};
++ assert.equal(await prepareCommercialCreditReview(client,'company',doc,'request',original),result);
++ await assert.rejects(()=>prepareCommercialCreditReview(client,'company',{...doc,source:{discount_adjustment:{}}},'request',original));assert.equal(calls,1);
++ const pending={id:'credit',request_id:'request',purpose:'commercial'},receipt={status:'recorded',document_id:'credit',request_id:'request',journal_id:'11111111-1111-4111-a111-111111111111'};
++ assert.equal(verifyDiscountRecovery(receipt,pending),false);assert.equal(verifyDiscountRecovery({...receipt,purpose:'commercial'},pending),true);
++});
+diff --git a/artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx b/artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx
+index b095b0c..0f02e4c 100644
+--- a/artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx
++++ b/artifacts/ledgerly/src/pages/AccountingDocumentForm.jsx
+@@ -1,4 +1,4 @@
+-import {prepareCreditReview,prepareCurrentDiscountReview,clearDiscountRecovery,saveDiscountRecovery,readDiscountRecovery,verifyDiscountRecovery} from '@/features/paidCreditReview/model.mjs';
++import {prepareCommercialCreditReview,prepareCreditReview,prepareCurrentDiscountReview,clearDiscountRecovery,saveDiscountRecovery,readDiscountRecovery,verifyDiscountRecovery} from '@/features/paidCreditReview/model.mjs';
+ import PaidCreditReview,{DiscountRecoveryNotice} from '@/features/paidCreditReview/PaidCreditReview';
+ import PostedDocument from '@/components/accounting/PostedDocument';
+ import { useEffect, useRef, useState } from 'react';
+@@ -63,6 +63,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+   const evidenceRequest = useRef(null);
+   const [observationPending,setObservationPending]=useState(false);
+   const [discountPending, setDiscountPending] = useState(null);
++  const [creditPurpose,setCreditPurpose]=useState('conditional-discount');
+   const [legacy, setLegacy] = useState(false);
+   const gen = useRef(0);
+   const scopeKey = JSON.stringify([activeCompany?.id, editId, kind, requestedOriginal, requestedDiscount, requestedCapture]);
+@@ -95,7 +96,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+   useEffect(() => {
+     const g = ++gen.current; const c = new AbortController();
+     manualDue.current = Boolean(editId);
+-    setReview(null);setDiscountPending(null);setObservationPending(false);
++    setReview(null);setDiscountPending(null);setObservationPending(false);setCreditPurpose('conditional-discount');
+     setAgreement(blankAgreement()); evidenceRequest.current = null;
+     setCtx(null); setLoadedScope(null); setDoc(null); setForm(blankForm()); setExtra(blankExtra()); setDirty(false); setBusy(false); setError(null); setLegacy(false); setLoading(true); setOriginalDoc(null);
+     if (!activeCompany) return () => c.abort();
+@@ -261,13 +262,14 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+     const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
+     setBusy(true);setError(null);
+     try {
+-      const currentDiscount=originalDoc?.source?.conditional_discount ? await prepareCurrentDiscountReview(accounting,activeCompany.id,doc,crypto.randomUUID(),originalDoc):null;
+-      const {paidCredit,paidCreditUnavailable,conditionalCredit}=meta.credit && !currentDiscount ? await prepareCreditReview(accounting,activeCompany.id,doc,crypto.randomUUID(),originalDoc) : {paidCredit:null,paidCreditUnavailable:false};
+-      if(stillCurrent())setReview({companyId:activeCompany.id,id:doc.id,revision:doc.revision,number:doc.source.invoice_number,money:doc.money,paidCredit,paidCreditUnavailable,conditionalCredit,currentDiscount});
++      const commercialCredit=originalDoc?.source?.conditional_discount && creditPurpose==='commercial' ? await prepareCommercialCreditReview(accounting,activeCompany.id,doc,crypto.randomUUID(),originalDoc):null;
++      const currentDiscount=originalDoc?.source?.conditional_discount && !commercialCredit ? await prepareCurrentDiscountReview(accounting,activeCompany.id,doc,crypto.randomUUID(),originalDoc):null;
++      const {paidCredit,paidCreditUnavailable,conditionalCredit}=meta.credit && !currentDiscount && !commercialCredit ? await prepareCreditReview(accounting,activeCompany.id,doc,crypto.randomUUID(),originalDoc) : {paidCredit:null,paidCreditUnavailable:false};
++      if(stillCurrent())setReview({companyId:activeCompany.id,id:doc.id,revision:doc.revision,number:doc.source.invoice_number,money:doc.money,paidCredit,paidCreditUnavailable,conditionalCredit,currentDiscount,commercialCredit});
+     } catch(err) {if(stillCurrent())setError(err);} finally {if(stillCurrent())setBusy(false);}
+   };
+   const post = async () => {
+-    if (review?.conditionalCredit || (originalDoc?.source?.conditional_discount && !review?.currentDiscount) || discountPending || !canPost || busy || loading || !doc || dirty || agreementInvalid || doc.money?.gross_pence === '0' || posted || !review || configErrors.length > 0) return;
++    if (review?.conditionalCredit || (originalDoc?.source?.conditional_discount && !review?.currentDiscount && !review?.commercialCredit) || discountPending || !canPost || busy || loading || !doc || dirty || agreementInvalid || doc.money?.gross_pence === '0' || posted || !review || configErrors.length > 0) return;
+     const started = { scope: scopeKey, generation: gen.current };
+     const stillCurrent = () => isCurrentDocumentRequest(started, { scope: latestScope.current, generation: gen.current });
+     if (review.companyId !== activeCompany.id || review.id !== doc.id || review.revision !== doc.revision) {
+@@ -277,16 +279,19 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+     }
+     setBusy(true); setError(null);
+     try {
+-      if(review.currentDiscount) setDiscountPending(saveDiscountRecovery(localStorage,review.companyId,review.id,review.revision,review.currentDiscount.intent.request_id));
+-      const r = review.currentDiscount
++      const operation=review.currentDiscount || review.commercialCredit;
++      if(operation) setDiscountPending(saveDiscountRecovery(localStorage,review.companyId,review.id,review.revision,operation.intent.request_id,review.commercialCredit?'commercial':'conditional-discount'));
++      const r = review.commercialCredit
++        ? await accounting.commitCommercialCredit(review.companyId,review.id,{...review.commercialCredit.intent,review_token:review.commercialCredit.review_token,releases:review.commercialCredit.releases},review.revision)
++        : review.currentDiscount
+         ? await accounting.commitConditionalDiscount(review.companyId,review.id,{...review.currentDiscount.intent,review_token:review.currentDiscount.review_token,releases:[]},review.revision)
+         : review.paidCredit
+         ? await accounting.commitPaidCredit(review.companyId,review.id,{...review.paidCredit.intent,review_token:review.paidCredit.review_token,releases:review.paidCredit.releases},review.revision)
+         : doc.source?.conditional_discount ? await accounting.postConditionalOriginal(review.companyId,review.id,review.revision)
+         : await accounting.post(review.companyId, review.id, review.revision);
+-      if(review.currentDiscount) {
+-        if(!verifyDiscountRecovery({...r,status:r.status==='duplicate'?'posted':r.status},{id:review.id,request_id:review.currentDiscount.intent.request_id})) throw new Error('Posting outcome is unknown. Recover the saved operation.');
+-        clearDiscountRecovery(localStorage,{company:review.companyId,id:review.id,revision:review.revision,request_id:review.currentDiscount.intent.request_id});
++      if(operation) {
++        if(!verifyDiscountRecovery({...r,status:r.status==='duplicate'?'posted':r.status},{id:review.id,request_id:operation.intent.request_id})) throw new Error('Posting outcome is unknown. Recover the saved operation.');
++        clearDiscountRecovery(localStorage,{company:review.companyId,id:review.id,revision:review.revision,request_id:operation.intent.request_id});
+       }
+       if(doc.source?.conditional_discount) {
+         if(stillCurrent()){setDoc({...doc,status:'posted',journal_id:r.journal_id});setReview(null);setObservationPending(true);}
+@@ -305,7 +310,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+     if(!discountPending || discountPending.invalid || busy)return;
+     const pending=discountPending,started={scope:scopeKey,generation:gen.current};setBusy(true);setError(null);
+     try {
+-      const receipt=await accounting.recoverConditionalDiscount(pending.company,pending.request_id);
++      const receipt=await (pending.purpose==='commercial' ? accounting.recoverCommercialCredit : accounting.recoverConditionalDiscount)(pending.company,pending.request_id);
+       if(!verifyDiscountRecovery(receipt,pending))throw new Error('The outcome is still unknown. Do not submit another discount. Check recovery again.');
+       clearDiscountRecovery(localStorage,pending);
+       if(isCurrentDocumentRequest(started,{scope:latestScope.current,generation:gen.current})) {setDiscountPending(null);setReview(null);setDocumentRefresh(v=>v+1);}
+@@ -315,7 +320,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+ 
+   const retryObservation=async()=>{const started={scope:scopeKey,generation:gen.current};const current=()=>isCurrentDocumentRequest(started,{scope:latestScope.current,generation:gen.current});setBusy(true);try {await accounting.observeConditionalOriginal(activeCompany.id,doc.id);if(current()){setObservationPending(false);setError(null);}}catch(e){if(current())setError(e);}finally{if(current())setBusy(false);}};
+   const recoveryControls=<DiscountRecoveryNotice pending={discountPending} busy={busy} onRecover={recoverDiscount}/>;
+-  if (posted && !loading && currentContext) return <>{recoveryControls}{observationPending && <section role="status"><p>Original posted. Confirm its committed terms before recording qualifying payments.</p><Button disabled={busy} onClick={retryObservation}>Confirm committed terms</Button></section>}<PostedDocument doc={doc} kind={kind} company={activeCompany} journal={journal} settlement={settlement} openItem={openItem} error={error} capabilities={capabilities} sourceReturn={sourceReturn} onCorrectionSaved={() => { toast({ title: 'Correction posted', description: 'The original and payment history are preserved.' }); settlement.refresh(); setDocumentRefresh(value => value + 1); }} /></>;
++  if (posted && !loading && currentContext) return <>{recoveryControls}{meta.credit && !discountPending && <p><Link className="underline" to="/payments">View payment balances and review a separate refund</Link>. Posting a credit does not send a refund.</p>}{observationPending && <section role="status"><p>Original posted. Confirm its committed terms before recording qualifying payments.</p><Button disabled={busy} onClick={retryObservation}>Confirm committed terms</Button></section>}<PostedDocument doc={doc} kind={kind} company={activeCompany} journal={journal} settlement={settlement} openItem={openItem} error={error} capabilities={capabilities} sourceReturn={sourceReturn} onCorrectionSaved={() => { toast({ title: 'Correction posted', description: 'The original and payment history are preserved.' }); settlement.refresh(); setDocumentRefresh(value => value + 1); }} /></>;
+ 
+   return (
+     <form onSubmit={save} className="workspace-page">
+@@ -452,9 +457,10 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+             {captureMode && <div className="order-first"><CaptureSourceReview capture={capture} companyId={activeCompany.id} compact /></div>}
+             {!posted && (captureMode ? canEdit : canEdit || canPost) && <section id="document-actions" tabIndex={-1} className="workspace-card order-2 scroll-mt-6 space-y-3 p-5" aria-label="Save and review document">
+               {captureMode ? <CaptureDraftActions capture={capture} canEdit={canEdit} invalid={creditInvalid || busy} /> : <>
+-                <div className="flex flex-wrap items-center gap-3"><DraftWriteActions compact capabilities={capabilities} doc={doc} editId={editId} busy={busy || loading} dirty={dirty} creditInvalid={creditInvalid || agreementInvalid} configurationErrors={configErrors}
+-                  onReview={preparePostingReview} reviewLabel={originalDoc?.source?.conditional_discount ? 'Check conditional eligibility' : undefined} /></div>
+-                <p className="text-sm text-muted-foreground">{originalDoc?.source?.conditional_discount ? (dirty ? 'Save changes before checking conditional eligibility.' : 'Review the current conditional discount before posting. It cannot release paid cash.') : doc && dirty ? 'Unsaved changes. Save to update the calculated totals before posting.' : doc ? 'Saved draft. Review and confirm posting when you are ready.' : 'Save a draft to calculate its totals. It will not affect your accounts until you post it.'}</p>
++                <div className="flex flex-wrap items-center gap-3">{meta.credit && originalDoc?.source?.conditional_discount && <label>Credit purpose<select aria-label="Credit purpose" className={sel} value={creditPurpose} disabled={busy || !!discountPending || discountMode} onChange={e=>{setCreditPurpose(e.target.value);setReview(null);}}><option value="conditional-discount">Conditional discount against unpaid balance</option><option value="commercial">Ordinary commercial credit; refund reviewed separately</option></select></label>}
++                <DraftWriteActions compact capabilities={capabilities} doc={doc} editId={editId} busy={busy || loading} dirty={dirty} creditInvalid={creditInvalid || agreementInvalid} configurationErrors={configErrors}
++                  onReview={preparePostingReview} reviewLabel={originalDoc?.source?.conditional_discount ? (creditPurpose==='commercial'?'Review commercial credit':'Check conditional eligibility') : undefined} /></div>
++                <p className="text-sm text-muted-foreground">{originalDoc?.source?.conditional_discount ? (dirty ? 'Save changes before checking conditional eligibility.' : (creditPurpose==='commercial'?'Review the ordinary credit and any payment balance released. Refunds require a separate review.':'Review the current conditional discount before posting. It cannot release paid cash.')) : doc && dirty ? 'Unsaved changes. Save to update the calculated totals before posting.' : doc ? 'Saved draft. Review and confirm posting when you are ready.' : 'Save a draft to calculate its totals. It will not affect your accounts until you post it.'}</p>
+               </>}
+             </section>}
+             <details className="workspace-card order-3 p-5" data-testid="panel-accounts">
+@@ -519,6 +525,7 @@ export default function AccountingDocumentForm({ kind, legacyFallback = null })
+           {review?.paidCreditUnavailable && <p className="text-sm">Payment allocation release is unavailable in this environment. Only credits within the original outstanding balance can be posted here.</p>}
+           {review?.conditionalCredit && <PaidCreditReview review={review.conditionalCredit} conditional />}
+           {review?.currentDiscount && <PaidCreditReview review={review.currentDiscount} conditional current />}
++          {review?.commercialCredit && <PaidCreditReview review={review.commercialCredit} />}
+           {review?.paidCredit && <PaidCreditReview review={review.paidCredit} />}
+           {review && <dl aria-label={review?.conditionalCredit ? "Saved draft amounts" : "Saved amounts to post"} className="space-y-2 rounded-lg border p-4 text-sm">
+             <div className="flex justify-between"><dt>Document number</dt><dd className="font-medium">{review.number}</dd></div>

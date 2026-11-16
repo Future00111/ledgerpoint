@@ -1,0 +1,6 @@
+tree 70305783c25634f8989f776319c135297c1fd551
+parent 1ad1a0da765ee6023637cef64e5fd96b6afe8482
+author Future00111 <lee@crautomotivegroup.com> 1794832760 +0000
+committer Future00111 <lee@crautomotivegroup.com> 1794832760 +0000
+
+Connect ordinary commercial credit and separate refund for paid agreements

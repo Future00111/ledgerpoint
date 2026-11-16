@@ -1,0 +1,9 @@
+{
+  "authorCommit": "3c3aef1f43334ca55a9fdb2fcbcf9905727b8f54",
+  "tree": "70305783c25634f8989f776319c135297c1fd551",
+  "reviewer": "root_independent_review",
+  "authorActor": "refund_implementation",
+  "approved": true,
+  "scope": "Development publication only; matching CI gates pending; parent P01-03 pending",
+  "review": "All 8 files independently inspected: explicit server purpose, marked discount rejection, original locks/replay, immutable journal and releases recovery, actor/company scoping, unknown outcome gates, no automatic refund. Root model9 passed exact author; scheduler98 passed unchanged source. Full source976 registry31 and build/typecheck inspected."
+}
