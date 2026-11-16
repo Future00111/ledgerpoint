@@ -1,0 +1,74 @@
+{
+  "run": "refund-20261116-1228",
+  "startedAt": "2026-11-16T12:28:00Z",
+  "authorCommit": "3c3aef1f43334ca55a9fdb2fcbcf9905727b8f54",
+  "publishedCommit": "bd589654b2c5e08f81ae34f7bb94019fa3ff5388",
+  "tree": "70305783c25634f8989f776319c135297c1fd551",
+  "pullRequest": 28,
+  "ciRun": 43869047312,
+  "ciStatus": "success",
+  "scope": "Both-party full-paid ordinary commercial credit for original agreements and separately reviewed native refund",
+  "parent": "P01-03",
+  "parentAccepted": false,
+  "nextExecutableStep": "Reconcile current-policy compensation/reversal contract with existing conditionalCompensation engine and exact leases; enable explicit separately reviewed native API/UI with fail-closed unknown recovery and actual-page acceptance. Existing routes/accountingDocuments.ts63 has context/review/recovery but no compensation commit. Consumed current discounts block unallocation/reversal. Private compensation tests do not close this public reversal journey. Reuse engine; no document-intake dependency.",
+  "acceptanceMap": [
+    {
+      "criterion": "Unapplied excess credit later allocation/refund exact signed cumulative reconciliation",
+      "evidence": "integration.test.ts paid-credit released pools support later allocation, refund and undo; both parties allocate700/refund500, replay, exhaustion, cutoff cash and immutable rows. New commercial fullpage credit/refund tests extend original agreements.",
+      "remaining": "Root independently reviewed existing signed cash, later allocation/refund/undo and prior-history test; bounded new both-party credit/refund UI accepted."
+    },
+    {
+      "criterion": "Conditional and later discounts, retries partial settlement reversals cannot double-allocate or rewrite history",
+      "evidence": "conditionalDiscount.integration.test.ts current discount unpaid cap, payment races, replay/recovery, original agreement fullpage; existing conditional compensation/reversal and payment unallocation protection tests.",
+      "remaining": "Complete public compensated reversal journey: dedicated commit admission and actual-page API/UI acceptance remains; existing private engine tests are insufficient."
+    }
+  ],
+  "threeRunComparison": [
+    {
+      "run": "connected-20261111-1805",
+      "outcome": "Public original binding, current discount and recovery connection; exact CI recorded previously"
+    },
+    {
+      "run": "agreement-20261111-1918",
+      "outcome": "Actual original entry and current discount fullpage recovery; exact CI43088842495"
+    },
+    {
+      "run": "refund-20261116-1228",
+      "outcome": "Both-party actual ordinary commercial credit and separate refund page journeys accepted; exact CI43869047312 all gates passed"
+    }
+  ],
+  "sourceBulletsAccepted": 0,
+  "usageCredits": null,
+  "measuredCost": null,
+  "workers": "One implementer plus root independent review; Replit apps[] and no dispatch",
+  "boundaries": "No merge, deployment, existing/shared DB, external provider or real money movement; no worker branch push",
+  "review": "Root approved exact author/tree for development publication subject to matching CI",
+  "localTests": {
+    "source": 976,
+    "registry": 31,
+    "model": 9,
+    "rootScheduler": 98,
+    "typecheckBuild": "passed pinned pnpm10.26.1"
+  },
+  "rework": "Root review tightened marked discount commercial rejection, immutable receipt checks and post-success refund navigation before publication; no post-publication CI failures",
+  "ciJob": 133305034778,
+  "ciCheckout": "9ebe96a85ef4c0c043af5591c3525398dc58269b",
+  "checkoutComparedFiles": 0,
+  "boundedJourneyAccepted": true,
+  "acceptedBy": "root_independent_review",
+  "observedEndAt": "2026-11-16T12:46:24.252Z",
+  "postPublicationRework": "none; exact first CI passed all gates",
+  "verifiedJourneys": [
+    "customer full-paid original agreement ordinary commercial credit, lost response remount recovery, separate actual Payments refund",
+    "supplier full-paid original agreement ordinary commercial credit, lost response remount recovery, separate actual Payments refund"
+  ],
+  "ciGates": [
+    "build/typecheck",
+    "source/unit/security",
+    "native disposable PostgreSQL",
+    "both actual page browser journeys",
+    "populated plain restore and current-run receipt",
+    "encrypted restore exact-source receipt",
+    "both cleanup verifiers"
+  ]
+}

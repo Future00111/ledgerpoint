@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 28,
+  "successorDraftRequired": false,
+  "authorityCommit": "79dc746cdec8716b8fda12e6056dd42782363646",
+  "authorityRevision": 345,
+  "coordinatorRunId": "refund-1794832197137",
+  "observedAt": 1794832947964,
+  "candidateTree": "70305783c25634f8989f776319c135297c1fd551",
+  "reviewedBy": "root_independent_review",
+  "authorOrigin": {
+    "actor": "refund_implementation",
+    "commit": "3c3aef1f43334ca55a9fdb2fcbcf9905727b8f54",
+    "branch": "local/refund-implementation"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "1ad1a0da765ee6023637cef64e5fd96b6afe8482",
+    "sha": "bd589654b2c5e08f81ae34f7bb94019fa3ff5388",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}
