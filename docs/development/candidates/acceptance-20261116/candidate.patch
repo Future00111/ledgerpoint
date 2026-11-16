@@ -1,0 +1,228 @@
+diff --git a/artifacts/api-server/src/services/payroll/contracts/plan1SyntheticContract.mjs b/artifacts/api-server/src/services/payroll/contracts/plan1SyntheticContract.mjs
+new file mode 100644
+index 0000000..dc665e6
+--- /dev/null
++++ b/artifacts/api-server/src/services/payroll/contracts/plan1SyntheticContract.mjs
+@@ -0,0 +1,66 @@
++/** Offline synthetic development boundary; never a production payroll adapter. */
++import {createHash} from 'node:crypto';
++import {reviewPlan1NoticeTiming} from './plan1NoticeFixtures.mjs';
++import {specification, specificationTrace} from '../../../../../../tools/payroll-specification/studentLoans.mjs';
++
++export const plan1SyntheticContract = Object.freeze({
++  version:'plan1-synthetic-input-v1', ruleVersion:specification.id,
++  purpose:'synthetic_development', status:'unqualified_synthetic_reference_contract',
++  taxYear:'2026-27', plan:'plan_1', frequency:'weekly',
++  sourceUrl:specification.sourceUrl, sourceSha256:specification.sourceSha256,
++  fixtureSha256:specification.fixtureSha256,
++});
++const plain = x => x !== null && typeof x === 'object' && !Array.isArray(x);
++const exact = (x, keys) => plain(x) && Object.keys(x).length === keys.length && keys.every(k=>Object.hasOwn(x,k));
++const fail = code => { throw new Error(code); };
++const noticeFields=['id','type','plan','employmentId','effectiveDate','receivedDate','firstAvailablePayday','availabilityEvidence'];
++// Canonical object keys bind content rather than the incidental insertion order.
++const canonical = x => Array.isArray(x) ? x.map(canonical) : plain(x)
++  ? Object.fromEntries(Object.keys(x).sort().map(key=>[key,canonical(x[key])])) : x;
++const digest = x => createHash('sha256').update(JSON.stringify(canonical(x))).digest('hex');
++
++/** Binds a supplied verification assertion to notice content, not proof of authenticity. */
++export function syntheticNoticeDigest(notice) {
++  if (!exact(notice,noticeFields) || noticeFields.some(k=>typeof notice[k]!=='string' || !notice[k].trim())) fail('SYNTHETIC_NOTICE_FIELDS');
++  return digest(notice);
++}
++
++/**
++ * Input = exact versioned envelope, existing bounded notice input, and one explicit
++ * synthetic verification per notice. The caller supplies identity/availability
++ * assertions; this function does not verify a real HMRC notice or determine a cutoff.
++ * Output includes the precise input digest, timing and the existing statutory review
++ * trace. No persistence, posting, filing, qualification or real employee authority.
++ */
++export function calculateSyntheticPlan1(envelope) {
++  if (!exact(envelope,['contractVersion','ruleVersion','purpose','input','verifiedNotices'])) fail('SYNTHETIC_CONTRACT_FIELDS');
++  if (envelope.contractVersion!==plan1SyntheticContract.version || envelope.ruleVersion!==plan1SyntheticContract.ruleVersion) fail('SYNTHETIC_RULE_VERSION');
++  if (envelope.purpose!==plan1SyntheticContract.purpose) fail('SYNTHETIC_PURPOSE');
++  const input=envelope.input;
++  // Existing timing validation rejects unsupported years/plans/contexts and conflicts,
++  // including inactive cases: a stopped notice cannot conceal invalid monetary input.
++  const timing=reviewPlan1NoticeTiming(input);
++  if (!Array.isArray(envelope.verifiedNotices) || envelope.verifiedNotices.length!==input.notices.length) fail('SYNTHETIC_NOTICE_VERIFICATION');
++  const seen=new Set();
++  for (const assertion of envelope.verifiedNotices) {
++    if (!exact(assertion,['noticeId','noticeDigest','identityVerified','firstPracticalPayday','availabilityVerified'])
++      || typeof assertion.noticeId!=='string' || seen.has(assertion.noticeId)
++      || assertion.identityVerified!==true || assertion.availabilityVerified!==true) fail('SYNTHETIC_NOTICE_VERIFICATION');
++    const notice=input.notices.find(n=>n.id===assertion.noticeId);
++    if (!notice || assertion.noticeDigest!==syntheticNoticeDigest(notice)
++      || assertion.firstPracticalPayday!==notice.firstAvailablePayday) fail('SYNTHETIC_NOTICE_VERIFICATION');
++    seen.add(assertion.noticeId);
++  }
++  const calculation=timing.instructionActive ? specificationTrace({
++    taxYear:input.taxYear,plan:input.plan,frequency:input.frequency,payMinor:input.payMinor,
++    paymentDate:input.paymentDate,earningsBasis:input.earningsBasis,confirmedInstruction:true,
++    protectedEarnings:false,concurrentLoan:false,correction:false,offPayroll:false,
++  }) : null;
++  return {
++    contractVersion:plan1SyntheticContract.version,ruleVersion:plan1SyntheticContract.ruleVersion,
++    purpose:plan1SyntheticContract.purpose,status:plan1SyntheticContract.status,
++    qualified:false,notForPayroll:true,inputDigest:digest(envelope),
++    instructionActive:timing.instructionActive,reason:timing.reason,
++    deductionMinor:calculation?.deductionMinor??'0',calculation,
++  };
++}
+diff --git a/artifacts/api-server/src/services/payroll/contracts/plan1SyntheticContract.test.mjs b/artifacts/api-server/src/services/payroll/contracts/plan1SyntheticContract.test.mjs
+new file mode 100644
+index 0000000..28bb3d4
+--- /dev/null
++++ b/artifacts/api-server/src/services/payroll/contracts/plan1SyntheticContract.test.mjs
+@@ -0,0 +1,97 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {readFileSync} from 'node:fs';
++import {calculateSyntheticPlan1,syntheticNoticeDigest,plan1SyntheticContract as contract} from './plan1SyntheticContract.mjs';
++import {loadPinnedEvidence} from '../../../../../../tools/payroll-specification/studentLoans.mjs';
++const pack=JSON.parse(readFileSync(new URL('./fixtures/plan1-notice-start-stop-2026-27.json',import.meta.url)));
++const corpus=loadPinnedEvidence();
++const active=pack.cases.find(c=>c.id==='first-start-payday-upper-boundary');
++function envelopeFor(input){
++  return {contractVersion:contract.version,ruleVersion:contract.ruleVersion,purpose:contract.purpose,
++    input:structuredClone(input),verifiedNotices:input.notices.map(n=>({noticeId:n.id,noticeDigest:syntheticNoticeDigest(n),
++      identityVerified:true,firstPracticalPayday:n.firstAvailablePayday,availabilityVerified:true}))};
++}
++for (const scenario of pack.cases) test(`combined synthetic contract: ${scenario.id}`,()=>{
++  const envelope=envelopeFor(scenario.input),before=JSON.stringify(envelope);
++  const result=calculateSyntheticPlan1(envelope);
++  assert.equal(result.deductionMinor,scenario.expected.deductionMinor);
++  assert.equal(result.instructionActive,scenario.expected.instructionActive);
++  assert.equal(result.reason,scenario.expected.reason);
++  assert.equal(result.contractVersion,contract.version);assert.equal(result.ruleVersion,contract.ruleVersion);
++  assert.equal(result.qualified,false);assert.equal(result.notForPayroll,true);
++  assert.equal(result.status,'unqualified_synthetic_reference_contract');
++  assert.match(result.inputDigest,/^[a-f0-9]{64}$/);
++  assert.equal(JSON.stringify(envelope),before);
++  if (result.instructionActive) {
++    const reference=corpus.cases.find(c=>c.id===scenario.provenance.amountSource);
++    assert.equal(reference.expected.deductionMinor,result.deductionMinor);
++    assert.equal(result.calculation.specificationId,contract.ruleVersion);
++  } else assert.equal(result.calculation,null);
++});
++test('zero and threshold expectations are explicit engineering applications; official one-penny boundary is preserved',()=>{
++  // First four expected zeros follow the pinned threshold/whole-pound rule. The final
++  // pair is independently supplied by HMRC Plan_1 rows11/12, never generated by this code.
++  for(const [payMinor,expected] of [['0','0'],['51729','0'],['51730','0'],['51731','0'],['52841','0'],['52842','100']]){
++    const result=calculateSyntheticPlan1(envelopeFor({...active.input,payMinor}));
++    assert.equal(result.deductionMinor,expected);assert.equal(result.calculation.thresholdMinor,'51730');
++    assert.equal(result.calculation.ratePercent,'9');
++  }
++});
++test('exact version, explicit purpose, complete verified assertions and content binding are mandatory',()=>{
++  for(const mutate of [
++    e=>delete e.ruleVersion,e=>e.ruleVersion='student-loans-2025-26-review-v1',
++    e=>e.contractVersion='v2',e=>e.purpose='production',e=>delete e.purpose,
++    e=>e.unexpected=true,e=>e.verifiedNotices=[],e=>delete e.verifiedNotices,
++    e=>e.verifiedNotices[0].identityVerified=false,e=>e.verifiedNotices[0].identityVerified='true',
++    e=>e.verifiedNotices[0].availabilityVerified=false,
++    e=>delete e.verifiedNotices[0].availabilityVerified,
++    e=>e.verifiedNotices[0].firstPracticalPayday='2026-04-24',
++    e=>e.verifiedNotices[0].noticeId='another-notice',e=>e.verifiedNotices[0].noticeDigest='0'.repeat(64),
++    e=>e.input.notices[0].availabilityEvidence='changed after assertion',
++    e=>e.input.notices[0].effectiveDate='2026-04-09',
++    e=>e.input.notices[0].receivedDate='2026-04-07',
++    e=>e.verifiedNotices[0].unrecognised=true,
++  ]) {const envelope=envelopeFor(active.input);mutate(envelope);assert.throws(()=>calculateSyntheticPlan1(envelope),/^Error: SYNTHETIC_/);}
++});
++test('conflicting or unsupported instructions and unavailable cutoff evidence remain rejected even when assertions are true',()=>{
++  for(const mutate of [
++    i=>i.notices.push({...i.notices[0],id:'conflicting-start'}),
++    i=>i.notices[0].type='P45',i=>i.otherInstructions=['starter'],i=>i.otherInstructions=['GNS'],
++    i=>i.notices[0].plan='plan_2',i=>i.notices[0].employmentId='other-employee',
++    i=>i.notices[0].firstAvailablePayday=i.notices[0].effectiveDate,
++    i=>i.notices[0].receivedDate='2026-04-18',i=>i.notices[0].availabilityEvidence='',
++    i=>i.taxYear='2027-28',i=>i.plan='plan_2',i=>i.frequency='monthly',
++    i=>i.offPayroll=true,i=>i.protectedEarnings=true,i=>i.concurrentLoan=true,
++    i=>i.payMinor='-1',i=>i.payMinor='1.00',i=>i.payMinor='01',i=>i.payMinor=52842,
++    i=>i.paymentDate='2027-04-06',i=>i.paymentDate='2026-02-30',
++  ]) {const input=structuredClone(active.input);mutate(input);assert.throws(()=>calculateSyntheticPlan1(envelopeFor(input)),/^Error: (NOTICE_|SYNTHETIC_NOTICE_FIELDS)/);}
++});
++test('stopped cases cannot bypass input validation and duplicated verification cannot cover a second notice',()=>{
++  const stopped=pack.cases.find(c=>c.id==='first-stop-payday');
++  const invalid=envelopeFor({...stopped.input,payMinor:'-1'});
++  assert.throws(()=>calculateSyntheticPlan1(invalid),/NOTICE_INPUT_FIELDS/);
++  const duplicate=envelopeFor(stopped.input);duplicate.verifiedNotices[1]=structuredClone(duplicate.verifiedNotices[0]);
++  assert.throws(()=>calculateSyntheticPlan1(duplicate),/SYNTHETIC_NOTICE_VERIFICATION/);
++});
++test('repeatable outputs have stable canonical digests and no shared mutable trace',()=>{
++  const envelope=envelopeFor(active.input),first=calculateSyntheticPlan1(envelope);
++  const reordered=Object.fromEntries(Object.entries(envelope).reverse());
++  assert.deepEqual(calculateSyntheticPlan1(reordered),first);
++  const differentPay=envelopeFor({...active.input,payMinor:'52841'});
++  assert.notEqual(calculateSyntheticPlan1(differentPay).inputDigest,first.inputDigest);
++  first.calculation.deductionMinor='999';
++  assert.equal(calculateSyntheticPlan1(envelope).calculation.deductionMinor,'100');
++  const notice=active.input.notices[0];
++  assert.equal(syntheticNoticeDigest(Object.fromEntries(Object.entries(notice).reverse())),syntheticNoticeDigest(notice));
++});
++test('machine-readable input/output contract remains linked to the original unqualified case',()=>{
++  const registry=JSON.parse(readFileSync(new URL('../../../../../../docs/development/tax-payroll-supported-cases.json',import.meta.url)));
++  const row=registry.cases.find(c=>c.id==='payroll-loan-plan_1-2026-27');
++  const declared=row.fixturePrerequisite.syntheticInputContract;
++  assert.equal(row.status,'unsupported');assert.equal(row.qualificationEvidence,null);
++  assert.equal(declared.qualificationEvidence,null);
++  assert.equal(declared.contractVersion,contract.version);assert.equal(declared.ruleVersion,contract.ruleVersion);
++  assert.deepEqual(Object.keys(envelopeFor(active.input)),declared.requiredEnvelopeFields);
++  assert.deepEqual(Object.keys(envelopeFor(active.input).verifiedNotices[0]),declared.requiredNoticeAssertions);
++  assert.deepEqual(Object.keys(calculateSyntheticPlan1(envelopeFor(active.input))),declared.resultFields);
++});
+diff --git a/docs/development/tax-payroll-supported-cases.json b/docs/development/tax-payroll-supported-cases.json
+index 4a47dbb..4e9e2f4 100644
+--- a/docs/development/tax-payroll-supported-cases.json
++++ b/docs/development/tax-payroll-supported-cases.json
+@@ -2273,12 +2273,47 @@
+           "2025-26",
+           "2027-28"
+         ],
+-        "nextExecutableStep": "P04-03: independently review the linked16 authored dated SL1/SL2 scenarios against pinned HMRC timing/rounding sources and official Plan1 amounts, then qualify real notice authenticity and practical payroll availability evidence. Resolve conflicting/alternative instructions before any application adapter. Parent remains pending.",
++        "nextExecutableStep": "Independently review the combined synthetic Plan1 input/output contract against existing16dated scenarios and official boundary amounts; complete P04-01 case coverage and P04-03 qualification evidence before any production adapter. Synthetic verified-notice and practical-payday assertions suffice for this development contract; real notice ingestion/authentication is a separate future integration requirement, not a blocker to synthetic tests.",
+         "noticeTimingReference": {
+           "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/plan1-notice-start-stop-2026-27.json",
+           "caseCount": 16,
+           "status": "reference_only_engine_not_implemented",
+           "qualificationEvidence": null
++        },
++        "syntheticInputContract": {
++          "path": "artifacts/api-server/src/services/payroll/contracts/plan1SyntheticContract.mjs",
++          "contractVersion": "plan1-synthetic-input-v1",
++          "ruleVersion": "student-loans-2026-27-review-v1",
++          "purpose": "synthetic_development",
++          "status": "unqualified_synthetic_reference_contract",
++          "qualificationEvidence": null,
++          "requiredEnvelopeFields": [
++            "contractVersion",
++            "ruleVersion",
++            "purpose",
++            "input",
++            "verifiedNotices"
++          ],
++          "requiredNoticeAssertions": [
++            "noticeId",
++            "noticeDigest",
++            "identityVerified",
++            "firstPracticalPayday",
++            "availabilityVerified"
++          ],
++          "resultFields": [
++            "contractVersion",
++            "ruleVersion",
++            "purpose",
++            "status",
++            "qualified",
++            "notForPayroll",
++            "inputDigest",
++            "instructionActive",
++            "reason",
++            "deductionMinor",
++            "calculation"
++          ]
+         }
+       }
+     },
