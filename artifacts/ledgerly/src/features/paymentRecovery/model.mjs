@@ -1,5 +1,7 @@
 import { paymentPostBody } from '../../lib/paymentRequestScope.mjs';
 
+const uuid = value => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
 export const canConfigurePayments = capabilities => capabilities?.configure_payments === true;
 export const canPostPayments = capabilities => capabilities?.post_payments === true;
 export const recoveryBusy = state => ['posting', 'checking'].includes(state?.phase);
@@ -22,8 +24,8 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
     state = next ? Object.freeze(next) : null;
     listeners.forEach(listener => listener());
   };
-  const recorded = (result, id) => result?.id === id &&
-    typeof result.journal_id === 'string' && result.journal_id.length > 0 &&
+  const recorded = (result, id) => uuid(id) && result?.id === id &&
+    uuid(result.journal_id) &&
     ['posted', 'duplicate', 'recorded'].includes(result.status);
 
   async function send(attempt) {
