@@ -1,0 +1,14 @@
+{
+  "author": "e8adaa5087c387604a3566f68b38d0b85e749f23",
+  "base": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2",
+  "tree": "a096f216373f68d6e590d3831eabc39beb5af0d3",
+  "patchSha256": "8f70e39f840389edf7a3fb0b0b1db866794e642fce40fcabf45c37bdbde4d1cd",
+  "status": "Final validation and independent review pending; not accepted",
+  "observedAt": "2026-11-16T19:10:42.090Z",
+  "failedChecks": [
+    "Earlier combined store parallel child returned truncated JSON; isolated14passed, later combined rerun passed store",
+    "d7d667 UI copy assertion failed; corrected e8adaa50",
+    "Local Chromium socket Operation not permitted; native browserCI required"
+  ],
+  "remaining": "Exact e8 source/build/review then published native/restoreCI"
+}
