@@ -1799,7 +1799,26 @@ test('payment recovery survives actual subprocess restart after a committed resp
         const r=await fetch(`http://127.0.0.1:${second.port}/companies/${company}/accounting-payments/operations/${id}`,{headers:user?{'x-test-actor':user}:{}});
         return {status:r.status,body:await r.json() as {data:{status:string,id:string,journal_id?:string}}};
       };
-      const known=await lookup(f.company);
+      // The new session has no browser locator: discovery request contains no original ID or intent.
+      const discover=async(company:string,user:string|null=actor)=>{
+        const r=await fetch(`http://127.0.0.1:${second.port}/companies/${company}/accounting-payments/operations`,{headers:user?{'x-test-actor':user}:{}});
+        return {status:r.status,body:await r.json() as any};
+      };
+      const discovered=await discover(f.company);
+      assert.equal(discovered.status,200);assert.equal(discovered.body.data.has_more,false);
+      assert.equal(discovered.body.data.receipts.length,1);
+      const receipt=discovered.body.data.receipts[0];
+      assert.equal(receipt.id,command.id);assert.equal(receipt.journal_id,events[0].journal_id);
+      assert.equal(receipt.reference,command.reference);assert.equal(receipt.amount_minor,command.amount_minor);
+      assert.deepEqual(Object.keys(receipt).sort(),['amount_minor','effective_date','id','journal_id','kind','party_type','recorded_at','reference','status']);
+      assert.deepEqual((await discover(f.company,readOnly)).body.data.receipts,[]);
+      assert.deepEqual((await discover(foreign.company)).body.data.receipts,[]);
+      assert.equal((await discover(f.company,null)).status,401);
+      assert.equal((await discover(f.company,'synthetic-no-membership')).status,404);
+      await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+      assert.equal((await discover(f.company)).status,404);
+      await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+      const known=await lookup(f.company,actor,receipt.id);
       assert.equal(known.status,200);assert.deepEqual(known.body.data,{status:'recorded',id:command.id,journal_id:events[0].journal_id});
       assert.equal((await lookup(f.company,null)).status,401);
       assert.equal((await lookup(f.company,'synthetic-no-membership')).status,404);
@@ -1915,4 +1934,57 @@ test('isolated Chromium: unpaid and partial discounts, fully paid credit/refund 
   assert.equal(code,0,stderr.slice(-4000));assert.match(html,/data-acceptance="passed"/,html.slice(-2000));
   console.log('DISCOUNT_RULE_BROWSER_ACCEPTANCE',JSON.stringify({syntheticReadOnly:true,actualComponents:true,unpaidAndPartial:true,fullyPaidCreditOnly:true,excessRefused:true,financialPosting:false,realClerk:false}));
  } finally {browser?.kill('SIGTERM');await new Promise<void>(r=>fixture.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('isolated Chromium: mounted payment discovery recovers committed event with no browser locator and no repost',async()=>{
+ const fs=await import('node:fs'),os=await import('node:os'),cp=await import('node:child_process');
+ const {createRequire}=await import('node:module');
+ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
+ const command=await reviewPayment(f,paymentIntent(f,doc));
+ // Commit succeeds, but the browser never receives this response or its request locator.
+ const posted=await request(f.company,'/accounting-payments','POST',command);assert.equal(posted.status,200);
+ const before=(await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n;
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'payment-discovery-browser-'));
+ const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
+ const app=express();let browser:ReturnType<typeof cp.spawn>|undefined,posts=0;
+ // Isolated synthetic authenticated session; production Clerk is not bypassed or exercised.
+ app.use('/api/companies/:companyId',(req,_res,next)=>{if(req.method!=='GET')posts++;req.headers['x-test-actor']=actor;next();},createAccountingRouter(auth));
+ const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));
+ try {
+  fs.writeFileSync(entry,`import React,{useSyncExternalStore} from 'react';
+import {createRoot} from 'react-dom/client';
+import {MemoryRouter} from 'react-router-dom';
+import {PaymentToolbar,PaymentRecoveryPanel} from '@/features/paymentRecovery/PaymentControls.jsx';
+import {createPaymentRecovery,recoveryUnresolved} from '@/features/paymentRecovery/model.mjs';
+import {createAccountingClient} from '@/api/accountingDocuments.mjs';
+const recovery=createPaymentRecovery(${JSON.stringify(f.company)},createAccountingClient());
+const caps={post_payments:true,configure_payments:true};let starts=0;
+function App(){const state=useSyncExternalStore(recovery.subscribe,recovery.getSnapshot);return <MemoryRouter><PaymentToolbar capabilities={caps} busy={recoveryUnresolved(state)} ready={true} onStart={()=>starts++}/><PaymentRecoveryPanel state={state} capabilities={caps}/><output>{state?.phase}</output></MemoryRouter>}
+createRoot(document.getElementById('root')).render(<App/>);
+const wait=()=>new Promise(r=>setTimeout(r,80));const assert=(v,m)=>{if(!v)throw Error(m)};
+const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
+(async()=>{await wait();assert(recovery.getSnapshot()?.phase==='discovery','URL lost-reference mode not mounted');
+ assert(button('Record payment').disabled,'ordinary recording must be locked');
+ assert(!document.body.textContent.includes('Retry same payment'),'no replay without original review');
+ button('Check my recorded payments').click();
+ for(let i=0;i<50&&!recovery.getSnapshot()?.candidates;i++)await wait();
+ assert(recovery.getSnapshot()?.candidates?.length===1,'own server receipt missing');
+ assert(recovery.getSnapshot().phase==='discovery','must not automatically select');
+ assert(button('Record payment').disabled,'candidate list must remain locked');
+ button('This is my event — verify status').click();
+ for(let i=0;i<50&&recovery.getSnapshot()?.phase!=='recorded';i++)await wait();
+ assert(recovery.getSnapshot()?.phase==='recorded','selected receipt not verified');assert(starts===0,'unexpected ordinary write start');
+ document.body.dataset.acceptance='passed';document.body.dataset.recovered=recovery.getSnapshot().result.id;
+})().catch(e=>{document.body.dataset.acceptance='failed';document.body.append(document.createTextNode(e.message));});`);
+  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
+  app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
+  app.get('/payments',(_req,res)=>res.type('html').send('<!doctype html><html><body><div id="root"></div><script src="/bundle.js"></script></body></html>'));
+  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=10000','http://127.0.0.1:'+(listener.address() as any).port+'/payments?recover=lost'],{stdio:['ignore','pipe','pipe']});
+  let html='',stderr='';browser.stdout!.on('data',b=>html+=b);browser.stderr!.on('data',b=>stderr+=b);
+  const code=await new Promise<number|null>((resolve,reject)=>{const timer=setTimeout(()=>{browser?.kill('SIGTERM');reject(Error('Bounded browser timeout: '+stderr.slice(-2000)));},30000);browser!.once('error',e=>{clearTimeout(timer);reject(e)});browser!.once('exit',code=>{clearTimeout(timer);resolve(code)})});
+  assert.equal(code,0,stderr.slice(-4000));assert.match(html,/data-acceptance="passed"/,html.slice(-3000));
+  assert.ok(html.includes('data-recovered="'+command.id+'"'));assert.equal(posts,0);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,before);
+  console.log('PAYMENT_DISCOVERY_BROWSER_ACCEPTANCE',JSON.stringify({actualComponents:true,nativeApi:true,syntheticSession:true,lostLocator:true,explicitSelection:true,reposts:posts,realClerk:false,pendingAdmission:false}));
+ } finally {browser?.kill('SIGTERM');await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
 });

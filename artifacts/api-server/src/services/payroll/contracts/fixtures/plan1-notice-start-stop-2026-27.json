@@ -1,0 +1,877 @@
+{
+  "version": 1,
+  "id": "plan1-notice-start-stop-2026-27",
+  "status": "reference_only_engine_not_implemented",
+  "caseId": "payroll-loan-plan_1-2026-27",
+  "parentTask": "P04-01",
+  "nextTask": "P04-03",
+  "checkedAt": "2026-11-16",
+  "scope": "Ordinary employed, single Plan1, regular weekly Class1 NI earnings; one SL1 and optionally one subsequent SL2. Notice identity and practical payroll availability are explicit synthetic facts, not authenticated or independently qualified.",
+  "sources": {
+    "start": {
+      "url": "https://www.gov.uk/hmrc-internal-manuals/collection-of-student-loans-manual/cslm17010",
+      "section": "Start Notices (Forms SL1 and PGL1)",
+      "observedManualUpdatedAt": "2026-10-29",
+      "checkedAt": "2026-11-16",
+      "excerpt": "first available pay day after the start date",
+      "interpretation": "SL1 applies after its stated date at the first available payday, and persists across years until stopped.",
+      "captureKind": "selected_excerpt_and_paraphrase_not_full_page_snapshot"
+    },
+    "stop": {
+      "url": "https://www.gov.uk/hmrc-internal-manuals/collection-of-student-loans-manual/cslm17015",
+      "section": "Stop Notice (Form SL2 and PGL2)",
+      "observedManualUpdatedAt": "2026-10-29",
+      "checkedAt": "2026-11-16",
+      "excerpt": "first available pay day after the Student and or postgraduate Loan deduction stop date",
+      "interpretation": "SL2 stops deductions on that first available payday. An employee request alone does not stop deductions.",
+      "captureKind": "selected_excerpt_and_paraphrase_not_full_page_snapshot"
+    },
+    "availability": {
+      "url": "https://www.gov.uk/guidance/special-rules-for-student-loans",
+      "section": "SL2 or PGL2 stop notice received",
+      "observedUpdatedAt": "2026-04-06",
+      "checkedAt": "2026-11-16",
+      "excerpt": "the first payday on which it’s practical to apply that notice",
+      "interpretation": "Practical application requires supplied payroll cutoff facts; receipt date does not determine it automatically.",
+      "captureKind": "selected_excerpt_and_paraphrase_not_full_page_snapshot"
+    },
+    "rounding": {
+      "url": "https://www.gov.uk/government/publications/payroll-technical-specifications-student-loans/collection-of-student-loans-from-6-april-2026",
+      "section": "3 Calculate loan deductions; 4 Parameter values",
+      "observedUpdatedAt": "2025-12-12",
+      "checkedAt": "2026-11-16",
+      "interpretation": "Plan 1 annual threshold £26,900 and recovery 9%; divide by periods per year and truncate threshold to pennies; truncate final recovery to whole pounds. The existing Job19 software oracle is reused, not manual SL3 tables.",
+      "existingPinnedText": "tools/payroll-specification/sources/student-loans-2026-27.md",
+      "existingPinnedTextSha256": "a9ae92e1586f836ce5aa77fbb295bd33bdb5d4d8c6cc6d07e2ec1816af586243",
+      "captureKind": "live_recheck_with_existing_pinned_text"
+    }
+  },
+  "amountEvidence": {
+    "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-student-loans-2026-27-v1.0.json",
+    "archiveSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+    "sheet": "Plan_1",
+    "rows": [
+      11,
+      12
+    ],
+    "expected": [
+      {
+        "payMinor": "52841",
+        "deductionMinor": "0"
+      },
+      {
+        "payMinor": "52842",
+        "deductionMinor": "100"
+      }
+    ]
+  },
+  "roundingWitness": {
+    "kind": "hand_transcribed_software_specification_application_not_HMRC_dated_notice_example",
+    "annualThresholdMinor": "2690000",
+    "periodsPerYear": "52",
+    "thresholdMinor": "51730",
+    "lowerExcessMinor": "1111",
+    "lowerRecoveryNumerator": "9999",
+    "upperExcessMinor": "1112",
+    "upperRecoveryNumerator": "10008",
+    "wholePoundsDenominator": "10000"
+  },
+  "remaining": [
+    "Independent review of authored dated notice scenarios, source interpretation and real notice identity/availability evidence before qualification.",
+    "P45/starter/GNS/exceptional instructions, duplicate/conflicting/reissued notices, plan changes, missing notices and notice ingestion/audit remain unqualified.",
+    "Concurrent loans, protected earnings, corrections, irregular periods, other years and complete payroll cycle remain in full scope.",
+    "P04-01 exhaustive register and P04-03 acceptance remain pending; no production import, calculation authority or filing."
+  ],
+  "cases": [
+    {
+      "id": "no-start-instruction",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-04-17",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "NO_START_INSTRUCTION"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "start"
+        ],
+        "amountSource": "zero_because_notice_instruction_inactive",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "before-start-date",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-04-10",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-17",
+            "receivedDate": "2026-04-08",
+            "firstAvailablePayday": "2026-04-24",
+            "availabilityEvidence": "Synthetic payroll schedule: notice date17April and first practical payday24April; payment10April precedes start date."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "BEFORE_FIRST_AVAILABLE_START"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "start"
+        ],
+        "amountSource": "zero_because_notice_instruction_inactive",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "on-start-date",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-04-10",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-08",
+            "firstAvailablePayday": "2026-04-17",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "BEFORE_FIRST_AVAILABLE_START"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "start"
+        ],
+        "amountSource": "zero_because_notice_instruction_inactive",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "first-start-payday-upper-boundary",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-04-17",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-08",
+            "firstAvailablePayday": "2026-04-17",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "start"
+        ],
+        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "first-start-payday-lower-boundary",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-04-17",
+        "payMinor": "52841",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-08",
+            "firstAvailablePayday": "2026-04-17",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": true,
+        "deductionMinor": "0",
+        "reason": "START_APPLIES"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "start",
+          "rounding"
+        ],
+        "amountSource": "hmrc-loan-2026-27-plan_1-row-11",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "start-persists-next-week",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-04-24",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-08",
+            "firstAvailablePayday": "2026-04-17",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "start"
+        ],
+        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "employee-request-does-not-stop",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-04-17",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": true,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-08",
+            "firstAvailablePayday": "2026-04-17",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "stop"
+        ],
+        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "on-stop-date-still-active",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-05-01",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-08",
+            "firstAvailablePayday": "2026-04-17",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
+          },
+          {
+            "id": "synthetic-SL2",
+            "type": "SL2",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-05-01",
+            "receivedDate": "2026-04-29",
+            "firstAvailablePayday": "2026-05-08",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 1 May is 8 May; notice received before processing cutoff."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "stop"
+        ],
+        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "first-stop-payday",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-05-08",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-08",
+            "firstAvailablePayday": "2026-04-17",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
+          },
+          {
+            "id": "synthetic-SL2",
+            "type": "SL2",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-05-01",
+            "receivedDate": "2026-04-29",
+            "firstAvailablePayday": "2026-05-08",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 1 May is 8 May; notice received before processing cutoff."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "STOP_APPLIES"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "stop"
+        ],
+        "amountSource": "zero_because_notice_instruction_inactive",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "stop-persists-next-week",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-05-15",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-08",
+            "firstAvailablePayday": "2026-04-17",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
+          },
+          {
+            "id": "synthetic-SL2",
+            "type": "SL2",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-05-01",
+            "receivedDate": "2026-04-29",
+            "firstAvailablePayday": "2026-05-08",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 1 May is 8 May; notice received before processing cutoff."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "STOP_APPLIES"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "stop"
+        ],
+        "amountSource": "zero_because_notice_instruction_inactive",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "late-start-before-practical-payday",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-04-17",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-16",
+            "firstAvailablePayday": "2026-04-24",
+            "availabilityEvidence": "Synthetic 17 April payroll cutoff was 15 April; received 16 April. First practical payday is 24 April; no automatic receipt-date inference."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "BEFORE_FIRST_AVAILABLE_START"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "start",
+          "availability"
+        ],
+        "amountSource": "zero_because_notice_instruction_inactive",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "late-start-first-practical-payday",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-04-24",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-16",
+            "firstAvailablePayday": "2026-04-24",
+            "availabilityEvidence": "Synthetic 17 April payroll cutoff was 15 April; received 16 April. First practical payday is 24 April; no automatic receipt-date inference."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "start",
+          "availability"
+        ],
+        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "late-stop-before-practical-payday",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-05-08",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-08",
+            "firstAvailablePayday": "2026-04-17",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
+          },
+          {
+            "id": "synthetic-SL2",
+            "type": "SL2",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-05-01",
+            "receivedDate": "2026-05-07",
+            "firstAvailablePayday": "2026-05-15",
+            "availabilityEvidence": "Synthetic 8 May payroll cutoff was 6 May; received 7 May. First practical payday is 15 May; no automatic receipt-date inference."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "stop",
+          "availability"
+        ],
+        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "late-stop-first-practical-payday",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-05-15",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-08",
+            "firstAvailablePayday": "2026-04-17",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
+          },
+          {
+            "id": "synthetic-SL2",
+            "type": "SL2",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-05-01",
+            "receivedDate": "2026-05-07",
+            "firstAvailablePayday": "2026-05-15",
+            "availabilityEvidence": "Synthetic 8 May payroll cutoff was 6 May; received 7 May. First practical payday is 15 May; no automatic receipt-date inference."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "STOP_APPLIES"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "stop",
+          "availability"
+        ],
+        "amountSource": "zero_because_notice_instruction_inactive",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "prior-year-notice-current-year-pay",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-04-10",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2025-11-07",
+            "receivedDate": "2025-11-05",
+            "firstAvailablePayday": "2025-11-14",
+            "availabilityEvidence": "Synthetic prior-year notice first applied 14 November 2025; no later instruction has superseded it."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "start"
+        ],
+        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
+        "independentReview": null
+      }
+    },
+    {
+      "id": "before-stop-effective-date",
+      "input": {
+        "taxYear": "2026-27",
+        "plan": "plan_1",
+        "frequency": "weekly",
+        "paymentDate": "2026-04-24",
+        "payMinor": "52842",
+        "employmentId": "synthetic-employee-1",
+        "earningsBasis": "class1_ni_earnings",
+        "activeEmployment": true,
+        "employeeStopRequest": false,
+        "otherInstructions": [],
+        "notices": [
+          {
+            "id": "synthetic-SL1",
+            "type": "SL1",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-04-10",
+            "receivedDate": "2026-04-08",
+            "firstAvailablePayday": "2026-04-17",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 10 April is 17 April; notice received before processing cutoff."
+          },
+          {
+            "id": "synthetic-SL2",
+            "type": "SL2",
+            "plan": "plan_1",
+            "employmentId": "synthetic-employee-1",
+            "effectiveDate": "2026-05-01",
+            "receivedDate": "2026-04-29",
+            "firstAvailablePayday": "2026-05-08",
+            "availabilityEvidence": "Synthetic payroll schedule: first practical payday after 1 May is 8 May; notice received before processing cutoff."
+          }
+        ],
+        "offPayroll": false,
+        "occupationalPensionOnly": false,
+        "deceased": false,
+        "protectedEarnings": false,
+        "concurrentLoan": false,
+        "correction": false
+      },
+      "expected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "provenance": {
+        "kind": "authored_dated_scenario_not_official_HMRC_notice_example",
+        "timingSourceIds": [
+          "stop"
+        ],
+        "amountSource": "hmrc-loan-2026-27-plan_1-row-12",
+        "independentReview": null
+      }
+    }
+  ]
+}

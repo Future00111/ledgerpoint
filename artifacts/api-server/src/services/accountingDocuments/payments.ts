@@ -83,29 +83,48 @@ export async function listPayments(company:string,actor:string) {
     });
   },true);
 }
-/** Existing immutable payment events are the command/outcome authority. This
- * read never retries a command; an absent row may still be an in-flight commit. */
+/** Existing immutable events and their canonical effects are the only receipt authority. */
+async function paymentRecoveryAccess(q:Queryable,company:string,actor:string) {
+  await scope(q,company,actor);
+  const membership=(await q.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2',[company,actor])).rows[0];
+  if(!isCompanyRole(membership?.role)) fail(403,'CAPABILITY_DENIED');
+}
+const paymentReceiptQuery=`SELECT e.id,e.source,e.kind,e.party_type,e.reference,e.amount_minor::text,
+  to_char(e.effective_date,'YYYY-MM-DD') effective_date,e.created_at recorded_at,
+  j.source_revision,j.id verified_journal_id,p.id verified_effect_id FROM accounting_payment_events e
+  LEFT JOIN canonical_journal_entries j ON j.id=e.journal_id AND j.company_id=e.company_id
+    AND j.source_id=e.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
+    AND j.currency_code='GBP' AND j.posting_kind='party_'||e.kind
+    AND j.economic_effect_id='payment-event:'||e.id::text
+  LEFT JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
+    AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
+    AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text
+    AND p.status='posted' AND p.source_revision=j.source_revision`;
+function verifiedPaymentReceipt(event:any) {
+  if(!event.verified_journal_id || !event.verified_effect_id || event.source_revision!==hash(event.source)) fail(503,'PAYMENT_HISTORY_INVALID');
+  return {status:'recorded',id:event.id,journal_id:event.verified_journal_id};
+}
+/** A bounded actor-owned discovery read, never evidence that a missing attempt failed. */
+export async function discoverPayments(company:string,actor:string) {
+  return transact(async q=>{
+    await paymentRecoveryAccess(q,company,actor);
+    const rows=(await q.query(paymentReceiptQuery+`
+      WHERE e.company_id=$1 AND e.actor_id=$2 ORDER BY e.created_at DESC,e.id DESC LIMIT 101`,[company,actor])).rows;
+    return {receipts:rows.slice(0,100).map(event=>({...verifiedPaymentReceipt(event),kind:event.kind,
+      party_type:event.party_type,reference:event.reference,amount_minor:event.amount_minor,
+      effective_date:event.effective_date,recorded_at:event.recorded_at})),has_more:rows.length>100};
+  },true);
+}
+/** A read never retries a command; an absent row may still be an in-flight commit. */
 export async function recoverPayment(company:string,actor:string,requestId:string) {
   const id=uuid(requestId);
   return transact(async q=>{
-    await scope(q,company,actor);
-    const membership=(await q.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2',[company,actor])).rows[0];
-    if(!isCompanyRole(membership?.role)) fail(403,'CAPABILITY_DENIED');
-    const event=(await q.query(`SELECT e.id,e.source,j.source_revision,j.id verified_journal_id,p.id verified_effect_id FROM accounting_payment_events e
-      LEFT JOIN canonical_journal_entries j ON j.id=e.journal_id AND j.company_id=e.company_id
-        AND j.source_id=e.id::text AND j.source_type='accounting_payment_event' AND j.status='posted'
-        AND j.currency_code='GBP' AND j.posting_kind='party_'||e.kind
-        AND j.economic_effect_id='payment-event:'||e.id::text
-      LEFT JOIN accounting_posting_effects p ON p.company_id=e.company_id AND p.journal_id=j.id
-        AND p.source_type=j.source_type AND p.source_id=j.source_id AND p.posting_kind=j.posting_kind
-        AND p.economic_effect_id=j.economic_effect_id AND p.idempotency_key='payment-event:'||e.id::text
-        AND p.status='posted' AND p.source_revision=j.source_revision
-      WHERE e.company_id=$1 AND e.id=$2`,[company,id])).rows[0];
-    if(!event) return {status:'unknown',id};
-    if(!event.verified_journal_id || !event.verified_effect_id || event.source_revision!==hash(event.source)) fail(503,'PAYMENT_HISTORY_INVALID');
-    return {status:'recorded',id,journal_id:event.verified_journal_id};
+    await paymentRecoveryAccess(q,company,actor);
+    const event=(await q.query(paymentReceiptQuery+' WHERE e.company_id=$1 AND e.id=$2',[company,id])).rows[0];
+    return event?verifiedPaymentReceipt(event):{status:'unknown',id};
   },true);
 }
+
 function intent(body:unknown) {
   const b=exactFields(body,['id','kind','party_type','party_id','payment_id','date','reference','amount_minor','allocations','review_token']);
   if(!['payment','allocation','unallocation','refund','reversal'].includes(b.kind)) fail(422,'PAYMENT_ACTION_INVALID');

@@ -2273,7 +2273,13 @@
           "2025-26",
           "2027-28"
         ],
-        "nextExecutableStep": "P04-03: independently qualify notice_start_stop for this plan and 2026-27 using the pinned weekly boundary pair; obtain effective notice/payment-date fixtures and statutory rounding/rule version. Do not import another year."
+        "nextExecutableStep": "P04-03: independently review the linked16 authored dated SL1/SL2 scenarios against pinned HMRC timing/rounding sources and official Plan1 amounts, then qualify real notice authenticity and practical payroll availability evidence. Resolve conflicting/alternative instructions before any application adapter. Parent remains pending.",
+        "noticeTimingReference": {
+          "path": "artifacts/api-server/src/services/payroll/contracts/fixtures/plan1-notice-start-stop-2026-27.json",
+          "caseCount": 16,
+          "status": "reference_only_engine_not_implemented",
+          "qualificationEvidence": null
+        }
       }
     },
     {

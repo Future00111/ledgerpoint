@@ -109,3 +109,13 @@ test('explicit conditional original and current discount methods use scoped nati
  await client.reviewConditionalDiscount('co','credit',{request_id:'request'},'r');await client.commitConditionalDiscount('co','credit',{request_id:'request'},'r');await client.recoverConditionalDiscount('co','request');
  assert.deepEqual(calls.map(c=>c.url),['/api/companies/co/accounting-documents/doc/conditional-original','/api/companies/co/accounting-documents/doc/conditional-original/observe','/api/companies/co/accounting-documents/credit/conditional-discount/review','/api/companies/co/accounting-documents/credit/conditional-discount','/api/companies/co/accounting-conditional-discounts/operations/request']);
 });
+
+
+test('lost payment locator discovery is an authenticated company scoped GET with no financial payload', async () => {
+  let seen;
+  const client=createAccountingClient(async (url,init)=>{seen={url,init};return {ok:true,json:async()=>({data:{receipts:[],has_more:false}})};});
+  const signal=new AbortController().signal;
+  assert.deepEqual(await client.discoverPayments('company/id',signal),{receipts:[],has_more:false});
+  assert.equal(seen.url,'/api/companies/company%2Fid/accounting-payments/operations');
+  assert.equal(seen.init.method,'GET');assert.equal(seen.init.body,undefined);assert.equal(seen.init.signal,signal);
+});

@@ -16,9 +16,11 @@ const freeze = value => {
 };
 
 /** Exact intent retries stay in memory; restored locators permit status reads only. */
-export function createPaymentRecovery(companyId, api, { recoveryRequestId = null, rememberRequest = () => {}, forgetRequest = () => {}, nextRecoveryRequest = () => null } = {}) {
+export function createPaymentRecovery(companyId, api, { recoveryRequestId = null, rememberRequest = () => {}, forgetRequest = () => {}, nextRecoveryRequest = () => null,
+  discoverLostReference = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('recover') === 'lost' } = {}) {
   let state = recoveryRequestId ? Object.freeze({ companyId, body: Object.freeze({ id: recoveryRequestId }),
-    phase: 'unknown', readOnly: true, check: 'not_checked', result: null, error: null }) : null, generation = 0;
+    phase: 'unknown', readOnly: true, check: 'not_checked', result: null, error: null }) : discoverLostReference ? Object.freeze({ companyId, phase: 'discovery', readOnly: true,
+      body: Object.freeze({ id: null }), candidates: null, hasMore: false, error: null, discover, selectReceipt }) : null, generation = 0;
   const listeners = new Set();
   const publish = next => {
     state = next ? Object.freeze(next) : null;
@@ -27,6 +29,43 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
   const recorded = (result, id) => uuid(id) && result?.id === id &&
     uuid(result.journal_id) &&
     ['posted', 'duplicate', 'recorded'].includes(result.status);
+
+  async function discover() {
+    if (state?.phase !== 'discovery' || state.loading) return false;
+    const attempt = state, current = ++generation;
+    publish({ ...attempt, loading: true, candidates: null, error: null });
+    try {
+      const result = await api.discoverPayments(companyId);
+      if (current !== generation) return false;
+      const rows = result?.receipts;
+      if (!Array.isArray(rows) || rows.length > 100 || typeof result.has_more !== 'boolean' ||
+          new Set(rows.map(row => row?.id)).size !== rows.length || rows.some(row =>
+            !recorded(row, row.id) || row.status !== 'recorded' || !['payment', 'allocation', 'unallocation', 'refund', 'reversal'].includes(row.kind) ||
+            !['customer', 'supplier'].includes(row.party_type) || typeof row.reference !== 'string' ||
+            typeof row.amount_minor !== 'string' || !/^\d{1,20}$/.test(row.amount_minor) || !/^\d{4}-\d{2}-\d{2}$/.test(row.effective_date))) {
+        throw new Error('Recorded payment history could not be verified.');
+      }
+      publish({ ...attempt, loading: false, candidates: freeze(structuredClone(rows)), hasMore: result.has_more, error: null });
+    } catch (error) {
+      if (current === generation) publish({ ...attempt, loading: false, candidates: null, error });
+    }
+    return true;
+  }
+  async function selectReceipt(id) {
+    if (state?.phase !== 'discovery' || state.loading || !state.candidates?.some(row => row.id === id)) return false;
+    const attempt = state, candidate = state.candidates.find(row => row.id === id), current = ++generation;
+    publish({ ...attempt, loading: true, error: null });
+    try {
+      // Selection is explicit, and current authorization and outcome are checked again.
+      const result = await api.recoverPayment(companyId, id);
+      if (current !== generation) return false;
+      if (!recorded(result, id) || result.journal_id !== candidate.journal_id) throw new Error('The selected payment outcome could not be verified.');
+      publish({ companyId, body: Object.freeze({ id }), readOnly: true, phase: 'recorded', result, error: null });
+    } catch (error) {
+      if (current === generation) publish({ ...attempt, loading: false, error });
+    }
+    return true;
+  }
 
   async function send(attempt) {
     const current = ++generation;
@@ -44,6 +83,7 @@ export function createPaymentRecovery(companyId, api, { recoveryRequestId = null
 
   return {
     getSnapshot: () => state,
+    discover, selectReceipt,
     subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
     async record(review, capabilities) {
       if (state || !canPostPayments(capabilities)) return false;

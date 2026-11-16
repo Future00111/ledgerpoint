@@ -311,3 +311,55 @@ test('matching malformed request IDs cannot verify a receipt on POST or restored
     }
   }
 });
+
+
+const discoveryReceipt = (id=requestId) => ({...outcome(),id,kind:'payment',party_type:'supplier',reference:'Original payment',
+  amount_minor:'12000',effective_date:'2026-11-16',recorded_at:'2026-11-16T12:00:00Z'});
+test('lost response and lost browser locator discover original server receipt, then fresh read, never repost',async()=>{
+  let posts=0,reads=0,lists=0;
+  const api={postPayment:async()=>{posts++;throw Error('Reply lost after commit');},
+    discoverPayments:async()=>{lists++;return {receipts:[discoveryReceipt(),discoveryReceipt(otherId)],has_more:false};},
+    recoverPayment:async(c,id)=>{reads++;return {...outcome(),id};}};
+  const original=createPaymentRecovery('company-a',api);await original.record(review(),owner);
+  original.reset(); // Browser reference and in-memory intent both gone.
+  const restored=createPaymentRecovery('company-a',api,{discoverLostReference:true});
+  assert.equal(recoveryUnresolved(restored.getSnapshot()),true);
+  assert.equal(await restored.record(review(),owner),false);
+  await restored.discover();
+  assert.equal(restored.getSnapshot().phase,'discovery');assert.equal(reads,0);
+  assert.equal(restored.getSnapshot().candidates.length,2); // Ambiguous until explicit recognition.
+  assert.equal(await restored.retry(owner),false);assert.equal(await restored.abandon(),false);
+  assert.equal(await restored.selectReceipt(journalId),false);
+  await restored.selectReceipt(requestId);
+  assert.equal(restored.getSnapshot().phase,'recorded');assert.equal(restored.getSnapshot().result.id,requestId);
+  assert.equal(restored.getSnapshot().readOnly,true);assert.equal(posts,1);assert.equal(reads,1);assert.equal(lists,1);
+});
+test('empty, truncated, malformed or failed discovery never unlocks payment recording',async()=>{
+  for(const response of [{receipts:[],has_more:false},{receipts:[discoveryReceipt()],has_more:true},
+    {receipts:[discoveryReceipt(),discoveryReceipt()],has_more:false},
+    {receipts:[{...discoveryReceipt(),journal_id:'invalid'}],has_more:false},new Error('revoked')]) {
+    const r=createPaymentRecovery('company-a',{discoverPayments:async()=>{if(response instanceof Error)throw response;return response;}},{discoverLostReference:true});
+    await r.discover();assert.equal(r.getSnapshot().phase,'discovery');
+    assert.equal(await r.record(review(),owner),false);assert.equal(await r.retry(owner),false);r.clearRecorded();
+    assert.equal(recoveryUnresolved(r.getSnapshot()),true);
+  }
+});
+test('selected discovery must recheck authorization and exact outcome; unknown or foreign receipt stays locked',async()=>{
+  for(const response of [unknown(),{...outcome(),id:otherId},{...outcome(),journal_id:otherId},new Error('membership revoked')]) {
+    const r=createPaymentRecovery('company-a',{discoverPayments:async()=>({receipts:[discoveryReceipt()],has_more:false}),
+      recoverPayment:async()=>{if(response instanceof Error)throw response;return response;}},{discoverLostReference:true});
+    await r.discover();await r.selectReceipt(requestId);
+    assert.equal(r.getSnapshot().phase,'discovery');assert.ok(r.getSnapshot().error);
+    assert.equal(await r.record(review(),owner),false);
+  }
+});
+test('company exit invalidates delayed discovery and delayed selected receipt',async()=>{
+  for(const phase of ['list','selection']) {
+    const late=deferred();
+    const r=createPaymentRecovery('company-a',{discoverPayments:()=>phase==='list'?late.promise:Promise.resolve({receipts:[discoveryReceipt()],has_more:false}),
+      recoverPayment:()=>late.promise},{discoverLostReference:true});
+    const pending=phase==='list'?r.discover():(await r.discover(),r.selectReceipt(requestId));
+    r.reset();late.resolve(phase==='list'?{receipts:[discoveryReceipt()],has_more:false}:outcome());await pending;
+    assert.equal(r.getSnapshot(),null);
+  }
+});
