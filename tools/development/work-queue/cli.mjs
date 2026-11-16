@@ -6,13 +6,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createQueueStore, QueueStoreError, readJSON } from './store.mjs';
 
-const COMMANDS = new Set(['status', 'listready', 'init', 'export', 'recover-lock', 'claim', 'renew', 'checkpoint', 'block', 'submit', 'accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
-const COORDINATOR_COMMANDS = new Set(['init', 'export', 'recover-lock', 'accept', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
+const COMMANDS = new Set(['status', 'listready', 'init', 'export', 'recover-lock', 'claim', 'renew', 'checkpoint', 'block', 'submit', 'accept', 'accept-outcome', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
+const COORDINATOR_COMMANDS = new Set(['init', 'export', 'recover-lock', 'accept', 'accept-outcome', 'reject', 'reopen', 'reprioritize', 'recover', 'approve', 'resolve']);
 const COMMAND_FIELDS = {
-  status: ['capabilities'], listready: ['capabilities'], init: [], export: ['expectedRevision'], 'recover-lock': ['expectedToken', 'reason'],
-  claim: ['leaseMs', 'capabilities', 'expectedRevision'], renew: ['taskId', 'token', 'leaseMs', 'workStarted', 'expectedRevision'],
+  status: ['capabilities', 'track'], listready: ['capabilities', 'track'], init: [], export: ['expectedRevision'], 'recover-lock': ['expectedToken', 'reason'],
+  claim: ['leaseMs', 'capabilities', 'track', 'expectedRevision'], renew: ['taskId', 'token', 'leaseMs', 'workStarted', 'expectedRevision'],
   checkpoint: ['taskId', 'token', 'checkpoint', 'expectedRevision'], block: ['taskId', 'token', 'blockers', 'checkpoint', 'expectedRevision'],
   submit: ['taskId', 'token', 'evidence', 'expectedRevision'], accept: ['taskId', 'evidence', 'expectedRevision'],
+  'accept-outcome': ['taskId', 'evidence', 'outcome', 'workersStopped', 'expectedRevision'],
   reject: ['taskId', 'reason', 'expectedRevision'], reopen: ['taskId', 'reason', 'expectedRevision'],
   reprioritize: ['taskId', 'priority', 'expectedRevision'], recover: ['taskId', 'workerStopped', 'checkpoint', 'expectedRevision'],
   approve: ['taskId', 'approvalEvidence', 'expectedRevision'],
@@ -88,7 +89,7 @@ export async function main({ argv = process.argv.slice(2), input = process.stdin
     const runtime = store.readOptional();
     const state = runtime || validateState(stampSeed(existsSync(locations.checkpoint) ? readJSON(locations.checkpoint) : core.initialState(catalog)));
     const worker = command.actor || '__status__';
-    const options = { worker, now, capabilities: command.capabilities };
+    const options = { worker, now, capabilities: command.capabilities, track: command.track };
     const rows = catalog.tasks.map(task => {
       const record = state.tasks[task.id];
       const explanation = core.explainTask(catalog, state, task, options);

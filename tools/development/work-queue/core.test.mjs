@@ -252,3 +252,36 @@ test('explicit blocker resolution preserves evidence and dependencies without re
   assert.equal(h.state.tasks.child.status,'pending');
   assert.throws(()=>h.run(cmd),{code:'RESOLUTION_REQUIRED'});
 });
+
+test('tax-payroll track selects priority within its scope and retains dependencies and review leases', () => {
+  const h = harness([task('accounting', 1), task('payroll', 3, { files: ['artifacts/api-server/src/services/payroll/fixtures/'] }), task('tax', 2, { files: ['artifacts/api-server/src/services/tax/contracts/'] })]);
+  assert.equal(h.claim('a').taskId, 'accounting');
+  const tax = h.claim('b', { track: 'tax-payroll' }); assert.equal(tax.taskId, 'tax');
+  h.submit('b', tax);
+  assert.equal(h.claim('c', { track: 'tax-payroll' }).taskId, 'payroll');
+  assert.throws(() => h.claim('d', { track: 'invented' }), { code: 'INVALID_TRACK' });
+  const d = harness([task('tax', 1, { files: ['artifacts/api-server/src/services/tax/core/'], dependencies: ['rules'] }), task('rules', 2)]);
+  assert.equal(d.claim('b', { track: 'tax-payroll' }), null);
+});
+
+test('independently accepted child outcome releases stopped author without accepting parent or dependent', () => {
+  const h = harness([task('parent'), task('dependent', 2, { dependencies: ['parent'] })]);
+  const c = h.claim('author'); h.submit('author', c);
+  const command = { type: 'accept-outcome', actor: 'coordinator', taskId: 'parent', workersStopped: true,
+    evidence: evidence('commit-a', { reviewed: true, reviewer: 'reviewer' }),
+    outcome: { id: 'recover-payment', scenario: 'Recover payment after lost response', criteria: [0], remaining: ['Other operation families'], nextAction: 'Implement lost local identity recovery', integratedCommit: 'commit-a' } };
+  assert.throws(() => h.run({ ...command, evidence: evidence('commit-a', { reviewed: true, reviewer: 'author' }) }), { code: 'EVIDENCE_REQUIRED' });
+  assert.throws(() => h.run({ ...command, workersStopped: false }), { code: 'OUTCOME_REQUIRED' });
+  assert.throws(() => h.run({ ...command, outcome: { ...command.outcome, criteria: [1] } }), { code: 'OUTCOME_REQUIRED' });
+  assert.throws(() => h.run({ ...command, evidence: evidence('other', { reviewed: true, reviewer: 'reviewer' }) }), { code: 'EVIDENCE_REQUIRED' });
+  for (const id of [undefined, null, 7]) assert.throws(() => h.run({ ...command, outcome: { ...command.outcome, id } }), { code: 'OUTCOME_REQUIRED' });
+  assert.throws(() => h.run({ ...command, actor: 'stranger' }), { code: 'COORDINATOR_REQUIRED' });
+  command.evidence.integratedCommit = 'published-integration'; command.outcome.integratedCommit = 'published-integration';
+  h.run(command); assert.deepEqual(h.state.events.at(-1).outcome, command.outcome); assert.equal(h.state.events.at(-1).workersStopped, true); assert.equal(h.state.tasks.parent.status, 'pending'); assert.equal(h.state.tasks.parent.owner, undefined);
+  assert.equal(h.state.tasks.parent.acceptedOutcomes.length, 1);
+  assert.equal(h.state.tasks.dependent.status, 'pending');
+  assert.equal(h.claim('next').taskId, 'parent');
+  const parentLease = { taskId: 'parent', token: 'lease-token-2' }; h.submit('next', parentLease);
+  assert.throws(() => h.run(command), { code: 'DUPLICATE_OUTCOME' });
+  assert.equal(h.state.events.filter(e => e.type === 'reject' || e.type === 'recover').length, 0);
+});
