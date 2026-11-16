@@ -1,0 +1,6 @@
+tree 89be5c079ee058269625a8c42d542a3fdd4026f8
+parent e8adaa5087c387604a3566f68b38d0b85e749f23
+author Codex <codex@openai.com> 1794856249 +0000
+committer Codex <codex@openai.com> 1794856249 +0000
+
+Parse protected JSON commands in mounted terminal browser scenario

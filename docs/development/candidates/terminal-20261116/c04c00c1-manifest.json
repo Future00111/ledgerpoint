@@ -1,0 +1,14 @@
+{
+  "author": "c04c00c11da07e67368b9cc7a8a03e05cea2d1c2",
+  "base": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2",
+  "tree": "89be5c079ee058269625a8c42d542a3fdd4026f8",
+  "patchSha256": "143e334bb01890e1e4767c9125ceeb92c09107efc40c1fdaca0f425c629b154b",
+  "reviewer": "terminal_review",
+  "review": "Approved exact c04 financial/security source;58model/API/locator plus6UI focused passing; parseronly finaldelta checked",
+  "authorStopped": true,
+  "reviewerStopped": true,
+  "worktreesClean": true,
+  "status": "reviewed source pending exact published CI",
+  "remaining": "Native browser/PG/restoreCI; P03-01 other operation families and full parent acceptance",
+  "observedAt": "2026-11-16T19:12:41.248Z"
+}
