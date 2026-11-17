@@ -1,0 +1,38 @@
+{
+  "task": "P03-02",
+  "actor": "durable-intake-implementer",
+  "authorCommit": "307ee8c471cf6499ef02c9984d26d5eeabd5498d",
+  "tree": "da2c486ddb7c82cb7b9fcf9b7523bff2d7ddf5bb",
+  "base": "dc6467a9712582a22cfeb26a389b0a281c017e87",
+  "clean": true,
+  "stopped": true,
+  "stoppedAt": "2026-11-17T17:45:32.589Z",
+  "cause": "CI44139504401 job134238101827: ledgerly_api cannot examine unix_socket_directories, code42501 in before hook.",
+  "repair": "Each runtime target check independently verifies exact disposable server/socket/port/data directory through a guarded explicit bootstrap connection, closed before native runtime use; application role only queries database/user/noTCP identity. Failed setup cleanup skips unavailable baseline and closes both pools.",
+  "changedFiles": [
+    "artifacts/api-server/src/services/durableJobs/integration.test.ts",
+    "artifacts/api-server/src/services/durableJobs/testTarget.ts"
+  ],
+  "tests": [
+    {
+      "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+      "passed": true,
+      "log": "repair-typecheck.log"
+    },
+    {
+      "command": "esbuild native integration/restart/restore with exact worktree source guard",
+      "passed": true
+    },
+    {
+      "command": "git diff --check and exact2-file repair scope",
+      "passed": true
+    }
+  ],
+  "unchanged": [
+    "native service, contract and schema",
+    "all migration files and registry pins",
+    "runtime grants and role permissions"
+  ],
+  "nativeRuntimeExecutedLocally": false,
+  "acceptance": "Await independent review and exact-source full PostgreSQL/restart/restore CI; full P03-02 remains pending."
+}

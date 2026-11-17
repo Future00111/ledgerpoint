@@ -1,0 +1,46 @@
+{
+  "reviewer": "root",
+  "reviewed": true,
+  "authorCommit": "307ee8c471cf6499ef02c9984d26d5eeabd5498d",
+  "tree": "da2c486ddb7c82cb7b9fcf9b7523bff2d7ddf5bb",
+  "base": "dc6467a9712582a22cfeb26a389b0a281c017e87",
+  "priorReviewArchive": "4a9250fdfa84920ab95352d4d56d27b25a9d169c",
+  "reviewedAt": "2026-11-17T17:47:12.095Z",
+  "cause": "CI44139504401 job134238101827: ledgerly_api cannot examine unix_socket_directories, code42501 in before hook.",
+  "scope": "Each runtime target check independently verifies exact disposable server/socket/port/data directory through a guarded explicit bootstrap connection, closed before native runtime use; application role only queries database/user/noTCP identity. Failed setup cleanup skips unavailable baseline and closes both pools.",
+  "changedFiles": [
+    "artifacts/api-server/src/services/durableJobs/integration.test.ts",
+    "artifacts/api-server/src/services/durableJobs/testTarget.ts"
+  ],
+  "review": "Verified exact two-file delta, bootstrap uses validated private disposable socket/database/port and closes in finally; runtime retains no settings grants. Before-hook failure remains a test failure, cleanup avoids secondary absent-baseline assertion. No production service, migration, grants or workflow changed.",
+  "tests": [
+    {
+      "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+      "passed": true,
+      "log": "repair-typecheck.log"
+    },
+    {
+      "command": "esbuild native integration/restart/restore with exact worktree source guard",
+      "passed": true
+    },
+    {
+      "command": "git diff --check and exact2-file repair scope",
+      "passed": true
+    },
+    {
+      "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node tools/development/check.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "file": "repair-combined.log"
+    },
+    {
+      "command": "pnpm run build",
+      "passed": true,
+      "exitCode": 0,
+      "file": "repair-build.log"
+    }
+  ],
+  "stopped": true,
+  "clean": true,
+  "nativeRuntime": "Pending new exact-source GitHub CI; no acceptance yet."
+}
