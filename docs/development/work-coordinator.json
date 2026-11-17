@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 466,
+  "revision": 467,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "4c1062fafacb68f3cce67a17aeef02e07512c761",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "correction-admission-1794930354689",
+    "tokenSha256": "6cb56a60ff352751c29816cb471fd40609e739229fead190dbd2d5bd4c275760",
+    "acquiredAt": 1794930354689,
+    "expiresAt": 1794933054689
+  },
   "lastOwner": {
     "runId": "correction-discovery-1794927549982",
     "tokenSha256": "2282597b2446de4c4261a1e82b423525b8a7bacefbcba37d5beea0b0a3e5908e",
@@ -28,7 +33,7 @@
     "at": 1794929999689,
     "codeHead": "4c1062fafacb68f3cce67a17aeef02e07512c761"
   },
-  "updatedAt": 1794929999693,
+  "updatedAt": 1794930354689,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -178,5 +183,12 @@
       "revision": 868,
       "catalogDigest": "10b841806aa07b58201daa49008d9c865eaa3e58190bc285151eab5349ad1485"
     }
+  },
+  "admissionRun": {
+    "runId": "correction-admission-1794930354689",
+    "startedAt": "2026-11-17T15:45:54.689Z",
+    "scope": "Highest eligible P03-01 durable precommit correction attempt and recovery workflow; resolve exact additive migration ownership first.",
+    "providerCheck": "Replit exact URL search returned no apps and exact name resolver foundfalse in this run; no dispatch.",
+    "activity": "Source4c1062f and idle authority466 verified; current q871 hydrated and equals runtime; read-only implementation assessment in progress."
   }
 }
