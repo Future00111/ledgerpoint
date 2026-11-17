@@ -1,0 +1,23 @@
+{
+  "at": "2026-11-17T15:58:58.088Z",
+  "task": "P03-01",
+  "source": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
+  "status": "implementation-in-progress",
+  "scope": "Durable correction admission, pending/terminal discovery, explicit no-effect closure and fresh-review progression",
+  "author": "correction-admission-implementer",
+  "reviewer": "root",
+  "observed": [
+    "Additive immutable admission/terminal schema and preliminary backend implemented in isolated worktree; native compilation and32migration-registry checks passed by author.",
+    "Frontend, native race/restart/restore and mounted browser acceptance are in progress.",
+    "Root preliminary review requested consistent admitted-state HTTP error marking and reuse of validated history during scans; final exact-commit review remains required."
+  ],
+  "baselineCI": {
+    "run": 44119102828,
+    "job": 134165219024,
+    "result": "failure",
+    "cause": "Supplier-credit capture browser acceptance marker passed, but Chromium temporary directory cleanup threw ENOTEMPTY. 95/96 native tests passed; remaining restore gates skipped after the failure.",
+    "action": "Author is adding bounded filesystem cleanup retries while preserving shutdown, failure reporting, deadlines and assertions. Full failing log retained; final source requires complete fresh CI."
+  },
+  "next": "Author target16:15UTC; root independent source review and combined/build/exactGitHub native/browser/restore gates. No acceptance yet.",
+  "usageCredits": null
+}
