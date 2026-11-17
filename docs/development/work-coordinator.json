@@ -1,54 +1,74 @@
 {
   "version": 2,
-  "revision": 507,
+  "revision": 509,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "1c52f77c63599b26c4d90862c485db951f12ca66",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "two-track-1794939703603",
     "tokenSha256": "11a86171f683520b544b8cee422a76d6f5fe2df85f58e30319b48a1ffe714974",
     "acquiredAt": 1794939703604,
     "expiresAt": 1794943303604
   },
-  "lastOwner": {
-    "runId": "durable-intake-1794935665134",
-    "tokenSha256": "d25f3a4535f6f84756bc2822a9feef6df161b8ffc1dd9e01757756fdcf4313ff",
-    "acquiredAt": 1794935665135,
-    "expiresAt": 1794939265135
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "d08cd97c3622c81339bdc4a9ccd52061d37f4c17",
+    "sha": "b5e11d0bafa88fc866c3f132845d7dbc5db5474b",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "d08cd97c3622c81339bdc4a9ccd52061d37f4c17",
-        "path": "docs/development/candidates/two-track-20261117/repair-published/repair-published-queue-delta.json"
+        "sha": "b5e11d0bafa88fc866c3f132845d7dbc5db5474b",
+        "path": "docs/development/candidates/two-track-20261117/accepted/accepted-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "d08cd97c3622c81339bdc4a9ccd52061d37f4c17",
-        "path": "docs/development/candidates/two-track-20261117/repair-published/execution-truncate-author-report.json"
+        "sha": "b5e11d0bafa88fc866c3f132845d7dbc5db5474b",
+        "path": "docs/development/candidates/two-track-20261117/accepted/qualification.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "d08cd97c3622c81339bdc4a9ccd52061d37f4c17",
-        "path": "docs/development/candidates/two-track-20261117/repair-published/execution-truncate-root-review.json"
+        "sha": "b5e11d0bafa88fc866c3f132845d7dbc5db5474b",
+        "path": "docs/development/candidates/two-track-20261117/accepted/current-view.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "d08cd97c3622c81339bdc4a9ccd52061d37f4c17",
-        "path": "docs/development/candidates/two-track-20261117/repair-published/repair-preflight.json"
+        "sha": "b5e11d0bafa88fc866c3f132845d7dbc5db5474b",
+        "path": "docs/development/candidates/two-track-20261117/accepted/ci-final.log"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "b5e11d0bafa88fc866c3f132845d7dbc5db5474b",
+        "path": "docs/development/candidates/two-track-20261117/accepted/ci-final-jobs.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "b5e11d0bafa88fc866c3f132845d7dbc5db5474b",
+        "path": "docs/development/candidates/two-track-20261117/accepted/ci-identity.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "b5e11d0bafa88fc866c3f132845d7dbc5db5474b",
+        "path": "docs/development/candidates/two-track-20261117/accepted/execution-root-review.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "b5e11d0bafa88fc866c3f132845d7dbc5db5474b",
+        "path": "docs/development/candidates/two-track-20261117/accepted/tax-root-review.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "b5e11d0bafa88fc866c3f132845d7dbc5db5474b",
+        "path": "docs/development/candidates/two-track-20261117/accepted/execution-truncate-root-review.json"
       }
     ],
     "runId": "two-track-1794939703603",
-    "at": 1794942402878,
+    "at": 1794942703363,
     "codeHead": "1c52f77c63599b26c4d90862c485db951f12ca66"
   },
-  "updatedAt": 1794942402878,
+  "updatedAt": 1794942703365,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -136,20 +156,7 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [
-    {
-      "actor": "tax-register-implementer",
-      "task": "P04-01",
-      "status": "review",
-      "stopped": true
-    },
-    {
-      "actor": "durable-execution-implementer",
-      "task": "P03-02",
-      "status": "review",
-      "stopped": true
-    }
-  ],
+  "activeWorkers": [],
   "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
@@ -190,11 +197,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "d08cd97c3622c81339bdc4a9ccd52061d37f4c17",
-    "path": "docs/development/candidates/two-track-20261117/repair-published/repair-published-queue-delta.json",
-    "bytesSha256": "71ed7644a1e0f72119568ee1e5457508539f5b4958742abcf91944f401f2f661",
-    "queueSha256": "e923e350504a3f9112f25702a0716ad4d86719caacdc2ee3674efbf6597aae11",
-    "revision": 912,
+    "sha": "b5e11d0bafa88fc866c3f132845d7dbc5db5474b",
+    "path": "docs/development/candidates/two-track-20261117/accepted/accepted-queue-delta.json",
+    "bytesSha256": "8cbf85e7694e30fa07eeeec27760d19b166d03d20b71e646011b42f58073c5bb",
+    "queueSha256": "8df593b14d914243067f829a341dd2f46e69148d60a083dc232eb1b4f30abe9f",
+    "revision": 914,
     "catalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f"
   },
   "historyReference": {
@@ -224,7 +231,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 901,
-    "currentRevision": 912,
+    "currentRevision": 914,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -364,7 +371,7 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-17T18:21:43.606Z",
-    "activity": "Narrow privileged truncate fixture corrected without weakening SQLSTATE, FKs or guards; author fcc62d stopped clean, independently reviewed, typecheck/compile passed. Corrected source published; native CI pending.",
+    "activity": "Exact-source CI44155016720 all20steps passed, checkouttree matches1c52f77. P04-01full declarationregister accepted; P03-02durable execution scenario accepted as boundedchild, parentpending. All workersstopped,worktreesclean,noleasesheld. NormalnextP02-04,taxtracknextP04-03.",
     "providerCheck": "Exact URL returned no editable apps; exact LedgerPoint resolver found false. Codex continues.",
     "migration": {
       "published": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
@@ -377,13 +384,24 @@
       "sha": "816092d836169c92a315a6ea0de40565c9d7dc85",
       "path": "docs/development/candidates/two-track-20261117/brief.json"
     },
-    "observedAt": "2026-11-17T19:06:29.122Z",
+    "observedAt": "2026-11-17T19:11:21.875Z",
     "taxCandidate": "c9931ba777a780374995e64d61cde85c068ca003",
     "taxTree": "eab97f0f9ffe21369bd1bb73da248f91706ad447",
     "localIntegratedCommit": "305d9866d8965a937ebcbed5b586151252590c65",
     "integratedTree": "8dfb788aabd7bd7769d252f808f104da53b82c6b",
     "publishedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66",
-    "ciRun": 44154195960,
-    "firstPassCI": false
+    "ciRun": 44155016720,
+    "firstPassCI": false,
+    "qualified": true,
+    "acceptedParents": [
+      "P04-01"
+    ],
+    "acceptedOutcomes": [
+      "durable-intake-execution-20261117"
+    ],
+    "nextNormal": "P02-04",
+    "nextTaxPayroll": "P04-03",
+    "providerCost": null,
+    "credits": null
   }
 }
