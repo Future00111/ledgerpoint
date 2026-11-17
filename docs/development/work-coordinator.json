@@ -1,44 +1,44 @@
 {
   "version": 2,
-  "revision": 495,
+  "revision": 497,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "durable-intake-1794935665134",
     "tokenSha256": "d25f3a4535f6f84756bc2822a9feef6df161b8ffc1dd9e01757756fdcf4313ff",
     "acquiredAt": 1794935665135,
     "expiresAt": 1794939265135
   },
-  "lastOwner": {
-    "runId": "recovery-qualification-1794934573329",
-    "tokenSha256": "0df0e7ac6a2396ae1f0fc1ed3ea597b4d4585477f75c991959ba79fd43ff44ab",
-    "acquiredAt": 1794934573331,
-    "expiresAt": 1794938173331
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "c8d59920cec0c5decd145a7caf6207bb7d67faf7",
+    "sha": "d47745e32531618916759feae6cc40af6f480fea",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "c8d59920cec0c5decd145a7caf6207bb7d67faf7",
-        "path": "docs/development/candidates/durable-intake-20261117/module-review/module-review-queue-delta.json"
+        "sha": "d47745e32531618916759feae6cc40af6f480fea",
+        "path": "docs/development/candidates/durable-intake-20261117/accepted/accepted-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "c8d59920cec0c5decd145a7caf6207bb7d67faf7",
-        "path": "docs/development/candidates/durable-intake-20261117/module-repair/publication-receipt.json"
+        "sha": "d47745e32531618916759feae6cc40af6f480fea",
+        "path": "docs/development/candidates/durable-intake-20261117/accepted/qualification.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "d47745e32531618916759feae6cc40af6f480fea",
+        "path": "docs/development/candidates/durable-intake-20261117/accepted/current-view.json"
       }
     ],
     "runId": "durable-intake-1794935665134",
-    "at": 1794938430751,
+    "at": 1794938823776,
     "codeHead": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59"
   },
-  "updatedAt": 1794938430751,
+  "updatedAt": 1794938823778,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -126,15 +126,7 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [
-    {
-      "actor": "durable-intake-implementer",
-      "task": "P03-02",
-      "status": "review",
-      "stopped": true,
-      "authorCommit": "428b7bc069a8b44066b0ade4346281f541fc445e"
-    }
-  ],
+  "activeWorkers": [],
   "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
@@ -175,11 +167,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "c8d59920cec0c5decd145a7caf6207bb7d67faf7",
-    "path": "docs/development/candidates/durable-intake-20261117/module-review/module-review-queue-delta.json",
-    "bytesSha256": "5a6eab2aab40f52c816b22d056aa5313869c3127606bbec4d0e77af5d9ca75d7",
-    "queueSha256": "75c007a5c0d790d79abef03af7276f9803139a0b5e88f6f6e2f0e31ddef9dfb8",
-    "revision": 900,
+    "sha": "d47745e32531618916759feae6cc40af6f480fea",
+    "path": "docs/development/candidates/durable-intake-20261117/accepted/accepted-queue-delta.json",
+    "bytesSha256": "dea50fae6eae0ab184a3c17ad546e9aa65d3ad6c221159b4457b6d6c166cba3d",
+    "queueSha256": "233867c4885a9aad68c228bc36fd6ac44a5abc990835bbaa2e29713fbbcc291c",
+    "revision": 901,
     "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
   },
   "historyReference": {
@@ -209,7 +201,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 871,
-    "currentRevision": 900,
+    "currentRevision": 901,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -313,7 +305,7 @@
   },
   "durableIntakeRun": {
     "startedAt": "2026-11-17T17:14:25.140Z",
-    "activity": "Reviewed module-loading correction published and exact CI running. Two prior harness failures recorded with targeted regressions; runtime/schema permissions unchanged. Await native database qualification.",
+    "activity": "Qualified and accepted native queued/cancelled intake recovery on ca6a00a; all20 exactCI steps success, actual process death and native restored states passed. Parent remains pending durable worker claims/attempts/result rehydration/outbox dispatch/scheduler. All workers stopped, no held tasks.",
     "authorStopTarget": "2026-11-17T17:45:00Z",
     "authorCommit": "428b7bc069a8b44066b0ade4346281f541fc445e",
     "tree": "634bc0b26b8c6107047238b8860ed659b6c0f19d",
@@ -323,14 +315,13 @@
     "sourceRefVerified": true,
     "prHeadVerified": true,
     "ci": {
-      "id": 44143039202,
-      "name": "LedgerPoint development regression",
-      "status": "in_progress",
-      "conclusion": null,
-      "run_number": 85,
-      "jobs_url": "https://api.github.com/repos/Future00111/ledgerpoint/actions/runs/44143039202/jobs",
-      "logs_url": "https://api.github.com/repos/Future00111/ledgerpoint/actions/runs/44143039202/logs",
-      "workflow_id": 401903918
+      "runId": 44143039202,
+      "jobId": 134250698577,
+      "url": "https://github.com/Future00111/ledgerpoint/actions/runs/44143039202",
+      "conclusion": "success",
+      "checkout": "7d7c0b512e12fba5a02b4624e3b83aa2b1914a9b",
+      "tree": "634bc0b26b8c6107047238b8860ed659b6c0f19d",
+      "all20StepsSuccessUnskipped": true
     },
     "observedAt": "2026-11-17T18:00:19.427Z",
     "failedRun": 44139504401,
@@ -339,6 +330,13 @@
       44139504401,
       44141164259
     ],
-    "moduleReviewArchive": "21492ed875b820a052092d248254b154405dfc49"
+    "moduleReviewArchive": "21492ed875b820a052092d248254b154405dfc49",
+    "acceptedOutcome": "durable-intake-queued-cancelled-20261117",
+    "qualification": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "d58248872c1ec192ad86079d4b463179ab0a71db",
+      "path": "docs/development/candidates/durable-intake-20261117/accepted/qualification.json"
+    },
+    "nextAction": "Continue P03-02 with a bounded durable worker claim/attempt and lease-fencing implementation on the accepted native queue. Settle validated in-flight/result reconstruction and physical transport-capacity/unknown-outcome recovery contracts before dispatch; qualify real process crash, stale completion, cancellation/revocation and populated restore. Preserve accepted queued/cancelled scenario; no provider connection or automatic financial effect."
   }
 }
