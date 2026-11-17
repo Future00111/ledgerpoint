@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 481,
+  "revision": 482,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
+  "codeHead": "b176e696124e4a16354ba503aa55afd0c3bae96b",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -35,10 +35,10 @@
       }
     ],
     "runId": "recovery-qualification-1794934573329",
-    "at": 1794934745577,
-    "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144"
+    "at": 1794934832753,
+    "codeHead": "b176e696124e4a16354ba503aa55afd0c3bae96b"
   },
-  "updatedAt": 1794934745577,
+  "updatedAt": 1794934832753,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -260,8 +260,12 @@
   },
   "recoveryQualificationRun": {
     "startedAt": "2026-11-17T16:56:13.334Z",
-    "activity": "Explicitly authorized source objects and sanitized independent reviews uploaded. Both original reviewed candidates retained in review; candidate b176e696 tree8e52e26 awaiting fresh PR29 integration-ref preflight.",
+    "activity": "Reviewed combined candidate published by exact-head fast-forward to existing draftPR29. Tree verified equal to local checked8e52e26. Existing full GitHub CI pending; no merge/deploy or acceptance.",
     "sourceCandidate": "5bbcf5c7fc4b61fb84d00508f9cd09f0724f35b8",
-    "candidate": "b176e696124e4a16354ba503aa55afd0c3bae96b"
+    "candidate": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+    "publishedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+    "publishedTree": "8e52e26b81cf14adf17a0d83cc81bd73251ae58a",
+    "sourceUploadGateResolved": true,
+    "lastObservedAt": "2026-11-17T17:00:32.759Z"
   }
 }
