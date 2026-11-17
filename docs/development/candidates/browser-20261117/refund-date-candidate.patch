@@ -1,0 +1,10 @@
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+@@ -1931,6 +1931,7 @@
+     window.testNavigate(${JSON.stringify(creditRoute+'/new?original=')}+originalId);
+     await wait(()=>document.querySelector('#reason'));
+     await change('#reason','Ordinary price reduction after full payment');await change('#p0','12');await change('#number',${JSON.stringify(number+'-CREDIT')});
++    await change('#effective','2026-11-15');await change('#due','2026-11-15');
+     el('button-save').click();await wait(()=>savedId!==originalId&&el('button-save')?.textContent==='Save changes'&&!el('button-post').disabled);
+     await change('[aria-label="Credit purpose"]','commercial');
+     el('button-post').click();await wait(()=>document.querySelector('[aria-label="Credit settlement review"]'));

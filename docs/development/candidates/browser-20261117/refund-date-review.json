@@ -1,0 +1,15 @@
+{
+  "reviewed": true,
+  "reviewer": "/root/capture_implementation",
+  "proposalAuthor": "root",
+  "source": "3dc11c2dad959dd7090a1e40e4fd51ae5b41216f",
+  "patchSha256": "2fa0a531781693ed60eaa32fe7a9f48fd26065ca8a7c9485d26a0092e52d7c90",
+  "verdict": "No blocking findings. Correct #effective and #due selectors before save in both party scenarios; #effective synchronizes source issue_date. Payment03Nov -> credit15Nov -> refund16Nov. All original assertions, guardrails and deadlines intact.",
+  "checks": [
+    "Patch applies to exactsource3dc11c2",
+    "Candidate native test suite compiles",
+    "Customer and supplier actual browser entries compile"
+  ],
+  "runtimeValidation": "Pending; no browser/database pass claimed.",
+  "workersStopped": true
+}

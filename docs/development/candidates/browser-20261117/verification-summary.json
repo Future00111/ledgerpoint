@@ -1,0 +1,37 @@
+{
+  "source": "3dc11c2dad959dd7090a1e40e4fd51ae5b41216f",
+  "author": "bde3eba8224b1a45fc509aae32c0b5ba898dee5c",
+  "ciCheckout": "56e28d38e724ced6719f2893b81bb8a9de310997",
+  "tree": "7751e2162d774c278a2964b95a584a3c8aff6a8d",
+  "run": 44095357375,
+  "job": 134080937312,
+  "conclusion": "failure",
+  "nativeAccounting": {
+    "passed": 92,
+    "failed": 0,
+    "skipped": 0
+  },
+  "conditionalDiscount": {
+    "passed": 148,
+    "failed": 2,
+    "skipped": 0
+  },
+  "passed": [
+    "Build and typecheck",
+    "Unit/permission/precision/UI regression",
+    "Migration validation",
+    "Read-only unpaid/partial discount browser",
+    "Both capture recovery browser journeys",
+    "All four public compensation browser journeys"
+  ],
+  "failed": [
+    "Customer full-paid ordinary commercial-credit/refund browser: no refund confirmation",
+    "Supplier full-paid ordinary commercial-credit/refund browser: no refund confirmation"
+  ],
+  "restore": "Not reached; no full qualification or acceptance",
+  "diagnosis": "Source-inferred chronology defect: default current-date credit releases cash after fixed16Nov2026 refund; protected plan rejects DATE_PRECEDES_PAYMENT_ACTIVITY. Browser log truncation omitted direct error code.",
+  "proposal": "One added fixture line explicitly sets credit effective and due dates15Nov2026 before existing16Nov2026 refund. Exact patch independently reviewed; candidate native and both browser bundles compile. Not published to code branch or runtime-qualified.",
+  "productionChanges": false,
+  "merge": false,
+  "deployment": false
+}
