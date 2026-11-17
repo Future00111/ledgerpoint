@@ -1878,9 +1878,9 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
    import Form from ${JSON.stringify(frontend+'/src/pages/AccountingDocumentForm.jsx')};
    import Payments from ${JSON.stringify(frontend+'/src/pages/Payments.jsx')};
    import {readDiscountRecovery} from ${JSON.stringify(frontend+'/src/features/paidCreditReview/model.mjs')};
-   const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,recoveries=0,savedId=null;
+   const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,recoveries=0,refundPosts=0,refundResponses=0,savedId=null;
    let stage='mount';
-   const report=(passed,error=null)=>nativeFetch('/synthetic-browser-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:${JSON.stringify(reportId)},stage,passed,error,captures,saves,posts,observed,discountPosts,recoveries})});
+   const report=(passed,error=null)=>nativeFetch('/synthetic-browser-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:${JSON.stringify(reportId)},stage,passed,error,captures,saves,posts,observed,discountPosts,recoveries,refundPosts,refundResponses})});
    const progress=async value=>{stage=value;await nativeFetch('/synthetic-browser-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:${JSON.stringify(reportId)},stage})});};
    window.addEventListener('error',event=>{void report(false,event.message)});
    window.addEventListener('unhandledrejection',event=>{void report(false,String(event.reason?.message??event.reason))});
@@ -1890,7 +1890,10 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
     if(path.endsWith('/conditional-discount-evidence')&&options.method==='POST')captures++;
     if(path.endsWith('/accounting-documents')&&options.method==='POST')saves++;
     if(path.includes('/conditional-original')&&options.method==='POST'&&!path.endsWith('/observe'))posts++;
+    const isRefund=path.endsWith('/accounting-payments')&&options.method==='POST'&&JSON.parse(options.body).kind==='refund';
+    if(isRefund)refundPosts++;
     const response=await nativeFetch(path,{...options,headers});
+    if(isRefund&&response.ok)refundResponses++;
     if(path.endsWith('/accounting-documents')&&options.method==='POST'&&response.ok)savedId=(await response.clone().json()).data.id;
     if(path.endsWith('/conditional-original/observe')&&response.ok)observed++;
     if(path.endsWith('/commercial-credit')&&options.method==='POST'&&response.ok){discountPosts++;if(discountPosts===1)throw Error('Synthetic lost discount response');}
@@ -1902,7 +1905,7 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
    const mount=(url,key)=>root.render(<QueryClientProvider key={key} client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MemoryRouter initialEntries={[url]}><Navigation/><Routes><Route path="/payments" element={<Payments/>}/><Route path=${JSON.stringify(route+'/:id')} element={<Form kind=${JSON.stringify(kind)}/>}/><Route path=${JSON.stringify(creditRoute+'/:id')} element={<Form kind=${JSON.stringify(creditKind)}/>}/></Routes></MemoryRouter></QueryClientProvider>);
    mount(${JSON.stringify(route+'/new')},'initial');
    const el=id=>document.querySelector('[data-testid="'+id+'"]');
-   const wait=async(fn)=>{await progress(String(fn).slice(0,240));const deadline=Date.now()+6000;while(Date.now()<deadline){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Browser condition timed out at '+stage+': '+document.getElementById('root').textContent.slice(-1200));};
+   const wait=async(fn)=>{await progress(String(fn).slice(0,240));const deadline=Date.now()+6000;while(Date.now()<deadline){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Browser condition timed out at '+stage+': '+document.body.textContent.slice(-2400));};
    const change=async(selector,value)=>{const node=document.querySelector(selector);if(!node)throw Error('Missing '+selector);const proto=node.tagName==='SELECT'?HTMLSelectElement.prototype:node.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(node,value);flushSync(()=>node.dispatchEvent(new Event(node.tagName==='SELECT'?'change':'input',{bubbles:true})));};
    (async()=>{
     await wait(()=>el('select-party'));
@@ -1951,10 +1954,10 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
     if(discountPosts!==1)throw Error('Recovery resubmitted discount');
     mount('/payments?event='+payment.id,'refund');
     const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
-    await wait(()=>button('Record refund')&&!button('Record refund').disabled);button('Record refund').click();
+    await wait(()=>button('Record payment')&&!button('Record payment').disabled&&button('Record refund')&&!button('Record refund').disabled);button('Record refund').click();
     await wait(()=>document.querySelector('#pay-amount'));await change('#pay-date','2026-11-16');await change('#pay-amount','12.00');await change('#pay-reference','Separately reviewed browser refund');
     button('Review accounting entries').click();await wait(()=>button('Confirm and record')&&!button('Confirm and record').disabled);
-    button('Confirm and record').click();await wait(()=>!document.querySelector('#pay-amount')&&!button('Confirm and record'));
+    button('Confirm and record').click();await wait(()=>refundPosts===1&&refundResponses===1&&document.getElementById('root').textContent.includes('Payment event recorded.')&&!document.querySelector('#pay-amount')&&!button('Confirm and record'));
     await progress('commercial credit recovery and separate refund verified');await report(true);
    })().catch(e=>report(false,e.message));
   `);
