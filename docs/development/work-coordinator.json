@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 497,
+  "revision": 498,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "two-track-1794939703603",
+    "tokenSha256": "11a86171f683520b544b8cee422a76d6f5fe2df85f58e30319b48a1ffe714974",
+    "acquiredAt": 1794939703604,
+    "expiresAt": 1794943303604
+  },
   "lastOwner": {
     "runId": "durable-intake-1794935665134",
     "tokenSha256": "d25f3a4535f6f84756bc2822a9feef6df161b8ffc1dd9e01757756fdcf4313ff",
@@ -38,7 +43,7 @@
     "at": 1794938823776,
     "codeHead": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59"
   },
-  "updatedAt": 1794938823778,
+  "updatedAt": 1794939703604,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -338,5 +343,10 @@
       "path": "docs/development/candidates/durable-intake-20261117/accepted/qualification.json"
     },
     "nextAction": "Continue P03-02 with a bounded durable worker claim/attempt and lease-fencing implementation on the accepted native queue. Settle validated in-flight/result reconstruction and physical transport-capacity/unknown-outcome recovery contracts before dispatch; qualify real process crash, stale completion, cancellation/revocation and populated restore. Preserve accepted queued/cancelled scenario; no provider connection or automatic financial effect."
+  },
+  "twoTrackRun": {
+    "startedAt": "2026-11-17T18:21:43.606Z",
+    "activity": "Acquired for highest eligible accounting work and tax-payroll prerequisite; contracts and exact ownership being settled before dispatch.",
+    "providerCheck": "Exact URL returned no editable apps; exact LedgerPoint resolver found false. Codex continues."
   }
 }
