@@ -1,0 +1,32 @@
+{
+  "oldCatalogDigest": "10b841806aa07b58201daa49008d9c865eaa3e58190bc285151eab5349ad1485",
+  "newCatalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd",
+  "currentQueueRevision": 871,
+  "currentEvents": 886,
+  "sourceSeedRevision": 531,
+  "sourceSeedEvents": 539,
+  "taskCount": 112,
+  "sourceBulletCount": 92,
+  "allOtherCatalogFieldsPreserved": true,
+  "currentQueueTasksAndEventsUnchanged": true,
+  "sourceSeedTasksAndEventsUnchanged": true,
+  "allWorkersStopped": true,
+  "runtimeNotInstalledYet": true,
+  "onlyOwnershipPathsAdded": [
+    "lib/db/migrations/correction-operation-recovery.review.sql",
+    "artifacts/api-server/src/services/accountingDocuments/corrections.integration.test.ts"
+  ],
+  "priorQueueReference": {
+    "format": "ledgerpoint-queue-reference-v1",
+    "repository": "Future00111/ledgerpoint",
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "670b245f0eeccf7e31d364568a4210e1bb024396",
+    "path": "docs/development/candidates/correction-discovery-20261117/accepted/accepted-queue-delta.json",
+    "bytesSha256": "d2d1224c756aca2efd387dd1467b07c3802e28709f55ef8b55e7ce1e0d796c66",
+    "queueSha256": "bc7597f0d4c161a3e8130fc73dd34c60c94f7e70ac732759e3dc2a1e1c573f4a",
+    "revision": 871,
+    "catalogDigest": "10b841806aa07b58201daa49008d9c865eaa3e58190bc285151eab5349ad1485"
+  },
+  "priorSourceCommit": "4c1062fafacb68f3cce67a17aeef02e07512c761",
+  "provenance": "Prior full queue is reconstructible from the pinned delta/base referenced by the prior coordinator; all tasks/events preserved exactly. New full base required because only catalogue digest changes."
+}

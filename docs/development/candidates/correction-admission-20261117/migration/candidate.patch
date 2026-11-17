@@ -1,0 +1,28 @@
+diff --git a/docs/development/work-backlog.json b/docs/development/work-backlog.json
+index 4dcee50..455a1ea 100644
+--- a/docs/development/work-backlog.json
++++ b/docs/development/work-backlog.json
+@@ -376,7 +376,9 @@
+         "artifacts/api-server/src/services/accountingDocuments/corrections.ts",
+         "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.jsx",
+         "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.test.jsx",
+-        "artifacts/ledgerly/src/features/documentCorrections/model.test.mjs"
++        "artifacts/ledgerly/src/features/documentCorrections/model.test.mjs",
++        "lib/db/migrations/correction-operation-recovery.review.sql",
++        "artifacts/api-server/src/services/accountingDocuments/corrections.integration.test.ts"
+       ],
+       "kind": "implementation",
+       "approval": "approved"
+diff --git a/docs/development/work-state.json b/docs/development/work-state.json
+index 9838814..6386d39 100644
+--- a/docs/development/work-state.json
++++ b/docs/development/work-state.json
+@@ -7136,7 +7136,7 @@
+       ]
+     }
+   ],
+-  "catalogDigest": "10b841806aa07b58201daa49008d9c865eaa3e58190bc285151eab5349ad1485",
++  "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd",
+   "workerTokenMigration": {
+     "fromVersion": 2,
+     "source": {

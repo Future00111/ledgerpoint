@@ -1,0 +1,51 @@
+{
+  "reviewer": "capture_implementation",
+  "reviewed": true,
+  "authorCommit": "4546948a6d561393f0024ccb5c260004c36a3e8d",
+  "authorTree": "e2882a5a9c28c16054917f01330f344cb2290390",
+  "basePublished": "4c1062fafacb68f3cce67a17aeef02e07512c761",
+  "scope": "Metadata-only exact two-path P03-01 ownership and source-seed catalogue digest migration",
+  "verdict": "Approved",
+  "findings": [],
+  "verified": {
+    "exactTwoPathExpansion": true,
+    "allOtherCatalogueFieldsPreserved": true,
+    "taskCount": 112,
+    "sourceBulletCount": 92,
+    "runtimeRevision": 871,
+    "runtimeEvents": 886,
+    "sourceSeedRevision": 531,
+    "sourceSeedEvents": 539,
+    "runtimeAndSeedOnlyCatalogueDigestChanged": true,
+    "sourceSnapshotsMatchExactCommits": true,
+    "currentRuntimeUnchanged": true,
+    "noHeldTasks": true,
+    "newCatalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd",
+    "bothProposedStatesValidated": true,
+    "overlapsRetained": [
+      {
+        "path": "lib/db/migrations/correction-operation-recovery.review.sql",
+        "otherTaskOwners": []
+      },
+      {
+        "path": "artifacts/api-server/src/services/accountingDocuments/corrections.integration.test.ts",
+        "otherTaskOwners": [
+          "P01-04",
+          "P01-05"
+        ]
+      }
+    ],
+    "workQueueChecks": {
+      "passed": 103,
+      "failed": 0,
+      "log": "checks.log"
+    }
+  },
+  "requirements": [
+    "Archive old runtime and reviewed migration before installing the new digest.",
+    "Restore the current migrated runtime, never the stale source seed.",
+    "Claim highest eligible task through the normal CLI after durable ownership; preserve overlap fencing."
+  ],
+  "reviewerStopped": true,
+  "reviewedAt": "2026-11-17T15:49:18.918Z"
+}
