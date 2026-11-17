@@ -1,0 +1,86 @@
+[
+  {
+    "entry": "execution.integration.test.ts",
+    "compiled": true,
+    "externalImports": [
+      "pg",
+      "node:crypto",
+      "node:util",
+      "node:test",
+      "node:assert/strict",
+      "node:child_process",
+      "node:path",
+      "node:fs"
+    ],
+    "pgDependencyLoaded": true,
+    "absentPrivateServerRefused": true,
+    "nativeDatabasePassed": false,
+    "exitCode": 1
+  },
+  {
+    "entry": "integration.test.ts",
+    "compiled": true,
+    "externalImports": [
+      "pg",
+      "node:crypto",
+      "node:util",
+      "tty",
+      "util",
+      "supports-color",
+      "path",
+      "buffer",
+      "string_decoder",
+      "stream",
+      "async_hooks",
+      "node:zlib",
+      "url",
+      "node:path",
+      "node:fs",
+      "crypto",
+      "fs",
+      "node:http",
+      "node:querystring",
+      "node:buffer",
+      "node:net",
+      "node:events",
+      "@clerk/express",
+      "node:test",
+      "node:assert/strict",
+      "node:child_process"
+    ],
+    "pgDependencyLoaded": true,
+    "absentPrivateServerRefused": true,
+    "nativeDatabasePassed": false,
+    "exitCode": 1
+  },
+  {
+    "entry": "restore.test.ts",
+    "compiled": true,
+    "externalImports": [
+      "pg",
+      "node:crypto",
+      "node:util",
+      "node:test",
+      "node:assert/strict",
+      "node:fs"
+    ],
+    "pgDependencyLoaded": true,
+    "absentPrivateServerRefused": true,
+    "nativeDatabasePassed": false,
+    "exitCode": 1
+  },
+  {
+    "entry": "restartWorker.ts",
+    "compiled": true,
+    "externalImports": [
+      "pg",
+      "node:crypto",
+      "node:util",
+      "node:fs"
+    ],
+    "pgDependencyLoaded": true,
+    "absentPrivateServerRefused": true,
+    "nativeDatabasePassed": false,
+    "exitCode": 1
+  }
+]

@@ -1,0 +1,28 @@
+✔ execution replay retains a verified result and independently reconstructs branded objects (8.298313ms)
+✔ logical expiry cannot release physical occupancy and retry is bounded (3.010838ms)
+✔ cancelled/stale/expired attempts cannot commit a result or release another reservation (1.175766ms)
+✔ stored gaps, forged snapshots/results, extra fields and missing outbox fail closed (6.526946ms)
+✔ job identity is stable, canonical and binds company, source bytes, recipe, request and retry policy (1.018164ms)
+✔ creation requires byte-verified evidence and bounded explicit recipe, identity and retry settings (4.025697ms)
+✔ a cited mixed-VAT invoice remains immutable evidence for explicit native supplier/tax review (8.590299ms)
+✔ supplier credit evidence requires original bill and line selection without matching or posting automatically (3.381801ms)
+✔ malformed candidate accounting values stay visible review errors using existing validators (2.199168ms)
+✔ incorrect source, hash, page, quote and offsets cannot become accepted citations (5.617889ms)
+✔ document instructions remain inert cited data and unsupported command fields are rejected (1.250618ms)
+✔ exact cloned completion is idempotent, changed raw payload conflicts even if sanitized reviews match (2.421166ms)
+✔ completion requires a verified result and matching company, source id and byte hash (3.771371ms)
+✔ transient failures wait for the bounded retry deadline and preserve prior immutable outcomes (2.871531ms)
+✔ retry budgets terminate repeated transient failures and permanent failures never retry (1.010613ms)
+✔ invalid clocks, revisions, unbounded retry hints and raw provider errors fail closed (0.965606ms)
+✔ cancellation is terminal, clears result availability and rejects late responses (1.238239ms)
+✔ supersession binds a different job to the same company/evidence and fences stale deliveries (1.994366ms)
+✔ page, transcript, result byte, node and depth bounds reject oversized provider output (40.593762ms)
+✔ non-JSON values, sparse arrays, getters and extra envelope fields are never evaluated or accepted (2.084369ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 238.089541

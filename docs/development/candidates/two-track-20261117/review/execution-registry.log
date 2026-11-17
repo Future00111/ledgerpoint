@@ -1,0 +1,43 @@
+✔ versioned replacement migration retains existing consumption engine and requires a committed cluster origin (6.41783ms)
+✔ replacement history migration is pinned, append-only and separate from original binding and payment qualification (1.881299ms)
+✔ explicit original binding keeps ordinary posting gates and a database-owned original xid prerequisite (1.181996ms)
+✔ all registered review migrations are pinned and returned as the exact verified bytes (6.793855ms)
+✔ unknown version fails closed (0.870075ms)
+✔ legacy unpinned version fails closed (0.355235ms)
+✔ missing overlay fails closed (1.743986ms)
+✔ overlay traversal fails closed (1.448279ms)
+✔ wrong overlay identity fails closed (1.041318ms)
+✔ unsupported overlay contract fails closed (1.872165ms)
+✔ malformed overlay checksum fails closed (1.162767ms)
+✔ production authority fails closed (0.532757ms)
+✔ missing migration fails closed (0.224191ms)
+✔ unknown migration fails closed (0.388433ms)
+✔ duplicate identity fails closed (0.465838ms)
+✔ wrong order fails closed (0.259514ms)
+✔ missing dependency fails closed (0.330308ms)
+✔ unsupported contract fails closed (0.428483ms)
+✔ traversal path fails closed (0.326923ms)
+✔ changed SQL bytes fail checksum validation without leaking SQL (0.387623ms)
+✔ missing SQL fails with bounded diagnostic (0.259313ms)
+✔ nonempty database is rejected before BEGIN, amendments=false (3.585486ms)
+✔ nonempty database is rejected before BEGIN, amendments=true (1.183297ms)
+✔ altered overlay fails with bounded diagnostic (2.435658ms)
+✔ missing overlay fails with bounded diagnostic (2.89726ms)
+✔ tampered overlay stops installer before any database query, amendments=false (10.81134ms)
+✔ tampered overlay stops installer before any database query, amendments=true (8.200984ms)
+✔ schema created after preflight is refused under migration lock, amendments=false (1.815211ms)
+✔ schema created after preflight is refused under migration lock, amendments=true (1.666652ms)
+✔ installed history matches exact selected input versions, amendments=false (2.603886ms)
+✔ installed history matches exact selected input versions, amendments=true (2.287099ms)
+✔ payment admission and terminal history are pinned append-only observations with restricted runtime grants (1.376023ms)
+✔ correction admission and terminal binding are immutable, pinned and installed in both modes (3.021674ms)
+✔ durable queued/cancelled identities, lifecycle and outbox are pinned and installed in both modes (4.684489ms)
+✔ durable execution adds independently pinned immutable event/outbox history after the existing queue (2.365264ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 249.872962

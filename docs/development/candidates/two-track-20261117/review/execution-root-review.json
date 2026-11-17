@@ -1,0 +1,129 @@
+{
+  "reviewer": "root",
+  "reviewed": true,
+  "authorCommit": "f440616fcd07eaeb9395d254c53e7cee4dc31eec",
+  "tree": "34b5da4a535e97f8b27444efa20c8052a503a1de",
+  "base": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
+  "integratedLocal": "305d9866d8965a937ebcbed5b586151252590c65",
+  "integratedTree": "00a3ae865e0d336c2fbcced734e6a17c9129c2a4",
+  "reviewedAt": "2026-11-17T18:59:42.777917+00:00",
+  "files": [
+    {
+      "path": "artifacts/api-server/src/services/documentIntake/extraction/contract.test.ts",
+      "bytes": 21078,
+      "sha256": "802797c7c591d4d5732962c031c10c24f64f0ec6fed59f9c99310f2254c33a04"
+    },
+    {
+      "path": "artifacts/api-server/src/services/documentIntake/extraction/contract.ts",
+      "bytes": 14762,
+      "sha256": "2d2848fbd54abfc95bd43c1cfe6f6fd7d7e9be758ea4e2a0fad91733c228e721"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/README.md",
+      "bytes": 2631,
+      "sha256": "a9c36c4b1a53b632863338b3a8a1e427dbf5898a1947ac3a041c06c2667d55c3"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/execution.integration.test.ts",
+      "bytes": 11672,
+      "sha256": "acb64d8dc20b0f38afe3cdf70f1cca959dfa95010e9a19151b475d8d25a5ca1d"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/executionContract.test.ts",
+      "bytes": 4717,
+      "sha256": "69141b513abb7e9721e989c5ba0a0704873cddee4945c30fee208c601edc1bc1"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/executionContract.ts",
+      "bytes": 4445,
+      "sha256": "77f1aeef1e3c027390afe3deb257f6683a2cc9960b4b1654b1a3b0c98e3edda9"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/executionRepository.ts",
+      "bytes": 6324,
+      "sha256": "bfa7aa75fc884d514b1c9eca802af938a721e38003c3ef401413318533afd0f8"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/executionSchema.ts",
+      "bytes": 6860,
+      "sha256": "731fed486076c23906d7e57a9d3cf660dd125c356a1f2fc669e4437eade93fdd"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/executionStore.ts",
+      "bytes": 2746,
+      "sha256": "1e067a95351e8e43a454b50a705b6579293db505c02bf37ecce2df0054ff643b"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/restartWorker.ts",
+      "bytes": 1284,
+      "sha256": "75c6580cdc9d9657afceebcfa49093e117e265025d9fb32e6e3c71e8d8a16af6"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/restore.test.ts",
+      "bytes": 3313,
+      "sha256": "9a7f703b2eceb6548a673c01d2dcc390cfe9e9c6439ad12a85058ed978d7ad88"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/service.ts",
+      "bytes": 7481,
+      "sha256": "63e16a0d02887d4232a4336da5ca6e6b3bf464811a3f2311537e4a076db0674c"
+    },
+    {
+      "path": "lib/db/migration-registry.json",
+      "bytes": 8341,
+      "sha256": "7b9c044f0393a9a4d81dea8f0b2312e1c9a88ed92975c0359947154619b049b5"
+    },
+    {
+      "path": "lib/db/migrations/durable-job-execution.review.sql",
+      "bytes": 2911,
+      "sha256": "4d40f0c36ca3de578c1abc1a904b57967dd5de84180f4f558491ebf40f6a4d88"
+    },
+    {
+      "path": "lib/db/schema-change-registry.json",
+      "bytes": 6914,
+      "sha256": "6ccd2c9fe78f26f9a4a492451df8b6919df0b6a17952df6d8e718cdfe9b97066"
+    },
+    {
+      "path": "tools/accounting-flow/schema.mjs",
+      "bytes": 9009,
+      "sha256": "eb0a25322ee9b6736a05c85455be49bb6a3dc4577cd02e6a75c334edab0c5f9e"
+    },
+    {
+      "path": "tools/accounting-flow/test.mjs",
+      "bytes": 9781,
+      "sha256": "80c047e60c6ff188e62bf1d93b994c24304bba353aca118030b3caa8d0940a07"
+    },
+    {
+      "path": "tools/development/migrations/registry.mjs",
+      "bytes": 8770,
+      "sha256": "8262216e37dd817d7c81224665fcc1bf2aa7683721ce92185bfbe3c37e7ec4ff"
+    },
+    {
+      "path": "tools/development/migrations/registry.test.mjs",
+      "bytes": 14269,
+      "sha256": "dc114ca0b448e56a593e6e77ca65008466cfe7fdb96cbd4c4a5d6bb6befd0281"
+    }
+  ],
+  "findings": [],
+  "resolvedFindings": [
+    "Trusted clock resampled after native locks",
+    "Full closure journal/outbox validation before capacity reuse; damaged proof holds starts",
+    "Guarded disposable source revision mutation restores original trigger mode in finally",
+    "Execution suite asserts canonical journal/posting-effect counts unchanged"
+  ],
+  "checks": [
+    "Reviewed execution replay, live membership/source and revision fences, immutable SQL/grants/schema attestation, trusted post-lock time and conservative closure proof",
+    "Reviewed final guarded-source test cleanup and no canonical journal/posting effects assertion",
+    "Confirmed stopped clean author and exact cherry-picked files; prior migration files unchanged"
+  ],
+  "qualification": "Focused tests, registry tests and typecheck passed; combined exact-source build and native PostgreSQL/restart/restore CI pending. Module load negative control is not database success.",
+  "remaining": [
+    "Trusted supervisor proof/release for execution occupancy left unknown by process death",
+    "Fenced outbox delivery and scheduler",
+    "Configured native provider execution and prompt cross-process transport cancellation",
+    "Operational history retention beyond conservative 1000 executed-job scan",
+    "Full original P03-02 acceptance remains pending"
+  ],
+  "authorStopped": true,
+  "firstPassReview": false
+}

@@ -1,0 +1,82 @@
+{
+  "task": "P03-02",
+  "actor": "durable-execution-implementer",
+  "basePublished": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
+  "authorCommit": "f440616fcd07eaeb9395d254c53e7cee4dc31eec",
+  "authorTree": "34b5da4a535e97f8b27444efa20c8052a503a1de",
+  "branch": "codex/durable-execution-20261117",
+  "changedFiles": [
+    "artifacts/api-server/src/services/documentIntake/extraction/contract.test.ts",
+    "artifacts/api-server/src/services/documentIntake/extraction/contract.ts",
+    "artifacts/api-server/src/services/durableJobs/README.md",
+    "artifacts/api-server/src/services/durableJobs/execution.integration.test.ts",
+    "artifacts/api-server/src/services/durableJobs/executionContract.test.ts",
+    "artifacts/api-server/src/services/durableJobs/executionContract.ts",
+    "artifacts/api-server/src/services/durableJobs/executionRepository.ts",
+    "artifacts/api-server/src/services/durableJobs/executionSchema.ts",
+    "artifacts/api-server/src/services/durableJobs/executionStore.ts",
+    "artifacts/api-server/src/services/durableJobs/restartWorker.ts",
+    "artifacts/api-server/src/services/durableJobs/restore.test.ts",
+    "artifacts/api-server/src/services/durableJobs/service.ts",
+    "lib/db/migration-registry.json",
+    "lib/db/migrations/durable-job-execution.review.sql",
+    "lib/db/schema-change-registry.json",
+    "tools/accounting-flow/schema.mjs",
+    "tools/accounting-flow/test.mjs",
+    "tools/development/migrations/registry.mjs",
+    "tools/development/migrations/registry.test.mjs"
+  ],
+  "stopped": true,
+  "worktreeClean": true,
+  "finishedAt": "2026-11-17T18:56:16.056Z",
+  "scope": "Native durable execution journal, claim/attempt replay, bounded retry, result and cancellation fences; actual transport capacity remains separate and unknown after process death.",
+  "checks": [
+    {
+      "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+      "status": "passed",
+      "log": "execution-typecheck.log"
+    },
+    {
+      "command": "esbuild src/services/documentIntake/extraction/contract.test.ts --bundle --platform=node --format=cjs; node --test <bundle>",
+      "status": "passed",
+      "tests": 20,
+      "log": "execution-contract.log"
+    },
+    {
+      "command": "node --test tools/development/migrations/registry.test.mjs",
+      "status": "passed",
+      "tests": 35,
+      "log": "execution-registry.log"
+    },
+    {
+      "command": "node ../run-20261117-two-track/execution-local-checks.mjs",
+      "status": "passed",
+      "compiledNativeEntries": 4,
+      "moduleLoading": "All external imports CommonJS; real pg loaded through NODE_PATH; absent private target refused",
+      "nativeDatabasePassed": false,
+      "log": "execution-module-proof.json"
+    },
+    {
+      "command": "git diff --cached --check",
+      "status": "passed"
+    }
+  ],
+  "previousMigrationCount": 25,
+  "previousMigrationFilesAndPinsUnchanged": true,
+  "nativeQualification": "Awaiting exact-source disposable PostgreSQL CI, actual claim process death/fresh-process recovery and populated restore. Local host has no PostgreSQL.",
+  "reviewFixes": [
+    "Trusted clock resampled after native locks",
+    "Full closure journal/outbox validation before capacity reuse; damaged proof holds starts",
+    "Guarded disposable source revision mutation restores original trigger mode in finally",
+    "Execution suite asserts canonical journal/posting-effect counts unchanged"
+  ],
+  "remaining": [
+    "Trusted supervisor proof/release for execution occupancy left unknown by process death",
+    "Fenced outbox delivery and scheduler",
+    "Configured native provider execution and prompt cross-process transport cancellation",
+    "Operational history retention beyond conservative 1000 executed-job scan",
+    "Full original P03-02 acceptance remains pending"
+  ],
+  "providerCost": null,
+  "credits": null
+}
