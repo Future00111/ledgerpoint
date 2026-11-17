@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 475,
+  "revision": 476,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
@@ -21,19 +21,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "e6f2f6378d89ed04e8d464a20fd43f3028bd7e30",
+    "sha": "be4bc58d195cd4ba0dbd882578a9f0efae5eb0c3",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e6f2f6378d89ed04e8d464a20fd43f3028bd7e30",
-        "path": "docs/development/candidates/correction-admission-20261117/publication-blocked.json"
+        "sha": "be4bc58d195cd4ba0dbd882578a9f0efae5eb0c3",
+        "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/brief.json"
       }
     ],
-    "runId": "correction-admission-1794930354689",
-    "at": 1794932180439,
+    "runId": "correction-qualification-1794933080298",
+    "at": 1794933301800,
     "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144"
   },
-  "updatedAt": 1794933080299,
+  "updatedAt": 1794933301800,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -96,8 +96,10 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [],
-  "workersStopped": true,
+  "activeWorkers": [
+    "encrypted-attempt-recovery-implementer"
+  ],
+  "workersStopped": false,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -137,11 +139,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "4ca2f3082947a8048f46e3682122c3699aba8221",
-    "path": "docs/development/candidates/correction-admission-20261117/review/review-queue-delta.json",
-    "bytesSha256": "160e26b2f0d415781f05f45296b809bd1878d41c476412d4eb774680ac3201d4",
-    "queueSha256": "8e96ad1249295a00fba75c6ea52bde3a6c7b1c3d54160ecbb1c1e1d0fe96ca9f",
-    "revision": 875,
+    "sha": "be4bc58d195cd4ba0dbd882578a9f0efae5eb0c3",
+    "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/claim-queue-delta.json",
+    "bytesSha256": "83497410ee1f4f8d44bcd4dfb85d252200426d885e847510b0b1569693d22366",
+    "queueSha256": "74087907b72352daf615ea16cb8fb36990febdffd653ca39fa94e12b559ff847",
+    "revision": 877,
     "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
   },
   "historyReference": {
@@ -171,7 +173,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 871,
-    "currentRevision": 875,
+    "currentRevision": 877,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -189,7 +191,7 @@
     "startedAt": "2026-11-17T15:45:54.689Z",
     "scope": "Highest eligible P03-01 durable precommit correction attempt and recovery workflow; resolve exact additive migration ownership first.",
     "providerCheck": "Replit exact URL search returned no apps and exact name resolver foundfalse in this run; no dispatch.",
-    "activity": "Stopped candidate 727437f independently reviewed and local checks passed; verify preserved earlier code/test publication approval before resuming exact-source qualification. No new source changes.",
+    "activity": "Candidate727437f stopped and clean. Existing authority record inspected; automatic approval review still rejected public source upload. No retry. Remains review pending explicit source disclosure approval and exact-source CI.",
     "catalogMigration": {
       "author": "4546948a6d561393f0024ccb5c260004c36a3e8d",
       "published": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
@@ -203,5 +205,15 @@
       "path": "docs/development/candidates/correction-admission-20261117/brief.json"
     },
     "lastObservedAt": "2026-11-17T16:31:20.301Z"
+  },
+  "backupRecoveryRun": {
+    "startedAt": "2026-11-17T16:35:01.804Z",
+    "task": "P03-04",
+    "activity": "Durable assigned next eligible independent native payment-attempt encrypted fresh-cluster recovery. Exact published base a055f02; source uploads remain blocked.",
+    "assignment": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "be4bc58d195cd4ba0dbd882578a9f0efae5eb0c3",
+      "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/brief.json"
+    }
   }
 }
