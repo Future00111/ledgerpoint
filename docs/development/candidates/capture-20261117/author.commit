@@ -1,0 +1,6 @@
+tree ff6aeb38e0a2eda44d0fd0eff3b6432e00439f1b
+parent e19aedfda9dffe79a0958724c0da88391ab9a8ae
+author Codex <codex@openai.com> 1794920321 +0000
+committer Codex <codex@openai.com> 1794920321 +0000
+
+Interrupt committed capture response after HTTP headers

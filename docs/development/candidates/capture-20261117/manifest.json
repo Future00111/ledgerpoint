@@ -1,0 +1,59 @@
+{
+  "author": "498e82b96bb8b7b59d4564c15ea5a9f6827cc88b",
+  "tree": "ff6aeb38e0a2eda44d0fd0eff3b6432e00439f1b",
+  "basePublished": "e19aedfda9dffe79a0958724c0da88391ab9a8ae",
+  "files": {
+    "candidate.patch": {
+      "bytes": 2572,
+      "sha256": "0729ed1a0e748ce9f9fc6f86957bbbfda71dd828a2a86434c372d5343df34064"
+    },
+    "author.commit": {
+      "bytes": 252,
+      "sha256": "30e13352af4c5259ae28e56552e9920ab0e8043b0b0e5eb9d54991ae3ac478a8"
+    },
+    "author-result.json": {
+      "bytes": 1097,
+      "sha256": "de1cfb03b0c970e97509dc1bee8d82f1102980b5c116dceed6de5922671be6fa"
+    },
+    "review.json": {
+      "bytes": 1552,
+      "sha256": "dbdd1d0977607bc465a97f0ea031b7248a4d45c7f186415c49428ed599221271"
+    },
+    "transport-reproduction.log": {
+      "bytes": 216,
+      "sha256": "ffb21426d686f1c968dadb1996ed971d3a2a4f0eac6d7528690ce34db52870c2"
+    },
+    "transport-reproduction.mjs": {
+      "bytes": 2324,
+      "sha256": "dab07b88adcfaf66872ba109321a2b77e8a9fb3a80a9e20596cf266212dff0ba"
+    },
+    "reproduction-before.log": {
+      "bytes": 660,
+      "sha256": "d9a42207a79332109388dc6bbbe55d99316e30e36d9564eec3b2ee267dbf9f67"
+    },
+    "reproduction-partial.log": {
+      "bytes": 660,
+      "sha256": "c29bffcb1d5b9a256721a567138c1337828c1eb7ece9b343f9984138454306b1"
+    },
+    "source-check.log": {
+      "bytes": 109036,
+      "sha256": "1294c354b26af95c0189e8205eea7b9a18d112e1bd5d223edcc96ede634d9824"
+    },
+    "full-build.log": {
+      "bytes": 15797,
+      "sha256": "3fe93e36e5f0e0d11a5ed38b6e0fe5bdf734b1e415e1a8701bd283da546872de"
+    },
+    "migrations.log": {
+      "bytes": 2446,
+      "sha256": "17a9d9d468bc5b3541c0d545d62caac6ef08862efce8e1fb42e28d4da2cdb7ce"
+    },
+    "author-focused.log": {
+      "bytes": 1144,
+      "sha256": "d43103fbb7f4620e9ebbedde78353e071aef225d635bd82a2e0c85052c6a2b5f"
+    },
+    "author-typecheck.log": {
+      "bytes": 147,
+      "sha256": "b0caa5fe33952c0e8a0edde78ca9771c7608f79daedeb55e29952bfb30c8c8c1"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "commit": "498e82b96bb8b7b59d4564c15ea5a9f6827cc88b",
+  "summary": "Stopped author minimal same-file test rework: flush committed201headers and incompleteJSON body before socket close; strict1POST/recovery assertions unchanged. Root independent diff/probe review passed; nativeCI remains pending. Transparent replay remains hypothesis; localChromium startup blocked.",
+  "tests": [
+    {
+      "command": "node transport-reproduction.mjs (rawHTTP plus nativeDocumentIntake client)",
+      "passed": true
+    },
+    {
+      "command": "node --test artifacts/ledgerly/src/features/documentIntake/model.test.mjs artifacts/ledgerly/src/api/documentIntake.test.mjs",
+      "passed": true
+    },
+    {
+      "command": "pnpm@10.26.1 --filter @workspace/api-server typecheck",
+      "passed": true
+    },
+    {
+      "command": "esbuild native and mounted browser bundles",
+      "passed": true
+    }
+  ],
+  "tree": "ff6aeb38e0a2eda44d0fd0eff3b6432e00439f1b",
+  "base": "e19aedfda9dffe79a0958724c0da88391ab9a8ae",
+  "author": "capture-implementer",
+  "workersStopped": true,
+  "cleanWorktree": true
+}

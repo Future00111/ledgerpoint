@@ -1,0 +1,29 @@
+{
+  "reviewer": "root",
+  "author": "capture-implementer",
+  "authorCommit": "498e82b96bb8b7b59d4564c15ea5a9f6827cc88b",
+  "tree": "ff6aeb38e0a2eda44d0fd0eff3b6432e00439f1b",
+  "reviewed": true,
+  "workersStopped": true,
+  "review": "Independent exact diff review: only same test file9insertions/2deletions. Full-body Content-Length with flushed201headers and deliberately incompleteJSON guarantees no valid response can be accepted, while the existing post-commit native router boundary is retained. All single-POST, real reload, member/company isolation, one draft/audit, immutable source, no posting and empty storage assertions remain. Failure diagnostics include server counters. RawHTTP probe demonstrates201partialbody and nativeclient rejects then recovers via GET. Production files unchanged.",
+  "priorFailure": {
+    "run": 44087089219,
+    "job": 134052225297,
+    "nativePassed": 90,
+    "nativeFailed": 2,
+    "reason": "Both new capture browser cases: lost response not exposed",
+    "rootCause": "Socket-close simulation ambiguity; automatic browser replay is a hypothesis, not proven."
+  },
+  "limitations": [
+    "Local Chromium could not start due host socket policy; no local browser pass claimed.",
+    "Actual new native browser/restore CI required.",
+    "Synthetic auth only; no real Clerk/production qualification."
+  ],
+  "checkedAt": "2026-11-17T12:59:51.616322+00:00",
+  "localGates": {
+    "sourceChecks": 1063,
+    "buildTypecheck": "passed exit0",
+    "migrationChecks": "32passed exit0",
+    "diffCheck": "passed"
+  }
+}

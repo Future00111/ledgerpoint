@@ -1,0 +1,2 @@
+HTTP wire evidence {"status":201,"body":"{\"data\":","complete":false}
+Native client rejects incomplete committed response, then read recovers persisted document without another POST. Two explicit probes, two POSTs.
