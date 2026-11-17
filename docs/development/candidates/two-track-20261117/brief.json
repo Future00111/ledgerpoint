@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "status": "reserved_pending_live_readback",
+  "scope": "Owner-approved two-track development, existing scope and gates",
+  "basePublished": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
+  "ownershipCandidate": "b8697065cb263777a065aee445e6fb876fb8ee44",
+  "tracks": [
+    {
+      "task": "P03-02",
+      "actor": "durable-execution-implementer",
+      "objective": "Implement native durable execution attempts on the accepted queued/cancelled intake queue, with lease/revision fences, validated reconstruction and bounded retry/result recovery.",
+      "contract": [
+        "Existing source bytes, source revision, current company membership and capability are verified before claim and settlement.",
+        "A transaction persists an execution claim/attempt and append-only lifecycle/outbox evidence before any configured internal transport starts.",
+        "Existing immutable migration bytes and checksum pins stay unchanged; only new durable-job-execution.review.sql may extend installed schema with separately verified history and structural guards.",
+        "Lease expiry fences results but never proves physical transport closure or frees capacity; restart/unknown transport remains held until trusted stop/closure proof. No caller-provided boolean alone may release physical capacity.",
+        "Duplicate delivery and stale or cancelled completions commit at most one review-required result, never a posting/financial effect.",
+        "Rehydrate stored execution/result via existing validators, not type casts, and reject gaps, mismatches or forged evidence.",
+        "OCR/email/provider connectivity remains not_connected; no startup/upload automatic enqueue, scheduler, live provider connection or production migration."
+      ],
+      "acceptance": [
+        "Native queued to claimed to review-required or bounded-failure result is durable and recoverable.",
+        "Concurrent claims, stale completions, cancellation/revocation/source mutation, retry limits and unknown closure are covered.",
+        "Actual process death/fresh process recovery and populated restore are exercised by the existing disposable CI runner.",
+        "Parent stays pending for unimplemented scheduler, fenced delivery, provider controls or other original acceptance."
+      ],
+      "budget": "Bounded implementation; root independent review and combined CI afterwards"
+    },
+    {
+      "task": "P04-01",
+      "actor": "tax-register-implementer",
+      "objective": "Complete the supported-case inventory against all existing tax/payroll source bullets and close the register prerequisite if evidence supports it, without qualifying engines.",
+      "contract": [
+        "Cover regional/residency, multiple-business/income interactions, company frameworks/supplements and VAT exceptions, using pinned authoritative provenance and concrete required input/output examples.",
+        "Retain every promised payroll/tax/VAT scope and all existing official reference packs.",
+        "Distinguish scope-register completeness from P04-03 expected-result qualification and P04-02 calculation implementation.",
+        "Unknown and unqualified cases fail explicitly; no supported-engine promotion or production adapter.",
+        "Tests independently enumerate backlog coverage and reject removed, duplicate, contradictory and unknown variant cases."
+      ],
+      "acceptance": [
+        "Machine-readable full scope register maps each promised family/variant to source task, owner, official provenance, required input/output examples and acceptance tests.",
+        "All original P04-01 criteria reviewed without deleting remaining engine qualification gaps.",
+        "P04-03 and P02-04 readiness reassessed after full register acceptance, with a concrete next implementation or verification task."
+      ]
+    }
+  ],
+  "boundaries": [
+    "Synthetic isolated work only",
+    "No raw tokens or credentials in reports",
+    "No merges, deployments, production changes or external sends",
+    "No unreviewed source publication",
+    "One coordinator; independent author review; at most two implementation tracks"
+  ],
+  "authorStopAt": "2026-11-17T19:00:10.975Z",
+  "queueRevision": 903
+}
