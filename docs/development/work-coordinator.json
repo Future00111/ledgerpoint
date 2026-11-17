@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 506,
+  "revision": 507,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "e4c062b09f15d2660e3cb55b0962ce4689b0c690",
+  "codeHead": "1c52f77c63599b26c4d90862c485db951f12ca66",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,24 +21,34 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "4e435429dbd405ddd6571045f57663656f08c97f",
+    "sha": "d08cd97c3622c81339bdc4a9ccd52061d37f4c17",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "4e435429dbd405ddd6571045f57663656f08c97f",
-        "path": "docs/development/candidates/two-track-20261117/ci-repair/ci-repair-queue-delta.json"
+        "sha": "d08cd97c3622c81339bdc4a9ccd52061d37f4c17",
+        "path": "docs/development/candidates/two-track-20261117/repair-published/repair-published-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "4e435429dbd405ddd6571045f57663656f08c97f",
-        "path": "docs/development/candidates/two-track-20261117/ci-repair/ci-first-failure.log"
+        "sha": "d08cd97c3622c81339bdc4a9ccd52061d37f4c17",
+        "path": "docs/development/candidates/two-track-20261117/repair-published/execution-truncate-author-report.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "d08cd97c3622c81339bdc4a9ccd52061d37f4c17",
+        "path": "docs/development/candidates/two-track-20261117/repair-published/execution-truncate-root-review.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "d08cd97c3622c81339bdc4a9ccd52061d37f4c17",
+        "path": "docs/development/candidates/two-track-20261117/repair-published/repair-preflight.json"
       }
     ],
     "runId": "two-track-1794939703603",
-    "at": 1794942271831,
-    "codeHead": "e4c062b09f15d2660e3cb55b0962ce4689b0c690"
+    "at": 1794942402878,
+    "codeHead": "1c52f77c63599b26c4d90862c485db951f12ca66"
   },
-  "updatedAt": 1794942271831,
+  "updatedAt": 1794942402878,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -136,11 +146,11 @@
     {
       "actor": "durable-execution-implementer",
       "task": "P03-02",
-      "status": "running",
-      "stopped": false
+      "status": "review",
+      "stopped": true
     }
   ],
-  "workersStopped": false,
+  "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -180,11 +190,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "4e435429dbd405ddd6571045f57663656f08c97f",
-    "path": "docs/development/candidates/two-track-20261117/ci-repair/ci-repair-queue-delta.json",
-    "bytesSha256": "5455541df70d9ccce8bbac2227c346d77893b5665781903290715625f82b4a03",
-    "queueSha256": "acc68c5833a0c81ade1b3e9ac005b685347e4c31e57822595aaed8311d609f8b",
-    "revision": 911,
+    "sha": "d08cd97c3622c81339bdc4a9ccd52061d37f4c17",
+    "path": "docs/development/candidates/two-track-20261117/repair-published/repair-published-queue-delta.json",
+    "bytesSha256": "71ed7644a1e0f72119568ee1e5457508539f5b4958742abcf91944f401f2f661",
+    "queueSha256": "e923e350504a3f9112f25702a0716ad4d86719caacdc2ee3674efbf6597aae11",
+    "revision": 912,
     "catalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f"
   },
   "historyReference": {
@@ -203,7 +213,7 @@
       "constraint": "Current fixture waits for loaded readiness; financial safeguards remain fail-closed."
     }
   ],
-  "worktreesClean": false,
+  "worktreesClean": true,
   "queueHydration": {
     "required": true,
     "note": "queueState is an immutable reference, not a runnable queue. Fetch the exact artifact, verify byte and resolved queue digests and catalogue digest, validate with core.mjs, then hydrate before CLI init/scheduling/currentView. Never initialize an archived base alone. Existing coordinator ownership/fencing and expected-head publication remain unchanged.",
@@ -214,7 +224,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 901,
-    "currentRevision": 911,
+    "currentRevision": 912,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -354,7 +364,7 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-17T18:21:43.606Z",
-    "activity": "First native CI44154195960 failed: existing privileged TRUNCATE fixture omits new FK-dependent tables, so preflight blocks before expected immutable trigger. Actual author stopped verified, rejected for concrete defect, recovered/reclaimed same candidate for narrow fixture correction. Tax remains reviewed; no acceptance.",
+    "activity": "Narrow privileged truncate fixture corrected without weakening SQLSTATE, FKs or guards; author fcc62d stopped clean, independently reviewed, typecheck/compile passed. Corrected source published; native CI pending.",
     "providerCheck": "Exact URL returned no editable apps; exact LedgerPoint resolver found false. Codex continues.",
     "migration": {
       "published": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
@@ -367,12 +377,12 @@
       "sha": "816092d836169c92a315a6ea0de40565c9d7dc85",
       "path": "docs/development/candidates/two-track-20261117/brief.json"
     },
-    "observedAt": "2026-11-17T19:04:16.608Z",
+    "observedAt": "2026-11-17T19:06:29.122Z",
     "taxCandidate": "c9931ba777a780374995e64d61cde85c068ca003",
     "taxTree": "eab97f0f9ffe21369bd1bb73da248f91706ad447",
     "localIntegratedCommit": "305d9866d8965a937ebcbed5b586151252590c65",
-    "integratedTree": "00a3ae865e0d336c2fbcced734e6a17c9129c2a4",
-    "publishedCommit": "e4c062b09f15d2660e3cb55b0962ce4689b0c690",
+    "integratedTree": "8dfb788aabd7bd7769d252f808f104da53b82c6b",
+    "publishedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66",
     "ciRun": 44154195960,
     "firstPassCI": false
   }
