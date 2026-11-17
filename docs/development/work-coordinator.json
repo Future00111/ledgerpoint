@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 498,
+  "revision": 499,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59",
+  "codeHead": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,29 +21,29 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "d47745e32531618916759feae6cc40af6f480fea",
+    "sha": "d947548774524724665b3ca6cf461cc41675f133",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "d47745e32531618916759feae6cc40af6f480fea",
-        "path": "docs/development/candidates/durable-intake-20261117/accepted/accepted-queue-delta.json"
+        "sha": "d947548774524724665b3ca6cf461cc41675f133",
+        "path": "docs/development/candidates/two-track-20261117/migration/queue-base.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "d47745e32531618916759feae6cc40af6f480fea",
-        "path": "docs/development/candidates/durable-intake-20261117/accepted/qualification.json"
+        "sha": "d947548774524724665b3ca6cf461cc41675f133",
+        "path": "docs/development/candidates/two-track-20261117/migration/review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "d47745e32531618916759feae6cc40af6f480fea",
-        "path": "docs/development/candidates/durable-intake-20261117/accepted/current-view.json"
+        "sha": "d947548774524724665b3ca6cf461cc41675f133",
+        "path": "docs/development/candidates/two-track-20261117/migration/disclosure-review.json"
       }
     ],
-    "runId": "durable-intake-1794935665134",
-    "at": 1794938823776,
-    "codeHead": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59"
+    "runId": "two-track-1794939703603",
+    "at": 1794940380613,
+    "codeHead": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4"
   },
-  "updatedAt": 1794939703604,
+  "updatedAt": 1794940380613,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -172,12 +172,12 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "d47745e32531618916759feae6cc40af6f480fea",
-    "path": "docs/development/candidates/durable-intake-20261117/accepted/accepted-queue-delta.json",
-    "bytesSha256": "dea50fae6eae0ab184a3c17ad546e9aa65d3ad6c221159b4457b6d6c166cba3d",
-    "queueSha256": "233867c4885a9aad68c228bc36fd6ac44a5abc990835bbaa2e29713fbbcc291c",
+    "sha": "d947548774524724665b3ca6cf461cc41675f133",
+    "path": "docs/development/candidates/two-track-20261117/migration/queue-base.json",
+    "bytesSha256": "e5434cb264d620c9acd61ea009f33bdcab03ee738a9d82afdf6ab32d27b5b6e4",
+    "queueSha256": "d9d084358adf7746b539bd20ef7acc6155178b01ea96319712b7fbcb2a88047d",
     "revision": 901,
-    "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
+    "catalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f"
   },
   "historyReference": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -205,18 +205,18 @@
       "path": "docs/development/candidates/correction-discovery-20261117/compact/queue-reference.mjs",
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
-    "baseRevision": 871,
+    "baseRevision": 901,
     "currentRevision": 901,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "0b1c6cc73bd65640419105d36221a47e729b035f",
-      "path": "docs/development/candidates/correction-admission-20261117/migration/queue-base.json",
-      "bytesSha256": "71fa5ad32a80ed3c6189dc95b1f6885e2880310cde3d67a277247b27253040cc",
-      "queueSha256": "d28df1d8cdc121f62678cfbf62efe3045848a35cb40430186ee33554f63d2a71",
-      "revision": 871,
-      "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
+      "sha": "d947548774524724665b3ca6cf461cc41675f133",
+      "path": "docs/development/candidates/two-track-20261117/migration/queue-base.json",
+      "bytesSha256": "e5434cb264d620c9acd61ea009f33bdcab03ee738a9d82afdf6ab32d27b5b6e4",
+      "queueSha256": "d9d084358adf7746b539bd20ef7acc6155178b01ea96319712b7fbcb2a88047d",
+      "revision": 901,
+      "catalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f"
     }
   },
   "admissionRun": {
@@ -346,7 +346,13 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-17T18:21:43.606Z",
-    "activity": "Acquired for highest eligible accounting work and tax-payroll prerequisite; contracts and exact ownership being settled before dispatch.",
-    "providerCheck": "Exact URL returned no editable apps; exact LedgerPoint resolver found false. Codex continues."
+    "activity": "Reviewed ownership migration published; q901 unchanged apart from catalog identity; ready to claim two tracks.",
+    "providerCheck": "Exact URL returned no editable apps; exact LedgerPoint resolver found false. Codex continues.",
+    "migration": {
+      "published": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
+      "archive": "d947548774524724665b3ca6cf461cc41675f133",
+      "reviewer": "tax_implementation",
+      "catalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f"
+    }
   }
 }
