@@ -1,0 +1,90 @@
+{
+  "task": "P03-01",
+  "scenario": "durable-correction-admission-and-explicit-no-effect-recovery",
+  "authorCommit": "727437f5a832b50d09c497e25caef28fcdf1434e",
+  "tree": "6054072facaa4ef296149668db2e9773db45e9ea",
+  "basePublished": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
+  "reviewer": "root",
+  "independentReview": true,
+  "authorStopped": true,
+  "sourceFiles": [
+    "artifacts/api-server/src/routes/accountingDocuments.ts",
+    "artifacts/api-server/src/services/accountingDocuments/corrections.integration.test.ts",
+    "artifacts/api-server/src/services/accountingDocuments/corrections.ts",
+    "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+    "artifacts/api-server/src/services/operationRecovery/correctionAdmissionJourney.ts",
+    "artifacts/api-server/src/services/operationRecovery/correctionRecovery.restore.test.ts",
+    "artifacts/api-server/src/services/operationRecovery/correctionRestartHarness.ts",
+    "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+    "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+    "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.jsx",
+    "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.test.jsx",
+    "artifacts/ledgerly/src/features/documentCorrections/model.mjs",
+    "artifacts/ledgerly/src/features/documentCorrections/model.test.mjs",
+    "lib/db/migration-registry.json",
+    "lib/db/migrations/correction-operation-recovery.review.sql",
+    "lib/db/schema-change-registry.json",
+    "tools/accounting-flow/schema.mjs",
+    "tools/accounting-flow/test.mjs",
+    "tools/development/migrations/registry.mjs",
+    "tools/development/migrations/registry.test.mjs"
+  ],
+  "checks": [
+    {
+      "command": "node tools/development/check.mjs",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "command": "PORT=8080 BASE_PATH=/ pnpm@10.26.1 run build",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "command": "node --test artifacts/ledgerly/src/features/documentCorrections/model.test.mjs artifacts/ledgerly/src/api/accountingDocuments.test.mjs tools/development/migrations/registry.test.mjs",
+      "passed": true,
+      "count": 81
+    },
+    {
+      "command": "esbuild DocumentCorrections.test.jsx with native alias; node --test render.cjs",
+      "passed": true,
+      "count": 7
+    },
+    {
+      "command": "native and exact inline browser entry compilation",
+      "passed": true
+    }
+  ],
+  "ciStatus": "pending exact candidate publication",
+  "remaining": [
+    "Exact GitHub native, mounted browser, restart and restored-runtime qualification.",
+    "Full P03-01 still requires unqualified payroll/filing producers and other remaining scenarios."
+  ],
+  "nextAction": "After explicit owner source-publication authorization, recover the stopped exact candidate 727437f5a832b50d09c497e25caef28fcdf1434e/tree6054072facaa4ef296149668db2e9773db45e9ea, verify local artifacts and clean source, acquire single coordinator and respect existing review ownership; if the worker lease expired use normal stopped-worker recovery, never steal. Publish only via fresh exact-head preflight on PR29 and run full CI before bounded acceptance. Do not recreate or accept unqualified work.",
+  "standingUploadScope": "CI logs and queue/coordinator checkpoints only; source patch and local reports omitted after automatic approval review.",
+  "status": "publication-blocked-awaiting-explicit-source-authorization",
+  "observedAt": "2026-11-17T16:16:07.803Z",
+  "publishedHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
+  "pr": 29,
+  "authorBranch": "codex/correction-admission-20261117",
+  "worktreesClean": true,
+  "queueRevision": 875,
+  "queueStatus": "review",
+  "acceptance": "Not accepted: exact-source native/browser/restart/restore CI not run.",
+  "automaticApprovalRejections": [
+    {
+      "action": "Publish expanded review archive",
+      "reason": "Standing upload authorization covers CI logs and queue/coordinator checkpoints; source patch and local reports exceeded that scope.",
+      "resolution": "Source patch and local reports retained locally; authorized queue and coordinator checkpoint successfully archived at 4ca2f3082947a8048f46e3682122c3699aba8221."
+    },
+    {
+      "action": "Publish 20 reviewed source and test files",
+      "reason": "Automatic approval review treats standing authorization as limited to CI logs and queue/coordinator checkpoints.",
+      "resolution": "No retry or alternate transport. Existing draft PR source unchanged. Ask owner for explicit source/test and sanitized review artifact publication authorization."
+    }
+  ],
+  "limitations": [
+    "Local unpublished source and full review artifacts have not been uploaded; retained in author branch and local run directory only.",
+    "Coordinator will be released idle with stopped workers; review ownership remains recorded, not falsely rejected or accepted."
+  ]
+}
