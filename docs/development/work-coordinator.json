@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 484,
+  "revision": 485,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "b176e696124e4a16354ba503aa55afd0c3bae96b",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "durable-intake-1794935665134",
+    "tokenSha256": "d25f3a4535f6f84756bc2822a9feef6df161b8ffc1dd9e01757756fdcf4313ff",
+    "acquiredAt": 1794935665135,
+    "expiresAt": 1794939265135
+  },
   "lastOwner": {
     "runId": "recovery-qualification-1794934573329",
     "tokenSha256": "0df0e7ac6a2396ae1f0fc1ed3ea597b4d4585477f75c991959ba79fd43ff44ab",
@@ -33,7 +38,7 @@
     "at": 1794935215415,
     "codeHead": "b176e696124e4a16354ba503aa55afd0c3bae96b"
   },
-  "updatedAt": 1794935215419,
+  "updatedAt": 1794935665135,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -297,5 +302,9 @@
     "finishedAt": "2026-11-17T17:06:55.418Z",
     "measuredProviderCost": null,
     "nextAction": "Use current queue and accepted outcomes. Reconcile actual remaining payroll/filing and durable extraction/job producer dependencies before assigning more recovery work; retain genuine operational recovery/owner gates. Do not reimplement accepted payment/capture/correction or encrypted attempt scenarios."
+  },
+  "durableIntakeRun": {
+    "startedAt": "2026-11-17T17:14:25.140Z",
+    "activity": "Reconciled accepted recovery work against native source. Remaining payroll/filing producers absent; establish exact noncyclic prerequisites before claiming next durable job task. Replit exact URL/name unresolved; local isolated implementer planned."
   }
 }
