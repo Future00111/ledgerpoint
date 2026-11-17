@@ -3,10 +3,10 @@ import{disposableTarget,verifyTarget}from'./testTarget';
 const target=disposableTarget();
 let pool:typeof import('@workspace/db')['pool'],service:typeof import('./service'),intake:typeof import('../documentIntake/service');
 const admin=new pg.Pool({host:target.socket,port:55441,user:'w03_bootstrap',database:target.database,password:()=>'',ssl:false,options:'-c timezone=UTC'});
-let financialBefore:string;
+let financialBefore:string|undefined;
 const actor='synthetic-durable-owner',reader='synthetic-durable-reader',second='synthetic-durable-other-manager';
 before(async()=>{({pool}=await import('@workspace/db'));await verifyTarget(pool,target.database);await verifyTarget(admin,target.database,'w03_bootstrap');service=await import('./service');intake=await import('../documentIntake/service');financialBefore=JSON.stringify((await pool.query('SELECT (SELECT count(*) FROM canonical_journal_entries) journals,(SELECT count(*) FROM accounting_posting_effects) effects')).rows);});
-after(async()=>{try{assert.equal(JSON.stringify((await pool.query('SELECT (SELECT count(*) FROM canonical_journal_entries) journals,(SELECT count(*) FROM accounting_posting_effects) effects')).rows),financialBefore);}finally{await pool?.end();await admin.end();}});
+after(async()=>{try{if(financialBefore!==undefined)assert.equal(JSON.stringify((await pool.query('SELECT (SELECT count(*) FROM canonical_journal_entries) journals,(SELECT count(*) FROM accounting_posting_effects) effects')).rows),financialBefore);}finally{await Promise.all([pool?.end(),admin.end()]);}});
 async function fixture(label='ordinary'){
  const company=randomUUID();await admin.query("INSERT INTO companies(id,name,country,base_currency,status) VALUES($1,$2,'GB','GBP','active')",[company,'Synthetic durable '+label]);
  for(const [user,role]of[[actor,'owner'],[reader,'read_only'],[second,'owner']])await admin.query('INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,$4,true)',[randomUUID(),company,user,role]);
