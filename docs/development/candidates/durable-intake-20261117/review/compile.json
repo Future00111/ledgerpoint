@@ -1,0 +1,10 @@
+{
+  "nativeEntries": [
+    "integration.test.ts",
+    "restartWorker.ts",
+    "restore.test.ts"
+  ],
+  "currentWorktreeSources": true,
+  "localPostgreSQL": false,
+  "scope": "Compilation only, no persistence acceptance"
+}

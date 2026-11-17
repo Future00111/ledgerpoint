@@ -1,0 +1,113 @@
+ENTRY documentIntake/intake.test.ts
+✔ evidence is content-derived and immutable; duplicates survive new filenames and channels (5.190756ms)
+✔ source descriptors cannot be forged or copied from unverified JSON (1.670874ms)
+✔ source rejects unsupported media, bad signatures, unsafe names and oversized bytes (0.924483ms)
+✔ supported image signatures are accepted without claiming a successful image parse (1.082737ms)
+✔ transcripts are bounded, immutable and tied to the exact source (14.819077ms)
+✔ a coherent candidate remains unposted and requires explicit source, supplier and tax review (4.568348ms)
+✔ fabricated citations, offsets, quotes and sources are rejected (3.002178ms)
+✔ missing citations and absent identifiers become explicit review errors (0.729676ms)
+✔ unknown fields, instructions as commands, excessive lines and values fail shape validation (1.506281ms)
+✔ sparse provider arrays and non-numeric page references cannot bypass validation (3.868691ms)
+✔ prototype-bearing candidates and accessor fields are rejected without evaluation (1.105972ms)
+✔ invalid decimal strings and numeric JSON values never get rounded or coerced (4.646713ms)
+✔ invalid VAT, fractional-penny totals and inconsistent line/document totals are flagged (3.538709ms)
+✔ totals checks retain exact integer precision at the native money limit (1.264054ms)
+✔ invalid dates, unsupported currency and missing credit original are explicit errors (0.897394ms)
+✔ prompt-like instructions in a cited description remain inert text (0.776936ms)
+✔ reviewed native envelope is parsed and stays an unposted draft candidate (1.774187ms)
+✔ source, supplier and tax acknowledgements are mandatory and bound to the current payload (1.69478ms)
+✔ native strict contract rejects model totals, undeclared metadata and invalid decimals (0.570401ms)
+✔ draft adapters reject coercible kinds, source accessors and sparse source lines (0.654024ms)
+✔ credits require matching explicit original references, reason and effective date (2.496107ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 284.836438
+ENTRY documentIntake/service.test.ts
+✔ native upload derives identity and SHA from bytes and rejects client identity fields (13.118384ms)
+✔ strict base64 rejects ignored whitespace, extra padding, URL alphabet and noncanonical trailing bits (5.188579ms)
+✔ upload caps the encoded allocation and decoded bytes at 5 MiB, accepting the exact limit (454.197864ms)
+✔ native upload rejects media mismatches, unsafe filenames and prototype-bearing payloads (23.947005ms)
+✔ verified storage reconstruction rejects tampered hash, bytes, length, format and channel (1.933556ms)
+✔ download disposition safely encodes quotes, unicode and header delimiters as attachment (0.545316ms)
+✔ review freshness changes with calculation, mapping, source revision and entered intent (5.24238ms)
+✔ replay intent remains source-bound and rejects caller totals (1.523961ms)
+✔ upload deduplicates within a company with one source and one audit while retaining original metadata (2.063789ms)
+✔ same bytes in another company create independent evidence without revealing the first source (1.23845ms)
+✔ current membership and write role are required even when the content is a duplicate (1.241588ms)
+✔ the in-transaction native save helper retains its own active membership and draft-write gate (1.33398ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1251.492772
+ENTRY documentIntake/extraction/contract.test.ts
+✔ job identity is stable, canonical and binds company, source bytes, recipe, request and retry policy (7.01361ms)
+✔ creation requires byte-verified evidence and bounded explicit recipe, identity and retry settings (2.405093ms)
+✔ a cited mixed-VAT invoice remains immutable evidence for explicit native supplier/tax review (10.219456ms)
+✔ supplier credit evidence requires original bill and line selection without matching or posting automatically (6.837961ms)
+✔ malformed candidate accounting values stay visible review errors using existing validators (6.692536ms)
+✔ incorrect source, hash, page, quote and offsets cannot become accepted citations (11.504919ms)
+✔ document instructions remain inert cited data and unsupported command fields are rejected (4.462993ms)
+✔ exact cloned completion is idempotent, changed raw payload conflicts even if sanitized reviews match (4.191251ms)
+✔ completion requires a verified result and matching company, source id and byte hash (8.532929ms)
+✔ transient failures wait for the bounded retry deadline and preserve prior immutable outcomes (5.968367ms)
+✔ retry budgets terminate repeated transient failures and permanent failures never retry (2.570077ms)
+✔ invalid clocks, revisions, unbounded retry hints and raw provider errors fail closed (3.155041ms)
+✔ cancellation is terminal, clears result availability and rejects late responses (2.874571ms)
+✔ supersession binds a different job to the same company/evidence and fences stale deliveries (2.960969ms)
+✔ page, transcript, result byte, node and depth bounds reject oversized provider output (58.475369ms)
+✔ non-JSON values, sparse arrays, getters and extra envelope fields are never evaluated or accepted (2.975446ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 321.647817
+ENTRY documentIntake/extraction/worker.test.ts
+✔ worker verifies source and adapts bounded cited output into review only, with immutable originals (19.988963ms)
+✔ enqueue is actor-bound/idempotent, prevents competing source requests, and requires current authority (5.606317ms)
+✔ source size, media, tenant, hash, revision and linked-document changes fail before dispatch (6.533912ms)
+✔ two workers race one job but dispatch exactly once (4.922861ms)
+✔ shared repository limits concurrent executions across multiple workers and different sources (15.039963ms)
+✔ timeout fences an uncooperative adapter and retains actual capacity until transport closure (20.033364ms)
+✔ cancel and supersede signal abort and late output cannot replace current state (7.806922ms)
+✔ expired abandoned leases are recoverable but cannot release execution slots or accept stale completion (2.068385ms)
+✔ revoked access, changed evidence or converted source at outcome time cannot retain an extraction result (6.092945ms)
+✔ lease expiry during the final authority check rejects a previously timely result (1.968728ms)
+✔ transient failures use bounded retry deadlines/budgets; raw failures never leak diagnostics (2.383706ms)
+✔ permanent unsupported/encrypted failures do not retry and missing adapters fail closed (2.663334ms)
+✔ output rejects oversized bytes, excessive chunks/pages, duplicate keys, deep JSON and invalid UTF-8 (50.432553ms)
+✔ transport byte mutation cannot rewrite source evidence and malformed candidate stays an explicit review issue (1.63857ms)
+✔ unconfirmed transport closure retains capacity even when its output has completed (4.620104ms)
+✔ a hung authority adapter is bounded and cannot accumulate unlimited orphan resolutions (11.930208ms)
+✔ queue and settings limits fail explicitly; external repository errors return only bounded status (1.500766ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 380.929918
+ENTRY durableJobs/contract.test.ts
+✔ JSON persisted queued and cancelled records reconstruct branded native contracts without casting (4.25799ms)
+✔ strict persistence rejects partial, future, in-flight and mismatched identity/history/outbox records (5.945282ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 170.311003

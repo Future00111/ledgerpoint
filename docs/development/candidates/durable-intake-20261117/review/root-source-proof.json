@@ -1,0 +1,82 @@
+{
+  "authorCommit": "27a890e6176cb5204cf02e8566caeb6f66e4d489",
+  "tree": "a1b69964c61ef12fecea0d6ed567911db10225e6",
+  "base": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+  "files": [
+    {
+      "path": "artifacts/api-server/src/routes/documentIntake.ts",
+      "sha256": "ee2441c6b3ebd1998788fef48b8ce10243e153489a229aa13467568207669d02"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/README.md",
+      "sha256": "cabc4115c716162a6b6cd1bb5794f142d75ba7828e478015c88e64b4da81de97"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/contract.test.ts",
+      "sha256": "6c7def79acba8bc3b31bc1ba802234fc9c9d3b5b0d9f60c912422f1f3139953d"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/contract.ts",
+      "sha256": "ec3331caebd3222c5fe194a5e81b280635a84c2cdbac65a9032c1c980ad8687d"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/integration.test.ts",
+      "sha256": "937aa60519fefb8608d0d8511100df49538aa49c0cae7b5b14ed342576710c19"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/restartWorker.ts",
+      "sha256": "30cc9ba3d1b49be32178d8ceba608b4d1fefa8f932b704c8c2c98e93a4c3fc79"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/restore.test.ts",
+      "sha256": "23f2c84098be2e003f3d1d51a6549a0eb8ac671186005165b8277a3413c41a35"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/schema.ts",
+      "sha256": "d8de2ac59f22ee77df897505d382416f7a7aeb85c1a07125eeb17dc72f9080da"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/service.ts",
+      "sha256": "59364dc381e2d0e55c5661a11ad87280e8fa5c40473538fa10aae48e9f802957"
+    },
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/testTarget.ts",
+      "sha256": "e84288a6c815ac25634c28e6b4c7d866ebfb66522ddcb91b773feb0d63b35538"
+    },
+    {
+      "path": "lib/db/migration-registry.json",
+      "sha256": "59ad55cdf9411f8fc47a272a12b0f4a8c4e9c7b4c61b26da50900fbf01ea18fb"
+    },
+    {
+      "path": "lib/db/migrations/durable-jobs.review.sql",
+      "sha256": "23ce9b92b69bed960573db768351b653de502e512a5c1797f5040f67a015eed0"
+    },
+    {
+      "path": "lib/db/schema-change-registry.json",
+      "sha256": "11ec09968961a25f2ec2fb1746e2b36ac2f09aa9d1c03c821965d7fc48fe0ae7"
+    },
+    {
+      "path": "tools/accounting-flow/schema.mjs",
+      "sha256": "92d45c7a46e074e751aa6ef1d380685be251f9fc1b2b022587b00fe07b4895fd"
+    },
+    {
+      "path": "tools/accounting-flow/test.mjs",
+      "sha256": "4a8628322619956291b30e834fe52b203f2b82d88077fd94f7ae264d4fa9faf0"
+    },
+    {
+      "path": "tools/development/migrations/registry.mjs",
+      "sha256": "6e55babaa690d527f559d7c9709d0dfd1c502c120ea6add813531b92836519c5"
+    },
+    {
+      "path": "tools/development/migrations/registry.test.mjs",
+      "sha256": "d23d9d983fda51deedd859e53451448fa1b3e076d0227c655413a7dd0ed83a48"
+    }
+  ],
+  "leasedOnly": true,
+  "existingMigrationsUnchanged": 24,
+  "securityOverlayUnchanged": true,
+  "authorStopped": true,
+  "bothWorktreesClean": true,
+  "credentialPatternScan": "passed",
+  "reviewer": "root"
+}

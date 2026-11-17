@@ -1,0 +1,108 @@
+{
+  "task": "P03-02",
+  "actor": "durable-intake-implementer",
+  "authorCommit": "27a890e6176cb5204cf02e8566caeb6f66e4d489",
+  "tree": "a1b69964c61ef12fecea0d6ed567911db10225e6",
+  "base": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+  "branch": "codex/durable-intake-queue-20261117",
+  "stoppedAt": "2026-11-17T17:35:21.137Z",
+  "clean": true,
+  "stopped": true,
+  "independentReviewRequired": true,
+  "scope": "Bounded native explicit pre-execution queued/cancelled lifecycle with immutable atomic identity/event/outbox, current company/source authority, strict branded reconstruction and safe HTTP routes. Providers remain not_connected.",
+  "files": [
+    "artifacts/api-server/src/routes/documentIntake.ts",
+    "artifacts/api-server/src/services/durableJobs/README.md",
+    "artifacts/api-server/src/services/durableJobs/contract.test.ts",
+    "artifacts/api-server/src/services/durableJobs/contract.ts",
+    "artifacts/api-server/src/services/durableJobs/integration.test.ts",
+    "artifacts/api-server/src/services/durableJobs/restartWorker.ts",
+    "artifacts/api-server/src/services/durableJobs/restore.test.ts",
+    "artifacts/api-server/src/services/durableJobs/schema.ts",
+    "artifacts/api-server/src/services/durableJobs/service.ts",
+    "artifacts/api-server/src/services/durableJobs/testTarget.ts",
+    "lib/db/migration-registry.json",
+    "lib/db/migrations/durable-jobs.review.sql",
+    "lib/db/schema-change-registry.json",
+    "tools/accounting-flow/schema.mjs",
+    "tools/accounting-flow/test.mjs",
+    "tools/development/migrations/registry.mjs",
+    "tools/development/migrations/registry.test.mjs"
+  ],
+  "tests": [
+    {
+      "command": "Focused esbuild + node --test intake, intake service, extraction contract, worker, durable reconstruction",
+      "passed": true,
+      "count": 68,
+      "log": "focused.log"
+    },
+    {
+      "command": "node --test tools/development/migrations/registry.test.mjs",
+      "passed": true,
+      "count": 34,
+      "log": "registry.log"
+    },
+    {
+      "command": "pnpm@10.26.1 exec tsc --build lib/db lib/api-zod; pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+      "passed": true,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "esbuild native integration.test.ts, restartWorker.ts, restore.test.ts with current-worktree source boundary verification",
+      "passed": true,
+      "log": "compile.json"
+    },
+    {
+      "command": "node --check modified mjs; git diff --check; exact file lease and 24 historical migration SQL/pin comparison",
+      "passed": true,
+      "log": "source-boundary.json"
+    }
+  ],
+  "nativeRuntime": {
+    "executedLocally": false,
+    "reason": "PostgreSQL unavailable locally; registered actual native PostgreSQL, HTTP, subprocess death/recovery and populated restored queued/cancelled tests require full exact-source GitHub CI.",
+    "suites": [
+      "durableJobs/integration.test.ts",
+      "durableJobs/restore.test.ts"
+    ],
+    "schemaNegatives": [
+      "missing table",
+      "missing column",
+      "disabled trigger",
+      "weakened CHECK",
+      "changed regex literal",
+      "WHEN(false) trigger",
+      "extra PUBLIC table/column grants",
+      "unsafe runtime UPDATE grant",
+      "wrong owner"
+    ],
+    "testBoundaries": [
+      "identity/event/outbox rollback",
+      "cancel rollback",
+      "concurrent same request",
+      "different actor/source/recipe/policy conflicts",
+      "removed membership",
+      "read-only and foreign company",
+      "corrupt/revised/converted source",
+      "malformed terminal history prevents new enqueue",
+      "immutable restricted/owner SQL",
+      "tenant FK",
+      "actual process kill and fresh process recovery",
+      "restored queued/cancelled identities/outbox"
+    ]
+  },
+  "remaining": [
+    "No durable execution attempts, in-flight/result rehydration, worker lease/retry, scheduler, outbox dispatch/delivery lease or transport-settlement support.",
+    "No provider credentials/connections or automatic enqueue on upload/startup.",
+    "No financial effects, merge, deployment, existing or demo database changes.",
+    "Full P03-02 remains pending; bounded outcome requires independent review and exact-source runtime/restore CI."
+  ],
+  "reviewFeedbackAddressed": [
+    "Validate every prior source history before freeing queue slot; fail closed beyond100 histories.",
+    "Exact UUID normalization for same-request replay.",
+    "Exact CHECK tokens preserving quoted literals and grouping; strict FK namespace/action, trigger unconditional/no-arguments, ACL and NOLOGIN owner checks.",
+    "pg name[] introspection cast to text[]; guarded runtime imports and exact socket/data-directory identity.",
+    "Admin TRUNCATE all dependent tables to test immutable trigger rather than FK preflight."
+  ],
+  "limits": "Queue history limit100 is an explicit safe refusal requiring future supported lifecycle/archival policy; retained immutable evidence is not erased."
+}

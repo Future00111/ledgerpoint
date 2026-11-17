@@ -1,0 +1,14 @@
+[
+  {
+    "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node tools/development/check.mjs",
+    "exitCode": 0,
+    "passed": true,
+    "file": "combined.log"
+  },
+  {
+    "command": "pnpm run build",
+    "exitCode": 0,
+    "passed": true,
+    "file": "build.log"
+  }
+]
