@@ -1,0 +1,6 @@
+tree 2056fb61863775be74626371154e4a4b7bd090e6
+parent 3dc11c2dad959dd7090a1e40e4fd51ae5b41216f
+author Codex <codex@openai.com> 1794923978 +0000
+committer Codex <codex@openai.com> 1794923978 +0000
+
+Fix deterministic chronology in commercial credit refund browser fixture

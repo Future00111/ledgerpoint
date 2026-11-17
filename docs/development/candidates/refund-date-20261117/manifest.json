@@ -1,0 +1,42 @@
+{
+  "commit": "ac992f628e372bda86c35da5b22e6932e2ab64b1",
+  "tree": "2056fb61863775be74626371154e4a4b7bd090e6",
+  "basePublished": "3dc11c2dad959dd7090a1e40e4fd51ae5b41216f",
+  "files": [
+    {
+      "path": "candidate.patch",
+      "bytes": 1245,
+      "sha256": "4403ba133425e7881e105229c9215b24afcff5a4ee70875eb84a3e3628c73f75"
+    },
+    {
+      "path": "author.commit",
+      "bytes": 269,
+      "sha256": "3361604890a63a3413d8ad821920da6f1d8bec919c4c78b8273ebb0e1e1bca55"
+    },
+    {
+      "path": "review.json",
+      "bytes": 833,
+      "sha256": "ad9383b8f990964319f2dd8c06a8a4b890f9a2fd806861d656c49174bd0adea1"
+    },
+    {
+      "path": "source-check.log",
+      "bytes": 109053,
+      "sha256": "31324211531515864f4226f2b3c8c9861652e07768dcf14bc1f39085f29c6a4a"
+    },
+    {
+      "path": "full-build.log",
+      "bytes": 15797,
+      "sha256": "7a367d0218009dca1ff46bc2866b36c65dedf5fc3f378e4c4d9c83a64c7ef417"
+    },
+    {
+      "path": "migrations.log",
+      "bytes": 2444,
+      "sha256": "b134cd5597d0eafc6510b5078fb21d70fe7e237a4e79021d3095d4985259d549"
+    },
+    {
+      "path": "harness-compile.log",
+      "bytes": 66,
+      "sha256": "b778ef657c9da4dd3b203b4996b1e465b135b029e1844f78c2cb5bfaa5f216d3"
+    }
+  ]
+}
