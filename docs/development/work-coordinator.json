@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 502,
+  "revision": 503,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
@@ -21,34 +21,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "50789a405036e179d43e496367faf4327a917c8d",
+    "sha": "2cda2e11041bd17e5c3e99f4521588abf1447f6e",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "50789a405036e179d43e496367faf4327a917c8d",
-        "path": "docs/development/candidates/two-track-20261117/tax-review/tax-review-queue-delta.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "50789a405036e179d43e496367faf4327a917c8d",
-        "path": "docs/development/candidates/two-track-20261117/tax-review/tax-author-report.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "50789a405036e179d43e496367faf4327a917c8d",
-        "path": "docs/development/candidates/two-track-20261117/tax-review/tax-root-review.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "50789a405036e179d43e496367faf4327a917c8d",
-        "path": "docs/development/candidates/two-track-20261117/tax-review/tax-root-focused.log"
+        "sha": "2cda2e11041bd17e5c3e99f4521588abf1447f6e",
+        "path": "docs/development/candidates/two-track-20261117/execution-progress/execution-progress-queue-delta.json"
       }
     ],
     "runId": "two-track-1794939703603",
-    "at": 1794941179524,
+    "at": 1794941479829,
     "codeHead": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4"
   },
-  "updatedAt": 1794941179524,
+  "updatedAt": 1794941479829,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -190,11 +175,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "50789a405036e179d43e496367faf4327a917c8d",
-    "path": "docs/development/candidates/two-track-20261117/tax-review/tax-review-queue-delta.json",
-    "bytesSha256": "1fcab3fd118e815dffd9b5d5b7543438e0d6963b8b94e7004f6160673523f689",
-    "queueSha256": "430d869a70555dba2f13e9d265fe4669b46f5c56f8b03789033744c59516a707",
-    "revision": 906,
+    "sha": "2cda2e11041bd17e5c3e99f4521588abf1447f6e",
+    "path": "docs/development/candidates/two-track-20261117/execution-progress/execution-progress-queue-delta.json",
+    "bytesSha256": "224a3aff0d8d0f5d71f32ecdeba875a514c34e5739aeedef1e8e6c1f785bcdaf",
+    "queueSha256": "446d9317b89f93cacd4ad52ad5030f0494975ae050773f3e94fbf11557871d7b",
+    "revision": 907,
     "catalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f"
   },
   "historyReference": {
@@ -224,7 +209,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 901,
-    "currentRevision": 906,
+    "currentRevision": 907,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -364,7 +349,7 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-17T18:21:43.606Z",
-    "activity": "Tax register author stopped clean; root independently reviewed exactc9931ba/eab97f0tree and reran140tests. Parent acceptance awaits combined exact-source CI. Durable execution author active; clock and corrupt-closure findings being tested.",
+    "activity": "Tax c9931ba reviewed and stopped; local integration9793e9c. Execution native journal/repository and five native scenarios implemented; focused replay20 and migration35tests/typecheck passed. Native bundle loading reaches absent guarded socket as expected, not database success. Post-lock time, malformed closure proof and protected-source fixture findings addressed/in progress; author preparing final commit.",
     "providerCheck": "Exact URL returned no editable apps; exact LedgerPoint resolver found false. Codex continues.",
     "migration": {
       "published": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
@@ -377,7 +362,7 @@
       "sha": "816092d836169c92a315a6ea0de40565c9d7dc85",
       "path": "docs/development/candidates/two-track-20261117/brief.json"
     },
-    "observedAt": "2026-11-17T18:46:02.425Z",
+    "observedAt": "2026-11-17T18:51:04.773Z",
     "taxCandidate": "c9931ba777a780374995e64d61cde85c068ca003",
     "taxTree": "eab97f0f9ffe21369bd1bb73da248f91706ad447"
   }
