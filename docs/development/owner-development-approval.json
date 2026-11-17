@@ -1,0 +1,17 @@
+{
+  "approvedAt": "2026-11-17T14:59:09.980Z",
+  "repository": "Future00111/ledgerpoint",
+  "visibility": "public",
+  "source": "Current conversation: owner replied I approve, how can we stop me from approving every time is time consuming to explicit approval of this and future LedgerPoint development checkpoints including workflow history and hashed lease identifiers.",
+  "scope": [
+    "This and future LedgerPoint development checkpoints including workflow history and hashed lease identifiers",
+    "Previously approved reviewed code/tests, CI logs/evidence, draftPR updates and existing CI runs"
+  ],
+  "excluded": [
+    "raw task tokens or provider credentials",
+    "merge",
+    "deployment",
+    "production changes"
+  ],
+  "standing": true
+}
