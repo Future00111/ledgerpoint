@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 479,
+  "revision": 480,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "recovery-qualification-1794934573329",
+    "tokenSha256": "0df0e7ac6a2396ae1f0fc1ed3ea597b4d4585477f75c991959ba79fd43ff44ab",
+    "acquiredAt": 1794934573331,
+    "expiresAt": 1794938173331
+  },
   "lastOwner": {
     "runId": "correction-qualification-1794933080298",
     "tokenSha256": "e204949d31615e1b0d88e4b6faf0b2beda2db5d892314e5677fd49b6b255f286",
@@ -28,7 +33,7 @@
     "at": 1794933937594,
     "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144"
   },
-  "updatedAt": 1794933937598,
+  "updatedAt": 1794934573331,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -68,6 +73,31 @@
       "priorApprovalReference": {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
         "sha": "920af955b05a4a35fdfc829b23b24ea1dfb39876",
+        "path": "docs/development/owner-development-approval.json"
+      }
+    },
+    "sourceDisclosureApproval": {
+      "approvedAt": "2026-11-17T16:56:12.796Z",
+      "repository": "Future00111/ledgerpoint",
+      "visibility": "public",
+      "standing": true,
+      "source": "Explicit user authorization in current conversation",
+      "userStatement": "I authorise this and future uploads of reviewed LedgerPoint source code, tests and sanitized review artifacts to the public Future00111/ledgerpoint repository. Credentials, raw tokens, merges, deployments and production changes remain excluded.",
+      "scope": [
+        "This and future uploads of reviewed LedgerPoint source code",
+        "This and future uploads of LedgerPoint tests",
+        "This and future uploads of sanitized review artifacts"
+      ],
+      "excluded": [
+        "credentials",
+        "raw tokens",
+        "merges",
+        "deployments",
+        "production changes"
+      ],
+      "priorApprovalReference": {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "33a430cec62028168d9810e8b640793f4dcc0ede",
         "path": "docs/development/owner-development-approval.json"
       }
     }
@@ -222,5 +252,10 @@
       "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/completed-local.json"
     },
     "nextAction": "Resume these reviewed local candidates after explicit public source-upload approval; verify identity and existing draftPR29/preflight, run exact combined CI, accept only proven bounded outcomes. No new duplicate implementation."
+  },
+  "recoveryQualificationRun": {
+    "startedAt": "2026-11-17T16:56:13.334Z",
+    "activity": "Explicit owner source/test/sanitized-artifact publication authority received. Recovering reviewed combined candidate5bbcf5c/tree8e52e26 for existing PR29 exact-source runtime CI.",
+    "sourceCandidate": "5bbcf5c7fc4b61fb84d00508f9cd09f0724f35b8"
   }
 }

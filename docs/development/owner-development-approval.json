@@ -1,24 +1,49 @@
 {
-  "approvedAt": "2026-11-17T15:38:45.045Z",
+  "approvedAt": "2026-11-17T16:56:12.796Z",
   "repository": "Future00111/ledgerpoint",
   "visibility": "public",
   "standing": true,
-  "source": "Explicit user authorization in the current conversation",
-  "userStatement": "I authorise this and future uploads of LedgerPoint CI logs and queue/coordinator checkpoints—including workflow history and hashed lease identifiers—to the public Future00111/ledgerpoint repository. This excludes credentials, raw tokens, merges, deployment and production changes.",
+  "source": "Explicit user authorization in current conversation",
+  "userStatement": "I authorise this and future uploads of reviewed LedgerPoint source code, tests and sanitized review artifacts to the public Future00111/ledgerpoint repository. Credentials, raw tokens, merges, deployments and production changes remain excluded.",
   "scope": [
-    "This and future uploads of LedgerPoint CI logs",
-    "This and future queue/coordinator checkpoints, including workflow history and hashed lease identifiers"
+    "This and future uploads of reviewed LedgerPoint source code",
+    "This and future uploads of LedgerPoint tests",
+    "This and future uploads of sanitized review artifacts"
   ],
   "excluded": [
     "credentials",
     "raw tokens",
     "merges",
-    "deployment",
+    "deployments",
     "production changes"
   ],
   "priorApprovalReference": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "920af955b05a4a35fdfc829b23b24ea1dfb39876",
+    "sha": "33a430cec62028168d9810e8b640793f4dcc0ede",
     "path": "docs/development/owner-development-approval.json"
+  },
+  "coordinatorDisclosureApproval": {
+    "approvedAt": "2026-11-17T15:38:45.045Z",
+    "repository": "Future00111/ledgerpoint",
+    "visibility": "public",
+    "standing": true,
+    "source": "Explicit user authorization in the current conversation",
+    "userStatement": "I authorise this and future uploads of LedgerPoint CI logs and queue/coordinator checkpoints—including workflow history and hashed lease identifiers—to the public Future00111/ledgerpoint repository. This excludes credentials, raw tokens, merges, deployment and production changes.",
+    "scope": [
+      "This and future uploads of LedgerPoint CI logs",
+      "This and future queue/coordinator checkpoints, including workflow history and hashed lease identifiers"
+    ],
+    "excluded": [
+      "credentials",
+      "raw tokens",
+      "merges",
+      "deployment",
+      "production changes"
+    ],
+    "priorApprovalReference": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "920af955b05a4a35fdfc829b23b24ea1dfb39876",
+      "path": "docs/development/owner-development-approval.json"
+    }
   }
 }
