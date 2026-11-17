@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 493,
+  "revision": 494,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b",
@@ -21,24 +21,24 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "5f55535976d276f4f9edc251e6450b97d5806e2f",
+    "sha": "21492ed875b820a052092d248254b154405dfc49",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "5f55535976d276f4f9edc251e6450b97d5806e2f",
-        "path": "docs/development/candidates/durable-intake-20261117/module-repair/queue-delta.json"
+        "sha": "21492ed875b820a052092d248254b154405dfc49",
+        "path": "docs/development/candidates/durable-intake-20261117/module-review/module-review-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "5f55535976d276f4f9edc251e6450b97d5806e2f",
-        "path": "docs/development/candidates/durable-intake-20261117/module-repair/ci-failure.log"
+        "sha": "21492ed875b820a052092d248254b154405dfc49",
+        "path": "docs/development/candidates/durable-intake-20261117/module-review/module-root-review.json"
       }
     ],
     "runId": "durable-intake-1794935665134",
-    "at": 1794937948564,
+    "at": 1794938322884,
     "codeHead": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b"
   },
-  "updatedAt": 1794937948564,
+  "updatedAt": 1794938322884,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -130,11 +130,12 @@
     {
       "actor": "durable-intake-implementer",
       "task": "P03-02",
-      "status": "running",
-      "stopped": false
+      "status": "review",
+      "stopped": true,
+      "authorCommit": "428b7bc069a8b44066b0ade4346281f541fc445e"
     }
   ],
-  "workersStopped": false,
+  "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -174,11 +175,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "5f55535976d276f4f9edc251e6450b97d5806e2f",
-    "path": "docs/development/candidates/durable-intake-20261117/module-repair/queue-delta.json",
-    "bytesSha256": "1b9def98cfa843320c9ee696661edf1fefaf7cbbbd511cefb81e92dff370b83f",
-    "queueSha256": "df61abf6f11425bd64d8454cefcf88d03180aa68d9c170adfebe482cd2658a55",
-    "revision": 899,
+    "sha": "21492ed875b820a052092d248254b154405dfc49",
+    "path": "docs/development/candidates/durable-intake-20261117/module-review/module-review-queue-delta.json",
+    "bytesSha256": "5a6eab2aab40f52c816b22d056aa5313869c3127606bbec4d0e77af5d9ca75d7",
+    "queueSha256": "75c007a5c0d790d79abef03af7276f9803139a0b5e88f6f6e2f0e31ddef9dfb8",
+    "revision": 900,
     "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
   },
   "historyReference": {
@@ -208,7 +209,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 871,
-    "currentRevision": 899,
+    "currentRevision": 900,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -312,10 +313,10 @@
   },
   "durableIntakeRun": {
     "startedAt": "2026-11-17T17:14:25.140Z",
-    "activity": "Actual CI44141164259 failed at generated CommonJS dynamic pg import. Fresh same-task lease for static import + local actual bundle loading regression. Product/schema/role changes excluded. Stop18:00UTC.",
+    "activity": "Stopped reviewed module import repair428b7bc; old error reproduced and new exact external-CJS loading regression passes, combined/build/typecheck/native compile pass. New exact-source CI next.",
     "authorStopTarget": "2026-11-17T17:45:00Z",
-    "authorCommit": "307ee8c471cf6499ef02c9984d26d5eeabd5498d",
-    "tree": "da2c486ddb7c82cb7b9fcf9b7523bff2d7ddf5bb",
+    "authorCommit": "428b7bc069a8b44066b0ade4346281f541fc445e",
+    "tree": "634bc0b26b8c6107047238b8860ed659b6c0f19d",
     "reviewArchive": "767dba7536cf46fd85ca2be837c5f95263cf3b22",
     "publishedCommit": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b",
     "expectedParent": "dc6467a9712582a22cfeb26a389b0a281c017e87",
@@ -337,6 +338,7 @@
     "failedRuns": [
       44139504401,
       44141164259
-    ]
+    ],
+    "moduleReviewArchive": "21492ed875b820a052092d248254b154405dfc49"
   }
 }
