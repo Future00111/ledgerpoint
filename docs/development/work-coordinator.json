@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 476,
+  "revision": 477,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
@@ -30,10 +30,10 @@
       }
     ],
     "runId": "correction-qualification-1794933080298",
-    "at": 1794933301800,
+    "at": 1794933614315,
     "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144"
   },
-  "updatedAt": 1794933301800,
+  "updatedAt": 1794933614315,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -162,7 +162,7 @@
       "constraint": "Current fixture waits for loaded readiness; financial safeguards remain fail-closed."
     }
   ],
-  "worktreesClean": true,
+  "worktreesClean": false,
   "queueHydration": {
     "required": true,
     "note": "queueState is an immutable reference, not a runnable queue. Fetch the exact artifact, verify byte and resolved queue digests and catalogue digest, validate with core.mjs, then hydrate before CLI init/scheduling/currentView. Never initialize an archived base alone. Existing coordinator ownership/fencing and expected-head publication remain unchanged.",
@@ -209,11 +209,12 @@
   "backupRecoveryRun": {
     "startedAt": "2026-11-17T16:35:01.804Z",
     "task": "P03-04",
-    "activity": "Durable assigned next eligible independent native payment-attempt encrypted fresh-cluster recovery. Exact published base a055f02; source uploads remain blocked.",
+    "activity": "Native prepare/verify draft implemented with pending/no-effect/recorded original bodies, read-only discovery, immutable controls, explicit restored closure and same-ID terminal/replay checks. Root preliminary independent review found structure sound; focused tests/receipt negative controls/docs and final author commit in progress. No runtime acceptance claimed; source publication gate persists.",
     "assignment": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
       "sha": "be4bc58d195cd4ba0dbd882578a9f0efae5eb0c3",
       "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/brief.json"
-    }
+    },
+    "lastObservedAt": "2026-11-17T16:40:14.317Z"
   }
 }
