@@ -1,0 +1,172 @@
+{
+  "conclusion": "success",
+  "sourceCommit": "77830812f93b7ddba1e7382ec69e0e963adbc7ac",
+  "authorCommit": "7f2b7f013f714e5360f0aff9fa5f959efa49bc07",
+  "ciCheckout": "28d2adb86988961e5a8d0ae26316acab6d3b4898",
+  "tree": "152687018a096581260796c4a5297634889f8043",
+  "treeEquality": "Root verified all three git trees and zero code diff",
+  "run": 44100938004,
+  "job": 134100433683,
+  "runUrl": "https://github.com/Future00111/ledgerpoint/actions/runs/44100938004",
+  "allStepsSuccessfulUnskipped": true,
+  "nativeAccounting": {
+    "tests": 92,
+    "pass": 92,
+    "fail": 0
+  },
+  "conditionalDiscount": {
+    "tests": 150,
+    "pass": 150,
+    "fail": 0
+  },
+  "markers": {
+    "DISCOUNT_RULE_BROWSER_ACCEPTANCE": [
+      {
+        "syntheticReadOnly": true,
+        "actualComponents": true,
+        "unpaidAndPartial": true,
+        "fullyPaidCreditOnly": true,
+        "excessRefused": true,
+        "financialPosting": false,
+        "realClerk": false
+      }
+    ],
+    "COMMERCIAL_CREDIT_REFUND_PAGE_BROWSER_ACCEPTANCE": [
+      {
+        "party": "customer",
+        "actualFullPage": true,
+        "blankEntry": true,
+        "nativeEvidence": true,
+        "invalidatedTerms": true,
+        "savedReceiptReload": true,
+        "explicitReviewAndPost": true,
+        "nativePayment": true,
+        "actualDiscountCreditPage": true,
+        "commercialRelease": true,
+        "separateRefund": true,
+        "lostResponse": true,
+        "actualFormRemountRecovery": true,
+        "noResubmission": true,
+        "syntheticOnly": true
+      },
+      {
+        "party": "supplier",
+        "actualFullPage": true,
+        "blankEntry": true,
+        "nativeEvidence": true,
+        "invalidatedTerms": true,
+        "savedReceiptReload": true,
+        "explicitReviewAndPost": true,
+        "nativePayment": true,
+        "actualDiscountCreditPage": true,
+        "commercialRelease": true,
+        "separateRefund": true,
+        "lostResponse": true,
+        "actualFormRemountRecovery": true,
+        "noResubmission": true,
+        "syntheticOnly": true
+      }
+    ],
+    "PUBLIC_COMPENSATION_BROWSER_ACCEPTANCE": [
+      {
+        "side": "customer",
+        "action": "unallocate",
+        "actualPayments": true,
+        "currentPolicy": true,
+        "lostResponse": true,
+        "unknownLocked": true,
+        "remountRecovery": true,
+        "noResubmission": true
+      },
+      {
+        "side": "customer",
+        "action": "reverse_payment",
+        "actualPayments": true,
+        "currentPolicy": true,
+        "lostResponse": true,
+        "unknownLocked": true,
+        "remountRecovery": true,
+        "noResubmission": true
+      },
+      {
+        "side": "supplier",
+        "action": "unallocate",
+        "actualPayments": true,
+        "currentPolicy": true,
+        "lostResponse": true,
+        "unknownLocked": true,
+        "remountRecovery": true,
+        "noResubmission": true
+      },
+      {
+        "side": "supplier",
+        "action": "reverse_payment",
+        "actualPayments": true,
+        "currentPolicy": true,
+        "lostResponse": true,
+        "unknownLocked": true,
+        "remountRecovery": true,
+        "noResubmission": true
+      }
+    ],
+    "CAPTURE_RECOVERY_BROWSER_ACCEPTANCE": [
+      {
+        "kind": "purchase_bill",
+        "actualComponents": true,
+        "nativeApi": true,
+        "lostCommittedResponse": true,
+        "actualReload": true,
+        "companyIsolation": true,
+        "removedMemberDenied": true,
+        "syntheticRelogin": true,
+        "realClerk": false,
+        "draftPosts": 1,
+        "browserStorageEmpty": true
+      },
+      {
+        "kind": "supplier_credit_note",
+        "actualComponents": true,
+        "nativeApi": true,
+        "lostCommittedResponse": true,
+        "actualReload": true,
+        "companyIsolation": true,
+        "removedMemberDenied": true,
+        "syntheticRelogin": true,
+        "realClerk": false,
+        "draftPosts": 1,
+        "browserStorageEmpty": true
+      }
+    ]
+  },
+  "logSha256": "261bd351c77273a40d0993f267c06c1116459b50e6d54c1d8bb185eedbf3a254",
+  "gates": [
+    "Set up job",
+    "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+    "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+    "Use pinned pnpm",
+    "Install the locked workspace",
+    "Build and typecheck",
+    "Unit, permission, precision and UI regression",
+    "Validate pinned migration inputs",
+    "Prepare disposable PostgreSQL binaries",
+    "Prepare installed Chrome for isolated browser acceptance",
+    "Accounting API, security, atomicity and restore regression",
+    "Encrypted recovery unit controls",
+    "Encrypted disposable PostgreSQL recovery rehearsal",
+    "Verify encrypted recovery cleanup",
+    "Verify exact-source encrypted recovery evidence",
+    "Verify isolated cleanup",
+    "Verify current-run restore evidence",
+    "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+    "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+    "Complete job"
+  ],
+  "syntheticOnly": true,
+  "realClerk": false,
+  "productionQualified": false,
+  "limitations": [
+    "P03-01 broader correction discovery/payroll/filing work remains.",
+    "Capture workflow uses actual hook and review components with nativeAPI; it is not complete production-page/real-Clerk qualification.",
+    "Existing payment-history action readiness UX issue remains; test waits for valid loaded payment state."
+  ]
+}
