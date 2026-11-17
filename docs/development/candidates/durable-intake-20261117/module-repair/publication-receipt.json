@@ -1,0 +1,20 @@
+{
+  "publishedCommit": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59",
+  "tree": "634bc0b26b8c6107047238b8860ed659b6c0f19d",
+  "authorCommit": "428b7bc069a8b44066b0ade4346281f541fc445e",
+  "expectedParent": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b",
+  "reviewArchive": "21492ed875b820a052092d248254b154405dfc49",
+  "sourceRefVerified": true,
+  "prHeadVerified": true,
+  "ci": {
+    "id": 44143039202,
+    "name": "LedgerPoint development regression",
+    "status": "in_progress",
+    "conclusion": null,
+    "run_number": 85,
+    "jobs_url": "https://api.github.com/repos/Future00111/ledgerpoint/actions/runs/44143039202/jobs",
+    "logs_url": "https://api.github.com/repos/Future00111/ledgerpoint/actions/runs/44143039202/logs",
+    "workflow_id": 401903918
+  },
+  "observedAt": "2026-11-17T18:00:19.427Z"
+}
