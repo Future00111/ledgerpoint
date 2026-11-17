@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 494,
+  "revision": 495,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b",
+  "codeHead": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,24 +21,24 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "21492ed875b820a052092d248254b154405dfc49",
+    "sha": "c8d59920cec0c5decd145a7caf6207bb7d67faf7",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "21492ed875b820a052092d248254b154405dfc49",
+        "sha": "c8d59920cec0c5decd145a7caf6207bb7d67faf7",
         "path": "docs/development/candidates/durable-intake-20261117/module-review/module-review-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "21492ed875b820a052092d248254b154405dfc49",
-        "path": "docs/development/candidates/durable-intake-20261117/module-review/module-root-review.json"
+        "sha": "c8d59920cec0c5decd145a7caf6207bb7d67faf7",
+        "path": "docs/development/candidates/durable-intake-20261117/module-repair/publication-receipt.json"
       }
     ],
     "runId": "durable-intake-1794935665134",
-    "at": 1794938322884,
-    "codeHead": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b"
+    "at": 1794938430751,
+    "codeHead": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59"
   },
-  "updatedAt": 1794938322884,
+  "updatedAt": 1794938430751,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -175,7 +175,7 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "21492ed875b820a052092d248254b154405dfc49",
+    "sha": "c8d59920cec0c5decd145a7caf6207bb7d67faf7",
     "path": "docs/development/candidates/durable-intake-20261117/module-review/module-review-queue-delta.json",
     "bytesSha256": "5a6eab2aab40f52c816b22d056aa5313869c3127606bbec4d0e77af5d9ca75d7",
     "queueSha256": "75c007a5c0d790d79abef03af7276f9803139a0b5e88f6f6e2f0e31ddef9dfb8",
@@ -313,26 +313,26 @@
   },
   "durableIntakeRun": {
     "startedAt": "2026-11-17T17:14:25.140Z",
-    "activity": "Stopped reviewed module import repair428b7bc; old error reproduced and new exact external-CJS loading regression passes, combined/build/typecheck/native compile pass. New exact-source CI next.",
+    "activity": "Reviewed module-loading correction published and exact CI running. Two prior harness failures recorded with targeted regressions; runtime/schema permissions unchanged. Await native database qualification.",
     "authorStopTarget": "2026-11-17T17:45:00Z",
     "authorCommit": "428b7bc069a8b44066b0ade4346281f541fc445e",
     "tree": "634bc0b26b8c6107047238b8860ed659b6c0f19d",
-    "reviewArchive": "767dba7536cf46fd85ca2be837c5f95263cf3b22",
-    "publishedCommit": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b",
-    "expectedParent": "dc6467a9712582a22cfeb26a389b0a281c017e87",
+    "reviewArchive": "21492ed875b820a052092d248254b154405dfc49",
+    "publishedCommit": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59",
+    "expectedParent": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b",
     "sourceRefVerified": true,
     "prHeadVerified": true,
     "ci": {
-      "id": 44141164259,
+      "id": 44143039202,
       "name": "LedgerPoint development regression",
       "status": "in_progress",
       "conclusion": null,
-      "run_number": 84,
-      "jobs_url": "https://api.github.com/repos/Future00111/ledgerpoint/actions/runs/44141164259/jobs",
-      "logs_url": "https://api.github.com/repos/Future00111/ledgerpoint/actions/runs/44141164259/logs",
+      "run_number": 85,
+      "jobs_url": "https://api.github.com/repos/Future00111/ledgerpoint/actions/runs/44143039202/jobs",
+      "logs_url": "https://api.github.com/repos/Future00111/ledgerpoint/actions/runs/44143039202/logs",
       "workflow_id": 401903918
     },
-    "observedAt": "2026-11-17T17:49:44.126Z",
+    "observedAt": "2026-11-17T18:00:19.427Z",
     "failedRun": 44139504401,
     "repairReviewArchive": "767dba7536cf46fd85ca2be837c5f95263cf3b22",
     "failedRuns": [
