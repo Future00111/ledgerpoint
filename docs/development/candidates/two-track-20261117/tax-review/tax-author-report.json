@@ -1,0 +1,83 @@
+{
+  "actor": "tax-register-implementer",
+  "task": "P04-01",
+  "branch": "codex/tax-register-completion-20261117",
+  "basePublished": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
+  "authorCommit": "c9931ba777a780374995e64d61cde85c068ca003",
+  "tree": "eab97f0f9ffe21369bd1bb73da248f91706ad447",
+  "files": [
+    {
+      "path": "artifacts/api-server/src/services/tax/contracts/caseRegistry.mjs",
+      "bytes": 11335,
+      "sha256": "e64522c6b6cd98e7fe0b1c886a2accf9a23bcc42cf5a1beb3174d892523e3e3f"
+    },
+    {
+      "path": "artifacts/api-server/src/services/tax/contracts/scope-register.md",
+      "bytes": 4019,
+      "sha256": "02b31d79ef069f6f152fcd97e0e0717c27d1a71ed43ff51aa236d8eb084817b8"
+    },
+    {
+      "path": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.mjs",
+      "bytes": 11441,
+      "sha256": "97e8cae0cb91a420da268699f038ed237fe5ea6a3fd3743078eb9612a6025962"
+    },
+    {
+      "path": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+      "bytes": 9410,
+      "sha256": "0451e16fe45893e31f476f573e7e1423ed135b9465907102ca86cca25fe16fee"
+    },
+    {
+      "path": "docs/development/tax-payroll-supported-cases.json",
+      "bytes": 191224,
+      "sha256": "f5f8db8fce215e74541000e7f17b9f9a7f25a14bb8ff3bb0de8ff33f5b186c8a"
+    }
+  ],
+  "patch": {
+    "file": "tax-candidate.patch",
+    "bytes": 109863,
+    "sha256": "ac0e5581f5c76093cd9684aab349f19cdf4918601a99ae386b0ca4b9b515e9b0"
+  },
+  "summary": "Declared all29 original VAT/payroll/Income Tax/Corporation Tax requirement families with258 variants,3taxyears and909 explicit entity/variant/year selections. Executable selection and required-input boundaries reject missing, unknown, contradictory or unqualified cases; no financial defaults or calculation adapter.",
+  "preserved": {
+    "originalCases": 44,
+    "originalCasesDeepEqual": true,
+    "payrollPrerequisitesDeepEqual": true,
+    "allReferencePacksUnchanged": true,
+    "backlogDefinitionsUnchanged": true,
+    "queueNotMutatedBeyondAuthorizedClaim": true
+  },
+  "tests": [
+    {
+      "command": "node --test artifacts/api-server/src/services/tax/contracts/*.test.mjs artifacts/api-server/src/services/payroll/contracts/*.test.mjs",
+      "passed": 140,
+      "failed": 0,
+      "skipped": 0,
+      "log": "tax-focused.log"
+    },
+    {
+      "command": "git diff --check",
+      "passed": true
+    },
+    {
+      "command": "Deep compare original44case rows and complete payrollPrerequisites against exact basePublished",
+      "passed": true
+    }
+  ],
+  "scopeBoundary": "Register declaration and rejection behavior only; not engine, financial fixture qualification, statutory support, filing or production readiness. Original parent acceptance remains root independent decision after matching integrated CI.",
+  "remaining": [
+    "P04-03 must independently verify year-specific rules, exact numeric expected results, boundary/loss/refund/correction/year-transition examples and exceptional instructions; declaration examples deliberately return null outputs.",
+    "Next bounded qualification: existing2026-27Plan1 weekly arithmetic boundaries plus16datednotice scenarios and combined synthetic contract; independently verify against pinned official evidence, preserve other cases as unqualified.",
+    "P02-04 must implement payroll/personal-tax role separation before native sensitive records.",
+    "P04-02 calculation implementation remains gated by existing prerequisites; no dependency removed.",
+    "Complete P08/P09/P10/P11 workflows, applicable combinations, schemas, professional review and owner-controlled external access remain."
+  ],
+  "officialDiscoveryReviewedAt": "2026-11-17",
+  "provider": "Codex",
+  "providerCost": null,
+  "credits": null,
+  "startedAt": "2026-11-17T18:35:10.000Z",
+  "finishedAt": "2026-11-17T18:44:37.610Z",
+  "stopped": true,
+  "worktreeClean": true,
+  "independentReview": false
+}
