@@ -372,7 +372,11 @@
         "tools/development/migrations/registry.mjs",
         "tools/development/migrations/registry.test.mjs",
         "lib/db/migration-registry.json",
-        "lib/db/schema-change-registry.json"
+        "lib/db/schema-change-registry.json",
+        "artifacts/api-server/src/services/accountingDocuments/corrections.ts",
+        "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.jsx",
+        "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.test.jsx",
+        "artifacts/ledgerly/src/features/documentCorrections/model.test.mjs"
       ],
       "kind": "implementation",
       "approval": "approved"
