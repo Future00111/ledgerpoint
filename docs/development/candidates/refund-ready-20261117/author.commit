@@ -1,0 +1,6 @@
+tree 152687018a096581260796c4a5297634889f8043
+parent 4177fafd1b515bcbf5232bbe57f3b102fa2de80a
+author Codex <codex@openai.com> 1794924610 +0000
+committer Codex <codex@openai.com> 1794924610 +0000
+
+Wait for payment readiness and confirmed refund in browser fixture
