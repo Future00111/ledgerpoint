@@ -191,6 +191,15 @@
         "accounting-documents"
       ],
       "sha256": "342bf8a65111167516fa56cc8899abefef5ddd594f577344082990acfaa855a0"
+    },
+    {
+      "id": "durable-jobs",
+      "path": "lib/db/migrations/durable-jobs.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "document-intake"
+      ],
+      "sha256": "23ce9b92b69bed960573db768351b653de502e512a5c1797f5040f67a015eed0"
     }
   ],
   "securityOverlay": {

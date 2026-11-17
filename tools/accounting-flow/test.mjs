@@ -53,8 +53,11 @@ try {
   const testEnv={...env,NODE_ENV:'test',NODE_PATH:root+'/artifacts/api-server/node_modules',
     ACCOUNTING_FLOW_TEST_SOCKET:socket,
     DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_test?host=${encodeURIComponent(socket)}&port=${port}`};
+  execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild','src/services/durableJobs/restartWorker.ts','--bundle','--platform=node','--format=cjs','--external:pg','--outfile=../../generated-artifacts/durable-job-restart.cjs'],{cwd:root,stdio:'inherit'});
   for(const [entry,output] of [
     ['src/services/accounting/canonicalPosting.integration.test.ts','canonical-posting-flow.test.cjs'],
+    ['src/services/durableJobs/contract.test.ts','durable-jobs-contract.test.cjs'],
+    ['src/services/durableJobs/integration.test.ts','durable-jobs-flow.test.cjs'],
     ['src/services/accountingDocuments/integration.test.ts','accounting-flow.test.cjs'],
     ['src/services/accountingDocuments/conditionalDiscount.integration.test.ts','conditional-discount-flow.test.cjs'],
     ['src/services/accountingDocuments/conditionalDiscount.test.ts','conditional-discount-unit.test.cjs'],
@@ -91,6 +94,12 @@ try {
       const corrections=spawn(process.execPath,['--test',root+'/generated-artifacts/correction-recovery-restore.test.cjs'],{cwd:root,env:{...testEnv,DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_restore_test?host=${encodeURIComponent(socket)}&port=${port}`},stdio:'inherit'});
       exitCode=await new Promise((resolve,reject)=>{corrections.on('error',reject);corrections.on('exit',code=>resolve(code??1));});
       restore.correctionRecoveryVerified=exitCode===0;
+    }
+    if(exitCode===0){
+      execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild','src/services/durableJobs/restore.test.ts','--bundle','--platform=node','--format=cjs','--external:pg','--outfile=../../generated-artifacts/durable-jobs-restore.test.cjs'],{cwd:root,stdio:'inherit'});
+      const jobs=spawn(process.execPath,['--test',root+'/generated-artifacts/durable-jobs-restore.test.cjs'],{cwd:root,env:{...testEnv,DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_restore_test?host=${encodeURIComponent(socket)}&port=${port}`},stdio:'inherit'});
+      exitCode=await new Promise((resolve,reject)=>{jobs.on('error',reject);jobs.on('exit',code=>resolve(code??1));});
+      restore.durableQueueRecoveryVerified=exitCode===0;
     }
     writeFileSync(restoreReceipt,JSON.stringify(restore,null,2)+'\n');
     console.log('Disposable backup/restore verified: original rows, restored evidence and restricted runtime match.');

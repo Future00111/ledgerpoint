@@ -134,10 +134,14 @@
       "migration": "lib/db/migrations/durable-jobs.review.sql",
       "tables": [
         "durable_jobs",
-        "durable_job_attempts",
+        "durable_job_events",
         "durable_outbox"
       ],
-      "status": "contract_only"
+      "status": "queued_cancelled_disposable_implementation_pending_exact_source_ci",
+      "reservedTables": [
+        "durable_job_attempts"
+      ],
+      "limits": "Pre-execution lifecycle only; no worker leases, execution, provider connection, scheduler or delivery settlement."
     },
     {
       "task": "P03-03",

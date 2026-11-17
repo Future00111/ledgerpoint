@@ -169,3 +169,18 @@ test('correction admission and terminal binding are immutable, pinned and instal
  assert.doesNotMatch(sql,/INSERT INTO.*(?:accounting_document_amendments|canonical_journal)/);
  assert.ok(read('tools/accounting-flow/schema.mjs').toString().includes("await admin.query(migrationInputs['correction-operation-recovery']);"));
 });
+
+test('durable queued/cancelled identities, lifecycle and outbox are pinned and installed in both modes',()=>{
+ const sql=loadMigrationInputs(root)['durable-jobs'];
+ assert.ok(read('artifacts/api-server/src/services/durableJobs/schema.ts').toString().includes(registry().migrations.find(m=>m.id==='durable-jobs').sha256));
+ for(const table of ['durable_jobs','durable_job_events','durable_outbox']){
+  assert.ok(sql.includes(`CREATE TABLE public.${table}`));
+  assert.ok(sql.includes(`ALTER TABLE public.${table} ENABLE ALWAYS TRIGGER ${table}_immutable`));
+  assert.ok(sql.includes(`ALTER TABLE public.${table} ENABLE ALWAYS TRIGGER ${table}_no_truncate`));
+  assert.ok(sql.includes(`ALTER TABLE public.${table} OWNER TO ledgerly_canonical_owner`));
+  assert.ok(sql.includes(`GRANT SELECT,INSERT ON public.${table} TO ledgerly_api`));
+ }
+ for(const includeAmendments of [false,true])assert.deepEqual(expectedMigrationHistory(loadMigrationInputs(root),{includeAmendments}).find(r=>r.id==='durable-jobs').dependencies,['document-intake']);
+ assert.ok(read('tools/accounting-flow/schema.mjs').toString().includes("await admin.query(migrationInputs['durable-jobs']);"));
+ assert.equal(sql.includes('CREATE TABLE public.durable_job_attempts'),false);
+});
