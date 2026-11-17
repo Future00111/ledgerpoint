@@ -1,0 +1,68 @@
+{
+  "task": "P03-04",
+  "scenario": "native-payment-attempt-encrypted-fresh-cluster-recovery",
+  "author": "encrypted-attempt-recovery-implementer",
+  "stopped": true,
+  "stoppedAt": "2026-11-17T16:42:30.148Z",
+  "base": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
+  "commit": "5ab77c0834d387e92331f8c632cb316464abcaf9",
+  "tree": "434f8e08e968d1105a25545b2f1c906df7f34bc5",
+  "branch": "codex/encrypted-attempt-recovery-20261117",
+  "worktree": "<workspace>/ledgerpoint-recovery",
+  "files": [
+    "docs/operations/recovery-targets.json",
+    "tools/operations/backup-restore/README.md",
+    "tools/operations/backup-restore/application-recovery.mjs",
+    "tools/operations/backup-restore/application-recovery.test.mjs",
+    "tools/operations/backup-restore/payment-attempt-acceptance.ts",
+    "tools/operations/backup-restore/runtime-acceptance.test.mjs",
+    "tools/operations/backup-restore/runtime-acceptance.ts"
+  ],
+  "summary": [
+    "Native prepare creates real recorded/no-effect/pending attempts with original reviewed bodies and interrupted admission, pending last.",
+    "Encrypted fresh-cluster runtime compares immutable admissions/terminal rows, all five effect counters, recovery states and actor-owned discovery before writes.",
+    "Restored pending receives explicit protected closure; both closed original bodies remain fenced; recorded same-body replay remains one effect.",
+    "Unknown reference and inaccessible actor/foreign-company scope preserve pending/terminal isolation; immutable runtime privileges and four always-enabled guards rechecked.",
+    "Parent restore refuses absent, false, missing-state or malformed payment-attempt acceptance.",
+    "Existing target guards, source fingerprint protection, all previous payment/witness/capture/banking/report assertions retained.",
+    "Documentation corrects existing populated encrypted coverage and explicitly leaves actual jobs/extraction, operational RTO/RPO, ownership, custody/retention/offsite unqualified."
+  ],
+  "validation": [
+    {
+      "command": "node --test tools/operations/backup-restore/*.test.mjs",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "log": "focused.log"
+    },
+    {
+      "command": "esbuild exact tools/operations/backup-restore/runtime-acceptance.ts with existing runtime externals and worktree source-boundary check",
+      "result": "compiled",
+      "log": "compile.log"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "reviewChanges": [
+    "Parent fail-closed acceptance guard and malformed receipt tests added per independent reviewer.",
+    "Malformed fixture executable test proves rejection before any query.",
+    "README separates disposable source fixture preparation from post-dump restore-side writes."
+  ],
+  "environment": "Initial focused bundle guard detected inherited workspace symlink resolving native database source in another worktree; corrected local untracked api-server/node_modules @workspace links only and reran successfully.",
+  "limitations": [
+    "No PostgreSQL runtime executed on this host. Exact-source native encrypted fresh-cluster CI is mandatory before bounded acceptance.",
+    "Public source publication remains blocked by automatic review pending explicit owner source-upload authorization; no source was uploaded.",
+    "Parent P03-04 remains incomplete; no operational target, owner, offsite provider or actual durable job implementation invented."
+  ],
+  "untouched": [
+    "native financial engines",
+    "schema/migration registry",
+    "queue/coordinator records",
+    "remote refs",
+    "demo/shared databases",
+    "providers",
+    "earlier correction candidate"
+  ]
+}

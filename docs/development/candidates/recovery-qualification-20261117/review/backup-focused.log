@@ -1,0 +1,22 @@
+✔ application recovery rejects existing/shared and redirected archive inputs (2.50486ms)
+✔ application restore cannot qualify an absent, partial or malformed native payment-attempt receipt (3.062603ms)
+✔ restored application roles reject elevated flags, login owner and unexpected memberships (1.574516ms)
+✔ fresh nonces, exact role/job/audit/attachment bytes and authenticated envelope (4.623649ms)
+✔ file rehearsal restores a fresh output only and never overwrites evidence (9.21077ms)
+✔ CLI performs explicit synthetic round trip without logging archive or key contents (490.234279ms)
+✔ FIFO keys and inputs are rejected without waiting for a writer (303.686672ms)
+✔ negative control detects changed fingerprint, never commits mutation and verifies rollback (3.342618ms)
+✔ unchanged fingerprints fail the control and still roll back (1.093265ms)
+✔ failed fingerprint inspection rolls back both savepoint and outer mutation (0.672003ms)
+✔ restored fixture must match after rollback before the control can pass (0.64355ms)
+✔ native acceptance binds each phase to its fixed disposable socket, database and restricted role (2.739796ms)
+✔ actual native acceptance bundle rejects inherited database URLs before loading the runtime (501.69899ms)
+✔ malformed payment-attempt handoff fails before any native probe or restore-side query (559.285961ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1322.487101

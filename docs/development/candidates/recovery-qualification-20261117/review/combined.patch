@@ -1,0 +1,1297 @@
+diff --git a/artifacts/api-server/src/routes/accountingDocuments.ts b/artifacts/api-server/src/routes/accountingDocuments.ts
+index 016f734..d8365d6 100644
+--- a/artifacts/api-server/src/routes/accountingDocuments.ts
++++ b/artifacts/api-server/src/routes/accountingDocuments.ts
+@@ -12,7 +12,7 @@ import { journal, reports } from "../services/accountingDocuments/reports";
+ import { CanonicalPostingError, type DatabaseTransaction } from "../services/accounting/canonicalPosting";
+ import { chart, AccountSelectionError } from "../services/accountingDocuments/accounts";
+ import { saveAccount } from "../services/accountingDocuments/chart";
+-import { correctionContext, reviewCorrection, commitCorrection, correctionHistory, recoverCorrection, discoverCorrections } from "../services/accountingDocuments/corrections";
++import { correctionContext, reviewCorrection, commitCorrection, correctionHistory, recoverCorrection, discoverCorrections, terminateCorrectionAttempt } from "../services/accountingDocuments/corrections";
+ 
+ import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment, recoverPayment, discoverPayments, terminatePaymentAttempt } from '../services/accountingDocuments/payments';
+ import { createClaims, listClaims, confirmReceipt, cancelClaim } from '../services/creditTracking/service';
+@@ -138,6 +138,7 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
+     const {company,actor,id}=ids(req);if(Object.keys(req.query).length)fail(400,'INVALID_REQUEST_SHAPE');
+     res.json({data:await discoverCorrections(company,actor,id)});
+   });
++  router.post('/accounting-documents/:id/corrections/operations/:requestId/no-effect',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await terminateCorrectionAttempt(company,actor,id,String(req.params.requestId),req.body)});});
+   router.get('/accounting-documents/:id/corrections/operations/:requestId',async(req,res)=>{
+     const {company,actor,id}=ids(req);res.json({data:await recoverCorrection(company,actor,id,String(req.params.requestId))});
+   });
+@@ -241,6 +242,7 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
+   });
+   router.use(((error:any,_req:any,res:any,_next:any)=>{
+     const databaseCode=error.cause?.code??error.code;
++    if(error.correctionAttemptAdmitted===true){const status=error instanceof DraftError?error.status:error instanceof CanonicalPostingError?(error.code.startsWith('authorization')?403:409):databaseCode==='23505'?409:500;res.status(status).json({error:{code:'CORRECTION_OUTCOME_UNCONFIRMED',correction_attempt:'admitted',message:'This correction attempt remains unresolved. Check its original outcome before continuing.'}});return;}
+     if(error instanceof DraftError) {
+       const labels:Record<string,string>={"/invoice_number":"Document number","/customer_id":"Customer or supplier",
+         "/due_date":"Due date","/issue_date":"Document date","/payment_terms":"Payment terms","/posting_account_id":"Document account",
+@@ -292,6 +294,8 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
+         CONDITIONAL_REPLACEMENT_IDENTITY_INVALID:"A replacement record failed its integrity check. Nothing was changed.",
+         CONDITIONAL_TERMS_INVALID:"Check the replacement terms: a whole-penny discount above zero, and a payment deadline on or after the agreement date.",
+         CONDITIONAL_EVIDENCE_TERMS_MISMATCH:"The receipt belongs to different agreement terms. Capture or select matching evidence before saving.",
++        CORRECTION_ATTEMPT_UNRESOLVED:"Find and resolve your pending correction before reviewing another correction.",
++        CORRECTION_ATTEMPT_TERMINATED:"This request is permanently closed with no effect. Check its recorded status before starting a fresh review.",
+         CORRECTION_REVIEW_STALE:"This document, its payments or accounting setup changed after review. Refresh and review the correction again.",
+         CORRECTION_BELOW_PAID:"The corrected total cannot be less than payments already applied. Review the payment and refund history first.",
+         CORRECTION_CHILD_CREDITS:"This document already has a linked credit. Corrections are not yet supported for this case.",
+diff --git a/artifacts/api-server/src/services/accountingDocuments/corrections.integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/corrections.integration.test.ts
+index f296592..db36012 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/corrections.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/corrections.integration.test.ts
+@@ -165,7 +165,7 @@ test('correction HTTP routes require authentication, company scope, capability a
+   const history=await request(f.company,`${path}/corrections`);assert.equal(history.status,200);assert.equal(history.data.amendments.length,1);assert.equal(history.data.amendments[0].journal_id,posted.data.journal_id);
+ });
+ 
+-test('correction outcome recovers committed history read-only after reload; rollback stays unknown and permissions are current',async()=>{
++test('correction outcome recovers committed history read-only after reload; rollback stays pending and permissions are current',async()=>{
+   const f=await fixture(),doc=await postNew(f,'sales_invoice',source(f.customer,'excluding_vat',['STANDARD']));
+   const r=await review(f,doc),path=`/accounting-documents/${doc.id}/corrections/operations/${r.intent.request_id}`;
+   const before=await counts(f);
+@@ -184,7 +184,7 @@ test('correction outcome recovers committed history read-only after reload; roll
+   const later=await current(f,doc),second=await review(f,later,intent(later,'95','2026-10-25'));
+   const unknown=`/accounting-documents/${doc.id}/corrections/operations/${second.intent.request_id}`;
+   await assert.rejects(()=>commit(f,later,second,async()=>{throw Error('recovery rollback');}),/recovery rollback/);
+-  assert.equal((await request(f.company,unknown)).data.state,'unknown');assert.deepEqual(await counts(f),snapshot);
++  assert.equal((await request(f.company,unknown)).data.state,'pending');assert.deepEqual(await counts(f),snapshot);
+   await commit(f,later,second);
+   assert.equal((await request(f.company,path)).data.receipt.revision,posted.revision);
+   await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+diff --git a/artifacts/api-server/src/services/accountingDocuments/corrections.ts b/artifacts/api-server/src/services/accountingDocuments/corrections.ts
+index fe13eaf..d09e775 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/corrections.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/corrections.ts
+@@ -11,6 +11,8 @@ import { journalLines } from './documentJournal';
+ import { assertCreditCapacity } from './creditCapacity';
+ 
+ const blockerMessages: Record<string, string> = {
++  CORRECTION_ATTEMPT_UNRESOLVED: 'Find and resolve your pending correction before reviewing another correction.',
++  CORRECTION_RECOVERY_SCHEMA_UNAVAILABLE: 'Correction recovery has not been installed by the database operator.',
+   CORRECTION_SCHEMA_UNAVAILABLE: 'Document corrections have not been enabled in this development database.',
+   CORRECTION_KIND_UNSUPPORTED: 'This correction workflow currently supports posted invoices and bills.',
+   CORRECTION_CHILD_CREDITS: 'A linked credit draft is awaiting review. Resolve it before correcting the original.',
+@@ -27,6 +29,65 @@ async function authority(q: Queryable, company: string, actor: string, lock = fa
+   return { business, allowed };
+ }
+ 
++async function attemptSchema(q:Queryable,required=false) {
++  const row=(await q.query("SELECT to_regclass('public.correction_attempt_admissions') admissions,to_regclass('public.correction_attempt_no_effect') terminal")).rows[0];
++  if(!row.admissions&&!row.terminal){if(required)fail(503,'CORRECTION_RECOVERY_SCHEMA_UNAVAILABLE');return false;}
++  if(!row.admissions||!row.terminal)fail(503,'CORRECTION_RECOVERY_SCHEMA_INCOMPLETE');return true;
++}
++async function lockAttempt(q:Queryable,company:string,actor:string,requestId:string) {
++  if((await q.query('SHOW transaction_isolation')).rows[0]?.transaction_isolation!=='read committed')fail(503,'CORRECTION_ISOLATION_UNSUPPORTED');
++  await authority(q,company,actor,true,true);
++  await q.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[`${company}:correction-attempt:${requestId}`]);
++  await attemptSchema(q,true);
++}
++const bindingFields=['document_id','actor_id','expected_revision','request_hash','review_hash'] as const;
++async function attemptRows(q:Queryable,company:string,requestId:string) {
++  if(!await attemptSchema(q))return {admission:null,terminal:null};
++  const admission=(await q.query('SELECT *,effective_date::text FROM correction_attempt_admissions WHERE company_id=$1 AND request_id=$2',[company,requestId])).rows[0];
++  const terminal=(await q.query('SELECT * FROM correction_attempt_no_effect WHERE company_id=$1 AND request_id=$2',[company,requestId])).rows[0];
++  if(terminal&&(!admission||bindingFields.some(k=>terminal[k]!==admission[k])))fail(503,'CORRECTION_HISTORY_INVALID');
++  return {admission,terminal};
++}
++function bindAttempt(admission:any,documentId:string,actor:string,expected:string,requestHash:string,reviewHash:string) {
++  if(admission&&(admission.document_id!==documentId||admission.actor_id!==actor||admission.expected_revision!==expected||admission.request_hash!==requestHash||admission.review_hash!==reviewHash))fail(409,'IDEMPOTENCY_CONFLICT');
++}
++function attemptBinding(a:any){return {expected_revision:a.expected_revision,request_hash:a.request_hash,review_hash:a.review_hash};}
++async function canonicalAttempt(q:Queryable,company:string,id:string,requestId:string,history?:Awaited<ReturnType<typeof amendmentHistory>>,attempt?:Awaited<ReturnType<typeof attemptRows>>) {
++  const {admission,terminal}=attempt??await attemptRows(q,company,requestId);
++  const h=history??await amendmentHistory(q,company,await document(q,company,id));
++  const row=h.rows.find(r=>r.request_id===requestId);
++  if(row){
++    if(terminal||(admission&&(admission.document_id!==id||admission.actor_id!==row.actor_id||admission.expected_revision!==row.previous_revision||admission.request_hash!==row.request_hash||admission.review_hash!==hash(row.review_token))))fail(503,'CORRECTION_HISTORY_INVALID');
++    return {status:'posted',id:requestId,document_id:id,revision:row.revision,journal_id:row.journal_id};
++  }
++  const identity=correctionIdentity({document_id:id,request_id:requestId});
++  const orphan=(await q.query(`SELECT 1 FROM canonical_journal_entries WHERE company_id=$1 AND economic_effect_id=$2
++    UNION ALL SELECT 1 FROM accounting_posting_effects WHERE company_id=$1 AND (economic_effect_id=$2 OR idempotency_key=$2) LIMIT 1`,[company,identity])).rowCount;
++  if(orphan)fail(503,'CORRECTION_HISTORY_INVALID');return null;
++}
++async function unresolvedAttempts(q:Queryable,company:string,actor:string,id:string,except?:string,includeTerminal=false,history?:Awaited<ReturnType<typeof amendmentHistory>>) {
++  if(!await attemptSchema(q))return [];
++  const rows=(await q.query('SELECT *,effective_date::text FROM correction_attempt_admissions WHERE company_id=$1 AND actor_id=$2 AND document_id=$3 ORDER BY admitted_at,request_id',[company,actor,id])).rows;
++  const pending=[];const h=rows.length?(history??await amendmentHistory(q,company,await document(q,company,id))):undefined;
++  for(const row of rows){const attempt=await attemptRows(q,company,row.request_id),{terminal}=attempt;const known=await canonicalAttempt(q,company,id,row.request_id,h,attempt);
++    if(!known&&(!terminal||includeTerminal)&&row.request_id!==except)pending.push({...row,state:terminal?'no_effect':'pending'});}
++  return pending;
++}
++export async function terminateCorrectionAttempt(company:string,actor:string,id:string,requestId:string,body:unknown) {
++  const request=uuid(requestId).toLowerCase(),b=exactFields(body,['expected_revision','request_hash','review_hash']);
++  return transact(async q=>{
++    await q.query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');await lockAttempt(q,company,actor,request);
++    const {admission,terminal}=await attemptRows(q,company,request);
++    if(!admission||admission.actor_id!==actor||admission.document_id!==id)fail(404,'RESOURCE_NOT_FOUND');
++    bindAttempt(admission,id,actor,b.expected_revision,b.request_hash,b.review_hash);
++    const receipt=await canonicalAttempt(q,company,id,request);
++    if(receipt)return {state:'known',request_id:request,document_id:id,receipt};
++    if(!terminal)await q.query(`INSERT INTO correction_attempt_no_effect(company_id,request_id,document_id,actor_id,expected_revision,request_hash,review_hash)
++      VALUES($1,$2,$3,$4,$5,$6,$7)`,[company,request,id,actor,admission.expected_revision,admission.request_hash,admission.review_hash]);
++    return {state:'no_effect',request_id:request,document_id:id,...attemptBinding(admission)};
++  });
++}
++
+ export function correctionIntent(body: unknown) {
+   const b = exactFields(body, ['request_id', 'reason', 'effective_date', 'line_items', 'review_token']);
+   if (typeof b.reason !== 'string' || !b.reason.trim() || b.reason.length > 1000 || /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(b.reason)) fail(422, 'CORRECTION_REASON_REQUIRED');
+@@ -73,6 +134,7 @@ export async function correctionContext(company: string, actor: string, id: stri
+     const original = await document(q, company, id);
+     const history = await amendmentHistory(q, company, original);
+     const reasons = await blockers(q, company, original, history);
++    if(history.available){if(!await attemptSchema(q))reasons.push('CORRECTION_RECOVERY_SCHEMA_UNAVAILABLE');else if((await unresolvedAttempts(q,company,actor,id,undefined,false,history)).length)reasons.push('CORRECTION_ATTEMPT_UNRESOLVED');}
+     const parties = (await q.query(`SELECT name FROM ${sales(original.kind) ? 'customers' : 'suppliers'} WHERE company_id=$1 AND id=$2`, [company, original.party_id])).rows;
+     return { document: { ...history.current, party_name: parties[0]?.name ?? '' }, original,
+       capabilities: { review_corrections: auth.allowed && history.available, correct_documents: auth.allowed && history.available },
+@@ -95,8 +157,13 @@ export async function discoverCorrections(company: string, actor: string, id: st
+     if (!['sales_invoice', 'purchase_bill'].includes(original.kind) || original.status !== 'posted') fail(409, 'CORRECTION_KIND_UNSUPPORTED');
+     const history = await amendmentHistory(q, company, original);
+     const owned = history.rows.filter(row => row.actor_id === actor);
+-    return { company_id: company, document_id: id, has_more: owned.length > 100,
+-      receipts: owned.slice(-100).reverse().map(row => ({ request_id: row.request_id, document_id: id,
++    for(const row of owned)await canonicalAttempt(q,company,id,row.request_id,history);
++    const attempts=await unresolvedAttempts(q,company,actor,id,undefined,true,history);
++    const recent=[...owned.map(row=>({row,recorded:true,time:row.created_at})),...attempts.map(row=>({row,recorded:false,time:row.admitted_at}))]
++      .sort((a,b)=>new Date(b.time).getTime()-new Date(a.time).getTime()||b.row.request_id.localeCompare(a.row.request_id));
++    const selected=recent.slice(0,100),pending=selected.filter(r=>!r.recorded).map(({row})=>({request_id:row.request_id,document_id:id,state:row.state,expected_revision:row.expected_revision,effective_date:row.effective_date,reason:row.reason}));
++    return { company_id: company, document_id: id, has_more: recent.length > 100, ...(pending.length?{pending}:{}),
++      receipts: selected.filter(r=>r.recorded).map(({row}) => ({ request_id: row.request_id, document_id: id,
+         revision: row.revision, journal_id: row.journal_id, effective_date: row.effective_date, reason: row.reason })) };
+   }, true);
+ }
+@@ -111,10 +178,12 @@ export async function recoverCorrection(company:string,actor:string,id:string,re
+     const original=await document(q,company,id);
+     const history=await amendmentHistory(q,company,original);
+     const row=history.rows.find(row=>row.request_id===request);
+-    if(!row) return {state:'unknown',request_id:request,document_id:id};
+-    if(row.actor_id!==actor) fail(404,'RESOURCE_NOT_FOUND');
+-    return {state:'known',request_id:request,document_id:id,receipt:{
+-      status:'posted',id:request,document_id:id,revision:row.revision,journal_id:row.journal_id}};
++    const {admission,terminal}=await attemptRows(q,company,request);
++    if((row&&row.actor_id!==actor)||(admission&&(admission.actor_id!==actor||admission.document_id!==id)))fail(404,'RESOURCE_NOT_FOUND');
++    const receipt=await canonicalAttempt(q,company,id,request,history);
++    if(receipt)return {state:'known',request_id:request,document_id:id,receipt};
++    if(!admission)return {state:'unknown',request_id:request,document_id:id};
++    return {state:terminal?'no_effect':'pending',request_id:request,document_id:id,...attemptBinding(admission)};
+   },true);
+ }
+ 
+@@ -167,35 +236,44 @@ const reviewResult = (p: Awaited<ReturnType<typeof plan>>) => ({ intent: p.inten
+ 
+ export async function reviewCorrection(company: string, actor: string, id: string, expected: string, body: unknown) {
+   const intent = correctionIntent(body); uuid(expected);
+-  return transact(async q => reviewResult(await plan(q, company, actor, id, expected, intent)));
++  return transact(async q => {await authority(q,company,actor,true,true);if((await unresolvedAttempts(q,company,actor,id)).length)fail(409,'CORRECTION_ATTEMPT_UNRESOLVED');return reviewResult(await plan(q, company, actor, id, expected, intent));});
+ }
+ 
+ class Replayed extends Error { constructor(public result: any) { super('Correction already recorded'); } }
+-export async function commitCorrection(company: string, actor: string, id: string, expected: string, body: unknown, testHook?: (tx: DatabaseTransaction) => Promise<void>) {
++export async function commitCorrection(company: string, actor: string, id: string, expected: string, body: unknown, testHook?: (tx: DatabaseTransaction) => Promise<void>, afterAdmission?:()=>Promise<void>) {
+   const intent = correctionIntent(body); uuid(expected);
+   const reviewToken = (body as any).review_token;
+   if (typeof reviewToken !== 'string' || !/^sha256:[a-f0-9]{64}$/.test(reviewToken)) fail(428, 'CORRECTION_REVIEW_REQUIRED');
+   const requestHash = hash({ company, actor, document_id: id, expected_revision: expected, intent, review_token: reviewToken });
++  let admitted=false;
+   const replay = async (q: Queryable) => {
+-    await authority(q, company, actor, true, true);
++    await lockAttempt(q,company,actor,intent.request_id);
++    const {admission,terminal}=await attemptRows(q,company,intent.request_id);
++    bindAttempt(admission,id,actor,expected,requestHash,hash(reviewToken));if(admission)admitted=true;
++    if(terminal)fail(409,'CORRECTION_ATTEMPT_TERMINATED');
+     if (!await amendmentSchema(q)) fail(503, 'CORRECTION_SCHEMA_UNAVAILABLE');
+     const previous = (await q.query('SELECT * FROM accounting_document_amendments WHERE company_id=$1 AND request_id=$2', [company, intent.request_id])).rows[0];
+-    if (!previous) return null;
++    if (!previous){await canonicalAttempt(q,company,id,intent.request_id);return null;}
+     if (previous.document_id !== id || previous.actor_id !== actor || previous.request_hash !== requestHash) fail(409, 'IDEMPOTENCY_CONFLICT');
+-    await amendmentHistory(q, company, await document(q, company, id));
++    await canonicalAttempt(q,company,id,intent.request_id);
+     return { status: 'duplicate', id: intent.request_id, document_id: id, revision: previous.revision, journal_id: previous.journal_id };
+   };
+   const initial = await transact(async q => {
++    await q.query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+     const prior = await replay(q); if (prior) return { replay: prior };
++    if((await unresolvedAttempts(q,company,actor,id,intent.request_id)).length)fail(409,'CORRECTION_ATTEMPT_UNRESOLVED');
+     const p = await plan(q, company, actor, id, expected, intent);
+     if (p.review_token !== reviewToken) fail(409, 'CORRECTION_REVIEW_STALE');
++    const {admission}=await attemptRows(q,company,intent.request_id);
++    if(!admission)await q.query(`INSERT INTO correction_attempt_admissions(company_id,request_id,document_id,actor_id,expected_revision,request_hash,review_hash,reason,effective_date) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`,[company,intent.request_id,id,actor,expected,requestHash,hash(reviewToken),intent.reason,intent.effective_date]);
+     return { plan: p };
+-  });
++  }).catch(error=>{if(admitted&&error&&typeof error==='object')Object.assign(error,{correctionAttemptAdmitted:true});throw error;});
+   if (initial.replay) return initial.replay;
+   let current = initial.plan!, tx: DatabaseTransaction, journal: any;
+   const eventId = randomUUID(), revision = randomUUID();
+   const identity = correctionIdentity({ document_id: id, request_id: intent.request_id });
+   try {
++    await afterAdmission?.();
+     const posted = await correctCanonicalJournal({ principal: { kind: 'user', userId: actor, requestedCompanyId: company }, requestedCompanyId: company,
+       originalJournalId: current.original.journal_id, reason: intent.reason, postingDate: intent.effective_date,
+       configurationVersionId: current.original.mapping_revision, postingKind: 'document_correction', economicEffectId: identity, idempotencyKey: identity,
+@@ -249,5 +327,5 @@ export async function commitCorrection(company: string, actor: string, id: strin
+       },
+     });
+     return { status: posted.status, id: intent.request_id, document_id: id, revision, journal_id: posted.journalId };
+-  } catch (error) { if (error instanceof Replayed) return error.result; throw error; }
++  } catch (error) { if (error instanceof Replayed) return error.result; if(error&&typeof error==='object')Object.assign(error,{correctionAttemptAdmitted:true});throw error; }
+ }
+diff --git a/artifacts/api-server/src/services/accountingDocuments/integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
+index d15e947..a99f981 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
+@@ -1,3 +1,4 @@
++import {registerCorrectionAdmissionJourney} from '../operationRecovery/correctionAdmissionJourney';
+ import test,{before,after} from "node:test";
+ import assert from "node:assert/strict";
+ import {randomUUID} from "node:crypto";
+@@ -2519,7 +2520,7 @@ const session=async action=>{const response=await fetch('/session/'+action,{meth
+   if(browser?.pid&&browser.exitCode===null&&browser.signalCode===null)await new Promise<void>(resolve=>{
+    const timer=setTimeout(()=>browser?.kill('SIGKILL'),5000);browser!.once('exit',()=>{clearTimeout(timer);resolve();});browser!.kill('SIGTERM');
+   });
+-  listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});
++  listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true,maxRetries:5,retryDelay:100});
+  }
+ });
+ 
+@@ -2620,3 +2621,5 @@ const wait=async(fn,label)=>{await fetch('/progress',{method:'POST',headers:{'Co
+   console.log('CORRECTION_DISCOVERY_BROWSER_ACCEPTANCE',JSON.stringify({kind,actualComponents:true,nativeApi:true,missingLocator:true,explicitSelection:true,freshReceipt:true,actualReload:true,parentRefreshes:1,posts:0,browserStorageEmpty:true,realClerk:false}));
+  }finally{clearTimeout(timer);report=()=>{};if(browser?.pid&&browser.exitCode===null&&browser.signalCode===null)await new Promise<void>(resolve=>{const force=setTimeout(()=>browser?.kill('SIGKILL'),5000);browser!.once('exit',()=>{clearTimeout(force);resolve();});browser!.kill('SIGTERM');});listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
+ });
++
++registerCorrectionAdmissionJourney({fixture,create,post,source,request,admin,actor,readOnly,socket});
+diff --git a/artifacts/api-server/src/services/operationRecovery/correctionAdmissionJourney.ts b/artifacts/api-server/src/services/operationRecovery/correctionAdmissionJourney.ts
+new file mode 100644
+index 0000000..22ab8cf
+--- /dev/null
++++ b/artifacts/api-server/src/services/operationRecovery/correctionAdmissionJourney.ts
+@@ -0,0 +1,158 @@
++/** Registered only by the fresh disposable accounting integration suite. */
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {randomUUID} from 'node:crypto';
++import {commitCorrection,recoverCorrection,terminateCorrectionAttempt} from '../accountingDocuments/corrections';
++import {pool} from '@workspace/db';
++import {createAccountingRouter} from '../../routes/accountingDocuments';
++import express from 'express';
++import path from 'node:path';
++
++export function registerCorrectionAdmissionJourney({fixture,create,post,source,request,admin,actor,readOnly,socket}:any){
++ const binding=(r:any)=>({expected_revision:r.expected_revision,request_hash:r.request_hash,review_hash:r.review_hash});
++ async function prepare(kind:string,reason='Synthetic correction admission'){
++  const f=await fixture(),doc=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,doc);
++  const intent={request_id:randomUUID(),reason,effective_date:'2026-10-22',line_items:[{quantity:'1',unit_price:'108'}]};
++  const reviewed=await request(f.company,`/accounting-documents/${doc.id}/corrections/review`,'POST',intent,doc.revision);assert.equal(reviewed.status,200,JSON.stringify(reviewed));
++  return {f,doc,command:{...intent,review_token:reviewed.data.review_token},route:`/accounting-documents/${doc.id}/corrections/operations/${intent.request_id}`};
++ }
++ const effects=async(f:any,doc:any)=>(await admin.query(`SELECT
++  (SELECT to_jsonb(d) FROM accounting_document_sources d WHERE company_id=$1 AND id=$2) original,
++  (SELECT count(*)::int FROM accounting_document_amendments WHERE company_id=$1) amendments,
++  (SELECT jsonb_agg(to_jsonb(j) ORDER BY id) FROM canonical_journal_entries j WHERE company_id=$1) journals,
++  (SELECT jsonb_agg(to_jsonb(j) ORDER BY id) FROM canonical_journal_lines j WHERE company_id=$1) lines,
++  (SELECT jsonb_agg(to_jsonb(j) ORDER BY id) FROM accounting_posting_effects j WHERE company_id=$1) effects`,[f.company,doc.id])).rows[0];
++ const failAfterAdmission=async()=>{throw Error('Synthetic admission interruption');};
++ for(const kind of ['sales_invoice','purchase_bill'])test(`${kind}: admitted rollback is discoverable and explicit closure fences old writers before a fresh review`,async()=>{
++  const {f,doc,command,route}=await prepare(kind),before=await effects(f,doc);
++  assert.equal((await request(f.company,route)).data.state,'unknown');
++  await assert.rejects(()=>commitCorrection(f.company,actor,doc.id,doc.revision,command,async()=>{throw Error('Atomic correction rollback');}),e=>(e as any).correctionAttemptAdmitted===true&&String(e).includes('Atomic correction rollback'));
++  const pending=(await request(f.company,route)).data;assert.equal(pending.state,'pending');assert.deepEqual(await effects(f,doc),before);
++  assert.equal((await request(f.company,route.replace('/'+command.request_id,''))).data.pending[0].request_id,command.request_id);
++  const replacement={...command,request_id:randomUUID()};
++  assert.equal((await request(f.company,`/accounting-documents/${doc.id}/corrections/review`,'POST',replacement,doc.revision)).error.code,'CORRECTION_ATTEMPT_UNRESOLVED');
++  assert.equal((await request(f.company,`/accounting-documents/${doc.id}/corrections`,'POST',replacement,doc.revision)).error.code,'CORRECTION_ATTEMPT_UNRESOLVED');
++  await assert.rejects(()=>commitCorrection(f.company,actor,doc.id,doc.revision,{...command,reason:'Substituted'}),(e:any)=>e.code==='IDEMPOTENCY_CONFLICT');
++  const another='correction-other-'+randomUUID();await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',true)",[randomUUID(),f.company,another]);
++  assert.equal((await request(f.company,route,'GET',undefined,undefined,another)).status,404);
++  assert.equal((await request(f.company,route+'/no-effect','POST',binding(pending),undefined,another)).status,404);
++  assert.equal((await request(f.company,route+'/no-effect','POST',binding(pending),undefined,readOnly)).status,403);
++  const foreign=await fixture();assert.equal((await request(foreign.company,route)).status,404);
++  assert.equal((await request(f.company,route+'/no-effect','POST',{...binding(pending),review_hash:'bad'})).status,409);
++  await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
++  assert.equal((await request(f.company,route)).status,404);assert.equal((await request(f.company,route+'/no-effect','POST',binding(pending))).status,404);
++  await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
++  const closed=await request(f.company,route+'/no-effect','POST',binding(pending));assert.equal(closed.data.state,'no_effect');
++  assert.deepEqual((await request(f.company,route)).data,closed.data);assert.deepEqual((await request(f.company,route+'/no-effect','POST',binding(pending))).data,closed.data);
++  assert.equal((await request(f.company,route.replace('/'+command.request_id,''))).data.pending[0].state,'no_effect');
++  assert.equal((await request(f.company,`/accounting-documents/${doc.id}/corrections`,'POST',command,doc.revision)).error.correction_attempt,'admitted');
++  assert.deepEqual(await effects(f,doc),before);
++  const reviewed=await request(f.company,`/accounting-documents/${doc.id}/corrections/review`,'POST',replacement,doc.revision);assert.equal(reviewed.status,200);
++  const fresh=await request(f.company,`/accounting-documents/${doc.id}/corrections`,'POST',{...replacement,review_token:reviewed.data.review_token},doc.revision);assert.equal(fresh.status,200);
++  assert.equal((await effects(f,doc)).amendments,1);assert.deepEqual((await effects(f,doc)).original,before.original);
++  for(const table of ['correction_attempt_admissions','correction_attempt_no_effect']){
++   await assert.rejects(()=>pool.query(`DELETE FROM ${table} WHERE company_id=$1`,[f.company]),(e:any)=>e.code==='42501');
++   await assert.rejects(()=>admin.query(`DELETE FROM ${table} WHERE company_id=$1`,[f.company]),/immutable/);
++   await assert.rejects(()=>admin.query(`TRUNCATE ${table} CASCADE`),/immutable/);
++  }
++ });
++ test('correction terminal waits for an active writer and canonical outcome wins; terminal-first permanently prevents the delayed write',async()=>{
++  for(const first of ['writer','terminal']){
++   const {f,doc,command,route}=await prepare('sales_invoice');let enter!:()=>void,release!:()=>void;
++   const entered=new Promise<void>(r=>enter=r),resume=new Promise<void>(r=>release=r),pause=async()=>{enter();await resume;};
++   const posting=commitCorrection(f.company,actor,doc.id,doc.revision,command,first==='writer'?pause:undefined,first==='terminal'?pause:undefined).then(value=>({value}),error=>({error}));
++   try{await entered;const pending=(await request(f.company,route)).data;assert.equal(pending.state,'pending');
++    const terminal=request(f.company,route+'/no-effect','POST',binding(pending));
++    if(first==='writer'){
++     let waiting=false;for(let i=0;i<200;i++){waiting=(await admin.query("SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE 'SELECT * FROM companies WHERE id=%'")).rowCount>0;if(waiting)break;await new Promise(r=>setTimeout(r,10));}assert.equal(waiting,true);release();
++     const done=await posting,closed=await terminal;assert.ok('value'in done);assert.equal(closed.data.state,'known');assert.equal(closed.data.receipt.journal_id,(done as any).value.journal_id);assert.equal((await request(f.company,route)).data.state,'known');
++    }else{const closed=await terminal;assert.equal(closed.data.state,'no_effect');release();const done=await posting;assert.equal((done as any).error.code,'CORRECTION_ATTEMPT_TERMINATED');assert.equal((await effects(f,doc)).amendments,0);}
++   }finally{release();await posting;}
++  }
++ });
++ test('correction orphan effects refuse recovery, termination and replacement without claiming no effect',async()=>{
++  const {f,doc,command,route}=await prepare('purchase_bill');await assert.rejects(()=>commitCorrection(f.company,actor,doc.id,doc.revision,command,undefined,failAfterAdmission));
++  const pending=(await request(f.company,route)).data;
++  await admin.query(`INSERT INTO accounting_posting_effects(id,company_id,source_type,source_id,posting_kind,economic_effect_id,idempotency_key,command_fingerprint,status,created_by_type,created_by_id)
++    VALUES($1,$2,'canonical_journal',$3,'document_correction',$4,$4,'synthetic-correction-orphan','uncertain','user',$5)`,[randomUUID(),f.company,doc.journal_id??(await request(f.company,`/accounting-documents/${doc.id}`)).data.journal_id,`document-correction:${doc.id}:${command.request_id}`,actor]);
++  assert.equal((await request(f.company,route)).error.code,'CORRECTION_HISTORY_INVALID');assert.equal((await request(f.company,route+'/no-effect','POST',binding(pending))).error.code,'CORRECTION_HISTORY_INVALID');
++  assert.equal((await request(f.company,route.replace('/'+command.request_id,''))).error.code,'CORRECTION_HISTORY_INVALID');
++  assert.equal((await admin.query('SELECT count(*)::int n FROM correction_attempt_no_effect WHERE company_id=$1',[f.company])).rows[0].n,0);
++ });
++ test('native correction restore fixtures retain pending, terminal and known identities',async()=>{
++  for(const outcome of ['pending','no_effect','known']){
++   const {f,doc,command}=await prepare(outcome==='known'?'sales_invoice':'purchase_bill','Restore correction '+outcome);
++   if(outcome==='known')await commitCorrection(f.company,actor,doc.id,doc.revision,command);
++   else{await assert.rejects(()=>commitCorrection(f.company,actor,doc.id,doc.revision,command,undefined,failAfterAdmission));if(outcome==='no_effect'){const pending=await recoverCorrection(f.company,actor,doc.id,command.request_id);await terminateCorrectionAttempt(f.company,actor,doc.id,command.request_id,binding(pending));}}
++   assert.equal((await recoverCorrection(f.company,actor,doc.id,command.request_id)).state,outcome);
++  }
++ });
++ test('admitted native unique violation is marked through HTTP/client and keeps its recovery UUID',async()=>{
++  const {f,doc}=await prepare('sales_invoice');
++  const {createAccountingClient}=await import(path.join(process.cwd(),'artifacts/ledgerly/src/api/accountingDocuments.mjs'));
++  const {createCorrectionController}=await import(path.join(process.cwd(),'artifacts/ledgerly/src/features/documentCorrections/model.mjs'));
++  const app=express();app.use(express.json());app.use('/companies/:companyId',createAccountingRouter((req,_res,next)=>{(req as any).userId=actor;next();},async tx=>{const {queryAdapter}=await import('../accountingDocuments/core');await queryAdapter(tx).query('INSERT INTO correction_attempt_admissions SELECT * FROM correction_attempt_admissions WHERE company_id=$1',[f.company]);}));
++  const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));
++  try{const base='http://127.0.0.1:'+(listener.address() as any).port;const client=createAccountingClient((url:string,init:any)=>fetch(base+url.replace('/api',''),init));let remembered=null;
++   const controller=createCorrectionController({client,companyId:f.company,documentId:doc.id,rememberRequest:(id:string)=>remembered=id});
++   await controller.load();await controller.review({reason:'Native unique rollback',effective_date:'2026-10-22',line_items:[{quantity:'1',unit_price:'108'}]});await controller.post();
++   assert.equal(controller.state.status,'unknown');assert.equal(controller.state.error.status,409);assert.equal(controller.state.error.correctionAttemptAdmitted,true);assert.equal(controller.state.requestId,remembered);assert.ok(remembered);
++   await controller.recover();assert.equal(controller.state.outcome,'pending');assert.equal((await effects(f,doc)).amendments,0);controller.dispose();
++  }finally{listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));}
++ });
++ test('correction admission survives actual process death and re-login without browser payload or duplicate effects',async()=>{
++  const cp=await import('node:child_process');const file=path.join(process.cwd(),'generated-artifacts/correction-restart-harness.cjs');
++  cp.execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild','src/services/operationRecovery/correctionRestartHarness.ts','--bundle','--platform=node','--format=cjs','--external:pg','--external:@clerk/express','--outfile='+file],{stdio:'pipe'});
++  const env={PATH:process.env.PATH,HOME:process.env.HOME,LANG:'C',LC_ALL:'C',NODE_ENV:'test',NODE_PATH:path.join(process.cwd(),'artifacts/api-server/node_modules'),ACCOUNTING_FLOW_TEST_SOCKET:socket,DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_test?host=${encodeURIComponent(socket)}&port=55441`};
++  const children:ReturnType<typeof cp.fork>[]=[];
++  const message=(child:ReturnType<typeof cp.fork>,field:string)=>new Promise<any>((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Correction restart handshake timeout')),15000);const got=(value:any)=>{if(value[field]){clearTimeout(timer);child.off('message',got);resolve(value);}else if(value.failed){clearTimeout(timer);reject(Error('Correction child failed'));}};child.on('message',got);child.once('error',e=>{clearTimeout(timer);reject(e);});});
++  const start=async()=>{const child=cp.fork(file,[],{env,stdio:['ignore','ignore','inherit','ipc']});children.push(child);const ready=await message(child,'ready');return {child,...ready};};
++  const stop=async(child:ReturnType<typeof cp.fork>)=>{if(child.exitCode!==null||child.signalCode!==null)return;await new Promise<void>(r=>{const force=setTimeout(()=>child.kill('SIGKILL'),5000);child.once('exit',()=>{clearTimeout(force);r();});child.kill('SIGKILL');});};
++  try{const {f,doc,command,route}=await prepare('purchase_bill');const first=await start(),admitted=message(first.child,'admitted');first.child.send({action:'admit',company:f.company,actor,document:doc.id,revision:doc.revision,command});await admitted;await stop(first.child);
++   const second=await start();const recovered=await fetch(`http://127.0.0.1:${second.port}/companies/${f.company}${route}`,{headers:{'x-test-actor':actor}}).then(r=>r.json()) as any;assert.equal(recovered.data.state,'pending');assert.equal((await effects(f,doc)).amendments,0);
++   await commitCorrection(f.company,actor,doc.id,doc.revision,command);assert.equal((await recoverCorrection(f.company,actor,doc.id,command.request_id)).state,'known');assert.equal((await effects(f,doc)).amendments,1);
++  }finally{for(const child of children)await stop(child);}
++ });
++ test('legacy committed recovery works without admission schema; partial recovery schema fails closed',async()=>{
++  const {f,doc,command}=await prepare('sales_invoice');const posted=await commitCorrection(f.company,actor,doc.id,doc.revision,command);
++  await admin.query('ALTER TABLE correction_attempt_admissions RENAME TO synthetic_hidden_correction_admissions');
++  try{await assert.rejects(()=>recoverCorrection(f.company,actor,doc.id,command.request_id),(e:any)=>e.code==='CORRECTION_RECOVERY_SCHEMA_INCOMPLETE');
++   await admin.query('ALTER TABLE correction_attempt_no_effect RENAME TO synthetic_hidden_correction_terminal');
++   try{const recovered=await recoverCorrection(f.company,actor,doc.id,command.request_id);assert.equal((recovered as any).receipt.journal_id,posted.journal_id);}finally{await admin.query('ALTER TABLE synthetic_hidden_correction_terminal RENAME TO correction_attempt_no_effect');}
++  }finally{await admin.query('ALTER TABLE synthetic_hidden_correction_admissions RENAME TO correction_attempt_admissions');}
++ });
++ for(const kind of ['sales_invoice','purchase_bill'])for(const mode of ['late','terminal'])test(`isolated Chromium: ${kind} admitted correction ${mode} recovery requires explicit verified progression`,async()=>{
++  const fs=await import('node:fs'),cp=await import('node:child_process'),{createRequire}=await import('node:module');
++  const {f,doc,command}=await prepare(kind);let enter!:()=>void,release!:()=>void;
++  const entered=new Promise<void>(r=>enter=r),resume=new Promise<void>(r=>release=r);
++  const posting=commitCorrection(f.company,actor,doc.id,doc.revision,command,undefined,async()=>{enter();if(mode==='terminal')throw Error('Synthetic admission interruption');await resume;}).then(value=>({value}),error=>({error}));
++  await entered;if(mode==='terminal')assert.ok('error'in await posting);
++  const before=await effects(f,doc),dir=fs.mkdtempSync('/tmp/correction-admission-browser-'),root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
++  const app=express();app.use(express.json());let pages=0,financialPosts=0,closures=0,reads=0,stage='startup',report:(r:any)=>void=()=>{};
++  app.post('/acceptance',(req,res)=>{res.json({ok:true});report(req.body);});app.post('/progress',(req,res)=>{stage=String(req.body.stage);res.json({ok:true});});
++  app.get('/scenario',(_req,res)=>res.json({reloaded:pages>1}));app.post('/release',async(_req,res)=>{release();const result=await posting;res.json(result);});
++  app.use('/api/companies/:companyId',(req,_res,next)=>{if(req.method==='POST'){if(req.path.endsWith('/no-effect'))closures++;else financialPosts++;}if(req.method==='GET'&&req.path.includes('/corrections/operations/'))reads++;(req as any).userId=actor;next();},createAccountingRouter((_req,_res,next)=>next()));
++  const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));let browser:ReturnType<typeof cp.spawn>|undefined,timer:ReturnType<typeof setTimeout>|undefined;
++  try{
++   fs.writeFileSync(entry,`import React,{useState}from'react';import{createRoot}from'react-dom/client';import{MemoryRouter}from'react-router-dom';import DocumentCorrections from '@/features/documentCorrections/DocumentCorrections.jsx';
++const mode=${JSON.stringify(mode)},requestId=${JSON.stringify(command.request_id)};let refreshes=0;const assert=(v,m)=>{if(!v)throw Error(m)};
++const report=(passed,error=null)=>fetch('/acceptance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({passed,error,refreshes})});window.addEventListener('error',e=>report(false,e.message));window.addEventListener('unhandledrejection',e=>report(false,String(e.reason)));
++function App(){const[receipt,setReceipt]=useState(null);return <MemoryRouter><DocumentCorrections companyId=${JSON.stringify(f.company)} documentId=${JSON.stringify(doc.id)} onSaved={r=>{assert(!location.search.includes('correction_'),'locator survived completion');assert(r.id===requestId&&r.journal_id&&r.revision,'wrong receipt');refreshes++;setReceipt(r);}}/>{receipt&&<p data-testid="recorded">Recorded {receipt.id}</p>}</MemoryRouter>}createRoot(document.getElementById('root')).render(<App/>);
++const button=t=>[...document.querySelectorAll('button')].find(b=>b.textContent===t),wait=async(fn,label)=>{await fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage:label})});for(let i=0;i<200;i++){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error(label+' '+document.body.textContent.slice(-1600));};
++(async()=>{const scenario=await fetch('/scenario').then(r=>r.json());await wait(()=>button('Find a recorded correction'),'entry');
++if(!scenario.reloaded){button('Find a recorded correction').click();await wait(()=>button('This is my correction — verify receipt'),'pending choice');assert(document.body.textContent.includes(requestId),'missing admitted identity');assert(!button('Close this attempt without posting'),'automatically selected');button('This is my correction — verify receipt').click();await wait(()=>button('Close this attempt without posting'),'pending verified');assert(refreshes===0,'premature refresh');location.reload();return;}
++await wait(()=>button('Close this attempt without posting'),'pending after actual reload');assert(localStorage.length===0&&sessionStorage.length===0,'browser payload persisted');
++if(mode==='late'){const released=await fetch('/release',{method:'POST'}).then(r=>r.json());assert(released.value?.id===requestId,'original did not finish');button('Check this correction again').click();await wait(()=>document.querySelector('[data-testid="recorded"]'),'canonical receipt');assert(refreshes===1,'duplicate refresh');}
++else{button('Close this attempt without posting').click();await wait(()=>button('Confirm closing this attempt'),'explicit confirmation');assert(!button('Verify closure and start a fresh review'),'unconfirmed closure unlocked');button('Confirm closing this attempt').click();await wait(()=>button('Verify closure and start a fresh review'),'fresh closed receipt');assert(button('Close').disabled,'terminal alone unlocked');button('Verify closure and start a fresh review').click();await wait(()=>button('Review revised amounts')&&!button('Review revised amounts').disabled,'fresh server review context');assert(!location.search.includes('correction_'),'terminal locator survived');assert(refreshes===0,'no-effect refreshed as posted');}
++assert(localStorage.length===0&&sessionStorage.length===0,'financial data stored');await report(true);})().catch(e=>report(false,e.message));`);
++   createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
++   app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));app.get('/correction',(_req,res)=>{pages++;res.type('html').send('<!doctype html><meta charset="utf-8"><div id="root"></div><script src="/bundle.js"></script>');});
++   const completed=new Promise<any>((resolve,reject)=>{timer=setTimeout(()=>reject(Error('Correction admission browser deadline at '+stage)),35000);report=value=>{clearTimeout(timer);resolve(value);};});
++   browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'http://127.0.0.1:'+(listener.address() as any).port+'/correction'],{stdio:['ignore','pipe','pipe']});let stderr='';browser.stdout!.resume();browser.stderr!.on('data',c=>stderr=(stderr+c).slice(-4000));
++   const failed=new Promise<never>((_,reject)=>{browser!.once('error',reject);browser!.once('exit',code=>reject(Error('Chromium exited '+code+' '+stderr)));});
++   const result=await Promise.race([completed,failed]);assert.equal(result.passed,true,JSON.stringify({...result,stage}));assert.equal(result.refreshes,mode==='late'?1:0);assert.equal(financialPosts,0);assert.equal(closures,mode==='terminal'?1:0);assert.equal(pages,2);assert.equal(reads,mode==='late'?3:5);
++   const after=await effects(f,doc);assert.deepEqual(after.original,before.original);if(mode==='terminal')assert.deepEqual(after,before);else{assert.equal(after.amendments,1);assert.equal(after.journals.length,before.journals.length+1);}
++   console.log('CORRECTION_ADMISSION_BROWSER_ACCEPTANCE',JSON.stringify({kind,mode,actualMountedComponent:true,nativeApi:true,actualReload:true,financialPosts:0,explicitClosure:mode==='terminal',freshVerification:true,browserStorageEmpty:true,realClerk:false}));
++  }finally{clearTimeout(timer);report=()=>{};release();await posting;if(browser?.pid&&browser.exitCode===null&&browser.signalCode===null)await new Promise<void>(r=>{const force=setTimeout(()=>browser?.kill('SIGKILL'),5000);browser!.once('exit',()=>{clearTimeout(force);r();});browser!.kill('SIGTERM');});listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true,maxRetries:5,retryDelay:100});}
++ });
++}
+diff --git a/artifacts/api-server/src/services/operationRecovery/correctionRecovery.restore.test.ts b/artifacts/api-server/src/services/operationRecovery/correctionRecovery.restore.test.ts
+new file mode 100644
+index 0000000..fff74bb
+--- /dev/null
++++ b/artifacts/api-server/src/services/operationRecovery/correctionRecovery.restore.test.ts
+@@ -0,0 +1,15 @@
++/** Runs only after the existing populated disposable pg_restore. */
++import test from 'node:test';import assert from 'node:assert/strict';import{realpathSync}from'node:fs';
++import{pool}from'@workspace/db';import{recoverCorrection,discoverCorrections}from'../accountingDocuments/corrections';
++const socket=process.env.ACCOUNTING_FLOW_TEST_SOCKET??'';
++if(!/^\/tmp\/ledgerly-accounting-flow-tests-[A-Za-z0-9]{6}\/socket$/.test(socket)||realpathSync(socket)!==socket||process.env.NODE_ENV!=='test'||process.env.DATABASE_URL!==`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_restore_test?host=${encodeURIComponent(socket)}&port=55441`)throw Error('Disposable correction restore socket required');
++test.after(()=>pool.end());
++test('restored correction admissions retain native pending, terminal and canonical outcomes with immutable runtime history',async()=>{
++ assert.deepEqual((await pool.query('SELECT current_database() db,current_user actor,inet_server_addr() addr')).rows[0],{db:'ledgerly_accounting_flow_restore_test',actor:'ledgerly_api',addr:null});
++ const rows=(await pool.query("SELECT * FROM correction_attempt_admissions WHERE reason LIKE 'Restore correction %' ORDER BY request_id")).rows;assert.equal(rows.length,3);
++ const states=new Set();for(const row of rows){const found=await recoverCorrection(row.company_id,row.actor_id,row.document_id,row.request_id);assert.equal(found.state,row.reason.replace('Restore correction ',''));states.add(found.state);const listed=await discoverCorrections(row.company_id,row.actor_id,row.document_id);assert.ok([...listed.receipts,...(listed.pending??[])].some(r=>r.request_id===row.request_id));}
++ assert.deepEqual([...states].sort(),['known','no_effect','pending']);
++ for(const table of ['correction_attempt_admissions','correction_attempt_no_effect'])for(const sql of [`UPDATE ${table} SET actor_id=actor_id`,`DELETE FROM ${table}`,`TRUNCATE ${table}`])await assert.rejects(()=>pool.query(sql),(e:any)=>e.code==='42501');
++ const guards=await pool.query("SELECT count(*)::int n FROM pg_trigger WHERE tgenabled='A' AND tgname IN ('correction_attempt_admission_immutable','correction_attempt_admission_no_truncate','correction_attempt_terminal_immutable','correction_attempt_terminal_no_truncate')");assert.equal(guards.rows[0].n,4);
++ console.log('CORRECTION_RECOVERY_RESTORE_ACCEPTANCE',JSON.stringify({states:[...states].sort(),nativeRuntime:true,immutable:true}));
++});
+diff --git a/artifacts/api-server/src/services/operationRecovery/correctionRestartHarness.ts b/artifacts/api-server/src/services/operationRecovery/correctionRestartHarness.ts
+new file mode 100644
+index 0000000..b3cb403
+--- /dev/null
++++ b/artifacts/api-server/src/services/operationRecovery/correctionRestartHarness.ts
+@@ -0,0 +1,16 @@
++/** Disposable subprocess only; never imported by the application. */
++import express from 'express';
++import {pool} from '@workspace/db';
++import {createAccountingRouter} from '../../routes/accountingDocuments';
++import {commitCorrection} from '../accountingDocuments/corrections';
++const socket=process.env.ACCOUNTING_FLOW_TEST_SOCKET??'';
++if(!/^\/tmp\/ledgerly-accounting-flow-tests-[A-Za-z0-9]+\/socket$/.test(socket)||process.env.NODE_ENV!=='test'||process.env.DATABASE_URL!==`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_test?host=${encodeURIComponent(socket)}&port=55441`)throw Error('Disposable correction restart target required');
++async function main(){
++ const identity=(await pool.query('SELECT current_database() db,current_user actor,inet_server_addr() addr')).rows[0];
++ if(identity.db!=='ledgerly_accounting_flow_test'||identity.actor!=='ledgerly_api'||identity.addr!==null)throw Error('Wrong disposable identity');
++ const app=express();app.use(express.json());app.use('/companies/:companyId',createAccountingRouter((req,res,next)=>{const actor=req.get('x-test-actor');if(!actor){res.status(401).end();return;}(req as any).userId=actor;next();}));
++ const server=app.listen(0,'127.0.0.1',()=>process.send?.({ready:true,port:(server.address() as any).port}));
++ process.on('message',(message:any)=>{if(message?.action==='admit')void commitCorrection(message.company,message.actor,message.document,message.revision,message.command,undefined,async()=>{process.send?.({admitted:message.command.request_id});await new Promise<void>(()=>{});}).catch(()=>process.send?.({failed:true}));});
++ process.on('SIGTERM',()=>server.close(()=>{void pool.end().then(()=>process.exit(0));}));
++}
++void main().catch(()=>process.exit(1));
+diff --git a/artifacts/ledgerly/src/api/accountingDocuments.mjs b/artifacts/ledgerly/src/api/accountingDocuments.mjs
+index 615481b..5e7cd9c 100644
+--- a/artifacts/ledgerly/src/api/accountingDocuments.mjs
++++ b/artifacts/ledgerly/src/api/accountingDocuments.mjs
+@@ -65,7 +65,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
+     const json = await res.json().catch(() => null);
+     if (!res.ok) {
+       const e = json?.error;
+-      throw Object.assign(new Error(({DISCOUNT_REQUIRES_UNPAID_BALANCE:'This document has no unpaid balance. Create a linked credit note and review any refund separately.',DISCOUNT_EXCEEDS_OUTSTANDING:'The discount exceeds the unpaid balance. Reduce it or use a linked credit note and review any refund separately.'})[e?.code] || e?.message || `Request failed (${res.status}).`), { status: res.status, code: e?.code, issues: Array.isArray(e?.issues) ? e.issues : [] });
++      throw Object.assign(new Error(({DISCOUNT_REQUIRES_UNPAID_BALANCE:'This document has no unpaid balance. Create a linked credit note and review any refund separately.',DISCOUNT_EXCEEDS_OUTSTANDING:'The discount exceeds the unpaid balance. Reduce it or use a linked credit note and review any refund separately.'})[e?.code] || e?.message || `Request failed (${res.status}).`), { status: res.status, code: e?.code, correctionAttemptAdmitted: e?.correction_attempt === 'admitted', issues: Array.isArray(e?.issues) ? e.issues : [] });
+     }
+     return json?.data;
+   };
+@@ -95,6 +95,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
+     correctionContext: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/correction-context`, { signal }),
+     correctionHistory: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections`, { signal }),
+     discoverCorrections: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections/operations`, { signal }),
++    terminateCorrectionAttempt: (c, id, requestId, body) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections/operations/${encodeURIComponent(requestId)}/no-effect`, { method: 'POST', body }),
+     recoverCorrection: (c, id, requestId, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections/operations/${encodeURIComponent(requestId)}`, { signal }),
+     reviewCorrection: (c, id, body, revision) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections/review`, { method: 'POST', body, revision }),
+     commitCorrection: (c, id, body, revision) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections`, { method: 'POST', body, revision }),
+diff --git a/artifacts/ledgerly/src/api/accountingDocuments.test.mjs b/artifacts/ledgerly/src/api/accountingDocuments.test.mjs
+index 37db0d3..51bcfe0 100644
+--- a/artifacts/ledgerly/src/api/accountingDocuments.test.mjs
++++ b/artifacts/ledgerly/src/api/accountingDocuments.test.mjs
+@@ -135,3 +135,9 @@ test('correction discovery uses a scoped abortable GET without financial body or
+  assert.equal(calls[0].options.method,'GET');assert.equal(calls[0].options.signal,abort.signal);assert.equal(calls[0].options.body,undefined);
+  assert.ok(!calls[0].options.headers['If-Match']);
+ });
++test('correction closure posts only immutable binding and admitted errors remain machine readable',async()=>{
++ let seen;const api=createAccountingClient(async(url,init)=>{seen={url,init};return {ok:false,status:409,json:async()=>({error:{code:'CORRECTION_OUTCOME_UNCONFIRMED',correction_attempt:'admitted',message:'Unresolved'}})};});
++ const body={expected_revision:'revision',request_hash:'hash',review_hash:'hash'};
++ await assert.rejects(()=>api.terminateCorrectionAttempt('c/a','d?b','r/a',body),e=>e.correctionAttemptAdmitted===true&&e.status===409);
++ assert.equal(seen.url,'/api/companies/c%2Fa/accounting-documents/d%3Fb/corrections/operations/r%2Fa/no-effect');assert.equal(seen.init.method,'POST');assert.deepEqual(JSON.parse(seen.init.body),body);
++});
+diff --git a/artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.jsx b/artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.jsx
+index d23bfd8..53fc34e 100644
+--- a/artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.jsx
++++ b/artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.jsx
+@@ -46,7 +46,7 @@ function CorrectionEditor({ companyId, documentId, onSaved, onClose }) {
+         const url=new URL(window.location.href);url.searchParams.set('correction_request',requestId);
+         window.history.replaceState(window.history.state,'',url);
+       }, forgetRequest: () => {
+-        const url=new URL(window.location.href);url.searchParams.delete('correction_request');
++        const url=new URL(window.location.href);url.searchParams.delete('correction_request');url.searchParams.delete('correction_recovery');
+         window.history.replaceState(window.history.state,'',url);
+       }, onState: next => {
+       setState(next);
+@@ -58,16 +58,16 @@ function CorrectionEditor({ companyId, documentId, onSaved, onClose }) {
+   const change = next => { controller.current.discardReview(); setAck(false); setForm(next); };
+   return <CorrectionWorkspace state={state} form={form} acknowledged={ack} onAcknowledge={setAck} onChange={change}
+     onReview={() => { setAck(false); controller.current.review(form); }} onPost={() => controller.current.post()}
+-    onRecover={() => controller.current.recover()}
++    onRecover={() => controller.current.recover()} onRequestClosure={() => controller.current.requestClosure()} onCancelClosure={() => controller.current.cancelClosure()} onConfirmClosure={() => controller.current.confirmClosure()} onContinueFresh={() => {setAck(false);controller.current.continueFresh();}}
+     onDiscover={() => controller.current.discover()} onSelectReceipt={id => controller.current.selectReceipt(id)}
+     onRefresh={() => { setAck(false); controller.current.load(); }} onClose={() => {
+       onClose(); // Remove the recovery locator before a parent document refresh.
+     }} />;
+ }
+ 
+-export function CorrectionWorkspace({ state, form, acknowledged, onAcknowledge, onChange, onReview, onPost, onRecover, onDiscover, onSelectReceipt, onRefresh, onClose }) {
++export function CorrectionWorkspace({ state, form, acknowledged, onAcknowledge, onChange, onReview, onPost, onRecover, onRequestClosure, onCancelClosure, onConfirmClosure, onContinueFresh, onDiscover, onSelectReceipt, onRefresh, onClose }) {
+   const { context, review, status } = state;
+-  const busy = ['loading', 'reviewing', 'posting', 'checking', 'discovering'].includes(status), uncertain = status === 'unknown' || (state.discovery && status !== 'posted');
++  const busy = ['loading', 'reviewing', 'posting', 'checking', 'discovering', 'resolving'].includes(status), uncertain = status === 'unknown' || (state.discovery && status !== 'posted');
+   const editable = canReviewCorrection(context) && ['ready', 'reviewed'].includes(status);
+   return <div className="mt-5 space-y-5 border-t pt-5">
+     <ErrorBox error={state.error} onRetry={status === 'error' ? onRefresh : undefined} />
+@@ -80,12 +80,18 @@ export function CorrectionWorkspace({ state, form, acknowledged, onAcknowledge,
+       {state.candidates?.length === 0 && <p>No recorded corrections found for your account on this document. The missing outcome remains unconfirmed.</p>}
+       {state.hasMore && <p>Only the latest 100 matching corrections are shown. Older attempts remain unconfirmed here.</p>}
+       {state.candidates?.map(item => <div key={item.request_id} className="space-y-2 rounded border p-3">
+-        <p>{item.effective_date} · {item.reason}</p><p className="break-all text-xs">Correction reference: {item.request_id}</p>
++        <p>{item.effective_date} · {item.reason}{item.state==='pending'?' · Pending attempt':item.state==='no_effect'?' · Closed without effect':''}</p><p className="break-all text-xs">Correction reference: {item.request_id}</p>
+         <Button variant="outline" disabled={busy || Boolean(state.requestId && state.requestId !== item.request_id)} onClick={() => onSelectReceipt(item.request_id)}>This is my correction — verify receipt</Button>
+       </div>)}
+     </section>}
+     {status === 'checking' && <p role="status">Checking the recorded correction. No changes are being sent…</p>}
+     {status === 'unknown' && <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm"><p>This correction may already be posted or still processing. Check its recorded outcome; do not enter another correction.</p><Button className="mt-3" variant="outline" onClick={onRecover}>Check this correction again</Button><p className="mt-2 text-xs">This page’s recovery link survives reload. Checking is read-only and never resubmits the correction.</p></div>}
++    {status === 'resolving' && <p role="status">Checking whether this attempt can be safely closed…</p>}
++    {status === 'unknown' && state.outcome === 'pending' && <section aria-label="Close pending correction" className="space-y-3 rounded border p-4 text-sm">
++      <p>The server retained this reviewed attempt. You can keep checking it, or explicitly close it if it has not posted. A committed correction always takes precedence.</p>
++      {!state.confirming ? <Button variant="outline" onClick={onRequestClosure}>Close this attempt without posting</Button> : <><p>Confirm closing this exact attempt. The server will permanently prevent this request from posting if no correction is recorded.</p><Button onClick={onConfirmClosure}>Confirm closing this attempt</Button><Button variant="ghost" onClick={onCancelClosure}>Keep checking</Button></>}
++    </section>}
++    {status === 'unknown' && state.outcome === 'no_effect' && <section aria-label="Verified no-effect correction" className="space-y-3 rounded border p-4 text-sm"><p>This attempt is recorded as closed without financial effect. Its original request cannot post.</p><Button onClick={onContinueFresh}>Verify closure and start a fresh review</Button></section>}
+     {status === 'posted' && <p role="status" className="text-sm text-emerald-800">Correction recorded. <JournalLink id={state.receipt?.journal_id} /></p>}
+     {context && <>
+       <div className="rounded-lg border bg-muted/30 p-4 text-sm leading-relaxed"><p>The original document, its tax point and payments stay recorded. A correction adds a dated adjustment to the accounts.</p><p className="mt-2 font-medium">Eligible corrected invoices and bills can receive credit notes through the credit workflow, within their remaining line amounts. Conditional-discount replacement terms and return-credit tracking on corrected bills are not available. Posted credits remain included in the outstanding balance. Revised amounts must cover existing credits and allocated payments; a linked draft credit must be resolved before correction.</p><p className="mt-2 text-muted-foreground">Party, VAT codes, accounts, discounts, notes and line order stay fixed. Credit notes and metadata-only edits are not supported here yet.</p></div>
+diff --git a/artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.test.jsx b/artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.test.jsx
+index b335d04..21b68e8 100644
+--- a/artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.test.jsx
++++ b/artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.test.jsx
+@@ -42,3 +42,8 @@ test('lost-reference discovery explains absence and exposes explicit receipt cho
+  const empty=render({status:'discovery',discovery:true,candidates:[]});assert.ok(empty.includes('missing outcome remains unconfirmed'));
+  const busy=render({status:'checking',discovery:true,candidates:[{request_id:'chosen-id',reason:'Example'}]});assert.match(busy,/disabled=""[^>]*>This is my correction/);
+ });
++test('pending closure needs explicit confirmation and verified terminal remains locked until fresh continuation',()=>{
++ const pending=render({status:'unknown',outcome:'pending'});assert.ok(pending.includes('Close this attempt without posting'));assert.ok(!pending.includes('Confirm closing this attempt'));
++ const confirming=render({status:'unknown',outcome:'pending',confirming:true});assert.ok(confirming.includes('Confirm closing this attempt'));assert.ok(confirming.includes('Keep checking'));
++ const terminal=render({status:'unknown',outcome:'no_effect'});assert.ok(terminal.includes('Verify closure and start a fresh review'));assert.match(terminal,/disabled=""[^>]*>Close/);assert.ok(!terminal.includes('Review revised amounts'));
++});
+diff --git a/artifacts/ledgerly/src/features/documentCorrections/model.mjs b/artifacts/ledgerly/src/features/documentCorrections/model.mjs
+index 74e71bf..4b1d915 100644
+--- a/artifacts/ledgerly/src/features/documentCorrections/model.mjs
++++ b/artifacts/ledgerly/src/features/documentCorrections/model.mjs
+@@ -24,7 +24,7 @@ export const canReviewCorrection = context => context?.capabilities?.review_corr
+ function discoveryReceipts(result, companyId, documentId) {
+   const fields = ['request_id', 'document_id', 'revision', 'journal_id', 'effective_date', 'reason'];
+   if (result?.company_id !== companyId || result.document_id !== documentId || typeof result.has_more !== 'boolean' ||
+-      !Array.isArray(result.receipts) || result.receipts.length > 100 || Object.keys(result).some(key => !['company_id','document_id','has_more','receipts'].includes(key))) throw Error('Recorded corrections could not be verified.');
++      !Array.isArray(result.receipts) || !Array.isArray(result.pending??[]) || result.receipts.length+(result.pending??[]).length > 100 || Object.keys(result).some(key => !['company_id','document_id','has_more','receipts','pending'].includes(key))) throw Error('Recorded corrections could not be verified.');
+   const ids = new Set(), journals = new Set(), revisions = new Set();
+   for (const item of result.receipts) {
+     if (!item || Object.keys(item).length !== fields.length || Object.keys(item).some(key => !fields.includes(key)) ||
+@@ -35,21 +35,30 @@ function discoveryReceipts(result, companyId, documentId) {
+         ids.has(item.request_id) || journals.has(item.journal_id) || revisions.has(item.revision)) throw Error('Recorded corrections could not be verified.');
+     ids.add(item.request_id); journals.add(item.journal_id); revisions.add(item.revision);
+   }
+-  return frozen(copy(result.receipts));
++  for(const item of result.pending??[]){
++    if(!item||Object.keys(item).length!==6||Object.keys(item).some(k=>!['request_id','document_id','state','expected_revision','effective_date','reason'].includes(k))||
++      !uuid(item.request_id)||item.document_id!==documentId||!uuid(item.expected_revision)||!['pending','no_effect'].includes(item.state)||
++      typeof item.reason!=='string'||!item.reason.trim()||item.reason.length>1000||typeof item.effective_date!=='string'||
++      !/^\d{4}-\d{2}-\d{2}$/.test(item.effective_date)||!Number.isFinite(Date.parse(item.effective_date+'T00:00:00Z'))||new Date(item.effective_date+'T00:00:00Z').toISOString().slice(0,10)!==item.effective_date||ids.has(item.request_id))throw Error('Recorded corrections could not be verified.');
++    ids.add(item.request_id);
++  }
++  return frozen(copy([...(result.pending??[]),...result.receipts]));
+ }
+ 
++const boundAttempt = value => value && uuid(value.expected_revision) && ['request_hash','review_hash'].every(key=>typeof value[key]==='string'&&/^sha256:[a-f0-9]{64}$/.test(value[key]));
++const sameBinding = (a,b) => ['expected_revision','request_hash','review_hash'].every(key=>a[key]===b[key]);
+ /** Persist only a request locator before sending. The server remains the
+  * authority; a reload never reconstructs financial intent or reposts it. */
+ export function createCorrectionController({ client, companyId, documentId, onState = () => {}, makeRequestId = () => crypto.randomUUID(), onSaved = () => {}, rememberRequest = () => {}, forgetRequest = () => {}, recoveryRequestId = null, discoveryMode = false }) {
+   let active = true, generation = 0, abort;
+   let state = { status: 'idle', context: null, review: null, pending: null, error: null, receipt: null, requestId: recoveryRequestId,
+-    discovery: discoveryMode, candidates: null, hasMore: false, selectedReceipt: null };
++    discovery: discoveryMode, candidates: null, hasMore: false, selectedReceipt: null, outcome:null, binding:null, confirming:false };
+   const current = g => active && generation === g;
+   const emit = patch => { state = { ...state, ...patch }; if (active) onState(state); };
+   return {
+     get state() { return state; },
+     async discover() {
+-      if (!active || !state.discovery || state.requestId || ['posting','checking','discovering'].includes(state.status)) return;
++      if (!active || !state.discovery || state.requestId || ['posting','checking','discovering','resolving'].includes(state.status)) return;
+       const g = ++generation; abort?.abort(); abort = new AbortController();
+       emit({ status: 'discovering', candidates: null, error: null });
+       try {
+@@ -68,7 +77,7 @@ export function createCorrectionController({ client, companyId, documentId, onSt
+       return this.recover();
+     },
+     async recover() {
+-      if(!active || ['posting','checking'].includes(state.status)) return;
++      if(!active || ['posting','checking','resolving'].includes(state.status)) return;
+       const requestId=state.requestId??state.pending?.body.request_id;
+       const g=++generation; abort?.abort();abort=new AbortController();
+       emit({status:'checking',error:null});
+@@ -76,18 +85,49 @@ export function createCorrectionController({ client, companyId, documentId, onSt
+         if(!uuid(requestId)) throw Error('The correction recovery link is invalid. Check correction history before taking further action.');
+         const result=await client.recoverCorrection(companyId,documentId,requestId,abort.signal);
+         if(!current(g)) return;
+-        if(result?.request_id!==requestId || result.document_id!==documentId || !['known','unknown'].includes(result.state))
++        if(result?.request_id!==requestId || result.document_id!==documentId || !['known','unknown','pending','no_effect'].includes(result.state))
+           throw Error('The correction outcome could not be verified.');
+-        if(result.state==='unknown') {emit({status:'unknown',requestId});return;}
++        if(result.state==='unknown') {emit({status:'unknown',requestId,outcome:'unknown',confirming:false});return;}
++        if(['pending','no_effect'].includes(result.state)){
++          if(!boundAttempt(result)||(state.binding&&!sameBinding(state.binding,result))||
++            (state.selectedReceipt&&(state.selectedReceipt.journal_id||state.selectedReceipt.expected_revision!==result.expected_revision)))throw Error('The selected correction attempt could not be verified.');
++          emit({status:'unknown',requestId,outcome:result.state,binding:frozen({expected_revision:result.expected_revision,request_hash:result.request_hash,review_hash:result.review_hash}),confirming:false});return;
++        }
+         const receipt=result.receipt;
+         if(receipt?.id!==requestId || receipt.document_id!==documentId || receipt.status!=='posted' || !uuid(receipt.journal_id)||!uuid(receipt.revision))
+           throw Error('The correction receipt could not be verified.');
+-        if(state.selectedReceipt && (receipt.revision!==state.selectedReceipt.revision || receipt.journal_id!==state.selectedReceipt.journal_id))
++        if(state.selectedReceipt?.journal_id && (receipt.revision!==state.selectedReceipt.revision || receipt.journal_id!==state.selectedReceipt.journal_id))
+           throw Error('The correction receipt changed. Keep checking the original request before continuing.');
+-        emit({status:'posted',receipt,pending:null,requestId});
++        emit({status:'posted',receipt,pending:null,requestId,outcome:'known',confirming:false});
+         // Do not refetch/unmount automatically while the recovery locator is in
+         // the URL: remounting would recover and refetch indefinitely.
+-      } catch(error) {if(current(g)) emit({status:'unknown',error,requestId});}
++      } catch(error) {if(current(g)) emit({status:'unknown',error,requestId,confirming:false});}
++    },
++    async requestClosure(){
++      if(!active||state.status!=='unknown'||state.outcome!=='pending'||!state.binding)return;
++      await this.recover();
++      if(active&&state.status==='unknown'&&state.outcome==='pending'&&!state.error)emit({confirming:true});
++    },
++    cancelClosure(){if(active&&state.status==='unknown')emit({confirming:false});},
++    async confirmClosure(){
++      if(!active||state.status!=='unknown'||!state.confirming||state.outcome!=='pending'||!state.binding)return;
++      const g=++generation,requestId=state.requestId,binding=state.binding;
++      emit({status:'resolving',confirming:false,error:null});
++      try{
++        const result=await client.terminateCorrectionAttempt(companyId,documentId,requestId,copy(binding));
++        if(!current(g))return;
++        if(result?.request_id!==requestId||result.document_id!==documentId||!['known','no_effect'].includes(result.state))throw Error('The closure response could not be verified.');
++        // Neither acknowledgement nor absence unlocks a new correction: read again.
++        emit({status:'unknown'});await this.recover();
++      }catch(error){if(current(g))emit({status:'unknown',error});}
++    },
++    async continueFresh(){
++      if(!active||state.status!=='unknown'||state.outcome!=='no_effect'||!state.binding)return;
++      await this.recover();
++      if(!active||state.status!=='unknown'||state.outcome!=='no_effect'||state.error)return;
++      try{forgetRequest();}catch(error){emit({error:Error('Could not clear the recovery link. Keep this attempt open.')});return;}
++      emit({status:'idle',requestId:null,pending:null,review:null,context:null,receipt:null,discovery:false,candidates:null,selectedReceipt:null,binding:null,outcome:null,confirming:false});
++      await this.load();
+     },
+     async load() {
+       if(state.requestId) return this.recover();
+@@ -124,7 +164,7 @@ export function createCorrectionController({ client, companyId, documentId, onSt
+       } catch (error) { if (current(g)) emit({ status: 'ready', error }); }
+     },
+     async post() {
+-      if (!active || !['reviewed', 'unknown'].includes(state.status) || !state.pending || state.context?.capabilities?.correct_documents !== true) return;
++      if (!active || !['reviewed', 'unknown'].includes(state.status) || state.outcome==='no_effect' || !state.pending || state.context?.capabilities?.correct_documents !== true) return;
+       const g = ++generation, pending = state.pending, unresolved = state.status === 'unknown';
+       try { rememberRequest(pending.body.request_id); }
+       catch(error) {emit({status:unresolved?'unknown':'reviewed',error:Error(unresolved
+@@ -144,7 +184,7 @@ export function createCorrectionController({ client, companyId, documentId, onSt
+         // Rejection of this retry says nothing about the earlier ambiguous
+         // attempt: it may still commit. Keep its locator and frozen request
+         // until the canonical receipt is verified.
+-        if (definitive && !unresolved) {
++        if (definitive && !unresolved && !error.correctionAttemptAdmitted) {
+           try { forgetRequest(); }
+           catch { emit({ status: 'unknown', error: Error('Could not clear the recovery link. Check this request before continuing.') }); return; }
+           emit({ status: 'error', error, context: null, review: null, pending: null, requestId: null });
+diff --git a/artifacts/ledgerly/src/features/documentCorrections/model.test.mjs b/artifacts/ledgerly/src/features/documentCorrections/model.test.mjs
+index bd30894..796d5cd 100644
+--- a/artifacts/ledgerly/src/features/documentCorrections/model.test.mjs
++++ b/artifacts/ledgerly/src/features/documentCorrections/model.test.mjs
+@@ -206,3 +206,41 @@ test('changing company disposes the old discovery without exposing its delayed r
+  await other.load();late.resolve({state:'known',request_id:requestId,document_id:documentId,receipt:receipt()});await pending;
+  assert.equal(oldEvents.length,count);assert.equal(other.state.status,'discovery');assert.deepEqual(other.state.candidates,[]);assert.equal(other.state.receipt,null);
+ });
++
++const attemptBinding=()=>({expected_revision:revision,request_hash:'sha256:'+'b'.repeat(64),review_hash:'sha256:'+'c'.repeat(64)});
++const pendingResult=(state='pending')=>({state,request_id:requestId,document_id:documentId,...attemptBinding()});
++const pendingCandidate=(state='pending')=>({request_id:requestId,document_id:documentId,state,expected_revision:revision,effective_date:'2026-10-30',reason:'Pending reviewed correction'});
++test('pending discovery and terminal discovery require fresh verification, confirmation and another GET before fresh review',async()=>{
++ let terminal=false,reads=0,writes=0,forgot=0,loads=0;
++ const {session}=discoverySetup({discoverCorrections:async()=>({...discovery([]),pending:[pendingCandidate()]}),recoverCorrection:async()=>{reads++;return pendingResult(terminal?'no_effect':'pending');},
++  terminateCorrectionAttempt:async(c,d,id,b)=>{writes++;assert.deepEqual([c,d,id,b],[companyId,documentId,requestId,attemptBinding()]);terminal=true;return pendingResult('no_effect');},
++  correctionContext:async()=>{loads++;return context();}},{forgetRequest:()=>forgot++});
++ await session.load();await session.selectReceipt(requestId);assert.equal(session.state.outcome,'pending');await session.confirmClosure();assert.equal(writes,0);
++ await session.requestClosure();assert.equal(reads,2);assert.equal(session.state.confirming,true);await session.confirmClosure();
++ assert.equal(reads,3);assert.equal(writes,1);assert.equal(forgot,0);assert.equal(session.state.outcome,'no_effect');
++ await session.post();await session.continueFresh();assert.equal(reads,4);assert.equal(forgot,1);assert.equal(loads,1);assert.equal(session.state.status,'ready');assert.equal(session.state.requestId,null);
++ const lost=discoverySetup({discoverCorrections:async()=>({...discovery([]),pending:[pendingCandidate('no_effect')]}),recoverCorrection:async()=>pendingResult('no_effect')}).session;
++ await lost.load();await lost.selectReceipt(requestId);assert.equal(lost.state.outcome,'no_effect');
++});
++test('canonical closure response is verified afresh; malformed or denied terminal GET never unlocks',async()=>{
++ for(const result of [Object.assign(Error('Denied'),{status:403}),{...pendingResult('no_effect'),review_hash:token},{...pendingResult('no_effect'),document_id:companyId}]){
++  let mode='pending',forgot=0;const {session}=discoverySetup({recoverCorrection:async()=>{if(mode==='pending')return pendingResult();if(result instanceof Error)throw result;return result;},terminateCorrectionAttempt:async()=>{mode='terminal';return pendingResult('no_effect');}},{recoveryRequestId:requestId,forgetRequest:()=>forgot++});
++  await session.load();await session.requestClosure();await session.confirmClosure();await session.continueFresh();assert.equal(forgot,0);assert.equal(session.state.status,'unknown');assert.equal(session.state.requestId,requestId);
++ }
++ let reads=0;const {session}=discoverySetup({recoverCorrection:async()=>++reads<3?pendingResult():{state:'known',request_id:requestId,document_id:documentId,receipt:receipt()},terminateCorrectionAttempt:async()=>({state:'known',request_id:requestId,document_id:documentId,receipt:receipt()})},{recoveryRequestId:requestId});
++ await session.load();await session.requestClosure();await session.confirmClosure();assert.equal(reads,3);assert.equal(session.state.status,'posted');
++});
++test('admitted definitive errors preserve identity; disposal and failed locator cleanup fence terminal progression',async()=>{
++ const first=setup({commitCorrection:async()=>{throw Object.assign(Error('Admitted failure'),{status:409,correctionAttemptAdmitted:true});}});await first.session.load();await first.session.review(form());await first.session.post();assert.equal(first.session.state.status,'unknown');assert.equal(first.session.state.requestId,requestId);
++ const cleanup=discoverySetup({recoverCorrection:async()=>pendingResult('no_effect')},{recoveryRequestId:requestId,forgetRequest:()=>{throw Error('No history');}}).session;
++ await cleanup.load();await cleanup.continueFresh();assert.equal(cleanup.state.requestId,requestId);assert.equal(cleanup.state.status,'unknown');
++ const late=deferred(),seen=[];const old=discoverySetup({recoverCorrection:async()=>pendingResult(),terminateCorrectionAttempt:()=>late.promise},{recoveryRequestId:requestId,onState:s=>seen.push(s)}).session;
++ await old.load();await old.requestClosure();const pending=old.confirmClosure();old.dispose();const count=seen.length;late.resolve(pendingResult('no_effect'));await pending;assert.equal(seen.length,count);
++});
++test('malformed pending discovery and substituted admission revision cannot authorize closure',async()=>{
++ for(const candidate of [{...pendingCandidate(),state:'failed'},{...pendingCandidate(),expected_revision:'bad'},{...pendingCandidate(),review_token:token},{...pendingCandidate(),document_id:companyId}]){
++  const {session}=discoverySetup({discoverCorrections:async()=>({...discovery([]),pending:[candidate]})});await session.load();assert.equal(session.state.candidates,null);await session.requestClosure();assert.equal(session.state.confirming,false);
++ }
++ const {session}=discoverySetup({discoverCorrections:async()=>({...discovery([]),pending:[pendingCandidate()]}),recoverCorrection:async()=>({...pendingResult(),expected_revision:nextRevision})});
++ await session.load();await session.selectReceipt(requestId);await session.requestClosure();assert.equal(session.state.status,'unknown');assert.equal(session.state.binding,null);assert.equal(session.state.confirming,false);
++});
+diff --git a/docs/operations/recovery-targets.json b/docs/operations/recovery-targets.json
+index ce13546..937bb3d 100644
+--- a/docs/operations/recovery-targets.json
++++ b/docs/operations/recovery-targets.json
+@@ -16,12 +16,14 @@
+     "encryption": "AES-256-GCM, fresh random 96-bit nonce, 128-bit authentication tag, authenticated version header, separate 256-bit key",
+     "restore_guards": "Authenticate before creating output; create-only 0600 destination; refuse existing files, final-component symlinks and identical input/output/key paths",
+     "verified": "Exact synthetic role/job/audit/attachment bundle bytes survive the wrapper; tamper, wrong-key, truncation and overwrite checks fail safely",
+-    "separate_cluster_rehearsal": "tools/operations/backup-restore/rehearsal.mjs: representative synthetic role/grants, attachment, pending job and audit; encrypted pg_dump round-trip into separate fresh cluster. Compares rows, schema controls, ownership, grants, role memberships and row-security policies/flags, column definitions/defaults and sequence configuration/consumed identifier state; restored reader sees only its synthetic tenant attachment; missing-FK, unexpected-membership, audit-delete-grant, missing-policy, disabled-RLS and unforced-RLS and column/default/type/identity-rewind/increment negative controls must detect corruption and roll back. Exact-source PostgreSQL CI is required."
++    "separate_cluster_rehearsal": "tools/operations/backup-restore/rehearsal.mjs: representative synthetic role/grants, attachment, pending job and audit; encrypted pg_dump round-trip into separate fresh cluster. Compares rows, schema controls, ownership, grants, role memberships and row-security policies/flags, column definitions/defaults and sequence configuration/consumed identifier state; restored reader sees only its synthetic tenant attachment; missing-FK, unexpected-membership, audit-delete-grant, missing-policy, disabled-RLS and unforced-RLS and column/default/type/identity-rewind/increment negative controls must detect corruption and roll back. Exact-source PostgreSQL CI is required.",
++    "populated_application_rehearsal": "tools/accounting-flow/restore-drill.mjs invokes application-recovery.mjs: authenticated encrypted dump of the complete populated regression schema restored into a separate fresh socket-only cluster; compares content/schema fingerprints, reconstructs restricted runtime roles, and executes native source attachment, payment/witness, banking and replacement-history/report checks. This describes the disposable executable, not production or offsite qualification.",
++    "payment_attempt_recovery": "New candidate coverage in payment-attempt-acceptance.ts prepares native recorded, no-effect and interrupted pending payment attempts before the dump. The restored runtime must preserve their exact immutable bindings and actor-owned discovery, close the pending request without effects, reject delayed exact-body terminal requests, deduplicate recorded replay, preserve immutable grants/guards and pass scope checks. Parent recovery refuses missing, false or malformed acceptance. Exact-source PostgreSQL CI is still required; this candidate has only local compile/focused validation until then."
+   },
+-  "existing_database_rehearsal": "tools/accounting-flow/restore-drill.mjs verifies plaintext pg_dump restore within the disposable test cluster, including accounting/source content fingerprints and existing runtime role restrictions. It does not prove encrypted offsite recovery or reconstruct cluster roles in a new cluster.",
++  "existing_database_rehearsal": "tools/accounting-flow/restore-drill.mjs verifies a plaintext pg_dump restore inside the disposable test cluster and invokes an authenticated encrypted populated-application restore into a second fresh cluster. Both verify fingerprints and existing runtime restrictions. Neither establishes an off-site destination, real customer restoration or operational recovery targets.",
+   "remaining": [
+-    "Extend encrypted fresh-cluster recovery from representative fixtures to the complete populated application schema and original source evidence.",
+-    "Prove complete application runtime roles, grants, original attachments, durable jobs and audit reconstruction; representative synthetic tables alone do not qualify these flows.",
++    "Qualify the new native payment-attempt pending/no-effect/recorded recovery checks through exact-source populated encrypted fresh-cluster PostgreSQL CI; compilation and pure tests alone do not prove restoration.",
++    "Qualify remaining real application runtime flows and persisted extraction/jobs when their actual durable producers exist. The durable_jobs table in the representative rehearsal is a synthetic fixture, not an implemented application job store.",
+     "Measure representative end-to-end recovery duration and point-in-time data loss before setting operational targets.",
+     "Assign backup/restore/key ownership and define key rotation, emergency recovery, retention and deletion evidence.",
+     "Provision off-site destination/access only through the P03-80 owner gate; no provider is connected by this utility."
+diff --git a/lib/db/migration-registry.json b/lib/db/migration-registry.json
+index 9ad49bb..f0c9680 100644
+--- a/lib/db/migration-registry.json
++++ b/lib/db/migration-registry.json
+@@ -182,6 +182,15 @@
+         "accounting-payments"
+       ],
+       "sha256": "7d4ab4c43a80d667a68254e7de90732a1c7fc336c19f81d4c499eb6a220b93d3"
++    },
++    {
++      "id": "correction-operation-recovery",
++      "path": "lib/db/migrations/correction-operation-recovery.review.sql",
++      "contractVersion": 1,
++      "dependencies": [
++        "accounting-documents"
++      ],
++      "sha256": "342bf8a65111167516fa56cc8899abefef5ddd594f577344082990acfaa855a0"
+     }
+   ],
+   "securityOverlay": {
+diff --git a/lib/db/migrations/correction-operation-recovery.review.sql b/lib/db/migrations/correction-operation-recovery.review.sql
+new file mode 100644
+index 0000000..d04d6c6
+--- /dev/null
++++ b/lib/db/migrations/correction-operation-recovery.review.sql
+@@ -0,0 +1,38 @@
++-- Additive disposable-only correction recovery; admission is never a financial outcome.
++CREATE UNIQUE INDEX IF NOT EXISTS accounting_document_sources_company_id_idx ON public.accounting_document_sources(company_id,id);
++CREATE TABLE public.correction_attempt_admissions (
++ company_id uuid NOT NULL, request_id uuid NOT NULL, document_id uuid NOT NULL,
++ actor_id text NOT NULL CHECK(length(btrim(actor_id)) BETWEEN 1 AND 256), expected_revision uuid NOT NULL,
++ request_hash text NOT NULL CHECK(request_hash ~ '^sha256:[a-f0-9]{64}$'),
++ review_hash text NOT NULL CHECK(review_hash ~ '^sha256:[a-f0-9]{64}$'),
++ reason text NOT NULL CHECK(length(btrim(reason)) BETWEEN 1 AND 1000),
++ effective_date date NOT NULL CHECK(effective_date BETWEEN DATE '1900-01-01' AND DATE '2199-12-31'),
++ admitted_at timestamptz NOT NULL DEFAULT clock_timestamp(),
++ PRIMARY KEY(company_id,request_id),
++ UNIQUE(company_id,request_id,document_id,actor_id,expected_revision,request_hash,review_hash),
++ FOREIGN KEY(company_id,document_id) REFERENCES public.accounting_document_sources(company_id,id)
++);
++CREATE INDEX correction_attempt_actor_document ON public.correction_attempt_admissions(company_id,actor_id,document_id,admitted_at);
++CREATE TABLE public.correction_attempt_no_effect (
++ company_id uuid NOT NULL, request_id uuid NOT NULL, document_id uuid NOT NULL, actor_id text NOT NULL,
++ expected_revision uuid NOT NULL, request_hash text NOT NULL, review_hash text NOT NULL,
++ recorded_at timestamptz NOT NULL DEFAULT clock_timestamp(), PRIMARY KEY(company_id,request_id),
++ FOREIGN KEY(company_id,request_id,document_id,actor_id,expected_revision,request_hash,review_hash)
++ REFERENCES public.correction_attempt_admissions(company_id,request_id,document_id,actor_id,expected_revision,request_hash,review_hash)
++);
++CREATE FUNCTION public.correction_attempt_immutable() RETURNS trigger LANGUAGE plpgsql AS $$
++BEGIN RAISE EXCEPTION 'Correction attempt history is immutable'; END $$;
++CREATE TRIGGER correction_attempt_admission_immutable BEFORE UPDATE OR DELETE ON public.correction_attempt_admissions
++ FOR EACH ROW EXECUTE FUNCTION public.correction_attempt_immutable();
++CREATE TRIGGER correction_attempt_admission_no_truncate BEFORE TRUNCATE ON public.correction_attempt_admissions
++ FOR EACH STATEMENT EXECUTE FUNCTION public.correction_attempt_immutable();
++CREATE TRIGGER correction_attempt_terminal_immutable BEFORE UPDATE OR DELETE ON public.correction_attempt_no_effect
++ FOR EACH ROW EXECUTE FUNCTION public.correction_attempt_immutable();
++CREATE TRIGGER correction_attempt_terminal_no_truncate BEFORE TRUNCATE ON public.correction_attempt_no_effect
++ FOR EACH STATEMENT EXECUTE FUNCTION public.correction_attempt_immutable();
++ALTER TABLE public.correction_attempt_admissions ENABLE ALWAYS TRIGGER correction_attempt_admission_immutable;
++ALTER TABLE public.correction_attempt_admissions ENABLE ALWAYS TRIGGER correction_attempt_admission_no_truncate;
++ALTER TABLE public.correction_attempt_no_effect ENABLE ALWAYS TRIGGER correction_attempt_terminal_immutable;
++ALTER TABLE public.correction_attempt_no_effect ENABLE ALWAYS TRIGGER correction_attempt_terminal_no_truncate;
++REVOKE ALL ON public.correction_attempt_admissions,public.correction_attempt_no_effect FROM PUBLIC,ledgerly_api;
++GRANT SELECT,INSERT ON public.correction_attempt_admissions,public.correction_attempt_no_effect TO ledgerly_api;
+diff --git a/lib/db/schema-change-registry.json b/lib/db/schema-change-registry.json
+index 407fdc0..a50c9f2 100644
+--- a/lib/db/schema-change-registry.json
++++ b/lib/db/schema-change-registry.json
+@@ -96,13 +96,26 @@
+       "path": "lib/db/migrations/conditional-discount-compensations.review.sql",
+       "sha256": "d1f05ddcc8dd98b560038a12dec41463e47bb7fca23856c4b49ecd432f54ac52",
+       "status": "review_sql_only",
+-      "tables": ["conditional_discount_compensations"]
++      "tables": [
++        "conditional_discount_compensations"
++      ]
+     },
+     {
+       "path": "lib/db/migrations/conditional-discount-cash-reversal.review.sql",
+       "sha256": "80ae6ef09b65592793a5c829fe6d97550aa64147f589caf27ffd608e62569431",
+       "status": "review_sql_only",
+-      "tables": ["conditional_discount_compensations"]
++      "tables": [
++        "conditional_discount_compensations"
++      ]
++    },
++    {
++      "path": "lib/db/migrations/correction-operation-recovery.review.sql",
++      "sha256": "342bf8a65111167516fa56cc8899abefef5ddd594f577344082990acfaa855a0",
++      "status": "review_sql_only",
++      "tables": [
++        "correction_attempt_admissions",
++        "correction_attempt_no_effect"
++      ]
+     }
+   ],
+   "reservedChanges": [
+diff --git a/tools/accounting-flow/schema.mjs b/tools/accounting-flow/schema.mjs
+index 10c97bd..5300d9b 100644
+--- a/tools/accounting-flow/schema.mjs
++++ b/tools/accounting-flow/schema.mjs
+@@ -65,6 +65,7 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
+     await admin.query(migrationInputs['accounting-chart']);
+     await admin.query(migrationInputs['accounting-payments']);
+     await admin.query(migrationInputs['operation-recovery']);
++    await admin.query(migrationInputs['correction-operation-recovery']);
+     await admin.query(migrationInputs['credit-tracking']);
+     await admin.query(migrationInputs['document-intake']);
+     await admin.query(migrationInputs['paid-credit-operations']);
+diff --git a/tools/accounting-flow/test.mjs b/tools/accounting-flow/test.mjs
+index 5b89d10..e37f903 100644
+--- a/tools/accounting-flow/test.mjs
++++ b/tools/accounting-flow/test.mjs
+@@ -86,6 +86,12 @@ try {
+       env:{...testEnv,DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_restore_test?host=${encodeURIComponent(socket)}&port=${port}`},stdio:'inherit'});
+     exitCode=await new Promise((resolve,reject)=>{result.on('error',reject);result.on('exit',code=>resolve(code??1));});
+     restore.compensationAcceptanceVerified=exitCode===0;
++    if(exitCode===0){
++      execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild','src/services/operationRecovery/correctionRecovery.restore.test.ts','--bundle','--platform=node','--format=cjs','--external:pg','--outfile=../../generated-artifacts/correction-recovery-restore.test.cjs'],{cwd:root,stdio:'inherit'});
++      const corrections=spawn(process.execPath,['--test',root+'/generated-artifacts/correction-recovery-restore.test.cjs'],{cwd:root,env:{...testEnv,DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_restore_test?host=${encodeURIComponent(socket)}&port=${port}`},stdio:'inherit'});
++      exitCode=await new Promise((resolve,reject)=>{corrections.on('error',reject);corrections.on('exit',code=>resolve(code??1));});
++      restore.correctionRecoveryVerified=exitCode===0;
++    }
+     writeFileSync(restoreReceipt,JSON.stringify(restore,null,2)+'\n');
+     console.log('Disposable backup/restore verified: original rows, restored evidence and restricted runtime match.');
+   }
+diff --git a/tools/development/migrations/registry.mjs b/tools/development/migrations/registry.mjs
+index 276c0c5..7444ba8 100644
+--- a/tools/development/migrations/registry.mjs
++++ b/tools/development/migrations/registry.mjs
+@@ -19,6 +19,7 @@ export const migrationOrder = Object.freeze([
+   'bank-import-canonical-history',
+   'bank-match-corrections',
+   'operation-recovery',
++  'correction-operation-recovery',
+ ]);
+ const fail = code => { throw Object.assign(new Error(code), { code }); };
+ export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+@@ -30,7 +31,7 @@ export function validateMigrationInputs(registry, readBytes) {
+   for (const [index, id] of migrationOrder.entries()) {
+     const item = registry.migrations[index];
+     const expectedPath = `lib/db/migrations/${id}.review.sql`;
+-    const dependencies = id === 'operation-recovery' ? ['accounting-payments'] : id === 'bank-statement-matches' ? ['bank-imports','bank-openings'] : id === 'bank-openings' ? ['accounting-payments'] : id === 'bank-imports' ? ['accounting-documents'] : id === 'conditional-discount-corrected-observations' ? ['conditional-discount-capacity-origins','accounting-document-amendments']
++    const dependencies = id === 'correction-operation-recovery' ? ['accounting-documents'] : id === 'operation-recovery' ? ['accounting-payments'] : id === 'bank-statement-matches' ? ['bank-imports','bank-openings'] : id === 'bank-openings' ? ['accounting-payments'] : id === 'bank-imports' ? ['accounting-documents'] : id === 'conditional-discount-corrected-observations' ? ['conditional-discount-capacity-origins','accounting-document-amendments']
+       : id === 'conditional-discount-capacity-origins' ? ['conditional-discount-replacement-observations']
+       : id === 'conditional-discount-replacement-observations' ? ['conditional-discount-replacements','conditional-discount-cash-reversal']
+       : id === 'conditional-discount-replacements' ? ['conditional-discount-agreements']
+@@ -70,7 +71,7 @@ export function loadMigrationInputs(root) {
+ export function expectedMigrationHistory(inputs, { includeAmendments = false } = {}) {
+   return [...migrationOrder.filter(id => includeAmendments || !['accounting-document-amendments','conditional-discount-corrected-observations','conditional-discount-commercial-credits'].includes(id)),
+     'canonical-security-overlay'].map(id => ({ id, sha256: sha256(Buffer.from(inputs[id])), contract_version: 1,
+-      dependencies: id === 'operation-recovery' ? ['accounting-payments'] : id === 'canonical-security-overlay' ? ['w03-invoice-drafts']
++      dependencies: id === 'correction-operation-recovery' ? ['accounting-documents'] : id === 'operation-recovery' ? ['accounting-payments'] : id === 'canonical-security-overlay' ? ['w03-invoice-drafts']
+         : id === 'bank-statement-matches' ? ['bank-imports','bank-openings']
+         : id === 'bank-openings' ? ['accounting-payments']
+         : id === 'bank-imports' ? ['accounting-documents']
+diff --git a/tools/development/migrations/registry.test.mjs b/tools/development/migrations/registry.test.mjs
+index 84e30a3..3d30521 100644
+--- a/tools/development/migrations/registry.test.mjs
++++ b/tools/development/migrations/registry.test.mjs
+@@ -161,3 +161,11 @@ test('payment admission and terminal history are pinned append-only observations
+  assert.match(sql,/GRANT SELECT,INSERT ON public.payment_attempt_admissions,public.payment_attempt_no_effect TO ledgerly_api/);
+  assert.doesNotMatch(sql,/INSERT INTO.*(?:accounting_payment_events|canonical_journal)/);
+ });
++test('correction admission and terminal binding are immutable, pinned and installed in both modes',()=>{
++ const sql=loadMigrationInputs(root)['correction-operation-recovery'];
++ for(const trigger of ['admission_immutable','admission_no_truncate','terminal_immutable','terminal_no_truncate'])assert.ok(sql.includes('ENABLE ALWAYS TRIGGER correction_attempt_'+trigger));
++ assert.match(sql,/FOREIGN KEY\(company_id,request_id,document_id,actor_id,expected_revision,request_hash,review_hash\)/);
++ assert.match(sql,/GRANT SELECT,INSERT ON public.correction_attempt_admissions,public.correction_attempt_no_effect TO ledgerly_api/);
++ assert.doesNotMatch(sql,/INSERT INTO.*(?:accounting_document_amendments|canonical_journal)/);
++ assert.ok(read('tools/accounting-flow/schema.mjs').toString().includes("await admin.query(migrationInputs['correction-operation-recovery']);"));
++});
+diff --git a/tools/operations/backup-restore/README.md b/tools/operations/backup-restore/README.md
+index ad2605f..3a2191b 100644
+--- a/tools/operations/backup-restore/README.md
++++ b/tools/operations/backup-restore/README.md
+@@ -26,9 +26,10 @@ owns its isolated rehearsal cleanup. Wrapper tests use a synthetic JSON bundle
+ containing role, job, audit and original attachment bytes; they do not restore
+ PostgreSQL roles/schema or prove full database recovery.
+ 
+-The separate-cluster rehearsal below connects encryption to PostgreSQL.
+-Extending it to the complete populated application schema and validating
+-representative recovery time are still required. See `docs/operations/recovery-targets.json` for unresolved targets,
++The separate-cluster rehearsal below connects encryption to representative PostgreSQL
++fixtures. The populated application rehearsal described below also restores the complete
++regression schema and runs native services. Neither establishes representative operational
++recovery time. See `docs/operations/recovery-targets.json` for unresolved targets,
+ ownership and external provisioning gates.
+ 
+ ## Separate-cluster encrypted PostgreSQL rehearsal
+@@ -52,3 +53,44 @@ and grant restoration for representative fixtures. Column types, nullability, de
+ application restore drill, restore real customers, establish operational RTO/RPO,
+ or qualify off-site storage, custody, retention or production recovery. The
+ recorded elapsed duration is only the complete tiny synthetic rehearsal duration.
++
++
++## Populated application and interrupted payment recovery
++
++The existing `node tools/accounting-flow/test.mjs` disposable runner invokes
++`restore-drill.mjs` and `application-recovery.mjs`. It dumps the complete populated
++regression database, authenticates its encrypted archive before restoring it into a
++separate fresh socket-only cluster, reconstructs restricted roles and compares the
++application fingerprints. Native acceptance also verifies original captured bytes,
++access restrictions, banking receipts, payment witnesses and replacement reports.
++Fixture preparation writes occur beforehand in the disposable source. After the dump
++baseline, acceptance writes remain in the new cluster; the source fingerprint must stay intact.
++The runner accepts no shared database or caller-selected restore target.
++
++The new `payment-attempt-acceptance.ts` coverage prepares three real native payment
++attempts before the dump: recorded, closed without effect and interrupted immediately
++after admission. It preserves the exact reviewed commands only in the transient
++synthetic fixture passed between the two guarded runtime processes. The unfinished
++admission is prepared last so it cannot block other preparation writes.
++
++On restore, the native services must return the same states, immutable request
++bindings and actor-owned pending discovery without changing any rows or financial
++effects. The probe explicitly closes the restored pending request, verifies its fresh
++no-effect result, rejects delayed identical commands for both closed attempts and
++replays the recorded command with exactly one event, journal, posting effect,
++transaction-origin row and witness. Unknown references, inaccessible actors and
++another permitted company's scope must not disclose the pending/terminal attempt.
++This does not claim actor-only isolation for committed payment receipts: those remain
++company-scoped under the existing native contract. Runtime UPDATE/DELETE/TRUNCATE
++privileges and always-enabled admission/terminal guards are checked again.
++
++`application-recovery.mjs` requires the resulting payment-attempt receipt to contain
++all three states and every verified flag before marking recovery successful. Absent,
++false or malformed acceptance fails the rehearsal. Exact-source PostgreSQL execution
++is required to qualify this new coverage; local focused tests and bundle compilation
++are not a successful restore result.
++
++The application does not yet have the real durable extraction/job store needed to
++qualify those flows. The `durable_jobs` table in `rehearsal.mjs` is representative test
++data only. Off-site provisioning, operational RTO/RPO, ownership, key custody,
++retention and production recovery remain unresolved gates.
+diff --git a/tools/operations/backup-restore/application-recovery.mjs b/tools/operations/backup-restore/application-recovery.mjs
+index 76f2e9f..f4d6940 100644
+--- a/tools/operations/backup-restore/application-recovery.mjs
++++ b/tools/operations/backup-restore/application-recovery.mjs
+@@ -52,6 +52,14 @@ export function assertApplicationRoles(roles, memberships) {
+   if (JSON.stringify(roles) !== JSON.stringify(expected) || memberships.length !== 0)
+     throw new Error('Application recovery requires the exact restricted role contract.');
+ }
++export function assertPaymentAttemptRecovery(result) {
++  const proof = result?.paymentAttemptRecovery;
++  const required = ['persistedRequestBindings', 'restoredPendingClosed', 'terminalRequestsFenced',
++    'recordedReplaySingleEffect', 'readOnlyDiscoveryPreserved', 'unknownAndCrossCompanyIsolated', 'immutableRuntimeHistory'];
++  if (!proof || JSON.stringify(proof.states) !== JSON.stringify(['pending', 'no_effect', 'recorded']) ||
++      required.some(key => proof[key] !== true))
++    throw new Error('Native payment-attempt recovery acceptance is missing or incomplete.');
++}
+ export async function recoverApplicationArchive({ Client, directory, archive, source, before, fingerprintDatabase, assertSameFingerprint, nativeRuntime }) {
+   assertApplicationArchive({ directory, archive });
+   if (realpathSync(directory) !== directory || realpathSync(archive) !== archive) throw new Error('Recovery source must not use symlinks.');
+@@ -104,6 +112,7 @@ export async function recoverApplicationArchive({ Client, directory, archive, so
+       throw new Error('Prepared native application runtime acceptance fixture is required.');
+     nativeRuntimeAcceptance = runApplicationRuntime({ phase: 'verify', socket,
+       bundle: nativeRuntime.bundle, fixture: nativeRuntime.fixture });
++    assertPaymentAttemptRecovery(nativeRuntimeAcceptance);
+     // Runtime writes are restricted to the new cluster; the archive source stays intact.
+     assertSameFingerprint(before, await fingerprintDatabase(source));
+     verified = true;
+diff --git a/tools/operations/backup-restore/application-recovery.test.mjs b/tools/operations/backup-restore/application-recovery.test.mjs
+index d010f18..9adcdb3 100644
+--- a/tools/operations/backup-restore/application-recovery.test.mjs
++++ b/tools/operations/backup-restore/application-recovery.test.mjs
+@@ -1,6 +1,6 @@
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
+-import { assertApplicationArchive, assertApplicationRoles } from './application-recovery.mjs';
++import { assertApplicationArchive, assertApplicationRoles, assertPaymentAttemptRecovery } from './application-recovery.mjs';
+ test('application recovery rejects existing/shared and redirected archive inputs', () => {
+   const directory = '/tmp/ledgerly-accounting-flow-tests-Ab1234';
+   assert.doesNotThrow(() => assertApplicationArchive({ directory, archive: `${directory}/synthetic-accounting.dump` }));
+@@ -11,6 +11,26 @@ test('application recovery rejects existing/shared and redirected archive inputs
+     { directory: `${directory}/data`, archive: `${directory}/data/synthetic-accounting.dump` },
+   ]) assert.throws(() => assertApplicationArchive(pair), /disposable accounting archive/);
+ });
++test('application restore cannot qualify an absent, partial or malformed native payment-attempt receipt', () => {
++  const good = { paymentAttemptRecovery: { states: ['pending', 'no_effect', 'recorded'],
++    persistedRequestBindings: true, restoredPendingClosed: true, terminalRequestsFenced: true,
++    recordedReplaySingleEffect: true, readOnlyDiscoveryPreserved: true, unknownAndCrossCompanyIsolated: true,
++    immutableRuntimeHistory: true } };
++  assert.doesNotThrow(() => assertPaymentAttemptRecovery(good));
++  for (const value of [undefined, null, {}, { paymentAttemptRecovery: null }])
++    assert.throws(() => assertPaymentAttemptRecovery(value), /acceptance is missing or incomplete/);
++  for (const key of Object.keys(good.paymentAttemptRecovery).filter(key => key !== 'states')) {
++    for (const value of [undefined, false, 'true', 1, null]) {
++      const changed = structuredClone(good); changed.paymentAttemptRecovery[key] = value;
++      assert.throws(() => assertPaymentAttemptRecovery(changed), /acceptance is missing or incomplete/);
++    }
++  }
++  for (const value of [[], ['recorded'], ['pending', 'no_effect', 'pending'],
++    ['recorded', 'no_effect', 'pending'], ['pending', 'no_effect', 'recorded', 'unknown'], 'pending,no_effect,recorded']) {
++    const changed = structuredClone(good); changed.paymentAttemptRecovery.states = value;
++    assert.throws(() => assertPaymentAttemptRecovery(changed), /acceptance is missing or incomplete/);
++  }
++});
+ test('restored application roles reject elevated flags, login owner and unexpected memberships', () => {
+   const roles = ['ledgerly_api', 'ledgerly_bank_import_owner', 'ledgerly_canonical_owner'].map((rolname, i) => ({
+     rolname, rolsuper: false, rolinherit: true, rolcreaterole: false, rolcreatedb: false,
+diff --git a/tools/operations/backup-restore/payment-attempt-acceptance.ts b/tools/operations/backup-restore/payment-attempt-acceptance.ts
+new file mode 100644
+index 0000000..69b424c
+--- /dev/null
++++ b/tools/operations/backup-restore/payment-attempt-acceptance.ts
+@@ -0,0 +1,137 @@
++// Loaded only after runtime-acceptance has checked its fixed disposable target.
++import assert from 'node:assert/strict';
++import { randomUUID } from 'node:crypto';
++import { previewPayment, postPayment, recoverPayment, discoverPayments, terminatePaymentAttempt }
++  from '../../../artifacts/api-server/src/services/accountingDocuments/payments';
++
++const states = ['pending', 'no_effect', 'recorded'];
++const binding = (receipt: any) => ({ request_hash: receipt.request_hash, review_hash: receipt.review_hash });
++const json = (value: any) => JSON.parse(JSON.stringify(value));
++const denied = (error: any) => error.status === 404 && error.code === 'RESOURCE_NOT_FOUND';
++const noEffect = { events: 0, journals: 0, effects: 0, transactions: 0, witnesses: 0 };
++
++async function effects(q: any, company: string, id: string) {
++  return (await q.query(`SELECT
++    (SELECT count(*)::int FROM accounting_payment_events WHERE company_id=$1 AND id=$2) events,
++    (SELECT count(*)::int FROM canonical_journal_entries WHERE company_id=$1 AND source_type='accounting_payment_event' AND source_id=$2::text) journals,
++    (SELECT count(*)::int FROM accounting_posting_effects WHERE company_id=$1 AND source_type='accounting_payment_event' AND source_id=$2::text) effects,
++    (SELECT count(*)::int FROM conditional_discount_payment_transactions WHERE company_id=$1 AND event_id=$2) transactions,
++    (SELECT count(*)::int FROM conditional_discount_commit_witnesses WHERE company_id=$1 AND event_id=$2) witnesses`, [company, id])).rows[0];
++}
++
++async function snapshot(q: any, fixture: any) {
++  const ids = fixture.attempts.map((attempt: any) => attempt.body.id);
++  const admissions = (await q.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=ANY($2::uuid[]) ORDER BY request_id', [fixture.company, ids])).rows;
++  const terminals = (await q.query('SELECT * FROM payment_attempt_no_effect WHERE company_id=$1 AND request_id=ANY($2::uuid[]) ORDER BY request_id', [fixture.company, ids])).rows;
++  const outcomes = [];
++  for (const id of ids) outcomes.push({ id, counts: await effects(q, fixture.company, id) });
++  return json({ admissions, terminals, outcomes });
++}
++
++async function reviewed(company: string, actor: string, template: any, reference: string) {
++  const body = { ...template, id: randomUUID(), reference, amount_minor: '100', allocations: [] };
++  const review = await previewPayment(company, actor, body);
++  return { ...body, review_token: review.review_token };
++}
++
++async function interrupted(company: string, actor: string, body: any) {
++  const interruption = new Error('Synthetic restore interruption after durable admission');
++  await assert.rejects(() => postPayment(company, actor, body, undefined, undefined, async () => { throw interruption; }), error => error === interruption);
++  const receipt = await recoverPayment(company, actor, body.id);
++  assert.equal(receipt.status, 'pending');
++  return receipt;
++}
++
++export async function preparePaymentAttempts(q: any, input: any) {
++  const { company, actor, template, foreignCompany, foreignActor } = input;
++  assert.equal(actor, 'synthetic-witness-owner');
++  assert.notEqual(company, foreignCompany);
++  const recordedBody = await reviewed(company, actor, template, 'Synthetic restored recorded payment attempt');
++  const posted = await postPayment(company, actor, recordedBody);
++  assert.equal(posted.status, 'posted');
++  const terminalBody = await reviewed(company, actor, template, 'Synthetic restored closed payment attempt');
++  const terminalAdmission = await interrupted(company, actor, terminalBody);
++  assert.deepEqual(await terminatePaymentAttempt(company, actor, terminalBody.id, binding(terminalAdmission)), { status: 'no_effect', id: terminalBody.id });
++  // The unresolved admission is last: it must fence all later replacement writes.
++  const pendingBody = await reviewed(company, actor, template, 'Synthetic restored pending payment attempt');
++  await interrupted(company, actor, pendingBody);
++  const attempts = [];
++  for (const [status, body] of [['pending', pendingBody], ['no_effect', terminalBody], ['recorded', recordedBody]] as const) {
++    const receipt = await recoverPayment(company, actor, body.id);
++    assert.equal(receipt.status, status);
++    attempts.push({ status, body, receipt });
++  }
++  const fixture: any = { company, actor, foreignCompany, foreignActor, deniedActor: `synthetic-restore-nonmember-${randomUUID()}`, unknownId: randomUUID(), attempts };
++  fixture.discovery = await discoverPayments(company, actor);
++  assert.ok(fixture.discovery.pending.some((row: any) => row.id === pendingBody.id));
++  assert.ok(!fixture.discovery.pending.some((row: any) => row.id === terminalBody.id || row.id === recordedBody.id));
++  fixture.snapshot = await snapshot(q, fixture);
++  assert.equal(fixture.snapshot.admissions.length, 3);
++  assert.equal(fixture.snapshot.terminals.length, 1);
++  for (const attempt of attempts) assert.deepEqual(await effects(q, company, attempt.body.id), attempt.status === 'recorded'
++    ? { events: 1, journals: 1, effects: 1, transactions: 1, witnesses: 1 } : noEffect);
++  return fixture;
++}
++
++export async function verifyPaymentAttempts(q: any, fixture: any) {
++  // Reject incomplete handoff before any restore-side command can execute.
++  assert.ok(fixture && fixture.actor === 'synthetic-witness-owner');
++  assert.deepEqual(fixture.attempts?.map((attempt: any) => attempt.status), states);
++  assert.equal(new Set(fixture.attempts.map((attempt: any) => attempt.body?.id)).size, 3);
++  assert.equal(fixture.snapshot?.admissions?.length, 3);
++  assert.equal(fixture.snapshot?.terminals?.length, 1);
++  for (const attempt of fixture.attempts) {
++    assert.equal(attempt.receipt?.id, attempt.body?.id);
++    assert.equal(attempt.receipt?.status, attempt.status);
++    assert.match(attempt.body.review_token, /^sha256:[a-f0-9]{64}$/);
++  }
++  const { company, actor } = fixture;
++  const beforeReads = await snapshot(q, fixture);
++  assert.deepEqual(beforeReads, fixture.snapshot, 'Durable attempt bindings or financial outcomes changed across restore');
++  for (const attempt of fixture.attempts)
++    assert.deepEqual(await recoverPayment(company, actor, attempt.body.id), attempt.receipt);
++  assert.deepEqual(json(await discoverPayments(company, actor)), fixture.discovery, 'Actor-owned discovery changed across restore');
++  assert.deepEqual(await recoverPayment(company, actor, fixture.unknownId), { status: 'unknown', id: fixture.unknownId });
++  assert.equal((await q.query('SELECT 1 FROM company_users WHERE company_id=$1 AND user_id=$2', [company, fixture.deniedActor])).rowCount, 0);
++  for (const attempt of fixture.attempts.filter((item: any) => item.status !== 'recorded')) {
++    await assert.rejects(() => recoverPayment(company, fixture.deniedActor, attempt.body.id), denied);
++    assert.deepEqual(await recoverPayment(fixture.foreignCompany, fixture.foreignActor, attempt.body.id), { status: 'unknown', id: attempt.body.id });
++  }
++  await assert.rejects(() => discoverPayments(company, fixture.deniedActor), denied);
++  assert.deepEqual(await snapshot(q, fixture), beforeReads, 'Recovery/discovery must not change durable attempts or financial effects');
++
++  for (const table of ['payment_attempt_admissions', 'payment_attempt_no_effect']) {
++    for (const sql of [`UPDATE ${table} SET actor_id=actor_id WHERE false`, `DELETE FROM ${table} WHERE false`, `TRUNCATE ${table}`])
++      await assert.rejects(() => q.query(sql), (error: any) => error.code === '42501');
++  }
++  const guards = (await q.query(`SELECT tgname,tgenabled FROM pg_trigger WHERE tgname IN
++    ('payment_attempt_admission_immutable','payment_attempt_admission_no_truncate','payment_attempt_terminal_immutable','payment_attempt_terminal_no_truncate') ORDER BY tgname`)).rows;
++  assert.deepEqual(guards, ['payment_attempt_admission_immutable', 'payment_attempt_admission_no_truncate', 'payment_attempt_terminal_immutable', 'payment_attempt_terminal_no_truncate'].map(tgname => ({ tgname, tgenabled: 'A' })));
++
++  const [pending, terminal, recorded] = fixture.attempts;
++  await assert.rejects(() => terminatePaymentAttempt(company, fixture.deniedActor, pending.body.id, binding(pending.receipt)), denied);
++  await assert.rejects(() => terminatePaymentAttempt(fixture.foreignCompany, fixture.foreignActor, pending.body.id, binding(pending.receipt)), denied);
++  await assert.rejects(() => terminatePaymentAttempt(company, actor, pending.body.id, { ...binding(pending.receipt), request_hash: 'sha256:' + '0'.repeat(64) }), (error: any) => error.code === 'IDEMPOTENCY_CONFLICT');
++  assert.deepEqual(await snapshot(q, fixture), beforeReads, 'Denied closure must not mutate restored evidence');
++  const fresh = await recoverPayment(company, actor, pending.body.id);
++  assert.equal(fresh.status, 'pending');
++  assert.deepEqual(await terminatePaymentAttempt(company, actor, pending.body.id, binding(fresh)), { status: 'no_effect', id: pending.body.id });
++  assert.deepEqual(await recoverPayment(company, actor, pending.body.id), { ...pending.receipt, status: 'no_effect' });
++  for (const attempt of [pending, terminal]) {
++    const beforeRetry = await snapshot(q, fixture);
++    assert.deepEqual(await terminatePaymentAttempt(company, actor, attempt.body.id, binding(attempt.receipt)), { status: 'no_effect', id: attempt.body.id });
++    // Exact saved reviewed body: a conflict from a different body would not prove the terminal fence.
++    await assert.rejects(() => postPayment(company, actor, attempt.body), (error: any) => error.code === 'PAYMENT_ATTEMPT_TERMINATED');
++    assert.deepEqual(await effects(q, company, attempt.body.id), noEffect);
++    assert.deepEqual(await snapshot(q, fixture), beforeRetry, 'Closed request replay or repeated closure changed restored history');
++  }
++  const beforeReplay = await snapshot(q, fixture);
++  const replay = await postPayment(company, actor, recorded.body);
++  assert.equal(replay.status, 'duplicate');
++  assert.equal(replay.journal_id, recorded.receipt.journal_id);
++  assert.deepEqual(await snapshot(q, fixture), beforeReplay, 'Recorded replay added another financial effect');
++  assert.deepEqual(await recoverPayment(company, actor, recorded.body.id), recorded.receipt);
++  assert.ok(!(await discoverPayments(company, actor)).pending.some((row: any) => [pending.body.id, terminal.body.id].includes(row.id)));
++  return { states, persistedRequestBindings: true, restoredPendingClosed: true, terminalRequestsFenced: true,
++    recordedReplaySingleEffect: true, readOnlyDiscoveryPreserved: true, unknownAndCrossCompanyIsolated: true, immutableRuntimeHistory: true };
++}
+diff --git a/tools/operations/backup-restore/runtime-acceptance.test.mjs b/tools/operations/backup-restore/runtime-acceptance.test.mjs
+index 9ea8a42..8e03abd 100644
+--- a/tools/operations/backup-restore/runtime-acceptance.test.mjs
++++ b/tools/operations/backup-restore/runtime-acceptance.test.mjs
+@@ -40,6 +40,7 @@ test('actual native acceptance bundle rejects inherited database URLs before loa
+     assert.ok(Object.keys(result.metafile.inputs).includes('lib/db/src/index.ts'));
+     assert.ok(Object.keys(result.metafile.inputs).includes('artifacts/api-server/src/services/documentIntake/service.ts'));
+     assert.ok(Object.keys(result.metafile.inputs).includes('artifacts/api-server/src/services/documentIntake/evidence.ts'));
++    assert.ok(Object.keys(result.metafile.inputs).includes('tools/operations/backup-restore/payment-attempt-acceptance.ts'));
+     for (const service of ['payments.ts', 'conditionalDiscount.ts', 'canonicalPosting.ts'])
+       assert.ok(Object.keys(result.metafile.inputs).some(name => name.endsWith('/' + service)), `Missing native ${service}`);
+     const run = spawnSync(process.execPath, [outfile, 'verify'], { encoding: 'utf8', cwd: root, timeout: 5000,
+@@ -50,3 +51,31 @@ test('actual native acceptance bundle rejects inherited database URLs before loa
+     assert.doesNotMatch(run.stderr, /ECONNREFUSED|ENOTFOUND|ERR_MODULE_NOT_FOUND|MODULE_NOT_FOUND/);
+   } finally { rmSync(directory, { recursive: true, force: true }); }
+ });
++
++test('malformed payment-attempt handoff fails before any native probe or restore-side query', () => {
++  const root = fileURLToPath(new URL('../../../', import.meta.url));
++  const api = path.join(root, 'artifacts/api-server');
++  const { buildSync } = createRequire(path.join(api, 'package.json'))('esbuild');
++  const directory = mkdtempSync('/tmp/ledgerpoint-attempt-handoff-');
++  try {
++    const outfile = path.join(directory, 'handoff.cjs');
++    buildSync({ absWorkingDir: root, stdin: { resolveDir: root, contents: `
++      import assert from 'node:assert/strict';
++      import {verifyPaymentAttempts} from './tools/operations/backup-restore/payment-attempt-acceptance.ts';
++      async function main() {
++        let queries=0; const q={query(){queries++;throw Error('Unexpected restore-side query');}};
++        const malformed=[undefined,null,{}, {actor:'synthetic-witness-owner',attempts:[]},
++          {actor:'synthetic-witness-owner',attempts:['pending','no_effect','recorded'].map(status=>({status})),snapshot:{admissions:[{},{},{}],terminals:[{}]}}];
++        for(const fixture of malformed) await assert.rejects(()=>verifyPaymentAttempts(q,fixture),error=>error.code==='ERR_ASSERTION');
++        assert.equal(queries,0); console.log('MALFORMED_ATTEMPT_HANDOFF_REJECTED_BEFORE_QUERY');
++      }
++      main().catch(error=>{console.error(error);process.exitCode=1;});
++    ` }, outfile, bundle: true, platform: 'node', format: 'cjs', external: ['pg', '@clerk/express'], logLevel: 'silent' });
++    const run = spawnSync(process.execPath, [outfile], { encoding: 'utf8', cwd: root, timeout: 5000,
++      env: { PATH: process.env.PATH, NODE_ENV: 'test', NODE_PATH: path.join(api, 'node_modules'),
++        DATABASE_URL: 'postgresql://unused@127.0.0.1:1/no_database' } });
++    assert.equal(run.status, 0, run.stderr);
++    assert.match(run.stdout, /MALFORMED_ATTEMPT_HANDOFF_REJECTED_BEFORE_QUERY/);
++    assert.doesNotMatch(run.stderr, /ECONNREFUSED|ENOTFOUND/);
++  } finally { rmSync(directory, { recursive: true, force: true }); }
++});
+diff --git a/tools/operations/backup-restore/runtime-acceptance.ts b/tools/operations/backup-restore/runtime-acceptance.ts
+index cbceef1..953e560 100644
+--- a/tools/operations/backup-restore/runtime-acceptance.ts
++++ b/tools/operations/backup-restore/runtime-acceptance.ts
+@@ -24,6 +24,7 @@ async function main() {
+   const {recoverBankImport}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankImports');
+   const {recoverBankMatch}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankStatements');
+   const {recoverBankCorrection}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankCorrections');
++  const {preparePaymentAttempts, verifyPaymentAttempts}=await import('./payment-attempt-acceptance');
+   try {
+     assert.deepEqual((await pool.query(`SELECT current_database() database,current_user actor,
+       inet_server_addr() address,current_setting('port') port`)).rows[0],
+@@ -155,7 +156,10 @@ async function main() {
+           cutoffs.push({date,report:await reports(row.company_id,row.actor_id,'2026-01-01',date)});
+         replacementAcceptance.push({...row,overview,cutoffs});
+       }
+-      return { bankingRecovery:await bankingRecovery(),replacementAcceptance,company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
++      const banking = await bankingRecovery();
++      const paymentAttempts = await preparePaymentAttempts(pool, { company: fixture.company_id, actor: fixture.actor_id,
++        template: fixture.source.intent, foreignCompany: capture.company, foreignActor: capture.actor });
++      return { paymentAttempts,bankingRecovery:banking,replacementAcceptance,company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
+         unwitnessedEvent: body.id, sourceCluster: transaction.cluster_id, template: fixture.source.intent, permissions, capture };
+     }
+     const fixture = JSON.parse(readFileSync(0, 'utf8'));
+@@ -173,6 +177,7 @@ async function main() {
+     await assert.rejects(() => captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.unwitnessedEvent),
+       (error: any) => /separately committed native payment/.test(error.cause?.message ?? error.message));
+     assert.equal(await witnesses(fixture.unwitnessedEvent), 0, 'Foreign-origin event must remain unwitnessed.');
++    const paymentAttemptRecovery = await verifyPaymentAttempts(pool, fixture.paymentAttempts);
+     const body = await reviewed(fixture.company, fixture.actor, fixture.template);
+     const posted = await postPayment(fixture.company, fixture.actor, body);
+     assert.equal(posted.status, 'posted');
+@@ -193,7 +198,7 @@ async function main() {
+     const origin = (await pool.query('SELECT cluster_id FROM conditional_discount_payment_transactions WHERE event_id=$1', [body.id])).rows[0];
+     assert.notEqual(origin.cluster_id, fixture.sourceCluster, 'Restored cluster must have a different transaction origin.');
+     assert.deepEqual(await captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.historicalEvent), fixture.historical);
+-    return { nativeBankingRecoveryVerified:true,bankingRecoveryKinds:fixture.bankingRecovery.map((r:any)=>r.kind),
++    return { paymentAttemptRecovery,nativeBankingRecoveryVerified:true,bankingRecoveryKinds:fixture.bankingRecovery.map((r:any)=>r.kind),
+       replacementLifecyclesVerified:fixture.replacementAcceptance.length,replacementHistoricalReportsPreserved:true,
+       replacementObservationAndConsumptionPreserved:true,newNativePaymentPosted: true, newCommittedWitnessRecorded: true, retrySingleEffect: true,
+       historicalWitnessPreserved: true, foreignUnwitnessedRejected: true, distinctClusterOrigin: true,
