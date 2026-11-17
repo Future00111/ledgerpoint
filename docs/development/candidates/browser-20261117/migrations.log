@@ -1,0 +1,40 @@
+✔ versioned replacement migration retains existing consumption engine and requires a committed cluster origin (34.615398ms)
+✔ replacement history migration is pinned, append-only and separate from original binding and payment qualification (9.332463ms)
+✔ explicit original binding keeps ordinary posting gates and a database-owned original xid prerequisite (2.446518ms)
+✔ all registered review migrations are pinned and returned as the exact verified bytes (13.710038ms)
+✔ unknown version fails closed (1.846891ms)
+✔ legacy unpinned version fails closed (1.161338ms)
+✔ missing overlay fails closed (3.452988ms)
+✔ overlay traversal fails closed (2.095169ms)
+✔ wrong overlay identity fails closed (2.903565ms)
+✔ unsupported overlay contract fails closed (1.690611ms)
+✔ malformed overlay checksum fails closed (17.358164ms)
+✔ production authority fails closed (2.669969ms)
+✔ missing migration fails closed (0.321205ms)
+✔ unknown migration fails closed (0.518567ms)
+✔ duplicate identity fails closed (1.046739ms)
+✔ wrong order fails closed (0.524506ms)
+✔ missing dependency fails closed (0.726554ms)
+✔ unsupported contract fails closed (0.241157ms)
+✔ traversal path fails closed (0.774856ms)
+✔ changed SQL bytes fail checksum validation without leaking SQL (0.951688ms)
+✔ missing SQL fails with bounded diagnostic (1.059748ms)
+✔ nonempty database is rejected before BEGIN, amendments=false (6.807658ms)
+✔ nonempty database is rejected before BEGIN, amendments=true (1.856606ms)
+✔ altered overlay fails with bounded diagnostic (1.454651ms)
+✔ missing overlay fails with bounded diagnostic (1.124093ms)
+✔ tampered overlay stops installer before any database query, amendments=false (9.383068ms)
+✔ tampered overlay stops installer before any database query, amendments=true (6.846586ms)
+✔ schema created after preflight is refused under migration lock, amendments=false (7.419594ms)
+✔ schema created after preflight is refused under migration lock, amendments=true (6.209835ms)
+✔ installed history matches exact selected input versions, amendments=false (9.089243ms)
+✔ installed history matches exact selected input versions, amendments=true (7.784143ms)
+✔ payment admission and terminal history are pinned append-only observations with restricted runtime grants (4.765238ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 506.343045

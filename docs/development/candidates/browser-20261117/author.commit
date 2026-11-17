@@ -1,0 +1,6 @@
+tree 7751e2162d774c278a2964b95a584a3c8aff6a8d
+parent 23db6603aba8efc9997919b6b78ffd278e14a909
+author Codex <codex@openai.com> 1794922700 +0000
+committer Codex <codex@openai.com> 1794922700 +0000
+
+Use explicit completion for discount browser qualification

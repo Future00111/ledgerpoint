@@ -1,0 +1,23 @@
+{
+  "commit": "bde3eba8224b1a45fc509aae32c0b5ba898dee5c",
+  "summary": "Stopped clean author; two-file browser fixture repair preserves all original assertions/deadlines. Root independently reviewed exact diff and extracted11protocol controls. Full local/CI gates pending; no acceptance.",
+  "tests": [
+    {
+      "command": "Compile both native suites and generated actual browser entries",
+      "passed": true
+    },
+    {
+      "command": "pnpm@10.26.1 --filter @workspace/api-server typecheck",
+      "passed": true
+    },
+    {
+      "command": "node protocol-controls.cjs:11success/failure/missing/exit/error/stale-ID controls",
+      "passed": true
+    }
+  ],
+  "tree": "7751e2162d774c278a2964b95a584a3c8aff6a8d",
+  "base": "23db6603aba8efc9997919b6b78ffd278e14a909",
+  "actor": "browser-implementer",
+  "workersStopped": true,
+  "cleanWorktree": true
+}

@@ -1,0 +1,11 @@
+integration.test.ts success PASS
+integration.test.ts explicit failure PASS
+integration.test.ts missing report PASS
+integration.test.ts early exit PASS
+integration.test.ts process error PASS
+conditionalDiscount.integration.test.ts success PASS
+conditionalDiscount.integration.test.ts explicit failure PASS
+conditionalDiscount.integration.test.ts missing report PASS
+conditionalDiscount.integration.test.ts early exit PASS
+conditionalDiscount.integration.test.ts process error PASS
+Report route stale ID / absent run denied, matching failure delivered PASS

@@ -1,0 +1,59 @@
+{
+  "author": "bde3eba8224b1a45fc509aae32c0b5ba898dee5c",
+  "tree": "7751e2162d774c278a2964b95a584a3c8aff6a8d",
+  "basePublished": "23db6603aba8efc9997919b6b78ffd278e14a909",
+  "files": {
+    "candidate.patch": {
+      "bytes": 23700,
+      "sha256": "8a0abea9605a8e4923ae3658362d4993fb7ba45bdbc45454a96e45d394f7b595"
+    },
+    "author.commit": {
+      "bytes": 255,
+      "sha256": "ed4a90b2ddd0a1ae08a8759609a2f01b075eb200573472e817712c7012dbc704"
+    },
+    "author-result.json": {
+      "bytes": 862,
+      "sha256": "8140b2dc6a58874dbdd3ab2103bfef3c19a711442ac521204e5e7dce98e30fcd"
+    },
+    "review.json": {
+      "bytes": 1957,
+      "sha256": "8fdd930786bc0533d4dc286e85cbfa7ce6840423ba969ed1dc1d9396ae7d72e1"
+    },
+    "source-check.log": {
+      "bytes": 109088,
+      "sha256": "c2e2d23f08d4aa36ee2d56c6ce5a1ab9e8c137ea2d2ff679b63c9c4c3bae9056"
+    },
+    "full-build.log": {
+      "bytes": 15797,
+      "sha256": "1efe3aeab3cfb9749db22809800754408d78b17a08d82ab6fbd76edd26306d5e"
+    },
+    "migrations.log": {
+      "bytes": 2449,
+      "sha256": "666d5cf76f8aedc5c4d5fa088d1738f6d0a17aa32f1aa708224f21f3be9c2718"
+    },
+    "author-compile.log": {
+      "bytes": 66,
+      "sha256": "b778ef657c9da4dd3b203b4996b1e465b135b029e1844f78c2cb5bfaa5f216d3"
+    },
+    "author-typecheck.log": {
+      "bytes": 147,
+      "sha256": "b0caa5fe33952c0e8a0edde78ca9771c7608f79daedeb55e29952bfb30c8c8c1"
+    },
+    "protocol-controls.log": {
+      "bytes": 555,
+      "sha256": "e1abb2b8eaf2bcc19e6ba3e0e8a2a8caea8a35c9139b50b61939408ff4372f44"
+    },
+    "root-protocol-controls.log": {
+      "bytes": 555,
+      "sha256": "e1abb2b8eaf2bcc19e6ba3e0e8a2a8caea8a35c9139b50b61939408ff4372f44"
+    },
+    "protocol-controls.cjs": {
+      "bytes": 3301,
+      "sha256": "24130581d13ba345c417fc1cfb825a676696c58805054f0b53a3524e2a058c28"
+    },
+    "compile-harnesses.cjs": {
+      "bytes": 2412,
+      "sha256": "f647ee9a1443e90c8e4835621e3b8039f54ca4d35bf10d216e197c182fdcd725"
+    }
+  }
+}
