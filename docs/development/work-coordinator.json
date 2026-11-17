@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 467,
+  "revision": 468,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "4c1062fafacb68f3cce67a17aeef02e07512c761",
+  "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,19 +21,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "670b245f0eeccf7e31d364568a4210e1bb024396",
+    "sha": "e947d64f024540a3d12dc173900f38defabe0a77",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "670b245f0eeccf7e31d364568a4210e1bb024396",
-        "path": "docs/development/candidates/correction-discovery-20261117/accepted/qualification.json"
+        "sha": "e947d64f024540a3d12dc173900f38defabe0a77",
+        "path": "docs/development/candidates/correction-admission-20261117/brief.json"
       }
     ],
-    "runId": "correction-discovery-1794927549982",
-    "at": 1794929999689,
-    "codeHead": "4c1062fafacb68f3cce67a17aeef02e07512c761"
+    "runId": "correction-admission-1794930354689",
+    "at": 1794930773394,
+    "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144"
   },
-  "updatedAt": 1794930354689,
+  "updatedAt": 1794930773394,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -96,8 +96,10 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [],
-  "workersStopped": true,
+  "activeWorkers": [
+    "correction-admission-implementer"
+  ],
+  "workersStopped": false,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -137,12 +139,12 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "670b245f0eeccf7e31d364568a4210e1bb024396",
-    "path": "docs/development/candidates/correction-discovery-20261117/accepted/accepted-queue-delta.json",
-    "bytesSha256": "d2d1224c756aca2efd387dd1467b07c3802e28709f55ef8b55e7ce1e0d796c66",
-    "queueSha256": "bc7597f0d4c161a3e8130fc73dd34c60c94f7e70ac732759e3dc2a1e1c573f4a",
-    "revision": 871,
-    "catalogDigest": "10b841806aa07b58201daa49008d9c865eaa3e58190bc285151eab5349ad1485"
+    "sha": "e947d64f024540a3d12dc173900f38defabe0a77",
+    "path": "docs/development/candidates/correction-admission-20261117/claim-queue-delta.json",
+    "bytesSha256": "1edc71caeb8355cb6c2f01bab86220ba69b54f0fe004c91a2c225a70b65aee8a",
+    "queueSha256": "ce32def8e6ec2168c1b6603dcf38df4da3744db3613b3e7d1d6be01ee75d6a8b",
+    "revision": 873,
+    "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
   },
   "historyReference": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -160,7 +162,7 @@
       "constraint": "Current fixture waits for loaded readiness; financial safeguards remain fail-closed."
     }
   ],
-  "worktreesClean": true,
+  "worktreesClean": false,
   "queueHydration": {
     "required": true,
     "note": "queueState is an immutable reference, not a runnable queue. Fetch the exact artifact, verify byte and resolved queue digests and catalogue digest, validate with core.mjs, then hydrate before CLI init/scheduling/currentView. Never initialize an archived base alone. Existing coordinator ownership/fencing and expected-head publication remain unchanged.",
@@ -170,18 +172,18 @@
       "path": "docs/development/candidates/correction-discovery-20261117/compact/queue-reference.mjs",
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
-    "baseRevision": 868,
-    "currentRevision": 871,
+    "baseRevision": 871,
+    "currentRevision": 873,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "bd518a6c7d643341022972dea98b8d9ae7ad48ed",
-      "path": "docs/development/candidates/correction-discovery-20261117/compact/queue-base.json",
-      "bytesSha256": "c99a5f0f126cd9d2254dd4057c2bb9cef245323be923391fb9ce4135c40239a7",
-      "queueSha256": "442e8145619d21db88a40bd3ab8c3f0f6205831c2c6ab20f711e3d0ed9b1c7f9",
-      "revision": 868,
-      "catalogDigest": "10b841806aa07b58201daa49008d9c865eaa3e58190bc285151eab5349ad1485"
+      "sha": "0b1c6cc73bd65640419105d36221a47e729b035f",
+      "path": "docs/development/candidates/correction-admission-20261117/migration/queue-base.json",
+      "bytesSha256": "71fa5ad32a80ed3c6189dc95b1f6885e2880310cde3d67a277247b27253040cc",
+      "queueSha256": "d28df1d8cdc121f62678cfbf62efe3045848a35cb40430186ee33554f63d2a71",
+      "revision": 871,
+      "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
     }
   },
   "admissionRun": {
@@ -189,6 +191,18 @@
     "startedAt": "2026-11-17T15:45:54.689Z",
     "scope": "Highest eligible P03-01 durable precommit correction attempt and recovery workflow; resolve exact additive migration ownership first.",
     "providerCheck": "Replit exact URL search returned no apps and exact name resolver foundfalse in this run; no dispatch.",
-    "activity": "Source4c1062f and idle authority466 verified; current q871 hydrated and equals runtime; read-only implementation assessment in progress."
+    "activity": "Reviewed two-path catalogue migration published; q871 history preserved with new digest, highest eligible P03-01 claimed/checkpointed q873 for correction admission, explicit terminal closure and fresh-review journey.",
+    "catalogMigration": {
+      "author": "4546948a6d561393f0024ccb5c260004c36a3e8d",
+      "published": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
+      "reviewer": "capture_implementation",
+      "digest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd",
+      "archive": "0b1c6cc73bd65640419105d36221a47e729b035f"
+    },
+    "assignment": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "e947d64f024540a3d12dc173900f38defabe0a77",
+      "path": "docs/development/candidates/correction-admission-20261117/brief.json"
+    }
   }
 }
