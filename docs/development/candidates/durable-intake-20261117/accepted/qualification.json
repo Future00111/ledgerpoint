@@ -1,0 +1,62 @@
+{
+  "qualifiedAt": "2026-11-17T18:05:02.560Z",
+  "repository": "Future00111/ledgerpoint",
+  "publishedCommit": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59",
+  "tree": "634bc0b26b8c6107047238b8860ed659b6c0f19d",
+  "ciCheckout": "7d7c0b512e12fba5a02b4624e3b83aa2b1914a9b",
+  "authorCommit": "428b7bc069a8b44066b0ade4346281f541fc445e",
+  "reviewer": "root",
+  "ci": {
+    "runId": 44143039202,
+    "jobId": 134250698577,
+    "url": "https://github.com/Future00111/ledgerpoint/actions/runs/44143039202",
+    "all20StepsSuccessUnskipped": true,
+    "nativeQueueTests": 8,
+    "actualProcessKillAndFreshRecovery": true,
+    "nativeQueuedCancelledRestore": true,
+    "existingAccountingBrowserEncryptedRecoveryCleanup": true
+  },
+  "outcome": {
+    "id": "durable-intake-queued-cancelled-20261117",
+    "scenario": "Native explicit durable intake enqueue, immutable lifecycle/outbox, scoped queued/cancelled recovery and cancellation with actual process-death recovery and populated restored native reads.",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Implement durable worker claims/attempt identities and lease/revision fencing, bounded retries, actual transport-capacity settlement and safe crash recovery.",
+      "Implement strict supported in-flight/result rehydration and exactly-one review-required result with stale completion denial; queued/cancelled support alone is not a durable worker.",
+      "Implement separately fenced outbox delivery and scheduler under explicit adapter/provider authority; OCR/email remain not_connected and no automatic financial effect.",
+      "Queue history limit100 safely refuses further new identities; any lifecycle/archival extension must preserve immutable source and audit history."
+    ],
+    "nextAction": "Continue P03-02 with a bounded durable worker claim/attempt and lease-fencing implementation on the accepted native queue. Settle validated in-flight/result reconstruction and physical transport-capacity/unknown-outcome recovery contracts before dispatch; qualify real process crash, stale completion, cancellation/revocation and populated restore. Preserve accepted queued/cancelled scenario; no provider connection or automatic financial effect.",
+    "integratedCommit": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59"
+  },
+  "parentAccepted": false,
+  "queueRevision": 901,
+  "workersStopped": true,
+  "worktreesClean": true,
+  "priorFailedRuns": [
+    44139504401,
+    44141164259
+  ],
+  "rework": "Two test-harness compatibility defects repaired; product service/schema/role permissions unchanged during repairs.",
+  "reviewArchives": [
+    "4a9250fdfa84920ab95352d4d56d27b25a9d169c",
+    "767dba7536cf46fd85ca2be837c5f95263cf3b22",
+    "21492ed875b820a052092d248254b154405dfc49"
+  ],
+  "metrics": {
+    "elapsedMinutes": 50.6,
+    "acceptedBoundedScenarios": 1,
+    "firstPassCI": false,
+    "providerCost": null,
+    "credits": null
+  },
+  "excludedActions": {
+    "merged": false,
+    "deployed": false,
+    "productionChanged": false,
+    "providerConnected": false
+  }
+}
