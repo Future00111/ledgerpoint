@@ -376,7 +376,9 @@
         "artifacts/api-server/src/services/accountingDocuments/corrections.ts",
         "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.jsx",
         "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.test.jsx",
-        "artifacts/ledgerly/src/features/documentCorrections/model.test.mjs"
+        "artifacts/ledgerly/src/features/documentCorrections/model.test.mjs",
+        "lib/db/migrations/correction-operation-recovery.review.sql",
+        "artifacts/api-server/src/services/accountingDocuments/corrections.integration.test.ts"
       ],
       "kind": "implementation",
       "approval": "approved"
