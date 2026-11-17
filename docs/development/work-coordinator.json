@@ -1,39 +1,34 @@
 {
   "version": 2,
-  "revision": 464,
+  "revision": 466,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "4c1062fafacb68f3cce67a17aeef02e07512c761",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "correction-discovery-1794927549982",
     "tokenSha256": "2282597b2446de4c4261a1e82b423525b8a7bacefbcba37d5beea0b0a3e5908e",
     "acquiredAt": 1794927550028,
     "expiresAt": 1794930250028
   },
-  "lastOwner": {
-    "runId": "refund-date-1794923940343",
-    "tokenSha256": "fc53827ac96ddf48b74b9e52517a115417d58be4257c70a96632a9b32a2406bf",
-    "acquiredAt": 1794923940344,
-    "expiresAt": 1794925740344
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "91aa9f091bc29171fafbb8464cf1555f2c520b10",
+    "sha": "670b245f0eeccf7e31d364568a4210e1bb024396",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "91aa9f091bc29171fafbb8464cf1555f2c520b10",
-        "path": "docs/development/candidates/correction-discovery-20261117/review/independent-review.json"
+        "sha": "670b245f0eeccf7e31d364568a4210e1bb024396",
+        "path": "docs/development/candidates/correction-discovery-20261117/accepted/qualification.json"
       }
     ],
     "runId": "correction-discovery-1794927549982",
-    "at": 1794929151150,
+    "at": 1794929999689,
     "codeHead": "4c1062fafacb68f3cce67a17aeef02e07512c761"
   },
-  "updatedAt": 1794929151150,
+  "updatedAt": 1794929999693,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -53,21 +48,28 @@
       "production changes"
     ],
     "coordinatorDisclosureApproval": {
-      "approvedAt": "2026-11-17T14:59:09.980Z",
+      "approvedAt": "2026-11-17T15:38:45.045Z",
       "repository": "Future00111/ledgerpoint",
       "visibility": "public",
-      "source": "Current conversation: owner replied I approve, how can we stop me from approving every time is time consuming to explicit approval of this and future LedgerPoint development checkpoints including workflow history and hashed lease identifiers.",
+      "standing": true,
+      "source": "Explicit user authorization in the current conversation",
+      "userStatement": "I authorise this and future uploads of LedgerPoint CI logs and queue/coordinator checkpoints—including workflow history and hashed lease identifiers—to the public Future00111/ledgerpoint repository. This excludes credentials, raw tokens, merges, deployment and production changes.",
       "scope": [
-        "This and future LedgerPoint development checkpoints including workflow history and hashed lease identifiers",
-        "Previously approved reviewed code/tests, CI logs/evidence, draftPR updates and existing CI runs"
+        "This and future uploads of LedgerPoint CI logs",
+        "This and future queue/coordinator checkpoints, including workflow history and hashed lease identifiers"
       ],
       "excluded": [
-        "raw task tokens or provider credentials",
-        "merge",
+        "credentials",
+        "raw tokens",
+        "merges",
         "deployment",
         "production changes"
       ],
-      "standing": true
+      "priorApprovalReference": {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "920af955b05a4a35fdfc829b23b24ea1dfb39876",
+        "path": "docs/development/owner-development-approval.json"
+      }
     }
   },
   "deliveryPolicy": {
@@ -95,7 +97,7 @@
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
     "scope": "P03-01 correction discovery; explicitly approved checkpoint efficiency review to reduce repeated approval friction without weakening fencing/audit.",
-    "activity": "Reviewed exact source published to existing draft PR29; full GitHub native/browser/restore CI pending; no bounded acceptance yet.",
+    "activity": "Completed bounded missing-locator correction discovery for invoices and bills. Independent review and all20exact-source CIsteps passed. Full CI and queue acceptance archived under explicit owner standing authorization; q871 has no held tasks. P03-01 parent remains pending for remaining payroll/filing and ambiguous-operation scope.",
     "providerCheck": "Replit exactURL search empty/exactname foundfalse this run; Codex continues.",
     "catalogMigration": {
       "source": "dd47756d5ed0ead83bf48da52da5e17ad54df88d",
@@ -108,22 +110,38 @@
     "authorBranch": "codex/correction-discovery-20261117",
     "publishedCommit": "4c1062fafacb68f3cce67a17aeef02e07512c761",
     "authorCommit": "336840852fffe4e17af35e0de752e0042e7c73eb",
-    "tree": "03fca674291415185a4c1b0cc1e0badbe574aadf"
+    "tree": "03fca674291415185a4c1b0cc1e0badbe574aadf",
+    "acceptedOutcome": "correction-missing-locator-discovery-20261117",
+    "qualification": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "670b245f0eeccf7e31d364568a4210e1bb024396",
+      "path": "docs/development/candidates/correction-discovery-20261117/accepted/qualification.json"
+    },
+    "ci": {
+      "url": "https://github.com/Future00111/ledgerpoint/actions/runs/44114197868",
+      "conclusion": "success",
+      "source": "4c1062fafacb68f3cce67a17aeef02e07512c761",
+      "checkout": "385318f8380ea814d97c4336c74948338fd779ef",
+      "tree": "03fca674291415185a4c1b0cc1e0badbe574aadf",
+      "all20StepsSuccessUnskipped": true
+    },
+    "publicationBlockResolvedAt": "2026-11-17T15:39:59.692Z",
+    "nextAction": "Reconcile remaining P03-01 payroll/filing producer readiness and ambiguous-operation gaps against current source. Select an actual native operation for atomic identity/outcome recovery, settle exact ownership and genuine dependencies first. If the producer is absent, record its concrete executable prerequisite and advance the highest eligible task/approved tax-payroll track; do not count fixtures as engines or repeat already accepted accounting work."
   },
   "queueState": {
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "91aa9f091bc29171fafbb8464cf1555f2c520b10",
-    "path": "docs/development/candidates/correction-discovery-20261117/review/review-queue-delta.json",
-    "bytesSha256": "c4837835f5289bd8598516ed989111f8573efce4eec749c698db7d449d16f04d",
-    "queueSha256": "4aba586393a5d8742f389ca822603678ca7e9b1ab2fbc719087a1e94e51f59fb",
-    "revision": 870,
+    "sha": "670b245f0eeccf7e31d364568a4210e1bb024396",
+    "path": "docs/development/candidates/correction-discovery-20261117/accepted/accepted-queue-delta.json",
+    "bytesSha256": "d2d1224c756aca2efd387dd1467b07c3802e28709f55ef8b55e7ce1e0d796c66",
+    "queueSha256": "bc7597f0d4c161a3e8130fc73dd34c60c94f7e70ac732759e3dc2a1e1c573f4a",
+    "revision": 871,
     "catalogDigest": "10b841806aa07b58201daa49008d9c865eaa3e58190bc285151eab5349ad1485"
   },
   "historyReference": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "7afd31dc6faade40a8225166003653b971e90086",
+    "sha": "9eb84f61d715c191c4188f82486c05442b029ae4",
     "path": "docs/development/work-coordinator.json"
   },
   "followups": [
@@ -148,7 +166,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 868,
-    "currentRevision": 870,
+    "currentRevision": 871,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",

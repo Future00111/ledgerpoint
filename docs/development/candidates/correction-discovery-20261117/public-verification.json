@@ -19,6 +19,11 @@
   },
   "review": "Independently reviewed; published source, author and CI checkout share the same tree.",
   "qualification": "Bounded development feature only; payroll/filing and full parent recovery criteria remain open; synthetic browser authentication does not qualify real Clerk or production.",
-  "archiveStatus": "Publication of full CI logs and internal queue evidence was blocked by automatic approval review. This summary links existing public CI and contains no new queue history, raw logs or task tokens.",
-  "mergeOrDeployment": false
+  "archiveStatus": "Full CI logs and exact queue acceptance are now archived under the user's explicit standing public-upload authorization.",
+  "mergeOrDeployment": false,
+  "acceptedEvidence": {
+    "sha": "670b245f0eeccf7e31d364568a4210e1bb024396",
+    "path": "docs/development/candidates/correction-discovery-20261117/accepted/qualification.json"
+  },
+  "updatedAt": "2026-11-17T15:40:00.185Z"
 }
