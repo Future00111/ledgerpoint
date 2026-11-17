@@ -1,39 +1,34 @@
 {
   "version": 2,
-  "revision": 477,
+  "revision": 479,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "correction-qualification-1794933080298",
     "tokenSha256": "e204949d31615e1b0d88e4b6faf0b2beda2db5d892314e5677fd49b6b255f286",
     "acquiredAt": 1794933080299,
     "expiresAt": 1794936680299
   },
-  "lastOwner": {
-    "runId": "correction-admission-1794930354689",
-    "tokenSha256": "6cb56a60ff352751c29816cb471fd40609e739229fead190dbd2d5bd4c275760",
-    "acquiredAt": 1794930354689,
-    "expiresAt": 1794935650250
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "be4bc58d195cd4ba0dbd882578a9f0efae5eb0c3",
+    "sha": "ba5c98a90b54feecd9567ab8767e5c34c7eddcf0",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "be4bc58d195cd4ba0dbd882578a9f0efae5eb0c3",
-        "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/brief.json"
+        "sha": "ba5c98a90b54feecd9567ab8767e5c34c7eddcf0",
+        "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/completed-local.json"
       }
     ],
     "runId": "correction-qualification-1794933080298",
-    "at": 1794933614315,
+    "at": 1794933937594,
     "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144"
   },
-  "updatedAt": 1794933614315,
+  "updatedAt": 1794933937598,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -96,10 +91,8 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [
-    "encrypted-attempt-recovery-implementer"
-  ],
-  "workersStopped": false,
+  "activeWorkers": [],
+  "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -139,11 +132,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "be4bc58d195cd4ba0dbd882578a9f0efae5eb0c3",
-    "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/claim-queue-delta.json",
-    "bytesSha256": "83497410ee1f4f8d44bcd4dfb85d252200426d885e847510b0b1569693d22366",
-    "queueSha256": "74087907b72352daf615ea16cb8fb36990febdffd653ca39fa94e12b559ff847",
-    "revision": 877,
+    "sha": "ba5c98a90b54feecd9567ab8767e5c34c7eddcf0",
+    "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/blocked-queue-delta.json",
+    "bytesSha256": "74bd6fb84f2a29b8bb08d3c80498c6df5fca53ca37f64080092439fc6f23e8f5",
+    "queueSha256": "c24f23370fe0a187580958200b230d59394e8a2bac79d756bf4f93da3ddbe37f",
+    "revision": 878,
     "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
   },
   "historyReference": {
@@ -162,7 +155,7 @@
       "constraint": "Current fixture waits for loaded readiness; financial safeguards remain fail-closed."
     }
   ],
-  "worktreesClean": false,
+  "worktreesClean": true,
   "queueHydration": {
     "required": true,
     "note": "queueState is an immutable reference, not a runnable queue. Fetch the exact artifact, verify byte and resolved queue digests and catalogue digest, validate with core.mjs, then hydrate before CLI init/scheduling/currentView. Never initialize an archived base alone. Existing coordinator ownership/fencing and expected-head publication remain unchanged.",
@@ -173,7 +166,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 871,
-    "currentRevision": 877,
+    "currentRevision": 878,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -209,12 +202,25 @@
   "backupRecoveryRun": {
     "startedAt": "2026-11-17T16:35:01.804Z",
     "task": "P03-04",
-    "activity": "Native prepare/verify draft implemented with pending/no-effect/recorded original bodies, read-only discovery, immutable controls, explicit restored closure and same-ID terminal/replay checks. Root preliminary independent review found structure sound; focused tests/receipt negative controls/docs and final author commit in progress. No runtime acceptance claimed; source publication gate persists.",
+    "activity": "Stopped clean author5ab77c0 independently reviewed by root; exact unchanged delta combined locally with correction727437f as5bbcf5c/tree8e52e26. Focused14 and combined regression/full build/typecheck passed. No PostgreSQL runtime CI; public source upload remains blocked. P03-04 is blocked with stopped checkpoint, not accepted.",
     "assignment": {
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
       "sha": "be4bc58d195cd4ba0dbd882578a9f0efae5eb0c3",
       "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/brief.json"
     },
-    "lastObservedAt": "2026-11-17T16:40:14.317Z"
+    "lastObservedAt": "2026-11-17T16:45:37.597Z",
+    "candidate": {
+      "authorCommit": "5ab77c0834d387e92331f8c632cb316464abcaf9",
+      "authorTree": "434f8e08e968d1105a25545b2f1c906df7f34bc5",
+      "localIntegrationCommit": "5bbcf5c7fc4b61fb84d00508f9cd09f0724f35b8",
+      "localIntegrationTree": "8e52e26b81cf14adf17a0d83cc81bd73251ae58a",
+      "sourcePublished": false
+    },
+    "checkpoint": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "ba5c98a90b54feecd9567ab8767e5c34c7eddcf0",
+      "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/completed-local.json"
+    },
+    "nextAction": "Resume these reviewed local candidates after explicit public source-upload approval; verify identity and existing draftPR29/preflight, run exact combined CI, accept only proven bounded outcomes. No new duplicate implementation."
   }
 }
