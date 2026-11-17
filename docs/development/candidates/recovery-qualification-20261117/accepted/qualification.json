@@ -1,0 +1,105 @@
+{
+  "reviewer": "root",
+  "qualifiedAt": "2026-11-17T17:04:52.052Z",
+  "repository": "Future00111/ledgerpoint",
+  "publishedSource": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+  "tree": "8e52e26b81cf14adf17a0d83cc81bd73251ae58a",
+  "checkout": "02d9dda4b53a1c6a5e01ed177065e9e59d461d55",
+  "authorCommits": {
+    "correction": "727437f5a832b50d09c497e25caef28fcdf1434e",
+    "backup": "5ab77c0834d387e92331f8c632cb316464abcaf9"
+  },
+  "localIntegratedCommit": "5bbcf5c7fc4b61fb84d00508f9cd09f0724f35b8",
+  "independentReviewArchive": "e46b37f5746c357feebbb06efa49ea9df1d51f12",
+  "ci": {
+    "run": 44132106051,
+    "job": 134211692977,
+    "url": "https://github.com/Future00111/ledgerpoint/actions/runs/44132106051",
+    "conclusion": "success",
+    "all20StepsSuccessUnskipped": true,
+    "logBytes": 280704,
+    "logSha256": "1d146e1083c44b40bd39c1a1770f0adcf69fd79635cf47d823b9d165ad998a0d"
+  },
+  "correctionBrowser": [
+    {
+      "kind": "sales_invoice",
+      "mode": "late",
+      "actualMountedComponent": true,
+      "nativeApi": true,
+      "actualReload": true,
+      "financialPosts": 0,
+      "explicitClosure": false,
+      "freshVerification": true,
+      "browserStorageEmpty": true,
+      "realClerk": false
+    },
+    {
+      "kind": "sales_invoice",
+      "mode": "terminal",
+      "actualMountedComponent": true,
+      "nativeApi": true,
+      "actualReload": true,
+      "financialPosts": 0,
+      "explicitClosure": true,
+      "freshVerification": true,
+      "browserStorageEmpty": true,
+      "realClerk": false
+    },
+    {
+      "kind": "purchase_bill",
+      "mode": "late",
+      "actualMountedComponent": true,
+      "nativeApi": true,
+      "actualReload": true,
+      "financialPosts": 0,
+      "explicitClosure": false,
+      "freshVerification": true,
+      "browserStorageEmpty": true,
+      "realClerk": false
+    },
+    {
+      "kind": "purchase_bill",
+      "mode": "terminal",
+      "actualMountedComponent": true,
+      "nativeApi": true,
+      "actualReload": true,
+      "financialPosts": 0,
+      "explicitClosure": true,
+      "freshVerification": true,
+      "browserStorageEmpty": true,
+      "realClerk": false
+    }
+  ],
+  "correctionRestored": {
+    "states": [
+      "known",
+      "no_effect",
+      "pending"
+    ],
+    "nativeRuntime": true,
+    "immutable": true
+  },
+  "restartAndBothRaceOrders": true,
+  "legacyAndPartialSchemaVerified": true,
+  "nativeAccountingTests": 108,
+  "conditionalDiscountTests": 150,
+  "backupFocusedTests": 14,
+  "paymentAttemptRestore": {
+    "states": [
+      "pending",
+      "no_effect",
+      "recorded"
+    ],
+    "verifiedBy": "Successful mandatory populated encrypted fresh-cluster native prepare/verify and parent assertPaymentAttemptRecovery in the exact-source accounting-flow runner; missing/false/malformed acceptance fails before restore success.",
+    "sourceFingerprintPreserved": true,
+    "originalBodyTerminalFence": true,
+    "recordedReplaySingleEffect": true,
+    "immutableRuntimeHistory": true
+  },
+  "priorCaptureAndCorrectionDiscoveryPreserved": true,
+  "limits": [
+    "Synthetic authentication, not real Clerk/production qualification.",
+    "Bounded P03-01 and P03-04 outcomes only; original parent criteria and remaining producers/operational gates retained.",
+    "No merge, deployment, production change or offsite provisioning."
+  ]
+}
