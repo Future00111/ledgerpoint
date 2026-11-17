@@ -1,3 +1,4 @@
+import pg from'pg';
 import {realpathSync}from'node:fs';
 /** Must run before dynamic imports of @workspace/db or application services. */
 export function disposableTarget(restored=false){
@@ -25,8 +26,7 @@ export async function verifyTarget(q:{query:Function},database:string,user='ledg
  // PostgreSQL restricts socket/data-directory settings. A separate guarded,
  // explicit disposable bootstrap connection verifies them and closes before
  // the native runtime is used. The application role receives no extra grants.
- const {Client}=await import('pg');
- const bootstrap=new Client({host:target.socket,port:55441,user:'w03_bootstrap',database,
+ const bootstrap=new pg.Client({host:target.socket,port:55441,user:'w03_bootstrap',database,
   password:()=>'',ssl:false,options:'-c timezone=UTC'});
  try{await bootstrap.connect();await identity(bootstrap,database,'w03_bootstrap');await serverSettings(bootstrap,target.socket);}
  finally{await bootstrap.end();}
