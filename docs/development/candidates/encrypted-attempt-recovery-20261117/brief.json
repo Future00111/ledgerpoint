@@ -1,0 +1,28 @@
+{
+  "task": "P03-04",
+  "actor": "encrypted-attempt-recovery-implementer",
+  "source": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
+  "authorBranch": "codex/encrypted-attempt-recovery-20261117",
+  "reviewer": "root",
+  "authorStopTarget": "2026-11-17T16:53:00Z",
+  "scope": "Qualify durable payment-attempt recovery through encrypted populated-application restoration into a separate fresh PostgreSQL cluster.",
+  "files": [
+    "tools/operations/backup-restore/",
+    "docs/operations/recovery-targets.json",
+    "tools/accounting-flow/restore-drill.mjs"
+  ],
+  "requirements": [
+    "Only owned files; no native financial engine/schema/queue/provider/demo changes. Isolated worktree ledgerpoint-recovery at exact published a055; prior unpublished correction candidate is independent and must remain untouched.",
+    "Extend existing native runtime acceptance prepare/verify phases. Create deterministic dedicated pending and no_effect payment attempts using real native admission, afterAdmission interruption and protected termination, plus a known posted receipt. Retain exact original immutable request bodies in transient synthetic fixture only when needed for delayed-writer/replay verification; no credentials or user data.",
+    "Do not contaminate existing compensation/replacement expected balances. Existing synthetic-witness fixture is explicitly isolated from those flows. Prepare unfinished admission last, after all other prepare writes. Create terminal before pending because actor pending fence prevents replacements. Reuse or create native known receipt before pending. No direct SQL fabrication of admissions/terminals.",
+    "After decrypt+restore, compare pending, terminal and posted native recovery against the pre-dump snapshot and actor-owned pending discovery. Prove explicit terminal closure on restored pending, verify no effect, delayed identical command remains fenced, and known replay stays one effect. No native reads may write. Preserve all existing witness, banking, capture, reports, role and source-unchanged assertions.",
+    "Check unknown UUID and appropriate foreign-actor/company denial/unknown semantics without claiming posted receipt actor isolation the existing contract does not provide. Verify restored immutable grants/always triggers for payment admission/terminal tables. New closure must write only to restored target; source fingerprint remains unchanged.",
+    "Fail closed on missing/malformed fixture or unsuccessful new acceptance, rather than silently emitting true flags. New receipt flags must only follow actual verified runtime behavior. Add focused non-PG tests for fixture/receipt validation if useful; don't create fake tests mirroring implementation. Existing compile/prequery target guards retained.",
+    "Update recovery-targets/README to accurately distinguish complete populated encrypted restore currently implemented from new runtime coverage awaiting qualification, remaining real job/extraction gaps, operational RTO/RPO/ownership/retention/offsite gates. Do not invent targets/operators or mark parent complete.",
+    "Run backup-restore focused tests and exact native-runtime bundle compile. Root will review and run combined/build on integrated local candidate. Local PostgreSQL/Chromium unavailable; do not bypass. Full runtime needs GitHub source publication, currently automatically rejected; do not upload source or ask external agent.",
+    "Commit locally with no Codex attribution; provide exact commit/tree/files/checks/remaining and STOP clean by target. No remote refs, no merges/deploy."
+  ],
+  "publicationStatus": "Source uploads remain blocked by automatic approval review pending explicit user source-upload authorization; permitted queue/coordinator checkpoints continue.",
+  "parentAcceptance": "Bounded P03-04 criterion1 native runtime attempt recovery; cannot accept until exact-source encrypted fresh-cluster CI passes. Full parent remains pending operational targets/ownership/offsite and remaining genuine runtime scope.",
+  "provider": "Replit exact-URL search empty and exact LedgerPoint name unresolved this run; controlled local Codex implementation."
+}
