@@ -2409,7 +2409,14 @@ for(const kind of ['purchase_bill','supplier_credit_note']) test(`isolated Chrom
   if(req.method==='POST'&&req.path.endsWith('/draft')) {
    posts++;submittedIntent=structuredClone(req.body);const json=res.json.bind(res);
    res.json=((body:any)=>{
-    if(!dropped&&res.statusCode===201) {dropped=true;documentId=body.data.document.id;res.destroy();return res;}
+    if(!dropped&&res.statusCode===201) {
+     dropped=true;documentId=body.data.document.id;
+     // Start the committed response before interrupting its body. An empty
+     // socket close can be transparently retried by the browser, obscuring the
+     // uncertain-outcome path this scenario must exercise.
+     res.type('json').set('Content-Length',String(Buffer.byteLength(JSON.stringify(body))));
+     res.flushHeaders();res.write('{"data":',()=>res.destroy());return res;
+    }
     return json(body);
    }) as typeof res.json;
   }
@@ -2480,7 +2487,7 @@ const session=async action=>{const response=await fetch('/session/'+action,{meth
   let stderr='';browser.stderr!.on('data',chunk=>stderr=(stderr+chunk).slice(-4000));browser.stdout!.resume();
   const failed=new Promise<never>((_resolve,reject)=>{browser!.once('error',reject);browser!.once('exit',code=>reject(Error('Browser exited before capture acceptance ('+code+'): '+stderr)));});
   const result=await Promise.race([acceptance,failed]);
-  assert.equal(result?.passed,true,JSON.stringify(result));assert.equal(result.stage,'reload login membership and isolation verified');
+  assert.equal(result?.passed,true,JSON.stringify({...result,posts,reviews,dropped,pageLoads,committedDocumentId:documentId}));assert.equal(result.stage,'reload login membership and isolation verified');
   assert.equal(dropped,true);assert.equal(posts,1,'recovery must never replay create');assert.equal(reviews,1);assert.equal(pageLoads,2,'actual page reload required');
   assert.equal(result.documentId,documentId);assert.equal(await count('accounting_document_sources'),before.documents+1);assert.equal(await count('canonical_journal_entries'),before.journals,'capture must not post');
   const persisted=(await request(f.company,`/document-intake/${s.id}`)).data.source;
