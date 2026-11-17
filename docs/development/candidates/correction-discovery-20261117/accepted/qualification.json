@@ -1,0 +1,216 @@
+{
+  "run": 44114197868,
+  "job": 134147639157,
+  "url": "https://github.com/Future00111/ledgerpoint/actions/runs/44114197868",
+  "source": "4c1062fafacb68f3cce67a17aeef02e07512c761",
+  "author": "336840852fffe4e17af35e0de752e0042e7c73eb",
+  "checkout": "385318f8380ea814d97c4336c74948338fd779ef",
+  "tree": "03fca674291415185a4c1b0cc1e0badbe574aadf",
+  "jobs": [
+    {
+      "id": 134147639157,
+      "name": "Current source and disposable accounting checks",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 44114197868,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Use pinned pnpm",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Install the locked workspace",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Build and typecheck",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Unit, permission, precision and UI regression",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Validate pinned migration inputs",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Prepare disposable PostgreSQL binaries",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Prepare installed Chrome for isolated browser acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Accounting API, security, atomicity and restore regression",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Encrypted recovery unit controls",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Encrypted disposable PostgreSQL recovery rehearsal",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Verify encrypted recovery cleanup",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Verify exact-source encrypted recovery evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        },
+        {
+          "name": "Verify isolated cleanup",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16
+        },
+        {
+          "name": "Verify current-run restore evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33
+        },
+        {
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 34
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 35
+        }
+      ]
+    }
+  ],
+  "browser": [
+    {
+      "kind": "sales_invoice",
+      "actualComponents": true,
+      "nativeApi": true,
+      "missingLocator": true,
+      "explicitSelection": true,
+      "freshReceipt": true,
+      "actualReload": true,
+      "parentRefreshes": 1,
+      "posts": 0,
+      "browserStorageEmpty": true,
+      "realClerk": false
+    },
+    {
+      "kind": "purchase_bill",
+      "actualComponents": true,
+      "nativeApi": true,
+      "missingLocator": true,
+      "explicitSelection": true,
+      "freshReceipt": true,
+      "actualReload": true,
+      "parentRefreshes": 1,
+      "posts": 0,
+      "browserStorageEmpty": true,
+      "realClerk": false
+    }
+  ],
+  "reviewer": "root",
+  "independent": true,
+  "verifiedAt": "2026-11-17T15:31:30.110Z",
+  "exactTreesMatched": true,
+  "all20StepsSuccessUnskipped": true,
+  "nativeTests": 96,
+  "conditionalTests": 150,
+  "localTests": 1072,
+  "migrationRegistryTests": 32,
+  "compactCheckpoint": {
+    "beforeBytes": 619434,
+    "activeBytes": 7964,
+    "fullHistoryPreserved": true,
+    "helperTests": 18,
+    "independentReviewer": "capture_implementation"
+  },
+  "outcome": {
+    "id": "correction-missing-locator-discovery-20261117",
+    "scenario": "Posted invoice and bill: actor-owned correction discovery after the browser locator is lost, explicit selection and fresh canonical receipt verification after reload, zero posting requests or financial browser storage.",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Implement and qualify durable payroll and filing identities/outcomes with the actual in-house producers; current payroll references/fixtures do not establish an engine.",
+      "Reconcile any remaining ambiguous or uncommitted correction and other supported-family cases against both original criteria; discovery of committed history does not prove absence or failure.",
+      "Complete applicable full-page and real-Clerk/customer qualification separately; current mounted native-browser evidence uses synthetic authentication."
+    ],
+    "nextAction": "Reconcile remaining P03-01 payroll/filing producer readiness and ambiguous-operation gaps against current source. Select an actual native operation for atomic identity/outcome recovery, settle exact ownership and genuine dependencies first. If the producer is absent, record its concrete executable prerequisite and advance the highest eligible task/approved tax-payroll track; do not count fixtures as engines or repeat already accepted accounting work.",
+    "integratedCommit": "4c1062fafacb68f3cce67a17aeef02e07512c761"
+  },
+  "authorStopped": true,
+  "worktreesClean": true,
+  "usageCredits": null,
+  "remaining": [
+    "Implement and qualify durable payroll and filing identities/outcomes with the actual in-house producers; current payroll references/fixtures do not establish an engine.",
+    "Reconcile any remaining ambiguous or uncommitted correction and other supported-family cases against both original criteria; discovery of committed history does not prove absence or failure.",
+    "Complete applicable full-page and real-Clerk/customer qualification separately; current mounted native-browser evidence uses synthetic authentication."
+  ],
+  "rework": 0,
+  "limitations": [
+    "No local native PostgreSQL or Chromium runtime acceptance: host has no usable PostgreSQL and Chromium socket startup is denied. Root must run exact-source native/browser/restore CI.",
+    "Latest-100 ownership bound is enforced by filter-before-slice; no 101-amendment runtime fixture is added.",
+    "Synthetic mounted component/native API fixture does not qualify real Clerk sign-in or production.",
+    "Broader P03-01 payroll and filing recovery remain pending.",
+    "Initial migration wildcard command included native PostgreSQL partial-schema test without available pg runtime; preserved failed invocation and ran intended registry test explicitly (32/32). Native partial-schema remains required in CI."
+  ]
+}

@@ -1,17 +1,24 @@
 {
-  "approvedAt": "2026-11-17T14:59:09.980Z",
+  "approvedAt": "2026-11-17T15:38:45.045Z",
   "repository": "Future00111/ledgerpoint",
   "visibility": "public",
-  "source": "Current conversation: owner replied I approve, how can we stop me from approving every time is time consuming to explicit approval of this and future LedgerPoint development checkpoints including workflow history and hashed lease identifiers.",
+  "standing": true,
+  "source": "Explicit user authorization in the current conversation",
+  "userStatement": "I authorise this and future uploads of LedgerPoint CI logs and queue/coordinator checkpoints—including workflow history and hashed lease identifiers—to the public Future00111/ledgerpoint repository. This excludes credentials, raw tokens, merges, deployment and production changes.",
   "scope": [
-    "This and future LedgerPoint development checkpoints including workflow history and hashed lease identifiers",
-    "Previously approved reviewed code/tests, CI logs/evidence, draftPR updates and existing CI runs"
+    "This and future uploads of LedgerPoint CI logs",
+    "This and future queue/coordinator checkpoints, including workflow history and hashed lease identifiers"
   ],
   "excluded": [
-    "raw task tokens or provider credentials",
-    "merge",
+    "credentials",
+    "raw tokens",
+    "merges",
     "deployment",
     "production changes"
   ],
-  "standing": true
+  "priorApprovalReference": {
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "920af955b05a4a35fdfc829b23b24ea1dfb39876",
+    "path": "docs/development/owner-development-approval.json"
+  }
 }

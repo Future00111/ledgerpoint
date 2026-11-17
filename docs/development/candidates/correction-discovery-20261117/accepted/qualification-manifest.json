@@ -1,0 +1,34 @@
+{
+  "files": [
+    {
+      "path": "ci.log",
+      "bytes": 275942,
+      "sha256": "03a1957c6f0858f66093d648236957527efb7e6e17188b67c0c579a0c83b3418"
+    },
+    {
+      "path": "ci-observations.json",
+      "bytes": 4742,
+      "sha256": "4f01a56acbfae5ed94f14457bce6f034a5b394dbe9fc5d56b1f9dfa3ce0337fc"
+    },
+    {
+      "path": "qualification.json",
+      "bytes": 8039,
+      "sha256": "7b0547c15259572ef9bb933cc76c252269da950458c30054ceb8fd4259cb7af2"
+    },
+    {
+      "path": "accepted-queue-delta.json",
+      "bytes": 18897,
+      "sha256": "d2d1224c756aca2efd387dd1467b07c3802e28709f55ef8b55e7ce1e0d796c66"
+    },
+    {
+      "path": "current-view.json",
+      "bytes": 273288,
+      "sha256": "6a899eb06e39d36a0fc73cb1005b8a1517cd5ff16384dadaa8f3f398ada98237"
+    },
+    {
+      "path": "publication-preflight.json",
+      "bytes": 892,
+      "sha256": "e242cf0f403ff5cfe9110a5756b3a6ddc199042418ba5b2083e98ecee65afacc"
+    }
+  ]
+}
