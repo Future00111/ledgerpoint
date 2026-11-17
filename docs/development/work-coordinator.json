@@ -1,1 +1,314 @@
-{"version":2,"revision":486,"repository":"Future00111/ledgerpoint","codeBranch":"codex/whole-product-first-sprint","codeHead":"b176e696124e4a16354ba503aa55afd0c3bae96b","catalogPath":"docs/development/work-backlog.json","statePath":"docs/development/work-state.json","status":"leased","lease":{"runId":"durable-intake-1794935665134","tokenSha256":"d25f3a4535f6f84756bc2822a9feef6df161b8ffc1dd9e01757756fdcf4313ff","acquiredAt":1794935665135,"expiresAt":1794939265135},"lastOwner":{"runId":"recovery-qualification-1794934573329","tokenSha256":"0df0e7ac6a2396ae1f0fc1ed3ea597b4d4585477f75c991959ba79fd43ff44ab","acquiredAt":1794934573331,"expiresAt":1794938173331},"checkpoint":{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"1a8c28abccae1c004735a4825ee8e4496c18500a","evidence":[{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"1a8c28abccae1c004735a4825ee8e4496c18500a","path":"docs/development/candidates/durable-intake-20261117/claim-queue-delta.json"},{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"1a8c28abccae1c004735a4825ee8e4496c18500a","path":"docs/development/candidates/durable-intake-20261117/brief.json"}],"runId":"durable-intake-1794935665134","at":1794936028045,"codeHead":"b176e696124e4a16354ba503aa55afd0c3bae96b"},"updatedAt":1794936028045,"integrationPullRequest":29,"standingDevelopmentApproval":{"approvedAt":"2026-11-17T13:32:29.938Z","source":"Owner explicitly replied I approve to standing development-publication request in current conversation","repository":"Future00111/ledgerpoint","visibility":"public","scope":["task reservations and checkpoints","reviewed code and tests","CI logs and evidence","draft pull-request updates","existing CI runs and reruns"],"excluded":["merge","deployment","production changes"],"coordinatorDisclosureApproval":{"approvedAt":"2026-11-17T15:38:45.045Z","repository":"Future00111/ledgerpoint","visibility":"public","standing":true,"source":"Explicit user authorization in the current conversation","userStatement":"I authorise this and future uploads of LedgerPoint CI logs and queue/coordinator checkpoints—including workflow history and hashed lease identifiers—to the public Future00111/ledgerpoint repository. This excludes credentials, raw tokens, merges, deployment and production changes.","scope":["This and future uploads of LedgerPoint CI logs","This and future queue/coordinator checkpoints, including workflow history and hashed lease identifiers"],"excluded":["credentials","raw tokens","merges","deployment","production changes"],"priorApprovalReference":{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"920af955b05a4a35fdfc829b23b24ea1dfb39876","path":"docs/development/owner-development-approval.json"}},"sourceDisclosureApproval":{"approvedAt":"2026-11-17T16:56:12.796Z","repository":"Future00111/ledgerpoint","visibility":"public","standing":true,"source":"Explicit user authorization in current conversation","userStatement":"I authorise this and future uploads of reviewed LedgerPoint source code, tests and sanitized review artifacts to the public Future00111/ledgerpoint repository. Credentials, raw tokens, merges, deployments and production changes remain excluded.","scope":["This and future uploads of reviewed LedgerPoint source code","This and future uploads of LedgerPoint tests","This and future uploads of sanitized review artifacts"],"excluded":["credentials","raw tokens","merges","deployments","production changes"],"priorApprovalReference":{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"33a430cec62028168d9810e8b640793f4dcc0ede","path":"docs/development/owner-development-approval.json"}}},"deliveryPolicy":{"approved":"2026-11-04","objective":"Minimise time and cost to full-scope launch through accepted end-to-end workflows","defaultImplementers":2,"maxWorkers":6,"independentReview":true,"primaryTarget":"P01-03 conditional-discount accounting journey","secondaryTrack":"Next highest eligible independent launch dependency; resolve internal contracts before dispatch; tax/payroll engines remain full scope","milestoneAcceptance":"Matching-source focused, combined/build/typecheck and disposable PostgreSQL/restore checks plus applicable isolated browser journey. No parent autoacceptance.","threeRunReview":"Accepted workflows, launch dependencies, waiting/rework and measured credits; unknown usage stays unknown","noOccupancyTarget":true,"noScopeReduction":true,"simplified20261110":{"policy":"One implementer, coordinator duties handled by root, targeted independent financial/security review. No occupancy target.","objective":"Unpaid/partial discount; fully paid credit/refund workflow, no historical rewrite","replit":"Search and exact resolver return no editable LedgerPoint app; not dispatched","ownerApproved":true}},"activeWorkers":[{"actor":"durable-intake-implementer","task":"P03-02","status":"running","worktree":"ledgerpoint-jobs","branch":"codex/durable-intake-queue-20261117"}],"workersStopped":false,"discoveryRun":{"runId":"correction-discovery-1794927549982","startedAt":"2026-11-17T14:59:10.335Z","scope":"P03-01 correction discovery; explicitly approved checkpoint efficiency review to reduce repeated approval friction without weakening fencing/audit.","activity":"Completed bounded missing-locator correction discovery for invoices and bills. Independent review and all20exact-source CIsteps passed. Full CI and queue acceptance archived under explicit owner standing authorization; q871 has no held tasks. P03-01 parent remains pending for remaining payroll/filing and ambiguous-operation scope.","providerCheck":"Replit exactURL search empty/exactname foundfalse this run; Codex continues.","catalogMigration":{"source":"dd47756d5ed0ead83bf48da52da5e17ad54df88d","review":"capture_implementation","newDigest":"10b841806aa07b58201daa49008d9c865eaa3e58190bc285151eab5349ad1485","sourceBullets":92,"taskCount":112},"worktree":"/workspace/scratch/0c1e486180e4/ledgerpoint-capture","authorBranch":"codex/correction-discovery-20261117","publishedCommit":"4c1062fafacb68f3cce67a17aeef02e07512c761","authorCommit":"336840852fffe4e17af35e0de752e0042e7c73eb","tree":"03fca674291415185a4c1b0cc1e0badbe574aadf","acceptedOutcome":"correction-missing-locator-discovery-20261117","qualification":{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"670b245f0eeccf7e31d364568a4210e1bb024396","path":"docs/development/candidates/correction-discovery-20261117/accepted/qualification.json"},"ci":{"url":"https://github.com/Future00111/ledgerpoint/actions/runs/44114197868","conclusion":"success","source":"4c1062fafacb68f3cce67a17aeef02e07512c761","checkout":"385318f8380ea814d97c4336c74948338fd779ef","tree":"03fca674291415185a4c1b0cc1e0badbe574aadf","all20StepsSuccessUnskipped":true},"publicationBlockResolvedAt":"2026-11-17T15:39:59.692Z","nextAction":"Reconcile remaining P03-01 payroll/filing producer readiness and ambiguous-operation gaps against current source. Select an actual native operation for atomic identity/outcome recovery, settle exact ownership and genuine dependencies first. If the producer is absent, record its concrete executable prerequisite and advance the highest eligible task/approved tax-payroll track; do not count fixtures as engines or repeat already accepted accounting work."},"queueState":{"format":"ledgerpoint-queue-reference-v1","repository":"Future00111/ledgerpoint","ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"1a8c28abccae1c004735a4825ee8e4496c18500a","path":"docs/development/candidates/durable-intake-20261117/claim-queue-delta.json","bytesSha256":"5a13024b4dc3a3aa5ff0fcd9007e5a0d27da72f183b2df1ebcdb6909c1ee6394","queueSha256":"a3f66a4e0e30ce9a2d5b0787b5443abdfdcac28d68d7baa0c212d00d963eef28","revision":887,"catalogDigest":"0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"},"historyReference":{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"9eb84f61d715c191c4188f82486c05442b029ae4","path":"docs/development/work-coordinator.json"},"followups":[{"issue":"Payment-history actions appear enabled before ledger readiness and silently no-op.","files":["artifacts/ledgerly/src/pages/Payments.jsx","artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx"],"status":"Unfixed; future appropriate file lease and loading-state regression required.","constraint":"Current fixture waits for loaded readiness; financial safeguards remain fail-closed."}],"worktreesClean":true,"queueHydration":{"required":true,"note":"queueState is an immutable reference, not a runnable queue. Fetch the exact artifact, verify byte and resolved queue digests and catalogue digest, validate with core.mjs, then hydrate before CLI init/scheduling/currentView. Never initialize an archived base alone. Existing coordinator ownership/fencing and expected-head publication remain unchanged.","helper":{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"bd518a6c7d643341022972dea98b8d9ae7ad48ed","path":"docs/development/candidates/correction-discovery-20261117/compact/queue-reference.mjs","bytesSha256":"8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"},"baseRevision":871,"currentRevision":887,"baseReference":{"format":"ledgerpoint-queue-reference-v1","repository":"Future00111/ledgerpoint","ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"0b1c6cc73bd65640419105d36221a47e729b035f","path":"docs/development/candidates/correction-admission-20261117/migration/queue-base.json","bytesSha256":"71fa5ad32a80ed3c6189dc95b1f6885e2880310cde3d67a277247b27253040cc","queueSha256":"d28df1d8cdc121f62678cfbf62efe3045848a35cb40430186ee33554f63d2a71","revision":871,"catalogDigest":"0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"}},"admissionRun":{"runId":"correction-admission-1794930354689","startedAt":"2026-11-17T15:45:54.689Z","scope":"Highest eligible P03-01 durable precommit correction attempt and recovery workflow; resolve exact additive migration ownership first.","providerCheck":"Replit exact URL search returned no apps and exact name resolver foundfalse in this run; no dispatch.","activity":"Durable correction admission/pending/terminal recovery accepted as bounded outcome correction-durable-pending-terminal-20261117 on publishedb176e696 with all20 exact-source CI steps green. Previous source gate resolved by explicit user statement; full parent remains pending.","catalogMigration":{"author":"4546948a6d561393f0024ccb5c260004c36a3e8d","published":"a055f0266e7ff6378f8a6262fb6cca1571ad7144","reviewer":"capture_implementation","digest":"0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd","archive":"0b1c6cc73bd65640419105d36221a47e729b035f"},"assignment":{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"e947d64f024540a3d12dc173900f38defabe0a77","path":"docs/development/candidates/correction-admission-20261117/brief.json"},"lastObservedAt":"2026-11-17T16:31:20.301Z","acceptedOutcome":"correction-durable-pending-terminal-20261117","publishedCommit":"b176e696124e4a16354ba503aa55afd0c3bae96b","qualification":{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"4500aa103afbffd67f08948f03c9bfef53111265","path":"docs/development/candidates/recovery-qualification-20261117/accepted/qualification.json"}},"backupRecoveryRun":{"startedAt":"2026-11-17T16:35:01.804Z","task":"P03-04","activity":"Native encrypted pending/no-effect/recorded payment attempt recovery accepted as bounded outcome payment-attempt-encrypted-restore-20261117 on publishedb176e696; parent remains pending real durable job producers and operational/ownership/offsite requirements.","assignment":{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"be4bc58d195cd4ba0dbd882578a9f0efae5eb0c3","path":"docs/development/candidates/encrypted-attempt-recovery-20261117/brief.json"},"lastObservedAt":"2026-11-17T16:45:37.597Z","candidate":{"authorCommit":"5ab77c0834d387e92331f8c632cb316464abcaf9","authorTree":"434f8e08e968d1105a25545b2f1c906df7f34bc5","localIntegrationCommit":"5bbcf5c7fc4b61fb84d00508f9cd09f0724f35b8","localIntegrationTree":"8e52e26b81cf14adf17a0d83cc81bd73251ae58a","sourcePublished":true},"checkpoint":{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"ba5c98a90b54feecd9567ab8767e5c34c7eddcf0","path":"docs/development/candidates/encrypted-attempt-recovery-20261117/completed-local.json"},"nextAction":"Preserve accepted encrypted attempt recovery; reconcile actual durable extraction/job producer and operational target/ownership/key/retention/offsite prerequisites.","acceptedOutcome":"payment-attempt-encrypted-restore-20261117","publishedCommit":"b176e696124e4a16354ba503aa55afd0c3bae96b","qualification":{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"4500aa103afbffd67f08948f03c9bfef53111265","path":"docs/development/candidates/recovery-qualification-20261117/accepted/qualification.json"}},"recoveryQualificationRun":{"startedAt":"2026-11-17T16:56:13.334Z","activity":"Explicit standing source authorization recorded; reviewed combined source published to draftPR29; exact checkout02d9dda4/tree8e52e26 passed all20 CI steps including108 native accounting,150 conditional discount, four admitted correction browser journeys, actual process death, restored correction states and mandatory encrypted native payment-attempt recovery. Full immutable logs and bounded acceptance archived; q883 no held tasks.","sourceCandidate":"5bbcf5c7fc4b61fb84d00508f9cd09f0724f35b8","candidate":"b176e696124e4a16354ba503aa55afd0c3bae96b","publishedCommit":"b176e696124e4a16354ba503aa55afd0c3bae96b","publishedTree":"8e52e26b81cf14adf17a0d83cc81bd73251ae58a","sourceUploadGateResolved":true,"lastObservedAt":"2026-11-17T17:00:32.759Z","ci":{"run":44132106051,"job":134211692977,"conclusion":"success","url":"https://github.com/Future00111/ledgerpoint/actions/runs/44132106051","checkout":"02d9dda4b53a1c6a5e01ed177065e9e59d461d55","tree":"8e52e26b81cf14adf17a0d83cc81bd73251ae58a","all20StepsSuccessUnskipped":true},"qualification":{"ref":"refs/heads/codex/ledgerly-work-queue-state","sha":"4500aa103afbffd67f08948f03c9bfef53111265","path":"docs/development/candidates/recovery-qualification-20261117/accepted/qualification.json"},"acceptedOutcomes":["correction-durable-pending-terminal-20261117","payment-attempt-encrypted-restore-20261117"],"finishedAt":"2026-11-17T17:06:55.418Z","measuredProviderCost":null,"nextAction":"Use current queue and accepted outcomes. Reconcile actual remaining payroll/filing and durable extraction/job producer dependencies before assigning more recovery work; retain genuine operational recovery/owner gates. Do not reimplement accepted payment/capture/correction or encrypted attempt scenarios."},"durableIntakeRun":{"startedAt":"2026-11-17T17:14:25.140Z","activity":"P03-01 blocked on genuine noncyclic absent producers P09-01/P04-04. P03-02 claimed and bounded brief archived before dispatch; root independent reviewer."}}
+{
+  "version": 2,
+  "revision": 487,
+  "repository": "Future00111/ledgerpoint",
+  "codeBranch": "codex/whole-product-first-sprint",
+  "codeHead": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+  "catalogPath": "docs/development/work-backlog.json",
+  "statePath": "docs/development/work-state.json",
+  "status": "leased",
+  "lease": {
+    "runId": "durable-intake-1794935665134",
+    "tokenSha256": "d25f3a4535f6f84756bc2822a9feef6df161b8ffc1dd9e01757756fdcf4313ff",
+    "acquiredAt": 1794935665135,
+    "expiresAt": 1794939265135
+  },
+  "lastOwner": {
+    "runId": "recovery-qualification-1794934573329",
+    "tokenSha256": "0df0e7ac6a2396ae1f0fc1ed3ea597b4d4585477f75c991959ba79fd43ff44ab",
+    "acquiredAt": 1794934573331,
+    "expiresAt": 1794938173331
+  },
+  "checkpoint": {
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "397d0588cfa82a1767315d42ed80acf466417647",
+    "evidence": [
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "397d0588cfa82a1767315d42ed80acf466417647",
+        "path": "docs/development/candidates/durable-intake-20261117/activity-queue-delta.json"
+      }
+    ],
+    "runId": "durable-intake-1794935665134",
+    "at": 1794936464850,
+    "codeHead": "b176e696124e4a16354ba503aa55afd0c3bae96b"
+  },
+  "updatedAt": 1794936464850,
+  "integrationPullRequest": 29,
+  "standingDevelopmentApproval": {
+    "approvedAt": "2026-11-17T13:32:29.938Z",
+    "source": "Owner explicitly replied I approve to standing development-publication request in current conversation",
+    "repository": "Future00111/ledgerpoint",
+    "visibility": "public",
+    "scope": [
+      "task reservations and checkpoints",
+      "reviewed code and tests",
+      "CI logs and evidence",
+      "draft pull-request updates",
+      "existing CI runs and reruns"
+    ],
+    "excluded": [
+      "merge",
+      "deployment",
+      "production changes"
+    ],
+    "coordinatorDisclosureApproval": {
+      "approvedAt": "2026-11-17T15:38:45.045Z",
+      "repository": "Future00111/ledgerpoint",
+      "visibility": "public",
+      "standing": true,
+      "source": "Explicit user authorization in the current conversation",
+      "userStatement": "I authorise this and future uploads of LedgerPoint CI logs and queue/coordinator checkpoints—including workflow history and hashed lease identifiers—to the public Future00111/ledgerpoint repository. This excludes credentials, raw tokens, merges, deployment and production changes.",
+      "scope": [
+        "This and future uploads of LedgerPoint CI logs",
+        "This and future queue/coordinator checkpoints, including workflow history and hashed lease identifiers"
+      ],
+      "excluded": [
+        "credentials",
+        "raw tokens",
+        "merges",
+        "deployment",
+        "production changes"
+      ],
+      "priorApprovalReference": {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "920af955b05a4a35fdfc829b23b24ea1dfb39876",
+        "path": "docs/development/owner-development-approval.json"
+      }
+    },
+    "sourceDisclosureApproval": {
+      "approvedAt": "2026-11-17T16:56:12.796Z",
+      "repository": "Future00111/ledgerpoint",
+      "visibility": "public",
+      "standing": true,
+      "source": "Explicit user authorization in current conversation",
+      "userStatement": "I authorise this and future uploads of reviewed LedgerPoint source code, tests and sanitized review artifacts to the public Future00111/ledgerpoint repository. Credentials, raw tokens, merges, deployments and production changes remain excluded.",
+      "scope": [
+        "This and future uploads of reviewed LedgerPoint source code",
+        "This and future uploads of LedgerPoint tests",
+        "This and future uploads of sanitized review artifacts"
+      ],
+      "excluded": [
+        "credentials",
+        "raw tokens",
+        "merges",
+        "deployments",
+        "production changes"
+      ],
+      "priorApprovalReference": {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "33a430cec62028168d9810e8b640793f4dcc0ede",
+        "path": "docs/development/owner-development-approval.json"
+      }
+    }
+  },
+  "deliveryPolicy": {
+    "approved": "2026-11-04",
+    "objective": "Minimise time and cost to full-scope launch through accepted end-to-end workflows",
+    "defaultImplementers": 2,
+    "maxWorkers": 6,
+    "independentReview": true,
+    "primaryTarget": "P01-03 conditional-discount accounting journey",
+    "secondaryTrack": "Next highest eligible independent launch dependency; resolve internal contracts before dispatch; tax/payroll engines remain full scope",
+    "milestoneAcceptance": "Matching-source focused, combined/build/typecheck and disposable PostgreSQL/restore checks plus applicable isolated browser journey. No parent autoacceptance.",
+    "threeRunReview": "Accepted workflows, launch dependencies, waiting/rework and measured credits; unknown usage stays unknown",
+    "noOccupancyTarget": true,
+    "noScopeReduction": true,
+    "simplified20261110": {
+      "policy": "One implementer, coordinator duties handled by root, targeted independent financial/security review. No occupancy target.",
+      "objective": "Unpaid/partial discount; fully paid credit/refund workflow, no historical rewrite",
+      "replit": "Search and exact resolver return no editable LedgerPoint app; not dispatched",
+      "ownerApproved": true
+    }
+  },
+  "activeWorkers": [
+    {
+      "actor": "durable-intake-implementer",
+      "task": "P03-02",
+      "status": "running",
+      "worktree": "ledgerpoint-jobs",
+      "branch": "codex/durable-intake-queue-20261117"
+    }
+  ],
+  "workersStopped": false,
+  "discoveryRun": {
+    "runId": "correction-discovery-1794927549982",
+    "startedAt": "2026-11-17T14:59:10.335Z",
+    "scope": "P03-01 correction discovery; explicitly approved checkpoint efficiency review to reduce repeated approval friction without weakening fencing/audit.",
+    "activity": "Completed bounded missing-locator correction discovery for invoices and bills. Independent review and all20exact-source CIsteps passed. Full CI and queue acceptance archived under explicit owner standing authorization; q871 has no held tasks. P03-01 parent remains pending for remaining payroll/filing and ambiguous-operation scope.",
+    "providerCheck": "Replit exactURL search empty/exactname foundfalse this run; Codex continues.",
+    "catalogMigration": {
+      "source": "dd47756d5ed0ead83bf48da52da5e17ad54df88d",
+      "review": "capture_implementation",
+      "newDigest": "10b841806aa07b58201daa49008d9c865eaa3e58190bc285151eab5349ad1485",
+      "sourceBullets": 92,
+      "taskCount": 112
+    },
+    "worktree": "/workspace/scratch/0c1e486180e4/ledgerpoint-capture",
+    "authorBranch": "codex/correction-discovery-20261117",
+    "publishedCommit": "4c1062fafacb68f3cce67a17aeef02e07512c761",
+    "authorCommit": "336840852fffe4e17af35e0de752e0042e7c73eb",
+    "tree": "03fca674291415185a4c1b0cc1e0badbe574aadf",
+    "acceptedOutcome": "correction-missing-locator-discovery-20261117",
+    "qualification": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "670b245f0eeccf7e31d364568a4210e1bb024396",
+      "path": "docs/development/candidates/correction-discovery-20261117/accepted/qualification.json"
+    },
+    "ci": {
+      "url": "https://github.com/Future00111/ledgerpoint/actions/runs/44114197868",
+      "conclusion": "success",
+      "source": "4c1062fafacb68f3cce67a17aeef02e07512c761",
+      "checkout": "385318f8380ea814d97c4336c74948338fd779ef",
+      "tree": "03fca674291415185a4c1b0cc1e0badbe574aadf",
+      "all20StepsSuccessUnskipped": true
+    },
+    "publicationBlockResolvedAt": "2026-11-17T15:39:59.692Z",
+    "nextAction": "Reconcile remaining P03-01 payroll/filing producer readiness and ambiguous-operation gaps against current source. Select an actual native operation for atomic identity/outcome recovery, settle exact ownership and genuine dependencies first. If the producer is absent, record its concrete executable prerequisite and advance the highest eligible task/approved tax-payroll track; do not count fixtures as engines or repeat already accepted accounting work."
+  },
+  "queueState": {
+    "format": "ledgerpoint-queue-reference-v1",
+    "repository": "Future00111/ledgerpoint",
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "397d0588cfa82a1767315d42ed80acf466417647",
+    "path": "docs/development/candidates/durable-intake-20261117/activity-queue-delta.json",
+    "bytesSha256": "029c886beda3e6681f548b642ef2467bc253b9d66900f3a614aec62ae94e0f63",
+    "queueSha256": "56d40c28c6e344287ef7bf521fd60a0eb573d67095fc94893d05b97336a24612",
+    "revision": 888,
+    "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
+  },
+  "historyReference": {
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "9eb84f61d715c191c4188f82486c05442b029ae4",
+    "path": "docs/development/work-coordinator.json"
+  },
+  "followups": [
+    {
+      "issue": "Payment-history actions appear enabled before ledger readiness and silently no-op.",
+      "files": [
+        "artifacts/ledgerly/src/pages/Payments.jsx",
+        "artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx"
+      ],
+      "status": "Unfixed; future appropriate file lease and loading-state regression required.",
+      "constraint": "Current fixture waits for loaded readiness; financial safeguards remain fail-closed."
+    }
+  ],
+  "worktreesClean": false,
+  "queueHydration": {
+    "required": true,
+    "note": "queueState is an immutable reference, not a runnable queue. Fetch the exact artifact, verify byte and resolved queue digests and catalogue digest, validate with core.mjs, then hydrate before CLI init/scheduling/currentView. Never initialize an archived base alone. Existing coordinator ownership/fencing and expected-head publication remain unchanged.",
+    "helper": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "bd518a6c7d643341022972dea98b8d9ae7ad48ed",
+      "path": "docs/development/candidates/correction-discovery-20261117/compact/queue-reference.mjs",
+      "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
+    },
+    "baseRevision": 871,
+    "currentRevision": 888,
+    "baseReference": {
+      "format": "ledgerpoint-queue-reference-v1",
+      "repository": "Future00111/ledgerpoint",
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "0b1c6cc73bd65640419105d36221a47e729b035f",
+      "path": "docs/development/candidates/correction-admission-20261117/migration/queue-base.json",
+      "bytesSha256": "71fa5ad32a80ed3c6189dc95b1f6885e2880310cde3d67a277247b27253040cc",
+      "queueSha256": "d28df1d8cdc121f62678cfbf62efe3045848a35cb40430186ee33554f63d2a71",
+      "revision": 871,
+      "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
+    }
+  },
+  "admissionRun": {
+    "runId": "correction-admission-1794930354689",
+    "startedAt": "2026-11-17T15:45:54.689Z",
+    "scope": "Highest eligible P03-01 durable precommit correction attempt and recovery workflow; resolve exact additive migration ownership first.",
+    "providerCheck": "Replit exact URL search returned no apps and exact name resolver foundfalse in this run; no dispatch.",
+    "activity": "Durable correction admission/pending/terminal recovery accepted as bounded outcome correction-durable-pending-terminal-20261117 on publishedb176e696 with all20 exact-source CI steps green. Previous source gate resolved by explicit user statement; full parent remains pending.",
+    "catalogMigration": {
+      "author": "4546948a6d561393f0024ccb5c260004c36a3e8d",
+      "published": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
+      "reviewer": "capture_implementation",
+      "digest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd",
+      "archive": "0b1c6cc73bd65640419105d36221a47e729b035f"
+    },
+    "assignment": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "e947d64f024540a3d12dc173900f38defabe0a77",
+      "path": "docs/development/candidates/correction-admission-20261117/brief.json"
+    },
+    "lastObservedAt": "2026-11-17T16:31:20.301Z",
+    "acceptedOutcome": "correction-durable-pending-terminal-20261117",
+    "publishedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+    "qualification": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "4500aa103afbffd67f08948f03c9bfef53111265",
+      "path": "docs/development/candidates/recovery-qualification-20261117/accepted/qualification.json"
+    }
+  },
+  "backupRecoveryRun": {
+    "startedAt": "2026-11-17T16:35:01.804Z",
+    "task": "P03-04",
+    "activity": "Native encrypted pending/no-effect/recorded payment attempt recovery accepted as bounded outcome payment-attempt-encrypted-restore-20261117 on publishedb176e696; parent remains pending real durable job producers and operational/ownership/offsite requirements.",
+    "assignment": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "be4bc58d195cd4ba0dbd882578a9f0efae5eb0c3",
+      "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/brief.json"
+    },
+    "lastObservedAt": "2026-11-17T16:45:37.597Z",
+    "candidate": {
+      "authorCommit": "5ab77c0834d387e92331f8c632cb316464abcaf9",
+      "authorTree": "434f8e08e968d1105a25545b2f1c906df7f34bc5",
+      "localIntegrationCommit": "5bbcf5c7fc4b61fb84d00508f9cd09f0724f35b8",
+      "localIntegrationTree": "8e52e26b81cf14adf17a0d83cc81bd73251ae58a",
+      "sourcePublished": true
+    },
+    "checkpoint": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "ba5c98a90b54feecd9567ab8767e5c34c7eddcf0",
+      "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/completed-local.json"
+    },
+    "nextAction": "Preserve accepted encrypted attempt recovery; reconcile actual durable extraction/job producer and operational target/ownership/key/retention/offsite prerequisites.",
+    "acceptedOutcome": "payment-attempt-encrypted-restore-20261117",
+    "publishedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+    "qualification": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "4500aa103afbffd67f08948f03c9bfef53111265",
+      "path": "docs/development/candidates/recovery-qualification-20261117/accepted/qualification.json"
+    }
+  },
+  "recoveryQualificationRun": {
+    "startedAt": "2026-11-17T16:56:13.334Z",
+    "activity": "Explicit standing source authorization recorded; reviewed combined source published to draftPR29; exact checkout02d9dda4/tree8e52e26 passed all20 CI steps including108 native accounting,150 conditional discount, four admitted correction browser journeys, actual process death, restored correction states and mandatory encrypted native payment-attempt recovery. Full immutable logs and bounded acceptance archived; q883 no held tasks.",
+    "sourceCandidate": "5bbcf5c7fc4b61fb84d00508f9cd09f0724f35b8",
+    "candidate": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+    "publishedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+    "publishedTree": "8e52e26b81cf14adf17a0d83cc81bd73251ae58a",
+    "sourceUploadGateResolved": true,
+    "lastObservedAt": "2026-11-17T17:00:32.759Z",
+    "ci": {
+      "run": 44132106051,
+      "job": 134211692977,
+      "conclusion": "success",
+      "url": "https://github.com/Future00111/ledgerpoint/actions/runs/44132106051",
+      "checkout": "02d9dda4b53a1c6a5e01ed177065e9e59d461d55",
+      "tree": "8e52e26b81cf14adf17a0d83cc81bd73251ae58a",
+      "all20StepsSuccessUnskipped": true
+    },
+    "qualification": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "4500aa103afbffd67f08948f03c9bfef53111265",
+      "path": "docs/development/candidates/recovery-qualification-20261117/accepted/qualification.json"
+    },
+    "acceptedOutcomes": [
+      "correction-durable-pending-terminal-20261117",
+      "payment-attempt-encrypted-restore-20261117"
+    ],
+    "finishedAt": "2026-11-17T17:06:55.418Z",
+    "measuredProviderCost": null,
+    "nextAction": "Use current queue and accepted outcomes. Reconcile actual remaining payroll/filing and durable extraction/job producer dependencies before assigning more recovery work; retain genuine operational recovery/owner gates. Do not reimplement accepted payment/capture/correction or encrypted attempt scenarios."
+  },
+  "durableIntakeRun": {
+    "startedAt": "2026-11-17T17:14:25.140Z",
+    "activity": "Implementation and independent review active; malformed-history and structural schema gates tightened. Runtime restart/restore coverage underway. Bounded author stop17:45UTC, parent not accepted.",
+    "authorStopTarget": "2026-11-17T17:45:00Z"
+  }
+}
