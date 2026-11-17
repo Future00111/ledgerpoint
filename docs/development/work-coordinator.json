@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 480,
+  "revision": 481,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
@@ -21,19 +21,24 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "ba5c98a90b54feecd9567ab8767e5c34c7eddcf0",
+    "sha": "e46b37f5746c357feebbb06efa49ea9df1d51f12",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "ba5c98a90b54feecd9567ab8767e5c34c7eddcf0",
-        "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/completed-local.json"
+        "sha": "e46b37f5746c357feebbb06efa49ea9df1d51f12",
+        "path": "docs/development/candidates/recovery-qualification-20261117/review/backup-review.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "e46b37f5746c357feebbb06efa49ea9df1d51f12",
+        "path": "docs/development/candidates/recovery-qualification-20261117/review/correction-review.json"
       }
     ],
-    "runId": "correction-qualification-1794933080298",
-    "at": 1794933937594,
+    "runId": "recovery-qualification-1794934573329",
+    "at": 1794934745577,
     "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144"
   },
-  "updatedAt": 1794934573331,
+  "updatedAt": 1794934745577,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -162,11 +167,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "ba5c98a90b54feecd9567ab8767e5c34c7eddcf0",
-    "path": "docs/development/candidates/encrypted-attempt-recovery-20261117/blocked-queue-delta.json",
-    "bytesSha256": "74bd6fb84f2a29b8bb08d3c80498c6df5fca53ca37f64080092439fc6f23e8f5",
-    "queueSha256": "c24f23370fe0a187580958200b230d59394e8a2bac79d756bf4f93da3ddbe37f",
-    "revision": 878,
+    "sha": "e46b37f5746c357feebbb06efa49ea9df1d51f12",
+    "path": "docs/development/candidates/recovery-qualification-20261117/review/review-queue-delta.json",
+    "bytesSha256": "b44bdd00fbbbae412994bbe66304ef737cada2549ca8b9351909def89296a294",
+    "queueSha256": "bf03119bd70acb2717cfea2df7e2bd9714ca33a8bd2b80381529e88b559bfe10",
+    "revision": 881,
     "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
   },
   "historyReference": {
@@ -196,7 +201,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 871,
-    "currentRevision": 878,
+    "currentRevision": 881,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -255,7 +260,8 @@
   },
   "recoveryQualificationRun": {
     "startedAt": "2026-11-17T16:56:13.334Z",
-    "activity": "Explicit owner source/test/sanitized-artifact publication authority received. Recovering reviewed combined candidate5bbcf5c/tree8e52e26 for existing PR29 exact-source runtime CI.",
-    "sourceCandidate": "5bbcf5c7fc4b61fb84d00508f9cd09f0724f35b8"
+    "activity": "Explicitly authorized source objects and sanitized independent reviews uploaded. Both original reviewed candidates retained in review; candidate b176e696 tree8e52e26 awaiting fresh PR29 integration-ref preflight.",
+    "sourceCandidate": "5bbcf5c7fc4b61fb84d00508f9cd09f0724f35b8",
+    "candidate": "b176e696124e4a16354ba503aa55afd0c3bae96b"
   }
 }
