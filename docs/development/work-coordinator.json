@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 462,
+  "revision": 463,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "dd47756d5ed0ead83bf48da52da5e17ad54df88d",
@@ -21,19 +21,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "bd518a6c7d643341022972dea98b8d9ae7ad48ed",
+    "sha": "91aa9f091bc29171fafbb8464cf1555f2c520b10",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "bd518a6c7d643341022972dea98b8d9ae7ad48ed",
-        "path": "docs/development/candidates/correction-discovery-20261117/compact/review.json"
+        "sha": "91aa9f091bc29171fafbb8464cf1555f2c520b10",
+        "path": "docs/development/candidates/correction-discovery-20261117/review/independent-review.json"
       }
     ],
     "runId": "correction-discovery-1794927549982",
-    "at": 1794928854418,
+    "at": 1794929074291,
     "codeHead": "dd47756d5ed0ead83bf48da52da5e17ad54df88d"
   },
-  "updatedAt": 1794928854418,
+  "updatedAt": 1794929074291,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -95,7 +95,7 @@
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
     "scope": "P03-01 correction discovery; explicitly approved checkpoint efficiency review to reduce repeated approval friction without weakening fencing/audit.",
-    "activity": "Author stopped at 336840852fffe4e17af35e0de752e0042e7c73eb; root independent review and exact-source checks pending.",
+    "activity": "Author stopped; root independently reviewed 3368408 exact tree03fca674; local combined/build/typecheck and32migration registry checks passed. Queue review870; native/browser/restore CI required before bounded acceptance.",
     "providerCheck": "Replit exactURL search empty/exactname foundfalse this run; Codex continues.",
     "catalogMigration": {
       "source": "dd47756d5ed0ead83bf48da52da5e17ad54df88d",
@@ -111,11 +111,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "bd518a6c7d643341022972dea98b8d9ae7ad48ed",
-    "path": "docs/development/candidates/correction-discovery-20261117/compact/queue-base.json",
-    "bytesSha256": "c99a5f0f126cd9d2254dd4057c2bb9cef245323be923391fb9ce4135c40239a7",
-    "queueSha256": "442e8145619d21db88a40bd3ab8c3f0f6205831c2c6ab20f711e3d0ed9b1c7f9",
-    "revision": 868,
+    "sha": "91aa9f091bc29171fafbb8464cf1555f2c520b10",
+    "path": "docs/development/candidates/correction-discovery-20261117/review/review-queue-delta.json",
+    "bytesSha256": "c4837835f5289bd8598516ed989111f8573efce4eec749c698db7d449d16f04d",
+    "queueSha256": "4aba586393a5d8742f389ca822603678ca7e9b1ab2fbc719087a1e94e51f59fb",
+    "revision": 870,
     "catalogDigest": "10b841806aa07b58201daa49008d9c865eaa3e58190bc285151eab5349ad1485"
   },
   "historyReference": {
@@ -145,7 +145,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 868,
-    "currentRevision": 868,
+    "currentRevision": 870,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
