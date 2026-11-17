@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 29,
+  "successorDraftRequired": false,
+  "authorityCommit": "95c0a67d129c3f523cd4090ca52512e28abd8940",
+  "authorityRevision": 504,
+  "coordinatorRunId": "two-track-1794939703603",
+  "observedAt": 1794942109561,
+  "candidateTree": "00a3ae865e0d336c2fbcced734e6a17c9129c2a4",
+  "reviewedBy": "root",
+  "authorOrigin": {
+    "actor": "durable-execution-implementer-and-tax-register-implementer",
+    "commit": "305d9866d8965a937ebcbed5b586151252590c65",
+    "branch": "codex/durable-execution-20261117"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
+    "sha": "e4c062b09f15d2660e3cb55b0962ce4689b0c690",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}

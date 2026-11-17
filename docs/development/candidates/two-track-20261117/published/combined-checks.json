@@ -1,0 +1,20 @@
+{
+  "source": "305d9866d8965a937ebcbed5b586151252590c65",
+  "tree": "00a3ae865e0d336c2fbcced734e6a17c9129c2a4",
+  "observedAt": "2026-11-17T19:00:02.527784+00:00",
+  "checks": [
+    {
+      "command": "node tools/development/check.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "log": "combined.log"
+    },
+    {
+      "command": "PORT=8080 BASE_PATH=/ pnpm run build (pinned pnpm10.26.1)",
+      "passed": true,
+      "exitCode": 0,
+      "log": "build.log"
+    }
+  ],
+  "nativeDatabasePassed": false
+}
