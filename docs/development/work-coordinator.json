@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 491,
+  "revision": 492,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "dc6467a9712582a22cfeb26a389b0a281c017e87",
+  "codeHead": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,24 +21,24 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "767dba7536cf46fd85ca2be837c5f95263cf3b22",
+    "sha": "e4d9e04bfe3345b8969f1983898924274cf3fc25",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "767dba7536cf46fd85ca2be837c5f95263cf3b22",
+        "sha": "e4d9e04bfe3345b8969f1983898924274cf3fc25",
         "path": "docs/development/candidates/durable-intake-20261117/repair-review/repair-review-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "767dba7536cf46fd85ca2be837c5f95263cf3b22",
-        "path": "docs/development/candidates/durable-intake-20261117/repair-review/repair-root-review.json"
+        "sha": "e4d9e04bfe3345b8969f1983898924274cf3fc25",
+        "path": "docs/development/candidates/durable-intake-20261117/repair/publication-receipt.json"
       }
     ],
     "runId": "durable-intake-1794935665134",
-    "at": 1794937686553,
-    "codeHead": "dc6467a9712582a22cfeb26a389b0a281c017e87"
+    "at": 1794937819797,
+    "codeHead": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b"
   },
-  "updatedAt": 1794937686553,
+  "updatedAt": 1794937819797,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -175,7 +175,7 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "767dba7536cf46fd85ca2be837c5f95263cf3b22",
+    "sha": "e4d9e04bfe3345b8969f1983898924274cf3fc25",
     "path": "docs/development/candidates/durable-intake-20261117/repair-review/repair-review-queue-delta.json",
     "bytesSha256": "4fd3974e52228127d68a954959799c190943e41001a63f9bd1e958fb97d8c131",
     "queueSha256": "59d52edc4bfcf6e7e75c4dbc1661e4e3f9f95be463501a72417406a41b9327e7",
@@ -313,21 +313,26 @@
   },
   "durableIntakeRun": {
     "startedAt": "2026-11-17T17:14:25.140Z",
-    "activity": "Stopped reviewed repair307ee8c changes only two test harness files; combined/build/typecheck/native compile pass, runtime permissions unchanged. Next publish repaired source and repeat full exactCI.",
+    "activity": "Reviewed harness correction published; new exact-source CI44141164259 running. Application permissions unchanged. First failed run archived, bounded acceptance pending.",
     "authorStopTarget": "2026-11-17T17:45:00Z",
     "authorCommit": "307ee8c471cf6499ef02c9984d26d5eeabd5498d",
     "tree": "da2c486ddb7c82cb7b9fcf9b7523bff2d7ddf5bb",
-    "reviewArchive": "4a9250fdfa84920ab95352d4d56d27b25a9d169c",
-    "publishedCommit": "dc6467a9712582a22cfeb26a389b0a281c017e87",
-    "expectedParent": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+    "reviewArchive": "767dba7536cf46fd85ca2be837c5f95263cf3b22",
+    "publishedCommit": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b",
+    "expectedParent": "dc6467a9712582a22cfeb26a389b0a281c017e87",
     "sourceRefVerified": true,
     "prHeadVerified": true,
     "ci": {
-      "runId": 44139504401,
-      "url": "https://github.com/Future00111/ledgerpoint/actions/runs/44139504401",
-      "status": "in_progress"
+      "id": 44141164259,
+      "name": "LedgerPoint development regression",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_number": 84,
+      "jobs_url": "https://api.github.com/repos/Future00111/ledgerpoint/actions/runs/44141164259/jobs",
+      "logs_url": "https://api.github.com/repos/Future00111/ledgerpoint/actions/runs/44141164259/logs",
+      "workflow_id": 401903918
     },
-    "observedAt": "2026-11-17T17:40:35.125Z",
+    "observedAt": "2026-11-17T17:49:44.126Z",
     "failedRun": 44139504401,
     "repairReviewArchive": "767dba7536cf46fd85ca2be837c5f95263cf3b22"
   }
