@@ -1,0 +1,789 @@
+{
+  "format": "exact-queue-delta-v1",
+  "base": {
+    "format": "ledgerpoint-queue-reference-v1",
+    "repository": "Future00111/ledgerpoint",
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "0b1c6cc73bd65640419105d36221a47e729b035f",
+    "path": "docs/development/candidates/correction-admission-20261117/migration/queue-base.json",
+    "bytesSha256": "71fa5ad32a80ed3c6189dc95b1f6885e2880310cde3d67a277247b27253040cc",
+    "queueSha256": "d28df1d8cdc121f62678cfbf62efe3045848a35cb40430186ee33554f63d2a71",
+    "revision": 871,
+    "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
+  },
+  "fromRevision": 871,
+  "revision": 899,
+  "taskReplacements": {
+    "P03-01": {
+      "status": "blocked",
+      "priority": 301,
+      "discoveredDependencies": [
+        "P09-01",
+        "P04-04"
+      ],
+      "checkpoint": "At b176e696, native route/service inventory confirms no payroll or filing producer. P09-01 and P04-04 are genuine noncyclic immediate prerequisites. Do not add reverse dependency on P09-07, which already depends on P03-01; resolve shared recovery boundary before finalisation implementation. Accepted payment/capture/correction outcomes preserved; next highest ready task P03-02 durable native job queue.",
+      "evidence": {
+        "commit": "727437f5a832b50d09c497e25caef28fcdf1434e",
+        "integratedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+        "summary": "Invoice/bill correction durable precommit admission, pending discovery, protected no-effect closure, verified fresh review, actual process death and restored native outcomes.",
+        "tests": [
+          {
+            "command": "Exact GitHub CI44132106051 job134211692977 checkout02d9dda4/tree8e52e26: all20 steps success; full native/browser/restart/populated/encrypted restore and cleanup; independent review archive e46b37f",
+            "passed": true
+          }
+        ],
+        "reviewed": true,
+        "reviewer": "root"
+      },
+      "acceptedOutcomes": [
+        {
+          "id": "recorded-payment-discovery-20261116",
+          "scenario": "Recover a committed actor/company-owned payment without its browser locator through explicit selection and fresh authorized receipt verification; mounted components/native API Chromium scenario sends zero POST.",
+          "criteria": [
+            0
+          ],
+          "remaining": [
+            "Precommit pending operation admission and authoritative unresolved-outcome handling remain.",
+            "Absent or older-than-latest-100 receipts cannot prove failure; other operation families and complete parent journey remain."
+          ],
+          "nextAction": "Design bounded pending-operation admission using existing receipt authority; keep absence fail-closed and preserve no-repost controls.",
+          "integratedCommit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33",
+          "acceptedAt": 1794845443953,
+          "evidence": {
+            "commit": "914203d4aab64f54897a53c8819a0f387cbd565a",
+            "integratedCommit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33",
+            "summary": "Recover a committed actor/company-owned payment without its browser locator through explicit selection and fresh authorized receipt verification; mounted components/native API Chromium scenario sends zero POST.",
+            "reviewed": true,
+            "reviewer": "independent_review",
+            "tests": [
+              {
+                "command": "Independent matching-author focused tests and diff review",
+                "passed": true
+              },
+              {
+                "command": "Combined node tools/development/check.mjs: 1030 passed; full build/typecheck",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 43903722452 job133426839772: source, security, disposable PostgreSQL, browser and encrypted restore; merge tree identical to eb4bf2",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "ordinary-payment-durable-pending-recovery-20261116",
+          "scenario": "Ordinary payment-family requests record durable precommit admissions, fence fresh replacement IDs, bind exact retries, and expose actor-owned pending recovery. Explicit protected no-effect markers permanently fence delayed writers including bundled paths. Mounted lost-reference pending-to-recorded recovery makes zero POST requests.",
+          "criteria": [
+            0
+          ],
+          "remaining": [
+            "P03-01 still requires remaining correction/capture/payroll/filing operation families and complete connected recovery journeys.",
+            "Browser terminal no-effect outcome remains read-only; implement explicit user-facing protected resolution and fresh-review progression without automatic retry or absence/TTL unlock.",
+            "Synthetic isolated browser session does not establish real Clerk or production acceptance."
+          ],
+          "nextAction": "Automatically claim P03-01 and complete explicit ordinary-payment terminal-resolution UI using the existing protected no-effect endpoint: current actor/company authorization, immutable attempt binding, explicit selection/confirmation, then fresh review only after verified terminal outcome. Preserve no automatic repost, canonical outcome precedence and all race/restore gates. No new owner technical decision required.",
+          "integratedCommit": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2",
+          "acceptedAt": 1794851402254,
+          "evidence": {
+            "commit": "9d6171e05081df2868f40bc5ba6cc7d72286c374",
+            "summary": "Bounded P03-01 ordinary payment-family pending admission, immutable explicit no-effect fence, same-ID canonical authority and read-only lost-locator discovery. Parent remains pending: correction/capture/payroll/filing operation families, full browser lifecycle and broader recovery acceptance remain. Native PostgreSQL/browser/restore execution unavailable locally and required on integrated CI before acceptance. Author stopped; independent review pending native gates.",
+            "tests": [
+              {
+                "command": "node tools/development/check.mjs (1054 tests; /tmp/pending-9d6171-source.log)",
+                "passed": true
+              },
+              {
+                "command": "node --test tools/development/migrations/registry.test.mjs (32 tests; /tmp/pending-9d6171-registry.log)",
+                "passed": true
+              },
+              {
+                "command": "PORT=8080 BASE_PATH=/ corepack pnpm@10.26.1 run build (/tmp/pending-9d6171-build.log)",
+                "passed": true
+              },
+              {
+                "command": "corepack pnpm@10.26.1 --filter @workspace/api-server exec esbuild src/services/accountingDocuments/integration.test.ts --bundle --platform=node --format=cjs --external:pg --external:@clerk/express --outfile=/tmp/pending-final-integration-test.cjs (syntax bundle only)",
+                "passed": true
+              },
+              {
+                "command": "Independent financial/security review exact9d6171 and79focused tests passed",
+                "passed": true
+              },
+              {
+                "command": "CI43921527781 job133489789262 all gates passed: native87/87, relatedconditional150/150, mounted pendingAdmission:true browser with0reposts, populated restore, encryptedrecovery andcleanup; tested062e915 tree189dd881 identical published936d1f97",
+                "passed": true
+              }
+            ],
+            "integratedCommit": "936d1f97bbb0b988dfaff7a97eb94a769d0b3db2",
+            "reviewed": true,
+            "reviewer": "pending_review"
+          }
+        },
+        {
+          "id": "payment-explicit-terminal-fresh-review-20261116",
+          "scenario": "Recover actor-owned pending payment, explicitly confirm no-effect closure, verify terminal afresh, clear only its locator, navigate to clean payment page and explicitly review newUUID with zero duplicate financial effects.",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "P03-01 correction/capture/payroll/filing recovery families and full original acceptance remain incomplete.",
+            "Synthetic mounted browser/nativeAPI acceptance does not establish real Clerk, statutory or production readiness."
+          ],
+          "nextAction": "Automatically claim P03-01 and verify/fix correction recovery after an ambiguous response: a later rejected or denied retry must retain the original locator and frozen identity until canonical history verifies its outcome. Reuse existing recoverCorrection/commit authority; model.mjs and existing native integration.test.ts are leased. Prove late original commit resolves once, no replacement write after timeout/denial, company/member isolation, and reload recovery. Preserve remaining capture/payroll/filing scope.",
+          "integratedCommit": "b55ba10f73b3b1d279de7de67340ce753c9a5f5b",
+          "acceptedAt": 1794857184786,
+          "evidence": {
+            "commit": "d0d7b9c548973ad05d2c220c031c95d032bf74db",
+            "integratedCommit": "b55ba10f73b3b1d279de7de67340ce753c9a5f5b",
+            "summary": "Bounded payment terminal resolution accepted: explicit selected confirmation, actor-owned immutable hashes, current serverauthorization, fresh terminal verification, clear only resolved locator, actual navigation and explicit freshUUID review without financial repost. Full P03-01 parent remains pending.",
+            "reviewed": true,
+            "reviewer": "terminal_review",
+            "tests": [
+              {
+                "command": "Independent exact d0d7b9c5 financial/security review;58model/API/locator and6UI tests passed on unchanged product; finalnative bundle passed",
+                "passed": true
+              },
+              {
+                "command": "Combined1061source/scheduler and fullbuild/typecheck on c04 unchanged product; exactpublished b55 CI43938464926 all gates success includingnative88/browser/populated and encryptedrestore/cleanup; testedf9ecf42 same52e72e63tree",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "correction-ambiguous-retry-20261116",
+          "scenario": "An invoice or bill correction with an ambiguous response retains its original locator and frozen request after a rejected retry or failed locator persistence; reload and authorized canonical history resolve the delayed original exactly once without a replacement correction.",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Correction discovery when the local locator is lost and remaining unsupported recovery scenarios need qualification.",
+            "Capture conversion, payroll and filing operation-family criteria remain; this bounded fix does not accept P03-01.",
+            "Live Clerk/customer environment qualification and all release gates remain separate."
+          ],
+          "nextAction": "Continue highest-eligible P03-01 with bounded capture conversion lost-response/reload and company/member isolation qualification using existing createIntakeDraft and source metadata. Reconcile original criteria and exact ownership before any intake UI/service edits; preserve existing atomic source-to-draft engine and broader payroll/filing scope.",
+          "integratedCommit": "8fbfdbdacc6161d5d12fbe26db634b4145243ec7",
+          "acceptedAt": 1794859016911,
+          "evidence": {
+            "commit": "d70f21f922e7a76169cdbdb0fe2e5b9271b25bb7",
+            "integratedCommit": "8fbfdbdacc6161d5d12fbe26db634b4145243ec7",
+            "summary": "Bounded correction ambiguous-retry recovery: rejected retry and locator persistence failure retain original immutable request; actual invoice/bill delayed native commits recover once after denied reads/reload, with actor/company isolation, immutable sources and canonical replay. Full P03-01 remains pending.",
+            "reviewed": true,
+            "reviewer": "root",
+            "tests": [
+              {
+                "command": "Independent exact-diff/same-tree review;55focused tests pass;both baseline negative controls fail as expected",
+                "passed": true
+              },
+              {
+                "command": "Exact local1063source/scheduler/UI/security checks,fullbuild/typecheck,pinned migrations passed",
+                "passed": true
+              },
+              {
+                "command": "CI43943273107 job133566111670 checkout2f605c54 samef7819bfc tree:allgates success;native90 incl2new cases,bothcorrection browsers,populated/encryptedrestore/current-source cleanup;full logs independently inspected",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "capture-lost-response-reload-20261117",
+          "scenario": "Recover a committed supplier bill or supplier credit draft after a lost save response through Retry, actual reload, company change and synthetic re-login using native source-to-draft recovery with exactly one draft/audit, unchanged source evidence, no posting journal and no browser-stored financial payload; removed members and foreign-company access denied.",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Qualify correction recovery without a saved browser locator and supported correction-family discovery.",
+            "Implement and qualify durable payroll and filing operation identities/outcomes within existing in-house engine scope.",
+            "Complete applicable full-page and real-Clerk/owner production qualification separately; synthetic session evidence is bounded."
+          ],
+          "nextAction": "Highest-eligible P03-01: inspect existing authorized canonical correction history, then implement/qualify a bounded missing-locator correction discovery journey without duplicate correction effects. Preserve broader payroll/filing scope and separate payment-history readiness UX follow-up.",
+          "integratedCommit": "77830812f93b7ddba1e7382ec69e0e963adbc7ac",
+          "acceptedAt": 1794925298084,
+          "evidence": {
+            "commit": "7f2b7f013f714e5360f0aff9fa5f959efa49bc07",
+            "integratedCommit": "77830812f93b7ddba1e7382ec69e0e963adbc7ac",
+            "reviewed": true,
+            "reviewer": "correction_implementation",
+            "summary": "Bounded capture slice independently qualified on exact current tree1526870. Both purchasebill/suppliercredit actual hook/review-component browser journeys recover same committed draft after interruptedresponse/retry/actualreload/company switch/syntheticrelogin; foreigncompany/memberremoved denied. Existing concurrent/rollback tests retain atomicity, one draft/audit, immutable source, no posting journal and no financial browserstorage. Full logs/review immutable at6ed1ef119535966d4a4d25ac022b728a44a8922f. Not fullproductpage/realClerk/wholeparent qualification.",
+            "tests": [
+              {
+                "command": "CI44100938004 native92/92 including both CAPTURE_RECOVERY_BROWSER_ACCEPTANCE markers and existing atomicity/permission/concurrency cases",
+                "passed": true
+              },
+              {
+                "command": "CI44100938004 all20steps successful unskipped including full browser/accounting/populated+encrypted restore and cleanup",
+                "passed": true
+              },
+              {
+                "command": "Independent final matchingcommit review correction_implementation, all source trees equal1526870",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "correction-missing-locator-discovery-20261117",
+          "scenario": "Posted invoice and bill: actor-owned correction discovery after the browser locator is lost, explicit selection and fresh canonical receipt verification after reload, zero posting requests or financial browser storage.",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Implement and qualify durable payroll and filing identities/outcomes with the actual in-house producers; current payroll references/fixtures do not establish an engine.",
+            "Reconcile any remaining ambiguous or uncommitted correction and other supported-family cases against both original criteria; discovery of committed history does not prove absence or failure.",
+            "Complete applicable full-page and real-Clerk/customer qualification separately; current mounted native-browser evidence uses synthetic authentication."
+          ],
+          "nextAction": "Reconcile remaining P03-01 payroll/filing producer readiness and ambiguous-operation gaps against current source. Select an actual native operation for atomic identity/outcome recovery, settle exact ownership and genuine dependencies first. If the producer is absent, record its concrete executable prerequisite and advance the highest eligible task/approved tax-payroll track; do not count fixtures as engines or repeat already accepted accounting work.",
+          "integratedCommit": "4c1062fafacb68f3cce67a17aeef02e07512c761",
+          "acceptedAt": 1794929489879,
+          "evidence": {
+            "commit": "336840852fffe4e17af35e0de752e0042e7c73eb",
+            "integratedCommit": "4c1062fafacb68f3cce67a17aeef02e07512c761",
+            "reviewer": "root",
+            "reviewed": true,
+            "summary": "Independently accepted bounded missing-locator invoice/bill correction discovery: explicit owned candidate selection, fresh bound receipt, native browser reload, zero POSTs and preserved financial history; exact-tree CI all20steps green.",
+            "tests": [
+              {
+                "command": "node tools/development/check.mjs",
+                "passed": true
+              },
+              {
+                "command": "PORT=8080 BASE_PATH=/ pinned pnpm run build (includes typecheck)",
+                "passed": true
+              },
+              {
+                "command": "node --test tools/development/migrations/registry.test.mjs",
+                "passed": true
+              },
+              {
+                "command": "GitHub development regression 44114197868 job 134147639157 exact tree 03fca674291415185a4c1b0cc1e0badbe574aadf; all20steps success, native96/96, conditional150/150, both correction discovery browser markers, populated+encrypted restore andcleanup",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "correction-durable-pending-terminal-20261117",
+          "scenario": "Invoice/bill correction durable precommit admission, pending discovery, protected no-effect closure, verified fresh review, actual process death and restored native outcomes.",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Payroll and filing operation recovery still requires actual native pay-run/submission producers and qualification; reference fixtures are not engines.",
+            "Reconcile remaining producer-specific ambiguous-operation scope and qualify real-auth full-page journeys in an isolated supported environment."
+          ],
+          "nextAction": "Reconcile remaining P03-01 producer readiness, concentrating on absent native payroll/filing producers and any genuinely unqualified operation. Preserve accepted payment, capture and correction scenarios; record concrete executable dependencies rather than repeat accepted accounting work. Then advance highest eligible task or approved tax/payroll track.",
+          "integratedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+          "acceptedAt": 1794935092284,
+          "evidence": {
+            "commit": "727437f5a832b50d09c497e25caef28fcdf1434e",
+            "integratedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+            "summary": "Invoice/bill correction durable precommit admission, pending discovery, protected no-effect closure, verified fresh review, actual process death and restored native outcomes.",
+            "tests": [
+              {
+                "command": "Exact GitHub CI44132106051 job134211692977 checkout02d9dda4/tree8e52e26: all20 steps success; full native/browser/restart/populated/encrypted restore and cleanup; independent review archive e46b37f",
+                "passed": true
+              }
+            ],
+            "reviewed": true,
+            "reviewer": "root"
+          }
+        }
+      ],
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P09-01",
+          "reason": "Remaining payroll-operation recovery needs native employer/employee/payroll identities. Current payroll services contain contracts/reference fixtures only; no native pay-run producer. Preserve all accepted accounting recovery outcomes."
+        },
+        {
+          "type": "task",
+          "id": "P04-04",
+          "reason": "Remaining filing-operation recovery needs immutable reviewed filing records/submission identity producer. No native filing submission service or route exists; current tax service is case-registry contracts only."
+        }
+      ]
+    },
+    "P03-02": {
+      "status": "running",
+      "priority": 302,
+      "discoveredDependencies": [],
+      "checkpoint": "Repair external pg module resolution in generated CommonJS via existing static import pattern; local compiled-bundle loading regression before newCI. Root independent review; author stop18:00UTC.",
+      "evidence": {
+        "commit": "307ee8c471cf6499ef02c9984d26d5eeabd5498d",
+        "summary": "Independently reviewed two-file test-target repair after actual CI failure; restricted application permissions unchanged. Full combined regression/build and API/native bundle checks passed; new exact runtime CI pending.",
+        "tests": [
+          {
+            "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+            "passed": true
+          },
+          {
+            "command": "esbuild native integration/restart/restore with exact worktree source guard",
+            "passed": true
+          },
+          {
+            "command": "git diff --check and exact2-file repair scope",
+            "passed": true
+          },
+          {
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node tools/development/check.mjs",
+            "passed": true
+          },
+          {
+            "command": "pnpm run build",
+            "passed": true
+          }
+        ]
+      },
+      "owner": "durable-intake-implementer",
+      "tokenSha256": "7d28ba4eddac830732841f9dfd852f5ed48512f18460ce041400c68b0e19994d",
+      "leaseUntil": 1794941528656,
+      "workStarted": true
+    },
+    "P03-04": {
+      "status": "pending",
+      "priority": 304,
+      "discoveredDependencies": [],
+      "checkpoint": "Reconcile remaining actual durable job/extraction producers and operational recovery ownership/target requirements. Keep qualified populated encrypted payment/capture/accounting recovery evidence; do not repeat this accepted scenario or invent offsite configuration.",
+      "evidence": {
+        "commit": "5ab77c0834d387e92331f8c632cb316464abcaf9",
+        "integratedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+        "summary": "Encrypted populated application backup restores pending/no-effect/recorded payment attempts in a fresh cluster, preserves bindings and read-only discovery, safely closes pending, fences exact delayed requests and deduplicates recorded replay.",
+        "tests": [
+          {
+            "command": "Exact GitHub CI44132106051 job134211692977 checkout02d9dda4/tree8e52e26: all20 steps success; full native/browser/restart/populated/encrypted restore and cleanup; independent review archive e46b37f",
+            "passed": true
+          }
+        ],
+        "reviewed": true,
+        "reviewer": "root"
+      },
+      "acceptedOutcomes": [
+        {
+          "id": "payment-attempt-encrypted-restore-20261117",
+          "scenario": "Encrypted populated application backup restores pending/no-effect/recorded payment attempts in a fresh cluster, preserves bindings and read-only discovery, safely closes pending, fences exact delayed requests and deduplicates recorded replay.",
+          "criteria": [
+            1
+          ],
+          "remaining": [
+            "Set measured operational RTO/RPO and backup/restore/key-custody/retention ownership from operating requirements; disposable timings are not production targets.",
+            "Qualify real durable extraction/job recovery when native persisted producers exist; representative durable_jobs fixtures are not an application engine.",
+            "Offsite destination/access provisioning remains under P03-80 owner gate."
+          ],
+          "nextAction": "Reconcile remaining actual durable job/extraction producers and operational recovery ownership/target requirements. Keep qualified populated encrypted payment/capture/accounting recovery evidence; do not repeat this accepted scenario or invent offsite configuration.",
+          "integratedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+          "acceptedAt": 1794935092612,
+          "evidence": {
+            "commit": "5ab77c0834d387e92331f8c632cb316464abcaf9",
+            "integratedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+            "summary": "Encrypted populated application backup restores pending/no-effect/recorded payment attempts in a fresh cluster, preserves bindings and read-only discovery, safely closes pending, fences exact delayed requests and deduplicates recorded replay.",
+            "tests": [
+              {
+                "command": "Exact GitHub CI44132106051 job134211692977 checkout02d9dda4/tree8e52e26: all20 steps success; full native/browser/restart/populated/encrypted restore and cleanup; independent review archive e46b37f",
+                "passed": true
+              }
+            ],
+            "reviewed": true,
+            "reviewer": "root"
+          }
+        }
+      ]
+    }
+  },
+  "appendedEvents": [
+    {
+      "at": 1794930680707,
+      "actor": "correction-admission-implementer",
+      "type": "claim",
+      "taskId": "P03-01",
+      "tokenSha256": "398370261184300cfad54b76966c3233a749fe6f9824780fdd37345c8b631135"
+    },
+    {
+      "at": 1794930681057,
+      "actor": "correction-admission-implementer",
+      "type": "checkpoint",
+      "taskId": "P03-01",
+      "checkpoint": "Durable correction admission, actor/document-scoped pending recovery/discovery, explicit canonical-checked no-effect closure and fresh-review progression. New additive schema only; preserve prior migrations and financial posting engine. Root independent reviewer; full exact-source native/browser/restore CI required."
+    },
+    {
+      "at": 1794931925243,
+      "actor": "correction-admission-implementer",
+      "type": "renew",
+      "taskId": "P03-01"
+    },
+    {
+      "at": 1794931958416,
+      "actor": "correction-admission-implementer",
+      "type": "submit",
+      "taskId": "P03-01",
+      "evidence": {
+        "commit": "727437f5a832b50d09c497e25caef28fcdf1434e",
+        "summary": "Durable correction admission and explicit no-effect recovery; independently reviewed; exact CI pending.",
+        "tests": [
+          {
+            "command": "node tools/development/check.mjs",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "command": "PORT=8080 BASE_PATH=/ pnpm@10.26.1 run build",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "command": "node --test artifacts/ledgerly/src/features/documentCorrections/model.test.mjs artifacts/ledgerly/src/api/accountingDocuments.test.mjs tools/development/migrations/registry.test.mjs",
+            "passed": true,
+            "count": 81
+          },
+          {
+            "command": "esbuild DocumentCorrections.test.jsx with native alias; node --test render.cjs",
+            "passed": true,
+            "count": 7
+          },
+          {
+            "command": "native and exact inline browser entry compilation",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1794933196495,
+      "actor": "encrypted-attempt-recovery-implementer",
+      "type": "claim",
+      "taskId": "P03-04",
+      "tokenSha256": "fdcb0007b4974c31495a79e4a020779777ad8abeab456ddf86f6f02a1c2e7534"
+    },
+    {
+      "at": 1794933261660,
+      "actor": "encrypted-attempt-recovery-implementer",
+      "type": "checkpoint",
+      "taskId": "P03-04",
+      "checkpoint": "Native payment pending/terminal/posted recovery through encrypted fresh-cluster restore; isolated codex/encrypted-attempt-recovery-20261117 at a055f02; root independent review; no source upload while gate pending."
+    },
+    {
+      "at": 1794933883898,
+      "actor": "encrypted-attempt-recovery-implementer",
+      "type": "block",
+      "taskId": "P03-04",
+      "checkpoint": "Stopped clean reviewed author 5ab77c0834d387e92331f8c632cb316464abcaf9 tree 434f8e08e968d1105a25545b2f1c906df7f34bc5; local combined integration 5bbcf5c7fc4b61fb84d00508f9cd09f0724f35b8 tree 8e52e26b81cf14adf17a0d83cc81bd73251ae58a, exact unchanged author delta. Focused14, combined regression and full build/typecheck passed. Native encrypted fresh-cluster runtime unqualified: automatic approval review requires explicit public source-upload authorization. Resume existing candidate, no replacement implementation. Independent root review/checkpoint at docs/development/candidates/encrypted-attempt-recovery-20261117/completed-local.json once archived.",
+      "blockers": [
+        {
+          "type": "decision",
+          "reason": "Automatic approval review rejected source/test uploads to public Future00111/ledgerpoint; explicit owner source-publication authorization is needed for existing exact-source CI. Local implementation and independent review complete; no database runtime or parent acceptance claimed."
+        }
+      ]
+    },
+    {
+      "at": 1794934650815,
+      "actor": "root",
+      "type": "resolve",
+      "taskId": "P03-04",
+      "reason": "Owner explicitly authorized this and future reviewed source, tests and sanitized review artifact uploads to public Future00111/ledgerpoint in current conversation; exclusions preserved. Reuse stopped reviewed candidate5ab77c0; no reimplementation.",
+      "resolvedBlockers": [
+        {
+          "type": "decision",
+          "reason": "Automatic approval review rejected source/test uploads to public Future00111/ledgerpoint; explicit owner source-publication authorization is needed for existing exact-source CI. Local implementation and independent review complete; no database runtime or parent acceptance claimed."
+        }
+      ]
+    },
+    {
+      "at": 1794934651297,
+      "actor": "encrypted-attempt-recovery-implementer",
+      "type": "claim",
+      "taskId": "P03-04",
+      "tokenSha256": "98deb80881ee08aa8d1099e0c720a245bb5a861e6348ed338362da4f18a49b60"
+    },
+    {
+      "at": 1794934651748,
+      "actor": "encrypted-attempt-recovery-implementer",
+      "type": "submit",
+      "taskId": "P03-04",
+      "evidence": {
+        "commit": "5ab77c0834d387e92331f8c632cb316464abcaf9",
+        "integratedCommit": "5bbcf5c7fc4b61fb84d00508f9cd09f0724f35b8",
+        "summary": "Recovered stopped independently reviewed backup recovery candidate; explicit source authorization now resolves publication blocker. Exact combined local regression/build/focused14 passed; GitHub runtime pending.",
+        "tests": [
+          {
+            "command": "node --test tools/operations/backup-restore/*.test.mjs",
+            "passed": true,
+            "count": 14,
+            "exitCode": 0
+          },
+          {
+            "command": "node tools/development/check.mjs",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "command": "PORT=8080 BASE_PATH=/ pnpm@10.26.1 run build",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "command": "exact native runtime bundle compile and current-worktree source guard",
+            "passed": true
+          },
+          {
+            "command": "integrated author delta byte equality and unchanged payment engine/pinned original operation migration",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1794935092284,
+      "actor": "root",
+      "type": "accept-outcome",
+      "taskId": "P03-01",
+      "outcome": {
+        "id": "correction-durable-pending-terminal-20261117",
+        "scenario": "Invoice/bill correction durable precommit admission, pending discovery, protected no-effect closure, verified fresh review, actual process death and restored native outcomes.",
+        "criteria": [
+          0,
+          1
+        ],
+        "remaining": [
+          "Payroll and filing operation recovery still requires actual native pay-run/submission producers and qualification; reference fixtures are not engines.",
+          "Reconcile remaining producer-specific ambiguous-operation scope and qualify real-auth full-page journeys in an isolated supported environment."
+        ],
+        "nextAction": "Reconcile remaining P03-01 producer readiness, concentrating on absent native payroll/filing producers and any genuinely unqualified operation. Preserve accepted payment, capture and correction scenarios; record concrete executable dependencies rather than repeat accepted accounting work. Then advance highest eligible task or approved tax/payroll track.",
+        "integratedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b"
+      },
+      "workersStopped": true,
+      "evidence": {
+        "commit": "727437f5a832b50d09c497e25caef28fcdf1434e",
+        "integratedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+        "summary": "Invoice/bill correction durable precommit admission, pending discovery, protected no-effect closure, verified fresh review, actual process death and restored native outcomes.",
+        "tests": [
+          {
+            "command": "Exact GitHub CI44132106051 job134211692977 checkout02d9dda4/tree8e52e26: all20 steps success; full native/browser/restart/populated/encrypted restore and cleanup; independent review archive e46b37f",
+            "passed": true
+          }
+        ],
+        "reviewed": true,
+        "reviewer": "root"
+      }
+    },
+    {
+      "at": 1794935092612,
+      "actor": "root",
+      "type": "accept-outcome",
+      "taskId": "P03-04",
+      "outcome": {
+        "id": "payment-attempt-encrypted-restore-20261117",
+        "scenario": "Encrypted populated application backup restores pending/no-effect/recorded payment attempts in a fresh cluster, preserves bindings and read-only discovery, safely closes pending, fences exact delayed requests and deduplicates recorded replay.",
+        "criteria": [
+          1
+        ],
+        "remaining": [
+          "Set measured operational RTO/RPO and backup/restore/key-custody/retention ownership from operating requirements; disposable timings are not production targets.",
+          "Qualify real durable extraction/job recovery when native persisted producers exist; representative durable_jobs fixtures are not an application engine.",
+          "Offsite destination/access provisioning remains under P03-80 owner gate."
+        ],
+        "nextAction": "Reconcile remaining actual durable job/extraction producers and operational recovery ownership/target requirements. Keep qualified populated encrypted payment/capture/accounting recovery evidence; do not repeat this accepted scenario or invent offsite configuration.",
+        "integratedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b"
+      },
+      "workersStopped": true,
+      "evidence": {
+        "commit": "5ab77c0834d387e92331f8c632cb316464abcaf9",
+        "integratedCommit": "b176e696124e4a16354ba503aa55afd0c3bae96b",
+        "summary": "Encrypted populated application backup restores pending/no-effect/recorded payment attempts in a fresh cluster, preserves bindings and read-only discovery, safely closes pending, fences exact delayed requests and deduplicates recorded replay.",
+        "tests": [
+          {
+            "command": "Exact GitHub CI44132106051 job134211692977 checkout02d9dda4/tree8e52e26: all20 steps success; full native/browser/restart/populated/encrypted restore and cleanup; independent review archive e46b37f",
+            "passed": true
+          }
+        ],
+        "reviewed": true,
+        "reviewer": "root"
+      }
+    },
+    {
+      "at": 1794935757304,
+      "actor": "root-producer-readiness",
+      "type": "claim",
+      "taskId": "P03-01",
+      "tokenSha256": "c16b5c91907ce6b0285dff0beb74732965411a7ba90b18513947ac9f8fbb3469"
+    },
+    {
+      "at": 1794935757675,
+      "actor": "root-producer-readiness",
+      "type": "block",
+      "taskId": "P03-01",
+      "checkpoint": "At b176e696, native route/service inventory confirms no payroll or filing producer. P09-01 and P04-04 are genuine noncyclic immediate prerequisites. Do not add reverse dependency on P09-07, which already depends on P03-01; resolve shared recovery boundary before finalisation implementation. Accepted payment/capture/correction outcomes preserved; next highest ready task P03-02 durable native job queue.",
+      "blockers": [
+        {
+          "type": "task",
+          "id": "P09-01",
+          "reason": "Remaining payroll-operation recovery needs native employer/employee/payroll identities. Current payroll services contain contracts/reference fixtures only; no native pay-run producer. Preserve all accepted accounting recovery outcomes."
+        },
+        {
+          "type": "task",
+          "id": "P04-04",
+          "reason": "Remaining filing-operation recovery needs immutable reviewed filing records/submission identity producer. No native filing submission service or route exists; current tax service is case-registry contracts only."
+        }
+      ]
+    },
+    {
+      "at": 1794935757994,
+      "actor": "durable-intake-implementer",
+      "type": "claim",
+      "taskId": "P03-02",
+      "tokenSha256": "57dfef8fadbc1b7faebdc270410ef091a9fcb9870f6feab14aa18e1f6c61bcfe"
+    },
+    {
+      "at": 1794935845419,
+      "actor": "durable-intake-implementer",
+      "type": "checkpoint",
+      "taskId": "P03-02",
+      "checkpoint": "Isolated codex/durable-intake-queue-20261117 at b176e696: native durable queued/cancelled intake identity, immutable lifecycle/outbox and scoped recovery; no external dispatch. Root independent review, author stop17:37UTC, exact disposable CI required."
+    },
+    {
+      "at": 1794936435820,
+      "actor": "durable-intake-implementer",
+      "type": "checkpoint",
+      "taskId": "P03-02",
+      "checkpoint": "Native queued/cancelled identity/event/outbox, route and schema/registry implementation in progress. Root independent review tightened malformed terminal-history and structural schema gates. Bounded author stop extended to17:45UTC for actual subprocess restart/populated restore and negative controls. No external dispatch, provider connection or parent acceptance."
+    },
+    {
+      "at": 1794937048672,
+      "actor": "durable-intake-implementer",
+      "type": "renew",
+      "taskId": "P03-02"
+    },
+    {
+      "at": 1794937049053,
+      "actor": "durable-intake-implementer",
+      "type": "submit",
+      "taskId": "P03-02",
+      "evidence": {
+        "commit": "27a890e6176cb5204cf02e8566caeb6f66e4d489",
+        "summary": "Native queued/cancelled intake persistence independently reviewed; focused68, registry34, API typecheck, exact native compilation, combined regression and full build passed. Author stopped clean. Exact PostgreSQL/HTTP/restart/restore CI pending.",
+        "tests": [
+          {
+            "command": "Focused esbuild + node --test intake, intake service, extraction contract, worker, durable reconstruction",
+            "passed": true
+          },
+          {
+            "command": "node --test tools/development/migrations/registry.test.mjs",
+            "passed": true
+          },
+          {
+            "command": "pnpm@10.26.1 exec tsc --build lib/db lib/api-zod; pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+            "passed": true
+          },
+          {
+            "command": "esbuild native integration.test.ts, restartWorker.ts, restore.test.ts with current-worktree source boundary verification",
+            "passed": true
+          },
+          {
+            "command": "node --check modified mjs; git diff --check; exact file lease and 24 historical migration SQL/pin comparison",
+            "passed": true
+          },
+          {
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node tools/development/check.mjs",
+            "passed": true
+          },
+          {
+            "command": "pnpm run build",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1794937347427,
+      "actor": "root",
+      "type": "reject",
+      "taskId": "P03-02",
+      "reason": "Exact CI44139504401 failed before native tests: restricted ledgerly_api cannot examine unix_socket_directories (42501); bootstrap target check belongs on separate guarded admin connection, never broaden runtime grants. Before-hook failure also exposed cleanup assertion baseline undefined."
+    },
+    {
+      "at": 1794937347802,
+      "actor": "root",
+      "type": "recover",
+      "taskId": "P03-02",
+      "checkpoint": "Author27a890e clean/stopped; publisheddc6467a immutable retained. Repair testTarget guard using independent verified admin probe, restricted native runtime identity unchanged; no database permission elevation. Existing scenario unaccepted."
+    },
+    {
+      "at": 1794937348066,
+      "actor": "durable-intake-implementer",
+      "type": "claim",
+      "taskId": "P03-02",
+      "tokenSha256": "a3cd833d258f17e4a03116f9078fa60da32b5945c8909730f24720733539cad4"
+    },
+    {
+      "at": 1794937348537,
+      "actor": "durable-intake-implementer",
+      "type": "checkpoint",
+      "taskId": "P03-02",
+      "checkpoint": "Repair only actual CI target-check harness failure on publisheddc6467a; preserve restricted runtime role and exact socket guard via explicit bootstrap probe. Clean stop17:50UTC; root independent review and repeat exact-source CI required."
+    },
+    {
+      "at": 1794937632359,
+      "actor": "durable-intake-implementer",
+      "type": "submit",
+      "taskId": "P03-02",
+      "evidence": {
+        "commit": "307ee8c471cf6499ef02c9984d26d5eeabd5498d",
+        "summary": "Independently reviewed two-file test-target repair after actual CI failure; restricted application permissions unchanged. Full combined regression/build and API/native bundle checks passed; new exact runtime CI pending.",
+        "tests": [
+          {
+            "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+            "passed": true
+          },
+          {
+            "command": "esbuild native integration/restart/restore with exact worktree source guard",
+            "passed": true
+          },
+          {
+            "command": "git diff --check and exact2-file repair scope",
+            "passed": true
+          },
+          {
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node tools/development/check.mjs",
+            "passed": true
+          },
+          {
+            "command": "pnpm run build",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1794937927963,
+      "actor": "root",
+      "type": "reject",
+      "taskId": "P03-02",
+      "reason": "CI44141164259 fails before native tests: external dynamic import pg in generated CommonJS ignores NODE_PATH and throws ERR_MODULE_NOT_FOUND. Use existing static pg import compiled require; verify compiled module loading locally."
+    },
+    {
+      "at": 1794937928295,
+      "actor": "root",
+      "type": "recover",
+      "taskId": "P03-02",
+      "checkpoint": "Stopped clean307ee8c, publishedb7115f9 retained. Targeted testTarget import compatibility repair only; unchanged application code/permissions. Add real compiled-bundle dependency loading smoke, no PostgreSQL runtime claim."
+    },
+    {
+      "at": 1794937928656,
+      "actor": "durable-intake-implementer",
+      "type": "claim",
+      "taskId": "P03-02",
+      "tokenSha256": "7d28ba4eddac830732841f9dfd852f5ed48512f18460ce041400c68b0e19994d"
+    },
+    {
+      "at": 1794937929036,
+      "actor": "durable-intake-implementer",
+      "type": "checkpoint",
+      "taskId": "P03-02",
+      "checkpoint": "Repair external pg module resolution in generated CommonJS via existing static import pattern; local compiled-bundle loading regression before newCI. Root independent review; author stop18:00UTC."
+    }
+  ],
+  "resultSha256": "df61abf6f11425bd64d8454cefcf88d03180aa68d9c170adfebe482cd2658a55"
+}
