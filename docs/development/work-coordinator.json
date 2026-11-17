@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 489,
+  "revision": 490,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "dc6467a9712582a22cfeb26a389b0a281c017e87",
@@ -21,24 +21,24 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "acc6decfce4b274bc6715acb62a896db662f0c89",
+    "sha": "633ac88efd9e27042c817fcafe53847f6baae71b",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "acc6decfce4b274bc6715acb62a896db662f0c89",
-        "path": "docs/development/candidates/durable-intake-20261117/review/review-queue-delta.json"
+        "sha": "633ac88efd9e27042c817fcafe53847f6baae71b",
+        "path": "docs/development/candidates/durable-intake-20261117/repair/queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "acc6decfce4b274bc6715acb62a896db662f0c89",
-        "path": "docs/development/candidates/durable-intake-20261117/publication-receipt.json"
+        "sha": "633ac88efd9e27042c817fcafe53847f6baae71b",
+        "path": "docs/development/candidates/durable-intake-20261117/repair/ci-first-failure.log"
       }
     ],
     "runId": "durable-intake-1794935665134",
-    "at": 1794937262136,
+    "at": 1794937391177,
     "codeHead": "dc6467a9712582a22cfeb26a389b0a281c017e87"
   },
-  "updatedAt": 1794937262136,
+  "updatedAt": 1794937391177,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -130,13 +130,12 @@
     {
       "actor": "durable-intake-implementer",
       "task": "P03-02",
-      "status": "review",
-      "stopped": true,
-      "branch": "codex/durable-intake-queue-20261117",
-      "authorCommit": "27a890e6176cb5204cf02e8566caeb6f66e4d489"
+      "status": "running",
+      "stopped": false,
+      "branch": "codex/durable-intake-queue-20261117"
     }
   ],
-  "workersStopped": true,
+  "workersStopped": false,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -176,11 +175,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "acc6decfce4b274bc6715acb62a896db662f0c89",
-    "path": "docs/development/candidates/durable-intake-20261117/review/review-queue-delta.json",
-    "bytesSha256": "d04b680320bcf37cb92d6e1c9f8c75649b3ed0e063f181b0008656891d7dd044",
-    "queueSha256": "017310b444ec2a731caf8035ec59707833453b98aa4df79b76dd60d888d6c8a4",
-    "revision": 890,
+    "sha": "633ac88efd9e27042c817fcafe53847f6baae71b",
+    "path": "docs/development/candidates/durable-intake-20261117/repair/queue-delta.json",
+    "bytesSha256": "385ed8f7a6c0051c53268631dc7b3f63908054ad34bec46aa5c2fd94e55d7537",
+    "queueSha256": "c8d65fbe1053e82d7d048b4723441974ea0c1f4c344c1475c7209a319c3a27ad",
+    "revision": 894,
     "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
   },
   "historyReference": {
@@ -210,7 +209,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 871,
-    "currentRevision": 890,
+    "currentRevision": 894,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -314,7 +313,7 @@
   },
   "durableIntakeRun": {
     "startedAt": "2026-11-17T17:14:25.140Z",
-    "activity": "Reviewed durable intake candidate published to existing draft PR29; exact CI44139504401 running. Local combined/build/focused checks passed; no runtime acceptance yet.",
+    "activity": "CI44139504401 failed before native queue tests because runtime cannot read privileged server setting. Stopped author recovered under actual failure reason and fresh same-task claim; targeted harness repair must retain runtime restrictions. Stop17:50UTC.",
     "authorStopTarget": "2026-11-17T17:45:00Z",
     "authorCommit": "27a890e6176cb5204cf02e8566caeb6f66e4d489",
     "tree": "a1b69964c61ef12fecea0d6ed567911db10225e6",
@@ -328,6 +327,7 @@
       "url": "https://github.com/Future00111/ledgerpoint/actions/runs/44139504401",
       "status": "in_progress"
     },
-    "observedAt": "2026-11-17T17:40:35.125Z"
+    "observedAt": "2026-11-17T17:40:35.125Z",
+    "failedRun": 44139504401
   }
 }
