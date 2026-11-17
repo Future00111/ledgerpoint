@@ -1,0 +1,140 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
+index 4cd1e3d..835633f 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/integration.test.ts
+@@ -2370,3 +2370,135 @@ for(const kind of ['sales_invoice','purchase_bill']) test(`${kind}: rejected cor
+   assert.deepEqual(await counts(),knownCounts);reloaded.dispose();
+  } finally {release();pausePosting=undefined;await posting;controller.dispose();}
+ });
++
++for(const kind of ['purchase_bill','supplier_credit_note']) test(`isolated Chromium: ${kind} capture recovers a lost save response across reload and scope changes`,async()=>{
++ const fs=await import('node:fs'),os=await import('node:os'),cp=await import('node:child_process');
++ const {createRequire}=await import('node:module');
++ const f=await fixture(),other=await fixture(),upload=captureUpload(),s=await captured(f,upload);
++ let envelope:any=captureEnvelope(f);
++ if(kind==='supplier_credit_note') {
++  const bill=await create(f,'purchase_bill',source(f.supplier));await post(f,bill);
++  envelope={kind,purchase_vat_eligible:true,
++   source:{...bill.source,invoice_number:'CAPTURE-RECOVERY-'+randomUUID(),line_items:bill.source.line_items.map((l:any)=>({...l,quantity:'0.5'}))},
++   original_id:bill.id,original_line_refs:[0],reason:'Returned half of the original supply',
++   adjustment_method:'offset_outstanding',effective_adjustment_date:bill.source.issue_date};
++ }
++ const count=async(table:string)=>Number((await admin.query(`SELECT count(*) n FROM ${table} WHERE company_id=$1`,[f.company])).rows[0].n);
++ const before={documents:await count('accounting_document_sources'),journals:await count('canonical_journal_entries')};
++ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'capture-recovery-browser-'));
++ const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
++ const app=express();app.use(express.json({limit:'10mb',verify:verifyDraftBody}));app.use(draftParserErrors);
++ let browser:ReturnType<typeof cp.spawn>|undefined,posts=0,reviews=0,pageLoads=0,signedIn=true,dropped=false,documentId:string|undefined,submittedIntent:any;
++ let acceptanceTimer:ReturnType<typeof setTimeout>|undefined;
++ let stage='browser startup',report:(value:any)=>void=()=>{};
++ app.post('/acceptance',(req,res)=>{res.json({ok:true});report(req.body);});
++ app.post('/progress',(req,res)=>{stage=String(req.body?.stage??'unknown');res.json({ok:true});});
++ app.get('/scenario',(_req,res)=>res.json({reloaded:pageLoads>1}));
++ app.post('/session/:action',async(req,res)=>{
++  if(req.params.action==='logout')signedIn=false;
++  else if(req.params.action==='login')signedIn=true;
++  else if(['revoke','restore'].includes(req.params.action))await admin.query('UPDATE company_users SET is_active=$3 WHERE company_id=$1 AND user_id=$2',[f.company,actor,req.params.action==='restore']);
++  else {res.status(400).end();return;}
++  res.json({ok:true});
++ });
++ // Only this loopback fixture supplies a synthetic identity. Native company/member
++ // authorization still runs, and the committed response is lost at the transport.
++ app.use('/api/companies/:companyId/document-intake',(req,res,next)=>{
++  if(signedIn)req.headers['x-test-actor']=actor;
++  if(req.method==='POST'&&req.path.endsWith('/review'))reviews++;
++  if(req.method==='POST'&&req.path.endsWith('/draft')) {
++   posts++;submittedIntent=structuredClone(req.body);const json=res.json.bind(res);
++   res.json=((body:any)=>{
++    if(!dropped&&res.statusCode===201) {dropped=true;documentId=body.data.document.id;res.destroy();return res;}
++    return json(body);
++   }) as typeof res.json;
++  }
++  next();
++ },createDocumentIntakeRouter(auth));
++ const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));
++ try {
++  fs.writeFileSync(entry,`import React from 'react';
++import {createRoot} from 'react-dom/client';
++import {MemoryRouter} from 'react-router-dom';
++import {useCaptureDraft} from '@/features/documentIntake/useDocumentIntake.jsx';
++import {CaptureSourceReview,CaptureDraftActions} from '@/features/documentIntake/CaptureReview.jsx';
++import {sourceOpenPath} from '@/features/documentIntake/presentation.mjs';
++const originalCompany=${JSON.stringify(f.company)},foreignCompany=${JSON.stringify(other.company)},sourceId=${JSON.stringify(s.id)},envelope=${JSON.stringify(envelope)};
++let companyId=originalCompany,scope=0,mount=0,capture,stage='mount';
++const report=(passed,error=null)=>fetch('/acceptance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({passed,error,stage,documentId:capture?.source?.document_id})});
++const progress=async value=>{stage=value;await fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage})});};
++window.addEventListener('unhandledrejection',event=>{report(false,String(event.reason?.message??event.reason));});
++function App(){capture=useCaptureDraft({companyId,sourceId,kind:envelope.kind,envelope,scope});return <MemoryRouter><form onSubmit={event=>{event.preventDefault();const action=event.nativeEvent.submitter?.value;if(action==='review')void capture.reviewEnvelope(envelope);if(action==='save')void capture.saveDraft(envelope);}}><CaptureSourceReview capture={capture} companyId={companyId}/><CaptureDraftActions capture={capture} canEdit={true}/></form></MemoryRouter>}
++const root=createRoot(document.getElementById('root'));const render=()=>root.render(<App key={mount}/>);render();
++const assert=(value,message)=>{if(!value)throw Error(message)};
++const wait=()=>new Promise(resolve=>setTimeout(resolve,40));
++const until=async(predicate,message)=>{for(let i=0;i<150;i++){if(predicate())return;await wait();}throw Error(message);};
++const button=text=>[...document.querySelectorAll('button')].find(item=>item.textContent===text);
++const linked=()=>[...document.querySelectorAll('a')].find(item=>item.textContent==='Open the existing document');
++const assertLinked=()=>{assert(capture.source?.document_id&&linked()?.getAttribute('href')===sourceOpenPath(capture.source),'canonical existing document link missing');assert(!button('Save linked draft')&&!button('Review details & totals'),'linked source offers a replacement draft');};
++const assertDenied=()=>{assert(!capture.source&&!linked()&&!document.querySelector('[aria-label="Review source before saving"]'),'denied scope retained source or write controls');};
++const changeScope=async(company,status)=>{companyId=company;scope++;render();await until(()=>!capture.loading&&capture.error?.status===status,'scope denial missing '+status);assertDenied();};
++const session=async action=>{const response=await fetch('/session/'+action,{method:'POST'});assert(response.ok,'synthetic session transition failed');};
++(async()=>{
++ const scenario=await fetch('/scenario').then(response=>response.json());
++ await until(()=>capture&&!capture.loading,'initial source lookup stalled');
++ if(scenario.reloaded) {
++  await progress('actual reload recovered persisted source link');assertLinked();
++  assert(new URLSearchParams(location.search).get('capture')===sourceId,'source locator lost on reload');
++  assert(localStorage.length===0&&sessionStorage.length===0,'capture persisted browser state');
++  await session('logout');mount++;render();await until(()=>!capture.loading&&capture.error?.status===401,'signed-out mount accepted');assertDenied();
++  await session('login');mount++;render();await until(()=>Boolean(capture.source?.document_id),'re-login did not recover draft');assertLinked();
++  await session('revoke');capture.refresh();await until(()=>!capture.loading&&capture.error?.status===404,'removed member read accepted');assertDenied();
++  await session('restore');capture.refresh();await until(()=>Boolean(capture.source?.document_id),'restored membership did not recover draft');assertLinked();
++  assert(localStorage.length===0&&sessionStorage.length===0,'session recovery persisted browser state');
++  await progress('reload login membership and isolation verified');await report(true);return;
++ }
++ await progress('explicit source review and acknowledgements');
++ assert(capture.source?.id===sourceId&&capture.canManage,'unlinked source unavailable');
++ assert(!button('Save linked draft'),'draft save available before review');button('Review details & totals').click();
++ await until(()=>Boolean(capture.currentReview),'native review missing');assert(button('Save linked draft').disabled,'save enabled without acknowledgements');
++ const checks=[...document.querySelectorAll('input[type="checkbox"]')];assert(checks.length===3,'review acknowledgements missing');
++ for(let index=0;index<checks.length;index++){checks[index].click();await wait();if(index<2)assert(button('Save linked draft').disabled,'partial acknowledgement unlocked save');}
++ assert(!button('Save linked draft').disabled,'fully reviewed save disabled');button('Save linked draft').click();
++ await until(()=>Boolean(capture.error)&&!capture.busy,'lost response not exposed');
++ assert(!linked(),'lost response was treated as verified success');assert(button('Retry'),'read-only source retry unavailable');
++ await progress('lost response; refresh persisted source');button('Retry').click();
++ await until(()=>Boolean(capture.source?.document_id),'refresh did not discover committed draft');assertLinked();
++ await changeScope(foreignCompany,404);
++ companyId=originalCompany;scope++;render();await until(()=>Boolean(capture.source?.document_id),'return to original company lost draft');assertLinked();
++ assert(localStorage.length===0&&sessionStorage.length===0,'financial state entered browser storage');
++ await progress('company isolation verified; actual reload next');location.reload();
++})().catch(error=>report(false,error.message));`);
++  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
++  app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
++  app.get('/capture',(_req,res)=>{pageLoads++;res.type('html').send('<!doctype html><html><body><div id="root"></div><script src="/bundle.js"></script></body></html>');});
++  const acceptance=new Promise<any>((resolve,reject)=>{
++   acceptanceTimer=setTimeout(()=>reject(Error('Bounded capture browser timeout at '+stage)),45000);
++   report=value=>{clearTimeout(acceptanceTimer);resolve(value);};
++  });
++  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'http://127.0.0.1:'+(listener.address() as any).port+'/capture?capture='+s.id],{stdio:['ignore','pipe','pipe']});
++  let stderr='';browser.stderr!.on('data',chunk=>stderr=(stderr+chunk).slice(-4000));browser.stdout!.resume();
++  const failed=new Promise<never>((_resolve,reject)=>{browser!.once('error',reject);browser!.once('exit',code=>reject(Error('Browser exited before capture acceptance ('+code+'): '+stderr)));});
++  const result=await Promise.race([acceptance,failed]);
++  assert.equal(result?.passed,true,JSON.stringify(result));assert.equal(result.stage,'reload login membership and isolation verified');
++  assert.equal(dropped,true);assert.equal(posts,1,'recovery must never replay create');assert.equal(reviews,1);assert.equal(pageLoads,2,'actual page reload required');
++  assert.equal(result.documentId,documentId);assert.equal(await count('accounting_document_sources'),before.documents+1);assert.equal(await count('canonical_journal_entries'),before.journals,'capture must not post');
++  const persisted=(await request(f.company,`/document-intake/${s.id}`)).data.source;
++  assert.equal(persisted.document_id,documentId);assert.equal(persisted.document_kind,kind);
++  const document=(await request(f.company,`/accounting-documents/${documentId}`)).data;
++  assert.equal(document.status,'draft');assert.equal(document.money.gross_pence,kind==='purchase_bill'?'12000':'6000');
++  const replay=await request(f.company,`/document-intake/${s.id}/draft`,'POST',submittedIntent,s.revision);
++  assert.equal(replay.status,200);assert.equal(replay.data.duplicate,true);assert.equal(replay.data.document.id,documentId);
++  assert.equal(await count('accounting_document_sources'),before.documents+1);assert.equal(await count('canonical_journal_entries'),before.journals);
++  assert.equal((await admin.query("SELECT count(*)::int n FROM document_intake_audit WHERE source_id=$1 AND action='draft_created'",[s.id])).rows[0].n,1);
++  const evidence=(await admin.query('SELECT filename,content FROM document_intake_sources WHERE id=$1',[s.id])).rows[0];
++  assert.equal(evidence.filename,upload.filename);assert.deepEqual(evidence.content,Buffer.from(upload.content_base64,'base64'));
++  console.log('CAPTURE_RECOVERY_BROWSER_ACCEPTANCE',JSON.stringify({kind,actualComponents:true,nativeApi:true,lostCommittedResponse:true,actualReload:true,companyIsolation:true,removedMemberDenied:true,syntheticRelogin:true,realClerk:false,draftPosts:posts,browserStorageEmpty:true}));
++ } finally {
++  clearTimeout(acceptanceTimer);report=()=>{};
++  if(browser?.pid&&browser.exitCode===null&&browser.signalCode===null)await new Promise<void>(resolve=>{
++   const timer=setTimeout(()=>browser?.kill('SIGKILL'),5000);browser!.once('exit',()=>{clearTimeout(timer);resolve();});browser!.kill('SIGTERM');
++  });
++  listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});
++ }
++});

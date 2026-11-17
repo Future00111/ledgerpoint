@@ -1,0 +1,18 @@
+✔ list/detail scope and content URLs encode company/source/document identifiers and include credentials (1.481234ms)
+✔ upload retry retains exact payload and returns duplicate source metadata (1.083015ms)
+✔ review and draft preserve native decimal strings, opaque fingerprint, confirmations and quoted capture revision (0.888543ms)
+✔ source download is authenticated binary, bounded, and failures preserve safe API errors (1.895969ms)
+✔ malformed success cannot authorize writes (0.356148ms)
+✔ capture accepts bounded PDFs/JPEGs/PNGs, rejects empty/oversize/unsupported and caps queue at ten (1.686383ms)
+✔ bounded FileReader preserves source bytes as base64 and never reads invalid files (2.788087ms)
+✔ duplicates open their existing capture or correct native bill/credit without creating another editor (0.517453ms)
+✔ save requires exact reviewed envelope, scope and three explicit acknowledgements (0.913269ms)
+✔ company and route changes, newer requests and unmount invalidate stale requests (0.415182ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 206.121968

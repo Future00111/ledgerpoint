@@ -1,0 +1,30 @@
+{
+  "actor": "capture-implementer",
+  "commit": "03532f5d435c50cc2cbd2fabc4823fdc67cec3a3",
+  "tree": "4d44020c1ef1ad346c29937286a9a0b387710b55",
+  "base": "8fbfdbdacc6161d5d12fbe26db634b4145243ec7",
+  "files": [
+    "artifacts/api-server/src/services/accountingDocuments/integration.test.ts"
+  ],
+  "workersStopped": true,
+  "cleanWorktree": true,
+  "checks": [
+    {
+      "command": "node --test artifacts/ledgerly/src/features/documentIntake/model.test.mjs artifacts/ledgerly/src/api/documentIntake.test.mjs",
+      "passed": true,
+      "count": 10,
+      "log": "author-focused.log"
+    },
+    {
+      "command": "corepack pnpm@10.26.1 --filter @workspace/api-server typecheck",
+      "passed": true,
+      "log": "author-typecheck.log"
+    },
+    {
+      "command": "esbuild native integration entry and extracted mounted capture browser entry",
+      "passed": true
+    }
+  ],
+  "nativeExecution": "Not run locally: PostgreSQL binaries unavailable. Existing exact-source PR workflow required.",
+  "coverage": "Both bill and supplier credit capture: actual mounted source review/actions/hook, native review, all acknowledgements, lost committed transport response, Retry GET discovery, company isolation, actual reload, synthetic auth remount/logout/login and membership refresh/revocation, original-source bytes retained, exactly one native draft/audit, no new journal, canonical same-intent replay, empty browser local/session storage."
+}

@@ -1,0 +1,43 @@
+{
+  "author": "03532f5d435c50cc2cbd2fabc4823fdc67cec3a3",
+  "tree": "4d44020c1ef1ad346c29937286a9a0b387710b55",
+  "basePublished": "8fbfdbdacc6161d5d12fbe26db634b4145243ec7",
+  "files": {
+    "candidate.patch": {
+      "bytes": 13897,
+      "sha256": "d7c9a19e12f238a41309e1efe8c59524fb6d307bcc960a7727384a3cd7c6ca4b"
+    },
+    "author.commit": {
+      "bytes": 247,
+      "sha256": "1f4581676cca7660ce409fb456c0d44be38d8a8b15d58a1fe77d9c01d665b92d"
+    },
+    "author-result.json": {
+      "bytes": 1448,
+      "sha256": "b5dfd1943b6512b67b3423a3f2e5d8a7185ba523c879ded49c662dd604742e89"
+    },
+    "review.json": {
+      "bytes": 1334,
+      "sha256": "b89bc1c338769a124f0250a57127333cac95fd32c7fc1d5d48e04fb7310606a2"
+    },
+    "source-check.log": {
+      "bytes": 109082,
+      "sha256": "932c6a048ee908a18898b2f04dd0ba7d09559373325b4fc7ba80e71455a9924f"
+    },
+    "full-build.log": {
+      "bytes": 15798,
+      "sha256": "2c926f81ac8c3c68aeaf321842f2769be97768eedaf1809e9b1d78f1f41b53a4"
+    },
+    "migrations.log": {
+      "bytes": 2444,
+      "sha256": "eb41f70d46bf7da55554da5cd34e11b0167bf232c8e15465ea96e8bf1bb26155"
+    },
+    "author-focused.log": {
+      "bytes": 1146,
+      "sha256": "2446e960cd8c40e3a422a7be9a9be310a21584f2c5e4abd6be593e56fd72aaa3"
+    },
+    "author-typecheck.log": {
+      "bytes": 147,
+      "sha256": "b0caa5fe33952c0e8a0edde78ca9771c7608f79daedeb55e29952bfb30c8c8c1"
+    }
+  }
+}

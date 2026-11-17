@@ -1,0 +1,21 @@
+{
+  "reviewer": "root",
+  "author": "capture-implementer",
+  "authorCommit": "03532f5d435c50cc2cbd2fabc4823fdc67cec3a3",
+  "tree": "4d44020c1ef1ad346c29937286a9a0b387710b55",
+  "reviewed": true,
+  "workersStopped": true,
+  "review": "No blocker in exact one-file test addition. Native router returns201 only after transaction commits; transport response is dropped, actual capture hook and review/actions use real client, refresh discovers persisted link, real page reload retains locator. Assertions cover all acknowledgements, same-company link, foreign-company denial, synthetic logout/login remount, revoked-member refresh denial, canonical same-intent replay, one draft/audit, no extra journal and immutable source bytes. Production files unchanged. Browser orchestration is bounded and reports explicit acceptance after actual reload.",
+  "limitations": [
+    "Synthetic identity; real Clerk not exercised.",
+    "Native PostgreSQL/browser execution requires existing draft PR CI; not yet passed.",
+    "Partial P03-01 capture scenario only; broader payroll and filing recovery remain pending."
+  ],
+  "checkedAt": "2026-11-16T20:14:36.177283+00:00",
+  "localGates": {
+    "sourceRegression": "passed, exit0",
+    "buildAndTypecheck": "passed, exit0",
+    "migrationRegistry": "passed32, exit0",
+    "diffCheck": "passed"
+  }
+}

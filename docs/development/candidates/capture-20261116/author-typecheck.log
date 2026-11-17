@@ -1,0 +1,4 @@
+
+> @workspace/api-server@0.0.0 typecheck /workspace/scratch/0c1e486180e4/ledgerpoint-capture/artifacts/api-server
+> tsc -p tsconfig.json --noEmit
+
