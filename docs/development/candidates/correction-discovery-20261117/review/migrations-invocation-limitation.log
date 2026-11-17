@@ -1,0 +1,66 @@
+node:internal/modules/package_json_reader:331
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'pg' imported from /workspace/scratch/0c1e486180e4/ledgerpoint/tools/development/migrations/partial-schema.test.mjs
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:331:9)
+    at packageResolve (node:internal/modules/esm/resolve:784:25)
+    at moduleResolve (node:internal/modules/esm/resolve:873:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1006:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:705:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:725:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:763:56)
+    at #resolve (node:internal/modules/esm/loader:687:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:607:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v24.22.1
+✖ tools/development/migrations/partial-schema.test.mjs (166.659695ms)
+✔ versioned replacement migration retains existing consumption engine and requires a committed cluster origin (18.202681ms)
+✔ replacement history migration is pinned, append-only and separate from original binding and payment qualification (1.735925ms)
+✔ explicit original binding keeps ordinary posting gates and a database-owned original xid prerequisite (0.884367ms)
+✔ all registered review migrations are pinned and returned as the exact verified bytes (3.536256ms)
+✔ unknown version fails closed (7.154213ms)
+✔ legacy unpinned version fails closed (0.303389ms)
+✔ missing overlay fails closed (1.54926ms)
+✔ overlay traversal fails closed (1.307272ms)
+✔ wrong overlay identity fails closed (1.20418ms)
+✔ unsupported overlay contract fails closed (1.256146ms)
+✔ malformed overlay checksum fails closed (1.378708ms)
+✔ production authority fails closed (0.300484ms)
+✔ missing migration fails closed (0.7074ms)
+✔ unknown migration fails closed (0.359882ms)
+✔ duplicate identity fails closed (0.638483ms)
+✔ wrong order fails closed (0.254246ms)
+✔ missing dependency fails closed (0.374454ms)
+✔ unsupported contract fails closed (0.204192ms)
+✔ traversal path fails closed (0.152926ms)
+✔ changed SQL bytes fail checksum validation without leaking SQL (0.244681ms)
+✔ missing SQL fails with bounded diagnostic (0.329337ms)
+✔ nonempty database is rejected before BEGIN, amendments=false (4.983736ms)
+✔ nonempty database is rejected before BEGIN, amendments=true (1.279001ms)
+✔ altered overlay fails with bounded diagnostic (1.886698ms)
+✔ missing overlay fails with bounded diagnostic (0.983614ms)
+✔ tampered overlay stops installer before any database query, amendments=false (8.24829ms)
+✔ tampered overlay stops installer before any database query, amendments=true (5.350418ms)
+✔ schema created after preflight is refused under migration lock, amendments=false (3.040528ms)
+✔ schema created after preflight is refused under migration lock, amendments=true (1.515439ms)
+✔ installed history matches exact selected input versions, amendments=false (4.232065ms)
+✔ installed history matches exact selected input versions, amendments=true (2.349612ms)
+✔ payment admission and terminal history are pinned append-only observations with restricted runtime grants (1.702926ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 32
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 323.963853
+
+✖ failing tests:
+
+test at tools/development/migrations/partial-schema.test.mjs:1:1
+✖ tools/development/migrations/partial-schema.test.mjs (166.659695ms)
+  'test failed'

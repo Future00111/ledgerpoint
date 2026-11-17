@@ -1,0 +1,39 @@
+{
+  "reviewer": "root",
+  "author": "correction-discovery-implementer",
+  "commit": "336840852fffe4e17af35e0de752e0042e7c73eb",
+  "tree": "03fca674291415185a4c1b0cc1e0badbe574aadf",
+  "reviewedAt": "2026-11-17T15:23:26.052Z",
+  "status": "Approved for draft-PR CI; bounded acceptance requires exact-source native/browser/restore success",
+  "findings": [],
+  "checked": [
+    "Active company membership/accounting.correct permission before discovery; actor filtering before latest-100 limit",
+    "Validated immutable amendment/journal/audit/effect history; read-only transaction and minimal receipt metadata",
+    "Explicit candidate selection, persist UUID before fresh GET; request/document/revision/journal binding",
+    "Unknown/denied/empty/malformed states retain locked recovery; cannot change unresolved selected candidate",
+    "URL contains only mode and UUID; abort/dispose/generation prevents late scope exposure",
+    "Both actual mounted component browser journeys require reload, zero POSTs, empty browser storage and exactly one parent refresh",
+    "All nine changed files inside task lease; no schema/posting engine changes"
+  ],
+  "tests": [
+    {
+      "command": "node tools/development/check.mjs",
+      "passed": true
+    },
+    {
+      "command": "PORT=8080 BASE_PATH=/ pinned pnpm run build (includes typecheck)",
+      "passed": true
+    },
+    {
+      "command": "node --test tools/development/migrations/registry.test.mjs",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "No local native PostgreSQL or Chromium runtime acceptance: host has no usable PostgreSQL and Chromium socket startup is denied. Root must run exact-source native/browser/restore CI.",
+    "Latest-100 ownership bound is enforced by filter-before-slice; no 101-amendment runtime fixture is added.",
+    "Synthetic mounted component/native API fixture does not qualify real Clerk sign-in or production.",
+    "Broader P03-01 payroll and filing recovery remain pending.",
+    "Initial migration wildcard command included native PostgreSQL partial-schema test without available pg runtime; preserved failed invocation and ran intended registry test explicitly (32/32). Native partial-schema remains required in CI."
+  ]
+}

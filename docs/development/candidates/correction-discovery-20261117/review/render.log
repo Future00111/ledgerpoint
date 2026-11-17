@@ -1,0 +1,14 @@
+✔ review displays exact before/after balance, unchanged payments and bounded credit restrictions (39.607779ms)
+✔ blocked/read-only context exposes history and explanation without editing or posting controls (3.292905ms)
+✔ unknown outcome offers exact-request check and does not offer a fresh post (8.331739ms)
+✔ reloaded recovery without form context stays visible and cannot post (1.683157ms)
+✔ loading exposes no stale financial values or edit form (1.740101ms)
+✔ lost-reference discovery explains absence and exposes explicit receipt choices without financial controls (6.392996ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 603.242842

@@ -1,0 +1,61 @@
+{
+  "task": "P03-01",
+  "scenario": "invoice-and-bill-correction-discovery",
+  "author": "correction-discovery-implementer",
+  "stopped": true,
+  "commit": "336840852fffe4e17af35e0de752e0042e7c73eb",
+  "tree": "03fca674291415185a4c1b0cc1e0badbe574aadf",
+  "base": "dd47756d5ed0ead83bf48da52da5e17ad54df88d",
+  "stoppedAt": "2026-11-17T15:19:09.451Z",
+  "worktree": "/workspace/scratch/0c1e486180e4/ledgerpoint-capture",
+  "changes": [
+    "artifacts/api-server/src/services/accountingDocuments/corrections.ts",
+    "artifacts/api-server/src/routes/accountingDocuments.ts",
+    "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+    "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+    "artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+    "artifacts/ledgerly/src/features/documentCorrections/model.mjs",
+    "artifacts/ledgerly/src/features/documentCorrections/model.test.mjs",
+    "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.jsx",
+    "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.test.jsx"
+  ],
+  "validation": [
+    {
+      "command": "node --test artifacts/ledgerly/src/features/documentCorrections/model.test.mjs artifacts/ledgerly/src/api/accountingDocuments.test.mjs",
+      "passed": 43,
+      "log": "focused.log"
+    },
+    {
+      "command": "esbuild DocumentCorrections.test.jsx --bundle --platform=node --format=cjs --jsx=automatic with native @ alias; node --test correction-render.cjs",
+      "passed": 6,
+      "log": "render.log"
+    },
+    {
+      "command": "esbuild native accountingDocuments/integration.test.ts with disposable-runner externals",
+      "result": "compiled",
+      "log": "compile.log"
+    },
+    {
+      "command": "extract exact inline browser entry with synthetic identifiers and esbuild --bundle --platform=browser --format=iife --jsx=automatic and native @ alias",
+      "result": "compiled",
+      "log": "compile.log"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "limitations": [
+    "No local native PostgreSQL or Chromium runtime acceptance: host has no usable PostgreSQL and Chromium socket startup is denied. Root must run exact-source native/browser/restore CI.",
+    "Latest-100 ownership bound is enforced by filter-before-slice; no 101-amendment runtime fixture is added.",
+    "Synthetic mounted component/native API fixture does not qualify real Clerk sign-in or production.",
+    "Broader P03-01 payroll and filing recovery remain pending."
+  ],
+  "untouched": [
+    "schema",
+    "financial posting engine",
+    "queue/coordinator records",
+    "demo/shared database",
+    "remote refs"
+  ]
+}
