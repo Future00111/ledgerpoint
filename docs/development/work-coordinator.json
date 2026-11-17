@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 468,
+  "revision": 469,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
@@ -21,19 +21,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "e947d64f024540a3d12dc173900f38defabe0a77",
+    "sha": "f7b8910de3750f9d238f5460ebaa18467b32ff9a",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e947d64f024540a3d12dc173900f38defabe0a77",
-        "path": "docs/development/candidates/correction-admission-20261117/brief.json"
+        "sha": "f7b8910de3750f9d238f5460ebaa18467b32ff9a",
+        "path": "docs/development/candidates/correction-admission-20261117/progress-1.json"
       }
     ],
     "runId": "correction-admission-1794930354689",
-    "at": 1794930773394,
+    "at": 1794931149155,
     "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144"
   },
-  "updatedAt": 1794930773394,
+  "updatedAt": 1794931149155,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -191,7 +191,7 @@
     "startedAt": "2026-11-17T15:45:54.689Z",
     "scope": "Highest eligible P03-01 durable precommit correction attempt and recovery workflow; resolve exact additive migration ownership first.",
     "providerCheck": "Replit exact URL search returned no apps and exact name resolver foundfalse in this run; no dispatch.",
-    "activity": "Reviewed two-path catalogue migration published; q871 history preserved with new digest, highest eligible P03-01 claimed/checkpointed q873 for correction admission, explicit terminal closure and fresh-review journey.",
+    "activity": "Author implementing durable pending and no-effect recovery; backend/schema compile. Root preliminary review ongoing. Catalogue-only CI exposed browser ENOTEMPTY cleanup race after accepted supplier-credit capture marker; bounded cleanup fix included, failing log archived. Full final source CI remains mandatory.",
     "catalogMigration": {
       "author": "4546948a6d561393f0024ccb5c260004c36a3e8d",
       "published": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
