@@ -1,0 +1,17 @@
+{
+  "source": "23db6603aba8efc9997919b6b78ffd278e14a909",
+  "tree": "ff6aeb38e0a2eda44d0fd0eff3b6432e00439f1b",
+  "testedMerge": "0bed8c6308be19ab4c345dd2c91041669447cd2c",
+  "run": "https://github.com/Future00111/ledgerpoint/actions/runs/44088921506",
+  "captureBrowserJourneys": {
+    "purchase_bill": "passed twice; one draft POST each",
+    "supplier_credit_note": "passed twice; one draft POST each"
+  },
+  "overallCI": "failed",
+  "attempt1": "capture/native accounting92passed; subsequent existing customer full-paid commercial-credit/refund browser timed out",
+  "attempt2": "capture passed; native accounting91passed/1failed, existing unpaid/partial discount browser timed out",
+  "restoreGates": "not reached",
+  "parentAcceptance": "not granted",
+  "authorStopped": true,
+  "nextAction": "Diagnose existing browser timeouts and complete exact-source restore gates before acceptance."
+}
