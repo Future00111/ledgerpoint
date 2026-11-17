@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 29,
+  "successorDraftRequired": false,
+  "authorityCommit": "d12ab3551685420e02325166137273309f695036",
+  "authorityRevision": 506,
+  "coordinatorRunId": "two-track-1794939703603",
+  "observedAt": 1794942381862,
+  "candidateTree": "8dfb788aabd7bd7769d252f808f104da53b82c6b",
+  "reviewedBy": "root",
+  "authorOrigin": {
+    "actor": "durable-execution-implementer",
+    "commit": "fcc62d46e2a8d464d7635da85cd4aac650b8cec9",
+    "branch": "codex/durable-execution-truncate-fixture-20261117"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "e4c062b09f15d2660e3cb55b0962ce4689b0c690",
+    "sha": "1c52f77c63599b26c4d90862c485db951f12ca66",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}

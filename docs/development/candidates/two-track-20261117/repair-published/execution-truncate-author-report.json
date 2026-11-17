@@ -1,0 +1,39 @@
+{
+  "task": "P03-02",
+  "actor": "durable-execution-implementer",
+  "basePublished": "e4c062b09f15d2660e3cb55b0962ce4689b0c690",
+  "authorCommit": "fcc62d46e2a8d464d7635da85cd4aac650b8cec9",
+  "authorTree": "8dfb788aabd7bd7769d252f808f104da53b82c6b",
+  "branch": "codex/durable-execution-truncate-fixture-20261117",
+  "changedFiles": [
+    "artifacts/api-server/src/services/durableJobs/integration.test.ts"
+  ],
+  "reason": "Privileged TRUNCATE must list the newly referencing execution tables to exercise the immutable trigger rather than stop at FK preflight.",
+  "preserved": [
+    "Strict P0001 assertion",
+    "All foreign keys and immutable guards",
+    "All migration bytes and pins",
+    "Restricted-role TRUNCATE42501 probes"
+  ],
+  "checks": [
+    {
+      "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+      "result": "passed",
+      "log": "execution-truncate-typecheck.log"
+    },
+    {
+      "command": "Compile exact integration.test.ts to external CJS directory; node --check bundle; inspect external import kinds",
+      "result": "passed",
+      "log": "execution-truncate-compile.json"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "nativeDatabasePassed": false,
+  "nativeQualification": "Awaiting exact-source CI",
+  "stopped": true,
+  "worktreeClean": true,
+  "finishedAt": "2026-11-17T19:05:03.291Z"
+}

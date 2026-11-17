@@ -1,0 +1,21 @@
+{
+  "reviewer": "root",
+  "reviewed": true,
+  "authorCommit": "fcc62d46e2a8d464d7635da85cd4aac650b8cec9",
+  "base": "e4c062b09f15d2660e3cb55b0962ce4689b0c690",
+  "integratedLocal": "d32624ed1aee62c5dbb671a3e7520b0458ca5bb0",
+  "tree": "8dfb788aabd7bd7769d252f808f104da53b82c6b",
+  "reviewedAt": "2026-11-17T19:05:37.127428+00:00",
+  "files": [
+    {
+      "path": "artifacts/api-server/src/services/durableJobs/integration.test.ts",
+      "bytes": 18692,
+      "sha256": "7198a9848d1d4df0721cc7fb679de0a2a45d3ebbe6ac759bb403a5026c70239b"
+    }
+  ],
+  "findings": [],
+  "change": "Privileged immutable-history TRUNCATE lists both new dependent tables so PostgreSQL reaches existing P0001 guard. No SQL guard, privilege, FK or expected SQLSTATE changed. Restricted API-role tests continue42501.",
+  "failedRun": 44154195960,
+  "nativeQualification": "Pending corrected exact-source CI",
+  "authorStopped": true
+}
