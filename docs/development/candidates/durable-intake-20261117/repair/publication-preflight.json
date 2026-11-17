@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 29,
+  "successorDraftRequired": false,
+  "authorityCommit": "9a9bc951d011935768b4b15611eb0146a6081bd6",
+  "authorityRevision": 491,
+  "coordinatorRunId": "durable-intake-1794935665134",
+  "observedAt": 1794937747119,
+  "candidateTree": "da2c486ddb7c82cb7b9fcf9b7523bff2d7ddf5bb",
+  "reviewedBy": "root",
+  "authorOrigin": {
+    "actor": "durable-intake-implementer",
+    "commit": "307ee8c471cf6499ef02c9984d26d5eeabd5498d",
+    "branch": "codex/durable-intake-queue-20261117"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "dc6467a9712582a22cfeb26a389b0a281c017e87",
+    "sha": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}
