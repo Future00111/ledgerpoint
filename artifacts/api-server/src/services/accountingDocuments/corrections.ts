@@ -11,6 +11,8 @@ import { journalLines } from './documentJournal';
 import { assertCreditCapacity } from './creditCapacity';
 
 const blockerMessages: Record<string, string> = {
+  CORRECTION_ATTEMPT_UNRESOLVED: 'Find and resolve your pending correction before reviewing another correction.',
+  CORRECTION_RECOVERY_SCHEMA_UNAVAILABLE: 'Correction recovery has not been installed by the database operator.',
   CORRECTION_SCHEMA_UNAVAILABLE: 'Document corrections have not been enabled in this development database.',
   CORRECTION_KIND_UNSUPPORTED: 'This correction workflow currently supports posted invoices and bills.',
   CORRECTION_CHILD_CREDITS: 'A linked credit draft is awaiting review. Resolve it before correcting the original.',
@@ -25,6 +27,65 @@ async function authority(q: Queryable, company: string, actor: string, lock = fa
   const allowed = members.length === 1 && members[0].is_active === true && roleHasAccountingCapability(members[0].role, 'accounting.correct');
   if (required && !allowed) fail(403, 'CAPABILITY_DENIED');
   return { business, allowed };
+}
+
+async function attemptSchema(q:Queryable,required=false) {
+  const row=(await q.query("SELECT to_regclass('public.correction_attempt_admissions') admissions,to_regclass('public.correction_attempt_no_effect') terminal")).rows[0];
+  if(!row.admissions&&!row.terminal){if(required)fail(503,'CORRECTION_RECOVERY_SCHEMA_UNAVAILABLE');return false;}
+  if(!row.admissions||!row.terminal)fail(503,'CORRECTION_RECOVERY_SCHEMA_INCOMPLETE');return true;
+}
+async function lockAttempt(q:Queryable,company:string,actor:string,requestId:string) {
+  if((await q.query('SHOW transaction_isolation')).rows[0]?.transaction_isolation!=='read committed')fail(503,'CORRECTION_ISOLATION_UNSUPPORTED');
+  await authority(q,company,actor,true,true);
+  await q.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[`${company}:correction-attempt:${requestId}`]);
+  await attemptSchema(q,true);
+}
+const bindingFields=['document_id','actor_id','expected_revision','request_hash','review_hash'] as const;
+async function attemptRows(q:Queryable,company:string,requestId:string) {
+  if(!await attemptSchema(q))return {admission:null,terminal:null};
+  const admission=(await q.query('SELECT *,effective_date::text FROM correction_attempt_admissions WHERE company_id=$1 AND request_id=$2',[company,requestId])).rows[0];
+  const terminal=(await q.query('SELECT * FROM correction_attempt_no_effect WHERE company_id=$1 AND request_id=$2',[company,requestId])).rows[0];
+  if(terminal&&(!admission||bindingFields.some(k=>terminal[k]!==admission[k])))fail(503,'CORRECTION_HISTORY_INVALID');
+  return {admission,terminal};
+}
+function bindAttempt(admission:any,documentId:string,actor:string,expected:string,requestHash:string,reviewHash:string) {
+  if(admission&&(admission.document_id!==documentId||admission.actor_id!==actor||admission.expected_revision!==expected||admission.request_hash!==requestHash||admission.review_hash!==reviewHash))fail(409,'IDEMPOTENCY_CONFLICT');
+}
+function attemptBinding(a:any){return {expected_revision:a.expected_revision,request_hash:a.request_hash,review_hash:a.review_hash};}
+async function canonicalAttempt(q:Queryable,company:string,id:string,requestId:string,history?:Awaited<ReturnType<typeof amendmentHistory>>,attempt?:Awaited<ReturnType<typeof attemptRows>>) {
+  const {admission,terminal}=attempt??await attemptRows(q,company,requestId);
+  const h=history??await amendmentHistory(q,company,await document(q,company,id));
+  const row=h.rows.find(r=>r.request_id===requestId);
+  if(row){
+    if(terminal||(admission&&(admission.document_id!==id||admission.actor_id!==row.actor_id||admission.expected_revision!==row.previous_revision||admission.request_hash!==row.request_hash||admission.review_hash!==hash(row.review_token))))fail(503,'CORRECTION_HISTORY_INVALID');
+    return {status:'posted',id:requestId,document_id:id,revision:row.revision,journal_id:row.journal_id};
+  }
+  const identity=correctionIdentity({document_id:id,request_id:requestId});
+  const orphan=(await q.query(`SELECT 1 FROM canonical_journal_entries WHERE company_id=$1 AND economic_effect_id=$2
+    UNION ALL SELECT 1 FROM accounting_posting_effects WHERE company_id=$1 AND (economic_effect_id=$2 OR idempotency_key=$2) LIMIT 1`,[company,identity])).rowCount;
+  if(orphan)fail(503,'CORRECTION_HISTORY_INVALID');return null;
+}
+async function unresolvedAttempts(q:Queryable,company:string,actor:string,id:string,except?:string,includeTerminal=false,history?:Awaited<ReturnType<typeof amendmentHistory>>) {
+  if(!await attemptSchema(q))return [];
+  const rows=(await q.query('SELECT *,effective_date::text FROM correction_attempt_admissions WHERE company_id=$1 AND actor_id=$2 AND document_id=$3 ORDER BY admitted_at,request_id',[company,actor,id])).rows;
+  const pending=[];const h=rows.length?(history??await amendmentHistory(q,company,await document(q,company,id))):undefined;
+  for(const row of rows){const attempt=await attemptRows(q,company,row.request_id),{terminal}=attempt;const known=await canonicalAttempt(q,company,id,row.request_id,h,attempt);
+    if(!known&&(!terminal||includeTerminal)&&row.request_id!==except)pending.push({...row,state:terminal?'no_effect':'pending'});}
+  return pending;
+}
+export async function terminateCorrectionAttempt(company:string,actor:string,id:string,requestId:string,body:unknown) {
+  const request=uuid(requestId).toLowerCase(),b=exactFields(body,['expected_revision','request_hash','review_hash']);
+  return transact(async q=>{
+    await q.query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');await lockAttempt(q,company,actor,request);
+    const {admission,terminal}=await attemptRows(q,company,request);
+    if(!admission||admission.actor_id!==actor||admission.document_id!==id)fail(404,'RESOURCE_NOT_FOUND');
+    bindAttempt(admission,id,actor,b.expected_revision,b.request_hash,b.review_hash);
+    const receipt=await canonicalAttempt(q,company,id,request);
+    if(receipt)return {state:'known',request_id:request,document_id:id,receipt};
+    if(!terminal)await q.query(`INSERT INTO correction_attempt_no_effect(company_id,request_id,document_id,actor_id,expected_revision,request_hash,review_hash)
+      VALUES($1,$2,$3,$4,$5,$6,$7)`,[company,request,id,actor,admission.expected_revision,admission.request_hash,admission.review_hash]);
+    return {state:'no_effect',request_id:request,document_id:id,...attemptBinding(admission)};
+  });
 }
 
 export function correctionIntent(body: unknown) {
@@ -73,6 +134,7 @@ export async function correctionContext(company: string, actor: string, id: stri
     const original = await document(q, company, id);
     const history = await amendmentHistory(q, company, original);
     const reasons = await blockers(q, company, original, history);
+    if(history.available){if(!await attemptSchema(q))reasons.push('CORRECTION_RECOVERY_SCHEMA_UNAVAILABLE');else if((await unresolvedAttempts(q,company,actor,id,undefined,false,history)).length)reasons.push('CORRECTION_ATTEMPT_UNRESOLVED');}
     const parties = (await q.query(`SELECT name FROM ${sales(original.kind) ? 'customers' : 'suppliers'} WHERE company_id=$1 AND id=$2`, [company, original.party_id])).rows;
     return { document: { ...history.current, party_name: parties[0]?.name ?? '' }, original,
       capabilities: { review_corrections: auth.allowed && history.available, correct_documents: auth.allowed && history.available },
@@ -95,8 +157,13 @@ export async function discoverCorrections(company: string, actor: string, id: st
     if (!['sales_invoice', 'purchase_bill'].includes(original.kind) || original.status !== 'posted') fail(409, 'CORRECTION_KIND_UNSUPPORTED');
     const history = await amendmentHistory(q, company, original);
     const owned = history.rows.filter(row => row.actor_id === actor);
-    return { company_id: company, document_id: id, has_more: owned.length > 100,
-      receipts: owned.slice(-100).reverse().map(row => ({ request_id: row.request_id, document_id: id,
+    for(const row of owned)await canonicalAttempt(q,company,id,row.request_id,history);
+    const attempts=await unresolvedAttempts(q,company,actor,id,undefined,true,history);
+    const recent=[...owned.map(row=>({row,recorded:true,time:row.created_at})),...attempts.map(row=>({row,recorded:false,time:row.admitted_at}))]
+      .sort((a,b)=>new Date(b.time).getTime()-new Date(a.time).getTime()||b.row.request_id.localeCompare(a.row.request_id));
+    const selected=recent.slice(0,100),pending=selected.filter(r=>!r.recorded).map(({row})=>({request_id:row.request_id,document_id:id,state:row.state,expected_revision:row.expected_revision,effective_date:row.effective_date,reason:row.reason}));
+    return { company_id: company, document_id: id, has_more: recent.length > 100, ...(pending.length?{pending}:{}),
+      receipts: selected.filter(r=>r.recorded).map(({row}) => ({ request_id: row.request_id, document_id: id,
         revision: row.revision, journal_id: row.journal_id, effective_date: row.effective_date, reason: row.reason })) };
   }, true);
 }
@@ -111,10 +178,12 @@ export async function recoverCorrection(company:string,actor:string,id:string,re
     const original=await document(q,company,id);
     const history=await amendmentHistory(q,company,original);
     const row=history.rows.find(row=>row.request_id===request);
-    if(!row) return {state:'unknown',request_id:request,document_id:id};
-    if(row.actor_id!==actor) fail(404,'RESOURCE_NOT_FOUND');
-    return {state:'known',request_id:request,document_id:id,receipt:{
-      status:'posted',id:request,document_id:id,revision:row.revision,journal_id:row.journal_id}};
+    const {admission,terminal}=await attemptRows(q,company,request);
+    if((row&&row.actor_id!==actor)||(admission&&(admission.actor_id!==actor||admission.document_id!==id)))fail(404,'RESOURCE_NOT_FOUND');
+    const receipt=await canonicalAttempt(q,company,id,request,history);
+    if(receipt)return {state:'known',request_id:request,document_id:id,receipt};
+    if(!admission)return {state:'unknown',request_id:request,document_id:id};
+    return {state:terminal?'no_effect':'pending',request_id:request,document_id:id,...attemptBinding(admission)};
   },true);
 }
 
@@ -167,35 +236,44 @@ const reviewResult = (p: Awaited<ReturnType<typeof plan>>) => ({ intent: p.inten
 
 export async function reviewCorrection(company: string, actor: string, id: string, expected: string, body: unknown) {
   const intent = correctionIntent(body); uuid(expected);
-  return transact(async q => reviewResult(await plan(q, company, actor, id, expected, intent)));
+  return transact(async q => {await authority(q,company,actor,true,true);if((await unresolvedAttempts(q,company,actor,id)).length)fail(409,'CORRECTION_ATTEMPT_UNRESOLVED');return reviewResult(await plan(q, company, actor, id, expected, intent));});
 }
 
 class Replayed extends Error { constructor(public result: any) { super('Correction already recorded'); } }
-export async function commitCorrection(company: string, actor: string, id: string, expected: string, body: unknown, testHook?: (tx: DatabaseTransaction) => Promise<void>) {
+export async function commitCorrection(company: string, actor: string, id: string, expected: string, body: unknown, testHook?: (tx: DatabaseTransaction) => Promise<void>, afterAdmission?:()=>Promise<void>) {
   const intent = correctionIntent(body); uuid(expected);
   const reviewToken = (body as any).review_token;
   if (typeof reviewToken !== 'string' || !/^sha256:[a-f0-9]{64}$/.test(reviewToken)) fail(428, 'CORRECTION_REVIEW_REQUIRED');
   const requestHash = hash({ company, actor, document_id: id, expected_revision: expected, intent, review_token: reviewToken });
+  let admitted=false;
   const replay = async (q: Queryable) => {
-    await authority(q, company, actor, true, true);
+    await lockAttempt(q,company,actor,intent.request_id);
+    const {admission,terminal}=await attemptRows(q,company,intent.request_id);
+    bindAttempt(admission,id,actor,expected,requestHash,hash(reviewToken));if(admission)admitted=true;
+    if(terminal)fail(409,'CORRECTION_ATTEMPT_TERMINATED');
     if (!await amendmentSchema(q)) fail(503, 'CORRECTION_SCHEMA_UNAVAILABLE');
     const previous = (await q.query('SELECT * FROM accounting_document_amendments WHERE company_id=$1 AND request_id=$2', [company, intent.request_id])).rows[0];
-    if (!previous) return null;
+    if (!previous){await canonicalAttempt(q,company,id,intent.request_id);return null;}
     if (previous.document_id !== id || previous.actor_id !== actor || previous.request_hash !== requestHash) fail(409, 'IDEMPOTENCY_CONFLICT');
-    await amendmentHistory(q, company, await document(q, company, id));
+    await canonicalAttempt(q,company,id,intent.request_id);
     return { status: 'duplicate', id: intent.request_id, document_id: id, revision: previous.revision, journal_id: previous.journal_id };
   };
   const initial = await transact(async q => {
+    await q.query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
     const prior = await replay(q); if (prior) return { replay: prior };
+    if((await unresolvedAttempts(q,company,actor,id,intent.request_id)).length)fail(409,'CORRECTION_ATTEMPT_UNRESOLVED');
     const p = await plan(q, company, actor, id, expected, intent);
     if (p.review_token !== reviewToken) fail(409, 'CORRECTION_REVIEW_STALE');
+    const {admission}=await attemptRows(q,company,intent.request_id);
+    if(!admission)await q.query(`INSERT INTO correction_attempt_admissions(company_id,request_id,document_id,actor_id,expected_revision,request_hash,review_hash,reason,effective_date) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`,[company,intent.request_id,id,actor,expected,requestHash,hash(reviewToken),intent.reason,intent.effective_date]);
     return { plan: p };
-  });
+  }).catch(error=>{if(admitted&&error&&typeof error==='object')Object.assign(error,{correctionAttemptAdmitted:true});throw error;});
   if (initial.replay) return initial.replay;
   let current = initial.plan!, tx: DatabaseTransaction, journal: any;
   const eventId = randomUUID(), revision = randomUUID();
   const identity = correctionIdentity({ document_id: id, request_id: intent.request_id });
   try {
+    await afterAdmission?.();
     const posted = await correctCanonicalJournal({ principal: { kind: 'user', userId: actor, requestedCompanyId: company }, requestedCompanyId: company,
       originalJournalId: current.original.journal_id, reason: intent.reason, postingDate: intent.effective_date,
       configurationVersionId: current.original.mapping_revision, postingKind: 'document_correction', economicEffectId: identity, idempotencyKey: identity,
@@ -249,5 +327,5 @@ export async function commitCorrection(company: string, actor: string, id: strin
       },
     });
     return { status: posted.status, id: intent.request_id, document_id: id, revision, journal_id: posted.journalId };
-  } catch (error) { if (error instanceof Replayed) return error.result; throw error; }
+  } catch (error) { if (error instanceof Replayed) return error.result; if(error&&typeof error==='object')Object.assign(error,{correctionAttemptAdmitted:true});throw error; }
 }

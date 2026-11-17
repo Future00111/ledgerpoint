@@ -46,7 +46,7 @@ function CorrectionEditor({ companyId, documentId, onSaved, onClose }) {
         const url=new URL(window.location.href);url.searchParams.set('correction_request',requestId);
         window.history.replaceState(window.history.state,'',url);
       }, forgetRequest: () => {
-        const url=new URL(window.location.href);url.searchParams.delete('correction_request');
+        const url=new URL(window.location.href);url.searchParams.delete('correction_request');url.searchParams.delete('correction_recovery');
         window.history.replaceState(window.history.state,'',url);
       }, onState: next => {
       setState(next);
@@ -58,16 +58,16 @@ function CorrectionEditor({ companyId, documentId, onSaved, onClose }) {
   const change = next => { controller.current.discardReview(); setAck(false); setForm(next); };
   return <CorrectionWorkspace state={state} form={form} acknowledged={ack} onAcknowledge={setAck} onChange={change}
     onReview={() => { setAck(false); controller.current.review(form); }} onPost={() => controller.current.post()}
-    onRecover={() => controller.current.recover()}
+    onRecover={() => controller.current.recover()} onRequestClosure={() => controller.current.requestClosure()} onCancelClosure={() => controller.current.cancelClosure()} onConfirmClosure={() => controller.current.confirmClosure()} onContinueFresh={() => {setAck(false);controller.current.continueFresh();}}
     onDiscover={() => controller.current.discover()} onSelectReceipt={id => controller.current.selectReceipt(id)}
     onRefresh={() => { setAck(false); controller.current.load(); }} onClose={() => {
       onClose(); // Remove the recovery locator before a parent document refresh.
     }} />;
 }
 
-export function CorrectionWorkspace({ state, form, acknowledged, onAcknowledge, onChange, onReview, onPost, onRecover, onDiscover, onSelectReceipt, onRefresh, onClose }) {
+export function CorrectionWorkspace({ state, form, acknowledged, onAcknowledge, onChange, onReview, onPost, onRecover, onRequestClosure, onCancelClosure, onConfirmClosure, onContinueFresh, onDiscover, onSelectReceipt, onRefresh, onClose }) {
   const { context, review, status } = state;
-  const busy = ['loading', 'reviewing', 'posting', 'checking', 'discovering'].includes(status), uncertain = status === 'unknown' || (state.discovery && status !== 'posted');
+  const busy = ['loading', 'reviewing', 'posting', 'checking', 'discovering', 'resolving'].includes(status), uncertain = status === 'unknown' || (state.discovery && status !== 'posted');
   const editable = canReviewCorrection(context) && ['ready', 'reviewed'].includes(status);
   return <div className="mt-5 space-y-5 border-t pt-5">
     <ErrorBox error={state.error} onRetry={status === 'error' ? onRefresh : undefined} />
@@ -80,12 +80,18 @@ export function CorrectionWorkspace({ state, form, acknowledged, onAcknowledge, 
       {state.candidates?.length === 0 && <p>No recorded corrections found for your account on this document. The missing outcome remains unconfirmed.</p>}
       {state.hasMore && <p>Only the latest 100 matching corrections are shown. Older attempts remain unconfirmed here.</p>}
       {state.candidates?.map(item => <div key={item.request_id} className="space-y-2 rounded border p-3">
-        <p>{item.effective_date} · {item.reason}</p><p className="break-all text-xs">Correction reference: {item.request_id}</p>
+        <p>{item.effective_date} · {item.reason}{item.state==='pending'?' · Pending attempt':item.state==='no_effect'?' · Closed without effect':''}</p><p className="break-all text-xs">Correction reference: {item.request_id}</p>
         <Button variant="outline" disabled={busy || Boolean(state.requestId && state.requestId !== item.request_id)} onClick={() => onSelectReceipt(item.request_id)}>This is my correction — verify receipt</Button>
       </div>)}
     </section>}
     {status === 'checking' && <p role="status">Checking the recorded correction. No changes are being sent…</p>}
     {status === 'unknown' && <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm"><p>This correction may already be posted or still processing. Check its recorded outcome; do not enter another correction.</p><Button className="mt-3" variant="outline" onClick={onRecover}>Check this correction again</Button><p className="mt-2 text-xs">This page’s recovery link survives reload. Checking is read-only and never resubmits the correction.</p></div>}
+    {status === 'resolving' && <p role="status">Checking whether this attempt can be safely closed…</p>}
+    {status === 'unknown' && state.outcome === 'pending' && <section aria-label="Close pending correction" className="space-y-3 rounded border p-4 text-sm">
+      <p>The server retained this reviewed attempt. You can keep checking it, or explicitly close it if it has not posted. A committed correction always takes precedence.</p>
+      {!state.confirming ? <Button variant="outline" onClick={onRequestClosure}>Close this attempt without posting</Button> : <><p>Confirm closing this exact attempt. The server will permanently prevent this request from posting if no correction is recorded.</p><Button onClick={onConfirmClosure}>Confirm closing this attempt</Button><Button variant="ghost" onClick={onCancelClosure}>Keep checking</Button></>}
+    </section>}
+    {status === 'unknown' && state.outcome === 'no_effect' && <section aria-label="Verified no-effect correction" className="space-y-3 rounded border p-4 text-sm"><p>This attempt is recorded as closed without financial effect. Its original request cannot post.</p><Button onClick={onContinueFresh}>Verify closure and start a fresh review</Button></section>}
     {status === 'posted' && <p role="status" className="text-sm text-emerald-800">Correction recorded. <JournalLink id={state.receipt?.journal_id} /></p>}
     {context && <>
       <div className="rounded-lg border bg-muted/30 p-4 text-sm leading-relaxed"><p>The original document, its tax point and payments stay recorded. A correction adds a dated adjustment to the accounts.</p><p className="mt-2 font-medium">Eligible corrected invoices and bills can receive credit notes through the credit workflow, within their remaining line amounts. Conditional-discount replacement terms and return-credit tracking on corrected bills are not available. Posted credits remain included in the outstanding balance. Revised amounts must cover existing credits and allocated payments; a linked draft credit must be resolved before correction.</p><p className="mt-2 text-muted-foreground">Party, VAT codes, accounts, discounts, notes and line order stay fixed. Credit notes and metadata-only edits are not supported here yet.</p></div>

@@ -1,3 +1,4 @@
+import {registerCorrectionAdmissionJourney} from '../operationRecovery/correctionAdmissionJourney';
 import test,{before,after} from "node:test";
 import assert from "node:assert/strict";
 import {randomUUID} from "node:crypto";
@@ -2519,7 +2520,7 @@ const session=async action=>{const response=await fetch('/session/'+action,{meth
   if(browser?.pid&&browser.exitCode===null&&browser.signalCode===null)await new Promise<void>(resolve=>{
    const timer=setTimeout(()=>browser?.kill('SIGKILL'),5000);browser!.once('exit',()=>{clearTimeout(timer);resolve();});browser!.kill('SIGTERM');
   });
-  listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});
+  listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true,maxRetries:5,retryDelay:100});
  }
 });
 
@@ -2620,3 +2621,5 @@ const wait=async(fn,label)=>{await fetch('/progress',{method:'POST',headers:{'Co
   console.log('CORRECTION_DISCOVERY_BROWSER_ACCEPTANCE',JSON.stringify({kind,actualComponents:true,nativeApi:true,missingLocator:true,explicitSelection:true,freshReceipt:true,actualReload:true,parentRefreshes:1,posts:0,browserStorageEmpty:true,realClerk:false}));
  }finally{clearTimeout(timer);report=()=>{};if(browser?.pid&&browser.exitCode===null&&browser.signalCode===null)await new Promise<void>(resolve=>{const force=setTimeout(()=>browser?.kill('SIGKILL'),5000);browser!.once('exit',()=>{clearTimeout(force);resolve();});browser!.kill('SIGTERM');});listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+registerCorrectionAdmissionJourney({fixture,create,post,source,request,admin,actor,readOnly,socket});

@@ -161,3 +161,11 @@ test('payment admission and terminal history are pinned append-only observations
  assert.match(sql,/GRANT SELECT,INSERT ON public.payment_attempt_admissions,public.payment_attempt_no_effect TO ledgerly_api/);
  assert.doesNotMatch(sql,/INSERT INTO.*(?:accounting_payment_events|canonical_journal)/);
 });
+test('correction admission and terminal binding are immutable, pinned and installed in both modes',()=>{
+ const sql=loadMigrationInputs(root)['correction-operation-recovery'];
+ for(const trigger of ['admission_immutable','admission_no_truncate','terminal_immutable','terminal_no_truncate'])assert.ok(sql.includes('ENABLE ALWAYS TRIGGER correction_attempt_'+trigger));
+ assert.match(sql,/FOREIGN KEY\(company_id,request_id,document_id,actor_id,expected_revision,request_hash,review_hash\)/);
+ assert.match(sql,/GRANT SELECT,INSERT ON public.correction_attempt_admissions,public.correction_attempt_no_effect TO ledgerly_api/);
+ assert.doesNotMatch(sql,/INSERT INTO.*(?:accounting_document_amendments|canonical_journal)/);
+ assert.ok(read('tools/accounting-flow/schema.mjs').toString().includes("await admin.query(migrationInputs['correction-operation-recovery']);"));
+});

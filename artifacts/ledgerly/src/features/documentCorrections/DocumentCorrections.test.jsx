@@ -42,3 +42,8 @@ test('lost-reference discovery explains absence and exposes explicit receipt cho
  const empty=render({status:'discovery',discovery:true,candidates:[]});assert.ok(empty.includes('missing outcome remains unconfirmed'));
  const busy=render({status:'checking',discovery:true,candidates:[{request_id:'chosen-id',reason:'Example'}]});assert.match(busy,/disabled=""[^>]*>This is my correction/);
 });
+test('pending closure needs explicit confirmation and verified terminal remains locked until fresh continuation',()=>{
+ const pending=render({status:'unknown',outcome:'pending'});assert.ok(pending.includes('Close this attempt without posting'));assert.ok(!pending.includes('Confirm closing this attempt'));
+ const confirming=render({status:'unknown',outcome:'pending',confirming:true});assert.ok(confirming.includes('Confirm closing this attempt'));assert.ok(confirming.includes('Keep checking'));
+ const terminal=render({status:'unknown',outcome:'no_effect'});assert.ok(terminal.includes('Verify closure and start a fresh review'));assert.match(terminal,/disabled=""[^>]*>Close/);assert.ok(!terminal.includes('Review revised amounts'));
+});

@@ -24,6 +24,7 @@ async function main() {
   const {recoverBankImport}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankImports');
   const {recoverBankMatch}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankStatements');
   const {recoverBankCorrection}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankCorrections');
+  const {preparePaymentAttempts, verifyPaymentAttempts}=await import('./payment-attempt-acceptance');
   try {
     assert.deepEqual((await pool.query(`SELECT current_database() database,current_user actor,
       inet_server_addr() address,current_setting('port') port`)).rows[0],
@@ -155,7 +156,10 @@ async function main() {
           cutoffs.push({date,report:await reports(row.company_id,row.actor_id,'2026-01-01',date)});
         replacementAcceptance.push({...row,overview,cutoffs});
       }
-      return { bankingRecovery:await bankingRecovery(),replacementAcceptance,company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
+      const banking = await bankingRecovery();
+      const paymentAttempts = await preparePaymentAttempts(pool, { company: fixture.company_id, actor: fixture.actor_id,
+        template: fixture.source.intent, foreignCompany: capture.company, foreignActor: capture.actor });
+      return { paymentAttempts,bankingRecovery:banking,replacementAcceptance,company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
         unwitnessedEvent: body.id, sourceCluster: transaction.cluster_id, template: fixture.source.intent, permissions, capture };
     }
     const fixture = JSON.parse(readFileSync(0, 'utf8'));
@@ -173,6 +177,7 @@ async function main() {
     await assert.rejects(() => captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.unwitnessedEvent),
       (error: any) => /separately committed native payment/.test(error.cause?.message ?? error.message));
     assert.equal(await witnesses(fixture.unwitnessedEvent), 0, 'Foreign-origin event must remain unwitnessed.');
+    const paymentAttemptRecovery = await verifyPaymentAttempts(pool, fixture.paymentAttempts);
     const body = await reviewed(fixture.company, fixture.actor, fixture.template);
     const posted = await postPayment(fixture.company, fixture.actor, body);
     assert.equal(posted.status, 'posted');
@@ -193,7 +198,7 @@ async function main() {
     const origin = (await pool.query('SELECT cluster_id FROM conditional_discount_payment_transactions WHERE event_id=$1', [body.id])).rows[0];
     assert.notEqual(origin.cluster_id, fixture.sourceCluster, 'Restored cluster must have a different transaction origin.');
     assert.deepEqual(await captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.historicalEvent), fixture.historical);
-    return { nativeBankingRecoveryVerified:true,bankingRecoveryKinds:fixture.bankingRecovery.map((r:any)=>r.kind),
+    return { paymentAttemptRecovery,nativeBankingRecoveryVerified:true,bankingRecoveryKinds:fixture.bankingRecovery.map((r:any)=>r.kind),
       replacementLifecyclesVerified:fixture.replacementAcceptance.length,replacementHistoricalReportsPreserved:true,
       replacementObservationAndConsumptionPreserved:true,newNativePaymentPosted: true, newCommittedWitnessRecorded: true, retrySingleEffect: true,
       historicalWitnessPreserved: true, foreignUnwitnessedRejected: true, distinctClusterOrigin: true,

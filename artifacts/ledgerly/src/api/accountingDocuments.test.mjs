@@ -135,3 +135,9 @@ test('correction discovery uses a scoped abortable GET without financial body or
  assert.equal(calls[0].options.method,'GET');assert.equal(calls[0].options.signal,abort.signal);assert.equal(calls[0].options.body,undefined);
  assert.ok(!calls[0].options.headers['If-Match']);
 });
+test('correction closure posts only immutable binding and admitted errors remain machine readable',async()=>{
+ let seen;const api=createAccountingClient(async(url,init)=>{seen={url,init};return {ok:false,status:409,json:async()=>({error:{code:'CORRECTION_OUTCOME_UNCONFIRMED',correction_attempt:'admitted',message:'Unresolved'}})};});
+ const body={expected_revision:'revision',request_hash:'hash',review_hash:'hash'};
+ await assert.rejects(()=>api.terminateCorrectionAttempt('c/a','d?b','r/a',body),e=>e.correctionAttemptAdmitted===true&&e.status===409);
+ assert.equal(seen.url,'/api/companies/c%2Fa/accounting-documents/d%3Fb/corrections/operations/r%2Fa/no-effect');assert.equal(seen.init.method,'POST');assert.deepEqual(JSON.parse(seen.init.body),body);
+});

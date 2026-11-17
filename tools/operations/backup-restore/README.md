@@ -26,9 +26,10 @@ owns its isolated rehearsal cleanup. Wrapper tests use a synthetic JSON bundle
 containing role, job, audit and original attachment bytes; they do not restore
 PostgreSQL roles/schema or prove full database recovery.
 
-The separate-cluster rehearsal below connects encryption to PostgreSQL.
-Extending it to the complete populated application schema and validating
-representative recovery time are still required. See `docs/operations/recovery-targets.json` for unresolved targets,
+The separate-cluster rehearsal below connects encryption to representative PostgreSQL
+fixtures. The populated application rehearsal described below also restores the complete
+regression schema and runs native services. Neither establishes representative operational
+recovery time. See `docs/operations/recovery-targets.json` for unresolved targets,
 ownership and external provisioning gates.
 
 ## Separate-cluster encrypted PostgreSQL rehearsal
@@ -52,3 +53,44 @@ and grant restoration for representative fixtures. Column types, nullability, de
 application restore drill, restore real customers, establish operational RTO/RPO,
 or qualify off-site storage, custody, retention or production recovery. The
 recorded elapsed duration is only the complete tiny synthetic rehearsal duration.
+
+
+## Populated application and interrupted payment recovery
+
+The existing `node tools/accounting-flow/test.mjs` disposable runner invokes
+`restore-drill.mjs` and `application-recovery.mjs`. It dumps the complete populated
+regression database, authenticates its encrypted archive before restoring it into a
+separate fresh socket-only cluster, reconstructs restricted roles and compares the
+application fingerprints. Native acceptance also verifies original captured bytes,
+access restrictions, banking receipts, payment witnesses and replacement reports.
+Fixture preparation writes occur beforehand in the disposable source. After the dump
+baseline, acceptance writes remain in the new cluster; the source fingerprint must stay intact.
+The runner accepts no shared database or caller-selected restore target.
+
+The new `payment-attempt-acceptance.ts` coverage prepares three real native payment
+attempts before the dump: recorded, closed without effect and interrupted immediately
+after admission. It preserves the exact reviewed commands only in the transient
+synthetic fixture passed between the two guarded runtime processes. The unfinished
+admission is prepared last so it cannot block other preparation writes.
+
+On restore, the native services must return the same states, immutable request
+bindings and actor-owned pending discovery without changing any rows or financial
+effects. The probe explicitly closes the restored pending request, verifies its fresh
+no-effect result, rejects delayed identical commands for both closed attempts and
+replays the recorded command with exactly one event, journal, posting effect,
+transaction-origin row and witness. Unknown references, inaccessible actors and
+another permitted company's scope must not disclose the pending/terminal attempt.
+This does not claim actor-only isolation for committed payment receipts: those remain
+company-scoped under the existing native contract. Runtime UPDATE/DELETE/TRUNCATE
+privileges and always-enabled admission/terminal guards are checked again.
+
+`application-recovery.mjs` requires the resulting payment-attempt receipt to contain
+all three states and every verified flag before marking recovery successful. Absent,
+false or malformed acceptance fails the rehearsal. Exact-source PostgreSQL execution
+is required to qualify this new coverage; local focused tests and bundle compilation
+are not a successful restore result.
+
+The application does not yet have the real durable extraction/job store needed to
+qualify those flows. The `durable_jobs` table in `rehearsal.mjs` is representative test
+data only. Off-site provisioning, operational RTO/RPO, ownership, key custody,
+retention and production recovery remain unresolved gates.

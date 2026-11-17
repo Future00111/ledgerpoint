@@ -182,6 +182,15 @@
         "accounting-payments"
       ],
       "sha256": "7d4ab4c43a80d667a68254e7de90732a1c7fc336c19f81d4c499eb6a220b93d3"
+    },
+    {
+      "id": "correction-operation-recovery",
+      "path": "lib/db/migrations/correction-operation-recovery.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-documents"
+      ],
+      "sha256": "342bf8a65111167516fa56cc8899abefef5ddd594f577344082990acfaa855a0"
     }
   ],
   "securityOverlay": {

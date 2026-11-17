@@ -206,3 +206,41 @@ test('changing company disposes the old discovery without exposing its delayed r
  await other.load();late.resolve({state:'known',request_id:requestId,document_id:documentId,receipt:receipt()});await pending;
  assert.equal(oldEvents.length,count);assert.equal(other.state.status,'discovery');assert.deepEqual(other.state.candidates,[]);assert.equal(other.state.receipt,null);
 });
+
+const attemptBinding=()=>({expected_revision:revision,request_hash:'sha256:'+'b'.repeat(64),review_hash:'sha256:'+'c'.repeat(64)});
+const pendingResult=(state='pending')=>({state,request_id:requestId,document_id:documentId,...attemptBinding()});
+const pendingCandidate=(state='pending')=>({request_id:requestId,document_id:documentId,state,expected_revision:revision,effective_date:'2026-10-30',reason:'Pending reviewed correction'});
+test('pending discovery and terminal discovery require fresh verification, confirmation and another GET before fresh review',async()=>{
+ let terminal=false,reads=0,writes=0,forgot=0,loads=0;
+ const {session}=discoverySetup({discoverCorrections:async()=>({...discovery([]),pending:[pendingCandidate()]}),recoverCorrection:async()=>{reads++;return pendingResult(terminal?'no_effect':'pending');},
+  terminateCorrectionAttempt:async(c,d,id,b)=>{writes++;assert.deepEqual([c,d,id,b],[companyId,documentId,requestId,attemptBinding()]);terminal=true;return pendingResult('no_effect');},
+  correctionContext:async()=>{loads++;return context();}},{forgetRequest:()=>forgot++});
+ await session.load();await session.selectReceipt(requestId);assert.equal(session.state.outcome,'pending');await session.confirmClosure();assert.equal(writes,0);
+ await session.requestClosure();assert.equal(reads,2);assert.equal(session.state.confirming,true);await session.confirmClosure();
+ assert.equal(reads,3);assert.equal(writes,1);assert.equal(forgot,0);assert.equal(session.state.outcome,'no_effect');
+ await session.post();await session.continueFresh();assert.equal(reads,4);assert.equal(forgot,1);assert.equal(loads,1);assert.equal(session.state.status,'ready');assert.equal(session.state.requestId,null);
+ const lost=discoverySetup({discoverCorrections:async()=>({...discovery([]),pending:[pendingCandidate('no_effect')]}),recoverCorrection:async()=>pendingResult('no_effect')}).session;
+ await lost.load();await lost.selectReceipt(requestId);assert.equal(lost.state.outcome,'no_effect');
+});
+test('canonical closure response is verified afresh; malformed or denied terminal GET never unlocks',async()=>{
+ for(const result of [Object.assign(Error('Denied'),{status:403}),{...pendingResult('no_effect'),review_hash:token},{...pendingResult('no_effect'),document_id:companyId}]){
+  let mode='pending',forgot=0;const {session}=discoverySetup({recoverCorrection:async()=>{if(mode==='pending')return pendingResult();if(result instanceof Error)throw result;return result;},terminateCorrectionAttempt:async()=>{mode='terminal';return pendingResult('no_effect');}},{recoveryRequestId:requestId,forgetRequest:()=>forgot++});
+  await session.load();await session.requestClosure();await session.confirmClosure();await session.continueFresh();assert.equal(forgot,0);assert.equal(session.state.status,'unknown');assert.equal(session.state.requestId,requestId);
+ }
+ let reads=0;const {session}=discoverySetup({recoverCorrection:async()=>++reads<3?pendingResult():{state:'known',request_id:requestId,document_id:documentId,receipt:receipt()},terminateCorrectionAttempt:async()=>({state:'known',request_id:requestId,document_id:documentId,receipt:receipt()})},{recoveryRequestId:requestId});
+ await session.load();await session.requestClosure();await session.confirmClosure();assert.equal(reads,3);assert.equal(session.state.status,'posted');
+});
+test('admitted definitive errors preserve identity; disposal and failed locator cleanup fence terminal progression',async()=>{
+ const first=setup({commitCorrection:async()=>{throw Object.assign(Error('Admitted failure'),{status:409,correctionAttemptAdmitted:true});}});await first.session.load();await first.session.review(form());await first.session.post();assert.equal(first.session.state.status,'unknown');assert.equal(first.session.state.requestId,requestId);
+ const cleanup=discoverySetup({recoverCorrection:async()=>pendingResult('no_effect')},{recoveryRequestId:requestId,forgetRequest:()=>{throw Error('No history');}}).session;
+ await cleanup.load();await cleanup.continueFresh();assert.equal(cleanup.state.requestId,requestId);assert.equal(cleanup.state.status,'unknown');
+ const late=deferred(),seen=[];const old=discoverySetup({recoverCorrection:async()=>pendingResult(),terminateCorrectionAttempt:()=>late.promise},{recoveryRequestId:requestId,onState:s=>seen.push(s)}).session;
+ await old.load();await old.requestClosure();const pending=old.confirmClosure();old.dispose();const count=seen.length;late.resolve(pendingResult('no_effect'));await pending;assert.equal(seen.length,count);
+});
+test('malformed pending discovery and substituted admission revision cannot authorize closure',async()=>{
+ for(const candidate of [{...pendingCandidate(),state:'failed'},{...pendingCandidate(),expected_revision:'bad'},{...pendingCandidate(),review_token:token},{...pendingCandidate(),document_id:companyId}]){
+  const {session}=discoverySetup({discoverCorrections:async()=>({...discovery([]),pending:[candidate]})});await session.load();assert.equal(session.state.candidates,null);await session.requestClosure();assert.equal(session.state.confirming,false);
+ }
+ const {session}=discoverySetup({discoverCorrections:async()=>({...discovery([]),pending:[pendingCandidate()]}),recoverCorrection:async()=>({...pendingResult(),expected_revision:nextRevision})});
+ await session.load();await session.selectReceipt(requestId);await session.requestClosure();assert.equal(session.state.status,'unknown');assert.equal(session.state.binding,null);assert.equal(session.state.confirming,false);
+});

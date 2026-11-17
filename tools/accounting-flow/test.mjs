@@ -86,6 +86,12 @@ try {
       env:{...testEnv,DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_restore_test?host=${encodeURIComponent(socket)}&port=${port}`},stdio:'inherit'});
     exitCode=await new Promise((resolve,reject)=>{result.on('error',reject);result.on('exit',code=>resolve(code??1));});
     restore.compensationAcceptanceVerified=exitCode===0;
+    if(exitCode===0){
+      execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild','src/services/operationRecovery/correctionRecovery.restore.test.ts','--bundle','--platform=node','--format=cjs','--external:pg','--outfile=../../generated-artifacts/correction-recovery-restore.test.cjs'],{cwd:root,stdio:'inherit'});
+      const corrections=spawn(process.execPath,['--test',root+'/generated-artifacts/correction-recovery-restore.test.cjs'],{cwd:root,env:{...testEnv,DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_restore_test?host=${encodeURIComponent(socket)}&port=${port}`},stdio:'inherit'});
+      exitCode=await new Promise((resolve,reject)=>{corrections.on('error',reject);corrections.on('exit',code=>resolve(code??1));});
+      restore.correctionRecoveryVerified=exitCode===0;
+    }
     writeFileSync(restoreReceipt,JSON.stringify(restore,null,2)+'\n');
     console.log('Disposable backup/restore verified: original rows, restored evidence and restricted runtime match.');
   }
