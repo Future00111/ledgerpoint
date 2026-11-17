@@ -1,0 +1,99 @@
+{
+  "qualifiedAt": "2026-11-17T19:10:48.380828+00:00",
+  "repository": "Future00111/ledgerpoint",
+  "observedAt": "2026-11-17T19:10:48.047Z",
+  "publishedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66",
+  "publishedTree": "8dfb788aabd7bd7769d252f808f104da53b82c6b",
+  "ciCheckout": "dd8ee0b2607cde9c4b60baa0dd83c60cf1ac2e0a",
+  "ciTree": "8dfb788aabd7bd7769d252f808f104da53b82c6b",
+  "ciParents": [
+    "5e43784fa63232a760dbf4d8a2a356207785deff",
+    "1c52f77c63599b26c4d90862c485db951f12ca66"
+  ],
+  "stateHead": "891c32f7d54b10e4f6b4be95b9db0c427568206d",
+  "authorityRevision": 507,
+  "sourceAndCITreesMatch": true,
+  "reviewer": "root",
+  "authorCommits": [
+    "c9931ba777a780374995e64d61cde85c068ca003",
+    "f440616fcd07eaeb9395d254c53e7cee4dc31eec",
+    "fcc62d46e2a8d464d7635da85cd4aac650b8cec9"
+  ],
+  "ci": {
+    "runId": 44155016720,
+    "jobId": 134293306383,
+    "url": "https://github.com/Future00111/ledgerpoint/actions/runs/44155016720",
+    "all20StepsSuccessUnskipped": true,
+    "nativeExecutionTests": 5,
+    "nativeQueueTests": 8,
+    "actualProcessKillAndFreshRecovery": {
+      "actualProcessKilled": true,
+      "freshProcessRecovery": true,
+      "unknownPhysicalCapacityHeld": true
+    },
+    "nativePopulatedRestore": {
+      "states": [
+        "failed",
+        "retryable",
+        "review_required"
+      ],
+      "unknownPhysicalCapacityHeld": true,
+      "nativeRuntime": true,
+      "immutable": true
+    },
+    "existingAccountingBrowserEncryptedRecoveryCleanup": true
+  },
+  "taxRegister": {
+    "task": "P04-01",
+    "parentCriteriaCovered": [
+      0,
+      1
+    ],
+    "originalFamilies": 29,
+    "declaredVariants": 258,
+    "selections": 909,
+    "focusedTests": 140,
+    "engineQualified": false,
+    "original44CaseRecordsAndReferencePacksPreserved": true,
+    "parentAccepted": true
+  },
+  "outcome": {
+    "id": "durable-intake-execution-20261117",
+    "scenario": "Native document execution journal reconstructs attempts, bounded retries, cancelled/stale result fencing and review-required results; actual worker death and fresh-process recovery preserve unknown physical capacity; populated native restore recovers successful, exhausted and retryable work.",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Trusted supervisor proof/release for execution occupancy left unknown by process death.",
+      "Fenced outbox delivery and scheduling under explicit provider authority.",
+      "Configured native provider execution and prompt cross-process transport cancellation; OCR/email remain not_connected.",
+      "Operational history retention beyond conservative1000executed-job scan; preserve immutable source and audit history."
+    ],
+    "nextAction": "Continue P03-02 with a bounded trusted supervisor closure/recovery protocol before scheduling or provider dispatch. Keep unknown capacity held until independently verified closure; preserve accepted native queued/cancelled and execution outcomes. Normal queue now selects newly unblockedP02-04 first; tax-payroll track selectsP04-03.",
+    "integratedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66"
+  },
+  "executionParentAccepted": false,
+  "workersStopped": true,
+  "worktreesClean": true,
+  "priorFailedRuns": [
+    44154195960
+  ],
+  "rework": "Trusted post-lock clock and corrupt-closure capacity review fixes; one native CI privileged TRUNCATE fixture failure corrected without relaxing FKs, guards, permissions or SQLSTATE.",
+  "metrics": {
+    "runStartedAt": "2026-11-17T18:21:43Z",
+    "elapsedMinutes": 49.1,
+    "acceptedBoundedScenarios": 1,
+    "firstPassCI": false,
+    "providerCost": null,
+    "credits": null,
+    "acceptedParents": 1
+  },
+  "excludedActions": {
+    "merged": false,
+    "deployed": false,
+    "productionChanged": false,
+    "providerConnected": false
+  },
+  "queueRevision": 914
+}

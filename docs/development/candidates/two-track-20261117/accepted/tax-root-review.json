@@ -1,0 +1,82 @@
+{
+  "reviewer": "root",
+  "reviewed": true,
+  "authorCommit": "c9931ba777a780374995e64d61cde85c068ca003",
+  "tree": "eab97f0f9ffe21369bd1bb73da248f91706ad447",
+  "base": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
+  "integratedLocal": "9793e9cafffdee39d95689146fa329bd22ee28f4",
+  "reviewedAt": "2026-11-17T18:46:01.553Z",
+  "findings": [],
+  "files": [
+    {
+      "path": "artifacts/api-server/src/services/tax/contracts/caseRegistry.mjs",
+      "bytes": 11335,
+      "sha256": "e64522c6b6cd98e7fe0b1c886a2accf9a23bcc42cf5a1beb3174d892523e3e3f"
+    },
+    {
+      "path": "artifacts/api-server/src/services/tax/contracts/scope-register.md",
+      "bytes": 4019,
+      "sha256": "02b31d79ef069f6f152fcd97e0e0717c27d1a71ed43ff51aa236d8eb084817b8"
+    },
+    {
+      "path": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.mjs",
+      "bytes": 11441,
+      "sha256": "97e8cae0cb91a420da268699f038ed237fe5ea6a3fd3743078eb9612a6025962"
+    },
+    {
+      "path": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+      "bytes": 9410,
+      "sha256": "0451e16fe45893e31f476f573e7e1423ed135b9465907102ca86cca25fe16fee"
+    },
+    {
+      "path": "docs/development/tax-payroll-supported-cases.json",
+      "bytes": 191224,
+      "sha256": "f5f8db8fce215e74541000e7f17b9f9a7f25a14bb8ff3bb0de8ff33f5b186c8a"
+    }
+  ],
+  "scope": "P04-01 declaration register closure; independent fixture qualification and actual engines remain separate pending work.",
+  "criterionEvidence": [
+    {
+      "criterion": 0,
+      "evidence": "29 original requirements mapped to258 variants and909 entity/variant/year selections; official discovery references, owner, required input and unqualified output examples, immutable requirement hashes and acceptance test pointers."
+    },
+    {
+      "criterion": 1,
+      "evidence": "Independent backlog mapping and exhaustive declared-selector tests; unknown or contradictory selections and missing input fields fail explicitly. Existing44case rows and all reference packs preserved; no engine/scope reduction or supported calculation promotion."
+    }
+  ],
+  "tests": [
+    {
+      "command": "node --test artifacts/api-server/src/services/tax/contracts/*.test.mjs artifacts/api-server/src/services/payroll/contracts/*.test.mjs",
+      "passed": true,
+      "passedCount": 140,
+      "failed": 0,
+      "skipped": 0,
+      "log": "tax-root-focused.log"
+    },
+    {
+      "command": "git diff --check",
+      "passed": true
+    },
+    {
+      "command": "Independent exact author/integration tree and file SHA256 verification",
+      "passed": true
+    }
+  ],
+  "sourceChecks": {
+    "officialSupplementInventoryVerified": true,
+    "accountsFrameworkTaxonomyDistinctionVerified": true,
+    "perBusinessMtdUpdateContextVerified": true,
+    "sourceOnlyDiscoveryNotNumericQualification": true
+  },
+  "authorStopped": true,
+  "firstPassReview": true,
+  "readyForParentAcceptanceAfterCombinedCI": true,
+  "remaining": [
+    "P04-03 must independently verify year-specific rules, exact numeric expected results, boundary/loss/refund/correction/year-transition examples and exceptional instructions; declaration examples deliberately return null outputs.",
+    "Next bounded qualification: existing2026-27Plan1 weekly arithmetic boundaries plus16datednotice scenarios and combined synthetic contract; independently verify against pinned official evidence, preserve other cases as unqualified.",
+    "P02-04 must implement payroll/personal-tax role separation before native sensitive records.",
+    "P04-02 calculation implementation remains gated by existing prerequisites; no dependency removed.",
+    "Complete P08/P09/P10/P11 workflows, applicable combinations, schemas, professional review and owner-controlled external access remain."
+  ]
+}
