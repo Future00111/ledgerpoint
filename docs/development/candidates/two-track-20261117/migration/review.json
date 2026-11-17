@@ -1,0 +1,37 @@
+{
+  "reviewer": "tax_implementation",
+  "reviewed": true,
+  "verdict": "Approved",
+  "authorCommit": "b8697065cb263777a065aee445e6fb876fb8ee44",
+  "authorTree": "4b8279626bda4048ef5095f9d8d9b6deb30d0f69",
+  "basePublished": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59",
+  "findings": [],
+  "verified": {
+    "exactOnePathExpansion": true,
+    "allOtherCatalogFieldsPreserved": true,
+    "taskCount": 112,
+    "sourceBulletCount": 92,
+    "newCatalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f",
+    "checks": {
+      "runtime": {
+        "revision": 901,
+        "events": 916,
+        "onlyDigestChanged": true,
+        "noHeldTasks": true
+      },
+      "source-seed": {
+        "revision": 531,
+        "events": 539,
+        "onlyDigestChanged": true,
+        "noHeldTasks": true
+      }
+    },
+    "runtimeNotInstalled": true
+  },
+  "notes": [
+    "The unrelated pound-sign JSON escaping is semantically unchanged.",
+    "Archive and atomically install reviewed runtime, never stale source seed; preserve existing migration bytes."
+  ],
+  "reviewerStopped": true,
+  "reviewedAt": "2026-11-17T18:24:46.336Z"
+}

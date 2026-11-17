@@ -1,0 +1,126 @@
+{
+  "reviewer": "tax_implementation",
+  "reviewedAt": "2026-11-17T18:29:59.015Z",
+  "candidateCommit": "b8697065cb263777a065aee445e6fb876fb8ee44",
+  "basePublicCommit": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59",
+  "scope": "Complete two-file source publication payload plus complete migrated runtime archive disclosure review",
+  "method": "Read every proposed byte; parse complete JSON; recursively scan every key/string for plaintext token/credential fields and common credential formats; compare complete parsed documents with existing public base blobs or hydrated runtime snapshot.",
+  "verdict": "No excluded new disclosure found",
+  "payloads": [
+    {
+      "path": "docs/development/work-backlog.json",
+      "bytes": 130500,
+      "sha256": "34b98d848b763e462e84f55bbd02f8f11463189826a63c0d444c71ad18860348",
+      "gitBlobSha": "0d796e2391bb80c5e84d31329286ed3fafc0e532",
+      "baseBytes": 130430,
+      "baseSha256": "2ccf20d7c7146253e8826c030a78473677f77f05a078d5b2e510b42736a9e261",
+      "baseGitBlobSha": "455a1eaa5cd04e0cdecc5c384914367eb7dce15f",
+      "matchesGitHubObservedPublicBaseBlob": true,
+      "fullyParsedAndRecursivelyScanned": true,
+      "scan": {
+        "counts": {
+          "nodes": 2033,
+          "strings": 1468,
+          "keys": 2032,
+          "hashedLeaseIdentifiers": 0
+        },
+        "findings": [],
+        "resolvedMatches": []
+      },
+      "changes": [
+        {
+          "path": "tasks[P03-02].files",
+          "operation": "append",
+          "value": "lib/db/migrations/durable-job-execution.review.sql"
+        }
+      ],
+      "unchangedPublicHistory": null
+    },
+    {
+      "path": "docs/development/work-state.json",
+      "bytes": 317079,
+      "sha256": "2a4e5c6a9f113afff593aef2f5e0d0b2c33d36b90f41934362ef24b7b16add5c",
+      "gitBlobSha": "4bdedb20b475be17f536a7e17155653112466d2d",
+      "baseBytes": 317079,
+      "baseSha256": "d4a81f0b4434765380025d8e86c26b0030990195db6c0ef75d9e8ea29affb1c9",
+      "baseGitBlobSha": "6386d39763fe8a5c9493b4d0f2d933f29f96902f",
+      "matchesGitHubObservedPublicBaseBlob": true,
+      "fullyParsedAndRecursivelyScanned": true,
+      "scan": {
+        "counts": {
+          "nodes": 5715,
+          "strings": 3259,
+          "keys": 5714,
+          "hashedLeaseIdentifiers": 109
+        },
+        "findings": [],
+        "resolvedMatches": [
+          {
+            "path": "$.events.26.evidence.tests.0.command",
+            "kind": "dummy_database_url",
+            "reason": "Exact offline placeholder: unused username/password, loopback port 1, no_database; historical test command, not a functioning credential"
+          }
+        ]
+      },
+      "changes": [
+        {
+          "path": "catalogDigest",
+          "operation": "replace",
+          "value": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f"
+        }
+      ],
+      "unchangedPublicHistory": {
+        "events": 539,
+        "revision": 531,
+        "taskCount": 112,
+        "eventsAndTaskRecordsDeepEqual": true
+      }
+    }
+  ],
+  "runtimeArchive": {
+    "path": "migration/runtime-after.json",
+    "bytes": 664394,
+    "sha256": "e5434cb264d620c9acd61ea009f33bdcab03ee738a9d82afdf6ab32d27b5b6e4",
+    "gitBlobSha": "73f2673b3cac992d4d7f1b091edc5a819cba5d57",
+    "scan": {
+      "counts": {
+        "nodes": 10184,
+        "strings": 5673,
+        "keys": 10183,
+        "hashedLeaseIdentifiers": 179
+      },
+      "findings": [],
+      "resolvedMatches": [
+        {
+          "path": "$.events.26.evidence.tests.0.command",
+          "kind": "dummy_database_url",
+          "reason": "Exact offline placeholder: unused username/password, loopback port 1, no_database; historical test command, not a functioning credential"
+        }
+      ]
+    },
+    "fullyParsedAndRecursivelyScanned": true,
+    "events": 916,
+    "revision": 901,
+    "taskCount": 112,
+    "allTasksAndEventsPreservedFromHydratedQ901": true,
+    "onlySemanticChange": "catalogDigest",
+    "authorization": "Standing explicit authorization for public queue/coordinator checkpoints, workflow history and hashed lease identifiers; excludes credentials and raw tokens."
+  },
+  "newSourceDisclosure": [
+    "Additive durable-job-execution.review.sql ownership path",
+    "Updated catalogue SHA-256 identity"
+  ],
+  "preexistingPublicWorkflowHistoryPreserved": true,
+  "newSourceWorkflowHistory": false,
+  "newSourceTokenMaterial": false,
+  "rawTokensOrRealCredentialsFound": false,
+  "limitations": [
+    "Pattern scanning alone cannot prove arbitrary strings are not secrets; complete semantic comparison independently establishes source changes as the reviewed path and catalogue digest.",
+    "Public-base blob identities were supplied by root from GitHub observations and matched locally; this reviewer did not independently invoke another GitHub fetch."
+  ],
+  "notes": [
+    "Pound-sign JSON escaping is a byte representation change only, with identical parsed description.",
+    "Source-state event/task/history records are unchanged from matched public base. Existing tokenSha256 values are hashed lease identifiers covered by standing authorization.",
+    "One historical offline test command contains an exact nonfunctional unused/loopback/no_database placeholder; documented as a resolved pattern match, not silently ignored."
+  ]
+}
